@@ -68,32 +68,38 @@ pub trait Listener<MSG> {
 
 type Messages<MSG> = Rc<RefCell<Vec<MSG>>>;
 type Listeners<MSG> = Vec<Box<Listener<MSG>>>;
+type Tags<MSG> = Vec<Tag<MSG>>;
 
 pub struct Tag<MSG> {
     tag: &'static str,
     listeners: Listeners<MSG>,
+    childs: Vec<Tag<MSG>>,
 }
 
 impl<MSG> Tag<MSG> {
-    fn new(tag: &'static str, listeners: Listeners<MSG>) -> Self {
-        Tag { tag, listeners }
+    fn new(tag: &'static str, listeners: Listeners<MSG>, childs: Tags<MSG>) -> Self {
+        Tag { tag, listeners, childs }
     }
 
-    fn render(self, messages: Messages<MSG>) -> Element {
+    fn render(mut self, messages: Messages<MSG>) -> Element {
         let element = document().create_element(self.tag);
         for mut listener in self.listeners {
             listener.attach(&element, messages.clone());
+        }
+        for child in self.childs.drain(..) {
+            let child_element = child.render(messages.clone());
+            element.append_child(&child_element);
         }
         element
     }
 }
 
-pub fn div<MSG>(listeners: Vec<Box<Listener<MSG>>>) -> Tag<MSG> {
-    Tag::new("div", listeners)
+pub fn div<MSG>(listeners: Listeners<MSG>, tags: Tags<MSG>) -> Tag<MSG> {
+    Tag::new("div", listeners, tags)
 }
 
-pub fn button<MSG>(listeners: Vec<Box<Listener<MSG>>>) -> Tag<MSG> {
-    Tag::new("button", listeners)
+pub fn button<MSG>(listeners: Listeners<MSG>, tags: Tags<MSG>) -> Tag<MSG> {
+    Tag::new("button", listeners, tags)
 }
 
 pub fn onclick<F, MSG>(handler: F) -> Box<Listener<MSG>>
