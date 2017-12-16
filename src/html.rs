@@ -13,6 +13,7 @@ use stdweb;
 use stdweb::web::{
     INode,
     IEventTarget,
+    IElement,
     Element,
     document,
 };
@@ -64,12 +65,14 @@ pub trait Listener<MSG> {
 type Messages<MSG> = Rc<RefCell<Vec<MSG>>>;
 type Listeners<MSG> = Vec<Box<Listener<MSG>>>;
 type Tags<MSG> = Vec<Node<MSG>>;
+type Classes = Vec<&'static str>;
 
 pub enum Node<MSG> {
     Tag {
         tag: &'static str,
         listeners: Listeners<MSG>,
         childs: Vec<Node<MSG>>,
+        classes: Classes,
     },
     Text {
         text: String,
@@ -77,14 +80,17 @@ pub enum Node<MSG> {
 }
 
 impl<MSG> Node<MSG> {
-    fn new(tag: &'static str, listeners: Listeners<MSG>, childs: Tags<MSG>) -> Self {
-        Node::Tag { tag, listeners, childs }
+    fn new(tag: &'static str, classes: Classes, listeners: Listeners<MSG>, childs: Tags<MSG>) -> Self {
+        Node::Tag { tag, classes, listeners, childs }
     }
 
     fn render(self, messages: Messages<MSG>, element: &Element) {
         match self {
-            Node::Tag { tag, listeners, mut childs } => {
+            Node::Tag { tag, classes, listeners, mut childs } => {
                 let child_element = document().create_element(tag);
+                for class in classes {
+                    child_element.class_list().add(&class);
+                }
                 for mut listener in listeners {
                     listener.attach(&child_element, messages.clone());
                 }
@@ -101,12 +107,12 @@ impl<MSG> Node<MSG> {
     }
 }
 
-pub fn div<MSG>(listeners: Listeners<MSG>, tags: Tags<MSG>) -> Node<MSG> {
-    Node::new("div", listeners, tags)
+pub fn div<MSG>(classes: Classes, listeners: Listeners<MSG>, tags: Tags<MSG>) -> Node<MSG> {
+    Node::new("div", classes, listeners, tags)
 }
 
-pub fn button<MSG>(listeners: Listeners<MSG>, tags: Tags<MSG>) -> Node<MSG> {
-    Node::new("button", listeners, tags)
+pub fn button<MSG>(classes: Classes, listeners: Listeners<MSG>, tags: Tags<MSG>) -> Node<MSG> {
+    Node::new("button", classes, listeners, tags)
 }
 
 pub fn text<MSG>(text: &str) -> Node<MSG> {
