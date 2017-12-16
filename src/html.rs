@@ -21,14 +21,6 @@ use stdweb::web::event::{
     ClickEvent,
 };
 
-fn replace_body(element: Element) {
-    let body = document().query_selector("body").unwrap();
-    while body.has_child_nodes() {
-        body.remove_child(&body.last_child().unwrap()).unwrap();
-    }
-    body.append_child(&element);
-}
-
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
     M: 'static,
@@ -46,8 +38,11 @@ where
             update(&mut model, msg);
         }
         let html = view(&model);
-        let element = html.render(messages.clone());
-        replace_body(element);
+        let body = document().query_selector("body").unwrap();
+        while body.has_child_nodes() {
+            body.remove_child(&body.last_child().unwrap()).unwrap();
+        }
+        html.render(messages.clone(), &body);
     };
     // Initial call for first rendering
     callback();
@@ -60,7 +55,7 @@ where
     stdweb::event_loop();
 }
 
-pub type Html<MSG> = Tag<MSG>;
+pub type Html<MSG> = Node<MSG>;
 
 pub trait Listener<MSG> {
     fn attach(&mut self, element: &Element, messages: Messages<MSG>);
@@ -68,38 +63,56 @@ pub trait Listener<MSG> {
 
 type Messages<MSG> = Rc<RefCell<Vec<MSG>>>;
 type Listeners<MSG> = Vec<Box<Listener<MSG>>>;
-type Tags<MSG> = Vec<Tag<MSG>>;
+type Tags<MSG> = Vec<Node<MSG>>;
 
-pub struct Tag<MSG> {
-    tag: &'static str,
-    listeners: Listeners<MSG>,
-    childs: Vec<Tag<MSG>>,
+pub enum Node<MSG> {
+    Tag {
+        tag: &'static str,
+        listeners: Listeners<MSG>,
+        childs: Vec<Node<MSG>>,
+    },
+    Text {
+        text: String,
+    },
 }
 
-impl<MSG> Tag<MSG> {
+impl<MSG> Node<MSG> {
     fn new(tag: &'static str, listeners: Listeners<MSG>, childs: Tags<MSG>) -> Self {
-        Tag { tag, listeners, childs }
+        Node::Tag { tag, listeners, childs }
     }
 
-    fn render(mut self, messages: Messages<MSG>) -> Element {
-        let element = document().create_element(self.tag);
-        for mut listener in self.listeners {
-            listener.attach(&element, messages.clone());
+    fn render(self, messages: Messages<MSG>, element: &Element) {
+        match self {
+            Node::Tag { tag, listeners, mut childs } => {
+                let child_element = document().create_element(tag);
+                for mut listener in listeners {
+                    listener.attach(&child_element, messages.clone());
+                }
+                for child in childs.drain(..) {
+                    child.render(messages.clone(), &child_element);
+                }
+                element.append_child(&child_element);
+            },
+            Node::Text { text } => {
+                let child_element = document().create_text_node(&text);
+                element.append_child(&child_element);
+            },
         }
-        for child in self.childs.drain(..) {
-            let child_element = child.render(messages.clone());
-            element.append_child(&child_element);
-        }
-        element
     }
 }
 
-pub fn div<MSG>(listeners: Listeners<MSG>, tags: Tags<MSG>) -> Tag<MSG> {
-    Tag::new("div", listeners, tags)
+pub fn div<MSG>(listeners: Listeners<MSG>, tags: Tags<MSG>) -> Node<MSG> {
+    Node::new("div", listeners, tags)
 }
 
-pub fn button<MSG>(listeners: Listeners<MSG>, tags: Tags<MSG>) -> Tag<MSG> {
-    Tag::new("button", listeners, tags)
+pub fn button<MSG>(listeners: Listeners<MSG>, tags: Tags<MSG>) -> Node<MSG> {
+    Node::new("button", listeners, tags)
+}
+
+pub fn text<MSG>(text: &str) -> Node<MSG> {
+    Node::Text {
+        text: text.to_string(),
+    }
 }
 
 pub fn onclick<F, MSG>(handler: F) -> Box<Listener<MSG>>
