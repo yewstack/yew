@@ -1,0 +1,7 @@
+[package]
+name = "yew-prototype"
+version = "0.1.0"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+
+[dependencies]
+stdweb = { git = "https://github.com/koute/stdweb" }
