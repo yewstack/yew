@@ -52,7 +52,14 @@ where
 pub type Html<MSG> = Node<MSG>;
 
 pub trait Listener<MSG> {
+    fn kind(&self) -> &'static str;
     fn attach(&mut self, element: &Element, messages: Messages<MSG>);
+}
+
+impl<MSG> fmt::Debug for Listener<MSG> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Listener {{ kind: {} }}", self.kind())
+    }
 }
 
 type Messages<MSG> = Rc<RefCell<Vec<MSG>>>;
@@ -124,6 +131,17 @@ impl<MSG> Node<MSG> {
         }
     }
 
+    pub fn add_listener(&mut self, listener: Box<Listener<MSG>>) {
+        match self {
+            &mut Node::Tag { ref mut listeners, .. } => {
+                listeners.push(listener);
+            }
+            &mut Node::Text { .. } => {
+                panic!("attempt to add listener to text node");
+            }
+        }
+    }
+
     fn render(self, messages: Messages<MSG>, element: &Element) {
         match self {
             Node::Tag {
@@ -167,6 +185,8 @@ where
     MSG: 'static,
     T: Fn(ClickEvent) -> MSG + 'static,
 {
+    fn kind(&self) -> &'static str { "onclick" }
+
     fn attach(&mut self, element: &Element, messages: Messages<MSG>) {
         let handler = self.0.take().unwrap();
         let sender = move |event| {

@@ -1,4 +1,4 @@
-use html::{Tags, Node};
+use html::{Tags, Node, Listener};
 
 #[macro_export]
 macro_rules! html_impl {
@@ -12,6 +12,13 @@ macro_rules! html_impl {
         $crate::macros::attach_class(&mut $stack, $class);
         html_impl! { $stack ($($tail)*) }
     };
+    // PATTERN: (action)=expression,
+    ($stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
+        let listener = $crate::html::$action($handler);
+        $crate::macros::attach_listener(&mut $stack, listener);
+        html_impl! { $stack ($($tail)*) }
+    };
+    // PATTERN: { expression }
     ($stack:ident ({ $eval:expr } $($tail:tt)*)) => {
         let node = $crate::html::Node::new_text($eval);
         $crate::macros::add_child(&mut $stack, node);
@@ -45,6 +52,15 @@ pub fn attach_class<MSG>(stack: &mut Tags<MSG>, class: &'static str) {
         node.add_classes(class);
     } else {
         panic!("no tag to attach class: {}", class);
+    }
+}
+
+#[doc(hidden)]
+pub fn attach_listener<MSG>(stack: &mut Tags<MSG>, listener: Box<Listener<MSG>>) {
+    if let Some(node) = stack.last_mut() {
+        node.add_listener(listener);
+    } else {
+        panic!("no tag to attach listener: {:?}", listener);
     }
 }
 
