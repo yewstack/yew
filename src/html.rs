@@ -64,7 +64,7 @@ pub trait Listener<MSG> {
 
 type Messages<MSG> = Rc<RefCell<Vec<MSG>>>;
 type Listeners<MSG> = Vec<Box<Listener<MSG>>>;
-type Tags<MSG> = Vec<Node<MSG>>;
+pub type Tags<MSG> = Vec<Node<MSG>>;
 type Classes = Vec<&'static str>;
 
 pub enum Node<MSG> {
@@ -80,8 +80,33 @@ pub enum Node<MSG> {
 }
 
 impl<MSG> Node<MSG> {
-    fn new(tag: &'static str, classes: Classes, listeners: Listeners<MSG>, childs: Tags<MSG>) -> Self {
-        Node::Tag { tag, classes, listeners, childs }
+    pub fn new(tag: &'static str) -> Self {
+        //, classes: Classes, listeners: Listeners<MSG>, childs: Tags<MSG>) -> Self {
+        Node::Tag {
+            tag: tag,
+            classes: Vec::new(),
+            listeners: Vec::new(),
+            childs: Vec::new(),
+        }
+    }
+
+    pub fn tag(&self) -> Option<&'static str> {
+        if let &Node::Tag { tag, .. } = self {
+            Some(tag)
+        } else {
+            None
+        }
+    }
+
+    pub fn add_child(&mut self, node: Node<MSG>) {
+        match self {
+            &mut Node::Tag { ref mut childs, .. } => {
+                childs.push(node);
+            }
+            &mut Node::Text { .. } => {
+                panic!("attempt to add child to text node");
+            }
+        }
     }
 
     fn render(self, messages: Messages<MSG>, element: &Element) {
@@ -107,6 +132,7 @@ impl<MSG> Node<MSG> {
     }
 }
 
+/*
 pub fn div<MSG>(classes: Classes, listeners: Listeners<MSG>, tags: Tags<MSG>) -> Node<MSG> {
     Node::new("div", classes, listeners, tags)
 }
@@ -120,6 +146,7 @@ pub fn text<MSG>(text: &str) -> Node<MSG> {
         text: text.to_string(),
     }
 }
+*/
 
 pub fn onclick<F, MSG>(handler: F) -> Box<Listener<MSG>>
 where
