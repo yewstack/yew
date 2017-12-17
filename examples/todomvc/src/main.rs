@@ -13,9 +13,19 @@ struct Entry {
 }
 
 enum Msg {
+    Add,
 }
 
 fn update(model: &mut Model, msg: Msg) {
+    match msg {
+        Add => {
+            let entry = Entry {
+                description: "Test".into(),
+                completed: false,
+            };
+            model.entries.push(entry);
+        }
+    }
 }
 
 fn view(model: &Model) -> html::Html<Msg> {
@@ -24,8 +34,8 @@ fn view(model: &Model) -> html::Html<Msg> {
             <section class="todoapp",>
                 <header class="header",>
                     <h1>{ "Todos" }</h1>
-                    <= viewInput() =>
-                    <= viewEntries(&model.entries) =>
+                    { viewInput() }
+                    { viewEntries(&model.entries) }
                 </header>
             </section>
         </div>
@@ -34,14 +44,21 @@ fn view(model: &Model) -> html::Html<Msg> {
 
 fn viewInput() -> html::Html<Msg> {
     html! {
-        <input class="new-todo",/>
+        <input class="new-todo", (onclick)=|_| Msg::Add, />
     }
 }
 
 fn viewEntries(entries: &Vec<Entry>) -> html::Html<Msg> {
     html! {
         <section class="main",>
+            { for entries.iter().map(viewEntry) }
         </section>
+    }
+}
+
+fn viewEntry(entry: &Entry) -> html::Html<Msg> {
+    html! {
+        <li>{ &entry.description }</li>
     }
 }
 

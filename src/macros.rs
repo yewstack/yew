@@ -2,12 +2,6 @@ use html::{Tags, Node, Listener};
 
 #[macro_export]
 macro_rules! html_impl {
-    // Add a component into the tree
-    ($stack:ident (<= $eval:expr => $($tail:tt)*)) => {
-        let node = $eval;
-        $crate::macros::add_child(&mut $stack, node);
-        html_impl! { $stack ($($tail)*) }
-    };
     // Start of openging tag
     ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
         let node = $crate::html::Node::new(stringify!($starttag));
@@ -25,9 +19,17 @@ macro_rules! html_impl {
         $crate::macros::attach_listener(&mut $stack, listener);
         html_impl! { $stack ($($tail)*) }
     };
+    // PATTERN: { for expression }
+    ($stack:ident ({ for $eval:expr } $($tail:tt)*)) => {
+        let nodes = $eval;
+        for node in nodes.map($crate::html::Node::from) {
+            $crate::macros::add_child(&mut $stack, node);
+        }
+        html_impl! { $stack ($($tail)*) }
+    };
     // PATTERN: { expression }
     ($stack:ident ({ $eval:expr } $($tail:tt)*)) => {
-        let node = $crate::html::Node::new_text($eval);
+        let node = $crate::html::Node::from($eval);
         $crate::macros::add_child(&mut $stack, node);
         html_impl! { $stack ($($tail)*) }
     };

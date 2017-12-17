@@ -77,6 +77,12 @@ pub enum Node<MSG> {
     Text { text: String },
 }
 
+impl<T: ToString, MSG> From<T> for Node<MSG> {
+    fn from(value: T) -> Self {
+        Node::new_text(value)
+    }
+}
+
 impl<MSG> fmt::Debug for Node<MSG> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
