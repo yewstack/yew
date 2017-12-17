@@ -44,6 +44,7 @@ struct Entry {
 
 enum Msg {
     Add,
+    Remove(usize),
     SetFilter(Filter),
 }
 
@@ -55,6 +56,9 @@ fn update(model: &mut Model, msg: Msg) {
                 completed: false,
             };
             model.entries.push(entry);
+        }
+        Msg::Remove(idx) => {
+            model.entries.remove(idx);
         }
         Msg::SetFilter(filter) => {
             model.filter = filter;
@@ -118,15 +122,21 @@ fn view_input() -> html::Html<Msg> {
 
 fn view_entries(entries: &Vec<Entry>) -> html::Html<Msg> {
     html! {
-        <section class="main",>
-            { for entries.iter().map(view_entry) }
-        </section>
+        <ul class="todo-list",>
+            { for entries.iter().enumerate().map(view_entry) }
+        </ul>
     }
 }
 
-fn view_entry(entry: &Entry) -> html::Html<Msg> {
+fn view_entry((idx, entry): (usize, &Entry)) -> html::Html<Msg> {
     html! {
-        <li>{ &entry.description }</li>
+        <li>
+            <div class="view",>
+                <input class="toggle", type="checkbox", />
+                <label>{ &entry.description }</label>
+                <button class="destroy", (onclick)=move |_| Msg::Remove(idx),></button>
+            </div>
+        </li>
     }
 }
 
