@@ -32,9 +32,9 @@ fn update(model: &mut Model, msg: Msg) {
 fn view(model: &Model) -> html::Html<Msg> {
     html! {
         <div>
-            <nav>
-                <button></button>
-                <button></button>
+            <nav class="menu",>
+                <button>{ "Increment" }</button>
+                <button>{ "Decrement" }</button>
             </nav>
             <input></input>
         </div>
