@@ -90,7 +90,7 @@ impl<MSG> Node<MSG> {
         }
     }
 
-    pub fn new_text(text: &'static str) -> Self {
+    pub fn new_text<T: ToString>(text: T) -> Self {
         Node::Text { text: text.to_string() }
     }
 

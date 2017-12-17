@@ -5,8 +5,11 @@ Elm like framework, but for Rust and WASM revolution.
 ## Minimal application
 
 ```rust
+extern crate chrono;
+#[macro_use]
 extern crate yew;
 
+use chrono::prelude::*;
 use yew::html;
 
 struct Model {
@@ -36,7 +39,7 @@ fn view(model: &Model) -> html::Html<Msg> {
                 <button>{ "Increment" }</button>
                 <button>{ "Decrement" }</button>
             </nav>
-            <input></input>
+            <p>{ Local::now() }</p>
         </div>
     }
 }
