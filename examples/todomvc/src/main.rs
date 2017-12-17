@@ -69,10 +69,10 @@ fn view(model: &Model) -> html::Html<Msg> {
                 <header class="header",>
                     <h1>{ "todos" }</h1>
                     { view_input() }
-                    { view_entries(&model.entries) }
                 </header>
                 <section class="main",>
-                    <input class="toggle-all", />
+                    <input class="toggle-all", type="checkbox",/>
+                    { view_entries(&model.entries) }
                 </section>
                 <footer class="footer",>
                     <span class="todo-count",>

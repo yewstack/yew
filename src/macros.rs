@@ -21,6 +21,11 @@ macro_rules! html_impl {
         $crate::macros::attach_listener(&mut $stack, listener);
         html_impl! { $stack ($($tail)*) }
     };
+    // PATTERN: attribute=value,
+    ($stack:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
+        // TODO Use ToString implementors
+        html_impl! { $stack ($($tail)*) }
+    };
     // PATTERN: { for expression }
     ($stack:ident ({ for $eval:expr } $($tail:tt)*)) => {
         let nodes = $eval;
