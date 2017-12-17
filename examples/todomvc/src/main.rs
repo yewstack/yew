@@ -5,8 +5,26 @@ extern crate yew;
 
 use yew::html;
 
+enum Filter {
+    All,
+    Active,
+    Completed,
+}
+
+impl ToString for Filter {
+    fn to_string(&self) -> String {
+        let name = match *self {
+            Filter::All => "All",
+            Filter::Active => "Active",
+            Filter::Completed => "Completed",
+        };
+        name.to_string()
+    }
+}
+
 struct Model {
     entries: Vec<Entry>,
+    filter: Filter,
 }
 
 impl Model {
@@ -26,16 +44,20 @@ struct Entry {
 
 enum Msg {
     Add,
+    SetFilter(Filter),
 }
 
 fn update(model: &mut Model, msg: Msg) {
     match msg {
-        Add => {
+        Msg::Add => {
             let entry = Entry {
                 description: "Test".into(),
                 completed: false,
             };
             model.entries.push(entry);
+        }
+        Msg::SetFilter(filter) => {
+            model.filter = filter;
         }
     }
 }
@@ -50,6 +72,7 @@ fn view(model: &Model) -> html::Html<Msg> {
                     { view_entries(&model.entries) }
                 </header>
                 <section class="main",>
+                    <input class="toggle-all", />
                 </section>
                 <footer class="footer",>
                     <span class="todo-count",>
@@ -57,11 +80,13 @@ fn view(model: &Model) -> html::Html<Msg> {
                         { " item(s) left" }
                     </span>
                     <ul class="filters",>
-                        <li><a>{ "All" }</a></li>
-                        <li><a>{ "Active" }</a></li>
-                        <li><a>{ "Completed" }</a></li>
+                        <li><a (onclick)=|_| Msg::SetFilter(Filter::All),>{ Filter::All }</a></li>
+                        <li><a (onclick)=|_| Msg::SetFilter(Filter::Active),>{ Filter::Active }</a></li>
+                        <li><a (onclick)=|_| Msg::SetFilter(Filter::Completed),>{ Filter::Completed }</a></li>
                     </ul>
-                    <button class="clear-completed",>{ format!("Clear completed ({})", model.total_completed()) }</button>
+                    <button class="clear-completed",>
+                        { format!("Clear completed ({})", model.total_completed()) }
+                    </button>
                 </footer>
             </section>
             <footer class="info",>
@@ -96,6 +121,7 @@ fn view_entry(entry: &Entry) -> html::Html<Msg> {
 fn main() {
     let model = Model {
         entries: Vec::new(),
+        filter: Filter::All,
     };
     html::program(model, update, view);
 }

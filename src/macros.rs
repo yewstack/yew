@@ -15,7 +15,9 @@ macro_rules! html_impl {
     };
     // PATTERN: (action)=expression,
     ($stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
-        let listener = $crate::html::$action($handler);
+        // Catch value to a separate variable for clear error messages
+        let handler = $handler;
+        let listener = $crate::html::$action(handler);
         $crate::macros::attach_listener(&mut $stack, listener);
         html_impl! { $stack ($($tail)*) }
     };
@@ -57,10 +59,10 @@ macro_rules! html_impl {
 // This entrypoint and implementation had separated to prevent infinite recursion.
 #[macro_export]
 macro_rules! html {
-    ($($tail:tt)*) => {{
+    ($($tail:tt)*) => {
         let mut stack = Vec::new();
         html_impl! { stack ($($tail)*) }
-    }};
+    };
 }
 
 #[doc(hidden)]
