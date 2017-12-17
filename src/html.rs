@@ -11,17 +11,9 @@ impl<T: ConcreteEvent> Fn(T) -> Self for Message {
 
 use stdweb;
 
-use stdweb::web::{
-    INode,
-    IEventTarget,
-    IElement,
-    Element,
-    document,
-};
+use stdweb::web::{INode, IEventTarget, IElement, Element, document};
 
-use stdweb::web::event::{
-    ClickEvent,
-};
+use stdweb::web::event::ClickEvent;
 
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
@@ -75,20 +67,14 @@ pub enum Node<MSG> {
         childs: Vec<Node<MSG>>,
         classes: Classes,
     },
-    Text {
-        text: String,
-    },
+    Text { text: String },
 }
 
 impl<MSG> fmt::Debug for Node<MSG> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Node::Tag { ref tag, .. } => {
-                write!(f, "Node::Tag {{ tag: {} }}", tag)
-            }
-            &Node::Text { ref text, .. } => {
-                write!(f, "Node::Text {{ text: {} }}", text)
-            }
+            &Node::Tag { ref tag, .. } => write!(f, "Node::Tag {{ tag: {} }}", tag),
+            &Node::Text { ref text, .. } => write!(f, "Node::Text {{ text: {} }}", text),
         }
     }
 }
@@ -105,9 +91,7 @@ impl<MSG> Node<MSG> {
     }
 
     pub fn new_text(text: &'static str) -> Self {
-        Node::Text {
-            text: text.to_string(),
-        }
+        Node::Text { text: text.to_string() }
     }
 
     pub fn tag(&self) -> Option<&'static str> {
@@ -142,7 +126,12 @@ impl<MSG> Node<MSG> {
 
     fn render(self, messages: Messages<MSG>, element: &Element) {
         match self {
-            Node::Tag { tag, classes, listeners, mut childs } => {
+            Node::Tag {
+                tag,
+                classes,
+                listeners,
+                mut childs,
+            } => {
                 let child_element = document().create_element(tag);
                 for class in classes {
                     child_element.class_list().add(&class);
@@ -154,35 +143,19 @@ impl<MSG> Node<MSG> {
                     child.render(messages.clone(), &child_element);
                 }
                 element.append_child(&child_element);
-            },
+            }
             Node::Text { text } => {
                 let child_element = document().create_text_node(&text);
                 element.append_child(&child_element);
-            },
+            }
         }
     }
 }
 
-/*
-pub fn div<MSG>(classes: Classes, listeners: Listeners<MSG>, tags: Tags<MSG>) -> Node<MSG> {
-    Node::new("div", classes, listeners, tags)
-}
-
-pub fn button<MSG>(classes: Classes, listeners: Listeners<MSG>, tags: Tags<MSG>) -> Node<MSG> {
-    Node::new("button", classes, listeners, tags)
-}
-
-pub fn text<MSG>(text: &str) -> Node<MSG> {
-    Node::Text {
-        text: text.to_string(),
-    }
-}
-*/
-
 pub fn onclick<F, MSG>(handler: F) -> Box<Listener<MSG>>
 where
     MSG: 'static,
-    F: Fn(ClickEvent) -> MSG + 'static
+    F: Fn(ClickEvent) -> MSG + 'static,
 {
     Box::new(OnClick(Some(handler)))
 }
@@ -207,4 +180,3 @@ where
         element.add_event_listener(sender);
     }
 }
-
