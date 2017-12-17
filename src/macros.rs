@@ -17,7 +17,7 @@ macro_rules! html_impl {
     ($stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
         // Catch value to a separate variable for clear error messages
         let handler = $handler;
-        let listener = $crate::html::$action(handler);
+        let listener = $crate::html::$action::wrap(handler);
         $crate::macros::attach_listener(&mut $stack, listener);
         html_impl! { $stack ($($tail)*) }
     };
@@ -119,3 +119,4 @@ pub fn child_to_parent<MSG>(stack: &mut Tags<MSG>, endtag: Option<&'static str>)
         panic!("redundant closing tag: {:?}", endtag);
     }
 }
+

@@ -11,9 +11,7 @@ impl<T: ConcreteEvent> Fn(T) -> Self for Message {
 
 use stdweb;
 
-use stdweb::web::{INode, IEventTarget, IElement, Element, document};
-
-use stdweb::web::event::ClickEvent;
+use stdweb::web::{INode, IElement, Element, document};
 
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
@@ -26,7 +24,6 @@ where
     // No messages at start
     let messages = Rc::new(RefCell::new(Vec::new()));
     let mut callback = move || {
-        println!("Process messages");
         let mut borrowed = messages.borrow_mut();
         for msg in borrowed.drain(..) {
             update(&mut model, msg);
@@ -94,7 +91,6 @@ impl<MSG> fmt::Debug for Node<MSG> {
 
 impl<MSG> Node<MSG> {
     pub fn new(tag: &'static str) -> Self {
-        //, classes: Classes, listeners: Listeners<MSG>, childs: Tags<MSG>) -> Self {
         Node::Tag {
             tag: tag,
             classes: Vec::new(),
@@ -153,14 +149,14 @@ impl<MSG> Node<MSG> {
             Node::Tag {
                 tag,
                 classes,
-                listeners,
+                mut listeners,
                 mut childs,
             } => {
                 let child_element = document().create_element(tag);
                 for class in classes {
                     child_element.class_list().add(&class);
                 }
-                for mut listener in listeners {
+                for mut listener in listeners.drain(..) {
                     listener.attach(&child_element, messages.clone());
                 }
                 for child in childs.drain(..) {
@@ -176,35 +172,59 @@ impl<MSG> Node<MSG> {
     }
 }
 
-pub fn onclick<F, MSG>(handler: F) -> Box<Listener<MSG>>
-where
-    MSG: 'static,
-    F: Fn(ClickEvent) -> MSG + 'static,
-{
-    Box::new(OnClick(Some(handler)))
-}
+macro_rules! impl_action {
+    ($($action:ident => $event:ident,)*) => {$(
+        pub mod $action {
+            use stdweb::web::{IEventTarget, Element};
+            use stdweb::web::event::$event;
+            use super::{Messages, Listener};
 
-struct OnClick<T>(Option<T>);
-
-impl<T, MSG> Listener<MSG> for OnClick<T>
-where
-    MSG: 'static,
-    T: Fn(ClickEvent) -> MSG + 'static,
-{
-    fn kind(&self) -> &'static str {
-        "onclick"
-    }
-
-    fn attach(&mut self, element: &Element, messages: Messages<MSG>) {
-        let handler = self.0.take().unwrap();
-        let sender = move |event| {
-            println!("Clicked!");
-            let msg = handler(event);
-            messages.borrow_mut().push(msg);
-            js! {
-                yew_loop();
+            pub fn wrap<F, MSG>(handler: F) -> Box<Listener<MSG>>
+            where
+                MSG: 'static,
+                F: Fn($event) -> MSG + 'static,
+            {
+                Box::new(Wrapper(Some(handler)))
             }
-        };
-        element.add_event_listener(sender);
-    }
+
+            struct Wrapper<T>(Option<T>);
+
+            impl<T, MSG> Listener<MSG> for Wrapper<T>
+            where
+                MSG: 'static,
+                T: Fn($event) -> MSG + 'static,
+            {
+                fn kind(&self) -> &'static str {
+                    stringify!($action)
+                }
+
+                fn attach(&mut self, element: &Element, messages: Messages<MSG>) {
+                    let handler = self.0.take().unwrap();
+                    let sender = move |event| {
+                        let msg = handler(event);
+                        messages.borrow_mut().push(msg);
+                        js! { yew_loop(); }
+                    };
+                    element.add_event_listener(sender);
+                }
+            }
+        }
+    )*};
 }
+
+impl_action! {
+    onchange => ChangeEvent,
+    onload => LoadEvent,
+    onclick => ClickEvent,
+    ondoubleclick => DoubleClickEvent,
+    onkeypress => KeypressEvent,
+    onfocus => FocusEvent,
+    onblur => BlurEvent,
+    onhashchange => HashChangeEvent,
+    onprogress => ProgressEvent,
+    onloadstart => LoadStartEvent,
+    onloadend => LoadEndEvent,
+    onabort => AbortEvent,
+    onerror => ErrorEvent,
+}
+
