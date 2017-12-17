@@ -185,7 +185,9 @@ where
     MSG: 'static,
     T: Fn(ClickEvent) -> MSG + 'static,
 {
-    fn kind(&self) -> &'static str { "onclick" }
+    fn kind(&self) -> &'static str {
+        "onclick"
+    }
 
     fn attach(&mut self, element: &Element, messages: Messages<MSG>) {
         let handler = self.0.take().unwrap();
