@@ -2,6 +2,7 @@ use html::{Tags, Node, Listener};
 
 #[macro_export]
 macro_rules! html_impl {
+    // Start of openging tag
     ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
         let node = $crate::html::Node::new(stringify!($starttag));
         $stack.push(node);
@@ -24,14 +25,22 @@ macro_rules! html_impl {
         $crate::macros::add_child(&mut $stack, node);
         html_impl! { $stack ($($tail)*) }
     };
+    // End of openging tag
     ($stack:ident (> $($tail:tt)*)) => {
         html_impl! { $stack ($($tail)*) }
     };
-    ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
-        let endtag = stringify!($endtag);
-        $crate::macros::child_to_parent(&mut $stack, endtag);
+    // Self-closing of tag
+    ($stack:ident (/ > $($tail:tt)*)) => {
+        $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
     };
+    // Traditional tag closing
+    ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
+        let endtag = stringify!($endtag);
+        $crate::macros::child_to_parent(&mut $stack, Some(endtag));
+        html_impl! { $stack ($($tail)*) }
+    };
+    // "End of paring" rule
     ($stack:ident ()) => {
         $stack.pop().unwrap()
     };
@@ -74,14 +83,16 @@ pub fn add_child<MSG>(stack: &mut Tags<MSG>, node: Node<MSG>) {
 }
 
 #[doc(hidden)]
-pub fn child_to_parent<MSG>(stack: &mut Tags<MSG>, endtag: &'static str) {
+pub fn child_to_parent<MSG>(stack: &mut Tags<MSG>, endtag: Option<&'static str>) {
     if let Some(node) = stack.pop() {
         if let Some(starttag) = node.tag() {
-            if starttag != endtag {
-                panic!("wrong closing tag: <{}> -> </{}>", starttag, endtag);
+            if let Some(endtag) = endtag {
+                if starttag != endtag {
+                    panic!("wrong closing tag: <{}> -> </{}>", starttag, endtag);
+                }
             }
         } else {
-            panic!("trying to close untagged node with: {}", endtag);
+            panic!("trying to close untagged node with: {:?}", endtag);
         }
         if !stack.is_empty() {
             stack.last_mut().unwrap().add_child(node);
@@ -90,6 +101,6 @@ pub fn child_to_parent<MSG>(stack: &mut Tags<MSG>, endtag: &'static str) {
             stack.push(node);
         }
     } else {
-        panic!("redundant closing tag: {}", endtag);
+        panic!("redundant closing tag: {:?}", endtag);
     }
 }
