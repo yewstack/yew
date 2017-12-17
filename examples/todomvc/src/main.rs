@@ -24,10 +24,24 @@ fn view(model: &Model) -> html::Html<Msg> {
             <section class="todoapp",>
                 <header class="header",>
                     <h1>{ "Todos" }</h1>
-                    <input class="new-todo",/>
+                    <= viewInput() =>
+                    <= viewEntries(&model.entries) =>
                 </header>
             </section>
         </div>
+    }
+}
+
+fn viewInput() -> html::Html<Msg> {
+    html! {
+        <input class="new-todo",/>
+    }
+}
+
+fn viewEntries(entries: &Vec<Entry>) -> html::Html<Msg> {
+    html! {
+        <section class="main",>
+        </section>
     }
 }
 
