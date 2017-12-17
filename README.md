@@ -36,8 +36,8 @@ fn view(model: &Model) -> html::Html<Msg> {
     html! {
         <div>
             <nav class="menu",>
-                <button>{ "Increment" }</button>
-                <button>{ "Decrement" }</button>
+                <button (onclick)=|_| Msg::Increment,>{ "Increment" }</button>
+                <button (onclick)=|_| Msg::Decrement,>{ "Decrement" }</button>
             </nav>
             <p>{ Local::now() }</p>
         </div>
