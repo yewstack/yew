@@ -119,4 +119,3 @@ pub fn child_to_parent<MSG>(stack: &mut Tags<MSG>, endtag: Option<&'static str>)
         panic!("redundant closing tag: {:?}", endtag);
     }
 }
-

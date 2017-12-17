@@ -227,4 +227,3 @@ impl_action! {
     onabort => AbortEvent,
     onerror => ErrorEvent,
 }
-

@@ -80,9 +80,21 @@ fn view(model: &Model) -> html::Html<Msg> {
                         { " item(s) left" }
                     </span>
                     <ul class="filters",>
-                        <li><a (onclick)=|_| Msg::SetFilter(Filter::All),>{ Filter::All }</a></li>
-                        <li><a (onclick)=|_| Msg::SetFilter(Filter::Active),>{ Filter::Active }</a></li>
-                        <li><a (onclick)=|_| Msg::SetFilter(Filter::Completed),>{ Filter::Completed }</a></li>
+                        <li>
+                            <a (onclick)=|_| Msg::SetFilter(Filter::All),>
+                                { Filter::All }
+                            </a>
+                        </li>
+                        <li>
+                            <a (onclick)=|_| Msg::SetFilter(Filter::Active),>
+                                { Filter::Active }
+                            </a>
+                        </li>
+                        <li>
+                            <a (onclick)=|_| Msg::SetFilter(Filter::Completed),>
+                                { Filter::Completed }
+                            </a>
+                        </li>
                     </ul>
                     <button class="clear-completed",>
                         { format!("Clear completed ({})", model.total_completed()) }
