@@ -112,7 +112,7 @@ fn view(model: &Model) -> html::Html<Msg> {
 
 fn view_input() -> html::Html<Msg> {
     html! {
-        <input class="new-todo", (onclick)=|_| Msg::Add, />
+        <input class="new-todo", placeholder="What needs to be done?", (onclick)=|_| Msg::Add, />
     }
 }
 

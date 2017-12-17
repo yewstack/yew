@@ -1,6 +1,7 @@
 use std::fmt;
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::collections::HashMap;
 
 /*
 pub trait Message {}
@@ -61,6 +62,7 @@ impl<MSG> fmt::Debug for Listener<MSG> {
 
 type Messages<MSG> = Rc<RefCell<Vec<MSG>>>;
 type Listeners<MSG> = Vec<Box<Listener<MSG>>>;
+type Attributes = HashMap<&'static str, String>;
 pub type Tags<MSG> = Vec<Node<MSG>>;
 type Classes = Vec<&'static str>;
 
@@ -68,6 +70,7 @@ pub enum Node<MSG> {
     Tag {
         tag: &'static str,
         listeners: Listeners<MSG>,
+        attributes: Attributes,
         childs: Vec<Node<MSG>>,
         classes: Classes,
     },
@@ -94,6 +97,7 @@ impl<MSG> Node<MSG> {
         Node::Tag {
             tag: tag,
             classes: Vec::new(),
+            attributes: HashMap::new(),
             listeners: Vec::new(),
             childs: Vec::new(),
         }
@@ -133,6 +137,17 @@ impl<MSG> Node<MSG> {
         }
     }
 
+    pub fn add_attribute<T: ToString>(&mut self, name: &'static str, value: T) {
+        match self {
+            &mut Node::Tag { ref mut attributes, .. } => {
+                attributes.insert(name, value.to_string());
+            }
+            &mut Node::Text { .. } => {
+                panic!("attempt to set attribute to text node");
+            }
+        }
+    }
+
     pub fn add_listener(&mut self, listener: Box<Listener<MSG>>) {
         match self {
             &mut Node::Tag { ref mut listeners, .. } => {
@@ -149,10 +164,14 @@ impl<MSG> Node<MSG> {
             Node::Tag {
                 tag,
                 classes,
+                attributes,
                 mut listeners,
                 mut childs,
             } => {
                 let child_element = document().create_element(tag);
+                for (name, value) in attributes {
+                    set_attribute(&child_element, name, &value);
+                }
                 for class in classes {
                     child_element.class_list().add(&class);
                 }
@@ -226,4 +245,10 @@ impl_action! {
     onloadend => LoadEndEvent,
     onabort => AbortEvent,
     onerror => ErrorEvent,
+}
+
+// stdweb doesn't have methods to work with attributes
+// this is workaround from: https://github.com/koute/stdweb/issues/16#issuecomment-325195854
+fn set_attribute(element: &Element, name: &str, value: &str) {
+    js!( @{element}.setAttribute( @{name}, @{value} ); );
 }

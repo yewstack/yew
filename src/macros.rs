@@ -21,9 +21,14 @@ macro_rules! html_impl {
         $crate::macros::attach_listener(&mut $stack, listener);
         html_impl! { $stack ($($tail)*) }
     };
-    // PATTERN: attribute=value,
+    // PATTERN: attribute=value, - workaround for `type` attribute
+    // because `type` is a keyword in Rust
+    ($stack:ident (type = $val:expr, $($tail:tt)*)) => {
+        $crate::macros::add_attribute(&mut $stack, "type", $val);
+        html_impl! { $stack ($($tail)*) }
+    };
     ($stack:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
-        // TODO Use ToString implementors
+        $crate::macros::add_attribute(&mut $stack, stringify!($attr), $val);
         html_impl! { $stack ($($tail)*) }
     };
     // PATTERN: { for expression }
@@ -68,6 +73,15 @@ macro_rules! html {
         let mut stack = Vec::new();
         html_impl! { stack ($($tail)*) }
     };
+}
+
+#[doc(hidden)]
+pub fn add_attribute<MSG, T: ToString>(stack: &mut Tags<MSG>, name: &'static str, value: T) {
+    if let Some(node) = stack.last_mut() {
+        node.add_attribute(name, value);
+    } else {
+        panic!("no tag to set attribute: {}", name);
+    }
 }
 
 #[doc(hidden)]
