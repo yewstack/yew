@@ -109,6 +109,17 @@ impl<MSG> Node<MSG> {
         }
     }
 
+    pub fn add_classes(&mut self, class: &'static str) {
+        match self {
+            &mut Node::Tag { ref mut classes, .. } => {
+                classes.push(class);
+            }
+            &mut Node::Text { .. } => {
+                panic!("attempt to set class to text node");
+            }
+        }
+    }
+
     fn render(self, messages: Messages<MSG>, element: &Element) {
         match self {
             Node::Tag { tag, classes, listeners, mut childs } => {

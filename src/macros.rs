@@ -1,27 +1,46 @@
 use html::Tags;
 
 #[macro_export]
-macro_rules! html {
+macro_rules! html_impl {
     ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
         let node = $crate::html::Node::new(stringify!($starttag));
         $stack.push(node);
-        html! { $stack ($($tail)*) }
+        html_impl! { $stack ($($tail)*) }
+    };
+    // PATTERN: class="",
+    ($stack:ident (class = $class:expr, $($tail:tt)*)) => {
+        $crate::macros::attach_class(&mut $stack, $class);
+        html_impl! { $stack ($($tail)*) }
     };
     ($stack:ident (> $($tail:tt)*)) => {
-        html! { $stack ($($tail)*) }
+        html_impl! { $stack ($($tail)*) }
     };
     ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
         let endtag = stringify!($endtag);
         $crate::macros::child_to_parent(&mut $stack, endtag);
-        html! { $stack ($($tail)*) }
+        html_impl! { $stack ($($tail)*) }
     };
     ($stack:ident ()) => {
         $stack.pop().unwrap()
     };
+}
+
+// This entrypoint and implementation had separated to prevent infinite recursion.
+#[macro_export]
+macro_rules! html {
     ($($tail:tt)*) => {{
         let mut stack = Vec::new();
-        html! { stack ($($tail)*) }
+        html_impl! { stack ($($tail)*) }
     }};
+}
+
+#[doc(hidden)]
+pub fn attach_class<MSG>(stack: &mut Tags<MSG>, class: &'static str) {
+    if let Some(node) = stack.last_mut() {
+        node.add_classes(class);
+    } else {
+        panic!("no tag to attach class: {}", class);
+    }
 }
 
 #[doc(hidden)]
