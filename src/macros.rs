@@ -42,7 +42,7 @@ macro_rules! html_impl {
     };
     // "End of paring" rule
     ($stack:ident ()) => {
-        $stack.pop().unwrap()
+        $stack.pop().expect("at least one element have to be in html!")
     };
 }
 
