@@ -1,5 +1,30 @@
 use html::Tags;
 
+#[macro_export]
+macro_rules! html {
+    ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
+        let node = $crate::html::Node::new(stringify!($starttag));
+        $stack.push(node);
+        html! { $stack ($($tail)*) }
+    };
+    ($stack:ident (> $($tail:tt)*)) => {
+        html! { $stack ($($tail)*) }
+    };
+    ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
+        let endtag = stringify!($endtag);
+        $crate::macros::child_to_parent(&mut $stack, endtag);
+        html! { $stack ($($tail)*) }
+    };
+    ($stack:ident ()) => {
+        $stack.pop().unwrap()
+    };
+    ($($tail:tt)*) => {{
+        let mut stack = Vec::new();
+        html! { stack ($($tail)*) }
+    }};
+}
+
+#[doc(hidden)]
 pub fn child_to_parent<MSG>(stack: &mut Tags<MSG>, endtag: &'static str) {
     if let Some(node) = stack.pop() {
         if let Some(starttag) = node.tag() {
@@ -19,25 +44,3 @@ pub fn child_to_parent<MSG>(stack: &mut Tags<MSG>, endtag: &'static str) {
         panic!("redundant closing tag: {}", endtag);
     }
 }
-
-#[macro_export]
-macro_rules! html {
-    ($stack:ident (< $starttag:ident > $($tail:tt)*)) => {
-        let node = $crate::html::Node::new(stringify!($starttag));
-        $stack.push(node);
-        html! { $stack ($($tail)*) }
-    };
-    ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
-        let endtag = stringify!($endtag);
-        $crate::macros::child_to_parent(&mut $stack, endtag);
-        html! { $stack ($($tail)*) }
-    };
-    ($stack:ident ()) => {
-        $stack.pop().unwrap()
-    };
-    ($($tail:tt)*) => {{
-        let mut stack = Vec::new();
-        html! { stack ($($tail)*) }
-    }};
-}
-
