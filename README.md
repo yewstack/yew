@@ -30,30 +30,15 @@ fn update(model: &mut Model, msg: Msg) {
 }
 
 fn view(model: &Model) -> html::Html<Msg> {
-    use html::*;
-    div(
-        vec![
-        ],
-        vec![
-            button(
-                vec![
-                    onclick(|_| Msg::Increment)
-                ],
-                vec![
-                    text("Increment!")
-                ]
-            ),
-            button(
-                vec![
-                    onclick(|_| Msg::Decrement)
-                ],
-                vec![
-                    text("Decrement!")
-                ]
-            ),
-            text(&format!("VALUE: {}", model.value)),
-        ],
-    )
+    html! {
+        <div>
+            <nav>
+                <button></button>
+                <button></button>
+            </nav>
+            <input></input>
+        </div>
+    }
 }
 
 fn main() {
