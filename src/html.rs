@@ -1,3 +1,4 @@
+use std::fmt;
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -79,6 +80,19 @@ pub enum Node<MSG> {
     },
 }
 
+impl<MSG> fmt::Debug for Node<MSG> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &Node::Tag { ref tag, .. } => {
+                write!(f, "Node::Tag {{ tag: {} }}", tag)
+            }
+            &Node::Text { ref text, .. } => {
+                write!(f, "Node::Text {{ text: {} }}", text)
+            }
+        }
+    }
+}
+
 impl<MSG> Node<MSG> {
     pub fn new(tag: &'static str) -> Self {
         //, classes: Classes, listeners: Listeners<MSG>, childs: Tags<MSG>) -> Self {
@@ -87,6 +101,12 @@ impl<MSG> Node<MSG> {
             classes: Vec::new(),
             listeners: Vec::new(),
             childs: Vec::new(),
+        }
+    }
+
+    pub fn new_text(text: &'static str) -> Self {
+        Node::Text {
+            text: text.to_string(),
         }
     }
 

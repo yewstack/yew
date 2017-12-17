@@ -1,4 +1,4 @@
-use html::Tags;
+use html::{Tags, Node};
 
 #[macro_export]
 macro_rules! html_impl {
@@ -10,6 +10,11 @@ macro_rules! html_impl {
     // PATTERN: class="",
     ($stack:ident (class = $class:expr, $($tail:tt)*)) => {
         $crate::macros::attach_class(&mut $stack, $class);
+        html_impl! { $stack ($($tail)*) }
+    };
+    ($stack:ident ({ $eval:expr } $($tail:tt)*)) => {
+        let node = $crate::html::Node::new_text($eval);
+        $crate::macros::add_child(&mut $stack, node);
         html_impl! { $stack ($($tail)*) }
     };
     ($stack:ident (> $($tail:tt)*)) => {
@@ -40,6 +45,15 @@ pub fn attach_class<MSG>(stack: &mut Tags<MSG>, class: &'static str) {
         node.add_classes(class);
     } else {
         panic!("no tag to attach class: {}", class);
+    }
+}
+
+#[doc(hidden)]
+pub fn add_child<MSG>(stack: &mut Tags<MSG>, node: Node<MSG>) {
+    if let Some(parent) = stack.last_mut() {
+        parent.add_child(node);
+    } else {
+        panic!("no nodes in stack to add child: {:?}", node);
     }
 }
 
