@@ -206,7 +206,7 @@ macro_rules! impl_action {
     ($($action:ident($event:ident : $type:ident) -> $ret:ty => $convert:expr)*) => {$(
         pub mod $action {
             use stdweb::web::{IEventTarget, Element};
-            use stdweb::web::event::$type;
+            use stdweb::web::event::{IEvent, $type};
             use super::*;
 
             pub struct Wrapper<F>(Option<F>);
@@ -236,10 +236,17 @@ macro_rules! impl_action {
                     let handler = self.0.take().unwrap();
                     let this = element.clone();
                     let sender = move |event: $type| {
+                        event.stop_propagation();
                         let handy_event: $ret = $convert(&this, event);
                         let msg = handler(handy_event);
                         messages.borrow_mut().push(msg);
-                        js! { yew_loop(); }
+                        js! {
+                            // Schedule to call the loop handler
+                            // IMPORTANT! If call loop function immediately
+                            // it stops handling other messages and the first
+                            // one will be fired.
+                            setTimeout(yew_loop);
+                        }
                     };
                     element.add_event_listener(sender);
                 }
