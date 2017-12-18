@@ -17,8 +17,8 @@ macro_rules! html_impl {
     ($stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
         // Catch value to a separate variable for clear error messages
         let handler = $handler;
-        let listener = $crate::html::$action::wrap(handler);
-        $crate::macros::attach_listener(&mut $stack, listener);
+        let listener = $crate::html::$action::Wrapper::from(handler);
+        $crate::macros::attach_listener(&mut $stack, Box::new(listener));
         html_impl! { $stack ($($tail)*) }
     };
     // PATTERN: attribute=value, - workaround for `type` attribute

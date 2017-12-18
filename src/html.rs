@@ -198,15 +198,17 @@ macro_rules! impl_action {
             use stdweb::web::event::$type;
             use super::*;
 
-            pub fn wrap<F, MSG>(handler: F) -> Box<Listener<MSG>>
+            pub struct Wrapper<T>(Option<T>);
+
+            impl<F, MSG> From<F> for Wrapper<F>
             where
                 MSG: 'static,
                 F: Fn($($ret),*) -> MSG + 'static,
             {
-                Box::new(Wrapper(Some(handler)))
+                fn from(handler: F) -> Self {
+                    Wrapper(Some(handler))
+                }
             }
-
-            struct Wrapper<T>(Option<T>);
 
             impl<T, MSG> Listener<MSG> for Wrapper<T>
             where
@@ -258,3 +260,4 @@ impl_action! {
 fn set_attribute(element: &Element, name: &str, value: &str) {
     js!( @{element}.setAttribute( @{name}, @{value} ); );
 }
+
