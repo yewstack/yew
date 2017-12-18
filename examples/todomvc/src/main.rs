@@ -125,7 +125,14 @@ fn view_entries(entries: &Vec<Entry>) -> html::Html<Msg> {
     html! {
         <ul class="todo-list",>
             { for entries.iter().enumerate().map(view_entry) }
+            // You can use standard Rust comments. One line:
+            // <li></li>
         </ul>
+        /* Or multiline:
+        <ul>
+            <li></li>
+        </ul>
+        */
     }
 }
 
