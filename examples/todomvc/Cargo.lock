@@ -32,7 +32,7 @@ dependencies = [
 [[package]]
 name = "stdweb"
 version = "0.2.0"
-source = "git+https://github.com/koute/stdweb#3cefd79737ebd57beef096ccc4ccdba69bf06d92"
+source = "git+https://github.com/koute/stdweb#9ba27f1c317db65049f675834485d3d12405e1f3"
 dependencies = [
  "serde 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",

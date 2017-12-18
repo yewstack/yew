@@ -245,6 +245,7 @@ impl_action! {
     onloadend => LoadEndEvent,
     onabort => AbortEvent,
     onerror => ErrorEvent,
+    oninput => InputEvent,
 }
 
 // stdweb doesn't have methods to work with attributes
