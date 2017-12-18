@@ -43,26 +43,32 @@ struct Entry {
 }
 
 enum Msg {
+    Add,
     Update(String),
     Remove(usize),
     SetFilter(Filter),
+    Nope,
 }
 
 fn update(model: &mut Model, msg: Msg) {
     match msg {
-        Msg::Update(val) => {
-            println!("Input: {}", val);
+        Msg::Add => {
             let entry = Entry {
                 description: "Test".into(),
                 completed: false,
             };
             model.entries.push(entry);
         }
+        Msg::Update(val) => {
+            println!("Input: {}", val);
+        }
         Msg::Remove(idx) => {
             model.entries.remove(idx);
         }
         Msg::SetFilter(filter) => {
             model.filter = filter;
+        }
+        Msg::Nope => {
         }
     }
 }
@@ -119,7 +125,10 @@ fn view_input() -> Html<Msg> {
     html! {
         <input class="new-todo",
                placeholder="What needs to be done?",
-               (oninput)=|e: InputData| Msg::Update(e.value), />
+               (oninput)=|e: InputData| Msg::Update(e.value),
+               (onkeypress)=|e: KeyData| {
+                   if e.key == "Enter" { Msg::Add } else { Msg::Nope }
+               }, />
     }
 }
 

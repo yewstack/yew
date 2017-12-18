@@ -13,7 +13,7 @@ impl<T: ConcreteEvent> Fn(T) -> Self for Message {
 use stdweb;
 
 use stdweb::web::{INode, IElement, Element, document};
-use stdweb::web::event::{IMouseEvent};
+use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
@@ -242,6 +242,7 @@ macro_rules! impl_action {
 impl_action! {
     onclick(event: ClickEvent) -> MouseData => |_, event| { MouseData::from(event) }
     ondoubleclick(event: DoubleClickEvent) -> MouseData => |_, event| { MouseData::from(event) }
+    onkeypress(event: KeypressEvent) -> KeyData => |_, event| { KeyData::from(event) }
     /* TODO Add PR to https://github.com/koute/stdweb
     onmousedown(event: MouseDownEvent) -> () => |_, _| { () }
     onmouseup(event: MouseUpEvent) -> () => |_, _| { () }
@@ -279,6 +280,18 @@ impl<T: IMouseEvent> From<T> for MouseData {
 
 pub struct InputData {
     pub value: String,
+}
+
+pub struct KeyData {
+    pub key: String,
+}
+
+impl<T: IKeyboardEvent> From<T> for KeyData {
+    fn from(event: T) -> Self {
+        KeyData {
+            key: event.key(),
+        }
+    }
 }
 
 // stdweb doesn't have methods to work with attributes
