@@ -14,6 +14,8 @@ use stdweb;
 
 use stdweb::web::{INode, IElement, Element, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
+use stdweb::web::html_element::InputElement;
+use stdweb::unstable::TryInto;
 
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
@@ -143,6 +145,7 @@ pub struct VNode<MSG> {
     attributes: Attributes,
     childs: Vec<Child<MSG>>,
     classes: Classes,
+    value: Option<String>,
 }
 
 impl<MSG> fmt::Debug for VNode<MSG> {
@@ -159,6 +162,7 @@ impl<MSG> VNode<MSG> {
             attributes: HashMap::new(),
             listeners: Vec::new(),
             childs: Vec::new(),
+            value: None,
         }
     }
 
@@ -174,6 +178,10 @@ impl<MSG> VNode<MSG> {
         self.classes.push(class);
     }
 
+    pub fn set_value<T: ToString>(&mut self, value: &T) {
+        self.value = Some(value.to_string());
+    }
+
     pub fn add_attribute<T: ToString>(&mut self, name: &'static str, value: T) {
         self.attributes.insert(name, value.to_string());
     }
@@ -186,6 +194,19 @@ impl<MSG> VNode<MSG> {
 impl<MSG> Render<MSG> for VNode<MSG> {
     fn render(mut self, messages: Messages<MSG>, element: &Element) {
         let child_element = document().create_element(self.tag);
+        let child_element = {
+            let cloned: Result<InputElement, _> = child_element.clone().try_into();
+            if let &Some(ref value) = &self.value {
+                if let Ok(input_element) = cloned {
+                    input_element.set_value(value);
+                    input_element.into()
+                } else {
+                    child_element
+                }
+            } else {
+                child_element
+            }
+        };
         for (name, value) in self.attributes {
             set_attribute(&child_element, name, &value);
         }

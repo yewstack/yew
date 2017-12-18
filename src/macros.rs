@@ -13,6 +13,11 @@ macro_rules! html_impl {
         $crate::macros::attach_class(&mut $stack, $class);
         html_impl! { $stack ($($tail)*) }
     };
+    // PATTERN: value="",
+    ($stack:ident (value = $value:expr, $($tail:tt)*)) => {
+        $crate::macros::set_value(&mut $stack, $value);
+        html_impl! { $stack ($($tail)*) }
+    };
     // PATTERN: (action)=expression,
     ($stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
         // Catch value to a separate variable for clear error messages
@@ -83,6 +88,15 @@ pub fn unpack<MSG>(mut stack: Stack<MSG>) -> VNode<MSG> {
         panic!("exactly one element have to be in html!");
     }
     stack.pop().unwrap()
+}
+
+#[doc(hidden)]
+pub fn set_value<MSG, T: ToString>(stack: &mut Stack<MSG>, value: &T) {
+    if let Some(node) = stack.last_mut() {
+        node.set_value(value);
+    } else {
+        panic!("no tag to set value: {}", value.to_string());
+    }
 }
 
 #[doc(hidden)]

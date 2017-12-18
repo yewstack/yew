@@ -25,6 +25,7 @@ impl ToString for Filter {
 struct Model {
     entries: Vec<Entry>,
     filter: Filter,
+    value: String,
 }
 
 impl Model {
@@ -54,13 +55,14 @@ fn update(model: &mut Model, msg: Msg) {
     match msg {
         Msg::Add => {
             let entry = Entry {
-                description: "Test".into(),
+                description: model.value.clone(),
                 completed: false,
             };
             model.entries.push(entry);
         }
         Msg::Update(val) => {
             println!("Input: {}", val);
+            model.value = val;
         }
         Msg::Remove(idx) => {
             model.entries.remove(idx);
@@ -79,7 +81,7 @@ fn view(model: &Model) -> Html<Msg> {
             <section class="todoapp",>
                 <header class="header",>
                     <h1>{ "todos" }</h1>
-                    { view_input() }
+                    { view_input(&model) }
                 </header>
                 <section class="main",>
                     <input class="toggle-all", type="checkbox",/>
@@ -121,10 +123,11 @@ fn view(model: &Model) -> Html<Msg> {
     }
 }
 
-fn view_input() -> Html<Msg> {
+fn view_input(model: &Model) -> Html<Msg> {
     html! {
         <input class="new-todo",
                placeholder="What needs to be done?",
+               value=&model.value,
                (oninput)=|e: InputData| Msg::Update(e.value),
                (onkeypress)=|e: KeyData| {
                    if e.key == "Enter" { Msg::Add } else { Msg::Nope }
@@ -163,6 +166,7 @@ fn main() {
     let model = Model {
         entries: Vec::new(),
         filter: Filter::All,
+        value: "".into(),
     };
     program(model, update, view);
 }
