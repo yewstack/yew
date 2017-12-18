@@ -192,16 +192,16 @@ impl<MSG> Node<MSG> {
 }
 
 macro_rules! impl_action {
-    ($($action:ident => $event:ident,)*) => {$(
+    ($($action:ident($event:ident : $type:ident) -> ($($arg:ident : $ret:ident),*) => $convert:expr)*) => {$(
         pub mod $action {
             use stdweb::web::{IEventTarget, Element};
-            use stdweb::web::event::$event;
-            use super::{Messages, Listener};
+            use stdweb::web::event::$type;
+            use super::*;
 
             pub fn wrap<F, MSG>(handler: F) -> Box<Listener<MSG>>
             where
                 MSG: 'static,
-                F: Fn($event) -> MSG + 'static,
+                F: Fn($($ret),*) -> MSG + 'static,
             {
                 Box::new(Wrapper(Some(handler)))
             }
@@ -211,7 +211,7 @@ macro_rules! impl_action {
             impl<T, MSG> Listener<MSG> for Wrapper<T>
             where
                 MSG: 'static,
-                T: Fn($event) -> MSG + 'static,
+                T: Fn($($ret),*) -> MSG + 'static,
             {
                 fn kind(&self) -> &'static str {
                     stringify!($action)
@@ -219,8 +219,10 @@ macro_rules! impl_action {
 
                 fn attach(&mut self, element: &Element, messages: Messages<MSG>) {
                     let handler = self.0.take().unwrap();
-                    let sender = move |event| {
-                        let msg = handler(event);
+                    let this = element.clone();
+                    let sender = move |event: $type| {
+                        let ($($arg,)*): ($($ret,)*) = $convert(&this, event);
+                        let msg = handler($($arg),*);
                         messages.borrow_mut().push(msg);
                         js! { yew_loop(); }
                     };
@@ -231,21 +233,24 @@ macro_rules! impl_action {
     )*};
 }
 
+// Inspired by: http://package.elm-lang.org/packages/elm-lang/html/2.0.0/Html-Events
 impl_action! {
-    onchange => ChangeEvent,
-    onload => LoadEvent,
-    onclick => ClickEvent,
-    ondoubleclick => DoubleClickEvent,
-    onkeypress => KeypressEvent,
-    onfocus => FocusEvent,
-    onblur => BlurEvent,
-    onhashchange => HashChangeEvent,
-    onprogress => ProgressEvent,
-    onloadstart => LoadStartEvent,
-    onloadend => LoadEndEvent,
-    onabort => AbortEvent,
-    onerror => ErrorEvent,
-    oninput => InputEvent,
+    onclick(event: ClickEvent) -> () => |_, _| { () }
+    ondoubleclick(event: DoubleClickEvent) -> () => |_, _| { () }
+    /* TODO Add PR to https://github.com/koute/stdweb
+    onmousedown(event: MouseDownEvent) -> () => |_, _| { () }
+    onmouseup(event: MouseUpEvent) -> () => |_, _| { () }
+    onmouseenter(event: MouseEnterEvent) -> () => |_, _| { () }
+    onmouseleave(event: MouseLeaveEvent) -> () => |_, _| { () }
+    onmouseover(event: MouseOverEvent) -> () => |_, _| { () }
+    onmouseout(event: MouseOutEvent) -> () => |_, _| { () }
+    */
+    oninput(event: InputEvent) -> (data: String) => |this: &Element, _| {
+        use stdweb::web::html_element::InputElement;
+        use stdweb::unstable::TryInto;
+        let input: InputElement = this.clone().try_into().unwrap();
+        (input.value().into_string().unwrap_or_else(|| "".into()),)
+    }
 }
 
 // stdweb doesn't have methods to work with attributes

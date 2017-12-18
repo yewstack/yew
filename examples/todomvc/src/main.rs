@@ -43,14 +43,15 @@ struct Entry {
 }
 
 enum Msg {
-    Add,
+    Update(String),
     Remove(usize),
     SetFilter(Filter),
 }
 
 fn update(model: &mut Model, msg: Msg) {
     match msg {
-        Msg::Add => {
+        Msg::Update(val) => {
+            println!("Input: {}", val);
             let entry = Entry {
                 description: "Test".into(),
                 completed: false,
@@ -85,17 +86,17 @@ fn view(model: &Model) -> html::Html<Msg> {
                     </span>
                     <ul class="filters",>
                         <li>
-                            <a (onclick)=|_| Msg::SetFilter(Filter::All),>
+                            <a (onclick)=|| Msg::SetFilter(Filter::All),>
                                 { Filter::All }
                             </a>
                         </li>
                         <li>
-                            <a (onclick)=|_| Msg::SetFilter(Filter::Active),>
+                            <a (onclick)=|| Msg::SetFilter(Filter::Active),>
                                 { Filter::Active }
                             </a>
                         </li>
                         <li>
-                            <a (onclick)=|_| Msg::SetFilter(Filter::Completed),>
+                            <a (onclick)=|| Msg::SetFilter(Filter::Completed),>
                                 { Filter::Completed }
                             </a>
                         </li>
@@ -116,7 +117,7 @@ fn view(model: &Model) -> html::Html<Msg> {
 
 fn view_input() -> html::Html<Msg> {
     html! {
-        <input class="new-todo", placeholder="What needs to be done?", (onclick)=|_| Msg::Add, />
+        <input class="new-todo", placeholder="What needs to be done?", (oninput)=Msg::Update, />
     }
 }
 
@@ -134,7 +135,7 @@ fn view_entry((idx, entry): (usize, &Entry)) -> html::Html<Msg> {
             <div class="view",>
                 <input class="toggle", type="checkbox", />
                 <label>{ &entry.description }</label>
-                <button class="destroy", (onclick)=move |_| Msg::Remove(idx),></button>
+                <button class="destroy", (onclick)=move || Msg::Remove(idx),></button>
             </div>
         </li>
     }
