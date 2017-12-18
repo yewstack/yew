@@ -48,7 +48,7 @@ where
     stdweb::event_loop();
 }
 
-pub type Html<MSG> = Node<MSG>;
+pub type Html<MSG> = VNode<MSG>;
 
 pub trait Listener<MSG> {
     fn kind(&self) -> &'static str;
@@ -64,38 +64,96 @@ impl<MSG> fmt::Debug for Listener<MSG> {
 type Messages<MSG> = Rc<RefCell<Vec<MSG>>>;
 type Listeners<MSG> = Vec<Box<Listener<MSG>>>;
 type Attributes = HashMap<&'static str, String>;
-pub type Tags<MSG> = Vec<Node<MSG>>;
 type Classes = Vec<&'static str>;
 
-pub enum Node<MSG> {
-    Tag {
-        tag: &'static str,
-        listeners: Listeners<MSG>,
-        attributes: Attributes,
-        childs: Vec<Node<MSG>>,
-        classes: Classes,
-    },
-    Text { text: String },
+trait Render<MSG> {
+    fn render(self, messages: Messages<MSG>, element: &Element);
 }
 
-impl<T: ToString, MSG> From<T> for Node<MSG> {
+pub enum Child<MSG> {
+    VNode(VNode<MSG>),
+    VText(VText),
+}
+
+
+impl<MSG, T: ToString> From<T> for Child<MSG> {
     fn from(value: T) -> Self {
-        Node::new_text(value)
+        Child::VText(VText::new(value))
     }
 }
 
-impl<MSG> fmt::Debug for Node<MSG> {
+impl<MSG> fmt::Debug for Child<MSG> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Node::Tag { ref tag, .. } => write!(f, "Node::Tag {{ tag: {} }}", tag),
-            &Node::Text { ref text, .. } => write!(f, "Node::Text {{ text: {} }}", text),
+            &Child::VNode(ref vnode) => vnode.fmt(f),
+            &Child::VText(ref vtext) => vtext.fmt(f),
         }
     }
 }
 
-impl<MSG> Node<MSG> {
+
+impl<MSG> Render<MSG> for Child<MSG> {
+    fn render(self, messages: Messages<MSG>, element: &Element) {
+        match self {
+            Child::VNode(vnode) => vnode.render(messages, element),
+            Child::VText(vtext) => vtext.render(messages, element),
+        }
+    }
+}
+
+impl<MSG> From<VText> for Child<MSG> {
+    fn from(vtext: VText) -> Self {
+        Child::VText(vtext)
+    }
+}
+
+impl<MSG> From<VNode<MSG>> for Child<MSG> {
+    fn from(vnode: VNode<MSG>) -> Self {
+        Child::VNode(vnode)
+    }
+}
+
+pub struct VText {
+    text: String,
+}
+
+impl fmt::Debug for VText {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "VText {{ text: {} }}", self.text)
+    }
+}
+
+impl VText {
+    pub fn new<T: ToString>(text: T) -> Self {
+        VText { text: text.to_string() }
+    }
+}
+
+impl<MSG> Render<MSG> for VText {
+    fn render(self, _: Messages<MSG>, element: &Element) {
+        let child_element = document().create_text_node(&self.text);
+        element.append_child(&child_element);
+    }
+}
+
+
+pub struct VNode<MSG> {
+    tag: &'static str,
+    listeners: Listeners<MSG>,
+    attributes: Attributes,
+    childs: Vec<Child<MSG>>,
+    classes: Classes,
+}
+
+impl<MSG> fmt::Debug for VNode<MSG> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "VNode {{ tag: {} }}", self.tag)
+    }
+}
+
+impl<MSG> VNode<MSG> {
     pub fn new(tag: &'static str) -> Self {
-        Node::Tag {
+        VNode {
             tag: tag,
             classes: Vec::new(),
             attributes: HashMap::new(),
@@ -104,91 +162,43 @@ impl<MSG> Node<MSG> {
         }
     }
 
-    pub fn new_text<T: ToString>(text: T) -> Self {
-        Node::Text { text: text.to_string() }
+    pub fn tag(&self) -> &'static str {
+        self.tag
     }
 
-    pub fn tag(&self) -> Option<&'static str> {
-        if let &Node::Tag { tag, .. } = self {
-            Some(tag)
-        } else {
-            None
-        }
-    }
-
-    pub fn add_child(&mut self, node: Node<MSG>) {
-        match self {
-            &mut Node::Tag { ref mut childs, .. } => {
-                childs.push(node);
-            }
-            &mut Node::Text { .. } => {
-                panic!("attempt to add child to text node");
-            }
-        }
+    pub fn add_child(&mut self, child: Child<MSG>) {
+        self.childs.push(child);
     }
 
     pub fn add_classes(&mut self, class: &'static str) {
-        match self {
-            &mut Node::Tag { ref mut classes, .. } => {
-                classes.push(class);
-            }
-            &mut Node::Text { .. } => {
-                panic!("attempt to set class to text node");
-            }
-        }
+        self.classes.push(class);
     }
 
     pub fn add_attribute<T: ToString>(&mut self, name: &'static str, value: T) {
-        match self {
-            &mut Node::Tag { ref mut attributes, .. } => {
-                attributes.insert(name, value.to_string());
-            }
-            &mut Node::Text { .. } => {
-                panic!("attempt to set attribute to text node");
-            }
-        }
+        self.attributes.insert(name, value.to_string());
     }
 
     pub fn add_listener(&mut self, listener: Box<Listener<MSG>>) {
-        match self {
-            &mut Node::Tag { ref mut listeners, .. } => {
-                listeners.push(listener);
-            }
-            &mut Node::Text { .. } => {
-                panic!("attempt to add listener to text node");
-            }
-        }
+        self.listeners.push(listener);
     }
+}
 
-    fn render(self, messages: Messages<MSG>, element: &Element) {
-        match self {
-            Node::Tag {
-                tag,
-                classes,
-                attributes,
-                mut listeners,
-                mut childs,
-            } => {
-                let child_element = document().create_element(tag);
-                for (name, value) in attributes {
-                    set_attribute(&child_element, name, &value);
-                }
-                for class in classes {
-                    child_element.class_list().add(&class);
-                }
-                for mut listener in listeners.drain(..) {
-                    listener.attach(&child_element, messages.clone());
-                }
-                for child in childs.drain(..) {
-                    child.render(messages.clone(), &child_element);
-                }
-                element.append_child(&child_element);
-            }
-            Node::Text { text } => {
-                let child_element = document().create_text_node(&text);
-                element.append_child(&child_element);
-            }
+impl<MSG> Render<MSG> for VNode<MSG> {
+    fn render(mut self, messages: Messages<MSG>, element: &Element) {
+        let child_element = document().create_element(self.tag);
+        for (name, value) in self.attributes {
+            set_attribute(&child_element, name, &value);
         }
+        for class in self.classes {
+            child_element.class_list().add(&class);
+        }
+        for mut listener in self.listeners.drain(..) {
+            listener.attach(&child_element, messages.clone());
+        }
+        for child in self.childs.drain(..) {
+            child.render(messages.clone(), &child_element);
+        }
+        element.append_child(&child_element);
     }
 }
 

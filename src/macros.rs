@@ -1,10 +1,10 @@
-use html::{Tags, Node, Listener};
+use html::{VNode, Child, Listener};
 
 #[macro_export]
 macro_rules! html_impl {
     // Start of openging tag
     ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
-        let node = $crate::html::Node::new(stringify!($starttag));
+        let node = $crate::html::VNode::new(stringify!($starttag));
         $stack.push(node);
         html_impl! { $stack ($($tail)*) }
     };
@@ -34,14 +34,14 @@ macro_rules! html_impl {
     // PATTERN: { for expression }
     ($stack:ident ({ for $eval:expr } $($tail:tt)*)) => {
         let nodes = $eval;
-        for node in nodes.map($crate::html::Node::from) {
+        for node in nodes.map($crate::html::Child::from) {
             $crate::macros::add_child(&mut $stack, node);
         }
         html_impl! { $stack ($($tail)*) }
     };
     // PATTERN: { expression }
     ($stack:ident ({ $eval:expr } $($tail:tt)*)) => {
-        let node = $crate::html::Node::from($eval);
+        let node = $crate::html::Child::from($eval);
         $crate::macros::add_child(&mut $stack, node);
         html_impl! { $stack ($($tail)*) }
     };
@@ -62,7 +62,7 @@ macro_rules! html_impl {
     };
     // "End of paring" rule
     ($stack:ident ()) => {
-        $stack.pop().expect("at least one element have to be in html!")
+        $crate::macros::unpack($stack)
     };
 }
 
@@ -75,8 +75,18 @@ macro_rules! html {
     };
 }
 
+type Stack<MSG> = Vec<VNode<MSG>>;
+
 #[doc(hidden)]
-pub fn add_attribute<MSG, T: ToString>(stack: &mut Tags<MSG>, name: &'static str, value: T) {
+pub fn unpack<MSG>(mut stack: Stack<MSG>) -> VNode<MSG> {
+    if stack.len() != 1 {
+        panic!("exactly one element have to be in html!");
+    }
+    stack.pop().unwrap()
+}
+
+#[doc(hidden)]
+pub fn add_attribute<MSG, T: ToString>(stack: &mut Stack<MSG>, name: &'static str, value: T) {
     if let Some(node) = stack.last_mut() {
         node.add_attribute(name, value);
     } else {
@@ -85,7 +95,7 @@ pub fn add_attribute<MSG, T: ToString>(stack: &mut Tags<MSG>, name: &'static str
 }
 
 #[doc(hidden)]
-pub fn attach_class<MSG>(stack: &mut Tags<MSG>, class: &'static str) {
+pub fn attach_class<MSG>(stack: &mut Stack<MSG>, class: &'static str) {
     if let Some(node) = stack.last_mut() {
         node.add_classes(class);
     } else {
@@ -94,7 +104,7 @@ pub fn attach_class<MSG>(stack: &mut Tags<MSG>, class: &'static str) {
 }
 
 #[doc(hidden)]
-pub fn attach_listener<MSG>(stack: &mut Tags<MSG>, listener: Box<Listener<MSG>>) {
+pub fn attach_listener<MSG>(stack: &mut Stack<MSG>, listener: Box<Listener<MSG>>) {
     if let Some(node) = stack.last_mut() {
         node.add_listener(listener);
     } else {
@@ -103,28 +113,25 @@ pub fn attach_listener<MSG>(stack: &mut Tags<MSG>, listener: Box<Listener<MSG>>)
 }
 
 #[doc(hidden)]
-pub fn add_child<MSG>(stack: &mut Tags<MSG>, node: Node<MSG>) {
+pub fn add_child<MSG>(stack: &mut Stack<MSG>, child: Child<MSG>) {
     if let Some(parent) = stack.last_mut() {
-        parent.add_child(node);
+        parent.add_child(child);
     } else {
-        panic!("no nodes in stack to add child: {:?}", node);
+        panic!("no nodes in stack to add child: {:?}", child);
     }
 }
 
 #[doc(hidden)]
-pub fn child_to_parent<MSG>(stack: &mut Tags<MSG>, endtag: Option<&'static str>) {
+pub fn child_to_parent<MSG>(stack: &mut Stack<MSG>, endtag: Option<&'static str>) {
     if let Some(node) = stack.pop() {
-        if let Some(starttag) = node.tag() {
-            if let Some(endtag) = endtag {
-                if starttag != endtag {
-                    panic!("wrong closing tag: <{}> -> </{}>", starttag, endtag);
-                }
+        let starttag = node.tag();
+        if let Some(endtag) = endtag {
+            if starttag != endtag {
+                panic!("wrong closing tag: <{}> -> </{}>", starttag, endtag);
             }
-        } else {
-            panic!("trying to close untagged node with: {:?}", endtag);
         }
         if !stack.is_empty() {
-            stack.last_mut().unwrap().add_child(node);
+            stack.last_mut().unwrap().add_child(Child::VNode(node));
         } else {
             // Keep the last node in the stack
             stack.push(node);
