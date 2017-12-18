@@ -13,6 +13,7 @@ impl<T: ConcreteEvent> Fn(T) -> Self for Message {
 use stdweb;
 
 use stdweb::web::{INode, IElement, Element, document};
+use stdweb::web::event::{IMouseEvent};
 
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
@@ -192,18 +193,20 @@ impl<MSG> Node<MSG> {
 }
 
 macro_rules! impl_action {
-    ($($action:ident($event:ident : $type:ident) -> ($($arg:ident : $ret:ident),*) => $convert:expr)*) => {$(
+    ($($action:ident($event:ident : $type:ident) -> $ret:ty => $convert:expr)*) => {$(
         pub mod $action {
             use stdweb::web::{IEventTarget, Element};
             use stdweb::web::event::$type;
             use super::*;
 
-            pub struct Wrapper<T>(Option<T>);
+            pub struct Wrapper<F>(Option<F>);
+
+            pub type Event = $ret;
 
             impl<F, MSG> From<F> for Wrapper<F>
             where
                 MSG: 'static,
-                F: Fn($($ret),*) -> MSG + 'static,
+                F: Fn($ret) -> MSG + 'static,
             {
                 fn from(handler: F) -> Self {
                     Wrapper(Some(handler))
@@ -213,7 +216,7 @@ macro_rules! impl_action {
             impl<T, MSG> Listener<MSG> for Wrapper<T>
             where
                 MSG: 'static,
-                T: Fn($($ret),*) -> MSG + 'static,
+                T: Fn($ret) -> MSG + 'static,
             {
                 fn kind(&self) -> &'static str {
                     stringify!($action)
@@ -223,8 +226,8 @@ macro_rules! impl_action {
                     let handler = self.0.take().unwrap();
                     let this = element.clone();
                     let sender = move |event: $type| {
-                        let ($($arg,)*): ($($ret,)*) = $convert(&this, event);
-                        let msg = handler($($arg),*);
+                        let handy_event: $ret = $convert(&this, event);
+                        let msg = handler(handy_event);
                         messages.borrow_mut().push(msg);
                         js! { yew_loop(); }
                     };
@@ -237,8 +240,8 @@ macro_rules! impl_action {
 
 // Inspired by: http://package.elm-lang.org/packages/elm-lang/html/2.0.0/Html-Events
 impl_action! {
-    onclick(event: ClickEvent) -> () => |_, _| { () }
-    ondoubleclick(event: DoubleClickEvent) -> () => |_, _| { () }
+    onclick(event: ClickEvent) -> MouseData => |_, event| { MouseData::from(event) }
+    ondoubleclick(event: DoubleClickEvent) -> MouseData => |_, event| { MouseData::from(event) }
     /* TODO Add PR to https://github.com/koute/stdweb
     onmousedown(event: MouseDownEvent) -> () => |_, _| { () }
     onmouseup(event: MouseUpEvent) -> () => |_, _| { () }
@@ -247,12 +250,35 @@ impl_action! {
     onmouseover(event: MouseOverEvent) -> () => |_, _| { () }
     onmouseout(event: MouseOutEvent) -> () => |_, _| { () }
     */
-    oninput(event: InputEvent) -> (data: String) => |this: &Element, _| {
+    oninput(event: InputEvent) -> InputData => |this: &Element, _| {
         use stdweb::web::html_element::InputElement;
         use stdweb::unstable::TryInto;
         let input: InputElement = this.clone().try_into().unwrap();
-        (input.value().into_string().unwrap_or_else(|| "".into()),)
+        let value = input.value().into_string().unwrap_or_else(|| "".into());
+        InputData { value }
     }
+}
+
+pub struct MouseData {
+    pub screen_x: f64,
+    pub screen_y: f64,
+    pub client_x: f64,
+    pub client_y: f64,
+}
+
+impl<T: IMouseEvent> From<T> for MouseData {
+    fn from(event: T) -> Self {
+        MouseData {
+            screen_x: event.screen_x(),
+            screen_y: event.screen_y(),
+            client_x: event.client_x(),
+            client_y: event.client_y(),
+        }
+    }
+}
+
+pub struct InputData {
+    pub value: String,
 }
 
 // stdweb doesn't have methods to work with attributes

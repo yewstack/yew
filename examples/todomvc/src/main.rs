@@ -3,7 +3,7 @@
 #[macro_use]
 extern crate yew;
 
-use yew::html;
+use yew::html::*;
 
 enum Filter {
     All,
@@ -67,7 +67,7 @@ fn update(model: &mut Model, msg: Msg) {
     }
 }
 
-fn view(model: &Model) -> html::Html<Msg> {
+fn view(model: &Model) -> Html<Msg> {
     html! {
         <div class="todomvc-wrapper",>
             <section class="todoapp",>
@@ -86,17 +86,17 @@ fn view(model: &Model) -> html::Html<Msg> {
                     </span>
                     <ul class="filters",>
                         <li>
-                            <a (onclick)=|| Msg::SetFilter(Filter::All),>
+                            <a (onclick)=|_| Msg::SetFilter(Filter::All),>
                                 { Filter::All }
                             </a>
                         </li>
                         <li>
-                            <a (onclick)=|| Msg::SetFilter(Filter::Active),>
+                            <a (onclick)=|_| Msg::SetFilter(Filter::Active),>
                                 { Filter::Active }
                             </a>
                         </li>
                         <li>
-                            <a (onclick)=|| Msg::SetFilter(Filter::Completed),>
+                            <a (onclick)=|_| Msg::SetFilter(Filter::Completed),>
                                 { Filter::Completed }
                             </a>
                         </li>
@@ -115,13 +115,15 @@ fn view(model: &Model) -> html::Html<Msg> {
     }
 }
 
-fn view_input() -> html::Html<Msg> {
+fn view_input() -> Html<Msg> {
     html! {
-        <input class="new-todo", placeholder="What needs to be done?", (oninput)=Msg::Update, />
+        <input class="new-todo",
+               placeholder="What needs to be done?",
+               (oninput)=|e: InputData| Msg::Update(e.value), />
     }
 }
 
-fn view_entries(entries: &Vec<Entry>) -> html::Html<Msg> {
+fn view_entries(entries: &Vec<Entry>) -> Html<Msg> {
     html! {
         <ul class="todo-list",>
             { for entries.iter().enumerate().map(view_entry) }
@@ -136,13 +138,13 @@ fn view_entries(entries: &Vec<Entry>) -> html::Html<Msg> {
     }
 }
 
-fn view_entry((idx, entry): (usize, &Entry)) -> html::Html<Msg> {
+fn view_entry((idx, entry): (usize, &Entry)) -> Html<Msg> {
     html! {
         <li>
             <div class="view",>
                 <input class="toggle", type="checkbox", />
                 <label>{ &entry.description }</label>
-                <button class="destroy", (onclick)=move || Msg::Remove(idx),></button>
+                <button class="destroy", (onclick)=move |_| Msg::Remove(idx),></button>
             </div>
         </li>
     }
@@ -153,5 +155,5 @@ fn main() {
         entries: Vec::new(),
         filter: Filter::All,
     };
-    html::program(model, update, view);
+    program(model, update, view);
 }
