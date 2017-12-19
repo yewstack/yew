@@ -17,6 +17,42 @@ use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryInto;
 
+// Diff updates text only!
+
+type Ref<'a, MSG> = &'a Child<MSG>;
+
+fn diff_node<'a, MSG>(
+    list: &mut Vec<Patch<'a, MSG>>,
+    _a: Ref<'a, MSG>,
+    _b: Ref<'a, MSG>) {
+}
+
+// Index of Vec is an index of patch
+fn diff<'a, MSG>(a: Ref<'a, MSG>, b: Ref<'a, MSG>) -> Vec<Patch<'a, MSG>> {
+    let mut list = Vec::new();
+    let mut patch = Patch::new(&a);
+    diff_node(&mut list, a, b);
+    list
+}
+
+struct Patch<'a, MSG: 'a> {
+    nref: Ref<'a, MSG>,
+    actions: Vec<Action>,
+}
+
+impl<'a, MSG: 'a> Patch<'a, MSG> {
+    fn new(nref: Ref<'a, MSG>) -> Self {
+        let actions = Vec::new();
+        Patch { nref, actions }
+    }
+}
+
+enum Action {
+    PutNode,
+    SetValue(String),
+    SetAttribute(String, String),
+}
+
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
     M: 'static,
@@ -27,17 +63,24 @@ where
     stdweb::initialize();
     // No messages at start
     let messages = Rc::new(RefCell::new(Vec::new()));
+    let body = document().query_selector("body").unwrap();
+    let mut onscreen_scene = Child::from(view(&model));
+    onscreen_scene.render(messages.clone(), &body);
+
     let mut callback = move || {
         let mut borrowed = messages.borrow_mut();
         for msg in borrowed.drain(..) {
             update(&mut model, msg);
         }
-        let html = view(&model);
-        let body = document().query_selector("body").unwrap();
+        let offscreen_scene = Child::from(view(&model));
+        {
+            let _patch = diff(&onscreen_scene, &offscreen_scene);
+        }
+        onscreen_scene = offscreen_scene;
         while body.has_child_nodes() {
             body.remove_child(&body.last_child().unwrap()).unwrap();
         }
-        html.render(messages.clone(), &body);
+        onscreen_scene.render(messages.clone(), &body);
     };
     // Initial call for first rendering
     callback();
@@ -69,7 +112,7 @@ type Attributes = HashMap<&'static str, String>;
 type Classes = Vec<&'static str>;
 
 trait Render<MSG> {
-    fn render(self, messages: Messages<MSG>, element: &Element);
+    fn render(&mut self, messages: Messages<MSG>, element: &Element);
 }
 
 pub enum Child<MSG> {
@@ -95,10 +138,10 @@ impl<MSG> fmt::Debug for Child<MSG> {
 
 
 impl<MSG> Render<MSG> for Child<MSG> {
-    fn render(self, messages: Messages<MSG>, element: &Element) {
-        match self {
-            Child::VNode(vnode) => vnode.render(messages, element),
-            Child::VText(vtext) => vtext.render(messages, element),
+    fn render(&mut self, messages: Messages<MSG>, element: &Element) {
+        match *self {
+            Child::VNode(ref mut vnode) => vnode.render(messages, element),
+            Child::VText(ref mut vtext) => vtext.render(messages, element),
         }
     }
 }
@@ -132,7 +175,7 @@ impl VText {
 }
 
 impl<MSG> Render<MSG> for VText {
-    fn render(self, _: Messages<MSG>, element: &Element) {
+    fn render(&mut self, _: Messages<MSG>, element: &Element) {
         let child_element = document().create_text_node(&self.text);
         element.append_child(&child_element);
     }
@@ -192,7 +235,7 @@ impl<MSG> VNode<MSG> {
 }
 
 impl<MSG> Render<MSG> for VNode<MSG> {
-    fn render(mut self, messages: Messages<MSG>, element: &Element) {
+    fn render(&mut self, messages: Messages<MSG>, element: &Element) {
         let child_element = document().create_element(self.tag);
         let child_element = {
             let cloned: Result<InputElement, _> = child_element.clone().try_into();
@@ -207,16 +250,16 @@ impl<MSG> Render<MSG> for VNode<MSG> {
                 child_element
             }
         };
-        for (name, value) in self.attributes {
+        for (name, value) in self.attributes.iter() {
             set_attribute(&child_element, name, &value);
         }
-        for class in self.classes {
+        for class in self.classes.iter() {
             child_element.class_list().add(&class);
         }
         for mut listener in self.listeners.drain(..) {
             listener.attach(&child_element, messages.clone());
         }
-        for child in self.childs.drain(..) {
+        for mut child in self.childs.drain(..) {
             child.render(messages.clone(), &child_element);
         }
         element.append_child(&child_element);
