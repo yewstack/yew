@@ -94,17 +94,17 @@ fn view(model: &Model) -> Html<Msg> {
                     </span>
                     <ul class="filters",>
                         <li>
-                            <a (onclick)=|_| Msg::SetFilter(Filter::All),>
+                            <a onclick=|_| Msg::SetFilter(Filter::All),>
                                 { Filter::All }
                             </a>
                         </li>
                         <li>
-                            <a (onclick)=|_| Msg::SetFilter(Filter::Active),>
+                            <a onclick=|_| Msg::SetFilter(Filter::Active),>
                                 { Filter::Active }
                             </a>
                         </li>
                         <li>
-                            <a (onclick)=|_| Msg::SetFilter(Filter::Completed),>
+                            <a onclick=|_| Msg::SetFilter(Filter::Completed),>
                                 { Filter::Completed }
                             </a>
                         </li>
@@ -128,8 +128,8 @@ fn view_input(model: &Model) -> Html<Msg> {
         <input class="new-todo",
                placeholder="What needs to be done?",
                value=&model.value,
-               (oninput)=|e: InputData| Msg::Update(e.value),
-               (onkeypress)=|e: KeyData| {
+               oninput=|e: InputData| Msg::Update(e.value),
+               onkeypress=|e: KeyData| {
                    if e.key == "Enter" { Msg::Add } else { Msg::Nope }
                }, />
     }
@@ -156,7 +156,7 @@ fn view_entry((idx, entry): (usize, &Entry)) -> Html<Msg> {
             <div class="view",>
                 <input class="toggle", type="checkbox", />
                 <label>{ &entry.description }</label>
-                <button class="destroy", (onclick)=move |_| Msg::Remove(idx),></button>
+                <button class="destroy", onclick=move |_| Msg::Remove(idx),></button>
             </div>
         </li>
     }

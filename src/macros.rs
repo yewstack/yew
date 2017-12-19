@@ -18,6 +18,19 @@ macro_rules! html_impl {
         $crate::macros::set_value(&mut $stack, $value);
         html_impl! { $stack ($($tail)*) }
     };
+    // Events:
+    ($stack:ident (onclick = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { $stack ((onclick) = $handler, $($tail)*) }
+    };
+    ($stack:ident (ondoubleclick = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { $stack ((ondoubleclick) = $handler, $($tail)*) }
+    };
+    ($stack:ident (onkeypress = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { $stack ((onkeypress) = $handler, $($tail)*) }
+    };
+    ($stack:ident (oninput = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { $stack ((oninput) = $handler, $($tail)*) }
+    };
     // PATTERN: (action)=expression,
     ($stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
         // Catch value to a separate variable for clear error messages
