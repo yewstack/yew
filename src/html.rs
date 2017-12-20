@@ -3,77 +3,12 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-/*
-pub trait Message {}
-
-impl<T: ConcreteEvent> Fn(T) -> Self for Message {
-}
-*/
-
 use stdweb;
 
-use stdweb::web::{INode, IElement, Element, document};
+use stdweb::web::{INode, IElement, Node, Element, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryInto;
-use stdweb::unstable::TryFrom;
-
-// Diff updates text only!
-/*
-type Ref<'a, MSG> = &'a Child<MSG>;
-
-fn diff_node<'a, MSG>(
-    script: &mut Script<'a, MSG>,
-    a: Option<Ref<'a, MSG>>,
-    b: Option<Ref<'a, MSG>>) {
-    // Compare nodes
-    match (a, b) {
-        (Some(&Child::VNode(ref left)), Some(&Child::VNode(ref right))) => {
-            // Compare values
-            match (&left.value, &right.value) {
-                (&Some(ref left), &Some(ref right)) => {
-                    // Set new value if changed
-                    if left != right {
-                        script.push(Action::SetValue(left));
-                    }
-                }
-                _ => {
-                    unimplemented!();
-                }
-            }
-        }
-        (Some(_), None) => {
-            // Construct new node
-        }
-        (None, None) => {
-            // No nodes no changes
-        }
-        _ => {
-            unimplemented!();
-        }
-    }
-}
-
-// Index of Vec is an index of patch
-fn diff<'a, MSG>(a: Ref<'a, MSG>, b: Ref<'a, MSG>) -> Script<'a, MSG> {
-    let mut script = Vec::new();
-    diff_node(&mut script, a, b);
-    script
-}
-
-type Script<'a, MSG> = Vec<Action<'a, MSG>>;
-
-/// I use script approach because will give good perfomance when threads
-/// will appear in WASM and I can send actions through channels.
-enum Action<'a, MSG: 'a> {
-    StepInto,
-    StepOut,
-    CreateNode(Ref<'a, MSG>),
-    SetValue(&'a str),
-    SetAttribute(String, String),
-    RemoveAttribute(String),
-}
-*/
 
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
@@ -92,12 +27,15 @@ where
     // No messages at start
     let messages = Rc::new(RefCell::new(Vec::new()));
     let mut callback = move || {
+        println!("Yew Loop Callback");
         let mut borrowed = messages.borrow_mut();
         for msg in borrowed.drain(..) {
             update(&mut model, msg);
         }
         let mut html = view(&model);
-        html.render(&body, Some(&app), messages.clone());
+        println!("Do render");
+        let this = body.first_child();
+        html.render(&body, this, messages.clone());
     };
     // Initial call for first rendering
     callback();
@@ -129,7 +67,7 @@ type Attributes = HashMap<&'static str, String>;
 type Classes = Vec<&'static str>;
 
 trait Render<MSG> {
-    fn render(&mut self, parent: &Element, this: Option<&Element>, messages: Messages<MSG>);
+    fn render<T: INode>(&mut self, parent: &T, this: Option<Node>, messages: Messages<MSG>);
 }
 
 pub enum Child<MSG> {
@@ -155,7 +93,7 @@ impl<MSG> fmt::Debug for Child<MSG> {
 
 
 impl<MSG> Render<MSG> for Child<MSG> {
-    fn render(&mut self, parent: &Element, this: Option<&Element>, messages: Messages<MSG>) {
+    fn render<T: INode>(&mut self, parent: &T, this: Option<Node>, messages: Messages<MSG>) {
         match *self {
             Child::VNode(ref mut vnode) => vnode.render(parent, this, messages),
             Child::VText(ref mut vtext) => vtext.render(parent, this, messages),
@@ -192,8 +130,9 @@ impl VText {
 }
 
 impl<MSG> Render<MSG> for VText {
-    fn render(&mut self, parent: &Element, this: Option<&Element>, _: Messages<MSG>) {
-        if let Some(this) = this {
+    fn render<T: INode>(&mut self, parent: &T, this: Option<Node>, _: Messages<MSG>) {
+        println!("Render text node!");
+        if let Some(_) = this {
             // Check node type and replace if wrong
         } else {
             let element = document().create_text_node(&self.text);
@@ -202,7 +141,6 @@ impl<MSG> Render<MSG> for VText {
     }
 }
 
-
 pub struct VNode<MSG> {
     tag: &'static str,
     listeners: Listeners<MSG>,
@@ -210,6 +148,7 @@ pub struct VNode<MSG> {
     childs: Vec<Child<MSG>>,
     classes: Classes,
     value: Option<String>,
+    kind: Option<String>,
 }
 
 impl<MSG> fmt::Debug for VNode<MSG> {
@@ -227,6 +166,7 @@ impl<MSG> VNode<MSG> {
             listeners: Vec::new(),
             childs: Vec::new(),
             value: None,
+            kind: None,
         }
     }
 
@@ -246,6 +186,10 @@ impl<MSG> VNode<MSG> {
         self.value = Some(value.to_string());
     }
 
+    pub fn set_kind<T: ToString>(&mut self, value: T) {
+        self.kind = Some(value.to_string());
+    }
+
     pub fn add_attribute<T: ToString>(&mut self, name: &'static str, value: T) {
         self.attributes.insert(name, value.to_string());
     }
@@ -255,6 +199,41 @@ impl<MSG> VNode<MSG> {
     }
 
     fn fill_node(&mut self, this: &Element, messages: Messages<MSG>) {
+        println!("Fill VNode");
+        let input: Result<InputElement, _> = this.clone().try_into();
+        if let Ok(input) = input {
+            let old_value = input.value().into_string().unwrap();
+            let new_value = self.value.take().unwrap_or_else(String::new);
+            println!("Value check: {} is? {}", old_value, new_value);
+            if old_value != new_value {
+                input.set_value(new_value);
+            }
+            if let Some(ref kind) = self.kind {
+                input.set_kind(kind);
+            } else {
+                input.set_kind("");
+            }
+        }
+
+        println!("VNode classes");
+        for class in self.classes.iter() {
+            this.class_list().add(&class);
+        }
+
+        println!("VNode attributes");
+        for (name, value) in self.attributes.iter() {
+            set_attribute(&this, name, &value);
+        }
+
+        println!("VNode listeners");
+        // TODO IMPORTANT! IT DUPLICATES ALL LISTENERS!
+        // How to fix? What about to use "global" list of
+        // listeners mapping by dom references.
+        for mut listener in self.listeners.drain(..) {
+            listener.attach(&this, messages.clone());
+        }
+
+        println!("VNode children");
         let mut childs = self.childs.drain(..).map(Some).collect::<Vec<_>>();
         let mut nodes = this.child_nodes().iter().map(Some).collect::<Vec<_>>();
         let diff = childs.len() as i32 - nodes.len() as i32;
@@ -270,17 +249,11 @@ impl<MSG> VNode<MSG> {
 
         for pair in childs.into_iter().zip(nodes) {
             match pair {
-                (Some(mut child), Some(node)) => {
-                    let element = Element::try_from(node).unwrap();
-                    // Check the tag
-                    child.render(this, Some(&element), messages.clone());
-                }
-                (Some(mut child), None) => {
-                    // Append a new one
-                    child.render(this, None, messages.clone());
+                (Some(mut child), node) => {
+                    child.render(this, node, messages.clone());
                 }
                 (None, Some(node)) => {
-                    this.remove_child(&node);
+                    this.remove_child(&node).unwrap();
                     // Remove redundant node
                 }
                 (None, None) => {
@@ -292,64 +265,26 @@ impl<MSG> VNode<MSG> {
 }
 
 impl<MSG> Render<MSG> for VNode<MSG> {
-    fn render(&mut self, parent: &Element, this: Option<&Element>, messages: Messages<MSG>) {
+    fn render<T: INode>(&mut self, parent: &T, this: Option<Node>, messages: Messages<MSG>) {
+        println!("Render: {:?}", this);
         if let Some(this) = this {
-            if self.tag != this.node_name() {
-                let element = document().create_element(self.tag);
-                parent.replace_child(&element, this);
-                self.fill_node(&element, messages.clone());
+            println!("Node: {:?}", this.node_name());
+            // Important! HTML Expected!
+            if self.tag.to_owned().to_uppercase() == this.node_name() {
+                let this = this.try_into().unwrap();
+                self.fill_node(&this, messages.clone());
             } else {
-                self.fill_node(this, messages.clone());
+                println!("REPLACE!");
+                let element = document().create_element(self.tag);
+                parent.replace_child(&element, &this);
+                println!("REPLACE DONE!");
+                self.fill_node(&element, messages.clone());
             }
         } else {
             let element = document().create_element(self.tag);
             parent.append_child(&element);
             self.fill_node(&element, messages.clone());
         }
-        /*
-        let child_element = {
-            if this.node_name() != self.tag {
-                let new_element = document().create_element(self.tag);
-                this.parent_node().unwrap().replace_child(&new_element, this);
-                new_element
-            } else {
-                this
-            }
-        };
-        */
-        /*
-        for mut child in  {
-            child.render(&child_element, messages.clone());
-        }
-        */
-        /*
-        let child_element = {
-            let cloned: Result<InputElement, _> = child_element.clone().try_into();
-            if let &Some(ref value) = &self.value {
-                if let Ok(input_element) = cloned {
-                    input_element.set_value(value);
-                    input_element.into()
-                } else {
-                    child_element
-                }
-            } else {
-                child_element
-            }
-        };
-        for (name, value) in self.attributes.iter() {
-            set_attribute(&child_element, name, &value);
-        }
-        for class in self.classes.iter() {
-            child_element.class_list().add(&class);
-        }
-        for mut listener in self.listeners.drain(..) {
-            listener.attach(&child_element, messages.clone());
-        }
-        for mut child in self.childs.drain(..) {
-            child.render(&child_element, messages.clone());
-        }
-        element.append_child(&child_element);
-        */
     }
 }
 
@@ -387,6 +322,7 @@ macro_rules! impl_action {
                     let handler = self.0.take().unwrap();
                     let this = element.clone();
                     let sender = move |event: $type| {
+                        println!("Event handler: {}", stringify!($type));
                         event.stop_propagation();
                         let handy_event: $ret = $convert(&this, event);
                         let msg = handler(handy_event);

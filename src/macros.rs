@@ -18,6 +18,12 @@ macro_rules! html_impl {
         $crate::macros::set_value(&mut $stack, $value);
         html_impl! { $stack ($($tail)*) }
     };
+    // PATTERN: attribute=value, - workaround for `type` attribute
+    // because `type` is a keyword in Rust
+    ($stack:ident (type = $kind:expr, $($tail:tt)*)) => {
+        $crate::macros::set_kind(&mut $stack, $kind);
+        html_impl! { $stack ($($tail)*) }
+    };
     // Events:
     ($stack:ident (onclick = $handler:expr, $($tail:tt)*)) => {
         html_impl! { $stack ((onclick) = $handler, $($tail)*) }
@@ -37,12 +43,6 @@ macro_rules! html_impl {
         let handler = $handler;
         let listener = $crate::html::$action::Wrapper::from(handler);
         $crate::macros::attach_listener(&mut $stack, Box::new(listener));
-        html_impl! { $stack ($($tail)*) }
-    };
-    // PATTERN: attribute=value, - workaround for `type` attribute
-    // because `type` is a keyword in Rust
-    ($stack:ident (type = $val:expr, $($tail:tt)*)) => {
-        $crate::macros::add_attribute(&mut $stack, "type", $val);
         html_impl! { $stack ($($tail)*) }
     };
     ($stack:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
@@ -109,6 +109,15 @@ pub fn set_value<MSG, T: ToString>(stack: &mut Stack<MSG>, value: &T) {
         node.set_value(value);
     } else {
         panic!("no tag to set value: {}", value.to_string());
+    }
+}
+
+#[doc(hidden)]
+pub fn set_kind<MSG, T: ToString>(stack: &mut Stack<MSG>, value: T) {
+    if let Some(node) = stack.last_mut() {
+        node.set_kind(value);
+    } else {
+        panic!("no tag to set type: {}", value.to_string());
     }
 }
 
