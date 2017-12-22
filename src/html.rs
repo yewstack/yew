@@ -10,6 +10,20 @@ use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryInto;
 
+macro_rules! debug {
+    ($($e:expr),*) => {
+        if cfg!(debug) {
+            println!($($e,)*);
+        }
+    };
+}
+
+macro_rules! warn {
+    ($($e:expr),*) => {
+        eprintln!($($e,)*);
+    };
+}
+
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
     M: 'static,
@@ -27,13 +41,13 @@ where
     // No messages at start
     let messages = Rc::new(RefCell::new(Vec::new()));
     let mut callback = move || {
-        println!("Yew Loop Callback");
+        debug!("Yew Loop Callback");
         let mut borrowed = messages.borrow_mut();
         for msg in borrowed.drain(..) {
             update(&mut model, msg);
         }
         let mut html = view(&model);
-        println!("Do render");
+        debug!("Do render");
         let this = body.first_child();
         html.render(&body, this, messages.clone());
     };
@@ -131,7 +145,7 @@ impl VText {
 
 impl<MSG> Render<MSG> for VText {
     fn render<T: INode>(&mut self, parent: &T, this: Option<Node>, _: Messages<MSG>) {
-        println!("Render text node!");
+        debug!("Render text node!");
         if let Some(_) = this {
             // Check node type and replace if wrong
         } else {
@@ -199,12 +213,12 @@ impl<MSG> VNode<MSG> {
     }
 
     fn fill_node(&mut self, this: &Element, messages: Messages<MSG>) {
-        println!("Fill VNode");
+        debug!("Fill VNode");
         let input: Result<InputElement, _> = this.clone().try_into();
         if let Ok(input) = input {
             let old_value = input.value().into_string().unwrap();
             let new_value = self.value.take().unwrap_or_else(String::new);
-            println!("Value check: {} is? {}", old_value, new_value);
+            debug!("Value check: {} is? {}", old_value, new_value);
             if old_value != new_value {
                 input.set_value(new_value);
             }
@@ -215,17 +229,17 @@ impl<MSG> VNode<MSG> {
             }
         }
 
-        println!("VNode classes");
+        debug!("VNode classes");
         for class in self.classes.iter() {
             this.class_list().add(&class);
         }
 
-        println!("VNode attributes");
+        debug!("VNode attributes");
         for (name, value) in self.attributes.iter() {
             set_attribute(&this, name, &value);
         }
 
-        println!("VNode listeners");
+        debug!("VNode listeners");
         // TODO IMPORTANT! IT DUPLICATES ALL LISTENERS!
         // How to fix? What about to use "global" list of
         // listeners mapping by dom references.
@@ -233,7 +247,7 @@ impl<MSG> VNode<MSG> {
             listener.attach(&this, messages.clone());
         }
 
-        println!("VNode children");
+        debug!("VNode children");
         let mut childs = self.childs.drain(..).map(Some).collect::<Vec<_>>();
         let mut nodes = this.child_nodes().iter().map(Some).collect::<Vec<_>>();
         let diff = childs.len() as i32 - nodes.len() as i32;
@@ -266,18 +280,18 @@ impl<MSG> VNode<MSG> {
 
 impl<MSG> Render<MSG> for VNode<MSG> {
     fn render<T: INode>(&mut self, parent: &T, this: Option<Node>, messages: Messages<MSG>) {
-        println!("Render: {:?}", this);
+        debug!("Render: {:?}", this);
         if let Some(this) = this {
-            println!("Node: {:?}", this.node_name());
+            debug!("Node: {:?}", this.node_name());
             // Important! HTML Expected!
             if self.tag.to_owned().to_uppercase() == this.node_name() {
                 let this = this.try_into().unwrap();
                 self.fill_node(&this, messages.clone());
             } else {
-                println!("REPLACE!");
+                debug!("REPLACE!");
                 let element = document().create_element(self.tag);
                 parent.replace_child(&element, &this);
-                println!("REPLACE DONE!");
+                debug!("REPLACE DONE!");
                 self.fill_node(&element, messages.clone());
             }
         } else {
@@ -322,7 +336,7 @@ macro_rules! impl_action {
                     let handler = self.0.take().unwrap();
                     let this = element.clone();
                     let sender = move |event: $type| {
-                        println!("Event handler: {}", stringify!($type));
+                        debug!("Event handler: {}", stringify!($type));
                         event.stop_propagation();
                         let handy_event: $ret = $convert(&this, event);
                         let msg = handler(handy_event);
