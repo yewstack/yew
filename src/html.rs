@@ -5,7 +5,6 @@ use std::collections::{HashMap, HashSet};
 
 use stdweb;
 
-use stdweb::Reference;
 use stdweb::web::{INode, IElement, Node, Element, TextNode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use stdweb::web::html_element::InputElement;
@@ -145,10 +144,9 @@ impl<MSG> VNode<MSG> {
                         right = Some(vtag);
                         *reference = Some(element);
                     }
-                    Some(VNode::VText { reference: Some(old), .. }) => {
+                    Some(VNode::VText { reference: Some(wrong), .. }) => {
                         let mut element = document().create_element(left.tag);
-                        parent.replace_child(&element, &old);
-                        left.render(&mut element, None, messages.clone());
+                        parent.replace_child(&element, &wrong);
                         *reference = Some(element);
                     }
                     Some(VNode::VTag { reference: None, .. }) |
@@ -156,7 +154,6 @@ impl<MSG> VNode<MSG> {
                     None => {
                         let mut element = document().create_element(left.tag);
                         parent.append_child(&element);
-                        left.render(&mut element, None, messages.clone());
                         *reference = Some(element);
                     }
                 }
@@ -199,21 +196,28 @@ impl<MSG> VNode<MSG> {
                 //vtag.apply(parent, reference, last, messages);
             }
             VNode::VText { ref mut vtext, ref mut reference }  => {
+                let left = vtext;
+                let mut right = None;
                 match last {
-                    Some(VNode::VTag { .. }) => {
+                    Some(VNode::VText { mut vtext, reference: Some(mut element) }) => {
+                        right = Some(vtext);
+                        *reference = Some(element);
                     }
-                    Some(VNode::VText { .. }) => {
-                        // TODO Replace the node
+                    Some(VNode::VTag { reference: Some(wrong), .. }) => {
+                        let mut element = document().create_text_node(&left.text);
+                        parent.replace_child(&element, &wrong);
+                        *reference = Some(element);
                     }
                     Some(VNode::VTag { reference: None, .. }) |
                     Some(VNode::VText { reference: None, .. }) |
                     None => {
-                        let element = document().create_text_node(&vtext.text);
+                        let element = document().create_text_node(&left.text);
                         parent.append_child(&element);
                         *reference = Some(element);
                     }
                 }
-                //vtext.apply(parent, reference, last, messages);
+                let element_mut = reference.as_mut().expect("vtext must be here");
+                left.render(element_mut, right);
             }
         }
     }
@@ -252,16 +256,14 @@ impl VText {
         VText { text: text.to_string() }
     }
 
-    fn apply<MSG, T: INode>(&mut self, parent: &T, opposite: Option<Self>, _: Messages<MSG>) {
-        /*
-        debug!("Render text node!");
-        if let Some(_) = this {
-            // Check node type and replace if wrong
+    fn render(&mut self, subject: &TextNode, mut opposite: Option<Self>) {
+        if let Some(opposite) = opposite {
+            if self.text != opposite.text {
+                subject.set_node_value(Some(&self.text));
+            }
         } else {
-            let element = document().create_text_node(&self.text);
-            parent.append_child(&element);
+            subject.set_node_value(Some(&self.text));
         }
-        */
     }
 }
 
@@ -426,7 +428,7 @@ impl<MSG> VTag<MSG> {
 }
 
 impl<MSG> VTag<MSG> {
-    fn render(&mut self, subject: &Element, mut opposite: Option<VTag<MSG>>, messages: Messages<MSG>) {
+    fn render(&mut self, subject: &Element, mut opposite: Option<Self>, messages: Messages<MSG>) {
         // TODO Replace self if tagName differs
 
         let changes = self.soakup_classes(&mut opposite);
