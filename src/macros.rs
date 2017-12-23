@@ -24,6 +24,10 @@ macro_rules! html_impl {
         $crate::macros::set_kind(&mut $stack, $kind);
         html_impl! { $stack ($($tail)*) }
     };
+    ($stack:ident (checked = $kind:expr, $($tail:tt)*)) => {
+        if $kind { $crate::macros::add_attribute(&mut $stack, "checked", "true"); }
+        html_impl! { $stack ($($tail)*) }
+    };
     // Events:
     ($stack:ident (onclick = $handler:expr, $($tail:tt)*)) => {
         html_impl! { $stack ((onclick) = $handler, $($tail)*) }

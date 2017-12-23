@@ -5,10 +5,21 @@ extern crate yew;
 
 use yew::html::*;
 
+#[derive(Clone)]
 enum Filter {
     All,
     Active,
     Completed,
+}
+
+impl Filter {
+    fn fit(&self, entry: &Entry) -> bool {
+        match *self {
+            Filter::All => true,
+            Filter::Active => !entry.completed,
+            Filter::Completed => entry.completed,
+        }
+    }
 }
 
 impl ToString for Filter {
@@ -34,7 +45,28 @@ impl Model {
     }
 
     fn total_completed(&self) -> usize {
-        self.entries.iter().filter(|entry| entry.completed).count()
+        self.entries.iter().filter(|e| Filter::Completed.fit(e)).count()
+    }
+
+    fn is_all_completed(&self) -> bool {
+        self.entries.iter()
+            .filter(|e| self.filter.fit(e))
+            .fold(true, |status, entry| status && entry.completed)
+    }
+
+    fn complete_all(&mut self) {
+        for entry in self.entries.iter_mut() {
+            if self.filter.fit(entry) {
+                entry.completed = true;
+            }
+        }
+    }
+
+    fn clear_completed(&mut self) {
+        let entries = self.entries.drain(..)
+            .filter(|e| Filter::Active.fit(e))
+            .collect();
+        self.entries = entries;
     }
 }
 
@@ -48,6 +80,9 @@ enum Msg {
     Update(String),
     Remove(usize),
     SetFilter(Filter),
+    SelectAll,
+    Toggle(usize),
+    ClearCompleted,
     Nope,
 }
 
@@ -71,6 +106,16 @@ fn update(model: &mut Model, msg: Msg) {
         Msg::SetFilter(filter) => {
             model.filter = filter;
         }
+        Msg::SelectAll => {
+            model.complete_all();
+        }
+        Msg::Toggle(idx) => {
+            let entry = model.entries.get_mut(idx).unwrap();
+            entry.completed = !entry.completed;
+        }
+        Msg::ClearCompleted => {
+            model.clear_completed();
+        }
         Msg::Nope => {}
     }
 }
@@ -84,8 +129,8 @@ fn view(model: &Model) -> Html<Msg> {
                     { view_input(&model) }
                 </header>
                 <section class="main",>
-                    <input class="toggle-all", type="checkbox",/>
-                    { view_entries(&model.entries) }
+                    <input class="toggle-all", type="checkbox", onclick=|_| Msg::SelectAll, />
+                    { view_entries(&model) }
                 </section>
                 <footer class="footer",>
                     <span class="todo-count",>
@@ -109,7 +154,7 @@ fn view(model: &Model) -> Html<Msg> {
                             </a>
                         </li>
                     </ul>
-                    <button class="clear-completed",>
+                    <button class="clear-completed", onclick=|_| Msg::ClearCompleted,>
                         { format!("Clear completed ({})", model.total_completed()) }
                     </button>
                 </footer>
@@ -135,10 +180,10 @@ fn view_input(model: &Model) -> Html<Msg> {
     }
 }
 
-fn view_entries(entries: &Vec<Entry>) -> Html<Msg> {
+fn view_entries(model: &Model) -> Html<Msg> {
     html! {
         <ul class="todo-list",>
-            { for entries.iter().enumerate().map(view_entry) }
+            { for model.entries.iter().filter(|e| model.filter.fit(e)).enumerate().map(view_entry) }
             // You can use standard Rust comments. One line:
             // <li></li>
         </ul>
@@ -154,7 +199,7 @@ fn view_entry((idx, entry): (usize, &Entry)) -> Html<Msg> {
     html! {
         <li>
             <div class="view",>
-                <input class="toggle", type="checkbox", />
+                <input class="toggle", type="checkbox", checked=entry.completed, onclick=move|_| Msg::Toggle(idx), />
                 <label>{ &entry.description }</label>
                 <button class="destroy", onclick=move |_| Msg::Remove(idx),></button>
             </div>
