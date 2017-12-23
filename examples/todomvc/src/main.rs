@@ -74,6 +74,30 @@ impl Model {
             .collect();
         self.entries = entries;
     }
+
+    fn toggle(&mut self, idx: usize) {
+        let filter = self.filter.clone();
+        let mut entries = self.entries
+            .iter_mut()
+            .filter(|e| filter.fit(e))
+            .collect::<Vec<_>>();
+        let entry = entries.get_mut(idx).unwrap();
+        entry.completed = !entry.completed;
+    }
+
+    fn remove(&mut self, idx: usize) {
+        let idx = {
+            let filter = self.filter.clone();
+            let entries = self.entries
+                .iter()
+                .enumerate()
+                .filter(|&(_, e)| filter.fit(e))
+                .collect::<Vec<_>>();
+            let &(idx, _) = entries.get(idx).unwrap();
+            idx
+        };
+        self.entries.remove(idx);
+    }
 }
 
 struct Entry {
@@ -107,7 +131,7 @@ fn update(model: &mut Model, msg: Msg) {
             model.value = val;
         }
         Msg::Remove(idx) => {
-            model.entries.remove(idx);
+            model.remove(idx);
         }
         Msg::SetFilter(filter) => {
             model.filter = filter;
@@ -117,13 +141,7 @@ fn update(model: &mut Model, msg: Msg) {
             model.toggle_all(status);
         }
         Msg::Toggle(idx) => {
-            let filter = model.filter.clone();
-            let mut entry = model.entries
-                .iter_mut()
-                .filter(|e| filter.fit(e))
-                .collect::<Vec<_>>();
-            let entry = entry.get_mut(idx).unwrap();
-            entry.completed = !entry.completed;
+            model.toggle(idx);
         }
         Msg::ClearCompleted => {
             model.clear_completed();
