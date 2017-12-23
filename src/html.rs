@@ -135,11 +135,17 @@ impl<MSG> VNode<MSG> {
 
     fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<MSG>>, messages: Messages<MSG>) {
         match *self {
-            VNode::VTag { ref mut vtag, ref mut reference } => {
+            VNode::VTag {
+                ref mut vtag,
+                ref mut reference,
+            } => {
                 let left = vtag;
                 let mut right = None;
                 match last {
-                    Some(VNode::VTag { mut vtag, reference: Some(mut element) }) => {
+                    Some(VNode::VTag {
+                             mut vtag,
+                             reference: Some(mut element),
+                         }) => {
                         // Copy reference from right to left (as is)
                         right = Some(vtag);
                         *reference = Some(element);
@@ -195,11 +201,17 @@ impl<MSG> VNode<MSG> {
                 }
                 //vtag.apply(parent, reference, last, messages);
             }
-            VNode::VText { ref mut vtext, ref mut reference }  => {
+            VNode::VText {
+                ref mut vtext,
+                ref mut reference,
+            } => {
                 let left = vtext;
                 let mut right = None;
                 match last {
-                    Some(VNode::VText { mut vtext, reference: Some(mut element) }) => {
+                    Some(VNode::VText {
+                             mut vtext,
+                             reference: Some(mut element),
+                         }) => {
                         right = Some(vtext);
                         *reference = Some(element);
                     }
@@ -335,13 +347,13 @@ impl<MSG> VTag<MSG> {
     fn soakup_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<&'static str, ()>> {
         let mut changes = Vec::new();
         if let &mut Some(ref ancestor) = ancestor {
-            let to_add = self.classes
-                .difference(&ancestor.classes)
-                .map(|class| Patch::Add(*class, ()));
+            let to_add = self.classes.difference(&ancestor.classes).map(|class| {
+                Patch::Add(*class, ())
+            });
             changes.extend(to_add);
-            let to_remove = ancestor.classes
-                .difference(&self.classes)
-                .map(|class| Patch::Remove(*class));
+            let to_remove = ancestor.classes.difference(&self.classes).map(|class| {
+                Patch::Remove(*class)
+            });
             changes.extend(to_remove);
         } else {
             // Add everything
@@ -356,12 +368,10 @@ impl<MSG> VTag<MSG> {
         if let &mut Some(ref mut ancestor) = ancestor {
             let left_keys = self.attributes.keys().collect::<HashSet<_>>();
             let right_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
-            let to_add = left_keys
-                .difference(&right_keys)
-                .map(|key| {
-                    let value = self.attributes.get(*key).unwrap();
-                    Patch::Add(key.to_string(), value.to_string())
-                });
+            let to_add = left_keys.difference(&right_keys).map(|key| {
+                let value = self.attributes.get(*key).unwrap();
+                Patch::Add(key.to_string(), value.to_string())
+            });
             changes.extend(to_add);
             for key in left_keys.intersection(&right_keys) {
                 let left_value = self.attributes.get(*key).unwrap();
@@ -371,9 +381,9 @@ impl<MSG> VTag<MSG> {
                     changes.push(mutator);
                 }
             }
-            let to_remove = right_keys
-                .difference(&left_keys)
-                .map(|key| Patch::Remove(key.to_string()));
+            let to_remove = right_keys.difference(&left_keys).map(|key| {
+                Patch::Remove(key.to_string())
+            });
             changes.extend(to_remove);
         } else {
             for (key, value) in self.attributes.iter() {
@@ -385,7 +395,10 @@ impl<MSG> VTag<MSG> {
     }
 
     fn soakup_kind(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
-        match (&self.kind, ancestor.as_mut().and_then(|anc| anc.kind.take())) {
+        match (
+            &self.kind,
+            ancestor.as_mut().and_then(|anc| anc.kind.take()),
+        ) {
             (&Some(ref left), Some(ref right)) => {
                 if left != right {
                     Some(Patch::Replace(left.to_string(), ()))
@@ -393,20 +406,17 @@ impl<MSG> VTag<MSG> {
                     None
                 }
             }
-            (&Some(ref left), None) => {
-                Some(Patch::Add(left.to_string(), ()))
-            }
-            (&None, Some(right)) => {
-                Some(Patch::Remove(right))
-            }
-            (&None, None) => {
-                None
-            }
+            (&Some(ref left), None) => Some(Patch::Add(left.to_string(), ())),
+            (&None, Some(right)) => Some(Patch::Remove(right)),
+            (&None, None) => None,
         }
     }
 
     fn soakup_value(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
-        match (&self.value, ancestor.as_mut().and_then(|anc| anc.value.take())) {
+        match (
+            &self.value,
+            ancestor.as_mut().and_then(|anc| anc.value.take()),
+        ) {
             (&Some(ref left), Some(ref right)) => {
                 if left != right {
                     Some(Patch::Replace(left.to_string(), ()))
@@ -414,15 +424,9 @@ impl<MSG> VTag<MSG> {
                     None
                 }
             }
-            (&Some(ref left), None) => {
-                Some(Patch::Add(left.to_string(), ()))
-            }
-            (&None, Some(right)) => {
-                Some(Patch::Remove(right))
-            }
-            (&None, None) => {
-                None
-            }
+            (&Some(ref left), None) => Some(Patch::Add(left.to_string(), ())),
+            (&None, Some(right)) => Some(Patch::Remove(right)),
+            (&None, None) => None,
         }
     }
 }
@@ -435,7 +439,8 @@ impl<MSG> VTag<MSG> {
         for change in changes {
             let list = subject.class_list();
             match change {
-                Patch::Add(class, _) | Patch::Replace(class, _) => {
+                Patch::Add(class, _) |
+                Patch::Replace(class, _) => {
                     list.add(&class);
                 }
                 Patch::Remove(class) => {
@@ -447,7 +452,8 @@ impl<MSG> VTag<MSG> {
         let changes = self.soakup_attributes(&mut opposite);
         for change in changes {
             match change {
-                Patch::Add(key, value) | Patch::Replace(key, value) => {
+                Patch::Add(key, value) |
+                Patch::Replace(key, value) => {
                     set_attribute(&subject, &key, &value);
                 }
                 Patch::Remove(key) => {
@@ -460,7 +466,8 @@ impl<MSG> VTag<MSG> {
             let input: Result<InputElement, _> = subject.clone().try_into();
             if let Ok(input) = input {
                 match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => {
+                    Patch::Add(kind, _) |
+                    Patch::Replace(kind, _) => {
                         input.set_kind(&kind);
                     }
                     Patch::Remove(_) => {
@@ -476,7 +483,8 @@ impl<MSG> VTag<MSG> {
             let input: Result<InputElement, _> = subject.clone().try_into();
             if let Ok(input) = input {
                 match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => {
+                    Patch::Add(kind, _) |
+                    Patch::Replace(kind, _) => {
                         input.set_value(&kind);
                     }
                     Patch::Remove(_) => {
@@ -535,7 +543,8 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, messages: Messages<MSG>) -> EventListenerHandle {
+                fn attach(&mut self, element: &Element, messages: Messages<MSG>)
+                    -> EventListenerHandle {
                     let handler = self.0.take().unwrap();
                     let this = element.clone();
                     let sender = move |event: $type| {
@@ -609,9 +618,7 @@ pub struct KeyData {
 
 impl<T: IKeyboardEvent> From<T> for KeyData {
     fn from(event: T) -> Self {
-        KeyData {
-            key: event.key(),
-        }
+        KeyData { key: event.key() }
     }
 }
 
@@ -624,4 +631,3 @@ fn set_attribute(element: &Element, name: &str, value: &str) {
 fn remove_attribute(element: &Element, name: &str) {
     js!( @{element}.removeAttribute( @{name} ); );
 }
-

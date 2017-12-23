@@ -71,8 +71,7 @@ fn update(model: &mut Model, msg: Msg) {
         Msg::SetFilter(filter) => {
             model.filter = filter;
         }
-        Msg::Nope => {
-        }
+        Msg::Nope => {}
     }
 }
 
