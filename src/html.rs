@@ -282,7 +282,7 @@ impl<MSG> fmt::Debug for VTag<MSG> {
     }
 }
 
-enum Mutator<ID, T> {
+enum Patch<ID, T> {
     Add(ID, T),
     Replace(ID, T),
     Remove(ID),
@@ -330,26 +330,26 @@ impl<MSG> VTag<MSG> {
         self.listeners.push(listener);
     }
 
-    fn soakup_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Mutator<&'static str, ()>> {
+    fn soakup_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<&'static str, ()>> {
         let mut changes = Vec::new();
         if let &mut Some(ref ancestor) = ancestor {
             let to_add = self.classes
                 .difference(&ancestor.classes)
-                .map(|class| Mutator::Add(*class, ()));
+                .map(|class| Patch::Add(*class, ()));
             changes.extend(to_add);
             let to_remove = ancestor.classes
                 .difference(&self.classes)
-                .map(|class| Mutator::Remove(*class));
+                .map(|class| Patch::Remove(*class));
             changes.extend(to_remove);
         } else {
             // Add everything
-            let to_add = self.classes.iter().map(|class| Mutator::Add(*class, ()));
+            let to_add = self.classes.iter().map(|class| Patch::Add(*class, ()));
             changes.extend(to_add);
         }
         changes
     }
 
-    fn soakup_attributes(&mut self, ancestor: &mut Option<Self>) -> Vec<Mutator<String, String>> {
+    fn soakup_attributes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, String>> {
         let mut changes = Vec::new();
         if let &mut Some(ref mut ancestor) = ancestor {
             let left_keys = self.attributes.keys().collect::<HashSet<_>>();
@@ -358,44 +358,44 @@ impl<MSG> VTag<MSG> {
                 .difference(&right_keys)
                 .map(|key| {
                     let value = self.attributes.get(*key).unwrap();
-                    Mutator::Add(key.to_string(), value.to_string())
+                    Patch::Add(key.to_string(), value.to_string())
                 });
             changes.extend(to_add);
             for key in left_keys.intersection(&right_keys) {
                 let left_value = self.attributes.get(*key).unwrap();
                 let right_value = ancestor.attributes.get(*key).unwrap();
                 if left_value != right_value {
-                    let mutator = Mutator::Replace(key.to_string(), left_value.to_string());
+                    let mutator = Patch::Replace(key.to_string(), left_value.to_string());
                     changes.push(mutator);
                 }
             }
             let to_remove = right_keys
                 .difference(&left_keys)
-                .map(|key| Mutator::Remove(key.to_string()));
+                .map(|key| Patch::Remove(key.to_string()));
             changes.extend(to_remove);
         } else {
             for (key, value) in self.attributes.iter() {
-                let mutator = Mutator::Add(key.to_string(), value.to_string());
+                let mutator = Patch::Add(key.to_string(), value.to_string());
                 changes.push(mutator);
             }
         }
         changes
     }
 
-    fn soakup_kind(&mut self, ancestor: &mut Option<Self>) -> Option<Mutator<String, ()>> {
+    fn soakup_kind(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
         match (&self.kind, ancestor.as_mut().and_then(|anc| anc.kind.take())) {
             (&Some(ref left), Some(ref right)) => {
                 if left != right {
-                    Some(Mutator::Replace(left.to_string(), ()))
+                    Some(Patch::Replace(left.to_string(), ()))
                 } else {
                     None
                 }
             }
             (&Some(ref left), None) => {
-                Some(Mutator::Add(left.to_string(), ()))
+                Some(Patch::Add(left.to_string(), ()))
             }
             (&None, Some(right)) => {
-                Some(Mutator::Remove(right))
+                Some(Patch::Remove(right))
             }
             (&None, None) => {
                 None
@@ -403,20 +403,20 @@ impl<MSG> VTag<MSG> {
         }
     }
 
-    fn soakup_value(&mut self, ancestor: &mut Option<Self>) -> Option<Mutator<String, ()>> {
+    fn soakup_value(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
         match (&self.value, ancestor.as_mut().and_then(|anc| anc.value.take())) {
             (&Some(ref left), Some(ref right)) => {
                 if left != right {
-                    Some(Mutator::Replace(left.to_string(), ()))
+                    Some(Patch::Replace(left.to_string(), ()))
                 } else {
                     None
                 }
             }
             (&Some(ref left), None) => {
-                Some(Mutator::Add(left.to_string(), ()))
+                Some(Patch::Add(left.to_string(), ()))
             }
             (&None, Some(right)) => {
-                Some(Mutator::Remove(right))
+                Some(Patch::Remove(right))
             }
             (&None, None) => {
                 None
@@ -433,10 +433,10 @@ impl<MSG> VTag<MSG> {
         for change in changes {
             let list = subject.class_list();
             match change {
-                Mutator::Add(class, _) | Mutator::Replace(class, _) => {
+                Patch::Add(class, _) | Patch::Replace(class, _) => {
                     list.add(&class);
                 }
-                Mutator::Remove(class) => {
+                Patch::Remove(class) => {
                     list.remove(&class);
                 }
             }
@@ -446,10 +446,10 @@ impl<MSG> VTag<MSG> {
         for change in changes {
             let list = subject.class_list();
             match change {
-                Mutator::Add(key, value) | Mutator::Replace(key, value) => {
+                Patch::Add(key, value) | Patch::Replace(key, value) => {
                     set_attribute(&subject, &key, &value);
                 }
-                Mutator::Remove(key) => {
+                Patch::Remove(key) => {
                     remove_attribute(&subject, &key);
                 }
             }
@@ -459,10 +459,10 @@ impl<MSG> VTag<MSG> {
             let input: Result<InputElement, _> = subject.clone().try_into();
             if let Ok(input) = input {
                 match change {
-                    Mutator::Add(kind, _) | Mutator::Replace(kind, _) => {
+                    Patch::Add(kind, _) | Patch::Replace(kind, _) => {
                         input.set_kind(&kind);
                     }
-                    Mutator::Remove(kind) => {
+                    Patch::Remove(kind) => {
                         input.set_kind("");
                     }
                 }
@@ -475,10 +475,10 @@ impl<MSG> VTag<MSG> {
             let input: Result<InputElement, _> = subject.clone().try_into();
             if let Ok(input) = input {
                 match change {
-                    Mutator::Add(kind, _) | Mutator::Replace(kind, _) => {
+                    Patch::Add(kind, _) | Patch::Replace(kind, _) => {
                         input.set_value(&kind);
                     }
-                    Mutator::Remove(kind) => {
+                    Patch::Remove(kind) => {
                         input.set_value("");
                     }
                 }
