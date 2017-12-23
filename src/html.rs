@@ -130,6 +130,7 @@ impl_action! {
     }
 }
 
+#[derive(Debug)]
 pub struct MouseData {
     pub screen_x: f64,
     pub screen_y: f64,
@@ -148,10 +149,12 @@ impl<T: IMouseEvent> From<T> for MouseData {
     }
 }
 
+#[derive(Debug)]
 pub struct InputData {
     pub value: String,
 }
 
+#[derive(Debug)]
 pub struct KeyData {
     pub key: String,
 }
