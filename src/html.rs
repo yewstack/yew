@@ -256,7 +256,7 @@ impl VText {
         VText { text: text.to_string() }
     }
 
-    fn render(&mut self, subject: &TextNode, mut opposite: Option<Self>) {
+    fn render(&mut self, subject: &TextNode, opposite: Option<Self>) {
         if let Some(opposite) = opposite {
             if self.text != opposite.text {
                 subject.set_node_value(Some(&self.text));
@@ -446,7 +446,6 @@ impl<MSG> VTag<MSG> {
 
         let changes = self.soakup_attributes(&mut opposite);
         for change in changes {
-            let list = subject.class_list();
             match change {
                 Patch::Add(key, value) | Patch::Replace(key, value) => {
                     set_attribute(&subject, &key, &value);
@@ -464,7 +463,7 @@ impl<MSG> VTag<MSG> {
                     Patch::Add(kind, _) | Patch::Replace(kind, _) => {
                         input.set_kind(&kind);
                     }
-                    Patch::Remove(kind) => {
+                    Patch::Remove(_) => {
                         input.set_kind("");
                     }
                 }
@@ -480,7 +479,7 @@ impl<MSG> VTag<MSG> {
                     Patch::Add(kind, _) | Patch::Replace(kind, _) => {
                         input.set_value(&kind);
                     }
-                    Patch::Remove(kind) => {
+                    Patch::Remove(_) => {
                         input.set_value("");
                     }
                 }
