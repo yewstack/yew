@@ -49,15 +49,21 @@ impl Model {
     }
 
     fn is_all_completed(&self) -> bool {
-        self.entries.iter()
+        let entries = self.entries.iter()
             .filter(|e| self.filter.fit(e))
-            .fold(true, |status, entry| status && entry.completed)
+            .collect::<Vec<_>>();
+        if entries.len() == 0 {
+            false
+        } else {
+            entries.into_iter()
+                .fold(true, |status, entry| status && entry.completed)
+        }
     }
 
-    fn complete_all(&mut self) {
+    fn toggle_all(&mut self, value: bool) {
         for entry in self.entries.iter_mut() {
             if self.filter.fit(entry) {
-                entry.completed = true;
+                entry.completed = value;
             }
         }
     }
@@ -80,7 +86,7 @@ enum Msg {
     Update(String),
     Remove(usize),
     SetFilter(Filter),
-    SelectAll,
+    ToggleAll,
     Toggle(usize),
     ClearCompleted,
     Nope,
@@ -106,8 +112,9 @@ fn update(model: &mut Model, msg: Msg) {
         Msg::SetFilter(filter) => {
             model.filter = filter;
         }
-        Msg::SelectAll => {
-            model.complete_all();
+        Msg::ToggleAll => {
+            let status = !model.is_all_completed();
+            model.toggle_all(status);
         }
         Msg::Toggle(idx) => {
             let filter = model.filter.clone();
@@ -134,7 +141,7 @@ fn view(model: &Model) -> Html<Msg> {
                     { view_input(&model) }
                 </header>
                 <section class="main",>
-                    <input class="toggle-all", type="checkbox", onclick=|_| Msg::SelectAll, />
+                    <input class="toggle-all", type="checkbox", checked=model.is_all_completed(), onclick=|_| Msg::ToggleAll, />
                     { view_entries(&model) }
                 </section>
                 <footer class="footer",>
