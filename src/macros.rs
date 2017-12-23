@@ -1,10 +1,10 @@
-use html::{VTag, VNode, Listener};
+use virtual_dom::{VTag, VNode, Listener};
 
 #[macro_export]
 macro_rules! html_impl {
     // Start of openging tag
     ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
-        let node = $crate::html::VTag::new(stringify!($starttag));
+        let node = $crate::virtual_dom::VTag::new(stringify!($starttag));
         $stack.push(node);
         html_impl! { $stack ($($tail)*) }
     };
@@ -52,14 +52,14 @@ macro_rules! html_impl {
     // PATTERN: { for expression }
     ($stack:ident ({ for $eval:expr } $($tail:tt)*)) => {
         let nodes = $eval;
-        for node in nodes.map($crate::html::VNode::from) {
+        for node in nodes.map($crate::virtual_dom::VNode::from) {
             $crate::macros::add_child(&mut $stack, node);
         }
         html_impl! { $stack ($($tail)*) }
     };
     // PATTERN: { expression }
     ($stack:ident ({ $eval:expr } $($tail:tt)*)) => {
-        let node = $crate::html::VNode::from($eval);
+        let node = $crate::virtual_dom::VNode::from($eval);
         $crate::macros::add_child(&mut $stack, node);
         html_impl! { $stack ($($tail)*) }
     };
@@ -175,4 +175,20 @@ pub fn child_to_parent<MSG>(stack: &mut Stack<MSG>, endtag: Option<&'static str>
     } else {
         panic!("redundant closing tag: {:?}", endtag);
     }
+}
+
+#[macro_export]
+macro_rules! debug {
+    ($($e:expr),*) => {
+        if cfg!(debug) {
+            println!($($e,)*);
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! warn {
+    ($($e:expr),*) => {
+        eprintln!($($e,)*);
+    };
 }
