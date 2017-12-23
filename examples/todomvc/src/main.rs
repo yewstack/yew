@@ -110,7 +110,12 @@ fn update(model: &mut Model, msg: Msg) {
             model.complete_all();
         }
         Msg::Toggle(idx) => {
-            let entry = model.entries.get_mut(idx).unwrap();
+            let filter = model.filter.clone();
+            let mut entry = model.entries
+                .iter_mut()
+                .filter(|e| filter.fit(e))
+                .collect::<Vec<_>>();
+            let entry = entry.get_mut(idx).unwrap();
             entry.completed = !entry.completed;
         }
         Msg::ClearCompleted => {
