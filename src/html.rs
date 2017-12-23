@@ -283,6 +283,7 @@ impl<MSG> fmt::Debug for VTag<MSG> {
 
 enum Mutator<ID, T> {
     Add(ID, T),
+    Replace(ID, T),
     Remove(ID),
 }
 
@@ -328,14 +329,75 @@ impl<MSG> VTag<MSG> {
     }
 
     fn soakup_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Mutator<&'static str, ()>> {
+        let mut changes = Vec::new();
         if let &mut Some(ref ancestor) = ancestor {
-            let changes = Vec::new();
-            let add = self.classes.difference(&ancestor.classes);
-            let remove = ancestor.classes.difference(&self.classes);
-            changes
+            let to_add = self.classes
+                .difference(&ancestor.classes)
+                .map(|class| Mutator::Add(*class, ()));
+            changes.extend(to_add);
+            let to_remove = ancestor.classes
+                .difference(&self.classes)
+                .map(|class| Mutator::Remove(*class));
+            changes.extend(to_remove);
         } else {
             // Add everything
-            self.classes.iter().map(|class| Mutator::Add(*class, ())).collect()
+            let to_add = self.classes.iter().map(|class| Mutator::Add(*class, ()));
+            changes.extend(to_add);
+        }
+        changes
+    }
+
+    fn soakup_attributes(&mut self, ancestor: &mut Option<Self>) -> Vec<Mutator<String, String>> {
+        let mut changes = Vec::new();
+        if let &mut Some(ref mut ancestor) = ancestor {
+            let left_keys = self.attributes.keys().collect::<HashSet<_>>();
+            let right_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
+            let to_add = left_keys
+                .difference(&right_keys)
+                .map(|key| {
+                    let value = self.attributes.get(*key).unwrap();
+                    Mutator::Add(key.to_string(), value.to_string())
+                });
+            changes.extend(to_add);
+            for key in left_keys.intersection(&right_keys) {
+                let left_value = self.attributes.get(*key).unwrap();
+                let right_value = ancestor.attributes.get(*key).unwrap();
+                if left_value != right_value {
+                    let mutator = Mutator::Replace(key.to_string(), left_value.to_string());
+                    changes.push(mutator);
+                }
+            }
+            let to_remove = right_keys
+                .difference(&left_keys)
+                .map(|key| Mutator::Remove(key.to_string()));
+            changes.extend(to_remove);
+        } else {
+            for (key, value) in self.attributes.iter() {
+                let mutator = Mutator::Add(key.to_string(), value.to_string());
+                changes.push(mutator);
+            }
+        }
+        changes
+    }
+
+    fn soakup_kind(&mut self, ancestor: &mut Option<Self>) -> Option<Mutator<String, ()>> {
+        match (&self.kind, ancestor.as_mut().and_then(|anc| anc.kind.take())) {
+            (&Some(ref left), Some(ref right)) => {
+                if left != right {
+                    Some(Mutator::Replace(left.to_string(), ()))
+                } else {
+                    None
+                }
+            }
+            (&Some(ref left), None) => {
+                Some(Mutator::Add(left.to_string(), ()))
+            }
+            (&None, Some(right)) => {
+                Some(Mutator::Remove(right))
+            }
+            (&None, None) => {
+                None
+            }
         }
     }
 
@@ -413,7 +475,7 @@ impl<MSG> VTag<MSG> {
         for change in changes {
             let list = subject.class_list();
             match change {
-                Mutator::Add(class, _) => {
+                Mutator::Add(class, _) | Mutator::Replace(class, _) => {
                     list.add(&class);
                 }
                 Mutator::Remove(class) => {
@@ -421,6 +483,36 @@ impl<MSG> VTag<MSG> {
                 }
             }
         }
+
+        let changes = self.soakup_attributes(&mut opposite);
+        for change in changes {
+            let list = subject.class_list();
+            match change {
+                Mutator::Add(key, value) | Mutator::Replace(key, value) => {
+                    set_attribute(&subject, &key, &value);
+                }
+                Mutator::Remove(key) => {
+                    remove_attribute(&subject, &key);
+                }
+            }
+        }
+
+        if let Some(change) = self.soakup_kind(&mut opposite) {
+            let input: Result<InputElement, _> = subject.clone().try_into();
+            if let Ok(input) = input {
+                match change {
+                    Mutator::Add(kind, _) | Mutator::Replace(kind, _) => {
+                        input.set_kind(&kind);
+                    }
+                    Mutator::Remove(kind) => {
+                        input.set_kind("");
+                    }
+                }
+            } else {
+                panic!("tried to set `type` kind for non input element");
+            }
+        }
+
         /*
         let children = {
             if let Some(vnode) = this {
@@ -592,5 +684,9 @@ impl<T: IKeyboardEvent> From<T> for KeyData {
 // this is workaround from: https://github.com/koute/stdweb/issues/16#issuecomment-325195854
 fn set_attribute(element: &Element, name: &str, value: &str) {
     js!( @{element}.setAttribute( @{name}, @{value} ); );
+}
+
+fn remove_attribute(element: &Element, name: &str) {
+    js!( @{element}.removeAttribute( @{name} ); );
 }
 
