@@ -1,7 +1,7 @@
 use std::fmt;
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use stdweb;
 
@@ -86,7 +86,7 @@ impl<MSG> fmt::Debug for Listener<MSG> {
 type Messages<MSG> = Rc<RefCell<Vec<MSG>>>;
 type Listeners<MSG> = Vec<Box<Listener<MSG>>>;
 type Attributes = HashMap<&'static str, String>;
-type Classes = Vec<&'static str>;
+type Classes = HashSet<&'static str>;
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<MSG> {
@@ -281,11 +281,16 @@ impl<MSG> fmt::Debug for VTag<MSG> {
     }
 }
 
+enum Mutator<ID, T> {
+    Add(ID, T),
+    Remove(ID),
+}
+
 impl<MSG> VTag<MSG> {
     pub fn new(tag: &'static str) -> Self {
         VTag {
             tag: tag,
-            classes: Vec::new(),
+            classes: Classes::new(),
             attributes: HashMap::new(),
             listeners: Vec::new(),
             childs: Vec::new(),
@@ -303,7 +308,7 @@ impl<MSG> VTag<MSG> {
     }
 
     pub fn add_classes(&mut self, class: &'static str) {
-        self.classes.push(class);
+        self.classes.insert(class);
     }
 
     pub fn set_value<T: ToString>(&mut self, value: &T) {
@@ -320,6 +325,18 @@ impl<MSG> VTag<MSG> {
 
     pub fn add_listener(&mut self, listener: Box<Listener<MSG>>) {
         self.listeners.push(listener);
+    }
+
+    fn soakup_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Mutator<&'static str, ()>> {
+        if let &mut Some(ref ancestor) = ancestor {
+            let changes = Vec::new();
+            let add = self.classes.difference(&ancestor.classes);
+            let remove = ancestor.classes.difference(&self.classes);
+            changes
+        } else {
+            // Add everything
+            self.classes.iter().map(|class| Mutator::Add(*class, ())).collect()
+        }
     }
 
     /*
@@ -391,7 +408,19 @@ impl<MSG> VTag<MSG> {
 }
 
 impl<MSG> VTag<MSG> {
-    fn render(&mut self, subject: &Element, opposite: Option<VTag<MSG>>, messages: Messages<MSG>) {
+    fn render(&mut self, subject: &Element, mut opposite: Option<VTag<MSG>>, messages: Messages<MSG>) {
+        let changes = self.soakup_classes(&mut opposite);
+        for change in changes {
+            let list = subject.class_list();
+            match change {
+                Mutator::Add(class, _) => {
+                    list.add(&class);
+                }
+                Mutator::Remove(class) => {
+                    list.remove(&class);
+                }
+            }
+        }
         /*
         let children = {
             if let Some(vnode) = this {
