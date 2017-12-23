@@ -1,21 +1,35 @@
 use std::fmt;
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::collections::HashMap;
-
-/*
-pub trait Message {}
-
-impl<T: ConcreteEvent> Fn(T) -> Self for Message {
-}
-*/
+use std::collections::{HashMap, HashSet};
 
 use stdweb;
 
-use stdweb::web::{INode, IElement, Element, document};
+use stdweb::web::{INode, IElement, Node, Element, TextNode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryInto;
+
+macro_rules! debug {
+    ($($e:expr),*) => {
+        if cfg!(debug) {
+            println!($($e,)*);
+        }
+    };
+}
+
+macro_rules! warn {
+    ($($e:expr),*) => {
+        eprintln!($($e,)*);
+    };
+}
+
+fn clear_body() {
+    let body = document().query_selector("body").unwrap();
+    while body.has_child_nodes() {
+        body.remove_child(&body.last_child().unwrap()).unwrap();
+    }
+}
 
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
@@ -25,19 +39,24 @@ where
     V: Fn(&M) -> Html<MSG> + 'static,
 {
     stdweb::initialize();
+    clear_body();
+    let body = document().query_selector("body").unwrap();
     // No messages at start
     let messages = Rc::new(RefCell::new(Vec::new()));
+    let mut last_frame = VNode::from(view(&model));
+    last_frame.apply(&body, None, messages.clone());
+    let mut last_frame = Some(last_frame);
+
     let mut callback = move || {
+        debug!("Yew Loop Callback");
         let mut borrowed = messages.borrow_mut();
         for msg in borrowed.drain(..) {
             update(&mut model, msg);
         }
-        let html = view(&model);
-        let body = document().query_selector("body").unwrap();
-        while body.has_child_nodes() {
-            body.remove_child(&body.last_child().unwrap()).unwrap();
-        }
-        html.render(messages.clone(), &body);
+        let mut next_frame = VNode::from(view(&model));
+        debug!("Do apply");
+        next_frame.apply(&body, last_frame.take(), messages.clone());
+        last_frame = Some(next_frame);
     };
     // Initial call for first rendering
     callback();
@@ -50,11 +69,11 @@ where
     stdweb::event_loop();
 }
 
-pub type Html<MSG> = VNode<MSG>;
+pub type Html<MSG> = VTag<MSG>;
 
 pub trait Listener<MSG> {
     fn kind(&self) -> &'static str;
-    fn attach(&mut self, element: &Element, messages: Messages<MSG>);
+    fn attach(&mut self, element: &Element, messages: Messages<MSG>) -> EventListenerHandle;
 }
 
 impl<MSG> fmt::Debug for Listener<MSG> {
@@ -66,52 +85,171 @@ impl<MSG> fmt::Debug for Listener<MSG> {
 type Messages<MSG> = Rc<RefCell<Vec<MSG>>>;
 type Listeners<MSG> = Vec<Box<Listener<MSG>>>;
 type Attributes = HashMap<&'static str, String>;
-type Classes = Vec<&'static str>;
+type Classes = HashSet<&'static str>;
 
-trait Render<MSG> {
-    fn render(self, messages: Messages<MSG>, element: &Element);
+/// Bind virtual element to a DOM reference.
+pub enum VNode<MSG> {
+    VTag {
+        reference: Option<Element>,
+        vtag: VTag<MSG>,
+    },
+    VText {
+        reference: Option<TextNode>, // TODO Replace with TextNode
+        vtext: VText,
+    },
 }
 
-pub enum Child<MSG> {
-    VNode(VNode<MSG>),
-    VText(VText),
-}
 
-
-impl<MSG, T: ToString> From<T> for Child<MSG> {
+impl<MSG, T: ToString> From<T> for VNode<MSG> {
     fn from(value: T) -> Self {
-        Child::VText(VText::new(value))
+        VNode::VText {
+            reference: None,
+            vtext: VText::new(value),
+        }
     }
 }
 
-impl<MSG> fmt::Debug for Child<MSG> {
+impl<MSG> fmt::Debug for VNode<MSG> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Child::VNode(ref vnode) => vnode.fmt(f),
-            &Child::VText(ref vtext) => vtext.fmt(f),
+            &VNode::VTag { ref vtag, .. } => vtag.fmt(f),
+            &VNode::VText { ref vtext, .. } => vtext.fmt(f),
         }
     }
 }
 
+impl<MSG> VNode<MSG> {
+    fn remove<T: INode>(self, parent: &T) {
+        let opt_ref: Option<Node> = {
+            match self {
+                VNode::VTag { reference, .. } => reference.map(Node::from),
+                VNode::VText { reference, .. } => reference.map(Node::from),
+            }
+        };
+        if let Some(node) = opt_ref {
+            if let Err(_) = parent.remove_child(&node) {
+                warn!("Node not found to remove: {:?}", node);
+            }
+        }
+    }
 
-impl<MSG> Render<MSG> for Child<MSG> {
-    fn render(self, messages: Messages<MSG>, element: &Element) {
-        match self {
-            Child::VNode(vnode) => vnode.render(messages, element),
-            Child::VText(vtext) => vtext.render(messages, element),
+    fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<MSG>>, messages: Messages<MSG>) {
+        match *self {
+            VNode::VTag {
+                ref mut vtag,
+                ref mut reference,
+            } => {
+                let left = vtag;
+                let mut right = None;
+                match last {
+                    Some(VNode::VTag {
+                             mut vtag,
+                             reference: Some(mut element),
+                         }) => {
+                        // Copy reference from right to left (as is)
+                        right = Some(vtag);
+                        *reference = Some(element);
+                    }
+                    Some(VNode::VText { reference: Some(wrong), .. }) => {
+                        let mut element = document().create_element(left.tag);
+                        parent.replace_child(&element, &wrong);
+                        *reference = Some(element);
+                    }
+                    Some(VNode::VTag { reference: None, .. }) |
+                    Some(VNode::VText { reference: None, .. }) |
+                    None => {
+                        let mut element = document().create_element(left.tag);
+                        parent.append_child(&element);
+                        *reference = Some(element);
+                    }
+                }
+                let element_mut = reference.as_mut().expect("vtag must be here");
+                // Update parameters
+                let mut rights = {
+                    if let Some(ref mut right) = right {
+                        right.childs.drain(..).map(Some).collect::<Vec<_>>()
+                    } else {
+                        Vec::new()
+                    }
+                };
+                // TODO Consider to use: &mut Messages here;
+                left.render(element_mut, right, messages.clone());
+                let mut lefts = left.childs.iter_mut().map(Some).collect::<Vec<_>>();
+                // Process children
+                let diff = lefts.len() as i32 - rights.len() as i32;
+                if diff > 0 {
+                    for _ in 0..diff {
+                        rights.push(None);
+                    }
+                } else if diff < 0 {
+                    for _ in 0..-diff {
+                        lefts.push(None);
+                    }
+                }
+                for pair in lefts.into_iter().zip(rights) {
+                    match pair {
+                        (Some(left), right) => {
+                            left.apply(element_mut, right, messages.clone());
+                        }
+                        (None, Some(right)) => {
+                            right.remove(element_mut);
+                        }
+                        (None, None) => {
+                            panic!("redundant iterations during diff");
+                        }
+                    }
+                }
+                //vtag.apply(parent, reference, last, messages);
+            }
+            VNode::VText {
+                ref mut vtext,
+                ref mut reference,
+            } => {
+                let left = vtext;
+                let mut right = None;
+                match last {
+                    Some(VNode::VText {
+                             mut vtext,
+                             reference: Some(mut element),
+                         }) => {
+                        right = Some(vtext);
+                        *reference = Some(element);
+                    }
+                    Some(VNode::VTag { reference: Some(wrong), .. }) => {
+                        let mut element = document().create_text_node(&left.text);
+                        parent.replace_child(&element, &wrong);
+                        *reference = Some(element);
+                    }
+                    Some(VNode::VTag { reference: None, .. }) |
+                    Some(VNode::VText { reference: None, .. }) |
+                    None => {
+                        let element = document().create_text_node(&left.text);
+                        parent.append_child(&element);
+                        *reference = Some(element);
+                    }
+                }
+                let element_mut = reference.as_mut().expect("vtext must be here");
+                left.render(element_mut, right);
+            }
         }
     }
 }
 
-impl<MSG> From<VText> for Child<MSG> {
+impl<MSG> From<VText> for VNode<MSG> {
     fn from(vtext: VText) -> Self {
-        Child::VText(vtext)
+        VNode::VText {
+            reference: None,
+            vtext,
+        }
     }
 }
 
-impl<MSG> From<VNode<MSG>> for Child<MSG> {
-    fn from(vnode: VNode<MSG>) -> Self {
-        Child::VNode(vnode)
+impl<MSG> From<VTag<MSG>> for VNode<MSG> {
+    fn from(vtag: VTag<MSG>) -> Self {
+        VNode::VTag {
+            reference: None,
+            vtag,
+        }
     }
 }
 
@@ -129,40 +267,52 @@ impl VText {
     pub fn new<T: ToString>(text: T) -> Self {
         VText { text: text.to_string() }
     }
-}
 
-impl<MSG> Render<MSG> for VText {
-    fn render(self, _: Messages<MSG>, element: &Element) {
-        let child_element = document().create_text_node(&self.text);
-        element.append_child(&child_element);
+    fn render(&mut self, subject: &TextNode, opposite: Option<Self>) {
+        if let Some(opposite) = opposite {
+            if self.text != opposite.text {
+                subject.set_node_value(Some(&self.text));
+            }
+        } else {
+            subject.set_node_value(Some(&self.text));
+        }
     }
 }
 
-
-pub struct VNode<MSG> {
+pub struct VTag<MSG> {
     tag: &'static str,
     listeners: Listeners<MSG>,
+    captured: Vec<EventListenerHandle>,
     attributes: Attributes,
-    childs: Vec<Child<MSG>>,
+    childs: Vec<VNode<MSG>>,
     classes: Classes,
     value: Option<String>,
+    kind: Option<String>,
 }
 
-impl<MSG> fmt::Debug for VNode<MSG> {
+impl<MSG> fmt::Debug for VTag<MSG> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "VNode {{ tag: {} }}", self.tag)
+        write!(f, "VTag {{ tag: {} }}", self.tag)
     }
 }
 
-impl<MSG> VNode<MSG> {
+enum Patch<ID, T> {
+    Add(ID, T),
+    Replace(ID, T),
+    Remove(ID),
+}
+
+impl<MSG> VTag<MSG> {
     pub fn new(tag: &'static str) -> Self {
-        VNode {
+        VTag {
             tag: tag,
-            classes: Vec::new(),
+            classes: Classes::new(),
             attributes: HashMap::new(),
             listeners: Vec::new(),
+            captured: Vec::new(),
             childs: Vec::new(),
             value: None,
+            kind: None,
         }
     }
 
@@ -170,16 +320,20 @@ impl<MSG> VNode<MSG> {
         self.tag
     }
 
-    pub fn add_child(&mut self, child: Child<MSG>) {
+    pub fn add_child(&mut self, child: VNode<MSG>) {
         self.childs.push(child);
     }
 
     pub fn add_classes(&mut self, class: &'static str) {
-        self.classes.push(class);
+        self.classes.insert(class);
     }
 
     pub fn set_value<T: ToString>(&mut self, value: &T) {
         self.value = Some(value.to_string());
+    }
+
+    pub fn set_kind<T: ToString>(&mut self, value: T) {
+        self.kind = Some(value.to_string());
     }
 
     pub fn add_attribute<T: ToString>(&mut self, name: &'static str, value: T) {
@@ -189,37 +343,173 @@ impl<MSG> VNode<MSG> {
     pub fn add_listener(&mut self, listener: Box<Listener<MSG>>) {
         self.listeners.push(listener);
     }
+
+    fn soakup_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<&'static str, ()>> {
+        let mut changes = Vec::new();
+        if let &mut Some(ref ancestor) = ancestor {
+            let to_add = self.classes.difference(&ancestor.classes).map(|class| {
+                Patch::Add(*class, ())
+            });
+            changes.extend(to_add);
+            let to_remove = ancestor.classes.difference(&self.classes).map(|class| {
+                Patch::Remove(*class)
+            });
+            changes.extend(to_remove);
+        } else {
+            // Add everything
+            let to_add = self.classes.iter().map(|class| Patch::Add(*class, ()));
+            changes.extend(to_add);
+        }
+        changes
+    }
+
+    fn soakup_attributes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, String>> {
+        let mut changes = Vec::new();
+        if let &mut Some(ref mut ancestor) = ancestor {
+            let left_keys = self.attributes.keys().collect::<HashSet<_>>();
+            let right_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
+            let to_add = left_keys.difference(&right_keys).map(|key| {
+                let value = self.attributes.get(*key).unwrap();
+                Patch::Add(key.to_string(), value.to_string())
+            });
+            changes.extend(to_add);
+            for key in left_keys.intersection(&right_keys) {
+                let left_value = self.attributes.get(*key).unwrap();
+                let right_value = ancestor.attributes.get(*key).unwrap();
+                if left_value != right_value {
+                    let mutator = Patch::Replace(key.to_string(), left_value.to_string());
+                    changes.push(mutator);
+                }
+            }
+            let to_remove = right_keys.difference(&left_keys).map(|key| {
+                Patch::Remove(key.to_string())
+            });
+            changes.extend(to_remove);
+        } else {
+            for (key, value) in self.attributes.iter() {
+                let mutator = Patch::Add(key.to_string(), value.to_string());
+                changes.push(mutator);
+            }
+        }
+        changes
+    }
+
+    fn soakup_kind(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
+        match (
+            &self.kind,
+            ancestor.as_mut().and_then(|anc| anc.kind.take()),
+        ) {
+            (&Some(ref left), Some(ref right)) => {
+                if left != right {
+                    Some(Patch::Replace(left.to_string(), ()))
+                } else {
+                    None
+                }
+            }
+            (&Some(ref left), None) => Some(Patch::Add(left.to_string(), ())),
+            (&None, Some(right)) => Some(Patch::Remove(right)),
+            (&None, None) => None,
+        }
+    }
+
+    fn soakup_value(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
+        match (
+            &self.value,
+            ancestor.as_mut().and_then(|anc| anc.value.take()),
+        ) {
+            (&Some(ref left), Some(ref right)) => {
+                if left != right {
+                    Some(Patch::Replace(left.to_string(), ()))
+                } else {
+                    None
+                }
+            }
+            (&Some(ref left), None) => Some(Patch::Add(left.to_string(), ())),
+            (&None, Some(right)) => Some(Patch::Remove(right)),
+            (&None, None) => None,
+        }
+    }
 }
 
-impl<MSG> Render<MSG> for VNode<MSG> {
-    fn render(mut self, messages: Messages<MSG>, element: &Element) {
-        let child_element = document().create_element(self.tag);
-        let child_element = {
-            let cloned: Result<InputElement, _> = child_element.clone().try_into();
-            if let &Some(ref value) = &self.value {
-                if let Ok(input_element) = cloned {
-                    input_element.set_value(value);
-                    input_element.into()
-                } else {
-                    child_element
+impl<MSG> VTag<MSG> {
+    fn render(&mut self, subject: &Element, mut opposite: Option<Self>, messages: Messages<MSG>) {
+        // TODO Replace self if tagName differs
+
+        let changes = self.soakup_classes(&mut opposite);
+        for change in changes {
+            let list = subject.class_list();
+            match change {
+                Patch::Add(class, _) |
+                Patch::Replace(class, _) => {
+                    list.add(&class);
+                }
+                Patch::Remove(class) => {
+                    list.remove(&class);
+                }
+            }
+        }
+
+        let changes = self.soakup_attributes(&mut opposite);
+        for change in changes {
+            match change {
+                Patch::Add(key, value) |
+                Patch::Replace(key, value) => {
+                    set_attribute(&subject, &key, &value);
+                }
+                Patch::Remove(key) => {
+                    remove_attribute(&subject, &key);
+                }
+            }
+        }
+
+        if let Some(change) = self.soakup_kind(&mut opposite) {
+            let input: Result<InputElement, _> = subject.clone().try_into();
+            if let Ok(input) = input {
+                match change {
+                    Patch::Add(kind, _) |
+                    Patch::Replace(kind, _) => {
+                        input.set_kind(&kind);
+                    }
+                    Patch::Remove(_) => {
+                        input.set_kind("");
+                    }
                 }
             } else {
-                child_element
+                panic!("tried to set `type` kind for non input element");
             }
-        };
-        for (name, value) in self.attributes {
-            set_attribute(&child_element, name, &value);
         }
-        for class in self.classes {
-            child_element.class_list().add(&class);
+
+        if let Some(change) = self.soakup_value(&mut opposite) {
+            let input: Result<InputElement, _> = subject.clone().try_into();
+            if let Ok(input) = input {
+                match change {
+                    Patch::Add(kind, _) |
+                    Patch::Replace(kind, _) => {
+                        input.set_value(&kind);
+                    }
+                    Patch::Remove(_) => {
+                        input.set_value("");
+                    }
+                }
+            } else {
+                panic!("tried to set `value` kind for non input element");
+            }
         }
+
+        // Every render it removes all listeners and attach it back later
+        // TODO Compare references of handler to do listeners update better
+        if let Some(mut opposite) = opposite {
+            for mut handle in opposite.captured.drain(..) {
+                debug!("Removing handler...");
+                handle.remove();
+            }
+        }
+
         for mut listener in self.listeners.drain(..) {
-            listener.attach(&child_element, messages.clone());
+            debug!("Add listener...");
+            let handle = listener.attach(&subject, messages.clone());
+            self.captured.push(handle);
         }
-        for child in self.childs.drain(..) {
-            child.render(messages.clone(), &child_element);
-        }
-        element.append_child(&child_element);
     }
 }
 
@@ -253,10 +543,12 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, messages: Messages<MSG>) {
+                fn attach(&mut self, element: &Element, messages: Messages<MSG>)
+                    -> EventListenerHandle {
                     let handler = self.0.take().unwrap();
                     let this = element.clone();
                     let sender = move |event: $type| {
+                        debug!("Event handler: {}", stringify!($type));
                         event.stop_propagation();
                         let handy_event: $ret = $convert(&this, event);
                         let msg = handler(handy_event);
@@ -269,7 +561,7 @@ macro_rules! impl_action {
                             setTimeout(yew_loop);
                         }
                     };
-                    element.add_event_listener(sender);
+                    element.add_event_listener(sender)
                 }
             }
         }
@@ -326,9 +618,7 @@ pub struct KeyData {
 
 impl<T: IKeyboardEvent> From<T> for KeyData {
     fn from(event: T) -> Self {
-        KeyData {
-            key: event.key(),
-        }
+        KeyData { key: event.key() }
     }
 }
 
@@ -338,3 +628,6 @@ fn set_attribute(element: &Element, name: &str, value: &str) {
     js!( @{element}.setAttribute( @{name}, @{value} ); );
 }
 
+fn remove_attribute(element: &Element, name: &str) {
+    js!( @{element}.removeAttribute( @{name} ); );
+}

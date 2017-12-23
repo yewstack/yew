@@ -59,6 +59,7 @@ fn update(model: &mut Model, msg: Msg) {
                 completed: false,
             };
             model.entries.push(entry);
+            model.value = "".to_string();
         }
         Msg::Update(val) => {
             println!("Input: {}", val);
@@ -70,8 +71,7 @@ fn update(model: &mut Model, msg: Msg) {
         Msg::SetFilter(filter) => {
             model.filter = filter;
         }
-        Msg::Nope => {
-        }
+        Msg::Nope => {}
     }
 }
 
