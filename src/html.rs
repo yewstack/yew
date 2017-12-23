@@ -5,7 +5,8 @@ use std::collections::HashMap;
 
 use stdweb;
 
-use stdweb::web::{INode, IElement, Node, Element, document};
+use stdweb::Reference;
+use stdweb::web::{INode, IElement, Node, Element, TextNode, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryInto;
@@ -24,6 +25,13 @@ macro_rules! warn {
     };
 }
 
+fn clear_body() {
+    let body = document().query_selector("body").unwrap();
+    while body.has_child_nodes() {
+        body.remove_child(&body.last_child().unwrap()).unwrap();
+    }
+}
+
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
     M: 'static,
@@ -32,24 +40,24 @@ where
     V: Fn(&M) -> Html<MSG> + 'static,
 {
     stdweb::initialize();
+    clear_body();
     let body = document().query_selector("body").unwrap();
-    while body.has_child_nodes() {
-        body.remove_child(&body.last_child().unwrap()).unwrap();
-    }
-    let app = document().create_element("app");
-    body.append_child(&app);
     // No messages at start
     let messages = Rc::new(RefCell::new(Vec::new()));
+    let mut last_frame = VNode::from(view(&model));
+    last_frame.apply(&body, None, messages.clone());
+    let mut last_frame = Some(last_frame);
+
     let mut callback = move || {
         debug!("Yew Loop Callback");
         let mut borrowed = messages.borrow_mut();
         for msg in borrowed.drain(..) {
             update(&mut model, msg);
         }
-        let mut html = view(&model);
-        debug!("Do render");
-        let this = body.first_child();
-        html.render(&body, this, messages.clone());
+        let mut next_frame = VNode::from(view(&model));
+        debug!("Do apply");
+        next_frame.apply(&body, last_frame.take(), messages.clone());
+        last_frame = Some(next_frame);
     };
     // Initial call for first rendering
     callback();
@@ -62,7 +70,7 @@ where
     stdweb::event_loop();
 }
 
-pub type Html<MSG> = VNode<MSG>;
+pub type Html<MSG> = VTag<MSG>;
 
 pub trait Listener<MSG> {
     fn kind(&self) -> &'static str;
@@ -80,50 +88,152 @@ type Listeners<MSG> = Vec<Box<Listener<MSG>>>;
 type Attributes = HashMap<&'static str, String>;
 type Classes = Vec<&'static str>;
 
-trait Render<MSG> {
-    fn render<T: INode>(&mut self, parent: &T, this: Option<Node>, messages: Messages<MSG>);
+/// Bind virtual element to a DOM reference.
+pub enum VNode<MSG> {
+    VTag {
+        reference: Option<Element>,
+        vtag: VTag<MSG>,
+    },
+    VText {
+        reference: Option<TextNode>, // TODO Replace with TextNode
+        vtext: VText,
+    },
 }
 
-pub enum Child<MSG> {
-    VNode(VNode<MSG>),
-    VText(VText),
-}
 
-
-impl<MSG, T: ToString> From<T> for Child<MSG> {
+impl<MSG, T: ToString> From<T> for VNode<MSG> {
     fn from(value: T) -> Self {
-        Child::VText(VText::new(value))
+        VNode::VText {
+            reference: None,
+            vtext: VText::new(value),
+        }
     }
 }
 
-impl<MSG> fmt::Debug for Child<MSG> {
+impl<MSG> fmt::Debug for VNode<MSG> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Child::VNode(ref vnode) => vnode.fmt(f),
-            &Child::VText(ref vtext) => vtext.fmt(f),
+            &VNode::VTag { ref vtag, .. } => vtag.fmt(f),
+            &VNode::VText { ref vtext, .. } => vtext.fmt(f),
         }
     }
 }
 
+impl<MSG> VNode<MSG> {
+    fn remove<T: INode>(self, parent: &T) {
+        let opt_ref: Option<Node> = {
+            match self {
+                VNode::VTag { reference, .. } => reference.map(Node::from),
+                VNode::VText { reference, .. } => reference.map(Node::from),
+            }
+        };
+        if let Some(node) = opt_ref {
+            if let Err(_) = parent.remove_child(&node) {
+                warn!("Node not found to remove: {:?}", node);
+            }
+        }
+    }
 
-impl<MSG> Render<MSG> for Child<MSG> {
-    fn render<T: INode>(&mut self, parent: &T, this: Option<Node>, messages: Messages<MSG>) {
+    fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<MSG>>, messages: Messages<MSG>) {
         match *self {
-            Child::VNode(ref mut vnode) => vnode.render(parent, this, messages),
-            Child::VText(ref mut vtext) => vtext.render(parent, this, messages),
+            VNode::VTag { ref mut vtag, ref mut reference } => {
+                let left = vtag;
+                let mut right = None;
+                match last {
+                    Some(VNode::VTag { mut vtag, reference: Some(mut element) }) => {
+                        // Copy reference from right to left (as is)
+                        right = Some(vtag);
+                        *reference = Some(element);
+                    }
+                    Some(VNode::VText { reference: Some(old), .. }) => {
+                        let mut element = document().create_element(left.tag);
+                        parent.replace_child(&element, &old);
+                        left.render(&mut element, None, messages.clone());
+                        *reference = Some(element);
+                    }
+                    Some(VNode::VTag { reference: None, .. }) |
+                    Some(VNode::VText { reference: None, .. }) |
+                    None => {
+                        let mut element = document().create_element(left.tag);
+                        parent.append_child(&element);
+                        left.render(&mut element, None, messages.clone());
+                        *reference = Some(element);
+                    }
+                }
+                let element_mut = reference.as_mut().expect("vtag must be here");
+                // Update parameters
+                let mut rights = {
+                    if let Some(ref mut right) = right {
+                        right.childs.drain(..).map(Some).collect::<Vec<_>>()
+                    } else {
+                        Vec::new()
+                    }
+                };
+                // TODO Consider to use: &mut Messages here;
+                left.render(element_mut, right, messages.clone());
+                let mut lefts = left.childs.iter_mut().map(Some).collect::<Vec<_>>();
+                // Process children
+                let diff = lefts.len() as i32 - rights.len() as i32;
+                if diff > 0 {
+                    for _ in 0..diff {
+                        rights.push(None);
+                    }
+                } else if diff < 0 {
+                    for _ in 0..-diff {
+                        lefts.push(None);
+                    }
+                }
+                for pair in lefts.into_iter().zip(rights) {
+                    match pair {
+                        (Some(left), right) => {
+                            left.apply(element_mut, right, messages.clone());
+                        }
+                        (None, Some(right)) => {
+                            right.remove(element_mut);
+                        }
+                        (None, None) => {
+                            panic!("redundant iterations during diff");
+                        }
+                    }
+                }
+                //vtag.apply(parent, reference, last, messages);
+            }
+            VNode::VText { ref mut vtext, ref mut reference }  => {
+                match last {
+                    Some(VNode::VTag { .. }) => {
+                    }
+                    Some(VNode::VText { .. }) => {
+                        // TODO Replace the node
+                    }
+                    Some(VNode::VTag { reference: None, .. }) |
+                    Some(VNode::VText { reference: None, .. }) |
+                    None => {
+                        let element = document().create_text_node(&vtext.text);
+                        parent.append_child(&element);
+                        *reference = Some(element);
+                    }
+                }
+                //vtext.apply(parent, reference, last, messages);
+            }
         }
     }
 }
 
-impl<MSG> From<VText> for Child<MSG> {
+impl<MSG> From<VText> for VNode<MSG> {
     fn from(vtext: VText) -> Self {
-        Child::VText(vtext)
+        VNode::VText {
+            reference: None,
+            vtext,
+        }
     }
 }
 
-impl<MSG> From<VNode<MSG>> for Child<MSG> {
-    fn from(vnode: VNode<MSG>) -> Self {
-        Child::VNode(vnode)
+impl<MSG> From<VTag<MSG>> for VNode<MSG> {
+    fn from(vtag: VTag<MSG>) -> Self {
+        VNode::VTag {
+            reference: None,
+            vtag,
+        }
     }
 }
 
@@ -141,10 +251,9 @@ impl VText {
     pub fn new<T: ToString>(text: T) -> Self {
         VText { text: text.to_string() }
     }
-}
 
-impl<MSG> Render<MSG> for VText {
-    fn render<T: INode>(&mut self, parent: &T, this: Option<Node>, _: Messages<MSG>) {
+    fn apply<MSG, T: INode>(&mut self, parent: &T, opposite: Option<Self>, _: Messages<MSG>) {
+        /*
         debug!("Render text node!");
         if let Some(_) = this {
             // Check node type and replace if wrong
@@ -152,28 +261,29 @@ impl<MSG> Render<MSG> for VText {
             let element = document().create_text_node(&self.text);
             parent.append_child(&element);
         }
+        */
     }
 }
 
-pub struct VNode<MSG> {
+pub struct VTag<MSG> {
     tag: &'static str,
     listeners: Listeners<MSG>,
     attributes: Attributes,
-    childs: Vec<Child<MSG>>,
+    childs: Vec<VNode<MSG>>,
     classes: Classes,
     value: Option<String>,
     kind: Option<String>,
 }
 
-impl<MSG> fmt::Debug for VNode<MSG> {
+impl<MSG> fmt::Debug for VTag<MSG> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "VNode {{ tag: {} }}", self.tag)
+        write!(f, "VTag {{ tag: {} }}", self.tag)
     }
 }
 
-impl<MSG> VNode<MSG> {
+impl<MSG> VTag<MSG> {
     pub fn new(tag: &'static str) -> Self {
-        VNode {
+        VTag {
             tag: tag,
             classes: Vec::new(),
             attributes: HashMap::new(),
@@ -188,7 +298,7 @@ impl<MSG> VNode<MSG> {
         self.tag
     }
 
-    pub fn add_child(&mut self, child: Child<MSG>) {
+    pub fn add_child(&mut self, child: VNode<MSG>) {
         self.childs.push(child);
     }
 
@@ -212,8 +322,9 @@ impl<MSG> VNode<MSG> {
         self.listeners.push(listener);
     }
 
+    /*
     fn fill_node(&mut self, this: &Element, messages: Messages<MSG>) {
-        debug!("Fill VNode");
+        debug!("Fill VTag");
         let input: Result<InputElement, _> = this.clone().try_into();
         if let Ok(input) = input {
             let old_value = input.value().into_string().unwrap();
@@ -229,17 +340,17 @@ impl<MSG> VNode<MSG> {
             }
         }
 
-        debug!("VNode classes");
+        debug!("VTag classes");
         for class in self.classes.iter() {
             this.class_list().add(&class);
         }
 
-        debug!("VNode attributes");
+        debug!("VTag attributes");
         for (name, value) in self.attributes.iter() {
             set_attribute(&this, name, &value);
         }
 
-        debug!("VNode listeners");
+        debug!("VTag listeners");
         // TODO IMPORTANT! IT DUPLICATES ALL LISTENERS!
         // How to fix? What about to use "global" list of
         // listeners mapping by dom references.
@@ -247,7 +358,7 @@ impl<MSG> VNode<MSG> {
             listener.attach(&this, messages.clone());
         }
 
-        debug!("VNode children");
+        debug!("VTag children");
         let mut childs = self.childs.drain(..).map(Some).collect::<Vec<_>>();
         let mut nodes = this.child_nodes().iter().map(Some).collect::<Vec<_>>();
         let diff = childs.len() as i32 - nodes.len() as i32;
@@ -264,7 +375,7 @@ impl<MSG> VNode<MSG> {
         for pair in childs.into_iter().zip(nodes) {
             match pair {
                 (Some(mut child), node) => {
-                    child.render(this, node, messages.clone());
+                    child.apply(this, node, messages.clone());
                 }
                 (None, Some(node)) => {
                     this.remove_child(&node).unwrap();
@@ -276,10 +387,45 @@ impl<MSG> VNode<MSG> {
             }
         }
     }
+    */
 }
 
-impl<MSG> Render<MSG> for VNode<MSG> {
-    fn render<T: INode>(&mut self, parent: &T, this: Option<Node>, messages: Messages<MSG>) {
+impl<MSG> VTag<MSG> {
+    fn render(&mut self, subject: &Element, opposite: Option<VTag<MSG>>, messages: Messages<MSG>) {
+        /*
+        let children = {
+            if let Some(vnode) = this {
+                match vnode {
+                    VNode::VTag { vtag, .. } => {
+                        if self.tag != vtag.tag {
+                            let element = document().create_element(self.tag);
+                            let node = reference.take().unwrap().into();
+                            parent.replace_child(&element, &node);
+                            *reference = Some(element.into());
+                            Vec::new()
+                        } else {
+                            // TODO Check the difference!
+                            vtag.childs
+                        }
+                    }
+                    VNode::VText { vtext, .. } => {
+                        let element = document().create_element(self.tag);
+                        let node = reference.take().unwrap().into();
+                        parent.replace_child(&element, &node);
+                        *reference = Some(element.into());
+                        Vec::new()
+                    }
+                }
+            } else {
+                // Creates an element, put it as child to a parent and save the reference to DOM
+                let element = document().create_element(self.tag);
+                parent.append_child(&element);
+                *reference = Some(element.into());
+                Vec::new()
+            }
+        };
+        */
+        /*
         debug!("Render: {:?}", this);
         if let Some(this) = this {
             debug!("Node: {:?}", this.node_name());
@@ -299,6 +445,7 @@ impl<MSG> Render<MSG> for VNode<MSG> {
             parent.append_child(&element);
             self.fill_node(&element, messages.clone());
         }
+        */
     }
 }
 

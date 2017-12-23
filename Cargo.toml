@@ -4,4 +4,5 @@ version = "0.1.0"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 
 [dependencies]
-stdweb = { git = "https://github.com/koute/stdweb" }
+stdweb = { git = "https://github.com/DenisKolodin/stdweb", branch = "pub-textnode" }
+#stdweb = { git = "https://github.com/koute/stdweb" }
