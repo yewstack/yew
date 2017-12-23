@@ -6,7 +6,7 @@ use std::collections::{HashMap, HashSet};
 use stdweb;
 
 use stdweb::Reference;
-use stdweb::web::{INode, IElement, Node, Element, TextNode, document};
+use stdweb::web::{INode, IElement, Node, Element, TextNode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryInto;
@@ -74,7 +74,7 @@ pub type Html<MSG> = VTag<MSG>;
 
 pub trait Listener<MSG> {
     fn kind(&self) -> &'static str;
-    fn attach(&mut self, element: &Element, messages: Messages<MSG>);
+    fn attach(&mut self, element: &Element, messages: Messages<MSG>) -> EventListenerHandle;
 }
 
 impl<MSG> fmt::Debug for Listener<MSG> {
@@ -268,6 +268,7 @@ impl VText {
 pub struct VTag<MSG> {
     tag: &'static str,
     listeners: Listeners<MSG>,
+    captured: Vec<EventListenerHandle>,
     attributes: Attributes,
     childs: Vec<VNode<MSG>>,
     classes: Classes,
@@ -294,6 +295,7 @@ impl<MSG> VTag<MSG> {
             classes: Classes::new(),
             attributes: HashMap::new(),
             listeners: Vec::new(),
+            captured: Vec::new(),
             childs: Vec::new(),
             value: None,
             kind: None,
@@ -421,18 +423,6 @@ impl<MSG> VTag<MSG> {
             }
         }
     }
-
-    /*
-    fn fill_node(&mut self, this: &Element, messages: Messages<MSG>) {
-        debug!("VTag listeners");
-        // TODO IMPORTANT! IT DUPLICATES ALL LISTENERS!
-        // How to fix? What about to use "global" list of
-        // listeners mapping by dom references.
-        for mut listener in self.listeners.drain(..) {
-            listener.attach(&this, messages.clone());
-        }
-    }
-    */
 }
 
 impl<MSG> VTag<MSG> {
@@ -497,9 +487,19 @@ impl<MSG> VTag<MSG> {
             }
         }
 
-        // TODO Actually, it duplicates listeners on every call
+        // Every render it removes all listeners and attach it back later
+        // TODO Compare references of handler to do listeners update better
+        if let Some(mut opposite) = opposite {
+            for mut handle in opposite.captured.drain(..) {
+                debug!("Removing handler...");
+                handle.remove();
+            }
+        }
+
         for mut listener in self.listeners.drain(..) {
-            listener.attach(&subject, messages.clone());
+            debug!("Add listener...");
+            let handle = listener.attach(&subject, messages.clone());
+            self.captured.push(handle);
         }
     }
 }
@@ -534,7 +534,7 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, messages: Messages<MSG>) {
+                fn attach(&mut self, element: &Element, messages: Messages<MSG>) -> EventListenerHandle {
                     let handler = self.0.take().unwrap();
                     let this = element.clone();
                     let sender = move |event: $type| {
@@ -551,7 +551,7 @@ macro_rules! impl_action {
                             setTimeout(yew_loop);
                         }
                     };
-                    element.add_event_listener(sender);
+                    element.add_event_listener(sender)
                 }
             }
         }
