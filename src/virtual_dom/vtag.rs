@@ -14,6 +14,7 @@ pub struct VTag<MSG> {
     pub classes: Classes,
     pub value: Option<String>,
     pub kind: Option<String>,
+    pub checked: bool,
 }
 
 impl<MSG> VTag<MSG> {
@@ -27,6 +28,9 @@ impl<MSG> VTag<MSG> {
             childs: Vec::new(),
             value: None,
             kind: None,
+            /// In HTML node `checked` attribute sets `defaultChecked` parameter,
+            /// but we use own field to control real `checked` parameter
+            checked: false,
         }
     }
 
@@ -48,6 +52,10 @@ impl<MSG> VTag<MSG> {
 
     pub fn set_kind<T: ToString>(&mut self, value: T) {
         self.kind = Some(value.to_string());
+    }
+
+    pub fn set_checked(&mut self, value: bool) {
+        self.checked = value;
     }
 
     pub fn add_attribute<T: ToString>(&mut self, name: &'static str, value: T) {
@@ -210,6 +218,14 @@ impl<MSG> VTag<MSG> {
             }
         }
 
+        if let Ok(input) = subject.clone().try_into() {
+            if let Some(ref opposite) = opposite {
+                if self.checked != opposite.checked {
+                    set_checked(&input, self.checked);
+                }
+            }
+        }
+
         // Every render it removes all listeners and attach it back later
         // TODO Compare references of handler to do listeners update better
         if let Some(mut opposite) = opposite {
@@ -241,4 +257,8 @@ fn set_attribute(element: &Element, name: &str, value: &str) {
 
 fn remove_attribute(element: &Element, name: &str) {
     js!( @{element}.removeAttribute( @{name} ); );
+}
+
+fn set_checked(element: &Element, value: bool) {
+    js!( @{element}.checked = @{value}; );
 }

@@ -25,7 +25,7 @@ macro_rules! html_impl {
         html_impl! { $stack ($($tail)*) }
     };
     ($stack:ident (checked = $kind:expr, $($tail:tt)*)) => {
-        if $kind { $crate::macros::add_attribute(&mut $stack, "checked", "true"); }
+        $crate::macros::set_checked(&mut $stack, $kind);
         html_impl! { $stack ($($tail)*) }
     };
     // Events:
@@ -122,6 +122,15 @@ pub fn set_kind<MSG, T: ToString>(stack: &mut Stack<MSG>, value: T) {
         node.set_kind(value);
     } else {
         panic!("no tag to set type: {}", value.to_string());
+    }
+}
+
+#[doc(hidden)]
+pub fn set_checked<MSG>(stack: &mut Stack<MSG>, value: bool) {
+    if let Some(node) = stack.last_mut() {
+        node.set_checked(value);
+    } else {
+        panic!("no tag to set checked: {}", value);
     }
 }
 
