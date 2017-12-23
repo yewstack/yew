@@ -424,67 +424,12 @@ impl<MSG> VTag<MSG> {
 
     /*
     fn fill_node(&mut self, this: &Element, messages: Messages<MSG>) {
-        debug!("Fill VTag");
-        let input: Result<InputElement, _> = this.clone().try_into();
-        if let Ok(input) = input {
-            let old_value = input.value().into_string().unwrap();
-            let new_value = self.value.take().unwrap_or_else(String::new);
-            debug!("Value check: {} is? {}", old_value, new_value);
-            if old_value != new_value {
-                input.set_value(new_value);
-            }
-            if let Some(ref kind) = self.kind {
-                input.set_kind(kind);
-            } else {
-                input.set_kind("");
-            }
-        }
-
-        debug!("VTag classes");
-        for class in self.classes.iter() {
-            this.class_list().add(&class);
-        }
-
-        debug!("VTag attributes");
-        for (name, value) in self.attributes.iter() {
-            set_attribute(&this, name, &value);
-        }
-
         debug!("VTag listeners");
         // TODO IMPORTANT! IT DUPLICATES ALL LISTENERS!
         // How to fix? What about to use "global" list of
         // listeners mapping by dom references.
         for mut listener in self.listeners.drain(..) {
             listener.attach(&this, messages.clone());
-        }
-
-        debug!("VTag children");
-        let mut childs = self.childs.drain(..).map(Some).collect::<Vec<_>>();
-        let mut nodes = this.child_nodes().iter().map(Some).collect::<Vec<_>>();
-        let diff = childs.len() as i32 - nodes.len() as i32;
-        if diff > 0 {
-            for _ in 0..diff {
-                nodes.push(None);
-            }
-        } else if diff < 0 {
-            for _ in 0..-diff {
-                childs.push(None);
-            }
-        }
-
-        for pair in childs.into_iter().zip(nodes) {
-            match pair {
-                (Some(mut child), node) => {
-                    child.apply(this, node, messages.clone());
-                }
-                (None, Some(node)) => {
-                    this.remove_child(&node).unwrap();
-                    // Remove redundant node
-                }
-                (None, None) => {
-                    panic!("both nodes are not existent during comparsion");
-                }
-            }
         }
     }
     */
@@ -552,60 +497,10 @@ impl<MSG> VTag<MSG> {
             }
         }
 
-        /*
-        let children = {
-            if let Some(vnode) = this {
-                match vnode {
-                    VNode::VTag { vtag, .. } => {
-                        if self.tag != vtag.tag {
-                            let element = document().create_element(self.tag);
-                            let node = reference.take().unwrap().into();
-                            parent.replace_child(&element, &node);
-                            *reference = Some(element.into());
-                            Vec::new()
-                        } else {
-                            // TODO Check the difference!
-                            vtag.childs
-                        }
-                    }
-                    VNode::VText { vtext, .. } => {
-                        let element = document().create_element(self.tag);
-                        let node = reference.take().unwrap().into();
-                        parent.replace_child(&element, &node);
-                        *reference = Some(element.into());
-                        Vec::new()
-                    }
-                }
-            } else {
-                // Creates an element, put it as child to a parent and save the reference to DOM
-                let element = document().create_element(self.tag);
-                parent.append_child(&element);
-                *reference = Some(element.into());
-                Vec::new()
-            }
-        };
-        */
-        /*
-        debug!("Render: {:?}", this);
-        if let Some(this) = this {
-            debug!("Node: {:?}", this.node_name());
-            // Important! HTML Expected!
-            if self.tag.to_owned().to_uppercase() == this.node_name() {
-                let this = this.try_into().unwrap();
-                self.fill_node(&this, messages.clone());
-            } else {
-                debug!("REPLACE!");
-                let element = document().create_element(self.tag);
-                parent.replace_child(&element, &this);
-                debug!("REPLACE DONE!");
-                self.fill_node(&element, messages.clone());
-            }
-        } else {
-            let element = document().create_element(self.tag);
-            parent.append_child(&element);
-            self.fill_node(&element, messages.clone());
+        // TODO Actually, it duplicates listeners on every call
+        for mut listener in self.listeners.drain(..) {
+            listener.attach(&subject, messages.clone());
         }
-        */
     }
 }
 
