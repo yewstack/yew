@@ -401,6 +401,27 @@ impl<MSG> VTag<MSG> {
         }
     }
 
+    fn soakup_value(&mut self, ancestor: &mut Option<Self>) -> Option<Mutator<String, ()>> {
+        match (&self.value, ancestor.as_mut().and_then(|anc| anc.value.take())) {
+            (&Some(ref left), Some(ref right)) => {
+                if left != right {
+                    Some(Mutator::Replace(left.to_string(), ()))
+                } else {
+                    None
+                }
+            }
+            (&Some(ref left), None) => {
+                Some(Mutator::Add(left.to_string(), ()))
+            }
+            (&None, Some(right)) => {
+                Some(Mutator::Remove(right))
+            }
+            (&None, None) => {
+                None
+            }
+        }
+    }
+
     /*
     fn fill_node(&mut self, this: &Element, messages: Messages<MSG>) {
         debug!("Fill VTag");
@@ -471,6 +492,8 @@ impl<MSG> VTag<MSG> {
 
 impl<MSG> VTag<MSG> {
     fn render(&mut self, subject: &Element, mut opposite: Option<VTag<MSG>>, messages: Messages<MSG>) {
+        // TODO Replace self if tagName differs
+
         let changes = self.soakup_classes(&mut opposite);
         for change in changes {
             let list = subject.class_list();
@@ -510,6 +533,22 @@ impl<MSG> VTag<MSG> {
                 }
             } else {
                 panic!("tried to set `type` kind for non input element");
+            }
+        }
+
+        if let Some(change) = self.soakup_value(&mut opposite) {
+            let input: Result<InputElement, _> = subject.clone().try_into();
+            if let Ok(input) = input {
+                match change {
+                    Mutator::Add(kind, _) | Mutator::Replace(kind, _) => {
+                        input.set_value(&kind);
+                    }
+                    Mutator::Remove(kind) => {
+                        input.set_value("");
+                    }
+                }
+            } else {
+                panic!("tried to set `value` kind for non input element");
             }
         }
 
