@@ -1,53 +1,89 @@
 # Yew
 
-Elm like framework, but for Rust and WASM revolution.
+Yew is a modern Rust framework inspired by Elm and ReactJS.
 
-## Minimal application
+## Cutting Edge technologies
+
+### Rust to WASM compilation
+
+This framework designed to be compiled into modern browsers' runtimes: WASM, Asm.js, emscripten.
+
+### Clean MVC approach inspired by Elm
 
 ```rust
-extern crate chrono;
-#[macro_use]
-extern crate yew;
-
-use chrono::prelude::*;
-use yew::html;
-
-struct Model {
-    value: u8,
-}
+struct Model { }
 
 enum Msg {
-    Increment,
-    Decrement,
+  DoIt,
 }
 
 fn update(model: &mut Model, msg: Msg) {
-    match msg {
-        Msg::Increment => {
-            model.value = model.value + 1;
-        }
-        Msg::Decrement => {
-            model.value = model.value - 1;
-        }
-    }
+  match *model {
+      Msg::DoIt => {
+         // Update your model on events
+      }
+  }
 }
 
 fn view(model: &Model) -> html::Html<Msg> {
     html! {
-        <div>
-            <nav class="menu",>
-                <button (onclick)=|_| Msg::Increment,>{ "Increment" }</button>
-                <button (onclick)=|_| Msg::Decrement,>{ "Decrement" }</button>
-            </nav>
-            <p>{ Local::now() }</p>
-        </div>
+        // Render your model here
+        <button onclick=|_| Msg::DoIt,></div>
     }
 }
+```
 
-fn main() {
-    let model = Model {
-        value: 0,
-    };
-    html::program(model, update, view);
+### VirtualDOM
+
+Yew framework uses own virtual-dom representation.
+
+### JSX-like templates with `html!` macro
+
+Put pure Rust code into html tags.
+
+```rust
+html! {
+    <section class="todoapp",>
+        <header class="header",>
+            <h1>{ "todos" }</h1>
+            { view_input(&model) }
+        </header>
+        <section class="main",>
+            <input class="toggle-all",
+                   type="checkbox",
+                   checked=model.is_all_completed(),
+                   onclick=|_| Msg::ToggleAll, />
+            { view_entries(&model) }
+        </section>
+    </section>
+}
+```
+
+### Rust/JS/C-style comments in templates
+
+Use single-line or multi-line Rust comments inside html-templates.
+
+```rust
+html! {
+    <section>
+   /* Write some ideas
+    * in multiline comments
+    */
+    <p>{ "and tags could be placed between comments!" }</p>
+    // <li>{ "or single-line comments" }</li>
+    </section>
+}
+```
+
+### Pure Rust expressions inside
+
+```rust
+extern crate chrono;
+use chrono::prelude::*;
+
+fn view(model: &Model) -> Html<Msg> {
+    html! {
+        <p>{ Local::now() }</p>
+    }
 }
 ```
