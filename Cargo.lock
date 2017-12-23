@@ -31,18 +31,18 @@ dependencies = [
 
 [[package]]
 name = "stdweb"
-version = "0.1.3"
-source = "git+https://github.com/koute/stdweb#5eb5f0ff176464dbd30d41f31b53804a8bb2847b"
+version = "0.2.0"
+source = "git+https://github.com/DenisKolodin/stdweb?branch=pub-textnode#6c0e2b7b096051865b1bc7975b42258d94518d45"
 dependencies = [
  "serde 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "yew-prototype"
+name = "yew"
 version = "0.1.0"
 dependencies = [
- "stdweb 0.1.3 (git+https://github.com/koute/stdweb)",
+ "stdweb 0.2.0 (git+https://github.com/DenisKolodin/stdweb?branch=pub-textnode)",
 ]
 
 [metadata]
@@ -51,4 +51,4 @@ dependencies = [
 "checksum num-traits 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)" = "cacfcab5eb48250ee7d0c7896b51a2c5eec99c1feea5f32025635f5ae4b00070"
 "checksum serde 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)" = "1c57ab4ec5fa85d08aaf8ed9245899d9bbdd66768945b21113b84d5f595cb6a1"
 "checksum serde_json 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)" = "7cf5b0b5b4bd22eeecb7e01ac2e1225c7ef5e4272b79ee28a8392a8c8489c839"
-"checksum stdweb 0.1.3 (git+https://github.com/koute/stdweb)" = "<none>"
+"checksum stdweb 0.2.0 (git+https://github.com/DenisKolodin/stdweb?branch=pub-textnode)" = "<none>"
