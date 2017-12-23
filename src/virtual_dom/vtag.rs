@@ -2,7 +2,7 @@ use std::fmt;
 use std::collections::HashSet;
 use stdweb::web::{IElement, Element, EventListenerHandle};
 use stdweb::web::html_element::InputElement;
-use stdweb::unstable::TryInto;
+use stdweb::unstable::TryFrom;
 use virtual_dom::{Messages, Listener, Listeners, Classes, Attributes, Patch, VNode};
 
 pub struct VTag<MSG> {
@@ -184,9 +184,12 @@ impl<MSG> VTag<MSG> {
             }
         }
 
-        if let Some(change) = self.soakup_kind(&mut opposite) {
-            let input: Result<InputElement, _> = subject.clone().try_into();
-            if let Ok(input) = input {
+        // `input` element has extra parameters to control
+        // I override behavior of attributes to make it more clear
+        // and useful in templates. For example I interpret `checked`
+        // attribute as `checked` parameter, not `defaultChecked` as browsers do
+        if let Ok(input) = InputElement::try_from(subject.clone()) {
+            if let Some(change) = self.soakup_kind(&mut opposite) {
                 match change {
                     Patch::Add(kind, _) |
                     Patch::Replace(kind, _) => {
@@ -196,14 +199,9 @@ impl<MSG> VTag<MSG> {
                         input.set_kind("");
                     }
                 }
-            } else {
-                panic!("tried to set `type` kind for non input element");
             }
-        }
 
-        if let Some(change) = self.soakup_value(&mut opposite) {
-            let input: Result<InputElement, _> = subject.clone().try_into();
-            if let Ok(input) = input {
+            if let Some(change) = self.soakup_value(&mut opposite) {
                 match change {
                     Patch::Add(kind, _) |
                     Patch::Replace(kind, _) => {
@@ -213,17 +211,11 @@ impl<MSG> VTag<MSG> {
                         input.set_value("");
                     }
                 }
-            } else {
-                panic!("tried to set `value` kind for non input element");
             }
-        }
 
-        if let Ok(input) = subject.clone().try_into() {
-            if let Some(ref opposite) = opposite {
-                if self.checked != opposite.checked {
-                    set_checked(&input, self.checked);
-                }
-            }
+            // IMPORTANT! This parameters have to be set every time
+            // to prevent strange behaviour in browser when DOM changed
+            set_checked(&input, self.checked);
         }
 
         // Every render it removes all listeners and attach it back later
@@ -259,6 +251,6 @@ fn remove_attribute(element: &Element, name: &str) {
     js!( @{element}.removeAttribute( @{name} ); );
 }
 
-fn set_checked(element: &Element, value: bool) {
-    js!( @{element}.checked = @{value}; );
+fn set_checked(input: &InputElement, value: bool) {
+    js!( @{input}.checked = @{value}; );
 }
