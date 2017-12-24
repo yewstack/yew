@@ -1,11 +1,14 @@
 #![recursion_limit="128"]
 
+extern crate strum;
+#[macro_use]
+extern crate strum_macros;
 #[macro_use]
 extern crate yew;
 
 use yew::html::*;
 
-#[derive(Clone, PartialEq)]
+#[derive(ToString, Clone, PartialEq)]
 enum Filter {
     All,
     Active,
@@ -19,17 +22,6 @@ impl Filter {
             Filter::Active => !entry.completed,
             Filter::Completed => entry.completed,
         }
-    }
-}
-
-impl ToString for Filter {
-    fn to_string(&self) -> String {
-        let name = match *self {
-            Filter::All => "All",
-            Filter::Active => "Active",
-            Filter::Completed => "Completed",
-        };
-        name.to_string()
     }
 }
 
