@@ -26,7 +26,7 @@ impl<MSG> fmt::Debug for Listener<MSG> {
 pub type Messages<MSG> = Rc<RefCell<Vec<MSG>>>;
 type Listeners<MSG> = Vec<Box<Listener<MSG>>>;
 type Attributes = HashMap<&'static str, String>;
-type Classes = HashSet<&'static str>;
+type Classes = HashSet<String>;
 
 enum Patch<ID, T> {
     Add(ID, T),

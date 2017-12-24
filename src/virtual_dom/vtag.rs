@@ -43,7 +43,10 @@ impl<MSG> VTag<MSG> {
     }
 
     pub fn add_classes(&mut self, class: &'static str) {
-        self.classes.insert(class);
+        let class = class.trim();
+        if !class.is_empty() {
+            self.classes.insert(class.into());
+        }
     }
 
     pub fn set_value<T: ToString>(&mut self, value: &T) {
@@ -66,20 +69,20 @@ impl<MSG> VTag<MSG> {
         self.listeners.push(listener);
     }
 
-    fn soakup_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<&'static str, ()>> {
+    fn soakup_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, ()>> {
         let mut changes = Vec::new();
         if let &mut Some(ref ancestor) = ancestor {
             let to_add = self.classes.difference(&ancestor.classes).map(|class| {
-                Patch::Add(*class, ())
+                Patch::Add(class.to_owned(), ())
             });
             changes.extend(to_add);
             let to_remove = ancestor.classes.difference(&self.classes).map(|class| {
-                Patch::Remove(*class)
+                Patch::Remove(class.to_owned())
             });
             changes.extend(to_remove);
         } else {
             // Add everything
-            let to_add = self.classes.iter().map(|class| Patch::Add(*class, ()));
+            let to_add = self.classes.iter().map(|class| Patch::Add(class.to_owned(), ()));
             changes.extend(to_add);
         }
         changes

@@ -8,7 +8,11 @@ macro_rules! html_impl {
         $stack.push(node);
         html_impl! { $stack ($($tail)*) }
     };
-    // PATTERN: class="",
+    // PATTERN: class=("class-1", "class-2"),
+    ($stack:ident (class = ($($class:expr),*), $($tail:tt)*)) => {
+        $( $crate::macros::attach_class(&mut $stack, $class); )*
+        html_impl! { $stack ($($tail)*) }
+    };
     ($stack:ident (class = $class:expr, $($tail:tt)*)) => {
         $crate::macros::attach_class(&mut $stack, $class);
         html_impl! { $stack ($($tail)*) }

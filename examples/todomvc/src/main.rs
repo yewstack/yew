@@ -189,11 +189,13 @@ fn view(model: &Model) -> Html<Msg> {
     }
 }
 
-fn view_filter(_model: &Model, filter: Filter) -> Html<Msg> {
+fn view_filter(model: &Model, filter: Filter) -> Html<Msg> {
     let flt = filter.clone();
     html! {
         <li>
-            <a href=&flt, onclick=move |_| Msg::SetFilter(flt.clone()),>
+            <a class=if model.filter == flt { "selected" } else { "not-selected" },
+               href=&flt,
+               onclick=move |_| Msg::SetFilter(flt.clone()),>
                 { filter }
             </a>
         </li>
