@@ -165,3 +165,26 @@ impl<T: IKeyboardEvent> From<T> for KeyData {
     }
 }
 
+#[derive(Debug)]
+pub struct Href {
+    link: String,
+}
+
+impl From<String> for Href {
+    fn from(link: String) -> Self {
+        Href { link }
+    }
+}
+
+impl<'a> From<&'a str> for Href {
+    fn from(link: &'a str) -> Self {
+        Href { link: link.to_owned() }
+    }
+}
+
+impl ToString for Href {
+    fn to_string(&self) -> String {
+        self.link.to_owned()
+    }
+}
+
