@@ -153,7 +153,9 @@ fn view(model: &Model) -> Html<Msg> {
                 </header>
                 <section class="main",>
                     <input class="toggle-all", type="checkbox", checked=model.is_all_completed(), onclick=|_| Msg::ToggleAll, />
-                    { view_entries(&model) }
+                    <ul class="todo-list",>
+                        { for model.entries.iter().filter(|e| model.filter.fit(e)).enumerate().map(view_entry) }
+                    </ul>
                 </section>
                 <footer class="footer",>
                     <span class="todo-count",>
@@ -190,6 +192,8 @@ fn view_filter(_model: &Model, filter: Filter) -> Html<Msg> {
 
 fn view_input(model: &Model) -> Html<Msg> {
     html! {
+        // You can use standard Rust comments. One line:
+        // <li></li>
         <input class="new-todo",
                placeholder="What needs to be done?",
                value=&model.value,
@@ -197,16 +201,6 @@ fn view_input(model: &Model) -> Html<Msg> {
                onkeypress=|e: KeyData| {
                    if e.key == "Enter" { Msg::Add } else { Msg::Nope }
                }, />
-    }
-}
-
-fn view_entries(model: &Model) -> Html<Msg> {
-    html! {
-        <ul class="todo-list",>
-            { for model.entries.iter().filter(|e| model.filter.fit(e)).enumerate().map(view_entry) }
-            // You can use standard Rust comments. One line:
-            // <li></li>
-        </ul>
         /* Or multiline:
         <ul>
             <li></li>
