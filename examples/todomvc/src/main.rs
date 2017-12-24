@@ -6,9 +6,10 @@ extern crate strum_macros;
 #[macro_use]
 extern crate yew;
 
+use strum::IntoEnumIterator;
 use yew::html::*;
 
-#[derive(ToString, Clone, PartialEq)]
+#[derive(EnumIter, ToString, Clone, PartialEq)]
 enum Filter {
     All,
     Active,
@@ -160,21 +161,7 @@ fn view(model: &Model) -> Html<Msg> {
                         { " item(s) left" }
                     </span>
                     <ul class="filters",>
-                        <li>
-                            <a href="#/", onclick=|_| Msg::SetFilter(Filter::All),>
-                                { Filter::All }
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#/active", onclick=|_| Msg::SetFilter(Filter::Active),>
-                                { Filter::Active }
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#/completed", onclick=|_| Msg::SetFilter(Filter::Completed),>
-                                { Filter::Completed }
-                            </a>
-                        </li>
+                        { for Filter::iter().map(|flt| view_filter(&model, flt)) }
                     </ul>
                     <button class="clear-completed", onclick=|_| Msg::ClearCompleted,>
                         { format!("Clear completed ({})", model.total_completed()) }
@@ -187,6 +174,17 @@ fn view(model: &Model) -> Html<Msg> {
                 <p>{ "Part of " }<a href="http://todomvc.com/", target="_blank",>{ "TodoMVC" }</a></p>
             </footer>
         </div>
+    }
+}
+
+fn view_filter(_model: &Model, filter: Filter) -> Html<Msg> {
+    let flt = filter.clone();
+    html! {
+        <li>
+            <a href="#/", onclick=move |_| Msg::SetFilter(flt.clone()),>
+                { filter }
+            </a>
+        </li>
     }
 }
 
