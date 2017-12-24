@@ -16,6 +16,16 @@ enum Filter {
     Completed,
 }
 
+impl<'a> Into<Href> for &'a Filter {
+    fn into(self) -> Href {
+        match *self {
+            Filter::All => "#/".into(),
+            Filter::Active => "#/active".into(),
+            Filter::Completed => "#/completed".into(),
+        }
+    }
+}
+
 impl Filter {
     fn fit(&self, entry: &Entry) -> bool {
         match *self {
@@ -183,7 +193,7 @@ fn view_filter(_model: &Model, filter: Filter) -> Html<Msg> {
     let flt = filter.clone();
     html! {
         <li>
-            <a href="#/", onclick=move |_| Msg::SetFilter(flt.clone()),>
+            <a href=&flt, onclick=move |_| Msg::SetFilter(flt.clone()),>
                 { filter }
             </a>
         </li>

@@ -49,6 +49,12 @@ macro_rules! html_impl {
         $crate::macros::attach_listener(&mut $stack, Box::new(listener));
         html_impl! { $stack ($($tail)*) }
     };
+    // Attributes:
+    ($stack:ident (href = $href:expr, $($tail:tt)*)) => {
+        let href: $crate::html::Href = $href.into();
+        $crate::macros::add_attribute(&mut $stack, "href", href);
+        html_impl! { $stack ($($tail)*) }
+    };
     ($stack:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
         $crate::macros::add_attribute(&mut $stack, stringify!($attr), $val);
         html_impl! { $stack ($($tail)*) }
