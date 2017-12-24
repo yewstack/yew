@@ -42,67 +42,6 @@ struct Model {
     value: String,
 }
 
-impl Model {
-    fn total(&self) -> usize {
-        self.entries.len()
-    }
-
-    fn total_completed(&self) -> usize {
-        self.entries.iter().filter(|e| Filter::Completed.fit(e)).count()
-    }
-
-    fn is_all_completed(&self) -> bool {
-        let entries = self.entries.iter()
-            .filter(|e| self.filter.fit(e))
-            .collect::<Vec<_>>();
-        if entries.len() == 0 {
-            false
-        } else {
-            entries.into_iter()
-                .fold(true, |status, entry| status && entry.completed)
-        }
-    }
-
-    fn toggle_all(&mut self, value: bool) {
-        for entry in self.entries.iter_mut() {
-            if self.filter.fit(entry) {
-                entry.completed = value;
-            }
-        }
-    }
-
-    fn clear_completed(&mut self) {
-        let entries = self.entries.drain(..)
-            .filter(|e| Filter::Active.fit(e))
-            .collect();
-        self.entries = entries;
-    }
-
-    fn toggle(&mut self, idx: usize) {
-        let filter = self.filter.clone();
-        let mut entries = self.entries
-            .iter_mut()
-            .filter(|e| filter.fit(e))
-            .collect::<Vec<_>>();
-        let entry = entries.get_mut(idx).unwrap();
-        entry.completed = !entry.completed;
-    }
-
-    fn remove(&mut self, idx: usize) {
-        let idx = {
-            let filter = self.filter.clone();
-            let entries = self.entries
-                .iter()
-                .enumerate()
-                .filter(|&(_, e)| filter.fit(e))
-                .collect::<Vec<_>>();
-            let &(idx, _) = entries.get(idx).unwrap();
-            idx
-        };
-        self.entries.remove(idx);
-    }
-}
-
 struct Entry {
     description: String,
     completed: bool,
@@ -240,4 +179,66 @@ fn main() {
         value: "".into(),
     };
     program(model, update, view);
+}
+
+
+impl Model {
+    fn total(&self) -> usize {
+        self.entries.len()
+    }
+
+    fn total_completed(&self) -> usize {
+        self.entries.iter().filter(|e| Filter::Completed.fit(e)).count()
+    }
+
+    fn is_all_completed(&self) -> bool {
+        let entries = self.entries.iter()
+            .filter(|e| self.filter.fit(e))
+            .collect::<Vec<_>>();
+        if entries.len() == 0 {
+            false
+        } else {
+            entries.into_iter()
+                .fold(true, |status, entry| status && entry.completed)
+        }
+    }
+
+    fn toggle_all(&mut self, value: bool) {
+        for entry in self.entries.iter_mut() {
+            if self.filter.fit(entry) {
+                entry.completed = value;
+            }
+        }
+    }
+
+    fn clear_completed(&mut self) {
+        let entries = self.entries.drain(..)
+            .filter(|e| Filter::Active.fit(e))
+            .collect();
+        self.entries = entries;
+    }
+
+    fn toggle(&mut self, idx: usize) {
+        let filter = self.filter.clone();
+        let mut entries = self.entries
+            .iter_mut()
+            .filter(|e| filter.fit(e))
+            .collect::<Vec<_>>();
+        let entry = entries.get_mut(idx).unwrap();
+        entry.completed = !entry.completed;
+    }
+
+    fn remove(&mut self, idx: usize) {
+        let idx = {
+            let filter = self.filter.clone();
+            let entries = self.entries
+                .iter()
+                .enumerate()
+                .filter(|&(_, e)| filter.fit(e))
+                .collect::<Vec<_>>();
+            let &(idx, _) = entries.get(idx).unwrap();
+            idx
+        };
+        self.entries.remove(idx);
+    }
 }
