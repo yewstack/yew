@@ -225,7 +225,7 @@ fn view_entry((idx, entry): (usize, &Entry)) -> Html<Msg> {
     html! {
         <li>
             <div class="view",>
-                <input class="toggle", type="checkbox", checked=entry.completed, oninput=move|_| Msg::Toggle(idx), />
+                <input class="toggle", type="checkbox", checked=entry.completed, onclick=move|_| Msg::Toggle(idx), />
                 <label>{ &entry.description }</label>
                 <button class="destroy", onclick=move |_| Msg::Remove(idx),></button>
             </div>
