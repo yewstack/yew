@@ -1,15 +1,29 @@
 #![recursion_limit="128"]
 
+extern crate strum;
+#[macro_use]
+extern crate strum_macros;
 #[macro_use]
 extern crate yew;
 
+use strum::IntoEnumIterator;
 use yew::html::*;
 
-#[derive(Clone, PartialEq)]
+#[derive(EnumIter, ToString, Clone, PartialEq)]
 enum Filter {
     All,
     Active,
     Completed,
+}
+
+impl<'a> Into<Href> for &'a Filter {
+    fn into(self) -> Href {
+        match *self {
+            Filter::All => "#/".into(),
+            Filter::Active => "#/active".into(),
+            Filter::Completed => "#/completed".into(),
+        }
+    }
 }
 
 impl Filter {
@@ -19,17 +33,6 @@ impl Filter {
             Filter::Active => !entry.completed,
             Filter::Completed => entry.completed,
         }
-    }
-}
-
-impl ToString for Filter {
-    fn to_string(&self) -> String {
-        let name = match *self {
-            Filter::All => "All",
-            Filter::Active => "Active",
-            Filter::Completed => "Completed",
-        };
-        name.to_string()
     }
 }
 
@@ -160,7 +163,9 @@ fn view(model: &Model) -> Html<Msg> {
                 </header>
                 <section class="main",>
                     <input class="toggle-all", type="checkbox", checked=model.is_all_completed(), onclick=|_| Msg::ToggleAll, />
-                    { view_entries(&model) }
+                    <ul class="todo-list",>
+                        { for model.entries.iter().filter(|e| model.filter.fit(e)).enumerate().map(view_entry) }
+                    </ul>
                 </section>
                 <footer class="footer",>
                     <span class="todo-count",>
@@ -168,21 +173,7 @@ fn view(model: &Model) -> Html<Msg> {
                         { " item(s) left" }
                     </span>
                     <ul class="filters",>
-                        <li>
-                            <a href="#/", onclick=|_| Msg::SetFilter(Filter::All),>
-                                { Filter::All }
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#/active", onclick=|_| Msg::SetFilter(Filter::Active),>
-                                { Filter::Active }
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#/completed", onclick=|_| Msg::SetFilter(Filter::Completed),>
-                                { Filter::Completed }
-                            </a>
-                        </li>
+                        { for Filter::iter().map(|flt| view_filter(&model, flt)) }
                     </ul>
                     <button class="clear-completed", onclick=|_| Msg::ClearCompleted,>
                         { format!("Clear completed ({})", model.total_completed()) }
@@ -198,8 +189,21 @@ fn view(model: &Model) -> Html<Msg> {
     }
 }
 
+fn view_filter(_model: &Model, filter: Filter) -> Html<Msg> {
+    let flt = filter.clone();
+    html! {
+        <li>
+            <a href=&flt, onclick=move |_| Msg::SetFilter(flt.clone()),>
+                { filter }
+            </a>
+        </li>
+    }
+}
+
 fn view_input(model: &Model) -> Html<Msg> {
     html! {
+        // You can use standard Rust comments. One line:
+        // <li></li>
         <input class="new-todo",
                placeholder="What needs to be done?",
                value=&model.value,
@@ -207,16 +211,6 @@ fn view_input(model: &Model) -> Html<Msg> {
                onkeypress=|e: KeyData| {
                    if e.key == "Enter" { Msg::Add } else { Msg::Nope }
                }, />
-    }
-}
-
-fn view_entries(model: &Model) -> Html<Msg> {
-    html! {
-        <ul class="todo-list",>
-            { for model.entries.iter().filter(|e| model.filter.fit(e)).enumerate().map(view_entry) }
-            // You can use standard Rust comments. One line:
-            // <li></li>
-        </ul>
         /* Or multiline:
         <ul>
             <li></li>
