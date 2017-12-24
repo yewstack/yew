@@ -5,7 +5,7 @@ extern crate yew;
 
 use yew::html::*;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 enum Filter {
     All,
     Active,
@@ -169,17 +169,17 @@ fn view(model: &Model) -> Html<Msg> {
                     </span>
                     <ul class="filters",>
                         <li>
-                            <a onclick=|_| Msg::SetFilter(Filter::All),>
+                            <a href="#/", onclick=|_| Msg::SetFilter(Filter::All),>
                                 { Filter::All }
                             </a>
                         </li>
                         <li>
-                            <a onclick=|_| Msg::SetFilter(Filter::Active),>
+                            <a href="#/active", onclick=|_| Msg::SetFilter(Filter::Active),>
                                 { Filter::Active }
                             </a>
                         </li>
                         <li>
-                            <a onclick=|_| Msg::SetFilter(Filter::Completed),>
+                            <a href="#/completed", onclick=|_| Msg::SetFilter(Filter::Completed),>
                                 { Filter::Completed }
                             </a>
                         </li>
@@ -191,8 +191,8 @@ fn view(model: &Model) -> Html<Msg> {
             </section>
             <footer class="info",>
                 <p>{ "Double-click to edit a todo" }</p>
-                <p>{ "Written by " }<a>{ "Denis Kolodin" }</a></p>
-                <p>{ "Part of " }<a>{ "TodoMVC" }</a></p>
+                <p>{ "Written by " }<a href="https://github.com/DenisKolodin/", target="_blank",>{ "Denis Kolodin" }</a></p>
+                <p>{ "Part of " }<a href="http://todomvc.com/", target="_blank",>{ "TodoMVC" }</a></p>
             </footer>
         </div>
     }
