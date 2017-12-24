@@ -87,3 +87,21 @@ fn view(model: &Model) -> Html<Msg> {
     }
 }
 ```
+
+## Running the examples
+
+There are two examples to check how it works: [counter] and [todomvc].
+
+To start them you should enter to a directory of any and start it
+with [cargo-web]:
+
+    $ cargo web start
+
+Also you need a target to your Rust compiler for generating web outputs. By default
+cargo-web uses `asmjs-unknown-emscripten`. If you haven't one install it with:
+
+    $ rustup target add asmjs-unknown-emscripten
+
+[counter]: examples/counter
+[todomvc]: examples/todomvc
+[cargo-web]: https://github.com/koute/cargo-web
