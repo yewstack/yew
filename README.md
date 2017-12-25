@@ -28,7 +28,7 @@ fn update(model: &mut Model, msg: Msg) {
 fn view(model: &Model) -> html::Html<Msg> {
     html! {
         // Render your model here
-        <button onclick=|_| Msg::DoIt,></div>
+        <button onclick=|_| Msg::DoIt,></button>
     }
 }
 ```
