@@ -2,6 +2,7 @@ use stdweb;
 
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::sync::mpsc::{Sender, Receiver, channel};
 use stdweb::web::{INode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use virtual_dom::{VNode, VTag, Messages, Listener};
@@ -13,11 +14,40 @@ fn clear_body() {
     }
 }
 
+pub struct ContextSender<MSG> {
+    tx: Sender<MSG>,
+}
+
+impl<MSG> ContextSender<MSG> {
+    pub fn send(&mut self, msg: MSG) {
+        self.tx.send(msg).expect("Context lost the receiver!");
+        schedule_update();
+    }
+}
+
+pub struct Context<MSG> {
+    tx: Sender<MSG>,
+    rx: Receiver<MSG>,
+}
+
+impl<MSG> Context<MSG> {
+    fn new() -> Self {
+        let (tx, rx) = channel();
+        Context { tx, rx }
+    }
+
+    pub fn sender(&mut self) -> ContextSender<MSG> {
+        ContextSender {
+            tx: self.tx.clone(),
+        }
+    }
+}
+
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
     M: 'static,
     MSG: 'static,
-    U: Fn(&mut M, MSG) + 'static,
+    U: Fn(&mut Context<MSG>, &mut M, MSG) + 'static,
     V: Fn(&M) -> Html<MSG> + 'static,
 {
     stdweb::initialize();
@@ -28,12 +58,14 @@ where
     let mut last_frame = VNode::from(view(&model));
     last_frame.apply(&body, None, messages.clone());
     let mut last_frame = Some(last_frame);
+    let mut context = Context::new();
 
     let mut callback = move || {
         debug!("Yew Loop Callback");
         let mut borrowed = messages.borrow_mut();
+        borrowed.extend(context.rx.try_iter());
         for msg in borrowed.drain(..) {
-            update(&mut model, msg);
+            update(&mut context, &mut model, msg);
         }
         let mut next_frame = VNode::from(view(&model));
         debug!("Do apply");
@@ -93,19 +125,24 @@ macro_rules! impl_action {
                         let handy_event: $ret = $convert(&this, event);
                         let msg = handler(handy_event);
                         messages.borrow_mut().push(msg);
-                        js! {
-                            // Schedule to call the loop handler
-                            // IMPORTANT! If call loop function immediately
-                            // it stops handling other messages and the first
-                            // one will be fired.
-                            setTimeout(yew_loop);
-                        }
+                        schedule_update();
                     };
                     element.add_event_listener(sender)
                 }
             }
         }
     )*};
+}
+
+/// Use `ContextSender::send` to emit it implicit
+fn schedule_update() {
+    js! {
+        // Schedule to call the loop handler
+        // IMPORTANT! If call loop function immediately
+        // it stops handling other messages and the first
+        // one will be fired.
+        setTimeout(yew_loop);
+    }
 }
 
 // Inspired by: http://package.elm-lang.org/packages/elm-lang/html/2.0.0/Html-Events

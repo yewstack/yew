@@ -3,7 +3,7 @@ extern crate chrono;
 extern crate yew;
 
 use chrono::prelude::*;
-use yew::html;
+use yew::html::*;
 
 struct Model {
     value: i64,
@@ -14,7 +14,7 @@ enum Msg {
     Decrement,
 }
 
-fn update(model: &mut Model, msg: Msg) {
+fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
     match msg {
         Msg::Increment => {
             model.value = model.value + 1;
@@ -25,12 +25,12 @@ fn update(model: &mut Model, msg: Msg) {
     }
 }
 
-fn view(model: &Model) -> html::Html<Msg> {
+fn view(model: &Model) -> Html<Msg> {
     html! {
         <div>
             <nav class="menu",>
-                <button (onclick)=|_| Msg::Increment,>{ "Increment" }</button>
-                <button (onclick)=|_| Msg::Decrement,>{ "Decrement" }</button>
+                <button onclick=|_| Msg::Increment,>{ "Increment" }</button>
+                <button onclick=|_| Msg::Decrement,>{ "Decrement" }</button>
             </nav>
             <p>{ model.value }</p>
             <p>{ Local::now() }</p>
@@ -42,5 +42,5 @@ fn main() {
     let model = Model {
         value: 0,
     };
-    html::program(model, update, view);
+    program(model, update, view);
 }
