@@ -39,7 +39,7 @@ Yew framework uses own virtual-dom representation.
 
 ### JSX-like templates with `html!` macro
 
-Put pure Rust code into html tags.
+Put pure Rust code into HTML tags.
 
 ```rust
 html! {
@@ -92,7 +92,7 @@ fn view(model: &Model) -> Html<Msg> {
 
 Pluggable services that allow you to call external APIs like:
 `Timeout`, `Interval`, `Fetch`, `WebSocket`.
-It's handy alternative to subscriptions.
+It's a handy alternative to subscriptions.
 
 > Only `Timeout` implemented. Others in development.
 
@@ -120,7 +120,7 @@ with [cargo-web]:
 
     $ cargo web start
 
-Also you need a target to your Rust compiler for generating web outputs. By default
+Also, you need a target to your Rust compiler for generating web outputs. By default
 cargo-web uses `asmjs-unknown-emscripten`. If you haven't one install it with:
 
     $ rustup target add asmjs-unknown-emscripten
