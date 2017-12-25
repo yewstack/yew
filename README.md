@@ -88,9 +88,32 @@ fn view(model: &Model) -> Html<Msg> {
 }
 ```
 
+### Services
+
+Pluggable services that allow you to call external APIs like:
+`Timeout`, `Interval`, `Fetch`, `WebSocket`.
+It's handy alternative to subscriptions.
+
+> Only `Timeout` implemented. Others in development.
+
+```rust
+use yew::services::{Timeout, TimeoutHandle, Handle};
+
+fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
+    match msg {
+        Msg::Fire => {
+            context.timeout(Duration::from_secs(5), || Msg::Timeout);
+        }
+        Msg::Timeout => {
+            println!("Timeout!");
+        }
+    }
+}
+```
+
 ## Running the examples
 
-There are two examples to check how it works: [counter] and [todomvc].
+There are two examples to check how it works: [counter], [todomvc], [timer].
 
 To start them you should enter to a directory of any and start it
 with [cargo-web]:
@@ -104,4 +127,5 @@ cargo-web uses `asmjs-unknown-emscripten`. If you haven't one install it with:
 
 [counter]: examples/counter
 [todomvc]: examples/todomvc
+[timer]: examples/timer
 [cargo-web]: https://github.com/koute/cargo-web

@@ -58,7 +58,7 @@ enum Msg {
     Nope,
 }
 
-fn update(model: &mut Model, msg: Msg) {
+fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
     match msg {
         Msg::Add => {
             let entry = Entry {
