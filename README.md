@@ -18,7 +18,7 @@ enum Msg {
 }
 
 fn update(model: &mut Model, msg: Msg) {
-  match *model {
+  match msg {
       Msg::DoIt => {
          // Update your model on events
       }
