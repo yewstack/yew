@@ -97,7 +97,7 @@ It's a handy alternative to subscriptions.
 > Only `Timeout` implemented. Others in development.
 
 ```rust
-use yew::services::Timeout;
+use yew::services::timeout::TimeoutService;
 
 fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
     match msg {
