@@ -115,15 +115,22 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
 
 There are three examples to check how it works: [counter], [todomvc] and [timer].
 
-To start them you should enter to a directory of any and start it
-with [cargo-web]:
+To run them you need to have [cargo-web] installed as well as a suitable target
+for the Rust compiler to generate web output. By default cargo-web uses
+`asmjs-unknown-emscripten`. Install cargo-web and the asmjs emscripten target
+as follows:
+
+    $ cargo install cargo-web
+    $ rustup target add asmjs-unknown-emscripten
+
+To start an example enter its directory start it with [cargo-web]:
 
     $ cargo web start
 
-Also, you need a target to your Rust compiler for generating web outputs. By default
-cargo-web uses `asmjs-unknown-emscripten`. If you haven't one install it with:
+To run an optimised build instead of a debug build use:
 
-    $ rustup target add asmjs-unknown-emscripten
+    $ cargo web start --release
+
 
 [counter]: examples/counter
 [todomvc]: examples/todomvc
