@@ -3,7 +3,8 @@ extern crate yew;
 
 use std::time::Duration;
 use yew::html::*;
-use yew::services::{Timeout, TimeoutHandle, Task};
+use yew::services::Task;
+use yew::services::timeout::{TimeoutService, TimeoutHandle};
 
 struct Model {
     handle: Option<TimeoutHandle>,
