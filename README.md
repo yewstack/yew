@@ -14,15 +14,15 @@ This framework designed to be compiled into modern browsers' runtimes: WASM, Asm
 struct Model { }
 
 enum Msg {
-  DoIt,
+    DoIt,
 }
 
 fn update(model: &mut Model, msg: Msg) {
-  match msg {
-      Msg::DoIt => {
-         // Update your model on events
-      }
-  }
+    match msg {
+        Msg::DoIt => {
+            // Update your model on events
+        }
+    }
 }
 
 fn view(model: &Model) -> html::Html<Msg> {
