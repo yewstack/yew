@@ -113,7 +113,7 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
 
 ## Running the examples
 
-There are two examples to check how it works: [counter], [todomvc], [timer].
+There are three examples to check how it works: [counter], [todomvc] and [timer].
 
 To start them you should enter to a directory of any and start it
 with [cargo-web]:
