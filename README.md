@@ -6,7 +6,7 @@ Yew is a modern Rust framework inspired by Elm and ReactJS.
 
 ### Rust to WASM compilation
 
-This framework designed to be compiled into modern browsers' runtimes: WASM, Asm.js, emscripten.
+This framework designed to be compiled into modern browsers' runtimes: wasm, asm.js, emscripten.
 
 ### Clean MVC approach inspired by Elm
 
@@ -28,7 +28,7 @@ fn update(model: &mut Model, msg: Msg) {
 fn view(model: &Model) -> html::Html<Msg> {
     html! {
         // Render your model here
-        <button onclick=|_| Msg::DoIt,></button>
+        <button onclick=|_| Msg::DoIt,>{ "Click me!" }</button>
     }
 }
 ```
@@ -91,13 +91,13 @@ fn view(model: &Model) -> Html<Msg> {
 ### Services
 
 Pluggable services that allow you to call external APIs like:
-`Timeout`, `Interval`, `Fetch`, `WebSocket`.
+`Timeout`, `Interval`, `Fetch`, `WebSocket`, `Storage`.
 It's a handy alternative to subscriptions.
 
-> Only `Timeout` implemented. Others in development.
+> `Timeout` and `Interval` were implemented. Others in development.
 
 ```rust
-use yew::services::{Timeout, TimeoutHandle, Handle};
+use yew::services::timeout::TimeoutService;
 
 fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
     match msg {
