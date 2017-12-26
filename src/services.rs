@@ -2,7 +2,7 @@ use std::time::Duration;
 use stdweb::Value;
 use html::Context;
 
-pub trait Handle {
+pub trait Task {
     fn cancel(&mut self);
 }
 
@@ -43,7 +43,7 @@ impl<MSG: 'static> Timeout<MSG> for Context<MSG> {
     }
 }
 
-impl Handle for TimeoutHandle {
+impl Task for TimeoutHandle {
     fn cancel(&mut self) {
         let timeout_id = self.timeout_id.take().expect("tried to cancel timeout twice");
         js! {
