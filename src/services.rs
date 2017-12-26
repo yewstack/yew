@@ -29,7 +29,7 @@ impl<MSG: 'static> Timeout<MSG> for Context<MSG> {
         let mut ms = duration.subsec_nanos() / 1_000_000;
         ms += duration.as_secs() as u32 * 1000;
         let id = js! {
-            let callback = @{callback};
+            var callback = @{callback};
             let action = function() {
                 callback();
                 callback.drop();
