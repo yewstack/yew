@@ -91,10 +91,10 @@ fn view(model: &Model) -> Html<Msg> {
 ### Services
 
 Pluggable services that allow you to call external APIs like:
-`Timeout`, `Interval`, `Fetch`, `WebSocket`.
+`Timeout`, `Interval`, `Fetch`, `WebSocket`, `Storage`.
 It's a handy alternative to subscriptions.
 
-> Only `Timeout` implemented. Others in development.
+> `Timeout` and `Interval` were implemented. Others in development.
 
 ```rust
 use yew::services::timeout::TimeoutService;
