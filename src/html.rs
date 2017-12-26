@@ -75,7 +75,7 @@ where
     // Initial call for first rendering
     callback();
     js! {
-        let callback = @{callback};
+        var callback = @{callback};
         window.yew_loop = function() {
             callback();
         }
