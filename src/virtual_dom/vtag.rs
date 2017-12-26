@@ -42,9 +42,9 @@ impl<MSG> VTag<MSG> {
         self.childs.push(child);
     }
 
-    pub fn add_classes(&mut self, class: &'static str) {
-        let class = class.trim();
-        if !class.is_empty() {
+    pub fn add_classes(&mut self, classes: &'static str) {
+        let classes = classes.trim();
+        for class in classes.split_whitespace() {
             self.classes.insert(class.into());
         }
     }
