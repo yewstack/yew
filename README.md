@@ -98,7 +98,7 @@ Implemented:
 * `IntervalService`
 * `TimeoutService`
 * `StorageService`
-* `AlertSerivce`
+* `AlertService`
 
 In development:
 * `FetchService`
