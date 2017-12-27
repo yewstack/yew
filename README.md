@@ -17,7 +17,7 @@ enum Msg {
     DoIt,
 }
 
-fn update(model: &mut Model, msg: Msg) {
+fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
     match msg {
         Msg::DoIt => {
             // Update your model on events
@@ -91,10 +91,18 @@ fn view(model: &Model) -> Html<Msg> {
 ### Services
 
 Pluggable services that allow you to call external APIs like:
-`Timeout`, `Interval`, `Fetch`, `WebSocket`, `Storage`.
+JavaScript alerts, timeout, storage, fetches and websockets.
 It's a handy alternative to subscriptions.
 
-> `Timeout` and `Interval` were implemented. Others in development.
+Implemented:
+* `IntervalService`
+* `TimeoutService`
+* `StorageService`
+* `AlertSerivce`
+
+In development:
+* `FetchService`
+* `WebSocketService`
 
 ```rust
 use yew::services::timeout::TimeoutService;
@@ -113,7 +121,8 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
 
 ## Running the examples
 
-There are three examples to check how it works: [counter], [todomvc] and [timer].
+There are four examples to check how it works:
+[counter], [timer], [todomvc] and [crm].
 
 To run them you need to have [cargo-web] installed as well as a suitable target
 for the Rust compiler to generate web output. By default cargo-web uses
@@ -135,4 +144,5 @@ To run an optimised build instead of a debug build use:
 [counter]: examples/counter
 [todomvc]: examples/todomvc
 [timer]: examples/timer
+[crm]: examples/crm
 [cargo-web]: https://github.com/koute/cargo-web
