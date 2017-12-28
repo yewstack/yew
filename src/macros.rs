@@ -107,10 +107,10 @@ macro_rules! html_impl {
 // This entrypoint and implementation had separated to prevent infinite recursion.
 #[macro_export]
 macro_rules! html {
-    ($($tail:tt)*) => {
+    ($($tail:tt)*) => {{
         let mut stack = Vec::new();
         html_impl! { stack ($($tail)*) }
-    };
+    }};
 }
 
 type Stack<MSG> = Vec<VTag<MSG>>;
