@@ -189,12 +189,13 @@ pub fn add_child<MSG>(stack: &mut Stack<MSG>, child: VNode<MSG>) {
 #[doc(hidden)]
 pub fn child_to_parent<MSG>(stack: &mut Stack<MSG>, endtag: Option<&'static str>) {
     if let Some(node) = stack.pop() {
-        let starttag = node.tag();
         if let Some(endtag) = endtag {
+            let starttag = node.tag();
             if starttag != endtag {
                 panic!("wrong closing tag: <{}> -> </{}>", starttag, endtag);
             }
         }
+
         if !stack.is_empty() {
             stack.last_mut().unwrap().add_child(VNode::from(node));
         } else {

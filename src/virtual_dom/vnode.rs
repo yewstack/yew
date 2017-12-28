@@ -48,14 +48,14 @@ impl<MSG> VNode<MSG> {
                         *reference = Some(element);
                     }
                     Some(VNode::VText { reference: Some(wrong), .. }) => {
-                        let element = document().create_element(left.tag);
+                        let element = document().create_element(&left.tag);
                         parent.replace_child(&element, &wrong);
                         *reference = Some(element);
                     }
                     Some(VNode::VTag { reference: None, .. }) |
                     Some(VNode::VText { reference: None, .. }) |
                     None => {
-                        let element = document().create_element(left.tag);
+                        let element = document().create_element(&left.tag);
                         parent.append_child(&element);
                         *reference = Some(element);
                     }
