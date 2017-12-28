@@ -40,19 +40,24 @@ struct Model {
     entries: Vec<Entry>,
     filter: Filter,
     value: String,
+    edit_value: String,
 }
 
 struct Entry {
     description: String,
     completed: bool,
+    editing: bool,
 }
 
 enum Msg {
     Add,
+    Edit(usize),
     Update(String),
+    UpdateEdit(String),
     Remove(usize),
     SetFilter(Filter),
     ToggleAll,
+    ToggleEdit(usize),
     Toggle(usize),
     ClearCompleted,
     Nope,
@@ -64,19 +69,32 @@ fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
             let entry = Entry {
                 description: model.value.clone(),
                 completed: false,
+                editing: false,
             };
             model.entries.push(entry);
             model.value = "".to_string();
         }
+        Msg::Edit(idx) => {
+            let edit_value = model.edit_value.clone();
+            model.complete_edit(idx, edit_value);
+            model.edit_value = "".to_string();
+        }
         Msg::Update(val) => {
             println!("Input: {}", val);
             model.value = val;
+        }
+        Msg::UpdateEdit(val) => {
+            println!("Input: {}", val);
+            model.edit_value = val;
         }
         Msg::Remove(idx) => {
             model.remove(idx);
         }
         Msg::SetFilter(filter) => {
             model.filter = filter;
+        }
+        Msg::ToggleEdit(idx) => {
+            model.toggle_edit(idx);
         }
         Msg::ToggleAll => {
             let status = !model.is_all_completed();
@@ -165,10 +183,27 @@ fn view_entry((idx, entry): (usize, &Entry)) -> Html<Msg> {
         <li>
             <div class="view",>
                 <input class="toggle", type="checkbox", checked=entry.completed, onclick=move|_| Msg::Toggle(idx), />
-                <label>{ &entry.description }</label>
+                { view_entry_label((idx, &entry)) }
                 <button class="destroy", onclick=move |_| Msg::Remove(idx),></button>
             </div>
         </li>
+    }
+}
+
+fn view_entry_label((idx, entry): (usize, &Entry)) -> Html<Msg> {
+    if entry.editing == true {
+        html! {
+            <label><input type="text", 
+                          value=&entry.description,
+                          oninput=|e: InputData| Msg::UpdateEdit(e.value),
+                          onkeypress=move |e: KeyData| {
+                            if e.key == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
+                          }, /></label>
+        }
+    } else {
+        html! {
+            <label ondoubleclick=move|_| Msg::ToggleEdit(idx),>{ &entry.description }</label>
+        }
     }
 }
 
@@ -177,6 +212,7 @@ fn main() {
         entries: Vec::new(),
         filter: Filter::All,
         value: "".into(),
+        edit_value: "".into(),
     };
     program(model, update, view);
 }
@@ -226,6 +262,27 @@ impl Model {
             .collect::<Vec<_>>();
         let entry = entries.get_mut(idx).unwrap();
         entry.completed = !entry.completed;
+    }
+
+    fn toggle_edit(&mut self, idx: usize) {
+        let filter = self.filter.clone();
+        let mut entries = self.entries
+            .iter_mut()
+            .filter(|e| filter.fit(e))
+            .collect::<Vec<_>>();
+        let entry = entries.get_mut(idx).unwrap();
+        entry.editing = !entry.editing;
+    }
+
+    fn complete_edit(&mut self, idx: usize, val: String) {
+        let filter = self.filter.clone();
+        let mut entries = self.entries
+            .iter_mut()
+            .filter(|e| filter.fit(e))
+            .collect::<Vec<_>>();
+        let entry = entries.get_mut(idx).unwrap();
+        entry.description = val;
+        entry.editing = !entry.editing;
     }
 
     fn remove(&mut self, idx: usize) {

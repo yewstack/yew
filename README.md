@@ -98,7 +98,7 @@ Implemented:
 * `IntervalService`
 * `TimeoutService`
 * `StorageService`
-* `AlertSerivce`
+* `AlertService`
 
 In development:
 * `FetchService`
@@ -120,6 +120,8 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
 ```
 
 ## Running the examples
+
+Clone or download this repository.
 
 There are four examples to check how it works:
 [counter], [timer], [todomvc] and [crm].

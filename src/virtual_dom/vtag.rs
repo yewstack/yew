@@ -224,7 +224,7 @@ impl<MSG> VTag<MSG> {
         // Every render it removes all listeners and attach it back later
         // TODO Compare references of handler to do listeners update better
         if let Some(mut opposite) = opposite {
-            for mut handle in opposite.captured.drain(..) {
+            for handle in opposite.captured.drain(..) {
                 debug!("Removing handler...");
                 handle.remove();
             }
