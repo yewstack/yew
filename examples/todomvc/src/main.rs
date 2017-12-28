@@ -180,30 +180,30 @@ fn view_input(model: &Model) -> Html<Msg> {
 
 fn view_entry((idx, entry): (usize, &Entry)) -> Html<Msg> {
     html! {
-        <li>
+        <li class={ if entry.editing == true { "editing" } else { "" }},>
             <div class="view",>
                 <input class="toggle", type="checkbox", checked=entry.completed, onclick=move|_| Msg::Toggle(idx), />
-                { view_entry_label((idx, &entry)) }
+                <label ondoubleclick=move|_| Msg::ToggleEdit(idx),>{ &entry.description }</label>
                 <button class="destroy", onclick=move |_| Msg::Remove(idx),></button>
             </div>
+            { view_entry_edit_input((idx, &entry)) }
         </li>
     }
 }
 
-fn view_entry_label((idx, entry): (usize, &Entry)) -> Html<Msg> {
+fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Msg> {
     if entry.editing == true {
         html! {
-            <label><input type="text", 
-                          value=&entry.description,
-                          oninput=|e: InputData| Msg::UpdateEdit(e.value),
-                          onkeypress=move |e: KeyData| {
-                            if e.key == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
-                          }, /></label>
+            <input class="edit",
+                   type="text", 
+                   value=&entry.description,
+                   oninput=|e: InputData| Msg::UpdateEdit(e.value),
+                   onkeypress=move |e: KeyData| {
+                      if e.key == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
+                   }, />
         }
     } else {
-        html! {
-            <label ondoubleclick=move|_| Msg::ToggleEdit(idx),>{ &entry.description }</label>
-        }
+        html! { <input type="hidden", /> }
     }
 }
 
