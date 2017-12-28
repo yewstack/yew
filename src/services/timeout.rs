@@ -3,9 +3,7 @@ use stdweb::Value;
 use html::Context;
 use super::{Task, to_ms};
 
-pub struct TimeoutHandle {
-    timeout_id: Option<Value>,
-}
+pub struct TimeoutHandle(Option<Value>);
 
 pub trait TimeoutService<MSG> {
     fn timeout<F>(&mut self, duration: Duration, converter: F) -> TimeoutHandle
@@ -24,28 +22,29 @@ impl<MSG: 'static> TimeoutService<MSG> for Context<MSG> {
             tx.send(msg);
         };
         let ms = to_ms(duration);
-        let id = js! {
+        let handle = js! {
             var callback = @{callback};
             let action = function() {
                 callback();
                 callback.drop();
             };
             let delay = @{ms};
-            return setTimeout(action, delay);
+            return {
+                timeout_id: setTimeout(action, delay),
+                callback,
+            };
         };
-        TimeoutHandle {
-            timeout_id: Some(id),
-        }
+        TimeoutHandle(Some(handle))
     }
 }
 
 impl Task for TimeoutHandle {
     fn cancel(&mut self) {
-        let timeout_id = self.timeout_id.take().expect("tried to cancel timeout twice");
+        let handle = self.0.take().expect("tried to cancel timeout twice");
         js! {
-            // TODO Drop the callback to prevent memory leak
-            var id = @{timeout_id};
-            clearTimeout(id);
+            var handle = @{handle};
+            clearTimeout(handle.timeout_id);
+            handle.callback.drop();
         }
     }
 }
