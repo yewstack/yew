@@ -39,6 +39,8 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
                 last_name: model.last_name_value.clone(),
             };
             model.clients.push(client);
+            model.first_name_value = "".to_string();
+            model.last_name_value = "".to_string();
         }
         Msg::UpdateFirstName(val) => {
             println!("Input: {}", val);
