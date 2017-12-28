@@ -1,4 +1,5 @@
 use std::fmt;
+use std::borrow::Cow;
 use std::collections::HashSet;
 use stdweb::web::{IElement, Element, EventListenerHandle};
 use stdweb::web::html_element::InputElement;
@@ -6,7 +7,7 @@ use stdweb::unstable::TryFrom;
 use virtual_dom::{Messages, Listener, Listeners, Classes, Attributes, Patch, VNode};
 
 pub struct VTag<MSG> {
-    pub tag: &'static str,
+    pub tag: Cow<'static, str>,
     pub listeners: Listeners<MSG>,
     pub captured: Vec<EventListenerHandle>,
     pub attributes: Attributes,
@@ -18,9 +19,9 @@ pub struct VTag<MSG> {
 }
 
 impl<MSG> VTag<MSG> {
-    pub fn new(tag: &'static str) -> Self {
+    pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
         VTag {
-            tag: tag,
+            tag: tag.into(),
             classes: Classes::new(),
             attributes: Attributes::new(),
             listeners: Vec::new(),
@@ -34,15 +35,15 @@ impl<MSG> VTag<MSG> {
         }
     }
 
-    pub fn tag(&self) -> &'static str {
-        self.tag
+    pub fn tag(&self) -> &str {
+        &self.tag
     }
 
     pub fn add_child(&mut self, child: VNode<MSG>) {
         self.childs.push(child);
     }
 
-    pub fn add_classes(&mut self, class: &'static str) {
+    pub fn add_classes(&mut self, class: &str) {
         let class = class.trim();
         if !class.is_empty() {
             self.classes.insert(class.into());
@@ -61,8 +62,8 @@ impl<MSG> VTag<MSG> {
         self.checked = value;
     }
 
-    pub fn add_attribute<T: ToString>(&mut self, name: &'static str, value: T) {
-        self.attributes.insert(name, value.to_string());
+    pub fn add_attribute<T: ToString>(&mut self, name: &str, value: T) {
+        self.attributes.insert(name.to_owned(), value.to_string());
     }
 
     pub fn add_listener(&mut self, listener: Box<Listener<MSG>>) {
