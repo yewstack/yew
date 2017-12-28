@@ -40,22 +40,22 @@ impl<MSG> VNode<MSG> {
                 let mut right = None;
                 match last {
                     Some(VNode::VTag {
-                             mut vtag,
-                             reference: Some(mut element),
+                             vtag,
+                             reference: Some(element),
                          }) => {
                         // Copy reference from right to left (as is)
                         right = Some(vtag);
                         *reference = Some(element);
                     }
                     Some(VNode::VText { reference: Some(wrong), .. }) => {
-                        let mut element = document().create_element(left.tag);
+                        let element = document().create_element(left.tag);
                         parent.replace_child(&element, &wrong);
                         *reference = Some(element);
                     }
                     Some(VNode::VTag { reference: None, .. }) |
                     Some(VNode::VText { reference: None, .. }) |
                     None => {
-                        let mut element = document().create_element(left.tag);
+                        let element = document().create_element(left.tag);
                         parent.append_child(&element);
                         *reference = Some(element);
                     }
@@ -106,14 +106,14 @@ impl<MSG> VNode<MSG> {
                 let mut right = None;
                 match last {
                     Some(VNode::VText {
-                             mut vtext,
-                             reference: Some(mut element),
+                             vtext,
+                             reference: Some(element),
                          }) => {
                         right = Some(vtext);
                         *reference = Some(element);
                     }
                     Some(VNode::VTag { reference: Some(wrong), .. }) => {
-                        let mut element = document().create_text_node(&left.text);
+                        let element = document().create_text_node(&left.text);
                         parent.replace_child(&element, &wrong);
                         *reference = Some(element);
                     }
@@ -167,5 +167,3 @@ impl<MSG> fmt::Debug for VNode<MSG> {
         }
     }
 }
-
-
