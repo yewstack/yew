@@ -9,8 +9,8 @@ impl Into<Option<String>> for Nothing {
     }
 }
 
-impl From<String> for Nothing {
-    fn from(_: String) -> Nothing {
+impl From<Result<String, String>> for Nothing {
+    fn from(_: Result<String, String>) -> Nothing {
         Nothing
     }
 }
@@ -26,12 +26,19 @@ where
     }
 }
 
-impl<T> From<String> for Json<Result<T, ()>>
+impl<T> From<Result<String, String>> for Json<Result<T, ()>>
 where
     T: for <'de> Deserialize<'de>
 {
-    fn from(value: String) -> Self {
-        Json(serde_json::from_str(&value).map_err(drop))
+    fn from(value: Result<String, String>) -> Self {
+        match value {
+            Ok(data) => {
+                Json(serde_json::from_str(&data).map_err(drop))
+            }
+            Err(_reason) => {
+                Json(Err(()))
+            }
+        }
     }
 }
 
