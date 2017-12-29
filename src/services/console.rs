@@ -9,7 +9,7 @@ impl Console {
     pub fn error(&self, message: &str) { js! { console.error(@{message}); } }
     pub fn debug(&self, message: &str) { js! { console.debug(@{message}); } }
     pub fn count_named(&self, name: &str) { js! { console.count(@{name}); } }
-    pub fn count(&self, name: &str) { js! { console.count(); } }
+    pub fn count(&self) { js! { console.count(); } }
 
     pub fn time_named(&self, name: &str) { js! { console.time(@{name}); } }
     pub fn time_named_end(&self, name: &str) { js! { console.timeEnd(@{name}); } }
