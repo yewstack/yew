@@ -1,0 +1,8 @@
+[package]
+name = "game_of_life"
+version = "0.1.0"
+authors = ["Diego Cardoso <dige0card0s0@hotmail.com>"]
+
+[dependencies]
+yew = { path = "../.." }
+rand = "0.4.1"
