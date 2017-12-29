@@ -4,6 +4,7 @@ extern crate serde_derive;
 extern crate yew;
 
 use yew::html::*;
+use yew::services::format::Json;
 use yew::services::alert::AlertService;
 use yew::services::storage::{StorageService, Scope};
 
@@ -51,10 +52,10 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
             model.last_name_value = val;
         }
         Msg::Store => {
-            context.store_value(Scope::Local, KEY, &model.clients);
+            context.store_value(Scope::Local, KEY, Json(&model.clients));
         }
         Msg::Restore => {
-            if let Ok(clients) = context.restore_value::<Vec<Client>>(Scope::Local, KEY) {
+            if let Json(Ok(clients)) = context.restore_value(Scope::Local, KEY) {
                 model.clients = clients;
             } else {
                 context.alert("Oh no! Storage was corrupted!");

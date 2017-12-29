@@ -21,7 +21,7 @@ impl From<Restorable> for Nothing {
 
 pub struct Json<T>(pub T);
 
-impl<T> Into<Storable> for Json<T>
+impl<'a, T> Into<Storable> for Json<&'a T>
 where
     T: Serialize
 {
