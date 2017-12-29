@@ -3,10 +3,10 @@ extern crate yew;
 
 use std::time::Duration;
 use yew::html::*;
-use yew::services::{Task, Level};
+use yew::services::Task;
 use yew::services::timeout::TimeoutService;
 use yew::services::interval::IntervalService;
-use yew::services::console::ConsoleService;
+use yew::services::console::{ConsoleService, Level};
 
 struct Model {
     job: Option<Box<Task>>,

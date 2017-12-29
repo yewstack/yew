@@ -1,5 +1,10 @@
 use html::Context;
-use super::{Level};
+
+pub enum Level {
+    Log,
+    Warn,
+    Error,
+}
 
 pub trait ConsoleService {
     fn console(&mut self, level: Level, message: &str);
