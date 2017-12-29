@@ -3,9 +3,10 @@ extern crate yew;
 
 use std::time::Duration;
 use yew::html::*;
-use yew::services::Task;
+use yew::services::{Task, Level};
 use yew::services::timeout::TimeoutService;
 use yew::services::interval::IntervalService;
+use yew::services::console::ConsoleService;
 
 struct Model {
     job: Option<Box<Task>>,
@@ -33,6 +34,7 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
             model.job = Some(Box::new(handle));
             model.messages.clear();
             model.messages.push("Interval started!");
+            context.console(Level::Log, "Interval started!");
         }
         Msg::Cancel => {
             if let Some(mut task) = model.job.take() {
