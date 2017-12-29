@@ -1,3 +1,5 @@
+#![recursion_limit="128"]
+
 extern crate serde;
 extern crate serde_json;
 #[macro_use]
