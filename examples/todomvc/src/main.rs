@@ -195,7 +195,7 @@ fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Msg> {
     if entry.editing == true {
         html! {
             <input class="edit",
-                   type="text", 
+                   type="text",
                    value=&entry.description,
                    oninput=|e: InputData| Msg::UpdateEdit(e.value),
                    onkeypress=move |e: KeyData| {

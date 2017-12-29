@@ -6,12 +6,6 @@ pub mod console;
 
 use std::time::Duration;
 
-pub enum Level {
-    Log,
-    Warn,
-    Error,
-}
-
 pub trait Task {
     fn cancel(&mut self);
 }
