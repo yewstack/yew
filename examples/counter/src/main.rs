@@ -12,15 +12,21 @@ struct Model {
 enum Msg {
     Increment,
     Decrement,
+    Bulk(Vec<Msg>),
 }
 
-fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
+fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
     match msg {
         Msg::Increment => {
             model.value = model.value + 1;
         }
         Msg::Decrement => {
             model.value = model.value - 1;
+        }
+        Msg::Bulk(list) => {
+            for msg in list {
+                update(context, model, msg);
+            }
         }
     }
 }
@@ -31,6 +37,7 @@ fn view(model: &Model) -> Html<Msg> {
             <nav class="menu",>
                 <button onclick=|_| Msg::Increment,>{ "Increment" }</button>
                 <button onclick=|_| Msg::Decrement,>{ "Decrement" }</button>
+                <button onclick=|_| Msg::Bulk(vec!(Msg::Increment, Msg::Increment)),>{ "Increment Twice" }</button>
             </nav>
             <p>{ model.value }</p>
             <p>{ Local::now() }</p>
