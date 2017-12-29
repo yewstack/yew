@@ -1,5 +1,6 @@
 use stdweb::Value;
 use html::Context;
+use services::format::{Storable, Restorable};
 use super::Task;
 
 pub struct FetchHandle(Option<Value>);
@@ -21,16 +22,16 @@ impl Method {
 pub trait FetchService<MSG> {
     fn fetch<F, IN, OUT>(&mut self, method: Method, url: &str, data: IN, converter: F) -> FetchHandle
     where
-        IN: Into<Option<String>>,
-        OUT: From<Result<String, String>>,
+        IN: Into<Storable>,
+        OUT: From<Restorable>,
         F: Fn(OUT) -> MSG + 'static;
 }
 
 impl<MSG: 'static> FetchService<MSG> for Context<MSG> {
     fn fetch<F, IN, OUT>(&mut self, method: Method, url: &str, data: IN, converter: F) -> FetchHandle
     where
-        IN: Into<Option<String>>,
-        OUT: From<Result<String, String>>,
+        IN: Into<Storable>,
+        OUT: From<Restorable>,
         F: Fn(OUT) -> MSG + 'static
     {
         let mut tx = self.sender();

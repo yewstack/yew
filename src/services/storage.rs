@@ -1,7 +1,6 @@
-use serde::{Serialize, Deserialize};
-use serde_json;
 use stdweb::Value;
 use html::Context;
+use services::format::{Storable, Restorable};
 
 pub enum Scope {
     Local,
@@ -9,31 +8,32 @@ pub enum Scope {
 }
 
 pub trait StorageService {
-    fn store_value<T>(&mut self, scope: Scope, key: &str, value: &T)
+    fn store_value<T>(&mut self, scope: Scope, key: &str, value: T)
     where
-        T: Serialize;
-    fn restore_value<T>(&mut self, scope: Scope, key: &str) -> Result<T, ()>
+        T: Into<Storable>;
+    fn restore_value<T>(&mut self, scope: Scope, key: &str) -> T
     where
-        T : for <'de> Deserialize<'de>;
+        T : From<Restorable>;
     fn remove_value(&mut self, scope: Scope, key: &str);
 }
 
 impl<MSG: 'static> StorageService for Context<MSG> {
-    fn store_value<T>(&mut self, scope: Scope, key: &str, value: &T)
+    fn store_value<T>(&mut self, scope: Scope, key: &str, value: T)
     where
-        T: Serialize
+        T: Into<Storable>
     {
-        let data = serde_json::to_string(value).expect("can't serialize data to store");
-        match scope {
-            Scope::Local => { js! { localStorage.setItem(@{key}, @{data}); } },
-            Scope::Session => { js! { sessionStorage.setItem(@{key}, @{data}); } },
+        if let Some(data) = value.into() {
+            match scope {
+                Scope::Local => { js! { localStorage.setItem(@{key}, @{data}); } },
+                Scope::Session => { js! { sessionStorage.setItem(@{key}, @{data}); } },
+            }
         }
     }
 
     // TODO Use erorr-chain
-    fn restore_value<T>(&mut self, scope: Scope, key: &str) -> Result<T, ()>
+    fn restore_value<T>(&mut self, scope: Scope, key: &str) -> T
     where
-        T : for <'de> Deserialize<'de>
+        T : From<Restorable>
     {
         let value: Value = {
             match scope {
@@ -41,11 +41,8 @@ impl<MSG: 'static> StorageService for Context<MSG> {
                 Scope::Session => js! { return sessionStorage.getItem(@{key}); },
             }
         };
-        if let Some(data) = value.into_string() {
-            serde_json::from_str::<T>(&data).map_err(drop)
-        } else {
-            Err(()) // No data sored with this key
-        }
+        let data = value.into_string().ok_or_else(|| "can't read string from storage".into());
+        T::from(data)
     }
 
     fn remove_value(&mut self, scope: Scope, key: &str) {

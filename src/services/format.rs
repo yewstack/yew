@@ -1,36 +1,40 @@
 use serde::{Serialize, Deserialize};
 use serde_json;
 
+pub type Storable = Option<String>;
+
+pub type Restorable = Result<String, String>;
+
 pub struct Nothing;
 
-impl Into<Option<String>> for Nothing {
-    fn into(self) -> Option<String> {
+impl Into<Storable> for Nothing {
+    fn into(self) -> Storable {
         None
     }
 }
 
-impl From<Result<String, String>> for Nothing {
-    fn from(_: Result<String, String>) -> Nothing {
+impl From<Restorable> for Nothing {
+    fn from(_: Restorable) -> Nothing {
         Nothing
     }
 }
 
 pub struct Json<T>(pub T);
 
-impl<T> Into<Option<String>> for Json<T>
+impl<'a, T> Into<Storable> for Json<&'a T>
 where
     T: Serialize
 {
-    fn into(self) -> Option<String> {
+    fn into(self) -> Storable {
         serde_json::to_string(&self.0).ok()
     }
 }
 
-impl<T> From<Result<String, String>> for Json<Result<T, ()>>
+impl<T> From<Restorable> for Json<Result<T, ()>>
 where
     T: for <'de> Deserialize<'de>
 {
-    fn from(value: Result<String, String>) -> Self {
+    fn from(value: Restorable) -> Self {
         match value {
             Ok(data) => {
                 Json(serde_json::from_str(&data).map_err(drop))
