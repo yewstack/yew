@@ -6,7 +6,7 @@ use yew::html::*;
 use yew::services::Task;
 use yew::services::timeout::TimeoutService;
 use yew::services::interval::IntervalService;
-use yew::services::console::{ConsoleService};
+use yew::services::console::ConsoleService;
 
 struct Model {
     job: Option<Box<Task>>,
@@ -46,7 +46,6 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
             }
             model.messages.push("Canceled!");
             console.warn("Canceled!");
-            console.trace();
             console.assert(model.job.is_none(), "Job still exists!");
         }
         Msg::Done => {
