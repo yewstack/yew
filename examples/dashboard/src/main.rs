@@ -4,8 +4,8 @@ extern crate serde_derive;
 extern crate yew;
 
 use yew::html::*;
-use yew::services::Format;
-use yew::services::fetch::{FetchService, Method, Request};
+use yew::services::{Nothing, Json};
+use yew::services::fetch::{FetchService, Method};
 
 struct Model {
     fetching: bool,
@@ -26,13 +26,7 @@ struct Status {
 fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
     match msg {
         Msg::FetchData => {
-            let request = Request {
-                method: Method::Get,
-                in_format: Format::Json,
-                out_format: Format::Json,
-                url: "./data.json".into(),
-            };
-            context.fetch::<_,(),Status>(request, None, Msg::DataReady);
+            context.fetch(Method::Get, "./data.json", Nothing, |Json(data)| Msg::DataReady(data));
         }
         Msg::DataReady(response) => {
             model.fetching = false;
