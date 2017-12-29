@@ -6,7 +6,7 @@ use yew::html::*;
 use yew::services::Task;
 use yew::services::timeout::TimeoutService;
 use yew::services::interval::IntervalService;
-use yew::services::console::{ConsoleService, Level};
+use yew::services::console::{ConsoleService};
 
 struct Model {
     job: Option<Box<Task>>,
@@ -22,32 +22,44 @@ enum Msg {
 }
 
 fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
+    let console = context.get_console();
     match msg {
         Msg::StartTimeout => {
             let handle = context.timeout(Duration::from_secs(3), || Msg::Done);
             model.job = Some(Box::new(handle));
             model.messages.clear();
+            console.clear();
             model.messages.push("Timer started!!");
+            console.time_named("Timer");
         }
         Msg::StartInterval => {
             let handle = context.interval(Duration::from_secs(1), || Msg::Tick);
             model.job = Some(Box::new(handle));
             model.messages.clear();
+            console.clear();
             model.messages.push("Interval started!");
-            context.console(Level::Log, "Interval started!");
+            console.log("Interval started!");
         }
         Msg::Cancel => {
             if let Some(mut task) = model.job.take() {
                 task.cancel();
             }
             model.messages.push("Canceled!");
+            console.warn("Canceled!");
+            console.trace();
+            console.assert(model.job.is_none(), "Job still exists!");
         }
         Msg::Done => {
             model.messages.push("Done!");
+            console.group();
+            console.info("Done!");
+            console.time_named_end("Timer");
+            console.group_end();
             model.job = None;
         }
         Msg::Tick => {
             model.messages.push("Tick...");
+            console.count_named("Tick");
         }
     }
 }
