@@ -1,3 +1,6 @@
+//! This module contains macros which implements `html!` macro
+//! and JSX-like templates.
+
 use virtual_dom::{VTag, VNode, Listener};
 
 #[macro_export]

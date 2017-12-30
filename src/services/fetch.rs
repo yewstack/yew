@@ -1,16 +1,23 @@
+//! Service to send HTTP-request to a server.
+
 use stdweb::Value;
 use html::Context;
 use services::format::{Storable, Restorable};
 use super::Task;
 
+/// A handle to control sent request. Could be canceled by `Task::cancel` call.
 pub struct FetchHandle(Option<Value>);
 
+/// A method of HTTP-request of [HTTP protocol](https://tools.ietf.org/html/rfc7231).
 pub enum Method {
+    /// `GET` method of a request.
     Get,
+    /// `POST` method of a request.
     Post,
 }
 
 impl Method {
+    /// Converts a method to `fetch` input argument.
     fn to_argument(&self) -> &'static str {
         match self {
             &Method::Get => "GET",
@@ -19,7 +26,10 @@ impl Method {
     }
 }
 
+/// An abstract service to fetch resources from a context.
 pub trait FetchService<MSG> {
+    /// Sends request to a server. Could contains input data and
+    /// needs a fuction to convert returned data to a loop's message.
     fn fetch<F, IN, OUT>(&mut self, method: Method, url: &str, data: IN, converter: F) -> FetchHandle
     where
         IN: Into<Storable>,
