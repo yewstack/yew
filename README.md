@@ -25,7 +25,7 @@ fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
     }
 }
 
-fn view(model: &Model) -> html::Html<Msg> {
+fn view(model: &Model) -> Html<Msg> {
     html! {
         // Render your model here
         <button onclick=|_| Msg::DoIt,>{ "Click me!" }</button>
@@ -99,10 +99,11 @@ Implemented:
 * `TimeoutService`
 * `StorageService`
 * `AlertService`
-
-In development:
 * `FetchService`
 * `WebSocketService`
+
+> Important! Services feature is experimental and will be improved soon:
+> allow services composition, better to develop third-party services in crates.
 
 ```rust
 use yew::services::timeout::TimeoutService;
@@ -119,12 +120,46 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
 }
 ```
 
+### Easy-to-use data conversion and destructuring
+
+You could simply choose and use a format of data to store/send and resore/receive it.
+
+Supported: `JSON`
+
+In development: `BSON`, `TOML`, `YAML`, `XML`
+
+```rust
+#[derive(Serialize, Deserialize)]
+struct Client {
+    first_name: String,
+    last_name: String,
+}
+
+struct Model {
+    clients: Vec<Client>,
+}
+
+fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
+    match msg {
+    Msg::Store => {
+        // Stores it, but in JSON format/layout
+        context.store_value(Scope::Local, KEY, Json(&model.clients));
+    }
+    Msg::Restore => {
+        // Tries to read and destructure it as JSON formatted data
+        if let Json(Ok(clients)) = context.restore_value(Scope::Local, KEY) {
+            model.clients = clients;
+        }
+    }
+}
+```
+
 ## Running the examples
 
 Clone or download this repository.
 
 There are four examples to check how it works:
-[counter], [timer], [todomvc] and [crm].
+[counter], [timer], [todomvc], [game_of_life], [crm] and [dashboard].
 
 To run them you need to have [cargo-web] installed as well as a suitable target
 for the Rust compiler to generate web output. By default cargo-web uses
@@ -144,7 +179,9 @@ To run an optimised build instead of a debug build use:
 
 
 [counter]: examples/counter
-[todomvc]: examples/todomvc
 [timer]: examples/timer
+[todomvc]: examples/todomvc
+[game_of_life]: examples/game_of_life
 [crm]: examples/crm
+[dashboard]: examples/dashboard
 [cargo-web]: https://github.com/koute/cargo-web
