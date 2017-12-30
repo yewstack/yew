@@ -7,7 +7,7 @@ use yew::html::*;
 use yew::services::Task;
 use yew::services::format::{Nothing, Json};
 use yew::services::fetch::{FetchService, Method};
-use yew::services::websocket::{WebSocketService, WebSocketHandle};
+use yew::services::websocket::{WebSocketService, WebSocketHandle, WebSocketStatus};
 
 struct Model {
     fetching: bool,
@@ -19,12 +19,14 @@ enum WsAction {
     Connect,
     SendData,
     Disconnect,
+    Lost,
 }
 
 enum Msg {
     FetchData,
     WsAction(WsAction),
     DataReady(Result<Status, ()>),
+    Ignore,
 }
 
 impl From<WsAction> for Msg {
@@ -38,6 +40,12 @@ struct Status {
     value: u32,
 }
 
+fn ws_status_to_msg(status: WebSocketStatus) -> Msg {
+    match status {
+        WebSocketStatus::Opened => Msg::Ignore,
+        WebSocketStatus::Closed => WsAction::Lost.into(),
+    }
+}
 
 fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
     match msg {
@@ -47,7 +55,11 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
         Msg::WsAction(action) => {
             match action {
                 WsAction::Connect => {
-                    let handle = context.ws_connect("ws://localhost:9001/", |Json(data)| Msg::DataReady(data));
+                    let handle = context.ws_connect(
+                        "ws://localhost:9001/",
+                        |Json(data)| Msg::DataReady(data),
+                        ws_status_to_msg
+                    );
                     model.ws = Some(handle);
                 }
                 WsAction::SendData => {
@@ -58,6 +70,9 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
                 }
                 WsAction::Disconnect => {
                     model.ws.take().unwrap().cancel();
+                }
+                WsAction::Lost => {
+                    model.ws = None;
                 }
             }
         }
@@ -70,6 +85,8 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
                 Err(_) => {
                 }
             }
+        }
+        Msg::Ignore => {
         }
     }
 }
