@@ -5,6 +5,7 @@ pub mod storage;
 pub mod alert;
 pub mod console;
 pub mod fetch;
+pub mod websocket;
 
 use std::time::Duration;
 
