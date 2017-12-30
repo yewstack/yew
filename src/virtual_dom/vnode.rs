@@ -1,15 +1,23 @@
+//! This module contains the implementation of abstract virtual node.
+
 use std::fmt;
 use stdweb::web::{INode, Node, Element, TextNode, document};
 use virtual_dom::{VTag, VText, Messages};
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<MSG> {
+    /// A bind between `VTag` and `Element`.
     VTag {
+        /// A reference to the `Element`.
         reference: Option<Element>,
+        /// A virtual tag node which was applied.
         vtag: VTag<MSG>,
     },
+    /// A bind between `VText` and `TextNode`.
     VText {
-        reference: Option<TextNode>, // TODO Replace with TextNode
+        /// A reference to the `TextNode`.
+        reference: Option<TextNode>,
+        /// A virtual text node which was applied.
         vtext: VText,
     },
 }
@@ -30,6 +38,8 @@ impl<MSG> VNode<MSG> {
         }
     }
 
+    /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
+    /// to check the difference and apply patches to the actual DOM represenatation.
     pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<MSG>>, messages: Messages<MSG>) {
         match *self {
             VNode::VTag {
@@ -48,14 +58,14 @@ impl<MSG> VNode<MSG> {
                         *reference = Some(element);
                     }
                     Some(VNode::VText { reference: Some(wrong), .. }) => {
-                        let element = document().create_element(&left.tag);
+                        let element = document().create_element(left.tag());
                         parent.replace_child(&element, &wrong);
                         *reference = Some(element);
                     }
                     Some(VNode::VTag { reference: None, .. }) |
                     Some(VNode::VText { reference: None, .. }) |
                     None => {
-                        let element = document().create_element(&left.tag);
+                        let element = document().create_element(left.tag());
                         parent.append_child(&element);
                         *reference = Some(element);
                     }
