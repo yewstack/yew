@@ -4,8 +4,8 @@ dist: trusty
 sudo: false
 
 rust:
-  #- stable
-  #- beta
+  - stable
+  - beta
   - nightly
 
 matrix:
@@ -13,9 +13,9 @@ matrix:
     - rust: nightly
 
 env:
-  #- TARGET=wasm32-unknown-unknown
+  - TARGET=wasm32-unknown-unknown
   - TARGET=asmjs-unknown-emscripten
-  #- TARGET=wasm32-unknown-emscripten
+  - TARGET=wasm32-unknown-emscripten
 
 script:
   - nvm install 9
