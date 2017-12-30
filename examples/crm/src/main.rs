@@ -97,7 +97,7 @@ fn view(model: &Model) -> Html<Msg> {
 
 fn view_first_name_input(model: &Model) -> Html<Msg> {
     html! {
-        <input class="new-client-firstname",
+        <input class=("new-client", "firstname"),
                placeholder="First name",
                value=&model.first_name_value,
                oninput=|e: InputData| Msg::UpdateFirstName(e.value),
@@ -109,7 +109,7 @@ fn view_first_name_input(model: &Model) -> Html<Msg> {
 
 fn view_last_name_input(model: &Model) -> Html<Msg> {
     html! {
-        <input class="new-client-lastname",
+        <input class=("new-client", "lastname"),
                placeholder="Last name",
                value=&model.last_name_value,
                oninput=|e: InputData| Msg::UpdateLastName(e.value),

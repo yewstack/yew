@@ -180,7 +180,7 @@ fn view_input(model: &Model) -> Html<Msg> {
 
 fn view_entry((idx, entry): (usize, &Entry)) -> Html<Msg> {
     html! {
-        <li class={ if entry.editing == true { "editing" } else { "" }},>
+        <li class=if entry.editing == true { "editing" } else { "" },>
             <div class="view",>
                 <input class="toggle", type="checkbox", checked=entry.completed, onclick=move|_| Msg::Toggle(idx), />
                 <label ondoubleclick=move|_| Msg::ToggleEdit(idx),>{ &entry.description }</label>
