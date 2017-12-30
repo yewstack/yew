@@ -43,18 +43,16 @@ fi
 
 cargo web test --nodejs $CARGO_WEB_ARGS
 
-EXAMPLES=$(pwd)/examples
-
 check_example() {
     echo "Checking example [$1]"
-    cd $EXAMPLES/$1
+    cd $1
     cargo web build $CARGO_WEB_ARGS
     # TODO Can't build some demos with release, need fix
     # cargo web build --release $CARGO_WEB_ARGS
 }
 
-check_example todomvc
-check_example counter
-check_example timer
-check_example crm
-
+for EXAMPLE in $(pwd)/examples/*; do
+    if [ -d "$EXAMPLE" ]; then
+        check_example $EXAMPLE
+    fi
+done
