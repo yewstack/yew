@@ -20,82 +20,84 @@ fn clear_body() {
 
 /// This class keeps a sender to a context to send a messages to a loop
 /// and to schedule the next update call.
-pub struct ContextSender<MSG> {
+pub struct AppSender<MSG> {
     tx: Sender<MSG>,
 }
 
-impl<MSG> ContextSender<MSG> {
+impl<MSG> AppSender<MSG> {
     /// Send the message and schedule an update.
     pub fn send(&mut self, msg: MSG) {
-        self.tx.send(msg).expect("Context lost the receiver!");
+        self.tx.send(msg).expect("App lost the receiver!");
         schedule_update();
     }
 }
 
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
-pub struct Context<MSG> {
+pub struct App<MSG> {
     tx: Sender<MSG>,
-    rx: Receiver<MSG>,
+    rx: Option<Receiver<MSG>>,
 }
 
-impl<MSG> Context<MSG> {
+impl<MSG: 'static> App<MSG> {
     /// Creates a context with connected sender and receiver.
-    fn new() -> Self {
+    pub fn new() -> Self {
         let (tx, rx) = channel();
-        Context { tx, rx }
+        App {
+            tx,
+            rx: Some(rx),
+        }
     }
 
     /// Returs a cloned sender.
-    pub fn sender(&mut self) -> ContextSender<MSG> {
-        ContextSender {
+    pub fn sender(&mut self) -> AppSender<MSG> {
+        AppSender {
             tx: self.tx.clone(),
         }
     }
-}
 
-/// The main entrypoint of a yew program. It works similar as `program`
-/// function in Elm. You should provide an initial model, `update` function
-/// which will update the state of the model and a `view` function which
-/// will render the model to a virtual DOM tree.
-pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
-where
-    M: 'static,
-    MSG: 'static,
-    U: Fn(&mut Context<MSG>, &mut M, MSG) + 'static,
-    V: Fn(&M) -> Html<MSG> + 'static,
-{
-    stdweb::initialize();
-    clear_body();
-    let body = document().query_selector("body").unwrap();
-    // No messages at start
-    let messages = Rc::new(RefCell::new(Vec::new()));
-    let mut last_frame = VNode::from(view(&model));
-    last_frame.apply(&body, None, messages.clone());
-    let mut last_frame = Some(last_frame);
-    let mut context = Context::new();
-
-    let mut callback = move || {
-        debug!("Yew Loop Callback");
-        let mut borrowed = messages.borrow_mut();
-        borrowed.extend(context.rx.try_iter());
-        for msg in borrowed.drain(..) {
-            update(&mut context, &mut model, msg);
-        }
-        let mut next_frame = VNode::from(view(&model));
-        debug!("Do apply");
-        next_frame.apply(&body, last_frame.take(), messages.clone());
-        last_frame = Some(next_frame);
-    };
-    // Initial call for first rendering
-    callback();
-    js! {
-        var callback = @{callback};
-        window.yew_loop = function() {
-            callback();
-        }
-    };
-    stdweb::event_loop();
+    /// The main entrypoint of a yew program. It works similar as `program`
+    /// function in Elm. You should provide an initial model, `update` function
+    /// which will update the state of the model and a `view` function which
+    /// will render the model to a virtual DOM tree.
+    pub fn run<CTX, MOD, U, V>(&mut self, mut context: CTX, mut model: MOD, update: U, view: V)
+    where
+        CTX: 'static,
+        MOD: 'static,
+        U: Fn(&mut CTX, &mut MOD, MSG) + 'static,
+        V: Fn(&MOD) -> Html<MSG> + 'static,
+    {
+        stdweb::initialize();
+        clear_body();
+        let body = document().query_selector("body").unwrap();
+        // No messages at start
+        let messages = Rc::new(RefCell::new(Vec::new()));
+        let mut last_frame = VNode::from(view(&model));
+        last_frame.apply(&body, None, messages.clone());
+        let mut last_frame = Some(last_frame);
+        let rx = self.rx.take().expect("application runned without a receiver");
+        let mut callback = move || {
+            debug!("Yew Loop Callback");
+            let mut borrowed = messages.borrow_mut();
+            borrowed.extend(rx.try_iter());
+            for msg in borrowed.drain(..) {
+                update(&mut context, &mut model, msg);
+            }
+            let mut next_frame = VNode::from(view(&model));
+            debug!("Do apply");
+            next_frame.apply(&body, last_frame.take(), messages.clone());
+            last_frame = Some(next_frame);
+        };
+        // Initial call for first rendering
+        callback();
+        js! {
+            var callback = @{callback};
+            window.yew_loop = function() {
+                callback();
+            }
+        };
+        stdweb::event_loop();
+    }
 }
 
 /// A type which expected as a result of `view` function implementation.
@@ -154,7 +156,7 @@ macro_rules! impl_action {
     )*};
 }
 
-/// Use `ContextSender::send` to emit it implicit
+/// Use `AppSender::send` to emit it implicit
 fn schedule_update() {
     js! {
         // Schedule to call the loop handler
