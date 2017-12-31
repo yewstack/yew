@@ -1,16 +1,26 @@
+//! Service to connect to a servers by
+//! [WebSocket Protocol](https://tools.ietf.org/html/rfc6455).
+
 use stdweb::Value;
 use html::Context;
 use services::format::{Storable, Restorable};
 use super::Task;
 
+/// A status of a websocket connection. Used for status notification.
 pub enum WebSocketStatus {
+    /// Fired when a websocket connection was opened.
     Opened,
+    /// Fired when a websocket connection was closed.
     Closed,
 }
 
+/// A handle to control current websocket connection. Implements `Task` and could be canceled.
 pub struct WebSocketHandle(Option<Value>);
 
+/// An abstract websocket service attached to a context.
 pub trait WebSocketService<MSG> {
+    /// Connects to a server by a weboscket connection. Needs two functions to generate
+    /// data and notification messages.
     fn ws_connect<F, N, OUT>(&mut self, url: &str, converter: F, notification: N) -> WebSocketHandle
     where
         OUT: From<Restorable>,
@@ -70,6 +80,7 @@ impl<MSG: 'static> WebSocketService<MSG> for Context<MSG> {
 }
 
 impl WebSocketHandle {
+    /// Sends data to a websocket connection.
     pub fn send<IN>(&mut self, data: IN)
     where
         IN: Into<Storable>
