@@ -8,6 +8,12 @@ use yew::services::timeout::TimeoutService;
 use yew::services::interval::IntervalService;
 use yew::services::console::ConsoleService;
 
+struct Context {
+    interval: IntervalService<Msg>,
+    timeout: TimeoutService<Msg>,
+    console: ConsoleService,
+}
+
 struct Model {
     job: Option<Box<Task>>,
     messages: Vec<&'static str>,
@@ -21,44 +27,43 @@ enum Msg {
     Tick,
 }
 
-fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
-    let console = context.get_console();
+fn update(context: &mut Context, model: &mut Model, msg: Msg) {
     match msg {
         Msg::StartTimeout => {
-            let handle = context.timeout(Duration::from_secs(3), || Msg::Done);
+            let handle = context.timeout.spawn(Duration::from_secs(3), || Msg::Done);
             model.job = Some(Box::new(handle));
             model.messages.clear();
-            console.clear();
+            context.console.clear();
             model.messages.push("Timer started!!");
-            console.time_named("Timer");
+            context.console.time_named("Timer");
         }
         Msg::StartInterval => {
-            let handle = context.interval(Duration::from_secs(1), || Msg::Tick);
+            let handle = context.interval.spawn(Duration::from_secs(1), || Msg::Tick);
             model.job = Some(Box::new(handle));
             model.messages.clear();
-            console.clear();
+            context.console.clear();
             model.messages.push("Interval started!");
-            console.log("Interval started!");
+            context.console.log("Interval started!");
         }
         Msg::Cancel => {
             if let Some(mut task) = model.job.take() {
                 task.cancel();
             }
             model.messages.push("Canceled!");
-            console.warn("Canceled!");
-            console.assert(model.job.is_none(), "Job still exists!");
+            context.console.warn("Canceled!");
+            context.console.assert(model.job.is_none(), "Job still exists!");
         }
         Msg::Done => {
             model.messages.push("Done!");
-            console.group();
-            console.info("Done!");
-            console.time_named_end("Timer");
-            console.group_end();
+            context.console.group();
+            context.console.info("Done!");
+            context.console.time_named_end("Timer");
+            context.console.group_end();
             model.job = None;
         }
         Msg::Tick => {
             model.messages.push("Tick...");
-            console.count_named("Tick");
+            context.console.count_named("Tick");
         }
     }
 }
@@ -81,9 +86,15 @@ fn view(model: &Model) -> Html<Msg> {
 }
 
 fn main() {
+    let mut app = App::new();
+    let context = Context {
+        interval: IntervalService::new(app.sender()),
+        timeout: TimeoutService::new(app.sender()),
+        console: ConsoleService,
+    };
     let model = Model {
         job: None,
         messages: Vec::new(),
     };
-    program(model, update, view);
+    app.run(context, model, update, view);
 }
