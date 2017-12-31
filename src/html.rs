@@ -24,6 +24,14 @@ pub struct AppSender<MSG> {
     tx: Sender<MSG>,
 }
 
+impl<MSG> Clone for AppSender<MSG> {
+    fn clone(&self) -> Self {
+        AppSender {
+            tx: self.tx.clone(),
+        }
+    }
+}
+
 impl<MSG> AppSender<MSG> {
     /// Send the message and schedule an update.
     pub fn send(&mut self, msg: MSG) {
