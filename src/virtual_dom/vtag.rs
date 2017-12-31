@@ -1,3 +1,5 @@
+//! This module contains the implementation of a virtual element node `VTag`.
+
 use std::fmt;
 use std::borrow::Cow;
 use std::collections::HashSet;
@@ -6,19 +8,40 @@ use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryFrom;
 use virtual_dom::{Messages, Listener, Listeners, Classes, Attributes, Patch, VNode};
 
+/// A type for a virtual
+/// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
+/// representation.
 pub struct VTag<MSG> {
-    pub tag: Cow<'static, str>,
+    /// A tag of the element.
+    tag: Cow<'static, str>,
+    /// List of attached listeners.
     pub listeners: Listeners<MSG>,
-    pub captured: Vec<EventListenerHandle>,
+    /// List of attributes.
     pub attributes: Attributes,
+    /// The list of children nodes. Which also could have own children.
     pub childs: Vec<VNode<MSG>>,
+    /// List of attached classes.
     pub classes: Classes,
+    /// Contains a value of an
+    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     pub value: Option<String>,
+    /// Contains
+    /// [kind](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types)
+    /// value of an `InputElement`.
     pub kind: Option<String>,
+    /// Represents `checked` attribute of
+    /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
+    /// It exists to override standard behavior of `checked` attribute, because
+    /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
+    /// frameworks it's more useful to control `checked` value of an `InputElement`.
     pub checked: bool,
+    /// _Service field_. Keeps handler for attached listeners
+    /// to have an opportunity to drop them later.
+    captured: Vec<EventListenerHandle>,
 }
 
 impl<MSG> VTag<MSG> {
+    /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
         VTag {
             tag: tag.into(),
@@ -29,20 +52,25 @@ impl<MSG> VTag<MSG> {
             childs: Vec::new(),
             value: None,
             kind: None,
-            /// In HTML node `checked` attribute sets `defaultChecked` parameter,
-            /// but we use own field to control real `checked` parameter
+            // In HTML node `checked` attribute sets `defaultChecked` parameter,
+            // but we use own field to control real `checked` parameter
             checked: false,
         }
     }
 
+    /// Returns tag of an `Element`. In HTML tags are always uppercase.
     pub fn tag(&self) -> &str {
         &self.tag
     }
 
+    /// Add `VNode` child.
     pub fn add_child(&mut self, child: VNode<MSG>) {
         self.childs.push(child);
     }
 
+    /// Add classes to this virtual node. Actually it will set by
+    /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
+    /// call later.
     pub fn add_classes(&mut self, class: &str) {
         let class = class.trim();
         if !class.is_empty() {
@@ -50,22 +78,36 @@ impl<MSG> VTag<MSG> {
         }
     }
 
+    /// Sets `value` for an
+    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     pub fn set_value<T: ToString>(&mut self, value: &T) {
         self.value = Some(value.to_string());
     }
 
+    /// Sets `kind` property of an
+    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
+    /// Same as set `type` attribute.
     pub fn set_kind<T: ToString>(&mut self, value: T) {
         self.kind = Some(value.to_string());
     }
 
+    /// Sets `checked` property of an
+    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
+    /// (Not a value of node's attribute).
     pub fn set_checked(&mut self, value: bool) {
         self.checked = value;
     }
 
+    /// Adds attribute to a virtual node. Not every attribute works when
+    /// it set as attribute. We use workarounds for:
+    /// `class`, `type/kind`, `value` and `checked`.
     pub fn add_attribute<T: ToString>(&mut self, name: &str, value: T) {
         self.attributes.insert(name.to_owned(), value.to_string());
     }
 
+    /// Adds new listener to the node.
+    /// It's boxed because we want to keep it in a single list.
+    /// Lates `Listener::attach` called to attach actual listener to a DOM node.
     pub fn add_listener(&mut self, listener: Box<Listener<MSG>>) {
         self.listeners.push(listener);
     }
@@ -158,6 +200,8 @@ impl<MSG> VTag<MSG> {
 }
 
 impl<MSG> VTag<MSG> {
+    /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
+    /// to compute what to pach in the actual DOM nodes.
     pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, messages: Messages<MSG>) {
         // TODO Replace self if tagName differs
 
@@ -245,16 +289,18 @@ impl<MSG> fmt::Debug for VTag<MSG> {
     }
 }
 
-// stdweb doesn't have methods to work with attributes
-// this is workaround from: https://github.com/koute/stdweb/issues/16#issuecomment-325195854
+/// `stdweb` doesn't have methods to work with attributes now.
+/// this is workaround from: https://github.com/koute/stdweb/issues/16#issuecomment-325195854
 fn set_attribute(element: &Element, name: &str, value: &str) {
     js!( @{element}.setAttribute( @{name}, @{value} ); );
 }
 
+/// Removes attribute from a element by name.
 fn remove_attribute(element: &Element, name: &str) {
     js!( @{element}.removeAttribute( @{name} ); );
 }
 
+/// Set `checked` value for the `InputElement`.
 fn set_checked(input: &InputElement, value: bool) {
     js!( @{input}.checked = @{value}; );
 }

@@ -1,3 +1,8 @@
+//! This module is a container of servies to interact with the external resources.
+//!
+//! It carries a similar role as subscriptions in Elm, but can be used directly
+//! from the `update` method.
+
 pub mod format;
 pub mod timeout;
 pub mod interval;
@@ -9,7 +14,9 @@ pub mod websocket;
 
 use std::time::Duration;
 
+/// An universal interface to service's routine. At least could be canceled.
 pub trait Task {
+    /// Cancel current service's routine.
     fn cancel(&mut self);
 }
 

@@ -1,11 +1,17 @@
+//! This module contains the implementation of a service to
+//! send a messages when timeout elapsed.
+
 use std::time::Duration;
 use stdweb::Value;
 use html::Context;
 use super::{Task, to_ms};
 
+/// A handle to cancel a timeout task.
 pub struct TimeoutHandle(Option<Value>);
 
+/// An abstract service to set a timeout.
 pub trait TimeoutService<MSG> {
+    /// Sets timeout which send a messages from a `converter` after `duration`.
     fn timeout<F>(&mut self, duration: Duration, converter: F) -> TimeoutHandle
     where
         F: Fn() -> MSG + 'static;

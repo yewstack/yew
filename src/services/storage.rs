@@ -1,19 +1,31 @@
+//! This module contains the implementation of a service to
+//! use local and session storage of a browser.
+
 use stdweb::Value;
 use html::Context;
 use services::format::{Storable, Restorable};
 
+/// A scope to keep the data in.
 pub enum Scope {
+    /// Use `localStorage` of a browser.
     Local,
+    /// Use `sessionStorage` of a browser.
     Session,
 }
 
+/// An abstract storage service attached to a context.
 pub trait StorageService {
+    /// Stores value to the storage.
     fn store_value<T>(&mut self, scope: Scope, key: &str, value: T)
     where
         T: Into<Storable>;
+
+    /// Restores value from the storage.
     fn restore_value<T>(&mut self, scope: Scope, key: &str) -> T
     where
         T : From<Restorable>;
+
+    /// Removes value from the storage.
     fn remove_value(&mut self, scope: Scope, key: &str);
 }
 

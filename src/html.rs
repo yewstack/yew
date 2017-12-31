@@ -1,3 +1,6 @@
+//! The main module which contents aliases to necessary items
+//! to create a template and implement `update` and `view` functions.
+
 use stdweb;
 
 use std::rc::Rc;
@@ -7,6 +10,7 @@ use stdweb::web::{INode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use virtual_dom::{VNode, VTag, Messages, Listener};
 
+/// Removes anything from the `body`.
 fn clear_body() {
     let body = document().query_selector("body").unwrap();
     while body.has_child_nodes() {
@@ -14,28 +18,35 @@ fn clear_body() {
     }
 }
 
+/// This class keeps a sender to a context to send a messages to a loop
+/// and to schedule the next update call.
 pub struct ContextSender<MSG> {
     tx: Sender<MSG>,
 }
 
 impl<MSG> ContextSender<MSG> {
+    /// Send the message and schedule an update.
     pub fn send(&mut self, msg: MSG) {
         self.tx.send(msg).expect("Context lost the receiver!");
         schedule_update();
     }
 }
 
+/// A context which contains a bridge to send a messages to a loop.
+/// Mostly services uses it.
 pub struct Context<MSG> {
     tx: Sender<MSG>,
     rx: Receiver<MSG>,
 }
 
 impl<MSG> Context<MSG> {
+    /// Creates a context with connected sender and receiver.
     fn new() -> Self {
         let (tx, rx) = channel();
         Context { tx, rx }
     }
 
+    /// Returs a cloned sender.
     pub fn sender(&mut self) -> ContextSender<MSG> {
         ContextSender {
             tx: self.tx.clone(),
@@ -43,6 +54,10 @@ impl<MSG> Context<MSG> {
     }
 }
 
+/// The main entrypoint of a yew program. It works similar as `program`
+/// function in Elm. You should provide an initial model, `update` function
+/// which will update the state of the model and a `view` function which
+/// will render the model to a virtual DOM tree.
 pub fn program<M, MSG, U, V>(mut model: M, update: U, view: V)
 where
     M: 'static,
@@ -83,17 +98,22 @@ where
     stdweb::event_loop();
 }
 
+/// A type which expected as a result of `view` function implementation.
 pub type Html<MSG> = VTag<MSG>;
 
 macro_rules! impl_action {
     ($($action:ident($event:ident : $type:ident) -> $ret:ty => $convert:expr)*) => {$(
+        /// An abstract implementation of a listener.
         pub mod $action {
             use stdweb::web::{IEventTarget, Element};
             use stdweb::web::event::{IEvent, $type};
             use super::*;
 
+            /// A wrapper for a callback.
+            /// Listener extracted from here when attached.
             pub struct Wrapper<F>(Option<F>);
 
+            /// And event type which keeps the returned type.
             pub type Event = $ret;
 
             impl<F, MSG> From<F> for Wrapper<F>
@@ -167,11 +187,28 @@ impl_action! {
     }
 }
 
+/// A type representing data from `onclick` and `ondoubleclick` event.
 #[derive(Debug)]
 pub struct MouseData {
+    /// The screenX read-only property of the
+    /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/screenX)
+    /// property provides the horizontal coordinate (offset)
+    /// of the mouse pointer in global (screen) coordinates.
     pub screen_x: f64,
+    /// The screenY read-only property of the
+    /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/screenY)
+    /// property provides the vertical coordinate (offset)
+    /// of the mouse pointer in global (screen) coordinates.
     pub screen_y: f64,
+    /// The clientX read-only property of the
+    /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/clientX)
+    /// interface provides the horizontal coordinate within
+    /// the application's client area at which the event occurred
     pub client_x: f64,
+    /// The clientY read-only property of the
+    /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/clientX)
+    /// interface provides the vertical coordinate within
+    /// the application's client area at which the event occurred
     pub client_y: f64,
 }
 
@@ -186,13 +223,19 @@ impl<T: IMouseEvent> From<T> for MouseData {
     }
 }
 
+/// A type representing data from `oninput` event.
 #[derive(Debug)]
 pub struct InputData {
+    /// Inserted characters. Contains value from
+    /// [InputEvent](https://developer.mozilla.org/en-US/docs/Web/API/InputEvent/data).
     pub value: String,
 }
 
+/// A type representing data from `onkeypress` event.
 #[derive(Debug)]
 pub struct KeyData {
+    /// Value of a pressed key. Contains key name from
+    /// [KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
     pub key: String,
 }
 
@@ -202,6 +245,7 @@ impl<T: IKeyboardEvent> From<T> for KeyData {
     }
 }
 
+/// A bridging type for checking `href` attribute value.
 #[derive(Debug)]
 pub struct Href {
     link: String,
