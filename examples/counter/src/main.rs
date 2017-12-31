@@ -5,6 +5,9 @@ extern crate yew;
 use chrono::prelude::*;
 use yew::html::*;
 
+struct Context {
+}
+
 struct Model {
     value: i64,
 }
@@ -15,7 +18,7 @@ enum Msg {
     Bulk(Vec<Msg>),
 }
 
-fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
+fn update(context: &mut Context, model: &mut Model, msg: Msg) {
     match msg {
         Msg::Increment => {
             model.value = model.value + 1;
@@ -46,8 +49,11 @@ fn view(model: &Model) -> Html<Msg> {
 }
 
 fn main() {
+    let mut app = App::new();
+    let context = Context {
+    };
     let model = Model {
         value: 0,
     };
-    program(model, update, view);
+    app.run(context, model, update, view);
 }
