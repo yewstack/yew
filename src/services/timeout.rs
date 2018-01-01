@@ -3,26 +3,29 @@
 
 use std::time::Duration;
 use stdweb::Value;
-use html::Context;
+use html::AppSender;
 use super::{Task, to_ms};
 
 /// A handle to cancel a timeout task.
 pub struct TimeoutHandle(Option<Value>);
 
-/// An abstract service to set a timeout.
-pub trait TimeoutService<MSG> {
-    /// Sets timeout which send a messages from a `converter` after `duration`.
-    fn timeout<F>(&mut self, duration: Duration, converter: F) -> TimeoutHandle
-    where
-        F: Fn() -> MSG + 'static;
+/// An service to set a timeout.
+pub struct TimeoutService<MSG> {
+    sender: AppSender<MSG>,
 }
 
-impl<MSG: 'static> TimeoutService<MSG> for Context<MSG> {
-    fn timeout<F>(&mut self, duration: Duration, converter: F) -> TimeoutHandle
+impl<MSG: 'static> TimeoutService<MSG> {
+    /// Creates a new service instance connected to `App` by provided `sender`.
+    pub fn new(sender: AppSender<MSG>) -> Self {
+        Self { sender }
+    }
+
+    /// Sets timeout which send a messages from a `converter` after `duration`.
+    pub fn spawn<F>(&mut self, duration: Duration, converter: F) -> TimeoutHandle
     where
         F: Fn() -> MSG + 'static,
     {
-        let mut tx = self.sender();
+        let mut tx = self.sender.clone();
         let callback = move || {
             let msg = converter();
             tx.send(msg);

@@ -1,12 +1,10 @@
 //! This module contains a service implementation to use browser's console.
 
-use html::Context;
-
 /// A service to use methods of a
 /// [Console](https://developer.mozilla.org/en-US/docs/Web/API/Console).
-pub struct Console;
+pub struct ConsoleService;
 
-impl Console {
+impl ConsoleService {
     /// [console.log](https://developer.mozilla.org/en-US/docs/Web/API/Console/log)
     /// method implementation.
     pub fn log(&self, message: &str) { js! { console.log(@{message}); } }
@@ -76,16 +74,4 @@ impl Console {
     /// [console.assert](https://developer.mozilla.org/en-US/docs/Web/API/Console/assert)
     /// method implementation.
     pub fn assert(&self, condition: bool, message: &str) { js! { console.assert(@{condition}, @{message}); } }
-}
-
-/// An abstract service which return a `Console` instance.
-pub trait ConsoleService {
-    /// Returns console from a context.
-    fn get_console(&self) -> Console;
-}
-
-impl<MSG: 'static> ConsoleService for Context<MSG> {
-    fn get_console(&self) -> Console {
-        Console {}
-    }
 }
