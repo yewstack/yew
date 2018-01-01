@@ -4,7 +4,7 @@ extern crate serde_derive;
 extern crate yew;
 
 use yew::html::*;
-use yew::services::format::Json;
+use yew::format::Json;
 use yew::services::alert::AlertService;
 use yew::services::storage::{StorageService, Scope};
 

@@ -4,8 +4,8 @@ extern crate serde_derive;
 extern crate yew;
 
 use yew::html::*;
+use yew::format::{Nothing, Json};
 use yew::services::Task;
-use yew::services::format::{Nothing, Json};
 use yew::services::fetch::{FetchService, Method};
 use yew::services::websocket::{WebSocketService, WebSocketHandle, WebSocketStatus};
 
