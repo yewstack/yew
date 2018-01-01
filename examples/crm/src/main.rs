@@ -5,10 +5,15 @@ extern crate yew;
 
 use yew::html::*;
 use yew::format::Json;
-use yew::services::alert::AlertService;
+use yew::services::dialog::DialogService;
 use yew::services::storage::{StorageService, Scope};
 
 const KEY: &'static str = "yew.crm";
+
+struct Context {
+    storage: StorageService,
+    dialog: DialogService,
+}
 
 #[derive(Serialize, Deserialize)]
 struct Client {
@@ -32,7 +37,7 @@ enum Msg {
     Nope,
 }
 
-fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
+fn update(context: &mut Context, model: &mut Model, msg: Msg) {
     match msg {
         Msg::AddNew => {
             let client = Client {
@@ -52,18 +57,20 @@ fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
             model.last_name_value = val;
         }
         Msg::Store => {
-            context.store_value(Scope::Local, KEY, Json(&model.clients));
+            context.storage.store(KEY, Json(&model.clients));
         }
         Msg::Restore => {
-            if let Json(Ok(clients)) = context.restore_value(Scope::Local, KEY) {
+            if let Json(Ok(clients)) = context.storage.restore(KEY) {
                 model.clients = clients;
             } else {
-                context.alert("Oh no! Storage was corrupted!");
+                context.dialog.alert("Oh no! Storage was corrupted!");
             }
         }
         Msg::Clear => {
-            model.clients.clear();
-            context.remove_value(Scope::Local, KEY);
+            if context.dialog.confirm("Do you really want to clear the data?") {
+                model.clients.clear();
+                context.storage.remove(KEY);
+            }
         }
         Msg::Nope => {}
     }
@@ -120,10 +127,15 @@ fn view_last_name_input(model: &Model) -> Html<Msg> {
 }
 
 fn main() {
+    let mut app = App::new();
+    let context = Context {
+        storage: StorageService::new(Scope::Local),
+        dialog: DialogService,
+    };
     let model = Model {
         clients: Vec::new(),
         first_name_value: "".into(),
         last_name_value: "".into(),
     };
-    program(model, update, view);
+    app.run(context, model, update, view);
 }
