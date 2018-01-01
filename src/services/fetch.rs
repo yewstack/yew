@@ -1,8 +1,8 @@
 //! Service to send HTTP-request to a server.
 
 use stdweb::Value;
-use html::Context;
-use services::format::{Storable, Restorable};
+use html::AppSender;
+use format::{Storable, Restorable};
 use super::Task;
 
 /// A handle to control sent request. Could be canceled by `Task::cancel` call.
@@ -26,25 +26,26 @@ impl Method {
     }
 }
 
-/// An abstract service to fetch resources from a context.
-pub trait FetchService<MSG> {
-    /// Sends request to a server. Could contains input data and
-    /// needs a fuction to convert returned data to a loop's message.
-    fn fetch<F, IN, OUT>(&mut self, method: Method, url: &str, data: IN, converter: F) -> FetchHandle
-    where
-        IN: Into<Storable>,
-        OUT: From<Restorable>,
-        F: Fn(OUT) -> MSG + 'static;
+/// A service to fetch resources.
+pub struct FetchService<MSG> {
+    sender: AppSender<MSG>,
 }
 
-impl<MSG: 'static> FetchService<MSG> for Context<MSG> {
-    fn fetch<F, IN, OUT>(&mut self, method: Method, url: &str, data: IN, converter: F) -> FetchHandle
+impl<MSG: 'static> FetchService<MSG> {
+    /// Creates a new service instance connected to `App` by provided `sender`.
+    pub fn new(sender: AppSender<MSG>) -> Self {
+        Self { sender }
+    }
+
+    /// Sends request to a server. Could contains input data and
+    /// needs a fuction to convert returned data to a loop's message.
+    pub fn fetch<F, IN, OUT>(&mut self, method: Method, url: &str, data: IN, converter: F) -> FetchHandle
     where
         IN: Into<Storable>,
         OUT: From<Restorable>,
         F: Fn(OUT) -> MSG + 'static
     {
-        let mut tx = self.sender();
+        let mut tx = self.sender.clone();
         let callback = move |success: bool, s: String| {
             let data = if success { Ok(s) } else { Err(s) };
             let out = OUT::from(data);

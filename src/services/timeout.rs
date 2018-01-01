@@ -15,7 +15,7 @@ pub struct TimeoutService<MSG> {
 }
 
 impl<MSG: 'static> TimeoutService<MSG> {
-    /// Creates a new service instance connector to `App` with provided `sender`.
+    /// Creates a new service instance connected to `App` by provided `sender`.
     pub fn new(sender: AppSender<MSG>) -> Self {
         Self { sender }
     }
