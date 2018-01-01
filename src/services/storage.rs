@@ -2,8 +2,7 @@
 //! use local and session storage of a browser.
 
 use stdweb::Value;
-use html::Context;
-use services::format::{Storable, Restorable};
+use format::{Storable, Restorable};
 
 /// A scope to keep the data in.
 pub enum Scope {
@@ -13,42 +12,38 @@ pub enum Scope {
     Session,
 }
 
-/// An abstract storage service attached to a context.
-pub trait StorageService {
-    /// Stores value to the storage.
-    fn store_value<T>(&mut self, scope: Scope, key: &str, value: T)
-    where
-        T: Into<Storable>;
-
-    /// Restores value from the storage.
-    fn restore_value<T>(&mut self, scope: Scope, key: &str) -> T
-    where
-        T : From<Restorable>;
-
-    /// Removes value from the storage.
-    fn remove_value(&mut self, scope: Scope, key: &str);
+/// A storage service attached to a context.
+pub struct StorageService {
+    scope: Scope,
 }
 
-impl<MSG: 'static> StorageService for Context<MSG> {
-    fn store_value<T>(&mut self, scope: Scope, key: &str, value: T)
+impl StorageService {
+
+    /// Creates a new storage service instance with specified storate scope.
+    pub fn new(scope: Scope) -> Self {
+        StorageService { scope }
+    }
+
+    /// Stores value to the storage.
+    pub fn store<T>(&mut self, key: &str, value: T)
     where
         T: Into<Storable>
     {
         if let Some(data) = value.into() {
-            match scope {
+            match self.scope {
                 Scope::Local => { js! { localStorage.setItem(@{key}, @{data}); } },
                 Scope::Session => { js! { sessionStorage.setItem(@{key}, @{data}); } },
             }
         }
     }
 
-    // TODO Use erorr-chain
-    fn restore_value<T>(&mut self, scope: Scope, key: &str) -> T
+    /// Restores value from the storage.
+    pub fn restore<T>(&mut self, key: &str) -> T
     where
         T : From<Restorable>
     {
         let value: Value = {
-            match scope {
+            match self.scope {
                 Scope::Local => js! { return localStorage.getItem(@{key}); },
                 Scope::Session => js! { return sessionStorage.getItem(@{key}); },
             }
@@ -57,9 +52,10 @@ impl<MSG: 'static> StorageService for Context<MSG> {
         T::from(data)
     }
 
-    fn remove_value(&mut self, scope: Scope, key: &str) {
+    /// Removes value from the storage.
+    pub fn remove(&mut self, key: &str) {
         {
-            match scope {
+            match self.scope {
                 Scope::Local => js! { localStorage.removeItem(@{key}); },
                 Scope::Session => js! { sessionStorage.removeItem(@{key}); },
             }
