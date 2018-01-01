@@ -127,9 +127,9 @@ pub fn unpack<MSG>(mut stack: Stack<MSG>) -> VTag<MSG> {
 }
 
 #[doc(hidden)]
-pub fn set_value<MSG, T: ToString>(stack: &mut Stack<MSG>, value: &T) {
+pub fn set_value<MSG, T: ToString>(stack: &mut Stack<MSG>, value: T) {
     if let Some(node) = stack.last_mut() {
-        node.set_value(value);
+        node.set_value(&value);
     } else {
         panic!("no tag to set value: {}", value.to_string());
     }

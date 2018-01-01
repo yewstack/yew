@@ -3,6 +3,7 @@
 use std::fmt;
 use std::borrow::Cow;
 use std::collections::HashSet;
+use std::cmp::PartialEq;
 use stdweb::web::{IElement, Element, EventListenerHandle};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryFrom;
@@ -303,4 +304,60 @@ fn remove_attribute(element: &Element, name: &str) {
 /// Set `checked` value for the `InputElement`.
 fn set_checked(input: &InputElement, value: bool) {
     js!( @{input}.checked = @{value}; );
+}
+
+impl<MSG> PartialEq for VTag<MSG> {
+    fn eq(&self, other: &VTag<MSG>) -> bool {
+        if self.tag != other.tag {
+            return false;
+        }
+
+        if self.value != other.value {
+            return false;
+        }
+
+        if self.kind != other.kind {
+            return false;
+        }
+
+        if self.checked != other.checked {
+            return false;
+        }
+
+        if self.listeners.len() != other.listeners.len() {
+            return false;
+        }
+
+        for i in 0..self.listeners.len() {
+            let a = &self.listeners[i];
+            let b = &other.listeners[i];
+
+            if a.kind() != b.kind() {
+                return false;
+            }
+        }
+
+        if self.attributes != other.attributes {
+            return false;
+        }
+
+        if self.classes != other.classes {
+            return false;
+        }
+
+        if self.childs.len() != other.childs.len() {
+            return false;
+        }
+
+        for i in 0..self.childs.len() {
+            let a = &self.childs[i];
+            let b = &other.childs[i];
+
+            if a != b {
+                return false;
+            }
+        }
+
+        true
+    }
 }
