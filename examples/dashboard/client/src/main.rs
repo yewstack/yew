@@ -9,6 +9,11 @@ use yew::services::Task;
 use yew::services::fetch::{FetchService, Method};
 use yew::services::websocket::{WebSocketService, WebSocketHandle, WebSocketStatus};
 
+struct Context {
+    web: FetchService<Msg>,
+    ws: WebSocketService<Msg>,
+}
+
 struct Model {
     fetching: bool,
     data: Option<Status>,
@@ -47,15 +52,15 @@ fn ws_status_to_msg(status: WebSocketStatus) -> Msg {
     }
 }
 
-fn update(context: &mut Context<Msg>, model: &mut Model, msg: Msg) {
+fn update(context: &mut Context, model: &mut Model, msg: Msg) {
     match msg {
         Msg::FetchData => {
-            context.fetch(Method::Get, "./data.json", Nothing, |Json(data)| Msg::DataReady(data));
+            context.web.fetch(Method::Get, "./data.json", Nothing, |Json(data)| Msg::DataReady(data));
         }
         Msg::WsAction(action) => {
             match action {
                 WsAction::Connect => {
-                    let handle = context.ws_connect(
+                    let handle = context.ws.connect(
                         "ws://localhost:9001/",
                         |Json(data)| Msg::DataReady(data),
                         ws_status_to_msg
@@ -121,10 +126,15 @@ fn view_data(model: &Model) -> Html<Msg> {
 }
 
 fn main() {
+    let mut app = App::new();
+    let context = Context {
+        web: FetchService::new(app.sender()),
+        ws: WebSocketService::new(app.sender()),
+    };
     let model = Model {
         fetching: false,
         data: None,
         ws: None,
     };
-    program(model, update, view);
+    app.run(context, model, update, view);
 }

@@ -2,8 +2,8 @@
 //! [WebSocket Protocol](https://tools.ietf.org/html/rfc6455).
 
 use stdweb::Value;
-use html::Context;
-use services::format::{Storable, Restorable};
+use html::AppSender;
+use format::{Storable, Restorable};
 use super::Task;
 
 /// A status of a websocket connection. Used for status notification.
@@ -17,32 +17,33 @@ pub enum WebSocketStatus {
 /// A handle to control current websocket connection. Implements `Task` and could be canceled.
 pub struct WebSocketHandle(Option<Value>);
 
-/// An abstract websocket service attached to a context.
-pub trait WebSocketService<MSG> {
-    /// Connects to a server by a weboscket connection. Needs two functions to generate
-    /// data and notification messages.
-    fn ws_connect<F, N, OUT>(&mut self, url: &str, converter: F, notification: N) -> WebSocketHandle
-    where
-        OUT: From<Restorable>,
-        F: Fn(OUT) -> MSG + 'static,
-        N: Fn(WebSocketStatus) -> MSG + 'static;
+/// A websocket service attached to a user context.
+pub struct  WebSocketService<MSG> {
+    sender: AppSender<MSG>,
 }
 
-impl<MSG: 'static> WebSocketService<MSG> for Context<MSG> {
-    fn ws_connect<F, N, OUT>(&mut self, url: &str, converter: F, notification: N) -> WebSocketHandle
+impl<MSG: 'static> WebSocketService<MSG> {
+    /// Creates a new service instance connected to `App` by provided `sender`.
+    pub fn new(sender: AppSender<MSG>) -> Self {
+        Self { sender }
+    }
+
+    /// Connects to a server by a weboscket connection. Needs two functions to generate
+    /// data and notification messages.
+    pub fn connect<F, N, OUT>(&mut self, url: &str, converter: F, notification: N) -> WebSocketHandle
     where
         OUT: From<Restorable>,
         F: Fn(OUT) -> MSG + 'static,
         N: Fn(WebSocketStatus) -> MSG + 'static,
     {
-        let mut tx = self.sender();
+        let mut tx = self.sender.clone();
         let callback = move |s: String| {
             let data = Ok(s);
             let out = OUT::from(data);
             let msg = converter(out);
             tx.send(msg);
         };
-        let mut tx = self.sender();
+        let mut tx = self.sender.clone();
         let notify_callback = move |code: u32| {
             let code = {
                 match code {
