@@ -63,7 +63,7 @@ enum Msg {
     Nope,
 }
 
-fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
+fn update(_: &mut Context, model: &mut Model, msg: Msg) {
     match msg {
         Msg::Add => {
             let entry = Entry {
@@ -207,14 +207,17 @@ fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Msg> {
     }
 }
 
+struct Context;
+
 fn main() {
+    let mut app = App::new();
     let model = Model {
         entries: Vec::new(),
         filter: Filter::All,
         value: "".into(),
         edit_value: "".into(),
     };
-    program(model, update, view);
+    app.run(Context, model, update, view);
 }
 
 
