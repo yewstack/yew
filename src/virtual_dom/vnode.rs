@@ -1,6 +1,7 @@
 //! This module contains the implementation of abstract virtual node.
 
 use std::fmt;
+use std::cmp::PartialEq;
 use stdweb::web::{INode, Node, Element, TextNode, document};
 use virtual_dom::{VTag, VText, Messages};
 
@@ -174,6 +175,29 @@ impl<MSG> fmt::Debug for VNode<MSG> {
         match self {
             &VNode::VTag { ref vtag, .. } => vtag.fmt(f),
             &VNode::VText { ref vtext, .. } => vtext.fmt(f),
+        }
+    }
+}
+
+impl<MSG> PartialEq for VNode<MSG> {
+    fn eq(&self, other: &VNode<MSG>) -> bool {
+        match *self {
+            VNode::VTag { vtag: ref vtag_a, .. } => {
+                match *other {
+                    VNode::VTag { vtag: ref vtag_b, .. } => {
+                        vtag_a == vtag_b
+                    },
+                    _ => false
+                }
+            },
+            VNode::VText { vtext: ref vtext_a, .. } => {
+                match *other {
+                    VNode::VText { vtext: ref vtext_b, .. } => {
+                        vtext_a == vtext_b
+                    },
+                    _ => false
+                }
+            }
         }
     }
 }
