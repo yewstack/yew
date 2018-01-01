@@ -1,6 +1,7 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use std::fmt;
+use std::cmp::PartialEq;
 use stdweb::web::{INode, TextNode};
 
 /// A type for a virtual
@@ -36,3 +37,8 @@ impl fmt::Debug for VText {
     }
 }
 
+impl PartialEq for VText {
+    fn eq(&self, other: &VText) -> bool {
+        return self.text == other.text;
+    }
+}
