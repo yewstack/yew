@@ -9,6 +9,10 @@ use std::time::Duration;
 use yew::services::Task;
 use yew::services::interval::IntervalService;
 
+struct Context {
+    interval: IntervalService<Msg>,
+}
+
 #[derive(Clone, Copy, PartialEq)]
 enum LifeState {
     Live,
@@ -141,14 +145,14 @@ enum Msg {
     ToggleCellule(usize)
 }
 
-fn update(context: &mut Context<Msg>, gof: &mut GameOfLife, msg: Msg) {
+fn update(context: &mut Context, gof: &mut GameOfLife, msg: Msg) {
     match msg {
         Msg::Random => {
             gof.random_mutate();
             println!("Random");
         },
         Msg::Start => {
-            let handle = context.interval(Duration::from_millis(200), || Msg::Step);
+            let handle = context.interval.spawn(Duration::from_millis(200), || Msg::Step);
             gof.job = Some(Box::new(handle));
             println!("Start");
         },
@@ -211,12 +215,15 @@ fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Msg> {
 }
 
 fn main() {
+    let mut app = App::new();
+    let context = Context {
+        interval: IntervalService::new(app.sender()),
+    };
     let gof = GameOfLife {
         cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
         cellules_width: 50,
         cellules_height: 40,
         job : None
     };
-
-    program(gof, update, view);
+    app.run(context, gof, update, view);
 }
