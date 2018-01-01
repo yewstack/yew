@@ -3,11 +3,10 @@
 //! It carries a similar role as subscriptions in Elm, but can be used directly
 //! from the `update` method.
 
-pub mod format;
 pub mod timeout;
 pub mod interval;
 pub mod storage;
-pub mod alert;
+pub mod dialog;
 pub mod console;
 pub mod fetch;
 pub mod websocket;

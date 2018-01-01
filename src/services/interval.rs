@@ -3,28 +3,31 @@
 
 use std::time::Duration;
 use stdweb::Value;
-use html::Context;
+use html::AppSender;
 use super::{Task, to_ms};
 
 /// A handle which helps to cancel interval. Uses
 /// [clearInterval](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearInterval).
 pub struct IntervalHandle(Option<Value>);
 
-/// An abstract service to send messages on every elapsed interval.
-pub trait IntervalService<MSG> {
-    /// Sets interval which will call send a messages returned by a converter
-    /// on every intarval expiration.
-    fn interval<F>(&mut self, duration: Duration, converter: F) -> IntervalHandle
-    where
-        F: Fn() -> MSG + 'static;
+/// A service to send messages on every elapsed interval.
+pub struct IntervalService<MSG> {
+    sender: AppSender<MSG>,
 }
 
-impl<MSG: 'static> IntervalService<MSG> for Context<MSG> {
-    fn interval<F>(&mut self, duration: Duration, converter: F) -> IntervalHandle
+impl<MSG: 'static> IntervalService<MSG> {
+    /// Creates a new service instance connected to `App` by provided `sender`.
+    pub fn new(sender: AppSender<MSG>) -> Self {
+        Self { sender }
+    }
+
+    /// Sets interval which will call send a messages returned by a converter
+    /// on every intarval expiration.
+    pub fn spawn<F>(&mut self, duration: Duration, converter: F) -> IntervalHandle
     where
         F: Fn() -> MSG + 'static,
     {
-        let mut tx = self.sender();
+        let mut tx = self.sender.clone();
         let callback = move || {
             let msg = converter();
             tx.send(msg);
