@@ -123,7 +123,7 @@ pub fn unpack<MSG>(mut stack: Stack<MSG>) -> VTag<MSG> {
     if stack.len() != 1 {
         panic!("exactly one element have to be in html!");
     }
-    stack.pop().unwrap()
+    stack.pop().expect("no html elements in the stack")
 }
 
 #[doc(hidden)]
@@ -200,7 +200,9 @@ pub fn child_to_parent<MSG>(stack: &mut Stack<MSG>, endtag: Option<&'static str>
         }
 
         if !stack.is_empty() {
-            stack.last_mut().unwrap().add_child(VNode::from(node));
+            stack.last_mut()
+                .expect("stack lost the last element")
+                .add_child(VNode::from(node));
         } else {
             // Keep the last node in the stack
             stack.push(node);
