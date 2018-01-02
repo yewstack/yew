@@ -55,8 +55,15 @@ impl<MSG> VNode<MSG> {
                              reference: Some(element),
                          }) => {
                         // Copy reference from right to left (as is)
-                        right = Some(vtag);
-                        *reference = Some(element);
+                        if left.tag() == vtag.tag() {
+                            right = Some(vtag);
+                            *reference = Some(element);
+                        } else {
+                            let wrong = element;
+                            let element = document().create_element(left.tag());
+                            parent.replace_child(&element, &wrong);
+                            *reference = Some(element);
+                        }
                     }
                     Some(VNode::VText { reference: Some(wrong), .. }) => {
                         let element = document().create_element(left.tag());

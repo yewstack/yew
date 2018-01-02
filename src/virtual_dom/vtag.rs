@@ -204,8 +204,6 @@ impl<MSG> VTag<MSG> {
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to pach in the actual DOM nodes.
     pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, messages: Messages<MSG>) {
-        // TODO Replace self if tagName differs
-
         let changes = self.soakup_classes(&mut opposite);
         for change in changes {
             let list = subject.class_list();

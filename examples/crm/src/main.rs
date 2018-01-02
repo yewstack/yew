@@ -8,7 +8,7 @@ use yew::format::Json;
 use yew::services::dialog::DialogService;
 use yew::services::storage::{StorageService, Scope};
 
-const KEY: &'static str = "yew.crm";
+const KEY: &'static str = "yew.crm.database";
 
 struct Context {
     storage: StorageService,
@@ -16,126 +16,198 @@ struct Context {
 }
 
 #[derive(Serialize, Deserialize)]
+struct Database {
+    clients: Vec<Client>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 struct Client {
     first_name: String,
     last_name: String,
 }
 
-struct Model {
-    clients: Vec<Client>,
-    first_name_value: String,
-    last_name_value: String,
+impl Client {
+    fn empty() -> Self {
+        Client {
+            first_name: "".into(),
+            last_name: "".into(),
+        }
+    }
 }
 
+#[derive(Debug)]
+enum Scene {
+    Initialization,
+    ClientsList,
+    NewClientForm(Client),
+    Settings,
+}
+
+struct Model {
+    database: Database,
+    scene: Scene,
+}
+
+#[derive(Debug)]
 enum Msg {
+    SwitchTo(Scene),
     AddNew,
     UpdateFirstName(String),
     UpdateLastName(String),
-    Store,
-    Restore,
     Clear,
-    Nope,
+}
+
+fn load_database(context: &mut Context) -> Database {
+    let Json(database) = context.storage.restore(KEY);
+    database.unwrap_or_else(|_| Database {
+        clients: Vec::new(),
+    })
 }
 
 fn update(context: &mut Context, model: &mut Model, msg: Msg) {
-    match msg {
-        Msg::AddNew => {
-            let client = Client {
-                first_name: model.first_name_value.clone(),
-                last_name: model.last_name_value.clone(),
-            };
-            model.clients.push(client);
-            model.first_name_value = "".to_string();
-            model.last_name_value = "".to_string();
-        }
-        Msg::UpdateFirstName(val) => {
-            println!("Input: {}", val);
-            model.first_name_value = val;
-        }
-        Msg::UpdateLastName(val) => {
-            println!("Input: {}", val);
-            model.last_name_value = val;
-        }
-        Msg::Store => {
-            context.storage.store(KEY, Json(&model.clients));
-        }
-        Msg::Restore => {
-            if let Json(Ok(clients)) = context.storage.restore(KEY) {
-                model.clients = clients;
-            } else {
-                context.dialog.alert("Oh no! Storage was corrupted!");
+    let mut new_scene = None;
+    match model.scene {
+        Scene::Initialization => {
+            match msg {
+                Msg::SwitchTo(Scene::ClientsList) => {
+                    new_scene = Some(Scene::ClientsList);
+                }
+                unexpected => {
+                    panic!("Unexpected message during initialization: {:?}", unexpected);
+                }
             }
         }
-        Msg::Clear => {
-            if context.dialog.confirm("Do you really want to clear the data?") {
-                model.clients.clear();
-                context.storage.remove(KEY);
+        Scene::ClientsList => {
+            match msg {
+                Msg::SwitchTo(Scene::NewClientForm(client)) => {
+                    new_scene = Some(Scene::NewClientForm(client));
+                }
+                Msg::SwitchTo(Scene::Settings) => {
+                    new_scene = Some(Scene::Settings);
+                }
+                unexpected => {
+                    panic!("Unexpected message when clients list shown: {:?}", unexpected);
+                }
             }
         }
-        Msg::Nope => {}
+        Scene::NewClientForm(ref mut client) => {
+            match msg {
+                Msg::UpdateFirstName(val) => {
+                    println!("Input: {}", val);
+                    client.first_name = val;
+                }
+                Msg::UpdateLastName(val) => {
+                    println!("Input: {}", val);
+                    client.last_name = val;
+                }
+                Msg::AddNew => {
+                    let mut new_client = Client::empty();
+                    ::std::mem::swap(client, &mut new_client);
+                    model.database.clients.push(new_client);
+                    context.storage.store(KEY, Json(&model.database));
+                }
+                Msg::SwitchTo(Scene::ClientsList) => {
+                    new_scene = Some(Scene::ClientsList);
+                }
+                unexpected => {
+                    panic!("Unexpected message diring new client editing: {:?}", unexpected);
+                }
+            }
+        }
+        Scene::Settings => {
+            match msg {
+                Msg::Clear => {
+                    if context.dialog.confirm("Do you really want to clear the data?") {
+                        model.database.clients.clear();
+                        context.storage.remove(KEY);
+                    }
+                }
+                Msg::SwitchTo(Scene::ClientsList) => {
+                    new_scene = Some(Scene::ClientsList);
+                }
+                unexpected => {
+                    panic!("Unexpected message for settings scene: {:?}", unexpected);
+                }
+            }
+        }
+    }
+    if let Some(new_scene) = new_scene.take() {
+        model.scene = new_scene;
     }
 }
 
 fn view(model: &Model) -> Html<Msg> {
-    let view_client = |client: &Client| {
-        html! {
-            <div class="client",>
-                <p>{ format!("First Name: {}", client.first_name) }</p>
-                <p>{ format!("Last Name: {}", client.last_name) }</p>
+    match model.scene {
+        Scene::Initialization => html! {
+            <div>{ "Loading..." }</div>
+        },
+        Scene::ClientsList => html! {
+            <div class="crm",>
+                <div class="clients",>
+                    { for model.database.clients.iter().map(view_client) }
+                </div>
+                <button onclick=|_| Msg::SwitchTo(Scene::NewClientForm(Client::empty())),>{ "Add New" }</button>
+                <button onclick=|_| Msg::SwitchTo(Scene::Settings),>{ "Settings" }</button>
             </div>
-        }
-    };
+        },
+        Scene::NewClientForm(ref client) => html! {
+            <div class="crm",>
+                <div class="names",>
+                    { view_first_name_input(client) }
+                    { view_last_name_input(client) }
+                </div>
+                <button disabled=client.first_name.is_empty() || client.last_name.is_empty(),
+                        onclick=|_| Msg::AddNew,>{ "Add New" }</button>
+                <button onclick=|_| Msg::SwitchTo(Scene::ClientsList),>{ "Go Back" }</button>
+            </div>
+        },
+        Scene::Settings => html! {
+            <div>
+                <button onclick=|_| Msg::Clear,>{ "Clear Database" }</button>
+                <button onclick=|_| Msg::SwitchTo(Scene::ClientsList),>{ "Go Back" }</button>
+            </div>
+        },
+    }
+}
+
+fn view_client(client: &Client) -> Html<Msg> {
     html! {
-        <div class="crm",>
-            <div class="clients",>
-                { for model.clients.iter().map(view_client) }
-            </div>
-            <div class="names",>
-                { view_first_name_input(&model) }
-                { view_last_name_input(&model) }
-            </div>
-            <button onclick=|_| Msg::AddNew,>{ "AddNew" }</button>
-            <button onclick=|_| Msg::Store,>{ "Store" }</button>
-            <button onclick=|_| Msg::Restore,>{ "Restore" }</button>
-            <button onclick=|_| Msg::Clear,>{ "Clear" }</button>
+        <div class="client",>
+            <p>{ format!("First Name: {}", client.first_name) }</p>
+            <p>{ format!("Last Name: {}", client.last_name) }</p>
         </div>
     }
 }
 
-fn view_first_name_input(model: &Model) -> Html<Msg> {
+fn view_first_name_input(client: &Client) -> Html<Msg> {
     html! {
         <input class=("new-client", "firstname"),
                placeholder="First name",
-               value=&model.first_name_value,
+               value=&client.first_name,
                oninput=|e: InputData| Msg::UpdateFirstName(e.value),
-               onkeypress=|e: KeyData| {
-                   if e.key == "Enter" { Msg::AddNew } else { Msg::Nope }
-               }, />
+               />
     }
 }
 
-fn view_last_name_input(model: &Model) -> Html<Msg> {
+fn view_last_name_input(client: &Client) -> Html<Msg> {
     html! {
         <input class=("new-client", "lastname"),
                placeholder="Last name",
-               value=&model.last_name_value,
+               value=&client.last_name,
                oninput=|e: InputData| Msg::UpdateLastName(e.value),
-               onkeypress=|e: KeyData| {
-                   if e.key == "Enter" { Msg::AddNew } else { Msg::Nope }
-               }, />
+               />
     }
 }
 
 fn main() {
     let mut app = App::new();
-    let context = Context {
+    let mut context = Context {
         storage: StorageService::new(Scope::Local),
         dialog: DialogService,
     };
-    let model = Model {
-        clients: Vec::new(),
-        first_name_value: "".into(),
-        last_name_value: "".into(),
-    };
+    let database = load_database(&mut context);
+    let scene = Scene::Initialization;
+    let model = Model { database, scene };
+    app.sender().send(Msg::SwitchTo(Scene::ClientsList));
     app.run(context, model, update, view);
 }
