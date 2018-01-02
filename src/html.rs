@@ -50,6 +50,11 @@ pub struct App<MSG> {
 impl<MSG: 'static> App<MSG> {
     /// Creates a context with connected sender and receiver.
     pub fn new() -> Self {
+        stdweb::initialize();
+        js! {
+            // Set dummy loop to process sent messages later
+            window.yew_loop = function() { }
+        };
         let (tx, rx) = channel();
         App {
             tx,
@@ -75,7 +80,6 @@ impl<MSG: 'static> App<MSG> {
         U: Fn(&mut CTX, &mut MOD, MSG) + 'static,
         V: Fn(&MOD) -> Html<MSG> + 'static,
     {
-        stdweb::initialize();
         clear_body();
         let body = document().query_selector("body").unwrap();
         // No messages at start
