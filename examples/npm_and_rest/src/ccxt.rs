@@ -18,7 +18,7 @@ impl CcxtService {
             console.log(ccxt.exchanges);
             return ccxt.exchanges;
         };
-        let v: Vec<String> = v.try_into().unwrap();
+        let v: Vec<String> = v.try_into().expect("can't extract exchanges");
         v
     }
 }
