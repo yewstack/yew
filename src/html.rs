@@ -12,9 +12,10 @@ use virtual_dom::{VNode, VTag, Messages, Listener};
 
 /// Removes anything from the `body`.
 fn clear_body() {
-    let body = document().query_selector("body").unwrap();
-    while body.has_child_nodes() {
-        body.remove_child(&body.last_child().unwrap()).unwrap();
+    let body = document().query_selector("body")
+        .expect("no body tag to remove children");
+    while let Some(child) = body.last_child() {
+        body.remove_child(&child).expect("can't remove a child");
     }
 }
 
@@ -81,7 +82,7 @@ impl<MSG: 'static> App<MSG> {
         V: Fn(&MOD) -> Html<MSG> + 'static,
     {
         clear_body();
-        let body = document().query_selector("body").unwrap();
+        let body = document().query_selector("body").expect("can't get body node for rendering");
         // No messages at start
         let messages = Rc::new(RefCell::new(Vec::new()));
         let mut last_frame = VNode::from(view(&model));
@@ -151,7 +152,7 @@ macro_rules! impl_action {
 
                 fn attach(&mut self, element: &Element, messages: Messages<MSG>)
                     -> EventListenerHandle {
-                    let handler = self.0.take().unwrap();
+                    let handler = self.0.take().expect("tried to attach lostener twice");
                     let this = element.clone();
                     let sender = move |event: $type| {
                         debug!("Event handler: {}", stringify!($type));
@@ -195,7 +196,7 @@ impl_action! {
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
         use stdweb::web::html_element::InputElement;
         use stdweb::unstable::TryInto;
-        let input: InputElement = this.clone().try_into().unwrap();
+        let input: InputElement = this.clone().try_into().expect("only InputElement could have oninput event listener");
         let value = input.value().into_string().unwrap_or_else(|| "".into());
         InputData { value }
     }

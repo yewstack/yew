@@ -138,13 +138,13 @@ impl<MSG> VTag<MSG> {
             let left_keys = self.attributes.keys().collect::<HashSet<_>>();
             let right_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
             let to_add = left_keys.difference(&right_keys).map(|key| {
-                let value = self.attributes.get(*key).unwrap();
+                let value = self.attributes.get(*key).expect("attribute of vtag lost");
                 Patch::Add(key.to_string(), value.to_string())
             });
             changes.extend(to_add);
             for key in left_keys.intersection(&right_keys) {
-                let left_value = self.attributes.get(*key).unwrap();
-                let right_value = ancestor.attributes.get(*key).unwrap();
+                let left_value = self.attributes.get(*key).expect("attribute of the left side lost");
+                let right_value = ancestor.attributes.get(*key).expect("attribute of the right side lost");
                 if left_value != right_value {
                     let mutator = Patch::Replace(key.to_string(), left_value.to_string());
                     changes.push(mutator);
