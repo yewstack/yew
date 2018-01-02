@@ -16,7 +16,7 @@ struct Context {
 
 struct Model {
     fetching: bool,
-    data: Option<Status>,
+    data: Option<u32>,
     ws: Option<WebSocketHandle>,
 }
 
@@ -30,7 +30,8 @@ enum WsAction {
 enum Msg {
     FetchData,
     WsAction(WsAction),
-    DataReady(Result<Status, ()>),
+    FetchReady(Result<DataFromFile, ()>),
+    WsReady(Result<WsResponse, ()>),
     Ignore,
 }
 
@@ -40,8 +41,22 @@ impl From<WsAction> for Msg {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Status {
+/// This type is used to parse data from `./static/data.json` file and
+/// have to correspond the data layout from that file.
+#[derive(Deserialize, Debug)]
+struct DataFromFile {
+    value: u32,
+}
+
+/// This type is used as a request which sent to websocket connection.
+#[derive(Serialize, Debug)]
+struct WsRequest {
+    value: u32,
+}
+
+/// This type is an expected response from a websocket connection.
+#[derive(Deserialize, Debug)]
+struct WsResponse {
     value: u32,
 }
 
@@ -55,23 +70,24 @@ fn ws_status_to_msg(status: WebSocketStatus) -> Msg {
 fn update(context: &mut Context, model: &mut Model, msg: Msg) {
     match msg {
         Msg::FetchData => {
-            context.web.fetch(Method::Get, "./data.json", Nothing, |Json(data)| Msg::DataReady(data));
+            model.fetching = true;
+            context.web.fetch(Method::Get, "./data.json", Nothing, |Json(data)| Msg::FetchReady(data));
         }
         Msg::WsAction(action) => {
             match action {
                 WsAction::Connect => {
                     let handle = context.ws.connect(
                         "ws://localhost:9001/",
-                        |Json(data)| Msg::DataReady(data),
+                        |Json(data)| Msg::WsReady(data),
                         ws_status_to_msg
                     );
                     model.ws = Some(handle);
                 }
                 WsAction::SendData => {
-                    let data = Status {
+                    let request = WsRequest {
                         value: 321,
                     };
-                    model.ws.as_mut().unwrap().send(Json(&data));
+                    model.ws.as_mut().unwrap().send(Json(&request));
                 }
                 WsAction::Disconnect => {
                     model.ws.take().unwrap().cancel();
@@ -81,15 +97,12 @@ fn update(context: &mut Context, model: &mut Model, msg: Msg) {
                 }
             }
         }
-        Msg::DataReady(response) => {
+        Msg::FetchReady(response) => {
             model.fetching = false;
-            match response {
-                Ok(data) => {
-                    model.data = Some(data);
-                }
-                Err(_) => {
-                }
-            }
+            model.data = response.map(|data| data.value).ok();
+        }
+        Msg::WsReady(response) => {
+            model.data = response.map(|data| data.value).ok();
         }
         Msg::Ignore => {
         }
@@ -114,9 +127,9 @@ fn view(model: &Model) -> Html<Msg> {
 }
 
 fn view_data(model: &Model) -> Html<Msg> {
-    if let Some(ref data) = model.data {
+    if let Some(value) = model.data {
         html! {
-            <p>{ data.value }</p>
+            <p>{ value }</p>
         }
     } else {
         html! {
