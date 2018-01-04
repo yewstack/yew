@@ -163,7 +163,7 @@ fn update(context: &mut Context, model: &mut Model, msg: Msg) {
 
 Clone or download this repository.
 
-There are four examples to check how it works:
+There are seven examples to check how it works:
 [counter], [timer], [todomvc], [game_of_life], [crm], [dashboard], [npm_and_rest].
 
 To run them you need to have [cargo-web] installed as well as a suitable target
