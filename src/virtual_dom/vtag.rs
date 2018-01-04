@@ -14,7 +14,7 @@ use virtual_dom::{Messages, Listener, Listeners, Classes, Attributes, Patch, VNo
 /// representation.
 pub struct VTag<MSG> {
     /// A tag of the element.
-    tag: Cow<'static, str>,
+    pub tag: Cow<'static, str>,
     /// List of attached listeners.
     pub listeners: Listeners<MSG>,
     /// List of attributes.
