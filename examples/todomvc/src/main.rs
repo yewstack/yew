@@ -4,38 +4,22 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 #[macro_use]
+extern crate serde_derive;
+#[macro_use]
 extern crate yew;
 
 use strum::IntoEnumIterator;
 use yew::html::*;
+use yew::format::Json;
+use yew::services::storage::{StorageService, Scope};
 
-#[derive(EnumIter, ToString, Clone, PartialEq)]
-enum Filter {
-    All,
-    Active,
-    Completed,
+const KEY: &'static str = "yew.todomvc.model";
+
+struct Context {
+    storage: StorageService,
 }
 
-impl<'a> Into<Href> for &'a Filter {
-    fn into(self) -> Href {
-        match *self {
-            Filter::All => "#/".into(),
-            Filter::Active => "#/active".into(),
-            Filter::Completed => "#/completed".into(),
-        }
-    }
-}
-
-impl Filter {
-    fn fit(&self, entry: &Entry) -> bool {
-        match *self {
-            Filter::All => true,
-            Filter::Active => !entry.completed,
-            Filter::Completed => entry.completed,
-        }
-    }
-}
-
+#[derive(Serialize, Deserialize)]
 struct Model {
     entries: Vec<Entry>,
     filter: Filter,
@@ -43,6 +27,7 @@ struct Model {
     edit_value: String,
 }
 
+#[derive(Serialize, Deserialize)]
 struct Entry {
     description: String,
     completed: bool,
@@ -63,7 +48,7 @@ enum Msg {
     Nope,
 }
 
-fn update(_: &mut Context, model: &mut Model, msg: Msg) {
+fn update(context: &mut Context, model: &mut Model, msg: Msg) {
     match msg {
         Msg::Add => {
             let entry = Entry {
@@ -108,6 +93,7 @@ fn update(_: &mut Context, model: &mut Model, msg: Msg) {
         }
         Msg::Nope => {}
     }
+    context.storage.store(KEY, Json(&model));
 }
 
 fn view(model: &Model) -> Html<Msg> {
@@ -207,19 +193,53 @@ fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Msg> {
     }
 }
 
-struct Context;
-
 fn main() {
     let mut app = App::new();
-    let model = Model {
-        entries: Vec::new(),
-        filter: Filter::All,
-        value: "".into(),
-        edit_value: "".into(),
+    let mut context = Context {
+        storage: StorageService::new(Scope::Local),
     };
-    app.run(Context, model, update, view);
+    let model = {
+        if let Json(Ok(restored_model)) = context.storage.restore(KEY) {
+            restored_model
+        } else {
+            Model {
+                entries: Vec::new(),
+                filter: Filter::All,
+                value: "".into(),
+                edit_value: "".into(),
+            }
+        }
+    };
+    app.run(context, model, update, view);
 }
 
+#[derive(EnumIter, ToString, Clone, PartialEq)]
+#[derive(Serialize, Deserialize)]
+enum Filter {
+    All,
+    Active,
+    Completed,
+}
+
+impl<'a> Into<Href> for &'a Filter {
+    fn into(self) -> Href {
+        match *self {
+            Filter::All => "#/".into(),
+            Filter::Active => "#/active".into(),
+            Filter::Completed => "#/completed".into(),
+        }
+    }
+}
+
+impl Filter {
+    fn fit(&self, entry: &Entry) -> bool {
+        match *self {
+            Filter::All => true,
+            Filter::Active => !entry.completed,
+            Filter::Completed => entry.completed,
+        }
+    }
+}
 
 impl Model {
     fn total(&self) -> usize {
