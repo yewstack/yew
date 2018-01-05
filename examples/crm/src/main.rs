@@ -2,6 +2,9 @@
 extern crate serde_derive;
 #[macro_use]
 extern crate yew;
+extern crate pulldown_cmark;
+
+mod markdown;
 
 use yew::html::*;
 use yew::format::Json;
@@ -183,7 +186,7 @@ fn view_client(client: &Client) -> Html<Msg> {
         <div class="client",>
             <p>{ format!("First Name: {}", client.first_name) }</p>
             <p>{ format!("Last Name: {}", client.last_name) }</p>
-            <p>{ format!("Description: {}", client.description) }</p>
+            { markdown::render(&client.description) }
         </div>
     }
 }
