@@ -4,6 +4,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::sync::mpsc::{Sender, Receiver, channel};
+use stdweb::Value;
 use stdweb::web::{Element, INode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use virtual_dom::{VNode, VTag, Messages, Listener};
@@ -19,12 +20,14 @@ fn clear_element(element: &Element) {
 /// and to schedule the next update call.
 pub struct AppSender<MSG> {
     tx: Sender<MSG>,
+    bind: Value,
 }
 
 impl<MSG> Clone for AppSender<MSG> {
     fn clone(&self) -> Self {
         AppSender {
             tx: self.tx.clone(),
+            bind: self.bind.clone(),
         }
     }
 }
@@ -33,7 +36,15 @@ impl<MSG> AppSender<MSG> {
     /// Send the message and schedule an update.
     pub fn send(&mut self, msg: MSG) {
         self.tx.send(msg).expect("App lost the receiver!");
-        schedule_update();
+        let bind = &self.bind;
+        js! {
+            // Schedule to call the loop handler
+            // IMPORTANT! If call loop function immediately
+            // it stops handling other messages and the first
+            // one will be fired.
+            var bind = @{bind};
+            setTimeout(bind.loop);
+        }
     }
 }
 
@@ -42,19 +53,20 @@ impl<MSG> AppSender<MSG> {
 pub struct App<MSG> {
     tx: Sender<MSG>,
     rx: Option<Receiver<MSG>>,
+    bind: Value,
 }
 
 impl<MSG: 'static> App<MSG> {
     /// Creates a context with connected sender and receiver.
     pub fn new() -> Self {
-        js! {
-            // Set dummy loop to process sent messages later
-            window.yew_loop = function() { }
+        let bind = js! {
+            return { "loop": function() { } };
         };
         let (tx, rx) = channel();
         App {
             tx,
             rx: Some(rx),
+            bind,
         }
     }
 
@@ -62,6 +74,7 @@ impl<MSG: 'static> App<MSG> {
     pub fn sender(&mut self) -> AppSender<MSG> {
         AppSender {
             tx: self.tx.clone(),
+            bind: self.bind.clone(),
         }
     }
 
@@ -97,24 +110,21 @@ impl<MSG: 'static> App<MSG> {
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
         let mut callback = move || {
-            debug!("Yew Loop Callback");
             let mut borrowed = messages.borrow_mut();
             borrowed.extend(rx.try_iter());
             for msg in borrowed.drain(..) {
                 update(&mut context, &mut model, msg);
             }
             let mut next_frame = VNode::from(view(&model));
-            debug!("Do apply");
             next_frame.apply(&element, last_frame.take(), messages.clone());
             last_frame = Some(next_frame);
         };
         // Initial call for first rendering
         callback();
+        let bind = &self.bind;
         js! {
-            var callback = @{callback};
-            window.yew_loop = function() {
-                callback();
-            };
+            var bind = @{bind};
+            bind.loop = @{callback};
         }
         // TODO `Drop` should drop the callback
     }
@@ -159,6 +169,7 @@ macro_rules! impl_action {
 
                 fn attach(&mut self, element: &Element, messages: Messages<MSG>)
                     -> EventListenerHandle {
+                    // TODO Use AppSender here!
                     let handler = self.0.take().expect("tried to attach lostener twice");
                     let this = element.clone();
                     let sender = move |event: $type| {
@@ -178,13 +189,6 @@ macro_rules! impl_action {
 
 /// Use `AppSender::send` to emit it implicit
 fn schedule_update() {
-    js! {
-        // Schedule to call the loop handler
-        // IMPORTANT! If call loop function immediately
-        // it stops handling other messages and the first
-        // one will be fired.
-        setTimeout(yew_loop);
-    }
 }
 
 // Inspired by: http://package.elm-lang.org/packages/elm-lang/html/2.0.0/Html-Events
