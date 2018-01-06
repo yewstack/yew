@@ -14,14 +14,14 @@ pub struct Entry {
     hash: String,
     request_hash: String,
     profile_url: String,
-    preffered_username: String,
+    preferred_username: String,
 }
 
-pub struct GavatarService<MSG> {
+pub struct GravatarService<MSG> {
     web: FetchService<MSG>,
 }
 
-impl<MSG: 'static> GavatarService<MSG> {
+impl<MSG: 'static> GravatarService<MSG> {
     pub fn new(sender: AppSender<MSG>) -> Self {
         Self {
             web: FetchService::new(sender),

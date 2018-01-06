@@ -8,13 +8,13 @@ extern crate yew;
 use yew::html::*;
 
 // Own services implementation
-mod gavatar;
-use gavatar::{GavatarService, Profile};
+mod gravatar;
+use gravatar::{GravatarService, Profile};
 mod ccxt;
 use ccxt::CcxtService;
 
 struct Context {
-    gavatar: GavatarService<Msg>,
+    gravatar: GravatarService<Msg>,
     ccxt: CcxtService,
 }
 
@@ -24,21 +24,21 @@ struct Model {
 }
 
 enum Msg {
-    Gavatar,
-    GavatarReady(Result<Profile, ()>),
+    Gravatar,
+    GravatarReady(Result<Profile, ()>),
     Exchanges,
 }
 
 fn update(context: &mut Context, model: &mut Model, msg: Msg) {
     match msg {
-        Msg::Gavatar => {
-            context.gavatar.profile("205e460b479e2e5b48aec07710c08d50", Msg::GavatarReady);
+        Msg::Gravatar => {
+            context.gravatar.profile("205e460b479e2e5b48aec07710c08d50", Msg::GravatarReady);
         }
-        Msg::GavatarReady(Ok(profile)) => {
+        Msg::GravatarReady(Ok(profile)) => {
             model.profile = Some(profile);
         }
-        Msg::GavatarReady(Err(_)) => {
-            // Can't load gavatar profile
+        Msg::GravatarReady(Err(_)) => {
+            // Can't load gravatar profile
         }
         Msg::Exchanges => {
             model.exchanges = context.ccxt.exchanges();
@@ -53,7 +53,7 @@ fn view(model: &Model) -> Html<Msg> {
     html! {
         <div>
             <button onclick=|_| Msg::Exchanges,>{ "Get Exchanges" }</button>
-            <button onclick=|_| Msg::Gavatar,>{ "Get Gavatar" }</button>
+            <button onclick=|_| Msg::Gravatar,>{ "Get Gravatar" }</button>
             <ul>
                 { for model.exchanges.iter().map(view_exchange) }
             </ul>
@@ -64,7 +64,7 @@ fn view(model: &Model) -> Html<Msg> {
 fn main() {
     let mut app = App::new();
     let context = Context {
-        gavatar: GavatarService::new(app.sender()),
+        gravatar: GravatarService::new(app.sender()),
         ccxt: CcxtService::new(),
     };
     let model = Model {
