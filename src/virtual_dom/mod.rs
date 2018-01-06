@@ -5,23 +5,22 @@ pub mod vtag;
 pub mod vtext;
 
 use std::fmt;
-use std::rc::Rc;
-use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use stdweb::web::{Element, EventListenerHandle};
 
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
+use html::AppSender;
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
 pub trait Listener<MSG> {
     /// Returns standard name of DOM's event.
     fn kind(&self) -> &'static str;
-    /// Attaches listener to the element and uses messages pool to send
+    /// Attaches listener to the element and uses sender instance to send
     /// prepaired event back to the yew main loop.
-    fn attach(&mut self, element: &Element, messages: Messages<MSG>) -> EventListenerHandle;
+    fn attach(&mut self, element: &Element, sender: AppSender<MSG>) -> EventListenerHandle;
 }
 
 impl<MSG> fmt::Debug for Listener<MSG> {
@@ -29,9 +28,6 @@ impl<MSG> fmt::Debug for Listener<MSG> {
         write!(f, "Listener {{ kind: {} }}", self.kind())
     }
 }
-
-/// A reference to a messages pool.
-pub type Messages<MSG> = Rc<RefCell<Vec<MSG>>>;
 
 /// A list of event listeners.
 type Listeners<MSG> = Vec<Box<Listener<MSG>>>;

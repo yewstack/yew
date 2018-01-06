@@ -8,6 +8,7 @@ struct Context {
 }
 
 struct Model {
+    selector: &'static str,
     title: String,
 }
 
@@ -30,7 +31,7 @@ fn update(context: &mut Context, model: &mut Model, msg: Msg) {
 fn view(model: &Model) -> Html<Msg> {
     html! {
         <div>
-            <h1>{ &model.title }</h1>
+            <h3>{ format!("{} received <{}>", model.selector, model.title) }</h3>
             <button onclick=|_| Msg::SendToOpposite("One".into()),>{ "One" }</button>
             <button onclick=|_| Msg::SendToOpposite("Two".into()),>{ "Two" }</button>
             <button onclick=|_| Msg::SendToOpposite("Three".into()),>{ "Three" }</button>
@@ -38,12 +39,13 @@ fn view(model: &Model) -> Html<Msg> {
     }
 }
 
-fn land_app(selector: &str, app: &mut App<Msg>, sender: AppSender<Msg>) {
+fn land_app(selector: &'static str, app: &mut App<Msg>, sender: AppSender<Msg>) {
     let context = Context {
         sender,
     };
     let model = Model {
-        title: "".into(),
+        selector,
+        title: "Not set".into(),
     };
     app.land_to(selector, context, model, update, view);
 }

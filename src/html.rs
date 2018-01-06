@@ -1,13 +1,11 @@
 //! The main module which contents aliases to necessary items
 //! to create a template and implement `update` and `view` functions.
 
-use std::rc::Rc;
-use std::cell::RefCell;
 use std::sync::mpsc::{Sender, Receiver, channel};
 use stdweb::Value;
 use stdweb::web::{Element, INode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
-use virtual_dom::{VNode, VTag, Messages, Listener};
+use virtual_dom::{VNode, VTag, Listener};
 
 /// Removes anything from the given element.
 fn clear_element(element: &Element) {
@@ -104,27 +102,28 @@ impl<MSG: 'static> App<MSG> {
             .expect(format!("can't get node with selector `{}` for rendering", selector).as_str());
         clear_element(&element);
         // No messages at start
-        let messages = Rc::new(RefCell::new(Vec::new()));
+        let mut messages = Vec::new();
         let mut last_frame = VNode::from(view(&model));
-        last_frame.apply(&element, None, messages.clone());
+        last_frame.apply(&element, None, self.sender());
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
+        let bind = self.bind.clone();
+        let sender = self.sender();
         let mut callback = move || {
-            let mut borrowed = messages.borrow_mut();
-            borrowed.extend(rx.try_iter());
-            for msg in borrowed.drain(..) {
+            messages.extend(rx.try_iter());
+            for msg in messages.drain(..) {
                 update(&mut context, &mut model, msg);
             }
             let mut next_frame = VNode::from(view(&model));
-            next_frame.apply(&element, last_frame.take(), messages.clone());
+            next_frame.apply(&element, last_frame.take(), sender.clone());
             last_frame = Some(next_frame);
         };
         // Initial call for first rendering
         callback();
-        let bind = &self.bind;
         js! {
             var bind = @{bind};
-            bind.loop = @{callback};
+            var callback = @{callback};
+            bind.loop = callback;
         }
         // TODO `Drop` should drop the callback
     }
@@ -167,28 +166,22 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, messages: Messages<MSG>)
+                fn attach(&mut self, element: &Element, mut sender: AppSender<MSG>)
                     -> EventListenerHandle {
-                    // TODO Use AppSender here!
                     let handler = self.0.take().expect("tried to attach lostener twice");
                     let this = element.clone();
-                    let sender = move |event: $type| {
+                    let listener = move |event: $type| {
                         debug!("Event handler: {}", stringify!($type));
                         event.stop_propagation();
                         let handy_event: $ret = $convert(&this, event);
                         let msg = handler(handy_event);
-                        messages.borrow_mut().push(msg);
-                        schedule_update();
+                        sender.send(msg);
                     };
-                    element.add_event_listener(sender)
+                    element.add_event_listener(listener)
                 }
             }
         }
     )*};
-}
-
-/// Use `AppSender::send` to emit it implicit
-fn schedule_update() {
 }
 
 // Inspired by: http://package.elm-lang.org/packages/elm-lang/html/2.0.0/Html-Events
