@@ -2,6 +2,8 @@ language: rust
 
 dist: trusty
 sudo: false
+addons:
+  chrome: stable
 
 rust:
   - stable

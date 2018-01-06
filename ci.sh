@@ -29,19 +29,20 @@ cargo install cargo-web -f
 if [ "$TARGET" = "asmjs-unknown-emscripten" ]; then
     rustup target add asmjs-unknown-emscripten
     export CARGO_WEB_ARGS="--target-asmjs-emscripten"
+    cargo web test --features web_test $CARGO_WEB_ARGS
 fi
 
 if [ "$TARGET" = "wasm32-unknown-emscripten" ]; then
     rustup target add wasm32-unknown-emscripten
     export CARGO_WEB_ARGS="--target-webasm-emscripten"
+    cargo web test --features web_test $CARGO_WEB_ARGS
 fi
 
 if [ "$TARGET" = "wasm32-unknown-unknown" ]; then
     rustup target add wasm32-unknown-unknown
     export CARGO_WEB_ARGS="--target-webasm"
+    cargo web test --nodejs $CARGO_WEB_ARGS
 fi
-
-cargo web test --nodejs $CARGO_WEB_ARGS
 
 check_example() {
     echo "Checking example [$1]"
