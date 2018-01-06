@@ -200,6 +200,7 @@ fn view_last_name_input(client: &Client) -> Html<Msg> {
 }
 
 fn main() {
+    yew::initialize();
     let mut app = App::new();
     let mut context = Context {
         storage: StorageService::new(Scope::Local),
@@ -209,5 +210,6 @@ fn main() {
     let scene = Scene::Initialization;
     let model = Model { database, scene };
     app.sender().send(Msg::SwitchTo(Scene::ClientsList));
-    app.run(context, model, update, view);
+    app.land(context, model, update, view);
+    yew::run_loop();
 }

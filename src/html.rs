@@ -1,8 +1,6 @@
 //! The main module which contents aliases to necessary items
 //! to create a template and implement `update` and `view` functions.
 
-use stdweb;
-
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::sync::mpsc::{Sender, Receiver, channel};
@@ -44,13 +42,11 @@ impl<MSG> AppSender<MSG> {
 pub struct App<MSG> {
     tx: Sender<MSG>,
     rx: Option<Receiver<MSG>>,
-    mount_point_selector: String,
 }
 
 impl<MSG: 'static> App<MSG> {
     /// Creates a context with connected sender and receiver.
     pub fn new() -> Self {
-        stdweb::initialize();
         js! {
             // Set dummy loop to process sent messages later
             window.yew_loop = function() { }
@@ -59,7 +55,6 @@ impl<MSG: 'static> App<MSG> {
         App {
             tx,
             rx: Some(rx),
-            mount_point_selector: "body".to_owned(),
         }
     }
 
@@ -70,24 +65,28 @@ impl<MSG: 'static> App<MSG> {
         }
     }
 
-    /// Provide a selector for an element onto which Yew will render the app
-    pub fn with_mount_point_selector(mut self, selector: &str) -> App<MSG> {
-        self.mount_point_selector = selector.to_owned();
-        self
-    }
-
-    /// The main entrypoint of a yew program. It works similar as `program`
-    /// function in Elm. You should provide an initial model, `update` function
-    /// which will update the state of the model and a `view` function which
-    /// will render the model to a virtual DOM tree.
-    pub fn run<CTX, MOD, U, V>(&mut self, mut context: CTX, mut model: MOD, update: U, view: V)
+    /// Alias to `land_to("body", ...)`.
+    pub fn land<CTX, MOD, U, V>(&mut self, context: CTX, model: MOD, update: U, view: V)
     where
         CTX: 'static,
         MOD: 'static,
         U: Fn(&mut CTX, &mut MOD, MSG) + 'static,
         V: Fn(&MOD) -> Html<MSG> + 'static,
     {
-        let selector = self.mount_point_selector.as_str();
+        self.land_to("body", context, model, update, view)
+    }
+
+    /// The main entrypoint of a yew program. It works similar as `program`
+    /// function in Elm. You should provide an initial model, `update` function
+    /// which will update the state of the model and a `view` function which
+    /// will render the model to a virtual DOM tree.
+    pub fn land_to<CTX, MOD, U, V>(&mut self, selector: &str, mut context: CTX, mut model: MOD, update: U, view: V)
+    where
+        CTX: 'static,
+        MOD: 'static,
+        U: Fn(&mut CTX, &mut MOD, MSG) + 'static,
+        V: Fn(&MOD) -> Html<MSG> + 'static,
+    {
         let element = document().query_selector(selector)
             .expect(format!("can't get node with selector `{}` for rendering", selector).as_str());
         clear_element(&element);
@@ -115,9 +114,9 @@ impl<MSG: 'static> App<MSG> {
             var callback = @{callback};
             window.yew_loop = function() {
                 callback();
-            }
-        };
-        stdweb::event_loop();
+            };
+        }
+        // TODO `Drop` should drop the callback
     }
 }
 

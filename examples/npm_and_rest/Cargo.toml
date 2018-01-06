@@ -7,4 +7,4 @@ authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 serde = "1"
 serde_derive = "1"
 yew = { path = "../.." }
-stdweb = "0.2"
+stdweb = "0.3"

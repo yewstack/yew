@@ -62,3 +62,14 @@ pub mod services;
 pub mod format;
 pub mod virtual_dom;
 
+/// Initializes yew framework. It should be called first.
+/// No it actually initializes `stdweb` dependency only, but later it could
+/// contain own initialization code.
+pub fn initialize() {
+    stdweb::initialize();
+}
+
+/// Starts event loop.
+pub fn run_loop() {
+    stdweb::event_loop();
+}

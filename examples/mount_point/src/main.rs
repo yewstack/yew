@@ -34,8 +34,7 @@ fn view(model: &Model) -> Html<Msg> {
 }
 
 fn main() {
-    stdweb::initialize();
-
+    yew::initialize();
     let body = document().query_selector("body").unwrap();
 
     // This canvas won't be overwritten by yew!
@@ -56,11 +55,13 @@ fn main() {
     mount_point.class_list().add(mount_class);
     body.append_child(&mount_point);
 
-    let mut app = App::new().with_mount_point_selector(format!(".{}", mount_class).as_str());
+    let mut app = App::new();
     let context = Context {};
     let model = Model {
         name: "Reversed".to_owned(),
     };
 
-    app.run(context, model, update, view);
+    let mount_point = format!(".{}", mount_class);
+    app.land_to(&mount_point, context, model, update, view);
+    yew::run_loop();
 }
