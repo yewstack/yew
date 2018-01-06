@@ -5,7 +5,7 @@ use std::borrow::Cow;
 use std::collections::HashSet;
 use std::cmp::PartialEq;
 use stdweb::web::{IElement, Element, EventListenerHandle};
-use stdweb::web::html_element::InputElement;
+use stdweb::web::html_element::{InputElement, TextAreaElement};
 use stdweb::unstable::TryFrom;
 use virtual_dom::{Messages, Listener, Listeners, Classes, Attributes, Patch, VNode};
 
@@ -250,9 +250,9 @@ impl<MSG> VTag<MSG> {
 
             if let Some(change) = self.soakup_value(&mut opposite) {
                 match change {
-                    Patch::Add(kind, _) |
-                    Patch::Replace(kind, _) => {
-                        input.set_value(&kind);
+                    Patch::Add(value, _) |
+                    Patch::Replace(value, _) => {
+                        input.set_value(&value);
                     }
                     Patch::Remove(_) => {
                         input.set_value("");
@@ -263,6 +263,19 @@ impl<MSG> VTag<MSG> {
             // IMPORTANT! This parameters have to be set every time
             // to prevent strange behaviour in browser when DOM changed
             set_checked(&input, self.checked);
+
+        } else if let Ok(input) = TextAreaElement::try_from(subject.clone()) {
+            if let Some(change) = self.soakup_value(&mut opposite) {
+                match change {
+                    Patch::Add(value, _) |
+                    Patch::Replace(value, _) => {
+                        input.set_value(&value);
+                    }
+                    Patch::Remove(_) => {
+                        input.set_value("");
+                    }
+                }
+            }
         }
 
         // Every render it removes all listeners and attach it back later

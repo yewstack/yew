@@ -194,10 +194,17 @@ impl_action! {
     onmouseout(event: MouseOutEvent) -> () => |_, _| { () }
     */
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
-        use stdweb::web::html_element::InputElement;
+        use stdweb::web::html_element::{InputElement, TextAreaElement};
         use stdweb::unstable::TryInto;
-        let input: InputElement = this.clone().try_into().expect("only InputElement could have oninput event listener");
-        let value = input.value().into_string().unwrap_or_else(|| "".into());
+        let value = {
+            if let Ok::<InputElement,_>(input) = this.clone().try_into() {
+                input.value().into_string().expect("can't convert `value` to string.")
+            } else if let Ok::<TextAreaElement,_>(textarea) = this.clone().try_into() {
+                textarea.value()
+            } else {
+                panic!("only InputElement or TextAreaElement could have oninput event listener");
+            }
+        };
         InputData { value }
     }
 }

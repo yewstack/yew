@@ -2,6 +2,9 @@
 extern crate serde_derive;
 #[macro_use]
 extern crate yew;
+extern crate pulldown_cmark;
+
+mod markdown;
 
 use yew::html::*;
 use yew::format::Json;
@@ -24,6 +27,7 @@ struct Database {
 struct Client {
     first_name: String,
     last_name: String,
+    description: String,
 }
 
 impl Client {
@@ -31,6 +35,7 @@ impl Client {
         Client {
             first_name: "".into(),
             last_name: "".into(),
+            description: "".into(),
         }
     }
 }
@@ -54,6 +59,7 @@ enum Msg {
     AddNew,
     UpdateFirstName(String),
     UpdateLastName(String),
+    UpdateDescription(String),
     Clear,
 }
 
@@ -99,6 +105,10 @@ fn update(context: &mut Context, model: &mut Model, msg: Msg) {
                 Msg::UpdateLastName(val) => {
                     println!("Input: {}", val);
                     client.last_name = val;
+                }
+                Msg::UpdateDescription(val) => {
+                    println!("Input: {}", val);
+                    client.description = val;
                 }
                 Msg::AddNew => {
                     let mut new_client = Client::empty();
@@ -155,6 +165,7 @@ fn view(model: &Model) -> Html<Msg> {
                 <div class="names",>
                     { view_first_name_input(client) }
                     { view_last_name_input(client) }
+                    { view_description_textarea(client) }
                 </div>
                 <button disabled=client.first_name.is_empty() || client.last_name.is_empty(),
                         onclick=|_| Msg::AddNew,>{ "Add New" }</button>
@@ -175,6 +186,7 @@ fn view_client(client: &Client) -> Html<Msg> {
         <div class="client",>
             <p>{ format!("First Name: {}", client.first_name) }</p>
             <p>{ format!("Last Name: {}", client.last_name) }</p>
+            { markdown::render(&client.description) }
         </div>
     }
 }
@@ -195,6 +207,16 @@ fn view_last_name_input(client: &Client) -> Html<Msg> {
                placeholder="Last name",
                value=&client.last_name,
                oninput=|e: InputData| Msg::UpdateLastName(e.value),
+               />
+    }
+}
+
+fn view_description_textarea(client: &Client) -> Html<Msg> {
+    html! {
+        <textarea class=("new-client", "description"),
+               placeholder="Description",
+               value=&client.description,
+               oninput=|e: InputData| Msg::UpdateDescription(e.value),
                />
     }
 }

@@ -6,4 +6,5 @@ authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 [dependencies]
 serde = "1"
 serde_derive = "1"
+pulldown-cmark = { git = "https://github.com/google/pulldown-cmark", rev = "c1ac9123f1653dc774403634696f848ffecbb01c" }
 yew = { path = "../.." }
