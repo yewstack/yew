@@ -6,16 +6,14 @@ use stdweb;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::sync::mpsc::{Sender, Receiver, channel};
-use stdweb::web::{INode, EventListenerHandle, document};
+use stdweb::web::{Element, INode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use virtual_dom::{VNode, VTag, Messages, Listener};
 
-/// Removes anything from the `body`.
-fn clear_body() {
-    let body = document().query_selector("body")
-        .expect("no body tag to remove children");
-    while let Some(child) = body.last_child() {
-        body.remove_child(&child).expect("can't remove a child");
+/// Removes anything from the given element.
+fn clear_element(element: &Element) {
+    while let Some(child) = element.last_child() {
+        element.remove_child(&child).expect("can't remove a child");
     }
 }
 
@@ -46,6 +44,7 @@ impl<MSG> AppSender<MSG> {
 pub struct App<MSG> {
     tx: Sender<MSG>,
     rx: Option<Receiver<MSG>>,
+    mount_point_selector: String,
 }
 
 impl<MSG: 'static> App<MSG> {
@@ -60,14 +59,21 @@ impl<MSG: 'static> App<MSG> {
         App {
             tx,
             rx: Some(rx),
+            mount_point_selector: "body".to_owned(),
         }
     }
 
-    /// Returs a cloned sender.
+    /// Returns a cloned sender.
     pub fn sender(&mut self) -> AppSender<MSG> {
         AppSender {
             tx: self.tx.clone(),
         }
+    }
+
+    /// Provide a selector for an element onto which Yew will render the app
+    pub fn with_mount_point_selector(mut self, selector: &str) -> App<MSG> {
+        self.mount_point_selector = selector.to_owned();
+        self
     }
 
     /// The main entrypoint of a yew program. It works similar as `program`
@@ -81,12 +87,14 @@ impl<MSG: 'static> App<MSG> {
         U: Fn(&mut CTX, &mut MOD, MSG) + 'static,
         V: Fn(&MOD) -> Html<MSG> + 'static,
     {
-        clear_body();
-        let body = document().query_selector("body").expect("can't get body node for rendering");
+        let selector = self.mount_point_selector.as_str();
+        let element = document().query_selector(selector)
+            .expect(format!("can't get node with selector `{}` for rendering", selector).as_str());
+        clear_element(&element);
         // No messages at start
         let messages = Rc::new(RefCell::new(Vec::new()));
         let mut last_frame = VNode::from(view(&model));
-        last_frame.apply(&body, None, messages.clone());
+        last_frame.apply(&element, None, messages.clone());
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
         let mut callback = move || {
@@ -98,7 +106,7 @@ impl<MSG: 'static> App<MSG> {
             }
             let mut next_frame = VNode::from(view(&model));
             debug!("Do apply");
-            next_frame.apply(&body, last_frame.take(), messages.clone());
+            next_frame.apply(&element, last_frame.take(), messages.clone());
             last_frame = Some(next_frame);
         };
         // Initial call for first rendering
