@@ -34,7 +34,7 @@ fn update(context: &mut Context, model: &mut Model, msg: Msg) {
             model.job = Some(Box::new(handle));
             model.messages.clear();
             context.console.clear();
-            model.messages.push("Timer started!!");
+            model.messages.push("Timer started!");
             context.console.time_named("Timer");
         }
         Msg::StartInterval => {

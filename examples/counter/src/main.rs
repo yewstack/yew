@@ -28,7 +28,7 @@ fn update(context: &mut Context, model: &mut Model, msg: Msg) {
         }
         Msg::Decrement => {
             model.value = model.value - 1;
-            context.console.log("munis one");
+            context.console.log("minus one");
         }
         Msg::Bulk(list) => {
             for msg in list {
