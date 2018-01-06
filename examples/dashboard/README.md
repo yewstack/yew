@@ -2,7 +2,7 @@
 
 ## Build and run the client
 
-Enter to `client` folder and run:
+Enter the `client` folder and run:
 
 ```sh
 cargo web start
