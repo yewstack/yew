@@ -53,6 +53,7 @@ fn view(model: &Model) -> Html<Msg> {
 }
 
 fn main() {
+    yew::initialize();
     let mut app = App::new();
     let context = Context {
         console: ConsoleService,
@@ -60,5 +61,6 @@ fn main() {
     let model = Model {
         value: 0,
     };
-    app.run(context, model, update, view);
+    app.land(context, model, update, view);
+    yew::run_loop();
 }

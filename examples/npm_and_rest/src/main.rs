@@ -62,6 +62,7 @@ fn view(model: &Model) -> Html<Msg> {
 }
 
 fn main() {
+    yew::initialize();
     let mut app = App::new();
     let context = Context {
         gavatar: GavatarService::new(app.sender()),
@@ -71,5 +72,6 @@ fn main() {
         profile: None,
         exchanges: Vec::new(),
     };
-    app.run(context, model, update, view);
+    app.land(context, model, update, view);
+    yew::run_loop();
 }
