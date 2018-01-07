@@ -1,6 +1,8 @@
 //! The main module which contents aliases to necessary items
 //! to create a template and implement `update` and `view` functions.
 
+use std::rc::Rc;
+use std::cell::RefCell;
 use std::sync::mpsc::{Sender, Receiver, channel};
 use stdweb::Value;
 use stdweb::web::{Element, INode, EventListenerHandle, document};
@@ -47,6 +49,8 @@ impl<MSG> AppSender<MSG> {
     }
 }
 
+pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
+
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
 pub struct App<MSG> {
@@ -78,10 +82,10 @@ impl<MSG: 'static> App<MSG> {
     }
 
     /// Alias to `mount_to("body", ...)`.
-    pub fn mount<CTX, COMP>(&mut self, context: CTX, component: COMP)
+    pub fn mount<CTX, COMP>(&mut self, context: SharedContext<CTX>, component: COMP)
     where
         CTX: 'static,
-        COMP: Component<Msg=MSG> + 'static,
+        COMP: Component<CTX, Msg=MSG> + 'static,
     {
         let element = document().query_selector("body")
             .expect("can't get body node for rendering");
@@ -92,16 +96,16 @@ impl<MSG: 'static> App<MSG> {
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount_to<CTX, COMP>(&mut self, element: Element, context: CTX, mut component: COMP)
+    pub fn mount_to<CTX, COMP>(&mut self, element: Element, context: SharedContext<CTX>, mut component: COMP)
     where
         CTX: 'static,
-        COMP: Component<Msg=MSG> + 'static,
+        COMP: Component<CTX, Msg=MSG> + 'static,
     {
         clear_element(&element);
         // No messages at start
         let mut messages = Vec::new();
         let mut last_frame = VNode::from(component.view());
-        last_frame.apply(&element, None, self.sender());
+        last_frame.apply(&element, None, self.sender(), context.clone());
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
         let bind = self.bind.clone();
@@ -109,10 +113,11 @@ impl<MSG: 'static> App<MSG> {
         let mut callback = move || {
             messages.extend(rx.try_iter());
             for msg in messages.drain(..) {
-                component.update(msg);
+                let mut context = context.borrow_mut();
+                component.update(msg, &mut context);
             }
             let mut next_frame = VNode::from(component.view());
-            next_frame.apply(&element, last_frame.take(), sender.clone());
+            next_frame.apply(&element, last_frame.take(), sender.clone(), context.clone());
             last_frame = Some(next_frame);
         };
         // Initial call for first rendering
@@ -127,7 +132,7 @@ impl<MSG: 'static> App<MSG> {
 }
 
 /// A type which expected as a result of `view` function implementation.
-pub type Html<MSG> = VNode<MSG>;
+pub type Html<MSG, CTX> = VNode<MSG, CTX>;
 
 macro_rules! impl_action {
     ($($action:ident($event:ident : $type:ident) -> $ret:ty => $convert:expr)*) => {$(

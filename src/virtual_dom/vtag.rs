@@ -13,7 +13,7 @@ use html::AppSender;
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
-pub struct VTag<MSG> {
+pub struct VTag<MSG, CTX> {
     /// A tag of the element.
     tag: Cow<'static, str>,
     /// List of attached listeners.
@@ -21,7 +21,7 @@ pub struct VTag<MSG> {
     /// List of attributes.
     pub attributes: Attributes,
     /// The list of children nodes. Which also could have own children.
-    pub childs: Vec<VNode<MSG>>,
+    pub childs: Vec<VNode<MSG, CTX>>,
     /// List of attached classes.
     pub classes: Classes,
     /// Contains a value of an
@@ -42,7 +42,7 @@ pub struct VTag<MSG> {
     captured: Vec<EventListenerHandle>,
 }
 
-impl<MSG> VTag<MSG> {
+impl<MSG, CTX> VTag<MSG, CTX> {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
         VTag {
@@ -66,7 +66,7 @@ impl<MSG> VTag<MSG> {
     }
 
     /// Add `VNode` child.
-    pub fn add_child(&mut self, child: VNode<MSG>) {
+    pub fn add_child(&mut self, child: VNode<MSG, CTX>) {
         self.childs.push(child);
     }
 
@@ -201,7 +201,7 @@ impl<MSG> VTag<MSG> {
     }
 }
 
-impl<MSG> VTag<MSG> {
+impl<MSG, CTX> VTag<MSG, CTX> {
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to pach in the actual DOM nodes.
     pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, sender: AppSender<MSG>) {
@@ -281,7 +281,7 @@ impl<MSG> VTag<MSG> {
     }
 }
 
-impl<MSG> fmt::Debug for VTag<MSG> {
+impl<MSG, CTX> fmt::Debug for VTag<MSG, CTX> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "VTag {{ tag: {} }}", self.tag)
     }
@@ -303,8 +303,8 @@ fn set_checked(input: &InputElement, value: bool) {
     js!( @{input}.checked = @{value}; );
 }
 
-impl<MSG> PartialEq for VTag<MSG> {
-    fn eq(&self, other: &VTag<MSG>) -> bool {
+impl<MSG, CTX> PartialEq for VTag<MSG, CTX> {
+    fn eq(&self, other: &VTag<MSG, CTX>) -> bool {
         if self.tag != other.tag {
             return false;
         }
