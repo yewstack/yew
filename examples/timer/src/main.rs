@@ -97,6 +97,6 @@ fn main() {
         job: None,
         messages: Vec::new(),
     };
-    app.land(context, model, update, view);
+    app.mount(context, model, update, view);
     yew::run_loop();
 }

@@ -76,22 +76,22 @@ impl<MSG: 'static> App<MSG> {
         }
     }
 
-    /// Alias to `land_to("body", ...)`.
-    pub fn land<CTX, MOD, U, V>(&mut self, context: CTX, model: MOD, update: U, view: V)
+    /// Alias to `mount_to("body", ...)`.
+    pub fn mount<CTX, MOD, U, V>(&mut self, context: CTX, model: MOD, update: U, view: V)
     where
         CTX: 'static,
         MOD: 'static,
         U: Fn(&mut CTX, &mut MOD, MSG) + 'static,
         V: Fn(&MOD) -> Html<MSG> + 'static,
     {
-        self.land_to("body", context, model, update, view)
+        self.mount_to("body", context, model, update, view)
     }
 
     /// The main entrypoint of a yew program. It works similar as `program`
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn land_to<CTX, MOD, U, V>(&mut self, selector: &str, mut context: CTX, mut model: MOD, update: U, view: V)
+    pub fn mount_to<CTX, MOD, U, V>(&mut self, selector: &str, mut context: CTX, mut model: MOD, update: U, view: V)
     where
         CTX: 'static,
         MOD: 'static,

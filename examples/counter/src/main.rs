@@ -61,6 +61,6 @@ fn main() {
     let model = Model {
         value: 0,
     };
-    app.land(context, model, update, view);
+    app.mount(context, model, update, view);
     yew::run_loop();
 }

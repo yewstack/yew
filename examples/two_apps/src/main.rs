@@ -39,7 +39,7 @@ fn view(model: &Model) -> Html<Msg> {
     }
 }
 
-fn land_app(selector: &'static str, app: &mut App<Msg>, sender: AppSender<Msg>) {
+fn mount_app(selector: &'static str, app: &mut App<Msg>, sender: AppSender<Msg>) {
     let context = Context {
         sender,
     };
@@ -47,7 +47,7 @@ fn land_app(selector: &'static str, app: &mut App<Msg>, sender: AppSender<Msg>) 
         selector,
         title: "Not set".into(),
     };
-    app.land_to(selector, context, model, update, view);
+    app.mount_to(selector, context, model, update, view);
 }
 
 fn main() {
@@ -59,8 +59,8 @@ fn main() {
     let mut second_app = App::new();
     let to_second = second_app.sender();
 
-    land_app(".first-app", &mut first_app, to_second);
-    land_app(".second-app", &mut second_app, to_first);
+    mount_app(".first-app", &mut first_app, to_second);
+    mount_app(".second-app", &mut second_app, to_first);
 
     yew::run_loop();
 }
