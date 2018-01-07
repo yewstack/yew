@@ -3,7 +3,8 @@
 use std::fmt;
 use std::cmp::PartialEq;
 use stdweb::web::{INode, Node, Element, TextNode, document};
-use virtual_dom::{VTag, VText, Messages};
+use virtual_dom::{VTag, VText};
+use html::AppSender;
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<MSG> {
@@ -41,7 +42,7 @@ impl<MSG> VNode<MSG> {
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
-    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<MSG>>, messages: Messages<MSG>) {
+    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<MSG>>, sender: AppSender<MSG>) {
         match *self {
             VNode::VTag {
                 ref mut vtag,
@@ -87,8 +88,7 @@ impl<MSG> VNode<MSG> {
                         Vec::new()
                     }
                 };
-                // TODO Consider to use: &mut Messages here;
-                left.render(element_mut, right, messages.clone());
+                left.render(element_mut, right, sender.clone());
                 let mut lefts = left.childs.iter_mut().map(Some).collect::<Vec<_>>();
                 // Process children
                 let diff = lefts.len() as i32 - rights.len() as i32;
@@ -104,7 +104,7 @@ impl<MSG> VNode<MSG> {
                 for pair in lefts.into_iter().zip(rights) {
                     match pair {
                         (Some(left), right) => {
-                            left.apply(element_mut, right, messages.clone());
+                            left.apply(element_mut, right, sender.clone());
                         }
                         (None, Some(right)) => {
                             right.remove(element_mut);

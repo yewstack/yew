@@ -194,6 +194,7 @@ fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Msg> {
 }
 
 fn main() {
+    yew::initialize();
     let mut app = App::new();
     let mut context = Context {
         storage: StorageService::new(Scope::Local),
@@ -210,7 +211,8 @@ fn main() {
             }
         }
     };
-    app.run(context, model, update, view);
+    app.mount(context, model, update, view);
+    yew::run_loop();
 }
 
 #[derive(EnumIter, ToString, Clone, PartialEq)]

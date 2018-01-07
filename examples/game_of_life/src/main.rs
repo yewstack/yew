@@ -215,6 +215,7 @@ fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Msg> {
 }
 
 fn main() {
+    yew::initialize();
     let mut app = App::new();
     let context = Context {
         interval: IntervalService::new(app.sender()),
@@ -225,5 +226,6 @@ fn main() {
         cellules_height: 40,
         job : None
     };
-    app.run(context, gof, update, view);
+    app.mount(context, gof, update, view);
+    yew::run_loop();
 }
