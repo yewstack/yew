@@ -47,7 +47,7 @@ impl<MSG, CTX> VNode<MSG, CTX> {
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
-    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<MSG, CTX>>, sender: AppSender<MSG>, context: SharedContext<CTX>) {
+    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<MSG, CTX>>, sender: AppSender<MSG, CTX>) {
         match *self {
             VNode::VTag {
                 ref mut vtag,
@@ -115,7 +115,7 @@ impl<MSG, CTX> VNode<MSG, CTX> {
                 for pair in lefts.into_iter().zip(rights) {
                     match pair {
                         (Some(left), right) => {
-                            left.apply(element_mut, right, sender.clone(), context.clone());
+                            left.apply(element_mut, right, sender.clone());
                         }
                         (None, Some(right)) => {
                             right.remove(element_mut);
@@ -176,7 +176,7 @@ impl<MSG, CTX> VNode<MSG, CTX> {
                     None => {
                         let element = document().create_element("div");
                         parent.append_child(&element);
-                        left.mount(&element, context.clone());
+                        left.mount(&element, sender.context());
                         *reference = Some(element);
                     }
                     _ => {

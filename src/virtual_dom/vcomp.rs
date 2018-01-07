@@ -12,8 +12,8 @@ impl<MSG: 'static, CTX: 'static> VComp<MSG, CTX> {
     pub fn lazy<T: Component<CTX> + 'static>() -> Self {
         let generator = |element, context| {
             let component = T::default();
-            let mut app = App::new();
-            app.mount_to(element, context, component);
+            let mut app = App::new(context);
+            app.mount_to(element, component);
         };
         VComp {
             mounter: Box::new(generator),

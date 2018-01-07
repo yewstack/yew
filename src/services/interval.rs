@@ -11,26 +11,23 @@ use super::{Task, to_ms};
 pub struct IntervalHandle(Option<Value>);
 
 /// A service to send messages on every elapsed interval.
-pub struct IntervalService<MSG> {
-    sender: AppSender<MSG>,
+pub struct IntervalService {
 }
 
-impl<MSG: 'static> IntervalService<MSG> {
+impl IntervalService {
     /// Creates a new service instance connected to `App` by provided `sender`.
-    pub fn new(sender: AppSender<MSG>) -> Self {
-        Self { sender }
+    pub fn new() -> Self {
+        Self { }
     }
 
     /// Sets interval which will call send a messages returned by a converter
     /// on every intarval expiration.
-    pub fn spawn<F>(&mut self, duration: Duration, converter: F) -> IntervalHandle
+    pub fn spawn<F>(&mut self, duration: Duration, convert_and_send: F) -> IntervalHandle
     where
-        F: Fn() -> MSG + 'static,
+        F: Fn() + 'static,
     {
-        let mut tx = self.sender.clone();
         let callback = move || {
-            let msg = converter();
-            tx.send(msg);
+            convert_and_send();
         };
         let ms = to_ms(duration);
         let handle = js! {
