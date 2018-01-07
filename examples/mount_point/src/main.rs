@@ -62,6 +62,6 @@ fn main() {
     };
 
     let mount_point = format!(".{}", mount_class);
-    app.land_to(&mount_point, context, model, update, view);
+    app.mount_to(&mount_point, context, model, update, view);
     yew::run_loop();
 }

@@ -226,6 +226,6 @@ fn main() {
         cellules_height: 40,
         job : None
     };
-    app.land(context, gof, update, view);
+    app.mount(context, gof, update, view);
     yew::run_loop();
 }

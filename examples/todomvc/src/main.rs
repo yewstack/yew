@@ -211,7 +211,7 @@ fn main() {
             }
         }
     };
-    app.land(context, model, update, view);
+    app.mount(context, model, update, view);
     yew::run_loop();
 }
 

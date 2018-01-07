@@ -210,6 +210,6 @@ fn main() {
     let scene = Scene::Initialization;
     let model = Model { database, scene };
     app.sender().send(Msg::SwitchTo(Scene::ClientsList));
-    app.land(context, model, update, view);
+    app.mount(context, model, update, view);
     yew::run_loop();
 }
