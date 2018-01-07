@@ -3,6 +3,7 @@
 pub mod vnode;
 pub mod vtag;
 pub mod vtext;
+pub mod vcomp;
 
 use std::fmt;
 use std::collections::{HashMap, HashSet};
@@ -11,6 +12,7 @@ use stdweb::web::{Element, EventListenerHandle};
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
+pub use self::vcomp::VComp;
 use html::AppSender;
 
 /// `Listener` trait is an universal implementation of an event listener

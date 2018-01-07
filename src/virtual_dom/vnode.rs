@@ -3,7 +3,7 @@
 use std::fmt;
 use std::cmp::PartialEq;
 use stdweb::web::{INode, Node, Element, TextNode, document};
-use virtual_dom::{VTag, VText};
+use virtual_dom::{VTag, VText, VComp};
 use html::AppSender;
 
 /// Bind virtual element to a DOM reference.
@@ -22,6 +22,10 @@ pub enum VNode<MSG> {
         /// A virtual text node which was applied.
         vtext: VText,
     },
+    VComp {
+        reference: Option<Element>,
+        vcomp: VComp<MSG>,
+    },
 }
 
 
@@ -31,6 +35,7 @@ impl<MSG> VNode<MSG> {
             match self {
                 VNode::VTag { reference, .. } => reference.map(Node::from),
                 VNode::VText { reference, .. } => reference.map(Node::from),
+                VNode::VComp { reference, .. } => reference.map(Node::from),
             }
         };
         if let Some(node) = opt_ref {
@@ -71,8 +76,14 @@ impl<MSG> VNode<MSG> {
                         parent.replace_child(&element, &wrong);
                         *reference = Some(element);
                     }
+                    Some(VNode::VComp { reference: Some(wrong), .. }) => {
+                        let element = document().create_element(left.tag());
+                        parent.replace_child(&element, &wrong);
+                        *reference = Some(element);
+                    }
                     Some(VNode::VTag { reference: None, .. }) |
                     Some(VNode::VText { reference: None, .. }) |
+                    Some(VNode::VComp { reference: None, .. }) |
                     None => {
                         let element = document().create_element(left.tag());
                         parent.append_child(&element);
@@ -130,13 +141,15 @@ impl<MSG> VNode<MSG> {
                         right = Some(vtext);
                         *reference = Some(element);
                     }
-                    Some(VNode::VTag { reference: Some(wrong), .. }) => {
+                    Some(VNode::VTag { reference: Some(wrong), .. }) |
+                    Some(VNode::VComp { reference: Some(wrong), .. }) => {
                         let element = document().create_text_node(&left.text);
                         parent.replace_child(&element, &wrong);
                         *reference = Some(element);
                     }
                     Some(VNode::VTag { reference: None, .. }) |
                     Some(VNode::VText { reference: None, .. }) |
+                    Some(VNode::VComp { reference: None, .. }) |
                     None => {
                         let element = document().create_text_node(&left.text);
                         parent.append_child(&element);
@@ -145,6 +158,31 @@ impl<MSG> VNode<MSG> {
                 }
                 let element_mut = reference.as_mut().expect("vtext must be here");
                 left.render(element_mut, right);
+            }
+            VNode::VComp {
+                ref mut vcomp,
+                ref mut reference,
+            } => {
+                let left = vcomp;
+                let mut right = None;
+                match last {
+                    Some(VNode::VComp {
+                             vcomp,
+                             reference: Some(element),
+                         }) => {
+                        right = Some(vcomp);
+                        *reference = Some(element);
+                    }
+                    None => {
+                        let element = document().create_element("div");
+                        parent.append_child(&element);
+                        left.mount(&element);
+                        *reference = Some(element);
+                    }
+                    _ => {
+                        eprintln!("Diff not implemented for components");
+                    }
+                }
             }
         }
     }
@@ -168,6 +206,15 @@ impl<MSG> From<VTag<MSG>> for VNode<MSG> {
     }
 }
 
+impl<MSG> From<VComp<MSG>> for VNode<MSG> {
+    fn from(vcomp: VComp<MSG>) -> Self {
+        VNode::VComp {
+            reference: None,
+            vcomp,
+        }
+    }
+}
+
 impl<MSG, T: ToString> From<T> for VNode<MSG> {
     fn from(value: T) -> Self {
         VNode::VText {
@@ -182,6 +229,7 @@ impl<MSG> fmt::Debug for VNode<MSG> {
         match self {
             &VNode::VTag { ref vtag, .. } => vtag.fmt(f),
             &VNode::VText { ref vtext, .. } => vtext.fmt(f),
+            &VNode::VComp { ref vcomp, .. } => "Component<>".fmt(f),
         }
     }
 }
@@ -196,7 +244,7 @@ impl<MSG> PartialEq for VNode<MSG> {
                     },
                     _ => false
                 }
-            },
+            }
             VNode::VText { vtext: ref vtext_a, .. } => {
                 match *other {
                     VNode::VText { vtext: ref vtext_b, .. } => {
@@ -204,6 +252,9 @@ impl<MSG> PartialEq for VNode<MSG> {
                     },
                     _ => false
                 }
+            }
+            VNode::VComp { .. } => {
+                false
             }
         }
     }

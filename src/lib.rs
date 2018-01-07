@@ -46,7 +46,7 @@
 //!
 
 #![deny(
-    missing_docs,
+    //missing_docs,
 )]
 #![recursion_limit="256"]
 
@@ -60,6 +60,7 @@ pub mod macros;
 pub mod html;
 pub mod services;
 pub mod format;
+pub mod component;
 pub mod virtual_dom;
 
 /// Initializes yew framework. It should be called first.

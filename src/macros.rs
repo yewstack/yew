@@ -5,71 +5,97 @@ use virtual_dom::{VTag, VNode, Listener};
 
 #[macro_export]
 macro_rules! html_impl {
-    // Start of openging tag
-    ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
-        let node = $crate::virtual_dom::VTag::new(stringify!($starttag));
-        $stack.push(node);
+    // Start of component tag
+    ($stack:ident (< $comp:ty : $($tail:tt)*)) => {
+        let comp = $crate::virtual_dom::VComp::lazy::<$comp>();
+        $stack.push(comp.into());
+        html_impl! { @vcomp $stack ($($tail)*) }
+    };
+    // Self-closing of tag
+    (@vcomp $stack:ident (/ > $($tail:tt)*)) => {
+        $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
+    };
+    // Start of opening tag
+    ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
+        let vtag = $crate::virtual_dom::VTag::new(stringify!($starttag));
+        $stack.push(vtag.into());
+        html_impl! { @vtag $stack ($($tail)*) }
     };
     // PATTERN: class=("class-1", "class-2"),
-    ($stack:ident (class = ($($class:expr),*), $($tail:tt)*)) => {
+    (@vtag $stack:ident (class = ($($class:expr),*), $($tail:tt)*)) => {
         $( $crate::macros::attach_class(&mut $stack, $class); )*
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($tail)*) }
     };
-    ($stack:ident (class = $class:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident (class = $class:expr, $($tail:tt)*)) => {
         $crate::macros::attach_class(&mut $stack, $class);
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($tail)*) }
     };
     // PATTERN: value="",
-    ($stack:ident (value = $value:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident (value = $value:expr, $($tail:tt)*)) => {
         $crate::macros::set_value(&mut $stack, $value);
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($tail)*) }
     };
     // PATTERN: attribute=value, - workaround for `type` attribute
     // because `type` is a keyword in Rust
-    ($stack:ident (type = $kind:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident (type = $kind:expr, $($tail:tt)*)) => {
         $crate::macros::set_kind(&mut $stack, $kind);
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($tail)*) }
     };
-    ($stack:ident (checked = $kind:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident (checked = $kind:expr, $($tail:tt)*)) => {
         $crate::macros::set_checked(&mut $stack, $kind);
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($tail)*) }
     };
-    ($stack:ident (disabled = $kind:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident (disabled = $kind:expr, $($tail:tt)*)) => {
         if $kind {
             $crate::macros::add_attribute(&mut $stack, "disabled", "true");
         }
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($tail)*) }
     };
     // Events:
-    ($stack:ident (onclick = $handler:expr, $($tail:tt)*)) => {
-        html_impl! { $stack ((onclick) = $handler, $($tail)*) }
+    (@vtag $stack:ident (onclick = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onclick) = $handler, $($tail)*) }
     };
-    ($stack:ident (ondoubleclick = $handler:expr, $($tail:tt)*)) => {
-        html_impl! { $stack ((ondoubleclick) = $handler, $($tail)*) }
+    (@vtag $stack:ident (ondoubleclick = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((ondoubleclick) = $handler, $($tail)*) }
     };
-    ($stack:ident (onkeypress = $handler:expr, $($tail:tt)*)) => {
-        html_impl! { $stack ((onkeypress) = $handler, $($tail)*) }
+    (@vtag $stack:ident (onkeypress = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onkeypress) = $handler, $($tail)*) }
     };
-    ($stack:ident (oninput = $handler:expr, $($tail:tt)*)) => {
-        html_impl! { $stack ((oninput) = $handler, $($tail)*) }
+    (@vtag $stack:ident (oninput = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((oninput) = $handler, $($tail)*) }
     };
     // PATTERN: (action)=expression,
-    ($stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
         // Catch value to a separate variable for clear error messages
         let handler = $handler;
         let listener = $crate::html::$action::Wrapper::from(handler);
         $crate::macros::attach_listener(&mut $stack, Box::new(listener));
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($tail)*) }
     };
     // Attributes:
-    ($stack:ident (href = $href:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident (href = $href:expr, $($tail:tt)*)) => {
         let href: $crate::html::Href = $href.into();
         $crate::macros::add_attribute(&mut $stack, "href", href);
+        html_impl! { @vtag $stack ($($tail)*) }
+    };
+    (@vtag $stack:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
+        $crate::macros::add_attribute(&mut $stack, stringify!($attr), $val);
+        html_impl! { @vtag $stack ($($tail)*) }
+    };
+    // End of openging tag
+    (@vtag $stack:ident (> $($tail:tt)*)) => {
         html_impl! { $stack ($($tail)*) }
     };
-    ($stack:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
-        $crate::macros::add_attribute(&mut $stack, stringify!($attr), $val);
+    // Self-closing of tag
+    (@vtag $stack:ident (/ > $($tail:tt)*)) => {
+        $crate::macros::child_to_parent(&mut $stack, None);
+        html_impl! { $stack ($($tail)*) }
+    };
+    // Traditional tag closing
+    ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
+        let endtag = stringify!($endtag);
+        $crate::macros::child_to_parent(&mut $stack, Some(endtag));
         html_impl! { $stack ($($tail)*) }
     };
     // PATTERN: { for expression }
@@ -84,21 +110,6 @@ macro_rules! html_impl {
     ($stack:ident ({ $eval:expr } $($tail:tt)*)) => {
         let node = $crate::virtual_dom::VNode::from($eval);
         $crate::macros::add_child(&mut $stack, node);
-        html_impl! { $stack ($($tail)*) }
-    };
-    // End of openging tag
-    ($stack:ident (> $($tail:tt)*)) => {
-        html_impl! { $stack ($($tail)*) }
-    };
-    // Self-closing of tag
-    ($stack:ident (/ > $($tail:tt)*)) => {
-        $crate::macros::child_to_parent(&mut $stack, None);
-        html_impl! { $stack ($($tail)*) }
-    };
-    // Traditional tag closing
-    ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
-        let endtag = stringify!($endtag);
-        $crate::macros::child_to_parent(&mut $stack, Some(endtag));
         html_impl! { $stack ($($tail)*) }
     };
     // "End of paring" rule
@@ -116,10 +127,10 @@ macro_rules! html {
     }};
 }
 
-type Stack<MSG> = Vec<VTag<MSG>>;
+type Stack<MSG> = Vec<VNode<MSG>>;
 
 #[doc(hidden)]
-pub fn unpack<MSG>(mut stack: Stack<MSG>) -> VTag<MSG> {
+pub fn unpack<MSG>(mut stack: Stack<MSG>) -> VNode<MSG> {
     if stack.len() != 1 {
         panic!("exactly one element have to be in html!");
     }
@@ -128,8 +139,8 @@ pub fn unpack<MSG>(mut stack: Stack<MSG>) -> VTag<MSG> {
 
 #[doc(hidden)]
 pub fn set_value<MSG, T: ToString>(stack: &mut Stack<MSG>, value: T) {
-    if let Some(node) = stack.last_mut() {
-        node.set_value(&value);
+    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+        vtag.set_value(&value);
     } else {
         panic!("no tag to set value: {}", value.to_string());
     }
@@ -137,8 +148,8 @@ pub fn set_value<MSG, T: ToString>(stack: &mut Stack<MSG>, value: T) {
 
 #[doc(hidden)]
 pub fn set_kind<MSG, T: ToString>(stack: &mut Stack<MSG>, value: T) {
-    if let Some(node) = stack.last_mut() {
-        node.set_kind(value);
+    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+        vtag.set_kind(value);
     } else {
         panic!("no tag to set type: {}", value.to_string());
     }
@@ -146,8 +157,8 @@ pub fn set_kind<MSG, T: ToString>(stack: &mut Stack<MSG>, value: T) {
 
 #[doc(hidden)]
 pub fn set_checked<MSG>(stack: &mut Stack<MSG>, value: bool) {
-    if let Some(node) = stack.last_mut() {
-        node.set_checked(value);
+    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+        vtag.set_checked(value);
     } else {
         panic!("no tag to set checked: {}", value);
     }
@@ -155,8 +166,8 @@ pub fn set_checked<MSG>(stack: &mut Stack<MSG>, value: bool) {
 
 #[doc(hidden)]
 pub fn add_attribute<MSG, T: ToString>(stack: &mut Stack<MSG>, name: &'static str, value: T) {
-    if let Some(node) = stack.last_mut() {
-        node.add_attribute(name, value);
+    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+        vtag.add_attribute(name, value);
     } else {
         panic!("no tag to set attribute: {}", name);
     }
@@ -164,8 +175,8 @@ pub fn add_attribute<MSG, T: ToString>(stack: &mut Stack<MSG>, name: &'static st
 
 #[doc(hidden)]
 pub fn attach_class<MSG>(stack: &mut Stack<MSG>, class: &'static str) {
-    if let Some(node) = stack.last_mut() {
-        node.add_classes(class);
+    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+        vtag.add_classes(class);
     } else {
         panic!("no tag to attach class: {}", class);
     }
@@ -173,8 +184,8 @@ pub fn attach_class<MSG>(stack: &mut Stack<MSG>, class: &'static str) {
 
 #[doc(hidden)]
 pub fn attach_listener<MSG>(stack: &mut Stack<MSG>, listener: Box<Listener<MSG>>) {
-    if let Some(node) = stack.last_mut() {
-        node.add_listener(listener);
+    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+        vtag.add_listener(listener);
     } else {
         panic!("no tag to attach listener: {:?}", listener);
     }
@@ -182,8 +193,8 @@ pub fn attach_listener<MSG>(stack: &mut Stack<MSG>, listener: Box<Listener<MSG>>
 
 #[doc(hidden)]
 pub fn add_child<MSG>(stack: &mut Stack<MSG>, child: VNode<MSG>) {
-    if let Some(parent) = stack.last_mut() {
-        parent.add_child(child);
+    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+        vtag.add_child(child);
     } else {
         panic!("no nodes in stack to add child: {:?}", child);
     }
@@ -191,18 +202,19 @@ pub fn add_child<MSG>(stack: &mut Stack<MSG>, child: VNode<MSG>) {
 
 #[doc(hidden)]
 pub fn child_to_parent<MSG>(stack: &mut Stack<MSG>, endtag: Option<&'static str>) {
-    if let Some(node) = stack.pop() {
-        if let Some(endtag) = endtag {
-            let starttag = node.tag();
+    if let Some(mut node) = stack.pop() {
+        if let (&mut VNode::VTag { ref mut vtag, .. }, Some(endtag)) = (&mut node, endtag) {
+            let starttag = vtag.tag();
             if starttag != endtag {
                 panic!("wrong closing tag: <{}> -> </{}>", starttag, endtag);
             }
         }
-
         if !stack.is_empty() {
-            stack.last_mut()
-                .expect("stack lost the last element")
-                .add_child(VNode::from(node));
+            if let Some(&mut VNode::VTag{ ref mut vtag, ..}) = stack.last_mut() {
+                vtag.add_child(node);
+            } else {
+                panic!("can't add child to this type of node");
+            }
         } else {
             // Keep the last node in the stack
             stack.push(node);
