@@ -183,7 +183,7 @@ pub fn attach_class<MSG, CTX>(stack: &mut Stack<MSG, CTX>, class: &'static str) 
 }
 
 #[doc(hidden)]
-pub fn attach_listener<MSG, CTX>(stack: &mut Stack<MSG, CTX>, listener: Box<Listener<MSG>>) {
+pub fn attach_listener<MSG, CTX>(stack: &mut Stack<MSG, CTX>, listener: Box<Listener<MSG, CTX>>) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.add_listener(listener);
     } else {

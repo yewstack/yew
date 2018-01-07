@@ -17,7 +17,7 @@ pub struct VTag<MSG, CTX> {
     /// A tag of the element.
     tag: Cow<'static, str>,
     /// List of attached listeners.
-    pub listeners: Listeners<MSG>,
+    pub listeners: Listeners<MSG, CTX>,
     /// List of attributes.
     pub attributes: Attributes,
     /// The list of children nodes. Which also could have own children.
@@ -110,7 +110,7 @@ impl<MSG, CTX> VTag<MSG, CTX> {
     /// Adds new listener to the node.
     /// It's boxed because we want to keep it in a single list.
     /// Lates `Listener::attach` called to attach actual listener to a DOM node.
-    pub fn add_listener(&mut self, listener: Box<Listener<MSG>>) {
+    pub fn add_listener(&mut self, listener: Box<Listener<MSG, CTX>>) {
         self.listeners.push(listener);
     }
 
@@ -204,7 +204,7 @@ impl<MSG, CTX> VTag<MSG, CTX> {
 impl<MSG, CTX> VTag<MSG, CTX> {
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to pach in the actual DOM nodes.
-    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, sender: AppSender<MSG>) {
+    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, sender: AppSender<MSG, CTX>) {
         let changes = self.soakup_classes(&mut opposite);
         for change in changes {
             let list = subject.class_list();

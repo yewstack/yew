@@ -27,30 +27,27 @@ impl Method {
 }
 
 /// A service to fetch resources.
-pub struct FetchService<MSG> {
-    sender: AppSender<MSG>,
+pub struct FetchService {
 }
 
-impl<MSG: 'static> FetchService<MSG> {
+impl FetchService {
     /// Creates a new service instance connected to `App` by provided `sender`.
-    pub fn new(sender: AppSender<MSG>) -> Self {
-        Self { sender }
+    pub fn new() -> Self {
+        Self { }
     }
 
     /// Sends request to a server. Could contains input data and
     /// needs a fuction to convert returned data to a loop's message.
-    pub fn fetch<F, IN, OUT>(&mut self, method: Method, url: &str, data: IN, converter: F) -> FetchHandle
+    pub fn fetch<F, IN, OUT>(&mut self, method: Method, url: &str, data: IN, convert_and_send: F) -> FetchHandle
     where
         IN: Into<Storable>,
         OUT: From<Restorable>,
-        F: Fn(OUT) -> MSG + 'static
+        F: Fn(OUT) + 'static
     {
-        let mut tx = self.sender.clone();
         let callback = move |success: bool, s: String| {
             let data = if success { Ok(s) } else { Err(s) };
             let out = OUT::from(data);
-            let msg = converter(out);
-            tx.send(msg);
+            convert_and_send(out);
         };
         let method = method.to_argument();
         let body = data.into();

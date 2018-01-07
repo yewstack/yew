@@ -17,23 +17,27 @@ fn clear_element(element: &Element) {
     }
 }
 
+pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
+
 /// This class keeps a sender to a context to send a messages to a loop
 /// and to schedule the next update call.
-pub struct AppSender<MSG> {
+pub struct AppSender<MSG, CTX> {
     tx: Sender<MSG>,
+    context: SharedContext<CTX>,
     bind: Value,
 }
 
-impl<MSG> Clone for AppSender<MSG> {
+impl<MSG, CTX> Clone for AppSender<MSG, CTX> {
     fn clone(&self) -> Self {
         AppSender {
             tx: self.tx.clone(),
+            context: self.context.clone(),
             bind: self.bind.clone(),
         }
     }
 }
 
-impl<MSG> AppSender<MSG> {
+impl<MSG, CTX> AppSender<MSG, CTX> {
     /// Send the message and schedule an update.
     pub fn send(&mut self, msg: MSG) {
         self.tx.send(msg).expect("App lost the receiver!");
@@ -47,21 +51,24 @@ impl<MSG> AppSender<MSG> {
             setTimeout(bind.loop);
         }
     }
-}
 
-pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
+    pub fn context(&self) -> SharedContext<CTX> {
+        self.context.clone()
+    }
+}
 
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
-pub struct App<MSG> {
+pub struct App<MSG, CTX> {
     tx: Sender<MSG>,
     rx: Option<Receiver<MSG>>,
+    context: SharedContext<CTX>,
     bind: Value,
 }
 
-impl<MSG: 'static> App<MSG> {
+impl<MSG: 'static, CTX: 'static> App<MSG, CTX> {
     /// Creates a context with connected sender and receiver.
-    pub fn new() -> Self {
+    pub fn new(context: SharedContext<CTX>) -> Self {
         let bind = js! {
             return { "loop": function() { } };
         };
@@ -69,47 +76,48 @@ impl<MSG: 'static> App<MSG> {
         App {
             tx,
             rx: Some(rx),
+            context,
             bind,
         }
     }
 
     /// Returns a cloned sender.
-    pub fn sender(&mut self) -> AppSender<MSG> {
+    pub fn sender(&mut self) -> AppSender<MSG, CTX> {
         AppSender {
             tx: self.tx.clone(),
+            context: self.context.clone(),
             bind: self.bind.clone(),
         }
     }
 
     /// Alias to `mount_to("body", ...)`.
-    pub fn mount<CTX, COMP>(&mut self, context: SharedContext<CTX>, component: COMP)
+    pub fn mount<COMP>(&mut self, component: COMP)
     where
-        CTX: 'static,
         COMP: Component<CTX, Msg=MSG> + 'static,
     {
         let element = document().query_selector("body")
             .expect("can't get body node for rendering");
-        self.mount_to(element, context, component)
+        self.mount_to(element, component)
     }
 
     /// The main entrypoint of a yew program. It works similar as `program`
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount_to<CTX, COMP>(&mut self, element: Element, context: SharedContext<CTX>, mut component: COMP)
+    pub fn mount_to<COMP>(&mut self, element: Element, mut component: COMP)
     where
-        CTX: 'static,
         COMP: Component<CTX, Msg=MSG> + 'static,
     {
         clear_element(&element);
         // No messages at start
         let mut messages = Vec::new();
         let mut last_frame = VNode::from(component.view());
-        last_frame.apply(&element, None, self.sender(), context.clone());
+        last_frame.apply(&element, None, self.sender());
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
         let bind = self.bind.clone();
         let sender = self.sender();
+        let context = self.context.clone();
         let mut callback = move || {
             messages.extend(rx.try_iter());
             for msg in messages.drain(..) {
@@ -117,7 +125,7 @@ impl<MSG: 'static> App<MSG> {
                 component.update(msg, &mut context);
             }
             let mut next_frame = VNode::from(component.view());
-            next_frame.apply(&element, last_frame.take(), sender.clone(), context.clone());
+            next_frame.apply(&element, last_frame.take(), sender.clone());
             last_frame = Some(next_frame);
         };
         // Initial call for first rendering
@@ -159,7 +167,7 @@ macro_rules! impl_action {
                 }
             }
 
-            impl<T, MSG> Listener<MSG> for Wrapper<T>
+            impl<T, MSG, CTX: 'static> Listener<MSG, CTX> for Wrapper<T>
             where
                 MSG: 'static,
                 T: Fn($ret) -> MSG + 'static,
@@ -168,7 +176,7 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, mut sender: AppSender<MSG>)
+                fn attach(&mut self, element: &Element, mut sender: AppSender<MSG, CTX>)
                     -> EventListenerHandle {
                     let handler = self.0.take().expect("tried to attach listener twice");
                     let this = element.clone();
