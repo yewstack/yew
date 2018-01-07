@@ -17,18 +17,19 @@ pub enum Msg {
     Increase,
 }
 
-impl Component for Counter {
+impl<CTX: Printer> Component<CTX> for Counter {
     type Msg = Msg;
 
-    fn update(&mut self, msg: Self::Msg) {
+    fn update(&mut self, msg: Self::Msg, context: &mut CTX) {
         match msg {
             Msg::Increase => {
                 self.value = self.value + 1;
+                context.print(format!("<printer> value of model is {}", self.value).as_str());
             }
         }
     }
 
-    fn view(&self) -> Html<Self::Msg> {
+    fn view(&self) -> Html<Self::Msg, CTX> {
         html! {
             <div>
                 <p>{ self.value }</p>
@@ -38,3 +39,7 @@ impl Component for Counter {
     }
 }
 
+
+pub trait Printer {
+    fn print(&mut self, data: &str);
+}

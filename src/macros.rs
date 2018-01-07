@@ -127,10 +127,10 @@ macro_rules! html {
     }};
 }
 
-type Stack<MSG> = Vec<VNode<MSG>>;
+type Stack<MSG, CTX> = Vec<VNode<MSG, CTX>>;
 
 #[doc(hidden)]
-pub fn unpack<MSG>(mut stack: Stack<MSG>) -> VNode<MSG> {
+pub fn unpack<MSG, CTX>(mut stack: Stack<MSG, CTX>) -> VNode<MSG, CTX> {
     if stack.len() != 1 {
         panic!("exactly one element have to be in html!");
     }
@@ -138,7 +138,7 @@ pub fn unpack<MSG>(mut stack: Stack<MSG>) -> VNode<MSG> {
 }
 
 #[doc(hidden)]
-pub fn set_value<MSG, T: ToString>(stack: &mut Stack<MSG>, value: T) {
+pub fn set_value<MSG, CTX, T: ToString>(stack: &mut Stack<MSG, CTX>, value: T) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.set_value(&value);
     } else {
@@ -147,7 +147,7 @@ pub fn set_value<MSG, T: ToString>(stack: &mut Stack<MSG>, value: T) {
 }
 
 #[doc(hidden)]
-pub fn set_kind<MSG, T: ToString>(stack: &mut Stack<MSG>, value: T) {
+pub fn set_kind<MSG, CTX, T: ToString>(stack: &mut Stack<MSG, CTX>, value: T) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.set_kind(value);
     } else {
@@ -156,7 +156,7 @@ pub fn set_kind<MSG, T: ToString>(stack: &mut Stack<MSG>, value: T) {
 }
 
 #[doc(hidden)]
-pub fn set_checked<MSG>(stack: &mut Stack<MSG>, value: bool) {
+pub fn set_checked<MSG, CTX>(stack: &mut Stack<MSG, CTX>, value: bool) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.set_checked(value);
     } else {
@@ -165,7 +165,7 @@ pub fn set_checked<MSG>(stack: &mut Stack<MSG>, value: bool) {
 }
 
 #[doc(hidden)]
-pub fn add_attribute<MSG, T: ToString>(stack: &mut Stack<MSG>, name: &'static str, value: T) {
+pub fn add_attribute<MSG, CTX, T: ToString>(stack: &mut Stack<MSG, CTX>, name: &'static str, value: T) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.add_attribute(name, value);
     } else {
@@ -174,7 +174,7 @@ pub fn add_attribute<MSG, T: ToString>(stack: &mut Stack<MSG>, name: &'static st
 }
 
 #[doc(hidden)]
-pub fn attach_class<MSG>(stack: &mut Stack<MSG>, class: &'static str) {
+pub fn attach_class<MSG, CTX>(stack: &mut Stack<MSG, CTX>, class: &'static str) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.add_classes(class);
     } else {
@@ -183,7 +183,7 @@ pub fn attach_class<MSG>(stack: &mut Stack<MSG>, class: &'static str) {
 }
 
 #[doc(hidden)]
-pub fn attach_listener<MSG>(stack: &mut Stack<MSG>, listener: Box<Listener<MSG>>) {
+pub fn attach_listener<MSG, CTX>(stack: &mut Stack<MSG, CTX>, listener: Box<Listener<MSG>>) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.add_listener(listener);
     } else {
@@ -192,7 +192,7 @@ pub fn attach_listener<MSG>(stack: &mut Stack<MSG>, listener: Box<Listener<MSG>>
 }
 
 #[doc(hidden)]
-pub fn add_child<MSG>(stack: &mut Stack<MSG>, child: VNode<MSG>) {
+pub fn add_child<MSG, CTX>(stack: &mut Stack<MSG, CTX>, child: VNode<MSG, CTX>) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.add_child(child);
     } else {
@@ -201,7 +201,7 @@ pub fn add_child<MSG>(stack: &mut Stack<MSG>, child: VNode<MSG>) {
 }
 
 #[doc(hidden)]
-pub fn child_to_parent<MSG>(stack: &mut Stack<MSG>, endtag: Option<&'static str>) {
+pub fn child_to_parent<MSG, CTX>(stack: &mut Stack<MSG, CTX>, endtag: Option<&'static str>) {
     if let Some(mut node) = stack.pop() {
         if let (&mut VNode::VTag { ref mut vtag, .. }, Some(endtag)) = (&mut node, endtag) {
             let starttag = vtag.tag();

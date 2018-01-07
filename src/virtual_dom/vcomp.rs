@@ -1,19 +1,19 @@
 use std::marker::PhantomData;
 use stdweb::web::Element;
-use html::App;
+use html::{App, SharedContext};
 use component::Component;
 
-pub struct VComp<MSG> {
-    mounter: Box<Fn(Element)>,
+pub struct VComp<MSG, CTX> {
+    mounter: Box<Fn(Element, SharedContext<CTX>)>,
     _msg: PhantomData<MSG>,
 }
 
-impl<MSG: 'static> VComp<MSG> {
-    pub fn lazy<T: Component + 'static>() -> Self {
-        let generator = |element| {
+impl<MSG: 'static, CTX: 'static> VComp<MSG, CTX> {
+    pub fn lazy<T: Component<CTX> + 'static>() -> Self {
+        let generator = |element, context| {
             let component = T::default();
             let mut app = App::new();
-            app.mount_to(element, (), component);
+            app.mount_to(element, context, component);
         };
         VComp {
             mounter: Box::new(generator),
@@ -22,9 +22,9 @@ impl<MSG: 'static> VComp<MSG> {
     }
 }
 
-impl<MSG> VComp<MSG> {
-    pub fn mount(&self, element: &Element) {
-        (self.mounter)(element.clone());
+impl<MSG, CTX> VComp<MSG, CTX> {
+    pub fn mount(&self, element: &Element, context: SharedContext<CTX>) {
+        (self.mounter)(element.clone(), context);
     }
 }
 

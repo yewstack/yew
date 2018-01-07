@@ -4,16 +4,16 @@ use std::fmt;
 use std::cmp::PartialEq;
 use stdweb::web::{INode, Node, Element, TextNode, document};
 use virtual_dom::{VTag, VText, VComp};
-use html::AppSender;
+use html::{AppSender, SharedContext};
 
 /// Bind virtual element to a DOM reference.
-pub enum VNode<MSG> {
+pub enum VNode<MSG, CTX> {
     /// A bind between `VTag` and `Element`.
     VTag {
         /// A reference to the `Element`.
         reference: Option<Element>,
         /// A virtual tag node which was applied.
-        vtag: VTag<MSG>,
+        vtag: VTag<MSG, CTX>,
     },
     /// A bind between `VText` and `TextNode`.
     VText {
@@ -24,12 +24,12 @@ pub enum VNode<MSG> {
     },
     VComp {
         reference: Option<Element>,
-        vcomp: VComp<MSG>,
+        vcomp: VComp<MSG, CTX>,
     },
 }
 
 
-impl<MSG> VNode<MSG> {
+impl<MSG, CTX> VNode<MSG, CTX> {
     fn remove<T: INode>(self, parent: &T) {
         let opt_ref: Option<Node> = {
             match self {
@@ -47,7 +47,7 @@ impl<MSG> VNode<MSG> {
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
-    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<MSG>>, sender: AppSender<MSG>) {
+    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<MSG, CTX>>, sender: AppSender<MSG>, context: SharedContext<CTX>) {
         match *self {
             VNode::VTag {
                 ref mut vtag,
@@ -115,7 +115,7 @@ impl<MSG> VNode<MSG> {
                 for pair in lefts.into_iter().zip(rights) {
                     match pair {
                         (Some(left), right) => {
-                            left.apply(element_mut, right, sender.clone());
+                            left.apply(element_mut, right, sender.clone(), context.clone());
                         }
                         (None, Some(right)) => {
                             right.remove(element_mut);
@@ -176,7 +176,7 @@ impl<MSG> VNode<MSG> {
                     None => {
                         let element = document().create_element("div");
                         parent.append_child(&element);
-                        left.mount(&element);
+                        left.mount(&element, context.clone());
                         *reference = Some(element);
                     }
                     _ => {
@@ -188,7 +188,7 @@ impl<MSG> VNode<MSG> {
     }
 }
 
-impl<MSG> From<VText> for VNode<MSG> {
+impl<MSG, CTX> From<VText> for VNode<MSG, CTX> {
     fn from(vtext: VText) -> Self {
         VNode::VText {
             reference: None,
@@ -197,8 +197,8 @@ impl<MSG> From<VText> for VNode<MSG> {
     }
 }
 
-impl<MSG> From<VTag<MSG>> for VNode<MSG> {
-    fn from(vtag: VTag<MSG>) -> Self {
+impl<MSG, CTX> From<VTag<MSG, CTX>> for VNode<MSG, CTX> {
+    fn from(vtag: VTag<MSG, CTX>) -> Self {
         VNode::VTag {
             reference: None,
             vtag,
@@ -206,8 +206,8 @@ impl<MSG> From<VTag<MSG>> for VNode<MSG> {
     }
 }
 
-impl<MSG> From<VComp<MSG>> for VNode<MSG> {
-    fn from(vcomp: VComp<MSG>) -> Self {
+impl<MSG, CTX> From<VComp<MSG, CTX>> for VNode<MSG, CTX> {
+    fn from(vcomp: VComp<MSG, CTX>) -> Self {
         VNode::VComp {
             reference: None,
             vcomp,
@@ -215,7 +215,7 @@ impl<MSG> From<VComp<MSG>> for VNode<MSG> {
     }
 }
 
-impl<MSG, T: ToString> From<T> for VNode<MSG> {
+impl<MSG, CTX, T: ToString> From<T> for VNode<MSG, CTX> {
     fn from(value: T) -> Self {
         VNode::VText {
             reference: None,
@@ -224,7 +224,7 @@ impl<MSG, T: ToString> From<T> for VNode<MSG> {
     }
 }
 
-impl<MSG> fmt::Debug for VNode<MSG> {
+impl<MSG, CTX> fmt::Debug for VNode<MSG, CTX> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &VNode::VTag { ref vtag, .. } => vtag.fmt(f),
@@ -234,8 +234,8 @@ impl<MSG> fmt::Debug for VNode<MSG> {
     }
 }
 
-impl<MSG> PartialEq for VNode<MSG> {
-    fn eq(&self, other: &VNode<MSG>) -> bool {
+impl<MSG, CTX> PartialEq for VNode<MSG, CTX> {
+    fn eq(&self, other: &VNode<MSG, CTX>) -> bool {
         match *self {
             VNode::VTag { vtag: ref vtag_a, .. } => {
                 match *other {
