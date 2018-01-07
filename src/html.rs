@@ -152,7 +152,7 @@ macro_rules! impl_action {
 
                 fn attach(&mut self, element: &Element, messages: Messages<MSG>)
                     -> EventListenerHandle {
-                    let handler = self.0.take().expect("tried to attach lostener twice");
+                    let handler = self.0.take().expect("tried to attach listener twice");
                     let this = element.clone();
                     let sender = move |event: $type| {
                         debug!("Event handler: {}", stringify!($type));
@@ -196,7 +196,7 @@ impl_action! {
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
         use stdweb::web::html_element::InputElement;
         use stdweb::unstable::TryInto;
-        let input: InputElement = this.clone().try_into().expect("only InputElement could have oninput event listener");
+        let input: InputElement = this.clone().try_into().expect("only an InputElement can have an oninput event listener");
         let value = input.value().into_string().unwrap_or_else(|| "".into());
         InputData { value }
     }
@@ -205,24 +205,24 @@ impl_action! {
 /// A type representing data from `onclick` and `ondoubleclick` event.
 #[derive(Debug)]
 pub struct MouseData {
-    /// The screenX read-only property of the
+    /// The screenX is a read-only property of the
     /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/screenX)
-    /// property provides the horizontal coordinate (offset)
+    /// property which provides the horizontal coordinate (offset)
     /// of the mouse pointer in global (screen) coordinates.
     pub screen_x: f64,
-    /// The screenY read-only property of the
+    /// The screenY is a read-only property of the
     /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/screenY)
-    /// property provides the vertical coordinate (offset)
+    /// property which provides the vertical coordinate (offset)
     /// of the mouse pointer in global (screen) coordinates.
     pub screen_y: f64,
-    /// The clientX read-only property of the
+    /// The clientX is a read-only property of the
     /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/clientX)
-    /// interface provides the horizontal coordinate within
+    /// interface which provides the horizontal coordinate within
     /// the application's client area at which the event occurred
     pub client_x: f64,
-    /// The clientY read-only property of the
+    /// The clientY is a read-only property of the
     /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/clientX)
-    /// interface provides the vertical coordinate within
+    /// interface which provides the vertical coordinate within
     /// the application's client area at which the event occurred
     pub client_y: f64,
 }
