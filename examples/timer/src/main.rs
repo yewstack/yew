@@ -86,6 +86,7 @@ fn view(model: &Model) -> Html<Msg> {
 }
 
 fn main() {
+    yew::initialize();
     let mut app = App::new();
     let context = Context {
         interval: IntervalService::new(app.sender()),
@@ -96,5 +97,6 @@ fn main() {
         job: None,
         messages: Vec::new(),
     };
-    app.run(context, model, update, view);
+    app.mount(context, model, update, view);
+    yew::run_loop();
 }

@@ -7,7 +7,8 @@ use std::cmp::PartialEq;
 use stdweb::web::{IElement, Element, EventListenerHandle};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryFrom;
-use virtual_dom::{Messages, Listener, Listeners, Classes, Attributes, Patch, VNode};
+use virtual_dom::{Listener, Listeners, Classes, Attributes, Patch, VNode};
+use html::AppSender;
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
@@ -203,7 +204,7 @@ impl<MSG> VTag<MSG> {
 impl<MSG> VTag<MSG> {
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to pach in the actual DOM nodes.
-    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, messages: Messages<MSG>) {
+    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, sender: AppSender<MSG>) {
         let changes = self.soakup_classes(&mut opposite);
         for change in changes {
             let list = subject.class_list();
@@ -269,14 +270,12 @@ impl<MSG> VTag<MSG> {
         // TODO Compare references of handler to do listeners update better
         if let Some(mut opposite) = opposite {
             for handle in opposite.captured.drain(..) {
-                debug!("Removing handler...");
                 handle.remove();
             }
         }
 
         for mut listener in self.listeners.drain(..) {
-            debug!("Add listener...");
-            let handle = listener.attach(&subject, messages.clone());
+            let handle = listener.attach(&subject, sender.clone());
             self.captured.push(handle);
         }
     }

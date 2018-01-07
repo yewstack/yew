@@ -1,21 +1,16 @@
 //! The main module which contents aliases to necessary items
 //! to create a template and implement `update` and `view` functions.
 
-use stdweb;
-
-use std::rc::Rc;
-use std::cell::RefCell;
 use std::sync::mpsc::{Sender, Receiver, channel};
-use stdweb::web::{INode, EventListenerHandle, document};
+use stdweb::Value;
+use stdweb::web::{Element, INode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
-use virtual_dom::{VNode, VTag, Messages, Listener};
+use virtual_dom::{VNode, VTag, Listener};
 
-/// Removes anything from the `body`.
-fn clear_body() {
-    let body = document().query_selector("body")
-        .expect("no body tag to remove children");
-    while let Some(child) = body.last_child() {
-        body.remove_child(&child).expect("can't remove a child");
+/// Removes anything from the given element.
+fn clear_element(element: &Element) {
+    while let Some(child) = element.last_child() {
+        element.remove_child(&child).expect("can't remove a child");
     }
 }
 
@@ -23,12 +18,14 @@ fn clear_body() {
 /// and to schedule the next update call.
 pub struct AppSender<MSG> {
     tx: Sender<MSG>,
+    bind: Value,
 }
 
 impl<MSG> Clone for AppSender<MSG> {
     fn clone(&self) -> Self {
         AppSender {
             tx: self.tx.clone(),
+            bind: self.bind.clone(),
         }
     }
 }
@@ -37,7 +34,15 @@ impl<MSG> AppSender<MSG> {
     /// Send the message and schedule an update.
     pub fn send(&mut self, msg: MSG) {
         self.tx.send(msg).expect("App lost the receiver!");
-        schedule_update();
+        let bind = &self.bind;
+        js! {
+            // Schedule to call the loop handler
+            // IMPORTANT! If call loop function immediately
+            // it stops handling other messages and the first
+            // one will be fired.
+            var bind = @{bind};
+            setTimeout(bind.loop);
+        }
     }
 }
 
@@ -46,70 +51,81 @@ impl<MSG> AppSender<MSG> {
 pub struct App<MSG> {
     tx: Sender<MSG>,
     rx: Option<Receiver<MSG>>,
+    bind: Value,
 }
 
 impl<MSG: 'static> App<MSG> {
     /// Creates a context with connected sender and receiver.
     pub fn new() -> Self {
-        stdweb::initialize();
-        js! {
-            // Set dummy loop to process sent messages later
-            window.yew_loop = function() { }
+        let bind = js! {
+            return { "loop": function() { } };
         };
         let (tx, rx) = channel();
         App {
             tx,
             rx: Some(rx),
+            bind,
         }
     }
 
-    /// Returs a cloned sender.
+    /// Returns a cloned sender.
     pub fn sender(&mut self) -> AppSender<MSG> {
         AppSender {
             tx: self.tx.clone(),
+            bind: self.bind.clone(),
         }
     }
 
-    /// The main entrypoint of a yew program. It works similar as `program`
-    /// function in Elm. You should provide an initial model, `update` function
-    /// which will update the state of the model and a `view` function which
-    /// will render the model to a virtual DOM tree.
-    pub fn run<CTX, MOD, U, V>(&mut self, mut context: CTX, mut model: MOD, update: U, view: V)
+    /// Alias to `mount_to("body", ...)`.
+    pub fn mount<CTX, MOD, U, V>(&mut self, context: CTX, model: MOD, update: U, view: V)
     where
         CTX: 'static,
         MOD: 'static,
         U: Fn(&mut CTX, &mut MOD, MSG) + 'static,
         V: Fn(&MOD) -> Html<MSG> + 'static,
     {
-        clear_body();
-        let body = document().query_selector("body").expect("can't get body node for rendering");
+        self.mount_to("body", context, model, update, view)
+    }
+
+    /// The main entrypoint of a yew program. It works similar as `program`
+    /// function in Elm. You should provide an initial model, `update` function
+    /// which will update the state of the model and a `view` function which
+    /// will render the model to a virtual DOM tree.
+    pub fn mount_to<CTX, MOD, U, V>(&mut self, selector: &str, mut context: CTX, mut model: MOD, update: U, view: V)
+    where
+        CTX: 'static,
+        MOD: 'static,
+        U: Fn(&mut CTX, &mut MOD, MSG) + 'static,
+        V: Fn(&MOD) -> Html<MSG> + 'static,
+    {
+        let element = document().query_selector(selector)
+            .expect(format!("can't get node with selector `{}` for rendering", selector).as_str());
+        clear_element(&element);
         // No messages at start
-        let messages = Rc::new(RefCell::new(Vec::new()));
+        let mut messages = Vec::new();
         let mut last_frame = VNode::from(view(&model));
-        last_frame.apply(&body, None, messages.clone());
+        last_frame.apply(&element, None, self.sender());
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
+        let bind = self.bind.clone();
+        let sender = self.sender();
         let mut callback = move || {
-            debug!("Yew Loop Callback");
-            let mut borrowed = messages.borrow_mut();
-            borrowed.extend(rx.try_iter());
-            for msg in borrowed.drain(..) {
+            messages.extend(rx.try_iter());
+            for msg in messages.drain(..) {
                 update(&mut context, &mut model, msg);
             }
             let mut next_frame = VNode::from(view(&model));
-            debug!("Do apply");
-            next_frame.apply(&body, last_frame.take(), messages.clone());
+            next_frame.apply(&element, last_frame.take(), sender.clone());
             last_frame = Some(next_frame);
         };
         // Initial call for first rendering
         callback();
         js! {
+            var bind = @{bind};
             var callback = @{callback};
-            window.yew_loop = function() {
-                callback();
-            }
-        };
-        stdweb::event_loop();
+            bind.loop = callback;
+        }
+        // TODO `Drop` should drop the callback
     }
 }
 
@@ -150,34 +166,22 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, messages: Messages<MSG>)
+                fn attach(&mut self, element: &Element, mut sender: AppSender<MSG>)
                     -> EventListenerHandle {
                     let handler = self.0.take().expect("tried to attach listener twice");
                     let this = element.clone();
-                    let sender = move |event: $type| {
+                    let listener = move |event: $type| {
                         debug!("Event handler: {}", stringify!($type));
                         event.stop_propagation();
                         let handy_event: $ret = $convert(&this, event);
                         let msg = handler(handy_event);
-                        messages.borrow_mut().push(msg);
-                        schedule_update();
+                        sender.send(msg);
                     };
-                    element.add_event_listener(sender)
+                    element.add_event_listener(listener)
                 }
             }
         }
     )*};
-}
-
-/// Use `AppSender::send` to emit it implicit
-fn schedule_update() {
-    js! {
-        // Schedule to call the loop handler
-        // IMPORTANT! If call loop function immediately
-        // it stops handling other messages and the first
-        // one will be fired.
-        setTimeout(yew_loop);
-    }
 }
 
 // Inspired by: http://package.elm-lang.org/packages/elm-lang/html/2.0.0/Html-Events

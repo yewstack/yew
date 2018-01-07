@@ -139,6 +139,7 @@ fn view_data(model: &Model) -> Html<Msg> {
 }
 
 fn main() {
+    yew::initialize();
     let mut app = App::new();
     let context = Context {
         web: FetchService::new(app.sender()),
@@ -149,5 +150,6 @@ fn main() {
         data: None,
         ws: None,
     };
-    app.run(context, model, update, view);
+    app.mount(context, model, update, view);
+    yew::run_loop();
 }
