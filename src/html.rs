@@ -6,6 +6,7 @@ use stdweb::Value;
 use stdweb::web::{Element, INode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use virtual_dom::{VNode, VTag, Listener};
+use component::Component;
 
 /// Removes anything from the given element.
 fn clear_element(element: &Element) {
@@ -77,33 +78,29 @@ impl<MSG: 'static> App<MSG> {
     }
 
     /// Alias to `mount_to("body", ...)`.
-    pub fn mount<CTX, MOD, U, V>(&mut self, context: CTX, model: MOD, update: U, view: V)
+    pub fn mount<CTX, COMP>(&mut self, context: CTX, component: COMP)
     where
         CTX: 'static,
-        MOD: 'static,
-        U: Fn(&mut CTX, &mut MOD, MSG) + 'static,
-        V: Fn(&MOD) -> Html<MSG> + 'static,
+        COMP: Component<Msg=MSG> + 'static,
     {
-        self.mount_to("body", context, model, update, view)
+        let element = document().query_selector("body")
+            .expect("can't get body node for rendering");
+        self.mount_to(element, context, component)
     }
 
     /// The main entrypoint of a yew program. It works similar as `program`
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount_to<CTX, MOD, U, V>(&mut self, selector: &str, mut context: CTX, mut model: MOD, update: U, view: V)
+    pub fn mount_to<CTX, COMP>(&mut self, element: Element, context: CTX, mut component: COMP)
     where
         CTX: 'static,
-        MOD: 'static,
-        U: Fn(&mut CTX, &mut MOD, MSG) + 'static,
-        V: Fn(&MOD) -> Html<MSG> + 'static,
+        COMP: Component<Msg=MSG> + 'static,
     {
-        let element = document().query_selector(selector)
-            .expect(format!("can't get node with selector `{}` for rendering", selector).as_str());
         clear_element(&element);
         // No messages at start
         let mut messages = Vec::new();
-        let mut last_frame = VNode::from(view(&model));
+        let mut last_frame = VNode::from(component.view());
         last_frame.apply(&element, None, self.sender());
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
@@ -112,9 +109,9 @@ impl<MSG: 'static> App<MSG> {
         let mut callback = move || {
             messages.extend(rx.try_iter());
             for msg in messages.drain(..) {
-                update(&mut context, &mut model, msg);
+                component.update(msg);
             }
-            let mut next_frame = VNode::from(view(&model));
+            let mut next_frame = VNode::from(component.view());
             next_frame.apply(&element, last_frame.take(), sender.clone());
             last_frame = Some(next_frame);
         };
@@ -130,7 +127,7 @@ impl<MSG: 'static> App<MSG> {
 }
 
 /// A type which expected as a result of `view` function implementation.
-pub type Html<MSG> = VTag<MSG>;
+pub type Html<MSG> = VNode<MSG>;
 
 macro_rules! impl_action {
     ($($action:ident($event:ident : $type:ident) -> $ret:ty => $convert:expr)*) => {$(
