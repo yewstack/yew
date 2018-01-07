@@ -125,7 +125,7 @@ fn update(context: &mut Context, model: &mut Model, msg: Msg) {
 
 ### Easy-to-use data conversion and destructuring
 
-You could simply choose and use a format of data to store/send and resore/receive it.
+You could simply choose and use a format of data to store/send and restore/receive it.
 
 Supported: `JSON`
 
@@ -164,7 +164,7 @@ fn update(context: &mut Context, model: &mut Model, msg: Msg) {
 Clone or download this repository.
 
 There are seven examples to check how it works:
-[counter], [timer], [todomvc], [game_of_life], [crm], [dashboard], [npm_and_rest].
+[counter], [timer], [todomvc], [game_of_life], [crm], [dashboard] and [npm_and_rest].
 
 To run them you need to have [cargo-web] installed as well as a suitable target
 for the Rust compiler to generate web output. By default cargo-web uses
@@ -181,7 +181,6 @@ To start an example enter its directory start it with [cargo-web]:
 To run an optimised build instead of a debug build use:
 
     $ cargo web start --release
-
 
 [counter]: examples/counter
 [timer]: examples/timer

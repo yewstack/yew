@@ -170,7 +170,7 @@ fn view_entry((idx, entry): (usize, &Entry)) -> Html<Msg> {
             <div class="view",>
                 <input class="toggle", type="checkbox", checked=entry.completed, onclick=move|_| Msg::Toggle(idx), />
                 <label ondoubleclick=move|_| Msg::ToggleEdit(idx),>{ &entry.description }</label>
-                <button class="destroy", onclick=move |_| Msg::Remove(idx),></button>
+                <button class="destroy", onclick=move |_| Msg::Remove(idx), />
             </div>
             { view_entry_edit_input((idx, &entry)) }
         </li>

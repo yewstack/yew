@@ -110,7 +110,7 @@ fn update(context: &mut Context, model: &mut Model, msg: Msg) {
                     new_scene = Some(Scene::ClientsList);
                 }
                 unexpected => {
-                    panic!("Unexpected message diring new client editing: {:?}", unexpected);
+                    panic!("Unexpected message during new client editing: {:?}", unexpected);
                 }
             }
         }
