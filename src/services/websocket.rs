@@ -2,7 +2,6 @@
 //! [WebSocket Protocol](https://tools.ietf.org/html/rfc6455).
 
 use stdweb::Value;
-use html::AppSender;
 use format::{Storable, Restorable};
 use super::Task;
 

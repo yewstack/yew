@@ -3,7 +3,6 @@
 
 use std::time::Duration;
 use stdweb::Value;
-use html::AppSender;
 use super::{Task, to_ms};
 
 /// A handle to cancel a timeout task.

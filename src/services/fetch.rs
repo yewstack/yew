@@ -1,7 +1,6 @@
 //! Service to send HTTP-request to a server.
 
 use stdweb::Value;
-use html::AppSender;
 use format::{Storable, Restorable};
 use super::Task;
 

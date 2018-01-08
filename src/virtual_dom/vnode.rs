@@ -4,7 +4,7 @@ use std::fmt;
 use std::cmp::PartialEq;
 use stdweb::web::{INode, Node, Element, TextNode, document};
 use virtual_dom::{VTag, VText, VComp};
-use html::{AppSender, SharedContext};
+use html::AppSender;
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<MSG, CTX> {
@@ -22,8 +22,11 @@ pub enum VNode<MSG, CTX> {
         /// A virtual text node which was applied.
         vtext: VText,
     },
+    /// A bind between `VComp` and `Element`.
     VComp {
+        /// A reference to the `Element`.
         reference: Option<Element>,
+        /// A virtual component which will be applied to the `Element`.
         vcomp: VComp<MSG, CTX>,
     },
 }
