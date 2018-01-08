@@ -8,7 +8,7 @@ use std::sync::mpsc::{Sender, Receiver, channel};
 use stdweb::Value;
 use stdweb::web::{Element, INode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
-use virtual_dom::{VNode, VTag, Listener};
+use virtual_dom::{VNode, Listener};
 use component::Component;
 
 /// Removes anything from the given element.
@@ -18,8 +18,10 @@ fn clear_element(element: &Element) {
     }
 }
 
+/// Shared reference to a context.
 pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
 
+/// Local reference to application internals: messages sender and context.
 // TODO Rename to Context
 pub struct LocalSender<'a, MSG: 'a, CTX: 'a> {
     tx: &'a mut Sender<MSG>,
@@ -41,9 +43,11 @@ impl<'a, MSG: 'a, CTX: 'a> DerefMut for LocalSender<'a, MSG, CTX> {
     }
 }
 
+/// A universal callback prototype.
 pub type Callback<IN> = Box<Fn(IN)>;
 
 impl<'a, CTX: 'a, MSG: 'static> LocalSender<'a, MSG, CTX> {
+    /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> MSG + 'static,
@@ -52,7 +56,7 @@ impl<'a, CTX: 'a, MSG: 'static> LocalSender<'a, MSG, CTX> {
         let bind = self.bind.clone();
         let closure = move |input| {
             let output = function(input);
-            sender.send(output);
+            sender.send(output).expect("App lost the receiver!");
             let bind = bind.clone();
             js! {
                 // Schedule to call the loop handler
@@ -101,6 +105,7 @@ impl<MSG, CTX> AppSender<MSG, CTX> {
         }
     }
 
+    /// Clones shared context.
     pub fn context(&self) -> SharedContext<CTX> {
         self.context.clone()
     }

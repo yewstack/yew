@@ -1,7 +1,7 @@
 //! This module contains macros which implements `html!` macro
 //! and JSX-like templates.
 
-use virtual_dom::{VTag, VNode, Listener};
+use virtual_dom::{VNode, Listener};
 
 #[macro_export]
 macro_rules! html_impl {

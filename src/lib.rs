@@ -46,7 +46,7 @@
 //!
 
 #![deny(
-    //missing_docs,
+    missing_docs,
 )]
 #![recursion_limit="256"]
 
