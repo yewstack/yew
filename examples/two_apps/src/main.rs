@@ -1,15 +1,26 @@
+extern crate stdweb;
 #[macro_use]
 extern crate yew;
 
+use stdweb::web::document;
 use yew::html::*;
 
-struct Context {
-    sender: AppSender<Msg>,
-}
+type Context = ();
 
 struct Model {
+    sender: Option<ScopeSender<Context, Msg>>,
     selector: &'static str,
     title: String,
+}
+
+impl Default for Model {
+    fn default() -> Self {
+        Model {
+            sender: None,
+            selector: "",
+            title: "".into(),
+        }
+    }
 }
 
 enum Msg {
@@ -17,46 +28,49 @@ enum Msg {
     SetTitle(String),
 }
 
-fn update(context: &mut Context, model: &mut Model, msg: Msg) {
-    match msg {
-        Msg::SendToOpposite(title) => {
-            context.sender.send(Msg::SetTitle(title));
+impl Component<()> for Model {
+    type Msg = Msg;
+
+    fn update(&mut self, msg: Msg, _: &mut ScopeRef<Context, Msg>) {
+        match msg {
+            Msg::SendToOpposite(title) => {
+                self.sender.as_mut().unwrap().send(Msg::SetTitle(title));
+            }
+            Msg::SetTitle(title) => {
+                self.title = title;
+            }
         }
-        Msg::SetTitle(title) => {
-            model.title = title;
+    }
+
+    fn view(&self) -> Html<Context, Msg> {
+        html! {
+            <div>
+                <h3>{ format!("{} received <{}>", self.selector, self.title) }</h3>
+                <button onclick=|_| Msg::SendToOpposite("One".into()),>{ "One" }</button>
+                <button onclick=|_| Msg::SendToOpposite("Two".into()),>{ "Two" }</button>
+                <button onclick=|_| Msg::SendToOpposite("Three".into()),>{ "Three" }</button>
+            </div>
         }
     }
 }
 
-fn view(model: &Model) -> Html<Msg> {
-    html! {
-        <div>
-            <h3>{ format!("{} received <{}>", model.selector, model.title) }</h3>
-            <button onclick=|_| Msg::SendToOpposite("One".into()),>{ "One" }</button>
-            <button onclick=|_| Msg::SendToOpposite("Two".into()),>{ "Two" }</button>
-            <button onclick=|_| Msg::SendToOpposite("Three".into()),>{ "Three" }</button>
-        </div>
-    }
-}
-
-fn mount_app(selector: &'static str, app: &mut App<Msg>, sender: AppSender<Msg>) {
-    let context = Context {
-        sender,
-    };
+fn mount_app(selector: &'static str, app: &mut Scope<Context, Msg>, sender: ScopeSender<Context, Msg>) {
     let model = Model {
+        sender: Some(sender),
         selector,
         title: "Not set".into(),
     };
-    app.mount_to(selector, context, model, update, view);
+    let element = document().query_selector(selector).unwrap();
+    app.mount_to(element, model);
 }
 
 fn main() {
     yew::initialize();
 
-    let mut first_app = App::new();
+    let mut first_app = Scope::new(());
     let to_first = first_app.sender();
 
-    let mut second_app = App::new();
+    let mut second_app = Scope::new(());
     let to_second = second_app.sender();
 
     mount_app(".first-app", &mut first_app, to_second);

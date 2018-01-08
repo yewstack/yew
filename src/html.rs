@@ -1,5 +1,7 @@
 //! The main module which contents aliases to necessary items
 //! to create a template and implement `update` and `view` functions.
+//! Also this module contains declaration of `Component` trait which used
+//! to create own UI-components.
 
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -9,7 +11,6 @@ use stdweb::Value;
 use stdweb::web::{Element, INode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use virtual_dom::{VNode, Listener};
-use component::Component;
 
 /// Removes anything from the given element.
 fn clear_element(element: &Element) {
@@ -18,18 +19,33 @@ fn clear_element(element: &Element) {
     }
 }
 
+/// An interface of a UI-component. Uses `self` as a model.
+pub trait Component<CTX>: Default {
+    /// Message type which `update` loop get.
+    type Msg;
+    /// Initialization routine which could use a context.
+    fn initialize(&mut self, _context: &mut ScopeRef<CTX, Self::Msg>) {
+        // Do nothing by default
+    }
+    /// Called everytime when a messages of `Msg` type received. It also takes a
+    /// reference to a context.
+    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self::Msg>);
+    /// Called by rendering loop.
+    fn view(&self) -> Html<CTX, Self::Msg>;
+}
+
 /// Shared reference to a context.
 pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
 
 /// Local reference to application internals: messages sender and context.
 // TODO Rename to Context
-pub struct LocalSender<'a, CTX: 'a, MSG: 'a> {
+pub struct ScopeRef<'a, CTX: 'a, MSG: 'a> {
     context: &'a mut CTX,
     tx: &'a mut Sender<MSG>,
     bind: &'a Value,
 }
 
-impl<'a, CTX: 'a, MSG: 'a> Deref for LocalSender<'a, CTX, MSG> {
+impl<'a, CTX: 'a, MSG: 'a> Deref for ScopeRef<'a, CTX, MSG> {
     type Target = CTX;
 
     fn deref(&self) -> &CTX {
@@ -37,7 +53,7 @@ impl<'a, CTX: 'a, MSG: 'a> Deref for LocalSender<'a, CTX, MSG> {
     }
 }
 
-impl<'a, CTX: 'a, MSG: 'a> DerefMut for LocalSender<'a, CTX, MSG> {
+impl<'a, CTX: 'a, MSG: 'a> DerefMut for ScopeRef<'a, CTX, MSG> {
     fn deref_mut(&mut self) -> &mut CTX {
         &mut self.context
     }
@@ -46,7 +62,7 @@ impl<'a, CTX: 'a, MSG: 'a> DerefMut for LocalSender<'a, CTX, MSG> {
 /// A universal callback prototype.
 pub type Callback<IN> = Box<Fn(IN)>;
 
-impl<'a, CTX: 'a, MSG: 'static> LocalSender<'a, CTX, MSG> {
+impl<'a, CTX: 'a, MSG: 'static> ScopeRef<'a, CTX, MSG> {
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
@@ -71,17 +87,17 @@ impl<'a, CTX: 'a, MSG: 'static> LocalSender<'a, CTX, MSG> {
     }
 }
 
-/// This class keeps a sender to a context to send a messages to a loop
+/// This struct keeps a sender to a context to send a messages to a loop
 /// and to schedule the next update call.
-pub struct AppSender<CTX, MSG> {
+pub struct ScopeSender<CTX, MSG> {
     context: SharedContext<CTX>,
     tx: Sender<MSG>,
     bind: Value,
 }
 
-impl<CTX, MSG> Clone for AppSender<CTX, MSG> {
+impl<CTX, MSG> Clone for ScopeSender<CTX, MSG> {
     fn clone(&self) -> Self {
-        AppSender {
+        ScopeSender {
             tx: self.tx.clone(),
             context: self.context.clone(),
             bind: self.bind.clone(),
@@ -89,7 +105,7 @@ impl<CTX, MSG> Clone for AppSender<CTX, MSG> {
     }
 }
 
-impl<CTX, MSG> AppSender<CTX, MSG> {
+impl<CTX, MSG> ScopeSender<CTX, MSG> {
     /// Send the message and schedule an update.
     // TODO Consider to remove this method
     pub fn send(&mut self, msg: MSG) {
@@ -113,18 +129,18 @@ impl<CTX, MSG> AppSender<CTX, MSG> {
 
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
-pub struct App<CTX, MSG> {
+pub struct Scope<CTX, MSG> {
     context: SharedContext<CTX>,
     tx: Sender<MSG>,
     bind: Value,
     rx: Option<Receiver<MSG>>,
 }
 
-impl<CTX: 'static, MSG: 'static> App<CTX, MSG> {
+impl<CTX: 'static, MSG: 'static> Scope<CTX, MSG> {
     /// Creates app with a context.
     pub fn new(context: CTX) -> Self {
         let context = Rc::new(RefCell::new(context));
-        App::reuse(context)
+        Scope::reuse(context)
     }
 
     /// Creates isolated `App` instance, but reuse the context.
@@ -133,7 +149,7 @@ impl<CTX: 'static, MSG: 'static> App<CTX, MSG> {
             return { "loop": function() { } };
         };
         let (tx, rx) = channel();
-        App {
+        Scope {
             tx,
             rx: Some(rx),
             context,
@@ -142,8 +158,8 @@ impl<CTX: 'static, MSG: 'static> App<CTX, MSG> {
     }
 
     /// Returns a cloned sender.
-    pub fn sender(&mut self) -> AppSender<CTX, MSG> {
-        AppSender {
+    pub fn sender(&mut self) -> ScopeSender<CTX, MSG> {
+        ScopeSender {
             tx: self.tx.clone(),
             context: self.context.clone(),
             bind: self.bind.clone(),
@@ -176,7 +192,7 @@ impl<CTX: 'static, MSG: 'static> App<CTX, MSG> {
             let tx = &mut sender.tx;
             let bind = &sender.bind;
             let mut context = sender.context.borrow_mut();
-            let mut sender = LocalSender {
+            let mut sender = ScopeRef {
                 tx, bind,
                 context: &mut *context,
             };
@@ -196,7 +212,7 @@ impl<CTX: 'static, MSG: 'static> App<CTX, MSG> {
                 let tx = &mut sender.tx;
                 let bind = &sender.bind;
                 let mut context = sender.context.borrow_mut();
-                let mut sender = LocalSender {
+                let mut sender = ScopeRef {
                     tx, bind,
                     context: &mut *context,
                 };
@@ -254,7 +270,7 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, mut sender: AppSender<CTX, MSG>)
+                fn attach(&mut self, element: &Element, mut sender: ScopeSender<CTX, MSG>)
                     -> EventListenerHandle {
                     let handler = self.0.take().expect("tried to attach listener twice");
                     let this = element.clone();

@@ -60,7 +60,6 @@ pub mod macros;
 pub mod html;
 pub mod services;
 pub mod format;
-pub mod component;
 pub mod virtual_dom;
 
 /// Initializes yew framework. It should be called first.

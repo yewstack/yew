@@ -4,7 +4,7 @@ use std::fmt;
 use std::cmp::PartialEq;
 use stdweb::web::{INode, Node, Element, TextNode, document};
 use virtual_dom::{VTag, VText, VComp};
-use html::AppSender;
+use html::ScopeSender;
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<CTX, MSG> {
@@ -50,7 +50,7 @@ impl<CTX, MSG> VNode<CTX, MSG> {
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
-    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<CTX, MSG>>, sender: AppSender<CTX, MSG>) {
+    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<CTX, MSG>>, sender: ScopeSender<CTX, MSG>) {
         match *self {
             VNode::VTag {
                 ref mut vtag,

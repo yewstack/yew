@@ -3,6 +3,7 @@
 
 use stdweb::Value;
 use format::{Storable, Restorable};
+use html::Callback;
 use super::Task;
 
 /// A status of a websocket connection. Used for status notification.
@@ -28,16 +29,14 @@ impl WebSocketService {
 
     /// Connects to a server by a weboscket connection. Needs two functions to generate
     /// data and notification messages.
-    pub fn connect<F, N, OUT>(&mut self, url: &str, convert_and_send: F, notification: N) -> WebSocketHandle
+    pub fn connect<OUT: 'static>(&mut self, url: &str, callback: Callback<OUT>, notification: Callback<WebSocketStatus>) -> WebSocketHandle
     where
         OUT: From<Restorable>,
-        F: Fn(OUT) + 'static,
-        N: Fn(WebSocketStatus) + 'static,
     {
         let callback = move |s: String| {
             let data = Ok(s);
             let out = OUT::from(data);
-            convert_and_send(out);
+            callback(out);
         };
         let notify_callback = move |code: u32| {
             let code = {

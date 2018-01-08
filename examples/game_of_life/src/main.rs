@@ -10,7 +10,7 @@ use yew::services::Task;
 use yew::services::interval::IntervalService;
 
 struct Context {
-    interval: IntervalService<Msg>,
+    interval: IntervalService,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -29,6 +29,17 @@ struct GameOfLife {
     cellules_width: usize,
     cellules_height: usize,
     job: Option<Box<Task>>,
+}
+
+impl Default for GameOfLife {
+    fn default() -> Self {
+        GameOfLife {
+            cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
+            cellules_width: 50,
+            cellules_height: 40,
+            job : None
+        }
+    }
 }
 
 impl Cellule {
@@ -145,69 +156,74 @@ enum Msg {
     ToggleCellule(usize)
 }
 
-fn update(context: &mut Context, gof: &mut GameOfLife, msg: Msg) {
-    match msg {
-        Msg::Random => {
-            gof.random_mutate();
-            println!("Random");
-        },
-        Msg::Start => {
-            let handle = context.interval.spawn(Duration::from_millis(200), || Msg::Step);
-            gof.job = Some(Box::new(handle));
-            println!("Start");
-        },
-        Msg::Step => {
-            gof.play();
-        },
-        Msg::Reset => {
-            gof.reset();
-            println!("Reset");
-        },
-        Msg::Stop => {
-            if let Some(mut task) = gof.job.take() {
-                task.cancel();
+impl Component<Context> for GameOfLife {
+    type Msg = Msg;
+
+    fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Msg>) {
+        match msg {
+            Msg::Random => {
+                self.random_mutate();
+                println!("Random");
+            },
+            Msg::Start => {
+                let callback = context.send_back(|_| Msg::Step);
+                let handle = context.interval.spawn(Duration::from_millis(200), callback);
+                self.job = Some(Box::new(handle));
+                println!("Start");
+            },
+            Msg::Step => {
+                self.play();
+            },
+            Msg::Reset => {
+                self.reset();
+                println!("Reset");
+            },
+            Msg::Stop => {
+                if let Some(mut task) = self.job.take() {
+                    task.cancel();
+                }
+                self.job = None;
+                println!("Stop");
+            },
+            Msg::ToggleCellule(idx) => {
+                self.toggle_cellule(idx);
             }
-            gof.job = None;
-            println!("Stop");
-        },
-        Msg::ToggleCellule(idx) => {
-            gof.toggle_cellule(idx);
+        }
+    }
+
+    fn view(&self) -> Html<Context, Msg> {
+        html! {
+            <div>
+                <section class="game-container",>
+                    <header class="app-header",>
+                        <img src="favicon.ico", class="app-logo",/>
+                        <h1 class="app-title",>{ "Game of Life" }</h1>
+                    </header>
+                    <section class="game-area",>
+                        <div class="game-of-life",>
+                            { for self.cellules.iter().enumerate().map(view_cellule) }
+                        </div>
+                        <div class="game-buttons",>
+                            <button class="game-button", onclick=move|_| Msg::Random,>{ "Random" }</button>
+                            <button class="game-button", onclick=move|_| Msg::Step,>{ "Step" }</button>
+                            <button class="game-button", onclick=move|_| Msg::Start,>{ "Start" }</button>
+                            <button class="game-button", onclick=move|_| Msg::Stop,>{ "Stop" }</button>
+                            <button class="game-button", onclick=move|_| Msg::Reset,>{ "Reset" }</button>
+                        </div>
+                    </section>
+                </section>
+                <footer class="app-footer",>
+                    <strong class="footer-text",>
+                      { "Game of Life - a yew experiment " }
+                    </strong>
+                    <a href="https://github.com/DenisKolodin/yew", target="_blank",>{ "source" }</a>
+                </footer>
+            </div>
         }
     }
 }
 
-fn view(gof: &GameOfLife) -> Html<Msg> {
-    html! {
-        <div>
-            <section class="game-container",>
-                <header class="app-header",>
-                    <img src="favicon.ico", class="app-logo",/>
-                    <h1 class="app-title",>{ "Game of Life" }</h1>
-                </header>
-                <section class="game-area",>
-                    <div class="game-of-life",>
-                        { for gof.cellules.iter().enumerate().map(view_cellule) }
-                    </div>
-                    <div class="game-buttons",>
-                        <button class="game-button", onclick=move|_| Msg::Random,>{ "Random" }</button>
-                        <button class="game-button", onclick=move|_| Msg::Step,>{ "Step" }</button>
-                        <button class="game-button", onclick=move|_| Msg::Start,>{ "Start" }</button>
-                        <button class="game-button", onclick=move|_| Msg::Stop,>{ "Stop" }</button>
-                        <button class="game-button", onclick=move|_| Msg::Reset,>{ "Reset" }</button>
-                    </div>
-                </section>
-            </section>
-            <footer class="app-footer",>
-                <strong class="footer-text",>
-                  { "Game of Life - a yew experiment " }
-                </strong>
-                <a href="https://github.com/DenisKolodin/yew", target="_blank",>{ "source" }</a>
-            </footer>
-        </div>
-    }
-}
-
-fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Msg> {
+fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Context, Msg> {
     html! {
         <div class=("game-cellule", if cellule.life_state == LifeState::Live { "cellule-live" } else { "cellule-dead" }),
             onclick=move |_| Msg::ToggleCellule(idx),> </div>
@@ -216,16 +232,10 @@ fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Msg> {
 
 fn main() {
     yew::initialize();
-    let mut app = App::new();
     let context = Context {
-        interval: IntervalService::new(app.sender()),
+        interval: IntervalService::new(),
     };
-    let gof = GameOfLife {
-        cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
-        cellules_width: 50,
-        cellules_height: 40,
-        job : None
-    };
-    app.mount(context, gof, update, view);
+    let mut app = Scope::new(context);
+    app.mount(GameOfLife::default());
     yew::run_loop();
 }

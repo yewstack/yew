@@ -2,8 +2,7 @@
 
 use std::marker::PhantomData;
 use stdweb::web::Element;
-use html::{App, SharedContext};
-use component::Component;
+use html::{Scope, SharedContext, Component};
 
 /// A virtual component.
 pub struct VComp<CTX, MSG> {
@@ -16,7 +15,7 @@ impl<CTX: 'static, MSG: 'static> VComp<CTX, MSG> {
     pub fn lazy<T: Component<CTX> + 'static>() -> Self {
         let generator = |element, context| {
             let component = T::default();
-            let mut app = App::reuse(context);
+            let mut app = Scope::reuse(context);
             app.mount_to(element, component);
         };
         VComp {
