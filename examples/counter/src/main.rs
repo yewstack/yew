@@ -66,13 +66,11 @@ impl Default for Model {
 }
 
 fn main() {
-    use std::rc::Rc;
-    use std::cell::RefCell;
     yew::initialize();
     let context = Context {
         console: ConsoleService,
     };
-    let mut app = App::new(Rc::new(RefCell::new(context)));
+    let mut app = App::new(context);
     app.mount(Model::default());
     yew::run_loop();
 }
