@@ -158,6 +158,19 @@ impl<MSG: 'static, CTX: 'static> App<MSG, CTX> {
         COMP: Component<CTX, Msg=MSG> + 'static,
     {
         clear_element(&element);
+        //
+        let mut sender = self.sender();
+        {
+            // TODO DRY
+            let tx = &mut sender.tx;
+            let bind = &sender.bind;
+            let mut context = sender.context.borrow_mut();
+            let sender = LocalSender {
+                tx, bind,
+                context: &mut *context,
+            };
+            component.initialize(sender);
+        }
         // No messages at start
         let mut messages = Vec::new();
         let mut last_frame = VNode::from(component.view());
@@ -165,10 +178,10 @@ impl<MSG: 'static, CTX: 'static> App<MSG, CTX> {
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
         let bind = self.bind.clone();
-        let mut sender = self.sender();
         let mut callback = move || {
             messages.extend(rx.try_iter());
             for msg in messages.drain(..) {
+                // TODO DRY
                 let tx = &mut sender.tx;
                 let bind = &sender.bind;
                 let mut context = sender.context.borrow_mut();
