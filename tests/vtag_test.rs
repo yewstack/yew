@@ -1,19 +1,19 @@
 #[macro_use]
 extern crate yew;
 
-use yew::virtual_dom::VTag;
+use yew::virtual_dom::VNode;
 
 #[test]
 fn it_compares_tags() {
-    let a: VTag<()> = html! {
+    let a: VNode<(),()> = html! {
         <div></div>
     };
 
-    let b: VTag<()> = html! {
+    let b: VNode<(),()> = html! {
         <div></div>
     };
 
-    let c: VTag<()> = html! {
+    let c: VNode<(),()> = html! {
         <p></p>
     };
 
@@ -23,15 +23,15 @@ fn it_compares_tags() {
 
 #[test]
 fn it_compares_text() {
-    let a: VTag<()> = html! {
+    let a: VNode<(),()> = html! {
         <div>{ "correct" }</div>
     };
 
-    let b: VTag<()> = html! {
+    let b: VNode<(),()> = html! {
         <div>{ "correct" }</div>
     };
 
-    let c: VTag<()> = html! {
+    let c: VNode<(),()> = html! {
         <div>{ "incorrect" }</div>
     };
 
@@ -41,15 +41,15 @@ fn it_compares_text() {
 
 #[test]
 fn it_compares_attributes() {
-    let a: VTag<()> = html! {
+    let a: VNode<(),()> = html! {
         <div a="test",></div>
     };
 
-    let b: VTag<()> = html! {
+    let b: VNode<(),()> = html! {
         <div a="test",></div>
     };
 
-    let c: VTag<()> = html! {
+    let c: VNode<(),()> = html! {
         <div a="fail",></div>
     };
 
@@ -59,19 +59,19 @@ fn it_compares_attributes() {
 
 #[test]
 fn it_compares_children() {
-    let a: VTag<()> = html! {
+    let a: VNode<(),()> = html! {
         <div>
             <p></p>
         </div>
     };
 
-    let b: VTag<()> = html! {
+    let b: VNode<(),()> = html! {
         <div>
             <p></p>
         </div>
     };
 
-    let c: VTag<()> = html! {
+    let c: VNode<(),()> = html! {
         <div>
             <span></span>
         </div>
@@ -83,15 +83,15 @@ fn it_compares_children() {
 
 #[test]
 fn it_compares_classes() {
-    let a: VTag<()> = html! {
+    let a: VNode<(),()> = html! {
         <div class="test",></div>
     };
 
-    let b: VTag<()> = html! {
+    let b: VNode<(),()> = html! {
         <div class="test",></div>
     };
 
-    let c: VTag<()> = html! {
+    let c: VNode<(),()> = html! {
         <div class="fail",></div>
     };
 
@@ -101,15 +101,15 @@ fn it_compares_classes() {
 
 #[test]
 fn it_compares_values() {
-    let a: VTag<()> = html! {
+    let a: VNode<(),()> = html! {
         <input value="test",/>
     };
 
-    let b: VTag<()> = html! {
+    let b: VNode<(),()> = html! {
         <input value="test",/>
     };
 
-    let c: VTag<()> = html! {
+    let c: VNode<(),()> = html! {
         <input value="fail",/>
     };
 
@@ -119,15 +119,15 @@ fn it_compares_values() {
 
 #[test]
 fn it_compares_kinds() {
-    let a: VTag<()> = html! {
+    let a: VNode<(),()> = html! {
         <input type="text",/>
     };
 
-    let b: VTag<()> = html! {
+    let b: VNode<(),()> = html! {
         <input type="text",/>
     };
 
-    let c: VTag<()> = html! {
+    let c: VNode<(),()> = html! {
         <input type="hidden",/>
     };
 
@@ -137,15 +137,15 @@ fn it_compares_kinds() {
 
 #[test]
 fn it_compares_checked() {
-    let a: VTag<()> = html! {
+    let a: VNode<(),()> = html! {
         <input type="checkbox", checked=false,/>
     };
 
-    let b: VTag<()> = html! {
+    let b: VNode<(),()> = html! {
         <input type="checkbox", checked=false,/>
     };
 
-    let c: VTag<()> = html! {
+    let c: VNode<(),()> = html! {
         <input type="checkbox", checked=true,/>
     };
 
