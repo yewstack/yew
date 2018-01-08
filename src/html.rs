@@ -121,8 +121,14 @@ pub struct App<CTX, MSG> {
 }
 
 impl<CTX: 'static, MSG: 'static> App<CTX, MSG> {
-    /// Creates a context with connected sender and receiver.
-    pub fn new(context: SharedContext<CTX>) -> Self {
+    /// Creates app with a context.
+    pub fn new(context: CTX) -> Self {
+        let context = Rc::new(RefCell::new(context));
+        App::reuse(context)
+    }
+
+    /// Creates isolated `App` instance, but reuse the context.
+    pub fn reuse(context: SharedContext<CTX>) -> Self {
         let bind = js! {
             return { "loop": function() { } };
         };
