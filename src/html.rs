@@ -170,11 +170,11 @@ impl<CTX: 'static, MSG: 'static> App<CTX, MSG> {
             let tx = &mut sender.tx;
             let bind = &sender.bind;
             let mut context = sender.context.borrow_mut();
-            let sender = LocalSender {
+            let mut sender = LocalSender {
                 tx, bind,
                 context: &mut *context,
             };
-            component.initialize(sender);
+            component.initialize(&mut sender);
         }
         // No messages at start
         let mut messages = Vec::new();
@@ -190,11 +190,11 @@ impl<CTX: 'static, MSG: 'static> App<CTX, MSG> {
                 let tx = &mut sender.tx;
                 let bind = &sender.bind;
                 let mut context = sender.context.borrow_mut();
-                let sender = LocalSender {
+                let mut sender = LocalSender {
                     tx, bind,
                     context: &mut *context,
                 };
-                component.update(msg, sender);
+                component.update(msg, &mut sender);
             }
             let mut next_frame = VNode::from(component.view());
             next_frame.apply(&element, last_frame.take(), sender.clone());
