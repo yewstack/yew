@@ -19,15 +19,6 @@ struct Model {
     messages: Vec<&'static str>,
 }
 
-impl Default for Model {
-    fn default() -> Self {
-        Model {
-            job: None,
-            messages: Vec::new(),
-        }
-    }
-}
-
 enum Msg {
     StartTimeout,
     StartInterval,
@@ -38,6 +29,13 @@ enum Msg {
 
 impl Component<Context> for Model {
     type Msg = Msg;
+
+    fn create(_: &mut ScopeRef<Context, Msg>) -> Self {
+        Model {
+            job: None,
+            messages: Vec::new(),
+        }
+    }
 
     fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Msg>) {
         match msg {
@@ -107,7 +105,7 @@ fn main() {
         timeout: TimeoutService::new(),
         console: ConsoleService,
     };
-    let mut app = Scope::new(context);
-    app.mount(Model::default());
+    let app = Scope::new(context);
+    app.mount_to_body::<Model>();
     yew::run_loop();
 }

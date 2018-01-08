@@ -31,17 +31,6 @@ struct GameOfLife {
     job: Option<Box<Task>>,
 }
 
-impl Default for GameOfLife {
-    fn default() -> Self {
-        GameOfLife {
-            cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
-            cellules_width: 50,
-            cellules_height: 40,
-            job : None
-        }
-    }
-}
-
 impl Cellule {
 
     pub fn set_alive(&mut self) { self.life_state = LifeState::Live; }
@@ -159,6 +148,15 @@ enum Msg {
 impl Component<Context> for GameOfLife {
     type Msg = Msg;
 
+    fn create(_: &mut ScopeRef<Context, Msg>) -> Self {
+        GameOfLife {
+            cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
+            cellules_width: 50,
+            cellules_height: 40,
+            job : None
+        }
+    }
+
     fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Msg>) {
         match msg {
             Msg::Random => {
@@ -235,7 +233,7 @@ fn main() {
     let context = Context {
         interval: IntervalService::new(),
     };
-    let mut app = Scope::new(context);
-    app.mount(GameOfLife::default());
+    let app = Scope::new(context);
+    app.mount_to_body::<GameOfLife>();
     yew::run_loop();
 }

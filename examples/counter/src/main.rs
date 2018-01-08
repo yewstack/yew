@@ -23,6 +23,10 @@ enum Msg {
 impl Component<Context> for Model {
     type Msg = Msg;
 
+    fn create(_: &mut ScopeRef<Context, Msg>) -> Self {
+        Model { value: 0 }
+    }
+
     fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Msg>) {
         match msg {
             Msg::Increment => {
@@ -56,20 +60,12 @@ impl Component<Context> for Model {
     }
 }
 
-impl Default for Model {
-    fn default() -> Self {
-        Model {
-            value: 0,
-        }
-    }
-}
-
 fn main() {
     yew::initialize();
     let context = Context {
         console: ConsoleService,
     };
-    let mut app = Scope::new(context);
-    app.mount(Model::default());
+    let app = Scope::new(context);
+    app.mount_to_body::<Model>();
     yew::run_loop();
 }

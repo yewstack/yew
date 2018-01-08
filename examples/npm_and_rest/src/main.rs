@@ -23,15 +23,6 @@ struct Model {
     exchanges: Vec<String>,
 }
 
-impl Default for Model {
-    fn default() -> Self {
-        Model {
-            profile: None,
-            exchanges: Vec::new(),
-        }
-    }
-}
-
 enum Msg {
     Gravatar,
     GravatarReady(Result<Profile, ()>),
@@ -40,6 +31,13 @@ enum Msg {
 
 impl Component<Context> for Model {
     type Msg = Msg;
+
+    fn create(_: &mut ScopeRef<Context, Msg>) -> Self {
+        Model {
+            profile: None,
+            exchanges: Vec::new(),
+        }
+    }
 
     fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Msg>) {
         match msg {
@@ -81,7 +79,7 @@ fn main() {
         gravatar: GravatarService::new(),
         ccxt: CcxtService::new(),
     };
-    let mut app = Scope::new(context);
-    app.mount(Model::default());
+    let app = Scope::new(context);
+    app.mount_to_body::<Model>();
     yew::run_loop();
 }
