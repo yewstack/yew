@@ -3,6 +3,7 @@
 
 use std::time::Duration;
 use stdweb::Value;
+use html::Callback;
 use super::{Task, to_ms};
 
 /// A handle to cancel a timeout task.
@@ -19,12 +20,9 @@ impl TimeoutService {
     }
 
     /// Sets timeout which send a messages from a `converter` after `duration`.
-    pub fn spawn<F>(&mut self, duration: Duration, convert_and_send: F) -> TimeoutHandle
-    where
-        F: Fn() + 'static,
-    {
+    pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> TimeoutHandle {
         let callback = move || {
-            convert_and_send();
+            callback(());
         };
         let ms = to_ms(duration);
         let handle = js! {

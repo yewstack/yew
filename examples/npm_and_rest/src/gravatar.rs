@@ -1,6 +1,6 @@
 use yew::format::{Nothing, Json};
 use yew::services::fetch::{FetchService, FetchHandle, Method};
-use yew::html::AppSender;
+use yew::html::Callback;
 
 #[derive(Deserialize, Debug)]
 pub struct Profile {
@@ -17,23 +17,20 @@ pub struct Entry {
     preferred_username: String,
 }
 
-pub struct GravatarService<MSG> {
-    web: FetchService<MSG>,
+pub struct GravatarService {
+    web: FetchService,
 }
 
-impl<MSG: 'static> GravatarService<MSG> {
-    pub fn new(sender: AppSender<MSG>) -> Self {
+impl GravatarService {
+    pub fn new() -> Self {
         Self {
-            web: FetchService::new(sender),
+            web: FetchService::new(),
         }
     }
 
-    pub fn profile<F>(&mut self, hash: &str, listener: F) -> FetchHandle
-    where
-        F: Fn(Result<Profile, ()>) -> MSG + 'static
-    {
+    pub fn profile(&mut self, hash: &str, callback: Callback<Result<Profile, ()>>) -> FetchHandle {
         let url = format!("https://www.gravatar.com/{}.json", hash);
-        let handler = move |Json(data)| { listener(data) };
-        self.web.fetch(Method::Get, &url, Nothing, handler)
+        let handler = move |Json(data)| { callback(data) };
+        self.web.fetch(Method::Get, &url, Nothing, Box::new(handler))
     }
 }

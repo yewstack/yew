@@ -4,7 +4,6 @@ extern crate yew;
 
 use chrono::prelude::*;
 use yew::html::*;
-use yew::component::Component;
 use yew::services::console::ConsoleService;
 
 struct Context {
@@ -24,7 +23,7 @@ enum Msg {
 impl Component<Context> for Model {
     type Msg = Msg;
 
-    fn update(&mut self, msg: Msg, context: &mut LocalSender<Context, Msg>) {
+    fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Msg>) {
         match msg {
             Msg::Increment => {
                 self.value = self.value + 1;
@@ -70,7 +69,7 @@ fn main() {
     let context = Context {
         console: ConsoleService,
     };
-    let mut app = App::new(context);
+    let mut app = Scope::new(context);
     app.mount(Model::default());
     yew::run_loop();
 }

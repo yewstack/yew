@@ -4,8 +4,8 @@
 use stdweb::Value;
 use format::{Storable, Restorable};
 
-/// A scope to keep the data in.
-pub enum Scope {
+/// An area to keep the data in.
+pub enum Area {
     /// Use `localStorage` of a browser.
     Local,
     /// Use `sessionStorage` of a browser.
@@ -14,13 +14,13 @@ pub enum Scope {
 
 /// A storage service attached to a context.
 pub struct StorageService {
-    scope: Scope,
+    scope: Area,
 }
 
 impl StorageService {
 
     /// Creates a new storage service instance with specified storate scope.
-    pub fn new(scope: Scope) -> Self {
+    pub fn new(scope: Area) -> Self {
         StorageService { scope }
     }
 
@@ -31,8 +31,8 @@ impl StorageService {
     {
         if let Some(data) = value.into() {
             match self.scope {
-                Scope::Local => { js! { localStorage.setItem(@{key}, @{data}); } },
-                Scope::Session => { js! { sessionStorage.setItem(@{key}, @{data}); } },
+                Area::Local => { js! { localStorage.setItem(@{key}, @{data}); } },
+                Area::Session => { js! { sessionStorage.setItem(@{key}, @{data}); } },
             }
         }
     }
@@ -44,8 +44,8 @@ impl StorageService {
     {
         let value: Value = {
             match self.scope {
-                Scope::Local => js! { return localStorage.getItem(@{key}); },
-                Scope::Session => js! { return sessionStorage.getItem(@{key}); },
+                Area::Local => js! { return localStorage.getItem(@{key}); },
+                Area::Session => js! { return sessionStorage.getItem(@{key}); },
             }
         };
         let data = value.into_string().ok_or_else(|| "can't read string from storage".into());
@@ -56,8 +56,8 @@ impl StorageService {
     pub fn remove(&mut self, key: &str) {
         {
             match self.scope {
-                Scope::Local => js! { localStorage.removeItem(@{key}); },
-                Scope::Session => js! { sessionStorage.removeItem(@{key}); },
+                Area::Local => js! { localStorage.removeItem(@{key}); },
+                Area::Session => js! { sessionStorage.removeItem(@{key}); },
             }
         };
     }

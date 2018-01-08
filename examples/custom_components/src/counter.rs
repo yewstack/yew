@@ -1,5 +1,4 @@
 use yew::html::*;
-use yew::component::Component;
 
 pub struct Counter {
     value: u32,
@@ -17,10 +16,10 @@ pub enum Msg {
     Increase,
 }
 
-impl<CTX: Printer> Component<CTX> for Counter {
+impl<CTX: Printer + 'static> Component<CTX> for Counter {
     type Msg = Msg;
 
-    fn update(&mut self, msg: Self::Msg, context: &mut CTX) {
+    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self::Msg>) {
         match msg {
             Msg::Increase => {
                 self.value = self.value + 1;
@@ -29,7 +28,7 @@ impl<CTX: Printer> Component<CTX> for Counter {
         }
     }
 
-    fn view(&self) -> Html<Self::Msg, CTX> {
+    fn view(&self) -> Html<CTX, Self::Msg> {
         html! {
             <div>
                 <p>{ self.value }</p>

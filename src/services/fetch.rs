@@ -2,6 +2,7 @@
 
 use stdweb::Value;
 use format::{Storable, Restorable};
+use html::Callback;
 use super::Task;
 
 /// A handle to control sent request. Could be canceled by `Task::cancel` call.
@@ -37,16 +38,15 @@ impl FetchService {
 
     /// Sends request to a server. Could contains input data and
     /// needs a fuction to convert returned data to a loop's message.
-    pub fn fetch<F, IN, OUT>(&mut self, method: Method, url: &str, data: IN, convert_and_send: F) -> FetchHandle
+    pub fn fetch<IN, OUT: 'static>(&mut self, method: Method, url: &str, data: IN, callback: Callback<OUT>) -> FetchHandle
     where
         IN: Into<Storable>,
         OUT: From<Restorable>,
-        F: Fn(OUT) + 'static
     {
         let callback = move |success: bool, s: String| {
             let data = if success { Ok(s) } else { Err(s) };
             let out = OUT::from(data);
-            convert_and_send(out);
+            callback(out);
         };
         let method = method.to_argument();
         let body = data.into();

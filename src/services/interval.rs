@@ -3,6 +3,7 @@
 
 use std::time::Duration;
 use stdweb::Value;
+use html::Callback;
 use super::{Task, to_ms};
 
 /// A handle which helps to cancel interval. Uses
@@ -21,12 +22,10 @@ impl IntervalService {
 
     /// Sets interval which will call send a messages returned by a converter
     /// on every intarval expiration.
-    pub fn spawn<F>(&mut self, duration: Duration, convert_and_send: F) -> IntervalHandle
-    where
-        F: Fn() + 'static,
+    pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> IntervalHandle
     {
         let callback = move || {
-            convert_and_send();
+            callback(());
         };
         let ms = to_ms(duration);
         let handle = js! {

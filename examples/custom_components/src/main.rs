@@ -3,11 +3,8 @@ extern crate yew;
 
 mod counter;
 
-use std::rc::Rc;
-use std::cell::RefCell;
 use yew::html::*;
 use yew::services::console::ConsoleService;
-use yew::component::Component;
 use counter::Counter;
 
 struct Context {
@@ -42,7 +39,7 @@ enum Msg {
 impl Component<Context> for Model {
     type Msg = Msg;
 
-    fn update(&mut self, msg: Self::Msg, context: &mut Context) {
+    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<Context, Msg>) {
         match msg {
             Msg::Increment => {
                 self.value = self.value + 1;
@@ -58,7 +55,7 @@ impl Component<Context> for Model {
         }
     }
 
-    fn view(&self) -> Html<Self::Msg, Context> {
+    fn view(&self) -> Html<Context, Self::Msg> {
         let counter = |_| html! {
             <Counter: />
         };
@@ -78,14 +75,10 @@ impl Component<Context> for Model {
 
 fn main() {
     yew::initialize();
-    let mut app = App::new();
     let context = Context {
         console: ConsoleService,
     };
-    let model = Model {
-        value: 0,
-    };
-    let context = Rc::new(RefCell::new(context));
-    app.mount(context, model);
+    let mut app = Scope::new(context);
+    app.mount(Model::default());
     yew::run_loop();
 }

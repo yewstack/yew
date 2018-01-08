@@ -10,14 +10,24 @@ use yew::services::fetch::{FetchService, Method};
 use yew::services::websocket::{WebSocketService, WebSocketHandle, WebSocketStatus};
 
 struct Context {
-    web: FetchService<Msg>,
-    ws: WebSocketService<Msg>,
+    web: FetchService,
+    ws: WebSocketService,
 }
 
 struct Model {
     fetching: bool,
     data: Option<u32>,
     ws: Option<WebSocketHandle>,
+}
+
+impl Default for Model {
+    fn default() -> Self {
+        Model {
+            fetching: false,
+            data: None,
+            ws: None,
+        }
+    }
 }
 
 enum WsAction {
@@ -60,96 +70,94 @@ struct WsResponse {
     value: u32,
 }
 
-fn ws_status_to_msg(status: WebSocketStatus) -> Msg {
-    match status {
-        WebSocketStatus::Opened => Msg::Ignore,
-        WebSocketStatus::Closed => WsAction::Lost.into(),
-    }
-}
+impl Component<Context> for Model {
+    type Msg = Msg;
 
-fn update(context: &mut Context, model: &mut Model, msg: Msg) {
-    match msg {
-        Msg::FetchData => {
-            model.fetching = true;
-            context.web.fetch(Method::Get, "./data.json", Nothing, |Json(data)| Msg::FetchReady(data));
-        }
-        Msg::WsAction(action) => {
-            match action {
-                WsAction::Connect => {
-                    let handle = context.ws.connect(
-                        "ws://localhost:9001/",
-                        |Json(data)| Msg::WsReady(data),
-                        ws_status_to_msg
-                    );
-                    model.ws = Some(handle);
-                }
-                WsAction::SendData => {
-                    let request = WsRequest {
-                        value: 321,
-                    };
-                    model.ws.as_mut().unwrap().send(Json(&request));
-                }
-                WsAction::Disconnect => {
-                    model.ws.take().unwrap().cancel();
-                }
-                WsAction::Lost => {
-                    model.ws = None;
+    fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Msg>) {
+        match msg {
+            Msg::FetchData => {
+                self.fetching = true;
+                let callback = context.send_back(|Json(data)| Msg::FetchReady(data));
+                context.web.fetch(Method::Get, "./data.json", Nothing, callback);
+            }
+            Msg::WsAction(action) => {
+                match action {
+                    WsAction::Connect => {
+                        let callback = context.send_back(|Json(data)| Msg::WsReady(data));
+                        let notification = context.send_back(|status| {
+                            match status {
+                                WebSocketStatus::Opened => Msg::Ignore,
+                                WebSocketStatus::Closed => WsAction::Lost.into(),
+                            }
+                        });
+                        let handle = context.ws.connect("ws://localhost:9001/", callback, notification);
+                        self.ws = Some(handle);
+                    }
+                    WsAction::SendData => {
+                        let request = WsRequest {
+                            value: 321,
+                        };
+                        self.ws.as_mut().unwrap().send(Json(&request));
+                    }
+                    WsAction::Disconnect => {
+                        self.ws.take().unwrap().cancel();
+                    }
+                    WsAction::Lost => {
+                        self.ws = None;
+                    }
                 }
             }
+            Msg::FetchReady(response) => {
+                self.fetching = false;
+                self.data = response.map(|data| data.value).ok();
+            }
+            Msg::WsReady(response) => {
+                self.data = response.map(|data| data.value).ok();
+            }
+            Msg::Ignore => {
+            }
         }
-        Msg::FetchReady(response) => {
-            model.fetching = false;
-            model.data = response.map(|data| data.value).ok();
-        }
-        Msg::WsReady(response) => {
-            model.data = response.map(|data| data.value).ok();
-        }
-        Msg::Ignore => {
+    }
+
+    fn view(&self) -> Html<Context, Msg> {
+        html! {
+            <div>
+                <nav class="menu",>
+                    <button onclick=|_| Msg::FetchData,>{ "Fetch Data" }</button>
+                    { self.view_data() }
+                    <button disabled=self.ws.is_some(),
+                            onclick=|_| WsAction::Connect.into(),>{ "Connect To WebSocket" }</button>
+                    <button disabled=self.ws.is_none(),
+                            onclick=|_| WsAction::SendData.into(),>{ "Send To WebSocket" }</button>
+                    <button disabled=self.ws.is_none(),
+                            onclick=|_| WsAction::Disconnect.into(),>{ "Close WebSocket connection" }</button>
+                </nav>
+            </div>
         }
     }
 }
 
-fn view(model: &Model) -> Html<Msg> {
-    html! {
-        <div>
-            <nav class="menu",>
-                <button onclick=|_| Msg::FetchData,>{ "Fetch Data" }</button>
-                { view_data(model) }
-                <button disabled=model.ws.is_some(),
-                        onclick=|_| WsAction::Connect.into(),>{ "Connect To WebSocket" }</button>
-                <button disabled=model.ws.is_none(),
-                        onclick=|_| WsAction::SendData.into(),>{ "Send To WebSocket" }</button>
-                <button disabled=model.ws.is_none(),
-                        onclick=|_| WsAction::Disconnect.into(),>{ "Close WebSocket connection" }</button>
-            </nav>
-        </div>
-    }
-}
-
-fn view_data(model: &Model) -> Html<Msg> {
-    if let Some(value) = model.data {
-        html! {
-            <p>{ value }</p>
-        }
-    } else {
-        html! {
-            <p>{ "Data hasn't fetched yet." }</p>
+impl Model {
+    fn view_data(&self) -> Html<Context, Msg> {
+        if let Some(value) = self.data {
+            html! {
+                <p>{ value }</p>
+            }
+        } else {
+            html! {
+                <p>{ "Data hasn't fetched yet." }</p>
+            }
         }
     }
 }
 
 fn main() {
     yew::initialize();
-    let mut app = App::new();
     let context = Context {
-        web: FetchService::new(app.sender()),
-        ws: WebSocketService::new(app.sender()),
+        web: FetchService::new(),
+        ws: WebSocketService::new(),
     };
-    let model = Model {
-        fetching: false,
-        data: None,
-        ws: None,
-    };
-    app.mount(context, model, update, view);
+    let mut app = Scope::new(context);
+    app.mount(Model::default());
     yew::run_loop();
 }

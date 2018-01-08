@@ -11,7 +11,7 @@ extern crate yew;
 use strum::IntoEnumIterator;
 use yew::html::*;
 use yew::format::Json;
-use yew::services::storage::{StorageService, Scope};
+use yew::services::storage::{StorageService, Area};
 
 const KEY: &'static str = "yew.todomvc.model";
 
@@ -25,6 +25,17 @@ struct Model {
     filter: Filter,
     value: String,
     edit_value: String,
+}
+
+impl Default for Model {
+    fn default() -> Self {
+        Model {
+            entries: Vec::new(),
+            filter: Filter::All,
+            value: "".into(),
+            edit_value: "".into(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -48,123 +59,135 @@ enum Msg {
     Nope,
 }
 
-fn update(context: &mut Context, model: &mut Model, msg: Msg) {
-    match msg {
-        Msg::Add => {
-            let entry = Entry {
-                description: model.value.clone(),
-                completed: false,
-                editing: false,
-            };
-            model.entries.push(entry);
-            model.value = "".to_string();
-        }
-        Msg::Edit(idx) => {
-            let edit_value = model.edit_value.clone();
-            model.complete_edit(idx, edit_value);
-            model.edit_value = "".to_string();
-        }
-        Msg::Update(val) => {
-            println!("Input: {}", val);
-            model.value = val;
-        }
-        Msg::UpdateEdit(val) => {
-            println!("Input: {}", val);
-            model.edit_value = val;
-        }
-        Msg::Remove(idx) => {
-            model.remove(idx);
-        }
-        Msg::SetFilter(filter) => {
-            model.filter = filter;
-        }
-        Msg::ToggleEdit(idx) => {
-            model.toggle_edit(idx);
-        }
-        Msg::ToggleAll => {
-            let status = !model.is_all_completed();
-            model.toggle_all(status);
-        }
-        Msg::Toggle(idx) => {
-            model.toggle(idx);
-        }
-        Msg::ClearCompleted => {
-            model.clear_completed();
-        }
-        Msg::Nope => {}
-    }
-    context.storage.store(KEY, Json(&model));
-}
+impl Component<Context> for Model {
+    type Msg = Msg;
 
-fn view(model: &Model) -> Html<Msg> {
-    html! {
-        <div class="todomvc-wrapper",>
-            <section class="todoapp",>
-                <header class="header",>
-                    <h1>{ "todos" }</h1>
-                    { view_input(&model) }
-                </header>
-                <section class="main",>
-                    <input class="toggle-all", type="checkbox", checked=model.is_all_completed(), onclick=|_| Msg::ToggleAll, />
-                    <ul class="todo-list",>
-                        { for model.entries.iter().filter(|e| model.filter.fit(e)).enumerate().map(view_entry) }
-                    </ul>
+    fn initialize(&mut self, context: &mut ScopeRef<Context, Msg>) {
+        if let Json(Ok(restored_model)) = context.storage.restore(KEY) {
+            *self = restored_model;
+        }
+    }
+
+    fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Msg>) {
+        match msg {
+            Msg::Add => {
+                let entry = Entry {
+                    description: self.value.clone(),
+                    completed: false,
+                    editing: false,
+                };
+                self.entries.push(entry);
+                self.value = "".to_string();
+            }
+            Msg::Edit(idx) => {
+                let edit_value = self.edit_value.clone();
+                self.complete_edit(idx, edit_value);
+                self.edit_value = "".to_string();
+            }
+            Msg::Update(val) => {
+                println!("Input: {}", val);
+                self.value = val;
+            }
+            Msg::UpdateEdit(val) => {
+                println!("Input: {}", val);
+                self.edit_value = val;
+            }
+            Msg::Remove(idx) => {
+                self.remove(idx);
+            }
+            Msg::SetFilter(filter) => {
+                self.filter = filter;
+            }
+            Msg::ToggleEdit(idx) => {
+                self.toggle_edit(idx);
+            }
+            Msg::ToggleAll => {
+                let status = !self.is_all_completed();
+                self.toggle_all(status);
+            }
+            Msg::Toggle(idx) => {
+                self.toggle(idx);
+            }
+            Msg::ClearCompleted => {
+                self.clear_completed();
+            }
+            Msg::Nope => {}
+        }
+        context.storage.store(KEY, Json(&self));
+    }
+
+    fn view(&self) -> Html<Context, Msg> {
+        html! {
+            <div class="todomvc-wrapper",>
+                <section class="todoapp",>
+                    <header class="header",>
+                        <h1>{ "todos" }</h1>
+                        { self.view_input() }
+                    </header>
+                    <section class="main",>
+                        <input class="toggle-all", type="checkbox", checked=self.is_all_completed(), onclick=|_| Msg::ToggleAll, />
+                        <ul class="todo-list",>
+                            { for self.entries.iter().filter(|e| self.filter.fit(e)).enumerate().map(view_entry) }
+                        </ul>
+                    </section>
+                    <footer class="footer",>
+                        <span class="todo-count",>
+                            <strong>{ self.total() }</strong>
+                            { " item(s) left" }
+                        </span>
+                        <ul class="filters",>
+                            { for Filter::iter().map(|flt| self.view_filter(flt)) }
+                        </ul>
+                        <button class="clear-completed", onclick=|_| Msg::ClearCompleted,>
+                            { format!("Clear completed ({})", self.total_completed()) }
+                        </button>
+                    </footer>
                 </section>
-                <footer class="footer",>
-                    <span class="todo-count",>
-                        <strong>{ model.total() }</strong>
-                        { " item(s) left" }
-                    </span>
-                    <ul class="filters",>
-                        { for Filter::iter().map(|flt| view_filter(&model, flt)) }
-                    </ul>
-                    <button class="clear-completed", onclick=|_| Msg::ClearCompleted,>
-                        { format!("Clear completed ({})", model.total_completed()) }
-                    </button>
+                <footer class="info",>
+                    <p>{ "Double-click to edit a todo" }</p>
+                    <p>{ "Written by " }<a href="https://github.com/DenisKolodin/", target="_blank",>{ "Denis Kolodin" }</a></p>
+                    <p>{ "Part of " }<a href="http://todomvc.com/", target="_blank",>{ "TodoMVC" }</a></p>
                 </footer>
-            </section>
-            <footer class="info",>
-                <p>{ "Double-click to edit a todo" }</p>
-                <p>{ "Written by " }<a href="https://github.com/DenisKolodin/", target="_blank",>{ "Denis Kolodin" }</a></p>
-                <p>{ "Part of " }<a href="http://todomvc.com/", target="_blank",>{ "TodoMVC" }</a></p>
-            </footer>
-        </div>
+            </div>
+        }
     }
 }
 
-fn view_filter(model: &Model, filter: Filter) -> Html<Msg> {
-    let flt = filter.clone();
-    html! {
-        <li>
-            <a class=if model.filter == flt { "selected" } else { "not-selected" },
-               href=&flt,
-               onclick=move |_| Msg::SetFilter(flt.clone()),>
-                { filter }
-            </a>
-        </li>
+impl Model {
+    fn view_filter(&self, filter: Filter) -> Html<Context, Msg> {
+        let flt = filter.clone();
+        html! {
+            <li>
+                <a class=if self.filter == flt { "selected" } else { "not-selected" },
+                   href=&flt,
+                   onclick=move |_| Msg::SetFilter(flt.clone()),>
+                    { filter }
+                </a>
+            </li>
+        }
+    }
+
+    fn view_input(&self) -> Html<Context, Msg> {
+        html! {
+            // You can use standard Rust comments. One line:
+            // <li></li>
+            <input class="new-todo",
+                   placeholder="What needs to be done?",
+                   value=&self.value,
+                   oninput=|e: InputData| Msg::Update(e.value),
+                   onkeypress=|e: KeyData| {
+                       if e.key == "Enter" { Msg::Add } else { Msg::Nope }
+                   }, />
+            /* Or multiline:
+            <ul>
+                <li></li>
+            </ul>
+            */
+        }
     }
 }
 
-fn view_input(model: &Model) -> Html<Msg> {
-    html! {
-        // You can use standard Rust comments. One line:
-        // <li></li>
-        <input class="new-todo",
-               placeholder="What needs to be done?",
-               value=&model.value,
-               oninput=|e: InputData| Msg::Update(e.value),
-               onkeypress=|e: KeyData| {
-                   if e.key == "Enter" { Msg::Add } else { Msg::Nope }
-               }, />
-        /* Or multiline:
-        <ul>
-            <li></li>
-        </ul>
-        */
-    }
-}
-
-fn view_entry((idx, entry): (usize, &Entry)) -> Html<Msg> {
+fn view_entry((idx, entry): (usize, &Entry)) -> Html<Context, Msg> {
     html! {
         <li class=if entry.editing == true { "editing" } else { "" },>
             <div class="view",>
@@ -177,7 +200,7 @@ fn view_entry((idx, entry): (usize, &Entry)) -> Html<Msg> {
     }
 }
 
-fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Msg> {
+fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Context, Msg> {
     if entry.editing == true {
         html! {
             <input class="edit",
@@ -195,23 +218,11 @@ fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Msg> {
 
 fn main() {
     yew::initialize();
-    let mut app = App::new();
-    let mut context = Context {
-        storage: StorageService::new(Scope::Local),
+    let context = Context {
+        storage: StorageService::new(Area::Local),
     };
-    let model = {
-        if let Json(Ok(restored_model)) = context.storage.restore(KEY) {
-            restored_model
-        } else {
-            Model {
-                entries: Vec::new(),
-                filter: Filter::All,
-                value: "".into(),
-                edit_value: "".into(),
-            }
-        }
-    };
-    app.mount(context, model, update, view);
+    let mut app = Scope::new(context);
+    app.mount(Model::default());
     yew::run_loop();
 }
 
