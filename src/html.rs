@@ -23,13 +23,13 @@ pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
 
 /// Local reference to application internals: messages sender and context.
 // TODO Rename to Context
-pub struct LocalSender<'a, MSG: 'a, CTX: 'a> {
+pub struct LocalSender<'a, CTX: 'a, MSG: 'a> {
+    context: &'a mut CTX,
     tx: &'a mut Sender<MSG>,
     bind: &'a Value,
-    context: &'a mut CTX,
 }
 
-impl<'a, MSG: 'a, CTX: 'a> Deref for LocalSender<'a, MSG, CTX> {
+impl<'a, CTX: 'a, MSG: 'a> Deref for LocalSender<'a, CTX, MSG> {
     type Target = CTX;
 
     fn deref(&self) -> &CTX {
@@ -37,7 +37,7 @@ impl<'a, MSG: 'a, CTX: 'a> Deref for LocalSender<'a, MSG, CTX> {
     }
 }
 
-impl<'a, MSG: 'a, CTX: 'a> DerefMut for LocalSender<'a, MSG, CTX> {
+impl<'a, CTX: 'a, MSG: 'a> DerefMut for LocalSender<'a, CTX, MSG> {
     fn deref_mut(&mut self) -> &mut CTX {
         &mut self.context
     }
@@ -46,7 +46,7 @@ impl<'a, MSG: 'a, CTX: 'a> DerefMut for LocalSender<'a, MSG, CTX> {
 /// A universal callback prototype.
 pub type Callback<IN> = Box<Fn(IN)>;
 
-impl<'a, CTX: 'a, MSG: 'static> LocalSender<'a, MSG, CTX> {
+impl<'a, CTX: 'a, MSG: 'static> LocalSender<'a, CTX, MSG> {
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
@@ -73,13 +73,13 @@ impl<'a, CTX: 'a, MSG: 'static> LocalSender<'a, MSG, CTX> {
 
 /// This class keeps a sender to a context to send a messages to a loop
 /// and to schedule the next update call.
-pub struct AppSender<MSG, CTX> {
-    tx: Sender<MSG>,
+pub struct AppSender<CTX, MSG> {
     context: SharedContext<CTX>,
+    tx: Sender<MSG>,
     bind: Value,
 }
 
-impl<MSG, CTX> Clone for AppSender<MSG, CTX> {
+impl<CTX, MSG> Clone for AppSender<CTX, MSG> {
     fn clone(&self) -> Self {
         AppSender {
             tx: self.tx.clone(),
@@ -89,7 +89,7 @@ impl<MSG, CTX> Clone for AppSender<MSG, CTX> {
     }
 }
 
-impl<MSG, CTX> AppSender<MSG, CTX> {
+impl<CTX, MSG> AppSender<CTX, MSG> {
     /// Send the message and schedule an update.
     // TODO Consider to remove this method
     pub fn send(&mut self, msg: MSG) {
@@ -113,14 +113,14 @@ impl<MSG, CTX> AppSender<MSG, CTX> {
 
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
-pub struct App<MSG, CTX> {
-    tx: Sender<MSG>,
-    rx: Option<Receiver<MSG>>,
+pub struct App<CTX, MSG> {
     context: SharedContext<CTX>,
+    tx: Sender<MSG>,
     bind: Value,
+    rx: Option<Receiver<MSG>>,
 }
 
-impl<MSG: 'static, CTX: 'static> App<MSG, CTX> {
+impl<CTX: 'static, MSG: 'static> App<CTX, MSG> {
     /// Creates a context with connected sender and receiver.
     pub fn new(context: SharedContext<CTX>) -> Self {
         let bind = js! {
@@ -136,7 +136,7 @@ impl<MSG: 'static, CTX: 'static> App<MSG, CTX> {
     }
 
     /// Returns a cloned sender.
-    pub fn sender(&mut self) -> AppSender<MSG, CTX> {
+    pub fn sender(&mut self) -> AppSender<CTX, MSG> {
         AppSender {
             tx: self.tx.clone(),
             context: self.context.clone(),
@@ -212,7 +212,7 @@ impl<MSG: 'static, CTX: 'static> App<MSG, CTX> {
 }
 
 /// A type which expected as a result of `view` function implementation.
-pub type Html<MSG, CTX> = VNode<MSG, CTX>;
+pub type Html<CTX, MSG> = VNode<CTX, MSG>;
 
 macro_rules! impl_action {
     ($($action:ident($event:ident : $type:ident) -> $ret:ty => $convert:expr)*) => {$(
@@ -239,7 +239,7 @@ macro_rules! impl_action {
                 }
             }
 
-            impl<T, MSG, CTX: 'static> Listener<MSG, CTX> for Wrapper<T>
+            impl<T, CTX: 'static, MSG> Listener<CTX, MSG> for Wrapper<T>
             where
                 MSG: 'static,
                 T: Fn($ret) -> MSG + 'static,
@@ -248,7 +248,7 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, mut sender: AppSender<MSG, CTX>)
+                fn attach(&mut self, element: &Element, mut sender: AppSender<CTX, MSG>)
                     -> EventListenerHandle {
                     let handler = self.0.take().expect("tried to attach listener twice");
                     let this = element.clone();

@@ -8,13 +8,13 @@ pub trait Component<CTX>: Default {
     /// Message type which `update` loop get.
     type Msg;
     /// Initialization routine which could use a context.
-    fn initialize(&mut self, _context: LocalSender<Self::Msg, CTX>) {
+    fn initialize(&mut self, _context: LocalSender<CTX, Self::Msg>) {
         // Do nothing by default
     }
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
-    fn update(&mut self, msg: Self::Msg, context: LocalSender<Self::Msg, CTX>);
+    fn update(&mut self, msg: Self::Msg, context: LocalSender<CTX, Self::Msg>);
     /// Called by rendering loop.
-    fn view(&self) -> Html<Self::Msg, CTX>;
+    fn view(&self) -> Html<CTX, Self::Msg>;
 }
 

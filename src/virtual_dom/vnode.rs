@@ -7,13 +7,13 @@ use virtual_dom::{VTag, VText, VComp};
 use html::AppSender;
 
 /// Bind virtual element to a DOM reference.
-pub enum VNode<MSG, CTX> {
+pub enum VNode<CTX, MSG> {
     /// A bind between `VTag` and `Element`.
     VTag {
         /// A reference to the `Element`.
         reference: Option<Element>,
         /// A virtual tag node which was applied.
-        vtag: VTag<MSG, CTX>,
+        vtag: VTag<CTX, MSG>,
     },
     /// A bind between `VText` and `TextNode`.
     VText {
@@ -27,12 +27,12 @@ pub enum VNode<MSG, CTX> {
         /// A reference to the `Element`.
         reference: Option<Element>,
         /// A virtual component which will be applied to the `Element`.
-        vcomp: VComp<MSG, CTX>,
+        vcomp: VComp<CTX, MSG>,
     },
 }
 
 
-impl<MSG, CTX> VNode<MSG, CTX> {
+impl<CTX, MSG> VNode<CTX, MSG> {
     fn remove<T: INode>(self, parent: &T) {
         let opt_ref: Option<Node> = {
             match self {
@@ -50,7 +50,7 @@ impl<MSG, CTX> VNode<MSG, CTX> {
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
-    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<MSG, CTX>>, sender: AppSender<MSG, CTX>) {
+    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<CTX, MSG>>, sender: AppSender<CTX, MSG>) {
         match *self {
             VNode::VTag {
                 ref mut vtag,
@@ -191,7 +191,7 @@ impl<MSG, CTX> VNode<MSG, CTX> {
     }
 }
 
-impl<MSG, CTX> From<VText> for VNode<MSG, CTX> {
+impl<CTX, MSG> From<VText> for VNode<CTX, MSG> {
     fn from(vtext: VText) -> Self {
         VNode::VText {
             reference: None,
@@ -200,8 +200,8 @@ impl<MSG, CTX> From<VText> for VNode<MSG, CTX> {
     }
 }
 
-impl<MSG, CTX> From<VTag<MSG, CTX>> for VNode<MSG, CTX> {
-    fn from(vtag: VTag<MSG, CTX>) -> Self {
+impl<CTX, MSG> From<VTag<CTX, MSG>> for VNode<CTX, MSG> {
+    fn from(vtag: VTag<CTX, MSG>) -> Self {
         VNode::VTag {
             reference: None,
             vtag,
@@ -209,8 +209,8 @@ impl<MSG, CTX> From<VTag<MSG, CTX>> for VNode<MSG, CTX> {
     }
 }
 
-impl<MSG, CTX> From<VComp<MSG, CTX>> for VNode<MSG, CTX> {
-    fn from(vcomp: VComp<MSG, CTX>) -> Self {
+impl<CTX, MSG> From<VComp<CTX, MSG>> for VNode<CTX, MSG> {
+    fn from(vcomp: VComp<CTX, MSG>) -> Self {
         VNode::VComp {
             reference: None,
             vcomp,
@@ -218,7 +218,7 @@ impl<MSG, CTX> From<VComp<MSG, CTX>> for VNode<MSG, CTX> {
     }
 }
 
-impl<MSG, CTX, T: ToString> From<T> for VNode<MSG, CTX> {
+impl<CTX, MSG, T: ToString> From<T> for VNode<CTX, MSG> {
     fn from(value: T) -> Self {
         VNode::VText {
             reference: None,
@@ -227,7 +227,7 @@ impl<MSG, CTX, T: ToString> From<T> for VNode<MSG, CTX> {
     }
 }
 
-impl<MSG, CTX> fmt::Debug for VNode<MSG, CTX> {
+impl<CTX, MSG> fmt::Debug for VNode<CTX, MSG> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &VNode::VTag { ref vtag, .. } => vtag.fmt(f),
@@ -237,8 +237,8 @@ impl<MSG, CTX> fmt::Debug for VNode<MSG, CTX> {
     }
 }
 
-impl<MSG, CTX> PartialEq for VNode<MSG, CTX> {
-    fn eq(&self, other: &VNode<MSG, CTX>) -> bool {
+impl<CTX, MSG> PartialEq for VNode<CTX, MSG> {
+    fn eq(&self, other: &VNode<CTX, MSG>) -> bool {
         match *self {
             VNode::VTag { vtag: ref vtag_a, .. } => {
                 match *other {

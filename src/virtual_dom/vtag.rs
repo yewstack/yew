@@ -13,15 +13,15 @@ use html::AppSender;
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
-pub struct VTag<MSG, CTX> {
+pub struct VTag<CTX, MSG> {
     /// A tag of the element.
     tag: Cow<'static, str>,
     /// List of attached listeners.
-    pub listeners: Listeners<MSG, CTX>,
+    pub listeners: Listeners<CTX, MSG>,
     /// List of attributes.
     pub attributes: Attributes,
     /// The list of children nodes. Which also could have own children.
-    pub childs: Vec<VNode<MSG, CTX>>,
+    pub childs: Vec<VNode<CTX, MSG>>,
     /// List of attached classes.
     pub classes: Classes,
     /// Contains a value of an
@@ -42,7 +42,7 @@ pub struct VTag<MSG, CTX> {
     captured: Vec<EventListenerHandle>,
 }
 
-impl<MSG, CTX> VTag<MSG, CTX> {
+impl<CTX, MSG> VTag<CTX, MSG> {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
         VTag {
@@ -66,7 +66,7 @@ impl<MSG, CTX> VTag<MSG, CTX> {
     }
 
     /// Add `VNode` child.
-    pub fn add_child(&mut self, child: VNode<MSG, CTX>) {
+    pub fn add_child(&mut self, child: VNode<CTX, MSG>) {
         self.childs.push(child);
     }
 
@@ -110,7 +110,7 @@ impl<MSG, CTX> VTag<MSG, CTX> {
     /// Adds new listener to the node.
     /// It's boxed because we want to keep it in a single list.
     /// Lates `Listener::attach` called to attach actual listener to a DOM node.
-    pub fn add_listener(&mut self, listener: Box<Listener<MSG, CTX>>) {
+    pub fn add_listener(&mut self, listener: Box<Listener<CTX, MSG>>) {
         self.listeners.push(listener);
     }
 
@@ -201,10 +201,10 @@ impl<MSG, CTX> VTag<MSG, CTX> {
     }
 }
 
-impl<MSG, CTX> VTag<MSG, CTX> {
+impl<CTX, MSG> VTag<CTX, MSG> {
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to pach in the actual DOM nodes.
-    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, sender: AppSender<MSG, CTX>) {
+    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, sender: AppSender<CTX, MSG>) {
         let changes = self.soakup_classes(&mut opposite);
         for change in changes {
             let list = subject.class_list();
@@ -281,7 +281,7 @@ impl<MSG, CTX> VTag<MSG, CTX> {
     }
 }
 
-impl<MSG, CTX> fmt::Debug for VTag<MSG, CTX> {
+impl<CTX, MSG> fmt::Debug for VTag<CTX, MSG> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "VTag {{ tag: {} }}", self.tag)
     }
@@ -303,8 +303,8 @@ fn set_checked(input: &InputElement, value: bool) {
     js!( @{input}.checked = @{value}; );
 }
 
-impl<MSG, CTX> PartialEq for VTag<MSG, CTX> {
-    fn eq(&self, other: &VTag<MSG, CTX>) -> bool {
+impl<CTX, MSG> PartialEq for VTag<CTX, MSG> {
+    fn eq(&self, other: &VTag<CTX, MSG>) -> bool {
         if self.tag != other.tag {
             return false;
         }
