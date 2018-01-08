@@ -20,13 +20,11 @@ fn clear_element(element: &Element) {
 }
 
 /// An interface of a UI-component. Uses `self` as a model.
-pub trait Component<CTX>: Default {
+pub trait Component<CTX> {
     /// Message type which `update` loop get.
     type Msg;
     /// Initialization routine which could use a context.
-    fn initialize(&mut self, _context: &mut ScopeRef<CTX, Self::Msg>) {
-        // Do nothing by default
-    }
+    fn create(context: &mut ScopeRef<CTX, Self::Msg>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
     fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self::Msg>);
@@ -166,28 +164,28 @@ impl<CTX: 'static, MSG: 'static> Scope<CTX, MSG> {
         }
     }
 
-    /// Alias to `mount_to("body", ...)`.
-    pub fn mount<COMP>(&mut self, component: COMP)
+    /// Alias to `mount("body", ...)`.
+    pub fn mount_to_body<COMP>(self)
     where
         COMP: Component<CTX, Msg=MSG> + 'static,
     {
         let element = document().query_selector("body")
             .expect("can't get body node for rendering");
-        self.mount_to(element, component)
+        self.mount::<COMP>(element)
     }
 
     /// The main entrypoint of a yew program. It works similar as `program`
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount_to<COMP>(&mut self, element: Element, mut component: COMP)
+    pub fn mount<COMP>(mut self, element: Element)
     where
         COMP: Component<CTX, Msg=MSG> + 'static,
     {
         clear_element(&element);
         //
         let mut sender = self.sender();
-        {
+        let mut component = {
             // TODO DRY
             let tx = &mut sender.tx;
             let bind = &sender.bind;
@@ -196,8 +194,8 @@ impl<CTX: 'static, MSG: 'static> Scope<CTX, MSG> {
                 tx, bind,
                 context: &mut *context,
             };
-            component.initialize(&mut sender);
-        }
+            COMP::create(&mut sender)
+        };
         // No messages at start
         let mut messages = Vec::new();
         let mut last_frame = VNode::from(component.view());

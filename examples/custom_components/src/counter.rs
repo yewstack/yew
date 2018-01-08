@@ -4,20 +4,16 @@ pub struct Counter {
     value: u32,
 }
 
-impl Default for Counter {
-    fn default() -> Self {
-        Counter {
-            value: 0,
-        }
-    }
-}
-
 pub enum Msg {
     Increase,
 }
 
 impl<CTX: Printer + 'static> Component<CTX> for Counter {
     type Msg = Msg;
+
+    fn create(_: &mut ScopeRef<CTX, Self::Msg>) -> Self {
+        Counter { value: 0 }
+    }
 
     fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self::Msg>) {
         match msg {

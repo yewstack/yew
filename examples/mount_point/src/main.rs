@@ -10,20 +10,18 @@ struct Model {
     name: String,
 }
 
-impl Default for Model {
-    fn default() -> Self {
-        Model {
-            name: "Reversed".to_owned(),
-        }
-    }
-}
-
 enum Msg {
     UpdateName(String),
 }
 
 impl Component<()> for Model {
     type Msg = Msg;
+
+    fn create(_: &mut ScopeRef<(), Msg>) -> Self {
+        Model {
+            name: "Reversed".to_owned(),
+        }
+    }
 
     fn update(&mut self, msg: Msg, _: &mut ScopeRef<(), Msg>) {
         match msg {
@@ -65,7 +63,7 @@ fn main() {
     mount_point.class_list().add(mount_class);
     body.append_child(&mount_point);
 
-    let mut app = Scope::new(());
-    app.mount_to(mount_point, Model::default());
+    let app = Scope::new(());
+    app.mount::<Model>(mount_point);
     yew::run_loop();
 }

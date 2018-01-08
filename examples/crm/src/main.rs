@@ -37,7 +37,6 @@ impl Client {
 
 #[derive(Debug)]
 enum Scene {
-    Initialization,
     ClientsList,
     NewClientForm(Client),
     Settings,
@@ -46,17 +45,6 @@ enum Scene {
 struct Model {
     database: Database,
     scene: Scene,
-}
-
-impl Default for Model {
-    fn default() -> Self {
-        Model {
-            database: Database {
-                clients: Vec::new(),
-            },
-            scene: Scene::Initialization,
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -71,20 +59,20 @@ enum Msg {
 impl Component<Context> for Model {
     type Msg = Msg;
 
-    fn initialize(&mut self, context: &mut ScopeRef<Context, Msg>) {
+    fn create(context: &mut ScopeRef<Context, Msg>) -> Self {
         let Json(database) = context.storage.restore(KEY);
-        self.database = database.unwrap_or_else(|_| Database {
+        let database = database.unwrap_or_else(|_| Database {
             clients: Vec::new(),
         });
-        self.scene = Scene::ClientsList;
+        Model {
+            database,
+            scene: Scene::ClientsList,
+        }
     }
 
     fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Msg>) {
         let mut new_scene = None;
         match self.scene {
-            Scene::Initialization => {
-                panic!("Unexpected state: model not initialized!");
-            }
             Scene::ClientsList => {
                 match msg {
                     Msg::SwitchTo(Scene::NewClientForm(client)) => {
@@ -146,9 +134,6 @@ impl Component<Context> for Model {
 
     fn view(&self) -> Html<Context, Msg> {
         match self.scene {
-            Scene::Initialization => html! {
-                <div>{ "Loading..." }</div>
-            },
             Scene::ClientsList => html! {
                 <div class="crm",>
                     <div class="clients",>
@@ -214,7 +199,7 @@ fn main() {
         storage: StorageService::new(Area::Local),
         dialog: DialogService,
     };
-    let mut app = Scope::new(context);
-    app.mount(Model::default());
+    let app = Scope::new(context);
+    app.mount_to_body::<Model>();
     yew::run_loop();
 }

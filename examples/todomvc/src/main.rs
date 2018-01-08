@@ -27,17 +27,6 @@ struct Model {
     edit_value: String,
 }
 
-impl Default for Model {
-    fn default() -> Self {
-        Model {
-            entries: Vec::new(),
-            filter: Filter::All,
-            value: "".into(),
-            edit_value: "".into(),
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize)]
 struct Entry {
     description: String,
@@ -62,9 +51,16 @@ enum Msg {
 impl Component<Context> for Model {
     type Msg = Msg;
 
-    fn initialize(&mut self, context: &mut ScopeRef<Context, Msg>) {
+    fn create(context: &mut ScopeRef<Context, Msg>) -> Self {
         if let Json(Ok(restored_model)) = context.storage.restore(KEY) {
-            *self = restored_model;
+            restored_model
+        } else {
+            Model {
+                entries: Vec::new(),
+                filter: Filter::All,
+                value: "".into(),
+                edit_value: "".into(),
+            }
         }
     }
 
@@ -221,8 +217,8 @@ fn main() {
     let context = Context {
         storage: StorageService::new(Area::Local),
     };
-    let mut app = Scope::new(context);
-    app.mount(Model::default());
+    let app = Scope::new(context);
+    app.mount_to_body::<Model>();
     yew::run_loop();
 }
 

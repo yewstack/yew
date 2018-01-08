@@ -167,13 +167,13 @@ impl<CTX, MSG> VNode<CTX, MSG> {
                 ref mut reference,
             } => {
                 let left = vcomp;
-                let mut right = None;
+                let mut _right = None;
                 match last {
                     Some(VNode::VComp {
                              vcomp,
                              reference: Some(element),
                          }) => {
-                        right = Some(vcomp);
+                        _right = Some(vcomp);
                         *reference = Some(element);
                     }
                     None => {
@@ -232,7 +232,7 @@ impl<CTX, MSG> fmt::Debug for VNode<CTX, MSG> {
         match self {
             &VNode::VTag { ref vtag, .. } => vtag.fmt(f),
             &VNode::VText { ref vtext, .. } => vtext.fmt(f),
-            &VNode::VComp { ref vcomp, .. } => "Component<>".fmt(f),
+            &VNode::VComp { .. } => "Component<>".fmt(f),
         }
     }
 }

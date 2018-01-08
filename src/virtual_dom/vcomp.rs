@@ -14,9 +14,8 @@ impl<CTX: 'static, MSG: 'static> VComp<CTX, MSG> {
     /// This method prepares a generator to make a new instance of the `Component`.
     pub fn lazy<T: Component<CTX> + 'static>() -> Self {
         let generator = |element, context| {
-            let component = T::default();
-            let mut app = Scope::reuse(context);
-            app.mount_to(element, component);
+            let app = Scope::reuse(context);
+            app.mount::<T>(element);
         };
         VComp {
             mounter: Box::new(generator),
