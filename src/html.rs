@@ -3,6 +3,7 @@
 
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::ops::{Deref, DerefMut};
 use std::sync::mpsc::{Sender, Receiver, channel};
 use stdweb::Value;
 use stdweb::web::{Element, INode, EventListenerHandle, document};
@@ -18,6 +19,53 @@ fn clear_element(element: &Element) {
 }
 
 pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
+
+// TODO Rename to Context
+pub struct LocalSender<'a, MSG: 'a, CTX: 'a> {
+    tx: &'a mut Sender<MSG>,
+    bind: &'a Value,
+    context: &'a mut CTX,
+}
+
+impl<'a, MSG: 'a, CTX: 'a> Deref for LocalSender<'a, MSG, CTX> {
+    type Target = CTX;
+
+    fn deref(&self) -> &CTX {
+        &self.context
+    }
+}
+
+impl<'a, MSG: 'a, CTX: 'a> DerefMut for LocalSender<'a, MSG, CTX> {
+    fn deref_mut(&mut self) -> &mut CTX {
+        &mut self.context
+    }
+}
+
+pub type Callback<IN> = Box<Fn(IN)>;
+
+impl<'a, CTX: 'a, MSG: 'static> LocalSender<'a, MSG, CTX> {
+    pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
+    where
+        F: Fn(IN) -> MSG + 'static,
+    {
+        let sender = self.tx.clone();
+        let bind = self.bind.clone();
+        let closure = move |input| {
+            let output = function(input);
+            sender.send(output);
+            let bind = bind.clone();
+            js! {
+                // Schedule to call the loop handler
+                // IMPORTANT! If call loop function immediately
+                // it stops handling other messages and the first
+                // one will be fired.
+                var bind = @{bind};
+                setTimeout(bind.loop);
+            }
+        };
+        Box::new(closure)
+    }
+}
 
 /// This class keeps a sender to a context to send a messages to a loop
 /// and to schedule the next update call.
@@ -39,6 +87,7 @@ impl<MSG, CTX> Clone for AppSender<MSG, CTX> {
 
 impl<MSG, CTX> AppSender<MSG, CTX> {
     /// Send the message and schedule an update.
+    // TODO Consider to remove this method
     pub fn send(&mut self, msg: MSG) {
         self.tx.send(msg).expect("App lost the receiver!");
         let bind = &self.bind;
@@ -116,13 +165,18 @@ impl<MSG: 'static, CTX: 'static> App<MSG, CTX> {
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
         let bind = self.bind.clone();
-        let sender = self.sender();
-        let context = self.context.clone();
+        let mut sender = self.sender();
         let mut callback = move || {
             messages.extend(rx.try_iter());
             for msg in messages.drain(..) {
-                let mut context = context.borrow_mut();
-                component.update(msg, &mut context);
+                let tx = &mut sender.tx;
+                let bind = &sender.bind;
+                let mut context = sender.context.borrow_mut();
+                let sender = LocalSender {
+                    tx, bind,
+                    context: &mut *context,
+                };
+                component.update(msg, sender);
             }
             let mut next_frame = VNode::from(component.view());
             next_frame.apply(&element, last_frame.take(), sender.clone());
