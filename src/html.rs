@@ -31,7 +31,7 @@ pub trait Component<CTX>: Sized + 'static {
     /// reference to a context.
     fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>);
     /// Set properties.
-    fn set_properties(&mut self, _: Self::Properties, _: &mut ScopeRef<CTX, Self>) { }
+    fn configure(&mut self, _: Self::Properties, _: &mut ScopeRef<CTX, Self>) { }
     /// Called by rendering loop.
     fn view(&self) -> Html<CTX, Self>;
 }
@@ -142,12 +142,44 @@ impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
     }
 }
 
+pub(crate) struct ScopeBuilder<CTX, COMP: Component<CTX>> {
+    //context: PhantomData<CTX>,
+    tx: Sender<ComponentUpdate<CTX, COMP>>,
+    rx: Receiver<ComponentUpdate<CTX, COMP>>,
+    bind: Value,
+}
+
+impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
+
+    pub fn new() -> Self {
+        let bind = js! {
+            return { "loop": function() { } };
+        };
+        let (tx, rx) = channel();
+        ScopeBuilder { tx, rx, bind }
+    }
+
+    /// Lightweight sender for sending properties updates from `VComp`.
+    pub fn sender(&self) -> Sender<ComponentUpdate<CTX, COMP>> {
+        self.tx.clone()
+    }
+
+    pub fn build(self, context: SharedContext<CTX>) -> Scope<CTX, COMP> {
+        Scope {
+            tx: self.tx,
+            rx: Some(self.rx),
+            context: context,
+            bind: self.bind,
+        }
+    }
+}
+
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
 pub struct Scope<CTX, COMP: Component<CTX>> {
     context: SharedContext<CTX>,
-    tx: Sender<ComponentUpdate<CTX, COMP>>,
     bind: Value,
+    tx: Sender<ComponentUpdate<CTX, COMP>>,
     rx: Option<Receiver<ComponentUpdate<CTX, COMP>>>,
 }
 
@@ -160,16 +192,8 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
 
     /// Creates isolated `App` instance, but reuse the context.
     pub fn reuse(context: SharedContext<CTX>) -> Self {
-        let bind = js! {
-            return { "loop": function() { } };
-        };
-        let (tx, rx) = channel();
-        Scope {
-            tx,
-            rx: Some(rx),
-            context,
-            bind,
-        }
+        let builder = ScopeBuilder::new();
+        builder.build(context)
     }
 
     /// Returns a cloned sender.
@@ -231,7 +255,7 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
                             component.update(msg, &mut sender);
                         }
                         ComponentUpdate::Properties(props) => {
-                            component.set_properties(props, &mut sender);
+                            component.configure(props, &mut sender);
                         }
                     }
                 }

@@ -32,7 +32,7 @@ pub enum VNode<CTX, COMP: Component<CTX>> {
 }
 
 
-impl<CTX, COMP: Component<CTX>> VNode<CTX, COMP> {
+impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
     fn remove<T: INode>(self, parent: &T) {
         let opt_ref: Option<Node> = {
             match self {

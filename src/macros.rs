@@ -12,6 +12,9 @@ macro_rules! html_impl {
         $stack.push(comp.into());
         html_impl! { @vcomp $stack ($($tail)*) }
     };
+    (@vcomp $stack:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
+        html_impl! { @vcomp $stack ($($tail)*) }
+    };
     // Self-closing of tag
     (@vcomp $stack:ident (/ > $($tail:tt)*)) => {
         $crate::macros::child_to_parent(&mut $stack, None);
