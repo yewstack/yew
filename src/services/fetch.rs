@@ -1,30 +1,27 @@
 //! Service to send HTTP-request to a server.
 
+use std::collections::HashMap;
+
 use stdweb::Value;
+use stdweb::unstable::TryFrom;
+
 use html::AppSender;
 use format::{Storable, Restorable};
 use super::Task;
 
-/// A handle to control sent request. Could be canceled by `Task::cancel` call.
+pub use http::{
+    HeaderMap,
+    Method,
+    Request,
+    Response,
+    StatusCode,
+    Uri
+};
+
+
+/// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
 pub struct FetchHandle(Option<Value>);
 
-/// A method of HTTP-request of [HTTP protocol](https://tools.ietf.org/html/rfc7231).
-pub enum Method {
-    /// `GET` method of a request.
-    Get,
-    /// `POST` method of a request.
-    Post,
-}
-
-impl Method {
-    /// Converts a method to `fetch` input argument.
-    fn to_argument(&self) -> &'static str {
-        match self {
-            &Method::Get => "GET",
-            &Method::Post => "POST",
-        }
-    }
-}
 
 /// A service to fetch resources.
 pub struct FetchService<MSG> {
@@ -32,56 +29,141 @@ pub struct FetchService<MSG> {
 }
 
 impl<MSG: 'static> FetchService<MSG> {
-    /// Creates a new service instance connected to `App` by provided `sender`.
+
+    /// Creates a new service instance connected to an `App` by the provided `sender`.
     pub fn new(sender: AppSender<MSG>) -> Self {
         Self { sender }
     }
 
-    /// Sends request to a server. Could contains input data and
-    /// needs a fuction to convert returned data to a loop's message.
-    pub fn fetch<F, IN, OUT>(&mut self, method: Method, url: &str, data: IN, converter: F) -> FetchHandle
+    /// Sends a request to a remote server given a Request object and a callback
+    /// fuction to convert a Response object into a loop's message.
+    ///
+    /// You may use a Request builder to build your request declaratively as on the
+    /// following examples:
+    ///
+    /// ```rust
+    ///    let post_request = Request::post("https://my.api/v1/resource")
+    ///            .header("Content-Type", "application/json")
+    ///            .body(Json(&json!({"foo": "bar"})))
+    ///            .expect("Failed to build request.");
+    ///
+    ///    let get_request = Request::get("https://my.api/v1/resource")
+    ///            .body(Nothing)
+    ///            .expect("Failed to build request.");
+    /// ```
+    ///
+    /// The callback function can build a loop message by passing or analizing the
+    /// response body and metadata.
+    ///
+    /// ```rust
+    ///     context.web.fetch(
+    ///         post_request,
+    ///         |response| {
+    ///             if response.status().is_success() {
+    ///                 Msg::Noop
+    ///             } else {
+    ///                 Msg::Error
+    ///             }
+    ///         }
+    /// ```
+    ///
+    /// One can also simply consume and pass the response or body object into
+    /// the message.
+    ///
+    /// ```rust
+    ///     context.web.fetch(
+    ///         get_request,
+    ///         |response| {
+    ///             let (meta, Json(body)) = response.into_parts();
+    ///             if meta.status.is_success() {
+    ///                 Msg::FetchResourceComplete(body)
+    ///             } else {
+    ///                 Msg::FetchResourceFailed
+    ///             }
+    ///         }
+    /// ```
+    ///
+    pub fn fetch<'a, F, IN, OUT>(&mut self, request: Request<IN>, converter: F) -> FetchHandle
     where
         IN: Into<Storable>,
         OUT: From<Restorable>,
-        F: Fn(OUT) -> MSG + 'static
+        F: Fn(Response<OUT>) -> MSG + 'static
     {
+        // Consume request as parts and body.
+        let (parts, body) = request.into_parts();
+
+        // Map headers into a Js serializable HashMap.
+        let header_map: HashMap<&str, &str> = parts.headers.iter().map(
+            |(k, v)| (k.as_str(), v.to_str().expect(
+                format!("Unparsable request header {}: {:?}", k.as_str(), v).as_str()
+            ))
+        ).collect();
+
+        // Formats URI.
+        let uri = format!("{}", parts.uri);
+
+        // Prepare the response callback.
+        // Notice that the callback signature must match the call from the javascript
+        // side. There is no static check at this point.
         let mut tx = self.sender.clone();
-        let callback = move |success: bool, s: String| {
-            let data = if success { Ok(s) } else { Err(s) };
+        let callback = move |success: bool, response: Value, body: String| {
+            let mut response_builder = Response::builder();
+
+            // Deserialize response status.
+            let status = u16::try_from(js!{
+                return @{&response}.status;
+            });
+
+            if let Ok(code) = status {
+                response_builder.status(code);
+            }
+
+            // Deserialize response headers.
+            let headers: HashMap<String, String> = HashMap::try_from(js!{
+                var map = {};
+                @{&response}.headers.forEach(function(value, key) {
+                    map[key] = value;
+                });
+                return map;
+            }).unwrap_or(HashMap::new());
+
+            for (key, values) in &headers {
+                response_builder.header(key.as_str(), values.as_str());
+            }
+
+            // Deserialize and wrap response body into a Restorable object.
+            let data = if success { Ok(body) } else { Err(body) };
             let out = OUT::from(data);
-            let msg = converter(out);
+            let response = response_builder.body(out).unwrap();
+
+            let msg = converter(response);
             tx.send(msg);
         };
-        let method = method.to_argument();
-        let body = data.into();
+
         let handle = js! {
             var data = {
-                method: @{method},
-                body: @{body},
+                method: @{parts.method.as_str()},
+                body: @{body.into()},
+                headers: @{header_map},
             };
-            var request = new Request(@{url}, data);
+            var request = new Request(@{uri}, data);
             var callback = @{callback};
             var handle = {
                 interrupt: false,
                 callback,
             };
             fetch(request).then(function(response) {
-                if (response.ok) {
-                    // Do we need to use blob here?
-                    return response.text();
-                } else {
-                    throw new Error("Network response was not ok.");
-                }
-            }).then(function(data) {
-                if (handle.interrupted != true) {
-                    callback(true, data);
-                    callback.drop();
-                }
-            }).catch(function(err) {
-                if (handle.interrupted != true) {
-                    callback(false, data);
-                    callback.drop();
-                }
+                response.text().then(function(data) {
+                    if (handle.interrupted != true) {
+                        callback(true, response, data);
+                        callback.drop();
+                    }
+                }).catch(function(err) {
+                    if (handle.interrupted != true) {
+                        callback(false, response, data);
+                        callback.drop();
+                    }
+                });
             });
             return handle;
         };
