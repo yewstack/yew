@@ -5,16 +5,16 @@ use stdweb::web::Element;
 use html::{Scope, SharedContext, Component};
 
 /// A virtual component.
-pub struct VComp<CTX, MSG> {
+pub struct VComp<CTX, COMP: Component<CTX>> {
     mounter: Box<Fn(Element, SharedContext<CTX>)>,
-    _msg: PhantomData<MSG>,
+    _msg: PhantomData<COMP>,
 }
 
-impl<CTX: 'static, MSG: 'static> VComp<CTX, MSG> {
+impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     /// This method prepares a generator to make a new instance of the `Component`.
-    pub fn lazy<T: Component<CTX> + 'static>() -> Self {
+    pub fn lazy() -> Self {
         let generator = |element, context| {
-            let app: Scope<CTX, T> = Scope::reuse(context);
+            let app: Scope<CTX, COMP> = Scope::reuse(context);
             app.mount(element);
         };
         VComp {
@@ -24,7 +24,7 @@ impl<CTX: 'static, MSG: 'static> VComp<CTX, MSG> {
     }
 }
 
-impl<CTX, MSG> VComp<CTX, MSG> {
+impl<CTX, COMP: Component<CTX>> VComp<CTX, COMP> {
     /// This methods mount a virtual component with a generator created with `lazy` call.
     pub fn mount(&self, element: &Element, context: SharedContext<CTX>) {
         (self.mounter)(element.clone(), context);

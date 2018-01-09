@@ -24,11 +24,11 @@ impl Component<Context> for Model {
     type Msg = Msg;
     type Properties = ();
 
-    fn create(_: &mut ScopeRef<Context, Msg>) -> Self {
+    fn create(_: &mut ScopeRef<Context, Self>) -> Self {
         Model { value: 0 }
     }
 
-    fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Msg>) {
+    fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Self>) {
         match msg {
             Msg::Increment => {
                 self.value = self.value + 1;
@@ -46,7 +46,7 @@ impl Component<Context> for Model {
         }
     }
 
-    fn view(&self) -> Html<Context, Msg> {
+    fn view(&self) -> Html<Context, Self> {
         html! {
             <div>
                 <nav class="menu",>

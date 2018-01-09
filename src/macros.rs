@@ -2,6 +2,7 @@
 //! and JSX-like templates.
 
 use virtual_dom::{VNode, Listener};
+use html::Component;
 
 #[macro_export]
 macro_rules! html_impl {
@@ -127,10 +128,10 @@ macro_rules! html {
     }};
 }
 
-type Stack<MSG, CTX> = Vec<VNode<MSG, CTX>>;
+type Stack<CTX, COMP> = Vec<VNode<CTX, COMP>>;
 
 #[doc(hidden)]
-pub fn unpack<MSG, CTX>(mut stack: Stack<MSG, CTX>) -> VNode<MSG, CTX> {
+pub fn unpack<CTX, COMP: Component<CTX>>(mut stack: Stack<CTX, COMP>) -> VNode<CTX, COMP> {
     if stack.len() != 1 {
         panic!("exactly one element have to be in html!");
     }
@@ -138,7 +139,7 @@ pub fn unpack<MSG, CTX>(mut stack: Stack<MSG, CTX>) -> VNode<MSG, CTX> {
 }
 
 #[doc(hidden)]
-pub fn set_value<MSG, CTX, T: ToString>(stack: &mut Stack<MSG, CTX>, value: T) {
+pub fn set_value<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, value: T) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.set_value(&value);
     } else {
@@ -147,7 +148,7 @@ pub fn set_value<MSG, CTX, T: ToString>(stack: &mut Stack<MSG, CTX>, value: T) {
 }
 
 #[doc(hidden)]
-pub fn set_kind<MSG, CTX, T: ToString>(stack: &mut Stack<MSG, CTX>, value: T) {
+pub fn set_kind<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, value: T) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.set_kind(value);
     } else {
@@ -156,7 +157,7 @@ pub fn set_kind<MSG, CTX, T: ToString>(stack: &mut Stack<MSG, CTX>, value: T) {
 }
 
 #[doc(hidden)]
-pub fn set_checked<MSG, CTX>(stack: &mut Stack<MSG, CTX>, value: bool) {
+pub fn set_checked<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, value: bool) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.set_checked(value);
     } else {
@@ -165,7 +166,7 @@ pub fn set_checked<MSG, CTX>(stack: &mut Stack<MSG, CTX>, value: bool) {
 }
 
 #[doc(hidden)]
-pub fn add_attribute<MSG, CTX, T: ToString>(stack: &mut Stack<MSG, CTX>, name: &'static str, value: T) {
+pub fn add_attribute<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, name: &'static str, value: T) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.add_attribute(name, value);
     } else {
@@ -174,7 +175,7 @@ pub fn add_attribute<MSG, CTX, T: ToString>(stack: &mut Stack<MSG, CTX>, name: &
 }
 
 #[doc(hidden)]
-pub fn attach_class<MSG, CTX>(stack: &mut Stack<MSG, CTX>, class: &'static str) {
+pub fn attach_class<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, class: &'static str) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.add_classes(class);
     } else {
@@ -183,7 +184,7 @@ pub fn attach_class<MSG, CTX>(stack: &mut Stack<MSG, CTX>, class: &'static str) 
 }
 
 #[doc(hidden)]
-pub fn attach_listener<MSG, CTX>(stack: &mut Stack<MSG, CTX>, listener: Box<Listener<MSG, CTX>>) {
+pub fn attach_listener<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, listener: Box<Listener<CTX, COMP>>) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.add_listener(listener);
     } else {
@@ -192,7 +193,7 @@ pub fn attach_listener<MSG, CTX>(stack: &mut Stack<MSG, CTX>, listener: Box<List
 }
 
 #[doc(hidden)]
-pub fn add_child<MSG, CTX>(stack: &mut Stack<MSG, CTX>, child: VNode<MSG, CTX>) {
+pub fn add_child<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, child: VNode<CTX, COMP>) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.add_child(child);
     } else {
@@ -201,7 +202,7 @@ pub fn add_child<MSG, CTX>(stack: &mut Stack<MSG, CTX>, child: VNode<MSG, CTX>) 
 }
 
 #[doc(hidden)]
-pub fn child_to_parent<MSG, CTX>(stack: &mut Stack<MSG, CTX>, endtag: Option<&'static str>) {
+pub fn child_to_parent<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, endtag: Option<&'static str>) {
     if let Some(mut node) = stack.pop() {
         if let (&mut VNode::VTag { ref mut vtag, .. }, Some(endtag)) = (&mut node, endtag) {
             let starttag = vtag.tag();
