@@ -58,6 +58,11 @@ impl<'a, CTX: 'a, MSG: 'a> DerefMut for ScopeRef<'a, CTX, MSG> {
 }
 
 /// A universal callback prototype.
+/// <aside class="warning">
+/// Use callbacks carefully, because it you call it from `update` loop
+/// of `Components` (even from JS) it will delay a message until next.
+/// Callbacks should be used from JS callbacks or `setTimeout` calls.
+/// </aside>
 pub type Callback<IN> = Box<Fn(IN)>;
 
 impl<'a, CTX: 'a, MSG: 'static> ScopeRef<'a, CTX, MSG> {
