@@ -6,7 +6,7 @@ extern crate yew;
 use yew::html::*;
 use yew::format::{Nothing, Json};
 use yew::services::Task;
-use yew::services::fetch::{FetchService, Method};
+use yew::services::fetch::{FetchService, Request};
 use yew::services::websocket::{WebSocketService, WebSocketHandle, WebSocketStatus};
 
 struct Context {
@@ -71,7 +71,17 @@ fn update(context: &mut Context, model: &mut Model, msg: Msg) {
     match msg {
         Msg::FetchData => {
             model.fetching = true;
-            context.web.fetch(Method::Get, "./data.json", Nothing, |Json(data)| Msg::FetchReady(data));
+            context.web.fetch(
+                Request::get("/data.json").body(Nothing).unwrap(),
+                |response| {
+                    let (meta, Json(data)) = response.into_parts();
+                    if meta.status.is_success() {
+                        Msg::FetchReady(data)
+                    } else {
+                        Msg::Ignore  // FIXME: Handle this error accordingly.
+                    }
+                }
+            );
         }
         Msg::WsAction(action) => {
             match action {
