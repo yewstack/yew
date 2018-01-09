@@ -12,6 +12,7 @@ categories = ["gui", "web-programming"]
 description = "A framework for making client-side single-page apps"
 
 [dependencies]
+http = "0.1"
 serde = "1"
 serde_json = "1"
 stdweb = "0.3"
