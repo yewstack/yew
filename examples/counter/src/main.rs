@@ -22,6 +22,7 @@ enum Msg {
 
 impl Component<Context> for Model {
     type Msg = Msg;
+    type Properties = ();
 
     fn create(_: &mut ScopeRef<Context, Msg>) -> Self {
         Model { value: 0 }
@@ -65,7 +66,7 @@ fn main() {
     let context = Context {
         console: ConsoleService,
     };
-    let app = Scope::new(context);
-    app.mount_to_body::<Model>();
+    let app: Scope<_, Model> = Scope::new(context);
+    app.mount_to_body();
     yew::run_loop();
 }

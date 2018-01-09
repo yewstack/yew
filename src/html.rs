@@ -23,6 +23,8 @@ fn clear_element(element: &Element) {
 pub trait Component<CTX> {
     /// Message type which `update` loop get.
     type Msg;
+    /// Properties type of component implementation.
+    type Properties;
     /// Initialization routine which could use a context.
     fn create(context: &mut ScopeRef<CTX, Self::Msg>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
@@ -30,6 +32,8 @@ pub trait Component<CTX> {
     fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self::Msg>);
     /// Called by rendering loop.
     fn view(&self) -> Html<CTX, Self::Msg>;
+    /// Set properties.
+    fn set_properties(&mut self, _: Self::Properties) { }
 }
 
 /// Shared reference to a context.
@@ -132,14 +136,14 @@ impl<CTX, MSG> ScopeSender<CTX, MSG> {
 
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
-pub struct Scope<CTX, MSG> {
+pub struct Scope<CTX, COMP: Component<CTX>> {
     context: SharedContext<CTX>,
-    tx: Sender<MSG>,
+    tx: Sender<COMP::Msg>,
     bind: Value,
-    rx: Option<Receiver<MSG>>,
+    rx: Option<Receiver<COMP::Msg>>,
 }
 
-impl<CTX: 'static, MSG: 'static> Scope<CTX, MSG> {
+impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
     /// Creates app with a context.
     pub fn new(context: CTX) -> Self {
         let context = Rc::new(RefCell::new(context));
@@ -161,7 +165,7 @@ impl<CTX: 'static, MSG: 'static> Scope<CTX, MSG> {
     }
 
     /// Returns a cloned sender.
-    pub fn sender(&mut self) -> ScopeSender<CTX, MSG> {
+    pub fn sender(&mut self) -> ScopeSender<CTX, COMP::Msg> {
         ScopeSender {
             tx: self.tx.clone(),
             context: self.context.clone(),
@@ -170,23 +174,17 @@ impl<CTX: 'static, MSG: 'static> Scope<CTX, MSG> {
     }
 
     /// Alias to `mount("body", ...)`.
-    pub fn mount_to_body<COMP>(self)
-    where
-        COMP: Component<CTX, Msg=MSG> + 'static,
-    {
+    pub fn mount_to_body(self) {
         let element = document().query_selector("body")
             .expect("can't get body node for rendering");
-        self.mount::<COMP>(element)
+        self.mount(element)
     }
 
     /// The main entrypoint of a yew program. It works similar as `program`
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount<COMP>(mut self, element: Element)
-    where
-        COMP: Component<CTX, Msg=MSG> + 'static,
-    {
+    pub fn mount(mut self, element: Element) {
         clear_element(&element);
         //
         let mut sender = self.sender();
