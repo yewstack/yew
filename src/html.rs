@@ -20,45 +20,20 @@ fn clear_element(element: &Element) {
 }
 
 /// An interface of a UI-component. Uses `self` as a model.
-pub trait Component<CTX> {
-    /// Message type which `update` loop get.
-    type Msg;
+pub trait Component<CTX>: Sized + 'static {
+    /// Control message type which `update` loop get.
+    type Msg: 'static;
     /// Properties type of component implementation.
     type Properties;
     /// Initialization routine which could use a context.
-    fn create(context: &mut ScopeRef<CTX, Self::Msg>) -> Self;
+    fn create(context: &mut ScopeRef<CTX, Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
-    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self::Msg>);
-    /// Called by rendering loop.
-    fn view(&self) -> Html<CTX, Self::Msg>;
+    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>);
     /// Set properties.
-    fn set_properties(&mut self, _: Self::Properties) { }
-}
-
-/// Shared reference to a context.
-pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
-
-/// Local reference to application internals: messages sender and context.
-// TODO Rename to Context
-pub struct ScopeRef<'a, CTX: 'a, MSG: 'a> {
-    context: &'a mut CTX,
-    tx: &'a mut Sender<MSG>,
-    bind: &'a Value,
-}
-
-impl<'a, CTX: 'a, MSG: 'a> Deref for ScopeRef<'a, CTX, MSG> {
-    type Target = CTX;
-
-    fn deref(&self) -> &CTX {
-        &self.context
-    }
-}
-
-impl<'a, CTX: 'a, MSG: 'a> DerefMut for ScopeRef<'a, CTX, MSG> {
-    fn deref_mut(&mut self) -> &mut CTX {
-        &mut self.context
-    }
+    fn set_properties(&mut self, _: Self::Properties, _: &mut ScopeRef<CTX, Self>) { }
+    /// Called by rendering loop.
+    fn view(&self) -> Html<CTX, Self>;
 }
 
 /// A universal callback prototype.
@@ -69,11 +44,36 @@ impl<'a, CTX: 'a, MSG: 'a> DerefMut for ScopeRef<'a, CTX, MSG> {
 /// </aside>
 pub type Callback<IN> = Box<Fn(IN)>;
 
-impl<'a, CTX: 'a, MSG: 'static> ScopeRef<'a, CTX, MSG> {
+/// Shared reference to a context.
+pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
+
+/// Local reference to application internals: messages sender and context.
+// TODO Rename to Context
+pub struct ScopeRef<'a, CTX: 'a, COMP: Component<CTX>> {
+    context: &'a mut CTX,
+    tx: &'a mut Sender<COMP::Msg>,
+    bind: &'a Value,
+}
+
+impl<'a, CTX: 'a, COMP: Component<CTX>> Deref for ScopeRef<'a, CTX, COMP> {
+    type Target = CTX;
+
+    fn deref(&self) -> &CTX {
+        &self.context
+    }
+}
+
+impl<'a, CTX: 'a, COMP: Component<CTX>> DerefMut for ScopeRef<'a, CTX, COMP> {
+    fn deref_mut(&mut self) -> &mut CTX {
+        &mut self.context
+    }
+}
+
+impl<'a, CTX: 'a, COMP: Component<CTX>> ScopeRef<'a, CTX, COMP> {
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
-        F: Fn(IN) -> MSG + 'static,
+        F: Fn(IN) -> COMP::Msg + 'static,
     {
         let sender = self.tx.clone();
         let bind = self.bind.clone();
@@ -96,13 +96,13 @@ impl<'a, CTX: 'a, MSG: 'static> ScopeRef<'a, CTX, MSG> {
 
 /// This struct keeps a sender to a context to send a messages to a loop
 /// and to schedule the next update call.
-pub struct ScopeSender<CTX, MSG> {
+pub struct ScopeSender<CTX, COMP: Component<CTX>> {
     context: SharedContext<CTX>,
-    tx: Sender<MSG>,
+    tx: Sender<COMP::Msg>,
     bind: Value,
 }
 
-impl<CTX, MSG> Clone for ScopeSender<CTX, MSG> {
+impl<CTX, COMP: Component<CTX>> Clone for ScopeSender<CTX, COMP> {
     fn clone(&self) -> Self {
         ScopeSender {
             tx: self.tx.clone(),
@@ -112,10 +112,10 @@ impl<CTX, MSG> Clone for ScopeSender<CTX, MSG> {
     }
 }
 
-impl<CTX, MSG> ScopeSender<CTX, MSG> {
+impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
     /// Send the message and schedule an update.
     // TODO Consider to remove this method
-    pub fn send(&mut self, msg: MSG) {
+    pub fn send(&mut self, msg: COMP::Msg) {
         self.tx.send(msg).expect("App lost the receiver!");
         let bind = &self.bind;
         js! {
@@ -165,7 +165,7 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
     }
 
     /// Returns a cloned sender.
-    pub fn sender(&mut self) -> ScopeSender<CTX, COMP::Msg> {
+    pub fn sender(&mut self) -> ScopeSender<CTX, COMP> {
         ScopeSender {
             tx: self.tx.clone(),
             context: self.context.clone(),
@@ -262,16 +262,15 @@ macro_rules! impl_action {
                 }
             }
 
-            impl<T, CTX: 'static, MSG> Listener<CTX, MSG> for Wrapper<T>
+            impl<T, CTX: 'static, COMP: Component<CTX>> Listener<CTX, COMP> for Wrapper<T>
             where
-                MSG: 'static,
-                T: Fn($ret) -> MSG + 'static,
+                T: Fn($ret) -> COMP::Msg + 'static,
             {
                 fn kind(&self) -> &'static str {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, mut sender: ScopeSender<CTX, MSG>)
+                fn attach(&mut self, element: &Element, mut sender: ScopeSender<CTX, COMP>)
                     -> EventListenerHandle {
                     let handler = self.0.take().expect("tried to attach listener twice");
                     let this = element.clone();
