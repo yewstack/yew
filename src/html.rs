@@ -36,6 +36,14 @@ pub trait Component<CTX>: Sized + 'static {
     fn view(&self) -> Html<CTX, Self>;
 }
 
+/// Update message for a `Components` instance. Used by scope sender.
+pub enum ComponentUpdate<CTX, COMP: Component<CTX>> {
+    /// Wraps messages for a component.
+    Message(COMP::Msg),
+    /// Wraps properties for a component.
+    Properties(COMP::Properties),
+}
+
 /// A universal callback prototype.
 /// <aside class="warning">
 /// Use callbacks carefully, because it you call it from `update` loop
@@ -51,7 +59,7 @@ pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
 // TODO Rename to Context
 pub struct ScopeRef<'a, CTX: 'a, COMP: Component<CTX>> {
     context: &'a mut CTX,
-    tx: &'a mut Sender<COMP::Msg>,
+    tx: &'a mut Sender<ComponentUpdate<CTX, COMP>>,
     bind: &'a Value,
 }
 
@@ -69,7 +77,7 @@ impl<'a, CTX: 'a, COMP: Component<CTX>> DerefMut for ScopeRef<'a, CTX, COMP> {
     }
 }
 
-impl<'a, CTX: 'a, COMP: Component<CTX>> ScopeRef<'a, CTX, COMP> {
+impl<'a, CTX: 'static, COMP: Component<CTX>> ScopeRef<'a, CTX, COMP> {
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
@@ -79,7 +87,8 @@ impl<'a, CTX: 'a, COMP: Component<CTX>> ScopeRef<'a, CTX, COMP> {
         let bind = self.bind.clone();
         let closure = move |input| {
             let output = function(input);
-            sender.send(output).expect("App lost the receiver!");
+            let update = ComponentUpdate::Message(output);
+            sender.send(update).expect("App lost the receiver!");
             let bind = bind.clone();
             js! {
                 // Schedule to call the loop handler
@@ -98,7 +107,7 @@ impl<'a, CTX: 'a, COMP: Component<CTX>> ScopeRef<'a, CTX, COMP> {
 /// and to schedule the next update call.
 pub struct ScopeSender<CTX, COMP: Component<CTX>> {
     context: SharedContext<CTX>,
-    tx: Sender<COMP::Msg>,
+    tx: Sender<ComponentUpdate<CTX, COMP>>,
     bind: Value,
 }
 
@@ -114,9 +123,8 @@ impl<CTX, COMP: Component<CTX>> Clone for ScopeSender<CTX, COMP> {
 
 impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
     /// Send the message and schedule an update.
-    // TODO Consider to remove this method
-    pub fn send(&mut self, msg: COMP::Msg) {
-        self.tx.send(msg).expect("App lost the receiver!");
+    pub fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
+        self.tx.send(update).expect("App lost the receiver!");
         let bind = &self.bind;
         js! {
             // Schedule to call the loop handler
@@ -138,9 +146,9 @@ impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
 /// Mostly services uses it.
 pub struct Scope<CTX, COMP: Component<CTX>> {
     context: SharedContext<CTX>,
-    tx: Sender<COMP::Msg>,
+    tx: Sender<ComponentUpdate<CTX, COMP>>,
     bind: Value,
-    rx: Option<Receiver<COMP::Msg>>,
+    rx: Option<Receiver<ComponentUpdate<CTX, COMP>>>,
 }
 
 impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
@@ -200,15 +208,15 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
             COMP::create(&mut sender)
         };
         // No messages at start
-        let mut messages = Vec::new();
+        let mut updates = Vec::new();
         let mut last_frame = VNode::from(component.view());
         last_frame.apply(&element, None, self.sender());
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
         let bind = self.bind.clone();
         let mut callback = move || {
-            messages.extend(rx.try_iter());
-            for msg in messages.drain(..) {
+            updates.extend(rx.try_iter());
+            {
                 // TODO DRY
                 let tx = &mut sender.tx;
                 let bind = &sender.bind;
@@ -217,7 +225,16 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
                     tx, bind,
                     context: &mut *context,
                 };
-                component.update(msg, &mut sender);
+                for upd in updates.drain(..) {
+                    match upd {
+                        ComponentUpdate::Message(msg) => {
+                            component.update(msg, &mut sender);
+                        }
+                        ComponentUpdate::Properties(props) => {
+                            component.set_properties(props, &mut sender);
+                        }
+                    }
+                }
             }
             let mut next_frame = VNode::from(component.view());
             next_frame.apply(&element, last_frame.take(), sender.clone());
@@ -279,7 +296,8 @@ macro_rules! impl_action {
                         event.stop_propagation();
                         let handy_event: $ret = $convert(&this, event);
                         let msg = handler(handy_event);
-                        sender.send(msg);
+                        let update = ComponentUpdate::Message(msg);
+                        sender.send(update);
                     };
                     element.add_event_listener(listener)
                 }
