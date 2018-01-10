@@ -2,16 +2,16 @@
 
 use std::marker::PhantomData;
 use std::any::TypeId;
-use serde::Serialize;
-use bincode::{serialize, deserialize, Infinite};
 use stdweb::web::Element;
 use html::{ScopeBuilder, SharedContext, Component, ComponentUpdate};
+
+struct Hidden;
 
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
     type_id: TypeId,
-    props: Option<Vec<u8>>,
-    blind_sender: Box<FnMut(Vec<u8>)>,
+    props: Option<(TypeId, *mut Hidden)>,
+    blind_sender: Box<FnMut((TypeId, *mut Hidden))>,
     generator: Box<FnMut(SharedContext<CTX>, Element)>,
     _parent: PhantomData<COMP>,
 }
@@ -27,9 +27,14 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             builder.build(context).mount(element);
         };
         let mut previous_props = None;
-        let blind_sender = move |raw: Vec<u8>| {
-            let props: CHILD::Properties = deserialize(raw.as_ref())
-                .expect("can't deserialize properties");
+        let blind_sender = move |(type_id, raw): (TypeId, *mut Hidden)| {
+            if type_id != TypeId::of::<CHILD>() {
+                panic!("tried to send properties of other component");
+            }
+            let props = unsafe {
+                let raw: *mut CHILD::Properties = ::std::mem::transmute(raw);
+                *Box::from_raw(raw)
+            };
             let new_props = Some(props);
             // Ignore update till properties changed
             if previous_props != new_props {
@@ -50,10 +55,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     }
 
     /// Attach properties associated with the component.
-    pub fn set_props<T: Serialize>(&mut self, props: &T) {
-        let data = serialize(props, Infinite)
-            .expect("can't serialize properties");
-        self.props = Some(data);
+    pub fn set_props<T>(&mut self, props: T) {
+        let boxed = Box::into_raw(Box::new(props));
+        let data = unsafe { ::std::mem::transmute(boxed) };
+        self.props = Some((self.type_id, data));
     }
 
     pub(crate) fn send_props(&mut self) {

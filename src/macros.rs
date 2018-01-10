@@ -21,7 +21,7 @@ macro_rules! html_impl {
     // Self-closing of tag
     (@vcomp $stack:ident $pair:ident (/ > $($tail:tt)*)) => {
         let (props, mut comp) = $pair;
-        comp.set_props(&props);
+        comp.set_props(props);
         $stack.push(comp.into());
         $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
