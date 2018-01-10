@@ -59,17 +59,47 @@ pub(crate) type ComponentSender<CTX, COMP> = Sender<ComponentUpdate<CTX, COMP>>;
 /// of `Components` (even from JS) it will delay a message until next.
 /// Callbacks should be used from JS callbacks or `setTimeout` calls.
 /// </aside>
-pub struct Callback<IN>(Box<Fn(IN)>);
+pub struct Callback<IN>(Rc<Fn(IN)>);
 
 impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
     fn from(func: F) -> Self {
-        Callback(Box::new(func))
+        Callback(Rc::new(func))
+    }
+}
+
+impl<IN> Clone for Callback<IN> {
+    fn clone(&self) -> Self {
+        Callback(self.0.clone())
+    }
+}
+
+impl<IN> PartialEq for Callback<IN> {
+    fn eq(&self, other: &Callback<IN>) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
     }
 }
 
 impl<IN> Callback<IN> {
     pub fn emit(&self, value: IN) {
         (self.0)(value);
+    }
+}
+
+pub trait ToProperty<T> {
+    fn to_property(self) -> T;
+}
+
+impl<T> ToProperty<T> for T {
+    fn to_property(self) -> T { self }
+}
+
+impl<'a, T: Clone> ToProperty<T> for &'a T {
+    fn to_property(self) -> T { self.clone() }
+}
+
+impl<IN, F: Fn(IN) + 'static> ToProperty<Option<Callback<IN>>> for F {
+    fn to_property(self) -> Option<Callback<IN>> {
+        Some(self.into())
     }
 }
 

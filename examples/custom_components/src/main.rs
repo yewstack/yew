@@ -45,7 +45,7 @@ impl Component<Context> for Model {
 
     fn view(&self) -> Html<Context, Self> {
         let counter = |_| html! {
-            <Counter: color=self.color,/>
+            <Counter: color=&self.color, onclick=|v| println!("FIRED! {}", v),/>
         };
         html! {
             <div>

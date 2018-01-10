@@ -15,7 +15,7 @@ macro_rules! html_impl {
         // It cloned for ergonomics in templates. Attribute with
         // `self.param` value could be reused and sholdn't be cloned
         // by yourself
-        ($pair.0).$attr = $val.clone();
+        ($pair.0).$attr = $crate::html::ToProperty::to_property($val);
         html_impl! { @vcomp $stack $pair ($($tail)*) }
     };
     // Self-closing of tag
