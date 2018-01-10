@@ -46,7 +46,7 @@ impl FetchService {
         let callback = move |success: bool, s: String| {
             let data = if success { Ok(s) } else { Err(s) };
             let out = OUT::from(data);
-            callback(out);
+            callback.emit(out);
         };
         let method = method.to_argument();
         let body = data.into();

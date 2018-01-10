@@ -25,7 +25,7 @@ impl IntervalService {
     pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> IntervalHandle
     {
         let callback = move || {
-            callback(());
+            callback.emit(());
         };
         let ms = to_ms(duration);
         let handle = js! {
