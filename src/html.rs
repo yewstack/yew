@@ -7,7 +7,6 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 use std::sync::mpsc::{Sender, Receiver, channel};
-use serde::{Serialize, Deserialize};
 use stdweb::Value;
 use stdweb::web::{Element, INode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
@@ -31,7 +30,7 @@ pub trait Component<CTX>: Sized + 'static {
     /// It sould be serializable because it's sent to dynamicaly created
     /// component (layed under `VComp`) and must be restored for a component
     /// with unknown type.
-    type Properties: Serialize + for <'de> Deserialize<'de> + Clone + PartialEq + Default;
+    type Properties: Clone + PartialEq + Default;
     /// Initialization routine which could use a context.
     fn create(context: &mut ScopeRef<CTX, Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a

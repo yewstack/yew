@@ -1,6 +1,6 @@
 use yew::html::*;
 
-#[derive(Serialize, Deserialize, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 pub enum Color {
     Red,
     Green,
@@ -16,7 +16,7 @@ pub enum Msg {
     Increase,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 pub struct Props {
     pub color: Color,
 }
