@@ -49,7 +49,7 @@ pub enum ComponentUpdate<CTX, COMP: Component<CTX>> {
 }
 
 /// Internal alias for sender.
-pub(crate) type ComponentSender<CTX,COMP> = Sender<ComponentUpdate<CTX, COMP>>;
+pub(crate) type ComponentSender<CTX, COMP> = Sender<ComponentUpdate<CTX, COMP>>;
 
 /// A universal callback prototype.
 /// <aside class="warning">
@@ -110,10 +110,35 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> ScopeRef<'a, CTX, COMP> {
     }
 }
 
+pub struct ScopeEnv<CTX, COMP: Component<CTX>> {
+    context: SharedContext<CTX>,
+    sender: ScopeSender<CTX, COMP>,
+}
+
+impl<CTX, COMP: Component<CTX>> Clone for ScopeEnv<CTX, COMP> {
+    fn clone(&self) -> Self {
+        ScopeEnv {
+            context: self.context.clone(),
+            sender: self.sender.clone(),
+        }
+    }
+}
+
+impl<CTX, COMP: Component<CTX>> ScopeEnv<CTX, COMP> {
+    /// Clones sender.
+    pub fn sender(&self) -> ScopeSender<CTX, COMP> {
+        self.sender.clone()
+    }
+
+    /// Clones shared context.
+    pub fn context(&self) -> SharedContext<CTX> {
+        self.context.clone()
+    }
+}
+
 /// This struct keeps a sender to a context to send a messages to a loop
 /// and to schedule the next update call.
 pub struct ScopeSender<CTX, COMP: Component<CTX>> {
-    context: SharedContext<CTX>,
     tx: ComponentSender<CTX, COMP>,
     bind: Value,
 }
@@ -122,7 +147,6 @@ impl<CTX, COMP: Component<CTX>> Clone for ScopeSender<CTX, COMP> {
     fn clone(&self) -> Self {
         ScopeSender {
             tx: self.tx.clone(),
-            context: self.context.clone(),
             bind: self.bind.clone(),
         }
     }
@@ -141,11 +165,6 @@ impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
             var bind = @{bind};
             setTimeout(bind.loop);
         }
-    }
-
-    /// Clones shared context.
-    pub fn context(&self) -> SharedContext<CTX> {
-        self.context.clone()
     }
 }
 
@@ -203,12 +222,15 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
         builder.build(context)
     }
 
-    /// Returns a cloned sender.
-    pub fn sender(&mut self) -> ScopeSender<CTX, COMP> {
-        ScopeSender {
+    /// Returns an environment.
+    pub fn get_env(&mut self) -> ScopeEnv<CTX, COMP> {
+        let sender = ScopeSender {
             tx: self.tx.clone(),
-            context: self.context.clone(),
             bind: self.bind.clone(),
+        };
+        ScopeEnv {
+            context: self.context.clone(),
+            sender,
         }
     }
 
@@ -226,12 +248,12 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
     pub fn mount(mut self, element: Element) {
         clear_element(&element);
         //
-        let mut sender = self.sender();
+        let ScopeEnv { mut sender, context } = self.get_env();
         let mut component = {
             // TODO DRY
             let tx = &mut sender.tx;
             let bind = &sender.bind;
-            let mut context = sender.context.borrow_mut();
+            let mut context = context.borrow_mut();
             let mut sender = ScopeRef {
                 tx, bind,
                 context: &mut *context,
@@ -241,7 +263,7 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
         // No messages at start
         let mut updates = Vec::new();
         let mut last_frame = VNode::from(component.view());
-        last_frame.apply(&element, None, self.sender());
+        last_frame.apply(&element, None, self.get_env());
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
         let bind = self.bind.clone();
@@ -251,7 +273,7 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
                 // TODO DRY
                 let tx = &mut sender.tx;
                 let bind = &sender.bind;
-                let mut context = sender.context.borrow_mut();
+                let mut context = context.borrow_mut();
                 let mut sender = ScopeRef {
                     tx, bind,
                     context: &mut *context,
@@ -268,7 +290,7 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
                 }
             }
             let mut next_frame = VNode::from(component.view());
-            next_frame.apply(&element, last_frame.take(), sender.clone());
+            next_frame.apply(&element, last_frame.take(), self.get_env());
             last_frame = Some(next_frame);
         };
         // Initial call for first rendering
