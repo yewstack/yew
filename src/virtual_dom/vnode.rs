@@ -4,7 +4,7 @@ use std::fmt;
 use std::cmp::PartialEq;
 use stdweb::web::{INode, Node, Element, TextNode, document};
 use virtual_dom::{VTag, VText, VComp};
-use html::{ScopeSender, Component};
+use html::{ScopeEnv, Component};
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<CTX, COMP: Component<CTX>> {
@@ -50,7 +50,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
-    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<CTX, COMP>>, sender: ScopeSender<CTX, COMP>) {
+    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<CTX, COMP>>, env: ScopeEnv<CTX, COMP>) {
         match *self {
             VNode::VTag {
                 ref mut vtag,
@@ -102,7 +102,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
                         Vec::new()
                     }
                 };
-                left.render(element_mut, right, sender.clone());
+                left.render(element_mut, right, env.clone());
                 let mut lefts = left.childs.iter_mut().map(Some).collect::<Vec<_>>();
                 // Process children
                 let diff = lefts.len() as i32 - rights.len() as i32;
@@ -118,7 +118,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
                 for pair in lefts.into_iter().zip(rights) {
                     match pair {
                         (Some(left), right) => {
-                            left.apply(element_mut, right, sender.clone());
+                            left.apply(element_mut, right, env.clone());
                         }
                         (None, Some(right)) => {
                             right.remove(element_mut);
@@ -181,7 +181,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
                             let wrong = element;
                             let element = document().create_element("div");
                             parent.replace_child(&element, &wrong);
-                            left.mount(&element, sender.context());
+                            left.mount(&element, env.context());
                             *reference = Some(element);
                         }
                     }
@@ -190,7 +190,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
                         let element = document().create_element("div");
                         parent.append_child(&element);
                         left.send_props();
-                        left.mount(&element, sender.context());
+                        left.mount(&element, env.context());
                         *reference = Some(element);
                     }
                     _ => {

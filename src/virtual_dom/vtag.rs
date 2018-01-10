@@ -8,7 +8,7 @@ use stdweb::web::{IElement, Element, EventListenerHandle};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryFrom;
 use virtual_dom::{Listener, Listeners, Classes, Attributes, Patch, VNode};
-use html::{ScopeSender, Component};
+use html::{ScopeEnv, Component};
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
@@ -204,7 +204,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
 impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to pach in the actual DOM nodes.
-    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, sender: ScopeSender<CTX, COMP>) {
+    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, env: ScopeEnv<CTX, COMP>) {
         let changes = self.soakup_classes(&mut opposite);
         for change in changes {
             let list = subject.class_list();
@@ -275,7 +275,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
         }
 
         for mut listener in self.listeners.drain(..) {
-            let handle = listener.attach(&subject, sender.clone());
+            let handle = listener.attach(&subject, env.sender());
             self.captured.push(handle);
         }
     }
