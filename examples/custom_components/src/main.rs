@@ -36,7 +36,7 @@ impl Component<Context> for Model {
         Model { color: Color::Red }
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<Context, Self>) {
+    fn update(&mut self, msg: Self::Msg, _: &mut ScopeRef<Context, Self>) {
         match msg {
             Msg::Repaint => {
                 self.color = Color::Blue;
@@ -51,7 +51,7 @@ impl Component<Context> for Model {
         html! {
             <div>
                 <button onclick=|_| Msg::Repaint,>{ "Repaint" }</button>
-                { for (0..10).map(counter) }
+                { for (0..1000).map(counter) }
             </div>
         }
     }

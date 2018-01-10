@@ -7,28 +7,6 @@ use bincode::{serialize, deserialize, Infinite};
 use stdweb::web::Element;
 use html::{ScopeBuilder, SharedContext, Component, ComponentUpdate};
 
-/*
-/// Return sender and empty properties.
-pub struct PropConnector<CTX, COMP: Component<CTX>> {
-    sender: ComponentSender<CTX, COMP>,
-    /// Properties of a `Component` to set.
-    properties: COMP::Properties,
-}
-
-impl<CTX: 'static, COMP: Component<CTX>> PropConnector<CTX, COMP> {
-    /// Applies properties to a component.
-    pub fn apply(self) {
-        self.sender.send(ComponentUpdate::Properties(self.properties))
-            .expect("can't send new properties to a component");
-    }
-
-    /// Get properties for updates.
-    pub fn prop_mut(&mut self) -> &mut COMP::Properties {
-        &mut self.properties
-    }
-}
-*/
-
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
     type_id: TypeId,
@@ -53,13 +31,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             let props: CHILD::Properties = deserialize(raw.as_ref())
                 .expect("can't deserialize properties");
             let new_props = Some(props);
-            // Only new properties applied to a component to avoid flood.
-            //if previous_props != new_props {
-                let props = new_props.as_ref().unwrap().clone();
-                sender.send(ComponentUpdate::Properties(props));
-                    //.expect("can't send properties to a component");
-                previous_props = new_props;
-            //}
+            let props = new_props.as_ref().unwrap().clone();
+            sender.send(ComponentUpdate::Properties(props));
+            previous_props = new_props;
         };
         let properties = Default::default();
         let comp = VComp {
