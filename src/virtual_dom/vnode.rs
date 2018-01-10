@@ -167,15 +167,23 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
                 ref mut reference,
             } => {
                 let left = vcomp;
-                let mut _right = None;
                 match last {
                     Some(VNode::VComp {
                              vcomp,
                              reference: Some(element),
                          }) => {
-                        _right = Some(vcomp);
-                        *reference = Some(element);
+                        if *left == vcomp {
+                            // Send new properties
+                            *reference = Some(element);
+                        } else {
+                            let wrong = element;
+                            let element = document().create_element("div");
+                            parent.replace_child(&element, &wrong);
+                            left.mount(&element, sender.context());
+                            *reference = Some(element);
+                        }
                     }
+                    Some(VNode::VComp { reference: None, .. }) |
                     None => {
                         let element = document().create_element("div");
                         parent.append_child(&element);
