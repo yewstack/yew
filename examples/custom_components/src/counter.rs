@@ -10,6 +10,7 @@ pub enum Color {
 pub struct Counter {
     value: u32,
     color: Color,
+    onclick: Option<Callback<u32>>,
 }
 
 pub enum Msg {
@@ -19,12 +20,14 @@ pub enum Msg {
 #[derive(PartialEq, Clone)]
 pub struct Props {
     pub color: Color,
+    pub onclick: Option<Callback<u32>>,
 }
 
 impl Default for Props {
     fn default() -> Self {
         Props {
             color: Color::Green,
+            onclick: None,
         }
     }
 }
@@ -34,13 +37,20 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
     type Properties = Props;
 
     fn create(_: &mut ScopeRef<CTX, Self>) -> Self {
-        Counter { value: 0, color: Color::Green }
+        Counter {
+            value: 0,
+            color: Color::Green,
+            onclick: None,
+        }
     }
 
     fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>) -> ShouldUpdate {
         match msg {
             Msg::Increase => {
                 self.value = self.value + 1;
+                if let Some(ref onclick) = self.onclick {
+                    onclick.emit(self.value);
+                }
                 context.print(format!("<printer> value of model is {}", self.value).as_str());
             }
         }
@@ -49,6 +59,7 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
 
     fn change(&mut self, props: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldUpdate {
         self.color = props.color;
+        self.onclick = props.onclick;
         true
     }
 
