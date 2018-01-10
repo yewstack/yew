@@ -42,7 +42,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     /// This method prepares a generator to make a new instance of the `Component`.
     pub fn lazy<CHILD: Component<CTX>>() -> (CHILD::Properties, Self) {
         let builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new();
-        let sender = builder.sender();
+        let mut sender = builder.sender();
         let mut builder = Some(builder);
         let generator = move |context, element| {
             let builder = builder.take().expect("tried to mount component twice");
@@ -56,8 +56,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             // Only new properties applied to a component to avoid flood.
             //if previous_props != new_props {
                 let props = new_props.as_ref().unwrap().clone();
-                sender.send(ComponentUpdate::Properties(props))
-                    .expect("can't send properties to a component");
+                sender.send(ComponentUpdate::Properties(props));
+                    //.expect("can't send properties to a component");
                 previous_props = new_props;
             //}
         };
