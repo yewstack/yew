@@ -72,6 +72,11 @@ macro_rules! html_impl {
         $crate::macros::add_attribute(&mut $stack, stringify!($attr), $val);
         html_impl! { $stack ($($tail)*) }
     };
+    ($stack:ident ($($attr:ident)-+ = $val:expr, $($tail:tt)*)) => {
+        let attr = vec![$(stringify!($attr).to_string()),+].join("-");
+        $crate::macros::add_attribute(&mut $stack, &attr, $val);
+        html_impl! { $stack ($($tail)*) }
+    };
     // PATTERN: { for expression }
     ($stack:ident ({ for $eval:expr } $($tail:tt)*)) => {
         let nodes = $eval;
@@ -154,7 +159,7 @@ pub fn set_checked<MSG>(stack: &mut Stack<MSG>, value: bool) {
 }
 
 #[doc(hidden)]
-pub fn add_attribute<MSG, T: ToString>(stack: &mut Stack<MSG>, name: &'static str, value: T) {
+pub fn add_attribute<MSG, T: ToString>(stack: &mut Stack<MSG>, name: &str, value: T) {
     if let Some(node) = stack.last_mut() {
         node.add_attribute(name, value);
     } else {
