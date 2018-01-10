@@ -37,10 +37,6 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
         Counter { value: 0, color: Color::Green }
     }
 
-    fn configure(&mut self, props: Self::Properties, _: &mut ScopeRef<CTX, Self>) {
-        self.color = props.color;
-    }
-
     fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>) {
         match msg {
             Msg::Increase => {
@@ -48,6 +44,10 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
                 context.print(format!("<printer> value of model is {}", self.value).as_str());
             }
         }
+    }
+
+    fn change(&mut self, props: Self::Properties, _: &mut ScopeRef<CTX, Self>) {
+        self.color = props.color;
     }
 
     fn view(&self) -> Html<CTX, Self> {

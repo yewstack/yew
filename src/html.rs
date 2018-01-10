@@ -34,8 +34,8 @@ pub trait Component<CTX>: Sized + 'static {
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
     fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>);
-    /// Set properties.
-    fn configure(&mut self, _: Self::Properties, _: &mut ScopeRef<CTX, Self>) { }
+    /// This method called when properties changes, and once when component created.
+    fn change(&mut self, _: Self::Properties, _: &mut ScopeRef<CTX, Self>) { }
     /// Called by rendering loop.
     fn view(&self) -> Html<CTX, Self>;
 }
@@ -286,7 +286,7 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
                             component.update(msg, &mut sender);
                         }
                         ComponentUpdate::Properties(props) => {
-                            component.configure(props, &mut sender);
+                            component.change(props, &mut sender);
                         }
                     }
                 }

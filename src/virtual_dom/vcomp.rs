@@ -31,9 +31,12 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             let props: CHILD::Properties = deserialize(raw.as_ref())
                 .expect("can't deserialize properties");
             let new_props = Some(props);
-            let props = new_props.as_ref().unwrap().clone();
-            sender.send(ComponentUpdate::Properties(props));
-            previous_props = new_props;
+            // Ignore update till properties changed
+            if previous_props != new_props {
+                let props = new_props.as_ref().unwrap().clone();
+                sender.send(ComponentUpdate::Properties(props));
+                previous_props = new_props;
+            }
         };
         let properties = Default::default();
         let comp = VComp {
