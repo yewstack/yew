@@ -154,7 +154,6 @@ impl<CTX, COMP: Component<CTX>> Clone for ScopeSender<CTX, COMP> {
 
 impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
     /// Send the message and schedule an update.
-    // TODO Return result
     pub fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
         self.tx.send(update).expect("app lost the receiver!");
         let bind = &self.bind;
