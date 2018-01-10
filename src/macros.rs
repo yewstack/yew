@@ -8,15 +8,17 @@ use html::Component;
 macro_rules! html_impl {
     // Start of component tag
     ($stack:ident (< $comp:ty : $($tail:tt)*)) => {
-        let comp = $crate::virtual_dom::VComp::lazy::<$comp>();
+        let (mut holder, comp) = $crate::virtual_dom::VComp::lazy::<$comp>();
         $stack.push(comp.into());
-        html_impl! { @vcomp $stack ($($tail)*) }
+        html_impl! { @vcomp $stack holder ($($tail)*) }
     };
-    (@vcomp $stack:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
-        html_impl! { @vcomp $stack ($($tail)*) }
+    (@vcomp $stack:ident $holder:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
+        $holder.prop_mut().$attr = $val;
+        html_impl! { @vcomp $stack $holder ($($tail)*) }
     };
     // Self-closing of tag
-    (@vcomp $stack:ident (/ > $($tail:tt)*)) => {
+    (@vcomp $stack:ident $holder:ident (/ > $($tail:tt)*)) => {
+        $holder.apply();
         $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
     };

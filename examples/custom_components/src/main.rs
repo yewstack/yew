@@ -5,7 +5,7 @@ mod counter;
 
 use yew::html::*;
 use yew::services::console::ConsoleService;
-use counter::Counter;
+use counter::{Counter, Color};
 
 struct Context {
     console: ConsoleService,
@@ -30,12 +30,13 @@ enum Msg {
 
 impl Component<Context> for Model {
     type Msg = Msg;
+    type Properties = ();
 
-    fn create(_: &mut ScopeRef<Context, Msg>) -> Self {
+    fn create(_: &mut ScopeRef<Context, Self>) -> Self {
         Model { value: 0 }
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<Context, Msg>) {
+    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<Context, Self>) {
         match msg {
             Msg::Increment => {
                 self.value = self.value + 1;
@@ -51,9 +52,9 @@ impl Component<Context> for Model {
         }
     }
 
-    fn view(&self) -> Html<Context, Self::Msg> {
+    fn view(&self) -> Html<Context, Self> {
         let counter = |_| html! {
-            <Counter: />
+            <Counter: color=Color::Red,/>
         };
         html! {
             <div>
@@ -74,7 +75,7 @@ fn main() {
     let context = Context {
         console: ConsoleService,
     };
-    let app = Scope::new(context);
-    app.mount_to_body::<Model>();
+    let app: Scope<Context, Model> = Scope::new(context);
+    app.mount_to_body();
     yew::run_loop();
 }
