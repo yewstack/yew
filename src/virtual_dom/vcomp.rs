@@ -1,6 +1,7 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
 use std::marker::PhantomData;
+use std::any::TypeId;
 use stdweb::web::Element;
 use html::{ScopeBuilder, SharedContext, Component, ComponentSender, ComponentUpdate};
 
@@ -26,6 +27,7 @@ impl<CTX: 'static, COMP: Component<CTX>> PropConnector<CTX, COMP> {
 
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
+    type_id: TypeId,
     generator: Box<FnMut(SharedContext<CTX>, Element)>,
     _parent: PhantomData<COMP>,
 }
@@ -45,10 +47,16 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             properties: Default::default(),
         };
         let comp = VComp {
+            type_id: TypeId::of::<CHILD>(),
             generator: Box::new(generator),
             _parent: PhantomData,
         };
         (connector, comp)
+    }
+
+    /// This methods gives sender from older node.
+    pub(crate) fn accommodate(&mut self, other: Self) {
+        assert_eq!(self.type_id, other.type_id);
     }
 }
 
@@ -59,3 +67,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     }
 }
 
+impl<CTX, COMP: Component<CTX>> PartialEq for VComp<CTX, COMP> {
+    fn eq(&self, other: &VComp<CTX, COMP>) -> bool {
+        self.type_id == other.type_id
+    }
+}
