@@ -20,6 +20,9 @@ fn clear_element(element: &Element) {
     }
 }
 
+/// This type indicates that component should be rendered again.
+pub type ShouldUpdate = bool;
+
 /// An interface of a UI-component. Uses `self` as a model.
 pub trait Component<CTX>: Sized + 'static {
     /// Control message type which `update` loop get.
@@ -33,9 +36,9 @@ pub trait Component<CTX>: Sized + 'static {
     fn create(context: &mut ScopeRef<CTX, Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
-    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>);
+    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>) -> ShouldUpdate;
     /// This method called when properties changes, and once when component created.
-    fn change(&mut self, _: Self::Properties, _: &mut ScopeRef<CTX, Self>) { }
+    fn change(&mut self, _: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldUpdate { false }
     /// Called by rendering loop.
     fn view(&self) -> Html<CTX, Self>;
 }
@@ -265,11 +268,13 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
         // No messages at start
         let mut updates = Vec::new();
         let mut last_frame = VNode::from(component.view());
+        // First-time rendering the tree
         last_frame.apply(&element, None, self.get_env());
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
         let bind = self.bind.clone();
         let mut callback = move || {
+            let mut should_update = false;
             updates.extend(rx.try_iter());
             {
                 // TODO DRY
@@ -283,17 +288,20 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
                 for upd in updates.drain(..) {
                     match upd {
                         ComponentUpdate::Message(msg) => {
-                            component.update(msg, &mut sender);
+                            should_update |= component.update(msg, &mut sender);
                         }
                         ComponentUpdate::Properties(props) => {
-                            component.change(props, &mut sender);
+                            should_update |= component.change(props, &mut sender);
                         }
                     }
                 }
             }
-            let mut next_frame = VNode::from(component.view());
-            next_frame.apply(&element, last_frame.take(), self.get_env());
-            last_frame = Some(next_frame);
+            if should_update {
+                let mut next_frame = VNode::from(component.view());
+                // Re-rendering the tree
+                next_frame.apply(&element, last_frame.take(), self.get_env());
+                last_frame = Some(next_frame);
+            }
         };
         // Initial call for first rendering
         callback();
