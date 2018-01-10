@@ -24,7 +24,7 @@ pub trait Component<CTX>: Sized + 'static {
     /// Control message type which `update` loop get.
     type Msg: 'static;
     /// Properties type of component implementation.
-    type Properties;
+    type Properties: Default;
     /// Initialization routine which could use a context.
     fn create(context: &mut ScopeRef<CTX, Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
@@ -44,6 +44,9 @@ pub enum ComponentUpdate<CTX, COMP: Component<CTX>> {
     Properties(COMP::Properties),
 }
 
+/// Internal alias for sender.
+pub(crate) type ComponentSender<CTX,COMP> = Sender<ComponentUpdate<CTX, COMP>>;
+
 /// A universal callback prototype.
 /// <aside class="warning">
 /// Use callbacks carefully, because it you call it from `update` loop
@@ -59,7 +62,7 @@ pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
 // TODO Rename to Context
 pub struct ScopeRef<'a, CTX: 'a, COMP: Component<CTX>> {
     context: &'a mut CTX,
-    tx: &'a mut Sender<ComponentUpdate<CTX, COMP>>,
+    tx: &'a mut ComponentSender<CTX, COMP>,
     bind: &'a Value,
 }
 
@@ -107,7 +110,7 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> ScopeRef<'a, CTX, COMP> {
 /// and to schedule the next update call.
 pub struct ScopeSender<CTX, COMP: Component<CTX>> {
     context: SharedContext<CTX>,
-    tx: Sender<ComponentUpdate<CTX, COMP>>,
+    tx: ComponentSender<CTX, COMP>,
     bind: Value,
 }
 
@@ -144,7 +147,7 @@ impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
 
 pub(crate) struct ScopeBuilder<CTX, COMP: Component<CTX>> {
     //context: PhantomData<CTX>,
-    tx: Sender<ComponentUpdate<CTX, COMP>>,
+    tx: ComponentSender<CTX, COMP>,
     rx: Receiver<ComponentUpdate<CTX, COMP>>,
     bind: Value,
 }
@@ -160,7 +163,7 @@ impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
     }
 
     /// Lightweight sender for sending properties updates from `VComp`.
-    pub fn sender(&self) -> Sender<ComponentUpdate<CTX, COMP>> {
+    pub fn sender(&self) -> ComponentSender<CTX, COMP> {
         self.tx.clone()
     }
 
@@ -179,7 +182,7 @@ impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
 pub struct Scope<CTX, COMP: Component<CTX>> {
     context: SharedContext<CTX>,
     bind: Value,
-    tx: Sender<ComponentUpdate<CTX, COMP>>,
+    tx: ComponentSender<CTX, COMP>,
     rx: Option<Receiver<ComponentUpdate<CTX, COMP>>>,
 }
 
