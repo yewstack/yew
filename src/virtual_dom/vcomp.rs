@@ -1,9 +1,11 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
+use std::rc::Rc;
+use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::any::TypeId;
 use stdweb::web::Element;
-use html::{ScopeBuilder, SharedContext, Component, ComponentUpdate};
+use html::{ScopeBuilder, SharedContext, Component, ComponentUpdate, ScopeSender, Callback};
 
 struct Hidden;
 
@@ -13,6 +15,7 @@ pub struct VComp<CTX, COMP: Component<CTX>> {
     props: Option<(TypeId, *mut Hidden)>,
     blind_sender: Box<FnMut((TypeId, *mut Hidden))>,
     generator: Box<FnMut(SharedContext<CTX>, Element)>,
+    activators: Vec<Rc<RefCell<Option<ScopeSender<CTX, COMP>>>>>,
     _parent: PhantomData<COMP>,
 }
 
@@ -49,6 +52,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             props: None,
             blind_sender: Box::new(blind_sender),
             generator: Box::new(generator),
+            activators: Vec::new(),
             _parent: PhantomData,
         };
         (properties, comp)
@@ -72,6 +76,51 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         assert_eq!(self.type_id, other.type_id);
         // Grab a sender to reuse it later
         self.blind_sender = other.blind_sender;
+    }
+}
+
+/// Converts property and stores activator to attach sender in the rendering state.
+pub trait Transformer<CTX, COMP: Component<CTX>, FROM, TO> {
+    fn transform(&mut self, from: FROM) -> TO;
+}
+
+impl<CTX, COMP, T> Transformer<CTX, COMP, T, T> for VComp<CTX, COMP>
+where
+    COMP: Component<CTX>,
+{
+    fn transform(&mut self, from: T) -> T {
+        from
+    }
+}
+
+impl<'a, CTX, COMP, T> Transformer<CTX, COMP, &'a T, T> for VComp<CTX, COMP>
+where
+    COMP: Component<CTX>,
+    T: Clone,
+{
+    fn transform(&mut self, from: &'a T) -> T {
+        from.clone()
+    }
+}
+
+impl<'a, CTX, COMP, F, IN> Transformer<CTX, COMP, F, Option<Callback<IN>>> for VComp<CTX, COMP>
+where
+    CTX: 'static,
+    COMP: Component<CTX>,
+    F: Fn(IN) -> COMP::Msg + 'static,
+{
+    fn transform(&mut self, from: F) -> Option<Callback<IN>> {
+        let cell = Rc::new(RefCell::new(None));
+        self.activators.push(cell.clone());
+        let callback = move |arg| {
+            let msg = from(arg);
+            if let Some(ref mut sender) = *cell.borrow_mut() {
+                sender.send(ComponentUpdate::Message(msg));
+            } else {
+                panic!("unactivated callback, parent component have to activate it");
+            }
+        };
+        Some(callback.into())
     }
 }
 
