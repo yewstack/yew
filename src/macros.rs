@@ -8,17 +8,21 @@ use html::Component;
 macro_rules! html_impl {
     // Start of component tag
     ($stack:ident (< $comp:ty : $($tail:tt)*)) => {
-        let (mut holder, comp) = $crate::virtual_dom::VComp::lazy::<$comp>();
-        $stack.push(comp.into());
-        html_impl! { @vcomp $stack holder ($($tail)*) }
+        let mut pair = $crate::virtual_dom::VComp::lazy::<$comp>();
+        html_impl! { @vcomp $stack pair ($($tail)*) }
     };
-    (@vcomp $stack:ident $holder:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
-        $holder.prop_mut().$attr = $val;
-        html_impl! { @vcomp $stack $holder ($($tail)*) }
+    (@vcomp $stack:ident $pair:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
+        // It cloned for ergonomics in templates. Attribute with
+        // `self.param` value could be reused and sholdn't be cloned
+        // by yourself
+        ($pair.0).$attr = $val.clone();
+        html_impl! { @vcomp $stack $pair ($($tail)*) }
     };
     // Self-closing of tag
-    (@vcomp $stack:ident $holder:ident (/ > $($tail:tt)*)) => {
-        $holder.apply();
+    (@vcomp $stack:ident $pair:ident (/ > $($tail:tt)*)) => {
+        let (props, mut comp) = $pair;
+        comp.set_props(&props);
+        $stack.push(comp.into());
         $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
     };

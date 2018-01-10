@@ -173,7 +173,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
                              reference: Some(element),
                          }) => {
                         if *left == vcomp {
-                            // Send new properties
+                            // Send fresh properties to an active component
+                            left.grab_sender_of(vcomp);
+                            left.send_props();
                             *reference = Some(element);
                         } else {
                             let wrong = element;
@@ -187,6 +189,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
                     None => {
                         let element = document().create_element("div");
                         parent.append_child(&element);
+                        left.send_props();
                         left.mount(&element, sender.context());
                         *reference = Some(element);
                     }

@@ -1,4 +1,6 @@
 #[macro_use]
+extern crate serde_derive;
+#[macro_use]
 extern crate yew;
 
 mod counter;
@@ -18,13 +20,11 @@ impl counter::Printer for Context {
 }
 
 struct Model {
-    value: i64,
+    color: Color,
 }
 
 enum Msg {
-    Increment,
-    Decrement,
-    Bulk(Vec<Msg>),
+    Repaint,
 }
 
 
@@ -33,38 +33,25 @@ impl Component<Context> for Model {
     type Properties = ();
 
     fn create(_: &mut ScopeRef<Context, Self>) -> Self {
-        Model { value: 0 }
+        Model { color: Color::Red }
     }
 
     fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<Context, Self>) {
         match msg {
-            Msg::Increment => {
-                self.value = self.value + 1;
-            }
-            Msg::Decrement => {
-                self.value = self.value - 1;
-            }
-            Msg::Bulk(list) => {
-                for msg in list {
-                    self.update(msg, context);
-                }
+            Msg::Repaint => {
+                self.color = Color::Blue;
             }
         }
     }
 
     fn view(&self) -> Html<Context, Self> {
         let counter = |_| html! {
-            <Counter: color=Color::Red,/>
+            <Counter: color=self.color,/>
         };
         html! {
             <div>
-                <nav class="menu",>
-                    { for (1..1000).map(counter) }
-                    <button onclick=|_| Msg::Increment,>{ "Increment" }</button>
-                    <button onclick=|_| Msg::Decrement,>{ "Decrement" }</button>
-                    <button onclick=|_| Msg::Bulk(vec!(Msg::Increment, Msg::Increment)),>{ "Increment Twice" }</button>
-                </nav>
-                <p>{ self.value }</p>
+                <button onclick=|_| Msg::Repaint,>{ "Repaint" }</button>
+                { for (0..10).map(counter) }
             </div>
         }
     }
