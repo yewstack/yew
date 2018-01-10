@@ -60,7 +60,19 @@ pub(crate) type ComponentSender<CTX, COMP> = Sender<ComponentUpdate<CTX, COMP>>;
 /// of `Components` (even from JS) it will delay a message until next.
 /// Callbacks should be used from JS callbacks or `setTimeout` calls.
 /// </aside>
-pub type Callback<IN> = Box<Fn(IN)>;
+pub struct Callback<IN>(Box<Fn(IN)>);
+
+impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
+    fn from(func: F) -> Self {
+        Callback(Box::new(func))
+    }
+}
+
+impl<IN> Callback<IN> {
+    pub fn emit(&self, value: IN) {
+        (self.0)(value);
+    }
+}
 
 /// Shared reference to a context.
 pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
@@ -109,7 +121,7 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> ScopeRef<'a, CTX, COMP> {
                 setTimeout(bind.loop);
             }
         };
-        Box::new(closure)
+        closure.into()
     }
 }
 

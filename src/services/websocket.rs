@@ -36,7 +36,7 @@ impl WebSocketService {
         let callback = move |s: String| {
             let data = Ok(s);
             let out = OUT::from(data);
-            callback(out);
+            callback.emit(out);
         };
         let notify_callback = move |code: u32| {
             let code = {
@@ -46,7 +46,7 @@ impl WebSocketService {
                     x => panic!("unknown code of websocket notification: {}", x),
                 }
             };
-            notification(code);
+            notification.emit(code);
         };
         let handle = js! {
             var socket = new WebSocket(@{url});

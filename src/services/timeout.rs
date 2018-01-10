@@ -22,7 +22,7 @@ impl TimeoutService {
     /// Sets timeout which send a messages from a `converter` after `duration`.
     pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> TimeoutHandle {
         let callback = move || {
-            callback(());
+            callback.emit(());
         };
         let ms = to_ms(duration);
         let handle = js! {
