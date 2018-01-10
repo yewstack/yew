@@ -36,12 +36,13 @@ impl Component<Context> for Model {
         Model { color: Color::Red }
     }
 
-    fn update(&mut self, msg: Self::Msg, _: &mut ScopeRef<Context, Self>) {
+    fn update(&mut self, msg: Self::Msg, _: &mut ScopeRef<Context, Self>) -> ShouldUpdate {
         match msg {
             Msg::Repaint => {
                 self.color = Color::Blue;
             }
         }
+        true
     }
 
     fn view(&self) -> Html<Context, Self> {
