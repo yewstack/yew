@@ -152,3 +152,30 @@ fn it_compares_checked() {
     assert_eq!(a, b);
     assert_ne!(a, c);
 }
+
+#[test]
+fn it_allows_aria_attributes() {
+    let a: VTag<()> = html! {
+        <p aria-controls="it-works",>
+            <a class="btn btn-primary",
+               data-toggle="collapse",
+               href="#collapseExample",
+               role="button",
+               aria-expanded="false",
+               aria-controls="collapseExample",>
+                { "Link with href" }
+            </a>
+            <button class="btn btn-primary",
+                    type="button",
+                    data-toggle="collapse",
+                    data-target="#collapseExample",
+                    aria-expanded="false",
+                    aria-controls="collapseExample",>
+                { "Button with data-target" }
+            </button>
+            <div own-attribute-with-multiple-parts="works", />
+        </p>
+    };
+    assert!(a.attributes.contains_key("aria-controls"));
+    assert_eq!(a.attributes.get("aria-controls"), Some(&"it-works".into()));
+}
