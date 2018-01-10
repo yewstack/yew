@@ -85,24 +85,6 @@ impl<IN> Callback<IN> {
     }
 }
 
-pub trait ToProperty<T> {
-    fn to_property(self) -> T;
-}
-
-impl<T> ToProperty<T> for T {
-    fn to_property(self) -> T { self }
-}
-
-impl<'a, T: Clone> ToProperty<T> for &'a T {
-    fn to_property(self) -> T { self.clone() }
-}
-
-impl<IN, F: Fn(IN) + 'static> ToProperty<Option<Callback<IN>>> for F {
-    fn to_property(self) -> Option<Callback<IN>> {
-        Some(self.into())
-    }
-}
-
 /// Shared reference to a context.
 pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
 
