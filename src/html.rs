@@ -197,6 +197,10 @@ impl_action! {
     onmouseover(event: MouseOverEvent) -> () => |_, _| { () }
     onmouseout(event: MouseOutEvent) -> () => |_, _| { () }
     */
+    onblur(event: BlurEvent) -> BlurEvent => |_, event| {
+        use stdweb::web::event::BlurEvent;
+        BlurEvent::from(event)
+    }
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
         use stdweb::web::html_element::InputElement;
         use stdweb::unstable::TryInto;
