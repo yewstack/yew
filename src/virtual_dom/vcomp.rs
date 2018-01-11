@@ -82,8 +82,11 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     }
 }
 
-/// Converts property and stores activator to attach sender in the rendering state.
+/// Converts property and attach lazy components to it.
+/// This type holds context and components types to store an activatior which
+/// will be used later buring rendering state to attach component sender.
 pub trait Transformer<CTX, COMP: Component<CTX>, FROM, TO> {
+    /// Transforms one type to another.
     fn transform(&mut self, from: FROM) -> TO;
 }
 
@@ -142,6 +145,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         (self.generator)(context, element.clone());
     }
 
+    /// Renders independent component over DOM `Element`.
+    /// It also compares this with an opposite `VComp` and inherits sender of it.
     pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, env: ScopeEnv<CTX, COMP>) {
         if let Some(opposite) = opposite.take() {
             self.grab_sender_of(opposite);

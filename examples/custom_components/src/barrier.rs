@@ -39,7 +39,7 @@ impl<CTX: 'static> Component<CTX> for Barrier {
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, _: &mut ScopeRef<CTX, Self>) -> ShouldUpdate {
+    fn update(&mut self, msg: Self::Msg, _: &mut ScopeRef<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::ChildClicked => {
                 self.counter += 1;
@@ -54,7 +54,7 @@ impl<CTX: 'static> Component<CTX> for Barrier {
         true
     }
 
-    fn change(&mut self, props: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldUpdate {
+    fn change(&mut self, props: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldRender {
         self.limit = props.limit;
         self.onsignal = props.onsignal;
         true

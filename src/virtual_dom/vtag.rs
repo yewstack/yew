@@ -203,7 +203,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
 
 impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
-    /// to compute what to pach in the actual DOM nodes.
+    /// to compute what to patch in the actual DOM nodes.
     pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, env: ScopeEnv<CTX, COMP>) {
         let changes = self.soakup_classes(&mut opposite);
         for change in changes {

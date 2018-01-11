@@ -35,7 +35,7 @@ impl<CTX: 'static> Component<CTX> for Button {
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, _: &mut ScopeRef<CTX, Self>) -> ShouldUpdate {
+    fn update(&mut self, msg: Self::Msg, _: &mut ScopeRef<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Clicked => {
                 if let Some(ref mut callback) = self.onsignal {
@@ -46,7 +46,7 @@ impl<CTX: 'static> Component<CTX> for Button {
         false
     }
 
-    fn change(&mut self, props: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldUpdate {
+    fn change(&mut self, props: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldRender {
         self.title = props.title;
         self.onsignal = props.onsignal;
         true

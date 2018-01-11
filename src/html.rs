@@ -13,7 +13,7 @@ use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use virtual_dom::{VNode, Listener};
 
 /// This type indicates that component should be rendered again.
-pub type ShouldUpdate = bool;
+pub type ShouldRender = bool;
 
 /// An interface of a UI-component. Uses `self` as a model.
 pub trait Component<CTX>: Sized + 'static {
@@ -28,9 +28,9 @@ pub trait Component<CTX>: Sized + 'static {
     fn create(context: &mut ScopeRef<CTX, Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
-    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>) -> ShouldUpdate;
+    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>) -> ShouldRender;
     /// This method called when properties changes, and once when component created.
-    fn change(&mut self, _: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldUpdate { false }
+    fn change(&mut self, _: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldRender { false }
     /// Called by rendering loop.
     fn view(&self) -> Html<CTX, Self>;
 }
@@ -46,7 +46,7 @@ pub enum ComponentUpdate<CTX, COMP: Component<CTX>> {
 /// Internal alias for sender.
 pub(crate) type ComponentSender<CTX, COMP> = Sender<ComponentUpdate<CTX, COMP>>;
 
-/// A universal callback prototype.
+/// Universal callback wrapper.
 /// <aside class="warning">
 /// Use callbacks carefully, because it you call it from `update` loop
 /// of `Components` (even from JS) it will delay a message until next.
@@ -73,6 +73,7 @@ impl<IN> PartialEq for Callback<IN> {
 }
 
 impl<IN> Callback<IN> {
+    /// This method calls the actual callback.
     pub fn emit(&self, value: IN) {
         (self.0)(value);
     }
@@ -128,6 +129,8 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> ScopeRef<'a, CTX, COMP> {
     }
 }
 
+/// This type holds a reference to a context instance and
+/// sender to send messages to a component attached to a scope.
 pub struct ScopeEnv<CTX, COMP: Component<CTX>> {
     context: SharedContext<CTX>,
     sender: ScopeSender<CTX, COMP>,

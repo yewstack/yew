@@ -14,7 +14,7 @@ enum Msg {
     UpdateName(String),
 }
 
-fn update(_: &mut AppContext<(), Model, Msg>, model: &mut Model, msg: Msg) -> ShouldUpdate {
+fn update(_: &mut AppContext<(), Model, Msg>, model: &mut Model, msg: Msg) -> ShouldRender {
     match msg {
         Msg::UpdateName(new_name) => {
             model.name = new_name;

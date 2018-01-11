@@ -44,7 +44,7 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>) -> ShouldUpdate {
+    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Increase => {
                 self.value = self.value + 1;
@@ -57,7 +57,7 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
         true
     }
 
-    fn change(&mut self, props: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldUpdate {
+    fn change(&mut self, props: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldRender {
         self.color = props.color;
         self.onclick = props.onclick;
         true

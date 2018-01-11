@@ -145,7 +145,7 @@ enum Msg {
     ToggleCellule(usize)
 }
 
-fn update(context: &mut AppContext<Context, GameOfLife, Msg>, gof: &mut GameOfLife, msg: Msg) -> ShouldUpdate {
+fn update(context: &mut AppContext<Context, GameOfLife, Msg>, gof: &mut GameOfLife, msg: Msg) -> ShouldRender {
     match msg {
         Msg::Random => {
             gof.random_mutate();

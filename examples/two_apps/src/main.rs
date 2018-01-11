@@ -39,7 +39,7 @@ impl Component<Context> for Model {
         }
     }
 
-    fn update(&mut self, msg: Msg, _: &mut ScopeRef<Context, Self>) -> ShouldUpdate {
+    fn update(&mut self, msg: Msg, _: &mut ScopeRef<Context, Self>) -> ShouldRender {
         match msg {
             Msg::SendToOpposite(title) => {
                 self.sender.send(ComponentUpdate::Message(Msg::SetTitle(title)));
