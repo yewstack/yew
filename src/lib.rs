@@ -58,6 +58,8 @@ extern crate stdweb;
 #[macro_use]
 pub mod macros;
 pub mod html;
+pub mod app;
+pub mod prelude;
 pub mod services;
 pub mod format;
 pub mod virtual_dom;

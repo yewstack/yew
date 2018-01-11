@@ -1,4 +1,4 @@
-use yew::html::*;
+use yew::prelude::*;
 
 #[derive(PartialEq, Clone)]
 pub enum Color {

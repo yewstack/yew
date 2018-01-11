@@ -1,4 +1,4 @@
-use yew::html::*;
+use yew::prelude::*;
 use button::Button;
 
 pub struct Barrier {
