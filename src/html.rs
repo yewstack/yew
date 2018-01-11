@@ -121,7 +121,7 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> ScopeRef<'a, CTX, COMP> {
                 // it stops handling other messages and the first
                 // one will be fired.
                 var bind = @{bind};
-                setTimeout(bind.loop);
+                window._yew_schedule_(bind.loop);
             }
         };
         closure.into()
@@ -181,7 +181,7 @@ impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
             // it stops handling other messages and the first
             // one will be fired.
             var bind = @{bind};
-            setTimeout(bind.loop);
+            window._yew_schedule_(bind.loop);
         }
     }
 }
