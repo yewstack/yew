@@ -54,6 +54,9 @@ macro_rules! html_impl {
     ($stack:ident (oninput = $handler:expr, $($tail:tt)*)) => {
         html_impl! { $stack ((oninput) = $handler, $($tail)*) }
     };
+    ($stack:ident (onblur = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { $stack ((onblur) = $handler, $($tail)*) }
+    };
     // PATTERN: (action)=expression,
     ($stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
         // Catch value to a separate variable for clear error messages

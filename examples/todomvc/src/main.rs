@@ -79,6 +79,7 @@ fn update(context: &mut Context, model: &mut Model, msg: Msg) {
             model.filter = filter;
         }
         Msg::ToggleEdit(idx) => {
+            model.edit_value = model.entries[idx].description.clone();
             model.toggle_edit(idx);
         }
         Msg::ToggleAll => {
@@ -184,6 +185,7 @@ fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Msg> {
                    type="text",
                    value=&entry.description,
                    oninput=|e: InputData| Msg::UpdateEdit(e.value),
+                   onblur=move|_| Msg::Edit(idx),
                    onkeypress=move |e: KeyData| {
                       if e.key == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
                    }, />
