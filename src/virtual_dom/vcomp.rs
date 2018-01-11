@@ -106,6 +106,15 @@ where
     }
 }
 
+impl<'a, CTX, COMP> Transformer<CTX, COMP, &'a str, String> for VComp<CTX, COMP>
+where
+    COMP: Component<CTX>,
+{
+    fn transform(&mut self, from: &'a str) -> String {
+        from.to_owned()
+    }
+}
+
 impl<'a, CTX, COMP, F, IN> Transformer<CTX, COMP, F, Option<Callback<IN>>> for VComp<CTX, COMP>
 where
     CTX: 'static,
