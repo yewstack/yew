@@ -5,7 +5,7 @@ extern crate stdweb;
 #[macro_use]
 extern crate yew;
 
-use yew::html::*;
+use yew::prelude::*;
 
 // Own services implementation
 mod gravatar;
@@ -29,57 +29,51 @@ enum Msg {
     Exchanges,
 }
 
-impl Component<Context> for Model {
-    type Msg = Msg;
-
-    fn create(_: &mut ScopeRef<Context, Msg>) -> Self {
-        Model {
-            profile: None,
-            exchanges: Vec::new(),
+fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg: Msg) -> ShouldUpdate {
+    match msg {
+        Msg::Gravatar => {
+            let callback = context.send_back(Msg::GravatarReady);
+            context.gravatar.profile("205e460b479e2e5b48aec07710c08d50", callback);
+        }
+        Msg::GravatarReady(Ok(profile)) => {
+            model.profile = Some(profile);
+        }
+        Msg::GravatarReady(Err(_)) => {
+            // Can't load gravatar profile
+        }
+        Msg::Exchanges => {
+            model.exchanges = context.ccxt.exchanges();
         }
     }
+    true
+}
 
-    fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Msg>) {
-        match msg {
-            Msg::Gravatar => {
-                let callback = context.send_back(Msg::GravatarReady);
-                context.gravatar.profile("205e460b479e2e5b48aec07710c08d50", callback);
-            }
-            Msg::GravatarReady(Ok(profile)) => {
-                self.profile = Some(profile);
-            }
-            Msg::GravatarReady(Err(_)) => {
-                // Can't load gravatar profile
-            }
-            Msg::Exchanges => {
-                self.exchanges = context.ccxt.exchanges();
-            }
-        }
-    }
-
-    fn view(&self) -> Html<Context, Msg> {
-        let view_exchange = |exchange| html! {
-            <li>{ exchange }</li>
-        };
-        html! {
-            <div>
-                <button onclick=|_| Msg::Exchanges,>{ "Get Exchanges" }</button>
-                <button onclick=|_| Msg::Gravatar,>{ "Get Gravatar" }</button>
-                <ul>
-                    { for self.exchanges.iter().map(view_exchange) }
-                </ul>
-            </div>
-        }
+fn view(model: &Model) -> AppHtml<Context, Model, Msg> {
+    let view_exchange = |exchange| html! {
+        <li>{ exchange }</li>
+    };
+    html! {
+        <div>
+            <button onclick=|_| Msg::Exchanges,>{ "Get Exchanges" }</button>
+            <button onclick=|_| Msg::Gravatar,>{ "Get Gravatar" }</button>
+            <ul>
+                { for model.exchanges.iter().map(view_exchange) }
+            </ul>
+        </div>
     }
 }
 
 fn main() {
     yew::initialize();
+    let app = App::new();
     let context = Context {
         gravatar: GravatarService::new(),
         ccxt: CcxtService::new(),
     };
-    let app = Scope::new(context);
-    app.mount_to_body::<Model>();
+    let model = Model {
+        profile: None,
+        exchanges: Vec::new(),
+    };
+    app.mount(context, model, update, view);
     yew::run_loop();
 }
