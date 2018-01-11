@@ -23,6 +23,7 @@ struct Model {
 
 enum Msg {
     Repaint,
+    ChildClicked(u32),
 }
 
 
@@ -34,18 +35,22 @@ impl Component<Context> for Model {
         Model { color: Color::Red }
     }
 
-    fn update(&mut self, msg: Self::Msg, _: &mut ScopeRef<Context, Self>) -> ShouldUpdate {
+    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<Context, Self>) -> ShouldUpdate {
         match msg {
             Msg::Repaint => {
                 self.color = Color::Blue;
+                true
+            }
+            Msg::ChildClicked(value) => {
+                context.console.log(&format!("child clicked: {}", value));
+                false
             }
         }
-        true
     }
 
     fn view(&self) -> Html<Context, Self> {
         let counter = |_| html! {
-            <Counter: color=&self.color, onclick=|_| Msg::Repaint,/>
+            <Counter: color=&self.color, onclick=Msg::ChildClicked,/>
         };
         html! {
             <div>
