@@ -1,4 +1,4 @@
-use yew::html::*;
+use yew::prelude::*;
 
 pub struct Button {
     title: String,

@@ -12,13 +12,6 @@ use stdweb::web::{Element, INode, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
 use virtual_dom::{VNode, Listener};
 
-/// Removes anything from the given element.
-fn clear_element(element: &Element) {
-    while let Some(child) = element.last_child() {
-        element.remove_child(&child).expect("can't remove a child");
-    }
-}
-
 /// This type indicates that component should be rendered again.
 pub type ShouldUpdate = bool;
 
@@ -89,7 +82,6 @@ impl<IN> Callback<IN> {
 pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
 
 /// Local reference to application internals: messages sender and context.
-// TODO Rename to Context
 pub struct ScopeRef<'a, CTX: 'a, COMP: Component<CTX>> {
     context: &'a mut CTX,
     tx: &'a mut ComponentSender<CTX, COMP>,
@@ -334,6 +326,13 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
             bind.loop = callback;
         }
         // TODO `Drop` should drop the callback
+    }
+}
+
+/// Removes anything from the given element.
+fn clear_element(element: &Element) {
+    while let Some(child) = element.last_child() {
+        element.remove_child(&child).expect("can't remove a child");
     }
 }
 
