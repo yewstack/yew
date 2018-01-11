@@ -69,6 +69,40 @@ pub mod virtual_dom;
 /// contain own initialization code.
 pub fn initialize() {
     stdweb::initialize();
+    js! {
+        var task = null;
+        var pool = [];
+        var routine = function() { };
+        var schedule_routine = function() {
+            if (task == null) {
+                task = setTimeout(routine);
+            }
+        };
+        routine = function() {
+            task = null;
+            // Don't process more than 25 loops per routine call
+            // to keep UI responsive
+            var limit = 25;
+            var callback = pool.pop();
+            while (callback !== undefined) {
+                callback();
+                limit = limit - 1;
+                if (limit > 0) {
+                    callback = pool.pop();
+                } else {
+                    break;
+                }
+            }
+            if (pool.length > 0) {
+                schedule_routine();
+            }
+        };
+        var schedule = function(callback) {
+            pool.push(callback);
+            schedule_routine();
+        };
+        window._yew_schedule_ = schedule;
+    }
 }
 
 /// Starts event loop.
