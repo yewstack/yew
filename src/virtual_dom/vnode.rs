@@ -128,7 +128,6 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
                         }
                     }
                 }
-                //vtag.apply(parent, reference, last, messages);
             }
             VNode::VText {
                 ref mut vtext,
@@ -167,6 +166,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
                 ref mut reference,
             } => {
                 let left = vcomp;
+                let mut right = None;
                 match last {
                     Some(VNode::VComp {
                              vcomp,
@@ -174,14 +174,12 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
                          }) => {
                         if *left == vcomp {
                             // Send fresh properties to an active component
-                            left.grab_sender_of(vcomp);
-                            left.send_props();
+                            right = Some(vcomp);
                             *reference = Some(element);
                         } else {
                             let wrong = element;
                             let element = document().create_element("div");
                             parent.replace_child(&element, &wrong);
-                            left.mount(&element, env.context());
                             *reference = Some(element);
                         }
                     }
@@ -189,14 +187,14 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
                     None => {
                         let element = document().create_element("div");
                         parent.append_child(&element);
-                        left.send_props();
-                        left.mount(&element, env.context());
                         *reference = Some(element);
                     }
                     _ => {
                         eprintln!("Diff not implemented for components");
                     }
                 }
+                let element_mut = reference.as_mut().expect("vcomp must be here");
+                left.render(element_mut, right, env.clone());
             }
         }
     }

@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::any::TypeId;
 use stdweb::web::Element;
-use html::{ScopeBuilder, SharedContext, Component, ComponentUpdate, ScopeSender, Callback};
+use html::{ScopeBuilder, SharedContext, Component, ComponentUpdate, ScopeSender, Callback, ScopeEnv};
 
 struct Hidden;
 
@@ -65,7 +65,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         self.props = Some((self.type_id, data));
     }
 
-    pub(crate) fn send_props(&mut self) {
+    pub(crate) fn send_props(&mut self, sender: ScopeSender<CTX, COMP>) {
+        for activator in self.activators.iter_mut() {
+            *activator.borrow_mut() = Some(sender.clone());
+        }
         let props = self.props.take()
             .expect("tried to send same properties twice");
         (self.blind_sender)(props);
@@ -126,8 +129,18 @@ where
 
 impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     /// This methods mount a virtual component with a generator created with `lazy` call.
-    pub fn mount(&mut self, element: &Element, context: SharedContext<CTX>) {
+    fn mount(&mut self, element: &Element, context: SharedContext<CTX>) {
         (self.generator)(context, element.clone());
+    }
+
+    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, env: ScopeEnv<CTX, COMP>) {
+        if let Some(opposite) = opposite.take() {
+            self.grab_sender_of(opposite);
+            self.send_props(env.sender());
+        } else {
+            self.send_props(env.sender());
+            self.mount(subject, env.context());
+        }
     }
 }
 
