@@ -41,7 +41,7 @@ impl Component<Context> for Model {
         }
     }
 
-    fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Self>) -> ShouldUpdate {
+    fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Self>) -> ShouldRender {
         match msg {
             Msg::Repaint => {
                 self.color = Color::Blue;

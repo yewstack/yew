@@ -48,7 +48,7 @@ enum Msg {
     Nope,
 }
 
-fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg: Msg) -> ShouldUpdate {
+fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg: Msg) -> ShouldRender {
     match msg {
         Msg::Add => {
             let entry = Entry {

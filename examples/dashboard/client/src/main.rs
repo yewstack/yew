@@ -60,7 +60,7 @@ struct WsResponse {
     value: u32,
 }
 
-fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg: Msg) -> ShouldUpdate {
+fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg: Msg) -> ShouldRender {
     match msg {
         Msg::FetchData => {
             model.fetching = true;

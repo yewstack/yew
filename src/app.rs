@@ -1,9 +1,13 @@
+//! Starting module to start building a yew application.
+
 use std::rc::Rc;
 use std::cell::RefCell;
 use stdweb::web::document;
-use html::{Component, ComponentUpdate, Html, Callback, ScopeBuilder, ScopeSender, ScopeRef, ShouldUpdate};
+use html::{Component, ComponentUpdate, Html, Callback, ScopeBuilder, ScopeSender, ScopeRef, ShouldRender};
 use std::ops::{Deref, DerefMut};
 
+/// App is a wrapper to hold any types as: context, model and message.
+/// It joins instances of these types to a component.
 pub struct App<CTX, MOD, MSG>
 where
     CTX: 'static,
@@ -13,6 +17,8 @@ where
     builder: ScopeBuilder<AppContext<CTX, MOD, MSG>, AppImpl<CTX, MOD, MSG>>,
 }
 
+/// This class keeps a sender to a component to send a messages to a loop
+/// and to schedule the next update call.
 pub struct AppSender<CTX, MOD, MSG>
 where
     CTX: 'static,
@@ -23,6 +29,7 @@ where
 }
 
 impl<CTX, MOD, MSG> AppSender<CTX, MOD, MSG> {
+    /// Send the message and schedule an update.
     pub fn send(&mut self, msg: MSG) {
         self.sender.send(ComponentUpdate::Message(msg))
     }
@@ -30,12 +37,14 @@ impl<CTX, MOD, MSG> AppSender<CTX, MOD, MSG> {
 
 impl<CTX, MOD, MSG> App<CTX, MOD, MSG> {
 
+    /// Creates a new app with an attached scope builder.
     pub fn new() -> Self {
         App {
             builder: ScopeBuilder::new(),
         }
     }
 
+    /// Returns a cloned sender.
     pub fn sender(&mut self) -> AppSender<CTX, MOD, MSG> {
         let sender = self.builder.sender();
         AppSender {
@@ -43,17 +52,22 @@ impl<CTX, MOD, MSG> App<CTX, MOD, MSG> {
         }
     }
 
+    /// Alias to `mount_to("body", ...)`.
     pub fn mount<U, V>(self, context: CTX, model: MOD, update: U, view: V)
     where
-        U: Fn(&mut AppContext<CTX, MOD, MSG>, &mut MOD, MSG) -> ShouldUpdate + 'static,
+        U: Fn(&mut AppContext<CTX, MOD, MSG>, &mut MOD, MSG) -> ShouldRender + 'static,
         V: Fn(&MOD) -> Html<AppContext<CTX, MOD, MSG>, AppImpl<CTX, MOD, MSG>> + 'static,
     {
         self.mount_to("body", context, model, update, view)
     }
 
+    /// The main entrypoint of an isolated yew program. It works similar as `program`
+    /// function in Elm. You should provide an initial model, `update` function
+    /// which will update the state of the model and a `view` function which
+    /// will render the model to a virtual DOM tree.
     pub fn mount_to<U, V>(self, selector: &str, context: CTX, model: MOD, update: U, view: V)
     where
-        U: Fn(&mut AppContext<CTX, MOD, MSG>, &mut MOD, MSG) -> ShouldUpdate + 'static,
+        U: Fn(&mut AppContext<CTX, MOD, MSG>, &mut MOD, MSG) -> ShouldRender + 'static,
         V: Fn(&MOD) -> Html<AppContext<CTX, MOD, MSG>, AppImpl<CTX, MOD, MSG>> + 'static,
     {
         let element = document().query_selector(selector)
@@ -75,6 +89,8 @@ impl<CTX, MOD, MSG> App<CTX, MOD, MSG> {
     }
 }
 
+/// Context holder which keeps references to a context instance and
+/// a sender to a component bootstrapped from any model.
 pub struct AppContext<CTX, MOD, MSG>
 where
     CTX: 'static,
@@ -112,6 +128,9 @@ impl<CTX, MOD, MSG> DerefMut for AppContext<CTX, MOD, MSG> {
 }
 
 impl<CTX, MOD, MSG> AppContext<CTX, MOD, MSG> {
+    /// Schedules seding of a message back to `update` function.
+    /// Returns callback which should be called by call `.emit()`
+    /// with input parameter.
     pub fn send_back<F, IN>(&mut self, func: F) -> Callback<IN>
     where
         F: Fn(IN) -> MSG + 'static,
@@ -125,7 +144,7 @@ impl<CTX, MOD, MSG> AppContext<CTX, MOD, MSG> {
     }
 }
 
-
+/// Generic component which can use different static types as: context, model, message.
 pub struct AppImpl<CTX, MOD, MSG>
 where
     CTX: 'static,
@@ -133,7 +152,7 @@ where
     MSG: 'static,
 {
     model: MOD,
-    update: Box<Fn(&mut AppContext<CTX, MOD, MSG>, &mut MOD, MSG) -> ShouldUpdate>,
+    update: Box<Fn(&mut AppContext<CTX, MOD, MSG>, &mut MOD, MSG) -> ShouldRender>,
     view: Box<Fn(&MOD) -> Html<AppContext<CTX, MOD, MSG>, AppImpl<CTX, MOD, MSG>>>,
 }
 
@@ -150,7 +169,7 @@ where
         context.app.take().expect("tried to unpack app impl twice")
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<AppContext<CTX, MOD, MSG>, Self>) -> ShouldUpdate {
+    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<AppContext<CTX, MOD, MSG>, Self>) -> ShouldRender {
         (self.update)(&mut *context, &mut self.model, msg)
     }
 
@@ -159,4 +178,5 @@ where
     }
 }
 
+/// A type which expected as a result of `view` function implementation.
 pub type AppHtml<CTX, MOD, MSG> = Html<AppContext<CTX, MOD, MSG>, AppImpl<CTX, MOD, MSG>>;
