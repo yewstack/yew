@@ -64,7 +64,7 @@ fn load_database(context: &mut Context) -> Database {
     })
 }
 
-fn update(context: &mut Context, model: &mut Model, msg: Msg) -> ShouldUpdate {
+fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg: Msg) -> ShouldUpdate {
     let mut new_scene = None;
     match model.scene {
         Scene::Initialization => {

@@ -20,7 +20,7 @@ enum Msg {
     Bulk(Vec<Msg>),
 }
 
-fn update(context: &mut Context, model: &mut Model, msg: Msg) -> ShouldUpdate {
+fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg: Msg) -> ShouldUpdate {
     match msg {
         Msg::Increment => {
             model.value = model.value + 1;

@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use stdweb::web::document;
-use html::{Component, ComponentUpdate, Html, ScopeBuilder, ScopeSender, ScopeRef, ShouldUpdate};
+use html::{Component, ComponentUpdate, Html, Callback, ScopeBuilder, ScopeSender, ScopeRef, ShouldUpdate};
 use std::ops::{Deref, DerefMut};
 
 pub struct App<CTX, MOD, MSG>
@@ -45,7 +45,7 @@ impl<CTX, MOD, MSG> App<CTX, MOD, MSG> {
 
     pub fn mount<U, V>(self, context: CTX, model: MOD, update: U, view: V)
     where
-        U: Fn(&mut CTX, &mut MOD, MSG) -> ShouldUpdate + 'static,
+        U: Fn(&mut AppContext<CTX, MOD, MSG>, &mut MOD, MSG) -> ShouldUpdate + 'static,
         V: Fn(&MOD) -> Html<AppContext<CTX, MOD, MSG>, AppImpl<CTX, MOD, MSG>> + 'static,
     {
         self.mount_to("body", context, model, update, view)
@@ -53,7 +53,7 @@ impl<CTX, MOD, MSG> App<CTX, MOD, MSG> {
 
     pub fn mount_to<U, V>(self, selector: &str, context: CTX, model: MOD, update: U, view: V)
     where
-        U: Fn(&mut CTX, &mut MOD, MSG) -> ShouldUpdate + 'static,
+        U: Fn(&mut AppContext<CTX, MOD, MSG>, &mut MOD, MSG) -> ShouldUpdate + 'static,
         V: Fn(&MOD) -> Html<AppContext<CTX, MOD, MSG>, AppImpl<CTX, MOD, MSG>> + 'static,
     {
         let element = document().query_selector(selector)
@@ -63,9 +63,11 @@ impl<CTX, MOD, MSG> App<CTX, MOD, MSG> {
             update: Box::new(update),
             view: Box::new(view),
         };
+        let sender = self.builder.sender();
         let context_impl = AppContext {
             app: Some(app_impl),
-            context: context,
+            sender,
+            context,
         };
         let context = Rc::new(RefCell::new(context_impl));
         let scope = self.builder.build(context);
@@ -80,6 +82,7 @@ where
     MSG: 'static,
 {
     app: Option<AppImpl<CTX, MOD, MSG>>,
+    sender: ScopeSender<AppContext<CTX, MOD, MSG>, AppImpl<CTX, MOD, MSG>>,
     context: CTX,
 }
 
@@ -108,6 +111,21 @@ impl<CTX, MOD, MSG> DerefMut for AppContext<CTX, MOD, MSG> {
     }
 }
 
+impl<CTX, MOD, MSG> AppContext<CTX, MOD, MSG> {
+    pub fn send_back<F, IN>(&mut self, func: F) -> Callback<IN>
+    where
+        F: Fn(IN) -> MSG + 'static,
+    {
+        let sender = self.sender.clone();
+        let callback = move |arg| {
+            let msg = func(arg);
+            sender.clone().send(ComponentUpdate::Message(msg));
+        };
+        callback.into()
+    }
+}
+
+
 pub struct AppImpl<CTX, MOD, MSG>
 where
     CTX: 'static,
@@ -115,7 +133,7 @@ where
     MSG: 'static,
 {
     model: MOD,
-    update: Box<Fn(&mut CTX, &mut MOD, MSG) -> ShouldUpdate>,
+    update: Box<Fn(&mut AppContext<CTX, MOD, MSG>, &mut MOD, MSG) -> ShouldUpdate>,
     view: Box<Fn(&MOD) -> Html<AppContext<CTX, MOD, MSG>, AppImpl<CTX, MOD, MSG>>>,
 }
 
@@ -133,7 +151,7 @@ where
     }
 
     fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<AppContext<CTX, MOD, MSG>, Self>) -> ShouldUpdate {
-        (self.update)(&mut context.context, &mut self.model, msg)
+        (self.update)(&mut *context, &mut self.model, msg)
     }
 
     fn view(&self) -> Html<AppContext<CTX, MOD, MSG>, Self> {

@@ -30,7 +30,7 @@ impl GravatarService {
 
     pub fn profile(&mut self, hash: &str, callback: Callback<Result<Profile, ()>>) -> FetchHandle {
         let url = format!("https://www.gravatar.com/{}.json", hash);
-        let handler = move |Json(data)| { callback(data) };
-        self.web.fetch(Method::Get, &url, Nothing, Box::new(handler))
+        let handler = move |Json(data)| { callback.emit(data) };
+        self.web.fetch(Method::Get, &url, Nothing, handler.into())
     }
 }

@@ -3,7 +3,7 @@ extern crate yew;
 #[macro_use]
 extern crate stdweb;
 
-use yew::html::*;
+use yew::prelude::*;
 use stdweb::web::{IElement, document, INode};
 
 struct Model {
@@ -14,30 +14,21 @@ enum Msg {
     UpdateName(String),
 }
 
-impl Component<()> for Model {
-    type Msg = Msg;
-
-    fn create(_: &mut ScopeRef<(), Msg>) -> Self {
-        Model {
-            name: "Reversed".to_owned(),
+fn update(_: &mut AppContext<(), Model, Msg>, model: &mut Model, msg: Msg) -> ShouldUpdate {
+    match msg {
+        Msg::UpdateName(new_name) => {
+            model.name = new_name;
         }
     }
+    true
+}
 
-    fn update(&mut self, msg: Msg, _: &mut ScopeRef<(), Msg>) {
-        match msg {
-            Msg::UpdateName(new_name) => {
-                self.name = new_name;
-            }
-        }
-    }
-
-    fn view(&self) -> Html<(), Msg> {
-        html! {
-            <div>
-                <input value=&self.name, oninput=|e: InputData| Msg::UpdateName(e.value), />
-                <p>{ self.name.chars().rev().collect::<String>() }</p>
-            </div>
-        }
+fn view(model: &Model) -> AppHtml<(), Model, Msg> {
+    html! {
+        <div>
+            <input value=&model.name, oninput=|e: InputData| Msg::UpdateName(e.value), />
+            <p>{ model.name.chars().rev().collect::<String>() }</p>
+        </div>
     }
 }
 
@@ -63,7 +54,12 @@ fn main() {
     mount_point.class_list().add(mount_class);
     body.append_child(&mount_point);
 
-    let app = Scope::new(());
-    app.mount::<Model>(mount_point);
+    let app = App::new();
+    let model = Model {
+        name: "Reversed".to_owned(),
+    };
+
+    let mount_point = format!(".{}", mount_class);
+    app.mount_to(&mount_point, (), model, update, view);
     yew::run_loop();
 }
