@@ -2,10 +2,13 @@
 extern crate yew;
 
 mod counter;
+mod button;
+mod barrier;
 
 use yew::html::*;
 use yew::services::console::ConsoleService;
 use counter::{Counter, Color};
+use barrier::Barrier;
 
 struct Context {
     console: ConsoleService,
@@ -54,7 +57,7 @@ impl Component<Context> for Model {
         };
         html! {
             <div>
-                <button onclick=|_| Msg::Repaint,>{ "Repaint" }</button>
+                <Barrier: limit=10, onsignal=|_| Msg::Repaint, />
                 { for (0..1000).map(counter) }
             </div>
         }
