@@ -1,5 +1,5 @@
 use yew::format::{Nothing, Json};
-use yew::services::fetch::{FetchService, FetchHandle, Method};
+use yew::services::fetch::{FetchService, FetchHandle, Request};
 use yew::html::AppSender;
 
 #[derive(Deserialize, Debug)]
@@ -32,8 +32,13 @@ impl<MSG: 'static> GravatarService<MSG> {
     where
         F: Fn(Result<Profile, ()>) -> MSG + 'static
     {
-        let url = format!("https://www.gravatar.com/{}.json", hash);
-        let handler = move |Json(data)| { listener(data) };
-        self.web.fetch(Method::Get, &url, Nothing, handler)
+        let url = format!("https://gravatar.com/{}", hash);
+        self.web.fetch(
+            Request::get(url.as_str()).body(Nothing)
+                                      .unwrap(),
+        move |response| {
+            let (_, Json(data)) = response.into_parts();
+            listener(data)
+        })
     }
 }
