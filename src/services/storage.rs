@@ -31,8 +31,12 @@ impl StorageService {
     {
         if let Some(data) = value.into() {
             match self.scope {
-                Area::Local => { js! { localStorage.setItem(@{key}, @{data}); } },
-                Area::Session => { js! { sessionStorage.setItem(@{key}, @{data}); } },
+                Area::Local => { js! { @(no_return)
+                    localStorage.setItem(@{key}, @{data});
+                } },
+                Area::Session => { js! { @(no_return)
+                    sessionStorage.setItem(@{key}, @{data});
+                } },
             }
         }
     }
@@ -56,8 +60,12 @@ impl StorageService {
     pub fn remove(&mut self, key: &str) {
         {
             match self.scope {
-                Area::Local => js! { localStorage.removeItem(@{key}); },
-                Area::Session => js! { sessionStorage.removeItem(@{key}); },
+                Area::Local => js! { @(no_return)
+                    localStorage.removeItem(@{key});
+                },
+                Area::Session => js! { @(no_return)
+                    sessionStorage.removeItem(@{key});
+                },
             }
         };
     }

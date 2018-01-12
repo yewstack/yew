@@ -9,7 +9,7 @@ use std::ops::{Deref, DerefMut};
 use std::sync::mpsc::{Sender, Receiver, channel};
 use stdweb::Value;
 use stdweb::web::{Element, INode, EventListenerHandle, document};
-use stdweb::web::event::{IMouseEvent, IKeyboardEvent};
+use stdweb::web::event::{IMouseEvent, IKeyboardEvent, BlurEvent};
 use virtual_dom::{VNode, Listener};
 
 /// This type indicates that component should be rendered again.
@@ -179,7 +179,7 @@ impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
     pub fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
         self.tx.send(update).expect("app lost the receiver!");
         let bind = &self.bind;
-        js! {
+        js! { @(no_return)
             // Schedule to call the loop handler
             // IMPORTANT! If call loop function immediately
             // it stops handling other messages and the first
@@ -324,7 +324,7 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
         };
         // Initial call for first rendering
         callback();
-        js! {
+        js! { @(no_return)
             var bind = @{bind};
             var callback = @{callback};
             bind.loop = callback;
@@ -408,6 +408,10 @@ impl_action! {
     onmouseover(event: MouseOverEvent) -> () => |_, _| { () }
     onmouseout(event: MouseOutEvent) -> () => |_, _| { () }
     */
+    onblur(event: BlurEvent) -> BlurData => |_, event| {
+        let event = BlurEvent::from(event);
+        BlurData::from(event)
+    }
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
         use stdweb::web::html_element::InputElement;
         use stdweb::unstable::TryInto;
@@ -472,6 +476,16 @@ pub struct KeyData {
 impl<T: IKeyboardEvent> From<T> for KeyData {
     fn from(event: T) -> Self {
         KeyData { key: event.key() }
+    }
+}
+
+/// A type representing `onblur` event.
+#[derive(Debug)]
+pub struct BlurData;
+
+impl From<BlurEvent> for BlurData {
+    fn from(_: BlurEvent) -> Self {
+        BlurData
     }
 }
 

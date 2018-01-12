@@ -6,7 +6,7 @@ extern crate yew;
 use yew::prelude::*;
 use yew::format::{Nothing, Json};
 use yew::services::Task;
-use yew::services::fetch::{FetchService, Method};
+use yew::services::fetch::{FetchService, Request, Response};
 use yew::services::websocket::{WebSocketService, WebSocketHandle, WebSocketStatus};
 
 struct Context {
@@ -64,14 +64,22 @@ fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg:
     match msg {
         Msg::FetchData => {
             model.fetching = true;
-            let callback = context.send_back(|Json(data)| Msg::FetchReady(data));
-            context.web.fetch(Method::Get, "./data.json", Nothing, callback);
+            let callback = context.sender().send_back(|response: Response<Json<Result<DataFromFile, ()>>>| {
+                let (meta, Json(data)) = response.into_parts();
+                if meta.status.is_success() {
+                    Msg::FetchReady(data)
+                } else {
+                    Msg::Ignore  // FIXME: Handle this error accordingly.
+                }
+            });
+            let request = Request::get("/data.json").body(Nothing).unwrap();
+            context.web.fetch(request, callback);
         }
         Msg::WsAction(action) => {
             match action {
                 WsAction::Connect => {
-                    let callback = context.send_back(|Json(data)| Msg::WsReady(data));
-                    let notification = context.send_back(|status| {
+                    let callback = context.sender().send_back(|Json(data)| Msg::WsReady(data));
+                    let notification = context.sender().send_back(|status| {
                         match status {
                             WebSocketStatus::Opened => Msg::Ignore,
                             WebSocketStatus::Closed => WsAction::Lost.into(),

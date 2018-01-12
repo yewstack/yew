@@ -32,7 +32,7 @@ enum Msg {
 fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg: Msg) -> ShouldRender {
     match msg {
         Msg::Gravatar => {
-            let callback = context.send_back(Msg::GravatarReady);
+            let callback = context.sender().send_back(Msg::GravatarReady);
             context.gravatar.profile("205e460b479e2e5b48aec07710c08d50", callback);
         }
         Msg::GravatarReady(Ok(profile)) => {

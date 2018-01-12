@@ -210,7 +210,7 @@ fn main() {
     let database = load_database(&mut context);
     let scene = Scene::Initialization;
     let model = Model { database, scene };
-    app.sender().send(Msg::SwitchTo(Scene::ClientsList));
+    app.sender().send_back(|_| Msg::SwitchTo(Scene::ClientsList)).emit(());
     app.mount(context, model, update, view);
     yew::run_loop();
 }

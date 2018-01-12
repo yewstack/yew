@@ -152,7 +152,7 @@ fn update(context: &mut AppContext<Context, GameOfLife, Msg>, gof: &mut GameOfLi
             println!("Random");
         },
         Msg::Start => {
-            let callback = context.send_back(|_| Msg::Step);
+            let callback = context.sender().send_back(|_| Msg::Step);
             let handle = context.interval.spawn(Duration::from_millis(200), callback);
             gof.job = Some(Box::new(handle));
             println!("Start");

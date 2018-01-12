@@ -81,7 +81,7 @@ impl WebSocketHandle {
     {
         if let WebSocketHandle(Some(ref handle)) = *self {
             if let Some(body) = data.into() {
-                js! {
+                js! { @(no_return)
                     var handle = @{handle};
                     handle.socket.send(@{body});
                 }
@@ -95,7 +95,7 @@ impl WebSocketHandle {
 impl Task for WebSocketHandle {
     fn cancel(&mut self) {
         let handle = self.0.take().expect("tried to close websocket twice");
-        js! {
+        js! { @(no_return)
             var handle = @{handle};
             handle.socket.close();
         }
