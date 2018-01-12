@@ -52,6 +52,7 @@ pub(crate) type ComponentSender<CTX, COMP> = Sender<ComponentUpdate<CTX, COMP>>;
 /// of `Components` (even from JS) it will delay a message until next.
 /// Callbacks should be used from JS callbacks or `setTimeout` calls.
 /// </aside>
+#[must_use]
 pub struct Callback<IN>(Rc<Fn(IN)>);
 
 impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {

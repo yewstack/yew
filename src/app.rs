@@ -28,10 +28,28 @@ where
     sender: ScopeSender<AppContext<CTX, MOD, MSG>, AppImpl<CTX, MOD, MSG>>,
 }
 
+impl<CTX, MOD, MSG> Clone for AppSender<CTX, MOD, MSG> {
+    fn clone(&self) -> Self {
+        AppSender {
+            sender: self.sender.clone(),
+        }
+    }
+}
+
 impl<CTX, MOD, MSG> AppSender<CTX, MOD, MSG> {
-    /// Send the message and schedule an update.
-    pub fn send(&mut self, msg: MSG) {
-        self.sender.send(ComponentUpdate::Message(msg))
+    /// Schedules seding of a message back to `update` function.
+    /// Returns callback which should be called by call `.emit()`
+    /// with input parameter.
+    pub fn send_back<F, IN>(&mut self, func: F) -> Callback<IN>
+    where
+        F: Fn(IN) -> MSG + 'static,
+    {
+        let sender = self.sender.clone();
+        let callback = move |arg| {
+            let msg = func(arg);
+            sender.clone().send(ComponentUpdate::Message(msg));
+        };
+        callback.into()
     }
 }
 
@@ -65,7 +83,7 @@ impl<CTX, MOD, MSG> App<CTX, MOD, MSG> {
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount_to<U, V>(self, selector: &str, context: CTX, model: MOD, update: U, view: V)
+    pub fn mount_to<U, V>(mut self, selector: &str, context: CTX, model: MOD, update: U, view: V)
     where
         U: Fn(&mut AppContext<CTX, MOD, MSG>, &mut MOD, MSG) -> ShouldRender + 'static,
         V: Fn(&MOD) -> Html<AppContext<CTX, MOD, MSG>, AppImpl<CTX, MOD, MSG>> + 'static,
@@ -77,7 +95,7 @@ impl<CTX, MOD, MSG> App<CTX, MOD, MSG> {
             update: Box::new(update),
             view: Box::new(view),
         };
-        let sender = self.builder.sender();
+        let sender = self.sender();
         let context_impl = AppContext {
             app: Some(app_impl),
             sender,
@@ -98,7 +116,7 @@ where
     MSG: 'static,
 {
     app: Option<AppImpl<CTX, MOD, MSG>>,
-    sender: ScopeSender<AppContext<CTX, MOD, MSG>, AppImpl<CTX, MOD, MSG>>,
+    sender: AppSender<CTX, MOD, MSG>,
     context: CTX,
 }
 
@@ -128,19 +146,9 @@ impl<CTX, MOD, MSG> DerefMut for AppContext<CTX, MOD, MSG> {
 }
 
 impl<CTX, MOD, MSG> AppContext<CTX, MOD, MSG> {
-    /// Schedules seding of a message back to `update` function.
-    /// Returns callback which should be called by call `.emit()`
-    /// with input parameter.
-    pub fn send_back<F, IN>(&mut self, func: F) -> Callback<IN>
-    where
-        F: Fn(IN) -> MSG + 'static,
-    {
-        let sender = self.sender.clone();
-        let callback = move |arg| {
-            let msg = func(arg);
-            sender.clone().send(ComponentUpdate::Message(msg));
-        };
-        callback.into()
+    /// Returns sender of the context.
+    pub fn sender(&self) -> AppSender<CTX, MOD, MSG> {
+        self.sender.clone()
     }
 }
 
