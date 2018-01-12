@@ -76,6 +76,9 @@ macro_rules! html_impl {
     (@vtag $stack:ident (oninput = $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((oninput) = $handler, $($tail)*) }
     };
+    (@vtag $stack:ident (onblur = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onblur) = $handler, $($tail)*) }
+    };
     // PATTERN: (action)=expression,
     (@vtag $stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
         // Catch value to a separate variable for clear error messages
@@ -107,6 +110,11 @@ macro_rules! html_impl {
     ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
         let endtag = stringify!($endtag);
         $crate::macros::child_to_parent(&mut $stack, Some(endtag));
+        html_impl! { $stack ($($tail)*) }
+    };
+    ($stack:ident ($($attr:ident)-+ = $val:expr, $($tail:tt)*)) => {
+        let attr = vec![$(stringify!($attr).to_string()),+].join("-");
+        $crate::macros::add_attribute(&mut $stack, &attr, $val);
         html_impl! { $stack ($($tail)*) }
     };
     // PATTERN: { for expression }
@@ -176,7 +184,7 @@ pub fn set_checked<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, valu
 }
 
 #[doc(hidden)]
-pub fn add_attribute<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, name: &'static str, value: T) {
+pub fn add_attribute<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, name: &str, value: T) {
     if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
         vtag.add_attribute(name, value);
     } else {

@@ -30,7 +30,7 @@ enum Msg {
 fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg: Msg) -> ShouldRender {
     match msg {
         Msg::StartTimeout => {
-            let callback = context.send_back(|_| Msg::Done);
+            let callback = context.sender().send_back(|_| Msg::Done);
             let handle = context.timeout.spawn(Duration::from_secs(3), callback);
             model.job = Some(Box::new(handle));
             model.messages.clear();
@@ -39,7 +39,7 @@ fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg:
             context.console.time_named("Timer");
         }
         Msg::StartInterval => {
-            let callback = context.send_back(|_| Msg::Tick);
+            let callback = context.sender().send_back(|_| Msg::Tick);
             let handle = context.interval.spawn(Duration::from_secs(1), callback);
             model.job = Some(Box::new(handle));
             model.messages.clear();

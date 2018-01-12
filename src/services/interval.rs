@@ -46,7 +46,7 @@ impl IntervalService {
 impl Task for IntervalHandle {
     fn cancel(&mut self) {
         let handle = self.0.take().expect("tried to cancel interval twice");
-        js! {
+        js! { @(no_return)
             var handle = @{handle};
             clearInterval(handle.interval_id);
             handle.callback.drop();

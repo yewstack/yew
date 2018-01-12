@@ -290,17 +290,17 @@ impl<CTX, COMP: Component<CTX>> fmt::Debug for VTag<CTX, COMP> {
 /// `stdweb` doesn't have methods to work with attributes now.
 /// this is workaround from: https://github.com/koute/stdweb/issues/16#issuecomment-325195854
 fn set_attribute(element: &Element, name: &str, value: &str) {
-    js!( @{element}.setAttribute( @{name}, @{value} ); );
+    js!( @(no_return) @{element}.setAttribute( @{name}, @{value} ); );
 }
 
 /// Removes attribute from a element by name.
 fn remove_attribute(element: &Element, name: &str) {
-    js!( @{element}.removeAttribute( @{name} ); );
+    js!( @(no_return) @{element}.removeAttribute( @{name} ); );
 }
 
 /// Set `checked` value for the `InputElement`.
 fn set_checked(input: &InputElement, value: bool) {
-    js!( @{input}.checked = @{value}; );
+    js!( @(no_return) @{input}.checked = @{value}; );
 }
 
 impl<CTX, COMP: Component<CTX>> PartialEq for VTag<CTX, COMP> {
