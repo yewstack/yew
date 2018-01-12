@@ -177,7 +177,7 @@ impl Task for FetchHandle {
         // and we should use this workaround with a flag.
         // In fact, request not canceled, but callback won't be called.
         let handle = self.0.take().expect("tried to cancel request fetching twice");
-        js! {
+        js! {  @(no_return)
             var handle = @{handle};
             handle.interrupted = true;
             handle.callback.drop();
