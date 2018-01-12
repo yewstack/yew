@@ -8,6 +8,7 @@ use html::Component;
 macro_rules! html_impl {
     // Start of component tag
     ($stack:ident (< $comp:ty : $($tail:tt)*)) => {
+        #[allow(unused_mut)]
         let mut pair = $crate::virtual_dom::VComp::lazy::<$comp>();
         html_impl! { @vcomp $stack pair ($($tail)*) }
     };
