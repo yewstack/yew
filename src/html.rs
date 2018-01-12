@@ -35,7 +35,7 @@ impl<MSG> AppSender<MSG> {
     pub fn send(&mut self, msg: MSG) {
         self.tx.send(msg).expect("App lost the receiver!");
         let bind = &self.bind;
-        js! {
+        js! { @(no_return)
             // Schedule to call the loop handler
             // IMPORTANT! If call loop function immediately
             // it stops handling other messages and the first
@@ -120,7 +120,7 @@ impl<MSG: 'static> App<MSG> {
         };
         // Initial call for first rendering
         callback();
-        js! {
+        js! { @(no_return)
             var bind = @{bind};
             var callback = @{callback};
             bind.loop = callback;
