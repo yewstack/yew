@@ -255,15 +255,10 @@ impl Model {
     }
 
     fn is_all_completed(&self) -> bool {
-        let entries = self.entries.iter()
+        self.entries
+            .iter()
             .filter(|e| self.filter.fit(e))
-            .collect::<Vec<_>>();
-        if entries.len() == 0 {
-            false
-        } else {
-            entries.into_iter()
-                .fold(true, |status, entry| status && entry.completed)
-        }
+            .all(|e| e.completed)
     }
 
     fn toggle_all(&mut self, value: bool) {
