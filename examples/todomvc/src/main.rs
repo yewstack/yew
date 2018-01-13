@@ -255,10 +255,16 @@ impl Model {
     }
 
     fn is_all_completed(&self) -> bool {
-        self.entries
-            .iter()
-            .filter(|e| self.filter.fit(e))
-            .all(|e| e.completed)
+        let mut filtered_iter = self.entries
+                                    .iter()
+                                    .filter(|e| self.filter.fit(e))
+                                    .peekable();
+
+        if filtered_iter.peek().is_none() {
+            return false;
+        }
+
+        filtered_iter.all(|e| e.completed)
     }
 
     fn toggle_all(&mut self, value: bool) {
