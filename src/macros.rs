@@ -120,7 +120,8 @@ macro_rules! html_impl {
     // PATTERN: { for expression }
     ($stack:ident ({ for $eval:expr } $($tail:tt)*)) => {
         let nodes = $eval;
-        for node in nodes.map($crate::virtual_dom::VNode::from) {
+        for node in nodes {
+            let node = $crate::virtual_dom::VNode::from(node);
             $crate::macros::add_child(&mut $stack, node);
         }
         html_impl! { $stack ($($tail)*) }

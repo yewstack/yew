@@ -145,71 +145,87 @@ enum Msg {
     ToggleCellule(usize)
 }
 
-fn update(context: &mut AppContext<Context, GameOfLife, Msg>, gof: &mut GameOfLife, msg: Msg) -> ShouldRender {
-    match msg {
-        Msg::Random => {
-            gof.random_mutate();
-            println!("Random");
-        },
-        Msg::Start => {
-            let callback = context.sender().send_back(|_| Msg::Step);
-            let handle = context.interval.spawn(Duration::from_millis(200), callback);
-            gof.job = Some(Box::new(handle));
-            println!("Start");
-        },
-        Msg::Step => {
-            gof.play();
-        },
-        Msg::Reset => {
-            gof.reset();
-            println!("Reset");
-        },
-        Msg::Stop => {
-            if let Some(mut task) = gof.job.take() {
-                task.cancel();
-            }
-            gof.job = None;
-            println!("Stop");
-        },
-        Msg::ToggleCellule(idx) => {
-            gof.toggle_cellule(idx);
+impl Component<Context> for GameOfLife {
+    type Msg = Msg;
+    type Properties = ();
+
+    fn create(_: &mut Env<Context, Self>) -> Self {
+        GameOfLife {
+            cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
+            cellules_width: 50,
+            cellules_height: 40,
+            job : None
         }
     }
-    true
-}
 
-fn view(gof: &GameOfLife) -> AppHtml<Context, GameOfLife, Msg> {
-    html! {
-        <div>
-            <section class="game-container",>
-                <header class="app-header",>
-                    <img src="favicon.ico", class="app-logo",/>
-                    <h1 class="app-title",>{ "Game of Life" }</h1>
-                </header>
-                <section class="game-area",>
-                    <div class="game-of-life",>
-                        { for gof.cellules.iter().enumerate().map(view_cellule) }
-                    </div>
-                    <div class="game-buttons",>
-                        <button class="game-button", onclick=move|_| Msg::Random,>{ "Random" }</button>
-                        <button class="game-button", onclick=move|_| Msg::Step,>{ "Step" }</button>
-                        <button class="game-button", onclick=move|_| Msg::Start,>{ "Start" }</button>
-                        <button class="game-button", onclick=move|_| Msg::Stop,>{ "Stop" }</button>
-                        <button class="game-button", onclick=move|_| Msg::Reset,>{ "Reset" }</button>
-                    </div>
-                </section>
-            </section>
-            <footer class="app-footer",>
-                <strong class="footer-text",>
-                  { "Game of Life - a yew experiment " }
-                </strong>
-                <a href="https://github.com/DenisKolodin/yew", target="_blank",>{ "source" }</a>
-            </footer>
-        </div>
+    fn update(&mut self, msg: Self::Msg, context: &mut Env<Context, Self>) -> ShouldRender {
+        match msg {
+            Msg::Random => {
+                self.random_mutate();
+                println!("Random");
+            },
+            Msg::Start => {
+                let callback = context.send_back(|_| Msg::Step);
+                let handle = context.interval.spawn(Duration::from_millis(200), callback);
+                self.job = Some(Box::new(handle));
+                println!("Start");
+            },
+            Msg::Step => {
+                self.play();
+            },
+            Msg::Reset => {
+                self.reset();
+                println!("Reset");
+            },
+            Msg::Stop => {
+                if let Some(mut task) = self.job.take() {
+                    task.cancel();
+                }
+                self.job = None;
+                println!("Stop");
+            },
+            Msg::ToggleCellule(idx) => {
+                self.toggle_cellule(idx);
+            }
+        }
+        true
     }
 }
 
-fn view_cellule((idx, cellule): (usize, &Cellule)) -> AppHtml<Context, GameOfLife, Msg> {
+impl Renderable<Context, GameOfLife> for GameOfLife {
+    fn view(&self) -> Html<Context, Self> {
+        html! {
+            <div>
+                <section class="game-container",>
+                    <header class="app-header",>
+                        <img src="favicon.ico", class="app-logo",/>
+                        <h1 class="app-title",>{ "Game of Life" }</h1>
+                    </header>
+                    <section class="game-area",>
+                        <div class="game-of-life",>
+                            { for self.cellules.iter().enumerate().map(view_cellule) }
+                        </div>
+                        <div class="game-buttons",>
+                            <button class="game-button", onclick=move|_| Msg::Random,>{ "Random" }</button>
+                            <button class="game-button", onclick=move|_| Msg::Step,>{ "Step" }</button>
+                            <button class="game-button", onclick=move|_| Msg::Start,>{ "Start" }</button>
+                            <button class="game-button", onclick=move|_| Msg::Stop,>{ "Stop" }</button>
+                            <button class="game-button", onclick=move|_| Msg::Reset,>{ "Reset" }</button>
+                        </div>
+                    </section>
+                </section>
+                <footer class="app-footer",>
+                    <strong class="footer-text",>
+                      { "Game of Life - a yew experiment " }
+                    </strong>
+                    <a href="https://github.com/DenisKolodin/yew", target="_blank",>{ "source" }</a>
+                </footer>
+            </div>
+        }
+    }
+}
+
+fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Context, GameOfLife> {
     html! {
         <div class=("game-cellule", if cellule.life_state == LifeState::Live { "cellule-live" } else { "cellule-dead" }),
             onclick=move |_| Msg::ToggleCellule(idx),> </div>
@@ -218,16 +234,10 @@ fn view_cellule((idx, cellule): (usize, &Cellule)) -> AppHtml<Context, GameOfLif
 
 fn main() {
     yew::initialize();
-    let app = App::new();
     let context = Context {
         interval: IntervalService::new(),
     };
-    let gof = GameOfLife {
-        cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
-        cellules_width: 50,
-        cellules_height: 40,
-        job : None
-    };
-    app.mount(context, gof, update, view);
+    let app: App<_, GameOfLife> = App::new(context);
+    app.mount_to_body();
     yew::run_loop();
 }

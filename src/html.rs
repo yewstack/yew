@@ -4,7 +4,7 @@
 //! to create own UI-components.
 
 use std::rc::Rc;
-use std::cell::RefCell;
+use std::cell::{RefCell, RefMut};
 use std::ops::{Deref, DerefMut};
 use std::sync::mpsc::{Sender, Receiver, channel};
 use stdweb::Value;
@@ -25,14 +25,18 @@ pub trait Component<CTX>: Sized + 'static {
     /// with unknown type.
     type Properties: Clone + PartialEq + Default;
     /// Initialization routine which could use a context.
-    fn create(context: &mut ScopeRef<CTX, Self>) -> Self;
+    fn create(context: &mut Env<CTX, Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
-    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>) -> ShouldRender;
+    fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender;
     /// This method called when properties changes, and once when component created.
-    fn change(&mut self, _: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldRender { false }
+    fn change(&mut self, _: Self::Properties, _: &mut Env<CTX, Self>) -> ShouldRender { false }
+}
+
+/// Should be rendered relative to context and component environment.
+pub trait Renderable<CTX, COMP: Component<CTX>> {
     /// Called by rendering loop.
-    fn view(&self) -> Html<CTX, Self>;
+    fn view(&self) -> Html<CTX, COMP>;
 }
 
 /// Update message for a `Components` instance. Used by scope sender.
@@ -83,14 +87,14 @@ impl<IN> Callback<IN> {
 /// Shared reference to a context.
 pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
 
-/// Local reference to application internals: messages sender and context.
-pub struct ScopeRef<'a, CTX: 'a, COMP: Component<CTX>> {
-    context: &'a mut CTX,
-    tx: &'a mut ComponentSender<CTX, COMP>,
-    bind: &'a Value,
+/// A reference to environment of a component (scope) which contains
+/// shared reference to a context and a sender to a scope's loop.
+pub struct Env<'a, CTX: 'a, COMP: Component<CTX>> {
+    context: RefMut<'a, CTX>,
+    sender: &'a mut ScopeSender<CTX, COMP>,
 }
 
-impl<'a, CTX: 'a, COMP: Component<CTX>> Deref for ScopeRef<'a, CTX, COMP> {
+impl<'a, CTX: 'a, COMP: Component<CTX>> Deref for Env<'a, CTX, COMP> {
     type Target = CTX;
 
     fn deref(&self) -> &CTX {
@@ -98,33 +102,23 @@ impl<'a, CTX: 'a, COMP: Component<CTX>> Deref for ScopeRef<'a, CTX, COMP> {
     }
 }
 
-impl<'a, CTX: 'a, COMP: Component<CTX>> DerefMut for ScopeRef<'a, CTX, COMP> {
+impl<'a, CTX: 'a, COMP: Component<CTX>> DerefMut for Env<'a, CTX, COMP> {
     fn deref_mut(&mut self) -> &mut CTX {
         &mut self.context
     }
 }
 
-impl<'a, CTX: 'static, COMP: Component<CTX>> ScopeRef<'a, CTX, COMP> {
+impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> COMP::Msg + 'static,
     {
-        let sender = self.tx.clone();
-        let bind = self.bind.clone();
+        let sender = self.sender.clone();
         let closure = move |input| {
             let output = function(input);
             let update = ComponentUpdate::Message(output);
-            sender.send(update).expect("App lost the receiver!");
-            let bind = bind.clone();
-            js! {
-                // Schedule to call the loop handler
-                // IMPORTANT! If call loop function immediately
-                // it stops handling other messages and the first
-                // one will be fired.
-                var bind = @{bind};
-                window._yew_schedule_(bind.loop);
-            }
+            sender.clone().send(update);
         };
         closure.into()
     }
@@ -132,6 +126,7 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> ScopeRef<'a, CTX, COMP> {
 
 /// This type holds a reference to a context instance and
 /// sender to send messages to a component attached to a scope.
+/// An instance could be dereferenced as a context.
 pub struct ScopeEnv<CTX, COMP: Component<CTX>> {
     context: SharedContext<CTX>,
     sender: ScopeSender<CTX, COMP>,
@@ -155,6 +150,16 @@ impl<CTX, COMP: Component<CTX>> ScopeEnv<CTX, COMP> {
     /// Clones shared context.
     pub fn context(&self) -> SharedContext<CTX> {
         self.context.clone()
+    }
+}
+
+impl<CTX: 'static, COMP: Component<CTX>> ScopeEnv<CTX, COMP> {
+    /// Returns reference to a scope data.
+    pub fn get_ref<'a>(&'a mut self) -> Env<'a, CTX, COMP> {
+        Env {
+            context: self.context.borrow_mut(),
+            sender: &mut self.sender,
+        }
     }
 }
 
@@ -233,7 +238,10 @@ pub struct Scope<CTX, COMP: Component<CTX>> {
     rx: Option<Receiver<ComponentUpdate<CTX, COMP>>>,
 }
 
-impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
+impl<CTX, COMP> Scope<CTX, COMP>
+where
+    COMP: Component<CTX>,
+{
     /// Creates app with a context.
     pub fn new(context: CTX) -> Self {
         let context = Rc::new(RefCell::new(context));
@@ -257,7 +265,13 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
             sender,
         }
     }
+}
 
+impl<CTX, COMP> Scope<CTX, COMP>
+where
+    CTX: 'static,
+    COMP: Component<CTX> + Renderable<CTX, COMP>,
+{
     /// Alias to `mount("body", ...)`.
     pub fn mount_to_body(self) {
         let element = document().query_selector("body")
@@ -271,18 +285,10 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
     /// will render the model to a virtual DOM tree.
     pub fn mount(mut self, element: Element) {
         clear_element(&element);
-        //
-        let ScopeEnv { mut sender, context } = self.get_env();
         let mut component = {
-            // TODO DRY
-            let tx = &mut sender.tx;
-            let bind = &sender.bind;
-            let mut context = context.borrow_mut();
-            let mut sender = ScopeRef {
-                tx, bind,
-                context: &mut *context,
-            };
-            COMP::create(&mut sender)
+            let mut env = self.get_env();
+            let mut scope_ref = env.get_ref();
+            COMP::create(&mut scope_ref)
         };
         // No messages at start
         let mut updates = Vec::new();
@@ -296,21 +302,15 @@ impl<CTX: 'static, COMP: Component<CTX> + 'static> Scope<CTX, COMP> {
             let mut should_update = false;
             updates.extend(rx.try_iter());
             {
-                // TODO DRY
-                let tx = &mut sender.tx;
-                let bind = &sender.bind;
-                let mut context = context.borrow_mut();
-                let mut sender = ScopeRef {
-                    tx, bind,
-                    context: &mut *context,
-                };
+                let mut env = self.get_env();
+                let mut scope_ref = env.get_ref();
                 for upd in updates.drain(..) {
                     match upd {
                         ComponentUpdate::Message(msg) => {
-                            should_update |= component.update(msg, &mut sender);
+                            should_update |= component.update(msg, &mut scope_ref);
                         }
                         ComponentUpdate::Properties(props) => {
-                            should_update |= component.change(props, &mut sender);
+                            should_update |= component.change(props, &mut scope_ref);
                         }
                     }
                 }

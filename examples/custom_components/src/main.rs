@@ -35,13 +35,13 @@ impl Component<Context> for Model {
     type Msg = Msg;
     type Properties = ();
 
-    fn create(_: &mut ScopeRef<Context, Self>) -> Self {
+    fn create(_: &mut Env<Context, Self>) -> Self {
         Model {
             color: Color::Red,
         }
     }
 
-    fn update(&mut self, msg: Msg, context: &mut ScopeRef<Context, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Msg, context: &mut Env<Context, Self>) -> ShouldRender {
         match msg {
             Msg::Repaint => {
                 self.color = Color::Blue;
@@ -53,7 +53,9 @@ impl Component<Context> for Model {
             }
         }
     }
+}
 
+impl Renderable<Context, Model> for Model {
     fn view(&self) -> Html<Context, Self> {
         let counter = |_| html! {
             <Counter: color=&self.color, onclick=Msg::ChildClicked,/>

@@ -20,48 +20,58 @@ enum Msg {
     Bulk(Vec<Msg>),
 }
 
-fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg: Msg) -> ShouldRender {
-    match msg {
-        Msg::Increment => {
-            model.value = model.value + 1;
-            context.console.log("plus one");
-        }
-        Msg::Decrement => {
-            model.value = model.value - 1;
-            context.console.log("minus one");
-        }
-        Msg::Bulk(list) => {
-            for msg in list {
-                update(context, model, msg);
-            }
+impl Component<Context> for Model {
+    type Msg = Msg;
+    type Properties = ();
+
+    fn create(_: &mut Env<Context, Self>) -> Self {
+        Model {
+            value: 0,
         }
     }
-    true
+
+    fn update(&mut self, msg: Self::Msg, context: &mut Env<Context, Self>) -> ShouldRender {
+        match msg {
+            Msg::Increment => {
+                self.value = self.value + 1;
+                context.console.log("plus one");
+            }
+            Msg::Decrement => {
+                self.value = self.value - 1;
+                context.console.log("minus one");
+            }
+            Msg::Bulk(list) => {
+                for msg in list {
+                    self.update(msg, context);
+                }
+            }
+        }
+        true
+    }
 }
 
-fn view(model: &Model) -> AppHtml<Context, Model, Msg> {
-    html! {
-        <div>
-            <nav class="menu",>
-                <button onclick=|_| Msg::Increment,>{ "Increment" }</button>
-                <button onclick=|_| Msg::Decrement,>{ "Decrement" }</button>
-                <button onclick=|_| Msg::Bulk(vec!(Msg::Increment, Msg::Increment)),>{ "Increment Twice" }</button>
-            </nav>
-            <p>{ model.value }</p>
-            <p>{ Local::now() }</p>
-        </div>
+impl Renderable<Context, Model> for Model {
+    fn view(&self) -> Html<Context, Self> {
+        html! {
+            <div>
+                <nav class="menu",>
+                    <button onclick=|_| Msg::Increment,>{ "Increment" }</button>
+                    <button onclick=|_| Msg::Decrement,>{ "Decrement" }</button>
+                    <button onclick=|_| Msg::Bulk(vec!(Msg::Increment, Msg::Increment)),>{ "Increment Twice" }</button>
+                </nav>
+                <p>{ self.value }</p>
+                <p>{ Local::now() }</p>
+            </div>
+        }
     }
 }
 
 fn main() {
     yew::initialize();
-    let app = App::new();
     let context = Context {
         console: ConsoleService,
     };
-    let model = Model {
-        value: 0,
-    };
-    app.mount(context, model, update, view);
+    let app: App<_, Model> = App::new(context);
+    app.mount_to_body();
     yew::run_loop();
 }

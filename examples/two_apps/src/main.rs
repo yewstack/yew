@@ -29,7 +29,7 @@ impl Component<Context> for Model {
     type Msg = Msg;
     type Properties = ();
 
-    fn create(context: &mut ScopeRef<Context, Self>) -> Self {
+    fn create(context: &mut Env<Context, Self>) -> Self {
         let sender = context.senders.pop().unwrap();
         Model {
             // TODO Need properties here...
@@ -39,7 +39,7 @@ impl Component<Context> for Model {
         }
     }
 
-    fn update(&mut self, msg: Msg, _: &mut ScopeRef<Context, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Msg, _: &mut Env<Context, Self>) -> ShouldRender {
         match msg {
             Msg::SendToOpposite(title) => {
                 self.sender.send(ComponentUpdate::Message(Msg::SetTitle(title)));
@@ -50,7 +50,10 @@ impl Component<Context> for Model {
         }
         true
     }
+}
 
+
+impl Renderable<Context, Model> for Model {
     fn view(&self) -> Html<Context, Self> {
         html! {
             <div>

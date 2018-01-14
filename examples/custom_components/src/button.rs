@@ -28,14 +28,14 @@ impl<CTX: 'static> Component<CTX> for Button {
     type Msg = Msg;
     type Properties = Props;
 
-    fn create(_: &mut ScopeRef<CTX, Self>) -> Self {
+    fn create(_: &mut Env<CTX, Self>) -> Self {
         Button {
             title: "Send Signal".into(),
             onsignal: None,
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, _: &mut ScopeRef<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Msg, _: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Clicked => {
                 if let Some(ref mut callback) = self.onsignal {
@@ -46,12 +46,14 @@ impl<CTX: 'static> Component<CTX> for Button {
         false
     }
 
-    fn change(&mut self, props: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldRender {
+    fn change(&mut self, props: Self::Properties, _: &mut Env<CTX, Self>) -> ShouldRender {
         self.title = props.title;
         self.onsignal = props.onsignal;
         true
     }
+}
 
+impl<CTX: 'static> Renderable<CTX, Button> for Button {
     fn view(&self) -> Html<CTX, Self> {
         html! {
             <button onclick=|_| Msg::Clicked,>{ &self.title }</button>

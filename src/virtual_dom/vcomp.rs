@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::any::TypeId;
 use stdweb::web::Element;
-use html::{ScopeBuilder, SharedContext, Component, ComponentUpdate, ScopeSender, Callback, ScopeEnv};
+use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv};
 
 struct Hidden;
 
@@ -21,7 +21,10 @@ pub struct VComp<CTX, COMP: Component<CTX>> {
 
 impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     /// This method prepares a generator to make a new instance of the `Component`.
-    pub fn lazy<CHILD: Component<CTX>>() -> (CHILD::Properties, Self) {
+    pub fn lazy<CHILD>() -> (CHILD::Properties, Self)
+    where
+        CHILD: Component<CTX> + Renderable<CTX, CHILD>,
+    {
         let builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new();
         let mut sender = builder.sender();
         let mut builder = Some(builder);
@@ -139,7 +142,11 @@ where
     }
 }
 
-impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
+impl<CTX, COMP> VComp<CTX, COMP>
+where
+    CTX: 'static,
+    COMP: Component<CTX> + 'static,
+{
     /// This methods mount a virtual component with a generator created with `lazy` call.
     fn mount(&mut self, element: &Element, context: SharedContext<CTX>) {
         (self.generator)(context, element.clone());

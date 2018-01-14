@@ -31,7 +31,7 @@ impl<CTX: 'static> Component<CTX> for Barrier {
     type Msg = Msg;
     type Properties = Props;
 
-    fn create(_: &mut ScopeRef<CTX, Self>) -> Self {
+    fn create(_: &mut Env<CTX, Self>) -> Self {
         Barrier {
             limit: 0,
             counter: 0,
@@ -39,7 +39,7 @@ impl<CTX: 'static> Component<CTX> for Barrier {
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, _: &mut ScopeRef<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Msg, _: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::ChildClicked => {
                 self.counter += 1;
@@ -54,12 +54,14 @@ impl<CTX: 'static> Component<CTX> for Barrier {
         true
     }
 
-    fn change(&mut self, props: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldRender {
+    fn change(&mut self, props: Self::Properties, _: &mut Env<CTX, Self>) -> ShouldRender {
         self.limit = props.limit;
         self.onsignal = props.onsignal;
         true
     }
+}
 
+impl<CTX: 'static> Renderable<CTX, Barrier> for Barrier {
     fn view(&self) -> Html<CTX, Self> {
         html! {
             <div>
