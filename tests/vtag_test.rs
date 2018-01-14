@@ -1,19 +1,41 @@
 #[macro_use]
 extern crate yew;
 
+use yew::html::{Html, Component, ScopeRef, ShouldRender};
 use yew::virtual_dom::VNode;
+
+type Ctx = ();
+
+struct Comp;
+
+impl Component<Ctx> for Comp {
+    type Msg = ();
+    type Properties = ();
+
+    fn create(_: &mut ScopeRef<Ctx, Self>) -> Self {
+        Comp
+    }
+
+    fn update(&mut self, _: Self::Msg, _: &mut ScopeRef<Ctx, Self>) -> ShouldRender {
+        unimplemented!();
+    }
+
+    fn view(&self) -> Html<Ctx, Self> {
+        unimplemented!();
+    }
+}
 
 #[test]
 fn it_compares_tags() {
-    let a: VNode<(),()> = html! {
+    let a: VNode<Ctx, Comp> = html! {
         <div></div>
     };
 
-    let b: VNode<(),()> = html! {
+    let b: VNode<Ctx, Comp> = html! {
         <div></div>
     };
 
-    let c: VNode<(),()> = html! {
+    let c: VNode<Ctx, Comp> = html! {
         <p></p>
     };
 
@@ -23,15 +45,15 @@ fn it_compares_tags() {
 
 #[test]
 fn it_compares_text() {
-    let a: VNode<(),()> = html! {
+    let a: VNode<Ctx, Comp> = html! {
         <div>{ "correct" }</div>
     };
 
-    let b: VNode<(),()> = html! {
+    let b: VNode<Ctx, Comp> = html! {
         <div>{ "correct" }</div>
     };
 
-    let c: VNode<(),()> = html! {
+    let c: VNode<Ctx, Comp> = html! {
         <div>{ "incorrect" }</div>
     };
 
@@ -41,15 +63,15 @@ fn it_compares_text() {
 
 #[test]
 fn it_compares_attributes() {
-    let a: VNode<(),()> = html! {
+    let a: VNode<Ctx, Comp> = html! {
         <div a="test",></div>
     };
 
-    let b: VNode<(),()> = html! {
+    let b: VNode<Ctx, Comp> = html! {
         <div a="test",></div>
     };
 
-    let c: VNode<(),()> = html! {
+    let c: VNode<Ctx, Comp> = html! {
         <div a="fail",></div>
     };
 
@@ -59,19 +81,19 @@ fn it_compares_attributes() {
 
 #[test]
 fn it_compares_children() {
-    let a: VNode<(),()> = html! {
+    let a: VNode<Ctx, Comp> = html! {
         <div>
             <p></p>
         </div>
     };
 
-    let b: VNode<(),()> = html! {
+    let b: VNode<Ctx, Comp> = html! {
         <div>
             <p></p>
         </div>
     };
 
-    let c: VNode<(),()> = html! {
+    let c: VNode<Ctx, Comp> = html! {
         <div>
             <span></span>
         </div>
@@ -83,15 +105,15 @@ fn it_compares_children() {
 
 #[test]
 fn it_compares_classes() {
-    let a: VNode<(),()> = html! {
+    let a: VNode<Ctx, Comp> = html! {
         <div class="test",></div>
     };
 
-    let b: VNode<(),()> = html! {
+    let b: VNode<Ctx, Comp> = html! {
         <div class="test",></div>
     };
 
-    let c: VNode<(),()> = html! {
+    let c: VNode<Ctx, Comp> = html! {
         <div class="fail",></div>
     };
 
@@ -101,15 +123,15 @@ fn it_compares_classes() {
 
 #[test]
 fn it_compares_values() {
-    let a: VNode<(),()> = html! {
+    let a: VNode<Ctx, Comp> = html! {
         <input value="test",/>
     };
 
-    let b: VNode<(),()> = html! {
+    let b: VNode<Ctx, Comp> = html! {
         <input value="test",/>
     };
 
-    let c: VNode<(),()> = html! {
+    let c: VNode<Ctx, Comp> = html! {
         <input value="fail",/>
     };
 
@@ -119,15 +141,15 @@ fn it_compares_values() {
 
 #[test]
 fn it_compares_kinds() {
-    let a: VNode<(),()> = html! {
+    let a: VNode<Ctx, Comp> = html! {
         <input type="text",/>
     };
 
-    let b: VNode<(),()> = html! {
+    let b: VNode<Ctx, Comp> = html! {
         <input type="text",/>
     };
 
-    let c: VNode<(),()> = html! {
+    let c: VNode<Ctx, Comp> = html! {
         <input type="hidden",/>
     };
 
@@ -137,15 +159,15 @@ fn it_compares_kinds() {
 
 #[test]
 fn it_compares_checked() {
-    let a: VNode<(),()> = html! {
+    let a: VNode<Ctx, Comp> = html! {
         <input type="checkbox", checked=false,/>
     };
 
-    let b: VNode<(),()> = html! {
+    let b: VNode<Ctx, Comp> = html! {
         <input type="checkbox", checked=false,/>
     };
 
-    let c: VNode<(),()> = html! {
+    let c: VNode<Ctx, Comp> = html! {
         <input type="checkbox", checked=true,/>
     };
 
@@ -155,7 +177,7 @@ fn it_compares_checked() {
 
 #[test]
 fn it_allows_aria_attributes() {
-    let a: VTag<()> = html! {
+    let a: VNode<Ctx, Comp> = html! {
         <p aria-controls="it-works",>
             <a class="btn btn-primary",
                data-toggle="collapse",
@@ -176,6 +198,10 @@ fn it_allows_aria_attributes() {
             <div own-attribute-with-multiple-parts="works", />
         </p>
     };
-    assert!(a.attributes.contains_key("aria-controls"));
-    assert_eq!(a.attributes.get("aria-controls"), Some(&"it-works".into()));
+    if let VNode::VTag { vtag, .. } = a {
+        assert!(vtag.attributes.contains_key("aria-controls"));
+        assert_eq!(vtag.attributes.get("aria-controls"), Some(&"it-works".into()));
+    } else {
+        panic!("vtag expected");
+    }
 }
