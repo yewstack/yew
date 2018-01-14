@@ -29,51 +29,61 @@ enum Msg {
     Exchanges,
 }
 
-fn update(context: &mut AppContext<Context, Model, Msg>, model: &mut Model, msg: Msg) -> ShouldRender {
-    match msg {
-        Msg::Gravatar => {
-            let callback = context.sender().send_back(Msg::GravatarReady);
-            context.gravatar.profile("205e460b479e2e5b48aec07710c08d50", callback);
-        }
-        Msg::GravatarReady(Ok(profile)) => {
-            model.profile = Some(profile);
-        }
-        Msg::GravatarReady(Err(_)) => {
-            // Can't load gravatar profile
-        }
-        Msg::Exchanges => {
-            model.exchanges = context.ccxt.exchanges();
+impl Component<Context> for Model {
+    type Msg = Msg;
+    type Properties = ();
+
+    fn create(_: &mut Env<Context, Self>) -> Self {
+        Model {
+            profile: None,
+            exchanges: Vec::new(),
         }
     }
-    true
+
+    fn update(&mut self, msg: Self::Msg, context: &mut Env<Context, Self>) -> ShouldRender {
+        match msg {
+            Msg::Gravatar => {
+                let callback = context.send_back(Msg::GravatarReady);
+                context.gravatar.profile("205e460b479e2e5b48aec07710c08d50", callback);
+            }
+            Msg::GravatarReady(Ok(profile)) => {
+                self.profile = Some(profile);
+            }
+            Msg::GravatarReady(Err(_)) => {
+                // Can't load gravatar profile
+            }
+            Msg::Exchanges => {
+                self.exchanges = context.ccxt.exchanges();
+            }
+        }
+        true
+    }
 }
 
-fn view(model: &Model) -> AppHtml<Context, Model, Msg> {
-    let view_exchange = |exchange| html! {
-        <li>{ exchange }</li>
-    };
-    html! {
-        <div>
-            <button onclick=|_| Msg::Exchanges,>{ "Get Exchanges" }</button>
-            <button onclick=|_| Msg::Gravatar,>{ "Get Gravatar" }</button>
-            <ul>
-                { for model.exchanges.iter().map(view_exchange) }
-            </ul>
-        </div>
+impl Renderable<Context, Model> for Model {
+    fn view(&self) -> Html<Context, Self> {
+        let view_exchange = |exchange| html! {
+            <li>{ exchange }</li>
+        };
+        html! {
+            <div>
+                <button onclick=|_| Msg::Exchanges,>{ "Get Exchanges" }</button>
+                <button onclick=|_| Msg::Gravatar,>{ "Get Gravatar" }</button>
+                <ul>
+                    { for self.exchanges.iter().map(view_exchange) }
+                </ul>
+            </div>
+        }
     }
 }
 
 fn main() {
     yew::initialize();
-    let app = App::new();
     let context = Context {
         gravatar: GravatarService::new(),
         ccxt: CcxtService::new(),
     };
-    let model = Model {
-        profile: None,
-        exchanges: Vec::new(),
-    };
-    app.mount(context, model, update, view);
+    let app: App<_, Model> = App::new(context);
+    app.mount_to_body();
     yew::run_loop();
 }

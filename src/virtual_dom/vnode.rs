@@ -4,7 +4,7 @@ use std::fmt;
 use std::cmp::PartialEq;
 use stdweb::web::{INode, Node, Element, TextNode, document};
 use virtual_dom::{VTag, VText, VComp};
-use html::{ScopeEnv, Component};
+use html::{ScopeEnv, Component, Renderable};
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<CTX, COMP: Component<CTX>> {
@@ -231,8 +231,14 @@ impl<CTX, COMP: Component<CTX>, T: ToString> From<T> for VNode<CTX, COMP> {
     fn from(value: T) -> Self {
         VNode::VText {
             reference: None,
-            vtext: VText::new(value),
+            vtext: VText::new(value.to_string()),
         }
+    }
+}
+
+impl<'a, CTX, COMP: Component<CTX>> From<&'a Renderable<CTX, COMP>> for VNode<CTX, COMP> {
+    fn from(value: &'a Renderable<CTX, COMP>) -> Self {
+        value.view()
     }
 }
 

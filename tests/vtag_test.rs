@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate yew;
 
-use yew::html::{Html, Component, ScopeRef, ShouldRender};
+use yew::html::{Html, Component, Env, ShouldRender};
 use yew::virtual_dom::VNode;
 
 type Ctx = ();
@@ -12,11 +12,11 @@ impl Component<Ctx> for Comp {
     type Msg = ();
     type Properties = ();
 
-    fn create(_: &mut ScopeRef<Ctx, Self>) -> Self {
+    fn create(_: &mut Env<Ctx, Self>) -> Self {
         Comp
     }
 
-    fn update(&mut self, _: Self::Msg, _: &mut ScopeRef<Ctx, Self>) -> ShouldRender {
+    fn update(&mut self, _: Self::Msg, _: &mut Env<Ctx, Self>) -> ShouldRender {
         unimplemented!();
     }
 

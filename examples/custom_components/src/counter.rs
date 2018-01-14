@@ -36,7 +36,7 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
     type Msg = Msg;
     type Properties = Props;
 
-    fn create(_: &mut ScopeRef<CTX, Self>) -> Self {
+    fn create(_: &mut Env<CTX, Self>) -> Self {
         Counter {
             value: 0,
             color: Color::Green,
@@ -44,7 +44,7 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut ScopeRef<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Increase => {
                 self.value = self.value + 1;
@@ -57,12 +57,14 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
         true
     }
 
-    fn change(&mut self, props: Self::Properties, _: &mut ScopeRef<CTX, Self>) -> ShouldRender {
+    fn change(&mut self, props: Self::Properties, _: &mut Env<CTX, Self>) -> ShouldRender {
         self.color = props.color;
         self.onclick = props.onclick;
         true
     }
+}
 
+impl<CTX: Printer + 'static> Renderable<CTX, Counter> for Counter {
     fn view(&self) -> Html<CTX, Self> {
         let colorize = {
             match self.color {

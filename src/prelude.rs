@@ -7,6 +7,10 @@
 //! use yew::prelude::*;
 //! ```
 
-pub use html::{Component, Html, ScopeRef, ShouldRender, Callback,
+pub use html::{Component, Renderable, Html, Env, ShouldRender, Callback,
     InputData, KeyData, MouseData, Href};
-pub use app::{App, AppContext, AppHtml};
+
+use html::Scope;
+
+/// Alias to `Scope`.
+pub type App<CTX, COMP> = Scope<CTX, COMP>;
