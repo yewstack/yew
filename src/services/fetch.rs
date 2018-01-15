@@ -5,8 +5,8 @@ use std::collections::HashMap;
 use stdweb::Value;
 use stdweb::unstable::TryFrom;
 
-use html::AppSender;
 use format::{Storable, Restorable};
+use html::Callback;
 use super::Task;
 
 pub use http::{
@@ -24,15 +24,13 @@ pub struct FetchHandle(Option<Value>);
 
 
 /// A service to fetch resources.
-pub struct FetchService<MSG> {
-    sender: AppSender<MSG>,
+pub struct FetchService {
 }
 
-impl<MSG: 'static> FetchService<MSG> {
-
-    /// Creates a new service instance connected to an `App` by the provided `sender`.
-    pub fn new(sender: AppSender<MSG>) -> Self {
-        Self { sender }
+impl FetchService {
+    /// Creates a new service instance connected to `App` by provided `sender`.
+    pub fn new() -> Self {
+        Self { }
     }
 
     /// Sends a request to a remote server given a Request object and a callback
@@ -83,11 +81,13 @@ impl<MSG: 'static> FetchService<MSG> {
     ///         }
     /// ```
     ///
-    pub fn fetch<'a, F, IN, OUT>(&mut self, request: Request<IN>, converter: F) -> FetchHandle
+
+
+
+    pub fn fetch<IN, OUT: 'static>(&mut self, request: Request<IN>, callback: Callback<Response<OUT>>) -> FetchHandle
     where
         IN: Into<Storable>,
         OUT: From<Restorable>,
-        F: Fn(Response<OUT>) -> MSG + 'static
     {
         // Consume request as parts and body.
         let (parts, body) = request.into_parts();
@@ -105,7 +105,6 @@ impl<MSG: 'static> FetchService<MSG> {
         // Prepare the response callback.
         // Notice that the callback signature must match the call from the javascript
         // side. There is no static check at this point.
-        let mut tx = self.sender.clone();
         let callback = move |success: bool, response: Value, body: String| {
             let mut response_builder = Response::builder();
 
@@ -135,9 +134,7 @@ impl<MSG: 'static> FetchService<MSG> {
             let data = if success { Ok(body) } else { Err(body) };
             let out = OUT::from(data);
             let response = response_builder.body(out).unwrap();
-
-            let msg = converter(response);
-            tx.send(msg);
+            callback.emit(response);
         };
 
         let handle = js! {

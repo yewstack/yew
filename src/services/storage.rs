@@ -4,8 +4,8 @@
 use stdweb::Value;
 use format::{Storable, Restorable};
 
-/// A scope to keep the data in.
-pub enum Scope {
+/// An area to keep the data in.
+pub enum Area {
     /// Use `localStorage` of a browser.
     Local,
     /// Use `sessionStorage` of a browser.
@@ -14,13 +14,13 @@ pub enum Scope {
 
 /// A storage service attached to a context.
 pub struct StorageService {
-    scope: Scope,
+    scope: Area,
 }
 
 impl StorageService {
 
     /// Creates a new storage service instance with specified storate scope.
-    pub fn new(scope: Scope) -> Self {
+    pub fn new(scope: Area) -> Self {
         StorageService { scope }
     }
 
@@ -31,10 +31,10 @@ impl StorageService {
     {
         if let Some(data) = value.into() {
             match self.scope {
-                Scope::Local => { js! { @(no_return)
+                Area::Local => { js! { @(no_return)
                     localStorage.setItem(@{key}, @{data});
                 } },
-                Scope::Session => { js! { @(no_return)
+                Area::Session => { js! { @(no_return)
                     sessionStorage.setItem(@{key}, @{data});
                 } },
             }
@@ -48,8 +48,8 @@ impl StorageService {
     {
         let value: Value = {
             match self.scope {
-                Scope::Local => js! { return localStorage.getItem(@{key}); },
-                Scope::Session => js! { return sessionStorage.getItem(@{key}); },
+                Area::Local => js! { return localStorage.getItem(@{key}); },
+                Area::Session => js! { return sessionStorage.getItem(@{key}); },
             }
         };
         let data = value.into_string().ok_or_else(|| "can't read string from storage".into());
@@ -60,10 +60,10 @@ impl StorageService {
     pub fn remove(&mut self, key: &str) {
         {
             match self.scope {
-                Scope::Local => js! { @(no_return)
+                Area::Local => js! { @(no_return)
                     localStorage.removeItem(@{key});
                 },
-                Scope::Session => js! { @(no_return)
+                Area::Session => js! { @(no_return)
                     sessionStorage.removeItem(@{key});
                 },
             }
