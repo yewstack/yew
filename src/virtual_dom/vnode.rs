@@ -3,17 +3,17 @@
 use std::fmt;
 use std::cmp::PartialEq;
 use stdweb::web::{INode, Node, Element, TextNode, document};
-use virtual_dom::{VTag, VText};
-use html::AppSender;
+use virtual_dom::{VTag, VText, VComp};
+use html::{ScopeEnv, Component, Renderable};
 
 /// Bind virtual element to a DOM reference.
-pub enum VNode<MSG> {
+pub enum VNode<CTX, COMP: Component<CTX>> {
     /// A bind between `VTag` and `Element`.
     VTag {
         /// A reference to the `Element`.
         reference: Option<Element>,
         /// A virtual tag node which was applied.
-        vtag: VTag<MSG>,
+        vtag: VTag<CTX, COMP>,
     },
     /// A bind between `VText` and `TextNode`.
     VText {
@@ -22,15 +22,23 @@ pub enum VNode<MSG> {
         /// A virtual text node which was applied.
         vtext: VText,
     },
+    /// A bind between `VComp` and `Element`.
+    VComp {
+        /// A reference to the `Element`.
+        reference: Option<Element>,
+        /// A virtual component which will be applied to the `Element`.
+        vcomp: VComp<CTX, COMP>,
+    },
 }
 
 
-impl<MSG> VNode<MSG> {
+impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
     fn remove<T: INode>(self, parent: &T) {
         let opt_ref: Option<Node> = {
             match self {
                 VNode::VTag { reference, .. } => reference.map(Node::from),
                 VNode::VText { reference, .. } => reference.map(Node::from),
+                VNode::VComp { reference, .. } => reference.map(Node::from),
             }
         };
         if let Some(node) = opt_ref {
@@ -42,7 +50,7 @@ impl<MSG> VNode<MSG> {
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
-    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<MSG>>, sender: AppSender<MSG>) {
+    pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<CTX, COMP>>, env: ScopeEnv<CTX, COMP>) {
         match *self {
             VNode::VTag {
                 ref mut vtag,
@@ -71,8 +79,14 @@ impl<MSG> VNode<MSG> {
                         parent.replace_child(&element, &wrong);
                         *reference = Some(element);
                     }
+                    Some(VNode::VComp { reference: Some(wrong), .. }) => {
+                        let element = document().create_element(left.tag());
+                        parent.replace_child(&element, &wrong);
+                        *reference = Some(element);
+                    }
                     Some(VNode::VTag { reference: None, .. }) |
                     Some(VNode::VText { reference: None, .. }) |
+                    Some(VNode::VComp { reference: None, .. }) |
                     None => {
                         let element = document().create_element(left.tag());
                         parent.append_child(&element);
@@ -88,7 +102,7 @@ impl<MSG> VNode<MSG> {
                         Vec::new()
                     }
                 };
-                left.render(element_mut, right, sender.clone());
+                left.render(element_mut, right, env.clone());
                 let mut lefts = left.childs.iter_mut().map(Some).collect::<Vec<_>>();
                 // Process children
                 let diff = lefts.len() as i32 - rights.len() as i32;
@@ -104,7 +118,7 @@ impl<MSG> VNode<MSG> {
                 for pair in lefts.into_iter().zip(rights) {
                     match pair {
                         (Some(left), right) => {
-                            left.apply(element_mut, right, sender.clone());
+                            left.apply(element_mut, right, env.clone());
                         }
                         (None, Some(right)) => {
                             right.remove(element_mut);
@@ -114,7 +128,6 @@ impl<MSG> VNode<MSG> {
                         }
                     }
                 }
-                //vtag.apply(parent, reference, last, messages);
             }
             VNode::VText {
                 ref mut vtext,
@@ -130,13 +143,15 @@ impl<MSG> VNode<MSG> {
                         right = Some(vtext);
                         *reference = Some(element);
                     }
-                    Some(VNode::VTag { reference: Some(wrong), .. }) => {
+                    Some(VNode::VTag { reference: Some(wrong), .. }) |
+                    Some(VNode::VComp { reference: Some(wrong), .. }) => {
                         let element = document().create_text_node(&left.text);
                         parent.replace_child(&element, &wrong);
                         *reference = Some(element);
                     }
                     Some(VNode::VTag { reference: None, .. }) |
                     Some(VNode::VText { reference: None, .. }) |
+                    Some(VNode::VComp { reference: None, .. }) |
                     None => {
                         let element = document().create_text_node(&left.text);
                         parent.append_child(&element);
@@ -146,11 +161,46 @@ impl<MSG> VNode<MSG> {
                 let element_mut = reference.as_mut().expect("vtext must be here");
                 left.render(element_mut, right);
             }
+            VNode::VComp {
+                ref mut vcomp,
+                ref mut reference,
+            } => {
+                let left = vcomp;
+                let mut right = None;
+                match last {
+                    Some(VNode::VComp {
+                             vcomp,
+                             reference: Some(element),
+                         }) => {
+                        if *left == vcomp {
+                            // Send fresh properties to an active component
+                            right = Some(vcomp);
+                            *reference = Some(element);
+                        } else {
+                            let wrong = element;
+                            let element = document().create_element("div");
+                            parent.replace_child(&element, &wrong);
+                            *reference = Some(element);
+                        }
+                    }
+                    Some(VNode::VComp { reference: None, .. }) |
+                    None => {
+                        let element = document().create_element("div");
+                        parent.append_child(&element);
+                        *reference = Some(element);
+                    }
+                    _ => {
+                        eprintln!("Diff not implemented for components");
+                    }
+                }
+                let element_mut = reference.as_mut().expect("vcomp must be here");
+                left.render(element_mut, right, env.clone());
+            }
         }
     }
 }
 
-impl<MSG> From<VText> for VNode<MSG> {
+impl<CTX, COMP: Component<CTX>> From<VText> for VNode<CTX, COMP> {
     fn from(vtext: VText) -> Self {
         VNode::VText {
             reference: None,
@@ -159,8 +209,8 @@ impl<MSG> From<VText> for VNode<MSG> {
     }
 }
 
-impl<MSG> From<VTag<MSG>> for VNode<MSG> {
-    fn from(vtag: VTag<MSG>) -> Self {
+impl<CTX, COMP: Component<CTX>> From<VTag<CTX, COMP>> for VNode<CTX, COMP> {
+    fn from(vtag: VTag<CTX, COMP>) -> Self {
         VNode::VTag {
             reference: None,
             vtag,
@@ -168,26 +218,42 @@ impl<MSG> From<VTag<MSG>> for VNode<MSG> {
     }
 }
 
-impl<MSG, T: ToString> From<T> for VNode<MSG> {
-    fn from(value: T) -> Self {
-        VNode::VText {
+impl<CTX, COMP: Component<CTX>> From<VComp<CTX, COMP>> for VNode<CTX, COMP> {
+    fn from(vcomp: VComp<CTX, COMP>) -> Self {
+        VNode::VComp {
             reference: None,
-            vtext: VText::new(value),
+            vcomp,
         }
     }
 }
 
-impl<MSG> fmt::Debug for VNode<MSG> {
+impl<CTX, COMP: Component<CTX>, T: ToString> From<T> for VNode<CTX, COMP> {
+    fn from(value: T) -> Self {
+        VNode::VText {
+            reference: None,
+            vtext: VText::new(value.to_string()),
+        }
+    }
+}
+
+impl<'a, CTX, COMP: Component<CTX>> From<&'a Renderable<CTX, COMP>> for VNode<CTX, COMP> {
+    fn from(value: &'a Renderable<CTX, COMP>) -> Self {
+        value.view()
+    }
+}
+
+impl<CTX, COMP: Component<CTX>> fmt::Debug for VNode<CTX, COMP> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &VNode::VTag { ref vtag, .. } => vtag.fmt(f),
             &VNode::VText { ref vtext, .. } => vtext.fmt(f),
+            &VNode::VComp { .. } => "Component<>".fmt(f),
         }
     }
 }
 
-impl<MSG> PartialEq for VNode<MSG> {
-    fn eq(&self, other: &VNode<MSG>) -> bool {
+impl<CTX, COMP: Component<CTX>> PartialEq for VNode<CTX, COMP> {
+    fn eq(&self, other: &VNode<CTX, COMP>) -> bool {
         match *self {
             VNode::VTag { vtag: ref vtag_a, .. } => {
                 match *other {
@@ -196,7 +262,7 @@ impl<MSG> PartialEq for VNode<MSG> {
                     },
                     _ => false
                 }
-            },
+            }
             VNode::VText { vtext: ref vtext_a, .. } => {
                 match *other {
                     VNode::VText { vtext: ref vtext_b, .. } => {
@@ -204,6 +270,9 @@ impl<MSG> PartialEq for VNode<MSG> {
                     },
                     _ => false
                 }
+            }
+            VNode::VComp { .. } => {
+                false
             }
         }
     }

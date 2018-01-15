@@ -1,13 +1,21 @@
+/// This example demonstrates low-level usage of scopes.
+
+extern crate stdweb;
 #[macro_use]
 extern crate yew;
 
+use std::rc::Rc;
+use std::cell::RefCell;
+use stdweb::web::document;
+// Use `html` module directly. No use `App`.
 use yew::html::*;
 
 struct Context {
-    sender: AppSender<Msg>,
+    senders: Vec<ScopeSender<Context, Model>>,
 }
 
 struct Model {
+    sender: ScopeSender<Context, Model>,
     selector: &'static str,
     title: String,
 }
@@ -17,50 +25,72 @@ enum Msg {
     SetTitle(String),
 }
 
-fn update(context: &mut Context, model: &mut Model, msg: Msg) {
-    match msg {
-        Msg::SendToOpposite(title) => {
-            context.sender.send(Msg::SetTitle(title));
+impl Component<Context> for Model {
+    type Msg = Msg;
+    type Properties = ();
+
+    fn create(context: &mut Env<Context, Self>) -> Self {
+        let sender = context.senders.pop().unwrap();
+        Model {
+            // TODO Need properties here...
+            sender,
+            selector: "",
+            title: "Nothing".into(),
         }
-        Msg::SetTitle(title) => {
-            model.title = title;
+    }
+
+    fn update(&mut self, msg: Msg, _: &mut Env<Context, Self>) -> ShouldRender {
+        match msg {
+            Msg::SendToOpposite(title) => {
+                self.sender.send(ComponentUpdate::Message(Msg::SetTitle(title)));
+            }
+            Msg::SetTitle(title) => {
+                self.title = title;
+            }
+        }
+        true
+    }
+}
+
+
+impl Renderable<Context, Model> for Model {
+    fn view(&self) -> Html<Context, Self> {
+        html! {
+            <div>
+                <h3>{ format!("{} received <{}>", self.selector, self.title) }</h3>
+                <button onclick=|_| Msg::SendToOpposite("One".into()),>{ "One" }</button>
+                <button onclick=|_| Msg::SendToOpposite("Two".into()),>{ "Two" }</button>
+                <button onclick=|_| Msg::SendToOpposite("Three".into()),>{ "Three" }</button>
+            </div>
         }
     }
 }
 
-fn view(model: &Model) -> Html<Msg> {
-    html! {
-        <div>
-            <h3>{ format!("{} received <{}>", model.selector, model.title) }</h3>
-            <button onclick=|_| Msg::SendToOpposite("One".into()),>{ "One" }</button>
-            <button onclick=|_| Msg::SendToOpposite("Two".into()),>{ "Two" }</button>
-            <button onclick=|_| Msg::SendToOpposite("Three".into()),>{ "Three" }</button>
-        </div>
-    }
-}
-
-fn mount_app(selector: &'static str, app: &mut App<Msg>, sender: AppSender<Msg>) {
-    let context = Context {
-        sender,
-    };
-    let model = Model {
-        selector,
-        title: "Not set".into(),
-    };
-    app.mount_to(selector, context, model, update, view);
+fn mount_app(selector: &'static str, app: Scope<Context, Model>) {
+    let element = document().query_selector(selector).unwrap();
+    app.mount(element);
 }
 
 fn main() {
     yew::initialize();
 
-    let mut first_app = App::new();
-    let to_first = first_app.sender();
+    let context = Context {
+        senders: Vec::new(),
+    };
 
-    let mut second_app = App::new();
-    let to_second = second_app.sender();
+    // Example how to reuse context in two scopes
+    let context = Rc::new(RefCell::new(context));
 
-    mount_app(".first-app", &mut first_app, to_second);
-    mount_app(".second-app", &mut second_app, to_first);
+    let mut first_app = Scope::reuse(context.clone());
+    let to_first = first_app.get_env().sender();
+    context.borrow_mut().senders.push(to_first);
+
+    let mut second_app = Scope::reuse(context.clone());
+    let to_second = second_app.get_env().sender();
+    context.borrow_mut().senders.push(to_second);
+
+    mount_app(".first-app", first_app);
+    mount_app(".second-app", second_app);
 
     yew::run_loop();
 }

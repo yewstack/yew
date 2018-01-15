@@ -8,20 +8,20 @@ use stdweb::web::{IElement, Element, EventListenerHandle};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryFrom;
 use virtual_dom::{Listener, Listeners, Classes, Attributes, Patch, VNode};
-use html::AppSender;
+use html::{ScopeEnv, Component};
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
-pub struct VTag<MSG> {
+pub struct VTag<CTX, COMP: Component<CTX>> {
     /// A tag of the element.
     tag: Cow<'static, str>,
     /// List of attached listeners.
-    pub listeners: Listeners<MSG>,
+    pub listeners: Listeners<CTX, COMP>,
     /// List of attributes.
     pub attributes: Attributes,
     /// The list of children nodes. Which also could have own children.
-    pub childs: Vec<VNode<MSG>>,
+    pub childs: Vec<VNode<CTX, COMP>>,
     /// List of attached classes.
     pub classes: Classes,
     /// Contains a value of an
@@ -42,7 +42,7 @@ pub struct VTag<MSG> {
     captured: Vec<EventListenerHandle>,
 }
 
-impl<MSG> VTag<MSG> {
+impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
         VTag {
@@ -66,7 +66,7 @@ impl<MSG> VTag<MSG> {
     }
 
     /// Add `VNode` child.
-    pub fn add_child(&mut self, child: VNode<MSG>) {
+    pub fn add_child(&mut self, child: VNode<CTX, COMP>) {
         self.childs.push(child);
     }
 
@@ -110,7 +110,7 @@ impl<MSG> VTag<MSG> {
     /// Adds new listener to the node.
     /// It's boxed because we want to keep it in a single list.
     /// Lates `Listener::attach` called to attach actual listener to a DOM node.
-    pub fn add_listener(&mut self, listener: Box<Listener<MSG>>) {
+    pub fn add_listener(&mut self, listener: Box<Listener<CTX, COMP>>) {
         self.listeners.push(listener);
     }
 
@@ -201,10 +201,10 @@ impl<MSG> VTag<MSG> {
     }
 }
 
-impl<MSG> VTag<MSG> {
+impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
-    /// to compute what to pach in the actual DOM nodes.
-    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, sender: AppSender<MSG>) {
+    /// to compute what to patch in the actual DOM nodes.
+    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, env: ScopeEnv<CTX, COMP>) {
         let changes = self.soakup_classes(&mut opposite);
         for change in changes {
             let list = subject.class_list();
@@ -275,13 +275,13 @@ impl<MSG> VTag<MSG> {
         }
 
         for mut listener in self.listeners.drain(..) {
-            let handle = listener.attach(&subject, sender.clone());
+            let handle = listener.attach(&subject, env.sender());
             self.captured.push(handle);
         }
     }
 }
 
-impl<MSG> fmt::Debug for VTag<MSG> {
+impl<CTX, COMP: Component<CTX>> fmt::Debug for VTag<CTX, COMP> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "VTag {{ tag: {} }}", self.tag)
     }
@@ -303,8 +303,8 @@ fn set_checked(input: &InputElement, value: bool) {
     js!( @(no_return) @{input}.checked = @{value}; );
 }
 
-impl<MSG> PartialEq for VTag<MSG> {
-    fn eq(&self, other: &VTag<MSG>) -> bool {
+impl<CTX, COMP: Component<CTX>> PartialEq for VTag<CTX, COMP> {
+    fn eq(&self, other: &VTag<CTX, COMP>) -> bool {
         if self.tag != other.tag {
             return false;
         }

@@ -8,38 +8,53 @@ Yew is a modern Rust framework inspired by Elm and ReactJS.
 
 This framework designed to be compiled into modern browsers' runtimes: wasm, asm.js, emscripten.
 
-### Clean MVC approach inspired by Elm
+### Clean MVC approach inspired by Elm and Redux
+
+Yew implements strict application state management based on messages passing and updates:
 
 ```rust
+type Context = ();
+
 struct Model { }
 
 enum Msg {
     DoIt,
 }
 
-fn update(_: &mut Context, model: &mut Model, msg: Msg) {
-    match msg {
-        Msg::DoIt => {
-            // Update your model on events
+impl Component<Context> for Model {
+    // Some details omitted. Explore the examples to get more.
+    fn update(&mut self, msg: Self::Msg, _: &mut Env<Context, Self>) -> ShouldRender {
+        match msg {
+            Msg::DoIt => {
+                // Update your model on events
+            }
         }
     }
 }
 
-fn view(model: &Model) -> Html<Msg> {
-    html! {
-        // Render your model here
-        <button onclick=|_| Msg::DoIt,>{ "Click me!" }</button>
+impl Renderable<Context, Model> for Model {
+    fn view(&self) -> Html<Context, Self> {
+        html! {
+            // Render your model here
+            <button onclick=|_| Msg::DoIt,>{ "Click me!" }</button>
+        }
     }
+}
+
+fn main() {
+    yew::initialize();
+    let app: App<_, Model> = App::new(());
+    app.mount_to_body();
+    yew::run_loop();
 }
 ```
 
-### VirtualDOM
-
-Yew framework uses own virtual-dom representation.
+Predictable mutability and lifetimes (thanks Rust) make possible to reuse an instance
+of the model and we shouldn't create a new one after every update. It reduces memory allocations.
 
 ### JSX-like templates with `html!` macro
 
-Put pure Rust code into HTML tags.
+Feel free to put pure Rust code into HTML tags with all compiler's and borrow checker benefits.
 
 ```rust
 html! {
@@ -59,6 +74,63 @@ html! {
 }
 ```
 
+### Components
+
+Yew supports components! You can create a new one by implementing a `Component` trait
+and include it directly into the `html!` template:
+
+```rust
+html! {
+    <nav class="menu",>
+        <MyButton: title="First Button",/>
+        <MyButton: title="Second Button",/>
+    </nav>
+}
+```
+
+### Scopes
+
+Components lives in Angular-like scopes with **parent-to-child** *(properties)* and
+**child-to-parent** *(events)* interaction.
+
+Properties also are pure Rust types with strict checking during compilation.
+
+```rust
+html! {
+    <nav class="menu",>
+        <MyButton: title="First Button", color=Color::Red,/>
+        <MyButton: title="Second Button", onclick=|_| ParentMsg::DoIt,/>
+    </nav>
+}
+```
+
+### Virtual DOM, independent loops, fine updates
+
+Yew framework uses own **virtual-dom** representation. It updates DOM in a browser
+with tiny patches when properties of elements had changed. Every component lives
+in own independent loop, interacts with environment (`Scope`) by messages passing
+and supports fine control of rendering.
+
+Set `ShouldRender` flag to inform the loop when component should be re-rendered:
+
+```rust
+fn update(&mut self, msg: Self::Msg, _: &mut Env<Context, Self>) -> ShouldRender {
+    match msg {
+        Msg::UpdateValue(value) => {
+            self.value = value;
+            true
+        }
+        Msg::Ignore => {
+            false
+        }
+    }
+}
+```
+
+It's more effective than compare model after every update, because not every model
+change leads the changes of the view and we don't need to spend time for comparsion at all.
+You can control updates very accurately.
+
 ### Rust/JS/C-style comments in templates
 
 Use single-line or multi-line Rust comments inside html-templates.
@@ -75,7 +147,9 @@ html! {
 }
 ```
 
-### Pure Rust expressions inside
+### Third-party crates and pure Rust expressions inside
+
+You can use external crates and put values from them into the template:
 
 ```rust
 extern crate chrono;
@@ -87,6 +161,8 @@ fn view(model: &Model) -> Html<Msg> {
     }
 }
 ```
+
+> Some crates hasn't support true wasm target (`wasm32-unknown-unknown`) yet.
 
 ### Services
 
@@ -120,6 +196,37 @@ fn update(context: &mut Context, model: &mut Model, msg: Msg) {
             context.console.log("Timeout!");
         }
     }
+}
+```
+
+There is no necessary service? Want to use library from `npm`?
+You can reuse `JavaScript` libraries with `stdweb` capabilities and create
+own service implementation. For example let's wrap
+[ccxt](https://www.npmjs.com/package/ccxt) library below:
+
+```rust
+pub struct CcxtService(Option<Value>);
+
+impl CcxtService {
+    pub fn new() -> Self {
+        let lib = js! {
+            return ccxt;
+        };
+        CcxtService(Some(lib))
+    }
+
+    pub fn exchanges(&mut self) -> Vec<String> {
+        let lib = self.0.as_ref().expect("ccxt library object lost");
+        let v: Value = js! {
+            var ccxt = @{lib};
+            console.log(ccxt.exchanges);
+            return ccxt.exchanges;
+        };
+        let v: Vec<String> = v.try_into().expect("can't extract exchanges");
+        v
+    }
+
+    // Wrap more methods here!
 }
 ```
 

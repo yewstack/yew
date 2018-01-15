@@ -59,15 +59,48 @@ extern crate stdweb;
 #[macro_use]
 pub mod macros;
 pub mod html;
+pub mod prelude;
 pub mod services;
 pub mod format;
 pub mod virtual_dom;
 
 /// Initializes yew framework. It should be called first.
-/// No it actually initializes `stdweb` dependency only, but later it could
-/// contain own initialization code.
 pub fn initialize() {
     stdweb::initialize();
+    js! {
+        var task = null;
+        var pool = [];
+        var routine = function() { };
+        var schedule_routine = function() {
+            if (task == null) {
+                task = setTimeout(routine);
+            }
+        };
+        routine = function() {
+            task = null;
+            // Don't process more than 25 loops per routine call
+            // to keep UI responsive
+            var limit = 25;
+            var callback = pool.pop();
+            while (callback !== undefined) {
+                callback();
+                limit = limit - 1;
+                if (limit > 0) {
+                    callback = pool.pop();
+                } else {
+                    break;
+                }
+            }
+            if (pool.length > 0) {
+                schedule_routine();
+            }
+        };
+        var schedule = function(callback) {
+            pool.push(callback);
+            schedule_routine();
+        };
+        window._yew_schedule_ = schedule;
+    }
 }
 
 /// Starts event loop.

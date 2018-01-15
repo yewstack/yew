@@ -14,8 +14,8 @@ pub struct VText {
 
 impl VText {
     /// Creates new virtual text node with a content.
-    pub fn new<T: ToString>(text: T) -> Self {
-        VText { text: text.to_string() }
+    pub fn new(text: String) -> Self {
+        VText { text }
     }
 
     /// Renders virtual node over existent `TextNode`, but

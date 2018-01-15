@@ -1,6 +1,6 @@
 use yew::format::{Nothing, Json};
-use yew::services::fetch::{FetchService, FetchHandle, Request};
-use yew::html::AppSender;
+use yew::services::fetch::{FetchService, FetchHandle, Request, Response};
+use yew::html::Callback;
 
 #[derive(Deserialize, Debug)]
 pub struct Profile {
@@ -17,28 +17,24 @@ pub struct Entry {
     preferred_username: String,
 }
 
-pub struct GravatarService<MSG> {
-    web: FetchService<MSG>,
+pub struct GravatarService {
+    web: FetchService,
 }
 
-impl<MSG: 'static> GravatarService<MSG> {
-    pub fn new(sender: AppSender<MSG>) -> Self {
+impl GravatarService {
+    pub fn new() -> Self {
         Self {
-            web: FetchService::new(sender),
+            web: FetchService::new(),
         }
     }
 
-    pub fn profile<F>(&mut self, hash: &str, listener: F) -> FetchHandle
-    where
-        F: Fn(Result<Profile, ()>) -> MSG + 'static
-    {
+    pub fn profile(&mut self, hash: &str, callback: Callback<Result<Profile, ()>>) -> FetchHandle {
         let url = format!("https://gravatar.com/{}", hash);
-        self.web.fetch(
-            Request::get(url.as_str()).body(Nothing)
-                                      .unwrap(),
-        move |response| {
+        let handler = move |response: Response<Json<Result<Profile, ()>>>| {
             let (_, Json(data)) = response.into_parts();
-            listener(data)
-        })
+            callback.emit(data)
+        };
+        let request = Request::get(url.as_str()).body(Nothing).unwrap();
+        self.web.fetch(request, handler.into())
     }
 }
