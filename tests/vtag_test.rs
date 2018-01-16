@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate yew;
 
-use yew::html::{Html, Component, Env, ShouldRender};
+use yew::html::{Html, Component, Renderable, Env, ShouldRender};
 use yew::virtual_dom::VNode;
 
 type Ctx = ();
@@ -19,7 +19,9 @@ impl Component<Ctx> for Comp {
     fn update(&mut self, _: Self::Msg, _: &mut Env<Ctx, Self>) -> ShouldRender {
         unimplemented!();
     }
+}
 
+impl Renderable<Ctx, Comp> for Comp {
     fn view(&self) -> Html<Ctx, Self> {
         unimplemented!();
     }
