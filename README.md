@@ -98,8 +98,8 @@ Properties also are pure Rust types with strict checking during compilation.
 ```rust
 html! {
     <nav class="menu",>
-        <MyButton: title="First Button", color=Color::Red,/>
-        <MyButton: title="Second Button", onclick=|_| ParentMsg::DoIt,/>
+        <MyButton: color=Color::Red,/>
+        <MyButton: onclick=|_| ParentMsg::DoIt,/>
     </nav>
 }
 ```
@@ -155,9 +155,11 @@ You can use external crates and put values from them into the template:
 extern crate chrono;
 use chrono::prelude::*;
 
-fn view(model: &Model) -> Html<Msg> {
-    html! {
-        <p>{ Local::now() }</p>
+impl Renderable<Context, Model> for Model {
+    fn view(&self) -> Html<Context, Self> {
+        html! {
+            <p>{ Local::now() }</p>
+        }
     }
 }
 ```
@@ -187,13 +189,16 @@ struct Context {
     timeout: TimeoutService<Msg>,
 }
 
-fn update(context: &mut Context, model: &mut Model, msg: Msg) {
-    match msg {
-        Msg::Fire => {
-            context.timeout.spawn(Duration::from_secs(5), || Msg::Timeout);
-        }
-        Msg::Timeout => {
-            context.console.log("Timeout!");
+impl Component<Context> for Model {
+    fn update(&mut self, msg: Self::Msg, context: &mut Env<Context, Self>) -> ShouldRender {
+        match msg {
+            Msg::Fire => {
+                let send_msg = context.send_back(|_| Msg::Timeout);
+                context.timeout.spawn(Duration::from_secs(5), send_msg);
+            }
+            Msg::Timeout => {
+                context.console.log("Timeout!");
+            }
         }
     }
 }
@@ -251,16 +256,17 @@ struct Model {
     clients: Vec<Client>,
 }
 
-fn update(context: &mut Context, model: &mut Model, msg: Msg) {
-    match msg {
-    Msg::Store => {
-        // Stores it, but in JSON format/layout
-        context.local_storage.store(KEY, Json(&model.clients));
-    }
-    Msg::Restore => {
-        // Tries to read and destructure it as JSON formatted data
-        if let Json(Ok(clients)) = context.local_storage.restore(KEY) {
-            model.clients = clients;
+impl Component<Context> for Model {
+    fn update(&mut self, msg: Self::Msg, context: &mut Env<Context, Self>) -> ShouldRender {
+        Msg::Store => {
+            // Stores it, but in JSON format/layout
+            context.local_storage.store(KEY, Json(&model.clients));
+        }
+        Msg::Restore => {
+            // Tries to read and destructure it as JSON formatted data
+            if let Json(Ok(clients)) = context.local_storage.restore(KEY) {
+                model.clients = clients;
+            }
         }
     }
 }
