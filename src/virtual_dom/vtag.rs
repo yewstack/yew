@@ -7,7 +7,7 @@ use std::cmp::PartialEq;
 use stdweb::web::{INode, IElement, Element, EventListenerHandle, document};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryFrom;
-use virtual_dom::{Listener, Listeners, Classes, Attributes, Patch, VNode};
+use virtual_dom::{Listener, Listeners, Classes, Attributes, Patch, VNode, VText, VComp};
 use html::{ScopeEnv, Component};
 
 /// A type for a virtual
@@ -205,12 +205,20 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
 }
 
 impl<CTX: 'static, COMP: Component<CTX>> VTag<CTX, COMP> {
+    /// Remove VTag from parent.
+    pub fn remove(self, parent: &Element) {
+        let node = self.reference.expect("tried to remove not rendered VTag from DOM");
+        if let Err(_) = parent.remove_child(&node) {
+            warn!("Node not found to remove VTag");
+        }
+    }
+
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to patch in the actual DOM nodes.
-    pub fn apply<T: INode>(&mut self, parent: &T, opposite: Option<VNode<CTX, COMP>>, env: ScopeEnv<CTX, COMP>) {
+    pub fn apply(&mut self, parent: &Element, opposite: Option<VNode<CTX, COMP>>, env: ScopeEnv<CTX, COMP>) {
         let (mut element, mut opposite) = {
             match opposite {
-                Some(VNode::VTag { mut vtag, .. }) => {
+                Some(VNode::VTag(mut vtag)) => {
                     // Copy reference from right to left (as is)
                     match vtag.reference.take() {
                         Some(element) => {
@@ -230,18 +238,23 @@ impl<CTX: 'static, COMP: Component<CTX>> VTag<CTX, COMP> {
                         }
                     }
                 }
-                Some(VNode::VText { reference: Some(wrong), .. }) => {
+                Some(VNode::VText(VText { reference: Some(wrong), .. })) => {
                     let element = document().create_element(&self.tag);
                     parent.replace_child(&element, &wrong);
                     (element, None)
                 }
-                Some(VNode::VComp { reference: Some(wrong), .. }) => {
+                Some(VNode::VComp(VComp { reference: Some(wrong), .. })) => {
                     let element = document().create_element(&self.tag);
                     parent.replace_child(&element, &wrong);
                     (element, None)
                 }
-                Some(VNode::VText { reference: None, .. }) |
-                Some(VNode::VComp { reference: None, .. }) |
+                Some(VNode::VRef(wrong)) => {
+                    let element = document().create_element(&self.tag);
+                    parent.replace_child(&element, &wrong);
+                    (element, None)
+                }
+                Some(VNode::VText(VText { reference: None, .. })) |
+                Some(VNode::VComp(VComp { reference: None, .. })) |
                 None => {
                     let element = document().create_element(&self.tag);
                     parent.append_child(&element);

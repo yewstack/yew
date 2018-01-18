@@ -64,7 +64,7 @@ impl<CTX: 'static> Component<CTX> for Barrier {
 impl<CTX: 'static> Renderable<CTX, Barrier> for Barrier {
     fn view(&self) -> Html<CTX, Self> {
         html! {
-            <div>
+            <div class="barrier",>
                 <p>{ format!("{} on {} clicked", self.counter, self.limit) }</p>
                 <Button: onsignal=|_| Msg::ChildClicked, />
                 <Button: onsignal=|_| Msg::ChildClicked, />
