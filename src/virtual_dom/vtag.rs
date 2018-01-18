@@ -15,7 +15,7 @@ use html::{ScopeEnv, Component};
 /// representation.
 pub struct VTag<CTX, COMP: Component<CTX>> {
     /// A tag of the element.
-    tag: Cow<'static, str>,
+    pub tag: Cow<'static, str>,
     /// List of attached listeners.
     pub listeners: Listeners<CTX, COMP>,
     /// List of attributes.
