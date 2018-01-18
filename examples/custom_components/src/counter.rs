@@ -19,6 +19,7 @@ pub enum Msg {
 
 #[derive(PartialEq, Clone)]
 pub struct Props {
+    pub initial: u32,
     pub color: Color,
     pub onclick: Option<Callback<u32>>,
 }
@@ -26,6 +27,7 @@ pub struct Props {
 impl Default for Props {
     fn default() -> Self {
         Props {
+            initial: 0,
             color: Color::Green,
             onclick: None,
         }
@@ -58,6 +60,9 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
     }
 
     fn change(&mut self, props: Self::Properties, _: &mut Env<CTX, Self>) -> ShouldRender {
+        if self.value == 0 {
+            self.value = props.initial;
+        }
         self.color = props.color;
         self.onclick = props.onclick;
         true
@@ -74,7 +79,7 @@ impl<CTX: Printer + 'static> Renderable<CTX, Counter> for Counter {
             }
         };
         html! {
-            <div>
+            <div class="couter",>
                 <p>{ self.value }</p>
                 <button style=colorize, onclick=|_| Msg::Increase,>{ "Increase internal counter" }</button>
             </div>

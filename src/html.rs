@@ -283,8 +283,13 @@ where
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount(mut self, element: Element) {
+    pub fn mount(self, element: Element) {
         clear_element(&element);
+        self.mount_in_place(element, None);
+    }
+
+    /// Mounts elements in place of previous node.
+    pub fn mount_in_place(mut self, element: Element, obsolete: Option<VNode<CTX, COMP>>) {
         let mut component = {
             let mut env = self.get_env();
             let mut scope_ref = env.get_ref();
@@ -294,7 +299,7 @@ where
         let mut updates = Vec::new();
         let mut last_frame = VNode::from(component.view());
         // First-time rendering the tree
-        last_frame.apply(&element, None, self.get_env());
+        last_frame.apply(&element, obsolete, self.get_env());
         let mut last_frame = Some(last_frame);
         let rx = self.rx.take().expect("application runned without a receiver");
         let bind = self.bind.clone();
