@@ -20,7 +20,7 @@ pub enum VNode<CTX, COMP: Component<CTX>> {
         /// A reference to the `TextNode`.
         reference: Option<TextNode>,
         /// A virtual text node which was applied.
-        vtext: VText,
+        vtext: VText<CTX, COMP>,
     },
     /// A bind between `VComp` and `Element`.
     VComp {
@@ -33,7 +33,8 @@ pub enum VNode<CTX, COMP: Component<CTX>> {
 
 
 impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
-    fn remove<T: INode>(self, parent: &T) {
+    /// Remove VNode from parent.
+    pub fn remove<T: INode>(self, parent: &T) {
         let opt_ref: Option<Node> = {
             match self {
                 VNode::VTag { reference, .. } => reference.map(Node::from),
@@ -50,6 +51,19 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
+    pub fn apply<T: INode>(&mut self, parent: &T, opposite: Option<VNode<CTX, COMP>>, env: ScopeEnv<CTX, COMP>) {
+        match *self {
+            VNode::VTag { ref mut vtag, .. } => {
+                vtag.apply(parent, opposite, env);
+            }
+            VNode::VText { ref mut vtext, .. } => {
+                vtext.apply(parent, opposite, env);
+            }
+            VNode::VComp { ref mut vcomp, .. } => {
+            }
+        }
+
+    /*
     pub fn apply<T: INode>(&mut self, parent: &T, last: Option<VNode<CTX, COMP>>, env: ScopeEnv<CTX, COMP>) {
         match *self {
             VNode::VTag {
@@ -197,11 +211,12 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
                 left.render(element_mut, right, env.clone());
             }
         }
+    */
     }
 }
 
-impl<CTX, COMP: Component<CTX>> From<VText> for VNode<CTX, COMP> {
-    fn from(vtext: VText) -> Self {
+impl<CTX, COMP: Component<CTX>> From<VText<CTX, COMP>> for VNode<CTX, COMP> {
+    fn from(vtext: VText<CTX, COMP>) -> Self {
         VNode::VText {
             reference: None,
             vtext,
@@ -227,7 +242,7 @@ impl<CTX, COMP: Component<CTX>> From<VComp<CTX, COMP>> for VNode<CTX, COMP> {
     }
 }
 
-impl<CTX, COMP: Component<CTX>, T: ToString> From<T> for VNode<CTX, COMP> {
+impl<CTX: 'static, COMP: Component<CTX>, T: ToString> From<T> for VNode<CTX, COMP> {
     fn from(value: T) -> Self {
         VNode::VText {
             reference: None,

@@ -4,7 +4,7 @@ use std::fmt;
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::cmp::PartialEq;
-use stdweb::web::{IElement, Element, EventListenerHandle};
+use stdweb::web::{INode, IElement, Element, EventListenerHandle, document};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryFrom;
 use virtual_dom::{Listener, Listeners, Classes, Attributes, Patch, VNode};
@@ -16,6 +16,8 @@ use html::{ScopeEnv, Component};
 pub struct VTag<CTX, COMP: Component<CTX>> {
     /// A tag of the element.
     tag: Cow<'static, str>,
+    /// A reference to the `Element`.
+    pub reference: Option<Element>,
     /// List of attached listeners.
     pub listeners: Listeners<CTX, COMP>,
     /// List of attributes.
@@ -47,6 +49,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
         VTag {
             tag: tag.into(),
+            reference: None,
             classes: Classes::new(),
             attributes: Attributes::new(),
             listeners: Vec::new(),
@@ -201,83 +204,165 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     }
 }
 
-impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
+impl<CTX: 'static, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to patch in the actual DOM nodes.
-    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, env: ScopeEnv<CTX, COMP>) {
-        let changes = self.soakup_classes(&mut opposite);
-        for change in changes {
-            let list = subject.class_list();
-            match change {
-                Patch::Add(class, _) |
-                Patch::Replace(class, _) => {
-                    list.add(&class);
+    pub fn apply<T: INode>(&mut self, parent: &T, opposite: Option<VNode<CTX, COMP>>, env: ScopeEnv<CTX, COMP>) {
+        let (mut element, mut opposite) = {
+            match opposite {
+                Some(VNode::VTag { mut vtag, .. }) => {
+                    // Copy reference from right to left (as is)
+                    match vtag.reference.take() {
+                        Some(element) => {
+                            if self.tag == vtag.tag {
+                                (element, Some(vtag))
+                            } else {
+                                let wrong = element;
+                                let element = document().create_element(&self.tag);
+                                parent.replace_child(&element, &wrong);
+                                (element, None)
+                            }
+                        }
+                        None => {
+                            let element = document().create_element(&self.tag);
+                            parent.append_child(&element);
+                            (element, None)
+                        }
+                    }
                 }
-                Patch::Remove(class) => {
-                    list.remove(&class);
+                Some(VNode::VText { reference: Some(wrong), .. }) => {
+                    let element = document().create_element(&self.tag);
+                    parent.replace_child(&element, &wrong);
+                    (element, None)
+                }
+                Some(VNode::VComp { reference: Some(wrong), .. }) => {
+                    let element = document().create_element(&self.tag);
+                    parent.replace_child(&element, &wrong);
+                    (element, None)
+                }
+                Some(VNode::VText { reference: None, .. }) |
+                Some(VNode::VComp { reference: None, .. }) |
+                None => {
+                    let element = document().create_element(&self.tag);
+                    parent.append_child(&element);
+                    (element, None)
                 }
             }
-        }
+        };
 
-        let changes = self.soakup_attributes(&mut opposite);
-        for change in changes {
-            match change {
-                Patch::Add(key, value) |
-                Patch::Replace(key, value) => {
-                    set_attribute(&subject, &key, &value);
+        {
+            // Update parameters
+            let mut rights = {
+                if let Some(ref mut right) = opposite {
+                    right.childs.drain(..).map(Some).collect::<Vec<_>>()
+                } else {
+                    Vec::new()
                 }
-                Patch::Remove(key) => {
-                    remove_attribute(&subject, &key);
-                }
-            }
-        }
+            };
+            let subject = &mut element;
 
-        // `input` element has extra parameters to control
-        // I override behavior of attributes to make it more clear
-        // and useful in templates. For example I interpret `checked`
-        // attribute as `checked` parameter, not `defaultChecked` as browsers do
-        if let Ok(input) = InputElement::try_from(subject.clone()) {
-            if let Some(change) = self.soakup_kind(&mut opposite) {
+            let changes = self.soakup_classes(&mut opposite);
+            for change in changes {
+                let list = subject.class_list();
                 match change {
-                    Patch::Add(kind, _) |
-                    Patch::Replace(kind, _) => {
-                        input.set_kind(&kind);
+                    Patch::Add(class, _) |
+                    Patch::Replace(class, _) => {
+                        list.add(&class);
                     }
-                    Patch::Remove(_) => {
-                        input.set_kind("");
+                    Patch::Remove(class) => {
+                        list.remove(&class);
                     }
                 }
             }
 
-            if let Some(change) = self.soakup_value(&mut opposite) {
+            let changes = self.soakup_attributes(&mut opposite);
+            for change in changes {
                 match change {
-                    Patch::Add(kind, _) |
-                    Patch::Replace(kind, _) => {
-                        input.set_value(&kind);
+                    Patch::Add(key, value) |
+                    Patch::Replace(key, value) => {
+                        set_attribute(&subject, &key, &value);
                     }
-                    Patch::Remove(_) => {
-                        input.set_value("");
+                    Patch::Remove(key) => {
+                        remove_attribute(&subject, &key);
                     }
                 }
             }
 
-            // IMPORTANT! This parameters have to be set every time
-            // to prevent strange behaviour in browser when DOM changed
-            set_checked(&input, self.checked);
-        }
+            // `input` element has extra parameters to control
+            // I override behavior of attributes to make it more clear
+            // and useful in templates. For example I interpret `checked`
+            // attribute as `checked` parameter, not `defaultChecked` as browsers do
+            if let Ok(input) = InputElement::try_from(subject.clone()) {
+                if let Some(change) = self.soakup_kind(&mut opposite) {
+                    match change {
+                        Patch::Add(kind, _) |
+                        Patch::Replace(kind, _) => {
+                            input.set_kind(&kind);
+                        }
+                        Patch::Remove(_) => {
+                            input.set_kind("");
+                        }
+                    }
+                }
 
-        // Every render it removes all listeners and attach it back later
-        // TODO Compare references of handler to do listeners update better
-        if let Some(mut opposite) = opposite {
-            for handle in opposite.captured.drain(..) {
-                handle.remove();
+                if let Some(change) = self.soakup_value(&mut opposite) {
+                    match change {
+                        Patch::Add(kind, _) |
+                        Patch::Replace(kind, _) => {
+                            input.set_value(&kind);
+                        }
+                        Patch::Remove(_) => {
+                            input.set_value("");
+                        }
+                    }
+                }
+
+                // IMPORTANT! This parameters have to be set every time
+                // to prevent strange behaviour in browser when DOM changed
+                set_checked(&input, self.checked);
+            }
+
+            // Every render it removes all listeners and attach it back later
+            // TODO Compare references of handler to do listeners update better
+            if let Some(mut opposite) = opposite {
+                for handle in opposite.captured.drain(..) {
+                    handle.remove();
+                }
+            }
+
+            for mut listener in self.listeners.drain(..) {
+                let handle = listener.attach(&subject, env.sender());
+                self.captured.push(handle);
+            }
+
+            let mut lefts = self.childs.iter_mut().map(Some).collect::<Vec<_>>();
+            // Process children
+            let diff = lefts.len() as i32 - rights.len() as i32;
+            if diff > 0 {
+                for _ in 0..diff {
+                    rights.push(None);
+                }
+            } else if diff < 0 {
+                for _ in 0..-diff {
+                    lefts.push(None);
+                }
+            }
+            for pair in lefts.into_iter().zip(rights) {
+                match pair {
+                    (Some(left), right) => {
+                        left.apply(subject, right, env.clone());
+                    }
+                    (None, Some(right)) => {
+                        right.remove(subject);
+                    }
+                    (None, None) => {
+                        panic!("redundant iterations during diff");
+                    }
+                }
             }
         }
+        self.reference = Some(element);
 
-        for mut listener in self.listeners.drain(..) {
-            let handle = listener.attach(&subject, env.sender());
-            self.captured.push(handle);
-        }
     }
 }
 

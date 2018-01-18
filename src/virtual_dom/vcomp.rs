@@ -12,6 +12,8 @@ struct Hidden;
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
     type_id: TypeId,
+    /// A reference to the `Element`.
+    pub reference: Option<Element>,
     props: Option<(TypeId, *mut Hidden)>,
     blind_sender: Box<FnMut((TypeId, *mut Hidden))>,
     generator: Box<FnMut(SharedContext<CTX>, Element)>,
@@ -52,6 +54,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         let properties = Default::default();
         let comp = VComp {
             type_id: TypeId::of::<CHILD>(),
+            reference: None,
             props: None,
             blind_sender: Box::new(blind_sender),
             generator: Box::new(generator),
