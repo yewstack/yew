@@ -83,7 +83,7 @@ pub fn initialize() {
             var limit = 25;
             var callback = pool.pop();
             while (callback !== undefined) {
-                callback();
+                callback.loop();
                 limit = limit - 1;
                 if (limit > 0) {
                     callback = pool.pop();

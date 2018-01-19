@@ -4,10 +4,10 @@ use std::fmt;
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::cmp::PartialEq;
-use stdweb::web::{INode, IElement, Element, EventListenerHandle, document};
+use stdweb::web::{INode, Node, IElement, Element, EventListenerHandle, document};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryFrom;
-use virtual_dom::{Listener, Listeners, Classes, Attributes, Patch, VNode, VText, VComp};
+use virtual_dom::{Listener, Listeners, Classes, Attributes, Patch, VNode, VText};
 use html::{ScopeEnv, Component};
 
 /// A type for a virtual
@@ -205,6 +205,11 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
 }
 
 impl<CTX: 'static, COMP: Component<CTX>> VTag<CTX, COMP> {
+    /// Get binded node.
+    pub fn get_node(&self) -> Option<Node> {
+        self.reference.as_ref().map(|elem| elem.as_node().to_owned())
+    }
+
     /// Remove VTag from parent.
     pub fn remove(self, parent: &Element) {
         let node = self.reference.expect("tried to remove not rendered VTag from DOM");
@@ -243,10 +248,16 @@ impl<CTX: 'static, COMP: Component<CTX>> VTag<CTX, COMP> {
                     parent.replace_child(&element, &wrong);
                     (element, None)
                 }
-                Some(VNode::VComp(VComp { reference: Some(wrong), .. })) => {
-                    let element = document().create_element(&self.tag);
-                    parent.replace_child(&element, &wrong);
-                    (element, None)
+                Some(VNode::VComp(vcomp)) => {
+                    if let Some(wrong) = vcomp.get_node() {
+                        let element = document().create_element(&self.tag);
+                        parent.replace_child(&element, &wrong);
+                        (element, None)
+                    } else {
+                        let element = document().create_element(&self.tag);
+                        parent.append_child(&element);
+                        (element, None)
+                    }
                 }
                 Some(VNode::VRef(wrong)) => {
                     let element = document().create_element(&self.tag);
@@ -254,7 +265,6 @@ impl<CTX: 'static, COMP: Component<CTX>> VTag<CTX, COMP> {
                     (element, None)
                 }
                 Some(VNode::VText(VText { reference: None, .. })) |
-                Some(VNode::VComp(VComp { reference: None, .. })) |
                 None => {
                     let element = document().create_element(&self.tag);
                     parent.append_child(&element);

@@ -6,15 +6,14 @@ use std::marker::PhantomData;
 use std::any::TypeId;
 use stdweb::web::{Node, Element};
 use virtual_dom::VNode;
-use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv};
+use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv, NodeCell};
 
 struct Hidden;
 
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
     type_id: TypeId,
-    /// A reference to the `Element`.
-    pub reference: Option<Element>,
+    cell: NodeCell,
     props: Option<(TypeId, *mut Hidden)>,
     blind_sender: Box<FnMut((TypeId, *mut Hidden))>,
     generator: Box<FnMut(SharedContext<CTX>, Element, Option<Node>)>,
@@ -28,13 +27,15 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     where
         CHILD: Component<CTX> + Renderable<CTX, CHILD>,
     {
+        let cell: NodeCell = Rc::new(RefCell::new(None));
         let builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new();
         let mut sender = builder.sender();
         let mut builder = Some(builder);
+        let occupied = cell.clone();
         let generator = move |context, element, obsolete: Option<Node>| {
             let builder = builder.take().expect("tried to mount component twice");
             let opposite = obsolete.map(VNode::VRef);
-            builder.build(context).mount_in_place(element, opposite);
+            builder.build(context).mount_in_place(element, opposite, Some(occupied.clone()));
         };
         let mut previous_props = None;
         let blind_sender = move |(type_id, raw): (TypeId, *mut Hidden)| {
@@ -56,7 +57,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         let properties = Default::default();
         let comp = VComp {
             type_id: TypeId::of::<CHILD>(),
-            reference: None,
+            cell,
             props: None,
             blind_sender: Box::new(blind_sender),
             generator: Box::new(generator),
@@ -87,7 +88,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         assert_eq!(self.type_id, other.type_id);
         // Grab a sender to reuse it later
         self.blind_sender = other.blind_sender;
-        self.reference = other.reference;
+        //self.reference = other.reference;
     }
 }
 
@@ -153,6 +154,11 @@ where
     CTX: 'static,
     COMP: Component<CTX> + 'static,
 {
+    /// Get binded node.
+    pub fn get_node(&self) -> Option<Node> {
+        self.cell.borrow().as_ref().map(|n| n.to_owned())
+    }
+
     /// Remove VComp from parent.
     pub fn remove(self, _: &Element) {
         unimplemented!();
@@ -172,7 +178,7 @@ where
                     self.grab_sender_of(vcomp);
                     self.send_props(env.sender());
                 } else {
-                    let obsolete = vcomp.reference.map(Node::from);
+                    let obsolete = vcomp.get_node();
                     self.send_props(env.sender());
                     self.mount(env.context(), parent, obsolete);
                 }

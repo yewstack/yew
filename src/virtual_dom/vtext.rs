@@ -3,8 +3,8 @@
 use std::fmt;
 use std::cmp::PartialEq;
 use std::marker::PhantomData;
-use stdweb::web::{INode, Element, TextNode, document};
-use virtual_dom::{VTag, VNode, VComp};
+use stdweb::web::{INode, Node, Element, TextNode, document};
+use virtual_dom::{VTag, VNode};
 use html::{ScopeEnv, Component};
 
 /// A type for a virtual
@@ -30,6 +30,11 @@ impl<CTX: 'static, COMP: Component<CTX>> VText<CTX, COMP> {
         }
     }
 
+    /// Get binded node.
+    pub fn get_node(&self) -> Option<Node> {
+        self.reference.as_ref().map(|tnode| tnode.as_node().to_owned())
+    }
+
     /// Remove VTag from parent.
     pub fn remove(self, parent: &Element) {
         let node = self.reference.expect("tried to remove not rendered VText from DOM");
@@ -50,11 +55,21 @@ impl<CTX: 'static, COMP: Component<CTX>> VText<CTX, COMP> {
                 self.reference = Some(element);
             }
             // If element exists, but have a wrong type
-            Some(VNode::VTag(VTag { reference: Some(wrong), .. })) |
-            Some(VNode::VComp(VComp { reference: Some(wrong), .. })) => {
+            Some(VNode::VTag(VTag { reference: Some(wrong), .. })) => {
                 let element = document().create_text_node(&self.text);
                 parent.replace_child(&element, &wrong);
                 self.reference = Some(element);
+            }
+            Some(VNode::VComp(vcomp)) => {
+                if let Some(wrong) = vcomp.get_node() {
+                    let element = document().create_text_node(&self.text);
+                    parent.replace_child(&element, &wrong);
+                    self.reference = Some(element);
+                } else {
+                    let element = document().create_text_node(&self.text);
+                    parent.append_child(&element);
+                    self.reference = Some(element);
+                }
             }
             Some(VNode::VRef(node)) => {
                 let element = document().create_text_node(&self.text);
@@ -63,7 +78,6 @@ impl<CTX: 'static, COMP: Component<CTX>> VText<CTX, COMP> {
             }
             // If element not exists
             Some(VNode::VTag(VTag { reference: None, .. })) |
-            Some(VNode::VComp(VComp { reference: None, .. })) |
             Some(VNode::VText(VText { reference: None, .. })) |
             None => {
                 let element = document().create_text_node(&self.text);
