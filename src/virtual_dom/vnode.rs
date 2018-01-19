@@ -20,6 +20,24 @@ pub enum VNode<CTX, COMP: Component<CTX>> {
 
 
 impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
+    /// Get binded node.
+    pub fn get_node(&self) -> Option<Node> {
+        match *self {
+            VNode::VTag(ref vtag) => {
+                vtag.get_node()
+            },
+            VNode::VText(ref vtext) => {
+                vtext.get_node()
+            },
+            VNode::VComp(ref vcomp) => {
+                vcomp.get_node()
+            },
+            VNode::VRef(ref node) => {
+                Some(node.to_owned())
+            },
+        }
+    }
+
     /// Remove VNode from parent.
     pub fn remove(self, parent: &Element) {
         match self {
