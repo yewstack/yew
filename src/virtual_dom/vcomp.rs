@@ -86,9 +86,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     /// This methods gives sender from older node.
     pub(crate) fn grab_sender_of(&mut self, other: Self) {
         assert_eq!(self.type_id, other.type_id);
-        // Grab a sender to reuse it later
+        // Grab a sender and a cell (element's reference) to reuse it later
         self.blind_sender = other.blind_sender;
-        //self.reference = other.reference;
+        self.cell = other.cell;
     }
 }
 
