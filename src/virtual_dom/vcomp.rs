@@ -5,8 +5,8 @@ use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::any::TypeId;
 use stdweb::web::{INode, Node, Element};
-use virtual_dom::VNode;
 use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv, NodeCell};
+use super::{VDiff, VNode};
 
 struct Hidden;
 
@@ -154,26 +154,36 @@ where
     CTX: 'static,
     COMP: Component<CTX> + 'static,
 {
+    /// This methods mount a virtual component with a generator created with `lazy` call.
+    fn mount(&mut self, context: SharedContext<CTX>, parent: &Element, opposite: Option<Node>) {
+        (self.generator)(context, parent.clone(), opposite);
+    }
+}
+
+
+impl<CTX, COMP> VDiff for VComp<CTX, COMP>
+where
+    CTX: 'static,
+    COMP: Component<CTX> + 'static,
+{
+    type Context = CTX;
+    type Component = COMP;
+
     /// Get binded node.
-    pub fn get_node(&self) -> Option<Node> {
+    fn get_node(&self) -> Option<Node> {
         self.cell.borrow().as_ref().map(|n| n.to_owned())
     }
 
     /// Remove VComp from parent.
-    pub fn remove(self, parent: &Element) {
+    fn remove(self, parent: &Element) {
         if let Some(node) = self.get_node() {
             parent.remove_child(&node).expect("can't remove the component");
         }
     }
 
-    /// This methods mount a virtual component with a generator created with `lazy` call.
-    fn mount(&mut self, context: SharedContext<CTX>, parent: &Element, opposite: Option<Node>) {
-        (self.generator)(context, parent.clone(), opposite);
-    }
-
     /// Renders independent component over DOM `Element`.
     /// It also compares this with an opposite `VComp` and inherits sender of it.
-    pub fn apply(&mut self, parent: &Element, opposite: Option<VNode<CTX, COMP>>, env: ScopeEnv<CTX, COMP>) {
+    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, env: ScopeEnv<Self::Context, Self::Component>) {
         match opposite {
             Some(VNode::VComp(vcomp)) => {
                 if self.type_id == vcomp.type_id {

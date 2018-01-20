@@ -10,7 +10,7 @@ use std::sync::mpsc::{Sender, Receiver, channel};
 use stdweb::Value;
 use stdweb::web::{Element, INode, Node, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent, BlurEvent};
-use virtual_dom::{VNode, Listener};
+use virtual_dom::{VDiff, VNode, Listener};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
