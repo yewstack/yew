@@ -159,7 +159,7 @@ pub fn unpack<CTX, COMP: Component<CTX>>(mut stack: Stack<CTX, COMP>) -> VNode<C
 
 #[doc(hidden)]
 pub fn set_value<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, value: T) {
-    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+    if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.set_value(&value);
     } else {
         panic!("no tag to set value: {}", value.to_string());
@@ -168,7 +168,7 @@ pub fn set_value<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, 
 
 #[doc(hidden)]
 pub fn set_kind<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, value: T) {
-    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+    if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.set_kind(value);
     } else {
         panic!("no tag to set type: {}", value.to_string());
@@ -177,7 +177,7 @@ pub fn set_kind<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, C
 
 #[doc(hidden)]
 pub fn set_checked<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, value: bool) {
-    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+    if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.set_checked(value);
     } else {
         panic!("no tag to set checked: {}", value);
@@ -186,7 +186,7 @@ pub fn set_checked<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, valu
 
 #[doc(hidden)]
 pub fn add_attribute<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, name: &str, value: T) {
-    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+    if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.add_attribute(name, value);
     } else {
         panic!("no tag to set attribute: {}", name);
@@ -195,7 +195,7 @@ pub fn add_attribute<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<C
 
 #[doc(hidden)]
 pub fn attach_class<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, class: &'static str) {
-    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+    if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.add_classes(class);
     } else {
         panic!("no tag to attach class: {}", class);
@@ -204,7 +204,7 @@ pub fn attach_class<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, cla
 
 #[doc(hidden)]
 pub fn attach_listener<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, listener: Box<Listener<CTX, COMP>>) {
-    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+    if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.add_listener(listener);
     } else {
         panic!("no tag to attach listener: {:?}", listener);
@@ -213,7 +213,7 @@ pub fn attach_listener<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, 
 
 #[doc(hidden)]
 pub fn add_child<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, child: VNode<CTX, COMP>) {
-    if let Some(&mut VNode::VTag{ ref mut vtag, .. }) = stack.last_mut() {
+    if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.add_child(child);
     } else {
         panic!("no nodes in stack to add child: {:?}", child);
@@ -223,14 +223,14 @@ pub fn add_child<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, child:
 #[doc(hidden)]
 pub fn child_to_parent<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, endtag: Option<&'static str>) {
     if let Some(mut node) = stack.pop() {
-        if let (&mut VNode::VTag { ref mut vtag, .. }, Some(endtag)) = (&mut node, endtag) {
+        if let (&mut VNode::VTag(ref mut vtag), Some(endtag)) = (&mut node, endtag) {
             let starttag = vtag.tag();
             if starttag != endtag {
                 panic!("wrong closing tag: <{}> -> </{}>", starttag, endtag);
             }
         }
         if !stack.is_empty() {
-            if let Some(&mut VNode::VTag{ ref mut vtag, ..}) = stack.last_mut() {
+            if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
                 vtag.add_child(node);
             } else {
                 panic!("can't add child to this type of node");

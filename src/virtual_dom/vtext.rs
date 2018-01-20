@@ -2,43 +2,106 @@
 
 use std::fmt;
 use std::cmp::PartialEq;
-use stdweb::web::{INode, TextNode};
+use std::marker::PhantomData;
+use stdweb::web::{INode, Node, Element, TextNode, document};
+use virtual_dom::{VTag, VNode};
+use html::{ScopeEnv, Component};
+use super::VDiff;
 
 /// A type for a virtual
 /// [TextNode](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// represenation.
-pub struct VText {
+pub struct VText<CTX, COMP: Component<CTX>> {
     /// Contains a text of the node.
     pub text: String,
+    /// A reference to the `Element`.
+    pub reference: Option<TextNode>,
+    _ctx: PhantomData<CTX>,
+    _comp: PhantomData<COMP>,
 }
 
-impl VText {
+impl<CTX: 'static, COMP: Component<CTX>> VText<CTX, COMP> {
     /// Creates new virtual text node with a content.
     pub fn new(text: String) -> Self {
-        VText { text }
-    }
-
-    /// Renders virtual node over existent `TextNode`, but
-    /// only if value of text had changed.
-    pub fn render(&mut self, subject: &TextNode, opposite: Option<Self>) {
-        if let Some(opposite) = opposite {
-            if self.text != opposite.text {
-                subject.set_node_value(Some(&self.text));
-            }
-        } else {
-            subject.set_node_value(Some(&self.text));
+        VText {
+            text,
+            reference: None,
+            _ctx: PhantomData,
+            _comp: PhantomData,
         }
     }
 }
 
-impl fmt::Debug for VText {
+impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
+    type Context = CTX;
+    type Component = COMP;
+
+    /// Get binded node.
+    fn get_node(&self) -> Option<Node> {
+        self.reference.as_ref().map(|tnode| tnode.as_node().to_owned())
+    }
+
+    /// Remove VTag from parent.
+    fn remove(self, parent: &Element) {
+        let node = self.reference.expect("tried to remove not rendered VText from DOM");
+        if let Err(_) = parent.remove_child(&node) {
+            warn!("Node not found to remove VText");
+        }
+    }
+
+    /// Renders virtual node over existent `TextNode`, but
+    /// only if value of text had changed.
+    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, _: ScopeEnv<Self::Context, Self::Component>) {
+        match opposite {
+            // If element matched this type
+            Some(VNode::VText(VText { text, reference: Some(element), .. })) => {
+                if self.text != text {
+                    element.set_node_value(Some(&self.text));
+                }
+                self.reference = Some(element);
+            }
+            // If element exists, but have a wrong type
+            Some(VNode::VTag(VTag { reference: Some(wrong), .. })) => {
+                let element = document().create_text_node(&self.text);
+                parent.replace_child(&element, &wrong);
+                self.reference = Some(element);
+            }
+            Some(VNode::VComp(vcomp)) => {
+                if let Some(wrong) = vcomp.get_node() {
+                    let element = document().create_text_node(&self.text);
+                    parent.replace_child(&element, &wrong);
+                    self.reference = Some(element);
+                } else {
+                    let element = document().create_text_node(&self.text);
+                    parent.append_child(&element);
+                    self.reference = Some(element);
+                }
+            }
+            Some(VNode::VRef(node)) => {
+                let element = document().create_text_node(&self.text);
+                parent.replace_child(&element, &node);
+                self.reference = Some(element);
+            }
+            // If element not exists
+            Some(VNode::VTag(VTag { reference: None, .. })) |
+            Some(VNode::VText(VText { reference: None, .. })) |
+            None => {
+                let element = document().create_text_node(&self.text);
+                parent.append_child(&element);
+                self.reference = Some(element);
+            }
+        }
+    }
+}
+
+impl<CTX, COMP: Component<CTX>> fmt::Debug for VText<CTX, COMP> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "VText {{ text: {} }}", self.text)
     }
 }
 
-impl PartialEq for VText {
-    fn eq(&self, other: &VText) -> bool {
+impl<CTX, COMP: Component<CTX>> PartialEq for VText<CTX, COMP> {
+    fn eq(&self, other: &VText<CTX, COMP>) -> bool {
         return self.text == other.text;
     }
 }
