@@ -4,7 +4,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::any::TypeId;
-use stdweb::web::{Node, Element};
+use stdweb::web::{INode, Node, Element};
 use virtual_dom::VNode;
 use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv, NodeCell};
 
@@ -160,8 +160,10 @@ where
     }
 
     /// Remove VComp from parent.
-    pub fn remove(self, _: &Element) {
-        unimplemented!();
+    pub fn remove(self, parent: &Element) {
+        if let Some(node) = self.get_node() {
+            parent.remove_child(&node).expect("can't remove the component");
+        }
     }
 
     /// This methods mount a virtual component with a generator created with `lazy` call.
