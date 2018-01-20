@@ -200,7 +200,7 @@ fn it_allows_aria_attributes() {
             <div own-attribute-with-multiple-parts="works", />
         </p>
     };
-    if let VNode::VTag { vtag, .. } = a {
+    if let VNode::VTag(vtag) = a {
         assert!(vtag.attributes.contains_key("aria-controls"));
         assert_eq!(vtag.attributes.get("aria-controls"), Some(&"it-works".into()));
     } else {
