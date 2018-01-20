@@ -23,11 +23,13 @@ impl counter::Printer for Context {
 }
 
 struct Model {
+    with_barrier: bool,
     color: Color,
 }
 
 enum Msg {
     Repaint,
+    Toggle,
     ChildClicked(u32),
 }
 
@@ -37,6 +39,7 @@ impl Component<Context> for Model {
 
     fn create(_: &mut Env<Context, Self>) -> Self {
         Model {
+            with_barrier: false,
             color: Color::Red,
         }
     }
@@ -45,6 +48,10 @@ impl Component<Context> for Model {
         match msg {
             Msg::Repaint => {
                 self.color = Color::Blue;
+                true
+            }
+            Msg::Toggle => {
+                self.with_barrier = !self.with_barrier;
                 true
             }
             Msg::ChildClicked(value) => {
@@ -57,14 +64,29 @@ impl Component<Context> for Model {
 
 impl Renderable<Context, Model> for Model {
     fn view(&self) -> Html<Context, Self> {
-        let counter = |_| html! {
-            <Counter: color=&self.color, onclick=Msg::ChildClicked,/>
+        let counter = |x| html! {
+            <Counter: initial=x, color=&self.color, onclick=Msg::ChildClicked,/>
         };
         html! {
-            <div>
-                <Barrier: limit=10, onsignal=|_| Msg::Repaint, />
-                { for (0..1000).map(counter) }
+            <div class="custom-components-example",>
+                <button onclick=|_| Msg::Toggle,>{ "Toggle" }</button>
+                { self.view_barrier() }
+                { for (1..1001).map(counter) }
             </div>
+        }
+    }
+}
+
+impl Model {
+    fn view_barrier(&self) -> Html<Context, Self> {
+        if self.with_barrier {
+            html! {
+                <Barrier: limit=10, onsignal=|_| Msg::Repaint, />
+            }
+        } else {
+            html! {
+                <p>{ "Click \"toggle\"!" }</p>
+            }
         }
     }
 }

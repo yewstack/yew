@@ -4,17 +4,19 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::any::TypeId;
-use stdweb::web::Element;
-use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv};
+use stdweb::web::{INode, Node, Element};
+use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv, NodeCell};
+use super::{VDiff, VNode};
 
 struct Hidden;
 
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
     type_id: TypeId,
+    cell: NodeCell,
     props: Option<(TypeId, *mut Hidden)>,
     blind_sender: Box<FnMut((TypeId, *mut Hidden))>,
-    generator: Box<FnMut(SharedContext<CTX>, Element)>,
+    generator: Box<FnMut(SharedContext<CTX>, Element, Option<Node>)>,
     activators: Vec<Rc<RefCell<Option<ScopeSender<CTX, COMP>>>>>,
     _parent: PhantomData<COMP>,
 }
@@ -25,12 +27,15 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     where
         CHILD: Component<CTX> + Renderable<CTX, CHILD>,
     {
+        let cell: NodeCell = Rc::new(RefCell::new(None));
         let builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new();
         let mut sender = builder.sender();
         let mut builder = Some(builder);
-        let generator = move |context, element| {
+        let occupied = cell.clone();
+        let generator = move |context, element, obsolete: Option<Node>| {
             let builder = builder.take().expect("tried to mount component twice");
-            builder.build(context).mount(element);
+            let opposite = obsolete.map(VNode::VRef);
+            builder.build(context).mount_in_place(element, opposite, Some(occupied.clone()));
         };
         let mut previous_props = None;
         let blind_sender = move |(type_id, raw): (TypeId, *mut Hidden)| {
@@ -52,6 +57,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         let properties = Default::default();
         let comp = VComp {
             type_id: TypeId::of::<CHILD>(),
+            cell,
             props: None,
             blind_sender: Box::new(blind_sender),
             generator: Box::new(generator),
@@ -80,8 +86,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     /// This methods gives sender from older node.
     pub(crate) fn grab_sender_of(&mut self, other: Self) {
         assert_eq!(self.type_id, other.type_id);
-        // Grab a sender to reuse it later
+        // Grab a sender and a cell (element's reference) to reuse it later
         self.blind_sender = other.blind_sender;
+        self.cell = other.cell;
     }
 }
 
@@ -148,19 +155,64 @@ where
     COMP: Component<CTX> + 'static,
 {
     /// This methods mount a virtual component with a generator created with `lazy` call.
-    fn mount(&mut self, element: &Element, context: SharedContext<CTX>) {
-        (self.generator)(context, element.clone());
+    fn mount(&mut self, context: SharedContext<CTX>, parent: &Element, opposite: Option<Node>) {
+        (self.generator)(context, parent.clone(), opposite);
+    }
+}
+
+
+impl<CTX, COMP> VDiff for VComp<CTX, COMP>
+where
+    CTX: 'static,
+    COMP: Component<CTX> + 'static,
+{
+    type Context = CTX;
+    type Component = COMP;
+
+    /// Get binded node.
+    fn get_node(&self) -> Option<Node> {
+        self.cell.borrow().as_ref().map(|n| n.to_owned())
+    }
+
+    /// Remove VComp from parent.
+    fn remove(self, parent: &Element) {
+        if let Some(node) = self.get_node() {
+            parent.remove_child(&node).expect("can't remove the component");
+        }
     }
 
     /// Renders independent component over DOM `Element`.
     /// It also compares this with an opposite `VComp` and inherits sender of it.
-    pub fn render(&mut self, subject: &Element, mut opposite: Option<Self>, env: ScopeEnv<CTX, COMP>) {
-        if let Some(opposite) = opposite.take() {
-            self.grab_sender_of(opposite);
-            self.send_props(env.sender());
-        } else {
-            self.send_props(env.sender());
-            self.mount(subject, env.context());
+    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, env: ScopeEnv<Self::Context, Self::Component>) {
+        match opposite {
+            Some(VNode::VComp(vcomp)) => {
+                if self.type_id == vcomp.type_id {
+                    self.grab_sender_of(vcomp);
+                    self.send_props(env.sender());
+                } else {
+                    let obsolete = vcomp.get_node();
+                    self.send_props(env.sender());
+                    self.mount(env.context(), parent, obsolete);
+                }
+            }
+            Some(VNode::VTag(vtag)) => {
+                let obsolete = vtag.reference.map(Node::from);
+                self.send_props(env.sender());
+                self.mount(env.context(), parent, obsolete);
+            }
+            Some(VNode::VText(vtext)) => {
+                let obsolete = vtext.reference.map(Node::from);
+                self.send_props(env.sender());
+                self.mount(env.context(), parent, obsolete);
+            }
+            Some(VNode::VRef(node)) => {
+                self.send_props(env.sender());
+                self.mount(env.context(), parent, Some(node));
+            }
+            None => {
+                self.send_props(env.sender());
+                self.mount(env.context(), parent, None);
+            }
         }
     }
 }

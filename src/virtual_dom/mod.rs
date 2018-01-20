@@ -7,13 +7,13 @@ pub mod vcomp;
 
 use std::fmt;
 use std::collections::{HashMap, HashSet};
-use stdweb::web::{Element, EventListenerHandle};
+use stdweb::web::{Node, Element, EventListenerHandle};
 
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
 pub use self::vcomp::VComp;
-use html::{ScopeSender, Component};
+use html::{ScopeSender, ScopeEnv, Component};
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
@@ -47,3 +47,24 @@ enum Patch<ID, T> {
     Remove(ID),
 }
 
+// TODO What about to implement `VDiff` for `Element`?
+// In makes possible to include ANY element into the tree.
+// `Ace` editor embedding for example?
+
+/// This trait provides features to update a tree by other tree comparsion.
+pub trait VDiff {
+    /// The context where this instance live.
+    type Context;
+    /// The component which this instance put into.
+    type Component: Component<Self::Context>;
+
+    /// Get binded node.
+    fn get_node(&self) -> Option<Node>;
+    /// Remove itself from parent.
+    fn remove(self, parent: &Element);
+    /// Scoped diff apply to other tree.
+    fn apply(&mut self,
+             parent: &Element,
+             opposite: Option<VNode<Self::Context, Self::Component>>,
+             scope: ScopeEnv<Self::Context, Self::Component>);
+}
