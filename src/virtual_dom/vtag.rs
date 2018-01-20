@@ -7,8 +7,8 @@ use std::cmp::PartialEq;
 use stdweb::web::{INode, Node, IElement, Element, EventListenerHandle, document};
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryFrom;
-use virtual_dom::{Listener, Listeners, Classes, Attributes, Patch, VNode, VText};
 use html::{ScopeEnv, Component};
+use super::{Listener, Listeners, Classes, Attributes, Patch, VDiff, VNode, VText};
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
@@ -204,14 +204,17 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     }
 }
 
-impl<CTX: 'static, COMP: Component<CTX>> VTag<CTX, COMP> {
+impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
+    type Context = CTX;
+    type Component = COMP;
+
     /// Get binded node.
-    pub fn get_node(&self) -> Option<Node> {
+    fn get_node(&self) -> Option<Node> {
         self.reference.as_ref().map(|elem| elem.as_node().to_owned())
     }
 
     /// Remove VTag from parent.
-    pub fn remove(self, parent: &Element) {
+    fn remove(self, parent: &Element) {
         let node = self.reference.expect("tried to remove not rendered VTag from DOM");
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VTag");
@@ -220,7 +223,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VTag<CTX, COMP> {
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to patch in the actual DOM nodes.
-    pub fn apply(&mut self, parent: &Element, opposite: Option<VNode<CTX, COMP>>, env: ScopeEnv<CTX, COMP>) {
+    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, env: ScopeEnv<Self::Context, Self::Component>) {
         let (mut element, mut opposite) = {
             match opposite {
                 Some(VNode::VTag(mut vtag)) => {

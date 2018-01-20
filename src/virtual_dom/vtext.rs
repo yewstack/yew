@@ -6,6 +6,7 @@ use std::marker::PhantomData;
 use stdweb::web::{INode, Node, Element, TextNode, document};
 use virtual_dom::{VTag, VNode};
 use html::{ScopeEnv, Component};
+use super::VDiff;
 
 /// A type for a virtual
 /// [TextNode](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -29,14 +30,19 @@ impl<CTX: 'static, COMP: Component<CTX>> VText<CTX, COMP> {
             _comp: PhantomData,
         }
     }
+}
+
+impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
+    type Context = CTX;
+    type Component = COMP;
 
     /// Get binded node.
-    pub fn get_node(&self) -> Option<Node> {
+    fn get_node(&self) -> Option<Node> {
         self.reference.as_ref().map(|tnode| tnode.as_node().to_owned())
     }
 
     /// Remove VTag from parent.
-    pub fn remove(self, parent: &Element) {
+    fn remove(self, parent: &Element) {
         let node = self.reference.expect("tried to remove not rendered VText from DOM");
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VText");
@@ -45,7 +51,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VText<CTX, COMP> {
 
     /// Renders virtual node over existent `TextNode`, but
     /// only if value of text had changed.
-    pub fn apply(&mut self, parent: &Element, opposite: Option<VNode<CTX, COMP>>, _: ScopeEnv<CTX, COMP>) {
+    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, _: ScopeEnv<Self::Context, Self::Component>) {
         match opposite {
             // If element matched this type
             Some(VNode::VText(VText { text, reference: Some(element), .. })) => {

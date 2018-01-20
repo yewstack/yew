@@ -3,8 +3,8 @@
 use std::fmt;
 use std::cmp::PartialEq;
 use stdweb::web::{INode, Node, Element};
-use virtual_dom::{VTag, VText, VComp};
 use html::{ScopeEnv, Component, Renderable};
+use super::{VDiff, VTag, VText, VComp};
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<CTX, COMP: Component<CTX>> {
@@ -19,9 +19,12 @@ pub enum VNode<CTX, COMP: Component<CTX>> {
 }
 
 
-impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
+impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
+    type Context = CTX;
+    type Component = COMP;
+
     /// Get binded node.
-    pub fn get_node(&self) -> Option<Node> {
+    fn get_node(&self) -> Option<Node> {
         match *self {
             VNode::VTag(ref vtag) => {
                 vtag.get_node()
@@ -39,7 +42,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
     }
 
     /// Remove VNode from parent.
-    pub fn remove(self, parent: &Element) {
+    fn remove(self, parent: &Element) {
         match self {
             VNode::VTag(vtag) => vtag.remove(parent),
             VNode::VText(vtext) => vtext.remove(parent),
@@ -52,7 +55,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VNode<CTX, COMP> {
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
-    pub fn apply(&mut self, parent: &Element, opposite: Option<VNode<CTX, COMP>>, env: ScopeEnv<CTX, COMP>) {
+    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, env: ScopeEnv<Self::Context, Self::Component>) {
         match *self {
             VNode::VTag(ref mut vtag) => {
                 vtag.apply(parent, opposite, env);
