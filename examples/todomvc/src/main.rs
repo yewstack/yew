@@ -53,15 +53,18 @@ impl Component<Context> for Model {
     type Properties = ();
 
     fn create(context: &mut Env<Context, Self>) -> Self {
-        if let Json(Ok(restored_model)) = context.storage.restore(KEY) {
-            restored_model
-        } else {
-            Model {
-                entries: Vec::new(),
-                filter: Filter::All,
-                value: "".into(),
-                edit_value: "".into(),
+        let entries = {
+            if let Json(Ok(restored_model)) = context.storage.restore(KEY) {
+                restored_model
+            } else {
+                Vec::new()
             }
+        };
+        Model {
+            entries,
+            filter: Filter::All,
+            value: "".into(),
+            edit_value: "".into(),
         }
     }
 
@@ -111,7 +114,7 @@ impl Component<Context> for Model {
             }
             Msg::Nope => {}
         }
-        context.storage.store(KEY, Json(&self));
+        context.storage.store(KEY, Json(&self.entries));
         true
     }
 }
