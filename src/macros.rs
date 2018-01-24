@@ -7,9 +7,12 @@ use html::Component;
 #[macro_export]
 macro_rules! html_impl {
     ($stack:ident (< > $($tail:tt)*)) => {
+        let vlist = $crate::virtual_dom::VList::new();
+        $stack.push(vlist.into());
         html_impl! { $stack ($($tail)*) }
     };
     ($stack:ident (< / > $($tail:tt)*)) => {
+        $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
     };
     // Start of component tag
@@ -219,27 +222,42 @@ pub fn attach_listener<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, 
 
 #[doc(hidden)]
 pub fn add_child<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, child: VNode<CTX, COMP>) {
-    if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
-        vtag.add_child(child);
-    } else {
-        panic!("no nodes in stack to add child: {:?}", child);
+    match stack.last_mut() {
+        Some(&mut VNode::VTag(ref mut vtag)) => {
+            vtag.add_child(child);
+        }
+        Some(&mut VNode::VList(ref mut vlist)) => {
+            vlist.add_child(child);
+        }
+        _ => {
+            panic!("no nodes in stack to add child: {:?}", child);
+        }
     }
 }
 
 #[doc(hidden)]
 pub fn child_to_parent<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, endtag: Option<&'static str>) {
     if let Some(mut node) = stack.pop() {
+        // Check the enclosing tag
+        // TODO Check it during compilation. Possible?
         if let (&mut VNode::VTag(ref mut vtag), Some(endtag)) = (&mut node, endtag) {
             let starttag = vtag.tag();
             if starttag != endtag {
                 panic!("wrong closing tag: <{}> -> </{}>", starttag, endtag);
             }
         }
+        // Push the popped element to the last in the stack
         if !stack.is_empty() {
-            if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
-                vtag.add_child(node);
-            } else {
-                panic!("can't add child to this type of node");
+            match stack.last_mut() {
+                Some(&mut VNode::VTag(ref mut vtag)) => {
+                    vtag.add_child(node);
+                }
+                Some(&mut VNode::VList(ref mut vlist)) => {
+                    vlist.add_child(node);
+                }
+                _ => {
+                    panic!("can't add child to this type of node");
+                }
             }
         } else {
             // Keep the last node in the stack

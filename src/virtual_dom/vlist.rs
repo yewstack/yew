@@ -20,6 +20,11 @@ impl<CTX, COMP: Component<CTX>> VList<CTX, COMP> {
             reference: None,
         }
     }
+
+    /// Add `VNode` child.
+    pub fn add_child(&mut self, child: VNode<CTX, COMP>) {
+        self.childs.push(child);
+    }
 }
 
 impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {

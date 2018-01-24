@@ -93,6 +93,12 @@ impl<CTX, COMP: Component<CTX>> From<VText<CTX, COMP>> for VNode<CTX, COMP> {
     }
 }
 
+impl<CTX, COMP: Component<CTX>> From<VList<CTX, COMP>> for VNode<CTX, COMP> {
+    fn from(vlist: VList<CTX, COMP>) -> Self {
+        VNode::VList(vlist)
+    }
+}
+
 impl<CTX, COMP: Component<CTX>> From<VTag<CTX, COMP>> for VNode<CTX, COMP> {
     fn from(vtag: VTag<CTX, COMP>) -> Self {
         VNode::VTag(vtag)
