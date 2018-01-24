@@ -4,15 +4,17 @@ pub mod vnode;
 pub mod vtag;
 pub mod vtext;
 pub mod vcomp;
+pub mod vlist;
 
 use std::fmt;
 use std::collections::{HashMap, HashSet};
-use stdweb::web::{Node, Element, EventListenerHandle};
+use stdweb::web::{INode, Node, Element, EventListenerHandle};
 
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
 pub use self::vcomp::VComp;
+pub use self::vlist::VList;
 use html::{ScopeSender, ScopeEnv, Component};
 
 /// `Listener` trait is an universal implementation of an event listener
@@ -61,10 +63,10 @@ pub trait VDiff {
     /// Get binded node.
     fn get_node(&self) -> Option<Node>;
     /// Remove itself from parent.
-    fn remove(self, parent: &Element);
+    fn remove<T: INode>(self, parent: &T);
     /// Scoped diff apply to other tree.
-    fn apply(&mut self,
-             parent: &Element,
+    fn apply<T: INode>(&mut self,
+             parent: &T,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              scope: ScopeEnv<Self::Context, Self::Component>);
 }
