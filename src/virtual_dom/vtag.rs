@@ -8,7 +8,7 @@ use stdweb::web::{INode, Node, IElement, Element, EventListenerHandle, document}
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryFrom;
 use html::{ScopeEnv, Component};
-use super::{Listener, Listeners, Classes, Attributes, Patch, VDiff, VNode, VText};
+use super::{Listener, Listeners, Classes, Attributes, Patch, VDiff, VNode, VText, VList};
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
@@ -214,7 +214,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
     }
 
     /// Remove VTag from parent.
-    fn remove(self, parent: &Element) {
+    fn remove<T: INode>(self, parent: &T) {
         let node = self.reference.expect("tried to remove not rendered VTag from DOM");
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VTag");
@@ -223,7 +223,11 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to patch in the actual DOM nodes.
-    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, env: ScopeEnv<Self::Context, Self::Component>) {
+    fn apply<T: INode>(&mut self,
+             parent: &T,
+             opposite: Option<VNode<Self::Context, Self::Component>>,
+             env: ScopeEnv<Self::Context, Self::Component>)
+    {
         let (mut element, mut opposite) = {
             match opposite {
                 Some(VNode::VTag(mut vtag)) => {
@@ -251,6 +255,11 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                     parent.replace_child(&element, &wrong);
                     (element, None)
                 }
+                Some(VNode::VList(VList { reference: Some(wrong), .. })) => {
+                    let element = document().create_element(&self.tag);
+                    parent.replace_child(&element, &wrong);
+                    (element, None)
+                }
                 Some(VNode::VComp(vcomp)) => {
                     if let Some(wrong) = vcomp.get_node() {
                         let element = document().create_element(&self.tag);
@@ -268,6 +277,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                     (element, None)
                 }
                 Some(VNode::VText(VText { reference: None, .. })) |
+                Some(VNode::VList(VList { reference: None, .. })) |
                 None => {
                     let element = document().create_element(&self.tag);
                     parent.append_child(&element);

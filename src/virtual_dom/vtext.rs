@@ -3,8 +3,8 @@
 use std::fmt;
 use std::cmp::PartialEq;
 use std::marker::PhantomData;
-use stdweb::web::{INode, Node, Element, TextNode, document};
-use virtual_dom::{VTag, VNode};
+use stdweb::web::{INode, Node, TextNode, document};
+use virtual_dom::{VTag, VNode, VList};
 use html::{ScopeEnv, Component};
 use super::VDiff;
 
@@ -14,7 +14,7 @@ use super::VDiff;
 pub struct VText<CTX, COMP: Component<CTX>> {
     /// Contains a text of the node.
     pub text: String,
-    /// A reference to the `Element`.
+    /// A reference to the `TextNode`.
     pub reference: Option<TextNode>,
     _ctx: PhantomData<CTX>,
     _comp: PhantomData<COMP>,
@@ -42,7 +42,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
     }
 
     /// Remove VTag from parent.
-    fn remove(self, parent: &Element) {
+    fn remove<T: INode>(self, parent: &T) {
         let node = self.reference.expect("tried to remove not rendered VText from DOM");
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VText");
@@ -51,7 +51,11 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
 
     /// Renders virtual node over existent `TextNode`, but
     /// only if value of text had changed.
-    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, _: ScopeEnv<Self::Context, Self::Component>) {
+    fn apply<T: INode>(&mut self,
+             parent: &T,
+             opposite: Option<VNode<Self::Context, Self::Component>>,
+             _: ScopeEnv<Self::Context, Self::Component>)
+    {
         match opposite {
             // If element matched this type
             Some(VNode::VText(VText { text, reference: Some(element), .. })) => {
@@ -62,6 +66,11 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
             }
             // If element exists, but have a wrong type
             Some(VNode::VTag(VTag { reference: Some(wrong), .. })) => {
+                let element = document().create_text_node(&self.text);
+                parent.replace_child(&element, &wrong);
+                self.reference = Some(element);
+            }
+            Some(VNode::VList(VList { reference: Some(wrong), .. })) => {
                 let element = document().create_text_node(&self.text);
                 parent.replace_child(&element, &wrong);
                 self.reference = Some(element);
@@ -85,6 +94,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
             // If element not exists
             Some(VNode::VTag(VTag { reference: None, .. })) |
             Some(VNode::VText(VText { reference: None, .. })) |
+            Some(VNode::VList(VList { reference: None, .. })) |
             None => {
                 let element = document().create_text_node(&self.text);
                 parent.append_child(&element);

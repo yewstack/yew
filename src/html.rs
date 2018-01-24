@@ -293,6 +293,7 @@ where
         self.mount_in_place(element, None, None);
     }
 
+    // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node.
     pub fn mount_in_place(mut self, element: Element, obsolete: Option<VNode<CTX, COMP>>, mut occupied: Option<NodeCell>) {
         let mut component = {

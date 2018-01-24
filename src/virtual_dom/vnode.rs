@@ -2,9 +2,9 @@
 
 use std::fmt;
 use std::cmp::PartialEq;
-use stdweb::web::{INode, Node, Element};
+use stdweb::web::{INode, Node};
 use html::{ScopeEnv, Component, Renderable};
-use super::{VDiff, VTag, VText, VComp};
+use super::{VDiff, VTag, VText, VComp, VList};
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<CTX, COMP: Component<CTX>> {
@@ -14,6 +14,8 @@ pub enum VNode<CTX, COMP: Component<CTX>> {
     VText(VText<CTX, COMP>),
     /// A bind between `VComp` and `Element`.
     VComp(VComp<CTX, COMP>),
+    /// A holder for a list of other nodes.
+    VList(VList<CTX, COMP>),
     /// A holder for any `Node` (necessary for replacing node).
     VRef(Node),
 }
@@ -35,6 +37,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
             VNode::VComp(ref vcomp) => {
                 vcomp.get_node()
             },
+            VNode::VList(ref vlist) => {
+                vlist.get_node()
+            },
             VNode::VRef(ref node) => {
                 Some(node.to_owned())
             },
@@ -42,11 +47,12 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
     }
 
     /// Remove VNode from parent.
-    fn remove(self, parent: &Element) {
+    fn remove<T: INode>(self, parent: &T) {
         match self {
             VNode::VTag(vtag) => vtag.remove(parent),
             VNode::VText(vtext) => vtext.remove(parent),
             VNode::VComp(vcomp) => vcomp.remove(parent),
+            VNode::VList(vlist) => vlist.remove(parent),
             VNode::VRef(node) => {
                 parent.remove_child(&node).expect("can't remove node by VRef")
             },
@@ -55,7 +61,11 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
-    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, env: ScopeEnv<Self::Context, Self::Component>) {
+    fn apply<T: INode>(&mut self,
+             parent: &T,
+             opposite: Option<VNode<Self::Context, Self::Component>>,
+             env: ScopeEnv<Self::Context, Self::Component>)
+    {
         match *self {
             VNode::VTag(ref mut vtag) => {
                 vtag.apply(parent, opposite, env);
@@ -65,6 +75,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
             }
             VNode::VComp(ref mut vcomp) => {
                 vcomp.apply(parent, opposite, env);
+            }
+            VNode::VList(ref mut vlist) => {
+                vlist.apply(parent, opposite, env);
             }
             VNode::VRef(_) => {
                 // TODO use it for rendering any tag
@@ -110,6 +123,7 @@ impl<CTX, COMP: Component<CTX>> fmt::Debug for VNode<CTX, COMP> {
             &VNode::VTag(ref vtag) => vtag.fmt(f),
             &VNode::VText(ref vtext) => vtext.fmt(f),
             &VNode::VComp(_) => "Component<>".fmt(f),
+            &VNode::VList(_) => "List<>".fmt(f),
             &VNode::VRef(_) => "NodeReference<>".fmt(f),
         }
     }
@@ -135,6 +149,10 @@ impl<CTX, COMP: Component<CTX>> PartialEq for VNode<CTX, COMP> {
                 }
             }
             VNode::VComp(_) => {
+                // TODO Implement it
+                false
+            }
+            VNode::VList(_) => {
                 // TODO Implement it
                 false
             }

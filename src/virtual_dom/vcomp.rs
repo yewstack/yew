@@ -6,6 +6,7 @@ use std::marker::PhantomData;
 use std::any::TypeId;
 use stdweb::web::{INode, Node, Element};
 use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv, NodeCell};
+use stdweb::unstable::TryInto;
 use super::{VDiff, VNode};
 
 struct Hidden;
@@ -155,8 +156,14 @@ where
     COMP: Component<CTX> + 'static,
 {
     /// This methods mount a virtual component with a generator created with `lazy` call.
-    fn mount(&mut self, context: SharedContext<CTX>, parent: &Element, opposite: Option<Node>) {
-        (self.generator)(context, parent.clone(), opposite);
+    fn mount<T: INode>(&mut self, context: SharedContext<CTX>, parent: &T, opposite: Option<Node>) {
+        let element: Element = parent
+            .as_node()
+            .as_ref()
+            .to_owned()
+            .try_into()
+            .expect("element expected to mount VComp");
+        (self.generator)(context, element, opposite);
     }
 }
 
@@ -175,7 +182,7 @@ where
     }
 
     /// Remove VComp from parent.
-    fn remove(self, parent: &Element) {
+    fn remove<T: INode>(self, parent: &T) {
         if let Some(node) = self.get_node() {
             parent.remove_child(&node).expect("can't remove the component");
         }
@@ -183,7 +190,11 @@ where
 
     /// Renders independent component over DOM `Element`.
     /// It also compares this with an opposite `VComp` and inherits sender of it.
-    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, env: ScopeEnv<Self::Context, Self::Component>) {
+    fn apply<T: INode>(&mut self,
+             parent: &T,
+             opposite: Option<VNode<Self::Context, Self::Component>>,
+             env: ScopeEnv<Self::Context, Self::Component>)
+    {
         match opposite {
             Some(VNode::VComp(vcomp)) => {
                 if self.type_id == vcomp.type_id {
@@ -202,6 +213,11 @@ where
             }
             Some(VNode::VText(vtext)) => {
                 let obsolete = vtext.reference.map(Node::from);
+                self.send_props(env.sender());
+                self.mount(env.context(), parent, obsolete);
+            }
+            Some(VNode::VList(vlist)) => {
+                let obsolete = vlist.reference.map(Node::from);
                 self.send_props(env.sender());
                 self.mount(env.context(), parent, obsolete);
             }
