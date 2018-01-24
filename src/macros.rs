@@ -6,6 +6,12 @@ use html::Component;
 
 #[macro_export]
 macro_rules! html_impl {
+    ($stack:ident (< > $($tail:tt)*)) => {
+        html_impl! { $stack ($($tail)*) }
+    };
+    ($stack:ident (< / > $($tail:tt)*)) => {
+        html_impl! { $stack ($($tail)*) }
+    };
     // Start of component tag
     ($stack:ident (< $comp:ty : $($tail:tt)*)) => {
         #[allow(unused_mut)]
