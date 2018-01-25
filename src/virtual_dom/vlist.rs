@@ -47,73 +47,90 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
              opposite: Option<VNode<Self::Context, Self::Component>>,
              env: ScopeEnv<Self::Context, Self::Component>)
     {
-        let element = {
+        let (element, mut opposite) = {
             match opposite {
-                Some(VNode::VList(VList { reference: Some(element), mut childs })) => {
-                    let mut rights = childs.drain(..).map(Some).collect::<Vec<_>>();
-                    let mut lefts = self.childs.iter_mut().map(Some).collect::<Vec<_>>();
-                    // Process children
-                    let diff = lefts.len() as i32 - rights.len() as i32;
-                    if diff > 0 {
-                        for _ in 0..diff {
-                            rights.push(None);
+                Some(VNode::VList(mut vlist)) => {
+                    match vlist.reference.take() {
+                        Some(element) => {
+                            (element, Some(vlist))
                         }
-                    } else if diff < 0 {
-                        for _ in 0..-diff {
-                            lefts.push(None);
+                        None => {
+                            let element = document_fragment();
+                            parent.append_child(&element);
+                            (element, None)
                         }
                     }
-                    for pair in lefts.into_iter().zip(rights) {
-                        match pair {
-                            (Some(left), right) => {
-                                left.apply(&element, right, env.clone());
-                            }
-                            (None, Some(right)) => {
-                                right.remove(&element);
-                            }
-                            (None, None) => {
-                                panic!("redundant iterations during diff");
-                            }
-                        }
-                    }
-                    element
                 }
                 Some(VNode::VTag(VTag { reference: Some(wrong), .. })) => {
                     let element = document_fragment();
                     parent.replace_child(&element, &wrong);
-                    element
+                    (element, None)
                 }
                 Some(VNode::VText(VText { reference: Some(wrong), .. })) => {
                     let element = document_fragment();
                     parent.replace_child(&element, &wrong);
-                    element
+                    (element, None)
                 }
                 Some(VNode::VComp(vcomp)) => {
                     if let Some(wrong) = vcomp.get_node() {
                         let element = document_fragment();
                         parent.replace_child(&element, &wrong);
-                        element
+                        (element, None)
                     } else {
                         let element = document_fragment();
                         parent.append_child(&element);
-                        element
+                        (element, None)
                     }
                 }
                 Some(VNode::VRef(wrong)) => {
                     let element = document_fragment();
                     parent.replace_child(&element, &wrong);
-                    element
+                    (element, None)
                 }
                 Some(VNode::VTag(VTag { reference: None, .. })) |
                 Some(VNode::VText(VText { reference: None, .. })) |
-                Some(VNode::VList(VList { reference: None, .. })) |
                 None => {
                     let element = document_fragment();
                     parent.append_child(&element);
-                    element
+                    (element, None)
                 }
             }
         };
+        // Collect elements of an opposite if exists or use an empty vec
+        // TODO DRY?!
+        let mut rights = {
+            if let Some(ref mut right) = opposite {
+                right.childs.drain(..).map(Some).collect::<Vec<_>>()
+            } else {
+                Vec::new()
+            }
+        };
+        let mut lefts = self.childs.iter_mut().map(Some).collect::<Vec<_>>();
+        // Process children
+        let diff = lefts.len() as i32 - rights.len() as i32;
+        if diff > 0 {
+            for _ in 0..diff {
+                rights.push(None);
+            }
+        } else if diff < 0 {
+            for _ in 0..-diff {
+                lefts.push(None);
+            }
+        }
+        for pair in lefts.into_iter().zip(rights) {
+            println!("Rendering!");
+            match pair {
+                (Some(left), right) => {
+                    left.apply(&element, right, env.clone());
+                }
+                (None, Some(right)) => {
+                    right.remove(&element);
+                }
+                (None, None) => {
+                    panic!("redundant iterations during diff");
+                }
+            }
+        }
         self.reference = Some(element);
     }
 }
