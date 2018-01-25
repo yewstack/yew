@@ -190,8 +190,9 @@ where
 
     /// Renders independent component over DOM `Element`.
     /// It also compares this with an opposite `VComp` and inherits sender of it.
-    fn apply<T: INode>(&mut self,
+    fn apply<T: INode, P: INode>(&mut self,
              parent: &T,
+             _: Option<&P>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              env: ScopeEnv<Self::Context, Self::Component>)
     {

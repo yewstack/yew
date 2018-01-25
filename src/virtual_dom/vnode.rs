@@ -61,23 +61,24 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
-    fn apply<T: INode>(&mut self,
+    fn apply<T: INode, P: INode>(&mut self,
              parent: &T,
+             precursor: Option<&P>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              env: ScopeEnv<Self::Context, Self::Component>)
     {
         match *self {
             VNode::VTag(ref mut vtag) => {
-                vtag.apply(parent, opposite, env);
+                vtag.apply(parent, precursor, opposite, env);
             }
             VNode::VText(ref mut vtext) => {
-                vtext.apply(parent, opposite, env);
+                vtext.apply(parent, precursor, opposite, env);
             }
             VNode::VComp(ref mut vcomp) => {
-                vcomp.apply(parent, opposite, env);
+                vcomp.apply(parent, precursor, opposite, env);
             }
             VNode::VList(ref mut vlist) => {
-                vlist.apply(parent, opposite, env);
+                vlist.apply(parent, precursor, opposite, env);
             }
             VNode::VRef(_) => {
                 // TODO use it for rendering any tag

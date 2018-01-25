@@ -51,8 +51,11 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
 
     /// Renders virtual node over existent `TextNode`, but
     /// only if value of text had changed.
-    fn apply<T: INode>(&mut self,
+     /// Parameter `precursor` is necesssary for `VTag` and `VList` which
+     /// has children and renders them.
+    fn apply<T: INode, P: INode>(&mut self,
              parent: &T,
+             _: Option<&P>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              _: ScopeEnv<Self::Context, Self::Component>)
     {

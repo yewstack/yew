@@ -223,8 +223,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to patch in the actual DOM nodes.
-    fn apply<T: INode>(&mut self,
+    fn apply<T: INode, P: INode>(&mut self,
              parent: &T,
+             precursor: Option<&P>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              env: ScopeEnv<Self::Context, Self::Component>)
     {
@@ -386,7 +387,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             for pair in lefts.into_iter().zip(rights) {
                 match pair {
                     (Some(left), right) => {
-                        left.apply(subject, right, env.clone());
+                        left.apply(subject, precursor, right, env.clone());
                     }
                     (None, Some(right)) => {
                         right.remove(subject);

@@ -42,8 +42,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
         }
     }
 
-    fn apply<T: INode>(&mut self,
+    fn apply<T: INode, P: INode>(&mut self,
              parent: &T,
+             precursor: Option<&P>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              env: ScopeEnv<Self::Context, Self::Component>)
     {
@@ -121,7 +122,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
             println!("Rendering!");
             match pair {
                 (Some(left), right) => {
-                    left.apply(&element, right, env.clone());
+                    left.apply(&element, precursor, right, env.clone());
                 }
                 (None, Some(right)) => {
                     right.remove(&element);
