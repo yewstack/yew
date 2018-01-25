@@ -65,8 +65,9 @@ pub trait VDiff {
     /// Remove itself from parent.
     fn remove<T: INode>(self, parent: &T);
     /// Scoped diff apply to other tree.
-    fn apply<T: INode>(&mut self,
+    fn apply<T: INode, P: INode>(&mut self,
              parent: &T,
+             precursor: Option<&P>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              scope: ScopeEnv<Self::Context, Self::Component>);
 }
