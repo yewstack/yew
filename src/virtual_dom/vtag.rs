@@ -214,7 +214,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
     }
 
     /// Remove VTag from parent.
-    fn remove<T: INode>(self, parent: &T) {
+    fn remove(self, parent: &Node) {
         let node = self.reference.expect("tried to remove not rendered VTag from DOM");
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VTag");
@@ -223,9 +223,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to patch in the actual DOM nodes.
-    fn apply<T: INode, P: INode>(&mut self,
-             parent: &T,
-             precursor: Option<&P>,
+    fn apply(&mut self,
+             parent: &Node,
+             precursor: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              env: ScopeEnv<Self::Context, Self::Component>)
     {
@@ -387,10 +387,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             for pair in lefts.into_iter().zip(rights) {
                 match pair {
                     (Some(left), right) => {
-                        left.apply(subject, precursor, right, env.clone());
+                        left.apply(subject.as_node(), precursor, right, env.clone());
                     }
                     (None, Some(right)) => {
-                        right.remove(subject);
+                        right.remove(subject.as_node());
                     }
                     (None, None) => {
                         panic!("redundant iterations during diff");

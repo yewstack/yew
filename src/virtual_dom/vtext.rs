@@ -42,7 +42,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
     }
 
     /// Remove VTag from parent.
-    fn remove<T: INode>(self, parent: &T) {
+    fn remove(self, parent: &Node) {
         let node = self.reference.expect("tried to remove not rendered VText from DOM");
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VText");
@@ -53,9 +53,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
     /// only if value of text had changed.
      /// Parameter `precursor` is necesssary for `VTag` and `VList` which
      /// has children and renders them.
-    fn apply<T: INode, P: INode>(&mut self,
-             parent: &T,
-             _: Option<&P>,
+    fn apply(&mut self,
+             parent: &Node,
+             _: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              _: ScopeEnv<Self::Context, Self::Component>)
     {

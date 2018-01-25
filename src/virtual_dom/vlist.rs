@@ -35,16 +35,16 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
         self.reference.as_ref().map(|tnode| tnode.as_node().to_owned())
     }
 
-    fn remove<T: INode>(self, parent: &T) {
+    fn remove(self, parent: &Node) {
         let node = self.reference.expect("tried to remove not rendered VList from DOM");
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VList fragment");
         }
     }
 
-    fn apply<T: INode, P: INode>(&mut self,
-             parent: &T,
-             precursor: Option<&P>,
+    fn apply(&mut self,
+             parent: &Node,
+             precursor: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              env: ScopeEnv<Self::Context, Self::Component>)
     {
