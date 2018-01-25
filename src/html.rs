@@ -305,7 +305,7 @@ where
         let mut updates = Vec::new();
         let mut last_frame = VNode::from(component.view());
         // First-time rendering the tree
-        last_frame.apply(&element, None::<&Node>, obsolete, self.get_env());
+        last_frame.apply(element.as_node(), None, obsolete, self.get_env());
         if let Some(ref mut occupied) = occupied {
             let node = last_frame.get_node();
             *occupied.borrow_mut() = node;
@@ -333,7 +333,7 @@ where
             if should_update {
                 let mut next_frame = VNode::from(component.view());
                 // Re-rendering the tree
-                next_frame.apply(&element, None::<&Node>, last_frame.take(), self.get_env());
+                next_frame.apply(element.as_node(), None, last_frame.take(), self.get_env());
                 if let Some(ref mut occupied) = occupied {
                     let node = next_frame.get_node();
                     *occupied.borrow_mut() = node;

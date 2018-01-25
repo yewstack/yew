@@ -8,7 +8,7 @@ pub mod vlist;
 
 use std::fmt;
 use std::collections::{HashMap, HashSet};
-use stdweb::web::{INode, Node, Element, EventListenerHandle};
+use stdweb::web::{Node, Element, EventListenerHandle};
 
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
@@ -63,11 +63,11 @@ pub trait VDiff {
     /// Get binded node.
     fn get_node(&self) -> Option<Node>;
     /// Remove itself from parent.
-    fn remove<T: INode>(self, parent: &T);
+    fn remove(self, parent: &Node);
     /// Scoped diff apply to other tree.
-    fn apply<T: INode, P: INode>(&mut self,
-             parent: &T,
-             precursor: Option<&P>,
+    fn apply(&mut self,
+             parent: &Node,
+             precursor: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              scope: ScopeEnv<Self::Context, Self::Component>);
 }

@@ -47,7 +47,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
     }
 
     /// Remove VNode from parent.
-    fn remove<T: INode>(self, parent: &T) {
+    fn remove(self, parent: &Node) {
         match self {
             VNode::VTag(vtag) => vtag.remove(parent),
             VNode::VText(vtext) => vtext.remove(parent),
@@ -61,9 +61,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
-    fn apply<T: INode, P: INode>(&mut self,
-             parent: &T,
-             precursor: Option<&P>,
+    fn apply(&mut self,
+             parent: &Node,
+             precursor: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              env: ScopeEnv<Self::Context, Self::Component>)
     {

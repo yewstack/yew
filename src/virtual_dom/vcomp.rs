@@ -182,7 +182,7 @@ where
     }
 
     /// Remove VComp from parent.
-    fn remove<T: INode>(self, parent: &T) {
+    fn remove(self, parent: &Node) {
         if let Some(node) = self.get_node() {
             parent.remove_child(&node).expect("can't remove the component");
         }
@@ -190,9 +190,9 @@ where
 
     /// Renders independent component over DOM `Element`.
     /// It also compares this with an opposite `VComp` and inherits sender of it.
-    fn apply<T: INode, P: INode>(&mut self,
-             parent: &T,
-             _: Option<&P>,
+    fn apply(&mut self,
+             parent: &Node,
+             _: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
              env: ScopeEnv<Self::Context, Self::Component>)
     {
