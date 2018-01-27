@@ -7,7 +7,7 @@ use std::any::TypeId;
 use stdweb::web::{INode, Node, Element};
 use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv, NodeCell};
 use stdweb::unstable::TryInto;
-use super::{VDiff, VNode};
+use super::{Reform, VDiff, VNode};
 
 struct Hidden;
 
@@ -196,43 +196,44 @@ where
              opposite: Option<VNode<Self::Context, Self::Component>>,
              env: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
     {
-        match opposite {
-            Some(VNode::VComp(vcomp)) => {
-                if self.type_id == vcomp.type_id {
-                    self.grab_sender_of(vcomp);
-                    self.send_props(env.sender());
-                } else {
-                    let obsolete = vcomp.get_node();
-                    self.send_props(env.sender());
-                    self.mount(env.context(), parent, obsolete);
+        let reform = {
+            match opposite {
+                Some(VNode::VComp(vcomp)) => {
+                    if self.type_id == vcomp.type_id {
+                        self.grab_sender_of(vcomp);
+                        Reform::Keep(())
+                    } else {
+                        if let Some(node) = vcomp.get_node() {
+                            Reform::Replace(node)
+                        } else {
+                            Reform::Append
+                        }
+                    }
+                }
+                Some(vnode) => {
+                    if let Some(node) = vnode.get_node() {
+                        Reform::Replace(node)
+                    } else {
+                        Reform::Append
+                    }
+                }
+                None => {
+                    Reform::Append
                 }
             }
-            Some(VNode::VTag(vtag)) => {
-                let obsolete = vtag.reference.map(Node::from);
-                self.send_props(env.sender());
-                self.mount(env.context(), parent, obsolete);
+        };
+        self.send_props(env.sender());
+        match reform {
+            Reform::Keep(_) => {
             }
-            Some(VNode::VText(vtext)) => {
-                let obsolete = vtext.reference.map(Node::from);
-                self.send_props(env.sender());
-                self.mount(env.context(), parent, obsolete);
-            }
-            Some(VNode::VList(vlist)) => {
-                let obsolete = vlist.reference.map(Node::from);
-                self.send_props(env.sender());
-                self.mount(env.context(), parent, obsolete);
-            }
-            Some(VNode::VRef(node)) => {
-                self.send_props(env.sender());
-                self.mount(env.context(), parent, Some(node));
-            }
-            None => {
-                self.send_props(env.sender());
+            Reform::Append => {
                 self.mount(env.context(), parent, None);
             }
+            Reform::Replace(wrong) => {
+                self.mount(env.context(), parent, Some(wrong));
+            }
         }
-        // TODO Return element!
-        None
+        self.get_node()
     }
 }
 
