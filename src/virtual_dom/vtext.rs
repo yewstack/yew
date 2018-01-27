@@ -57,7 +57,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
              parent: &Node,
              _: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
-             _: ScopeEnv<Self::Context, Self::Component>)
+             _: ScopeEnv<Self::Context, Self::Component>) -> Option<&Node>
     {
         match opposite {
             // If element matched this type
@@ -104,6 +104,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
                 self.reference = Some(element);
             }
         }
+        self.reference.as_ref().map(|t| t.as_node())
     }
 }
 

@@ -194,7 +194,7 @@ where
              parent: &Node,
              _: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
-             env: ScopeEnv<Self::Context, Self::Component>)
+             env: ScopeEnv<Self::Context, Self::Component>) -> Option<&Node>
     {
         match opposite {
             Some(VNode::VComp(vcomp)) => {
@@ -231,6 +231,8 @@ where
                 self.mount(env.context(), parent, None);
             }
         }
+        // TODO Return element!
+        None
     }
 }
 
