@@ -2,7 +2,7 @@
 use stdweb::web::{INode, Node};
 use stdweb::unstable::TryInto;
 use html::{ScopeEnv, Component};
-use super::{VDiff, VNode, VText, VTag};
+use super::{VDiff, VNode};
 
 /// This struct represents a fragment of the Virtual DOM tree.
 pub struct VList<CTX, COMP: Component<CTX>> {
@@ -27,6 +27,12 @@ impl<CTX, COMP: Component<CTX>> VList<CTX, COMP> {
     }
 }
 
+enum Action<T> {
+    Keep(T),
+    Append,
+    Replace(Node),
+}
+
 impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
     type Context = CTX;
     type Component = COMP;
@@ -46,54 +52,46 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
              parent: &Node,
              precursor: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
-             env: ScopeEnv<Self::Context, Self::Component>)
+             env: ScopeEnv<Self::Context, Self::Component>) -> Option<&Node>
     {
-        let (element, mut opposite) = {
+        let (action, mut opposite) = {
             match opposite {
                 Some(VNode::VList(mut vlist)) => {
                     match vlist.reference.take() {
                         Some(element) => {
-                            (element, Some(vlist))
+                            (Action::Keep(element), Some(vlist))
                         }
                         None => {
-                            let element = document_fragment();
-                            parent.append_child(&element);
-                            (element, None)
+                            (Action::Append, None)
                         }
                     }
                 }
-                Some(VNode::VTag(VTag { reference: Some(wrong), .. })) => {
-                    let element = document_fragment();
-                    parent.replace_child(&element, &wrong);
-                    (element, None)
-                }
-                Some(VNode::VText(VText { reference: Some(wrong), .. })) => {
-                    let element = document_fragment();
-                    parent.replace_child(&element, &wrong);
-                    (element, None)
-                }
-                Some(VNode::VComp(vcomp)) => {
-                    if let Some(wrong) = vcomp.get_node() {
-                        let element = document_fragment();
-                        parent.replace_child(&element, &wrong);
-                        (element, None)
+                Some(vnode) => {
+                    if let Some(wrong) = vnode.get_node() {
+                        (Action::Replace(wrong.as_node().to_owned()), None)
                     } else {
-                        let element = document_fragment();
-                        parent.append_child(&element);
-                        (element, None)
+                        (Action::Append, None)
                     }
                 }
-                Some(VNode::VRef(wrong)) => {
-                    let element = document_fragment();
-                    parent.replace_child(&element, &wrong);
-                    (element, None)
-                }
-                Some(VNode::VTag(VTag { reference: None, .. })) |
-                Some(VNode::VText(VText { reference: None, .. })) |
                 None => {
+                    (Action::Append, None)
+                }
+            }
+        };
+        let element = {
+            match action {
+                Action::Keep(element) => {
+                    element
+                }
+                Action::Append => {
                     let element = document_fragment();
                     parent.append_child(&element);
-                    (element, None)
+                    element
+                }
+                Action::Replace(wrong) => {
+                    let element = document_fragment();
+                    parent.replace_child(&element, &wrong);
+                    element
                 }
             }
         };
@@ -118,11 +116,11 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
                 lefts.push(None);
             }
         }
+        let mut precursor = precursor;
         for pair in lefts.into_iter().zip(rights) {
-            println!("Rendering!");
             match pair {
                 (Some(left), right) => {
-                    left.apply(&element, precursor, right, env.clone());
+                    precursor = left.apply(&element, precursor, right, env.clone());
                 }
                 (None, Some(right)) => {
                     right.remove(&element);
@@ -133,6 +131,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
             }
         }
         self.reference = Some(element);
+        self.reference.as_ref().map(|n| n.as_node())
     }
 }
 

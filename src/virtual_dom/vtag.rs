@@ -227,7 +227,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
              parent: &Node,
              precursor: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
-             env: ScopeEnv<Self::Context, Self::Component>)
+             env: ScopeEnv<Self::Context, Self::Component>) -> Option<&Node>
     {
         let (mut element, mut opposite) = {
             match opposite {
@@ -399,7 +399,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             }
         }
         self.reference = Some(element);
-
+        self.reference.as_ref().map(|e| e.as_node())
     }
 }
 
