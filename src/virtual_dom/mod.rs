@@ -49,6 +49,13 @@ enum Patch<ID, T> {
     Remove(ID),
 }
 
+/// Reform of a node.
+enum Reform<T> {
+    Keep(T),
+    Append,
+    Replace(Node),
+}
+
 // TODO What about to implement `VDiff` for `Element`?
 // In makes possible to include ANY element into the tree.
 // `Ace` editor embedding for example?
@@ -69,5 +76,5 @@ pub trait VDiff {
              parent: &Node,
              precursor: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
-             scope: ScopeEnv<Self::Context, Self::Component>) -> Option<&Node>;
+             scope: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>;
 }

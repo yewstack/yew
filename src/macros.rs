@@ -129,10 +129,13 @@ macro_rules! html_impl {
     // PATTERN: { for expression }
     ($stack:ident ({ for $eval:expr } $($tail:tt)*)) => {
         let nodes = $eval;
+        let mut vlist = $crate::virtual_dom::VList::new();
         for node in nodes {
             let node = $crate::virtual_dom::VNode::from(node);
-            $crate::macros::add_child(&mut $stack, node);
+            vlist.add_child(node);
         }
+        $stack.push(vlist.into());
+        $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
     };
     // PATTERN: { expression }

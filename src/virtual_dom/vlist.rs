@@ -1,6 +1,5 @@
 //! This module contains fragments implementation.
 use stdweb::web::{INode, Node};
-use stdweb::unstable::TryInto;
 use html::{ScopeEnv, Component};
 use super::{VDiff, VNode};
 
@@ -27,12 +26,6 @@ impl<CTX, COMP: Component<CTX>> VList<CTX, COMP> {
     }
 }
 
-enum Action<T> {
-    Keep(T),
-    Append,
-    Replace(Node),
-}
-
 impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
     type Context = CTX;
     type Component = COMP;
@@ -51,54 +44,13 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
     fn apply(&mut self,
              parent: &Node,
              precursor: Option<&Node>,
-             opposite: Option<VNode<Self::Context, Self::Component>>,
-             env: ScopeEnv<Self::Context, Self::Component>) -> Option<&Node>
+             mut opposite: Option<VNode<Self::Context, Self::Component>>,
+             env: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
     {
-        let (action, mut opposite) = {
-            match opposite {
-                Some(VNode::VList(mut vlist)) => {
-                    match vlist.reference.take() {
-                        Some(element) => {
-                            (Action::Keep(element), Some(vlist))
-                        }
-                        None => {
-                            (Action::Append, None)
-                        }
-                    }
-                }
-                Some(vnode) => {
-                    if let Some(wrong) = vnode.get_node() {
-                        (Action::Replace(wrong.as_node().to_owned()), None)
-                    } else {
-                        (Action::Append, None)
-                    }
-                }
-                None => {
-                    (Action::Append, None)
-                }
-            }
-        };
-        let element = {
-            match action {
-                Action::Keep(element) => {
-                    element
-                }
-                Action::Append => {
-                    let element = document_fragment();
-                    parent.append_child(&element);
-                    element
-                }
-                Action::Replace(wrong) => {
-                    let element = document_fragment();
-                    parent.replace_child(&element, &wrong);
-                    element
-                }
-            }
-        };
         // Collect elements of an opposite if exists or use an empty vec
         // TODO DRY?!
         let mut rights = {
-            if let Some(ref mut right) = opposite {
+            if let Some(VNode::VList(ref mut right)) = opposite {
                 right.childs.drain(..).map(Some).collect::<Vec<_>>()
             } else {
                 Vec::new()
@@ -116,29 +68,22 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
                 lefts.push(None);
             }
         }
-        let mut precursor = precursor;
+        // Reuse precursor, because fragment reuse parent
+        let mut precursor = precursor.map(|node| node.to_owned());
         for pair in lefts.into_iter().zip(rights) {
             match pair {
                 (Some(left), right) => {
-                    precursor = left.apply(&element, precursor, right, env.clone());
+                    precursor = left.apply(parent, precursor.as_ref(), right, env.clone());
                 }
                 (None, Some(right)) => {
-                    right.remove(&element);
+                    right.remove(parent);
                 }
                 (None, None) => {
                     panic!("redundant iterations during diff");
                 }
             }
         }
-        self.reference = Some(element);
-        self.reference.as_ref().map(|n| n.as_node())
+        self.reference = precursor;
+        self.reference.as_ref().map(|n| n.as_node().to_owned())
     }
-}
-
-// TODO Move to stdweb
-/// Borrowed from `src/webapi/node.rs` of `stdweb`.
-fn document_fragment() -> Node {
-    js!(
-        return document.createDocumentFragment();
-    ).try_into().expect("can't create a fragment for a VList")
 }

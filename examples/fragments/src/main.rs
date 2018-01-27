@@ -45,9 +45,11 @@ impl Renderable<Context, Model> for Model {
             <div>
                 <nav class="menu",>{ self.view_menu() }</nav>
                 <table>
-                    <tr>{ self.view_cols() }</tr>
-                    <tr>{ self.view_cols() }</tr>
-                    <tr>{ self.view_cols() }</tr>
+                    <tr>
+                        { self.view_cols() }
+                        { self.view_cols() }
+                        { self.view_cols() }
+                    </tr>
                 </table>
             </div>
         }

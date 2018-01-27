@@ -4,9 +4,8 @@ use std::fmt;
 use std::cmp::PartialEq;
 use std::marker::PhantomData;
 use stdweb::web::{INode, Node, TextNode, document};
-use virtual_dom::{VTag, VNode, VList};
 use html::{ScopeEnv, Component};
-use super::VDiff;
+use super::{VNode, VDiff, Reform};
 
 /// A type for a virtual
 /// [TextNode](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -57,54 +56,48 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
              parent: &Node,
              _: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
-             _: ScopeEnv<Self::Context, Self::Component>) -> Option<&Node>
+             _: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
     {
-        match opposite {
-            // If element matched this type
-            Some(VNode::VText(VText { text, reference: Some(element), .. })) => {
-                if self.text != text {
-                    element.set_node_value(Some(&self.text));
+        let reform = {
+            match opposite {
+                // If element matched this type
+                Some(VNode::VText(VText { text, reference: Some(element), .. })) => {
+                    if self.text != text {
+                        element.set_node_value(Some(&self.text));
+                    }
+                    Reform::Keep(element)
                 }
-                self.reference = Some(element);
+                Some(vnode) => {
+                    if let Some(node) = vnode.get_node() {
+                        Reform::Replace(node)
+                    } else {
+                        Reform::Append
+                    }
+                }
+                None => {
+                    Reform::Append
+                }
             }
-            // If element exists, but have a wrong type
-            Some(VNode::VTag(VTag { reference: Some(wrong), .. })) => {
-                let element = document().create_text_node(&self.text);
-                parent.replace_child(&element, &wrong);
-                self.reference = Some(element);
-            }
-            Some(VNode::VList(VList { reference: Some(wrong), .. })) => {
-                let element = document().create_text_node(&self.text);
-                parent.replace_child(&element, &wrong);
-                self.reference = Some(element);
-            }
-            Some(VNode::VComp(vcomp)) => {
-                if let Some(wrong) = vcomp.get_node() {
-                    let element = document().create_text_node(&self.text);
-                    parent.replace_child(&element, &wrong);
-                    self.reference = Some(element);
-                } else {
+        };
+        let element = {
+            match reform {
+                Reform::Keep(element) => {
+                    element
+                }
+                Reform::Append => {
                     let element = document().create_text_node(&self.text);
                     parent.append_child(&element);
-                    self.reference = Some(element);
+                    element
+                }
+                Reform::Replace(wrong) => {
+                    let element = document().create_text_node(&self.text);
+                    parent.replace_child(&element, &wrong);
+                    element
                 }
             }
-            Some(VNode::VRef(node)) => {
-                let element = document().create_text_node(&self.text);
-                parent.replace_child(&element, &node);
-                self.reference = Some(element);
-            }
-            // If element not exists
-            Some(VNode::VTag(VTag { reference: None, .. })) |
-            Some(VNode::VText(VText { reference: None, .. })) |
-            Some(VNode::VList(VList { reference: None, .. })) |
-            None => {
-                let element = document().create_text_node(&self.text);
-                parent.append_child(&element);
-                self.reference = Some(element);
-            }
-        }
-        self.reference.as_ref().map(|t| t.as_node())
+        };
+        self.reference = Some(element);
+        self.reference.as_ref().map(|t| t.as_node().to_owned())
     }
 }
 
