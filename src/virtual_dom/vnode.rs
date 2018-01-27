@@ -65,7 +65,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
              parent: &Node,
              precursor: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
-             env: ScopeEnv<Self::Context, Self::Component>) -> Option<&Node>
+             env: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
     {
         match *self {
             VNode::VTag(ref mut vtag) => {
