@@ -1,5 +1,5 @@
 //! This module contains fragments implementation.
-use stdweb::web::{INode, Node};
+use stdweb::web::Node;
 use html::{ScopeEnv, Component};
 use super::{VDiff, VNode};
 
@@ -7,8 +7,6 @@ use super::{VDiff, VNode};
 pub struct VList<CTX, COMP: Component<CTX>> {
     /// The list of children nodes. Which also could have own children.
     pub childs: Vec<VNode<CTX, COMP>>,
-    /// A reference to the `Node`.
-    pub reference: Option<Node>,
 }
 
 impl<CTX, COMP: Component<CTX>> VList<CTX, COMP> {
@@ -16,7 +14,6 @@ impl<CTX, COMP: Component<CTX>> VList<CTX, COMP> {
     pub fn new() -> Self {
         VList {
             childs: Vec::new(),
-            reference: None,
         }
     }
 
@@ -31,13 +28,12 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
     type Component = COMP;
 
     fn get_node(&self) -> Option<Node> {
-        self.reference.as_ref().map(|tnode| tnode.as_node().to_owned())
+        None
     }
 
     fn remove(self, parent: &Node) {
-        let node = self.reference.expect("tried to remove not rendered VList from DOM");
-        if let Err(_) = parent.remove_child(&node) {
-            warn!("Node not found to remove VList fragment");
+        for child in self.childs {
+            child.remove(parent);
         }
     }
 
@@ -83,7 +79,6 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
                 }
             }
         }
-        self.reference = precursor;
-        self.reference.as_ref().map(|n| n.as_node().to_owned())
+        precursor
     }
 }
