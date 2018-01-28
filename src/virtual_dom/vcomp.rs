@@ -176,16 +176,14 @@ where
     type Context = CTX;
     type Component = COMP;
 
-    /// Get binded node.
-    fn get_node(&self) -> Option<Node> {
-        self.cell.borrow().as_ref().map(|n| n.to_owned())
-    }
-
     /// Remove VComp from parent.
-    fn remove(self, parent: &Node) {
-        if let Some(node) = self.get_node() {
+    fn remove(self, parent: &Node) -> Option<Node> {
+        // Keep the sibling in the cell and send a message `Drop` to a loop
+        self.cell.borrow_mut().take().and_then(|node| {
+            let sibling = node.next_sibling();
             parent.remove_child(&node).expect("can't remove the component");
-        }
+            sibling
+        })
     }
 
     /// Renders independent component over DOM `Element`.
@@ -201,39 +199,31 @@ where
                 Some(VNode::VComp(vcomp)) => {
                     if self.type_id == vcomp.type_id {
                         self.grab_sender_of(vcomp);
-                        Reform::Keep(())
+                        Reform::Keep
                     } else {
-                        if let Some(node) = vcomp.get_node() {
-                            Reform::Replace(node)
-                        } else {
-                            Reform::Append
-                        }
+                        let node = vcomp.remove(parent);
+                        Reform::Before(node)
                     }
                 }
                 Some(vnode) => {
-                    if let Some(node) = vnode.get_node() {
-                        Reform::Replace(node)
-                    } else {
-                        Reform::Append
-                    }
+                    let node = vnode.remove(parent);
+                    Reform::Before(node)
                 }
                 None => {
-                    Reform::Append
+                    Reform::Before(None)
                 }
             }
         };
         self.send_props(env.sender());
         match reform {
-            Reform::Keep(_) => {
+            Reform::Keep => {
             }
-            Reform::Append => {
-                self.mount(env.context(), parent, None);
-            }
-            Reform::Replace(wrong) => {
-                self.mount(env.context(), parent, Some(wrong));
+            Reform::Before(node) => {
+                self.mount(env.context(), parent, node);
             }
         }
-        self.get_node()
+        // TODO Fix: self.get_node()
+        None
     }
 }
 

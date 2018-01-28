@@ -35,17 +35,14 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
     type Context = CTX;
     type Component = COMP;
 
-    /// Get binded node.
-    fn get_node(&self) -> Option<Node> {
-        self.reference.as_ref().map(|tnode| tnode.as_node().to_owned())
-    }
-
     /// Remove VTag from parent.
-    fn remove(self, parent: &Node) {
+    fn remove(self, parent: &Node) -> Option<Node> {
         let node = self.reference.expect("tried to remove not rendered VText from DOM");
+        let sibling = node.next_sibling();
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VText");
         }
+        sibling
     }
 
     /// Renders virtual node over existent `TextNode`, but
@@ -61,42 +58,37 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
         let reform = {
             match opposite {
                 // If element matched this type
-                Some(VNode::VText(VText { text, reference: Some(element), .. })) => {
-                    if self.text != text {
-                        element.set_node_value(Some(&self.text));
+                Some(VNode::VText(mut vtext)) => {
+                    self.reference = vtext.reference.take();
+                    if self.text != vtext.text {
+                        if let Some(ref element) = self.reference {
+                            element.set_node_value(Some(&self.text));
+                        }
                     }
-                    Reform::Keep(element)
+                    Reform::Keep
                 }
                 Some(vnode) => {
-                    if let Some(node) = vnode.get_node() {
-                        Reform::Replace(node)
-                    } else {
-                        Reform::Append
-                    }
+                    let node = vnode.remove(parent);
+                    Reform::Before(node)
                 }
                 None => {
-                    Reform::Append
+                    Reform::Before(None)
                 }
             }
         };
-        let element = {
-            match reform {
-                Reform::Keep(element) => {
-                    element
-                }
-                Reform::Append => {
-                    let element = document().create_text_node(&self.text);
+        match reform {
+            Reform::Keep => {
+            }
+            Reform::Before(node) => {
+                let element = document().create_text_node(&self.text);
+                if let Some(sibling) = node {
+                    parent.insert_before(&element, &sibling);
+                } else {
                     parent.append_child(&element);
-                    element
                 }
-                Reform::Replace(wrong) => {
-                    let element = document().create_text_node(&self.text);
-                    parent.replace_child(&element, &wrong);
-                    element
-                }
+                self.reference = Some(element);
             }
-        };
-        self.reference = Some(element);
+        }
         self.reference.as_ref().map(|t| t.as_node().to_owned())
     }
 }

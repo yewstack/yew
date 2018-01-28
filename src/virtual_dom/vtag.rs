@@ -208,17 +208,14 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
     type Context = CTX;
     type Component = COMP;
 
-    /// Get binded node.
-    fn get_node(&self) -> Option<Node> {
-        self.reference.as_ref().map(|elem| elem.as_node().to_owned())
-    }
-
     /// Remove VTag from parent.
-    fn remove(self, parent: &Node) {
+    fn remove(self, parent: &Node) -> Option<Node> {
         let node = self.reference.expect("tried to remove not rendered VTag from DOM");
+        let sibling = node.next_sibling();
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VTag");
         }
+        sibling
     }
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
@@ -232,55 +229,44 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
         let (reform, mut opposite) = {
             match opposite {
                 Some(VNode::VTag(mut vtag)) => {
-                    // Copy reference from right to left (as is)
-                    match vtag.reference.take() {
-                        Some(element) => {
-                            if self.tag == vtag.tag {
-                                (Reform::Keep(element), Some(vtag))
-                            } else {
-                                (Reform::Replace(element.as_node().to_owned()), None)
-                            }
-                        }
-                        None => {
-                            (Reform::Append, None)
-                        }
+                    if self.tag == vtag.tag {
+                        self.reference = vtag.reference.take();
+                        (Reform::Keep, Some(vtag))
+                    } else {
+                        let node = vtag.remove(parent);
+                        (Reform::Before(node), None)
                     }
                 }
                 Some(vnode) => {
-                    if let Some(wrong) = vnode.get_node() {
-                        (Reform::Replace(wrong.as_node().to_owned()), None)
-                    } else {
-                        (Reform::Append, None)
-                    }
+                    let node = vnode.remove(parent);
+                    (Reform::Before(node), None)
                 }
                 None => {
-                    (Reform::Append, None)
+                    (Reform::Before(None), None)
                 }
             }
         };
 
-        let mut element = {
-            match reform {
-                Reform::Keep(element) => {
-                    element
-                }
-                Reform::Append => {
-                    let element = document().create_element(&self.tag);
+        match reform {
+            Reform::Keep => {
+            }
+            Reform::Before(node) => {
+                let element = document().create_element(&self.tag);
+                if let Some(sibling) = node {
+                    parent.insert_before(&element, &sibling);
+                } else {
                     let precursor = precursor.and_then(|node| node.next_sibling());
                     if let Some(precursor) = precursor {
                         parent.insert_before(&element, &precursor);
                     } else {
                         parent.append_child(&element);
                     }
-                    element
                 }
-                Reform::Replace(wrong) => {
-                    let element = document().create_element(&self.tag);
-                    parent.replace_child(&element, &wrong);
-                    element
-                }
+                self.reference = Some(element);
             }
-        };
+        }
+
+        let mut element = self.reference.as_ref().map(|x| x.to_owned()).expect("element expected");
 
         {
             // Update parameters
@@ -395,7 +381,6 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                 }
             }
         }
-        self.reference = Some(element);
         self.reference.as_ref().map(|e| e.as_node().to_owned())
     }
 }

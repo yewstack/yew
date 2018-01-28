@@ -25,36 +25,17 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
     type Context = CTX;
     type Component = COMP;
 
-    /// Get binded node.
-    fn get_node(&self) -> Option<Node> {
-        match *self {
-            VNode::VTag(ref vtag) => {
-                vtag.get_node()
-            },
-            VNode::VText(ref vtext) => {
-                vtext.get_node()
-            },
-            VNode::VComp(ref vcomp) => {
-                vcomp.get_node()
-            },
-            VNode::VList(ref vlist) => {
-                vlist.get_node()
-            },
-            VNode::VRef(ref node) => {
-                Some(node.to_owned())
-            },
-        }
-    }
-
     /// Remove VNode from parent.
-    fn remove(self, parent: &Node) {
+    fn remove(self, parent: &Node) -> Option<Node> {
         match self {
             VNode::VTag(vtag) => vtag.remove(parent),
             VNode::VText(vtext) => vtext.remove(parent),
             VNode::VComp(vcomp) => vcomp.remove(parent),
             VNode::VList(vlist) => vlist.remove(parent),
             VNode::VRef(node) => {
-                parent.remove_child(&node).expect("can't remove node by VRef")
+                let sibling = node.next_sibling();
+                parent.remove_child(&node).expect("can't remove node by VRef");
+                sibling
             },
         }
     }
