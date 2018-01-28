@@ -8,7 +8,7 @@ use stdweb::web::{INode, Node, IElement, Element, EventListenerHandle, document}
 use stdweb::web::html_element::InputElement;
 use stdweb::unstable::TryFrom;
 use html::{ScopeEnv, Component};
-use super::{Listener, Listeners, Classes, Attributes, Patch, VDiff, VNode, VText};
+use super::{Listener, Listeners, Classes, Attributes, Patch, Reform, VDiff, VNode};
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
@@ -208,73 +208,65 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
     type Context = CTX;
     type Component = COMP;
 
-    /// Get binded node.
-    fn get_node(&self) -> Option<Node> {
-        self.reference.as_ref().map(|elem| elem.as_node().to_owned())
-    }
-
     /// Remove VTag from parent.
-    fn remove(self, parent: &Element) {
+    fn remove(self, parent: &Node) -> Option<Node> {
         let node = self.reference.expect("tried to remove not rendered VTag from DOM");
+        let sibling = node.next_sibling();
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VTag");
         }
+        sibling
     }
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to patch in the actual DOM nodes.
-    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, env: ScopeEnv<Self::Context, Self::Component>) {
-        let (mut element, mut opposite) = {
+    fn apply(&mut self,
+             parent: &Node,
+             precursor: Option<&Node>,
+             opposite: Option<VNode<Self::Context, Self::Component>>,
+             env: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
+    {
+        let (reform, mut opposite) = {
             match opposite {
                 Some(VNode::VTag(mut vtag)) => {
-                    // Copy reference from right to left (as is)
-                    match vtag.reference.take() {
-                        Some(element) => {
-                            if self.tag == vtag.tag {
-                                (element, Some(vtag))
-                            } else {
-                                let wrong = element;
-                                let element = document().create_element(&self.tag);
-                                parent.replace_child(&element, &wrong);
-                                (element, None)
-                            }
-                        }
-                        None => {
-                            let element = document().create_element(&self.tag);
-                            parent.append_child(&element);
-                            (element, None)
-                        }
-                    }
-                }
-                Some(VNode::VText(VText { reference: Some(wrong), .. })) => {
-                    let element = document().create_element(&self.tag);
-                    parent.replace_child(&element, &wrong);
-                    (element, None)
-                }
-                Some(VNode::VComp(vcomp)) => {
-                    if let Some(wrong) = vcomp.get_node() {
-                        let element = document().create_element(&self.tag);
-                        parent.replace_child(&element, &wrong);
-                        (element, None)
+                    if self.tag == vtag.tag {
+                        self.reference = vtag.reference.take();
+                        (Reform::Keep, Some(vtag))
                     } else {
-                        let element = document().create_element(&self.tag);
-                        parent.append_child(&element);
-                        (element, None)
+                        let node = vtag.remove(parent);
+                        (Reform::Before(node), None)
                     }
                 }
-                Some(VNode::VRef(wrong)) => {
-                    let element = document().create_element(&self.tag);
-                    parent.replace_child(&element, &wrong);
-                    (element, None)
+                Some(vnode) => {
+                    let node = vnode.remove(parent);
+                    (Reform::Before(node), None)
                 }
-                Some(VNode::VText(VText { reference: None, .. })) |
                 None => {
-                    let element = document().create_element(&self.tag);
-                    parent.append_child(&element);
-                    (element, None)
+                    (Reform::Before(None), None)
                 }
             }
         };
+
+        match reform {
+            Reform::Keep => {
+            }
+            Reform::Before(node) => {
+                let element = document().create_element(&self.tag);
+                if let Some(sibling) = node {
+                    parent.insert_before(&element, &sibling);
+                } else {
+                    let precursor = precursor.and_then(|node| node.next_sibling());
+                    if let Some(precursor) = precursor {
+                        parent.insert_before(&element, &precursor);
+                    } else {
+                        parent.append_child(&element);
+                    }
+                }
+                self.reference = Some(element);
+            }
+        }
+
+        let mut element = self.reference.as_ref().map(|x| x.to_owned()).expect("element expected");
 
         {
             // Update parameters
@@ -373,13 +365,15 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                     lefts.push(None);
                 }
             }
+            // Start with an empty precursor, because it put childs to itself
+            let mut precursor = None;
             for pair in lefts.into_iter().zip(rights) {
                 match pair {
                     (Some(left), right) => {
-                        left.apply(subject, right, env.clone());
+                        precursor = left.apply(subject.as_node(), precursor.as_ref(), right, env.clone());
                     }
                     (None, Some(right)) => {
-                        right.remove(subject);
+                        right.remove(subject.as_node());
                     }
                     (None, None) => {
                         panic!("redundant iterations during diff");
@@ -387,8 +381,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                 }
             }
         }
-        self.reference = Some(element);
-
+        self.reference.as_ref().map(|e| e.as_node().to_owned())
     }
 }
 

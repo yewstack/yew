@@ -6,7 +6,8 @@ use std::marker::PhantomData;
 use std::any::TypeId;
 use stdweb::web::{INode, Node, Element};
 use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv, NodeCell};
-use super::{VDiff, VNode};
+use stdweb::unstable::TryInto;
+use super::{Reform, VDiff, VNode};
 
 struct Hidden;
 
@@ -155,8 +156,14 @@ where
     COMP: Component<CTX> + 'static,
 {
     /// This methods mount a virtual component with a generator created with `lazy` call.
-    fn mount(&mut self, context: SharedContext<CTX>, parent: &Element, opposite: Option<Node>) {
-        (self.generator)(context, parent.clone(), opposite);
+    fn mount<T: INode>(&mut self, context: SharedContext<CTX>, parent: &T, opposite: Option<Node>) {
+        let element: Element = parent
+            .as_node()
+            .as_ref()
+            .to_owned()
+            .try_into()
+            .expect("element expected to mount VComp");
+        (self.generator)(context, element, opposite);
     }
 }
 
@@ -169,51 +176,54 @@ where
     type Context = CTX;
     type Component = COMP;
 
-    /// Get binded node.
-    fn get_node(&self) -> Option<Node> {
-        self.cell.borrow().as_ref().map(|n| n.to_owned())
-    }
-
     /// Remove VComp from parent.
-    fn remove(self, parent: &Element) {
-        if let Some(node) = self.get_node() {
+    fn remove(self, parent: &Node) -> Option<Node> {
+        // Keep the sibling in the cell and send a message `Drop` to a loop
+        self.cell.borrow_mut().take().and_then(|node| {
+            let sibling = node.next_sibling();
             parent.remove_child(&node).expect("can't remove the component");
-        }
+            sibling
+        })
     }
 
     /// Renders independent component over DOM `Element`.
     /// It also compares this with an opposite `VComp` and inherits sender of it.
-    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, env: ScopeEnv<Self::Context, Self::Component>) {
-        match opposite {
-            Some(VNode::VComp(vcomp)) => {
-                if self.type_id == vcomp.type_id {
-                    self.grab_sender_of(vcomp);
-                    self.send_props(env.sender());
-                } else {
-                    let obsolete = vcomp.get_node();
-                    self.send_props(env.sender());
-                    self.mount(env.context(), parent, obsolete);
+    fn apply(&mut self,
+             parent: &Node,
+             _: Option<&Node>,
+             opposite: Option<VNode<Self::Context, Self::Component>>,
+             env: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
+    {
+        let reform = {
+            match opposite {
+                Some(VNode::VComp(vcomp)) => {
+                    if self.type_id == vcomp.type_id {
+                        self.grab_sender_of(vcomp);
+                        Reform::Keep
+                    } else {
+                        let node = vcomp.remove(parent);
+                        Reform::Before(node)
+                    }
+                }
+                Some(vnode) => {
+                    let node = vnode.remove(parent);
+                    Reform::Before(node)
+                }
+                None => {
+                    Reform::Before(None)
                 }
             }
-            Some(VNode::VTag(vtag)) => {
-                let obsolete = vtag.reference.map(Node::from);
-                self.send_props(env.sender());
-                self.mount(env.context(), parent, obsolete);
+        };
+        self.send_props(env.sender());
+        match reform {
+            Reform::Keep => {
             }
-            Some(VNode::VText(vtext)) => {
-                let obsolete = vtext.reference.map(Node::from);
-                self.send_props(env.sender());
-                self.mount(env.context(), parent, obsolete);
-            }
-            Some(VNode::VRef(node)) => {
-                self.send_props(env.sender());
-                self.mount(env.context(), parent, Some(node));
-            }
-            None => {
-                self.send_props(env.sender());
-                self.mount(env.context(), parent, None);
+            Reform::Before(node) => {
+                self.mount(env.context(), parent, node);
             }
         }
+        // TODO Fix: self.get_node()
+        None
     }
 }
 

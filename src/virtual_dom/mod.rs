@@ -4,6 +4,7 @@ pub mod vnode;
 pub mod vtag;
 pub mod vtext;
 pub mod vcomp;
+pub mod vlist;
 
 use std::fmt;
 use std::collections::{HashMap, HashSet};
@@ -13,6 +14,7 @@ pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
 pub use self::vcomp::VComp;
+pub use self::vlist::VList;
 use html::{ScopeSender, ScopeEnv, Component};
 
 /// `Listener` trait is an universal implementation of an event listener
@@ -47,6 +49,12 @@ enum Patch<ID, T> {
     Remove(ID),
 }
 
+/// Reform of a node.
+enum Reform {
+    Keep,
+    Before(Option<Node>),
+}
+
 // TODO What about to implement `VDiff` for `Element`?
 // In makes possible to include ANY element into the tree.
 // `Ace` editor embedding for example?
@@ -58,13 +66,13 @@ pub trait VDiff {
     /// The component which this instance put into.
     type Component: Component<Self::Context>;
 
-    /// Get binded node.
-    fn get_node(&self) -> Option<Node>;
-    /// Remove itself from parent.
-    fn remove(self, parent: &Element);
+    /// Remove itself from parent and return the next sibling.
+    fn remove(self, parent: &Node) -> Option<Node>;
+
     /// Scoped diff apply to other tree.
     fn apply(&mut self,
-             parent: &Element,
+             parent: &Node,
+             precursor: Option<&Node>,
              opposite: Option<VNode<Self::Context, Self::Component>>,
-             scope: ScopeEnv<Self::Context, Self::Component>);
+             scope: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>;
 }
