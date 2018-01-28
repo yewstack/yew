@@ -3,10 +3,9 @@
 use std::fmt;
 use std::cmp::PartialEq;
 use std::marker::PhantomData;
-use stdweb::web::{INode, Node, Element, TextNode, document};
-use virtual_dom::{VTag, VNode};
+use stdweb::web::{INode, Node, TextNode, document};
 use html::{ScopeEnv, Component};
-use super::VDiff;
+use super::{VNode, VDiff, Reform};
 
 /// A type for a virtual
 /// [TextNode](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -14,7 +13,7 @@ use super::VDiff;
 pub struct VText<CTX, COMP: Component<CTX>> {
     /// Contains a text of the node.
     pub text: String,
-    /// A reference to the `Element`.
+    /// A reference to the `TextNode`.
     pub reference: Option<TextNode>,
     _ctx: PhantomData<CTX>,
     _comp: PhantomData<COMP>,
@@ -36,61 +35,61 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
     type Context = CTX;
     type Component = COMP;
 
-    /// Get binded node.
-    fn get_node(&self) -> Option<Node> {
-        self.reference.as_ref().map(|tnode| tnode.as_node().to_owned())
-    }
-
     /// Remove VTag from parent.
-    fn remove(self, parent: &Element) {
+    fn remove(self, parent: &Node) -> Option<Node> {
         let node = self.reference.expect("tried to remove not rendered VText from DOM");
+        let sibling = node.next_sibling();
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VText");
         }
+        sibling
     }
 
     /// Renders virtual node over existent `TextNode`, but
     /// only if value of text had changed.
-    fn apply(&mut self, parent: &Element, opposite: Option<VNode<Self::Context, Self::Component>>, _: ScopeEnv<Self::Context, Self::Component>) {
-        match opposite {
-            // If element matched this type
-            Some(VNode::VText(VText { text, reference: Some(element), .. })) => {
-                if self.text != text {
-                    element.set_node_value(Some(&self.text));
+     /// Parameter `precursor` is necesssary for `VTag` and `VList` which
+     /// has children and renders them.
+    fn apply(&mut self,
+             parent: &Node,
+             _: Option<&Node>,
+             opposite: Option<VNode<Self::Context, Self::Component>>,
+             _: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
+    {
+        let reform = {
+            match opposite {
+                // If element matched this type
+                Some(VNode::VText(mut vtext)) => {
+                    self.reference = vtext.reference.take();
+                    if self.text != vtext.text {
+                        if let Some(ref element) = self.reference {
+                            element.set_node_value(Some(&self.text));
+                        }
+                    }
+                    Reform::Keep
                 }
-                self.reference = Some(element);
+                Some(vnode) => {
+                    let node = vnode.remove(parent);
+                    Reform::Before(node)
+                }
+                None => {
+                    Reform::Before(None)
+                }
             }
-            // If element exists, but have a wrong type
-            Some(VNode::VTag(VTag { reference: Some(wrong), .. })) => {
+        };
+        match reform {
+            Reform::Keep => {
+            }
+            Reform::Before(node) => {
                 let element = document().create_text_node(&self.text);
-                parent.replace_child(&element, &wrong);
-                self.reference = Some(element);
-            }
-            Some(VNode::VComp(vcomp)) => {
-                if let Some(wrong) = vcomp.get_node() {
-                    let element = document().create_text_node(&self.text);
-                    parent.replace_child(&element, &wrong);
-                    self.reference = Some(element);
+                if let Some(sibling) = node {
+                    parent.insert_before(&element, &sibling);
                 } else {
-                    let element = document().create_text_node(&self.text);
                     parent.append_child(&element);
-                    self.reference = Some(element);
                 }
-            }
-            Some(VNode::VRef(node)) => {
-                let element = document().create_text_node(&self.text);
-                parent.replace_child(&element, &node);
-                self.reference = Some(element);
-            }
-            // If element not exists
-            Some(VNode::VTag(VTag { reference: None, .. })) |
-            Some(VNode::VText(VText { reference: None, .. })) |
-            None => {
-                let element = document().create_text_node(&self.text);
-                parent.append_child(&element);
                 self.reference = Some(element);
             }
         }
+        self.reference.as_ref().map(|t| t.as_node().to_owned())
     }
 }
 
