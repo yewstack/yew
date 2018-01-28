@@ -42,7 +42,7 @@ impl Component<Context> for Model {
 impl Renderable<Context, Model> for Model {
     fn view(&self) -> Html<Context, Self> {
         html! {
-            <div>
+            <>
                 <nav class="menu",>{ self.view_menu() }</nav>
                 <table>
                     <tr>
@@ -51,7 +51,7 @@ impl Renderable<Context, Model> for Model {
                         { self.view_cols() }
                     </tr>
                 </table>
-            </div>
+            </>
         }
     }
 }
