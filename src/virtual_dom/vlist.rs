@@ -27,14 +27,12 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
     type Context = CTX;
     type Component = COMP;
 
-    fn get_node(&self) -> Option<Node> {
-        None
-    }
-
-    fn remove(self, parent: &Node) {
+    fn remove(self, parent: &Node) -> Option<Node> {
+        let mut last_sibling = None;
         for child in self.childs {
-            child.remove(parent);
+            last_sibling = child.remove(parent);
         }
+        last_sibling
     }
 
     fn apply(&mut self,

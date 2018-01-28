@@ -50,10 +50,9 @@ enum Patch<ID, T> {
 }
 
 /// Reform of a node.
-enum Reform<T> {
-    Keep(T),
-    Append,
-    Replace(Node),
+enum Reform {
+    Keep,
+    Before(Option<Node>),
 }
 
 // TODO What about to implement `VDiff` for `Element`?
@@ -67,10 +66,9 @@ pub trait VDiff {
     /// The component which this instance put into.
     type Component: Component<Self::Context>;
 
-    /// Get binded node.
-    fn get_node(&self) -> Option<Node>;
-    /// Remove itself from parent.
-    fn remove(self, parent: &Node);
+    /// Remove itself from parent and return the next sibling.
+    fn remove(self, parent: &Node) -> Option<Node>;
+
     /// Scoped diff apply to other tree.
     fn apply(&mut self,
              parent: &Node,
