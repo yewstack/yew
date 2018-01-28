@@ -38,18 +38,27 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
     fn apply(&mut self,
              parent: &Node,
              precursor: Option<&Node>,
-             mut opposite: Option<VNode<Self::Context, Self::Component>>,
+             opposite: Option<VNode<Self::Context, Self::Component>>,
              env: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
     {
-        // Collect elements of an opposite if exists or use an empty vec
-        // TODO DRY?!
         let mut rights = {
-            if let Some(VNode::VList(ref mut right)) = opposite {
-                right.childs.drain(..).map(Some).collect::<Vec<_>>()
-            } else {
-                Vec::new()
+            match opposite {
+                // If element matched this type
+                Some(VNode::VList(mut vlist)) => {
+                    vlist.childs.drain(..).map(Some).collect::<Vec<_>>()
+                }
+                Some(vnode) => {
+                    let _node = vnode.remove(parent);
+                    // TODO Replace precursor?
+                    Vec::new()
+                }
+                None => {
+                    Vec::new()
+                }
             }
         };
+        // Collect elements of an opposite if exists or use an empty vec
+        // TODO DRY?!
         let mut lefts = self.childs.iter_mut().map(Some).collect::<Vec<_>>();
         // Process children
         let diff = lefts.len() as i32 - rights.len() as i32;
