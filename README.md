@@ -104,6 +104,20 @@ html! {
 }
 ```
 
+### Fragments
+
+Yew supports fragments: elements without a parent which could be attached somewhere later.
+
+```rust
+html! {
+    <>
+        <tr><td>{ "Row" }</td></tr>
+        <tr><td>{ "Row" }</td></tr>
+        <tr><td>{ "Row" }</td></tr>
+    </>
+}
+```
+
 ### Virtual DOM, independent loops, fine updates
 
 Yew framework uses own **virtual-dom** representation. It updates DOM in a browser
@@ -276,8 +290,9 @@ impl Component<Context> for Model {
 
 Clone or download this repository.
 
-There are seven examples to check how it works:
-[counter], [timer], [todomvc], [game_of_life], [crm], [dashboard] and [npm_and_rest].
+There are many examples to check how the framework works:
+[counter], [crm], [custom_components], [dashboard], [fragments],
+[game_of_life], [mount_point], [npm_and_rest], [timer], [todomvc], [two_apps].
 
 To run them you need to have [cargo-web] installed as well as a suitable target
 for the Rust compiler to generate web output. By default cargo-web uses
@@ -296,10 +311,14 @@ To run an optimised build instead of a debug build use:
     $ cargo web start --release
 
 [counter]: examples/counter
+[crm]: examples/crm
+[custom_components]: examples/custom_components
+[dashboard]: examples/dashboard
+[fragments]: examples/fragments
+[game_of_life]: examples/game_of_life
+[mount_point]: examples/mount_point
+[npm_and_rest]: examples/npm_and_rest
 [timer]: examples/timer
 [todomvc]: examples/todomvc
-[game_of_life]: examples/game_of_life
-[crm]: examples/crm
-[dashboard]: examples/dashboard
-[npm_and_rest]: examples/npm_and_rest
+[two_apps]: examples/two_apps
 [cargo-web]: https://github.com/koute/cargo-web
