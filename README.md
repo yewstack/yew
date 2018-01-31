@@ -6,11 +6,11 @@ Yew is a modern Rust framework inspired by Elm and ReactJS.
 
 ### Rust to WASM compilation
 
-This framework designed to be compiled into modern browsers' runtimes: wasm, asm.js, emscripten.
+This framework is designed to be compiled into modern browsers' runtimes: wasm, asm.js, emscripten.
 
 ### Clean MVC approach inspired by Elm and Redux
 
-Yew implements strict application state management based on messages passing and updates:
+Yew implements strict application state management based on message passing and updates:
 
 ```rust
 type Context = ();
@@ -49,12 +49,12 @@ fn main() {
 }
 ```
 
-Predictable mutability and lifetimes (thanks Rust) make possible to reuse an instance
-of the model and we shouldn't create a new one after every update. It reduces memory allocations.
+Predictable mutability and lifetimes (thanks Rust) make it possible to reuse a single instance of the model
+without needing to create a fresh one every update. It helps reduce memory allocations.
 
 ### JSX-like templates with `html!` macro
 
-Feel free to put pure Rust code into HTML tags with all compiler's and borrow checker benefits.
+Feel free to put pure Rust code into HTML tags with all the compiler's and borrow checker benefits.
 
 ```rust
 html! {
@@ -77,7 +77,7 @@ html! {
 ### Components
 
 Yew supports components! You can create a new one by implementing a `Component` trait
-and include it directly into the `html!` template:
+and including it directly into the `html!` template:
 
 ```rust
 html! {
@@ -120,12 +120,12 @@ html! {
 
 ### Virtual DOM, independent loops, fine updates
 
-Yew framework uses own **virtual-dom** representation. It updates DOM in a browser
+Yew framework uses its own **virtual-dom** representation. It updates the browser's DOM
 with tiny patches when properties of elements had changed. Every component lives
-in own independent loop, interacts with environment (`Scope`) by messages passing
+in its own independent loop, interacts with the environment (`Scope`) by messages passing
 and supports fine control of rendering.
 
-Set `ShouldRender` flag to inform the loop when component should be re-rendered:
+The `ShouldRender` return value informs the loop when the component should be re-rendered:
 
 ```rust
 fn update(&mut self, msg: Self::Msg, _: &mut Env<Context, Self>) -> ShouldRender {
@@ -141,8 +141,8 @@ fn update(&mut self, msg: Self::Msg, _: &mut Env<Context, Self>) -> ShouldRender
 }
 ```
 
-It's more effective than compare model after every update, because not every model
-change leads the changes of the view and we don't need to spend time for comparsion at all.
+It's more effective than comparing the model after every update, because not every model
+change leads to a view update. It lets us skip model comparison checks entirely.
 You can control updates very accurately.
 
 ### Rust/JS/C-style comments in templates
@@ -178,11 +178,11 @@ impl Renderable<Context, Model> for Model {
 }
 ```
 
-> Some crates hasn't support true wasm target (`wasm32-unknown-unknown`) yet.
+> Some crates don't support the true wasm target (`wasm32-unknown-unknown`) yet.
 
 ### Services
 
-Pluggable services that allow you to call external APIs like:
+Yew has implemented pluggable services that allow you to call external APIs, such as:
 JavaScript alerts, timeout, storage, fetches and websockets.
 It's a handy alternative to subscriptions.
 
@@ -218,10 +218,10 @@ impl Component<Context> for Model {
 }
 ```
 
-There is no necessary service? Want to use library from `npm`?
+Can't find an essential service? Want to use library from `npm`?
 You can reuse `JavaScript` libraries with `stdweb` capabilities and create
-own service implementation. For example let's wrap
-[ccxt](https://www.npmjs.com/package/ccxt) library below:
+your won service implementation. Here's an example below of how to wrap the  
+[ccxt](https://www.npmjs.com/package/ccxt) library:
 
 ```rust
 pub struct CcxtService(Option<Value>);
@@ -251,9 +251,9 @@ impl CcxtService {
 
 ### Easy-to-use data conversion and destructuring
 
-You could simply choose and use a format of data to store/send and restore/receive it.
+Yew allows for serialization (store/send and restore/recieve) formats.
 
-Supported: `JSON`
+Implemented: `JSON`
 
 In development: `BSON`, `TOML`, `YAML`, `XML`
 
@@ -290,7 +290,7 @@ impl Component<Context> for Model {
 
 Clone or download this repository.
 
-There are many examples to check how the framework works:
+There are many examples that show how the framework works:
 [counter], [crm], [custom_components], [dashboard], [fragments],
 [game_of_life], [mount_point], [npm_and_rest], [timer], [todomvc], [two_apps].
 
