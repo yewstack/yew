@@ -5,3 +5,8 @@ authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 
 [dependencies]
 yew = { path = "../.." }
+
+# Necessary until IoVec cuts a new release supporting Wasm
+# More info: https://github.com/DenisKolodin/yew/issues/102
+[replace]
+"iovec:0.1.1" = { git = 'https://github.com/machineloop/iovec', branch = 'wasm-support' }
