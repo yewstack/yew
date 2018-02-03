@@ -4,6 +4,7 @@
 //! All types here are lazy and it's necessary to
 //! use `Into` and `From` traits to get (convert) the data.
 
+use failure::Error;
 use serde::{Serialize, Deserialize};
 use serde_json;
 
@@ -11,7 +12,7 @@ use serde_json;
 pub type Storable = Option<String>;
 
 /// A representation of a value which can be restored.
-pub type Restorable = Result<String, String>;
+pub type Restorable = Result<String, Error>;
 
 /// A representation of an empty data. Nothing stored. Nothing restored.
 pub struct Nothing;

@@ -18,6 +18,12 @@ pub use http::{
     Uri
 };
 
+/// Represents errors of a fetch service.
+#[derive(Debug, Fail)]
+enum FetchError {
+    #[fail(display = "failed response")]
+    FailedResponse,
+}
 
 /// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
 pub struct FetchHandle(Option<Value>);
@@ -131,7 +137,7 @@ impl FetchService {
             }
 
             // Deserialize and wrap response body into a Restorable object.
-            let data = if success { Ok(body) } else { Err(body) };
+            let data = if success { Ok(body) } else { Err(FetchError::FailedResponse.into()) };
             let out = OUT::from(data);
             let response = response_builder.body(out).unwrap();
             callback.emit(response);

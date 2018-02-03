@@ -4,6 +4,13 @@
 use stdweb::Value;
 use format::{Storable, Restorable};
 
+/// Represents errors of a storage.
+#[derive(Debug, Fail)]
+enum StorageError {
+    #[fail(display = "restore error")]
+    CantRestore,
+}
+
 /// An area to keep the data in.
 pub enum Area {
     /// Use `localStorage` of a browser.
@@ -52,7 +59,7 @@ impl StorageService {
                 Area::Session => js! { return sessionStorage.getItem(@{key}); },
             }
         };
-        let data = value.into_string().ok_or_else(|| "can't read string from storage".into());
+        let data = value.into_string().ok_or_else(|| StorageError::CantRestore.into());
         T::from(data)
     }
 
