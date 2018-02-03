@@ -253,11 +253,13 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             Reform::Before(node) => {
                 let element = document().create_element(&self.tag);
                 if let Some(sibling) = node {
-                    parent.insert_before(&element, &sibling);
+                    parent.insert_before(&element, &sibling)
+                        .expect("can't insert tag before sibling");
                 } else {
                     let precursor = precursor.and_then(|node| node.next_sibling());
                     if let Some(precursor) = precursor {
-                        parent.insert_before(&element, &precursor);
+                        parent.insert_before(&element, &precursor)
+                            .expect("can't insert tag before precursor");
                     } else {
                         parent.append_child(&element);
                     }
