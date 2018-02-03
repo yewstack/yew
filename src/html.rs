@@ -463,7 +463,7 @@ macro_rules! impl_action {
 impl_action! {
     onclick(event: ClickEvent) -> MouseData => |_, event| { MouseData::from(event) }
     ondoubleclick(event: DoubleClickEvent) -> MouseData => |_, event| { MouseData::from(event) }
-    onkeypress(event: KeypressEvent) -> KeyData => |_, event| { KeyData::from(event) }
+    onkeypress(event: KeyPressEvent) -> KeyData => |_, event| { KeyData::from(event) }
     /* TODO Add PR to https://github.com/koute/stdweb
     onmousedown(event: MouseDownEvent) -> () => |_, _| { () }
     onmouseup(event: MouseUpEvent) -> () => |_, _| { () }
