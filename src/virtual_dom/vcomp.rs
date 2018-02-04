@@ -222,8 +222,7 @@ where
                 self.mount(env.context(), parent, node);
             }
         }
-        // TODO Fix: self.get_node()
-        None
+        self.cell.borrow().as_ref().map(|node| node.to_owned())
     }
 }
 
