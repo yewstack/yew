@@ -5,20 +5,21 @@ sudo: false
 addons:
   chrome: stable
 
+cache:
+  cargo: true
+  directories:
+    - /home/travis/.local/share/cargo-web/emscripten
+
 rust:
+  - nightly
   - stable
   - beta
-  - nightly
 
 matrix:
   allow_failures:
     - rust: nightly
 
-env:
-  - TARGET=wasm32-unknown-unknown
-  - TARGET=asmjs-unknown-emscripten
-  - TARGET=wasm32-unknown-emscripten
-
 script:
   - nvm install 9
-  - ./ci.sh
+  - ./ci/install_cargo_web.sh
+  - ./ci/run_tests.sh
