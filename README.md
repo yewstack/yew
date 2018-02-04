@@ -1,3 +1,5 @@
+[![Build Status](https://api.travis-ci.org/DenisKolodin/yew.svg)](https://travis-ci.org/DenisKolodin/yew)
+
 # Yew
 
 Yew is a modern Rust framework inspired by Elm and ReactJS.
