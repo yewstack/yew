@@ -1,3 +1,5 @@
+[![Build Status](https://api.travis-ci.org/DenisKolodin/yew.svg)](https://travis-ci.org/DenisKolodin/yew)
+
 # Yew
 
 Yew is a modern Rust framework inspired by Elm and ReactJS.
@@ -294,21 +296,22 @@ There are many examples that show how the framework works:
 [counter], [crm], [custom_components], [dashboard], [fragments],
 [game_of_life], [mount_point], [npm_and_rest], [timer], [todomvc], [two_apps].
 
-To run them you need to have [cargo-web] installed as well as a suitable target
-for the Rust compiler to generate web output. By default cargo-web uses
-`asmjs-unknown-emscripten`. Install cargo-web and the asmjs emscripten target
-as follows:
+To run them you need to have [cargo-web] installed:
 
     $ cargo install cargo-web
-    $ rustup target add asmjs-unknown-emscripten
 
-To start an example enter its directory start it with [cargo-web]:
+To start an example enter its directory and start it with [cargo-web]:
 
     $ cargo web start
 
 To run an optimised build instead of a debug build use:
 
     $ cargo web start --release
+
+By default `cargo-web` will use Emscripten to generate asm.js. You can also
+compile to WebAssembly if you add either `--target=wasm32-unknown-emscripten` or
+`--target=wasm32-unknown-unknown`, where the first one will use Emscripten and
+the second one will use Rust's native WebAssembly backend (Rust nightly only!).
 
 [counter]: examples/counter
 [crm]: examples/crm
