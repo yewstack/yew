@@ -20,7 +20,6 @@ pub enum VNode<CTX, COMP: Component<CTX>> {
     VRef(Node),
 }
 
-
 impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
     type Context = CTX;
     type Component = COMP;
