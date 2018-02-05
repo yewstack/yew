@@ -4,7 +4,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::any::TypeId;
-use stdweb::web::{INode, Node, Element};
+use stdweb::web::{INode, Node, Element, document};
 use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv, NodeCell};
 use stdweb::unstable::TryInto;
 use super::{Reform, VDiff, VNode};
@@ -219,11 +219,18 @@ where
             Reform::Keep => {
             }
             Reform::Before(node) => {
+                // This is a workaround, because component should be mounted
+                // over opposite element if it exists.
+                // There is created an empty text node to be replaced with mount call.
+                let node = node.map(|sibling| {
+                    let element = document().create_text_node("");
+                    parent.insert_before(&element, &sibling);
+                    element.as_node().to_owned()
+                });
                 self.mount(env.context(), parent, node);
             }
         }
-        // TODO Fix: self.get_node()
-        None
+        self.cell.borrow().as_ref().map(|node| node.to_owned())
     }
 }
 
