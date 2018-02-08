@@ -24,7 +24,7 @@ impl Component<Context> for Model {
     type Msg = Msg;
     type Properties = ();
 
-    fn create(_: &mut Env<Context, Self>) -> Self {
+    fn create(_: Self::Properties, _: &mut Env<Context, Self>) -> Self {
         Model {
             value: 0,
         }

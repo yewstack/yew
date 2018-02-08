@@ -31,11 +31,11 @@ impl<CTX: 'static> Component<CTX> for Barrier {
     type Msg = Msg;
     type Properties = Props;
 
-    fn create(_: &mut Env<CTX, Self>) -> Self {
+    fn create(props: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
         Barrier {
-            limit: 0,
+            limit: props.limit,
             counter: 0,
-            onsignal: None,
+            onsignal: props.onsignal,
         }
     }
 

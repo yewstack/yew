@@ -25,7 +25,7 @@ pub trait Component<CTX>: Sized + 'static {
     /// with unknown type.
     type Properties: Clone + PartialEq + Default;
     /// Initialization routine which could use a context.
-    fn create(context: &mut Env<CTX, Self>) -> Self;
+    fn create(props: Self::Properties, context: &mut Env<CTX, Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
     fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender;
@@ -290,16 +290,17 @@ where
     /// will render the model to a virtual DOM tree.
     pub fn mount(self, element: Element) {
         clear_element(&element);
-        self.mount_in_place(element, None, None);
+        self.mount_in_place(element, None, None, None);
     }
 
     // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node.
-    pub fn mount_in_place(mut self, element: Element, obsolete: Option<VNode<CTX, COMP>>, mut occupied: Option<NodeCell>) {
+    pub fn mount_in_place(mut self, element: Element, obsolete: Option<VNode<CTX, COMP>>, mut occupied: Option<NodeCell>, init_props: Option<COMP::Properties>) {
         let mut component = {
+            let props = init_props.unwrap_or_default();
             let mut env = self.get_env();
             let mut scope_ref = env.get_ref();
-            COMP::create(&mut scope_ref)
+            COMP::create(props, &mut scope_ref)
         };
         // No messages at start
         let mut updates = Vec::new();

@@ -149,7 +149,7 @@ impl Component<Context> for GameOfLife {
     type Msg = Msg;
     type Properties = ();
 
-    fn create(_: &mut Env<Context, Self>) -> Self {
+    fn create(_: Self::Properties, _: &mut Env<Context, Self>) -> Self {
         GameOfLife {
             cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
             cellules_width: 50,
