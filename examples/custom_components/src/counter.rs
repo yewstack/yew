@@ -38,11 +38,11 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
     type Msg = Msg;
     type Properties = Props;
 
-    fn create(_: &mut Env<CTX, Self>) -> Self {
+    fn create(props: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
         Counter {
-            value: 0,
-            color: Color::Green,
-            onclick: None,
+            value: props.initial,
+            color: props.color,
+            onclick: props.onclick,
         }
     }
 
@@ -60,9 +60,6 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
     }
 
     fn change(&mut self, props: Self::Properties, _: &mut Env<CTX, Self>) -> ShouldRender {
-        if self.value == 0 {
-            self.value = props.initial;
-        }
         self.color = props.color;
         self.onclick = props.onclick;
         true

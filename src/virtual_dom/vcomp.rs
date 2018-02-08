@@ -11,13 +11,15 @@ use super::{Reform, VDiff, VNode};
 
 struct Hidden;
 
+type AnyProps = (TypeId, *mut Hidden);
+
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
     type_id: TypeId,
     cell: NodeCell,
     props: Option<(TypeId, *mut Hidden)>,
-    blind_sender: Box<FnMut((TypeId, *mut Hidden))>,
-    generator: Box<FnMut(SharedContext<CTX>, Element, Option<Node>)>,
+    blind_sender: Box<FnMut(AnyProps)>,
+    generator: Box<FnMut(SharedContext<CTX>, Element, Option<Node>, AnyProps)>,
     activators: Vec<Rc<RefCell<Option<ScopeSender<CTX, COMP>>>>>,
     _parent: PhantomData<COMP>,
 }
@@ -33,15 +35,24 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         let mut sender = builder.sender();
         let mut builder = Some(builder);
         let occupied = cell.clone();
-        let generator = move |context, element, obsolete: Option<Node>| {
+        let generator = move |context, element, obsolete: Option<Node>, (type_id, raw): AnyProps| {
+
+            if type_id != TypeId::of::<CHILD>() {
+                panic!("tried to unpack properties of the other component");
+            }
+            let props = unsafe {
+                let raw: *mut CHILD::Properties = ::std::mem::transmute(raw);
+                *Box::from_raw(raw)
+            };
+
             let builder = builder.take().expect("tried to mount component twice");
             let opposite = obsolete.map(VNode::VRef);
-            builder.build(context).mount_in_place(element, opposite, Some(occupied.clone()));
+            builder.build(context).mount_in_place(element, opposite, Some(occupied.clone()), Some(props));
         };
         let mut previous_props = None;
-        let blind_sender = move |(type_id, raw): (TypeId, *mut Hidden)| {
+        let blind_sender = move |(type_id, raw): AnyProps| {
             if type_id != TypeId::of::<CHILD>() {
-                panic!("tried to send properties of other component");
+                panic!("tried to send properties of the other component");
             }
             let props = unsafe {
                 let raw: *mut CHILD::Properties = ::std::mem::transmute(raw);
@@ -75,13 +86,15 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         self.props = Some((self.type_id, data));
     }
 
-    pub(crate) fn send_props(&mut self, sender: ScopeSender<CTX, COMP>) {
+    /// This method attach sender to a listeners, because created properties
+    /// know nothing about a parent.
+    fn activate_props(&mut self, sender: ScopeSender<CTX, COMP>) -> AnyProps {
         for activator in self.activators.iter_mut() {
             *activator.borrow_mut() = Some(sender.clone());
         }
         let props = self.props.take()
-            .expect("tried to send same properties twice");
-        (self.blind_sender)(props);
+            .expect("tried to activate properties twice");
+        props
     }
 
     /// This methods gives sender from older node.
@@ -156,15 +169,20 @@ where
     COMP: Component<CTX> + 'static,
 {
     /// This methods mount a virtual component with a generator created with `lazy` call.
-    fn mount<T: INode>(&mut self, context: SharedContext<CTX>, parent: &T, opposite: Option<Node>) {
+    fn mount<T: INode>(&mut self, context: SharedContext<CTX>, parent: &T, opposite: Option<Node>, props: AnyProps) {
         let element: Element = parent
             .as_node()
             .as_ref()
             .to_owned()
             .try_into()
             .expect("element expected to mount VComp");
-        (self.generator)(context, element, opposite);
+        (self.generator)(context, element, opposite, props);
     }
+
+    fn send_props(&mut self, props: AnyProps) {
+        (self.blind_sender)(props);
+    }
+
 }
 
 
@@ -214,9 +232,13 @@ where
                 }
             }
         };
-        self.send_props(env.sender());
+        let any_props = self.activate_props(env.sender());
         match reform {
             Reform::Keep => {
+                // Send properties update when component still be rendered.
+                // But for the first initialization mount gets initial
+                // properties directly without this channel.
+                self.send_props(any_props);
             }
             Reform::Before(node) => {
                 // This is a workaround, because component should be mounted
@@ -227,7 +249,7 @@ where
                     parent.insert_before(&element, &sibling);
                     element.as_node().to_owned()
                 });
-                self.mount(env.context(), parent, node);
+                self.mount(env.context(), parent, node, any_props);
             }
         }
         self.cell.borrow().as_ref().map(|node| node.to_owned())

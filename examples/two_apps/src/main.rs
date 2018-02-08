@@ -29,10 +29,10 @@ impl Component<Context> for Model {
     type Msg = Msg;
     type Properties = ();
 
-    fn create(context: &mut Env<Context, Self>) -> Self {
+    fn create(_: Self::Properties, context: &mut Env<Context, Self>) -> Self {
         let sender = context.senders.pop().unwrap();
         Model {
-            // TODO Need properties here...
+            // TODO Use properties to set sender...
             sender,
             selector: "",
             title: "Nothing".into(),

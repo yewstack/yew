@@ -60,7 +60,7 @@ impl Component<Context> for Model {
     type Msg = Msg;
     type Properties = ();
 
-    fn create(context: &mut Env<Context, Self>) -> Self {
+    fn create(_: Self::Properties, context: &mut Env<Context, Self>) -> Self {
         let Json(database) = context.storage.restore(KEY);
         let database = database.unwrap_or_else(|_| Database {
             clients: Vec::new(),
