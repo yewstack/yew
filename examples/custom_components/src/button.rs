@@ -28,10 +28,10 @@ impl<CTX: 'static> Component<CTX> for Button {
     type Msg = Msg;
     type Properties = Props;
 
-    fn create(_: &mut Env<CTX, Self>) -> Self {
+    fn create(props: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
         Button {
-            title: "Send Signal".into(),
-            onsignal: None,
+            title: props.title,
+            onsignal: props.onsignal,
         }
     }
 

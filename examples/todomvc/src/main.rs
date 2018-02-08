@@ -52,7 +52,7 @@ impl Component<Context> for Model {
     type Msg = Msg;
     type Properties = ();
 
-    fn create(context: &mut Env<Context, Self>) -> Self {
+    fn create(_: Self::Properties, context: &mut Env<Context, Self>) -> Self {
         let entries = {
             if let Json(Ok(restored_model)) = context.storage.restore(KEY) {
                 restored_model
