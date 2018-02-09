@@ -56,6 +56,7 @@ pub(crate) type ComponentSender<CTX, COMP> = Sender<ComponentUpdate<CTX, COMP>>;
 /// of `Components` (even from JS) it will delay a message until next.
 /// Callbacks should be used from JS callbacks or `setTimeout` calls.
 /// </aside>
+/// `Rc` wrapper used to make it clonable.
 #[must_use]
 pub struct Callback<IN>(Rc<Fn(IN)>);
 
@@ -81,6 +82,21 @@ impl<IN> Callback<IN> {
     /// This method calls the actual callback.
     pub fn emit(&self, value: IN) {
         (self.0)(value);
+    }
+}
+
+impl<IN: 'static> Callback<IN> {
+    /// Changes input type of the callback to another.
+    /// Works like common `map` method but in an opposite direction.
+    pub fn reform<F, T>(self, func: F) -> Callback<T>
+    where
+        F: Fn(T) -> IN + 'static,
+    {
+        let func = move |input| {
+            let output = func(input);
+            self.clone().emit(output);
+        };
+        Callback::from(func)
     }
 }
 
