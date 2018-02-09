@@ -294,7 +294,7 @@ where
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
     /// Alias to `mount("body", ...)`.
-    pub fn mount_to_body(self) {
+    pub fn mount_to_body(self) -> ScopeHandle {
         let element = document().query_selector("body")
             .expect("can't get body node for rendering");
         self.mount(element)
@@ -304,14 +304,14 @@ where
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount(self, element: Element) {
+    pub fn mount(self, element: Element) -> ScopeHandle {
         clear_element(&element);
-        self.mount_in_place(element, None, None, None);
+        self.mount_in_place(element, None, None, None)
     }
 
     // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node.
-    pub fn mount_in_place(mut self, element: Element, obsolete: Option<VNode<CTX, COMP>>, mut occupied: Option<NodeCell>, init_props: Option<COMP::Properties>) {
+    pub fn mount_in_place(mut self, element: Element, obsolete: Option<VNode<CTX, COMP>>, mut occupied: Option<NodeCell>, init_props: Option<COMP::Properties>) -> ScopeHandle {
         let mut component = {
             let props = init_props.unwrap_or_default();
             let mut env = self.get_env();
@@ -358,12 +358,35 @@ where
         };
         // Initial call for first rendering
         callback();
+        let handle = ScopeHandle {
+            bind: bind.clone(),
+        };
         js! { @(no_return)
             var bind = @{bind};
             var callback = @{callback};
             bind.loop = callback;
         }
-        // TODO `Drop` should drop the callback
+        handle
+    }
+}
+
+/// This handle keeps the reference to a detached scope to prevent memory leaks.
+pub struct ScopeHandle {
+    bind: Value,
+}
+
+impl ScopeHandle {
+    /// Destroy the scope (component's loop).
+    pub fn destroy(self) {
+        let bind = &self.bind;
+        js! { @(no_return)
+            var destroy = function() {
+                var bind = @{bind};
+                bind.loop.drop();
+                bind.loop = function() { };
+            };
+            setTimeout(destroy, 0);
+        }
     }
 }
 
