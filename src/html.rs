@@ -237,6 +237,13 @@ impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
         }
     }
 
+    /// Return handler to a scope. Warning! Don't use more than one handle!
+    pub fn handle(&self) -> ScopeHandle {
+        ScopeHandle {
+            bind: self.bind.clone(),
+        }
+    }
+
     pub fn build(self, context: SharedContext<CTX>) -> Scope<CTX, COMP> {
         Scope {
             tx: self.tx,
@@ -294,7 +301,7 @@ where
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
     /// Alias to `mount("body", ...)`.
-    pub fn mount_to_body(self) -> ScopeHandle {
+    pub fn mount_to_body(self) {
         let element = document().query_selector("body")
             .expect("can't get body node for rendering");
         self.mount(element)
@@ -304,14 +311,14 @@ where
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount(self, element: Element) -> ScopeHandle {
+    pub fn mount(self, element: Element) {
         clear_element(&element);
         self.mount_in_place(element, None, None, None)
     }
 
     // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node.
-    pub fn mount_in_place(mut self, element: Element, obsolete: Option<VNode<CTX, COMP>>, mut occupied: Option<NodeCell>, init_props: Option<COMP::Properties>) -> ScopeHandle {
+    pub fn mount_in_place(mut self, element: Element, obsolete: Option<VNode<CTX, COMP>>, mut occupied: Option<NodeCell>, init_props: Option<COMP::Properties>) {
         let mut component = {
             let props = init_props.unwrap_or_default();
             let mut env = self.get_env();
@@ -358,15 +365,11 @@ where
         };
         // Initial call for first rendering
         callback();
-        let handle = ScopeHandle {
-            bind: bind.clone(),
-        };
         js! { @(no_return)
             var bind = @{bind};
             var callback = @{callback};
             bind.loop = callback;
         }
-        handle
     }
 }
 

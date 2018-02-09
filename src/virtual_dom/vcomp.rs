@@ -49,8 +49,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
 
             let builder = builder.take().expect("tried to mount component twice");
             let opposite = obsolete.map(VNode::VRef);
+            let handle = builder.handle();
             builder.build(context)
-                .mount_in_place(element, opposite, Some(occupied.clone()), Some(props))
+                .mount_in_place(element, opposite, Some(occupied.clone()), Some(props));
+            handle
         };
         let mut previous_props = None;
         let blind_sender = move |(type_id, raw): AnyProps| {
