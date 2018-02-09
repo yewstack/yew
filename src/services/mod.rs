@@ -13,8 +13,11 @@ pub mod websocket;
 
 use std::time::Duration;
 
-/// An universal interface to service's routine. At least could be canceled.
-pub trait Task {
+/// An universal task of a service.
+/// It have to be canceled when dropped.
+pub trait Task: Drop {
+    /// Returns `true` if task is active.
+    fn is_active(&self) -> bool;
     /// Cancel current service's routine.
     fn cancel(&mut self);
 }

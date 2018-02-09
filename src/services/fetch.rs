@@ -26,7 +26,7 @@ enum FetchError {
 }
 
 /// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
-pub struct FetchHandle(Option<Value>);
+pub struct FetchTask(Option<Value>);
 
 
 /// A service to fetch resources.
@@ -90,7 +90,7 @@ impl FetchService {
 
 
 
-    pub fn fetch<IN, OUT: 'static>(&mut self, request: Request<IN>, callback: Callback<Response<OUT>>) -> FetchHandle
+    pub fn fetch<IN, OUT: 'static>(&mut self, request: Request<IN>, callback: Callback<Response<OUT>>) -> FetchTask
     where
         IN: Into<Storable>,
         OUT: From<Restorable>,
@@ -170,11 +170,14 @@ impl FetchService {
             });
             return handle;
         };
-        FetchHandle(Some(handle))
+        FetchTask(Some(handle))
     }
 }
 
-impl Task for FetchHandle {
+impl Task for FetchTask {
+    fn is_active(&self) -> bool {
+        self.0.is_some()
+    }
     fn cancel(&mut self) {
         // Fetch API doesn't support request cancelling
         // and we should use this workaround with a flag.
@@ -184,6 +187,14 @@ impl Task for FetchHandle {
             var handle = @{handle};
             handle.interrupted = true;
             handle.callback.drop();
+        }
+    }
+}
+
+impl Drop for FetchTask {
+    fn drop(&mut self) {
+        if self.is_active() {
+            self.cancel();
         }
     }
 }

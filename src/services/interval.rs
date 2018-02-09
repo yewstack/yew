@@ -8,7 +8,7 @@ use super::{Task, to_ms};
 
 /// A handle which helps to cancel interval. Uses
 /// [clearInterval](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearInterval).
-pub struct IntervalHandle(Option<Value>);
+pub struct IntervalTask(Option<Value>);
 
 /// A service to send messages on every elapsed interval.
 pub struct IntervalService {
@@ -22,7 +22,7 @@ impl IntervalService {
 
     /// Sets interval which will call send a messages returned by a converter
     /// on every intarval expiration.
-    pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> IntervalHandle
+    pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> IntervalTask
     {
         let callback = move || {
             callback.emit(());
@@ -39,25 +39,28 @@ impl IntervalService {
                 callback,
             };
         };
-        IntervalHandle(Some(handle))
+        IntervalTask(Some(handle))
     }
 }
 
-impl Drop for IntervalHandle {
-    fn drop(&mut self) {
-        if self.0.is_some() {
-            self.cancel();
-        }
+impl Task for IntervalTask {
+    fn is_active(&self) -> bool {
+        self.0.is_some()
     }
-}
-
-impl Task for IntervalHandle {
     fn cancel(&mut self) {
         let handle = self.0.take().expect("tried to cancel interval twice");
         js! { @(no_return)
             var handle = @{handle};
             clearInterval(handle.interval_id);
             handle.callback.drop();
+        }
+    }
+}
+
+impl Drop for IntervalTask {
+    fn drop(&mut self) {
+        if self.is_active() {
+            self.cancel();
         }
     }
 }
