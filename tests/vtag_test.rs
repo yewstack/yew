@@ -12,7 +12,7 @@ impl Component<Ctx> for Comp {
     type Msg = ();
     type Properties = ();
 
-    fn create(_: &mut Env<Ctx, Self>) -> Self {
+    fn create(_: Self::Properties, _: &mut Env<Ctx, Self>) -> Self {
         Comp
     }
 

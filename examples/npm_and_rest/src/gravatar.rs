@@ -1,5 +1,5 @@
 use yew::format::{Nothing, Json};
-use yew::services::fetch::{FetchService, FetchHandle, Request, Response};
+use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::html::Callback;
 
 #[derive(Deserialize, Debug)]
@@ -28,7 +28,7 @@ impl GravatarService {
         }
     }
 
-    pub fn profile(&mut self, hash: &str, callback: Callback<Result<Profile, ()>>) -> FetchHandle {
+    pub fn profile(&mut self, hash: &str, callback: Callback<Result<Profile, ()>>) -> FetchTask {
         let url = format!("https://gravatar.com/{}", hash);
         let handler = move |response: Response<Json<Result<Profile, ()>>>| {
             let (_, Json(data)) = response.into_parts();

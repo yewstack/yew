@@ -5,13 +5,14 @@ use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::any::TypeId;
 use stdweb::web::{INode, Node, Element, document};
-use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv, NodeCell};
+use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv, NodeCell, ScopeHandle};
 use stdweb::unstable::TryInto;
 use super::{Reform, VDiff, VNode};
 
 struct Hidden;
 
 type AnyProps = (TypeId, *mut Hidden);
+type HandleCell = Rc<RefCell<Option<ScopeHandle>>>;
 
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
@@ -21,6 +22,7 @@ pub struct VComp<CTX, COMP: Component<CTX>> {
     blind_sender: Box<FnMut(AnyProps)>,
     generator: Box<FnMut(SharedContext<CTX>, Element, Option<Node>, AnyProps)>,
     activators: Vec<Rc<RefCell<Option<ScopeSender<CTX, COMP>>>>>,
+    handle: Option<ScopeHandle>,
     _parent: PhantomData<COMP>,
 }
 
@@ -32,6 +34,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     {
         let cell: NodeCell = Rc::new(RefCell::new(None));
         let builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new();
+        let handle = Some(builder.handle());
         let mut sender = builder.sender();
         let mut builder = Some(builder);
         let occupied = cell.clone();
@@ -47,7 +50,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
 
             let builder = builder.take().expect("tried to mount component twice");
             let opposite = obsolete.map(VNode::VRef);
-            builder.build(context).mount_in_place(element, opposite, Some(occupied.clone()), Some(props));
+            builder.build(context)
+                .mount_in_place(element, opposite, Some(occupied.clone()), Some(props));
         };
         let mut previous_props = None;
         let blind_sender = move |(type_id, raw): AnyProps| {
@@ -74,6 +78,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             blind_sender: Box::new(blind_sender),
             generator: Box::new(generator),
             activators: Vec::new(),
+            handle,
             _parent: PhantomData,
         };
         (properties, comp)
@@ -103,6 +108,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         // Grab a sender and a cell (element's reference) to reuse it later
         self.blind_sender = other.blind_sender;
         self.cell = other.cell;
+        self.handle = other.handle;
     }
 }
 
@@ -196,6 +202,11 @@ where
 
     /// Remove VComp from parent.
     fn remove(self, parent: &Node) -> Option<Node> {
+        // Destroy the loop. It's impossible to use `Drop`,
+        // because parts can be reused with `grab_sender_of`.
+        if let Some(handle) = self.handle {
+            handle.destroy();
+        }
         // Keep the sibling in the cell and send a message `Drop` to a loop
         self.cell.borrow_mut().take().and_then(|node| {
             let sibling = node.next_sibling();
