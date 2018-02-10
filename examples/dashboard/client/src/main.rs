@@ -6,8 +6,8 @@ extern crate yew;
 use yew::prelude::*;
 use yew::format::{Nothing, Json};
 use yew::services::Task;
-use yew::services::fetch::{FetchService, Request, Response};
-use yew::services::websocket::{WebSocketService, WebSocketHandle, WebSocketStatus};
+use yew::services::fetch::{FetchService, FetchTask, Request, Response};
+use yew::services::websocket::{WebSocketService, WebSocketTask, WebSocketStatus};
 
 struct Context {
     web: FetchService,
@@ -17,7 +17,8 @@ struct Context {
 struct Model {
     fetching: bool,
     data: Option<u32>,
-    ws: Option<WebSocketHandle>,
+    ft: Option<FetchTask>,
+    ws: Option<WebSocketTask>,
 }
 
 enum WsAction {
@@ -68,6 +69,7 @@ impl Component<Context> for Model {
         Model {
             fetching: false,
             data: None,
+            ft: None,
             ws: None,
         }
     }
@@ -85,7 +87,8 @@ impl Component<Context> for Model {
                     }
                 });
                 let request = Request::get("/data.json").body(Nothing).unwrap();
-                context.web.fetch(request, callback);
+                let task = context.web.fetch(request, callback);
+                self.ft = Some(task);
             }
             Msg::WsAction(action) => {
                 match action {
@@ -97,8 +100,8 @@ impl Component<Context> for Model {
                                 WebSocketStatus::Closed => WsAction::Lost.into(),
                             }
                         });
-                        let handle = context.ws.connect("ws://localhost:9001/", callback, notification);
-                        self.ws = Some(handle);
+                        let task = context.ws.connect("ws://localhost:9001/", callback, notification);
+                        self.ws = Some(task);
                     }
                     WsAction::SendData => {
                         let request = WsRequest {
