@@ -198,17 +198,20 @@ impl<CTX, COMP: Component<CTX>> Clone for ScopeSender<CTX, COMP> {
 impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
     /// Send the message and schedule an update.
     pub fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
-        self.tx.send(update).expect("app lost the receiver!");
-        let bind = &self.bind;
-        js! { @(no_return)
-            // Schedule to call the loop handler
-            // IMPORTANT! If call loop function immediately
-            // it stops handling other messages and the first
-            // one will be fired.
-            var bind = @{bind};
-            // Put bind holder instad of callback function, because
-            // scope could be dropped and `loop` function will be changed
-            window._yew_schedule_(bind);
+        if let Ok(()) = self.tx.send(update) {
+            let bind = &self.bind;
+            js! { @(no_return)
+                // Schedule to call the loop handler
+                // IMPORTANT! If call loop function immediately
+                // it stops handling other messages and the first
+                // one will be fired.
+                var bind = @{bind};
+                // Put bind holder instad of callback function, because
+                // scope could be dropped and `loop` function will be changed
+                window._yew_schedule_(bind);
+            }
+        } else {
+            eprintln!("app lost the receiver!");
         }
     }
 }
