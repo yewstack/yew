@@ -211,7 +211,8 @@ impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
                 window._yew_schedule_(bind);
             }
         } else {
-            eprintln!("app lost the receiver!");
+            eprintln!("Can't send message to a component. Receiver lost! \
+                       Maybe Task lives longer than a component instance.");
         }
     }
 }
