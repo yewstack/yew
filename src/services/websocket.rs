@@ -15,7 +15,7 @@ pub enum WebSocketStatus {
 }
 
 /// A handle to control current websocket connection. Implements `Task` and could be canceled.
-pub struct WebSocketHandle(Option<Value>);
+pub struct WebSocketTask(Option<Value>);
 
 /// A websocket service attached to a user context.
 pub struct  WebSocketService {
@@ -29,7 +29,7 @@ impl WebSocketService {
 
     /// Connects to a server by a weboscket connection. Needs two functions to generate
     /// data and notification messages.
-    pub fn connect<OUT: 'static>(&mut self, url: &str, callback: Callback<OUT>, notification: Callback<WebSocketStatus>) -> WebSocketHandle
+    pub fn connect<OUT: 'static>(&mut self, url: &str, callback: Callback<OUT>, notification: Callback<WebSocketStatus>) -> WebSocketTask
     where
         OUT: From<Restorable>,
     {
@@ -69,17 +69,17 @@ impl WebSocketService {
                 socket,
             };
         };
-        WebSocketHandle(Some(handle))
+        WebSocketTask(Some(handle))
     }
 }
 
-impl WebSocketHandle {
+impl WebSocketTask {
     /// Sends data to a websocket connection.
     pub fn send<IN>(&mut self, data: IN)
     where
         IN: Into<Storable>
     {
-        if let WebSocketHandle(Some(ref handle)) = *self {
+        if let WebSocketTask(Some(ref handle)) = *self {
             if let Some(body) = data.into() {
                 js! { @(no_return)
                     var handle = @{handle};
@@ -92,12 +92,23 @@ impl WebSocketHandle {
     }
 }
 
-impl Task for WebSocketHandle {
+impl Task for WebSocketTask {
+    fn is_active(&self) -> bool {
+        self.0.is_some()
+    }
     fn cancel(&mut self) {
         let handle = self.0.take().expect("tried to close websocket twice");
         js! { @(no_return)
             var handle = @{handle};
             handle.socket.close();
+        }
+    }
+}
+
+impl Drop for WebSocketTask {
+    fn drop(&mut self) {
+        if self.is_active() {
+            self.cancel();
         }
     }
 }

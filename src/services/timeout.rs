@@ -7,7 +7,7 @@ use html::Callback;
 use super::{Task, to_ms};
 
 /// A handle to cancel a timeout task.
-pub struct TimeoutHandle(Option<Value>);
+pub struct TimeoutTask(Option<Value>);
 
 /// An service to set a timeout.
 pub struct TimeoutService {
@@ -20,7 +20,7 @@ impl TimeoutService {
     }
 
     /// Sets timeout which send a messages from a `converter` after `duration`.
-    pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> TimeoutHandle {
+    pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> TimeoutTask {
         let callback = move || {
             callback.emit(());
         };
@@ -37,17 +37,28 @@ impl TimeoutService {
                 callback,
             };
         };
-        TimeoutHandle(Some(handle))
+        TimeoutTask(Some(handle))
     }
 }
 
-impl Task for TimeoutHandle {
+impl Task for TimeoutTask {
+    fn is_active(&self) -> bool {
+        self.0.is_some()
+    }
     fn cancel(&mut self) {
         let handle = self.0.take().expect("tried to cancel timeout twice");
         js! { @(no_return)
             var handle = @{handle};
             clearTimeout(handle.timeout_id);
             handle.callback.drop();
+        }
+    }
+}
+
+impl Drop for TimeoutTask {
+    fn drop(&mut self) {
+        if self.is_active() {
+            self.cancel();
         }
     }
 }

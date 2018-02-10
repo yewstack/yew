@@ -6,6 +6,7 @@ extern crate stdweb;
 extern crate yew;
 
 use yew::prelude::*;
+use yew::services::fetch::FetchTask;
 
 // Own services implementation
 mod gravatar;
@@ -21,6 +22,7 @@ struct Context {
 struct Model {
     profile: Option<Profile>,
     exchanges: Vec<String>,
+    task: Option<FetchTask>,
 }
 
 enum Msg {
@@ -37,6 +39,7 @@ impl Component<Context> for Model {
         Model {
             profile: None,
             exchanges: Vec::new(),
+            task: None,
         }
     }
 
@@ -44,7 +47,8 @@ impl Component<Context> for Model {
         match msg {
             Msg::Gravatar => {
                 let callback = context.send_back(Msg::GravatarReady);
-                context.gravatar.profile("205e460b479e2e5b48aec07710c08d50", callback);
+                let task = context.gravatar.profile("205e460b479e2e5b48aec07710c08d50", callback);
+                self.task = Some(task);
             }
             Msg::GravatarReady(Ok(profile)) => {
                 self.profile = Some(profile);

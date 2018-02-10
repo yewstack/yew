@@ -198,17 +198,21 @@ impl<CTX, COMP: Component<CTX>> Clone for ScopeSender<CTX, COMP> {
 impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
     /// Send the message and schedule an update.
     pub fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
-        self.tx.send(update).expect("app lost the receiver!");
-        let bind = &self.bind;
-        js! { @(no_return)
-            // Schedule to call the loop handler
-            // IMPORTANT! If call loop function immediately
-            // it stops handling other messages and the first
-            // one will be fired.
-            var bind = @{bind};
-            // Put bind holder instad of callback function, because
-            // scope could be dropped and `loop` function will be changed
-            window._yew_schedule_(bind);
+        if let Ok(()) = self.tx.send(update) {
+            let bind = &self.bind;
+            js! { @(no_return)
+                // Schedule to call the loop handler
+                // IMPORTANT! If call loop function immediately
+                // it stops handling other messages and the first
+                // one will be fired.
+                var bind = @{bind};
+                // Put bind holder instad of callback function, because
+                // scope could be dropped and `loop` function will be changed
+                window._yew_schedule_(bind);
+            }
+        } else {
+            eprintln!("Can't send message to a component. Receiver lost! \
+                       Maybe Task lives longer than a component instance.");
         }
     }
 }
@@ -233,6 +237,13 @@ impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
     pub fn sender(&self) -> ScopeSender<CTX, COMP> {
         ScopeSender {
             tx: self.tx.clone(),
+            bind: self.bind.clone(),
+        }
+    }
+
+    /// Return handler to a scope. Warning! Don't use more than one handle!
+    pub fn handle(&self) -> ScopeHandle {
+        ScopeHandle {
             bind: self.bind.clone(),
         }
     }
@@ -306,7 +317,7 @@ where
     /// will render the model to a virtual DOM tree.
     pub fn mount(self, element: Element) {
         clear_element(&element);
-        self.mount_in_place(element, None, None, None);
+        self.mount_in_place(element, None, None, None)
     }
 
     // TODO Consider to use &Node instead of Element as parent
@@ -363,7 +374,26 @@ where
             var callback = @{callback};
             bind.loop = callback;
         }
-        // TODO `Drop` should drop the callback
+    }
+}
+
+/// This handle keeps the reference to a detached scope to prevent memory leaks.
+pub struct ScopeHandle {
+    bind: Value,
+}
+
+impl ScopeHandle {
+    /// Destroy the scope (component's loop).
+    pub fn destroy(self) {
+        let bind = &self.bind;
+        js! { @(no_return)
+            var destroy = function() {
+                var bind = @{bind};
+                bind.loop.drop();
+                bind.loop = function() { };
+            };
+            setTimeout(destroy, 0);
+        }
     }
 }
 
