@@ -20,7 +20,7 @@ pub struct VComp<CTX, COMP: Component<CTX>> {
     cell: NodeCell,
     props: Option<(TypeId, *mut Hidden)>,
     blind_sender: Box<FnMut(AnyProps)>,
-    generator: Box<FnMut(SharedContext<CTX>, Element, Option<Node>, AnyProps) -> ScopeHandle>,
+    generator: Box<FnMut(SharedContext<CTX>, Element, Option<Node>, AnyProps)>,
     activators: Vec<Rc<RefCell<Option<ScopeSender<CTX, COMP>>>>>,
     handle: Option<ScopeHandle>,
     _parent: PhantomData<COMP>,
@@ -34,6 +34,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     {
         let cell: NodeCell = Rc::new(RefCell::new(None));
         let builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new();
+        let handle = Some(builder.handle());
         let mut sender = builder.sender();
         let mut builder = Some(builder);
         let occupied = cell.clone();
@@ -49,10 +50,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
 
             let builder = builder.take().expect("tried to mount component twice");
             let opposite = obsolete.map(VNode::VRef);
-            let handle = builder.handle();
             builder.build(context)
                 .mount_in_place(element, opposite, Some(occupied.clone()), Some(props));
-            handle
         };
         let mut previous_props = None;
         let blind_sender = move |(type_id, raw): AnyProps| {
@@ -79,7 +78,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             blind_sender: Box::new(blind_sender),
             generator: Box::new(generator),
             activators: Vec::new(),
-            handle: None,
+            handle,
             _parent: PhantomData,
         };
         (properties, comp)
@@ -109,6 +108,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         // Grab a sender and a cell (element's reference) to reuse it later
         self.blind_sender = other.blind_sender;
         self.cell = other.cell;
+        self.handle = other.handle;
     }
 }
 
@@ -182,8 +182,7 @@ where
             .to_owned()
             .try_into()
             .expect("element expected to mount VComp");
-        let handle = (self.generator)(context, element, opposite, props);
-        self.handle = Some(handle);
+        (self.generator)(context, element, opposite, props);
     }
 
     fn send_props(&mut self, props: AnyProps) {
