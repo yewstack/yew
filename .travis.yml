@@ -1,3 +1,9 @@
+branches:
+  only:
+    - staging
+    - trying
+    - master
+
 language: rust
 
 dist: trusty
