@@ -288,17 +288,26 @@ impl Component<Context> for Model {
 }
 ```
 
-## Running the examples
+## Development setup
 
 Clone or download this repository.
+To build this project you need to have [cargo-web] installed:
+
+    $ cargo install cargo-web
+
+### Build
+
+    $ cargo web build
+
+### Running Tests
+
+    $ ./ci/run_tests.sh
+
+### Running the examples
 
 There are many examples that show how the framework works:
 [counter], [crm], [custom_components], [dashboard], [fragments],
 [game_of_life], [mount_point], [npm_and_rest], [timer], [todomvc], [two_apps].
-
-To run them you need to have [cargo-web] installed:
-
-    $ cargo install cargo-web
 
 To start an example enter its directory and start it with [cargo-web]:
 
@@ -308,7 +317,7 @@ To run an optimised build instead of a debug build use:
 
     $ cargo web start --release
 
-By default `cargo-web` will use Emscripten to generate asm.js. You can also
+**Note**: By default `cargo-web` will use Emscripten to generate asm.js. You can also
 compile to WebAssembly if you add either `--target=wasm32-unknown-emscripten` or
 `--target=wasm32-unknown-unknown`, where the first one will use Emscripten and
 the second one will use Rust's native WebAssembly backend (Rust nightly only!).
