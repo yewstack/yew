@@ -222,7 +222,7 @@ impl Component<Context> for Model {
 
 Can't find an essential service? Want to use library from `npm`?
 You can reuse `JavaScript` libraries with `stdweb` capabilities and create
-your won service implementation. Here's an example below of how to wrap the  
+your own service implementation. Here's an example below of how to wrap the  
 [ccxt](https://www.npmjs.com/package/ccxt) library:
 
 ```rust
