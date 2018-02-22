@@ -251,7 +251,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             Reform::Keep => {
             }
             Reform::Before(node) => {
-                let element = document().create_element(&self.tag);
+                let element = document().create_element(&self.tag)
+					.expect("failure to create element");
                 if let Some(sibling) = node {
                     parent.insert_before(&element, &sibling)
                         .expect("can't insert tag before sibling");
@@ -287,10 +288,12 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                 match change {
                     Patch::Add(class, _) |
                     Patch::Replace(class, _) => {
-                        list.add(&class);
+                        list.add(&class)
+							.expect("failed to add class");
                     }
                     Patch::Remove(class) => {
-                        list.remove(&class);
+                        list.remove(&class)
+							.expect("failed to remove class");
                     }
                 }
             }
@@ -317,10 +320,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                     match change {
                         Patch::Add(kind, _) |
                         Patch::Replace(kind, _) => {
-                            input.set_kind(&kind);
+                            set_kind(&input, &kind);
                         }
                         Patch::Remove(_) => {
-                            input.set_kind("");
+                            set_kind(&input, "");
                         }
                     }
                 }
@@ -329,10 +332,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                     match change {
                         Patch::Add(kind, _) |
                         Patch::Replace(kind, _) => {
-                            input.set_value(&kind);
+                            input.set_raw_value(&kind);
                         }
                         Patch::Remove(_) => {
-                            input.set_value("");
+                            input.set_raw_value("");
                         }
                     }
                 }
@@ -407,6 +410,11 @@ fn remove_attribute(element: &Element, name: &str) {
 /// Set `checked` value for the `InputElement`.
 fn set_checked(input: &InputElement, value: bool) {
     js!( @(no_return) @{input}.checked = @{value}; );
+}
+
+/// Set `type`  value for the `InputElement`.
+pub fn set_kind(input: &InputElement, kind: &str) {
+	js!( @(no_return) @{input}.type = @{kind}; );
 }
 
 impl<CTX, COMP: Component<CTX>> PartialEq for VTag<CTX, COMP> {

@@ -10,6 +10,7 @@ use std::sync::mpsc::{Sender, Receiver, channel};
 use stdweb::Value;
 use stdweb::web::{Element, INode, Node, EventListenerHandle, document};
 use stdweb::web::event::{IMouseEvent, IKeyboardEvent, BlurEvent};
+use stdweb::traits::*;
 use virtual_dom::{VDiff, VNode, Listener};
 
 /// This type indicates that component should be rendered again.
@@ -308,7 +309,7 @@ where
     pub fn mount_to_body(self) {
         let element = document().query_selector("body")
             .expect("can't get body node for rendering");
-        self.mount(element)
+        self.mount(element.unwrap())
     }
 
     /// The main entrypoint of a yew program. It works similar as `program`
@@ -480,7 +481,7 @@ impl_action! {
         use stdweb::web::html_element::InputElement;
         use stdweb::unstable::TryInto;
         let input: InputElement = this.clone().try_into().expect("only an InputElement can have an oninput event listener");
-        let value = input.value().into_string().unwrap_or_else(|| "".into());
+        let value = input.raw_value();
         InputData { value }
     }
 }
@@ -492,22 +493,22 @@ pub struct MouseData {
     /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/screenX)
     /// property which provides the horizontal coordinate (offset)
     /// of the mouse pointer in global (screen) coordinates.
-    pub screen_x: f64,
+    pub screen_x: i32,
     /// The screenY is a read-only property of the
     /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/screenY)
     /// property which provides the vertical coordinate (offset)
     /// of the mouse pointer in global (screen) coordinates.
-    pub screen_y: f64,
+    pub screen_y: i32,
     /// The clientX is a read-only property of the
     /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/clientX)
     /// interface which provides the horizontal coordinate within
     /// the application's client area at which the event occurred
-    pub client_x: f64,
+    pub client_x: i32,
     /// The clientY is a read-only property of the
     /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/clientX)
     /// interface which provides the vertical coordinate within
     /// the application's client area at which the event occurred
-    pub client_y: f64,
+    pub client_y: i32,
 }
 
 impl<T: IMouseEvent> From<T> for MouseData {
