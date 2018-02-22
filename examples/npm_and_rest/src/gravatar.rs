@@ -1,3 +1,4 @@
+use failure::Error;
 use yew::format::{Nothing, Json};
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::html::Callback;
@@ -28,9 +29,9 @@ impl GravatarService {
         }
     }
 
-    pub fn profile(&mut self, hash: &str, callback: Callback<Result<Profile, ()>>) -> FetchTask {
+    pub fn profile(&mut self, hash: &str, callback: Callback<Result<Profile, Error>>) -> FetchTask {
         let url = format!("https://gravatar.com/{}", hash);
-        let handler = move |response: Response<Json<Result<Profile, ()>>>| {
+        let handler = move |response: Response<Json<Result<Profile, Error>>>| {
             let (_, Json(data)) = response.into_parts();
             callback.emit(data)
         };

@@ -1,8 +1,10 @@
+extern crate failure;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate yew;
 
+use failure::Error;
 use yew::prelude::*;
 use yew::format::{Nothing, Json};
 use yew::services::Task;
@@ -31,8 +33,8 @@ enum WsAction {
 enum Msg {
     FetchData,
     WsAction(WsAction),
-    FetchReady(Result<DataFromFile, ()>),
-    WsReady(Result<WsResponse, ()>),
+    FetchReady(Result<DataFromFile, Error>),
+    WsReady(Result<WsResponse, Error>),
     Ignore,
 }
 
@@ -78,8 +80,9 @@ impl Component<Context> for Model {
         match msg {
             Msg::FetchData => {
                 self.fetching = true;
-                let callback = context.send_back(|response: Response<Json<Result<DataFromFile, ()>>>| {
+                let callback = context.send_back(|response: Response<Json<Result<DataFromFile, Error>>>| {
                     let (meta, Json(data)) = response.into_parts();
+                    println!("META: {:?}, {:?}", meta, data);
                     if meta.status.is_success() {
                         Msg::FetchReady(data)
                     } else {

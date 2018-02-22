@@ -9,7 +9,8 @@ function ctrl_c() {
 
 for example in */ ; do
     cd $example
-    cargo web start --target-webasm-emscripten &
+    cargo update
+    cargo web start --target wasm32-unknown-emscripten &
     PID=$!
     wait $PID
     cd ..
