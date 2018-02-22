@@ -12,7 +12,6 @@ use super::{Reform, VDiff, VNode};
 struct Hidden;
 
 type AnyProps = (TypeId, *mut Hidden);
-type HandleCell = Rc<RefCell<Option<ScopeHandle>>>;
 
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
