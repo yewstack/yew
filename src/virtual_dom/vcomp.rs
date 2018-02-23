@@ -12,7 +12,6 @@ use super::{Reform, VDiff, VNode};
 struct Hidden;
 
 type AnyProps = (TypeId, *mut Hidden);
-type HandleCell = Rc<RefCell<Option<ScopeHandle>>>;
 
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
@@ -257,7 +256,8 @@ where
                 // There is created an empty text node to be replaced with mount call.
                 let node = node.map(|sibling| {
                     let element = document().create_text_node("");
-                    parent.insert_before(&element, &sibling);
+                    parent.insert_before(&element, &sibling)
+                        .expect("can't insert dummy element for a component");
                     element.as_node().to_owned()
                 });
                 self.mount(env.context(), parent, node, any_props);

@@ -50,17 +50,17 @@ where
     }
 }
 
-impl<T> From<Restorable> for Json<Result<T, ()>>
+impl<T> From<Restorable> for Json<Result<T, Error>>
 where
     T: for <'de> Deserialize<'de>
 {
     fn from(value: Restorable) -> Self {
         match value {
             Ok(data) => {
-                Json(serde_json::from_str(&data).map_err(drop))
+                Json(serde_json::from_str(&data).map_err(Error::from))
             }
-            Err(_reason) => {
-                Json(Err(()))
+            Err(reason) => {
+                Json(Err(reason))
             }
         }
     }

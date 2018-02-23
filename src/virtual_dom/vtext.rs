@@ -82,7 +82,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
             Reform::Before(node) => {
                 let element = document().create_text_node(&self.text);
                 if let Some(sibling) = node {
-                    parent.insert_before(&element, &sibling);
+                    parent.insert_before(&element, &sibling)
+                        .expect("can't insert text before sibling");
                 } else {
                     parent.append_child(&element);
                 }

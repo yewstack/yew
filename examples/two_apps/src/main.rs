@@ -6,7 +6,7 @@ extern crate yew;
 
 use std::rc::Rc;
 use std::cell::RefCell;
-use stdweb::web::document;
+use stdweb::web::{IParentNode, document};
 // Use `html` module directly. No use `App`.
 use yew::html::*;
 
@@ -67,7 +67,7 @@ impl Renderable<Context, Model> for Model {
 }
 
 fn mount_app(selector: &'static str, app: Scope<Context, Model>) {
-    let element = document().query_selector(selector).unwrap();
+    let element = document().query_selector(selector).unwrap().unwrap();
     app.mount(element);
 }
 

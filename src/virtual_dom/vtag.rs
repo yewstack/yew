@@ -251,13 +251,16 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             Reform::Keep => {
             }
             Reform::Before(node) => {
-                let element = document().create_element(&self.tag);
+                let element = document().create_element(&self.tag)
+                    .expect("can't create element for vtag");
                 if let Some(sibling) = node {
-                    parent.insert_before(&element, &sibling);
+                    parent.insert_before(&element, &sibling)
+                        .expect("can't insert tag before sibling");
                 } else {
                     let precursor = precursor.and_then(|node| node.next_sibling());
                     if let Some(precursor) = precursor {
-                        parent.insert_before(&element, &precursor);
+                        parent.insert_before(&element, &precursor)
+                            .expect("can't insert tag before precursor");
                     } else {
                         parent.append_child(&element);
                     }
@@ -285,10 +288,12 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                 match change {
                     Patch::Add(class, _) |
                     Patch::Replace(class, _) => {
-                        list.add(&class);
+                        list.add(&class)
+                            .expect("can't add a class");
                     }
                     Patch::Remove(class) => {
-                        list.remove(&class);
+                        list.remove(&class)
+                            .expect("can't remove a class");
                     }
                 }
             }
@@ -315,10 +320,19 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                     match change {
                         Patch::Add(kind, _) |
                         Patch::Replace(kind, _) => {
-                            input.set_kind(&kind);
+                            //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
+                            //input.set_kind(&kind);
+                            let input = &input;
+                            js! { @(no_return)
+                                @{input}.type = @{kind};
+                            }
                         }
                         Patch::Remove(_) => {
-                            input.set_kind("");
+                            //input.set_kind("");
+                            let input = &input;
+                            js! { @(no_return)
+                                @{input}.type = "";
+                            }
                         }
                     }
                 }
@@ -327,10 +341,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                     match change {
                         Patch::Add(kind, _) |
                         Patch::Replace(kind, _) => {
-                            input.set_value(&kind);
+                            input.set_raw_value(&kind);
                         }
                         Patch::Remove(_) => {
-                            input.set_value("");
+                            input.set_raw_value("");
                         }
                     }
                 }
