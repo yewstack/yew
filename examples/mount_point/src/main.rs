@@ -4,7 +4,7 @@ extern crate yew;
 extern crate stdweb;
 
 use yew::prelude::*;
-use stdweb::web::{IElement, document, INode};
+use stdweb::web::{IElement, INode, IParentNode, document};
 
 type Context = ();
 
@@ -49,10 +49,10 @@ impl Renderable<Context, Model> for Model {
 
 fn main() {
     yew::initialize();
-    let body = document().query_selector("body").unwrap();
+    let body = document().query_selector("body").unwrap().unwrap();
 
     // This canvas won't be overwritten by yew!
-    let canvas = document().create_element("canvas");
+    let canvas = document().create_element("canvas").unwrap();
     body.append_child(&canvas);
 
     js! {
@@ -65,8 +65,8 @@ fn main() {
     };
 
     let mount_class = "mount-point";
-    let mount_point = document().create_element("div");
-    mount_point.class_list().add(mount_class);
+    let mount_point = document().create_element("div").unwrap();
+    mount_point.class_list().add(mount_class).unwrap();
     body.append_child(&mount_point);
 
     let app: App<_, Model> = App::new(());

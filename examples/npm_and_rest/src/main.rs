@@ -1,3 +1,4 @@
+extern crate failure;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -5,6 +6,7 @@ extern crate stdweb;
 #[macro_use]
 extern crate yew;
 
+use failure::Error;
 use yew::prelude::*;
 use yew::services::fetch::FetchTask;
 
@@ -27,7 +29,7 @@ struct Model {
 
 enum Msg {
     Gravatar,
-    GravatarReady(Result<Profile, ()>),
+    GravatarReady(Result<Profile, Error>),
     Exchanges,
 }
 

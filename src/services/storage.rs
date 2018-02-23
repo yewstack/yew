@@ -1,7 +1,7 @@
 //! This module contains the implementation of a service to
 //! use local and session storage of a browser.
 
-use stdweb::Value;
+use stdweb::web::{window, Storage};
 use format::{Storable, Restorable};
 
 /// Represents errors of a storage.
@@ -21,14 +21,20 @@ pub enum Area {
 
 /// A storage service attached to a context.
 pub struct StorageService {
-    scope: Area,
+    storage: Storage,
 }
 
 impl StorageService {
 
-    /// Creates a new storage service instance with specified storate scope.
-    pub fn new(scope: Area) -> Self {
-        StorageService { scope }
+    /// Creates a new storage service instance with specified storate area.
+    pub fn new(area: Area) -> Self {
+        let storage = {
+            match area {
+                Area::Local => window().local_storage(),
+                Area::Session => window().session_storage(),
+            }
+        };
+        StorageService { storage }
     }
 
     /// Stores value to the storage.
@@ -37,14 +43,8 @@ impl StorageService {
         T: Into<Storable>
     {
         if let Some(data) = value.into() {
-            match self.scope {
-                Area::Local => { js! { @(no_return)
-                    localStorage.setItem(@{key}, @{data});
-                } },
-                Area::Session => { js! { @(no_return)
-                    sessionStorage.setItem(@{key}, @{data});
-                } },
-            }
+            self.storage.insert(key, &data)
+                .expect("can't insert value to a storage");
         }
     }
 
@@ -53,27 +53,13 @@ impl StorageService {
     where
         T : From<Restorable>
     {
-        let value: Value = {
-            match self.scope {
-                Area::Local => js! { return localStorage.getItem(@{key}); },
-                Area::Session => js! { return sessionStorage.getItem(@{key}); },
-            }
-        };
-        let data = value.into_string().ok_or_else(|| StorageError::CantRestore.into());
+        let data = self.storage.get(key)
+            .ok_or_else(|| StorageError::CantRestore.into());
         T::from(data)
     }
 
     /// Removes value from the storage.
     pub fn remove(&mut self, key: &str) {
-        {
-            match self.scope {
-                Area::Local => js! { @(no_return)
-                    localStorage.removeItem(@{key});
-                },
-                Area::Session => js! { @(no_return)
-                    sessionStorage.removeItem(@{key});
-                },
-            }
-        };
+        self.storage.remove(key);
     }
 }
