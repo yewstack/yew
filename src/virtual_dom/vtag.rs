@@ -6,6 +6,7 @@ use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::collections::HashSet;
 use std::fmt;
+use stdweb::web::html_element::TextAreaElement;
 use stdweb::unstable::TryFrom;
 use stdweb::web::html_element::InputElement;
 use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node};
@@ -359,7 +360,21 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                 // IMPORTANT! This parameters have to be set every time
                 // to prevent strange behaviour in browser when DOM changed
                 set_checked(&input, self.checked);
-            }
+            } else {
+                if let Ok(tae) = TextAreaElement::try_from(subject.clone()) {
+                    if let Some(change) = self.soakup_value(&mut opposite) {
+                        match change {
+                            Patch::Add(value, _) |
+                            Patch::Replace(value, _) => {
+                                tae.set_value(&value);
+                            }
+                            Patch::Remove(_) => {
+                                tae.set_value("");
+                            }
+                        }
+                    }
+                }
+             }
 
             // Every render it removes all listeners and attach it back later
             // TODO Compare references of handler to do listeners update better
