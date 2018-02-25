@@ -6,6 +6,7 @@ extern crate rand;
 
 use yew::prelude::*;
 use std::time::Duration;
+use yew::html::ComponentUpdate;
 use yew::services::Task;
 use yew::services::interval::IntervalService;
 
@@ -237,7 +238,13 @@ fn main() {
     let context = Context {
         interval: IntervalService::new(),
     };
-    let app: App<_, GameOfLife> = App::new(context);
+    let mut app: App<_, GameOfLife> = App::new(context);
+
+    // Send initial message. For demo purposes only!
+    // You should prefer to initialize everything in `Component::create` implementation.
+    let msg = ComponentUpdate::Message(Msg::Random);
+    app.get_env().sender().send(msg);
+
     app.mount_to_body();
     yew::run_loop();
 }
