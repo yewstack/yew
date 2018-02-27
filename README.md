@@ -10,11 +10,31 @@ Yew is a modern Rust framework inspired by Elm and ReactJS.
 
 This framework is designed to be compiled into modern browsers' runtimes: wasm, asm.js, emscripten.
 
+Use the cargo-web package to easily get webassembly support. --force ensures the latest version.
+```rust
+$ rustup target add wasm32-unknown-emscripten
+$ cargo install --force cargo-web
+```
+
+
+Build `src/main.rs` (listed below)
+
+```rust
+$ cargo web build --target wasm32-unknown-emscripten
+
+```
+
 ### Clean MVC approach inspired by Elm and Redux
 
 Yew implements strict application state management based on message passing and updates:
 
+`src/main.rs`
+
 ```rust
+#[macro_use]
+extern crate yew;
+use yew::prelude::*;
+
 type Context = ();
 
 struct Model { }
@@ -25,10 +45,19 @@ enum Msg {
 
 impl Component<Context> for Model {
     // Some details omitted. Explore the examples to get more.
+
+    type Msg = Msg;
+    type Properties = ();
+
+    fn create(_: Self::Properties, _: &mut Env<Context, Self>) -> Self {
+        Model { }
+    }
+
     fn update(&mut self, msg: Self::Msg, _: &mut Env<Context, Self>) -> ShouldRender {
         match msg {
             Msg::DoIt => {
                 // Update your model on events
+                true
             }
         }
     }
