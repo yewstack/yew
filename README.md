@@ -10,19 +10,7 @@ Yew is a modern Rust framework inspired by Elm and ReactJS.
 
 This framework is designed to be compiled into modern browsers' runtimes: wasm, asm.js, emscripten.
 
-Use the cargo-web package to easily get webassembly support. --force ensures the latest version.
-```rust
-$ rustup target add wasm32-unknown-emscripten
-$ cargo install --force cargo-web
-```
-
-
-Build `src/main.rs` (listed below)
-
-```rust
-$ cargo web build --target wasm32-unknown-emscripten
-
-```
+To prepare the developments environment use installation instruction here: [wasm-and-rust](https://github.com/raphamorim/wasm-and-rust)
 
 ### Clean MVC approach inspired by Elm and Redux
 
@@ -251,7 +239,7 @@ impl Component<Context> for Model {
 
 Can't find an essential service? Want to use library from `npm`?
 You can reuse `JavaScript` libraries with `stdweb` capabilities and create
-your own service implementation. Here's an example below of how to wrap the  
+your own service implementation. Here's an example below of how to wrap the
 [ccxt](https://www.npmjs.com/package/ccxt) library:
 
 ```rust
@@ -320,9 +308,19 @@ impl Component<Context> for Model {
 ## Development setup
 
 Clone or download this repository.
+
+Add necessary targets to your compiler:
+
+    $ rustup target add wasm32-unknown-emscripten
+
+> We used `wasm32-unknown-emscripten` target here, because not every crate could be compiled to
+the pure `wasm32-unknown-unknown` target. But the crates still improving and you can do it soon.
+
 To build this project you need to have [cargo-web] installed:
 
     $ cargo install cargo-web
+
+> Add `--force` option to ensure the latest version.
 
 ### Build
 
