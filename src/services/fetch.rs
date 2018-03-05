@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use stdweb::Value;
-use stdweb::unstable::TryFrom;
+use stdweb::unstable::{TryFrom, TryInto};
 
 use format::{Storable, Restorable};
 use html::Callback;
@@ -152,17 +152,19 @@ impl FetchService {
             var request = new Request(@{uri}, data);
             var callback = @{callback};
             var handle = {
-                interrupt: false,
+                active: true,
                 callback,
             };
             fetch(request).then(function(response) {
                 response.text().then(function(data) {
-                    if (handle.interrupted != true) {
+                    if (handle.active == true) {
+                        handle.active = false;
                         callback(true, response, data);
                         callback.drop();
                     }
                 }).catch(function(err) {
-                    if (handle.interrupted != true) {
+                    if (handle.active == true) {
+                        handle.active = false;
                         callback(false, response, data);
                         callback.drop();
                     }
@@ -176,7 +178,15 @@ impl FetchService {
 
 impl Task for FetchTask {
     fn is_active(&self) -> bool {
-        self.0.is_some()
+        if let Some(ref task) = self.0 {
+            let result = js! {
+                var the_task = @{task};
+                return the_task.active;
+            };
+            result.try_into().unwrap_or(false)
+        } else {
+            false
+        }
     }
     fn cancel(&mut self) {
         // Fetch API doesn't support request cancelling
@@ -185,7 +195,7 @@ impl Task for FetchTask {
         let handle = self.0.take().expect("tried to cancel request fetching twice");
         js! {  @(no_return)
             var handle = @{handle};
-            handle.interrupted = true;
+            handle.active = false;
             handle.callback.drop();
         }
     }
