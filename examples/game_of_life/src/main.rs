@@ -16,7 +16,7 @@ struct Context {
 
 #[derive(Clone, Copy, PartialEq)]
 enum LifeState {
-    Live,
+    Alive,
     Dead,
 }
 
@@ -33,39 +33,48 @@ struct GameOfLife {
 }
 
 impl Cellule {
-
-    pub fn set_alive(&mut self) { self.life_state = LifeState::Live; }
-
-    pub fn set_dead(&mut self) { self.life_state = LifeState::Dead; }
-
-    pub fn is_alive(self) -> bool { self.life_state == LifeState::Live }
-
-    pub fn count_live_neighbor(&mut self, neighbor: &[Cellule]) -> u32 {
-        let mut living : u32 = 0;
-        for neighbor in neighbor {
-            if neighbor.is_alive() {
-                living += 1;
-            }
-        }
-        living
+    pub fn set_alive(&mut self) {
+        self.life_state = LifeState::Alive;
     }
 
-    pub fn is_loneliness(&mut self, neighbors: &[Cellule]) -> bool {
-        self.count_live_neighbor(neighbors) < 2
+    pub fn set_dead(&mut self) {
+        self.life_state = LifeState::Dead;
     }
 
-    pub fn is_overpopulation(&mut self, neighbors: &[Cellule]) -> bool {
-        self.count_live_neighbor(neighbors) > 3
+    pub fn alive(&self) -> bool {
+        self.life_state == LifeState::Alive
     }
 
-    pub fn revive(&mut self, neighbors: &[Cellule]) -> bool {
-        self.count_live_neighbor(neighbors) == 3
+    pub fn count_alive_neighbors(neighbors: &[Cellule]) -> usize {
+        neighbors.iter().filter(|n| n.alive()).count()
     }
 
+    pub fn alone(neighbors: &[Cellule]) -> bool {
+        Self::count_alive_neighbors(neighbors) < 2
+    }
+
+    pub fn overpopulated(neighbors: &[Cellule]) -> bool {
+        Self::count_alive_neighbors(neighbors) > 3
+    }
+
+    pub fn can_be_revived(neighbors: &[Cellule]) -> bool {
+        Self::count_alive_neighbors(neighbors) == 3
+    }
 }
 
-impl GameOfLife {
+fn wrap(coord: isize, range: isize) -> usize {
+    let result = if coord < 0 {
+        (coord + range)
+    } else if coord >= range {
+        (coord - range)
+    } else {
+        coord
+    };
+    result as usize
+}
 
+
+impl GameOfLife {
     pub fn random_mutate(&mut self) {
         for cellule in self.cellules.iter_mut() {
             if rand::random() {
@@ -76,66 +85,64 @@ impl GameOfLife {
         }
     }
 
-    pub fn play(&mut self) {
-        self.commute();
-    }
-
     fn reset(&mut self) {
         for cellule in self.cellules.iter_mut() {
             cellule.set_dead();
         }
     }
 
-    pub fn commute(&mut self) {
-        let mut not_committed = self.cellules.clone();
+    pub fn step(&mut self) {
+        let mut to_dead = Vec::new();
+        let mut to_live = Vec::new();
         for row in 0..self.cellules_height {
             for col in 0..self.cellules_width {
-                let mut neighbors = Vec::new();
-                if row>0 && col>0 {
-                    neighbors.push(not_committed[self.row_col_as_idx(row-1, col-1)]);
-                    neighbors.push(not_committed[self.row_col_as_idx(row, col-1)]);
-                    neighbors.push(not_committed[self.row_col_as_idx(row-1, col)]);
-                }
-                if row<self.cellules_height-1 && col<self.cellules_width-1 {
-                    neighbors.push(not_committed[self.row_col_as_idx(row+1, col+1)]);
-                    neighbors.push(not_committed[self.row_col_as_idx(row, col+1)]);
-                    neighbors.push(not_committed[self.row_col_as_idx(row+1, col)]);
-                }
-                if row>0 && col<self.cellules_width-1 {
-                    neighbors.push(not_committed[self.row_col_as_idx(row-1, col+1)]);
-                }
-                if row<self.cellules_height-1 && col>0 {
-                    neighbors.push(not_committed[self.row_col_as_idx(row+1, col-1)]);
-                }
+                let neighbors = self.neighbors(row as isize, col as isize);
 
-                let current_idx = self.row_col_as_idx(row, col);
-                if not_committed[current_idx].is_alive() {
-                    if not_committed[current_idx].is_loneliness(&neighbors)
-                        || not_committed[current_idx].is_overpopulation(&neighbors) {
-                        self.cellules[current_idx].set_dead();
+                let current_idx = self.row_col_as_idx(row as isize, col as isize);
+                if self.cellules[current_idx].alive() {
+                    if Cellule::alone(&neighbors) || Cellule::overpopulated(&neighbors) {
+                        to_dead.push(current_idx);
                     }
                 } else {
-                    if not_committed[current_idx].revive(&neighbors) {
-                        self.cellules[current_idx].set_alive();
+                    if Cellule::can_be_revived(&neighbors) {
+                        to_live.push(current_idx);
                     }
                 }
             }
         }
+        to_dead.iter().for_each(|idx| self.cellules[*idx].set_dead());
+        to_live.iter().for_each(|idx| self.cellules[*idx].set_alive());
     }
 
-    fn row_col_as_idx(&mut self, row: usize, col: usize) -> usize {
-        if row>0 { row*self.cellules_width-1 + col } else { row*self.cellules_width + col }
+    fn neighbors(&self, row: isize, col: isize) -> [Cellule; 8] {
+        [
+            self.cellules[self.row_col_as_idx(row + 1, col)],
+            self.cellules[self.row_col_as_idx(row + 1, col + 1)],
+            self.cellules[self.row_col_as_idx(row + 1, col - 1)],
+            self.cellules[self.row_col_as_idx(row - 1, col)],
+            self.cellules[self.row_col_as_idx(row - 1, col + 1)],
+            self.cellules[self.row_col_as_idx(row - 1, col - 1)],
+            self.cellules[self.row_col_as_idx(row, col - 1)],
+            self.cellules[self.row_col_as_idx(row, col + 1)],
+        ]
+    }
+
+    fn row_col_as_idx(&self, row: isize, col: isize) -> usize {
+        let row = wrap(row, self.cellules_height as isize);
+        let col = wrap(col, self.cellules_width as isize);
+
+        row * self.cellules_width + col
     }
 
     fn toggle_cellule(&mut self, idx: usize) {
-        let mut cellules = self.cellules
-            .iter_mut()
-            .collect::<Vec<_>>();
-        let cellule = cellules.get_mut(idx).unwrap();
-        cellule.life_state = if cellule.life_state == LifeState::Live { LifeState::Dead } else { LifeState::Live };
+        let cellule = self.cellules.get_mut(idx).unwrap();
+        if cellule.life_state == LifeState::Alive {
+            cellule.life_state = LifeState::Dead
+        } else {
+            cellule.life_state = LifeState::Alive
+        };
     }
 }
-
 
 enum Msg {
     Random,
@@ -172,7 +179,7 @@ impl Component<Context> for GameOfLife {
                 println!("Start");
             },
             Msg::Step => {
-                self.play();
+                self.step();
             },
             Msg::Reset => {
                 self.reset();
@@ -228,7 +235,7 @@ impl Renderable<Context, GameOfLife> for GameOfLife {
 
 fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Context, GameOfLife> {
     html! {
-        <div class=("game-cellule", if cellule.life_state == LifeState::Live { "cellule-live" } else { "cellule-dead" }),
+        <div class=("game-cellule", if cellule.life_state == LifeState::Alive { "cellule-live" } else { "cellule-dead" }),
             onclick=move |_| Msg::ToggleCellule(idx),> </div>
     }
 }
