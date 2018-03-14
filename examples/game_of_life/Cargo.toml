@@ -1,7 +1,8 @@
 [package]
 name = "game_of_life"
-version = "0.1.0"
-authors = ["Diego Cardoso <dige0card0s0@hotmail.com>"]
+version = "0.1.1"
+authors = ["Diego Cardoso <dige0card0s0@hotmail.com>",
+           "Ilya Bogdanov <fumlead@gmail.com"]
 
 [dependencies]
 yew = { path = "../.." }
