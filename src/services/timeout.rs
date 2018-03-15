@@ -27,14 +27,14 @@ impl TimeoutService {
         let ms = to_ms(duration);
         let handle = js! {
             var callback = @{callback};
-            let action = function() {
+            var action = function() {
                 callback();
                 callback.drop();
             };
-            let delay = @{ms};
+            var delay = @{ms};
             return {
                 timeout_id: setTimeout(action, delay),
-                callback,
+                callback: callback,
             };
         };
         TimeoutTask(Some(handle))
