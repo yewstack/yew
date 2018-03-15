@@ -30,13 +30,13 @@ impl IntervalService {
         let ms = to_ms(duration);
         let handle = js! {
             var callback = @{callback};
-            let action = function() {
+            var action = function() {
                 callback();
             };
-            let delay = @{ms};
+            var delay = @{ms};
             return {
                 interval_id: setInterval(action, delay),
-                callback,
+                callback: callback,
             };
         };
         IntervalTask(Some(handle))
