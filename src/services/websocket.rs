@@ -65,9 +65,7 @@ impl WebSocketService {
             socket.onmessage = function(event) {
                 callback(event.data);
             };
-            return {
-                socket,
-            };
+            return { socket: socket };
         };
         WebSocketTask(Some(handle))
     }
