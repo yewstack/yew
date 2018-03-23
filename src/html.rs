@@ -30,7 +30,9 @@ pub trait Component<CTX>: Sized + 'static {
     /// reference to a context.
     fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender;
     /// This method called when properties changes, and once when component created.
-    fn change(&mut self, _: Self::Properties, _: &mut Env<CTX, Self>) -> ShouldRender { false }
+    fn change(&mut self, _: Self::Properties, _: &mut Env<CTX, Self>) -> ShouldRender {
+        unimplemented!("you should implement `change` method for a component with properties")
+    }
 }
 
 /// Should be rendered relative to context and component environment.
