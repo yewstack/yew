@@ -3,14 +3,14 @@
 //! Also this module contains declaration of `Component` trait which used
 //! to create own UI-components.
 
-use std::rc::Rc;
 use std::cell::{RefCell, RefMut};
 use std::ops::{Deref, DerefMut};
-use std::sync::mpsc::{Sender, Receiver, channel};
+use std::rc::Rc;
+use std::sync::mpsc::{channel, Receiver, Sender};
 use stdweb::Value;
-use stdweb::web::{Element, INode, Node, EventListenerHandle, IParentNode, document};
-use stdweb::web::event::{IMouseEvent, IKeyboardEvent, BlurEvent};
-use virtual_dom::{VDiff, VNode, Listener};
+use stdweb::web::event::{BlurEvent, IKeyboardEvent, IMouseEvent};
+use stdweb::web::{document, Element, EventListenerHandle, INode, IParentNode, Node};
+use virtual_dom::{Listener, VDiff, VNode};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -213,8 +213,10 @@ impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
                 window._yew_schedule_(bind);
             }
         } else {
-            eprintln!("Can't send message to a component. Receiver lost! \
-                       Maybe Task lives longer than a component instance.");
+            eprintln!(
+                "Can't send message to a component. Receiver lost! \
+                 Maybe Task lives longer than a component instance."
+            );
         }
     }
 }
@@ -226,7 +228,6 @@ pub(crate) struct ScopeBuilder<CTX, COMP: Component<CTX>> {
 }
 
 impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
-
     pub fn new() -> Self {
         let bind = js! {
             return { "loop": function() { } };
@@ -308,7 +309,8 @@ where
 {
     /// Alias to `mount("body", ...)`.
     pub fn mount_to_body(self) {
-        let element = document().query_selector("body")
+        let element = document()
+            .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
         self.mount(element)
@@ -325,7 +327,13 @@ where
 
     // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node.
-    pub fn mount_in_place(mut self, element: Element, obsolete: Option<VNode<CTX, COMP>>, mut occupied: Option<NodeCell>, init_props: Option<COMP::Properties>) {
+    pub fn mount_in_place(
+        mut self,
+        element: Element,
+        obsolete: Option<VNode<CTX, COMP>>,
+        mut occupied: Option<NodeCell>,
+        init_props: Option<COMP::Properties>,
+    ) {
         let mut component = {
             let props = init_props.unwrap_or_default();
             let mut env = self.get_env();
@@ -341,7 +349,9 @@ where
             *cell.borrow_mut() = node;
         }
         let mut last_frame = Some(last_frame);
-        let rx = self.rx.take().expect("application runned without a receiver");
+        let rx = self.rx
+            .take()
+            .expect("application runned without a receiver");
         let bind = self.bind.clone();
         let mut callback = move || {
             let mut should_update = false;
@@ -363,7 +373,8 @@ where
             if should_update {
                 let mut next_frame = VNode::from(component.view());
                 // Re-rendering the tree
-                let node = next_frame.apply(element.as_node(), None, last_frame.take(), self.get_env());
+                let node =
+                    next_frame.apply(element.as_node(), None, last_frame.take(), self.get_env());
                 if let Some(ref mut cell) = occupied {
                     *cell.borrow_mut() = node;
                 }
@@ -570,7 +581,9 @@ impl From<String> for Href {
 
 impl<'a> From<&'a str> for Href {
     fn from(link: &'a str) -> Self {
-        Href { link: link.to_owned() }
+        Href {
+            link: link.to_owned(),
+        }
     }
 }
 
@@ -579,4 +592,3 @@ impl ToString for Href {
         self.link.to_owned()
     }
 }
-

@@ -5,18 +5,11 @@ use std::collections::HashMap;
 use stdweb::Value;
 use stdweb::unstable::{TryFrom, TryInto};
 
-use format::{Storable, Restorable};
-use html::Callback;
 use super::Task;
+use format::{Restorable, Storable};
+use html::Callback;
 
-pub use http::{
-    HeaderMap,
-    Method,
-    Request,
-    Response,
-    StatusCode,
-    Uri
-};
+pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
 /// Represents errors of a fetch service.
 #[derive(Debug, Fail)]
@@ -28,15 +21,13 @@ enum FetchError {
 /// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
 pub struct FetchTask(Option<Value>);
 
-
 /// A service to fetch resources.
-pub struct FetchService {
-}
+pub struct FetchService {}
 
 impl FetchService {
     /// Creates a new service instance connected to `App` by provided `sender`.
     pub fn new() -> Self {
-        Self { }
+        Self {}
     }
 
     /// Sends a request to a remote server given a Request object and a callback
@@ -88,9 +79,11 @@ impl FetchService {
     /// ```
     ///
 
-
-
-    pub fn fetch<IN, OUT: 'static>(&mut self, request: Request<IN>, callback: Callback<Response<OUT>>) -> FetchTask
+    pub fn fetch<IN, OUT: 'static>(
+        &mut self,
+        request: Request<IN>,
+        callback: Callback<Response<OUT>>,
+    ) -> FetchTask
     where
         IN: Into<Storable>,
         OUT: From<Restorable>,
@@ -99,11 +92,18 @@ impl FetchService {
         let (parts, body) = request.into_parts();
 
         // Map headers into a Js serializable HashMap.
-        let header_map: HashMap<&str, &str> = parts.headers.iter().map(
-            |(k, v)| (k.as_str(), v.to_str().expect(
-                format!("Unparsable request header {}: {:?}", k.as_str(), v).as_str()
-            ))
-        ).collect();
+        let header_map: HashMap<&str, &str> = parts
+            .headers
+            .iter()
+            .map(|(k, v)| {
+                (
+                    k.as_str(),
+                    v.to_str().expect(
+                        format!("Unparsable request header {}: {:?}", k.as_str(), v).as_str(),
+                    ),
+                )
+            })
+            .collect();
 
         // Formats URI.
         let uri = format!("{}", parts.uri);
@@ -137,7 +137,11 @@ impl FetchService {
             }
 
             // Deserialize and wrap response body into a Restorable object.
-            let data = if success { Ok(body) } else { Err(FetchError::FailedResponse.into()) };
+            let data = if success {
+                Ok(body)
+            } else {
+                Err(FetchError::FailedResponse.into())
+            };
             let out = OUT::from(data);
             let response = response_builder.body(out).unwrap();
             callback.emit(response);
@@ -192,7 +196,9 @@ impl Task for FetchTask {
         // Fetch API doesn't support request cancelling
         // and we should use this workaround with a flag.
         // In fact, request not canceled, but callback won't be called.
-        let handle = self.0.take().expect("tried to cancel request fetching twice");
+        let handle = self.0
+            .take()
+            .expect("tried to cancel request fetching twice");
         js! {  @(no_return)
             var handle = @{handle};
             handle.active = false;

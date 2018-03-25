@@ -9,7 +9,9 @@ pub struct DialogService;
 impl DialogService {
     /// Calls [alert](https://developer.mozilla.org/en-US/docs/Web/API/Window/alert)
     /// function.
-    pub fn alert(&mut self, message: &str) { js! { @(no_return) alert(@{message}); } }
+    pub fn alert(&mut self, message: &str) {
+        js! { @(no_return) alert(@{message}); }
+    }
 
     /// Calls [confirm](https://developer.mozilla.org/en-US/docs/Web/API/Window/confirm)
     /// function.

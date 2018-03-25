@@ -1,11 +1,11 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use std::fmt;
+use super::{Reform, VDiff, VNode};
+use html::{Component, ScopeEnv};
 use std::cmp::PartialEq;
+use std::fmt;
 use std::marker::PhantomData;
-use stdweb::web::{INode, Node, TextNode, document};
-use html::{ScopeEnv, Component};
-use super::{VNode, VDiff, Reform};
+use stdweb::web::{document, INode, Node, TextNode};
 
 /// A type for a virtual
 /// [TextNode](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -37,7 +37,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
 
     /// Remove VTag from parent.
     fn remove(self, parent: &Node) -> Option<Node> {
-        let node = self.reference.expect("tried to remove not rendered VText from DOM");
+        let node = self.reference
+            .expect("tried to remove not rendered VText from DOM");
         let sibling = node.next_sibling();
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VText");
@@ -47,14 +48,15 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
 
     /// Renders virtual node over existent `TextNode`, but
     /// only if value of text had changed.
-     /// Parameter `precursor` is necesssary for `VTag` and `VList` which
-     /// has children and renders them.
-    fn apply(&mut self,
-             parent: &Node,
-             _: Option<&Node>,
-             opposite: Option<VNode<Self::Context, Self::Component>>,
-             _: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
-    {
+    /// Parameter `precursor` is necesssary for `VTag` and `VList` which
+    /// has children and renders them.
+    fn apply(
+        &mut self,
+        parent: &Node,
+        _: Option<&Node>,
+        opposite: Option<VNode<Self::Context, Self::Component>>,
+        _: ScopeEnv<Self::Context, Self::Component>,
+    ) -> Option<Node> {
         let reform = {
             match opposite {
                 // If element matched this type
@@ -71,18 +73,16 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
                     let node = vnode.remove(parent);
                     Reform::Before(node)
                 }
-                None => {
-                    Reform::Before(None)
-                }
+                None => Reform::Before(None),
             }
         };
         match reform {
-            Reform::Keep => {
-            }
+            Reform::Keep => {}
             Reform::Before(node) => {
                 let element = document().create_text_node(&self.text);
                 if let Some(sibling) = node {
-                    parent.insert_before(&element, &sibling)
+                    parent
+                        .insert_before(&element, &sibling)
                         .expect("can't insert text before sibling");
                 } else {
                     parent.append_child(&element);

@@ -1,7 +1,7 @@
 //! This module contains fragments implementation.
-use stdweb::web::Node;
-use html::{ScopeEnv, Component};
 use super::{VDiff, VNode};
+use html::{Component, ScopeEnv};
+use stdweb::web::Node;
 
 /// This struct represents a fragment of the Virtual DOM tree.
 pub struct VList<CTX, COMP: Component<CTX>> {
@@ -12,9 +12,7 @@ pub struct VList<CTX, COMP: Component<CTX>> {
 impl<CTX, COMP: Component<CTX>> VList<CTX, COMP> {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new() -> Self {
-        VList {
-            childs: Vec::new(),
-        }
+        VList { childs: Vec::new() }
     }
 
     /// Add `VNode` child.
@@ -35,12 +33,13 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
         last_sibling
     }
 
-    fn apply(&mut self,
-             parent: &Node,
-             precursor: Option<&Node>,
-             opposite: Option<VNode<Self::Context, Self::Component>>,
-             env: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
-    {
+    fn apply(
+        &mut self,
+        parent: &Node,
+        precursor: Option<&Node>,
+        opposite: Option<VNode<Self::Context, Self::Component>>,
+        env: ScopeEnv<Self::Context, Self::Component>,
+    ) -> Option<Node> {
         let mut rights = {
             match opposite {
                 // If element matched this type
@@ -52,9 +51,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
                     // TODO Replace precursor?
                     Vec::new()
                 }
-                None => {
-                    Vec::new()
-                }
+                None => Vec::new(),
             }
         };
         // Collect elements of an opposite if exists or use an empty vec

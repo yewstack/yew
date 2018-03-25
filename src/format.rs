@@ -5,7 +5,7 @@
 //! use `Into` and `From` traits to get (convert) the data.
 
 use failure::Error;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json;
 
 /// A representation of a value which can be stored.
@@ -43,7 +43,7 @@ pub struct Json<T>(pub T);
 
 impl<'a, T> Into<Storable> for Json<&'a T>
 where
-    T: Serialize
+    T: Serialize,
 {
     fn into(self) -> Storable {
         serde_json::to_string(&self.0).ok()
@@ -52,17 +52,12 @@ where
 
 impl<T> From<Restorable> for Json<Result<T, Error>>
 where
-    T: for <'de> Deserialize<'de>
+    T: for<'de> Deserialize<'de>,
 {
     fn from(value: Restorable) -> Self {
         match value {
-            Ok(data) => {
-                Json(serde_json::from_str(&data).map_err(Error::from))
-            }
-            Err(reason) => {
-                Json(Err(reason))
-            }
+            Ok(data) => Json(serde_json::from_str(&data).map_err(Error::from)),
+            Err(reason) => Json(Err(reason)),
         }
     }
 }
-
