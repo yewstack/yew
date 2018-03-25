@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate yew;
 
-use yew::html::{Html, Component, Renderable, Env, ShouldRender};
+use yew::html::{Component, Env, Html, Renderable, ShouldRender};
 use yew::virtual_dom::VNode;
 
 type Ctx = ();
@@ -202,7 +202,10 @@ fn it_allows_aria_attributes() {
     };
     if let VNode::VTag(vtag) = a {
         assert!(vtag.attributes.contains_key("aria-controls"));
-        assert_eq!(vtag.attributes.get("aria-controls"), Some(&"it-works".into()));
+        assert_eq!(
+            vtag.attributes.get("aria-controls"),
+            Some(&"it-works".into())
+        );
     } else {
         panic!("vtag expected");
     }

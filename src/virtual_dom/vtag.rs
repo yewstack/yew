@@ -1,14 +1,14 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use std::fmt;
+use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
+use html::{Component, ScopeEnv};
 use std::borrow::Cow;
-use std::collections::HashSet;
 use std::cmp::PartialEq;
-use stdweb::web::{INode, Node, IElement, Element, EventListenerHandle, document};
-use stdweb::web::html_element::InputElement;
+use std::collections::HashSet;
+use std::fmt;
 use stdweb::unstable::TryFrom;
-use html::{ScopeEnv, Component};
-use super::{Listener, Listeners, Classes, Attributes, Patch, Reform, VDiff, VNode};
+use stdweb::web::html_element::InputElement;
+use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node};
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
@@ -120,17 +120,20 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     fn soakup_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, ()>> {
         let mut changes = Vec::new();
         if let &mut Some(ref ancestor) = ancestor {
-            let to_add = self.classes.difference(&ancestor.classes).map(|class| {
-                Patch::Add(class.to_owned(), ())
-            });
+            let to_add = self.classes
+                .difference(&ancestor.classes)
+                .map(|class| Patch::Add(class.to_owned(), ()));
             changes.extend(to_add);
-            let to_remove = ancestor.classes.difference(&self.classes).map(|class| {
-                Patch::Remove(class.to_owned())
-            });
+            let to_remove = ancestor
+                .classes
+                .difference(&self.classes)
+                .map(|class| Patch::Remove(class.to_owned()));
             changes.extend(to_remove);
         } else {
             // Add everything
-            let to_add = self.classes.iter().map(|class| Patch::Add(class.to_owned(), ()));
+            let to_add = self.classes
+                .iter()
+                .map(|class| Patch::Add(class.to_owned(), ()));
             changes.extend(to_add);
         }
         changes
@@ -147,16 +150,21 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
             });
             changes.extend(to_add);
             for key in left_keys.intersection(&right_keys) {
-                let left_value = self.attributes.get(*key).expect("attribute of the left side lost");
-                let right_value = ancestor.attributes.get(*key).expect("attribute of the right side lost");
+                let left_value = self.attributes
+                    .get(*key)
+                    .expect("attribute of the left side lost");
+                let right_value = ancestor
+                    .attributes
+                    .get(*key)
+                    .expect("attribute of the right side lost");
                 if left_value != right_value {
                     let mutator = Patch::Replace(key.to_string(), left_value.to_string());
                     changes.push(mutator);
                 }
             }
-            let to_remove = right_keys.difference(&left_keys).map(|key| {
-                Patch::Remove(key.to_string())
-            });
+            let to_remove = right_keys
+                .difference(&left_keys)
+                .map(|key| Patch::Remove(key.to_string()));
             changes.extend(to_remove);
         } else {
             for (key, value) in self.attributes.iter() {
@@ -210,7 +218,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
 
     /// Remove VTag from parent.
     fn remove(self, parent: &Node) -> Option<Node> {
-        let node = self.reference.expect("tried to remove not rendered VTag from DOM");
+        let node = self.reference
+            .expect("tried to remove not rendered VTag from DOM");
         let sibling = node.next_sibling();
         if let Err(_) = parent.remove_child(&node) {
             warn!("Node not found to remove VTag");
@@ -220,12 +229,13 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
     /// to compute what to patch in the actual DOM nodes.
-    fn apply(&mut self,
-             parent: &Node,
-             precursor: Option<&Node>,
-             opposite: Option<VNode<Self::Context, Self::Component>>,
-             env: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
-    {
+    fn apply(
+        &mut self,
+        parent: &Node,
+        precursor: Option<&Node>,
+        opposite: Option<VNode<Self::Context, Self::Component>>,
+        env: ScopeEnv<Self::Context, Self::Component>,
+    ) -> Option<Node> {
         let (reform, mut opposite) = {
             match opposite {
                 Some(VNode::VTag(mut vtag)) => {
@@ -241,25 +251,25 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                     let node = vnode.remove(parent);
                     (Reform::Before(node), None)
                 }
-                None => {
-                    (Reform::Before(None), None)
-                }
+                None => (Reform::Before(None), None),
             }
         };
 
         match reform {
-            Reform::Keep => {
-            }
+            Reform::Keep => {}
             Reform::Before(node) => {
-                let element = document().create_element(&self.tag)
+                let element = document()
+                    .create_element(&self.tag)
                     .expect("can't create element for vtag");
                 if let Some(sibling) = node {
-                    parent.insert_before(&element, &sibling)
+                    parent
+                        .insert_before(&element, &sibling)
                         .expect("can't insert tag before sibling");
                 } else {
                     let precursor = precursor.and_then(|node| node.next_sibling());
                     if let Some(precursor) = precursor {
-                        parent.insert_before(&element, &precursor)
+                        parent
+                            .insert_before(&element, &precursor)
                             .expect("can't insert tag before precursor");
                     } else {
                         parent.append_child(&element);
@@ -269,7 +279,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             }
         }
 
-        let mut element = self.reference.as_ref().map(|x| x.to_owned()).expect("element expected");
+        let mut element = self.reference
+            .as_ref()
+            .map(|x| x.to_owned())
+            .expect("element expected");
 
         {
             // Update parameters
@@ -286,14 +299,11 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             for change in changes {
                 let list = subject.class_list();
                 match change {
-                    Patch::Add(class, _) |
-                    Patch::Replace(class, _) => {
-                        list.add(&class)
-                            .expect("can't add a class");
+                    Patch::Add(class, _) | Patch::Replace(class, _) => {
+                        list.add(&class).expect("can't add a class");
                     }
                     Patch::Remove(class) => {
-                        list.remove(&class)
-                            .expect("can't remove a class");
+                        list.remove(&class).expect("can't remove a class");
                     }
                 }
             }
@@ -301,8 +311,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             let changes = self.soakup_attributes(&mut opposite);
             for change in changes {
                 match change {
-                    Patch::Add(key, value) |
-                    Patch::Replace(key, value) => {
+                    Patch::Add(key, value) | Patch::Replace(key, value) => {
                         set_attribute(&subject, &key, &value);
                     }
                     Patch::Remove(key) => {
@@ -318,8 +327,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             if let Ok(input) = InputElement::try_from(subject.clone()) {
                 if let Some(change) = self.soakup_kind(&mut opposite) {
                     match change {
-                        Patch::Add(kind, _) |
-                        Patch::Replace(kind, _) => {
+                        Patch::Add(kind, _) | Patch::Replace(kind, _) => {
                             //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
                             //input.set_kind(&kind);
                             let input = &input;
@@ -339,8 +347,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
 
                 if let Some(change) = self.soakup_value(&mut opposite) {
                     match change {
-                        Patch::Add(kind, _) |
-                        Patch::Replace(kind, _) => {
+                        Patch::Add(kind, _) | Patch::Replace(kind, _) => {
                             input.set_raw_value(&kind);
                         }
                         Patch::Remove(_) => {
@@ -384,7 +391,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             for pair in lefts.into_iter().zip(rights) {
                 match pair {
                     (Some(left), right) => {
-                        precursor = left.apply(subject.as_node(), precursor.as_ref(), right, env.clone());
+                        precursor =
+                            left.apply(subject.as_node(), precursor.as_ref(), right, env.clone());
                     }
                     (None, Some(right)) => {
                         right.remove(subject.as_node());

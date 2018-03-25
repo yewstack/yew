@@ -1,10 +1,10 @@
 //! Service to connect to a servers by
 //! [WebSocket Protocol](https://tools.ietf.org/html/rfc6455).
 
-use stdweb::Value;
-use format::{Storable, Restorable};
-use html::Callback;
 use super::Task;
+use format::{Restorable, Storable};
+use html::Callback;
+use stdweb::Value;
 
 /// A status of a websocket connection. Used for status notification.
 pub enum WebSocketStatus {
@@ -18,18 +18,22 @@ pub enum WebSocketStatus {
 pub struct WebSocketTask(Option<Value>);
 
 /// A websocket service attached to a user context.
-pub struct  WebSocketService {
-}
+pub struct WebSocketService {}
 
 impl WebSocketService {
     /// Creates a new service instance connected to `App` by provided `sender`.
     pub fn new() -> Self {
-        Self { }
+        Self {}
     }
 
     /// Connects to a server by a weboscket connection. Needs two functions to generate
     /// data and notification messages.
-    pub fn connect<OUT: 'static>(&mut self, url: &str, callback: Callback<OUT>, notification: Callback<WebSocketStatus>) -> WebSocketTask
+    pub fn connect<OUT: 'static>(
+        &mut self,
+        url: &str,
+        callback: Callback<OUT>,
+        notification: Callback<WebSocketStatus>,
+    ) -> WebSocketTask
     where
         OUT: From<Restorable>,
     {
@@ -75,7 +79,7 @@ impl WebSocketTask {
     /// Sends data to a websocket connection.
     pub fn send<IN>(&mut self, data: IN)
     where
-        IN: Into<Storable>
+        IN: Into<Storable>,
     {
         if let WebSocketTask(Some(ref handle)) = *self {
             if let Some(body) = data.into() {

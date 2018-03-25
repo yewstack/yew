@@ -7,8 +7,8 @@
 //! use yew::prelude::*;
 //! ```
 
-pub use html::{Component, Renderable, Html, Env, ShouldRender, Callback,
-    InputData, KeyData, MouseData, Href};
+pub use html::{Callback, Component, Env, Href, Html, InputData, KeyData, MouseData, Renderable,
+               ShouldRender};
 
 use html::Scope;
 

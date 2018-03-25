@@ -3,12 +3,12 @@
 //! It carries a similar role as subscriptions in Elm, but can be used directly
 //! from the `update` method.
 
-pub mod timeout;
+pub mod console;
+pub mod dialog;
+pub mod fetch;
 pub mod interval;
 pub mod storage;
-pub mod dialog;
-pub mod console;
-pub mod fetch;
+pub mod timeout;
 pub mod websocket;
 
 use std::time::Duration;
