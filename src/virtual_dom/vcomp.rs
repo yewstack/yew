@@ -1,13 +1,14 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
-use std::rc::Rc;
+use super::{Reform, VDiff, VNode};
+use html::{Callback, Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, ScopeEnv,
+           ScopeHandle, ScopeSender, SharedContext};
+use std::any::TypeId;
 use std::cell::RefCell;
 use std::marker::PhantomData;
-use std::any::TypeId;
-use stdweb::web::{INode, Node, Element, document};
-use html::{ScopeBuilder, SharedContext, Component, Renderable, ComponentUpdate, ScopeSender, Callback, ScopeEnv, NodeCell, ScopeHandle};
+use std::rc::Rc;
 use stdweb::unstable::TryInto;
-use super::{Reform, VDiff, VNode};
+use stdweb::web::{document, Element, INode, Node};
 
 struct Hidden;
 
@@ -37,21 +38,25 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         let mut sender = builder.sender();
         let mut builder = Some(builder);
         let occupied = cell.clone();
-        let generator = move |context, element, obsolete: Option<Node>, (type_id, raw): AnyProps| {
+        let generator =
+            move |context, element, obsolete: Option<Node>, (type_id, raw): AnyProps| {
+                if type_id != TypeId::of::<CHILD>() {
+                    panic!("tried to unpack properties of the other component");
+                }
+                let props = unsafe {
+                    let raw: *mut CHILD::Properties = ::std::mem::transmute(raw);
+                    *Box::from_raw(raw)
+                };
 
-            if type_id != TypeId::of::<CHILD>() {
-                panic!("tried to unpack properties of the other component");
-            }
-            let props = unsafe {
-                let raw: *mut CHILD::Properties = ::std::mem::transmute(raw);
-                *Box::from_raw(raw)
+                let builder = builder.take().expect("tried to mount component twice");
+                let opposite = obsolete.map(VNode::VRef);
+                builder.build(context).mount_in_place(
+                    element,
+                    opposite,
+                    Some(occupied.clone()),
+                    Some(props),
+                );
             };
-
-            let builder = builder.take().expect("tried to mount component twice");
-            let opposite = obsolete.map(VNode::VRef);
-            builder.build(context)
-                .mount_in_place(element, opposite, Some(occupied.clone()), Some(props));
-        };
         let mut previous_props = None;
         let blind_sender = move |(type_id, raw): AnyProps| {
             if type_id != TypeId::of::<CHILD>() {
@@ -96,7 +101,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         for activator in self.activators.iter_mut() {
             *activator.borrow_mut() = Some(sender.clone());
         }
-        let props = self.props.take()
+        let props = self.props
+            .take()
             .expect("tried to activate properties twice");
         props
     }
@@ -174,7 +180,13 @@ where
     COMP: Component<CTX> + 'static,
 {
     /// This methods mount a virtual component with a generator created with `lazy` call.
-    fn mount<T: INode>(&mut self, context: SharedContext<CTX>, parent: &T, opposite: Option<Node>, props: AnyProps) {
+    fn mount<T: INode>(
+        &mut self,
+        context: SharedContext<CTX>,
+        parent: &T,
+        opposite: Option<Node>,
+        props: AnyProps,
+    ) {
         let element: Element = parent
             .as_node()
             .as_ref()
@@ -187,9 +199,7 @@ where
     fn send_props(&mut self, props: AnyProps) {
         (self.blind_sender)(props);
     }
-
 }
-
 
 impl<CTX, COMP> VDiff for VComp<CTX, COMP>
 where
@@ -209,19 +219,22 @@ where
         // Keep the sibling in the cell and send a message `Drop` to a loop
         self.cell.borrow_mut().take().and_then(|node| {
             let sibling = node.next_sibling();
-            parent.remove_child(&node).expect("can't remove the component");
+            parent
+                .remove_child(&node)
+                .expect("can't remove the component");
             sibling
         })
     }
 
     /// Renders independent component over DOM `Element`.
     /// It also compares this with an opposite `VComp` and inherits sender of it.
-    fn apply(&mut self,
-             parent: &Node,
-             _: Option<&Node>,
-             opposite: Option<VNode<Self::Context, Self::Component>>,
-             env: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
-    {
+    fn apply(
+        &mut self,
+        parent: &Node,
+        _: Option<&Node>,
+        opposite: Option<VNode<Self::Context, Self::Component>>,
+        env: ScopeEnv<Self::Context, Self::Component>,
+    ) -> Option<Node> {
         let reform = {
             match opposite {
                 Some(VNode::VComp(vcomp)) => {
@@ -237,9 +250,7 @@ where
                     let node = vnode.remove(parent);
                     Reform::Before(node)
                 }
-                None => {
-                    Reform::Before(None)
-                }
+                None => Reform::Before(None),
             }
         };
         let any_props = self.activate_props(env.sender());
@@ -256,7 +267,8 @@ where
                 // There is created an empty text node to be replaced with mount call.
                 let node = node.map(|sibling| {
                     let element = document().create_text_node("");
-                    parent.insert_before(&element, &sibling)
+                    parent
+                        .insert_before(&element, &sibling)
                         .expect("can't insert dummy element for a component");
                     element.as_node().to_owned()
                 });

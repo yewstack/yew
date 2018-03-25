@@ -1,10 +1,10 @@
 //! This module contains the implementation of abstract virtual node.
 
-use std::fmt;
+use super::{VComp, VDiff, VList, VTag, VText};
+use html::{Component, Renderable, ScopeEnv};
 use std::cmp::PartialEq;
+use std::fmt;
 use stdweb::web::{INode, Node};
-use html::{ScopeEnv, Component, Renderable};
-use super::{VDiff, VTag, VText, VComp, VList};
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<CTX, COMP: Component<CTX>> {
@@ -33,33 +33,28 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
             VNode::VList(vlist) => vlist.remove(parent),
             VNode::VRef(node) => {
                 let sibling = node.next_sibling();
-                parent.remove_child(&node).expect("can't remove node by VRef");
+                parent
+                    .remove_child(&node)
+                    .expect("can't remove node by VRef");
                 sibling
-            },
+            }
         }
     }
 
     /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
     /// to check the difference and apply patches to the actual DOM represenatation.
-    fn apply(&mut self,
-             parent: &Node,
-             precursor: Option<&Node>,
-             opposite: Option<VNode<Self::Context, Self::Component>>,
-             env: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>
-    {
+    fn apply(
+        &mut self,
+        parent: &Node,
+        precursor: Option<&Node>,
+        opposite: Option<VNode<Self::Context, Self::Component>>,
+        env: ScopeEnv<Self::Context, Self::Component>,
+    ) -> Option<Node> {
         match *self {
-            VNode::VTag(ref mut vtag) => {
-                vtag.apply(parent, precursor, opposite, env)
-            }
-            VNode::VText(ref mut vtext) => {
-                vtext.apply(parent, precursor, opposite, env)
-            }
-            VNode::VComp(ref mut vcomp) => {
-                vcomp.apply(parent, precursor, opposite, env)
-            }
-            VNode::VList(ref mut vlist) => {
-                vlist.apply(parent, precursor, opposite, env)
-            }
+            VNode::VTag(ref mut vtag) => vtag.apply(parent, precursor, opposite, env),
+            VNode::VText(ref mut vtext) => vtext.apply(parent, precursor, opposite, env),
+            VNode::VComp(ref mut vcomp) => vcomp.apply(parent, precursor, opposite, env),
+            VNode::VList(ref mut vlist) => vlist.apply(parent, precursor, opposite, env),
             VNode::VRef(_) => {
                 // TODO use it for rendering any tag
                 unimplemented!("node can't be rendered now");
@@ -119,22 +114,14 @@ impl<CTX, COMP: Component<CTX>> fmt::Debug for VNode<CTX, COMP> {
 impl<CTX, COMP: Component<CTX>> PartialEq for VNode<CTX, COMP> {
     fn eq(&self, other: &VNode<CTX, COMP>) -> bool {
         match *self {
-            VNode::VTag(ref vtag_a) => {
-                match *other {
-                    VNode::VTag(ref vtag_b) => {
-                        vtag_a == vtag_b
-                    },
-                    _ => false
-                }
-            }
-            VNode::VText(ref vtext_a) => {
-                match *other {
-                    VNode::VText(ref vtext_b) => {
-                        vtext_a == vtext_b
-                    },
-                    _ => false
-                }
-            }
+            VNode::VTag(ref vtag_a) => match *other {
+                VNode::VTag(ref vtag_b) => vtag_a == vtag_b,
+                _ => false,
+            },
+            VNode::VText(ref vtext_a) => match *other {
+                VNode::VText(ref vtext_b) => vtext_a == vtext_b,
+                _ => false,
+            },
             VNode::VComp(_) => {
                 // TODO Implement it
                 false
