@@ -1,29 +1,27 @@
 //! This module contains the implementation of a service for
 //! periodic sending messages to a loop.
 
+use super::{to_ms, Task};
+use html::Callback;
 use std::time::Duration;
 use stdweb::Value;
-use html::Callback;
-use super::{Task, to_ms};
 
 /// A handle which helps to cancel interval. Uses
 /// [clearInterval](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearInterval).
 pub struct IntervalTask(Option<Value>);
 
 /// A service to send messages on every elapsed interval.
-pub struct IntervalService {
-}
+pub struct IntervalService {}
 
 impl IntervalService {
     /// Creates a new service instance connected to `App` by provided `sender`.
     pub fn new() -> Self {
-        Self { }
+        Self {}
     }
 
     /// Sets interval which will call send a messages returned by a converter
     /// on every intarval expiration.
-    pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> IntervalTask
-    {
+    pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> IntervalTask {
         let callback = move || {
             callback.emit(());
         };

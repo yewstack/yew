@@ -45,10 +45,8 @@
 //! ```
 //!
 
-#![deny(
-    missing_docs,
-)]
-#![recursion_limit="256"]
+#![deny(missing_docs)]
+#![recursion_limit = "256"]
 
 #[macro_use]
 extern crate failure;
@@ -60,10 +58,10 @@ extern crate stdweb;
 
 #[macro_use]
 pub mod macros;
+pub mod format;
 pub mod html;
 pub mod prelude;
 pub mod services;
-pub mod format;
 pub mod virtual_dom;
 
 /// Initializes yew framework. It should be called first.

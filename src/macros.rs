@@ -1,8 +1,8 @@
 //! This module contains macros which implements `html!` macro
 //! and JSX-like templates.
 
-use virtual_dom::{VNode, Listener};
 use html::Component;
+use virtual_dom::{Listener, VNode};
 
 #[macro_export]
 macro_rules! html_impl {
@@ -197,7 +197,11 @@ pub fn set_checked<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, valu
 }
 
 #[doc(hidden)]
-pub fn add_attribute<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, name: &str, value: T) {
+pub fn add_attribute<CTX, COMP: Component<CTX>, T: ToString>(
+    stack: &mut Stack<CTX, COMP>,
+    name: &str,
+    value: T,
+) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.add_attribute(name, value);
     } else {
@@ -215,7 +219,10 @@ pub fn attach_class<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, cla
 }
 
 #[doc(hidden)]
-pub fn attach_listener<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, listener: Box<Listener<CTX, COMP>>) {
+pub fn attach_listener<CTX, COMP: Component<CTX>>(
+    stack: &mut Stack<CTX, COMP>,
+    listener: Box<Listener<CTX, COMP>>,
+) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.add_listener(listener);
     } else {
@@ -239,7 +246,10 @@ pub fn add_child<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, child:
 }
 
 #[doc(hidden)]
-pub fn child_to_parent<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, endtag: Option<&'static str>) {
+pub fn child_to_parent<CTX, COMP: Component<CTX>>(
+    stack: &mut Stack<CTX, COMP>,
+    endtag: Option<&'static str>,
+) {
     if let Some(mut node) = stack.pop() {
         // Check the enclosing tag
         // TODO Check it during compilation. Possible?

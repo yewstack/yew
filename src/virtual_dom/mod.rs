@@ -1,21 +1,21 @@
 //! This module contains the implementation of reactive virtual dom concept.
 
+pub mod vcomp;
+pub mod vlist;
 pub mod vnode;
 pub mod vtag;
 pub mod vtext;
-pub mod vcomp;
-pub mod vlist;
 
-use std::fmt;
 use std::collections::{HashMap, HashSet};
-use stdweb::web::{Node, Element, EventListenerHandle};
+use std::fmt;
+use stdweb::web::{Element, EventListenerHandle, Node};
 
+pub use self::vcomp::VComp;
+pub use self::vlist::VList;
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
-pub use self::vcomp::VComp;
-pub use self::vlist::VList;
-use html::{ScopeSender, ScopeEnv, Component};
+use html::{Component, ScopeEnv, ScopeSender};
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
@@ -70,9 +70,11 @@ pub trait VDiff {
     fn remove(self, parent: &Node) -> Option<Node>;
 
     /// Scoped diff apply to other tree.
-    fn apply(&mut self,
-             parent: &Node,
-             precursor: Option<&Node>,
-             opposite: Option<VNode<Self::Context, Self::Component>>,
-             scope: ScopeEnv<Self::Context, Self::Component>) -> Option<Node>;
+    fn apply(
+        &mut self,
+        parent: &Node,
+        precursor: Option<&Node>,
+        opposite: Option<VNode<Self::Context, Self::Component>>,
+        scope: ScopeEnv<Self::Context, Self::Component>,
+    ) -> Option<Node>;
 }

@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate yew;
 
-use yew::html::{Html, Component, Renderable, Env, ShouldRender};
+use yew::html::{Component, Env, Html, Renderable, ShouldRender};
 use yew::virtual_dom::VNode;
 
 // TODO Reuse it from vtag test
@@ -39,5 +39,4 @@ fn check_fragments() {
             { fragment }
         </div>
     };
-
 }

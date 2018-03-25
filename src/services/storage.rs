@@ -1,8 +1,8 @@
 //! This module contains the implementation of a service to
 //! use local and session storage of a browser.
 
+use format::{Restorable, Storable};
 use stdweb::web::{window, Storage};
-use format::{Storable, Restorable};
 
 /// Represents errors of a storage.
 #[derive(Debug, Fail)]
@@ -25,7 +25,6 @@ pub struct StorageService {
 }
 
 impl StorageService {
-
     /// Creates a new storage service instance with specified storate area.
     pub fn new(area: Area) -> Self {
         let storage = {
@@ -40,10 +39,11 @@ impl StorageService {
     /// Stores value to the storage.
     pub fn store<T>(&mut self, key: &str, value: T)
     where
-        T: Into<Storable>
+        T: Into<Storable>,
     {
         if let Some(data) = value.into() {
-            self.storage.insert(key, &data)
+            self.storage
+                .insert(key, &data)
                 .expect("can't insert value to a storage");
         }
     }
@@ -51,9 +51,10 @@ impl StorageService {
     /// Restores value from the storage.
     pub fn restore<T>(&mut self, key: &str) -> T
     where
-        T : From<Restorable>
+        T: From<Restorable>,
     {
-        let data = self.storage.get(key)
+        let data = self.storage
+            .get(key)
             .ok_or_else(|| StorageError::CantRestore.into());
         T::from(data)
     }

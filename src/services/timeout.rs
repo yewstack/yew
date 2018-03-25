@@ -1,22 +1,21 @@
 //! This module contains the implementation of a service to
 //! send a messages when timeout elapsed.
 
+use super::{to_ms, Task};
+use html::Callback;
 use std::time::Duration;
 use stdweb::Value;
-use html::Callback;
-use super::{Task, to_ms};
 
 /// A handle to cancel a timeout task.
 pub struct TimeoutTask(Option<Value>);
 
 /// An service to set a timeout.
-pub struct TimeoutService {
-}
+pub struct TimeoutService {}
 
 impl TimeoutService {
     /// Creates a new service instance connected to `App` by provided `sender`.
     pub fn new() -> Self {
-        Self { }
+        Self {}
     }
 
     /// Sets timeout which send a messages from a `converter` after `duration`.
