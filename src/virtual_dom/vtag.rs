@@ -92,7 +92,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// Sets `kind` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// Same as set `type` attribute.
-    pub fn set_kind<T: ToString>(&mut self, value: T) {
+    pub fn set_kind<T: ToString>(&mut self, value: &T) {
         self.kind = Some(value.to_string());
     }
 
@@ -106,7 +106,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// Adds attribute to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
     /// `class`, `type/kind`, `value` and `checked`.
-    pub fn add_attribute<T: ToString>(&mut self, name: &str, value: T) {
+    pub fn add_attribute<T: ToString>(&mut self, name: &str, value: &T) {
         self.attributes.insert(name.to_owned(), value.to_string());
     }
 
@@ -119,7 +119,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
 
     fn soakup_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, ()>> {
         let mut changes = Vec::new();
-        if let &mut Some(ref ancestor) = ancestor {
+        if let Some(ref ancestor) = *ancestor {
             let to_add = self.classes
                 .difference(&ancestor.classes)
                 .map(|class| Patch::Add(class.to_owned(), ()));
@@ -141,7 +141,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
 
     fn soakup_attributes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, String>> {
         let mut changes = Vec::new();
-        if let &mut Some(ref mut ancestor) = ancestor {
+        if let Some(ref mut ancestor) = *ancestor {
             let left_keys = self.attributes.keys().collect::<HashSet<_>>();
             let right_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
             let to_add = left_keys.difference(&right_keys).map(|key| {
@@ -167,7 +167,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
                 .map(|key| Patch::Remove(key.to_string()));
             changes.extend(to_remove);
         } else {
-            for (key, value) in self.attributes.iter() {
+            for (key, value) in &self.attributes {
                 let mutator = Patch::Add(key.to_string(), value.to_string());
                 changes.push(mutator);
             }
@@ -221,7 +221,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
         let node = self.reference
             .expect("tried to remove not rendered VTag from DOM");
         let sibling = node.next_sibling();
-        if let Err(_) = parent.remove_child(&node) {
+        if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VTag");
         }
         sibling
@@ -312,10 +312,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             for change in changes {
                 match change {
                     Patch::Add(key, value) | Patch::Replace(key, value) => {
-                        set_attribute(&subject, &key, &value);
+                        set_attribute(subject, &key, &value);
                     }
                     Patch::Remove(key) => {
-                        remove_attribute(&subject, &key);
+                        remove_attribute(subject, &key);
                     }
                 }
             }
@@ -370,7 +370,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             }
 
             for mut listener in self.listeners.drain(..) {
-                let handle = listener.attach(&subject, env.sender());
+                let handle = listener.attach(subject, env.sender());
                 self.captured.push(handle);
             }
 
@@ -414,7 +414,7 @@ impl<CTX, COMP: Component<CTX>> fmt::Debug for VTag<CTX, COMP> {
 }
 
 /// `stdweb` doesn't have methods to work with attributes now.
-/// this is workaround from: https://github.com/koute/stdweb/issues/16#issuecomment-325195854
+/// this is a (workaround)[https://github.com/koute/stdweb/issues/16#issuecomment-325195854]
 fn set_attribute(element: &Element, name: &str, value: &str) {
     js!( @(no_return) @{element}.setAttribute( @{name}, @{value} ); );
 }
