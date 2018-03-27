@@ -173,7 +173,7 @@ impl<CTX, COMP: Component<CTX>> ScopeEnv<CTX, COMP> {
 
 impl<CTX: 'static, COMP: Component<CTX>> ScopeEnv<CTX, COMP> {
     /// Returns reference to a scope data.
-    pub fn get_ref<'a>(&'a mut self) -> Env<'a, CTX, COMP> {
+    pub fn get_ref(&mut self) -> Env<CTX, COMP> {
         Env {
             context: self.context.borrow_mut(),
             sender: &mut self.sender,
@@ -255,7 +255,7 @@ impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
         Scope {
             tx: self.tx,
             rx: Some(self.rx),
-            context: context,
+            context,
             bind: self.bind,
         }
     }
@@ -342,7 +342,7 @@ where
         };
         // No messages at start
         let mut updates = Vec::new();
-        let mut last_frame = VNode::from(component.view());
+        let mut last_frame = component.view();
         // First-time rendering the tree
         let node = last_frame.apply(element.as_node(), None, obsolete, self.get_env());
         if let Some(ref mut cell) = occupied {
@@ -371,7 +371,7 @@ where
                 }
             }
             if should_update {
-                let mut next_frame = VNode::from(component.view());
+                let mut next_frame = component.view();
                 // Re-rendering the tree
                 let node =
                     next_frame.apply(element.as_node(), None, last_frame.take(), self.get_env());
@@ -487,7 +487,6 @@ impl_action! {
     onmouseout(event: MouseOutEvent) -> () => |_, _| { () }
     */
     onblur(event: BlurEvent) -> BlurData => |_, event| {
-        let event = BlurEvent::from(event);
         BlurData::from(event)
     }
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {

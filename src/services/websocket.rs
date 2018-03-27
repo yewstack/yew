@@ -1,5 +1,5 @@
 //! Service to connect to a servers by
-//! [WebSocket Protocol](https://tools.ietf.org/html/rfc6455).
+//! [`WebSocket` Protocol](https://tools.ietf.org/html/rfc6455).
 
 use super::Task;
 use format::{Restorable, Storable};
@@ -18,6 +18,7 @@ pub enum WebSocketStatus {
 pub struct WebSocketTask(Option<Value>);
 
 /// A websocket service attached to a user context.
+#[derive(Default)]
 pub struct WebSocketService {}
 
 impl WebSocketService {
