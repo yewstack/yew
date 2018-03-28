@@ -1,8 +1,8 @@
 [package]
 name = "counter"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 
 [dependencies]
-chrono = "0.4.0"
+stdweb = "0.4.2"
 yew = { path = "../.." }
