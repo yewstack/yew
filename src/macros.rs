@@ -76,6 +76,9 @@ macro_rules! html_impl {
     (@vtag $stack:ident (onclick = $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((onclick) = $handler, $($tail)*) }
     };
+    (@vtag $stack:ident (onmousemove = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onmousemove) = $handler, $($tail)*) }
+    };
     (@vtag $stack:ident (ondoubleclick = $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((ondoubleclick) = $handler, $($tail)*) }
     };
