@@ -1,10 +1,11 @@
-extern crate chrono;
+extern crate stdweb;
 #[macro_use]
 extern crate yew;
 
-use chrono::prelude::*;
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
+
+use stdweb::web::Date;
 
 struct Context {
     console: ConsoleService,
@@ -25,9 +26,7 @@ impl Component<Context> for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, _: &mut Env<Context, Self>) -> Self {
-        Model {
-            value: 0,
-        }
+        Model { value: 0 }
     }
 
     fn update(&mut self, msg: Self::Msg, context: &mut Env<Context, Self>) -> ShouldRender {
@@ -40,11 +39,10 @@ impl Component<Context> for Model {
                 self.value = self.value - 1;
                 context.console.log("minus one");
             }
-            Msg::Bulk(list) => {
-                for msg in list {
-                    self.update(msg, context);
-                }
-            }
+            Msg::Bulk(list) => for msg in list {
+                self.update(msg, context);
+                context.console.log("Bulk action");
+            },
         }
         true
     }
@@ -57,10 +55,10 @@ impl Renderable<Context, Model> for Model {
                 <nav class="menu",>
                     <button onclick=|_| Msg::Increment,>{ "Increment" }</button>
                     <button onclick=|_| Msg::Decrement,>{ "Decrement" }</button>
-                    <button onclick=|_| Msg::Bulk(vec!(Msg::Increment, Msg::Increment)),>{ "Increment Twice" }</button>
+                    <button onclick=|_| Msg::Bulk(vec![Msg::Increment, Msg::Increment]),>{ "Increment Twice" }</button>
                 </nav>
                 <p>{ self.value }</p>
-                <p>{ Local::now() }</p>
+                <p>{ Date::new().to_string() }</p>
             </div>
         }
     }
