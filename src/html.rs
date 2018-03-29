@@ -492,10 +492,25 @@ impl_action! {
         BlurData::from(event)
     }
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
-        use stdweb::web::html_element::InputElement;
+        use stdweb::web::html_element::{InputElement, TextAreaElement};
         use stdweb::unstable::TryInto;
-        let input: InputElement = this.clone().try_into().expect("only an InputElement can have an oninput event listener");
-        let value = input.raw_value();
+        let value = match this.clone().try_into() {
+            Ok(input) => {
+                let input: InputElement = input;
+                input.raw_value()
+            }
+            Err(_e) => {
+                match this.clone().try_into() {
+                    Ok(tae) => {
+                        let tae: TextAreaElement = tae;
+                        tae.value()
+                    }
+                    Err(_e) => {
+                        panic!("only an InputElement or TextAreaElement can have an oninput event listener");
+                    }
+                }
+            }
+        };
         InputData { value }
     }
 }
