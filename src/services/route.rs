@@ -48,7 +48,6 @@ impl Into<String> for RouteInfo {
         let mut path = format!("/{}", path); // add the leading '/'
         if let Some(query) = self.query {
             path = format!("{}?{}", path, query);
-
         }
         if let Some(fragment) = self.fragment {
             path = format!("{}#{}", path, fragment)
@@ -62,7 +61,7 @@ impl From<Url> for RouteInfo {
         RouteInfo {
             path_segments: url
                 .path_segments()
-                .expect("The path segments because the routes should always start with '/'")
+                .expect("The route should always start with '/', so this should never error.")
                 .map(str::to_string)
                 .collect::<Vec<String>>(),
             query: url.query().map(str::to_string),
@@ -153,7 +152,7 @@ impl RouteService {
     /// Will return the current route info based on the location API.
     pub fn get_route_info_from_current_path(&mut self) -> RouteInfo {
         // If the location api errors, recover by redirecting to a valid address
-        let href = self.location.href().unwrap_or("http://dummy_url.com/".to_string());
+        let href = self.location.href().expect("Couldn't get href from location Api");
         let url = Url::parse(&href).expect("The href returned from the location api should always be parsable.");
         RouteInfo::from(url)
     }
@@ -253,6 +252,6 @@ impl RouteService {
 
     /// Gets the location.
     pub fn get_location(&self) -> String {
-        self.location.href().unwrap()
+        self.location.href().expect("Couldn't get location.")
     }
 }
