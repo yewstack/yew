@@ -88,7 +88,6 @@ impl Into<PathSegment> for Route {
 }
 
 
-impl MainRouter for Model {}
 
 impl Component<Context> for Model {
     type Msg = Msg;
