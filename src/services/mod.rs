@@ -10,6 +10,7 @@ pub mod interval;
 pub mod storage;
 pub mod timeout;
 pub mod websocket;
+pub mod route;
 
 use std::time::Duration;
 
