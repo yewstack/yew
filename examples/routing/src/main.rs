@@ -39,7 +39,7 @@ impl From<Result<RouteInfo, RoutingError>> for Msg {
     fn from( result: Result<RouteInfo, RoutingError>) -> Self {
         match result {
             Ok(route_info) => {
-               Msg::Navigate(Route::from(route_info))
+               Msg::Navigate(Route::from(&route_info))
             }
             Err(e) => {
                 eprintln!("Couldn't route: {:?}", e);
@@ -50,10 +50,10 @@ impl From<Result<RouteInfo, RoutingError>> for Msg {
 
 }
 
-impl From<RouteInfo> for Route {
-    fn from(route_info: RouteInfo) -> Self {
+impl <'a> From<&'a RouteInfo> for Route {
+    fn from(route_info: &RouteInfo) -> Self {
         println!("Converting from url");
-        if let Some(first_segment) = route_info.clone().path_segments.get(0).map(String::as_str) {
+        if let Some(first_segment) = route_info.get_segment_at_index(0) {
             println!("matching: {}", first_segment);
             match first_segment {
                 "forums" => return Route::Forums(forums::Route::from(route_info)),
@@ -89,7 +89,7 @@ impl Component<Context> for Model {
         context.routing.register_router::<Route, Self, Context>(callback);
 
 
-        let route: Route = context.routing.get_route_info_from_current_path().into();
+        let route: Route = (&context.routing.get_route_info_from_current_path()).into();
         // TODO I may need to set the route here, but I don't want to make set_route public
         // TODO Maybe a redirect method that erases the most recent state in the history api, and replaces it with a new one?
         // ^^ would this call the callback? Because I don't want that.

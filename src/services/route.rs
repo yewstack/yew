@@ -89,39 +89,32 @@ impl RouteInfo {
                 return Err(RoutingError::RouteDoesNotStartWithSlash)
             }
         } else {
-           return Err(RoutingError::RouteIsEmpty)
+            return Err(RoutingError::RouteIsEmpty)
         }
 
         let full_url = format!("http://dummy_url.com{}", route_string);
         Url::parse(&full_url)
             .map(RouteInfo::from)
-            .map_err(|_| RoutingError::CouldNotParseRoute{ raw_route: route_string.to_string()})
+            .map_err(|_| RoutingError::CouldNotParseRoute { raw_route: route_string.to_string() })
     }
 
-    #[test]
-    fn parse_test() {
-        let route_info = RouteInfo {
-            path_segments: vet!["/path".to_string()],
-            query: None,
-            fragment: None
-        };
-        let parsed_route_info = RouteInfo::parse("/path");
-        assert_eq!(route_info, parsed_route_info);
-    }
-}
-
-impl Into<String> for RouteInfo {
-    fn into(self) -> String {
-
+    /// Converts the RouteInfo into a string that can be matched upon,
+    /// as well as stored in the History Api.
+    pub fn to_string(&self) -> String {
         let path = self.path_segments.join("/");
         let mut path = format!("/{}", path); // add the leading '/'
-        if let Some(query) = self.query {
+        if let Some(ref query) = self.query {
             path = format!("{}?{}", path, query);
         }
-        if let Some(fragment) = self.fragment {
+        if let Some(ref fragment) = self.fragment {
             path = format!("{}#{}", path, fragment)
         }
         path
+    }
+
+    /// Gets the path segment at the specified index.
+    pub fn get_segment_at_index<'a>(&'a self, index: usize) -> Option<&'a str> {
+        self.path_segments.get(index).map(String::as_str)
     }
 }
 
@@ -206,7 +199,7 @@ impl RouteService {
     /// This does not by itself make any changes to Yew's state.
     fn set_route(&mut self, route_info: RouteInfo) -> RouteDidChange {
         if route_info != self.get_route_info_from_current_path() {
-            let route_string: String = route_info.into();
+            let route_string: String = route_info.to_string();
             println!("Setting route: {}", route_string); // this line needs to be removed eventually
             let r = js! {
                 return @{route_string.clone()}
