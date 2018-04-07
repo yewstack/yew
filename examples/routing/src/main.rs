@@ -35,8 +35,8 @@ enum Msg {
     Navigate(Route),
 }
 
-impl From<Result<RouteInfo, RoutingError>> for Msg {
-    fn from( result: Result<RouteInfo, RoutingError>) -> Self {
+impl From<RouteResult> for Msg {
+    fn from( result: RouteResult) -> Self {
         match result {
             Ok(route_info) => {
                Msg::Navigate(Route::from(&route_info))
@@ -89,7 +89,7 @@ impl Component<Context> for Model {
         context.routing.register_router::<Route, Self, Context>(callback);
 
 
-        let route: Route = (&context.routing.get_route_info_from_current_path()).into();
+        let route: Route = (&context.routing.get_current_route_info()).into();
         // TODO I may need to set the route here, but I don't want to make set_route public
         // TODO Maybe a redirect method that erases the most recent state in the history api, and replaces it with a new one?
         // ^^ would this call the callback? Because I don't want that.
@@ -120,9 +120,9 @@ impl Renderable<Context, Model> for Model {
                             // The beauty of this is that the Forums component isn't recreated when
                             // the route changes, it only calls the Forums.change() method.
                             //
-                            // So if the Forums component has stored some data from a network
-                            // request or user input that isn't affected by its route field changing,
-                            // it won't be lost.
+                            // So if the Forums component holds onto some data from a network
+                            // request or user input, that data isn't affected by the component's
+                            // route prop changing,
                             <Forums: route=route, />
                         </>
                     }

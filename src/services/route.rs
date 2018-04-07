@@ -22,15 +22,15 @@ use std::ops::Add;
 
 type RouteDidChange = bool;
 
-/// When the url parser cannot parse a route string, it returns the route string instead.
-pub type RawRoute = String;
+/// An alias for `Result<RouteInfo, RoutingError>`.
+pub type RouteResult = Result<RouteInfo, RoutingError>;
 
 /// Service used for routing
 pub struct RouteService {
     history: History,
     location: Location,
     event_listener: Option<EventListenerHandle>,
-    callback: Option<Callback<Result<RouteInfo, RoutingError>>>
+    callback: Option<Callback<RouteResult>>
 }
 
 /// A subset of the url crate's Url object that can be passed
@@ -65,7 +65,7 @@ pub enum RoutingError {
     /// An error indicating that the string passed to the `RouteInfo::parse()` function couldn't parse the url.
     CouldNotParseRoute {
         /// In the event that url crate can't parse the route string, the route string will be passed back to the crate user to use.
-        raw_route: RawRoute
+        route: String
     },
     /// If the full Url can't be parsed this will be returned
     CouldNotParseUrl {
@@ -75,7 +75,9 @@ pub enum RoutingError {
     /// An error indicating that the string passed to the `RouteInfo::parse()` function did not start with a slash.
     RouteDoesNotStartWithSlash,
     /// An error indicating that the string passed to the `RouteInfo::parse()` function did not contain ary characters
-    RouteIsEmpty
+    RouteIsEmpty,
+    /// Indicates that the url could not be retrieved from the Location API.
+    CouldNotGetLocationHref
 }
 
 
@@ -95,7 +97,7 @@ impl RouteInfo {
         let full_url = format!("http://dummy_url.com{}", route_string);
         Url::parse(&full_url)
             .map(RouteInfo::from)
-            .map_err(|_| RoutingError::CouldNotParseRoute { raw_route: route_string.to_string() })
+            .map_err(|_| RoutingError::CouldNotParseRoute { route: route_string.to_string() })
     }
 
     /// Converts the RouteInfo into a string that can be matched upon,
@@ -149,22 +151,23 @@ impl RouteService {
     ///
     /// The callback takes a string, parses it into a url, and then uses the result of that
     /// to create a message that the component will use to update itself with.
-    pub fn create_routing_callback<C, CTX>(context: &mut Env<CTX, C>) -> Callback<Result<RouteInfo, RoutingError>>
+    pub fn create_routing_callback<COMP, CTX>(context: &mut Env<CTX, COMP>) -> Callback<Result<RouteInfo, RoutingError>>
         where
-            C: Component<CTX>,
-            C::Msg: From<Result<RouteInfo, RoutingError>>,
+            COMP: Component<CTX>,
+            COMP::Msg: From<RouteResult>,
             CTX: 'static
     {
-        return context.send_back(|route_info: Result<RouteInfo, RoutingError>| {
-            println!("Callback path changed {:?}", route_info);
-            C::Msg::from(route_info)
+        return context.send_back(|route_result: RouteResult| {
+            println!("Callback path changed {:?}", route_result);
+            COMP::Msg::from(route_result)
         })
     }
 
     /// Will return the current route info based on the location API.
-    pub fn get_route_info_from_current_path(&mut self) -> RouteInfo {
+    // TODO this should probably return a RouteResult and avoid expecting
+    pub fn get_current_route_info(&mut self) -> RouteInfo {
         // If the location api errors, recover by redirecting to a valid address
-        let href = self.location.href().expect("Couldn't get href from location Api");
+        let href = self.get_location().expect("Couldn't get href from location Api");
         let url = Url::parse(&href).expect("The href returned from the location api should always be parsable.");
         RouteInfo::from(url)
     }
@@ -198,7 +201,7 @@ impl RouteService {
     /// Sets the route via the history api.
     /// This does not by itself make any changes to Yew's state.
     fn set_route(&mut self, route_info: RouteInfo) -> RouteDidChange {
-        if route_info != self.get_route_info_from_current_path() {
+        if route_info != self.get_current_route_info() {
             let route_string: String = route_info.to_string();
             println!("Setting route: {}", route_string); // this line needs to be removed eventually
             let r = js! {
@@ -218,6 +221,7 @@ impl RouteService {
     ///
     /// This second step is necessary because just pushing the state onto the history api won't
     /// cause the callback to be called. The callback needs to be called via go_to_current_route().
+    // TODO change the name of this method.
     pub fn call_link<T: Into<RouteInfo>>(&mut self, route_info: T) {
         println!("calling link"); // This needs to be removed eventually
         if self.set_route(route_info.into()) {
@@ -228,19 +232,24 @@ impl RouteService {
     /// Based on the location API, set the route by calling the callback.
     pub fn go_to_current_route(&mut self) {
         if let Some(ref cb) = self.callback {
-            let full_url: String = self.get_location();
-            println!("go_to_current_route: {}", full_url); // This needs to be removed eventually.
-            match Url::parse(&full_url) {
-                Ok(url) => cb.emit(Ok(url.into())),
-                Err(_) => cb.emit(Err(RoutingError::CouldNotParseUrl {full_url}))
-            }
+
+            let route_result: RouteResult = match self.get_location() {
+                Ok(full_url) => {
+                     Url::parse(&full_url)
+                        .map(RouteInfo::from)
+                        .map_err(|_|RoutingError::CouldNotParseUrl {full_url: full_url.to_string()})
+                }
+                Err(e) => Err(e)
+            };
+            cb.emit(route_result)
+
         } else {
             eprintln!("Callback was never set.")
         }
     }
 
     /// Gets the location.
-    pub fn get_location(&self) -> String {
-        self.location.href().expect("Couldn't get location.")
+    pub fn get_location(&self) -> Result<String, RoutingError> {
+        self.location.href().map_err(|_|RoutingError::CouldNotGetLocationHref)
     }
 }

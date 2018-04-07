@@ -29,7 +29,6 @@ impl Default for Route {
 
 impl <'a> From<&'a RouteInfo> for Route {
     fn from(route_info: &RouteInfo) -> Self {
-        // Todo route_info.path_segments.get().map() could be moved into a get_segment_at_index function in the RouteInfo struct
         if let Some(second_segment) = route_info.get_segment_at_index(1) {
             match second_segment {
                 "cat" => return Route::CatForum,
