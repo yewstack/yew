@@ -2,7 +2,6 @@
 use yew::prelude::*;
 use Context;
 use yew::services::route::RouteInfo;
-use yew::services::route::PathSegment;
 
 use button::Button;
 
@@ -41,12 +40,12 @@ impl From<RouteInfo> for Route {
     }
 }
 
-impl Into<PathSegment> for Route {
-    fn into(self) -> PathSegment {
+impl Into<RouteInfo> for Route {
+    fn into(self) -> RouteInfo {
         match self {
-            Route::CatForum => "cat".into(), // TODO, I would like a try_into().unwrap() pattern here instead
-            Route::DogForum => "dog".into(),
-            Route::ForumsList => "".into()
+            Route::CatForum => RouteInfo::parse("/cat").unwrap(),
+            Route::DogForum => RouteInfo::parse("/dog").unwrap(),
+            Route::ForumsList => RouteInfo::parse("/").unwrap()
         }
     }
 }

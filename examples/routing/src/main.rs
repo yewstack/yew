@@ -8,7 +8,6 @@ mod button;
 use yew::prelude::*;
 use yew::html::Scope;
 use yew::services::route::*;
-use yew::url::ParseError;
 
 use yew::html::Renderable;
 
@@ -36,17 +35,19 @@ enum Msg {
     Navigate(Route),
 }
 
-impl From<ParseError> for Msg {
-    fn from(error: ParseError) -> Msg {
-        println!("Couldn't parse url: {:?}", error);
-        Msg::Navigate(Route::PageNotFoundRoute)
+impl From<Result<RouteInfo, RoutingError>> for Msg {
+    fn from( result: Result<RouteInfo, RoutingError>) -> Self {
+        match result {
+            Ok(route_info) => {
+               Msg::Navigate(Route::from(route_info))
+            }
+            Err(e) => {
+                eprintln!("Couldn't route: {:?}", e);
+                Msg::Navigate(Route::PageNotFoundRoute)
+            }
+        }
     }
-}
 
-impl From<Route> for Msg {
-    fn from(route: Route) -> Msg {
-        Msg::Navigate(route)
-    }
 }
 
 impl From<RouteInfo> for Route {
@@ -65,24 +66,9 @@ impl From<RouteInfo> for Route {
 
 impl Into<RouteInfo> for Route {
     fn into(self) -> RouteInfo {
-        match self.clone() {
-            // But what about the case where this is nested 3+ layers deep?
-            // The current approach won't scale for that.
-            Route::Forums(forums_route) => RouteInfo::from(vec![self.into(), forums_route.into()]), // TODO this is far from perfect. I would like some feedback.
-            Route::PageNotFoundRoute => RouteInfo::from(vec![self.into()])
-        }
-    }
-}
-
-impl Into<PathSegment> for Route {
-    fn into(self) -> PathSegment {
         match self {
-            // TODO, I would like a try_into().expect("") pattern here instead when possible.
-            // If the route is something user-defined, like a slug for an article's url, it could be
-            // possible for a '/' to appear.
-            // This also could be done using a macro that checks for '/'s at compile time.
-            Route::Forums(_)=> "forums".into(),
-            Route::PageNotFoundRoute => "PageNotFound".into(),
+            Route::Forums(forum_route)=> RouteInfo::parse("/forums").unwrap() + forum_route.into(),
+            Route::PageNotFoundRoute => RouteInfo::parse("/PageNotFound").unwrap(),
         }
     }
 }
@@ -97,7 +83,7 @@ impl Component<Context> for Model {
 
         // TODO This is sort of a hack around rust's borrow checker rules.
         // If anything better can be proposed, I would appreciate it.
-        let callback = RouteService::create_routing_callback::<Route, Self, Context>(context);
+        let callback = RouteService::create_routing_callback::<Self, Context>(context);
         context.routing.register_router::<Route, Self, Context>(callback);
 
 

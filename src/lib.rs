@@ -66,10 +66,6 @@ pub mod services;
 pub mod virtual_dom;
 
 // TODO, I don't like that I leak the url's ParseError type
-/// Wrapper module around the url library
-pub mod url {
-    pub use url_lib::ParseError;
-}
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
