@@ -29,13 +29,14 @@ impl Default for Route {
 
 impl From<RouteInfo> for Route {
     fn from(route_info: RouteInfo) -> Self {
-       if let Some(second_segment) = route_info.path_segments.get(1).map(String::as_str) {
-           match second_segment {
-               "cat" => return Route::CatForum,
-               "dog" => return Route::DogForum,
-               _ => return Route::ForumsList
-           }
-       }
+        // Todo route_info.path_segments.get().map() could be moved into a get_segment_at_index function in the RouteInfo struct
+        if let Some(second_segment) = route_info.path_segments.get(1).map(String::as_str) {
+            match second_segment {
+                "cat" => return Route::CatForum,
+                "dog" => return Route::DogForum,
+                _ => return Route::ForumsList
+            }
+        }
         Route::ForumsList
     }
 }
@@ -43,7 +44,7 @@ impl From<RouteInfo> for Route {
 impl Into<RouteInfo> for Route {
     fn into(self) -> RouteInfo {
         match self {
-            Route::CatForum => RouteInfo::parse("/cat").unwrap(),
+            Route::CatForum => RouteInfo::parse("/cat").unwrap(), // TODO I would like to refactor this into a macro that will fail at compile time if the parse fails
             Route::DogForum => RouteInfo::parse("/dog").unwrap(),
             Route::ForumsList => RouteInfo::parse("/").unwrap()
         }

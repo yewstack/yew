@@ -67,6 +67,8 @@ impl From<RouteInfo> for Route {
 impl Into<RouteInfo> for Route {
     fn into(self) -> RouteInfo {
         match self {
+            // You can add RouteInfos together to combine paths in logical order.
+            // The fragment and query of the rhs take precedence over any fragment or query set by the lhs.
             Route::Forums(forum_route)=> RouteInfo::parse("/forums").unwrap() + forum_route.into(),
             Route::PageNotFoundRoute => RouteInfo::parse("/PageNotFound").unwrap(),
         }

@@ -40,7 +40,7 @@ pub struct RouteInfo {
     /// The segments of the path string
     pub path_segments: Vec<String>,
     /// The query parameter
-    pub query: Option<String>,
+    pub query: Option<String>, // TODO it might make sense to store the query as a hashmap
     /// The fragment
     pub fragment: Option<String>
 }
@@ -63,9 +63,14 @@ impl Add for RouteInfo {
 #[derive(Debug, Clone, PartialEq)]
 pub enum RoutingError {
     /// An error indicating that the string passed to the `RouteInfo::parse()` function couldn't parse the url.
-    CouldNotParseUrl{
+    CouldNotParseRoute {
         /// In the event that url crate can't parse the route string, the route string will be passed back to the crate user to use.
         raw_route: RawRoute
+    },
+    /// If the full Url can't be parsed this will be returned
+    CouldNotParseUrl {
+        /// This will contain the full url, not just the route.
+        full_url: String
     },
     /// An error indicating that the string passed to the `RouteInfo::parse()` function did not start with a slash.
     RouteDoesNotStartWithSlash,
@@ -90,7 +95,7 @@ impl RouteInfo {
         let full_url = format!("http://dummy_url.com{}", route_string);
         Url::parse(&full_url)
             .map(RouteInfo::from)
-            .map_err(|_| RoutingError::CouldNotParseUrl{ raw_route: route_string.to_string()})
+            .map_err(|_| RoutingError::CouldNotParseRoute{ raw_route: route_string.to_string()})
     }
 
     #[test]
@@ -181,10 +186,8 @@ impl RouteService {
         }
 
         // Hold on to the callback so it can be used to update the main router component
-        // when a user clicks a link.
+        // when a user clicks a link, independent of the event listener.
         self.callback = Some(callback.clone());
-
-        let location = &self.location;
 
         // Set the event listener to listen for the history's pop state events and call the callback when that occurs
         self.event_listener = Some( window().add_event_listener(move |event: PopStateEvent| {
@@ -236,7 +239,7 @@ impl RouteService {
             println!("go_to_current_route: {}", full_url); // This needs to be removed eventually.
             match Url::parse(&full_url) {
                 Ok(url) => cb.emit(Ok(url.into())),
-                Err(_) => cb.emit(Err(RoutingError::CouldNotParseUrl {raw_route: full_url}))
+                Err(_) => cb.emit(Err(RoutingError::CouldNotParseUrl {full_url}))
             }
         } else {
             eprintln!("Callback was never set.")
