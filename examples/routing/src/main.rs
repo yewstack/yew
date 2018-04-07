@@ -112,9 +112,9 @@ impl Component<Context> for Model {
 
 impl Renderable<Context, Model> for Model {
     fn view(&self) -> Html<Context, Self> {
-        let page = |page: &Route| {
-            match page {
-                Route::Forums(route) => {
+        let page = |route: &Route| {
+            match *route {
+                Route::Forums(ref forum_route) => {
                     html!{
                         <>
                             // The beauty of this is that the Forums component isn't recreated when
@@ -123,7 +123,7 @@ impl Renderable<Context, Model> for Model {
                             // So if the Forums component holds onto some data from a network
                             // request or user input, that data isn't affected by the component's
                             // route prop changing,
-                            <Forums: route=route, />
+                            <Forums: route=forum_route, />
                         </>
                     }
                 }
