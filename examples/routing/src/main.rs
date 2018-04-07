@@ -86,7 +86,7 @@ impl Component<Context> for Model {
         // TODO This is sort of a hack around rust's borrow checker rules.
         // If anything better can be proposed, I would appreciate it.
         let callback = RouteService::create_routing_callback::<Self, Context>(context);
-        context.routing.register_router::<Route, Self, Context>(callback);
+        context.routing.register_router(callback);
 
 
         let route: Route = (&context.routing.get_current_route_info()).into();

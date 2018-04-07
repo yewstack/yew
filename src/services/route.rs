@@ -147,18 +147,20 @@ impl RouteService {
         }
     }
 
+
     /// Creates the callback used in the main routing logic.
     ///
     /// The callback takes a string, parses it into a url, and then uses the result of that
     /// to create a message that the component will use to update itself with.
-    pub fn create_routing_callback<COMP, CTX>(context: &mut Env<CTX, COMP>) -> Callback<Result<RouteInfo, RoutingError>>
+    // TODO I would like to include this in register_router
+    pub fn create_routing_callback<COMP, CTX>(context: &mut Env<CTX, COMP>) -> Callback<RouteResult>
         where
             COMP: Component<CTX>,
             COMP::Msg: From<RouteResult>,
             CTX: 'static
     {
         return context.send_back(|route_result: RouteResult| {
-            println!("Callback path changed {:?}", route_result);
+            println!("Callback path changed {:?}", route_result); // Remove me
             COMP::Msg::from(route_result)
         })
     }
@@ -175,7 +177,7 @@ impl RouteService {
     /// Registers the router.
     /// There can only be one router.
     /// The component in which it is set up will be the source from which routing logic emanates.
-    pub fn register_router<T, C, CTX>(&mut self, callback: Callback<Result<RouteInfo, RoutingError>>)
+    pub fn register_router(&mut self, callback: Callback<RouteResult>)
     {
         if let Some(_) = self.event_listener {
             panic!("You cannot register two separate routers.");
