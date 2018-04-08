@@ -50,7 +50,7 @@
 
 #[macro_use]
 extern crate failure;
-extern crate url as url_lib;
+extern crate url;
 extern crate http;
 extern crate serde;
 extern crate serde_json;
@@ -64,8 +64,6 @@ pub mod html;
 pub mod prelude;
 pub mod services;
 pub mod virtual_dom;
-
-// TODO, I don't like that I leak the url's ParseError type
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {

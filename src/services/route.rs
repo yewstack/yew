@@ -2,19 +2,15 @@
 //! setting the url and responding to changes to the url
 //! that are initiated by the browser..
 
-use stdweb::web::History;
-use stdweb::web::Location;
-use stdweb::web::window;
-//use stdweb::web::Window;
-//use stdweb;
+use stdweb::web::{History, Location, window};
 use stdweb::Value;
-use stdweb::web::EventListenerHandle;
+
+use stdweb::web::{EventListenerHandle, IEventTarget};
 use stdweb::web::event::PopStateEvent;
-use stdweb::web::IEventTarget;
 use stdweb::unstable::TryFrom;
 use html::Callback;
 
-use url_lib::{Url};
+use url::{Url};
 use std::ops::Add;
 
 
@@ -181,7 +177,7 @@ impl RouteService {
 
 
     /// Sets the route via the history api.
-    /// If the route is not already set, to the string corresponding to the provided RouteInfo,
+    /// If the route is not already set to the string corresponding to the provided RouteInfo,
     /// the history will be updated, and the routing callback will be invoked.
     pub fn set_route<T: Into<RouteInfo>>(&mut self, route_info: T) {
         let route_info: RouteInfo = route_info.into();

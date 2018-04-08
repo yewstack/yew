@@ -15,7 +15,6 @@ use forums::Forums;
 use button::Button;
 
 
-
 pub struct Context {
     routing: RouteService
 }
