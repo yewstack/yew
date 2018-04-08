@@ -73,7 +73,7 @@ impl Component<Context> for Forums {
                 println!("Forums: Navigating");
                 // This will inform the Model component that the url has changed, and will cause it to
                 // update its route field, and therefore, this component's props.
-                context.routing.call_link(super::Route::Forums(route));
+                context.routing.set_route(super::Route::Forums(route));
                 true
             }
         }
@@ -105,14 +105,14 @@ impl Renderable<Context, Forums> for Forums {
             }
             Route::ForumsList => {
                 html!{
-                    <>
+                    <div>
                         <div>
                             <Button: title="Dog forum", onsignal=|_| Msg::Navigate(Route::DogForum) ,/>
                         </div>
                         <div>
                             <Button: title="Cat forum", onsignal=|_| Msg::Navigate(Route::CatForum) ,/>
                         </div>
-                    </>
+                    </div>
                 }
             }
         }

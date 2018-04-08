@@ -83,16 +83,15 @@ impl Component<Context> for Model {
 
     fn create(_: Self::Properties, context: &mut Env<Context, Self>) -> Self {
 
-        // TODO This is sort of a hack around rust's borrow checker rules.
-        // If anything better can be proposed, I would appreciate it.
-        let callback = RouteService::create_routing_callback::<Self, Context>(context);
+        let callback = context.send_back(|route_result: RouteResult| {
+            Msg::from(route_result)
+        });
         context.routing.register_router(callback);
 
 
         let route: Route = (&context.routing.get_current_route_info()).into();
-        // TODO I may need to set the route here, but I don't want to make set_route public
-        // TODO Maybe a redirect method that erases the most recent state in the history api, and replaces it with a new one?
-        // ^^ would this call the callback? Because I don't want that.
+        context.routing.replace_url(route.clone()); // sets the url to be dependent on what the route_info was resolved to
+
         Model {
             route
         }
@@ -102,7 +101,7 @@ impl Component<Context> for Model {
         match msg {
             Msg::Navigate(route) => {
                 println!("Main route: Navigating");
-                context.routing.call_link(route.clone());
+                context.routing.set_route(route.clone());
                 self.route = route;
                 true
             }
@@ -116,7 +115,7 @@ impl Renderable<Context, Model> for Model {
             match *route {
                 Route::Forums(ref forum_route) => {
                     html!{
-                        <>
+                        <div>
                             // The beauty of this is that the Forums component isn't recreated when
                             // the route changes, it only calls the Forums.change() method.
                             //
@@ -124,14 +123,14 @@ impl Renderable<Context, Model> for Model {
                             // request or user input, that data isn't affected by the component's
                             // route prop changing,
                             <Forums: route=forum_route, />
-                        </>
+                        </div>
                     }
                 }
                 Route::PageNotFoundRoute => {
                     html! {
-                        <>
+                        <div>
                             {"Page not found"}
-                        </>
+                        </div>
                     }
                 }
             }

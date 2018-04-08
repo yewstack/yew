@@ -14,13 +14,9 @@ use stdweb::web::IEventTarget;
 use stdweb::unstable::TryFrom;
 use html::Callback;
 
-use html::Env;
-use html::Component;
 use url_lib::{Url};
 use std::ops::Add;
 
-
-type RouteDidChange = bool;
 
 /// An alias for `Result<RouteInfo, RoutingError>`.
 pub type RouteResult = Result<RouteInfo, RoutingError>;
@@ -141,29 +137,13 @@ impl RouteService {
     pub fn new() -> RouteService {
         RouteService {
             history: window().history(),
-            location: window().location().unwrap(),
+            location: window().location().expect("Could not find Location API, routing is not supported in your browser."),
             event_listener: None,
             callback: None
         }
     }
 
 
-    /// Creates the callback used in the main routing logic.
-    ///
-    /// The callback takes a string, parses it into a url, and then uses the result of that
-    /// to create a message that the component will use to update itself with.
-    // TODO I would like to include this in register_router
-    pub fn create_routing_callback<COMP, CTX>(context: &mut Env<CTX, COMP>) -> Callback<RouteResult>
-        where
-            COMP: Component<CTX>,
-            COMP::Msg: From<RouteResult>,
-            CTX: 'static
-    {
-        return context.send_back(|route_result: RouteResult| {
-            println!("Callback path changed {:?}", route_result); // Remove me
-            COMP::Msg::from(route_result)
-        })
-    }
 
     /// Will return the current route info based on the location API.
     // TODO this should probably return a RouteResult and avoid expecting
@@ -201,8 +181,10 @@ impl RouteService {
 
 
     /// Sets the route via the history api.
-    /// This does not by itself make any changes to Yew's state.
-    fn set_route(&mut self, route_info: RouteInfo) -> RouteDidChange {
+    /// If the route is not already set, to the string corresponding to the provided RouteInfo,
+    /// the history will be updated, and the routing callback will be invoked.
+    pub fn set_route<T: Into<RouteInfo>>(&mut self, route_info: T) {
+        let route_info: RouteInfo = route_info.into();
         if route_info != self.get_current_route_info() {
             let route_string: String = route_info.to_string();
             println!("Setting route: {}", route_string); // this line needs to be removed eventually
@@ -211,24 +193,19 @@ impl RouteService {
             };
             // Set the state using the history API
             self.history.push_state(r, "", Some(&route_string));
-            true
-        } else {
-            false
+            self.go_to_current_route();
         }
     }
 
-    /// Sets the browser's url to the route,
-    /// then notifies the main router that the route has changed and it needs to
-    /// figure out what to update.
-    ///
-    /// This second step is necessary because just pushing the state onto the history api won't
-    /// cause the callback to be called. The callback needs to be called via go_to_current_route().
-    // TODO change the name of this method.
-    pub fn call_link<T: Into<RouteInfo>>(&mut self, route_info: T) {
-        println!("calling link"); // This needs to be removed eventually
-        if self.set_route(route_info.into()) {
-            self.go_to_current_route();
-        }
+
+    /// Replaces the url with the one provided by the route info.
+    /// This will not invoke the routing callback.
+    pub fn replace_url<T: Into<RouteInfo>>(&mut self, route_info: T) {
+        let route_string: String = route_info.into().to_string();
+        let r = js! {
+            return @{route_string.clone()}
+        };
+        let _ = self.history.replace_state(r, "", Some(&route_string));
     }
 
     /// Based on the location API, set the route by calling the callback.
