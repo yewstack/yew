@@ -2,6 +2,7 @@
 extern crate yew;
 extern crate counter;
 extern crate crm;
+extern crate custom_components;
 
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
@@ -9,6 +10,7 @@ use yew::services::dialog::DialogService;
 use yew::services::storage::{StorageService, Area};
 use counter::Model as Counter;
 use crm::Model as Crm;
+use custom_components::Model as CustomComponents;
 
 struct Context {
     console: ConsoleService,
@@ -34,10 +36,17 @@ impl AsMut<DialogService> for Context {
     }
 }
 
+impl custom_components::Printer for Context {
+    fn print(&mut self, data: &str) {
+        self.console.log(data);
+    }
+}
+
 enum Scene {
     NotSelected,
     Counter,
     Crm,
+    CustomComponents,
 }
 
 enum Msg {
@@ -66,10 +75,11 @@ impl Renderable<Context, Scene> for Scene {
     fn view(&self) -> Html<Context, Self> {
         html! {
             <p>{ "Showcase" }</p>
-            { self.view_scene() }
             <button onclick=|_| Msg::SwitchTo(Scene::NotSelected),>{ "Home" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Counter),>{ "Counter" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Crm),>{ "Crm" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::CustomComponents),>{ "CustomComponents" }</button>
+            { self.view_scene() }
         }
     }
 }
@@ -90,6 +100,11 @@ impl Scene {
             Scene::Crm => {
                 html! {
                     <Crm: />
+                }
+            }
+            Scene::CustomComponents => {
+                html! {
+                    <CustomComponents: />
                 }
             }
         }
