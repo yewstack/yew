@@ -1,4 +1,5 @@
 use yew::prelude::*;
+use super::Printer;
 
 #[derive(PartialEq, Clone)]
 pub enum Color {
@@ -85,6 +86,3 @@ impl<CTX: Printer + 'static> Renderable<CTX, Counter> for Counter {
 }
 
 
-pub trait Printer {
-    fn print(&mut self, data: &str);
-}

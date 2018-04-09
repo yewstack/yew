@@ -7,3 +7,4 @@ authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 yew = { path = "../.." }
 counter = { path = "sub/counter" }
 crm = { path = "sub/crm" }
+custom_components = { path = "sub/custom_components" }
