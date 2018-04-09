@@ -9,9 +9,9 @@ pub struct Context {
     console: ConsoleService,
 }
 
-impl AsRef<ConsoleService> for Context {
-    fn as_ref(&self) -> &ConsoleService {
-        &self.console
+impl AsMut<ConsoleService> for Context {
+    fn as_mut(&mut self) -> &mut ConsoleService {
+        &mut self.console
     }
 }
 

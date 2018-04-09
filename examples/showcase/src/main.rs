@@ -1,24 +1,43 @@
 #[macro_use]
 extern crate yew;
 extern crate counter;
+extern crate crm;
 
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
+use yew::services::dialog::DialogService;
+use yew::services::storage::{StorageService, Area};
 use counter::Model as Counter;
+use crm::Model as Crm;
 
 struct Context {
     console: ConsoleService,
+    storage: StorageService,
+    dialog: DialogService,
 }
 
-impl AsRef<ConsoleService> for Context {
-    fn as_ref(&self) -> &ConsoleService {
-        &self.console
+impl AsMut<ConsoleService> for Context {
+    fn as_mut(&mut self) -> &mut ConsoleService {
+        &mut self.console
+    }
+}
+
+impl AsMut<StorageService> for Context {
+    fn as_mut(&mut self) -> &mut StorageService {
+        &mut self.storage
+    }
+}
+
+impl AsMut<DialogService> for Context {
+    fn as_mut(&mut self) -> &mut DialogService {
+        &mut self.dialog
     }
 }
 
 enum Scene {
     NotSelected,
     Counter,
+    Crm,
 }
 
 enum Msg {
@@ -48,8 +67,9 @@ impl Renderable<Context, Scene> for Scene {
         html! {
             <p>{ "Showcase" }</p>
             { self.view_scene() }
-            <button onclick=|_| Msg::SwitchTo(Scene::NotSelected),>{ "Back" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::NotSelected),>{ "Home" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Counter),>{ "Counter" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::Crm),>{ "Crm" }</button>
         }
     }
 }
@@ -67,6 +87,11 @@ impl Scene {
                     <Counter: />
                 }
             }
+            Scene::Crm => {
+                html! {
+                    <Crm: />
+                }
+            }
         }
     }
 }
@@ -75,6 +100,8 @@ fn main() {
     yew::initialize();
     let context = Context {
         console: ConsoleService,
+        storage: StorageService::new(Area::Local),
+        dialog: DialogService,
     };
     let app: App<_, Scene> = App::new(context);
     app.mount_to_body();
