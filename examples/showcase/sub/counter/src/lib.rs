@@ -2,54 +2,55 @@ extern crate stdweb;
 #[macro_use]
 extern crate yew;
 
+use stdweb::web::Date;
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
 
-use stdweb::web::Date;
-
-struct Context {
-    console: ConsoleService,
-}
-
-struct Model {
+pub struct Model {
     value: i64,
 }
 
-enum Msg {
+pub enum Msg {
     Increment,
     Decrement,
     Bulk(Vec<Msg>),
 }
 
-impl Component<Context> for Model {
+impl<CTX> Component<CTX> for Model
+where
+    CTX: AsRef<ConsoleService>,
+{
     type Msg = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<Context, Self>) -> Self {
+    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
         Model { value: 0 }
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut Env<Context, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Increment => {
                 self.value = self.value + 1;
-                context.console.log("plus one");
+                context.as_ref().log("plus one");
             }
             Msg::Decrement => {
                 self.value = self.value - 1;
-                context.console.log("minus one");
+                context.as_ref().log("minus one");
             }
             Msg::Bulk(list) => for msg in list {
                 self.update(msg, context);
-                context.console.log("Bulk action");
+                context.as_ref().log("Bulk action");
             },
         }
         true
     }
 }
 
-impl Renderable<Context, Model> for Model {
-    fn view(&self) -> Html<Context, Self> {
+impl<CTX> Renderable<CTX, Model> for Model
+where
+    CTX: AsRef<ConsoleService> + 'static,
+{
+    fn view(&self) -> Html<CTX, Self> {
         html! {
             <div>
                 <nav class="menu",>
@@ -64,12 +65,3 @@ impl Renderable<Context, Model> for Model {
     }
 }
 
-fn main() {
-    yew::initialize();
-    let context = Context {
-        console: ConsoleService,
-    };
-    let app: App<_, Model> = App::new(context);
-    app.mount_to_body();
-    yew::run_loop();
-}
