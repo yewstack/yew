@@ -18,7 +18,7 @@ pub enum Msg {
 
 impl<CTX> Component<CTX> for Model
 where
-    CTX: AsRef<ConsoleService>,
+    CTX: AsMut<ConsoleService>,
 {
     type Msg = Msg;
     type Properties = ();
@@ -31,15 +31,15 @@ where
         match msg {
             Msg::Increment => {
                 self.value = self.value + 1;
-                context.as_ref().log("plus one");
+                context.as_mut().log("plus one");
             }
             Msg::Decrement => {
                 self.value = self.value - 1;
-                context.as_ref().log("minus one");
+                context.as_mut().log("minus one");
             }
             Msg::Bulk(list) => for msg in list {
                 self.update(msg, context);
-                context.as_ref().log("Bulk action");
+                context.as_mut().log("Bulk action");
             },
         }
         true
@@ -48,7 +48,7 @@ where
 
 impl<CTX> Renderable<CTX, Model> for Model
 where
-    CTX: AsRef<ConsoleService> + 'static,
+    CTX: AsMut<ConsoleService> + 'static,
 {
     fn view(&self) -> Html<CTX, Self> {
         html! {
