@@ -10,3 +10,4 @@ crm = { path = "sub/crm" }
 custom_components = { path = "sub/custom_components" }
 dashboard = { path = "sub/dashboard" }
 fragments = { path = "sub/fragments" }
+game_of_life = { path = "sub/game_of_life" }
