@@ -14,6 +14,7 @@ extern crate npm_and_rest;
 extern crate textarea;
 extern crate timer;
 extern crate todomvc;
+extern crate two_apps;
 
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
@@ -37,6 +38,7 @@ use npm_and_rest::ccxt::CcxtService;
 use textarea::Model as Textarea;
 use timer::Model as Timer;
 use todomvc::Model as Todomvc;
+use two_apps::Model as TwoApps;
 
 struct Context {
     console: ConsoleService,
@@ -48,6 +50,7 @@ struct Context {
     gravatar: GravatarService,
     ccxt: CcxtService,
     timeout: TimeoutService,
+    two_apps: two_apps::Context,
 }
 
 impl AsMut<ConsoleService> for Context {
@@ -110,6 +113,12 @@ impl AsMut<TimeoutService> for Context {
     }
 }
 
+impl AsMut<two_apps::Context> for Context {
+    fn as_mut(&mut self) -> &mut two_apps::Context {
+        &mut self.two_apps
+    }
+}
+
 enum Scene {
     NotSelected,
     Counter,
@@ -124,6 +133,7 @@ enum Scene {
     Textarea,
     Timer,
     Todomvc,
+    TwoApps,
 }
 
 enum Msg {
@@ -165,6 +175,7 @@ impl Renderable<Context, Scene> for Scene {
             <button onclick=|_| Msg::SwitchTo(Scene::Textarea),>{ "Textarea" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Timer),>{ "Timer" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Todomvc),>{ "Todomvc" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::TwoApps),>{ "TwoApps" }</button>
             { self.view_scene() }
         }
     }
@@ -238,6 +249,11 @@ impl Scene {
                     <Todomvc: />
                 }
             }
+            Scene::TwoApps => {
+                html! {
+                    <TwoApps: />
+                }
+            }
         }
     }
 }
@@ -254,6 +270,7 @@ fn main() {
         gravatar: GravatarService::new(),
         ccxt: CcxtService::new(),
         timeout: TimeoutService::new(),
+        two_apps: two_apps::Context::new(),
     };
     let app: App<_, Scene> = App::new(context);
     app.mount_to_body();
