@@ -5,6 +5,7 @@ extern crate crm;
 extern crate custom_components;
 extern crate dashboard;
 extern crate fragments;
+extern crate game_of_life;
 
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
@@ -12,11 +13,13 @@ use yew::services::dialog::DialogService;
 use yew::services::storage::{StorageService, Area};
 use yew::services::fetch::FetchService;
 use yew::services::websocket::WebSocketService;
+use yew::services::interval::IntervalService;
 use counter::Model as Counter;
 use crm::Model as Crm;
 use custom_components::Model as CustomComponents;
 use dashboard::Model as Dashboard;
 use fragments::Model as Fragments;
+use game_of_life::GameOfLife;
 
 struct Context {
     console: ConsoleService,
@@ -24,6 +27,7 @@ struct Context {
     dialog: DialogService,
     web: FetchService,
     ws: WebSocketService,
+    interval: IntervalService,
 }
 
 impl AsMut<ConsoleService> for Context {
@@ -56,6 +60,12 @@ impl AsMut<WebSocketService> for Context {
     }
 }
 
+impl AsMut<IntervalService> for Context {
+    fn as_mut(&mut self) -> &mut IntervalService {
+        &mut self.interval
+    }
+}
+
 impl custom_components::Printer for Context {
     fn print(&mut self, data: &str) {
         self.console.log(data);
@@ -69,6 +79,7 @@ enum Scene {
     CustomComponents,
     Dashboard,
     Fragments,
+    GameOfLife,
 }
 
 enum Msg {
@@ -103,6 +114,7 @@ impl Renderable<Context, Scene> for Scene {
             <button onclick=|_| Msg::SwitchTo(Scene::CustomComponents),>{ "CustomComponents" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Dashboard),>{ "Dashboard" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Fragments),>{ "Fragments" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::GameOfLife),>{ "GameOfLife" }</button>
             { self.view_scene() }
         }
     }
@@ -141,6 +153,11 @@ impl Scene {
                     <Fragments: />
                 }
             }
+            Scene::GameOfLife => {
+                html! {
+                    <GameOfLife: />
+                }
+            }
         }
     }
 }
@@ -153,6 +170,7 @@ fn main() {
         dialog: DialogService,
         web: FetchService::new(),
         ws: WebSocketService::new(),
+        interval: IntervalService::new(),
     };
     let app: App<_, Scene> = App::new(context);
     app.mount_to_body();
