@@ -1,0 +1,11 @@
+[package]
+name = "npm_and_rest"
+version = "0.1.0"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+
+[dependencies]
+failure = "0.1"
+serde = "1"
+serde_derive = "1"
+stdweb = "0.4"
+yew = { path = "../../../.." }
