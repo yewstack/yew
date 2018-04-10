@@ -12,6 +12,7 @@ extern crate large_table;
 extern crate mount_point;
 extern crate npm_and_rest;
 extern crate textarea;
+extern crate timer;
 
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
@@ -20,6 +21,7 @@ use yew::services::storage::{StorageService, Area};
 use yew::services::fetch::FetchService;
 use yew::services::websocket::WebSocketService;
 use yew::services::interval::IntervalService;
+use yew::services::timeout::TimeoutService;
 use counter::Model as Counter;
 use crm::Model as Crm;
 use custom_components::Model as CustomComponents;
@@ -32,6 +34,7 @@ use npm_and_rest::Model as NpmAndRest;
 use npm_and_rest::gravatar::GravatarService;
 use npm_and_rest::ccxt::CcxtService;
 use textarea::Model as Textarea;
+use timer::Model as Timer;
 
 struct Context {
     console: ConsoleService,
@@ -42,6 +45,7 @@ struct Context {
     interval: IntervalService,
     gravatar: GravatarService,
     ccxt: CcxtService,
+    timeout: TimeoutService,
 }
 
 impl AsMut<ConsoleService> for Context {
@@ -98,6 +102,12 @@ impl AsMut<CcxtService> for Context {
     }
 }
 
+impl AsMut<TimeoutService> for Context {
+    fn as_mut(&mut self) -> &mut TimeoutService {
+        &mut self.timeout
+    }
+}
+
 enum Scene {
     NotSelected,
     Counter,
@@ -110,6 +120,7 @@ enum Scene {
     MountPoint,
     NpmAndRest,
     Textarea,
+    Timer,
 }
 
 enum Msg {
@@ -149,6 +160,7 @@ impl Renderable<Context, Scene> for Scene {
             <button onclick=|_| Msg::SwitchTo(Scene::MountPoint),>{ "MountPoint" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::NpmAndRest),>{ "NpmAndRest" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Textarea),>{ "Textarea" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::Timer),>{ "Timer" }</button>
             { self.view_scene() }
         }
     }
@@ -212,6 +224,11 @@ impl Scene {
                     <Textarea: />
                 }
             }
+            Scene::Timer => {
+                html! {
+                    <Timer: />
+                }
+            }
         }
     }
 }
@@ -227,6 +244,7 @@ fn main() {
         interval: IntervalService::new(),
         gravatar: GravatarService::new(),
         ccxt: CcxtService::new(),
+        timeout: TimeoutService::new(),
     };
     let app: App<_, Scene> = App::new(context);
     app.mount_to_body();

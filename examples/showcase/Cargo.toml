@@ -15,3 +15,4 @@ large_table = { path = "sub/large_table" }
 mount_point = { path = "sub/mount_point" }
 npm_and_rest = { path = "sub/npm_and_rest" }
 textarea = { path = "sub/textarea" }
+timer = { path = "sub/timer" }
