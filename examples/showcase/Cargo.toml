@@ -12,3 +12,4 @@ dashboard = { path = "sub/dashboard" }
 fragments = { path = "sub/fragments" }
 game_of_life = { path = "sub/game_of_life" }
 large_table = { path = "sub/large_table" }
+mount_point = { path = "sub/mount_point" }
