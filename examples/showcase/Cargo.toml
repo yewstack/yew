@@ -17,3 +17,4 @@ npm_and_rest = { path = "sub/npm_and_rest" }
 textarea = { path = "sub/textarea" }
 timer = { path = "sub/timer" }
 todomvc = { path = "sub/todomvc" }
+two_apps = { path = "sub/two_apps" }
