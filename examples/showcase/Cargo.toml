@@ -9,3 +9,4 @@ counter = { path = "sub/counter" }
 crm = { path = "sub/crm" }
 custom_components = { path = "sub/custom_components" }
 dashboard = { path = "sub/dashboard" }
+fragments = { path = "sub/fragments" }

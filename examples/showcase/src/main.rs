@@ -4,6 +4,7 @@ extern crate counter;
 extern crate crm;
 extern crate custom_components;
 extern crate dashboard;
+extern crate fragments;
 
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
@@ -15,6 +16,7 @@ use counter::Model as Counter;
 use crm::Model as Crm;
 use custom_components::Model as CustomComponents;
 use dashboard::Model as Dashboard;
+use fragments::Model as Fragments;
 
 struct Context {
     console: ConsoleService,
@@ -66,6 +68,7 @@ enum Scene {
     Crm,
     CustomComponents,
     Dashboard,
+    Fragments,
 }
 
 enum Msg {
@@ -99,6 +102,7 @@ impl Renderable<Context, Scene> for Scene {
             <button onclick=|_| Msg::SwitchTo(Scene::Crm),>{ "Crm" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::CustomComponents),>{ "CustomComponents" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Dashboard),>{ "Dashboard" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::Fragments),>{ "Fragments" }</button>
             { self.view_scene() }
         }
     }
@@ -130,6 +134,11 @@ impl Scene {
             Scene::Dashboard => {
                 html! {
                     <Dashboard: />
+                }
+            }
+            Scene::Fragments => {
+                html! {
+                    <Fragments: />
                 }
             }
         }
