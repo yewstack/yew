@@ -51,7 +51,18 @@ enum Patch<ID, T> {
 
 /// Reform of a node.
 enum Reform {
+    /// Don't create a NEW reference (js Node).
+    ///
+    /// The reference _may still be mutated_.
     Keep,
+
+    /// Create a new reference (js Node).
+    ///
+    /// The optional `Node` is used to insert the
+    /// new node in the correct slot of the parent.
+    ///
+    /// If it does not exist, a `precursor` must be
+    /// speccified (see `VDiff::apply()`).
     Before(Option<Node>),
 }
 
@@ -70,6 +81,12 @@ pub trait VDiff {
     fn remove(self, parent: &Node) -> Option<Node>;
 
     /// Scoped diff apply to other tree.
+    ///
+    /// ### Internal Behavior Notice:
+    ///
+    /// Note that these modify the DOM by modifying the reference that _already_ exists
+    /// on the `ancestor`. If `self.reference` exists (which it _shouldn't_) it will be
+    /// **completely ignored**.
     fn apply(
         &mut self,
         parent: &Node,
