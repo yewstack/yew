@@ -13,3 +13,4 @@ fragments = { path = "sub/fragments" }
 game_of_life = { path = "sub/game_of_life" }
 large_table = { path = "sub/large_table" }
 mount_point = { path = "sub/mount_point" }
+npm_and_rest = { path = "sub/npm_and_rest" }
