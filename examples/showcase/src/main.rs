@@ -11,6 +11,7 @@ extern crate game_of_life;
 extern crate large_table;
 extern crate mount_point;
 extern crate npm_and_rest;
+extern crate textarea;
 
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
@@ -30,6 +31,7 @@ use mount_point::Model as MountPoint;
 use npm_and_rest::Model as NpmAndRest;
 use npm_and_rest::gravatar::GravatarService;
 use npm_and_rest::ccxt::CcxtService;
+use textarea::Model as Textarea;
 
 struct Context {
     console: ConsoleService,
@@ -107,6 +109,7 @@ enum Scene {
     LargeTable,
     MountPoint,
     NpmAndRest,
+    Textarea,
 }
 
 enum Msg {
@@ -145,6 +148,7 @@ impl Renderable<Context, Scene> for Scene {
             <button onclick=|_| Msg::SwitchTo(Scene::LargeTable),>{ "LargeTable" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::MountPoint),>{ "MountPoint" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::NpmAndRest),>{ "NpmAndRest" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::Textarea),>{ "Textarea" }</button>
             { self.view_scene() }
         }
     }
@@ -201,6 +205,11 @@ impl Scene {
             Scene::NpmAndRest => {
                 html! {
                     <NpmAndRest: />
+                }
+            }
+            Scene::Textarea => {
+                html! {
+                    <Textarea: />
                 }
             }
         }
