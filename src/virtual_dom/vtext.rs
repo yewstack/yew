@@ -57,6 +57,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
         opposite: Option<VNode<Self::Context, Self::Component>>,
         _: ScopeEnv<Self::Context, Self::Component>,
     ) -> Option<Node> {
+        assert!(self.reference.is_none(), "reference is ignored so must not be set");
         let reform = {
             match opposite {
                 // If element matched this type
