@@ -3,19 +3,25 @@ extern crate yew;
 extern crate counter;
 extern crate crm;
 extern crate custom_components;
+extern crate dashboard;
 
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
 use yew::services::dialog::DialogService;
 use yew::services::storage::{StorageService, Area};
+use yew::services::fetch::FetchService;
+use yew::services::websocket::WebSocketService;
 use counter::Model as Counter;
 use crm::Model as Crm;
 use custom_components::Model as CustomComponents;
+use dashboard::Model as Dashboard;
 
 struct Context {
     console: ConsoleService,
     storage: StorageService,
     dialog: DialogService,
+    web: FetchService,
+    ws: WebSocketService,
 }
 
 impl AsMut<ConsoleService> for Context {
@@ -36,6 +42,18 @@ impl AsMut<DialogService> for Context {
     }
 }
 
+impl AsMut<FetchService> for Context {
+    fn as_mut(&mut self) -> &mut FetchService {
+        &mut self.web
+    }
+}
+
+impl AsMut<WebSocketService> for Context {
+    fn as_mut(&mut self) -> &mut WebSocketService {
+        &mut self.ws
+    }
+}
+
 impl custom_components::Printer for Context {
     fn print(&mut self, data: &str) {
         self.console.log(data);
@@ -47,6 +65,7 @@ enum Scene {
     Counter,
     Crm,
     CustomComponents,
+    Dashboard,
 }
 
 enum Msg {
@@ -79,6 +98,7 @@ impl Renderable<Context, Scene> for Scene {
             <button onclick=|_| Msg::SwitchTo(Scene::Counter),>{ "Counter" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Crm),>{ "Crm" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::CustomComponents),>{ "CustomComponents" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::Dashboard),>{ "Dashboard" }</button>
             { self.view_scene() }
         }
     }
@@ -107,6 +127,11 @@ impl Scene {
                     <CustomComponents: />
                 }
             }
+            Scene::Dashboard => {
+                html! {
+                    <Dashboard: />
+                }
+            }
         }
     }
 }
@@ -117,6 +142,8 @@ fn main() {
         console: ConsoleService,
         storage: StorageService::new(Area::Local),
         dialog: DialogService,
+        web: FetchService::new(),
+        ws: WebSocketService::new(),
     };
     let app: App<_, Scene> = App::new(context);
     app.mount_to_body();
