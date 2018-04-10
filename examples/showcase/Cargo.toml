@@ -1,0 +1,20 @@
+[package]
+name = "showcase"
+version = "0.1.0"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+
+[dependencies]
+yew = { path = "../.." }
+counter = { path = "sub/counter" }
+crm = { path = "sub/crm" }
+custom_components = { path = "sub/custom_components" }
+dashboard = { path = "sub/dashboard" }
+fragments = { path = "sub/fragments" }
+game_of_life = { path = "sub/game_of_life" }
+large_table = { path = "sub/large_table" }
+mount_point = { path = "sub/mount_point" }
+npm_and_rest = { path = "sub/npm_and_rest" }
+textarea = { path = "sub/textarea" }
+timer = { path = "sub/timer" }
+todomvc = { path = "sub/todomvc" }
+two_apps = { path = "sub/two_apps" }

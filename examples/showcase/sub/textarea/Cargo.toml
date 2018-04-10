@@ -1,0 +1,7 @@
+[package]
+name = "textarea"
+version = "0.1.0"
+authors = ["Andrew Straw <strawman@astraw.com>"]
+
+[dependencies]
+yew = { path = "../../../.." }

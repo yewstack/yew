@@ -40,7 +40,7 @@ check_example() {
 
 check_all_examples() {
     echo "Checking examples on $1..."
-    for EXAMPLE in $(pwd)/examples/*; do
+    for EXAMPLE in $(pwd)/examples/showcase/sub/*; do
         if [ "$1" == "wasm32-unknown-unknown" ]; then
             # The counter example doesn't yet build here.
             case $(basename $EXAMPLE) in
@@ -58,10 +58,10 @@ check_all_examples() {
     done
 }
 
-
-check_all_examples asmjs-unknown-emscripten
-check_all_examples wasm32-unknown-emscripten
+SHOWCASE=$(pwd)/examples/showcase
+check_example asmjs-unknown-emscripten $SHOWCASE
+check_example wasm32-unknown-emscripten $SHOWCASE
 
 if [ "$IS_NIGHTLY" = "1" ]; then
-    check_all_examples wasm32-unknown-unknown
+    check_example wasm32-unknown-unknown $SHOWCASE
 fi
