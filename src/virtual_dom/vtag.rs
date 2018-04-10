@@ -455,7 +455,7 @@ impl<CTX, COMP: Component<CTX>> fmt::Debug for VTag<CTX, COMP> {
 }
 
 /// `stdweb` doesn't have methods to work with attributes now.
-/// this is workaround from: https://github.com/koute/stdweb/issues/16#issuecomment-325195854
+/// this is [workaround](https://github.com/koute/stdweb/issues/16#issuecomment-325195854)
 fn set_attribute(element: &Element, name: &str, value: &str) {
     js!( @(no_return) @{element}.setAttribute( @{name}, @{value} ); );
 }
