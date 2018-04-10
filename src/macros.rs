@@ -184,7 +184,7 @@ pub fn set_value<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, 
 #[doc(hidden)]
 pub fn set_kind<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, value: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
-        vtag.set_kind(value);
+        vtag.set_kind(&value);
     } else {
         panic!("no tag to set type: {}", value.to_string());
     }
@@ -206,7 +206,7 @@ pub fn add_attribute<CTX, COMP: Component<CTX>, T: ToString>(
     value: T,
 ) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
-        vtag.add_attribute(name, value);
+        vtag.add_attribute(name, &value);
     } else {
         panic!("no tag to set attribute: {}", name);
     }

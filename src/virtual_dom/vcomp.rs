@@ -14,14 +14,18 @@ struct Hidden;
 
 type AnyProps = (TypeId, *mut Hidden);
 
+type Generator<CTX> = FnMut(SharedContext<CTX>, Element, Option<Node>, AnyProps);
+
+type Activator<CTX, COMP> = Rc<RefCell<Option<ScopeSender<CTX, COMP>>>>;
+
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
     type_id: TypeId,
     cell: NodeCell,
     props: Option<(TypeId, *mut Hidden)>,
     blind_sender: Box<FnMut(AnyProps)>,
-    generator: Box<FnMut(SharedContext<CTX>, Element, Option<Node>, AnyProps)>,
-    activators: Vec<Rc<RefCell<Option<ScopeSender<CTX, COMP>>>>>,
+    generator: Box<Generator<CTX>>,
+    activators: Vec<Activator<CTX, COMP>>,
     handle: Option<ScopeHandle>,
     _parent: PhantomData<COMP>,
 }
@@ -97,14 +101,13 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
 
     /// This method attach sender to a listeners, because created properties
     /// know nothing about a parent.
-    fn activate_props(&mut self, sender: ScopeSender<CTX, COMP>) -> AnyProps {
-        for activator in self.activators.iter_mut() {
+    fn activate_props(&mut self, sender: &ScopeSender<CTX, COMP>) -> AnyProps {
+        for activator in &self.activators {
             *activator.borrow_mut() = Some(sender.clone());
         }
-        let props = self.props
+        self.props
             .take()
-            .expect("tried to activate properties twice");
-        props
+            .expect("tried to activate properties twice")
     }
 
     /// This methods gives sender from older node.
@@ -253,7 +256,7 @@ where
                 None => Reform::Before(None),
             }
         };
-        let any_props = self.activate_props(env.sender());
+        let any_props = self.activate_props(&env.sender());
         match reform {
             Reform::Keep => {
                 // Send properties update when component still be rendered.

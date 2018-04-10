@@ -11,6 +11,7 @@ use stdweb::Value;
 pub struct IntervalTask(Option<Value>);
 
 /// A service to send messages on every elapsed interval.
+#[derive(Default)]
 pub struct IntervalService {}
 
 impl IntervalService {

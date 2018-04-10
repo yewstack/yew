@@ -10,6 +10,7 @@ use stdweb::Value;
 pub struct TimeoutTask(Option<Value>);
 
 /// An service to set a timeout.
+#[derive(Default)]
 pub struct TimeoutService {}
 
 impl TimeoutService {
