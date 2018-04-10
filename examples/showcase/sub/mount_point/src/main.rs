@@ -1,51 +1,11 @@
 #[macro_use]
-extern crate yew;
-#[macro_use]
 extern crate stdweb;
+extern crate yew;
+extern crate mount_point;
 
 use yew::prelude::*;
 use stdweb::web::{IElement, INode, IParentNode, document};
-
-type Context = ();
-
-struct Model {
-    name: String,
-}
-
-enum Msg {
-    UpdateName(String),
-}
-
-impl Component<Context> for Model {
-    type Msg = Msg;
-    type Properties = ();
-
-    fn create(_: Self::Properties, _: &mut Env<Context, Self>) -> Self {
-        Model {
-            name: "Reversed".to_owned(),
-        }
-    }
-
-    fn update(&mut self, msg: Self::Msg, _: &mut Env<Context, Self>) -> ShouldRender {
-        match msg {
-            Msg::UpdateName(new_name) => {
-                self.name = new_name;
-            }
-        }
-        true
-    }
-}
-
-impl Renderable<Context, Model> for Model {
-    fn view(&self) -> Html<Context, Self> {
-        html! {
-            <div>
-                <input value=&self.name, oninput=|e: InputData| Msg::UpdateName(e.value), />
-                <p>{ self.name.chars().rev().collect::<String>() }</p>
-            </div>
-        }
-    }
-}
+use mount_point::Model;
 
 fn main() {
     yew::initialize();
