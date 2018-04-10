@@ -128,7 +128,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// Otherwise just add everything.
     fn diff_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, ()>> {
         let mut changes = Vec::new();
-        if let Some(ref ancestor) = ancestor {
+        if let &mut Some(ref ancestor) = ancestor {
             // Only change what is necessary.
             let to_add = self.classes
                 .difference(&ancestor.classes)
@@ -155,7 +155,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// the values are different.
     fn diff_attributes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, String>> {
         let mut changes = Vec::new();
-        if let Some(ref mut ancestor) = ancestor {
+        if let &mut Some(ref mut ancestor) = ancestor {
             // Only change what is necessary.
             let self_keys = self.attributes.keys().collect::<HashSet<_>>();
             let ancestor_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
