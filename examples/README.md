@@ -2,7 +2,7 @@
 
 ## Build and run the client
 
-Enter the `client` folder and run:
+Enter the `showcase` folder and run:
 
 ```sh
 cargo web start
@@ -13,7 +13,7 @@ cargo web start
 Enter to `server` folder and run:
 
 ```sh
-cargo build && ./target/debug/server
+cargo run
 ```
 
 It opens `ws://localhost:9001/` websocket endpoint.
