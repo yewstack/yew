@@ -13,6 +13,7 @@ extern crate mount_point;
 extern crate npm_and_rest;
 extern crate textarea;
 extern crate timer;
+extern crate todomvc;
 
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
@@ -35,6 +36,7 @@ use npm_and_rest::gravatar::GravatarService;
 use npm_and_rest::ccxt::CcxtService;
 use textarea::Model as Textarea;
 use timer::Model as Timer;
+use todomvc::Model as Todomvc;
 
 struct Context {
     console: ConsoleService,
@@ -121,6 +123,7 @@ enum Scene {
     NpmAndRest,
     Textarea,
     Timer,
+    Todomvc,
 }
 
 enum Msg {
@@ -161,6 +164,7 @@ impl Renderable<Context, Scene> for Scene {
             <button onclick=|_| Msg::SwitchTo(Scene::NpmAndRest),>{ "NpmAndRest" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Textarea),>{ "Textarea" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Timer),>{ "Timer" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::Todomvc),>{ "Todomvc" }</button>
             { self.view_scene() }
         }
     }
@@ -227,6 +231,11 @@ impl Scene {
             Scene::Timer => {
                 html! {
                     <Timer: />
+                }
+            }
+            Scene::Todomvc => {
+                html! {
+                    <Todomvc: />
                 }
             }
         }

@@ -8,4 +8,4 @@ strum = "0.8.0"
 strum_macros = "0.8.0"
 serde = "1"
 serde_derive = "1"
-yew = { path = "../.." }
+yew = { path = "../../../.." }
