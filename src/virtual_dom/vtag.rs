@@ -93,7 +93,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// Sets `kind` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// Same as set `type` attribute.
-    pub fn set_kind<T: ToString>(&mut self, value: T) {
+    pub fn set_kind<T: ToString>(&mut self, value: &T) {
         self.kind = Some(value.to_string());
     }
 
@@ -107,7 +107,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// Adds attribute to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
     /// `class`, `type/kind`, `value` and `checked`.
-    pub fn add_attribute<T: ToString>(&mut self, name: &str, value: T) {
+    pub fn add_attribute<T: ToString>(&mut self, name: &str, value: &T) {
         self.attributes.insert(name.to_owned(), value.to_string());
     }
 
@@ -128,7 +128,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// Otherwise just add everything.
     fn diff_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, ()>> {
         let mut changes = Vec::new();
-        if let &mut Some(ref ancestor) = ancestor {
+        if let Some(ref ancestor) = ancestor {
             // Only change what is necessary.
             let to_add = self.classes
                 .difference(&ancestor.classes)
@@ -155,7 +155,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// the values are different.
     fn diff_attributes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, String>> {
         let mut changes = Vec::new();
-        if let &mut Some(ref mut ancestor) = ancestor {
+        if let Some(ref mut ancestor) = ancestor {
             // Only change what is necessary.
             let self_keys = self.attributes.keys().collect::<HashSet<_>>();
             let ancestor_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
@@ -183,7 +183,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
             changes.extend(to_remove);
         } else {
             // Add everything
-            for (key, value) in self.attributes.iter() {
+            for (key, value) in &self.attributes {
                 let mutator = Patch::Add(key.to_string(), value.to_string());
                 changes.push(mutator);
             }
@@ -233,7 +233,6 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
         &mut self,
         element: &Element,
         ancestor: &mut Option<Self>,
-        ancestor_childs: &mut Vec<Option<VNode<CTX, COMP>>>,
     ) {
         // Update parameters
         let changes = self.diff_classes(ancestor);
@@ -253,10 +252,10 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
         for change in changes {
             match change {
                 Patch::Add(key, value) | Patch::Replace(key, value) => {
-                    set_attribute(&element, &key, &value);
+                    set_attribute(element, &key, &value);
                 }
                 Patch::Remove(key) => {
-                    remove_attribute(&element, &key);
+                    remove_attribute(element, &key);
                 }
             }
         }
@@ -300,16 +299,14 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
             // IMPORTANT! This parameters have to be set every time
             // to prevent strange behaviour in browser when DOM changed
             set_checked(&input, self.checked);
-        } else {
-            if let Ok(tae) = TextAreaElement::try_from(element.clone()) {
-                if let Some(change) = self.diff_value(ancestor) {
-                    match change {
-                        Patch::Add(value, _) | Patch::Replace(value, _) => {
-                            tae.set_value(&value);
-                        }
-                        Patch::Remove(_) => {
-                            tae.set_value("");
-                        }
+        } else if let Ok(tae) = TextAreaElement::try_from(element.clone()) {
+            if let Some(change) = self.diff_value(ancestor) {
+                match change {
+                    Patch::Add(value, _) | Patch::Replace(value, _) => {
+                        tae.set_value(&value);
+                    }
+                    Patch::Remove(_) => {
+                        tae.set_value("");
                     }
                 }
             }
@@ -326,7 +323,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
         let node = self.reference
             .expect("tried to remove not rendered VTag from DOM");
         let sibling = node.next_sibling();
-        if let Err(_) = parent.remove_child(&node) {
+        if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VTag");
         }
         sibling
@@ -403,7 +400,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                 }
             };
 
-            self.apply_diffs(&element, &mut ancestor, &mut ancestor_childs);
+            self.apply_diffs(&element, &mut ancestor);
 
             // Every render it removes all listeners and attach it back later
             // TODO Compare references of handler to do listeners update better
