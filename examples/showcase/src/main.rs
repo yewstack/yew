@@ -6,6 +6,7 @@ extern crate custom_components;
 extern crate dashboard;
 extern crate fragments;
 extern crate game_of_life;
+extern crate large_table;
 
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
@@ -20,6 +21,7 @@ use custom_components::Model as CustomComponents;
 use dashboard::Model as Dashboard;
 use fragments::Model as Fragments;
 use game_of_life::GameOfLife;
+use large_table::Model as LargeTable;
 
 struct Context {
     console: ConsoleService,
@@ -80,6 +82,7 @@ enum Scene {
     Dashboard,
     Fragments,
     GameOfLife,
+    LargeTable,
 }
 
 enum Msg {
@@ -115,6 +118,7 @@ impl Renderable<Context, Scene> for Scene {
             <button onclick=|_| Msg::SwitchTo(Scene::Dashboard),>{ "Dashboard" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Fragments),>{ "Fragments" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::GameOfLife),>{ "GameOfLife" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::LargeTable),>{ "LargeTable" }</button>
             { self.view_scene() }
         }
     }
@@ -156,6 +160,11 @@ impl Scene {
             Scene::GameOfLife => {
                 html! {
                     <GameOfLife: />
+                }
+            }
+            Scene::LargeTable => {
+                html! {
+                    <LargeTable: />
                 }
             }
         }
