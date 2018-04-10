@@ -1,3 +1,5 @@
+#![recursion_limit="128"]
+
 #[macro_use]
 extern crate yew;
 extern crate counter;
@@ -8,6 +10,7 @@ extern crate fragments;
 extern crate game_of_life;
 extern crate large_table;
 extern crate mount_point;
+extern crate npm_and_rest;
 
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
@@ -24,6 +27,9 @@ use fragments::Model as Fragments;
 use game_of_life::GameOfLife;
 use large_table::Model as LargeTable;
 use mount_point::Model as MountPoint;
+use npm_and_rest::Model as NpmAndRest;
+use npm_and_rest::gravatar::GravatarService;
+use npm_and_rest::ccxt::CcxtService;
 
 struct Context {
     console: ConsoleService,
@@ -32,6 +38,8 @@ struct Context {
     web: FetchService,
     ws: WebSocketService,
     interval: IntervalService,
+    gravatar: GravatarService,
+    ccxt: CcxtService,
 }
 
 impl AsMut<ConsoleService> for Context {
@@ -76,6 +84,18 @@ impl custom_components::Printer for Context {
     }
 }
 
+impl AsMut<GravatarService> for Context {
+    fn as_mut(&mut self) -> &mut GravatarService {
+        &mut self.gravatar
+    }
+}
+
+impl AsMut<CcxtService> for Context {
+    fn as_mut(&mut self) -> &mut CcxtService {
+        &mut self.ccxt
+    }
+}
+
 enum Scene {
     NotSelected,
     Counter,
@@ -86,6 +106,7 @@ enum Scene {
     GameOfLife,
     LargeTable,
     MountPoint,
+    NpmAndRest,
 }
 
 enum Msg {
@@ -123,6 +144,7 @@ impl Renderable<Context, Scene> for Scene {
             <button onclick=|_| Msg::SwitchTo(Scene::GameOfLife),>{ "GameOfLife" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::LargeTable),>{ "LargeTable" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::MountPoint),>{ "MountPoint" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::NpmAndRest),>{ "NpmAndRest" }</button>
             { self.view_scene() }
         }
     }
@@ -176,6 +198,11 @@ impl Scene {
                     <MountPoint: />
                 }
             }
+            Scene::NpmAndRest => {
+                html! {
+                    <NpmAndRest: />
+                }
+            }
         }
     }
 }
@@ -189,6 +216,8 @@ fn main() {
         web: FetchService::new(),
         ws: WebSocketService::new(),
         interval: IntervalService::new(),
+        gravatar: GravatarService::new(),
+        ccxt: CcxtService::new(),
     };
     let app: App<_, Scene> = App::new(context);
     app.mount_to_body();
