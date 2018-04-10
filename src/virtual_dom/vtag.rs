@@ -338,6 +338,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
         ancestor: Option<VNode<Self::Context, Self::Component>>,
         env: ScopeEnv<Self::Context, Self::Component>,
     ) -> Option<Node> {
+        assert!(self.reference.is_none(), "reference is ignored so must not be set");
         let (reform, mut ancestor) = {
             match ancestor {
                 Some(VNode::VTag(mut vtag)) => {
