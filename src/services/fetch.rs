@@ -22,6 +22,7 @@ enum FetchError {
 pub struct FetchTask(Option<Value>);
 
 /// A service to fetch resources.
+#[derive(Default)]
 pub struct FetchService {}
 
 impl FetchService {
@@ -130,7 +131,7 @@ impl FetchService {
                     map[key] = value;
                 });
                 return map;
-            }).unwrap_or(HashMap::new());
+            }).unwrap_or_default();
 
             for (key, values) in &headers {
                 response_builder.header(key.as_str(), values.as_str());

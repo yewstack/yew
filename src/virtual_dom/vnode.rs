@@ -101,12 +101,12 @@ impl<'a, CTX, COMP: Component<CTX>> From<&'a Renderable<CTX, COMP>> for VNode<CT
 
 impl<CTX, COMP: Component<CTX>> fmt::Debug for VNode<CTX, COMP> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &VNode::VTag(ref vtag) => vtag.fmt(f),
-            &VNode::VText(ref vtext) => vtext.fmt(f),
-            &VNode::VComp(_) => "Component<>".fmt(f),
-            &VNode::VList(_) => "List<>".fmt(f),
-            &VNode::VRef(_) => "NodeReference<>".fmt(f),
+        match *self {
+            VNode::VTag(ref vtag) => vtag.fmt(f),
+            VNode::VText(ref vtext) => vtext.fmt(f),
+            VNode::VComp(_) => "Component<>".fmt(f),
+            VNode::VList(_) => "List<>".fmt(f),
+            VNode::VRef(_) => "NodeReference<>".fmt(f),
         }
     }
 }
@@ -122,15 +122,7 @@ impl<CTX, COMP: Component<CTX>> PartialEq for VNode<CTX, COMP> {
                 VNode::VText(ref vtext_b) => vtext_a == vtext_b,
                 _ => false,
             },
-            VNode::VComp(_) => {
-                // TODO Implement it
-                false
-            }
-            VNode::VList(_) => {
-                // TODO Implement it
-                false
-            }
-            VNode::VRef(_) => {
+            _ => {
                 // TODO Implement it
                 false
             }
