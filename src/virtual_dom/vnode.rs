@@ -1,6 +1,6 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{VComp, VDiff, VList, VTag, VText};
+use super::{VComp, VDiff, VElement, VList, VTag, VText};
 use html::{Component, Renderable, ScopeEnv};
 use std::cmp::PartialEq;
 use std::fmt;
@@ -16,6 +16,8 @@ pub enum VNode<CTX, COMP: Component<CTX>> {
     VComp(VComp<CTX, COMP>),
     /// A holder for a list of other nodes.
     VList(VList<CTX, COMP>),
+    /// A holder for an arbitrary element.
+    VElement(VElement<CTX, COMP>),
     /// A holder for any `Node` (necessary for replacing node).
     VRef(Node),
 }
@@ -31,6 +33,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
             VNode::VText(vtext) => vtext.remove(parent),
             VNode::VComp(vcomp) => vcomp.remove(parent),
             VNode::VList(vlist) => vlist.remove(parent),
+            VNode::VElement(velement) => velement.remove(parent),
             VNode::VRef(node) => {
                 let sibling = node.next_sibling();
                 parent
@@ -55,6 +58,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
             VNode::VText(ref mut vtext) => vtext.apply(parent, precursor, opposite, env),
             VNode::VComp(ref mut vcomp) => vcomp.apply(parent, precursor, opposite, env),
             VNode::VList(ref mut vlist) => vlist.apply(parent, precursor, opposite, env),
+            VNode::VElement(ref mut velement) => velement.apply(parent, precursor, opposite, env),
             VNode::VRef(_) => {
                 // TODO use it for rendering any tag
                 unimplemented!("node can't be rendered now");
@@ -106,6 +110,7 @@ impl<CTX, COMP: Component<CTX>> fmt::Debug for VNode<CTX, COMP> {
             &VNode::VText(ref vtext) => vtext.fmt(f),
             &VNode::VComp(_) => "Component<>".fmt(f),
             &VNode::VList(_) => "List<>".fmt(f),
+            &VNode::VElement(_) => "Element<>".fmt(f),
             &VNode::VRef(_) => "NodeReference<>".fmt(f),
         }
     }
@@ -127,6 +132,10 @@ impl<CTX, COMP: Component<CTX>> PartialEq for VNode<CTX, COMP> {
                 false
             }
             VNode::VList(_) => {
+                // TODO Implement it
+                false
+            }
+            VNode::VElement(_) => {
                 // TODO Implement it
                 false
             }

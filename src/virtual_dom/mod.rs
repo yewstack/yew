@@ -1,6 +1,7 @@
 //! This module contains the implementation of reactive virtual dom concept.
 
 pub mod vcomp;
+pub mod velement;
 pub mod vlist;
 pub mod vnode;
 pub mod vtag;
@@ -11,6 +12,7 @@ use std::fmt;
 use stdweb::web::{Element, EventListenerHandle, Node};
 
 pub use self::vcomp::VComp;
+pub use self::velement::VElement;
 pub use self::vlist::VList;
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
