@@ -118,9 +118,18 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
         self.listeners.push(listener);
     }
 
-    fn soakup_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, ()>> {
+    /// Compute differences between the ancestor and determine patch changes.
+    ///
+    /// If there is an ancestor:
+    /// - add the classes that are in self but NOT in ancestor.
+    /// - remove the classes that are in ancestor but NOT in self.
+    /// - items that are the same stay the same.
+    ///
+    /// Otherwise just add everything.
+    fn diff_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, ()>> {
         let mut changes = Vec::new();
-        if let Some(ref ancestor) = *ancestor {
+        if let &mut Some(ref ancestor) = ancestor {
+            // Only change what is necessary.
             let to_add = self.classes
                 .difference(&ancestor.classes)
                 .map(|class| Patch::Add(class.to_owned(), ()));
@@ -140,34 +149,40 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
         changes
     }
 
-    fn soakup_attributes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, String>> {
+    /// Similar to diff_classes except for attributes.
+    ///
+    /// This also handles patching of attributes when the keys are equal but
+    /// the values are different.
+    fn diff_attributes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, String>> {
         let mut changes = Vec::new();
-        if let Some(ref mut ancestor) = *ancestor {
-            let left_keys = self.attributes.keys().collect::<HashSet<_>>();
-            let right_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
-            let to_add = left_keys.difference(&right_keys).map(|key| {
+        if let &mut Some(ref mut ancestor) = ancestor {
+            // Only change what is necessary.
+            let self_keys = self.attributes.keys().collect::<HashSet<_>>();
+            let ancestor_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
+            let to_add = self_keys.difference(&ancestor_keys).map(|key| {
                 let value = self.attributes.get(*key).expect("attribute of vtag lost");
                 Patch::Add(key.to_string(), value.to_string())
             });
             changes.extend(to_add);
-            for key in left_keys.intersection(&right_keys) {
-                let left_value = self.attributes
+            for key in self_keys.intersection(&ancestor_keys) {
+                let self_value = self.attributes
                     .get(*key)
-                    .expect("attribute of the left side lost");
-                let right_value = ancestor
+                    .expect("attribute of self side lost");
+                let ancestor_value = ancestor
                     .attributes
                     .get(*key)
-                    .expect("attribute of the right side lost");
-                if left_value != right_value {
-                    let mutator = Patch::Replace(key.to_string(), left_value.to_string());
+                    .expect("attribute of ancestor side lost");
+                if self_value != ancestor_value {
+                    let mutator = Patch::Replace(key.to_string(), self_value.to_string());
                     changes.push(mutator);
                 }
             }
-            let to_remove = right_keys
-                .difference(&left_keys)
+            let to_remove = ancestor_keys
+                .difference(&self_keys)
                 .map(|key| Patch::Remove(key.to_string()));
             changes.extend(to_remove);
         } else {
+            // Add everything
             for (key, value) in &self.attributes {
                 let mutator = Patch::Add(key.to_string(), value.to_string());
                 changes.push(mutator);
@@ -176,7 +191,8 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
         changes
     }
 
-    fn soakup_kind(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
+    /// Similar to `diff_attributers` except there is only a single `kind`.
+    fn diff_kind(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
         match (
             &self.kind,
             ancestor.as_mut().and_then(|anc| anc.kind.take()),
@@ -194,7 +210,8 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
         }
     }
 
-    fn soakup_value(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
+    /// Almost identical in spirit to `diff_kind`
+    fn diff_value(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
         match (
             &self.value,
             ancestor.as_mut().and_then(|anc| anc.value.take()),
@@ -209,6 +226,90 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
             (&Some(ref left), None) => Some(Patch::Add(left.to_string(), ())),
             (&None, Some(right)) => Some(Patch::Remove(right)),
             (&None, None) => None,
+        }
+    }
+
+    fn apply_diffs(
+        &mut self,
+        element: &Element,
+        ancestor: &mut Option<Self>,
+    ) {
+        // Update parameters
+        let changes = self.diff_classes(ancestor);
+        for change in changes {
+            let list = element.class_list();
+            match change {
+                Patch::Add(class, _) | Patch::Replace(class, _) => {
+                    list.add(&class).expect("can't add a class");
+                }
+                Patch::Remove(class) => {
+                    list.remove(&class).expect("can't remove a class");
+                }
+            }
+        }
+
+        let changes = self.diff_attributes(ancestor);
+        for change in changes {
+            match change {
+                Patch::Add(key, value) | Patch::Replace(key, value) => {
+                    set_attribute(element, &key, &value);
+                }
+                Patch::Remove(key) => {
+                    remove_attribute(element, &key);
+                }
+            }
+        }
+
+        // `input` element has extra parameters to control
+        // I override behavior of attributes to make it more clear
+        // and useful in templates. For example I interpret `checked`
+        // attribute as `checked` parameter, not `defaultChecked` as browsers do
+        if let Ok(input) = InputElement::try_from(element.clone()) {
+            if let Some(change) = self.diff_kind(ancestor) {
+                match change {
+                    Patch::Add(kind, _) | Patch::Replace(kind, _) => {
+                        //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
+                        //input.set_kind(&kind);
+                        let input = &input;
+                        js! { @(no_return)
+                            @{input}.type = @{kind};
+                        }
+                    }
+                    Patch::Remove(_) => {
+                        //input.set_kind("");
+                        let input = &input;
+                        js! { @(no_return)
+                            @{input}.type = "";
+                        }
+                    }
+                }
+            }
+
+            if let Some(change) = self.diff_value(ancestor) {
+                match change {
+                    Patch::Add(kind, _) | Patch::Replace(kind, _) => {
+                        input.set_raw_value(&kind);
+                    }
+                    Patch::Remove(_) => {
+                        input.set_raw_value("");
+                    }
+                }
+            }
+
+            // IMPORTANT! This parameters have to be set every time
+            // to prevent strange behaviour in browser when DOM changed
+            set_checked(&input, self.checked);
+        } else if let Ok(tae) = TextAreaElement::try_from(element.clone()) {
+            if let Some(change) = self.diff_value(ancestor) {
+                match change {
+                    Patch::Add(value, _) | Patch::Replace(value, _) => {
+                        tae.set_value(&value);
+                    }
+                    Patch::Remove(_) => {
+                        tae.set_value("");
+                    }
+                }
+            }
         }
     }
 }
@@ -228,27 +329,31 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
         sibling
     }
 
-    /// Renders virtual tag over DOM `Element`, but it also compares this with an opposite `VTag`
+    /// Renders virtual tag over DOM `Element`, but it also compares this with an ancestor `VTag`
     /// to compute what to patch in the actual DOM nodes.
     fn apply(
         &mut self,
         parent: &Node,
         precursor: Option<&Node>,
-        opposite: Option<VNode<Self::Context, Self::Component>>,
+        ancestor: Option<VNode<Self::Context, Self::Component>>,
         env: ScopeEnv<Self::Context, Self::Component>,
     ) -> Option<Node> {
-        let (reform, mut opposite) = {
-            match opposite {
+        assert!(self.reference.is_none(), "reference is ignored so must not be set");
+        let (reform, mut ancestor) = {
+            match ancestor {
                 Some(VNode::VTag(mut vtag)) => {
                     if self.tag == vtag.tag {
+                        // If tags are equal, preserve the reference that already exists.
                         self.reference = vtag.reference.take();
                         (Reform::Keep, Some(vtag))
                     } else {
+                        // We have to create a new reference, remove ancestor.
                         let node = vtag.remove(parent);
                         (Reform::Before(node), None)
                     }
                 }
                 Some(vnode) => {
+                    // It is not even a VTag, we must remove the ancestor.
                     let node = vnode.remove(parent);
                     (Reform::Before(node), None)
                 }
@@ -256,18 +361,23 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             }
         };
 
+        // Ensure that `self.reference` exists.
+        //
+        // This can use the previous reference or create a new one.
+        // If we create a new one we must insert it in the correct
+        // place, which we use `before` or `precusor` for.
         match reform {
             Reform::Keep => {}
-            Reform::Before(node) => {
+            Reform::Before(before) => {
                 let element = document()
                     .create_element(&self.tag)
                     .expect("can't create element for vtag");
-                if let Some(sibling) = node {
+                if let Some(sibling) = before {
                     parent
                         .insert_before(&element, &sibling)
                         .expect("can't insert tag before sibling");
                 } else {
-                    let precursor = precursor.and_then(|node| node.next_sibling());
+                    let precursor = precursor.and_then(|before| before.next_sibling());
                     if let Some(precursor) = precursor {
                         parent
                             .insert_before(&element, &precursor)
@@ -280,137 +390,54 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             }
         }
 
-        let mut element = self.reference
-            .as_ref()
-            .map(|x| x.to_owned())
-            .expect("element expected");
+        let element = self.reference.clone().expect("element expected");
 
         {
-            // Update parameters
-            let mut rights = {
-                if let Some(ref mut right) = opposite {
-                    right.childs.drain(..).map(Some).collect::<Vec<_>>()
+            let mut ancestor_childs = {
+                if let Some(ref mut a) = ancestor {
+                    a.childs.drain(..).map(Some).collect::<Vec<_>>()
                 } else {
                     Vec::new()
                 }
             };
-            let subject = &mut element;
 
-            let changes = self.soakup_classes(&mut opposite);
-            for change in changes {
-                let list = subject.class_list();
-                match change {
-                    Patch::Add(class, _) | Patch::Replace(class, _) => {
-                        list.add(&class).expect("can't add a class");
-                    }
-                    Patch::Remove(class) => {
-                        list.remove(&class).expect("can't remove a class");
-                    }
-                }
-            }
-
-            let changes = self.soakup_attributes(&mut opposite);
-            for change in changes {
-                match change {
-                    Patch::Add(key, value) | Patch::Replace(key, value) => {
-                        set_attribute(subject, &key, &value);
-                    }
-                    Patch::Remove(key) => {
-                        remove_attribute(subject, &key);
-                    }
-                }
-            }
-
-            // `input` element has extra parameters to control
-            // I override behavior of attributes to make it more clear
-            // and useful in templates. For example I interpret `checked`
-            // attribute as `checked` parameter, not `defaultChecked` as browsers do
-            if let Ok(input) = InputElement::try_from(subject.clone()) {
-                if let Some(change) = self.soakup_kind(&mut opposite) {
-                    match change {
-                        Patch::Add(kind, _) | Patch::Replace(kind, _) => {
-                            //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
-                            //input.set_kind(&kind);
-                            let input = &input;
-                            js! { @(no_return)
-                                @{input}.type = @{kind};
-                            }
-                        }
-                        Patch::Remove(_) => {
-                            //input.set_kind("");
-                            let input = &input;
-                            js! { @(no_return)
-                                @{input}.type = "";
-                            }
-                        }
-                    }
-                }
-
-                if let Some(change) = self.soakup_value(&mut opposite) {
-                    match change {
-                        Patch::Add(kind, _) | Patch::Replace(kind, _) => {
-                            input.set_raw_value(&kind);
-                        }
-                        Patch::Remove(_) => {
-                            input.set_raw_value("");
-                        }
-                    }
-                }
-
-                // IMPORTANT! This parameters have to be set every time
-                // to prevent strange behaviour in browser when DOM changed
-                set_checked(&input, self.checked);
-            } else {
-                if let Ok(tae) = TextAreaElement::try_from(subject.clone()) {
-                    if let Some(change) = self.soakup_value(&mut opposite) {
-                        match change {
-                            Patch::Add(value, _) |
-                            Patch::Replace(value, _) => {
-                                tae.set_value(&value);
-                            }
-                            Patch::Remove(_) => {
-                                tae.set_value("");
-                            }
-                        }
-                    }
-                }
-             }
+            self.apply_diffs(&element, &mut ancestor);
 
             // Every render it removes all listeners and attach it back later
             // TODO Compare references of handler to do listeners update better
-            if let Some(mut opposite) = opposite {
-                for handle in opposite.captured.drain(..) {
+            if let Some(mut ancestor) = ancestor {
+                for handle in ancestor.captured.drain(..) {
                     handle.remove();
                 }
             }
 
             for mut listener in self.listeners.drain(..) {
-                let handle = listener.attach(subject, env.sender());
+                let handle = listener.attach(&element, env.sender());
                 self.captured.push(handle);
             }
 
-            let mut lefts = self.childs.iter_mut().map(Some).collect::<Vec<_>>();
+            let mut self_childs = self.childs.iter_mut().map(Some).collect::<Vec<_>>();
             // Process children
-            let diff = lefts.len() as i32 - rights.len() as i32;
+            let diff = self_childs.len() as i32 - ancestor_childs.len() as i32;
             if diff > 0 {
                 for _ in 0..diff {
-                    rights.push(None);
+                    ancestor_childs.push(None);
                 }
             } else if diff < 0 {
                 for _ in 0..-diff {
-                    lefts.push(None);
+                    self_childs.push(None);
                 }
             }
             // Start with an empty precursor, because it put childs to itself
             let mut precursor = None;
-            for pair in lefts.into_iter().zip(rights) {
+            for pair in self_childs.into_iter().zip(ancestor_childs) {
                 match pair {
                     (Some(left), right) => {
                         precursor =
-                            left.apply(subject.as_node(), precursor.as_ref(), right, env.clone());
+                            left.apply(element.as_node(), precursor.as_ref(), right, env.clone());
                     }
                     (None, Some(right)) => {
-                        right.remove(subject.as_node());
+                        right.remove(element.as_node());
                     }
                     (None, None) => {
                         panic!("redundant iterations during diff");
@@ -429,7 +456,7 @@ impl<CTX, COMP: Component<CTX>> fmt::Debug for VTag<CTX, COMP> {
 }
 
 /// `stdweb` doesn't have methods to work with attributes now.
-/// this is a (workaround)[https://github.com/koute/stdweb/issues/16#issuecomment-325195854]
+/// this is [workaround](https://github.com/koute/stdweb/issues/16#issuecomment-325195854)
 fn set_attribute(element: &Element, name: &str, value: &str) {
     js!( @(no_return) @{element}.setAttribute( @{name}, @{value} ); );
 }

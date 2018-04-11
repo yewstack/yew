@@ -326,11 +326,11 @@ where
     }
 
     // TODO Consider to use &Node instead of Element as parent
-    /// Mounts elements in place of previous node.
+    /// Mounts elements in place of previous node (ancestor).
     pub fn mount_in_place(
         mut self,
         element: Element,
-        obsolete: Option<VNode<CTX, COMP>>,
+        ancestor: Option<VNode<CTX, COMP>>,
         mut occupied: Option<NodeCell>,
         init_props: Option<COMP::Properties>,
     ) {
@@ -344,7 +344,7 @@ where
         let mut updates = Vec::new();
         let mut last_frame = component.view();
         // First-time rendering the tree
-        let node = last_frame.apply(element.as_node(), None, obsolete, self.get_env());
+        let node = last_frame.apply(element.as_node(), None, ancestor, self.get_env());
         if let Some(ref mut cell) = occupied {
             *cell.borrow_mut() = node;
         }
