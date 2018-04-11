@@ -100,7 +100,7 @@ impl Task for WebSocketTask {
         self.0.is_some()
     }
     fn cancel(&mut self) {
-        let handle = self.0.take().expect("tried to close websocket twice");
+        let handle = expect!(self.0.take(), "tried to close websocket twice");
         js! { @(no_return)
             var handle = @{handle};
             handle.socket.close();

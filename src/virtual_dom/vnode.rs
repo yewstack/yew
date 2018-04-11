@@ -33,9 +33,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
             VNode::VList(vlist) => vlist.remove(parent),
             VNode::VRef(node) => {
                 let sibling = node.next_sibling();
-                parent
-                    .remove_child(&node)
-                    .expect("can't remove node by VRef");
+                expect!(parent.remove_child(&node), "can't remove node by VRef");
                 sibling
             }
         }

@@ -160,18 +160,19 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
             let self_keys = self.attributes.keys().collect::<HashSet<_>>();
             let ancestor_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
             let to_add = self_keys.difference(&ancestor_keys).map(|key| {
-                let value = self.attributes.get(*key).expect("attribute of vtag lost");
+                let value = expect!(self.attributes.get(*key), "attribute of vtag lost");
                 Patch::Add(key.to_string(), value.to_string())
             });
             changes.extend(to_add);
             for key in self_keys.intersection(&ancestor_keys) {
-                let self_value = self.attributes
-                    .get(*key)
-                    .expect("attribute of self side lost");
-                let ancestor_value = ancestor
-                    .attributes
-                    .get(*key)
-                    .expect("attribute of ancestor side lost");
+                let self_value = expect!(
+                    self.attributes.get(*key),
+                    "attribute of self side lost"
+                );
+                let ancestor_value = expect!(
+                    ancestor.attributes.get(*key),
+                    "attribute of ancestor side lost"
+                );
                 if self_value != ancestor_value {
                     let mutator = Patch::Replace(key.to_string(), self_value.to_string());
                     changes.push(mutator);
@@ -240,10 +241,10 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
             let list = element.class_list();
             match change {
                 Patch::Add(class, _) | Patch::Replace(class, _) => {
-                    list.add(&class).expect("can't add a class");
+                    expect!(list.add(&class), "can't add a class");
                 }
                 Patch::Remove(class) => {
-                    list.remove(&class).expect("can't remove a class");
+                    expect!(list.remove(&class), "can't remove a class");
                 }
             }
         }
@@ -320,8 +321,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
 
     /// Remove VTag from parent.
     fn remove(self, parent: &Node) -> Option<Node> {
-        let node = self.reference
-            .expect("tried to remove not rendered VTag from DOM");
+        let node = expect!(
+            self.reference,
+            "tried to remove not rendered VTag from DOM"
+        );
         let sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VTag");
@@ -369,19 +372,22 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
         match reform {
             Reform::Keep => {}
             Reform::Before(before) => {
-                let element = document()
-                    .create_element(&self.tag)
-                    .expect("can't create element for vtag");
+                let element =
+                    expect!(document().create_element(&self.tag),
+                    "can't create element for vtag"
+                );
                 if let Some(sibling) = before {
-                    parent
-                        .insert_before(&element, &sibling)
-                        .expect("can't insert tag before sibling");
+                    expect!(
+                        parent.insert_before(&element, &sibling),
+                        "can't insert tag before sibling"
+                    );
                 } else {
                     let precursor = precursor.and_then(|before| before.next_sibling());
                     if let Some(precursor) = precursor {
-                        parent
-                            .insert_before(&element, &precursor)
-                            .expect("can't insert tag before precursor");
+                        expect!(
+                            parent.insert_before(&element, &precursor),
+                            "can't insert tag before precursor"
+                        );
                     } else {
                         parent.append_child(&element);
                     }
@@ -390,7 +396,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             }
         }
 
-        let element = self.reference.clone().expect("element expected");
+        let element = expect!(self.reference.clone(), "element expected");
 
         {
             let mut ancestor_childs = {

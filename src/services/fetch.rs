@@ -97,12 +97,13 @@ impl FetchService {
             .headers
             .iter()
             .map(|(k, v)| {
-                (
+                let value = expect!(
+                    v.to_str(),
+                    "Unparsable request header {}: {:?}",
                     k.as_str(),
-                    v.to_str().expect(
-                        format!("Unparsable request header {}: {:?}", k.as_str(), v).as_str(),
-                    ),
-                )
+                    v
+                );
+                (k.as_str(), value)
             })
             .collect();
 
@@ -144,7 +145,7 @@ impl FetchService {
                 Err(FetchError::FailedResponse.into())
             };
             let out = OUT::from(data);
-            let response = response_builder.body(out).unwrap();
+            let response = expect!(response_builder.body(out));
             callback.emit(response);
         };
 
@@ -197,9 +198,10 @@ impl Task for FetchTask {
         // Fetch API doesn't support request cancelling
         // and we should use this workaround with a flag.
         // In fact, request not canceled, but callback won't be called.
-        let handle = self.0
-            .take()
-            .expect("tried to cancel request fetching twice");
+        let handle = expect!(
+            self.0.take(),
+            "tried to cancel request fetching twice"
+        );
         js! {  @(no_return)
             var handle = @{handle};
             handle.active = false;

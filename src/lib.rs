@@ -49,6 +49,8 @@
 #![recursion_limit = "256"]
 
 #[macro_use]
+extern crate expect_macro;
+#[macro_use]
 extern crate failure;
 extern crate http;
 extern crate serde;

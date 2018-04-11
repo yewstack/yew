@@ -17,6 +17,7 @@ http = "0.1"
 serde = "1"
 serde_json = "1"
 stdweb = "0.4"
+expect_macro = "0.2.0"
 
 [dev-dependencies]
 serde_derive = "1"

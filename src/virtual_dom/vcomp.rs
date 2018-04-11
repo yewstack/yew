@@ -52,7 +52,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
                     *Box::from_raw(raw)
                 };
 
-                let builder = builder.take().expect("tried to mount component twice");
+                let builder = expect!(builder.take(), "tried to mount component twice");
                 let opposite = obsolete.map(VNode::VRef);
                 builder.build(context).mount_in_place(
                     element,
@@ -73,7 +73,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             let new_props = Some(props);
             // Ignore update till properties changed
             if previous_props != new_props {
-                let props = new_props.as_ref().unwrap().clone();
+                let props = expect!(new_props.as_ref()).clone();
                 sender.send(ComponentUpdate::Properties(props));
                 previous_props = new_props;
             }
@@ -105,9 +105,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         for activator in &self.activators {
             *activator.borrow_mut() = Some(sender.clone());
         }
-        self.props
-            .take()
-            .expect("tried to activate properties twice")
+        expect!(self.props.take(), "tried to activate properties twice")
     }
 
     /// This methods gives sender from older node.
@@ -190,12 +188,13 @@ where
         opposite: Option<Node>,
         props: AnyProps,
     ) {
-        let element: Element = parent
+        let element: Element = expect!(parent
             .as_node()
             .as_ref()
             .to_owned()
-            .try_into()
-            .expect("element expected to mount VComp");
+            .try_into(),
+            "element expected to mount VComp"
+        );
         (self.generator)(context, element, opposite, props);
     }
 
@@ -222,9 +221,7 @@ where
         // Keep the sibling in the cell and send a message `Drop` to a loop
         self.cell.borrow_mut().take().and_then(|node| {
             let sibling = node.next_sibling();
-            parent
-                .remove_child(&node)
-                .expect("can't remove the component");
+            expect!(parent.remove_child(&node), "can't remove the component");
             sibling
         })
     }
@@ -270,9 +267,10 @@ where
                 // There is created an empty text node to be replaced with mount call.
                 let node = node.map(|sibling| {
                     let element = document().create_text_node("");
-                    parent
-                        .insert_before(&element, &sibling)
-                        .expect("can't insert dummy element for a component");
+                    expect!(
+                        parent.insert_before(&element, &sibling),
+                        "can't insert dummy element for a component"
+                    );
                     element.as_node().to_owned()
                 });
                 self.mount(env.context(), parent, node, any_props);

@@ -309,10 +309,10 @@ where
 {
     /// Alias to `mount("body", ...)`.
     pub fn mount_to_body(self) {
-        let element = document()
-            .query_selector("body")
-            .expect("can't get body node for rendering")
-            .expect("can't unwrap body node");
+        let body = expect!(
+            document().query_selector("body"),
+            "can't get body node for rendering");
+        let element = expect!(body, "can't unwrap body node");
         self.mount(element)
     }
 
@@ -349,9 +349,7 @@ where
             *cell.borrow_mut() = node;
         }
         let mut last_frame = Some(last_frame);
-        let rx = self.rx
-            .take()
-            .expect("application runned without a receiver");
+        let rx = expect!(self.rx.take(), "application ran without a receiver");
         let bind = self.bind.clone();
         let mut callback = move || {
             let mut should_update = false;
@@ -414,7 +412,7 @@ impl ScopeHandle {
 /// Removes anything from the given element.
 fn clear_element(element: &Element) {
     while let Some(child) = element.last_child() {
-        element.remove_child(&child).expect("can't remove a child");
+        expect!(element.remove_child(&child), "can't remove a child from {:?}", element);
     }
 }
 
@@ -456,7 +454,7 @@ macro_rules! impl_action {
 
                 fn attach(&mut self, element: &Element, mut sender: ScopeSender<CTX, COMP>)
                     -> EventListenerHandle {
-                    let handler = self.0.take().expect("tried to attach listener twice");
+                    let handler = expect!(self.0.take(), "tried to attach listener twice");
                     let this = element.clone();
                     let listener = move |event: $type| {
                         debug!("Event handler: {}", stringify!($type));

@@ -169,7 +169,7 @@ pub fn unpack<CTX, COMP: Component<CTX>>(mut stack: Stack<CTX, COMP>) -> VNode<C
     if stack.len() != 1 {
         panic!("exactly one element have to be in html!");
     }
-    stack.pop().expect("no html elements in the stack")
+    expect!(stack.pop(), "no html elements in the stack")
 }
 
 #[doc(hidden)]

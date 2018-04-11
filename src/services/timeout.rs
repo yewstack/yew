@@ -46,7 +46,7 @@ impl Task for TimeoutTask {
         self.0.is_some()
     }
     fn cancel(&mut self) {
-        let handle = self.0.take().expect("tried to cancel timeout twice");
+        let handle = expect!(self.0.take(), "tried to cancel timeout twice");
         js! { @(no_return)
             var handle = @{handle};
             clearTimeout(handle.timeout_id);

@@ -37,8 +37,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
 
     /// Remove VTag from parent.
     fn remove(self, parent: &Node) -> Option<Node> {
-        let node = self.reference
-            .expect("tried to remove not rendered VText from DOM");
+        let node = expect!(
+            self.reference,
+            "tried to remove not rendered VText from DOM"
+        );
         let sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VText");
@@ -82,9 +84,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
             Reform::Before(node) => {
                 let element = document().create_text_node(&self.text);
                 if let Some(sibling) = node {
-                    parent
-                        .insert_before(&element, &sibling)
-                        .expect("can't insert text before sibling");
+                    expect!(
+                        parent.insert_before(&element, &sibling),
+                        "can't insert text before sibling"
+                    );
                 } else {
                     parent.append_child(&element);
                 }
