@@ -8,6 +8,7 @@ extern crate custom_components;
 extern crate dashboard;
 extern crate fragments;
 extern crate game_of_life;
+extern crate inner_html;
 extern crate large_table;
 extern crate mount_point;
 extern crate npm_and_rest;
@@ -30,6 +31,7 @@ use custom_components::Model as CustomComponents;
 use dashboard::Model as Dashboard;
 use fragments::Model as Fragments;
 use game_of_life::GameOfLife;
+use inner_html::Model as InnerHtml;
 use large_table::Model as LargeTable;
 use mount_point::Model as MountPoint;
 use npm_and_rest::Model as NpmAndRest;
@@ -127,6 +129,7 @@ enum Scene {
     Dashboard,
     Fragments,
     GameOfLife,
+    InnerHtml,
     LargeTable,
     MountPoint,
     NpmAndRest,
@@ -169,6 +172,7 @@ impl Renderable<Context, Scene> for Scene {
             <button onclick=|_| Msg::SwitchTo(Scene::Dashboard),>{ "Dashboard" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::Fragments),>{ "Fragments" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::GameOfLife),>{ "GameOfLife" }</button>
+            <button onclick=|_| Msg::SwitchTo(Scene::InnerHtml),>{ "InnerHtml" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::LargeTable),>{ "LargeTable" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::MountPoint),>{ "MountPoint" }</button>
             <button onclick=|_| Msg::SwitchTo(Scene::NpmAndRest),>{ "NpmAndRest" }</button>
@@ -217,6 +221,11 @@ impl Scene {
             Scene::GameOfLife => {
                 html! {
                     <GameOfLife: />
+                }
+            }
+            Scene::InnerHtml => {
+                html! {
+                    <InnerHtml: />
                 }
             }
             Scene::LargeTable => {
