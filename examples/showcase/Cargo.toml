@@ -11,6 +11,7 @@ custom_components = { path = "sub/custom_components" }
 dashboard = { path = "sub/dashboard" }
 fragments = { path = "sub/fragments" }
 game_of_life = { path = "sub/game_of_life" }
+inner_html = { path = "sub/inner_html" }
 large_table = { path = "sub/large_table" }
 mount_point = { path = "sub/mount_point" }
 npm_and_rest = { path = "sub/npm_and_rest" }
