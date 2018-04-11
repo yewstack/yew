@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 use stdweb::web::{document, INode, Node, TextNode};
 
 /// A type for a virtual
-/// [TextNode](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
+/// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// represenation.
 pub struct VText<CTX, COMP: Component<CTX>> {
     /// Contains a text of the node.
@@ -40,7 +40,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
         let node = self.reference
             .expect("tried to remove not rendered VText from DOM");
         let sibling = node.next_sibling();
-        if let Err(_) = parent.remove_child(&node) {
+        if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VText");
         }
         sibling
@@ -102,6 +102,6 @@ impl<CTX, COMP: Component<CTX>> fmt::Debug for VText<CTX, COMP> {
 
 impl<CTX, COMP: Component<CTX>> PartialEq for VText<CTX, COMP> {
     fn eq(&self, other: &VText<CTX, COMP>) -> bool {
-        return self.text == other.text;
+        self.text == other.text
     }
 }
