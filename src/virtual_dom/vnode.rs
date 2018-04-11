@@ -41,23 +41,32 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
         }
     }
 
-    /// Virtual rendering for the node. It uses parent node and existend children (virtual and DOM)
-    /// to check the difference and apply patches to the actual DOM represenatation.
     fn apply(
         &mut self,
         parent: &Node,
         precursor: Option<&Node>,
-        opposite: Option<VNode<Self::Context, Self::Component>>,
+        ancestor: Option<VNode<Self::Context, Self::Component>>,
         env: ScopeEnv<Self::Context, Self::Component>,
     ) -> Option<Node> {
         match *self {
-            VNode::VTag(ref mut vtag) => vtag.apply(parent, precursor, opposite, env),
-            VNode::VText(ref mut vtext) => vtext.apply(parent, precursor, opposite, env),
-            VNode::VComp(ref mut vcomp) => vcomp.apply(parent, precursor, opposite, env),
-            VNode::VList(ref mut vlist) => vlist.apply(parent, precursor, opposite, env),
-            VNode::VRef(_) => {
-                // TODO use it for rendering any tag
-                unimplemented!("node can't be rendered now");
+            VNode::VTag(ref mut vtag) => vtag.apply(parent, precursor, ancestor, env),
+            VNode::VText(ref mut vtext) => vtext.apply(parent, precursor, ancestor, env),
+            VNode::VComp(ref mut vcomp) => vcomp.apply(parent, precursor, ancestor, env),
+            VNode::VList(ref mut vlist) => vlist.apply(parent, precursor, ancestor, env),
+            VNode::VRef(ref mut node) => {
+                let sibling = match ancestor {
+                    Some(n) => n.remove(parent),
+                    None => None,
+                };
+                if let Some(sibling) = sibling {
+                    parent
+                        .insert_before(node, &sibling)
+                        .expect("can't insert element before sibling");
+                } else {
+                    parent.append_child(node);
+                }
+
+                Some(node.to_owned())
             }
         }
     }
