@@ -5,4 +5,4 @@ authors = ["Garrett Berg <vitiral@gmail.com>"]
 
 [dependencies]
 stdweb = "0.4.2"
-yew = { path = "../../../.." }
+yew = { path = "../.." }

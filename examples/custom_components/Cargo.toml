@@ -1,9 +1,7 @@
 [package]
-name = "crm"
+name = "custom_components"
 version = "0.1.0"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 
 [dependencies]
-serde = "1"
-serde_derive = "1"
-yew = { path = "../../../.." }
+yew = { path = "../.." }

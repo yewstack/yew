@@ -1,7 +1,8 @@
 [package]
-name = "custom_components"
+name = "two_apps"
 version = "0.1.0"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 
 [dependencies]
-yew = { path = "../../../.." }
+stdweb = "0.4"
+yew = { path = "../.." }
