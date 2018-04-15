@@ -5,5 +5,5 @@ authors = ["Diego Cardoso <dige0card0s0@hotmail.com>",
            "Ilya Bogdanov <fumlead@gmail.com"]
 
 [dependencies]
-yew = { path = "../../../.." }
+yew = { path = "../.." }
 rand = "0.4.1"
