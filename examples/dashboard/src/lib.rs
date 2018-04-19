@@ -99,7 +99,7 @@ where
                         let notification = context.send_back(|status| {
                             match status {
                                 WebSocketStatus::Opened => Msg::Ignore,
-                                WebSocketStatus::Closed => WsAction::Lost.into(),
+                                WebSocketStatus::Closed | WebSocketStatus::Error => WsAction::Lost.into(),
                             }
                         });
                         let ws_service: &mut WebSocketService = context.as_mut();
