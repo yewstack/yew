@@ -15,6 +15,7 @@ use forums::Forums;
 use button::Button;
 
 
+
 pub struct Context {
     routing: RouteService
 }
@@ -37,11 +38,11 @@ enum Msg {
 impl From<RouteResult> for Msg {
     fn from( result: RouteResult) -> Self {
         match result {
-            Ok(route_info) => {
-               Msg::Navigate(Route::from(&route_info))
+            Ok(mut route_info) => {
+               Msg::Navigate(Route::from(&mut route_info))
             }
             Err(e) => {
-                eprintln!("Couldn't route: {:?}", e);
+                eprintln!("Couldn't route: '{:?}'", e);
                 Msg::Navigate(Route::PageNotFoundRoute)
             }
         }
@@ -49,17 +50,17 @@ impl From<RouteResult> for Msg {
 
 }
 
-impl <'a> From<&'a RouteInfo> for Route {
-    fn from(route_info: &RouteInfo) -> Self {
-        println!("Converting from url");
-        if let Some(first_segment) = route_info.get_segment_at_index(0) {
-            println!("matching: {}", first_segment);
-            match first_segment {
-                "forums" => return Route::Forums(forums::Route::from(route_info)),
-                _ => return Route::PageNotFoundRoute
+impl<'a> From<&'a mut RouteInfo> for Route {
+    fn from(route_info: &'a mut RouteInfo) -> Self {
+        if let Some(route_section) = route_info.next() {
+            match route_section.as_segment() {
+                "forums" => Route::Forums(forums::Route::from(route_info)),
+                _ => Route::PageNotFoundRoute
             }
+        } else {
+            Route::PageNotFoundRoute
         }
-        Route::PageNotFoundRoute
+
     }
 }
 
@@ -88,7 +89,7 @@ impl Component<Context> for Model {
         context.routing.register_router(callback);
 
 
-        let route: Route = (&context.routing.get_current_route_info()).into();
+        let route: Route = (&mut context.routing.get_current_route_info()).into();
         context.routing.replace_url(route.clone()); // sets the url to be dependent on what the route_info was resolved to
 
         Model {

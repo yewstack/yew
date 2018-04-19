@@ -12,17 +12,49 @@ use html::Callback;
 
 use url::{Url};
 use std::ops::Add;
+use std::usize;
 
 
 /// An alias for `Result<RouteInfo, RoutingError>`.
 pub type RouteResult = Result<RouteInfo, RoutingError>;
 
-/// Service used for routing
+/// Service used for routing.
 pub struct RouteService {
     history: History,
     location: Location,
     event_listener: Option<EventListenerHandle>,
     callback: Option<Callback<RouteResult>>
+}
+
+/// Subsection of a RouteInfo produced by iterating over the RouteInfo.
+pub enum RouteSection {
+    /// When iterating over a RouteInfo, Nodes will be produced when the segment isn't the last in
+    /// the vector of path_segments.
+    Node {
+        /// The path segment.
+        segment: String
+    },
+    /// When iterating over a RouteInfo, Leafs will be produced when the segment is the last in
+    /// the vector of path_segments.
+    /// This includes the segment, as well as the query and fragment.
+    Leaf {
+        /// The path segment.
+        segment: String,
+        /// The query string.
+        query: Option<String>,
+        /// The fragment.
+        fragment: Option<String>
+    }
+}
+
+impl RouteSection {
+    /// Converts a section of a route into a string representing the path segment
+    pub fn as_segment<'a>(&'a self) -> &'a str {
+        match self {
+            RouteSection::Node {segment} => segment.as_str(),
+            RouteSection::Leaf {segment, ..} => segment.as_str()
+        }
+    }
 }
 
 /// A subset of the url crate's Url object that can be passed
@@ -36,6 +68,35 @@ pub struct RouteInfo {
     /// The fragment
     pub fragment: Option<String>
 }
+
+impl Iterator for RouteInfo {
+    type Item = RouteSection;
+    fn next(&mut self) -> Option<RouteSection> {
+
+        match self.path_segments.len() {
+            2...usize::MAX => {
+                let mut first_element = self.path_segments.drain(0..1);
+                let node = RouteSection::Node {
+                    segment: first_element.next().unwrap()
+                };
+                Some(node)
+            }
+            1 => {
+                let mut first_element = self.path_segments.drain(0..1);
+                let leaf = RouteSection::Leaf {
+                    segment: first_element.next().unwrap(),
+                    query: self.query.clone(),
+                    fragment: self.fragment.clone()
+                };
+                Some(leaf)
+            }
+            _ => { // 0
+                None
+            }
+        }
+    }
+}
+
 
 impl Add for RouteInfo {
     type Output = RouteInfo;

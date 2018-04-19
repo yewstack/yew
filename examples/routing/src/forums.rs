@@ -27,16 +27,17 @@ impl Default for Route {
     }
 }
 
-impl <'a> From<&'a RouteInfo> for Route {
-    fn from(route_info: &RouteInfo) -> Self {
-        if let Some(second_segment) = route_info.get_segment_at_index(1) {
-            match second_segment {
-                "cat" => return Route::CatForum,
-                "dog" => return Route::DogForum,
-                _ => return Route::ForumsList
+impl<'a> From<&'a mut RouteInfo> for Route {
+    fn from(route_info: &'a mut RouteInfo) -> Self {
+        if let Some(route_section) = route_info.next() {
+            match route_section.as_segment() {
+                "cat" => Route::CatForum,
+                "dog" => Route::DogForum,
+                _ => Route::ForumsList
             }
+        } else {
+            Route::ForumsList
         }
-        Route::ForumsList
     }
 }
 
