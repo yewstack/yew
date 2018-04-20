@@ -2,9 +2,15 @@
 
 /// A service to use methods of a
 /// [Console](https://developer.mozilla.org/en-US/docs/Web/API/Console).
-pub struct ConsoleService;
+#[derive(Default)]
+pub struct ConsoleService {}
 
 impl ConsoleService {
+    /// Creates a new service instance connected to `App` by provided `sender`.
+    pub fn new() -> Self {
+        Self {}
+    }
+
     /// [console.log](https://developer.mozilla.org/en-US/docs/Web/API/Console/log)
     /// method implementation.
     pub fn log(&mut self, message: &str) {
