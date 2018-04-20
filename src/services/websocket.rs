@@ -10,7 +10,7 @@ use stdweb::web::event::{
 };
 use stdweb::traits::IMessageEvent;
 use format::{Restorable, Storable};
-use html::Callback;
+use callback::Callback;
 use super::Task;
 
 /// A status of a websocket connection. Used for status notification.

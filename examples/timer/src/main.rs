@@ -36,7 +36,7 @@ fn main() {
     let context = Context {
         interval: IntervalService::new(),
         timeout: TimeoutService::new(),
-        console: ConsoleService,
+        console: ConsoleService::new(),
     };
     let app: App<_, Model> = App::new(context);
     app.mount_to_body();

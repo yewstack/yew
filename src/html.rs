@@ -9,8 +9,9 @@ use std::rc::Rc;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use stdweb::Value;
 use stdweb::web::event::{BlurEvent, IKeyboardEvent, IMouseEvent};
-use stdweb::web::{document, Element, EventListenerHandle, INode, IParentNode, Node};
+use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use virtual_dom::{Listener, VDiff, VNode};
+use callback::Callback;
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -51,56 +52,6 @@ pub enum ComponentUpdate<CTX, COMP: Component<CTX>> {
 
 /// Internal alias for sender.
 pub(crate) type ComponentSender<CTX, COMP> = Sender<ComponentUpdate<CTX, COMP>>;
-
-/// Universal callback wrapper.
-/// <aside class="warning">
-/// Use callbacks carefully, because it you call it from `update` loop
-/// of `Components` (even from JS) it will delay a message until next.
-/// Callbacks should be used from JS callbacks or `setTimeout` calls.
-/// </aside>
-/// `Rc` wrapper used to make it clonable.
-#[must_use]
-pub struct Callback<IN>(Rc<Fn(IN)>);
-
-impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
-    fn from(func: F) -> Self {
-        Callback(Rc::new(func))
-    }
-}
-
-impl<IN> Clone for Callback<IN> {
-    fn clone(&self) -> Self {
-        Callback(self.0.clone())
-    }
-}
-
-impl<IN> PartialEq for Callback<IN> {
-    fn eq(&self, other: &Callback<IN>) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
-    }
-}
-
-impl<IN> Callback<IN> {
-    /// This method calls the actual callback.
-    pub fn emit(&self, value: IN) {
-        (self.0)(value);
-    }
-}
-
-impl<IN: 'static> Callback<IN> {
-    /// Changes input type of the callback to another.
-    /// Works like common `map` method but in an opposite direction.
-    pub fn reform<F, T>(self, func: F) -> Callback<T>
-    where
-        F: Fn(T) -> IN + 'static,
-    {
-        let func = move |input| {
-            let output = func(input);
-            self.clone().emit(output);
-        };
-        Callback::from(func)
-    }
-}
 
 /// Shared reference to a context.
 pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
@@ -221,6 +172,7 @@ impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
     }
 }
 
+/// Builder for new scopes
 pub(crate) struct ScopeBuilder<CTX, COMP: Component<CTX>> {
     tx: ComponentSender<CTX, COMP>,
     rx: Receiver<ComponentUpdate<CTX, COMP>>,
@@ -228,6 +180,7 @@ pub(crate) struct ScopeBuilder<CTX, COMP: Component<CTX>> {
 }
 
 impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
+    /// Prepares a new builder instance
     pub fn new() -> Self {
         let bind = js! {
             return { "loop": function() { } };
@@ -263,7 +216,7 @@ impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
 
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
-pub struct Scope<CTX, COMP: Component<CTX>> {
+pub(crate) struct Scope<CTX, COMP: Component<CTX>> {
     context: SharedContext<CTX>,
     bind: Value,
     tx: ComponentSender<CTX, COMP>,
@@ -274,20 +227,8 @@ impl<CTX, COMP> Scope<CTX, COMP>
 where
     COMP: Component<CTX>,
 {
-    /// Creates app with a context.
-    pub fn new(context: CTX) -> Self {
-        let context = Rc::new(RefCell::new(context));
-        Scope::reuse(context)
-    }
-
-    /// Creates isolated `App` instance, but reuse the context.
-    pub fn reuse(context: SharedContext<CTX>) -> Self {
-        let builder = ScopeBuilder::new();
-        builder.build(context)
-    }
-
     /// Returns an environment.
-    pub fn get_env(&mut self) -> ScopeEnv<CTX, COMP> {
+    pub fn get_env(&self) -> ScopeEnv<CTX, COMP> {
         let sender = ScopeSender {
             tx: self.tx.clone(),
             bind: self.bind.clone(),
@@ -307,24 +248,6 @@ where
     CTX: 'static,
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
-    /// Alias to `mount("body", ...)`.
-    pub fn mount_to_body(self) {
-        let element = document()
-            .query_selector("body")
-            .expect("can't get body node for rendering")
-            .expect("can't unwrap body node");
-        self.mount(element)
-    }
-
-    /// The main entrypoint of a yew program. It works similar as `program`
-    /// function in Elm. You should provide an initial model, `update` function
-    /// which will update the state of the model and a `view` function which
-    /// will render the model to a virtual DOM tree.
-    pub fn mount(self, element: Element) {
-        clear_element(&element);
-        self.mount_in_place(element, None, None, None)
-    }
-
     // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node (ancestor).
     pub fn mount_in_place(
@@ -408,13 +331,6 @@ impl ScopeHandle {
             };
             setTimeout(destroy, 0);
         }
-    }
-}
-
-/// Removes anything from the given element.
-fn clear_element(element: &Element) {
-    while let Some(child) = element.last_child() {
-        element.remove_child(&child).expect("can't remove a child");
     }
 }
 

@@ -5,12 +5,13 @@ use std::time::Duration;
 use yew::prelude::*;
 use yew::services::Task;
 use yew::services::timeout::TimeoutService;
-use yew::services::interval::IntervalService;
+use yew::services::interval::{IntervalService, IntervalTask};
 use yew::services::console::ConsoleService;
 
 pub struct Model {
     job: Option<Box<Task>>,
     messages: Vec<&'static str>,
+    _standalone: IntervalTask,
 }
 
 pub enum Msg {
@@ -28,10 +29,18 @@ where
     type Msg = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, context: &mut Env<CTX, Self>) -> Self {
+        // This callback doesn't send any message to a scope
+        let callback = |_| {
+            println!("Example of a standalone callback.");
+        };
+        let interval: &mut IntervalService = context.as_mut();
+        let handle = interval.spawn(Duration::from_secs(10), callback.into());
+
         Model {
             job: None,
             messages: Vec::new(),
+            _standalone: handle,
         }
     }
 

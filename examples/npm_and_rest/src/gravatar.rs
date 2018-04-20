@@ -1,7 +1,7 @@
 use failure::Error;
 use yew::format::{Nothing, Json};
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
-use yew::html::Callback;
+use yew::callback::Callback;
 
 #[derive(Deserialize, Debug)]
 pub struct Profile {

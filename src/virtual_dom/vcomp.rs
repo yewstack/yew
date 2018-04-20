@@ -1,8 +1,9 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
 use super::{Reform, VDiff, VNode};
-use html::{Callback, Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, ScopeEnv,
+use html::{Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, ScopeEnv,
            ScopeHandle, ScopeSender, SharedContext};
+use callback::Callback;
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::marker::PhantomData;

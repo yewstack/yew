@@ -18,7 +18,7 @@ impl AsMut<ConsoleService> for Context {
 fn main() {
     yew::initialize();
     let context = Context {
-        console: ConsoleService,
+        console: ConsoleService::new(),
     };
     let app: App<_, Model> = App::new(context);
     app.mount_to_body();
