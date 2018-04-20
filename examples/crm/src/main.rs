@@ -27,7 +27,7 @@ fn main() {
     yew::initialize();
     let context = Context {
         storage: StorageService::new(Area::Local),
-        dialog: DialogService,
+        dialog: DialogService::new(),
     };
     let app: App<_, Model> = App::new(context);
     app.mount_to_body();
