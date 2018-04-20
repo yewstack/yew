@@ -4,9 +4,15 @@
 use stdweb::Value;
 
 /// A dialog service.
-pub struct DialogService;
+#[derive(Default)]
+pub struct DialogService {}
 
 impl DialogService {
+    /// Creates a new service instance connected to `App` by provided `sender`.
+    pub fn new() -> Self {
+        Self {}
+    }
+
     /// Calls [alert](https://developer.mozilla.org/en-US/docs/Web/API/Window/alert)
     /// function.
     pub fn alert(&mut self, message: &str) {

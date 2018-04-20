@@ -1,6 +1,7 @@
 use stdweb::Value;
 use stdweb::unstable::TryInto;
 
+#[derive(Default)]
 pub struct CcxtService(Option<Value>);
 
 impl CcxtService {
