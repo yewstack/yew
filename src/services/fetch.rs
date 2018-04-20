@@ -7,7 +7,7 @@ use stdweb::unstable::{TryFrom, TryInto};
 
 use super::Task;
 use format::{Restorable, Storable};
-use html::Callback;
+use callback::Callback;
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
