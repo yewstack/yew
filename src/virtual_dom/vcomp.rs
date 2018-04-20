@@ -2,7 +2,7 @@
 
 use super::{Reform, VDiff, VNode};
 use html::{Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, ScopeEnv,
-           ScopeHandle, ScopeSender, SharedContext};
+           ScopeDestroyer, ScopeSender, SharedContext};
 use callback::Callback;
 use std::any::TypeId;
 use std::cell::RefCell;
@@ -27,7 +27,7 @@ pub struct VComp<CTX, COMP: Component<CTX>> {
     blind_sender: Box<FnMut(AnyProps)>,
     generator: Box<Generator<CTX>>,
     activators: Vec<Activator<CTX, COMP>>,
-    handle: Option<ScopeHandle>,
+    destroyer: Option<ScopeDestroyer>,
     _parent: PhantomData<COMP>,
 }
 
@@ -38,8 +38,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         CHILD: Component<CTX> + Renderable<CTX, CHILD>,
     {
         let cell: NodeCell = Rc::new(RefCell::new(None));
-        let builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new();
-        let handle = Some(builder.handle());
+        let mut builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new();
+        let destroyer = Some(builder.destroyer());
         let mut sender = builder.sender();
         let mut builder = Some(builder);
         let occupied = cell.clone();
@@ -87,7 +87,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             blind_sender: Box::new(blind_sender),
             generator: Box::new(generator),
             activators: Vec::new(),
-            handle,
+            destroyer,
             _parent: PhantomData,
         };
         (properties, comp)
@@ -117,7 +117,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         // Grab a sender and a cell (element's reference) to reuse it later
         self.blind_sender = other.blind_sender;
         self.cell = other.cell;
-        self.handle = other.handle;
+        self.destroyer = other.destroyer;
     }
 }
 
@@ -217,8 +217,8 @@ where
     fn remove(self, parent: &Node) -> Option<Node> {
         // Destroy the loop. It's impossible to use `Drop`,
         // because parts can be reused with `grab_sender_of`.
-        if let Some(handle) = self.handle {
-            handle.destroy();
+        if let Some(destroyer) = self.destroyer {
+            destroyer.destroy();
         }
         // Keep the sibling in the cell and send a message `Drop` to a loop
         self.cell.borrow_mut().take().and_then(|node| {
