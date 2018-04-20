@@ -279,7 +279,7 @@ where
             .take()
             .expect("application runned without a receiver");
         let bind = self.bind.clone();
-        let mut callback = move || {
+        let callback = move || {
             let mut should_update = false;
             updates.extend(rx.try_iter());
             {
@@ -307,8 +307,6 @@ where
                 last_frame = Some(next_frame);
             }
         };
-        // Initial call for first rendering
-        callback();
         js! { @(no_return)
             var bind = @{bind};
             var callback = @{callback};
