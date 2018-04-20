@@ -1,7 +1,7 @@
 extern crate yew;
 extern crate custom_components;
 
-use yew::html::Scope;
+use yew::prelude::*;
 use yew::services::console::ConsoleService;
 use custom_components::{Printer, Model};
 
@@ -19,11 +19,9 @@ impl Printer for Context {
 fn main() {
     yew::initialize();
     let context = Context {
-        console: ConsoleService,
+        console: ConsoleService::new(),
     };
-    // We use `Scope` here for demonstration.
-    // You can also use `App` here too.
-    let app: Scope<Context, Model> = Scope::new(context);
+    let app: App<Context, Model> = App::new(context);
     app.mount_to_body();
     yew::run_loop();
 }

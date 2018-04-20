@@ -51,4 +51,3 @@ impl<IN: 'static> Callback<IN> {
         Callback::from(func)
     }
 }
-

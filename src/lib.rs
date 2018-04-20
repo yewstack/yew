@@ -60,6 +60,7 @@ extern crate stdweb;
 pub mod macros;
 pub mod format;
 pub mod html;
+pub mod app;
 pub mod prelude;
 pub mod services;
 pub mod virtual_dom;
