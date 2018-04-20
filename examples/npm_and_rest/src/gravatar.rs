@@ -18,6 +18,7 @@ pub struct Entry {
     preferred_username: String,
 }
 
+#[derive(Default)]
 pub struct GravatarService {
     web: FetchService,
 }

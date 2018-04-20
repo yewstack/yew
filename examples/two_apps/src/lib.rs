@@ -5,6 +5,7 @@ extern crate yew;
 
 use yew::html::*;
 
+#[derive(Default)]
 pub struct Context {
     pub senders: Vec<ScopeSender<Context, Model>>,
 }
