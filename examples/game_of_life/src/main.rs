@@ -21,7 +21,7 @@ fn main() {
     let context = Context {
         interval: IntervalService::new(),
     };
-    let mut app: App<_, GameOfLife> = App::new(context);
+    let app: App<_, GameOfLife> = App::new(context);
 
     // Send initial message. For demo purposes only!
     // You should prefer to initialize everything in `Component::create` implementation.
