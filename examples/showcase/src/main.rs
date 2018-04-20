@@ -270,9 +270,9 @@ impl Scene {
 fn main() {
     yew::initialize();
     let context = Context {
-        console: ConsoleService,
+        console: ConsoleService::new(),
         storage: StorageService::new(Area::Local),
-        dialog: DialogService,
+        dialog: DialogService::new(),
         web: FetchService::new(),
         ws: WebSocketService::new(),
         interval: IntervalService::new(),
