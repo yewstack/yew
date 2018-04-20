@@ -176,6 +176,7 @@ impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
 pub(crate) struct ScopeBuilder<CTX, COMP: Component<CTX>> {
     tx: ComponentSender<CTX, COMP>,
     rx: Receiver<ComponentUpdate<CTX, COMP>>,
+    destroyer: Option<ScopeDestroyer>,
     bind: Value,
 }
 
@@ -186,7 +187,11 @@ impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
             return { "loop": function() { } };
         };
         let (tx, rx) = channel();
-        ScopeBuilder { tx, rx, bind }
+        let destroyer = ScopeDestroyer {
+            bind: bind.clone(),
+        };
+        let destroyer = Some(destroyer);
+        ScopeBuilder { tx, rx, destroyer, bind }
     }
 
     /// Lightweight sender for sending properties updates from `VComp`.
@@ -197,11 +202,9 @@ impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
         }
     }
 
-    /// Return handler to a scope. Warning! Don't use more than one handle!
-    pub fn handle(&self) -> ScopeHandle {
-        ScopeHandle {
-            bind: self.bind.clone(),
-        }
+    /// Return handler to a scope.
+    pub fn destroyer(&mut self) -> ScopeDestroyer {
+        self.destroyer.take().expect("don't use more than one destroyer!")
     }
 
     pub fn build(self, context: SharedContext<CTX>) -> Scope<CTX, COMP> {
@@ -315,11 +318,11 @@ where
 }
 
 /// This handle keeps the reference to a detached scope to prevent memory leaks.
-pub struct ScopeHandle {
+pub struct ScopeDestroyer {
     bind: Value,
 }
 
-impl ScopeHandle {
+impl ScopeDestroyer {
     /// Destroy the scope (component's loop).
     pub fn destroy(self) {
         let bind = &self.bind;
