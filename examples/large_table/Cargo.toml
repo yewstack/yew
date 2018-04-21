@@ -1,0 +1,7 @@
+[package]
+name = "large_table"
+version = "0.1.0"
+authors = ["qthree <qthree3@gmail.com>"]
+
+[dependencies]
+yew = { path = "../.." }

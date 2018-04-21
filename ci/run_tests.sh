@@ -58,6 +58,8 @@ check_all_examples() {
     done
 }
 
+# Check showcase only to speed up a building with CI
+# Showcase includes all other examples
 SHOWCASE=$(pwd)/examples/showcase
 check_example asmjs-unknown-emscripten $SHOWCASE
 check_example wasm32-unknown-emscripten $SHOWCASE

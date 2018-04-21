@@ -1,10 +1,17 @@
 //! Service to connect to a servers by
 //! [`WebSocket` Protocol](https://tools.ietf.org/html/rfc6455).
 
-use super::Task;
+use stdweb::web::{WebSocket, SocketReadyState, IEventTarget};
+use stdweb::web::event::{
+    SocketOpenEvent,
+    SocketMessageEvent,
+    SocketCloseEvent,
+    SocketErrorEvent,
+};
+use stdweb::traits::IMessageEvent;
 use format::{Restorable, Storable};
-use html::Callback;
-use stdweb::Value;
+use callback::Callback;
+use super::Task;
 
 /// A status of a websocket connection. Used for status notification.
 pub enum WebSocketStatus {
@@ -12,10 +19,15 @@ pub enum WebSocketStatus {
     Opened,
     /// Fired when a websocket connection was closed.
     Closed,
+    /// Fired when a websocket connection was failed.
+    Error,
 }
 
 /// A handle to control current websocket connection. Implements `Task` and could be canceled.
-pub struct WebSocketTask(Option<Value>);
+pub struct WebSocketTask {
+    ws: WebSocket,
+    notification: Callback<WebSocketStatus>,
+}
 
 /// A websocket service attached to a user context.
 #[derive(Default)]
@@ -38,41 +50,27 @@ impl WebSocketService {
     where
         OUT: From<Restorable>,
     {
-        let callback = move |s: String| {
-            let data = Ok(s);
-            let out = OUT::from(data);
-            callback.emit(out);
-        };
-        let notify_callback = move |code: u32| {
-            let code = {
-                match code {
-                    1 => WebSocketStatus::Opened,
-                    0 => WebSocketStatus::Closed,
-                    x => panic!("unknown code of websocket notification: {}", x),
-                }
-            };
-            notification.emit(code);
-        };
-        let handle = js! {
-            var socket = new WebSocket(@{url});
-            var callback = @{callback};
-            var notify_callback = @{notify_callback};
-            socket.onopen = function(event) {
-                notify_callback(1);
-            };
-            socket.onclose = function(event) {
-                callback.drop();
-                notify_callback(0);
-                notify_callback.drop();
-            };
-            socket.onerror = function(event) {
-            };
-            socket.onmessage = function(event) {
-                callback(event.data);
-            };
-            return { socket: socket };
-        };
-        WebSocketTask(Some(handle))
+        let ws = WebSocket::new(url).unwrap();
+        let notify = notification.clone();
+        ws.add_event_listener(move |_: SocketOpenEvent| {
+            notify.emit(WebSocketStatus::Opened);
+        });
+        let notify = notification.clone();
+        ws.add_event_listener(move |_: SocketCloseEvent| {
+            notify.emit(WebSocketStatus::Closed);
+        });
+        let notify = notification.clone();
+        ws.add_event_listener(move |_: SocketErrorEvent| {
+            notify.emit(WebSocketStatus::Error);
+        });
+        ws.add_event_listener(move |event: SocketMessageEvent| {
+            if let Some(text) = event.data().into_text() {
+                let data = Ok(text);
+                let out = OUT::from(data);
+                callback.emit(out);
+            }
+        });
+        WebSocketTask { ws, notification }
     }
 }
 
@@ -82,29 +80,20 @@ impl WebSocketTask {
     where
         IN: Into<Storable>,
     {
-        if let WebSocketTask(Some(ref handle)) = *self {
-            if let Some(body) = data.into() {
-                js! { @(no_return)
-                    var handle = @{handle};
-                    handle.socket.send(@{body});
-                }
+        if let Some(body) = data.into() {
+            if let Err(_) = self.ws.send_text(&body) {
+                self.notification.emit(WebSocketStatus::Error);
             }
-        } else {
-            panic!("can't send data to the closed websocket connection");
         }
     }
 }
 
 impl Task for WebSocketTask {
     fn is_active(&self) -> bool {
-        self.0.is_some()
+        self.ws.ready_state() == SocketReadyState::Open
     }
     fn cancel(&mut self) {
-        let handle = self.0.take().expect("tried to close websocket twice");
-        js! { @(no_return)
-            var handle = @{handle};
-            handle.socket.close();
-        }
+        self.ws.close();
     }
 }
 

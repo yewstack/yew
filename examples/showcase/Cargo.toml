@@ -5,16 +5,17 @@ authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 
 [dependencies]
 yew = { path = "../.." }
-counter = { path = "sub/counter" }
-crm = { path = "sub/crm" }
-custom_components = { path = "sub/custom_components" }
-dashboard = { path = "sub/dashboard" }
-fragments = { path = "sub/fragments" }
-game_of_life = { path = "sub/game_of_life" }
-large_table = { path = "sub/large_table" }
-mount_point = { path = "sub/mount_point" }
-npm_and_rest = { path = "sub/npm_and_rest" }
-textarea = { path = "sub/textarea" }
-timer = { path = "sub/timer" }
-todomvc = { path = "sub/todomvc" }
-two_apps = { path = "sub/two_apps" }
+counter = { path = "../counter" }
+crm = { path = "../crm" }
+custom_components = { path = "../custom_components" }
+dashboard = { path = "../dashboard" }
+fragments = { path = "../fragments" }
+game_of_life = { path = "../game_of_life" }
+inner_html = { path = "../inner_html" }
+large_table = { path = "../large_table" }
+mount_point = { path = "../mount_point" }
+npm_and_rest = { path = "../npm_and_rest" }
+textarea = { path = "../textarea" }
+timer = { path = "../timer" }
+todomvc = { path = "../todomvc" }
+two_apps = { path = "../two_apps" }

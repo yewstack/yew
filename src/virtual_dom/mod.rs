@@ -51,7 +51,18 @@ enum Patch<ID, T> {
 
 /// Reform of a node.
 enum Reform {
+    /// Don't create a NEW reference (js Node).
+    ///
+    /// The reference _may still be mutated_.
     Keep,
+
+    /// Create a new reference (js Node).
+    ///
+    /// The optional `Node` is used to insert the
+    /// new node in the correct slot of the parent.
+    ///
+    /// If it does not exist, a `precursor` must be
+    /// speccified (see `VDiff::apply()`).
     Before(Option<Node>),
 }
 
@@ -70,11 +81,31 @@ pub trait VDiff {
     fn remove(self, parent: &Node) -> Option<Node>;
 
     /// Scoped diff apply to other tree.
+    ///
+    /// Virtual rendering for the node. It uses parent node and existing children (virtual and DOM)
+    /// to check the difference and apply patches to the actual DOM represenatation.
+    ///
+    /// Parameters:
+    /// - `parent`: the parent node in the DOM.
+    /// - `precursor`: the "previous node" in a list of nodes, used to efficiently
+    ///   find where to put the node.
+    /// - `ancestor`: the node that this node will be replacing in the DOM.
+    ///   This method will _always_ remove the `ancestor` from the `parent`.
+    /// - `env`: the `ScopeEnv`.
+    ///
+    /// ### Internal Behavior Notice:
+    ///
+    /// Note that these modify the DOM by modifying the reference that _already_ exists
+    /// on the `ancestor`. If `self.reference` exists (which it _shouldn't_) this method
+    /// will panic.
+    ///
+    /// The exception to this is obviously `VRef` which simply uses the inner `Node` directly
+    /// (always removes the `Node` that exists).
     fn apply(
         &mut self,
         parent: &Node,
         precursor: Option<&Node>,
-        opposite: Option<VNode<Self::Context, Self::Component>>,
+        ancestor: Option<VNode<Self::Context, Self::Component>>,
         scope: ScopeEnv<Self::Context, Self::Component>,
     ) -> Option<Node>;
 }
