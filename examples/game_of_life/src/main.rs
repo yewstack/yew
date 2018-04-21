@@ -26,7 +26,7 @@ fn main() {
     // Send initial message. For demo purposes only!
     // You should prefer to initialize everything in `Component::create` implementation.
     let msg = ComponentUpdate::Message(Msg::Random);
-    app.get_env().sender().send(msg);
+    app.get_env().activator().send(msg);
 
     app.mount_to_body();
     yew::run_loop();

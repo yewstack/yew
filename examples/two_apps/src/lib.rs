@@ -7,13 +7,13 @@ use yew::html::*;
 
 #[derive(Default)]
 pub struct Context {
-    pub senders: Vec<ScopeSender<Context, Model>>,
+    pub activators: Vec<Activator<Context, Model>>,
 }
 
 impl Context {
     pub fn new() -> Self {
         Context {
-            senders: Vec::new(),
+            activators: Vec::new(),
         }
     }
 }
@@ -25,7 +25,7 @@ impl AsMut<Context> for Context {
 }
 
 pub struct Model {
-    sender: ScopeSender<Context, Model>,
+    sender: Activator<Context, Model>,
     selector: &'static str,
     title: String,
 }
@@ -43,7 +43,7 @@ where
     type Properties = ();
 
     fn create(_: Self::Properties, context: &mut Env<CTX, Self>) -> Self {
-        let sender = context.as_mut().senders.pop().unwrap();
+        let sender = context.as_mut().activators.pop().unwrap();
         Model {
             // TODO Use properties to set sender...
             sender,

@@ -6,8 +6,6 @@
 use std::cell::{RefCell, RefMut};
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-use std::sync::mpsc::{channel, Receiver, Sender};
-use stdweb::Value;
 use stdweb::web::event::{BlurEvent, IKeyboardEvent, IMouseEvent};
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use virtual_dom::{Listener, VDiff, VNode};
@@ -50,9 +48,6 @@ pub enum ComponentUpdate<CTX, COMP: Component<CTX>> {
     Properties(COMP::Properties),
 }
 
-/// Internal alias for sender.
-pub(crate) type ComponentSender<CTX, COMP> = Sender<ComponentUpdate<CTX, COMP>>;
-
 /// Shared reference to a context.
 pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
 
@@ -60,7 +55,7 @@ pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
 /// shared reference to a context and a sender to a scope's loop.
 pub struct Env<'a, CTX: 'a, COMP: Component<CTX>> {
     context: RefMut<'a, CTX>,
-    sender: &'a mut ScopeSender<CTX, COMP>,
+    activator: &'a mut Activator<CTX, COMP>,
 }
 
 impl<'a, CTX: 'a, COMP: Component<CTX>> Deref for Env<'a, CTX, COMP> {
@@ -83,11 +78,11 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
     where
         F: Fn(IN) -> COMP::Msg + 'static,
     {
-        let sender = self.sender.clone();
+        let activator = self.activator.clone();
         let closure = move |input| {
             let output = function(input);
             let update = ComponentUpdate::Message(output);
-            sender.clone().send(update);
+            activator.clone().send(update);
         };
         closure.into()
     }
@@ -98,22 +93,22 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
 /// An instance could be dereferenced as a context.
 pub struct ScopeEnv<CTX, COMP: Component<CTX>> {
     context: SharedContext<CTX>,
-    sender: ScopeSender<CTX, COMP>,
+    activator: Activator<CTX, COMP>,
 }
 
 impl<CTX, COMP: Component<CTX>> Clone for ScopeEnv<CTX, COMP> {
     fn clone(&self) -> Self {
         ScopeEnv {
             context: self.context.clone(),
-            sender: self.sender.clone(),
+            activator: self.activator.clone(),
         }
     }
 }
 
 impl<CTX, COMP: Component<CTX>> ScopeEnv<CTX, COMP> {
-    /// Clones sender.
-    pub fn sender(&self) -> ScopeSender<CTX, COMP> {
-        self.sender.clone()
+    /// Clones activator.
+    pub fn activator(&self) -> Activator<CTX, COMP> {
+        self.activator.clone()
     }
 
     /// Clones shared context.
@@ -125,94 +120,69 @@ impl<CTX, COMP: Component<CTX>> ScopeEnv<CTX, COMP> {
 impl<CTX: 'static, COMP: Component<CTX>> ScopeEnv<CTX, COMP> {
     /// Returns reference to a scope data.
     pub fn get_ref(&mut self) -> Env<CTX, COMP> {
+        // TODO Refactor or review it!
         Env {
             context: self.context.borrow_mut(),
-            sender: &mut self.sender,
+            activator: &mut self.activator,
         }
     }
 }
 
-/// This struct keeps a sender to a context to send a messages to a loop
-/// and to schedule the next update call.
-pub struct ScopeSender<CTX, COMP: Component<CTX>> {
-    tx: ComponentSender<CTX, COMP>,
-    bind: Value,
+/// Holds a reference to a scope, could put a message into the queue
+/// of the scope and activate processing (try borrow and call routine).
+pub struct Activator<CTX, COMP: Component<CTX>> {
+    queue: Rc<RefCell<Vec<ComponentUpdate<CTX, COMP>>>>,
+    routine: Rc<RefCell<Option<Box<FnMut()>>>>,
 }
 
-impl<CTX, COMP: Component<CTX>> Clone for ScopeSender<CTX, COMP> {
+impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
     fn clone(&self) -> Self {
-        ScopeSender {
-            tx: self.tx.clone(),
-            bind: self.bind.clone(),
+        Activator {
+            queue: self.queue.clone(),
+            routine: self.routine.clone(),
         }
     }
 }
 
-impl<CTX, COMP: Component<CTX>> ScopeSender<CTX, COMP> {
+impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
     /// Send the message and schedule an update.
     pub fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
-        if let Ok(()) = self.tx.send(update) {
-            let bind = &self.bind;
-            js! { @(no_return)
-                // Schedule to call the loop handler
-                // IMPORTANT! If call loop function immediately
-                // it stops handling other messages and the first
-                // one will be fired.
-                var bind = @{bind};
-                // Put bind holder instad of callback function, because
-                // scope could be dropped and `loop` function will be changed
-                window._yew_schedule_(bind);
+        self.queue.borrow_mut().push(update);
+        if let Ok(mut routine) = self.routine.try_borrow_mut() {
+            if let Some(ref mut routine) = *routine {
+                routine();
+            } else {
+                eprintln!("Scope's routine not exists to call it.");
             }
         } else {
-            eprintln!(
-                "Can't send message to a component. Receiver lost! \
-                 Maybe Task lives longer than a component instance."
-            );
+            println!("Skip calling, because it's already borrowed.");
         }
     }
 }
 
 /// Builder for new scopes
 pub(crate) struct ScopeBuilder<CTX, COMP: Component<CTX>> {
-    tx: ComponentSender<CTX, COMP>,
-    rx: Receiver<ComponentUpdate<CTX, COMP>>,
-    destroyer: Option<ScopeDestroyer>,
-    bind: Value,
+    activator: Activator<CTX, COMP>,
 }
 
 impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
     /// Prepares a new builder instance
     pub fn new() -> Self {
-        let bind = js! {
-            return { "loop": function() { } };
-        };
-        let (tx, rx) = channel();
-        let destroyer = ScopeDestroyer {
-            bind: bind.clone(),
-        };
-        let destroyer = Some(destroyer);
-        ScopeBuilder { tx, rx, destroyer, bind }
+        let queue = Rc::new(RefCell::new(Vec::new()));
+        let routine = Rc::new(RefCell::new(None));
+        let activator = Activator { queue, routine };
+        ScopeBuilder { activator }
     }
 
-    /// Lightweight sender for sending properties updates from `VComp`.
-    pub fn sender(&self) -> ScopeSender<CTX, COMP> {
-        ScopeSender {
-            tx: self.tx.clone(),
-            bind: self.bind.clone(),
-        }
-    }
-
-    /// Return handler to a scope.
-    pub fn destroyer(&mut self) -> ScopeDestroyer {
-        self.destroyer.take().expect("don't use more than one destroyer!")
+    /// Returns an activator of the scope's loop.
+    pub fn activator(&mut self) -> Activator<CTX, COMP> {
+        self.activator.clone()
     }
 
     pub fn build(self, context: SharedContext<CTX>) -> Scope<CTX, COMP> {
         Scope {
-            tx: self.tx,
-            rx: Some(self.rx),
+            activator: self.activator,
             context,
-            bind: self.bind,
         }
     }
 }
@@ -220,10 +190,8 @@ impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
 pub(crate) struct Scope<CTX, COMP: Component<CTX>> {
+    activator: Activator<CTX, COMP>,
     context: SharedContext<CTX>,
-    bind: Value,
-    tx: ComponentSender<CTX, COMP>,
-    rx: Option<Receiver<ComponentUpdate<CTX, COMP>>>,
 }
 
 impl<CTX, COMP> Scope<CTX, COMP>
@@ -232,13 +200,9 @@ where
 {
     /// Returns an environment.
     pub fn get_env(&self) -> ScopeEnv<CTX, COMP> {
-        let sender = ScopeSender {
-            tx: self.tx.clone(),
-            bind: self.bind.clone(),
-        };
         ScopeEnv {
             context: self.context.clone(),
-            sender,
+            activator: self.activator.clone(),
         }
     }
 }
@@ -254,12 +218,13 @@ where
     // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node (ancestor).
     pub fn mount_in_place(
-        mut self,
+        self,
         element: Element,
         ancestor: Option<VNode<CTX, COMP>>,
         mut occupied: Option<NodeCell>,
         init_props: Option<COMP::Properties>,
-    ) {
+    ) -> Activator<CTX, COMP> {
+        // TODO Move it under ComponentUpdate::Creating
         let mut component = {
             let props = init_props.unwrap_or_default();
             let mut env = self.get_env();
@@ -267,7 +232,6 @@ where
             COMP::create(props, &mut scope_ref)
         };
         // No messages at start
-        let mut updates = Vec::new();
         let mut last_frame = component.view();
         // First-time rendering the tree
         let node = last_frame.apply(element.as_node(), None, ancestor, self.get_env());
@@ -275,17 +239,17 @@ where
             *cell.borrow_mut() = node;
         }
         let mut last_frame = Some(last_frame);
-        let rx = self.rx
-            .take()
-            .expect("application runned without a receiver");
-        let bind = self.bind.clone();
-        let callback = move || {
-            let mut should_update = false;
-            updates.extend(rx.try_iter());
-            {
-                let mut env = self.get_env();
-                let mut scope_ref = env.get_ref();
-                for upd in updates.drain(..) {
+
+        let activator = self.activator.clone();
+        let routine = {
+            let updates = self.activator.queue.clone();
+            Box::new(move || {
+                let mut should_update = false;
+                // This loop pops one item, because the following
+                // updates could try to borrow the same cell
+                while let Some(upd) = updates.borrow_mut().pop() {
+                    let mut env = self.get_env();
+                    let mut scope_ref = env.get_ref();
                     match upd {
                         ComponentUpdate::Message(msg) => {
                             should_update |= component.update(msg, &mut scope_ref);
@@ -295,43 +259,20 @@ where
                         }
                     }
                 }
-            }
-            if should_update {
-                let mut next_frame = component.view();
-                // Re-rendering the tree
-                let node =
-                    next_frame.apply(element.as_node(), None, last_frame.take(), self.get_env());
-                if let Some(ref mut cell) = occupied {
-                    *cell.borrow_mut() = node;
+                if should_update {
+                    let mut next_frame = component.view();
+                    // Re-rendering the tree
+                    let node =
+                        next_frame.apply(element.as_node(), None, last_frame.take(), self.get_env());
+                    if let Some(ref mut cell) = occupied {
+                        *cell.borrow_mut() = node;
+                    }
+                    last_frame = Some(next_frame);
                 }
-                last_frame = Some(next_frame);
-            }
+            })
         };
-        js! { @(no_return)
-            var bind = @{bind};
-            var callback = @{callback};
-            bind.loop = callback;
-        }
-    }
-}
-
-/// This handle keeps the reference to a detached scope to prevent memory leaks.
-pub struct ScopeDestroyer {
-    bind: Value,
-}
-
-impl ScopeDestroyer {
-    /// Destroy the scope (component's loop).
-    pub fn destroy(self) {
-        let bind = &self.bind;
-        js! { @(no_return)
-            var destroy = function() {
-                var bind = @{bind};
-                bind.loop.drop();
-                bind.loop = function() { };
-            };
-            setTimeout(destroy, 0);
-        }
+        (*activator.routine.borrow_mut()) = Some(routine);
+        activator
     }
 }
 
@@ -371,7 +312,7 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, mut sender: ScopeSender<CTX, COMP>)
+                fn attach(&mut self, element: &Element, mut activator: Activator<CTX, COMP>)
                     -> EventListenerHandle {
                     let handler = self.0.take().expect("tried to attach listener twice");
                     let this = element.clone();
@@ -381,7 +322,7 @@ macro_rules! impl_action {
                         let handy_event: $ret = $convert(&this, event);
                         let msg = handler(handy_event);
                         let update = ComponentUpdate::Message(msg);
-                        sender.send(update);
+                        activator.send(update);
                     };
                     element.add_event_listener(listener)
                 }

@@ -22,12 +22,12 @@ fn main() {
     let context = Rc::new(RefCell::new(context));
 
     let first_app = App::reuse(context.clone());
-    let to_first = first_app.get_env().sender();
-    context.borrow_mut().senders.push(to_first);
+    let to_first = first_app.get_env().activator();
+    context.borrow_mut().activators.push(to_first);
 
     let second_app = App::reuse(context.clone());
-    let to_second = second_app.get_env().sender();
-    context.borrow_mut().senders.push(to_second);
+    let to_second = second_app.get_env().activator();
+    context.borrow_mut().activators.push(to_second);
 
     mount_app(".first-app", first_app);
     mount_app(".second-app", second_app);
