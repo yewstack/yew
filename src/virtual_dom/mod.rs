@@ -78,7 +78,7 @@ pub trait VDiff {
     type Component: Component<Self::Context>;
 
     /// Remove itself from parent and return the next sibling.
-    fn remove(self, parent: &Node) -> Option<Node>;
+    fn detach(&mut self, parent: &Node) -> Option<Node>;
 
     /// Scoped diff apply to other tree.
     ///

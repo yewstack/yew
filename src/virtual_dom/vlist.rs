@@ -25,10 +25,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
     type Context = CTX;
     type Component = COMP;
 
-    fn remove(self, parent: &Node) -> Option<Node> {
+    fn detach(&mut self, parent: &Node) -> Option<Node> {
         let mut last_sibling = None;
-        for child in self.childs {
-            last_sibling = child.remove(parent);
+        for mut child in self.childs.drain(..) {
+            last_sibling = child.detach(parent);
         }
         last_sibling
     }
@@ -46,8 +46,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
                 Some(VNode::VList(mut vlist)) => {
                     vlist.childs.drain(..).map(Some).collect::<Vec<_>>()
                 }
-                Some(vnode) => {
-                    let _node = vnode.remove(parent);
+                Some(mut vnode) => {
+                    let _node = vnode.detach(parent);
                     // TODO Replace precursor?
                     Vec::new()
                 }
@@ -75,8 +75,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
                 (Some(left), right) => {
                     precursor = left.apply(parent, precursor.as_ref(), right, env.clone());
                 }
-                (None, Some(right)) => {
-                    right.remove(parent);
+                (None, Some(mut right)) => {
+                    right.detach(parent);
                 }
                 (None, None) => {
                     panic!("redundant iterations during diff");
