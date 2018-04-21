@@ -41,24 +41,27 @@ pub trait Renderable<CTX, COMP: Component<CTX>> {
 }
 
 /// Update message for a `Components` instance. Used by scope sender.
-pub enum ComponentUpdate<CTX, COMP: Component<CTX>> {
+pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
+    /// Creating an instance of the component
+    Create,
     /// Wraps messages for a component.
     Message(COMP::Msg),
     /// Wraps properties for a component.
     Properties(COMP::Properties),
+    /// Removes the component
+    Destroy,
 }
 
 /// Shared reference to a context.
 pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
 
 /// A reference to environment of a component (scope) which contains
-/// shared reference to a context and a sender to a scope's loop.
-pub struct Env<'a, CTX: 'a, COMP: Component<CTX>> {
+/// shared reference to a context.
+pub struct ContextMut<'a, CTX: 'a> {
     context: RefMut<'a, CTX>,
-    activator: &'a mut Activator<CTX, COMP>,
 }
 
-impl<'a, CTX: 'a, COMP: Component<CTX>> Deref for Env<'a, CTX, COMP> {
+impl<'a, CTX: 'a> Deref for ContextMut<'a, CTX> {
     type Target = CTX;
 
     fn deref(&self) -> &CTX {
@@ -66,13 +69,48 @@ impl<'a, CTX: 'a, COMP: Component<CTX>> Deref for Env<'a, CTX, COMP> {
     }
 }
 
-impl<'a, CTX: 'a, COMP: Component<CTX>> DerefMut for Env<'a, CTX, COMP> {
+impl<'a, CTX: 'a> DerefMut for ContextMut<'a, CTX> {
     fn deref_mut(&mut self) -> &mut CTX {
         &mut self.context
     }
 }
 
-impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
+/// This type holds a reference to a context instance and
+/// sender to send messages to a component attached to a scope.
+/// An instance could be dereferenced as a context.
+pub struct Env<CTX, COMP: Component<CTX>> {
+    context: SharedContext<CTX>,
+    activator: Activator<CTX, COMP>,
+}
+
+impl<CTX, COMP: Component<CTX>> Clone for Env<CTX, COMP> {
+    fn clone(&self) -> Self {
+        Env {
+            context: self.context.clone(),
+            activator: self.activator.clone(),
+        }
+    }
+}
+
+impl<CTX, COMP: Component<CTX>> Env<CTX, COMP> {
+    /// Clones activator.
+    pub fn activator(&self) -> Activator<CTX, COMP> {
+        self.activator.clone()
+    }
+
+    /// Clones shared context.
+    pub(crate) fn context_rc(&self) -> SharedContext<CTX> {
+        self.context.clone()
+    }
+
+    /// Returns a borrowed reference to a context.
+    pub fn context(&self) -> ContextMut<CTX> {
+        let context = self.context.borrow_mut();
+        ContextMut { context }
+    }
+}
+
+impl<CTX: 'static, COMP: Component<CTX>> Env<CTX, COMP> {
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
@@ -88,51 +126,13 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
     }
 }
 
-/// This type holds a reference to a context instance and
-/// sender to send messages to a component attached to a scope.
-/// An instance could be dereferenced as a context.
-pub struct ScopeEnv<CTX, COMP: Component<CTX>> {
-    context: SharedContext<CTX>,
-    activator: Activator<CTX, COMP>,
-}
-
-impl<CTX, COMP: Component<CTX>> Clone for ScopeEnv<CTX, COMP> {
-    fn clone(&self) -> Self {
-        ScopeEnv {
-            context: self.context.clone(),
-            activator: self.activator.clone(),
-        }
-    }
-}
-
-impl<CTX, COMP: Component<CTX>> ScopeEnv<CTX, COMP> {
-    /// Clones activator.
-    pub fn activator(&self) -> Activator<CTX, COMP> {
-        self.activator.clone()
-    }
-
-    /// Clones shared context.
-    pub fn context(&self) -> SharedContext<CTX> {
-        self.context.clone()
-    }
-}
-
-impl<CTX: 'static, COMP: Component<CTX>> ScopeEnv<CTX, COMP> {
-    /// Returns reference to a scope data.
-    pub fn get_ref(&mut self) -> Env<CTX, COMP> {
-        // TODO Refactor or review it!
-        Env {
-            context: self.context.borrow_mut(),
-            activator: &mut self.activator,
-        }
-    }
-}
+type WillDestroy = bool;
 
 /// Holds a reference to a scope, could put a message into the queue
 /// of the scope and activate processing (try borrow and call routine).
 pub struct Activator<CTX, COMP: Component<CTX>> {
     queue: Rc<RefCell<Vec<ComponentUpdate<CTX, COMP>>>>,
-    routine: Rc<RefCell<Option<Box<FnMut()>>>>,
+    routine: Rc<RefCell<Option<Box<FnMut() -> WillDestroy>>>>,
 }
 
 impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
@@ -146,13 +146,20 @@ impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
 
 impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
     /// Send the message and schedule an update.
-    pub fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
-        self.queue.borrow_mut().push(update);
+    pub(crate) fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
+        // Queue should never bew blocked with an intersection
+        self.queue.try_borrow_mut()
+            .expect("internal message routing accident")
+            .push(update);
+        let mut will_destroy = false;
         if let Ok(mut routine) = self.routine.try_borrow_mut() {
             if let Some(ref mut routine) = *routine {
-                routine();
+                will_destroy = routine();
             } else {
                 eprintln!("Scope's routine not exists to call it.");
+            }
+            if will_destroy {
+                (*routine).take();
             }
         } else {
             println!("Skip calling, because it's already borrowed.");
@@ -199,8 +206,8 @@ where
     COMP: Component<CTX>,
 {
     /// Returns an environment.
-    pub fn get_env(&self) -> ScopeEnv<CTX, COMP> {
-        ScopeEnv {
+    pub fn get_env(&self) -> Env<CTX, COMP> {
+        Env {
             context: self.context.clone(),
             activator: self.activator.clone(),
         }
@@ -228,8 +235,8 @@ where
         let mut component = {
             let props = init_props.unwrap_or_default();
             let mut env = self.get_env();
-            let mut scope_ref = env.get_ref();
-            COMP::create(props, &mut scope_ref)
+            //let mut scope_ref = env.get_ref();
+            COMP::create(props, &mut env)
         };
         // No messages at start
         let mut last_frame = component.view();
@@ -240,22 +247,27 @@ where
         }
         let mut last_frame = Some(last_frame);
 
-        let activator = self.activator.clone();
+        let mut activator = self.activator.clone();
         let routine = {
             let updates = self.activator.queue.clone();
             Box::new(move || {
+                let mut will_destroy = false;
                 let mut should_update = false;
                 // This loop pops one item, because the following
                 // updates could try to borrow the same cell
                 while let Some(upd) = updates.borrow_mut().pop() {
                     let mut env = self.get_env();
-                    let mut scope_ref = env.get_ref();
                     match upd {
+                        ComponentUpdate::Create => {
+                        }
                         ComponentUpdate::Message(msg) => {
-                            should_update |= component.update(msg, &mut scope_ref);
+                            should_update |= component.update(msg, &mut env);
                         }
                         ComponentUpdate::Properties(props) => {
-                            should_update |= component.change(props, &mut scope_ref);
+                            should_update |= component.change(props, &mut env);
+                        }
+                        ComponentUpdate::Destroy => {
+                            will_destroy = true;
                         }
                     }
                 }
@@ -269,9 +281,11 @@ where
                     }
                     last_frame = Some(next_frame);
                 }
+                will_destroy
             })
         };
         (*activator.routine.borrow_mut()) = Some(routine);
+        activator.send(ComponentUpdate::Create);
         activator
     }
 }
