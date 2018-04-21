@@ -217,7 +217,7 @@ where
     type Component = COMP;
 
     /// Remove VComp from parent.
-    fn remove(self, parent: &Node) -> Option<Node> {
+    fn detach(&mut self, parent: &Node) -> Option<Node> {
         // Destroy the loop. It's impossible to use `Drop`,
         // because parts can be reused with `grab_sender_of`.
         /* TODO Replace with the activator!
@@ -246,17 +246,17 @@ where
     ) -> Option<Node> {
         let reform = {
             match opposite {
-                Some(VNode::VComp(vcomp)) => {
+                Some(VNode::VComp(mut vcomp)) => {
                     if self.type_id == vcomp.type_id {
                         self.grab_sender_of(vcomp);
                         Reform::Keep
                     } else {
-                        let node = vcomp.remove(parent);
+                        let node = vcomp.detach(parent);
                         Reform::Before(node)
                     }
                 }
-                Some(vnode) => {
-                    let node = vnode.remove(parent);
+                Some(mut vnode) => {
+                    let node = vnode.detach(parent);
                     Reform::Before(node)
                 }
                 None => Reform::Before(None),

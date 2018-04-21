@@ -319,8 +319,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
     type Component = COMP;
 
     /// Remove VTag from parent.
-    fn remove(self, parent: &Node) -> Option<Node> {
-        let node = self.reference
+    fn detach(&mut self, parent: &Node) -> Option<Node> {
+        let node = self.reference.take()
             .expect("tried to remove not rendered VTag from DOM");
         let sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
@@ -348,13 +348,13 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                         (Reform::Keep, Some(vtag))
                     } else {
                         // We have to create a new reference, remove ancestor.
-                        let node = vtag.remove(parent);
+                        let node = vtag.detach(parent);
                         (Reform::Before(node), None)
                     }
                 }
-                Some(vnode) => {
+                Some(mut vnode) => {
                     // It is not even a VTag, we must remove the ancestor.
-                    let node = vnode.remove(parent);
+                    let node = vnode.detach(parent);
                     (Reform::Before(node), None)
                 }
                 None => (Reform::Before(None), None),
@@ -436,8 +436,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                         precursor =
                             left.apply(element.as_node(), precursor.as_ref(), right, env.clone());
                     }
-                    (None, Some(right)) => {
-                        right.remove(element.as_node());
+                    (None, Some(mut right)) => {
+                        right.detach(element.as_node());
                     }
                     (None, None) => {
                         panic!("redundant iterations during diff");

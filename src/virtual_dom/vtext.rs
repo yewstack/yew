@@ -36,8 +36,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
     type Component = COMP;
 
     /// Remove VTag from parent.
-    fn remove(self, parent: &Node) -> Option<Node> {
-        let node = self.reference
+    fn detach(&mut self, parent: &Node) -> Option<Node> {
+        let node = self.reference.take()
             .expect("tried to remove not rendered VText from DOM");
         let sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
@@ -70,8 +70,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
                     }
                     Reform::Keep
                 }
-                Some(vnode) => {
-                    let node = vnode.remove(parent);
+                Some(mut vnode) => {
+                    let node = vnode.detach(parent);
                     Reform::Before(node)
                 }
                 None => Reform::Before(None),
