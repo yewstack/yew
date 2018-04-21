@@ -14,6 +14,7 @@ use yew::html::Renderable;
 use forums::Forums;
 use button::Button;
 
+use yew::services::route::Router;
 
 
 pub struct Context {
@@ -39,7 +40,7 @@ impl From<RouteResult> for Msg {
     fn from( result: RouteResult) -> Self {
         match result {
             Ok(mut route_info) => {
-               Msg::Navigate(Route::from(&mut route_info))
+               Msg::Navigate(Route::from_route_main(&mut route_info))
             }
             Err(e) => {
                 eprintln!("Couldn't route: '{:?}'", e);
@@ -47,34 +48,43 @@ impl From<RouteResult> for Msg {
             }
         }
     }
-
 }
 
-impl<'a> From<&'a mut RouteInfo> for Route {
-    fn from(route_info: &'a mut RouteInfo) -> Self {
-        if let Some(route_section) = route_info.next() {
-            match route_section.as_segment() {
-                "forums" => Route::Forums(forums::Route::from(route_info)),
-                _ => Route::PageNotFoundRoute
-            }
-        } else {
-            Route::PageNotFoundRoute
-        }
 
+impl Router for Route {
+    // For the top level case, this _MUST_ return Some.
+    fn from_route(route: &mut RouteInfo) -> Option<Self> {
+        Some(Self::from_route_main(route))
     }
-}
-
-impl Into<RouteInfo> for Route {
-    fn into(self) -> RouteInfo {
-        match self {
+    fn to_route(&self) -> RouteInfo {
+        match *self {
             // You can add RouteInfos together to combine paths in logical order.
             // The fragment and query of the rhs take precedence over any fragment or query set by the lhs.
-            Route::Forums(forum_route)=> RouteInfo::parse("/forums").unwrap() + forum_route.into(),
+            Route::Forums(ref forum_route)=> RouteInfo::parse("/forums").unwrap() + forum_route.to_route(),
             Route::PageNotFoundRoute => RouteInfo::parse("/PageNotFound").unwrap(),
         }
     }
 }
 
+impl MainRouter for Route {
+    fn from_route_main(route: &mut RouteInfo) -> Self {
+        if let Some(RouteSection::Node{segment}) = route.next() {
+            match segment.as_str() {
+                "forums" => {
+                    // If the child can't be resolved, redirect to the right page here.
+                    if let Some(child) = forums::Route::from_route(route) {
+                        Route::Forums(child)
+                    } else {
+                        Route::PageNotFoundRoute
+                    }
+                },
+                _ => Route::PageNotFoundRoute
+            }
+        } else {
+            Route::PageNotFoundRoute
+        }
+    }
+}
 
 
 impl Component<Context> for Model {
@@ -89,7 +99,7 @@ impl Component<Context> for Model {
         context.routing.register_router(callback);
 
 
-        let route: Route = (&mut context.routing.get_current_route_info()).into();
+        let route: Route = Route::from_route_main(&mut context.routing.get_current_route_info());
         context.routing.replace_url(route.clone()); // sets the url to be dependent on what the route_info was resolved to
 
         Model {

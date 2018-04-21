@@ -2,6 +2,8 @@
 use yew::prelude::*;
 use Context;
 use yew::services::route::RouteInfo;
+use yew::services::route::RouteSection;
+use yew::services::route::Router;
 
 use button::Button;
 
@@ -27,23 +29,22 @@ impl Default for Route {
     }
 }
 
-impl<'a> From<&'a mut RouteInfo> for Route {
-    fn from(route_info: &'a mut RouteInfo) -> Self {
-        if let Some(route_section) = route_info.next() {
-            match route_section.as_segment() {
-                "cat" => Route::CatForum,
-                "dog" => Route::DogForum,
-                _ => Route::ForumsList
+
+
+impl Router for Route {
+    fn from_route(route: &mut RouteInfo) -> Option<Self> {
+        if let Some(RouteSection::Node{segment}) = route.next() {
+            match segment.as_str() {
+                "cat" => Some(Route::CatForum),
+                "dog" => Some(Route::DogForum),
+                _ => Some(Route::ForumsList)
             }
         } else {
-            Route::ForumsList
+            None
         }
     }
-}
-
-impl Into<RouteInfo> for Route {
-    fn into(self) -> RouteInfo {
-        match self {
+    fn to_route(&self) -> RouteInfo {
+        match *self {
             Route::CatForum => RouteInfo::parse("/cat").unwrap(), // TODO I would like to refactor this into a macro that will fail at compile time if the parse fails
             Route::DogForum => RouteInfo::parse("/dog").unwrap(),
             Route::ForumsList => RouteInfo::parse("/").unwrap()

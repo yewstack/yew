@@ -38,22 +38,10 @@ pub enum RouteSection {
     /// the vector of path_segments.
     /// This includes the segment, as well as the query and fragment.
     Leaf {
-        /// The path segment.
-        segment: String,
         /// The query string.
         query: Option<String>,
         /// The fragment.
         fragment: Option<String>
-    }
-}
-
-impl RouteSection {
-    /// Converts a section of a route into a string representing the path segment
-    pub fn as_segment<'a>(&'a self) -> &'a str {
-        match self {
-            RouteSection::Node {segment} => segment.as_str(),
-            RouteSection::Leaf {segment, ..} => segment.as_str()
-        }
     }
 }
 
@@ -74,24 +62,27 @@ impl Iterator for RouteInfo {
     fn next(&mut self) -> Option<RouteSection> {
 
         match self.path_segments.len() {
-            2...usize::MAX => {
+            1...usize::MAX => {
                 let mut first_element = self.path_segments.drain(0..1);
                 let node = RouteSection::Node {
                     segment: first_element.next().unwrap()
                 };
                 Some(node)
             }
-            1 => {
-                let mut first_element = self.path_segments.drain(0..1);
+            _ => {
+                // Return None if no meaningful leaf can be created.
+                if let None = self.query {
+                    if let None = self.fragment {
+                        return None
+                    }
+                }
+
                 let leaf = RouteSection::Leaf {
-                    segment: first_element.next().unwrap(),
-                    query: self.query.clone(),
-                    fragment: self.fragment.clone()
+                    query: self.query.take(),
+                    fragment: self.fragment.take()
                 };
+
                 Some(leaf)
-            }
-            _ => { // 0
-                None
             }
         }
     }
@@ -133,6 +124,31 @@ pub enum RoutingError {
     CouldNotGetLocationHref
 }
 
+
+/// For the route service to choose to render the component, the following needs to be implemented.
+pub trait Routable {
+    /// converts itself to a section
+    fn to_part(&self) -> RouteSection;
+    /// Takes part of a route and converts it to Properties that are used to set itself.
+    fn tune_from_part(route_section: RouteSection) -> Option<Self> where Self: Sized;
+
+}
+
+/// Works with a RouterComponent to set its child
+pub trait Router {
+    /// Form a route based on the router's state.
+    fn to_route(&self) -> RouteInfo;
+
+    /// Given a route info, try to resolve a child.
+    fn from_route(route: &mut RouteInfo) -> Option<Self> where Self: Sized;
+}
+
+/// The top-level router at the root of the application.
+/// Every possible route needs to be handled by redirecting to a 404 like page if it can't be resolved.
+pub trait MainRouter: Router {
+    /// Will not return an option, all cases must be handled.
+    fn from_route_main(route: &mut RouteInfo) -> Self;
+}
 
 impl RouteInfo {
     /// This expects a string with a leading slash`
@@ -240,8 +256,8 @@ impl RouteService {
     /// Sets the route via the history api.
     /// If the route is not already set to the string corresponding to the provided RouteInfo,
     /// the history will be updated, and the routing callback will be invoked.
-    pub fn set_route<T: Into<RouteInfo>>(&mut self, route_info: T) {
-        let route_info: RouteInfo = route_info.into();
+    pub fn set_route<T: Router>(&mut self, r: T) {
+        let route_info: RouteInfo = r.to_route();
         if route_info != self.get_current_route_info() {
             let route_string: String = route_info.to_string();
             println!("Setting route: {}", route_string); // this line needs to be removed eventually
@@ -257,8 +273,8 @@ impl RouteService {
 
     /// Replaces the url with the one provided by the route info.
     /// This will not invoke the routing callback.
-    pub fn replace_url<T: Into<RouteInfo>>(&mut self, route_info: T) {
-        let route_string: String = route_info.into().to_string();
+    pub fn replace_url<T: Router>(&mut self, r: T) {
+        let route_string: String = r.to_route().to_string();
         let r = js! {
             return @{route_string.clone()}
         };
