@@ -58,7 +58,8 @@ where
     type Msg = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, context: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
+        let mut context = env.context();
         let storage: &mut StorageService = context.as_mut();
         let Json(database) = storage.restore(KEY);
         let database = database.unwrap_or_else(|_| Database {
@@ -70,7 +71,7 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Msg, env: &mut Env<CTX, Self>) -> ShouldRender {
         let mut new_scene = None;
         match self.scene {
             Scene::ClientsList => {
@@ -100,6 +101,7 @@ where
                         let mut new_client = Client::empty();
                         ::std::mem::swap(client, &mut new_client);
                         self.database.clients.push(new_client);
+                        let mut context = env.context();
                         let storage: &mut StorageService = context.as_mut();
                         storage.store(KEY, Json(&self.database));
                     }
@@ -114,6 +116,7 @@ where
             Scene::Settings => {
                 match msg {
                     Msg::Clear => {
+                        let mut context = env.context();
                         let ok = {
                             let dialog: &mut DialogService = context.as_mut();
                             dialog.confirm("Do you really want to clear the data?")

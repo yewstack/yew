@@ -25,7 +25,7 @@ impl AsMut<Context> for Context {
 }
 
 pub struct Model {
-    sender: Activator<Context, Model>,
+    activator: Activator<Context, Model>,
     selector: &'static str,
     title: String,
 }
@@ -42,11 +42,11 @@ where
     type Msg = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, context: &mut Env<CTX, Self>) -> Self {
-        let sender = context.as_mut().activators.pop().unwrap();
+    fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
+        let activator = env.context().as_mut().activators.pop().unwrap();
         Model {
-            // TODO Use properties to set sender...
-            sender,
+            // TODO Use properties to set activator...
+            activator,
             selector: "",
             title: "Nothing".into(),
         }
@@ -55,7 +55,7 @@ where
     fn update(&mut self, msg: Msg, _: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::SendToOpposite(title) => {
-                self.sender.send(ComponentUpdate::Message(Msg::SetTitle(title)));
+                self.activator.send_message(Msg::SetTitle(title));
             }
             Msg::SetTitle(title) => {
                 self.title = title;

@@ -3,7 +3,6 @@ extern crate game_of_life;
 
 use yew::prelude::*;
 use yew::services::interval::IntervalService;
-use yew::html::ComponentUpdate;
 use game_of_life::{GameOfLife, Msg};
 
 struct Context {
@@ -25,8 +24,7 @@ fn main() {
 
     // Send initial message. For demo purposes only!
     // You should prefer to initialize everything in `Component::create` implementation.
-    let msg = ComponentUpdate::Message(Msg::Random);
-    app.get_env().activator().send(msg);
+    app.get_env().activator().send_message(Msg::Random);
 
     app.mount_to_body();
     yew::run_loop();

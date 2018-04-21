@@ -27,19 +27,19 @@ where
         Model { value: 0 }
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Msg, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Increment => {
                 self.value = self.value + 1;
-                context.as_mut().log("plus one");
+                env.context().as_mut().log("plus one");
             }
             Msg::Decrement => {
                 self.value = self.value - 1;
-                context.as_mut().log("minus one");
+                env.context().as_mut().log("minus one");
             }
             Msg::Bulk(list) => for msg in list {
-                self.update(msg, context);
-                context.as_mut().log("Bulk action");
+                self.update(msg, env);
+                env.context().as_mut().log("Bulk action");
             },
         }
         true

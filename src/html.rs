@@ -119,8 +119,7 @@ impl<CTX: 'static, COMP: Component<CTX>> Env<CTX, COMP> {
         let activator = self.activator.clone();
         let closure = move |input| {
             let output = function(input);
-            let update = ComponentUpdate::Message(output);
-            activator.clone().send(update);
+            activator.clone().send_message(output);
         };
         closure.into()
     }
@@ -164,6 +163,12 @@ impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
         } else {
             println!("Skip calling, because it's already borrowed.");
         }
+    }
+
+    /// Send message to a component.
+    pub fn send_message(&mut self, message: COMP::Msg) {
+        let update = ComponentUpdate::Message(message);
+        self.send(update);
     }
 }
 
