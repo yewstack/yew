@@ -1,8 +1,8 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
 use super::{Reform, VDiff, VNode};
-use html::{Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, ScopeEnv,
-           ScopeDestroyer, ScopeSender, SharedContext};
+use html::{self, Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, ScopeEnv,
+           SharedContext};
 use callback::Callback;
 use std::any::TypeId;
 use std::cell::RefCell;
@@ -17,7 +17,9 @@ type AnyProps = (TypeId, *mut Hidden);
 
 type Generator<CTX> = FnMut(SharedContext<CTX>, Element, Option<Node>, AnyProps);
 
-type Activator<CTX, COMP> = Rc<RefCell<Option<ScopeSender<CTX, COMP>>>>;
+type Rider<CTX, COMP> = html::Activator<CTX, COMP>;
+
+type Activator<CTX, COMP> = Rc<RefCell<Option<Rider<CTX, COMP>>>>;
 
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
@@ -27,7 +29,7 @@ pub struct VComp<CTX, COMP: Component<CTX>> {
     blind_sender: Box<FnMut(AnyProps)>,
     generator: Box<Generator<CTX>>,
     activators: Vec<Activator<CTX, COMP>>,
-    destroyer: Option<ScopeDestroyer>,
+    //destroyer: Option<ScopeDestroyer>,
     _parent: PhantomData<COMP>,
 }
 
@@ -39,8 +41,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     {
         let cell: NodeCell = Rc::new(RefCell::new(None));
         let mut builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new();
-        let destroyer = Some(builder.destroyer());
-        let mut sender = builder.sender();
+        //let destroyer = Some(builder.destroyer());
+        let mut activator = builder.activator();
         let mut builder = Some(builder);
         let occupied = cell.clone();
         let generator =
@@ -75,7 +77,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             // Ignore update till properties changed
             if previous_props != new_props {
                 let props = new_props.as_ref().unwrap().clone();
-                sender.send(ComponentUpdate::Properties(props));
+                activator.send(ComponentUpdate::Properties(props));
                 previous_props = new_props;
             }
         };
@@ -87,7 +89,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             blind_sender: Box::new(blind_sender),
             generator: Box::new(generator),
             activators: Vec::new(),
-            destroyer,
+            //destroyer,
             _parent: PhantomData,
         };
         (properties, comp)
@@ -102,7 +104,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
 
     /// This method attach sender to a listeners, because created properties
     /// know nothing about a parent.
-    fn activate_props(&mut self, sender: &ScopeSender<CTX, COMP>) -> AnyProps {
+    fn activate_props(&mut self, sender: &Rider<CTX, COMP>) -> AnyProps {
         for activator in &self.activators {
             *activator.borrow_mut() = Some(sender.clone());
         }
@@ -117,7 +119,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         // Grab a sender and a cell (element's reference) to reuse it later
         self.blind_sender = other.blind_sender;
         self.cell = other.cell;
-        self.destroyer = other.destroyer;
+        //self.destroyer = other.destroyer;
     }
 }
 
@@ -217,9 +219,11 @@ where
     fn remove(self, parent: &Node) -> Option<Node> {
         // Destroy the loop. It's impossible to use `Drop`,
         // because parts can be reused with `grab_sender_of`.
+        /* TODO Replace with the activator!
         if let Some(destroyer) = self.destroyer {
             destroyer.destroy();
         }
+        */
         // Keep the sibling in the cell and send a message `Drop` to a loop
         self.cell.borrow_mut().take().and_then(|node| {
             let sibling = node.next_sibling();
@@ -257,7 +261,7 @@ where
                 None => Reform::Before(None),
             }
         };
-        let any_props = self.activate_props(&env.sender());
+        let any_props = self.activate_props(&env.activator());
         match reform {
             Reform::Keep => {
                 // Send properties update when component still be rendered.

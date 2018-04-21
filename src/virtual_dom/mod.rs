@@ -15,16 +15,16 @@ pub use self::vlist::VList;
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
-use html::{Component, ScopeEnv, ScopeSender};
+use html::{Component, ScopeEnv, Activator};
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
 pub trait Listener<CTX, COMP: Component<CTX>> {
     /// Returns standard name of DOM's event.
     fn kind(&self) -> &'static str;
-    /// Attaches listener to the element and uses sender instance to send
+    /// Attaches listener to the element and uses activator instance to send
     /// prepaired event back to the yew main loop.
-    fn attach(&mut self, element: &Element, sender: ScopeSender<CTX, COMP>) -> EventListenerHandle;
+    fn attach(&mut self, element: &Element, activator: Activator<CTX, COMP>) -> EventListenerHandle;
 }
 
 impl<CTX, COMP: Component<CTX>> fmt::Debug for Listener<CTX, COMP> {

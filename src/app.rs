@@ -42,7 +42,7 @@ where
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
-        self.mount(element)
+        self.mount(element);
     }
 
     /// The main entrypoint of a yew program. It works similar as `program`
@@ -53,7 +53,7 @@ where
         clear_element(&element);
         self.scope.take()
             .expect("can't mount the same app twice")
-            .mount_in_place(element, None, None, None)
+            .mount_in_place(element, None, None, None);
     }
 
     /// Returns an environment.
