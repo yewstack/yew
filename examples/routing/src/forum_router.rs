@@ -7,11 +7,11 @@ use yew::services::route::Router;
 
 use button::Button;
 
+use Model;
+use Msg;
+use Route as MainRoute;
 
-pub struct Forums {
-    route: Route
-}
-
+// Oftentimes the route doesn't need to hold any state or react to any changes, so it doesn't need to be a component.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Route {
     CatForum,
@@ -19,28 +19,17 @@ pub enum Route {
     ForumsList
 }
 
-pub enum Msg {
-    Navigate(Route)
-}
-
-impl Default for Route {
-    fn default() -> Self {
-        Route::ForumsList
-    }
-}
-
-
-
+// It can be seen that this can be
 impl Router for Route {
     fn from_route(route: &mut RouteInfo) -> Option<Self> {
         if let Some(RouteSection::Node{segment}) = route.next() {
             match segment.as_str() {
                 "cat" => Some(Route::CatForum),
                 "dog" => Some(Route::DogForum),
-                _ => Some(Route::ForumsList)
+                _ => None // If the route can't be resolved, return None to let the parent router know that it should redirect to a failed route.
             }
         } else {
-            None
+            Some(Route::ForumsList)
         }
     }
     fn to_route(&self) -> RouteInfo {
@@ -52,44 +41,10 @@ impl Router for Route {
     }
 }
 
-
-#[derive(Clone, PartialEq, Default)]
-pub struct Props {
-    pub route: Route
-}
-
-impl Component<Context> for Forums {
-    type Msg = Msg;
-    type Properties = Props;
-
-    fn create(props: Self::Properties, _context: &mut Env<Context, Self>) -> Self {
-        Forums {
-            route: props.route
-        }
-    }
-
-    fn update(&mut self, msg: Msg, context: &mut Env<Context, Self>) -> ShouldRender {
-        match msg {
-            Msg::Navigate(route) => {
-
-                println!("Forums: Navigating");
-                // This will inform the Model component that the url has changed, and will cause it to
-                // update its route field, and therefore, this component's props.
-                context.routing.set_route(super::Route::Forums(route));
-                true
-            }
-        }
-    }
-    fn change(&mut self, props: Self::Properties, _: &mut Env<Context, Self>) -> ShouldRender {
-        println!("change() called in Forums with route");
-        self.route = props.route;
-        true
-    }
-}
-
-impl Renderable<Context, Forums> for Forums {
-    fn view(&self) -> Html<Context, Self> {
-        match self.route {
+// Renderable needs to have the generic signature of the parent component, in this case, Model.
+impl Renderable<Context, Model> for Route {
+    fn view(&self) -> Html<Context, Model> {
+        match *self {
             Route::CatForum => {
                 html! {
                     // Conceptually, these could also be components to which routing props can be passed
@@ -109,10 +64,10 @@ impl Renderable<Context, Forums> for Forums {
                 html!{
                     <div>
                         <div>
-                            <Button: title="Dog forum", onsignal=|_| Msg::Navigate(Route::DogForum) ,/>
+                            <Button: title="Dog forum", onsignal=|_| Msg::Navigate(MainRoute::Forums(Route::DogForum)) ,/>
                         </div>
                         <div>
-                            <Button: title="Cat forum", onsignal=|_| Msg::Navigate(Route::CatForum) ,/>
+                            <Button: title="Cat forum", onsignal=|_| Msg::Navigate(MainRoute::Forums(Route::CatForum)) ,/>
                         </div>
                     </div>
                 }

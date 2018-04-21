@@ -2,7 +2,7 @@
 #[macro_use]
 extern crate yew;
 
-mod forums;
+mod forum_router;
 mod button;
 
 use yew::prelude::*;
@@ -11,10 +11,11 @@ use yew::services::route::*;
 
 use yew::html::Renderable;
 
-use forums::Forums;
 use button::Button;
 
 use yew::services::route::Router;
+
+use forum_router::Route as ForumRoute;
 
 
 pub struct Context {
@@ -27,7 +28,7 @@ struct Model {
 
 #[derive(Clone, Debug)]
 enum Route {
-    Forums(forums::Route),
+    Forums(ForumRoute),
     PageNotFoundRoute
 }
 
@@ -72,7 +73,7 @@ impl MainRouter for Route {
             match segment.as_str() {
                 "forums" => {
                     // If the child can't be resolved, redirect to the right page here.
-                    if let Some(child) = forums::Route::from_route(route) {
+                    if let Some(child) = ForumRoute::from_route(route) { // Pass the route info to the child for it to figure itself out.
                         Route::Forums(child)
                     } else {
                         Route::PageNotFoundRoute
@@ -96,6 +97,7 @@ impl Component<Context> for Model {
         let callback = context.send_back(|route_result: RouteResult| {
             Msg::from(route_result)
         });
+         // When the user presses the back or forward button, an event will file and cause the callback to fire
         context.routing.register_router(callback);
 
 
@@ -121,38 +123,36 @@ impl Component<Context> for Model {
 
 impl Renderable<Context, Model> for Model {
     fn view(&self) -> Html<Context, Self> {
-        let page = |route: &Route| {
-            match *route {
-                Route::Forums(ref forum_route) => {
-                    html!{
-                        <div>
-                            // The beauty of this is that the Forums component isn't recreated when
-                            // the route changes, it only calls the Forums.change() method.
-                            //
-                            // So if the Forums component holds onto some data from a network
-                            // request or user input, that data isn't affected by the component's
-                            // route prop changing,
-                            <Forums: route=forum_route, />
-                        </div>
-                    }
-                }
-                Route::PageNotFoundRoute => {
-                    html! {
-                        <div>
-                            {"Page not found"}
-                        </div>
-                    }
-                }
-            }
-        };
         html! {
             <div>
                 {"This could be some html that will be on every page, like a header."}
-                <Button: title="GoToForums", onsignal=|_| Msg::Navigate(Route::Forums(forums::Route::ForumsList) ) ,/>
+                <Button: title="GoToForums", onsignal=|_| Msg::Navigate(Route::Forums(ForumRoute::ForumsList) ) ,/>
                 <div>
-                    {page(&self.route)}
+                    {self.route.view()}
                 </div>
             </div>
+        }
+    }
+}
+
+
+impl Renderable<Context, Model> for Route {
+    fn view(&self) -> Html<Context, Model> {
+        match *self {
+            Route::Forums(ref forum_route) => {
+                html! {
+                    <>
+                        {forum_route.view()}
+                    </>
+                }
+            }
+            Route::PageNotFoundRoute => {
+                html! {
+                    <div>
+                        {"Page not found"}
+                    </div>
+                }
+            }
         }
     }
 }
