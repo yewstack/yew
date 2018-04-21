@@ -38,7 +38,7 @@ where
         }
     }
 
-    fn update(&mut self, msg: Msg, context: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Msg, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Repaint => {
                 self.color = Color::Blue;
@@ -49,7 +49,7 @@ where
                 true
             }
             Msg::ChildClicked(value) => {
-                context.print(&format!("child clicked: {}", value));
+                env.context().print(&format!("child clicked: {}", value));
                 false
             }
         }

@@ -29,11 +29,12 @@ where
     type Msg = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, context: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
         // This callback doesn't send any message to a scope
         let callback = |_| {
             println!("Example of a standalone callback.");
         };
+        let mut context = env.context();
         let interval: &mut IntervalService = context.as_mut();
         let handle = interval.spawn(Duration::from_secs(10), callback.into());
 
@@ -44,15 +45,17 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Msg, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::StartTimeout => {
                 {
-                    let callback = context.send_back(|_| Msg::Done);
+                    let callback = env.send_back(|_| Msg::Done);
+                    let mut context = env.context();
                     let timeout: &mut TimeoutService = context.as_mut();
                     let handle = timeout.spawn(Duration::from_secs(3), callback);
                     self.job = Some(Box::new(handle));
                 }
+                let mut context = env.context();
                 let console: &mut ConsoleService = context.as_mut();
                 self.messages.clear();
                 console.clear();
@@ -61,11 +64,13 @@ where
             }
             Msg::StartInterval => {
                 {
-                    let callback = context.send_back(|_| Msg::Tick);
+                    let callback = env.send_back(|_| Msg::Tick);
+                    let mut context = env.context();
                     let interval: &mut IntervalService = context.as_mut();
                     let handle = interval.spawn(Duration::from_secs(1), callback);
                     self.job = Some(Box::new(handle));
                 }
+                let mut context = env.context();
                 let console: &mut ConsoleService = context.as_mut();
                 self.messages.clear();
                 console.clear();
@@ -77,12 +82,14 @@ where
                     task.cancel();
                 }
                 self.messages.push("Canceled!");
+                let mut context = env.context();
                 let console: &mut ConsoleService = context.as_mut();
                 console.warn("Canceled!");
                 console.assert(self.job.is_none(), "Job still exists!");
             }
             Msg::Done => {
                 self.messages.push("Done!");
+                let mut context = env.context();
                 let console: &mut ConsoleService = context.as_mut();
                 console.group();
                 console.info("Done!");
@@ -92,6 +99,7 @@ where
             }
             Msg::Tick => {
                 self.messages.push("Tick...");
+                let mut context = env.context();
                 let console: &mut ConsoleService = context.as_mut();
                 console.count_named("Tick");
             }
