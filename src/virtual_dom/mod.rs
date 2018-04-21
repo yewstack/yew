@@ -15,7 +15,7 @@ pub use self::vlist::VList;
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
-use html::{Component, ScopeEnv, Activator};
+use html::{Component, Env, Activator};
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
@@ -91,7 +91,7 @@ pub trait VDiff {
     ///   find where to put the node.
     /// - `ancestor`: the node that this node will be replacing in the DOM.
     ///   This method will _always_ remove the `ancestor` from the `parent`.
-    /// - `env`: the `ScopeEnv`.
+    /// - `env`: the `Env`.
     ///
     /// ### Internal Behavior Notice:
     ///
@@ -106,6 +106,6 @@ pub trait VDiff {
         parent: &Node,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Context, Self::Component>>,
-        scope: ScopeEnv<Self::Context, Self::Component>,
+        scope: Env<Self::Context, Self::Component>,
     ) -> Option<Node>;
 }

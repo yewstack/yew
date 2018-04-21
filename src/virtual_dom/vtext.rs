@@ -1,11 +1,11 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::{Reform, VDiff, VNode};
-use html::{Component, ScopeEnv};
 use std::cmp::PartialEq;
 use std::fmt;
 use std::marker::PhantomData;
 use stdweb::web::{document, INode, Node, TextNode};
+use html::{Component, Env};
+use super::{Reform, VDiff, VNode};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -55,7 +55,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
         parent: &Node,
         _: Option<&Node>,
         opposite: Option<VNode<Self::Context, Self::Component>>,
-        _: ScopeEnv<Self::Context, Self::Component>,
+        _: Env<Self::Context, Self::Component>,
     ) -> Option<Node> {
         assert!(self.reference.is_none(), "reference is ignored so must not be set");
         let reform = {

@@ -1,7 +1,5 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
-use html::{Component, ScopeEnv};
 use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::collections::HashSet;
@@ -10,6 +8,8 @@ use stdweb::web::html_element::TextAreaElement;
 use stdweb::unstable::TryFrom;
 use stdweb::web::html_element::InputElement;
 use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node};
+use html::{Component, Env};
+use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
@@ -336,7 +336,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
         parent: &Node,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Context, Self::Component>>,
-        env: ScopeEnv<Self::Context, Self::Component>,
+        env: Env<Self::Context, Self::Component>,
     ) -> Option<Node> {
         assert!(self.reference.is_none(), "reference is ignored so must not be set");
         let (reform, mut ancestor) = {

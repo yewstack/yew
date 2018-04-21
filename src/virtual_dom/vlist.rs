@@ -1,6 +1,6 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode};
-use html::{Component, ScopeEnv};
+use html::{Component, Env};
 use stdweb::web::Node;
 
 /// This struct represents a fragment of the Virtual DOM tree.
@@ -38,7 +38,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
         parent: &Node,
         precursor: Option<&Node>,
         opposite: Option<VNode<Self::Context, Self::Component>>,
-        env: ScopeEnv<Self::Context, Self::Component>,
+        env: Env<Self::Context, Self::Component>,
     ) -> Option<Node> {
         let mut rights = {
             match opposite {

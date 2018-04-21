@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
 use super::{Reform, VDiff, VNode};
-use html::{self, Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, ScopeEnv,
+use html::{self, Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, Env,
            SharedContext};
 use callback::Callback;
 use std::any::TypeId;
@@ -45,6 +45,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         let mut activator = builder.activator();
         let mut builder = Some(builder);
         let occupied = cell.clone();
+        // This function creates and mounts a new component instance
         let generator =
             move |context, element, obsolete: Option<Node>, (type_id, raw): AnyProps| {
                 if type_id != TypeId::of::<CHILD>() {
@@ -241,7 +242,7 @@ where
         parent: &Node,
         _: Option<&Node>,
         opposite: Option<VNode<Self::Context, Self::Component>>,
-        env: ScopeEnv<Self::Context, Self::Component>,
+        env: Env<Self::Context, Self::Component>,
     ) -> Option<Node> {
         let reform = {
             match opposite {
@@ -280,7 +281,7 @@ where
                         .expect("can't insert dummy element for a component");
                     element.as_node().to_owned()
                 });
-                self.mount(env.context(), parent, node, any_props);
+                self.mount(env.context_rc(), parent, node, any_props);
             }
         }
         self.cell.borrow().as_ref().map(|node| node.to_owned())

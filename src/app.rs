@@ -4,14 +4,14 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use stdweb::web::{document, Element, INode, IParentNode};
-use html::{Scope, ScopeBuilder, ScopeEnv, Component, Renderable, SharedContext};
+use html::{Scope, ScopeBuilder, Env, Component, Renderable, SharedContext};
 
 /// An application instance.
 pub struct App<CTX, COMP: Component<CTX>> {
     /// `Scope` holder
     scope: Option<Scope<CTX, COMP>>,
     /// Environment of the created scope
-    env: ScopeEnv<CTX, COMP>,
+    env: Env<CTX, COMP>,
 }
 
 impl<CTX, COMP> App<CTX, COMP>
@@ -57,7 +57,7 @@ where
     }
 
     /// Returns an environment.
-    pub fn get_env(&self) -> ScopeEnv<CTX, COMP> {
+    pub fn get_env(&self) -> Env<CTX, COMP> {
         self.env.clone()
     }
 }
