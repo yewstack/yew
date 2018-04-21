@@ -8,7 +8,7 @@ use stdweb::Value;
 use stdweb::web::{EventListenerHandle, IEventTarget};
 use stdweb::web::event::PopStateEvent;
 use stdweb::unstable::TryFrom;
-use html::Callback;
+use callback::Callback;
 
 use url::{Url};
 use std::ops::Add;

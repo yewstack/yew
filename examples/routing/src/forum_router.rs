@@ -26,7 +26,7 @@ impl Router for Route {
             match segment.as_str() {
                 "cat" => Some(Route::CatForum),
                 "dog" => Some(Route::DogForum),
-                _ => None // If the route can't be resolved, return None to let the parent router know that it should redirect to a failed route.
+                _ => Some(Route::ForumsList) // If the route can't be resolved, return None to let the parent router know that it should redirect to a failed route.
             }
         } else {
             Some(Route::ForumsList)

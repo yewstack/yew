@@ -6,7 +6,7 @@ mod forum_router;
 mod button;
 
 use yew::prelude::*;
-use yew::html::Scope;
+//use yew::html::Scope;
 use yew::services::route::*;
 
 use yew::html::Renderable;
@@ -165,7 +165,7 @@ fn main() {
     };
     // We use `Scope` here for demonstration.
     // You can also use `App` here too.
-    let app: Scope<Context, Model> = Scope::new(context);
+    let app: App<Context, Model> = App::new(context);
     app.mount_to_body();
     yew::run_loop();
 }
