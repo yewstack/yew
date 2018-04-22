@@ -52,13 +52,28 @@ where
         }
     }
 
-    fn update(&mut self, msg: Msg, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Msg, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::SendToOpposite(title) => {
                 self.activator.send_message(Msg::SetTitle(title));
             }
             Msg::SetTitle(title) => {
+                let context = env.context();
+                match title.as_ref() {
+                    "Ping" => {
+                        self.activator.send_message(Msg::SetTitle("Pong".into()));
+                    }
+                    "Pong" => {
+                        self.activator.send_message(Msg::SetTitle("Pong Done".into()));
+                    }
+                    "Pong Done" => {
+                        self.activator.send_message(Msg::SetTitle("Ping Done".into()));
+                    }
+                    _ => {
+                    }
+                }
                 self.title = title;
+                drop(context);
             }
         }
         true
@@ -76,6 +91,7 @@ where
                 <button onclick=|_| Msg::SendToOpposite("One".into()),>{ "One" }</button>
                 <button onclick=|_| Msg::SendToOpposite("Two".into()),>{ "Two" }</button>
                 <button onclick=|_| Msg::SendToOpposite("Three".into()),>{ "Three" }</button>
+                <button onclick=|_| Msg::SendToOpposite("Ping".into()),>{ "Ping" }</button>
             </div>
         }
     }

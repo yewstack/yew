@@ -106,7 +106,9 @@ impl<CTX, COMP: Component<CTX>> Env<CTX, COMP> {
 
     /// Returns a borrowed reference to a context.
     pub fn context(&self) -> ContextMut<CTX> {
-        let context = self.context.borrow_mut();
+        let context = self.context.try_borrow_mut()
+            // This issue could be fixed with a scheduler only
+            .expect("can't borrow the context");
         ContextMut { context }
     }
 }
