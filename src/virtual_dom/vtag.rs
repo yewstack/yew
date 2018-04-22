@@ -336,7 +336,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
         parent: &Node,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Context, Self::Component>>,
-        env: Env<Self::Context, Self::Component>,
+        env: &Env<Self::Context, Self::Component>,
     ) -> Option<Node> {
         assert!(self.reference.is_none(), "reference is ignored so must not be set");
         let (reform, mut ancestor) = {
@@ -434,7 +434,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                 match pair {
                     (Some(left), right) => {
                         precursor =
-                            left.apply(element.as_node(), precursor.as_ref(), right, env.clone());
+                            left.apply(element.as_node(), precursor.as_ref(), right, &env);
                     }
                     (None, Some(mut right)) => {
                         right.detach(element.as_node());

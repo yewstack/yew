@@ -28,8 +28,7 @@ where
     /// Creates isolated `App` instance, but reuse the context.
     pub fn reuse(context: SharedContext<CTX>) -> Self {
         let builder = ScopeBuilder::new();
-        let scope = builder.build(context);
-        let env = scope.get_env();
+        let (env, scope) = builder.build(context);
         App {
             scope: Some(scope),
             env,

@@ -38,7 +38,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
         parent: &Node,
         precursor: Option<&Node>,
         opposite: Option<VNode<Self::Context, Self::Component>>,
-        env: Env<Self::Context, Self::Component>,
+        env: &Env<Self::Context, Self::Component>,
     ) -> Option<Node> {
         let mut rights = {
             match opposite {
@@ -73,7 +73,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
         for pair in lefts.into_iter().zip(rights) {
             match pair {
                 (Some(left), right) => {
-                    precursor = left.apply(parent, precursor.as_ref(), right, env.clone());
+                    precursor = left.apply(parent, precursor.as_ref(), right, &env);
                 }
                 (None, Some(mut right)) => {
                     right.detach(parent);
