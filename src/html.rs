@@ -4,6 +4,7 @@
 //! to create own UI-components.
 
 use std::cell::{RefCell, RefMut};
+use std::collections::VecDeque;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use stdweb::web::event::{BlurEvent, IKeyboardEvent, IMouseEvent};
@@ -130,7 +131,7 @@ type WillDestroy = bool;
 /// Holds a reference to a scope, could put a message into the queue
 /// of the scope and activate processing (try borrow and call routine).
 pub struct Activator<CTX, COMP: Component<CTX>> {
-    queue: Rc<RefCell<Vec<ComponentUpdate<CTX, COMP>>>>,
+    queue: Rc<RefCell<VecDeque<ComponentUpdate<CTX, COMP>>>>,
     routine: Rc<RefCell<Option<Box<FnMut() -> WillDestroy>>>>,
 }
 
@@ -149,7 +150,7 @@ impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
         // Queue should never bew blocked with an intersection
         self.queue.try_borrow_mut()
             .expect("internal message routing accident")
-            .push(update);
+            .push_back(update);
         let mut will_destroy = false;
         if let Ok(mut routine) = self.routine.try_borrow_mut() {
             if let Some(ref mut routine) = *routine {
@@ -180,7 +181,7 @@ pub(crate) struct ScopeBuilder<CTX, COMP: Component<CTX>> {
 impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
     /// Prepares a new builder instance
     pub fn new() -> Self {
-        let queue = Rc::new(RefCell::new(Vec::new()));
+        let queue = Rc::new(RefCell::new(VecDeque::new()));
         let routine = Rc::new(RefCell::new(None));
         let activator = Activator { queue, routine };
         ScopeBuilder { activator }
@@ -260,7 +261,10 @@ where
                 let mut should_update = false;
                 // This loop pops one item, because the following
                 // updates could try to borrow the same cell
-                while let Some(upd) = updates.borrow_mut().pop() {
+                // Important! Don't use `while let` here, because it
+                // won't free the lock.
+                while updates.borrow().len() > 0 {
+                    let upd = updates.borrow_mut().pop_front().unwrap();
                     let mut env = self.get_env();
                     match upd {
                         ComponentUpdate::Create => {
