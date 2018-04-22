@@ -46,7 +46,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
         parent: &Node,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Context, Self::Component>>,
-        env: Env<Self::Context, Self::Component>,
+        env: &Env<Self::Context, Self::Component>,
     ) -> Option<Node> {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.apply(parent, precursor, ancestor, env),

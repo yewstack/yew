@@ -106,6 +106,6 @@ pub trait VDiff {
         parent: &Node,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Context, Self::Component>>,
-        scope: Env<Self::Context, Self::Component>,
+        scope: &Env<Self::Context, Self::Component>,
     ) -> Option<Node>;
 }

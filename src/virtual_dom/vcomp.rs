@@ -58,7 +58,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
 
                 let builder = builder.take().expect("tried to mount component twice");
                 let opposite = obsolete.map(VNode::VRef);
-                builder.build(context).mount_in_place(
+                let (_env, scope) = builder.build(context);
+                scope.mount_in_place(
                     element,
                     opposite,
                     Some(occupied.clone()),
@@ -242,7 +243,7 @@ where
         parent: &Node,
         _: Option<&Node>,
         opposite: Option<VNode<Self::Context, Self::Component>>,
-        env: Env<Self::Context, Self::Component>,
+        env: &Env<Self::Context, Self::Component>,
     ) -> Option<Node> {
         let reform = {
             match opposite {

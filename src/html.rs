@@ -194,32 +194,24 @@ impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
         self.activator.clone()
     }
 
-    pub fn build(self, context: SharedContext<CTX>) -> Scope<CTX, COMP> {
-        Scope {
+    pub fn build(self, context: SharedContext<CTX>) -> (Env<CTX, COMP>, Scope<CTX, COMP>) {
+        let env = Env {
             activator: self.activator,
             context,
-        }
+        };
+        let scope = Scope {
+            env: env.clone(),
+        };
+        // TODO! It's possible to return App here
+        // TODO Consider to join ScopeBuilder with App
+        (env, scope)
     }
 }
 
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
 pub(crate) struct Scope<CTX, COMP: Component<CTX>> {
-    activator: Activator<CTX, COMP>,
-    context: SharedContext<CTX>,
-}
-
-impl<CTX, COMP> Scope<CTX, COMP>
-where
-    COMP: Component<CTX>,
-{
-    /// Returns an environment.
-    pub fn get_env(&self) -> Env<CTX, COMP> {
-        Env {
-            context: self.context.clone(),
-            activator: self.activator.clone(),
-        }
-    }
+    env: Env<CTX, COMP>,
 }
 
 /// Holder for the element.
@@ -233,7 +225,7 @@ where
     // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node (ancestor).
     pub fn mount_in_place(
-        self,
+        mut self,
         element: Element,
         ancestor: Option<VNode<CTX, COMP>>,
         mut occupied: Option<NodeCell>,
@@ -242,22 +234,20 @@ where
         // TODO Move it under ComponentUpdate::Creating
         let mut component = {
             let props = init_props.unwrap_or_default();
-            let mut env = self.get_env();
-            //let mut scope_ref = env.get_ref();
-            COMP::create(props, &mut env)
+            COMP::create(props, &mut self.env)
         };
         // No messages at start
         let mut last_frame = component.view();
         // First-time rendering the tree
-        let node = last_frame.apply(element.as_node(), None, ancestor, self.get_env());
+        let node = last_frame.apply(element.as_node(), None, ancestor, &self.env);
         if let Some(ref mut cell) = occupied {
             *cell.borrow_mut() = node;
         }
         let mut last_frame = Some(last_frame);
 
-        let mut activator = self.activator.clone();
+        let mut activator = self.env.activator.clone();
         let routine = {
-            let updates = self.activator.queue.clone();
+            let updates = self.env.activator.queue.clone();
             Box::new(move || {
                 let mut will_destroy = false;
                 let mut should_update = false;
@@ -267,15 +257,14 @@ where
                 // won't free the lock.
                 while updates.borrow().len() > 0 {
                     let upd = updates.borrow_mut().pop_front().unwrap();
-                    let mut env = self.get_env();
                     match upd {
                         ComponentUpdate::Create => {
                         }
                         ComponentUpdate::Message(msg) => {
-                            should_update |= component.update(msg, &mut env);
+                            should_update |= component.update(msg, &mut self.env);
                         }
                         ComponentUpdate::Properties(props) => {
-                            should_update |= component.change(props, &mut env);
+                            should_update |= component.change(props, &mut self.env);
                         }
                         ComponentUpdate::Destroy => {
                             will_destroy = true;
@@ -286,7 +275,7 @@ where
                     let mut next_frame = component.view();
                     // Re-rendering the tree
                     let node =
-                        next_frame.apply(element.as_node(), None, last_frame.take(), self.get_env());
+                        next_frame.apply(element.as_node(), None, last_frame.take(), &self.env);
                     if let Some(ref mut cell) = occupied {
                         *cell.borrow_mut() = node;
                     }
