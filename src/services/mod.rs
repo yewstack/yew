@@ -7,6 +7,7 @@ pub mod console;
 pub mod dialog;
 pub mod fetch;
 pub mod interval;
+pub mod router;
 pub mod storage;
 pub mod timeout;
 pub mod websocket;

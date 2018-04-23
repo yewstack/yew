@@ -1,0 +1,8 @@
+[package]
+name = "counter_router"
+version = "0.1.0"
+authors = ["Garrett Berg <vitiral@gmail.com>"]
+
+[dependencies]
+stdweb = "0.4.2"
+yew = {path="../../"}
