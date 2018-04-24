@@ -15,7 +15,7 @@ pub use self::vlist::VList;
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
-use html::{Component, Env, Activator};
+use html::{Component, Activator};
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
@@ -106,6 +106,6 @@ pub trait VDiff {
         parent: &Node,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Context, Self::Component>>,
-        scope: &Env<Self::Context, Self::Component>,
+        scope: &Activator<Self::Context, Self::Component>,
     ) -> Option<Node>;
 }

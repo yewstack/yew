@@ -11,7 +11,7 @@ use stdweb::web::event::{BlurEvent, IKeyboardEvent, IMouseEvent};
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use virtual_dom::{Listener, VDiff, VNode};
 use callback::Callback;
-use scheduler::{Scheduler, SharedScheduler, Runnable, RunnableIndex};
+use scheduler::{Scheduler, Runnable, RunnableIndex};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -26,12 +26,12 @@ pub trait Component<CTX>: Sized + 'static {
     /// with unknown type.
     type Properties: Clone + PartialEq + Default;
     /// Initialization routine which could use a context.
-    fn create(props: Self::Properties, context: &mut CTX) -> Self;
+    fn create(props: Self::Properties, context: &mut Env<CTX, Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
-    fn update(&mut self, msg: Self::Msg, context: &mut CTX) -> ShouldRender;
+    fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender;
     /// This method called when properties changes, and once when component created.
-    fn change(&mut self, _: Self::Properties, _: &mut CTX) -> ShouldRender {
+    fn change(&mut self, _: Self::Properties, _: &mut Env<CTX, Self>) -> ShouldRender {
         unimplemented!("you should implement `change` method for a component with properties")
     }
 }
@@ -43,7 +43,7 @@ pub trait Renderable<CTX, COMP: Component<CTX>> {
 }
 
 /// Update message for a `Components` instance. Used by scope sender.
-pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
+pub enum ComponentUpdate<CTX, COMP: Component<CTX>> {
     /// Creating an instance of the component
     Create,
     /// Wraps messages for a component.
@@ -79,6 +79,28 @@ impl<'a, CTX: 'a> DerefMut for ContextMut<'a, CTX> {
     }
 }
 
+/// A reference to environment of a component (scope) which contains
+/// shared reference to a context and a sender to a scope's loop.
+pub struct Env<'a, CTX: 'a, COMP: Component<CTX>> {
+    context: &'a mut CTX,
+    activator: &'a mut Activator<CTX, COMP>,
+}
+
+impl<'a, CTX: 'a, COMP: Component<CTX>> Deref for Env<'a, CTX, COMP> {
+     type Target = CTX;
+
+     fn deref(&self) -> &CTX {
+         &self.context
+     }
+ }
+
+impl<'a, CTX: 'a, COMP: Component<CTX>> DerefMut for Env<'a, CTX, COMP> {
+    fn deref_mut(&mut self) -> &mut CTX {
+        &mut self.context
+    }
+}
+
+
 /*
 /// This type holds a reference to a context instance and
 /// sender to send messages to a component attached to a scope.
@@ -89,7 +111,7 @@ pub struct Env<CTX, COMP: Component<CTX>> {
 }
 */
 
-pub type Env<CTX, COMP> = Activator<CTX, COMP>;
+//pub type Env<CTX, COMP> = Activator<CTX, COMP>;
 
 /*
 impl<CTX, COMP: Component<CTX>> Clone for Env<CTX, COMP> {
@@ -122,13 +144,13 @@ impl<CTX, COMP: Component<CTX>> Env<CTX, COMP> {
 }
 */
 
-impl<CTX: 'static, COMP: Component<CTX>> Env<CTX, COMP> {
+impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> COMP::Msg + 'static,
     {
-        let activator = self.clone();
+        let activator = self.activator.clone();
         let closure = move |input| {
             let output = function(input);
             activator.clone().send_message(output);
@@ -142,10 +164,9 @@ type WillDestroy = bool;
 /// Holds a reference to a scope, could put a message into the queue
 /// of the scope and activate processing (try borrow and call routine).
 pub struct Activator<CTX, COMP: Component<CTX>> {
-    index: Option<RunnableIndex>,
-    scheduler: Rc<RefCell<Scheduler<CTX>>>,
+    index: Rc<RefCell<Option<RunnableIndex>>>,
+    scheduler: Scheduler<CTX>,
     queue: Rc<RefCell<VecDeque<ComponentUpdate<CTX, COMP>>>>,
-    routine: Rc<RefCell<Option<Box<FnMut() -> WillDestroy>>>>,
 }
 
 impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
@@ -154,31 +175,22 @@ impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
             index: self.index.clone(),
             scheduler: self.scheduler.clone(),
             queue: self.queue.clone(),
-            routine: self.routine.clone(),
         }
     }
 }
 
 impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
     /// Send the message and schedule an update.
-    pub(crate) fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
+    pub fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
         // Queue should never bew blocked with an intersection
         self.queue.try_borrow_mut()
             .expect("internal message routing accident")
             .push_back(update);
         let mut will_destroy = false;
-        if let Ok(mut routine) = self.routine.try_borrow_mut() {
-            if let Some(ref mut routine) = *routine {
-                will_destroy = routine();
-            } else {
-                eprintln!("Scope's routine not exists to call it.");
-            }
-            if will_destroy {
-                (*routine).take();
-            }
-        } else {
-            println!("Skip calling, because it's already borrowed.");
-        }
+        let idx = self.index.borrow().as_ref()
+            .cloned()
+            .expect("index was not set");
+        self.scheduler.put_and_try_run(idx);
     }
 
     /// Send message to a component.
@@ -187,7 +199,7 @@ impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
         self.send(update);
     }
 
-    pub fn scheduler(&self) -> SharedScheduler<CTX> {
+    pub fn scheduler(&self) -> Scheduler<CTX> {
         self.scheduler.clone()
     }
 }
@@ -200,21 +212,22 @@ pub(crate) struct ScopeBuilder<CTX, COMP: Component<CTX>> {
 
 impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
     /// Prepares a new builder instance
-    pub fn new(scheduler: Rc<RefCell<Scheduler<CTX>>>) -> Self {
-        let index = None;
+    pub fn new(scheduler: Scheduler<CTX>) -> Self {
+        let index = Rc::new(RefCell::new(None));
         let queue = Rc::new(RefCell::new(VecDeque::new()));
-        let routine = Rc::new(RefCell::new(None));
-        let activator = Activator { index, scheduler, queue, routine };
+        let activator = Activator { index, scheduler, queue };
         ScopeBuilder { activator }
     }
 
+    /*
     /// Returns an activator of the scope's loop.
     pub fn activator(&mut self) -> Activator<CTX, COMP> {
         self.activator.clone()
     }
+    */
 
     // TODO Consider removing it
-    pub fn build(self) -> (Env<CTX, COMP>, Scope<CTX, COMP>) {
+    pub fn build(self) -> (Activator<CTX, COMP>, Scope<CTX, COMP>) {
         let env = self.activator;
         let scope = Scope {
             env: env.clone(),
@@ -228,7 +241,7 @@ impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
 pub(crate) struct Scope<CTX, COMP: Component<CTX>> {
-    env: Env<CTX, COMP>,
+    env: Activator<CTX, COMP>,
 }
 
 /// Holder for the element.
@@ -242,7 +255,7 @@ where
     // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node (ancestor).
     pub fn mount_in_place(
-        self,
+        mut self,
         element: Element,
         mut ancestor: Option<VNode<CTX, COMP>>,
         mut occupied: Option<NodeCell>,
@@ -257,44 +270,48 @@ where
             let cls = move |context: &mut CTX| {
                 let mut will_destroy = false;
                 let mut should_update = false;
+                // Important! Don't clone it outside and move here, becase index
+                // attached after this closure created!
+                let env = self.env.clone();
                 // This loop pops one item, because the following
                 // updates could try to borrow the same cell
                 // Important! Don't use `while let` here, because it
                 // won't free the lock.
-                while updates.borrow().len() > 0 {
-                    let upd = updates.borrow_mut().pop_front().unwrap();
-                    match upd {
-                        ComponentUpdate::Create => {
-                            // TODO Move it under ComponentUpdate::Creating
-                            let props = init_props.take().unwrap_or_default();
-                            component = Some(COMP::create(props, context));
-                            // No messages at start
-                            let current_frame = component.as_ref().unwrap().view();
-                            last_frame = Some(current_frame);
-                            // First-time rendering the tree
-                            let node = last_frame.as_mut()
-                                .unwrap()
-                                .apply(element.as_node(), None, ancestor.take(), &self.env);
-                            if let Some(ref mut cell) = occupied {
-                                *cell.borrow_mut() = node;
-                            }
+                let mut context = Env {
+                    context: context,
+                    activator: &mut self.env,
+                };
+                let upd = updates.borrow_mut().pop_front().unwrap();
+                match upd {
+                    ComponentUpdate::Create => {
+                        let props = init_props.take().unwrap_or_default();
+                        component = Some(COMP::create(props, &mut context));
+                        // No messages at start
+                        let current_frame = component.as_ref().unwrap().view();
+                        last_frame = Some(current_frame);
+                        // First-time rendering the tree
+                        let node = last_frame.as_mut()
+                            .unwrap()
+                            .apply(element.as_node(), None, ancestor.take(), &env);
+                        if let Some(ref mut cell) = occupied {
+                            *cell.borrow_mut() = node;
                         }
-                        ComponentUpdate::Message(msg) => {
-                            should_update |= component.as_mut().unwrap().update(msg, context);
-                        }
-                        ComponentUpdate::Properties(props) => {
-                            should_update |= component.as_mut().unwrap().change(props, context);
-                        }
-                        ComponentUpdate::Destroy => {
-                            will_destroy = true;
-                        }
+                    }
+                    ComponentUpdate::Message(msg) => {
+                        should_update |= component.as_mut().unwrap().update(msg, &mut context);
+                    }
+                    ComponentUpdate::Properties(props) => {
+                        should_update |= component.as_mut().unwrap().change(props, &mut context);
+                    }
+                    ComponentUpdate::Destroy => {
+                        will_destroy = true;
                     }
                 }
                 if should_update {
                     let mut next_frame = component.as_ref().unwrap().view();
                     // Re-rendering the tree
                     let node =
-                        next_frame.apply(element.as_node(), None, last_frame.take(), &self.env);
+                        next_frame.apply(element.as_node(), None, last_frame.take(), &env);
                     if let Some(ref mut cell) = occupied {
                         *cell.borrow_mut() = node;
                     }
@@ -304,8 +321,8 @@ where
             };
             Box::new(cls)
         };
-        //(*activator.routine.borrow_mut()) = Some(routine);
-        activator.scheduler.borrow_mut().register(routine);
+        let idx = activator.scheduler.register(routine);
+        *activator.index.borrow_mut() = Some(idx);
         activator.send(ComponentUpdate::Create);
         activator
     }

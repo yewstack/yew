@@ -7,13 +7,11 @@ use yew::html::*;
 
 #[derive(Default)]
 pub struct Context {
-    pub activators: Vec<Activator<Context, Model>>,
 }
 
 impl Context {
     pub fn new() -> Self {
         Context {
-            activators: Vec::new(),
         }
     }
 }
@@ -25,12 +23,13 @@ impl AsMut<Context> for Context {
 }
 
 pub struct Model {
-    activator: Activator<Context, Model>,
+    activator: Option<Activator<Context, Model>>,
     selector: &'static str,
     title: String,
 }
 
 pub enum Msg {
+    SetActivator(Activator<Context, Model>),
     SendToOpposite(String),
     SetTitle(String),
 }
@@ -43,10 +42,8 @@ where
     type Properties = ();
 
     fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
-        let activator = env.context().as_mut().activators.pop().unwrap();
         Model {
-            // TODO Use properties to set activator...
-            activator,
+            activator: None,
             selector: "",
             title: "Nothing".into(),
         }
@@ -54,26 +51,27 @@ where
 
     fn update(&mut self, msg: Msg, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
+            Msg::SetActivator(activator) => {
+                self.activator = Some(activator);
+            }
             Msg::SendToOpposite(title) => {
-                self.activator.send_message(Msg::SetTitle(title));
+                self.activator.as_mut().unwrap().send_message(Msg::SetTitle(title));
             }
             Msg::SetTitle(title) => {
-                let context = env.context();
                 match title.as_ref() {
                     "Ping" => {
-                        self.activator.send_message(Msg::SetTitle("Pong".into()));
+                        self.activator.as_mut().unwrap().send_message(Msg::SetTitle("Pong".into()));
                     }
                     "Pong" => {
-                        self.activator.send_message(Msg::SetTitle("Pong Done".into()));
+                        self.activator.as_mut().unwrap().send_message(Msg::SetTitle("Pong Done".into()));
                     }
                     "Pong Done" => {
-                        self.activator.send_message(Msg::SetTitle("Ping Done".into()));
+                        self.activator.as_mut().unwrap().send_message(Msg::SetTitle("Ping Done".into()));
                     }
                     _ => {
                     }
                 }
                 self.title = title;
-                drop(context);
             }
         }
         true

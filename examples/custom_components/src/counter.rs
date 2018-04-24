@@ -54,7 +54,7 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
                 if let Some(ref onclick) = self.onclick {
                     onclick.emit(self.value);
                 }
-                env.context().print(format!("<printer> value of model is {}", self.value).as_str());
+                env.print(format!("<printer> value of model is {}", self.value).as_str());
             }
         }
         true

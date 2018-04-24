@@ -172,9 +172,7 @@ where
             },
             Msg::Start => {
                 let callback = env.send_back(|_| Msg::Step);
-                let handle = env.context()
-                    .as_mut()
-                    .spawn(Duration::from_millis(200), callback);
+                let handle = env.as_mut().spawn(Duration::from_millis(200), callback);
                 self.job = Some(Box::new(handle));
                 println!("Start");
             },

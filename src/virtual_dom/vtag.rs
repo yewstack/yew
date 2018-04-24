@@ -8,7 +8,7 @@ use stdweb::web::html_element::TextAreaElement;
 use stdweb::unstable::TryFrom;
 use stdweb::web::html_element::InputElement;
 use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node};
-use html::{Component, Env};
+use html::{Component, Activator};
 use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
 
 /// A type for a virtual
@@ -336,7 +336,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
         parent: &Node,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Context, Self::Component>>,
-        env: &Env<Self::Context, Self::Component>,
+        env: &Activator<Self::Context, Self::Component>,
     ) -> Option<Node> {
         assert!(self.reference.is_none(), "reference is ignored so must not be set");
         let (reform, mut ancestor) = {

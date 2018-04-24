@@ -6,9 +6,9 @@ use std::marker::PhantomData;
 use std::rc::Rc;
 use stdweb::unstable::TryInto;
 use stdweb::web::{document, Element, INode, Node};
-use html::{self, Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, Env};
+use html::{Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, Activator};
 use callback::Callback;
-use scheduler::SharedScheduler;
+use scheduler::Scheduler;
 use super::{Reform, VDiff, VNode};
 
 struct Hidden;
@@ -16,11 +16,9 @@ struct Hidden;
 type AnyProps = (TypeId, *mut Hidden);
 
 // TODO Maybe get scheduler earlier
-type Generator<CTX> = FnMut(SharedScheduler<CTX>, Element, Option<Node>, AnyProps);
+type Generator<CTX> = FnMut(Scheduler<CTX>, Element, Option<Node>, AnyProps);
 
-type Rider<CTX, COMP> = html::Activator<CTX, COMP>;
-
-type Activator<CTX, COMP> = Rc<RefCell<Option<Rider<CTX, COMP>>>>;
+type PropActivator<CTX, COMP> = Rc<RefCell<Option<Activator<CTX, COMP>>>>;
 
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
@@ -29,8 +27,8 @@ pub struct VComp<CTX, COMP: Component<CTX>> {
     props: Option<(TypeId, *mut Hidden)>,
     blind_sender: Box<FnMut(AnyProps)>,
     generator: Box<Generator<CTX>>,
-    activators: Vec<Activator<CTX, COMP>>,
-    //lazy_activator: Option<Activator<CTX, COMP>>,
+    activators: Vec<PropActivator<CTX, COMP>>,
+    //lazy_activator: Option<PropActivator<CTX, COMP>>,
     //destroyer: Option<ScopeDestroyer>,
     _parent: PhantomData<COMP>,
 }
@@ -115,7 +113,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
 
     /// This method attach sender to a listeners, because created properties
     /// know nothing about a parent.
-    fn activate_props(&mut self, sender: &Rider<CTX, COMP>) -> AnyProps {
+    fn activate_props(&mut self, sender: &Activator<CTX, COMP>) -> AnyProps {
         for activator in &self.activators {
             *activator.borrow_mut() = Some(sender.clone());
         }
@@ -199,7 +197,7 @@ where
     /// This methods mount a virtual component with a generator created with `lazy` call.
     fn mount<T: INode>(
         &mut self,
-        scheduler: SharedScheduler<CTX>,
+        scheduler: Scheduler<CTX>,
         parent: &T,
         opposite: Option<Node>,
         props: AnyProps,
@@ -252,7 +250,7 @@ where
         parent: &Node,
         _: Option<&Node>,
         opposite: Option<VNode<Self::Context, Self::Component>>,
-        env: &Env<Self::Context, Self::Component>,
+        env: &Activator<Self::Context, Self::Component>,
     ) -> Option<Node> {
         let reform = {
             match opposite {
