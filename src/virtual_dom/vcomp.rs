@@ -1,21 +1,22 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
-use super::{Reform, VDiff, VNode};
-use html::{self, Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, Env,
-           SharedContext};
-use callback::Callback;
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::rc::Rc;
 use stdweb::unstable::TryInto;
 use stdweb::web::{document, Element, INode, Node};
+use html::{self, Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, Env};
+use callback::Callback;
+use scheduler::SharedScheduler;
+use super::{Reform, VDiff, VNode};
 
 struct Hidden;
 
 type AnyProps = (TypeId, *mut Hidden);
 
-type Generator<CTX> = FnMut(SharedContext<CTX>, Element, Option<Node>, AnyProps);
+// TODO Maybe get scheduler earlier
+type Generator<CTX> = FnMut(SharedScheduler<CTX>, Element, Option<Node>, AnyProps);
 
 type Rider<CTX, COMP> = html::Activator<CTX, COMP>;
 
@@ -29,6 +30,7 @@ pub struct VComp<CTX, COMP: Component<CTX>> {
     blind_sender: Box<FnMut(AnyProps)>,
     generator: Box<Generator<CTX>>,
     activators: Vec<Activator<CTX, COMP>>,
+    //lazy_activator: Option<Activator<CTX, COMP>>,
     //destroyer: Option<ScopeDestroyer>,
     _parent: PhantomData<COMP>,
 }
@@ -40,14 +42,14 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         CHILD: Component<CTX> + Renderable<CTX, CHILD>,
     {
         let cell: NodeCell = Rc::new(RefCell::new(None));
-        let mut builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new();
         //let destroyer = Some(builder.destroyer());
-        let mut activator = builder.activator();
-        let mut builder = Some(builder);
+        //let mut activator = builder.activator();
+        let lazy_activator = Rc::new(RefCell::new(None));
         let occupied = cell.clone();
         // This function creates and mounts a new component instance
-        let generator =
-            move |context, element, obsolete: Option<Node>, (type_id, raw): AnyProps| {
+        let generator = {
+            let lazy_activator = lazy_activator.clone();
+            move |scheduler, element, obsolete: Option<Node>, (type_id, raw): AnyProps| {
                 if type_id != TypeId::of::<CHILD>() {
                     panic!("tried to unpack properties of the other component");
                 }
@@ -56,16 +58,19 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
                     *Box::from_raw(raw)
                 };
 
-                let builder = builder.take().expect("tried to mount component twice");
+                //let builder = builder.take().expect("tried to mount component twice");
                 let opposite = obsolete.map(VNode::VRef);
-                let (_env, scope) = builder.build(context);
+                let builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new(scheduler);
+                let (env, scope) = builder.build();
+                *lazy_activator.borrow_mut() = Some(env);
                 scope.mount_in_place(
                     element,
                     opposite,
                     Some(occupied.clone()),
                     Some(props),
                 );
-            };
+            }
+        };
         let mut previous_props = None;
         let blind_sender = move |(type_id, raw): AnyProps| {
             if type_id != TypeId::of::<CHILD>() {
@@ -79,7 +84,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             // Ignore update till properties changed
             if previous_props != new_props {
                 let props = new_props.as_ref().unwrap().clone();
-                activator.send(ComponentUpdate::Properties(props));
+                lazy_activator.borrow_mut()
+                    .as_mut()
+                    .expect("activator for child scope was not set")
+                    .send(ComponentUpdate::Properties(props));
                 previous_props = new_props;
             }
         };
@@ -91,6 +99,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             blind_sender: Box::new(blind_sender),
             generator: Box::new(generator),
             activators: Vec::new(),
+            //lazy_activator,
             //destroyer,
             _parent: PhantomData,
         };
@@ -190,7 +199,7 @@ where
     /// This methods mount a virtual component with a generator created with `lazy` call.
     fn mount<T: INode>(
         &mut self,
-        context: SharedContext<CTX>,
+        scheduler: SharedScheduler<CTX>,
         parent: &T,
         opposite: Option<Node>,
         props: AnyProps,
@@ -201,7 +210,7 @@ where
             .to_owned()
             .try_into()
             .expect("element expected to mount VComp");
-        (self.generator)(context, element, opposite, props);
+        (self.generator)(scheduler, element, opposite, props);
     }
 
     fn send_props(&mut self, props: AnyProps) {
@@ -263,7 +272,7 @@ where
                 None => Reform::Before(None),
             }
         };
-        let any_props = self.activate_props(&env.activator());
+        let any_props = self.activate_props(&env);
         match reform {
             Reform::Keep => {
                 // Send properties update when component still be rendered.
@@ -282,7 +291,7 @@ where
                         .expect("can't insert dummy element for a component");
                     element.as_node().to_owned()
                 });
-                self.mount(env.context_rc(), parent, node, any_props);
+                self.mount(env.scheduler(), parent, node, any_props);
             }
         }
         self.cell.borrow().as_ref().map(|node| node.to_owned())

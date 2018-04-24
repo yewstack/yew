@@ -412,7 +412,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             }
 
             for mut listener in self.listeners.drain(..) {
-                let handle = listener.attach(&element, env.activator());
+                let handle = listener.attach(&element, env.clone());
                 self.captured.push(handle);
             }
 

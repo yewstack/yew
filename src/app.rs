@@ -4,7 +4,8 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use stdweb::web::{document, Element, INode, IParentNode};
-use html::{Scope, ScopeBuilder, Env, Component, Renderable, SharedContext};
+use html::{Scope, ScopeBuilder, Env, Component, Renderable};
+use scheduler::{Scheduler, SharedScheduler};
 
 /// An application instance.
 pub struct App<CTX, COMP: Component<CTX>> {
@@ -21,14 +22,14 @@ where
 {
     /// Creates a new `App` with a component in a context.
     pub fn new(context: CTX) -> Self {
-        let context = Rc::new(RefCell::new(context));
-        App::reuse(context)
+        let scheduler = Rc::new(RefCell::new(Scheduler::new(context)));
+        App::reuse(scheduler)
     }
 
     /// Creates isolated `App` instance, but reuse the context.
-    pub fn reuse(context: SharedContext<CTX>) -> Self {
-        let builder = ScopeBuilder::new();
-        let (env, scope) = builder.build(context);
+    pub fn reuse(scheduler: SharedScheduler<CTX>) -> Self {
+        let builder = ScopeBuilder::new(scheduler);
+        let (env, scope) = builder.build();
         App {
             scope: Some(scope),
             env,

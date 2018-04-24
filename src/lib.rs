@@ -45,7 +45,7 @@
 //! ```
 //!
 
-#![deny(missing_docs)]
+//#![deny(missing_docs)]
 #![recursion_limit = "256"]
 
 #[macro_use]
@@ -55,6 +55,7 @@ extern crate serde;
 extern crate serde_json;
 #[macro_use]
 extern crate stdweb;
+extern crate slab;
 
 #[macro_use]
 pub mod macros;
@@ -65,6 +66,7 @@ pub mod prelude;
 pub mod services;
 pub mod virtual_dom;
 pub mod callback;
+pub mod scheduler;
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
