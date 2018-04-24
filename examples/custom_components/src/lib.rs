@@ -49,7 +49,7 @@ where
                 true
             }
             Msg::ChildClicked(value) => {
-                env.context().print(&format!("child clicked: {}", value));
+                env.print(&format!("child clicked: {}", value));
                 false
             }
         }

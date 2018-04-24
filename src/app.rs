@@ -1,18 +1,16 @@
 //! This module contains `App` sctruct which used to bootstrap
 //! a component in an isolated scope.
 
-use std::rc::Rc;
-use std::cell::RefCell;
 use stdweb::web::{document, Element, INode, IParentNode};
-use html::{Scope, ScopeBuilder, Env, Component, Renderable};
-use scheduler::{Scheduler, SharedScheduler};
+use html::{Scope, ScopeBuilder, Component, Renderable, Activator};
+use scheduler::Scheduler;
 
 /// An application instance.
 pub struct App<CTX, COMP: Component<CTX>> {
     /// `Scope` holder
     scope: Option<Scope<CTX, COMP>>,
-    /// Environment of the created scope
-    env: Env<CTX, COMP>,
+    /// Activator of the created scope
+    env: Activator<CTX, COMP>,
 }
 
 impl<CTX, COMP> App<CTX, COMP>
@@ -22,13 +20,13 @@ where
 {
     /// Creates a new `App` with a component in a context.
     pub fn new(context: CTX) -> Self {
-        let scheduler = Rc::new(RefCell::new(Scheduler::new(context)));
-        App::reuse(scheduler)
+        let scheduler = Scheduler::new(context);
+        App::reuse(&scheduler)
     }
 
     /// Creates isolated `App` instance, but reuse the context.
-    pub fn reuse(scheduler: SharedScheduler<CTX>) -> Self {
-        let builder = ScopeBuilder::new(scheduler);
+    pub fn reuse(scheduler: &Scheduler<CTX>) -> Self {
+        let builder = ScopeBuilder::new(scheduler.clone());
         let (env, scope) = builder.build();
         App {
             scope: Some(scope),
@@ -57,7 +55,7 @@ where
     }
 
     /// Returns an environment.
-    pub fn get_env(&self) -> Env<CTX, COMP> {
+    pub fn get_env(&self) -> Activator<CTX, COMP> {
         self.env.clone()
     }
 }

@@ -31,15 +31,15 @@ where
         match msg {
             Msg::Increment => {
                 self.value = self.value + 1;
-                env.context().as_mut().log("plus one");
+                env.as_mut().log("plus one");
             }
             Msg::Decrement => {
                 self.value = self.value - 1;
-                env.context().as_mut().log("minus one");
+                env.as_mut().log("minus one");
             }
             Msg::Bulk(list) => for msg in list {
                 self.update(msg, env);
-                env.context().as_mut().log("Bulk action");
+                env.as_mut().log("Bulk action");
             },
         }
         true
