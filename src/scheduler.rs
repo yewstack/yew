@@ -6,8 +6,6 @@ use slab::Slab;
 pub type RunnableIndex = usize;
 
 // TODO 1) Could be replaced with a struct (not a closure)
-// TODO 2) Use context here withount a refcounter!
-//pub type Runnable<CTX> = Box<for<'a> FnMut(&'a mut CTX) + 'static>;
 
 pub type Runnable<CTX> = Box<BeRunnable<CTX>>;
 
@@ -24,66 +22,76 @@ where
     }
 }
 
+struct Pool<CTX> {
+    slab: Slab<Rc<RefCell<Runnable<CTX>>>>,
+    sequence: VecDeque<RunnableIndex>,
+}
+
+impl<CTX> Pool<CTX> {
+    fn register(&mut self, runnable: Runnable<CTX>) -> RunnableIndex {
+        let runnable = Rc::new(RefCell::new(runnable));
+        self.slab.insert(runnable)
+    }
+
+    fn put(&mut self, index: RunnableIndex) {
+        self.sequence.push_back(index);
+    }
+
+    fn next(&mut self) -> Option<Rc<RefCell<Runnable<CTX>>>> {
+        self.sequence.pop_front().and_then(|idx| {
+            self.slab.get(idx).cloned()
+        })
+    }
+}
+
 /// This is a global scheduler suitable to schedule and run any tasks.
 pub struct Scheduler<CTX> {
     context: Rc<RefCell<CTX>>,
-    slab: Rc<RefCell<Slab<Rc<RefCell<Runnable<CTX>>>>>>,
-    sequence: Rc<RefCell<VecDeque<RunnableIndex>>>,
+    pool: Rc<RefCell<Pool<CTX>>>,
 }
 
 impl<CTX> Clone for Scheduler<CTX> {
     fn clone(&self) -> Self {
         Scheduler {
             context: self.context.clone(),
-            slab: self.slab.clone(),
-            sequence: self.sequence.clone(),
+            pool: self.pool.clone(),
         }
     }
 }
 
 impl<CTX> Scheduler<CTX> {
     pub fn new(context: CTX) -> Self {
+        let pool = Pool {
+            slab: Slab::new(),
+            sequence: VecDeque::new(),
+        };
         Scheduler {
             context: Rc::new(RefCell::new(context)),
-            slab: Rc::new(RefCell::new(Slab::new())),
-            sequence: Rc::new(RefCell::new(VecDeque::new())),
+            pool: Rc::new(RefCell::new(pool)),
         }
     }
 
-    pub fn register(&mut self, runnable: Runnable<CTX>) -> RunnableIndex {
-        let runnable = Rc::new(RefCell::new(runnable));
-        self.slab.try_borrow_mut()
+    pub(crate) fn register<F>(&mut self, closure: F) -> RunnableIndex
+    where
+        F: FnMut(&mut CTX) + 'static,
+    {
+        let runnable: Runnable<CTX> = Box::new(closure);
+        self.pool.try_borrow_mut()
             .expect("can't borrow slab to register a runnable")
-            .insert(runnable)
+            .register(runnable)
     }
 
-    pub fn unregister(&mut self, index: RunnableIndex) -> Runnable<CTX> {
-        let rc = self.slab.try_borrow_mut()
-            .expect("can't borrow slab to unregister a runnable")
-            .remove(index);
-        Rc::try_unwrap(rc).ok().expect("unregistered slot was empty").into_inner()
+    pub(crate) fn unregister(&mut self, index: RunnableIndex) -> Runnable<CTX> {
+        unimplemented!();
     }
 
-    pub fn put_and_try_run(&mut self, index: RunnableIndex) {
-        assert!(self.slab.borrow().contains(index));
-        self.sequence.try_borrow_mut()
-            .expect("can't borrow a sequence to push a new index to run")
-            .push_back(index);
-        // If context not locked we should start the processing over it
+    pub(crate) fn put_and_try_run(&mut self, index: RunnableIndex) {
+        self.pool.borrow_mut().put(index);
         if let Ok(ref mut context) = self.context.try_borrow_mut() {
             loop {
-                let the_next = self.sequence.try_borrow_mut()
-                    .expect("can't borrow a sequence to take an index of runnable")
-                    .pop_front();
-                if let Some(idx) = the_next {
-                    let routine = self.slab.try_borrow()
-                        .expect("can't borrow slab to get a reference to a routine")
-                        .get(idx)
-                        .cloned()
-                        .expect("routine not registered");
-                    routine.try_borrow_mut()
-                        .expect("can't borrow a routine to run")
-                        .run(context);
+                let do_next = self.pool.borrow_mut().next();
+                if let Some(routine) = do_next {
+                    routine.borrow_mut().run(context);
                 } else {
                     break;
                 }
