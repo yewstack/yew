@@ -265,9 +265,9 @@ where
         let mut component = None;
         let mut last_frame = None;
         let mut activator = self.env.clone();
-        let routine: Runnable<CTX> = {
+        let routine = {
             let updates = self.env.queue.clone();
-            let cls = move |context: &mut CTX| {
+            move |context: &mut CTX| {
                 let mut will_destroy = false;
                 let mut should_update = false;
                 // Important! Don't clone it outside and move here, becase index
@@ -281,7 +281,9 @@ where
                     context: context,
                     activator: &mut self.env,
                 };
-                let upd = updates.borrow_mut().pop_front().unwrap();
+                let upd = updates.borrow_mut()
+                    .pop_front()
+                    .expect("update message must be in a queue when routine scheduled");
                 match upd {
                     ComponentUpdate::Create => {
                         let props = init_props.take().unwrap_or_default();
@@ -318,8 +320,7 @@ where
                     last_frame = Some(next_frame);
                 }
                 //will_destroy
-            };
-            Box::new(cls)
+            }
         };
         let idx = activator.scheduler.register(routine);
         *activator.index.borrow_mut() = Some(idx);
@@ -373,8 +374,7 @@ macro_rules! impl_action {
                         event.stop_propagation();
                         let handy_event: $ret = $convert(&this, event);
                         let msg = handler(handy_event);
-                        let update = ComponentUpdate::Message(msg);
-                        activator.send(update);
+                        activator.send_message(msg);
                     };
                     element.add_event_listener(listener)
                 }
