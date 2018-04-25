@@ -11,7 +11,7 @@ use stdweb::web::event::{BlurEvent, IKeyboardEvent, IMouseEvent};
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use virtual_dom::{Listener, VDiff, VNode};
 use callback::Callback;
-use scheduler::{Scheduler, Runnable, RunnableIndex};
+use scheduler::{Scheduler, RunnableIndex};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -159,8 +159,6 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
     }
 }
 
-type WillDestroy = bool;
-
 /// Holds a reference to a scope, could put a message into the queue
 /// of the scope and activate processing (try borrow and call routine).
 pub struct Activator<CTX, COMP: Component<CTX>> {
@@ -186,7 +184,6 @@ impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
         self.queue.try_borrow_mut()
             .expect("internal message routing accident")
             .push_back(update);
-        let mut will_destroy = false;
         let idx = self.index.borrow().as_ref()
             .cloned()
             .expect("index was not set");
@@ -218,13 +215,6 @@ impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
         let activator = Activator { index, scheduler, queue };
         ScopeBuilder { activator }
     }
-
-    /*
-    /// Returns an activator of the scope's loop.
-    pub fn activator(&mut self) -> Activator<CTX, COMP> {
-        self.activator.clone()
-    }
-    */
 
     // TODO Consider removing it
     pub fn build(self) -> (Activator<CTX, COMP>, Scope<CTX, COMP>) {
@@ -319,7 +309,7 @@ where
                     }
                     last_frame = Some(next_frame);
                 }
-                //will_destroy
+                will_destroy
             }
         };
         let idx = activator.scheduler.register(routine);
