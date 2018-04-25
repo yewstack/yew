@@ -48,8 +48,7 @@ where
         match msg {
             Msg::Gravatar => {
                 let callback = env.send_back(Msg::GravatarReady);
-                let mut context = env.context();
-                let gravatar: &mut GravatarService = context.as_mut();
+                let gravatar: &mut GravatarService = env.as_mut();
                 let task = gravatar.profile("205e460b479e2e5b48aec07710c08d50", callback);
                 self.task = Some(task);
             }
@@ -60,8 +59,7 @@ where
                 // Can't load gravatar profile
             }
             Msg::Exchanges => {
-                let mut context = env.context();
-                let ccxt: &mut CcxtService = context.as_mut();
+                let ccxt: &mut CcxtService = env.as_mut();
                 self.exchanges = ccxt.exchanges();
             }
         }

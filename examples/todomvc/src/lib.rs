@@ -53,7 +53,7 @@ where
 
     fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
         let entries = {
-            if let Json(Ok(restored_model)) = env.context().as_mut().restore(KEY) {
+            if let Json(Ok(restored_model)) = env.as_mut().restore(KEY) {
                 restored_model
             } else {
                 Vec::new()
@@ -113,7 +113,7 @@ where
             }
             Msg::Nope => {}
         }
-        env.context().as_mut().store(KEY, Json(&self.entries));
+        env.as_mut().store(KEY, Json(&self.entries));
         true
     }
 }

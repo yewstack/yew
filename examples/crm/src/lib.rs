@@ -59,8 +59,7 @@ where
     type Properties = ();
 
     fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
-        let mut context = env.context();
-        let storage: &mut StorageService = context.as_mut();
+        let storage: &mut StorageService = env.as_mut();
         let Json(database) = storage.restore(KEY);
         let database = database.unwrap_or_else(|_| Database {
             clients: Vec::new(),
@@ -101,8 +100,7 @@ where
                         let mut new_client = Client::empty();
                         ::std::mem::swap(client, &mut new_client);
                         self.database.clients.push(new_client);
-                        let mut context = env.context();
-                        let storage: &mut StorageService = context.as_mut();
+                        let storage: &mut StorageService = env.as_mut();
                         storage.store(KEY, Json(&self.database));
                     }
                     Msg::SwitchTo(Scene::ClientsList) => {
@@ -116,14 +114,13 @@ where
             Scene::Settings => {
                 match msg {
                     Msg::Clear => {
-                        let mut context = env.context();
                         let ok = {
-                            let dialog: &mut DialogService = context.as_mut();
+                            let dialog: &mut DialogService = env.as_mut();
                             dialog.confirm("Do you really want to clear the data?")
                         };
                         if ok {
                             self.database.clients.clear();
-                            let storage: &mut StorageService = context.as_mut();
+                            let storage: &mut StorageService = env.as_mut();
                             storage.remove(KEY);
                         }
                     }
