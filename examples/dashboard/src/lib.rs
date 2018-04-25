@@ -88,8 +88,7 @@ where
                     }
                 });
                 let request = Request::get("/data.json").body(Nothing).unwrap();
-                let mut context = env.context();
-                let fetch_service: &mut FetchService = context.as_mut();
+                let fetch_service: &mut FetchService = env.as_mut();
                 let task = fetch_service.fetch(request, callback);
                 self.ft = Some(task);
             }
@@ -103,8 +102,7 @@ where
                                 WebSocketStatus::Closed | WebSocketStatus::Error => WsAction::Lost.into(),
                             }
                         });
-                        let mut context = env.context();
-                        let ws_service: &mut WebSocketService = context.as_mut();
+                        let ws_service: &mut WebSocketService = env.as_mut();
                         let task = ws_service.connect("ws://localhost:9001/", callback, notification);
                         self.ws = Some(task);
                     }
