@@ -3,22 +3,25 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use slab::Slab;
 
-pub type RunnableIndex = usize;
+pub(crate) type RunnableIndex = usize;
+
+pub(crate) type WillDestroy = bool;
+
 
 // TODO 1) Could be replaced with a struct (not a closure)
 
 pub type Runnable<CTX> = Box<BeRunnable<CTX>>;
 
 pub trait BeRunnable<CTX> {
-    fn run<'a>(&mut self, context: &'a mut CTX);
+    fn run<'a>(&mut self, context: &'a mut CTX) -> WillDestroy;
 }
 
 impl<T, CTX> BeRunnable<CTX> for T
 where
-    T: FnMut(&mut CTX),
+    T: FnMut(&mut CTX) -> bool,
 {
-    fn run<'a>(&mut self, context: &'a mut CTX) {
-        self(context);
+    fn run<'a>(&mut self, context: &'a mut CTX) -> WillDestroy {
+        self(context)
     }
 }
 
@@ -31,6 +34,13 @@ impl<CTX> Pool<CTX> {
     fn register(&mut self, runnable: Runnable<CTX>) -> RunnableIndex {
         let runnable = Rc::new(RefCell::new(runnable));
         self.slab.insert(runnable)
+    }
+
+    fn unregister(&mut self, index: RunnableIndex) -> Runnable<CTX> {
+        let runnable = self.slab.remove(index);
+        Rc::try_unwrap(runnable).ok()
+            .expect("runnable was locked")
+            .into_inner()
     }
 
     fn put(&mut self, index: RunnableIndex) {
@@ -73,7 +83,7 @@ impl<CTX> Scheduler<CTX> {
 
     pub(crate) fn register<F>(&mut self, closure: F) -> RunnableIndex
     where
-        F: FnMut(&mut CTX) + 'static,
+        F: FnMut(&mut CTX) -> bool + 'static,
     {
         let runnable: Runnable<CTX> = Box::new(closure);
         self.pool.try_borrow_mut()
@@ -82,7 +92,9 @@ impl<CTX> Scheduler<CTX> {
     }
 
     pub(crate) fn unregister(&mut self, index: RunnableIndex) -> Runnable<CTX> {
-        unimplemented!();
+        self.pool.try_borrow_mut()
+            .expect("can't borrow slab to unregister a runnable")
+            .unregister(index)
     }
 
     pub(crate) fn put_and_try_run(&mut self, index: RunnableIndex) {
