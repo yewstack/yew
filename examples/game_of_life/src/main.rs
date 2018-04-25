@@ -22,10 +22,8 @@ fn main() {
     };
     let app: App<_, GameOfLife> = App::new(context);
 
-    app.mount_to_body();
-    // Send initial message. For demo purposes only!
-    // You should prefer to initialize everything in `Component::create` implementation.
-    app.get_env().send_message(Msg::Random);
+    let mut env = app.mount_to_body();
+    env.send_message(Msg::Random);
 
     yew::run_loop();
 }

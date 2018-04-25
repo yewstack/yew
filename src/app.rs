@@ -35,28 +35,24 @@ where
     }
 
     /// Alias to `mount("body", ...)`.
-    pub fn mount_to_body(self) {
+    pub fn mount_to_body(self) -> Activator<CTX, COMP> {
         let element = document()
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
-        self.mount(element);
+        self.mount(element)
     }
 
     /// The main entrypoint of a yew program. It works similar as `program`
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount(mut self, element: Element) {
+    pub fn mount(mut self, element: Element) -> Activator<CTX, COMP> {
         clear_element(&element);
         self.scope.take()
             .expect("can't mount the same app twice")
             .mount_in_place(element, None, None, None);
-    }
-
-    /// Returns an environment.
-    pub fn get_env(&self) -> Activator<CTX, COMP> {
-        self.env.clone()
+        self.env
     }
 }
 

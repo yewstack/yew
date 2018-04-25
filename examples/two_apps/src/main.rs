@@ -4,13 +4,13 @@ extern crate two_apps;
 
 use stdweb::web::{IParentNode, document};
 use yew::prelude::*;
-use yew::html::ComponentUpdate;
+use yew::html::Activator;
 use yew::scheduler::Scheduler;
 use two_apps::{Context, Model, Msg};
 
-fn mount_app(selector: &'static str, app: App<Context, Model>) {
+fn mount_app(selector: &'static str, app: App<Context, Model>) -> Activator<Context, Model> {
     let element = document().query_selector(selector).unwrap().unwrap();
-    app.mount(element);
+    app.mount(element)
 }
 
 fn main() {
@@ -22,15 +22,12 @@ fn main() {
     let scheduler = Scheduler::new(context);
 
     let first_app = App::reuse(&scheduler);
-    let mut to_first = first_app.get_env();
-
     let second_app = App::reuse(&scheduler);
-    let mut to_second = second_app.get_env();
 
-    mount_app(".first-app", first_app);
-    mount_app(".second-app", second_app);
-    to_first.send(ComponentUpdate::Message(Msg::SetActivator(to_second.clone())));
-    to_second.send(ComponentUpdate::Message(Msg::SetActivator(to_first.clone())));
+    let mut to_first = mount_app(".first-app", first_app);
+    let mut to_second = mount_app(".second-app", second_app);
+    to_first.send_message(Msg::SetActivator(to_second.clone()));
+    to_second.send_message(Msg::SetActivator(to_first.clone()));
 
     yew::run_loop();
 }
