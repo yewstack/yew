@@ -87,6 +87,7 @@ impl<CTX> Scheduler<CTX> {
 
     pub(crate) fn put_and_try_run(&mut self, index: RunnableIndex) {
         self.pool.borrow_mut().put(index);
+        // Context lock also means the loop is runnging
         if let Ok(ref mut context) = self.context.try_borrow_mut() {
             loop {
                 let do_next = self.pool.borrow_mut().next();

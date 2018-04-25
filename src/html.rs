@@ -43,7 +43,7 @@ pub trait Renderable<CTX, COMP: Component<CTX>> {
 }
 
 /// Update message for a `Components` instance. Used by scope sender.
-pub enum ComponentUpdate<CTX, COMP: Component<CTX>> {
+pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
     /// Creating an instance of the component
     Create,
     /// Wraps messages for a component.
@@ -181,7 +181,7 @@ impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
 
 impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
     /// Send the message and schedule an update.
-    pub fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
+    pub(crate) fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
         // Queue should never bew blocked with an intersection
         self.queue.try_borrow_mut()
             .expect("internal message routing accident")
