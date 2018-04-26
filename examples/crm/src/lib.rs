@@ -55,7 +55,7 @@ impl<CTX> Component<CTX> for Model
 where
     CTX: AsMut<StorageService> + AsMut<DialogService>,
 {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
@@ -70,7 +70,7 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
         let mut new_scene = None;
         match self.scene {
             Scene::ClientsList => {

@@ -12,7 +12,7 @@ pub enum Msg {
 }
 
 impl<CTX> Component<CTX> for Model {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
@@ -21,7 +21,7 @@ impl<CTX> Component<CTX> for Model {
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, _: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::UpdateName(new_name) => {
                 self.name = new_name;

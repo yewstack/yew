@@ -45,6 +45,5 @@ case "$1" in
     ;;
     *)
         build
-        run
     ;;
 esac

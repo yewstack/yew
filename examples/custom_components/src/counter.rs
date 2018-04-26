@@ -36,7 +36,7 @@ impl Default for Props {
 }
 
 impl<CTX: Printer + 'static> Component<CTX> for Counter {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = Props;
 
     fn create(props: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
@@ -47,7 +47,7 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Increase => {
                 self.value = self.value + 1;

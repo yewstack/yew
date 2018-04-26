@@ -152,7 +152,7 @@ impl<CTX> Component<CTX> for GameOfLife
 where
     CTX: AsMut<IntervalService> + 'static,
 {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
@@ -164,7 +164,7 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Random => {
                 self.random_mutate();

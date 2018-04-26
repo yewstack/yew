@@ -172,7 +172,7 @@ impl<'a, CTX, COMP, F, IN> Transformer<CTX, COMP, F, Option<Callback<IN>>> for V
 where
     CTX: 'static,
     COMP: Component<CTX>,
-    F: Fn(IN) -> COMP::Msg + 'static,
+    F: Fn(IN) -> COMP::Message + 'static,
 {
     fn transform(&mut self, from: F) -> Option<Callback<IN>> {
         let cell = Rc::new(RefCell::new(None));
