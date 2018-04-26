@@ -19,7 +19,7 @@ pub type ShouldRender = bool;
 /// An interface of a UI-component. Uses `self` as a model.
 pub trait Component<CTX>: Sized + 'static {
     /// Control message type which `update` loop get.
-    type Msg: 'static;
+    type Message: 'static;
     /// Properties type of component implementation.
     /// It sould be serializable because it's sent to dynamicaly created
     /// component (layed under `VComp`) and must be restored for a component
@@ -29,7 +29,7 @@ pub trait Component<CTX>: Sized + 'static {
     fn create(props: Self::Properties, context: &mut Env<CTX, Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
-    fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender;
+    fn update(&mut self, msg: Self::Message, context: &mut Env<CTX, Self>) -> ShouldRender;
     /// This method called when properties changes, and once when component created.
     fn change(&mut self, _: Self::Properties, _: &mut Env<CTX, Self>) -> ShouldRender {
         unimplemented!("you should implement `change` method for a component with properties")
@@ -47,7 +47,7 @@ pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
     /// Creating an instance of the component
     Create,
     /// Wraps messages for a component.
-    Message(COMP::Msg),
+    Message(COMP::Message),
     /// Wraps properties for a component.
     Properties(COMP::Properties),
     /// Removes the component
@@ -148,7 +148,7 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
-        F: Fn(IN) -> COMP::Msg + 'static,
+        F: Fn(IN) -> COMP::Message + 'static,
     {
         let activator = self.activator.clone();
         let closure = move |input| {
@@ -191,7 +191,7 @@ impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
     }
 
     /// Send message to a component.
-    pub fn send_message(&mut self, message: COMP::Msg) {
+    pub fn send_message(&mut self, message: COMP::Message) {
         let update = ComponentUpdate::Message(message);
         self.send(update);
     }
@@ -349,7 +349,7 @@ macro_rules! impl_action {
 
             impl<T, CTX: 'static, COMP: Component<CTX>> Listener<CTX, COMP> for Wrapper<T>
             where
-                T: Fn($ret) -> COMP::Msg + 'static,
+                T: Fn($ret) -> COMP::Message + 'static,
             {
                 fn kind(&self) -> &'static str {
                     stringify!($action)

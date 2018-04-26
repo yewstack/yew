@@ -38,10 +38,10 @@ impl<CTX> Component<CTX> for Model
 where
     CTX: AsMut<Context>,
 {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
         Model {
             activator: None,
             selector: "",
@@ -49,7 +49,7 @@ where
         }
     }
 
-    fn update(&mut self, msg: Msg, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, _: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::SetActivator(activator) => {
                 self.activator = Some(activator);

@@ -15,7 +15,7 @@ pub enum Msg {
 }
 
 impl<CTX> Component<CTX> for Model {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
     fn create(_: (), _: &mut Env<CTX, Self>) -> Self {
@@ -25,7 +25,7 @@ impl<CTX> Component<CTX> for Model {
     }
 
     // Some details omitted. Explore the examples to get more.
-    fn update(&mut self, msg: Self::Msg, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, _: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Select(x, y) => {
                 self.selected = Some((x, y));

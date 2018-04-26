@@ -25,7 +25,7 @@ impl Default for Props {
 }
 
 impl<CTX: 'static> Component<CTX> for Button {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = Props;
 
     fn create(props: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
@@ -35,7 +35,7 @@ impl<CTX: 'static> Component<CTX> for Button {
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, _: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Clicked => {
                 if let Some(ref mut callback) = self.onsignal {
