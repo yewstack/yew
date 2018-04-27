@@ -54,11 +54,6 @@ pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
     Destroy,
 }
 
-/*
-/// Shared reference to a context.
-pub type SharedContext<CTX> = Rc<RefCell<CTX>>;
-*/
-
 /// A reference to environment of a component (scope) which contains
 /// shared reference to a context.
 pub struct ContextMut<'a, CTX: 'a> {
@@ -99,50 +94,6 @@ impl<'a, CTX: 'a, COMP: Component<CTX>> DerefMut for Env<'a, CTX, COMP> {
         &mut self.context
     }
 }
-
-
-/*
-/// This type holds a reference to a context instance and
-/// sender to send messages to a component attached to a scope.
-/// An instance could be dereferenced as a context.
-pub struct Env<CTX, COMP: Component<CTX>> {
-    context: SharedContext<CTX>,
-    activator: Activator<CTX, COMP>,
-}
-*/
-
-//pub type Env<CTX, COMP> = Activator<CTX, COMP>;
-
-/*
-impl<CTX, COMP: Component<CTX>> Clone for Env<CTX, COMP> {
-    fn clone(&self) -> Self {
-        Env {
-            context: self.context.clone(),
-            activator: self.activator.clone(),
-        }
-    }
-}
-
-impl<CTX, COMP: Component<CTX>> Env<CTX, COMP> {
-    /// Clones activator.
-    pub fn activator(&self) -> Activator<CTX, COMP> {
-        self.activator.clone()
-    }
-
-    /// Clones shared context.
-    pub(crate) fn context_rc(&self) -> SharedContext<CTX> {
-        self.context.clone()
-    }
-
-    /// Returns a borrowed reference to a context.
-    pub fn context(&self) -> ContextMut<CTX> {
-        let context = self.context.try_borrow_mut()
-            // This issue could be fixed with a scheduler only
-            .expect("can't borrow the context");
-        ContextMut { context }
-    }
-}
-*/
 
 impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
     /// This method sends messages back to the component's loop.
@@ -196,6 +147,7 @@ impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
         self.send(update);
     }
 
+    /// Return an instance of a scheduler with a same pool of the app.
     pub fn scheduler(&self) -> Scheduler<CTX> {
         self.scheduler.clone()
     }

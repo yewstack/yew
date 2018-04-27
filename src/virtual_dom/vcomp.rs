@@ -15,7 +15,6 @@ struct Hidden;
 
 type AnyProps = (TypeId, *mut Hidden);
 
-// TODO Maybe get scheduler earlier
 type Generator<CTX> = FnMut(Scheduler<CTX>, Element, Option<Node>, AnyProps);
 
 type PropActivator<CTX, COMP> = Rc<RefCell<Option<Activator<CTX, COMP>>>>;

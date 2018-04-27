@@ -1,18 +1,22 @@
+//! This module contains a scheduler.
+
 use std::collections::VecDeque;
 use std::rc::Rc;
 use std::cell::RefCell;
 use slab::Slab;
 
+/// Id of a runnable instance.
 pub(crate) type RunnableIndex = usize;
 
+/// The flag that means the routine should be destroyed.
 pub(crate) type WillDestroy = bool;
 
+/// Unspecified routine binded to a context.
+pub(crate) type Runnable<CTX> = Box<BeRunnable<CTX>>;
 
-// TODO 1) Could be replaced with a struct (not a closure)
-
-pub type Runnable<CTX> = Box<BeRunnable<CTX>>;
-
-pub trait BeRunnable<CTX> {
+/// A routine which could be run.
+pub(crate) trait BeRunnable<CTX> {
+    /// Runs a routine with a context instance.
     fn run<'a>(&mut self, context: &'a mut CTX) -> WillDestroy;
 }
 
@@ -25,12 +29,14 @@ where
     }
 }
 
+/// The `Pool` which keep a sequence of runnables to start next.
 struct Pool<CTX> {
     slab: Slab<Rc<RefCell<Runnable<CTX>>>>,
     sequence: VecDeque<RunnableIndex>,
 }
 
 impl<CTX> Pool<CTX> {
+    /// Put a runnable and return a unique id.
     fn register(&mut self, runnable: Runnable<CTX>) -> RunnableIndex {
         let runnable = Rc::new(RefCell::new(runnable));
         self.slab.insert(runnable)
@@ -70,6 +76,7 @@ impl<CTX> Clone for Scheduler<CTX> {
 }
 
 impl<CTX> Scheduler<CTX> {
+    /// Creates a new scheduler with a context.
     pub fn new(context: CTX) -> Self {
         let pool = Pool {
             slab: Slab::new(),
