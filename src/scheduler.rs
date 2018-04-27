@@ -53,9 +53,9 @@ impl<CTX> Pool<CTX> {
         self.sequence.push_back(index);
     }
 
-    fn next(&mut self) -> Option<Rc<RefCell<Runnable<CTX>>>> {
+    fn next(&mut self) -> Option<(RunnableIndex, Rc<RefCell<Runnable<CTX>>>)> {
         self.sequence.pop_front().and_then(|idx| {
-            self.slab.get(idx).cloned()
+            self.slab.get(idx).cloned().map(|runnable| (idx, runnable))
         })
     }
 }
@@ -98,24 +98,33 @@ impl<CTX> Scheduler<CTX> {
             .register(runnable)
     }
 
-    pub(crate) fn unregister(&mut self, index: RunnableIndex) -> Runnable<CTX> {
-        self.pool.try_borrow_mut()
-            .expect("can't borrow slab to unregister a runnable")
-            .unregister(index)
-    }
-
     pub(crate) fn put_and_try_run(&mut self, index: RunnableIndex) {
         self.pool.borrow_mut().put(index);
         // Context lock also means the loop is runnging
+        let mut unreg = Vec::new();
         if let Ok(ref mut context) = self.context.try_borrow_mut() {
             loop {
                 let do_next = self.pool.borrow_mut().next();
-                if let Some(routine) = do_next {
-                    routine.borrow_mut().run(context);
+                if let Some((idx, routine)) = do_next {
+                    let will_destroy = routine.borrow_mut().run(context);
+                    if will_destroy {
+                        // TODO Filter deque (remove items with this id)
+                        // because they must not be called and after
+                        // the routine removed new call won't added with this id
+                        // even if callback still exists
+                        unreg.push(idx);
+                    }
                 } else {
                     break;
                 }
             }
+        }
+        // Remove unnecessary routines only when loop finished completely,
+        // because they could call each other
+        for idx in unreg.into_iter() {
+            self.pool.try_borrow_mut()
+                .expect("can't borrow slab to unregister a runnable")
+                .unregister(idx);
         }
     }
 }

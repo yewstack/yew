@@ -236,7 +236,7 @@ where
     fn detach(&mut self, parent: &Node) -> Option<Node> {
         // Destroy the loop. It's impossible to use `Drop`,
         // because parts can be reused with `grab_sender_of`.
-        (self.destroyer)();
+        (self.destroyer)(); // TODO Chech it works
         // Keep the sibling in the cell and send a message `Drop` to a loop
         self.cell.borrow_mut().take().and_then(|node| {
             let sibling = node.next_sibling();
