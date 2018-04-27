@@ -45,7 +45,7 @@
 //! ```
 //!
 
-//#![deny(missing_docs)]
+#![deny(missing_docs)]
 #![recursion_limit = "256"]
 
 #[macro_use]
