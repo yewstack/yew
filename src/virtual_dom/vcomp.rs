@@ -17,7 +17,7 @@ type AnyProps = (TypeId, *mut Hidden);
 
 type Generator<CTX> = FnMut(Scheduler<CTX>, Element, Option<Node>, AnyProps);
 
-type PropActivator<CTX, COMP> = Rc<RefCell<Option<Activator<CTX, COMP>>>>;
+type LazyActivator<CTX, COMP> = Rc<RefCell<Option<Activator<CTX, COMP>>>>;
 
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
@@ -26,9 +26,8 @@ pub struct VComp<CTX, COMP: Component<CTX>> {
     props: Option<(TypeId, *mut Hidden)>,
     blind_sender: Box<FnMut(AnyProps)>,
     generator: Box<Generator<CTX>>,
-    activators: Vec<PropActivator<CTX, COMP>>,
-    //lazy_activator: Option<PropActivator<CTX, COMP>>,
-    //destroyer: Option<ScopeDestroyer>,
+    activators: Vec<LazyActivator<CTX, COMP>>,
+    destroyer: Box<Fn()>,
     _parent: PhantomData<COMP>,
 }
 
@@ -39,8 +38,6 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         CHILD: Component<CTX> + Renderable<CTX, CHILD>,
     {
         let cell: NodeCell = Rc::new(RefCell::new(None));
-        //let destroyer = Some(builder.destroyer());
-        //let mut activator = builder.activator();
         let lazy_activator = Rc::new(RefCell::new(None));
         let occupied = cell.clone();
         // This function creates and mounts a new component instance
@@ -66,26 +63,39 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
                     Some(occupied.clone()),
                     Some(props),
                 );
+                // TODO Consider to send ComponentUpdate::Create after `mount_in_place` call
             }
         };
-        let mut previous_props = None;
-        let blind_sender = move |(type_id, raw): AnyProps| {
-            if type_id != TypeId::of::<CHILD>() {
-                panic!("tried to send properties of the other component");
+        let blind_sender = {
+            let mut previous_props = None;
+            let lazy_activator = lazy_activator.clone();
+            move |(type_id, raw): AnyProps| {
+                if type_id != TypeId::of::<CHILD>() {
+                    panic!("tried to send properties of the other component");
+                }
+                let props = unsafe {
+                    let raw: *mut CHILD::Properties = ::std::mem::transmute(raw);
+                    *Box::from_raw(raw)
+                };
+                let new_props = Some(props);
+                // Ignore update till properties changed
+                if previous_props != new_props {
+                    let props = new_props.as_ref().unwrap().clone();
+                    lazy_activator.borrow_mut()
+                        .as_mut()
+                        .expect("activator for child scope was not set (blind sender)")
+                        .send(ComponentUpdate::Properties(props));
+                    previous_props = new_props;
+                }
             }
-            let props = unsafe {
-                let raw: *mut CHILD::Properties = ::std::mem::transmute(raw);
-                *Box::from_raw(raw)
-            };
-            let new_props = Some(props);
-            // Ignore update till properties changed
-            if previous_props != new_props {
-                let props = new_props.as_ref().unwrap().clone();
+        };
+        let destroyer = {
+            let lazy_activator = lazy_activator;
+            move || {
                 lazy_activator.borrow_mut()
                     .as_mut()
-                    .expect("activator for child scope was not set")
-                    .send(ComponentUpdate::Properties(props));
-                previous_props = new_props;
+                    .expect("activator for child scope was not set (destroyer)")
+                    .send(ComponentUpdate::Destroy);
             }
         };
         let properties = Default::default();
@@ -96,8 +106,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             blind_sender: Box::new(blind_sender),
             generator: Box::new(generator),
             activators: Vec::new(),
-            //lazy_activator,
-            //destroyer,
+            destroyer: Box::new(destroyer),
             _parent: PhantomData,
         };
         (properties, comp)
@@ -125,9 +134,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     pub(crate) fn grab_sender_of(&mut self, other: Self) {
         assert_eq!(self.type_id, other.type_id);
         // Grab a sender and a cell (element's reference) to reuse it later
-        self.blind_sender = other.blind_sender;
         self.cell = other.cell;
-        //self.destroyer = other.destroyer;
+        self.blind_sender = other.blind_sender;
+        self.destroyer = other.destroyer;
     }
 }
 
@@ -227,11 +236,7 @@ where
     fn detach(&mut self, parent: &Node) -> Option<Node> {
         // Destroy the loop. It's impossible to use `Drop`,
         // because parts can be reused with `grab_sender_of`.
-        /* TODO Replace with the activator!
-        if let Some(destroyer) = self.destroyer {
-            destroyer.destroy();
-        }
-        */
+        (self.destroyer)();
         // Keep the sibling in the cell and send a message `Drop` to a loop
         self.cell.borrow_mut().take().and_then(|node| {
             let sibling = node.next_sibling();
