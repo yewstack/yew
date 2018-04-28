@@ -15,8 +15,10 @@ struct Hidden;
 
 type AnyProps = (TypeId, *mut Hidden);
 
+/// The method generates an instance of a (child) component.
 type Generator<CTX> = FnMut(Scheduler<CTX>, Element, Option<Node>, AnyProps);
 
+/// A reference to unknown activator which will be attached later with a generator function.
 type LazyActivator<CTX, COMP> = Rc<RefCell<Option<Activator<CTX, COMP>>>>;
 
 /// A virtual component.
