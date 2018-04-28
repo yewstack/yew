@@ -4,9 +4,11 @@
 
 **I'm submitting a ...**  (check one with "x")
 
-- [ ] question <!-- please describe the problem you're trying to solve and give as much context as possible. -->
-- [ ] feature request <!-- please describe the behavior you want and the motivation. -->
-- [ ] bug report <!-- please describe shortly your bug and fill out the other sections. -->
+<!-- Choose one of:
+- question - please describe the problem you're trying to solve and give as much context as possible.
+- feature request - please describe the behavior you want and the motivation.
+- bug report - please describe shortly your bug and fill out the other sections.
+-->
 
 Put your description here
 

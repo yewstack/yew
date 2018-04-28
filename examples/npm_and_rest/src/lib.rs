@@ -33,7 +33,7 @@ impl<CTX> Component<CTX> for Model
 where
     CTX: AsMut<GravatarService> + AsMut<CcxtService> + 'static,
 {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
@@ -44,11 +44,11 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Gravatar => {
-                let callback = context.send_back(Msg::GravatarReady);
-                let gravatar: &mut GravatarService = context.as_mut();
+                let callback = env.send_back(Msg::GravatarReady);
+                let gravatar: &mut GravatarService = env.as_mut();
                 let task = gravatar.profile("205e460b479e2e5b48aec07710c08d50", callback);
                 self.task = Some(task);
             }
@@ -59,7 +59,7 @@ where
                 // Can't load gravatar profile
             }
             Msg::Exchanges => {
-                let ccxt: &mut CcxtService = context.as_mut();
+                let ccxt: &mut CcxtService = env.as_mut();
                 self.exchanges = ccxt.exchanges();
             }
         }

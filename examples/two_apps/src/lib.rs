@@ -7,13 +7,11 @@ use yew::html::*;
 
 #[derive(Default)]
 pub struct Context {
-    pub senders: Vec<ScopeSender<Context, Model>>,
 }
 
 impl Context {
     pub fn new() -> Self {
         Context {
-            senders: Vec::new(),
         }
     }
 }
@@ -25,12 +23,13 @@ impl AsMut<Context> for Context {
 }
 
 pub struct Model {
-    sender: ScopeSender<Context, Model>,
+    activator: Option<Activator<Context, Model>>,
     selector: &'static str,
     title: String,
 }
 
 pub enum Msg {
+    SetActivator(Activator<Context, Model>),
     SendToOpposite(String),
     SetTitle(String),
 }
@@ -39,25 +38,39 @@ impl<CTX> Component<CTX> for Model
 where
     CTX: AsMut<Context>,
 {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, context: &mut Env<CTX, Self>) -> Self {
-        let sender = context.as_mut().senders.pop().unwrap();
+    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
         Model {
-            // TODO Use properties to set sender...
-            sender,
+            activator: None,
             selector: "",
             title: "Nothing".into(),
         }
     }
 
-    fn update(&mut self, msg: Msg, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, _: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
+            Msg::SetActivator(activator) => {
+                self.activator = Some(activator);
+            }
             Msg::SendToOpposite(title) => {
-                self.sender.send(ComponentUpdate::Message(Msg::SetTitle(title)));
+                self.activator.as_mut().unwrap().send_message(Msg::SetTitle(title));
             }
             Msg::SetTitle(title) => {
+                match title.as_ref() {
+                    "Ping" => {
+                        self.activator.as_mut().unwrap().send_message(Msg::SetTitle("Pong".into()));
+                    }
+                    "Pong" => {
+                        self.activator.as_mut().unwrap().send_message(Msg::SetTitle("Pong Done".into()));
+                    }
+                    "Pong Done" => {
+                        self.activator.as_mut().unwrap().send_message(Msg::SetTitle("Ping Done".into()));
+                    }
+                    _ => {
+                    }
+                }
                 self.title = title;
             }
         }
@@ -76,6 +89,7 @@ where
                 <button onclick=|_| Msg::SendToOpposite("One".into()),>{ "One" }</button>
                 <button onclick=|_| Msg::SendToOpposite("Two".into()),>{ "Two" }</button>
                 <button onclick=|_| Msg::SendToOpposite("Three".into()),>{ "Three" }</button>
+                <button onclick=|_| Msg::SendToOpposite("Ping".into()),>{ "Ping" }</button>
             </div>
         }
     }

@@ -1,23 +1,25 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
-use super::{Reform, VDiff, VNode};
-use html::{Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, ScopeEnv,
-           ScopeHandle, ScopeSender, SharedContext};
-use callback::Callback;
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::rc::Rc;
 use stdweb::unstable::TryInto;
 use stdweb::web::{document, Element, INode, Node};
+use html::{Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, Activator};
+use callback::Callback;
+use scheduler::Scheduler;
+use super::{Reform, VDiff, VNode};
 
 struct Hidden;
 
 type AnyProps = (TypeId, *mut Hidden);
 
-type Generator<CTX> = FnMut(SharedContext<CTX>, Element, Option<Node>, AnyProps);
+/// The method generates an instance of a (child) component.
+type Generator<CTX> = FnMut(Scheduler<CTX>, Element, Option<Node>, AnyProps);
 
-type Activator<CTX, COMP> = Rc<RefCell<Option<ScopeSender<CTX, COMP>>>>;
+/// A reference to unknown activator which will be attached later with a generator function.
+type LazyActivator<CTX, COMP> = Rc<RefCell<Option<Activator<CTX, COMP>>>>;
 
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
@@ -26,8 +28,8 @@ pub struct VComp<CTX, COMP: Component<CTX>> {
     props: Option<(TypeId, *mut Hidden)>,
     blind_sender: Box<FnMut(AnyProps)>,
     generator: Box<Generator<CTX>>,
-    activators: Vec<Activator<CTX, COMP>>,
-    handle: Option<ScopeHandle>,
+    activators: Vec<LazyActivator<CTX, COMP>>,
+    destroyer: Box<Fn()>,
     _parent: PhantomData<COMP>,
 }
 
@@ -38,13 +40,12 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
         CHILD: Component<CTX> + Renderable<CTX, CHILD>,
     {
         let cell: NodeCell = Rc::new(RefCell::new(None));
-        let builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new();
-        let handle = Some(builder.handle());
-        let mut sender = builder.sender();
-        let mut builder = Some(builder);
+        let lazy_activator = Rc::new(RefCell::new(None));
         let occupied = cell.clone();
-        let generator =
-            move |context, element, obsolete: Option<Node>, (type_id, raw): AnyProps| {
+        // This function creates and mounts a new component instance
+        let generator = {
+            let lazy_activator = lazy_activator.clone();
+            move |scheduler, element, obsolete: Option<Node>, (type_id, raw): AnyProps| {
                 if type_id != TypeId::of::<CHILD>() {
                     panic!("tried to unpack properties of the other component");
                 }
@@ -53,30 +54,50 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
                     *Box::from_raw(raw)
                 };
 
-                let builder = builder.take().expect("tried to mount component twice");
+                //let builder = builder.take().expect("tried to mount component twice");
                 let opposite = obsolete.map(VNode::VRef);
-                builder.build(context).mount_in_place(
+                let builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new(scheduler);
+                let (env, scope) = builder.build();
+                *lazy_activator.borrow_mut() = Some(env);
+                scope.mount_in_place(
                     element,
                     opposite,
                     Some(occupied.clone()),
                     Some(props),
                 );
-            };
-        let mut previous_props = None;
-        let blind_sender = move |(type_id, raw): AnyProps| {
-            if type_id != TypeId::of::<CHILD>() {
-                panic!("tried to send properties of the other component");
+                // TODO Consider to send ComponentUpdate::Create after `mount_in_place` call
             }
-            let props = unsafe {
-                let raw: *mut CHILD::Properties = ::std::mem::transmute(raw);
-                *Box::from_raw(raw)
-            };
-            let new_props = Some(props);
-            // Ignore update till properties changed
-            if previous_props != new_props {
-                let props = new_props.as_ref().unwrap().clone();
-                sender.send(ComponentUpdate::Properties(props));
-                previous_props = new_props;
+        };
+        let blind_sender = {
+            let mut previous_props = None;
+            let lazy_activator = lazy_activator.clone();
+            move |(type_id, raw): AnyProps| {
+                if type_id != TypeId::of::<CHILD>() {
+                    panic!("tried to send properties of the other component");
+                }
+                let props = unsafe {
+                    let raw: *mut CHILD::Properties = ::std::mem::transmute(raw);
+                    *Box::from_raw(raw)
+                };
+                let new_props = Some(props);
+                // Ignore update till properties changed
+                if previous_props != new_props {
+                    let props = new_props.as_ref().unwrap().clone();
+                    lazy_activator.borrow_mut()
+                        .as_mut()
+                        .expect("activator for child scope was not set (blind sender)")
+                        .send(ComponentUpdate::Properties(props));
+                    previous_props = new_props;
+                }
+            }
+        };
+        let destroyer = {
+            let lazy_activator = lazy_activator;
+            move || {
+                lazy_activator.borrow_mut()
+                    .as_mut()
+                    .expect("activator for child scope was not set (destroyer)")
+                    .send(ComponentUpdate::Destroy);
             }
         };
         let properties = Default::default();
@@ -87,7 +108,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
             blind_sender: Box::new(blind_sender),
             generator: Box::new(generator),
             activators: Vec::new(),
-            handle,
+            destroyer: Box::new(destroyer),
             _parent: PhantomData,
         };
         (properties, comp)
@@ -102,7 +123,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
 
     /// This method attach sender to a listeners, because created properties
     /// know nothing about a parent.
-    fn activate_props(&mut self, sender: &ScopeSender<CTX, COMP>) -> AnyProps {
+    fn activate_props(&mut self, sender: &Activator<CTX, COMP>) -> AnyProps {
         for activator in &self.activators {
             *activator.borrow_mut() = Some(sender.clone());
         }
@@ -115,9 +136,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
     pub(crate) fn grab_sender_of(&mut self, other: Self) {
         assert_eq!(self.type_id, other.type_id);
         // Grab a sender and a cell (element's reference) to reuse it later
-        self.blind_sender = other.blind_sender;
         self.cell = other.cell;
-        self.handle = other.handle;
+        self.blind_sender = other.blind_sender;
+        self.destroyer = other.destroyer;
     }
 }
 
@@ -161,7 +182,7 @@ impl<'a, CTX, COMP, F, IN> Transformer<CTX, COMP, F, Option<Callback<IN>>> for V
 where
     CTX: 'static,
     COMP: Component<CTX>,
-    F: Fn(IN) -> COMP::Msg + 'static,
+    F: Fn(IN) -> COMP::Message + 'static,
 {
     fn transform(&mut self, from: F) -> Option<Callback<IN>> {
         let cell = Rc::new(RefCell::new(None));
@@ -186,7 +207,7 @@ where
     /// This methods mount a virtual component with a generator created with `lazy` call.
     fn mount<T: INode>(
         &mut self,
-        context: SharedContext<CTX>,
+        scheduler: Scheduler<CTX>,
         parent: &T,
         opposite: Option<Node>,
         props: AnyProps,
@@ -197,7 +218,7 @@ where
             .to_owned()
             .try_into()
             .expect("element expected to mount VComp");
-        (self.generator)(context, element, opposite, props);
+        (self.generator)(scheduler, element, opposite, props);
     }
 
     fn send_props(&mut self, props: AnyProps) {
@@ -214,12 +235,10 @@ where
     type Component = COMP;
 
     /// Remove VComp from parent.
-    fn remove(self, parent: &Node) -> Option<Node> {
+    fn detach(&mut self, parent: &Node) -> Option<Node> {
         // Destroy the loop. It's impossible to use `Drop`,
         // because parts can be reused with `grab_sender_of`.
-        if let Some(handle) = self.handle {
-            handle.destroy();
-        }
+        (self.destroyer)(); // TODO Chech it works
         // Keep the sibling in the cell and send a message `Drop` to a loop
         self.cell.borrow_mut().take().and_then(|node| {
             let sibling = node.next_sibling();
@@ -237,27 +256,27 @@ where
         parent: &Node,
         _: Option<&Node>,
         opposite: Option<VNode<Self::Context, Self::Component>>,
-        env: ScopeEnv<Self::Context, Self::Component>,
+        env: &Activator<Self::Context, Self::Component>,
     ) -> Option<Node> {
         let reform = {
             match opposite {
-                Some(VNode::VComp(vcomp)) => {
+                Some(VNode::VComp(mut vcomp)) => {
                     if self.type_id == vcomp.type_id {
                         self.grab_sender_of(vcomp);
                         Reform::Keep
                     } else {
-                        let node = vcomp.remove(parent);
+                        let node = vcomp.detach(parent);
                         Reform::Before(node)
                     }
                 }
-                Some(vnode) => {
-                    let node = vnode.remove(parent);
+                Some(mut vnode) => {
+                    let node = vnode.detach(parent);
                     Reform::Before(node)
                 }
                 None => Reform::Before(None),
             }
         };
-        let any_props = self.activate_props(&env.sender());
+        let any_props = self.activate_props(&env);
         match reform {
             Reform::Keep => {
                 // Send properties update when component still be rendered.
@@ -276,7 +295,7 @@ where
                         .expect("can't insert dummy element for a component");
                     element.as_node().to_owned()
                 });
-                self.mount(env.context(), parent, node, any_props);
+                self.mount(env.scheduler(), parent, node, any_props);
             }
         }
         self.cell.borrow().as_ref().map(|node| node.to_owned())

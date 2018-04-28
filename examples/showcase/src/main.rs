@@ -144,14 +144,14 @@ enum Msg {
 }
 
 impl Component<Context> for Scene {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, _: &mut Env<Context, Self>) -> Self {
         Scene::NotSelected
     }
 
-    fn update(&mut self, msg: Self::Msg, _: &mut Env<Context, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, _: &mut Env<Context, Self>) -> ShouldRender {
         match msg {
             Msg::SwitchTo(scene) => {
                 *self = scene;

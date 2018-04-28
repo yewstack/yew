@@ -1,6 +1,6 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode};
-use html::{Component, ScopeEnv};
+use html::{Component, Activator};
 use stdweb::web::Node;
 
 /// This struct represents a fragment of the Virtual DOM tree.
@@ -25,10 +25,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
     type Context = CTX;
     type Component = COMP;
 
-    fn remove(self, parent: &Node) -> Option<Node> {
+    fn detach(&mut self, parent: &Node) -> Option<Node> {
         let mut last_sibling = None;
-        for child in self.childs {
-            last_sibling = child.remove(parent);
+        for mut child in self.childs.drain(..) {
+            last_sibling = child.detach(parent);
         }
         last_sibling
     }
@@ -38,7 +38,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
         parent: &Node,
         precursor: Option<&Node>,
         opposite: Option<VNode<Self::Context, Self::Component>>,
-        env: ScopeEnv<Self::Context, Self::Component>,
+        env: &Activator<Self::Context, Self::Component>,
     ) -> Option<Node> {
         let mut rights = {
             match opposite {
@@ -46,8 +46,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
                 Some(VNode::VList(mut vlist)) => {
                     vlist.childs.drain(..).map(Some).collect::<Vec<_>>()
                 }
-                Some(vnode) => {
-                    let _node = vnode.remove(parent);
+                Some(mut vnode) => {
+                    let _node = vnode.detach(parent);
                     // TODO Replace precursor?
                     Vec::new()
                 }
@@ -73,10 +73,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
         for pair in lefts.into_iter().zip(rights) {
             match pair {
                 (Some(left), right) => {
-                    precursor = left.apply(parent, precursor.as_ref(), right, env.clone());
+                    precursor = left.apply(parent, precursor.as_ref(), right, &env);
                 }
-                (None, Some(right)) => {
-                    right.remove(parent);
+                (None, Some(mut right)) => {
+                    right.detach(parent);
                 }
                 (None, None) => {
                     panic!("redundant iterations during diff");

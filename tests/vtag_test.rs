@@ -9,14 +9,14 @@ type Ctx = ();
 struct Comp;
 
 impl Component<Ctx> for Comp {
-    type Msg = ();
+    type Message = ();
     type Properties = ();
 
     fn create(_: Self::Properties, _: &mut Env<Ctx, Self>) -> Self {
         Comp
     }
 
-    fn update(&mut self, _: Self::Msg, _: &mut Env<Ctx, Self>) -> ShouldRender {
+    fn update(&mut self, _: Self::Message, _: &mut Env<Ctx, Self>) -> ShouldRender {
         unimplemented!();
     }
 }

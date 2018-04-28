@@ -1,7 +1,5 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
-use html::{Component, ScopeEnv};
 use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::collections::HashSet;
@@ -10,6 +8,8 @@ use stdweb::web::html_element::TextAreaElement;
 use stdweb::unstable::TryFrom;
 use stdweb::web::html_element::InputElement;
 use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node};
+use html::{Component, Activator};
+use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
@@ -319,8 +319,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
     type Component = COMP;
 
     /// Remove VTag from parent.
-    fn remove(self, parent: &Node) -> Option<Node> {
-        let node = self.reference
+    fn detach(&mut self, parent: &Node) -> Option<Node> {
+        let node = self.reference.take()
             .expect("tried to remove not rendered VTag from DOM");
         let sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
@@ -336,7 +336,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
         parent: &Node,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Context, Self::Component>>,
-        env: ScopeEnv<Self::Context, Self::Component>,
+        env: &Activator<Self::Context, Self::Component>,
     ) -> Option<Node> {
         assert!(self.reference.is_none(), "reference is ignored so must not be set");
         let (reform, mut ancestor) = {
@@ -348,13 +348,13 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                         (Reform::Keep, Some(vtag))
                     } else {
                         // We have to create a new reference, remove ancestor.
-                        let node = vtag.remove(parent);
+                        let node = vtag.detach(parent);
                         (Reform::Before(node), None)
                     }
                 }
-                Some(vnode) => {
+                Some(mut vnode) => {
                     // It is not even a VTag, we must remove the ancestor.
-                    let node = vnode.remove(parent);
+                    let node = vnode.detach(parent);
                     (Reform::Before(node), None)
                 }
                 None => (Reform::Before(None), None),
@@ -412,7 +412,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
             }
 
             for mut listener in self.listeners.drain(..) {
-                let handle = listener.attach(&element, env.sender());
+                let handle = listener.attach(&element, env.clone());
                 self.captured.push(handle);
             }
 
@@ -434,10 +434,10 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
                 match pair {
                     (Some(left), right) => {
                         precursor =
-                            left.apply(element.as_node(), precursor.as_ref(), right, env.clone());
+                            left.apply(element.as_node(), precursor.as_ref(), right, &env);
                     }
-                    (None, Some(right)) => {
-                        right.remove(element.as_node());
+                    (None, Some(mut right)) => {
+                        right.detach(element.as_node());
                     }
                     (None, None) => {
                         panic!("redundant iterations during diff");

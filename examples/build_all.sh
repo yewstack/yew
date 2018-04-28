@@ -13,7 +13,7 @@ function build() {
         echo "Building: $example"
         cd $example
         cargo update
-        cargo web build --target wasm32-unknown-emscripten
+        cargo web build --target wasm32-unknown-unknown
         cd ..
     done
 }
@@ -26,7 +26,7 @@ function run() {
         fi
         echo "Running: $example"
         cd $example
-        cargo web start --target wasm32-unknown-emscripten &
+        cargo web start --target wasm32-unknown-unknown &
         PID=$!
         wait $PID
         cd ..
@@ -45,6 +45,5 @@ case "$1" in
     ;;
     *)
         build
-        run
     ;;
 esac

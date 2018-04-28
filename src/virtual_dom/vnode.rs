@@ -1,7 +1,7 @@
 //! This module contains the implementation of abstract virtual node.
 
 use super::{VComp, VDiff, VList, VTag, VText};
-use html::{Component, Renderable, ScopeEnv};
+use html::{Component, Renderable, Activator};
 use std::cmp::PartialEq;
 use std::fmt;
 use stdweb::web::{INode, Node};
@@ -25,16 +25,16 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
     type Component = COMP;
 
     /// Remove VNode from parent.
-    fn remove(self, parent: &Node) -> Option<Node> {
-        match self {
-            VNode::VTag(vtag) => vtag.remove(parent),
-            VNode::VText(vtext) => vtext.remove(parent),
-            VNode::VComp(vcomp) => vcomp.remove(parent),
-            VNode::VList(vlist) => vlist.remove(parent),
-            VNode::VRef(node) => {
+    fn detach(&mut self, parent: &Node) -> Option<Node> {
+        match *self {
+            VNode::VTag(ref mut vtag) => vtag.detach(parent),
+            VNode::VText(ref mut vtext) => vtext.detach(parent),
+            VNode::VComp(ref mut vcomp) => vcomp.detach(parent),
+            VNode::VList(ref mut vlist) => vlist.detach(parent),
+            VNode::VRef(ref node) => {
                 let sibling = node.next_sibling();
                 parent
-                    .remove_child(&node)
+                    .remove_child(node)
                     .expect("can't remove node by VRef");
                 sibling
             }
@@ -46,7 +46,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
         parent: &Node,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Context, Self::Component>>,
-        env: ScopeEnv<Self::Context, Self::Component>,
+        env: &Activator<Self::Context, Self::Component>,
     ) -> Option<Node> {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.apply(parent, precursor, ancestor, env),
@@ -55,7 +55,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
             VNode::VList(ref mut vlist) => vlist.apply(parent, precursor, ancestor, env),
             VNode::VRef(ref mut node) => {
                 let sibling = match ancestor {
-                    Some(n) => n.remove(parent),
+                    Some(mut n) => n.detach(parent),
                     None => None,
                 };
                 if let Some(sibling) = sibling {

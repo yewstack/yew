@@ -62,7 +62,7 @@ impl<CTX> Component<CTX> for Model
 where
     CTX: AsMut<FetchService> + AsMut<WebSocketService> + 'static,
 {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
@@ -74,11 +74,11 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::FetchData => {
                 self.fetching = true;
-                let callback = context.send_back(|response: Response<Json<Result<DataFromFile, Error>>>| {
+                let callback = env.send_back(|response: Response<Json<Result<DataFromFile, Error>>>| {
                     let (meta, Json(data)) = response.into_parts();
                     println!("META: {:?}, {:?}", meta, data);
                     if meta.status.is_success() {
@@ -88,21 +88,21 @@ where
                     }
                 });
                 let request = Request::get("/data.json").body(Nothing).unwrap();
-                let fetch_service: &mut FetchService = context.as_mut();
+                let fetch_service: &mut FetchService = env.as_mut();
                 let task = fetch_service.fetch(request, callback);
                 self.ft = Some(task);
             }
             Msg::WsAction(action) => {
                 match action {
                     WsAction::Connect => {
-                        let callback = context.send_back(|Json(data)| Msg::WsReady(data));
-                        let notification = context.send_back(|status| {
+                        let callback = env.send_back(|Json(data)| Msg::WsReady(data));
+                        let notification = env.send_back(|status| {
                             match status {
                                 WebSocketStatus::Opened => Msg::Ignore,
                                 WebSocketStatus::Closed | WebSocketStatus::Error => WsAction::Lost.into(),
                             }
                         });
-                        let ws_service: &mut WebSocketService = context.as_mut();
+                        let ws_service: &mut WebSocketService = env.as_mut();
                         let task = ws_service.connect("ws://localhost:9001/", callback, notification);
                         self.ws = Some(task);
                     }

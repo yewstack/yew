@@ -1,17 +1,16 @@
 //! This module contains `App` sctruct which used to bootstrap
 //! a component in an isolated scope.
 
-use std::rc::Rc;
-use std::cell::RefCell;
 use stdweb::web::{document, Element, INode, IParentNode};
-use html::{Scope, ScopeBuilder, ScopeEnv, Component, Renderable, SharedContext};
+use html::{Scope, ScopeBuilder, Component, Renderable, Activator};
+use scheduler::Scheduler;
 
 /// An application instance.
 pub struct App<CTX, COMP: Component<CTX>> {
     /// `Scope` holder
     scope: Option<Scope<CTX, COMP>>,
-    /// Environment of the created scope
-    env: ScopeEnv<CTX, COMP>,
+    /// Activator of the created scope
+    env: Activator<CTX, COMP>,
 }
 
 impl<CTX, COMP> App<CTX, COMP>
@@ -21,15 +20,14 @@ where
 {
     /// Creates a new `App` with a component in a context.
     pub fn new(context: CTX) -> Self {
-        let context = Rc::new(RefCell::new(context));
-        App::reuse(context)
+        let scheduler = Scheduler::new(context);
+        App::reuse(&scheduler)
     }
 
     /// Creates isolated `App` instance, but reuse the context.
-    pub fn reuse(context: SharedContext<CTX>) -> Self {
-        let builder = ScopeBuilder::new();
-        let scope = builder.build(context);
-        let env = scope.get_env();
+    pub fn reuse(scheduler: &Scheduler<CTX>) -> Self {
+        let builder = ScopeBuilder::new(scheduler.clone());
+        let (env, scope) = builder.build();
         App {
             scope: Some(scope),
             env,
@@ -37,7 +35,7 @@ where
     }
 
     /// Alias to `mount("body", ...)`.
-    pub fn mount_to_body(self) {
+    pub fn mount_to_body(self) -> Activator<CTX, COMP> {
         let element = document()
             .query_selector("body")
             .expect("can't get body node for rendering")
@@ -49,16 +47,12 @@ where
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount(mut self, element: Element) {
+    pub fn mount(mut self, element: Element) -> Activator<CTX, COMP> {
         clear_element(&element);
         self.scope.take()
             .expect("can't mount the same app twice")
-            .mount_in_place(element, None, None, None)
-    }
-
-    /// Returns an environment.
-    pub fn get_env(&self) -> ScopeEnv<CTX, COMP> {
-        self.env.clone()
+            .mount_in_place(element, None, None, None);
+        self.env
     }
 }
 
