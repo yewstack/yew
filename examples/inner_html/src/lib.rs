@@ -25,31 +25,31 @@ impl<CTX> Component<CTX> for Model
 where
     CTX: AsMut<ConsoleService>,
 {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _context: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
         Model {
             value: 0,
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Increment => {
                 self.value = self.value + 1;
-                context.as_mut().log("plus one");
+                env.as_mut().log("plus one");
             }
             Msg::Decrement => {
                 self.value = self.value - 1;
-                context.as_mut().log("minus one");
+                env.as_mut().log("minus one");
             }
             Msg::Bulk(list) => for msg in list {
-                self.update(msg, context);
-                context.as_mut().log("Bulk action");
+                self.update(msg, env);
+                env.as_mut().log("Bulk action");
             },
             Msg::None => {
-                context.as_mut().log("No action");
+                env.as_mut().log("No action");
                 return false;
             }
         }

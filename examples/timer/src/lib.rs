@@ -26,15 +26,15 @@ impl<CTX> Component<CTX> for Model
 where
     CTX: AsMut<IntervalService> + AsMut<TimeoutService> + AsMut<ConsoleService> + 'static,
 {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, context: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
         // This callback doesn't send any message to a scope
         let callback = |_| {
             println!("Example of a standalone callback.");
         };
-        let interval: &mut IntervalService = context.as_mut();
+        let interval: &mut IntervalService = env.as_mut();
         let handle = interval.spawn(Duration::from_secs(10), callback.into());
 
         Model {
@@ -44,16 +44,16 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Msg, context: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::StartTimeout => {
                 {
-                    let callback = context.send_back(|_| Msg::Done);
-                    let timeout: &mut TimeoutService = context.as_mut();
+                    let callback = env.send_back(|_| Msg::Done);
+                    let timeout: &mut TimeoutService = env.as_mut();
                     let handle = timeout.spawn(Duration::from_secs(3), callback);
                     self.job = Some(Box::new(handle));
                 }
-                let console: &mut ConsoleService = context.as_mut();
+                let console: &mut ConsoleService = env.as_mut();
                 self.messages.clear();
                 console.clear();
                 self.messages.push("Timer started!");
@@ -61,12 +61,12 @@ where
             }
             Msg::StartInterval => {
                 {
-                    let callback = context.send_back(|_| Msg::Tick);
-                    let interval: &mut IntervalService = context.as_mut();
+                    let callback = env.send_back(|_| Msg::Tick);
+                    let interval: &mut IntervalService = env.as_mut();
                     let handle = interval.spawn(Duration::from_secs(1), callback);
                     self.job = Some(Box::new(handle));
                 }
-                let console: &mut ConsoleService = context.as_mut();
+                let console: &mut ConsoleService = env.as_mut();
                 self.messages.clear();
                 console.clear();
                 self.messages.push("Interval started!");
@@ -77,13 +77,13 @@ where
                     task.cancel();
                 }
                 self.messages.push("Canceled!");
-                let console: &mut ConsoleService = context.as_mut();
+                let console: &mut ConsoleService = env.as_mut();
                 console.warn("Canceled!");
                 console.assert(self.job.is_none(), "Job still exists!");
             }
             Msg::Done => {
                 self.messages.push("Done!");
-                let console: &mut ConsoleService = context.as_mut();
+                let console: &mut ConsoleService = env.as_mut();
                 console.group();
                 console.info("Done!");
                 console.time_named_end("Timer");
@@ -92,7 +92,7 @@ where
             }
             Msg::Tick => {
                 self.messages.push("Tick...");
-                let console: &mut ConsoleService = context.as_mut();
+                let console: &mut ConsoleService = env.as_mut();
                 console.count_named("Tick");
             }
         }

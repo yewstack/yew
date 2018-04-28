@@ -55,6 +55,7 @@ extern crate serde;
 extern crate serde_json;
 #[macro_use]
 extern crate stdweb;
+extern crate slab;
 
 #[macro_use]
 pub mod macros;
@@ -65,44 +66,11 @@ pub mod prelude;
 pub mod services;
 pub mod virtual_dom;
 pub mod callback;
+pub mod scheduler;
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
     stdweb::initialize();
-    js! {
-        var task = null;
-        var pool = [];
-        var routine = function() { };
-        var schedule_routine = function() {
-            if (task == null) {
-                task = setTimeout(routine);
-            }
-        };
-        routine = function() {
-            task = null;
-            // Don't process more than 25 loops per routine call
-            // to keep UI responsive
-            var limit = 25;
-            var callback = pool.pop();
-            while (callback !== undefined) {
-                callback.loop();
-                limit = limit - 1;
-                if (limit > 0) {
-                    callback = pool.pop();
-                } else {
-                    break;
-                }
-            }
-            if (pool.length > 0) {
-                schedule_routine();
-            }
-        };
-        var schedule = function(callback) {
-            pool.push(callback);
-            schedule_routine();
-        };
-        window._yew_schedule_ = schedule;
-    }
 }
 
 /// Starts event loop.

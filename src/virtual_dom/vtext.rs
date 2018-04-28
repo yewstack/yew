@@ -1,11 +1,11 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::{Reform, VDiff, VNode};
-use html::{Component, ScopeEnv};
 use std::cmp::PartialEq;
 use std::fmt;
 use std::marker::PhantomData;
 use stdweb::web::{document, INode, Node, TextNode};
+use html::{Component, Activator};
+use super::{Reform, VDiff, VNode};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -36,8 +36,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
     type Component = COMP;
 
     /// Remove VTag from parent.
-    fn remove(self, parent: &Node) -> Option<Node> {
-        let node = self.reference
+    fn detach(&mut self, parent: &Node) -> Option<Node> {
+        let node = self.reference.take()
             .expect("tried to remove not rendered VText from DOM");
         let sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
@@ -55,7 +55,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
         parent: &Node,
         _: Option<&Node>,
         opposite: Option<VNode<Self::Context, Self::Component>>,
-        _: ScopeEnv<Self::Context, Self::Component>,
+        _: &Activator<Self::Context, Self::Component>,
     ) -> Option<Node> {
         assert!(self.reference.is_none(), "reference is ignored so must not be set");
         let reform = {
@@ -70,8 +70,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
                     }
                     Reform::Keep
                 }
-                Some(vnode) => {
-                    let node = vnode.remove(parent);
+                Some(mut vnode) => {
+                    let node = vnode.detach(parent);
                     Reform::Before(node)
                 }
                 None => Reform::Before(None),

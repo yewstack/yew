@@ -28,7 +28,7 @@ impl<CTX> Component<CTX> for Model
 where
     CTX: Printer,
 {
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
@@ -38,7 +38,7 @@ where
         }
     }
 
-    fn update(&mut self, msg: Msg, context: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::Repaint => {
                 self.color = Color::Blue;
@@ -49,7 +49,7 @@ where
                 true
             }
             Msg::ChildClicked(value) => {
-                context.print(&format!("child clicked: {}", value));
+                env.print(&format!("child clicked: {}", value));
                 false
             }
         }

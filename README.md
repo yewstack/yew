@@ -34,14 +34,14 @@ enum Msg {
 impl Component<Context> for Model {
     // Some details omitted. Explore the examples to get more.
 
-    type Msg = Msg;
+    type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, _: &mut Env<Context, Self>) -> Self {
         Model { }
     }
 
-    fn update(&mut self, msg: Self::Msg, _: &mut Env<Context, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, _: &mut Env<Context, Self>) -> ShouldRender {
         match msg {
             Msg::DoIt => {
                 // Update your model on events
@@ -147,7 +147,7 @@ and supports fine control of rendering.
 The `ShouldRender` return value informs the loop when the component should be re-rendered:
 
 ```rust
-fn update(&mut self, msg: Self::Msg, _: &mut Env<Context, Self>) -> ShouldRender {
+fn update(&mut self, msg: Self::Message, _: &mut Env<Context, Self>) -> ShouldRender {
     match msg {
         Msg::UpdateValue(value) => {
             self.value = value;
@@ -223,7 +223,7 @@ struct Context {
 }
 
 impl Component<Context> for Model {
-    fn update(&mut self, msg: Self::Msg, context: &mut Env<Context, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, context: &mut Env<Context, Self>) -> ShouldRender {
         match msg {
             Msg::Fire => {
                 let send_msg = context.send_back(|_| Msg::Timeout);
@@ -290,7 +290,7 @@ struct Model {
 }
 
 impl Component<Context> for Model {
-    fn update(&mut self, msg: Self::Msg, context: &mut Env<Context, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, context: &mut Env<Context, Self>) -> ShouldRender {
         Msg::Store => {
             // Stores it, but in JSON format/layout
             context.local_storage.store(KEY, Json(&model.clients));
