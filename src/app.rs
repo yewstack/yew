@@ -9,8 +9,6 @@ use scheduler::Scheduler;
 pub struct App<CTX, COMP: Component<CTX>> {
     /// `Scope` holder
     scope: Option<Scope<CTX, COMP>>,
-    /// Activator of the created scope
-    env: Activator<CTX, COMP>,
 }
 
 impl<CTX, COMP> App<CTX, COMP>
@@ -26,10 +24,9 @@ where
 
     /// Creates isolated `App` instance, but reuse the context.
     pub fn reuse(scheduler: &Scheduler<CTX>) -> Self {
-        let (env, scope) = Scope::new(scheduler.clone());
+        let (_, scope) = Scope::new(scheduler.clone());
         App {
             scope: Some(scope),
-            env,
         }
     }
 
@@ -50,8 +47,7 @@ where
         clear_element(&element);
         self.scope.take()
             .expect("can't mount the same app twice")
-            .mount_in_place(element, None, None, None);
-        self.env
+            .mount_in_place(element, None, None, None)
     }
 }
 
