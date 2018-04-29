@@ -167,14 +167,15 @@ where
     CTX: 'static,
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
-    pub(crate) fn new(scheduler: Scheduler<CTX>) -> (Activator<CTX, COMP>, Self) {
+    pub(crate) fn new(scheduler: Scheduler<CTX>) -> Self {
         let index = Rc::new(RefCell::new(None));
         let queue = Rc::new(RefCell::new(VecDeque::new()));
-        let activator = Activator { index, scheduler, queue };
-        let scope = Scope {
-            env: activator.clone(),
-        };
-        (activator, scope)
+        let env = Activator { index, scheduler, queue };
+        Scope { env }
+    }
+
+    pub(crate) fn activator(&self) -> Activator<CTX, COMP> {
+        self.env.clone()
     }
 
     // TODO Consider to use &Node instead of Element as parent
