@@ -24,7 +24,7 @@ where
 
     /// Creates isolated `App` instance, but reuse the context.
     pub fn reuse(scheduler: &Scheduler<CTX>) -> Self {
-        let (_, scope) = Scope::new(scheduler.clone());
+        let scope = Scope::new(scheduler.clone());
         App {
             scope: Some(scope),
         }

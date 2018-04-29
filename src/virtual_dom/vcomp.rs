@@ -54,7 +54,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
                     *Box::from_raw(raw)
                 };
                 let opposite = obsolete.map(VNode::VRef);
-                let (env, scope): (_, Scope<CTX, CHILD>) = Scope::new(scheduler);
+                let scope: Scope<CTX, CHILD> = Scope::new(scheduler);
+                let env = scope.activator();
                 *lazy_activator.borrow_mut() = Some(env);
                 scope.mount_in_place(
                     element,
