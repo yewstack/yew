@@ -8,7 +8,7 @@ use scheduler::Scheduler;
 /// An application instance.
 pub struct App<CTX, COMP: Component<CTX>> {
     /// `Scope` holder
-    scope: Option<Scope<CTX, COMP>>,
+    scope: Scope<CTX, COMP>,
 }
 
 impl<CTX, COMP> App<CTX, COMP>
@@ -25,9 +25,7 @@ where
     /// Creates isolated `App` instance, but reuse the context.
     pub fn reuse(scheduler: &Scheduler<CTX>) -> Self {
         let scope = Scope::new(scheduler.clone());
-        App {
-            scope: Some(scope),
-        }
+        App { scope }
     }
 
     /// Alias to `mount("body", ...)`.
@@ -43,11 +41,9 @@ where
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount(mut self, element: Element) -> Activator<CTX, COMP> {
+    pub fn mount(self, element: Element) -> Activator<CTX, COMP> {
         clear_element(&element);
-        self.scope.take()
-            .expect("can't mount the same app twice")
-            .mount_in_place(element, None, None, None)
+        self.scope.mount_in_place(element, None, None, None)
     }
 }
 
