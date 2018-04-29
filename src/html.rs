@@ -189,7 +189,6 @@ where
     ) -> Activator<CTX, COMP> {
         let runnable = ScopeRunnable {
             env: self.env.clone(),
-            updates: self.env.queue.clone(),
             component: None,
             last_frame: None,
             element,
@@ -207,7 +206,6 @@ where
 
 struct ScopeRunnable<CTX, COMP: Component<CTX>> {
     env: Activator<CTX, COMP>,
-    updates: Rc<RefCell<VecDeque<ComponentUpdate<CTX, COMP>>>>,
     component: Option<COMP>,
     last_frame: Option<VNode<CTX, COMP>>,
     element: Element,
@@ -226,18 +224,18 @@ where
         let mut should_update = false;
         // Important! Don't clone it outside and move here, becase index
         // attached after this closure created!
-        let env = self.env.clone();
+        let upd = self.env.queue.borrow_mut()
+            .pop_front()
+            .expect("update message must be in a queue when routine scheduled");
         // This loop pops one item, because the following
         // updates could try to borrow the same cell
         // Important! Don't use `while let` here, because it
         // won't free the lock.
+        let env = self.env.clone();
         let mut context = Env {
             context: context,
             activator: &mut self.env,
         };
-        let upd = self.updates.borrow_mut()
-            .pop_front()
-            .expect("update message must be in a queue when routine scheduled");
         match upd {
             ComponentUpdate::Create => {
                 let props = self.init_props.take().unwrap_or_default();
