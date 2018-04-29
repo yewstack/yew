@@ -2,7 +2,7 @@
 //! a component in an isolated scope.
 
 use stdweb::web::{document, Element, INode, IParentNode};
-use html::{Scope, ScopeBuilder, Component, Renderable, Activator};
+use html::{Scope, Component, Renderable, Activator};
 use scheduler::Scheduler;
 
 /// An application instance.
@@ -26,8 +26,7 @@ where
 
     /// Creates isolated `App` instance, but reuse the context.
     pub fn reuse(scheduler: &Scheduler<CTX>) -> Self {
-        let builder = ScopeBuilder::new(scheduler.clone());
-        let (env, scope) = builder.build();
+        let (env, scope) = Scope::new(scheduler.clone());
         App {
             scope: Some(scope),
             env,
