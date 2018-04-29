@@ -153,33 +153,6 @@ impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
     }
 }
 
-// TODO Consider to remove this type
-/// Builder for new scopes
-pub(crate) struct ScopeBuilder<CTX, COMP: Component<CTX>> {
-    activator: Activator<CTX, COMP>,
-}
-
-impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
-    /// Prepares a new builder instance
-    pub fn new(scheduler: Scheduler<CTX>) -> Self {
-        let index = Rc::new(RefCell::new(None));
-        let queue = Rc::new(RefCell::new(VecDeque::new()));
-        let activator = Activator { index, scheduler, queue };
-        ScopeBuilder { activator }
-    }
-
-    // TODO Consider removing it
-    pub fn build(self) -> (Activator<CTX, COMP>, Scope<CTX, COMP>) {
-        let env = self.activator;
-        let scope = Scope {
-            env: env.clone(),
-        };
-        // TODO! It's possible to return App here
-        // TODO Consider to join ScopeBuilder with App
-        (env, scope)
-    }
-}
-
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
 pub(crate) struct Scope<CTX, COMP: Component<CTX>> {
@@ -194,6 +167,16 @@ where
     CTX: 'static,
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
+    pub(crate) fn new(scheduler: Scheduler<CTX>) -> (Activator<CTX, COMP>, Self) {
+        let index = Rc::new(RefCell::new(None));
+        let queue = Rc::new(RefCell::new(VecDeque::new()));
+        let activator = Activator { index, scheduler, queue };
+        let scope = Scope {
+            env: activator.clone(),
+        };
+        (activator, scope)
+    }
+
     // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node (ancestor).
     pub fn mount_in_place(
