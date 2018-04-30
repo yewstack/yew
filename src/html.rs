@@ -11,7 +11,7 @@ use stdweb::web::event::{BlurEvent, IKeyboardEvent, IMouseEvent};
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use virtual_dom::{Listener, VDiff, VNode};
 use callback::Callback;
-use scheduler::{Scheduler, RunnableIndex};
+use scheduler::{Scheduler, RunnableIndex, Runnable, WillDestroy};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -153,33 +153,6 @@ impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
     }
 }
 
-// TODO Consider to remove this type
-/// Builder for new scopes
-pub(crate) struct ScopeBuilder<CTX, COMP: Component<CTX>> {
-    activator: Activator<CTX, COMP>,
-}
-
-impl<CTX, COMP: Component<CTX>> ScopeBuilder<CTX, COMP> {
-    /// Prepares a new builder instance
-    pub fn new(scheduler: Scheduler<CTX>) -> Self {
-        let index = Rc::new(RefCell::new(None));
-        let queue = Rc::new(RefCell::new(VecDeque::new()));
-        let activator = Activator { index, scheduler, queue };
-        ScopeBuilder { activator }
-    }
-
-    // TODO Consider removing it
-    pub fn build(self) -> (Activator<CTX, COMP>, Scope<CTX, COMP>) {
-        let env = self.activator;
-        let scope = Scope {
-            env: env.clone(),
-        };
-        // TODO! It's possible to return App here
-        // TODO Consider to join ScopeBuilder with App
-        (env, scope)
-    }
-}
-
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
 pub(crate) struct Scope<CTX, COMP: Component<CTX>> {
@@ -194,80 +167,111 @@ where
     CTX: 'static,
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
+    pub(crate) fn new(scheduler: Scheduler<CTX>) -> Self {
+        let index = Rc::new(RefCell::new(None));
+        let queue = Rc::new(RefCell::new(VecDeque::new()));
+        let env = Activator { index, scheduler, queue };
+        Scope { env }
+    }
+
+    pub(crate) fn activator(&self) -> Activator<CTX, COMP> {
+        self.env.clone()
+    }
+
     // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node (ancestor).
     pub fn mount_in_place(
-        mut self,
+        self,
         element: Element,
-        mut ancestor: Option<VNode<CTX, COMP>>,
-        mut occupied: Option<NodeCell>,
-        mut init_props: Option<COMP::Properties>,
+        ancestor: Option<VNode<CTX, COMP>>,
+        occupied: Option<NodeCell>,
+        init_props: Option<COMP::Properties>,
     ) -> Activator<CTX, COMP> {
-        // TODO Move it to a struct which implements BeRunnable (avoid creating closures)
-        let mut component = None;
-        let mut last_frame = None;
-        let mut activator = self.env.clone();
-        let routine = {
-            let updates = self.env.queue.clone();
-            move |context: &mut CTX| {
-                let mut will_destroy = false;
-                let mut should_update = false;
-                // Important! Don't clone it outside and move here, becase index
-                // attached after this closure created!
-                let env = self.env.clone();
-                // This loop pops one item, because the following
-                // updates could try to borrow the same cell
-                // Important! Don't use `while let` here, because it
-                // won't free the lock.
-                let mut context = Env {
-                    context: context,
-                    activator: &mut self.env,
-                };
-                let upd = updates.borrow_mut()
-                    .pop_front()
-                    .expect("update message must be in a queue when routine scheduled");
-                match upd {
-                    ComponentUpdate::Create => {
-                        let props = init_props.take().unwrap_or_default();
-                        component = Some(COMP::create(props, &mut context));
-                        // No messages at start
-                        let current_frame = component.as_ref().unwrap().view();
-                        last_frame = Some(current_frame);
-                        // First-time rendering the tree
-                        let node = last_frame.as_mut()
-                            .unwrap()
-                            .apply(element.as_node(), None, ancestor.take(), &env);
-                        if let Some(ref mut cell) = occupied {
-                            *cell.borrow_mut() = node;
-                        }
-                    }
-                    ComponentUpdate::Message(msg) => {
-                        should_update |= component.as_mut().unwrap().update(msg, &mut context);
-                    }
-                    ComponentUpdate::Properties(props) => {
-                        should_update |= component.as_mut().unwrap().change(props, &mut context);
-                    }
-                    ComponentUpdate::Destroy => {
-                        will_destroy = true;
-                    }
-                }
-                if should_update {
-                    let mut next_frame = component.as_ref().unwrap().view();
-                    // Re-rendering the tree
-                    let node =
-                        next_frame.apply(element.as_node(), None, last_frame.take(), &env);
-                    if let Some(ref mut cell) = occupied {
-                        *cell.borrow_mut() = node;
-                    }
-                    last_frame = Some(next_frame);
-                }
-                will_destroy
-            }
+        let runnable = ScopeRunnable {
+            env: self.env.clone(),
+            component: None,
+            last_frame: None,
+            element,
+            ancestor,
+            occupied,
+            init_props,
         };
-        let idx = activator.scheduler.register(routine);
+        let mut activator = self.env.clone();
+        let idx = activator.scheduler.register(runnable);
         *activator.index.borrow_mut() = Some(idx);
         activator.send(ComponentUpdate::Create);
         activator
+    }
+}
+
+struct ScopeRunnable<CTX, COMP: Component<CTX>> {
+    env: Activator<CTX, COMP>,
+    component: Option<COMP>,
+    last_frame: Option<VNode<CTX, COMP>>,
+    element: Element,
+    ancestor: Option<VNode<CTX, COMP>>,
+    occupied: Option<NodeCell>,
+    init_props: Option<COMP::Properties>,
+}
+
+impl<CTX, COMP> Runnable<CTX> for ScopeRunnable<CTX, COMP>
+where
+    CTX: 'static,
+    COMP: Component<CTX> + Renderable<CTX, COMP>,
+{
+    fn run<'a>(&mut self, context: &'a mut CTX) -> WillDestroy {
+        let mut will_destroy = false;
+        let mut should_update = false;
+        // Important! Don't clone it outside and move here, becase index
+        // attached after this closure created!
+        let upd = self.env.queue.borrow_mut()
+            .pop_front()
+            .expect("update message must be in a queue when routine scheduled");
+        // This loop pops one item, because the following
+        // updates could try to borrow the same cell
+        // Important! Don't use `while let` here, because it
+        // won't free the lock.
+        let env = self.env.clone();
+        let mut context = Env {
+            context: context,
+            activator: &mut self.env,
+        };
+        match upd {
+            ComponentUpdate::Create => {
+                let props = self.init_props.take().unwrap_or_default();
+                self.component = Some(COMP::create(props, &mut context));
+                // No messages at start
+                let current_frame = self.component.as_ref().unwrap().view();
+                self.last_frame = Some(current_frame);
+                // First-time rendering the tree
+                let node = self.last_frame.as_mut()
+                    .unwrap()
+                    .apply(self.element.as_node(), None, self.ancestor.take(), &env);
+                if let Some(ref mut cell) = self.occupied {
+                    *cell.borrow_mut() = node;
+                }
+            }
+            ComponentUpdate::Message(msg) => {
+                should_update |= self.component.as_mut().unwrap().update(msg, &mut context);
+            }
+            ComponentUpdate::Properties(props) => {
+                should_update |= self.component.as_mut().unwrap().change(props, &mut context);
+            }
+            ComponentUpdate::Destroy => {
+                will_destroy = true;
+            }
+        }
+        if should_update {
+            let mut next_frame = self.component.as_ref().unwrap().view();
+            // Re-rendering the tree
+            let node =
+                next_frame.apply(self.element.as_node(), None, self.last_frame.take(), &env);
+            if let Some(ref mut cell) = self.occupied {
+                *cell.borrow_mut() = node;
+            }
+            self.last_frame = Some(next_frame);
+        }
+        will_destroy
     }
 }
 

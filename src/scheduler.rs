@@ -12,37 +12,28 @@ pub(crate) type RunnableIndex = usize;
 pub(crate) type WillDestroy = bool;
 
 /// Unspecified routine binded to a context.
-pub(crate) type Runnable<CTX> = Box<BeRunnable<CTX>>;
+pub(crate) type BoxedRunnable<CTX> = Box<Runnable<CTX>>;
 
 /// A routine which could be run.
-pub(crate) trait BeRunnable<CTX> {
+pub(crate) trait Runnable<CTX> {
     /// Runs a routine with a context instance.
     fn run<'a>(&mut self, context: &'a mut CTX) -> WillDestroy;
 }
 
-impl<T, CTX> BeRunnable<CTX> for T
-where
-    T: FnMut(&mut CTX) -> bool,
-{
-    fn run<'a>(&mut self, context: &'a mut CTX) -> WillDestroy {
-        self(context)
-    }
-}
-
 /// The `Pool` which keep a sequence of runnables to start next.
 struct Pool<CTX> {
-    slab: Slab<Rc<RefCell<Runnable<CTX>>>>,
+    slab: Slab<Rc<RefCell<BoxedRunnable<CTX>>>>,
     sequence: VecDeque<RunnableIndex>,
 }
 
 impl<CTX> Pool<CTX> {
     /// Put a runnable and return a unique id.
-    fn register(&mut self, runnable: Runnable<CTX>) -> RunnableIndex {
+    fn register(&mut self, runnable: BoxedRunnable<CTX>) -> RunnableIndex {
         let runnable = Rc::new(RefCell::new(runnable));
         self.slab.insert(runnable)
     }
 
-    fn unregister(&mut self, index: RunnableIndex) -> Runnable<CTX> {
+    fn unregister(&mut self, index: RunnableIndex) -> BoxedRunnable<CTX> {
         let runnable = self.slab.remove(index);
         Rc::try_unwrap(runnable).ok()
             .expect("runnable was locked")
@@ -53,7 +44,7 @@ impl<CTX> Pool<CTX> {
         self.sequence.push_back(index);
     }
 
-    fn next(&mut self) -> Option<(RunnableIndex, Rc<RefCell<Runnable<CTX>>>)> {
+    fn next(&mut self) -> Option<(RunnableIndex, Rc<RefCell<BoxedRunnable<CTX>>>)> {
         self.sequence.pop_front().and_then(|idx| {
             self.slab.get(idx).cloned().map(|runnable| (idx, runnable))
         })
@@ -88,11 +79,11 @@ impl<CTX> Scheduler<CTX> {
         }
     }
 
-    pub(crate) fn register<F>(&mut self, closure: F) -> RunnableIndex
+    pub(crate) fn register<T>(&mut self, runnable: T) -> RunnableIndex
     where
-        F: FnMut(&mut CTX) -> bool + 'static,
+        T: Runnable<CTX> + 'static,
     {
-        let runnable: Runnable<CTX> = Box::new(closure);
+        let runnable: BoxedRunnable<CTX> = Box::new(runnable);
         self.pool.try_borrow_mut()
             .expect("can't borrow slab to register a runnable")
             .register(runnable)
