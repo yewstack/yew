@@ -2,15 +2,13 @@
 //! a component in an isolated scope.
 
 use stdweb::web::{document, Element, INode, IParentNode};
-use html::{Scope, ScopeBuilder, Component, Renderable, Activator};
+use html::{Scope, Component, Renderable, Activator};
 use scheduler::Scheduler;
 
 /// An application instance.
 pub struct App<CTX, COMP: Component<CTX>> {
     /// `Scope` holder
-    scope: Option<Scope<CTX, COMP>>,
-    /// Activator of the created scope
-    env: Activator<CTX, COMP>,
+    scope: Scope<CTX, COMP>,
 }
 
 impl<CTX, COMP> App<CTX, COMP>
@@ -26,12 +24,8 @@ where
 
     /// Creates isolated `App` instance, but reuse the context.
     pub fn reuse(scheduler: &Scheduler<CTX>) -> Self {
-        let builder = ScopeBuilder::new(scheduler.clone());
-        let (env, scope) = builder.build();
-        App {
-            scope: Some(scope),
-            env,
-        }
+        let scope = Scope::new(scheduler.clone());
+        App { scope }
     }
 
     /// Alias to `mount("body", ...)`.
@@ -47,12 +41,9 @@ where
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount(mut self, element: Element) -> Activator<CTX, COMP> {
+    pub fn mount(self, element: Element) -> Activator<CTX, COMP> {
         clear_element(&element);
-        self.scope.take()
-            .expect("can't mount the same app twice")
-            .mount_in_place(element, None, None, None);
-        self.env
+        self.scope.mount_in_place(element, None, None, None)
     }
 }
 

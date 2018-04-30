@@ -6,7 +6,7 @@ use std::marker::PhantomData;
 use std::rc::Rc;
 use stdweb::unstable::TryInto;
 use stdweb::web::{document, Element, INode, Node};
-use html::{Component, ComponentUpdate, NodeCell, Renderable, ScopeBuilder, Activator};
+use html::{Component, ComponentUpdate, Scope, NodeCell, Renderable, Activator};
 use callback::Callback;
 use scheduler::Scheduler;
 use super::{Reform, VDiff, VNode};
@@ -53,11 +53,9 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
                     let raw: *mut CHILD::Properties = ::std::mem::transmute(raw);
                     *Box::from_raw(raw)
                 };
-
-                //let builder = builder.take().expect("tried to mount component twice");
                 let opposite = obsolete.map(VNode::VRef);
-                let builder: ScopeBuilder<CTX, CHILD> = ScopeBuilder::new(scheduler);
-                let (env, scope) = builder.build();
+                let scope: Scope<CTX, CHILD> = Scope::new(scheduler);
+                let env = scope.activator();
                 *lazy_activator.borrow_mut() = Some(env);
                 scope.mount_in_place(
                     element,
