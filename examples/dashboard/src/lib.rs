@@ -11,6 +11,8 @@ use yew::services::Task;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::services::websocket::{WebSocketService, WebSocketTask, WebSocketStatus};
 
+type AsBinary = bool;
+
 pub struct Model {
     fetching: bool,
     data: Option<u32>,
@@ -20,13 +22,13 @@ pub struct Model {
 
 pub enum WsAction {
     Connect,
-    SendData,
+    SendData(AsBinary),
     Disconnect,
     Lost,
 }
 
 pub enum Msg {
-    FetchData(bool),
+    FetchData(AsBinary),
     WsAction(WsAction),
     FetchReady(Result<DataFromFile, Error>),
     WsReady(Result<WsResponse, Error>),
@@ -112,11 +114,15 @@ where
                         let task = ws_service.connect("ws://localhost:9001/", callback, notification);
                         self.ws = Some(task);
                     }
-                    WsAction::SendData => {
+                    WsAction::SendData(binary) => {
                         let request = WsRequest {
                             value: 321,
                         };
-                        self.ws.as_mut().unwrap().send(Json(&request));
+                        if binary {
+                            self.ws.as_mut().unwrap().send_binary(Json(&request));
+                        } else {
+                            self.ws.as_mut().unwrap().send(Json(&request));
+                        }
                     }
                     WsAction::Disconnect => {
                         self.ws.take().unwrap().cancel();
@@ -155,7 +161,9 @@ where
                     <button disabled=self.ws.is_some(),
                             onclick=|_| WsAction::Connect.into(),>{ "Connect To WebSocket" }</button>
                     <button disabled=self.ws.is_none(),
-                            onclick=|_| WsAction::SendData.into(),>{ "Send To WebSocket" }</button>
+                            onclick=|_| WsAction::SendData(false).into(),>{ "Send To WebSocket" }</button>
+                    <button disabled=self.ws.is_none(),
+                            onclick=|_| WsAction::SendData(true).into(),>{ "Send To WebSocket [binary]" }</button>
                     <button disabled=self.ws.is_none(),
                             onclick=|_| WsAction::Disconnect.into(),>{ "Close WebSocket connection" }</button>
                 </nav>
