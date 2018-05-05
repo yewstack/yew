@@ -272,9 +272,9 @@ impl CcxtService {
 
 Yew allows for serialization (store/send and restore/recieve) formats.
 
-Implemented: `JSON`
+Implemented: `JSON`, `TOML`, `YAML`, `MSGPACK`, `CBOR`
 
-In development: `BSON`, `TOML`, `YAML`, `XML`
+In development: `BSON`, `XML`
 
 ```rust
 use yew::format::Json;
@@ -303,6 +303,14 @@ impl Component<Context> for Model {
         }
     }
 }
+```
+
+By default only `Json` format available, but you can activate more with features in
+`Cargo.toml` of your project:
+
+```toml
+[dependencies]
+yew = { git = "https://github.com/DenisKolodin/yew", features = ["toml", "yaml", "msgpack", "cbor"] }
 ```
 
 ## Development setup

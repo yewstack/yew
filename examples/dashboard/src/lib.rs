@@ -6,10 +6,17 @@ extern crate yew;
 
 use failure::Error;
 use yew::prelude::*;
-use yew::format::{Nothing, Json};
+use yew::format::{Nothing, Json, Toml};
 use yew::services::Task;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::services::websocket::{WebSocketService, WebSocketTask, WebSocketStatus};
+
+type AsBinary = bool;
+
+pub enum Format {
+    Json,
+    Toml,
+}
 
 pub struct Model {
     fetching: bool,
@@ -20,13 +27,13 @@ pub struct Model {
 
 pub enum WsAction {
     Connect,
-    SendData,
+    SendData(AsBinary),
     Disconnect,
     Lost,
 }
 
 pub enum Msg {
-    FetchData,
+    FetchData(Format, AsBinary),
     WsAction(WsAction),
     FetchReady(Result<DataFromFile, Error>),
     WsReady(Result<WsResponse, Error>),
@@ -76,20 +83,46 @@ where
 
     fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
-            Msg::FetchData => {
+            Msg::FetchData(format, binary) => {
                 self.fetching = true;
-                let callback = env.send_back(|response: Response<Json<Result<DataFromFile, Error>>>| {
-                    let (meta, Json(data)) = response.into_parts();
-                    println!("META: {:?}, {:?}", meta, data);
-                    if meta.status.is_success() {
-                        Msg::FetchReady(data)
-                    } else {
-                        Msg::Ignore  // FIXME: Handle this error accordingly.
-                    }
-                });
-                let request = Request::get("/data.json").body(Nothing).unwrap();
-                let fetch_service: &mut FetchService = env.as_mut();
-                let task = fetch_service.fetch(request, callback);
+                let task = match format {
+                    Format::Json => {
+                        let callback = env.send_back(move |response: Response<Json<Result<DataFromFile, Error>>>| {
+                            let (meta, Json(data)) = response.into_parts();
+                            println!("META: {:?}, {:?}", meta, data);
+                            if meta.status.is_success() {
+                                Msg::FetchReady(data)
+                            } else {
+                                Msg::Ignore  // FIXME: Handle this error accordingly.
+                            }
+                        });
+                        let request = Request::get("/data.json").body(Nothing).unwrap();
+                        let fetch_service: &mut FetchService = env.as_mut();
+                        if binary {
+                            fetch_service.fetch_binary(request, callback)
+                        } else {
+                            fetch_service.fetch(request, callback)
+                        }
+                    },
+                    Format::Toml => {
+                        let callback = env.send_back(move |response: Response<Toml<Result<DataFromFile, Error>>>| {
+                            let (meta, Toml(data)) = response.into_parts();
+                            println!("META: {:?}, {:?}", meta, data);
+                            if meta.status.is_success() {
+                                Msg::FetchReady(data)
+                            } else {
+                                Msg::Ignore  // FIXME: Handle this error accordingly.
+                            }
+                        });
+                        let request = Request::get("/data.toml").body(Nothing).unwrap();
+                        let fetch_service: &mut FetchService = env.as_mut();
+                        if binary {
+                            fetch_service.fetch_binary(request, callback)
+                        } else {
+                            fetch_service.fetch(request, callback)
+                        }
+                    },
+                };
                 self.ft = Some(task);
             }
             Msg::WsAction(action) => {
@@ -106,11 +139,15 @@ where
                         let task = ws_service.connect("ws://localhost:9001/", callback, notification);
                         self.ws = Some(task);
                     }
-                    WsAction::SendData => {
+                    WsAction::SendData(binary) => {
                         let request = WsRequest {
                             value: 321,
                         };
-                        self.ws.as_mut().unwrap().send(Json(&request));
+                        if binary {
+                            self.ws.as_mut().unwrap().send_binary(Json(&request));
+                        } else {
+                            self.ws.as_mut().unwrap().send(Json(&request));
+                        }
                     }
                     WsAction::Disconnect => {
                         self.ws.take().unwrap().cancel();
@@ -143,12 +180,16 @@ where
         html! {
             <div>
                 <nav class="menu",>
-                    <button onclick=|_| Msg::FetchData,>{ "Fetch Data" }</button>
+                    <button onclick=|_| Msg::FetchData(Format::Json, false),>{ "Fetch Data" }</button>
+                    <button onclick=|_| Msg::FetchData(Format::Json, true),>{ "Fetch Data [binary]" }</button>
+                    <button onclick=|_| Msg::FetchData(Format::Toml, false),>{ "Fetch Data [toml]" }</button>
                     { self.view_data() }
                     <button disabled=self.ws.is_some(),
                             onclick=|_| WsAction::Connect.into(),>{ "Connect To WebSocket" }</button>
                     <button disabled=self.ws.is_none(),
-                            onclick=|_| WsAction::SendData.into(),>{ "Send To WebSocket" }</button>
+                            onclick=|_| WsAction::SendData(false).into(),>{ "Send To WebSocket" }</button>
+                    <button disabled=self.ws.is_none(),
+                            onclick=|_| WsAction::SendData(true).into(),>{ "Send To WebSocket [binary]" }</button>
                     <button disabled=self.ws.is_none(),
                             onclick=|_| WsAction::Disconnect.into(),>{ "Close WebSocket connection" }</button>
                 </nav>
