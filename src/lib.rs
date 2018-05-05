@@ -62,6 +62,8 @@ extern crate toml;
 extern crate serde_yaml;
 #[cfg(feature = "msgpack")]
 extern crate rmp_serde;
+#[cfg(feature = "cbor")]
+extern crate serde_cbor;
 
 #[macro_use]
 pub mod macros;
