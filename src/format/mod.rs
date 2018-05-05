@@ -6,6 +6,8 @@
 
 use failure::Error;
 
+#[macro_use]
+pub mod macros;
 pub mod nothing;
 pub mod json;
 #[cfg(feature = "toml")]
