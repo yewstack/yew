@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use stdweb::Value;
-use stdweb::unstable::{TryFrom, TryInto};
+use stdweb::unstable::TryInto;
 
 use super::Task;
 use format::Text;
@@ -79,7 +79,6 @@ impl FetchService {
     ///         }
     /// ```
     ///
-
     pub fn fetch<IN, OUT: 'static>(
         &mut self,
         request: Request<IN>,
@@ -108,38 +107,23 @@ impl FetchService {
 
         // Formats URI.
         let uri = format!("{}", parts.uri);
+        let method = parts.method.as_str();
+        let body = body.into().ok();
+        let binary = false;
 
         // Prepare the response callback.
         // Notice that the callback signature must match the call from the javascript
         // side. There is no static check at this point.
-        let callback = move |success: bool, response: Value, body: String| {
+        let callback = move |success: bool, status: u16, headers: HashMap<String, String>, data: String| {
             let mut response_builder = Response::builder();
-
-            // Deserialize response status.
-            let status = u16::try_from(js!{
-                return @{&response}.status;
-            });
-
-            if let Ok(code) = status {
-                response_builder.status(code);
-            }
-
-            // Deserialize response headers.
-            let headers: HashMap<String, String> = HashMap::try_from(js!{
-                var map = {};
-                @{&response}.headers.forEach(function(value, key) {
-                    map[key] = value;
-                });
-                return map;
-            }).unwrap_or_default();
-
+            response_builder.status(status);
             for (key, values) in &headers {
                 response_builder.header(key.as_str(), values.as_str());
             }
 
-            // Deserialize and wrap response body into a Text object.
+            // Deserialize and wrap response data into a Text object.
             let data = if success {
-                Ok(body)
+                Ok(data)
             } else {
                 Err(FetchError::FailedResponse.into())
             };
@@ -150,8 +134,8 @@ impl FetchService {
 
         let handle = js! {
             var data = {
-                method: @{parts.method.as_str()},
-                body: @{body.into().ok()},
+                method: @{method},
+                body: @{body},
                 headers: @{header_map},
             };
             var request = new Request(@{uri}, data);
@@ -161,16 +145,22 @@ impl FetchService {
                 callback,
             };
             fetch(request).then(function(response) {
-                response.text().then(function(data) {
+                var promise = response.text();
+                var status = response.status;
+                var headers = {};
+                response.headers.forEach(function(value, key) {
+                    headers[key] = value;
+                });
+                promise.then(function(data) {
                     if (handle.active == true) {
                         handle.active = false;
-                        callback(true, response, data);
+                        callback(true, status, headers, data);
                         callback.drop();
                     }
                 }).catch(function(err) {
                     if (handle.active == true) {
                         handle.active = false;
-                        callback(false, response, data);
+                        callback(false, status, headers, data);
                         callback.drop();
                     }
                 });
