@@ -9,7 +9,7 @@ use stdweb::web::event::{
     SocketErrorEvent,
 };
 use stdweb::traits::IMessageEvent;
-use format::{Restorable, Storable};
+use format::Text;
 use callback::Callback;
 use super::Task;
 
@@ -48,7 +48,7 @@ impl WebSocketService {
         notification: Callback<WebSocketStatus>,
     ) -> WebSocketTask
     where
-        OUT: From<Restorable>,
+        OUT: From<Text>,
     {
         let ws = WebSocket::new(url).unwrap();
         let notify = notification.clone();
@@ -78,7 +78,7 @@ impl WebSocketTask {
     /// Sends data to a websocket connection.
     pub fn send<IN>(&mut self, data: IN)
     where
-        IN: Into<Storable>,
+        IN: Into<Text>,
     {
         if let Ok(body) = data.into() {
             if let Err(_) = self.ws.send_text(&body) {

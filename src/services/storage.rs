@@ -1,7 +1,7 @@
 //! This module contains the implementation of a service to
 //! use local and session storage of a browser.
 
-use format::{Restorable, Storable};
+use format::Text;
 use stdweb::web::{window, Storage};
 
 /// Represents errors of a storage.
@@ -39,7 +39,7 @@ impl StorageService {
     /// Stores value to the storage.
     pub fn store<T>(&mut self, key: &str, value: T)
     where
-        T: Into<Storable>,
+        T: Into<Text>,
     {
         if let Ok(data) = value.into() {
             self.storage
@@ -51,7 +51,7 @@ impl StorageService {
     /// Restores value from the storage.
     pub fn restore<T>(&mut self, key: &str) -> T
     where
-        T: From<Restorable>,
+        T: From<Text>,
     {
         let data = self.storage
             .get(key)

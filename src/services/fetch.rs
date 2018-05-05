@@ -6,7 +6,7 @@ use stdweb::Value;
 use stdweb::unstable::{TryFrom, TryInto};
 
 use super::Task;
-use format::{Restorable, Storable};
+use format::Text;
 use callback::Callback;
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
@@ -86,8 +86,8 @@ impl FetchService {
         callback: Callback<Response<OUT>>,
     ) -> FetchTask
     where
-        IN: Into<Storable>,
-        OUT: From<Restorable>,
+        IN: Into<Text>,
+        OUT: From<Text>,
     {
         // Consume request as parts and body.
         let (parts, body) = request.into_parts();
@@ -137,7 +137,7 @@ impl FetchService {
                 response_builder.header(key.as_str(), values.as_str());
             }
 
-            // Deserialize and wrap response body into a Restorable object.
+            // Deserialize and wrap response body into a Text object.
             let data = if success {
                 Ok(body)
             } else {
