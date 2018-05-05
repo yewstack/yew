@@ -6,12 +6,17 @@ extern crate yew;
 
 use failure::Error;
 use yew::prelude::*;
-use yew::format::{Nothing, Json};
+use yew::format::{Nothing, Json, Toml};
 use yew::services::Task;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::services::websocket::{WebSocketService, WebSocketTask, WebSocketStatus};
 
 type AsBinary = bool;
+
+pub enum Format {
+    Json,
+    Toml,
+}
 
 pub struct Model {
     fetching: bool,
@@ -28,7 +33,7 @@ pub enum WsAction {
 }
 
 pub enum Msg {
-    FetchData(AsBinary),
+    FetchData(Format, AsBinary),
     WsAction(WsAction),
     FetchReady(Result<DataFromFile, Error>),
     WsReady(Result<WsResponse, Error>),
@@ -78,25 +83,45 @@ where
 
     fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
-            Msg::FetchData(binary) => {
+            Msg::FetchData(format, binary) => {
                 self.fetching = true;
-                let callback = env.send_back(|response: Response<Json<Result<DataFromFile, Error>>>| {
-                    let (meta, Json(data)) = response.into_parts();
-                    println!("META: {:?}, {:?}", meta, data);
-                    if meta.status.is_success() {
-                        Msg::FetchReady(data)
-                    } else {
-                        Msg::Ignore  // FIXME: Handle this error accordingly.
-                    }
-                });
-                let request = Request::get("/data.json").body(Nothing).unwrap();
-                let fetch_service: &mut FetchService = env.as_mut();
-                let task = {
-                    if binary {
-                        fetch_service.fetch_binary(request, callback)
-                    } else {
-                        fetch_service.fetch(request, callback)
-                    }
+                let task = match format {
+                    Format::Json => {
+                        let callback = env.send_back(move |response: Response<Json<Result<DataFromFile, Error>>>| {
+                            let (meta, Json(data)) = response.into_parts();
+                            println!("META: {:?}, {:?}", meta, data);
+                            if meta.status.is_success() {
+                                Msg::FetchReady(data)
+                            } else {
+                                Msg::Ignore  // FIXME: Handle this error accordingly.
+                            }
+                        });
+                        let request = Request::get("/data.json").body(Nothing).unwrap();
+                        let fetch_service: &mut FetchService = env.as_mut();
+                        if binary {
+                            fetch_service.fetch_binary(request, callback)
+                        } else {
+                            fetch_service.fetch(request, callback)
+                        }
+                    },
+                    Format::Toml => {
+                        let callback = env.send_back(move |response: Response<Toml<Result<DataFromFile, Error>>>| {
+                            let (meta, Toml(data)) = response.into_parts();
+                            println!("META: {:?}, {:?}", meta, data);
+                            if meta.status.is_success() {
+                                Msg::FetchReady(data)
+                            } else {
+                                Msg::Ignore  // FIXME: Handle this error accordingly.
+                            }
+                        });
+                        let request = Request::get("/data.toml").body(Nothing).unwrap();
+                        let fetch_service: &mut FetchService = env.as_mut();
+                        if binary {
+                            fetch_service.fetch_binary(request, callback)
+                        } else {
+                            fetch_service.fetch(request, callback)
+                        }
+                    },
                 };
                 self.ft = Some(task);
             }
@@ -155,8 +180,9 @@ where
         html! {
             <div>
                 <nav class="menu",>
-                    <button onclick=|_| Msg::FetchData(false),>{ "Fetch Data" }</button>
-                    <button onclick=|_| Msg::FetchData(true),>{ "Fetch Data [binary]" }</button>
+                    <button onclick=|_| Msg::FetchData(Format::Json, false),>{ "Fetch Data" }</button>
+                    <button onclick=|_| Msg::FetchData(Format::Json, true),>{ "Fetch Data [binary]" }</button>
+                    <button onclick=|_| Msg::FetchData(Format::Toml, false),>{ "Fetch Data [toml]" }</button>
                     { self.view_data() }
                     <button disabled=self.ws.is_some(),
                             onclick=|_| WsAction::Connect.into(),>{ "Connect To WebSocket" }</button>
