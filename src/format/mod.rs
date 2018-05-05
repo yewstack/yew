@@ -14,6 +14,8 @@ pub mod json;
 pub mod toml;
 #[cfg(feature = "yaml")]
 pub mod yaml;
+#[cfg(feature = "msgpack")]
+pub mod msgpack;
 
 pub use self::nothing::Nothing;
 pub use self::json::Json;
@@ -21,6 +23,8 @@ pub use self::json::Json;
 pub use self::toml::Toml;
 #[cfg(feature = "yaml")]
 pub use self::yaml::Yaml;
+#[cfg(feature = "msgpack")]
+pub use self::msgpack::MsgPack;
 
 /// A representation of a value which can be stored and restored as a text.
 pub type Text = Result<String, Error>;
