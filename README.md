@@ -4,6 +4,8 @@
 
 Yew is a modern Rust framework inspired by Elm and ReactJS.
 
+[Become a sponsor on Patreon](https://www.patreon.com/deniskolodin)
+
 ## Cutting Edge technologies
 
 ### Rust to WASM compilation
