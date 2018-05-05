@@ -6,7 +6,7 @@ use stdweb::{Value, JsSerialize};
 use stdweb::unstable::{TryInto, TryFrom};
 
 use super::Task;
-use format::{Format, Text};
+use format::{Format, Text, Binary};
 use callback::Callback;
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
@@ -89,6 +89,19 @@ impl FetchService {
         OUT: From<Text>,
     {
         fetch_impl(false, request, callback)
+    }
+
+    /// Fetch the data in binary format.
+    pub fn fetch_binary<IN, OUT: 'static>(
+        &mut self,
+        request: Request<IN>,
+        callback: Callback<Response<OUT>>,
+    ) -> FetchTask
+    where
+        IN: Into<Binary>,
+        OUT: From<Binary>,
+    {
+        fetch_impl(true, request, callback)
     }
 }
 
