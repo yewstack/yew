@@ -58,6 +58,8 @@ extern crate stdweb;
 extern crate slab;
 #[cfg(feature = "toml")]
 extern crate toml;
+#[cfg(feature = "yaml")]
+extern crate serde_yaml;
 
 #[macro_use]
 pub mod macros;
