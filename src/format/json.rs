@@ -14,4 +14,6 @@ use serde_json;
 /// ```
 pub struct Json<T>(pub T);
 
-impl_format!(Json based on serde_json);
+text_format!(Json based on serde_json);
+
+binary_format!(Json based on serde_json);
