@@ -151,7 +151,7 @@ impl FetchService {
         let handle = js! {
             var data = {
                 method: @{parts.method.as_str()},
-                body: @{body.into()},
+                body: @{body.into().ok()},
                 headers: @{header_map},
             };
             var request = new Request(@{uri}, data);

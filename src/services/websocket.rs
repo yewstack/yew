@@ -80,7 +80,7 @@ impl WebSocketTask {
     where
         IN: Into<Storable>,
     {
-        if let Some(body) = data.into() {
+        if let Ok(body) = data.into() {
             if let Err(_) = self.ws.send_text(&body) {
                 self.notification.emit(WebSocketStatus::Error);
             }
