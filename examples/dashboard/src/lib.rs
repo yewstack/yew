@@ -26,7 +26,7 @@ pub enum WsAction {
 }
 
 pub enum Msg {
-    FetchData,
+    FetchData(bool),
     WsAction(WsAction),
     FetchReady(Result<DataFromFile, Error>),
     WsReady(Result<WsResponse, Error>),
@@ -76,7 +76,7 @@ where
 
     fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
-            Msg::FetchData => {
+            Msg::FetchData(binary) => {
                 self.fetching = true;
                 let callback = env.send_back(|response: Response<Json<Result<DataFromFile, Error>>>| {
                     let (meta, Json(data)) = response.into_parts();
@@ -89,7 +89,13 @@ where
                 });
                 let request = Request::get("/data.json").body(Nothing).unwrap();
                 let fetch_service: &mut FetchService = env.as_mut();
-                let task = fetch_service.fetch(request, callback);
+                let task = {
+                    if binary {
+                        fetch_service.fetch_binary(request, callback)
+                    } else {
+                        fetch_service.fetch(request, callback)
+                    }
+                };
                 self.ft = Some(task);
             }
             Msg::WsAction(action) => {
@@ -143,7 +149,8 @@ where
         html! {
             <div>
                 <nav class="menu",>
-                    <button onclick=|_| Msg::FetchData,>{ "Fetch Data" }</button>
+                    <button onclick=|_| Msg::FetchData(false),>{ "Fetch Data" }</button>
+                    <button onclick=|_| Msg::FetchData(true),>{ "Fetch Data [binary]" }</button>
                     { self.view_data() }
                     <button disabled=self.ws.is_some(),
                             onclick=|_| WsAction::Connect.into(),>{ "Connect To WebSocket" }</button>
