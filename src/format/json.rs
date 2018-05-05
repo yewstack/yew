@@ -1,49 +1,9 @@
-//! Utility module to convert data to types and back by
-//! specific formats like: JSON, BSON, TOML, YAML, XML.
-//!
-//! All types here are lazy and it's necessary to
-//! use `Into` and `From` traits to get (convert) the data.
+//! Contains an implementation of JSON serialization format.
 
-use failure::{Error, err_msg};
+use failure::Error;
 use serde::{Deserialize, Serialize};
 use serde_json;
-
-/// A representation of a value which can be stored and restored as a text.
-pub type Text = Result<String, Error>;
-
-/// A representation of a value which can be stored and restored as a binary.
-pub type Binary = Result<Vec<u8>, Error>;
-
-/// A helper which represents a specific format.
-#[doc(hidden)]
-pub type Format<T> = Result<T, Error>;
-
-/// A representation of an empty data. Nothing stored. Nothing restored.
-pub struct Nothing;
-
-impl Into<Text> for Nothing {
-    fn into(self) -> Text {
-        Err(err_msg("nothing"))
-    }
-}
-
-impl From<Text> for Nothing {
-    fn from(_: Text) -> Nothing {
-        Nothing
-    }
-}
-
-impl Into<Binary> for Nothing {
-    fn into(self) -> Binary {
-        Err(err_msg("nothing"))
-    }
-}
-
-impl From<Binary> for Nothing {
-    fn from(_: Binary) -> Nothing {
-        Nothing
-    }
-}
+use super::{Text, Binary};
 
 /// A representation of a JSON data. Use it as wrapper to
 /// set a format you want to use for conversion:
