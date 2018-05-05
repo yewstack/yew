@@ -4,12 +4,12 @@
 //! All types here are lazy and it's necessary to
 //! use `Into` and `From` traits to get (convert) the data.
 
-use failure::Error;
+use failure::{Error, err_msg};
 use serde::{Deserialize, Serialize};
 use serde_json;
 
 /// A representation of a value which can be stored.
-pub type Storable = Option<String>;
+pub type Storable = Result<String, Error>;
 
 /// A representation of a value which can be restored.
 pub type Restorable = Result<String, Error>;
@@ -19,7 +19,7 @@ pub struct Nothing;
 
 impl Into<Storable> for Nothing {
     fn into(self) -> Storable {
-        None
+        Err(err_msg("nothing"))
     }
 }
 
@@ -46,7 +46,7 @@ where
     T: Serialize,
 {
     fn into(self) -> Storable {
-        serde_json::to_string(&self.0).ok()
+        serde_json::to_string(&self.0).map_err(Error::from)
     }
 }
 

@@ -41,7 +41,7 @@ impl StorageService {
     where
         T: Into<Storable>,
     {
-        if let Some(data) = value.into() {
+        if let Ok(data) = value.into() {
             self.storage
                 .insert(key, &data)
                 .expect("can't insert value to a storage");
