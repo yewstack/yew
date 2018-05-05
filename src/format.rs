@@ -8,23 +8,20 @@ use failure::{Error, err_msg};
 use serde::{Deserialize, Serialize};
 use serde_json;
 
-/// A representation of a value which can be stored.
-pub type Storable = Result<String, Error>;
-
-/// A representation of a value which can be restored.
-pub type Restorable = Result<String, Error>;
+/// A representation of a value which can be stored and restored as a text.
+pub type Text = Result<String, Error>;
 
 /// A representation of an empty data. Nothing stored. Nothing restored.
 pub struct Nothing;
 
-impl Into<Storable> for Nothing {
-    fn into(self) -> Storable {
+impl Into<Text> for Nothing {
+    fn into(self) -> Text {
         Err(err_msg("nothing"))
     }
 }
 
-impl From<Restorable> for Nothing {
-    fn from(_: Restorable) -> Nothing {
+impl From<Text> for Nothing {
+    fn from(_: Text) -> Nothing {
         Nothing
     }
 }
@@ -41,20 +38,20 @@ impl From<Restorable> for Nothing {
 /// ```
 pub struct Json<T>(pub T);
 
-impl<'a, T> Into<Storable> for Json<&'a T>
+impl<'a, T> Into<Text> for Json<&'a T>
 where
     T: Serialize,
 {
-    fn into(self) -> Storable {
+    fn into(self) -> Text {
         serde_json::to_string(&self.0).map_err(Error::from)
     }
 }
 
-impl<T> From<Restorable> for Json<Result<T, Error>>
+impl<T> From<Text> for Json<Result<T, Error>>
 where
     T: for<'de> Deserialize<'de>,
 {
-    fn from(value: Restorable) -> Self {
+    fn from(value: Text) -> Self {
         match value {
             Ok(data) => Json(serde_json::from_str(&data).map_err(Error::from)),
             Err(reason) => Json(Err(reason)),
