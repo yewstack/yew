@@ -1,6 +1,6 @@
 //! Contains macro for wrapping serde format.
 
-macro_rules! impl_format {
+macro_rules! text_format {
     ($type:ident based on $format:ident) => {
         impl<'a, T> Into<$crate::format::Text> for $type<&'a T>
         where
@@ -22,7 +22,11 @@ macro_rules! impl_format {
                 }
             }
         }
+    };
+}
 
+macro_rules! binary_format {
+    ($type:ident based on $format:ident) => {
         impl<'a, T> Into<$crate::format::Binary> for $type<&'a T>
         where
             T: ::serde::Serialize,

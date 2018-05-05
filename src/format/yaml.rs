@@ -14,4 +14,6 @@ use serde_yaml;
 /// ```
 pub struct Yaml<T>(pub T);
 
-impl_format!(Yaml based on serde_yaml);
+text_format!(Yaml based on serde_yaml);
+
+binary_format!(Yaml based on serde_yaml);

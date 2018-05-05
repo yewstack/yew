@@ -14,4 +14,6 @@ use toml;
 /// ```
 pub struct Toml<T>(pub T);
 
-impl_format!(Toml based on toml);
+text_format!(Toml based on toml);
+
+binary_format!(Toml based on toml);
