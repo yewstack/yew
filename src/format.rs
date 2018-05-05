@@ -14,6 +14,10 @@ pub type Text = Result<String, Error>;
 /// A representation of a value which can be stored and restored as a binary.
 pub type Binary = Result<Vec<u8>, Error>;
 
+/// A helper which represents a specific format.
+#[doc(hidden)]
+pub type Format<T> = Result<T, Error>;
+
 /// A representation of an empty data. Nothing stored. Nothing restored.
 pub struct Nothing;
 
