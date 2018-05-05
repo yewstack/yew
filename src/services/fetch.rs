@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 
 use stdweb::{Value, JsSerialize};
+use stdweb::web::ArrayBuffer;
 use stdweb::unstable::{TryInto, TryFrom};
 
 use super::Task;
@@ -88,7 +89,7 @@ impl FetchService {
         IN: Into<Text>,
         OUT: From<Text>,
     {
-        fetch_impl(false, request, callback)
+        fetch_impl::<IN, OUT, String, String>(false, request, callback)
     }
 
     /// Fetch the data in binary format.
@@ -101,11 +102,11 @@ impl FetchService {
         IN: Into<Binary>,
         OUT: From<Binary>,
     {
-        fetch_impl(true, request, callback)
+        fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, callback)
     }
 }
 
-fn fetch_impl<IN, OUT: 'static, T>(
+fn fetch_impl<IN, OUT: 'static, T, X>(
     binary: bool,
     request: Request<IN>,
     callback: Callback<Response<OUT>>,
@@ -113,7 +114,8 @@ fn fetch_impl<IN, OUT: 'static, T>(
 where
     IN: Into<Format<T>>,
     OUT: From<Format<T>>,
-    T: JsSerialize + TryFrom<Value>,
+    T: JsSerialize,
+    X: TryFrom<Value> + Into<T>,
 {
     // Consume request as parts and body.
     let (parts, body) = request.into_parts();
@@ -140,7 +142,7 @@ where
     // Prepare the response callback.
     // Notice that the callback signature must match the call from the javascript
     // side. There is no static check at this point.
-    let callback = move |success: bool, status: u16, headers: HashMap<String, String>, data: T| {
+    let callback = move |success: bool, status: u16, headers: HashMap<String, String>, data: X| {
         let mut response_builder = Response::builder();
         response_builder.status(status);
         for (key, values) in &headers {
@@ -149,7 +151,7 @@ where
 
         // Deserialize and wrap response data into a Text object.
         let data = if success {
-            Ok(data)
+            Ok(data.into())
         } else {
             Err(FetchError::FailedResponse.into())
         };
