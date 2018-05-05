@@ -8,9 +8,13 @@ use failure::Error;
 
 pub mod nothing;
 pub mod json;
+#[cfg(feature = "toml")]
+pub mod toml;
 
 pub use self::nothing::Nothing;
 pub use self::json::Json;
+#[cfg(feature = "toml")]
+pub use self::toml::Toml;
 
 /// A representation of a value which can be stored and restored as a text.
 pub type Text = Result<String, Error>;
