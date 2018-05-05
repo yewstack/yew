@@ -56,6 +56,8 @@ extern crate serde_json;
 #[macro_use]
 extern crate stdweb;
 extern crate slab;
+#[cfg(feature = "toml")]
+extern crate toml;
 
 #[macro_use]
 pub mod macros;
