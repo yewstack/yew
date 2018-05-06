@@ -7,8 +7,18 @@
 //! use yew::prelude::*;
 //! ```
 
-pub use html::{Component, Env, Href, Html, InputData, KeyData, MouseData, Renderable,
-               ShouldRender};
+pub use html::{
+    Component,
+    Env,
+    Href,
+    Html,
+    ChangeData,
+    InputData,
+    KeyData,
+    MouseData,
+    Renderable,
+    ShouldRender,
+};
 
 pub use app::App;
 

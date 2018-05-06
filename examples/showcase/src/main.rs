@@ -1,5 +1,9 @@
 #![recursion_limit="128"]
 
+extern crate strum;
+#[macro_use]
+extern crate strum_macros;
+
 #[macro_use]
 extern crate yew;
 extern crate counter;
@@ -17,6 +21,8 @@ extern crate timer;
 extern crate todomvc;
 extern crate two_apps;
 
+use strum::IntoEnumIterator;
+use std::str::FromStr;
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
 use yew::services::dialog::DialogService;
@@ -121,6 +127,7 @@ impl AsMut<two_apps::Context> for Context {
     }
 }
 
+#[derive(Debug, Display, EnumString, EnumIter)]
 enum Scene {
     NotSelected,
     Counter,
@@ -163,24 +170,36 @@ impl Component<Context> for Scene {
 
 impl Renderable<Context, Scene> for Scene {
     fn view(&self) -> Html<Context, Self> {
+        let _options = Scene::iter().map(|scene| {
+            html! {
+                <option value={ scene.to_string() }, > { scene.to_string() } </option>
+            }
+        });
+
         html! {
-            <p>{ "Showcase" }</p>
-            <button onclick=|_| Msg::SwitchTo(Scene::NotSelected),>{ "Home" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::Counter),>{ "Counter" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::Crm),>{ "Crm" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::CustomComponents),>{ "CustomComponents" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::Dashboard),>{ "Dashboard" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::Fragments),>{ "Fragments" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::GameOfLife),>{ "GameOfLife" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::InnerHtml),>{ "InnerHtml" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::LargeTable),>{ "LargeTable" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::MountPoint),>{ "MountPoint" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::NpmAndRest),>{ "NpmAndRest" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::Textarea),>{ "Textarea" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::Timer),>{ "Timer" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::Todomvc),>{ "Todomvc" }</button>
-            <button onclick=|_| Msg::SwitchTo(Scene::TwoApps),>{ "TwoApps" }</button>
-            { self.view_scene() }
+            <div id="fullscreen",>
+                <div id="left_pane",>
+                    <h2>{ "Yew showcase" }</h2>
+                    <select size="20", value={Scene::NotSelected.to_string()},
+                        onchange=|cd: ChangeData| {
+                            let scene = match cd {
+                                ChangeData::Select(se) => se.value().unwrap(),
+                                _ => unreachable!()
+                            };
+                            match Scene::from_str(&scene) {
+                                Ok(scene) => Msg::SwitchTo(scene),
+                                _ => unreachable!(),
+                            }
+                        }
+                    , >
+                        { for _options }
+                    </select>
+                </div>
+                <div id="right_pane",>
+                    <h2>{ self.to_string() }</h2>
+                    { self.view_scene() }
+                </div>
+            </div>
         }
     }
 }

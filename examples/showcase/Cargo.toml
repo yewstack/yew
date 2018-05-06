@@ -1,9 +1,11 @@
 [package]
 name = "showcase"
 version = "0.1.0"
-authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+authors = ["Denis Kolodin <deniskolodin@gmail.com>", "Limira"]
 
 [dependencies]
+strum = "0.9"
+strum_macros = "0.9"
 yew = { path = "../.." }
 counter = { path = "../counter" }
 crm = { path = "../crm" }
