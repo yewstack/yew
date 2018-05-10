@@ -9,6 +9,7 @@ use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use stdweb::web::event::{BlurEvent, IKeyboardEvent, IMouseEvent};
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
+use stdweb::web::html_element::SelectElement;
 use virtual_dom::{Listener, VDiff, VNode};
 use callback::Callback;
 use scheduler::{Scheduler, RunnableIndex, Runnable, WillDestroy};
@@ -368,6 +369,27 @@ impl_action! {
         };
         InputData { value }
     }
+    onchange(event: ChangeEvent) -> ChangeData => |this: &Element, _| {
+        use stdweb::web::html_element::{InputElement, TextAreaElement, SelectElement};
+        use stdweb::unstable::TryInto;
+        match this.node_name().as_ref() {
+            "INPUT" => {
+                let input: InputElement = this.clone().try_into().unwrap();
+                ChangeData::Value(input.raw_value())
+            }
+            "TEXTAREA" => {
+                let tae: TextAreaElement = this.clone().try_into().unwrap();
+                ChangeData::Value(tae.value())
+            }
+            "SELECT" => {
+                let se: SelectElement = this.clone().try_into().unwrap();
+                ChangeData::Select(se)
+            }
+            _ => {
+                panic!("only an InputElement, TextAreaElement or SelectElement can have an onchange event listener");
+            }
+        }
+    }
 }
 
 /// A type representing data from `onclick` and `ondoubleclick` event.
@@ -412,6 +434,24 @@ pub struct InputData {
     /// Inserted characters. Contains value from
     /// [InputEvent](https://developer.mozilla.org/en-US/docs/Web/API/InputEvent/data).
     pub value: String,
+}
+
+// There is no '.../Web/API/ChangeEvent/data' (for onchange) similar to
+// https://developer.mozilla.org/en-US/docs/Web/API/InputEvent/data (for oninput).
+// ChangeData actually contains the value of the InputElement/TextAreaElement
+// after `change` event occured or contains the SelectElement (see more at the
+// variant ChangeData::Select)
+
+/// A type representing change of value(s) of an element after committed by user
+/// ([onchange event](https://developer.mozilla.org/en-US/docs/Web/Events/change)).
+#[derive(Debug)]
+pub enum ChangeData {
+    /// Value of the element in cases of `<input>`, `<textarea>`
+    Value(String),
+    /// SelectElement in case of `<select>` element. You can use one of methods of SelectElement
+    /// to collect your required data such as: `value`, `selected_index`, `selected_indices` or
+    /// `selected_values`. You can also iterate throught `selected_options` yourself.
+    Select(SelectElement),
 }
 
 /// A type representing data from `onkeypress` event.

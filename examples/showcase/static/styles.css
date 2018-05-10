@@ -1,0 +1,13 @@
+html, body, #fullscreen {
+    width: 100%;
+}
+#left_pane {
+    position: absolute;
+    width: 20%;
+}
+
+#right_pane {
+    position: absolute;
+    width: 80%;
+    left: 20%;
+}

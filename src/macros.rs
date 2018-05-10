@@ -88,6 +88,9 @@ macro_rules! html_impl {
     (@vtag $stack:ident (oninput = $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((oninput) = $handler, $($tail)*) }
     };
+    (@vtag $stack:ident (onchange = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onchange) = $handler, $($tail)*) }
+    };
     (@vtag $stack:ident (onblur = $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((onblur) = $handler, $($tail)*) }
     };
