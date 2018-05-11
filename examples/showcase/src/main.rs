@@ -1,9 +1,11 @@
 #![recursion_limit="128"]
 
+#[macro_use]
+extern crate log;
+extern crate web_logger;
 extern crate strum;
 #[macro_use]
 extern crate strum_macros;
-
 #[macro_use]
 extern crate yew;
 extern crate counter;
@@ -287,7 +289,10 @@ impl Scene {
 }
 
 fn main() {
+    web_logger::init();
+    trace!("Initializing yew...");
     yew::initialize();
+    trace!("Creating a context...");
     let context = Context {
         console: ConsoleService::new(),
         storage: StorageService::new(Area::Local),
@@ -300,8 +305,11 @@ fn main() {
         timeout: TimeoutService::new(),
         two_apps: two_apps::Context::new(),
     };
+    trace!("Creating an application instance...");
     let app: App<_, Scene> = App::new(context);
+    trace!("Mount the App to the body of the page...");
     app.mount_to_body();
+    trace!("Run");
     yew::run_loop();
 }
 

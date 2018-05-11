@@ -50,6 +50,8 @@
 
 #[macro_use]
 extern crate failure;
+#[macro_use]
+extern crate log;
 extern crate http;
 extern crate serde;
 extern crate serde_json;
