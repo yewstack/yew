@@ -7,7 +7,10 @@ extern crate rand;
 use yew::prelude::*;
 use std::time::Duration;
 use yew::services::Task;
-use yew::services::interval::IntervalService;
+use yew::services::{
+    interval::IntervalService,
+    console::ConsoleService,
+};
 
 #[derive(Clone, Copy, PartialEq)]
 enum LifeState {
@@ -150,7 +153,7 @@ pub enum Msg {
 
 impl<CTX> Component<CTX> for GameOfLife
 where
-    CTX: AsMut<IntervalService> + 'static,
+    CTX: AsMut<IntervalService> + AsMut<ConsoleService> + 'static,
 {
     type Message = Msg;
     type Properties = ();
@@ -168,27 +171,41 @@ where
         match msg {
             Msg::Random => {
                 self.random_mutate();
-                println!("Random");
+                let console: &mut ConsoleService = env.as_mut();
+                console.log("Random");
             },
             Msg::Start => {
-                let callback = env.send_back(|_| Msg::Step);
-                let handle = env.as_mut().spawn(Duration::from_millis(200), callback);
-                self.job = Some(Box::new(handle));
-                println!("Start");
+                // FIXME: after nll is stable, the parentheses to work around
+                // borrow check should be removed.
+                {
+                    let callback = env.send_back(|_| Msg::Step);
+                    let interval: &mut IntervalService = env.as_mut();
+                    let handle = interval.spawn(Duration::from_millis(200), callback);
+                    self.job = Some(Box::new(handle));
+                }
+
+                {
+                    let console: &mut ConsoleService = env.as_mut();
+                    console.log("Start");
+                }
             },
             Msg::Step => {
                 self.step();
             },
             Msg::Reset => {
                 self.reset();
-                println!("Reset");
+
+                let console: &mut ConsoleService = env.as_mut();
+                console.log("Reset");
             },
             Msg::Stop => {
                 if let Some(mut task) = self.job.take() {
                     task.cancel();
                 }
                 self.job = None;
-                println!("Stop");
+
+                let console: &mut ConsoleService = env.as_mut();
+                console.log("Stop");
             },
             Msg::ToggleCellule(idx) => {
                 self.toggle_cellule(idx);
@@ -200,7 +217,7 @@ where
 
 impl<CTX> Renderable<CTX, GameOfLife> for GameOfLife
 where
-    CTX: AsMut<IntervalService> + 'static,
+    CTX: AsMut<IntervalService> + AsMut<ConsoleService> + 'static,
 {
     fn view(&self) -> Html<CTX, Self> {
         html! {
@@ -236,7 +253,7 @@ where
 
 fn view_cellule<CTX>((idx, cellule): (usize, &Cellule)) -> Html<CTX, GameOfLife>
 where
-    CTX: AsMut<IntervalService> + 'static,
+    CTX: AsMut<IntervalService> + AsMut<ConsoleService> + 'static,
 {
     html! {
         <div class=("game-cellule", if cellule.life_state == LifeState::Alive { "cellule-live" } else { "cellule-dead" }),
