@@ -286,19 +286,3 @@ pub fn child_to_parent<CTX, COMP: Component<CTX>>(
         panic!("redundant closing tag: {:?}", endtag);
     }
 }
-
-#[macro_export]
-macro_rules! debug {
-    ($($e:expr),*) => {
-        if cfg!(debug) {
-            println!($($e,)*);
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! warn {
-    ($($e:expr),*) => {
-        eprintln!($($e,)*);
-    };
-}
