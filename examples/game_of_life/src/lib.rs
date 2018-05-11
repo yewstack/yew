@@ -1,16 +1,15 @@
 #![recursion_limit="128"]
 
-#[macro_use]
-extern crate yew;
+#[macro_use] extern crate yew;
 extern crate rand;
+
+#[macro_use] extern crate log;
+extern crate web_logger;
 
 use yew::prelude::*;
 use std::time::Duration;
 use yew::services::Task;
-use yew::services::{
-    interval::IntervalService,
-    console::ConsoleService,
-};
+use yew::services::interval::IntervalService;
 
 #[derive(Clone, Copy, PartialEq)]
 enum LifeState {
@@ -153,7 +152,7 @@ pub enum Msg {
 
 impl<CTX> Component<CTX> for GameOfLife
 where
-    CTX: AsMut<IntervalService> + AsMut<ConsoleService> + 'static,
+    CTX: AsMut<IntervalService> + 'static,
 {
     type Message = Msg;
     type Properties = ();
@@ -171,41 +170,28 @@ where
         match msg {
             Msg::Random => {
                 self.random_mutate();
-                let console: &mut ConsoleService = env.as_mut();
-                console.log("Random");
+                info!("Random");
             },
             Msg::Start => {
-                // FIXME: after nll is stable, the parentheses to work around
-                // borrow check should be removed.
-                {
-                    let callback = env.send_back(|_| Msg::Step);
-                    let interval: &mut IntervalService = env.as_mut();
-                    let handle = interval.spawn(Duration::from_millis(200), callback);
-                    self.job = Some(Box::new(handle));
-                }
-
-                {
-                    let console: &mut ConsoleService = env.as_mut();
-                    console.log("Start");
-                }
+                let callback = env.send_back(|_| Msg::Step);
+                let interval: &mut IntervalService = env.as_mut();
+                let handle = interval.spawn(Duration::from_millis(200), callback);
+                self.job = Some(Box::new(handle));
+                info!("Start");
             },
             Msg::Step => {
                 self.step();
             },
             Msg::Reset => {
                 self.reset();
-
-                let console: &mut ConsoleService = env.as_mut();
-                console.log("Reset");
+                info!("Reset");
             },
             Msg::Stop => {
                 if let Some(mut task) = self.job.take() {
                     task.cancel();
                 }
                 self.job = None;
-
-                let console: &mut ConsoleService = env.as_mut();
-                console.log("Stop");
+                info!("Stop");
             },
             Msg::ToggleCellule(idx) => {
                 self.toggle_cellule(idx);
@@ -217,7 +203,7 @@ where
 
 impl<CTX> Renderable<CTX, GameOfLife> for GameOfLife
 where
-    CTX: AsMut<IntervalService> + AsMut<ConsoleService> + 'static,
+    CTX: AsMut<IntervalService> + 'static,
 {
     fn view(&self) -> Html<CTX, Self> {
         html! {
@@ -253,7 +239,7 @@ where
 
 fn view_cellule<CTX>((idx, cellule): (usize, &Cellule)) -> Html<CTX, GameOfLife>
 where
-    CTX: AsMut<IntervalService> + AsMut<ConsoleService> + 'static,
+    CTX: AsMut<IntervalService> + 'static,
 {
     html! {
         <div class=("game-cellule", if cellule.life_state == LifeState::Alive { "cellule-live" } else { "cellule-dead" }),

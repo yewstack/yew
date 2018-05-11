@@ -1,16 +1,17 @@
 extern crate yew;
 extern crate game_of_life;
 
+#[macro_use] extern crate log;
+extern crate web_logger;
+
 use yew::prelude::*;
-use yew::services::{
-    interval::IntervalService,
-    console::ConsoleService,
-};
+use yew::services::interval::IntervalService;
 use game_of_life::{GameOfLife, Msg};
+
+
 
 struct Context {
     interval: IntervalService,
-    console: ConsoleService,
 }
 
 impl AsMut<IntervalService> for Context {
@@ -19,17 +20,15 @@ impl AsMut<IntervalService> for Context {
     }
 }
 
-impl AsMut<ConsoleService> for Context {
-    fn as_mut(&mut self) -> &mut ConsoleService {
-        &mut self.console
-    }
-}
-
 fn main() {
+    web_logger::init();
+
+    trace!("Initializing yew...");
     yew::initialize();
+
+    trace!("Creating a context...");
     let context = Context {
         interval: IntervalService::new(),
-        console: ConsoleService::new(),
     };
     let app: App<_, GameOfLife> = App::new(context);
 
