@@ -12,7 +12,7 @@ use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use stdweb::web::html_element::SelectElement;
 use virtual_dom::{Listener, VDiff, VNode};
 use callback::Callback;
-use scheduler::{Scheduler, RunnableIndex, Runnable, WillDestroy};
+use scheduler::{Scheduler, Runnable, WillDestroy, Shared, BoxedRunnable};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -114,15 +114,15 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
 /// Holds a reference to a scope, could put a message into the queue
 /// of the scope and activate processing (try borrow and call routine).
 pub struct Activator<CTX, COMP: Component<CTX>> {
-    index: Rc<RefCell<Option<RunnableIndex>>>,
+    runnable: Shared<Option<Shared<BoxedRunnable<CTX>>>>,
     scheduler: Scheduler<CTX>,
-    queue: Rc<RefCell<VecDeque<ComponentUpdate<CTX, COMP>>>>,
+    queue: Shared<VecDeque<ComponentUpdate<CTX, COMP>>>,
 }
 
 impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
     fn clone(&self) -> Self {
         Activator {
-            index: self.index.clone(),
+            runnable: self.runnable.clone(),
             scheduler: self.scheduler.clone(),
             queue: self.queue.clone(),
         }
@@ -136,10 +136,10 @@ impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
         self.queue.try_borrow_mut()
             .expect("internal message routing accident")
             .push_back(update);
-        let idx = self.index.borrow().as_ref()
+        let runnable = self.runnable.borrow().as_ref()
             .cloned()
-            .expect("index was not set");
-        self.scheduler.put_and_try_run(idx);
+            .expect("runnable was not set");
+        self.scheduler.put_and_try_run(runnable);
     }
 
     /// Send message to a component.
@@ -169,9 +169,9 @@ where
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
     pub(crate) fn new(scheduler: Scheduler<CTX>) -> Self {
-        let index = Rc::new(RefCell::new(None));
+        let runnable = Rc::new(RefCell::new(None));
         let queue = Rc::new(RefCell::new(VecDeque::new()));
-        let env = Activator { index, scheduler, queue };
+        let env = Activator { runnable, scheduler, queue };
         Scope { env }
     }
 
@@ -198,8 +198,9 @@ where
             init_props,
         };
         let mut activator = self.env.clone();
-        let idx = activator.scheduler.register(runnable);
-        *activator.index.borrow_mut() = Some(idx);
+        let runnable = Box::new(runnable) as BoxedRunnable<CTX>;
+        let runnable = Rc::new(RefCell::new(runnable));
+        *activator.runnable.borrow_mut() = Some(runnable);
         activator.send(ComponentUpdate::Create);
         activator
     }
