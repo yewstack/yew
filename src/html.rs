@@ -4,15 +4,16 @@
 //! to create own UI-components.
 
 use std::cell::{RefCell, RefMut};
-use std::collections::VecDeque;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
+use std::marker::PhantomData;
 use stdweb::web::event::{BlurEvent, IKeyboardEvent, IMouseEvent};
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use stdweb::web::html_element::SelectElement;
 use virtual_dom::{Listener, VDiff, VNode};
 use callback::Callback;
-use scheduler::{Scheduler, Runnable, WillDestroy, Shared, BoxedRunnable};
+use scheduler::{Scheduler, Runnable, WillDestroy, BoxedRunnable};
+use {Shared, Hidden};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -116,7 +117,7 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
 pub struct Activator<CTX, COMP: Component<CTX>> {
     runnable: Shared<Option<Shared<BoxedRunnable<CTX>>>>,
     scheduler: Scheduler<CTX>,
-    queue: Shared<VecDeque<ComponentUpdate<CTX, COMP>>>,
+    _comp: PhantomData<COMP>,
 }
 
 impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
@@ -124,7 +125,7 @@ impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
         Activator {
             runnable: self.runnable.clone(),
             scheduler: self.scheduler.clone(),
-            queue: self.queue.clone(),
+            _comp: PhantomData,
         }
     }
 }
@@ -132,14 +133,11 @@ impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
 impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
     /// Send the message and schedule an update.
     pub(crate) fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
-        // Queue should never bew blocked with an intersection
-        self.queue.try_borrow_mut()
-            .expect("internal message routing accident")
-            .push_back(update);
+        let msg = Box::into_raw(Box::new(update)) as *mut Hidden;
         let runnable = self.runnable.borrow().as_ref()
             .cloned()
             .expect("runnable was not set");
-        self.scheduler.put_and_try_run(runnable);
+        self.scheduler.put_and_try_run((runnable, msg));
     }
 
     /// Send message to a component.
@@ -170,8 +168,8 @@ where
 {
     pub(crate) fn new(scheduler: Scheduler<CTX>) -> Self {
         let runnable = Rc::new(RefCell::new(None));
-        let queue = Rc::new(RefCell::new(VecDeque::new()));
-        let env = Activator { runnable, scheduler, queue };
+        let _comp = PhantomData;
+        let env = Activator { runnable, scheduler, _comp };
         Scope { env }
     }
 
@@ -221,14 +219,10 @@ where
     CTX: 'static,
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
-    fn run<'a>(&mut self, context: &'a mut CTX) -> WillDestroy {
+    fn run<'a>(&mut self, context: &'a mut CTX, msg: *mut Hidden) -> WillDestroy {
         let mut will_destroy = false;
         let mut should_update = false;
-        // Important! Don't clone it outside and move here, becase index
-        // attached after this closure created!
-        let upd = self.env.queue.borrow_mut()
-            .pop_front()
-            .expect("update message must be in a queue when routine scheduled");
+        let upd = unsafe { *Box::from_raw(msg as *mut ComponentUpdate<CTX, COMP>) };
         // This loop pops one item, because the following
         // updates could try to borrow the same cell
         // Important! Don't use `while let` here, because it
