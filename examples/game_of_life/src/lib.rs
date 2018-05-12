@@ -1,13 +1,13 @@
 #![recursion_limit="128"]
 
-#[macro_use] extern crate yew;
 extern crate rand;
-
 #[macro_use] extern crate log;
 extern crate web_logger;
+#[macro_use] extern crate yew;
 
-use yew::prelude::*;
 use std::time::Duration;
+use rand::Rng;
+use yew::prelude::*;
 use yew::services::Task;
 use yew::services::interval::IntervalService;
 
@@ -74,7 +74,7 @@ fn wrap(coord: isize, range: isize) -> usize {
 impl GameOfLife {
     pub fn random_mutate(&mut self) {
         for cellule in self.cellules.iter_mut() {
-            if rand::random() {
+            if rand::thread_rng().gen() {
                 cellule.set_alive();
             } else {
                 cellule.set_dead();
