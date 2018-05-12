@@ -3,7 +3,7 @@
 //! Also this module contains declaration of `Component` trait which used
 //! to create own UI-components.
 
-use std::cell::{RefCell, RefMut};
+use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::marker::PhantomData;
@@ -54,26 +54,6 @@ pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
     Properties(COMP::Properties),
     /// Removes the component
     Destroy,
-}
-
-/// A reference to environment of a component (scope) which contains
-/// shared reference to a context.
-pub struct ContextMut<'a, CTX: 'a> {
-    context: RefMut<'a, CTX>,
-}
-
-impl<'a, CTX: 'a> Deref for ContextMut<'a, CTX> {
-    type Target = CTX;
-
-    fn deref(&self) -> &CTX {
-        &self.context
-    }
-}
-
-impl<'a, CTX: 'a> DerefMut for ContextMut<'a, CTX> {
-    fn deref_mut(&mut self) -> &mut CTX {
-        &mut self.context
-    }
 }
 
 /// A reference to environment of a component (scope) which contains
