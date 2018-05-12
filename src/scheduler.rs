@@ -3,6 +3,7 @@
 use std::collections::VecDeque;
 use std::rc::Rc;
 use std::cell::RefCell;
+use {Shared, Hidden};
 
 /// The flag that means the routine should be destroyed.
 pub(crate) type WillDestroy = bool;
@@ -13,15 +14,13 @@ pub(crate) type BoxedRunnable<CTX> = Box<Runnable<CTX>>;
 /// A routine which could be run.
 pub(crate) trait Runnable<CTX> {
     /// Runs a routine with a context instance.
-    fn run<'a>(&mut self, context: &'a mut CTX) -> WillDestroy;
+    fn run<'a>(&mut self, context: &'a mut CTX, msg: *mut Hidden) -> WillDestroy;
 }
-
-pub(crate) type Shared<T> = Rc<RefCell<T>>;
 
 /// This is a global scheduler suitable to schedule and run any tasks.
 pub struct Scheduler<CTX> {
     context: Shared<CTX>,
-    sequence: Shared<VecDeque<Shared<BoxedRunnable<CTX>>>>,
+    sequence: Shared<VecDeque<(Shared<BoxedRunnable<CTX>>, *mut Hidden)>>,
 }
 
 impl<CTX> Clone for Scheduler<CTX> {
@@ -43,14 +42,14 @@ impl<CTX> Scheduler<CTX> {
         }
     }
 
-    pub(crate) fn put_and_try_run(&mut self, runnable: Shared<BoxedRunnable<CTX>>) {
-        self.sequence.borrow_mut().push_back(runnable);
+    pub(crate) fn put_and_try_run(&mut self, pair: (Shared<BoxedRunnable<CTX>>, *mut Hidden)) {
+        self.sequence.borrow_mut().push_back(pair);
         // Context lock also means the loop is running
         if let Ok(ref mut context) = self.context.try_borrow_mut() {
             loop {
                 let do_next = self.sequence.borrow_mut().pop_front();
-                if let Some(routine) = do_next {
-                    routine.borrow_mut().run(context);
+                if let Some((routine, msg)) = do_next {
+                    routine.borrow_mut().run(context, msg);
                 } else {
                     break;
                 }

@@ -10,8 +10,7 @@ use html::{Component, ComponentUpdate, Scope, NodeCell, Renderable, Activator};
 use callback::Callback;
 use scheduler::Scheduler;
 use super::{Reform, VDiff, VNode};
-
-struct Hidden;
+use Hidden;
 
 type AnyProps = (TypeId, *mut Hidden);
 

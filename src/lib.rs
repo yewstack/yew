@@ -77,6 +77,13 @@ pub mod virtual_dom;
 pub mod callback;
 pub mod scheduler;
 
+use std::rc::Rc;
+use std::cell::RefCell;
+
+type Shared<T> = Rc<RefCell<T>>;
+
+struct Hidden;
+
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
     stdweb::initialize();
