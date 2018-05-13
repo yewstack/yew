@@ -3,16 +3,17 @@
 //! Also this module contains declaration of `Component` trait which used
 //! to create own UI-components.
 
-use std::cell::{RefCell, RefMut};
-use std::collections::VecDeque;
+use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
+use std::marker::PhantomData;
 use stdweb::web::event::{BlurEvent, IKeyboardEvent, IMouseEvent};
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use stdweb::web::html_element::SelectElement;
 use virtual_dom::{Listener, VDiff, VNode};
 use callback::Callback;
-use scheduler::{Scheduler, RunnableIndex, Runnable, WillDestroy};
+use scheduler::{Scheduler, Runnable, BoxedRunnable};
+use {Shared, Hidden};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -56,26 +57,6 @@ pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
 }
 
 /// A reference to environment of a component (scope) which contains
-/// shared reference to a context.
-pub struct ContextMut<'a, CTX: 'a> {
-    context: RefMut<'a, CTX>,
-}
-
-impl<'a, CTX: 'a> Deref for ContextMut<'a, CTX> {
-    type Target = CTX;
-
-    fn deref(&self) -> &CTX {
-        &self.context
-    }
-}
-
-impl<'a, CTX: 'a> DerefMut for ContextMut<'a, CTX> {
-    fn deref_mut(&mut self) -> &mut CTX {
-        &mut self.context
-    }
-}
-
-/// A reference to environment of a component (scope) which contains
 /// shared reference to a context and a sender to a scope's loop.
 pub struct Env<'a, CTX: 'a, COMP: Component<CTX>> {
     context: &'a mut CTX,
@@ -114,17 +95,17 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
 /// Holds a reference to a scope, could put a message into the queue
 /// of the scope and activate processing (try borrow and call routine).
 pub struct Activator<CTX, COMP: Component<CTX>> {
-    index: Rc<RefCell<Option<RunnableIndex>>>,
+    runnable: Shared<Option<Shared<BoxedRunnable<CTX>>>>,
     scheduler: Scheduler<CTX>,
-    queue: Rc<RefCell<VecDeque<ComponentUpdate<CTX, COMP>>>>,
+    _comp: PhantomData<COMP>,
 }
 
 impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
     fn clone(&self) -> Self {
         Activator {
-            index: self.index.clone(),
+            runnable: self.runnable.clone(),
             scheduler: self.scheduler.clone(),
-            queue: self.queue.clone(),
+            _comp: PhantomData,
         }
     }
 }
@@ -132,14 +113,11 @@ impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
 impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
     /// Send the message and schedule an update.
     pub(crate) fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
-        // Queue should never bew blocked with an intersection
-        self.queue.try_borrow_mut()
-            .expect("internal message routing accident")
-            .push_back(update);
-        let idx = self.index.borrow().as_ref()
+        let msg = Box::into_raw(Box::new(update)) as *mut Hidden;
+        let runnable = self.runnable.borrow().as_ref()
             .cloned()
-            .expect("index was not set");
-        self.scheduler.put_and_try_run(idx);
+            .expect("runnable was not set");
+        self.scheduler.put_and_try_run((runnable, msg));
     }
 
     /// Send message to a component.
@@ -169,9 +147,9 @@ where
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
     pub(crate) fn new(scheduler: Scheduler<CTX>) -> Self {
-        let index = Rc::new(RefCell::new(None));
-        let queue = Rc::new(RefCell::new(VecDeque::new()));
-        let env = Activator { index, scheduler, queue };
+        let runnable = Rc::new(RefCell::new(None));
+        let _comp = PhantomData;
+        let env = Activator { runnable, scheduler, _comp };
         Scope { env }
     }
 
@@ -196,10 +174,12 @@ where
             ancestor,
             occupied,
             init_props,
+            destroyed: false,
         };
         let mut activator = self.env.clone();
-        let idx = activator.scheduler.register(runnable);
-        *activator.index.borrow_mut() = Some(idx);
+        let runnable = Box::new(runnable) as BoxedRunnable<CTX>;
+        let runnable = Rc::new(RefCell::new(runnable));
+        *activator.runnable.borrow_mut() = Some(runnable);
         activator.send(ComponentUpdate::Create);
         activator
     }
@@ -213,6 +193,7 @@ struct ScopeRunnable<CTX, COMP: Component<CTX>> {
     ancestor: Option<VNode<CTX, COMP>>,
     occupied: Option<NodeCell>,
     init_props: Option<COMP::Properties>,
+    destroyed: bool,
 }
 
 impl<CTX, COMP> Runnable<CTX> for ScopeRunnable<CTX, COMP>
@@ -220,14 +201,12 @@ where
     CTX: 'static,
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
-    fn run<'a>(&mut self, context: &'a mut CTX) -> WillDestroy {
-        let mut will_destroy = false;
+    fn run<'a>(&mut self, context: &'a mut CTX, msg: *mut Hidden) {
+        if self.destroyed {
+            return;
+        }
         let mut should_update = false;
-        // Important! Don't clone it outside and move here, becase index
-        // attached after this closure created!
-        let upd = self.env.queue.borrow_mut()
-            .pop_front()
-            .expect("update message must be in a queue when routine scheduled");
+        let upd = unsafe { *Box::from_raw(msg as *mut ComponentUpdate<CTX, COMP>) };
         // This loop pops one item, because the following
         // updates could try to borrow the same cell
         // Important! Don't use `while let` here, because it
@@ -259,7 +238,7 @@ where
                 should_update |= self.component.as_mut().unwrap().change(props, &mut context);
             }
             ComponentUpdate::Destroy => {
-                will_destroy = true;
+                self.destroyed = true;
             }
         }
         if should_update {
@@ -272,7 +251,6 @@ where
             }
             self.last_frame = Some(next_frame);
         }
-        will_destroy
     }
 }
 
