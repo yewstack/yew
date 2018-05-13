@@ -6,7 +6,9 @@ authors = ["Diego Cardoso <dige0card0s0@hotmail.com>",
            "Junjie Huang <huangjj.27@qq.com>"]
 
 [dependencies]
-rand = { version = "0.5.0-pre.1", features = ["stdweb"] }
+# Temporary check
+rand = { git = "https://github.com/rust-lang-nursery/rand", features = ["stdweb"] }
+#rand = { version = "0.5.0-pre.1", features = ["stdweb"] }
 log = "0.4"
 web_logger = "0.1"
 yew = { path = "../.." }
