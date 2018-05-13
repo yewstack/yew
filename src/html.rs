@@ -12,7 +12,7 @@ use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use stdweb::web::html_element::SelectElement;
 use virtual_dom::{Listener, VDiff, VNode};
 use callback::Callback;
-use scheduler::{Scheduler, Runnable, WillDestroy, BoxedRunnable};
+use scheduler::{Scheduler, Runnable, BoxedRunnable};
 use {Shared, Hidden};
 
 /// This type indicates that component should be rendered again.
@@ -174,6 +174,7 @@ where
             ancestor,
             occupied,
             init_props,
+            destroyed: false,
         };
         let mut activator = self.env.clone();
         let runnable = Box::new(runnable) as BoxedRunnable<CTX>;
@@ -192,6 +193,7 @@ struct ScopeRunnable<CTX, COMP: Component<CTX>> {
     ancestor: Option<VNode<CTX, COMP>>,
     occupied: Option<NodeCell>,
     init_props: Option<COMP::Properties>,
+    destroyed: bool,
 }
 
 impl<CTX, COMP> Runnable<CTX> for ScopeRunnable<CTX, COMP>
@@ -199,8 +201,10 @@ where
     CTX: 'static,
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
-    fn run<'a>(&mut self, context: &'a mut CTX, msg: *mut Hidden) -> WillDestroy {
-        let mut will_destroy = false;
+    fn run<'a>(&mut self, context: &'a mut CTX, msg: *mut Hidden) {
+        if self.destroyed {
+            return;
+        }
         let mut should_update = false;
         let upd = unsafe { *Box::from_raw(msg as *mut ComponentUpdate<CTX, COMP>) };
         // This loop pops one item, because the following
@@ -234,7 +238,7 @@ where
                 should_update |= self.component.as_mut().unwrap().change(props, &mut context);
             }
             ComponentUpdate::Destroy => {
-                will_destroy = true;
+                self.destroyed = true;
             }
         }
         if should_update {
@@ -247,7 +251,6 @@ where
             }
             self.last_frame = Some(next_frame);
         }
-        will_destroy
     }
 }
 

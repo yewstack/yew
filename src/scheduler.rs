@@ -5,16 +5,13 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use {Shared, Hidden};
 
-/// The flag that means the routine should be destroyed.
-pub(crate) type WillDestroy = bool;
-
 /// Unspecified routine binded to a context.
 pub(crate) type BoxedRunnable<CTX> = Box<Runnable<CTX>>;
 
 /// A routine which could be run.
 pub(crate) trait Runnable<CTX> {
     /// Runs a routine with a context instance.
-    fn run<'a>(&mut self, context: &'a mut CTX, msg: *mut Hidden) -> WillDestroy;
+    fn run<'a>(&mut self, context: &'a mut CTX, msg: *mut Hidden);
 }
 
 /// This is a global scheduler suitable to schedule and run any tasks.
