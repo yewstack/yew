@@ -1,11 +1,13 @@
 #![recursion_limit="128"]
 
-#[macro_use]
-extern crate yew;
 extern crate rand;
+#[macro_use] extern crate log;
+extern crate web_logger;
+#[macro_use] extern crate yew;
 
-use yew::prelude::*;
 use std::time::Duration;
+use rand::Rng;
+use yew::prelude::*;
 use yew::services::Task;
 use yew::services::interval::IntervalService;
 
@@ -72,7 +74,7 @@ fn wrap(coord: isize, range: isize) -> usize {
 impl GameOfLife {
     pub fn random_mutate(&mut self) {
         for cellule in self.cellules.iter_mut() {
-            if rand::random() {
+            if rand::thread_rng().gen() {
                 cellule.set_alive();
             } else {
                 cellule.set_dead();
@@ -168,27 +170,28 @@ where
         match msg {
             Msg::Random => {
                 self.random_mutate();
-                println!("Random");
+                info!("Random");
             },
             Msg::Start => {
                 let callback = env.send_back(|_| Msg::Step);
-                let handle = env.as_mut().spawn(Duration::from_millis(200), callback);
+                let interval: &mut IntervalService = env.as_mut();
+                let handle = interval.spawn(Duration::from_millis(200), callback);
                 self.job = Some(Box::new(handle));
-                println!("Start");
+                info!("Start");
             },
             Msg::Step => {
                 self.step();
             },
             Msg::Reset => {
                 self.reset();
-                println!("Reset");
+                info!("Reset");
             },
             Msg::Stop => {
                 if let Some(mut task) = self.job.take() {
                     task.cancel();
                 }
                 self.job = None;
-                println!("Stop");
+                info!("Stop");
             },
             Msg::ToggleCellule(idx) => {
                 self.toggle_cellule(idx);
