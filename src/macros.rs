@@ -85,6 +85,12 @@ macro_rules! html_impl {
     (@vtag $stack:ident (onkeypress = $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((onkeypress) = $handler, $($tail)*) }
     };
+    (@vtag $stack:ident (onkeydown = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onkeydown) = $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (onkeyup = $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onkeyup) = $handler, $($tail)*) }
+    };
     (@vtag $stack:ident (oninput = $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((oninput) = $handler, $($tail)*) }
     };
