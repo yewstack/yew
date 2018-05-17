@@ -313,6 +313,8 @@ impl_action! {
     onclick(event: ClickEvent) -> MouseData => |_, event| { MouseData::from(event) }
     ondoubleclick(event: DoubleClickEvent) -> MouseData => |_, event| { MouseData::from(event) }
     onkeypress(event: KeyPressEvent) -> KeyData => |_, event| { KeyData::from(event) }
+    onkeydown(event: KeyDownEvent) -> KeyData => |_, event| { KeyData::from(event) }
+    onkeyup(event: KeyUpEvent) -> KeyData => |_, event| { KeyData::from(event) }
     onmousemove(event: MouseMoveEvent) -> MouseData => |_, event| { MouseData::from(event) }
     /* TODO Add PR to https://github.com/koute/stdweb
     onmousedown(event: MouseDownEvent) -> () => |_, _| { () }
