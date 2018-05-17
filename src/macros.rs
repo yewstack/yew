@@ -19,16 +19,19 @@ macro_rules! html_impl {
     ($stack:ident (< $comp:ty : $($tail:tt)*)) => {
         #[allow(unused_mut)]
         let mut pair = $crate::virtual_dom::VComp::lazy::<$comp>();
-        html_impl! { @vcomp $stack pair ($($tail)*) }
+        html_impl! { @vcomp $stack pair (, $($tail)*) }
     };
-    (@vcomp $stack:ident $pair:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
+    (@vcomp $stack:ident $pair:ident (, $attr:ident = $val:expr, $($tail:tt)*)) => {
         // It cloned for ergonomics in templates. Attribute with
         // `self.param` value could be reused and sholdn't be cloned
         // by yourself
         ($pair.0).$attr = $crate::virtual_dom::vcomp::Transformer::transform(&mut $pair.1, $val);
-        html_impl! { @vcomp $stack $pair ($($tail)*) }
+        html_impl! { @vcomp $stack $pair (, $($tail)*) }
     };
     // Self-closing of tag
+    (@vcomp $stack:ident $pair:ident (, / > $($tail:tt)*)) => {
+        html_impl! { @vcomp $stack $pair (/ > $($tail)*) }
+    };
     (@vcomp $stack:ident $pair:ident (/ > $($tail:tt)*)) => {
         let (props, mut comp) = $pair;
         comp.set_props(props);
