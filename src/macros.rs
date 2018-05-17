@@ -30,14 +30,14 @@ macro_rules! html_impl {
     };
     // Self-closing of tag
     (@vcomp $stack:ident $pair:ident (, / > $($tail:tt)*)) => {
-        html_impl! { @vcomp $stack $pair (/ > $($tail)*) }
-    };
-    (@vcomp $stack:ident $pair:ident (/ > $($tail:tt)*)) => {
         let (props, mut comp) = $pair;
         comp.set_props(props);
         $stack.push(comp.into());
         $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
+    };
+    (@vcomp $stack:ident $pair:ident (/ > $($tail:tt)*)) => {
+        html_impl! { @vcomp $stack $pair (, / > $($tail)*) }
     };
     // Start of opening tag
     ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
@@ -128,18 +128,18 @@ macro_rules! html_impl {
     };
     // End of openging tag
     (@vtag $stack:ident (, > $($tail:tt)*)) => {
-        html_impl! { @vtag $stack (> $($tail)*) }
+        html_impl! { $stack ($($tail)*) }
     };
     (@vtag $stack:ident (> $($tail:tt)*)) => {
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { @vtag $stack (, > $($tail)*) }
     };
     // Self-closing of tag
     (@vtag $stack:ident (, / > $($tail:tt)*)) => {
-        html_impl! { @vtag $stack (/ > $($tail)*) }
-    };
-    (@vtag $stack:ident (/ > $($tail:tt)*)) => {
         $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
+    };
+    (@vtag $stack:ident (/ > $($tail:tt)*)) => {
+        html_impl! { @vtag $stack (, / > $($tail)*) }
     };
     // Traditional tag closing
     ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
