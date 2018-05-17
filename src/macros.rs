@@ -118,6 +118,11 @@ macro_rules! html_impl {
         $crate::macros::add_attribute(&mut $stack, stringify!($attr), $val);
         html_impl! { @vtag $stack ($($tail)*) }
     };
+    (@vtag $stack:ident ($($attr:ident)-+ = $val:expr, $($tail:tt)*)) => {
+        let attr = vec![$(stringify!($attr).to_string()),+].join("-");
+        $crate::macros::add_attribute(&mut $stack, &attr, $val);
+        html_impl! { @vtag $stack ($($tail)*) }
+    };
     // End of openging tag
     (@vtag $stack:ident (> $($tail:tt)*)) => {
         html_impl! { $stack ($($tail)*) }
@@ -126,11 +131,6 @@ macro_rules! html_impl {
     (@vtag $stack:ident (/ > $($tail:tt)*)) => {
         $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
-    };
-    (@vtag $stack:ident ($($attr:ident)-+ = $val:expr, $($tail:tt)*)) => {
-        let attr = vec![$(stringify!($attr).to_string()),+].join("-");
-        $crate::macros::add_attribute(&mut $stack, &attr, $val);
-        html_impl! { @vtag $stack ($($tail)*) }
     };
     // Traditional tag closing
     ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
