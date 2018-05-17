@@ -1,3 +1,5 @@
+#![recursion_limit = "128"]
+
 extern crate failure;
 #[macro_use]
 extern crate serde_derive;

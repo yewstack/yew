@@ -174,13 +174,13 @@ impl Renderable<Context, Scene> for Scene {
     fn view(&self) -> Html<Context, Self> {
         let _options = Scene::iter().map(|scene| {
             html! {
-                <option value={ scene.to_string() }, > { scene.to_string() } </option>
+                <option value={ scene.to_string() }> { scene.to_string() } </option>
             }
         });
 
         html! {
-            <div id="fullscreen",>
-                <div id="left_pane",>
+            <div id="fullscreen">
+                <div id="left_pane">
                     <h2>{ "Yew showcase" }</h2>
                     <select size="20", value={Scene::NotSelected.to_string()},
                         onchange=|cd: ChangeData| {
@@ -193,11 +193,11 @@ impl Renderable<Context, Scene> for Scene {
                                 _ => unreachable!(),
                             }
                         }
-                    , >
+                    >
                         { for _options }
                     </select>
                 </div>
-                <div id="right_pane",>
+                <div id="right_pane">
                     <h2>{ self.to_string() }</h2>
                     { self.view_scene() }
                 </div>
