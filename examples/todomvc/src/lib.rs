@@ -187,8 +187,8 @@ impl Model {
                    placeholder="What needs to be done?",
                    value=&self.value,
                    oninput=|e: InputData| Msg::Update(e.value),
-                   onkeypress=|e: KeyData| {
-                       if e.key == "Enter" { Msg::Add } else { Msg::Nope }
+                   onkeypress=|e: KeyPressEvent| {
+                       if e.key() == "Enter" { Msg::Add } else { Msg::Nope }
                    }, />
             /* Or multiline:
             <ul>
@@ -226,8 +226,8 @@ where
                    value=&entry.description,
                    oninput=|e: InputData| Msg::UpdateEdit(e.value),
                    onblur=move|_| Msg::Edit(idx),
-                   onkeypress=move |e: KeyData| {
-                      if e.key == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
+                   onkeypress=move |e: KeyPressEvent| {
+                      if e.key() == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
                    }, />
         }
     } else {
