@@ -6,6 +6,7 @@
 //! # #![allow(unused_imports)]
 //! use yew::prelude::*;
 //! ```
+extern crate stdweb;
 
 pub use html::{
     Component,
@@ -14,8 +15,6 @@ pub use html::{
     Html,
     ChangeData,
     InputData,
-    KeyData,
-    MouseData,
     Renderable,
     ShouldRender,
 };
@@ -23,3 +22,14 @@ pub use html::{
 pub use app::App;
 
 pub use callback::Callback;
+
+pub use stdweb::web::event::{
+    ClickEvent, 
+    DoubleClickEvent, 
+    IKeyboardEvent,
+    IMouseEvent,
+    KeyDownEvent, 
+    KeyPressEvent, 
+    KeyUpEvent, 
+    MouseMoveEvent, 
+};
