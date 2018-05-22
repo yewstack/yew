@@ -216,6 +216,16 @@ impl RouteService {
         }
     }
 
+    /// Clones the route service.
+    /// This facilitates creating copies of the route service so that it may be moved into callbacks that aren't attached to components.
+    pub fn clone_without_listener(&self) -> Self {
+        RouteService {
+            history: self.history.clone(),
+            location: self.location.clone(),
+            event_listener: None,
+            callback: self.callback.clone(),
+        }
+    }
 
 
     /// Will return the current route info based on the location API.
@@ -268,6 +278,18 @@ impl RouteService {
             self.history.push_state(r, "", Some(&route_string));
             self.go_to_current_route();
         }
+    }
+
+    /// Set the route using a string instead of something that implements a router.
+    pub fn set_route_from_string(&mut self, r: String) {
+       let route_string: String = r;
+        println!("Setting route: {}", route_string); // this line needs to be removed eventually
+        let r = js! {
+            return @{route_string.clone()}
+        };
+        // Set the state using the history API
+        self.history.push_state(r, "", Some(&route_string));
+        self.go_to_current_route();
     }
 
 

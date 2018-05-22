@@ -19,7 +19,7 @@ pub enum Route {
     ForumsList
 }
 
-// It can be seen that this can be
+// It can be seen that the operations for this could possibly be derived
 impl Router for Route {
     fn from_route(route: &mut RouteInfo) -> Option<Self> {
         if let Some(RouteSection::Node{segment}) = route.next() {
