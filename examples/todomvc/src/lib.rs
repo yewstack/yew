@@ -169,7 +169,7 @@ impl Model {
             <li>
                 <a class=if self.filter == flt { "selected" } else { "not-selected" },
                    href=&flt,
-                   onclick=move |_| Msg::SetFilter(flt.clone()),>
+                   onclick=|_| Msg::SetFilter(flt.clone()),>
                     { filter }
                 </a>
             </li>
@@ -186,8 +186,8 @@ impl Model {
             <input class="new-todo",
                    placeholder="What needs to be done?",
                    value=&self.value,
-                   oninput=|e: InputData| Msg::Update(e.value),
-                   onkeypress=|e: KeyPressEvent| {
+                   oninput=|e| Msg::Update(e.value),
+                   onkeypress=|e| {
                        if e.key() == "Enter" { Msg::Add } else { Msg::Nope }
                    }, />
             /* Or multiline:
@@ -206,9 +206,9 @@ where
     html! {
         <li class=if entry.editing == true { "editing" } else { "" },>
             <div class="view",>
-                <input class="toggle", type="checkbox", checked=entry.completed, onclick=move|_| Msg::Toggle(idx), />
-                <label ondoubleclick=move|_| Msg::ToggleEdit(idx),>{ &entry.description }</label>
-                <button class="destroy", onclick=move |_| Msg::Remove(idx), />
+                <input class="toggle", type="checkbox", checked=entry.completed, onclick=|_| Msg::Toggle(idx), />
+                <label ondoubleclick=|_| Msg::ToggleEdit(idx),>{ &entry.description }</label>
+                <button class="destroy", onclick=|_| Msg::Remove(idx), />
             </div>
             { view_entry_edit_input((idx, &entry)) }
         </li>
@@ -224,9 +224,9 @@ where
             <input class="edit",
                    type="text",
                    value=&entry.description,
-                   oninput=|e: InputData| Msg::UpdateEdit(e.value),
-                   onblur=move|_| Msg::Edit(idx),
-                   onkeypress=move |e: KeyPressEvent| {
+                   oninput=|e| Msg::UpdateEdit(e.value),
+                   onblur=|_| Msg::Edit(idx),
+                   onkeypress=|e| {
                       if e.key() == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
                    }, />
         }

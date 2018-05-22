@@ -24,12 +24,13 @@ pub use app::App;
 pub use callback::Callback;
 
 pub use stdweb::web::event::{
-    ClickEvent, 
-    DoubleClickEvent, 
+    BlurEvent,
+    ClickEvent,
+    DoubleClickEvent,
     IKeyboardEvent,
     IMouseEvent,
-    KeyDownEvent, 
-    KeyPressEvent, 
-    KeyUpEvent, 
-    MouseMoveEvent, 
+    KeyDownEvent,
+    KeyPressEvent,
+    KeyUpEvent,
+    MouseMoveEvent,
 };

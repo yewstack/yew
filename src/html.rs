@@ -7,7 +7,6 @@ use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::marker::PhantomData;
-use stdweb::web::event::{BlurEvent};
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use stdweb::web::html_element::SelectElement;
 use virtual_dom::{Listener, VDiff, VNode};
@@ -394,16 +393,6 @@ pub enum ChangeData {
     /// to collect your required data such as: `value`, `selected_index`, `selected_indices` or
     /// `selected_values`. You can also iterate throught `selected_options` yourself.
     Select(SelectElement),
-}
-
-/// A type representing `onblur` event.
-#[derive(Debug)]
-pub struct BlurData;
-
-impl From<BlurEvent> for BlurData {
-    fn from(_: BlurEvent) -> Self {
-        BlurData
-    }
 }
 
 /// A bridging type for checking `href` attribute value.

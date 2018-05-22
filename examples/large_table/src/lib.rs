@@ -49,7 +49,7 @@ where
     html! {
         <td
             class=square_class((column, row), selected),
-            onclick=move |_| Msg::Select(column, row),
+            onclick=|_| Msg::Select(column, row),
         >
         </td>
     }
