@@ -45,7 +45,7 @@ where
                 <div>
                     <textarea rows=5,
                         value=&self.value,
-                        oninput=|e: InputData| Msg::GotInput(e.value),
+                        oninput=|e| Msg::GotInput(e.value),
                         placeholder="placeholder",>
                     </textarea>
                      <button onclick=|_| Msg::Clicked,>{ "change value" }</button>

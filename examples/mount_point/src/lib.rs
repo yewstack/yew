@@ -38,7 +38,7 @@ where
     fn view(&self) -> Html<CTX, Self> {
         html! {
             <div>
-                <input value=&self.name, oninput=|e: InputData| Msg::UpdateName(e.value), />
+                <input value=&self.name, oninput=|e| Msg::UpdateName(e.value), />
                 <p>{ self.name.chars().rev().collect::<String>() }</p>
             </div>
         }

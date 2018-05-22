@@ -199,7 +199,7 @@ impl Client {
             <input class=("new-client", "firstname"),
                    placeholder="First name",
                    value=&self.first_name,
-                   oninput=|e: InputData| Msg::UpdateFirstName(e.value),
+                   oninput=|e| Msg::UpdateFirstName(e.value),
                    />
         }
     }
@@ -212,7 +212,7 @@ impl Client {
             <input class=("new-client", "lastname"),
                    placeholder="Last name",
                    value=&self.last_name,
-                   oninput=|e: InputData| Msg::UpdateLastName(e.value),
+                   oninput=|e| Msg::UpdateLastName(e.value),
                    />
         }
     }

@@ -218,11 +218,11 @@ where
                             { for self.cellules.iter().enumerate().map(view_cellule) }
                         </div>
                         <div class="game-buttons",>
-                            <button class="game-button", onclick=move|_| Msg::Random,>{ "Random" }</button>
-                            <button class="game-button", onclick=move|_| Msg::Step,>{ "Step" }</button>
-                            <button class="game-button", onclick=move|_| Msg::Start,>{ "Start" }</button>
-                            <button class="game-button", onclick=move|_| Msg::Stop,>{ "Stop" }</button>
-                            <button class="game-button", onclick=move|_| Msg::Reset,>{ "Reset" }</button>
+                            <button class="game-button", onclick=|_| Msg::Random,>{ "Random" }</button>
+                            <button class="game-button", onclick=|_| Msg::Step,>{ "Step" }</button>
+                            <button class="game-button", onclick=|_| Msg::Start,>{ "Start" }</button>
+                            <button class="game-button", onclick=|_| Msg::Stop,>{ "Stop" }</button>
+                            <button class="game-button", onclick=|_| Msg::Reset,>{ "Reset" }</button>
                         </div>
                     </section>
                 </section>
@@ -243,6 +243,6 @@ where
 {
     html! {
         <div class=("game-cellule", if cellule.life_state == LifeState::Alive { "cellule-live" } else { "cellule-dead" }),
-            onclick=move |_| Msg::ToggleCellule(idx),> </div>
+            onclick=|_| Msg::ToggleCellule(idx),> </div>
     }
 }
