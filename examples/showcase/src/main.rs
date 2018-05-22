@@ -183,7 +183,7 @@ impl Renderable<Context, Scene> for Scene {
                 <div id="left_pane",>
                     <h2>{ "Yew showcase" }</h2>
                     <select size="20", value={Scene::NotSelected.to_string()},
-                        onchange=|cd: ChangeData| {
+                        onchange=|cd| {
                             let scene = match cd {
                                 ChangeData::Select(se) => se.value().unwrap(),
                                 _ => unreachable!()
