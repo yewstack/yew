@@ -161,9 +161,13 @@ where
     };
 
     let handle = js! {
+        var body = @{body};
+        if (@{binary} && body != null) {
+            body = Uint8Array.from(body);
+        }
         var data = {
             method: @{method},
-            body: @{body},
+            body: body,
             headers: @{header_map},
         };
         var request = new Request(@{uri}, data);
