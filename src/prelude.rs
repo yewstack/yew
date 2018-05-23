@@ -32,5 +32,9 @@ pub use stdweb::web::event::{
     KeyDownEvent,
     KeyPressEvent,
     KeyUpEvent,
+    MouseDownEvent,
     MouseMoveEvent,
+    MouseOutEvent,
+    MouseOverEvent,
+    MouseUpEvent,
 };
