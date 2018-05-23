@@ -318,13 +318,13 @@ impl_action! {
     onkeydown(event: KeyDownEvent) -> KeyDownEvent => |_, event| { event }
     onkeyup(event: KeyUpEvent) -> KeyUpEvent => |_, event| { event }
     onmousemove(event: MouseMoveEvent) -> MouseMoveEvent => |_, event| { event }
+    onmousedown(event: MouseDownEvent) -> MouseDownEvent => |_, event| { event }
+    onmouseup(event: MouseUpEvent) -> MouseUpEvent => |_, event| { event }
+    onmouseover(event: MouseOverEvent) -> MouseOverEvent => |_, event| { event }
+    onmouseout(event: MouseOutEvent) -> MouseOutEvent => |_, event| { event }
     /* TODO Add PR to https://github.com/koute/stdweb
-    onmousedown(event: MouseDownEvent) -> () => |_, _| { () }
-    onmouseup(event: MouseUpEvent) -> () => |_, _| { () }
     onmouseenter(event: MouseEnterEvent) -> () => |_, _| { () }
     onmouseleave(event: MouseLeaveEvent) -> () => |_, _| { () }
-    onmouseover(event: MouseOverEvent) -> () => |_, _| { () }
-    onmouseout(event: MouseOutEvent) -> () => |_, _| { () }
     */
     onblur(event: BlurEvent) -> BlurEvent => |_, event| { event }
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
