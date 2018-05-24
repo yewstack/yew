@@ -53,7 +53,7 @@ macro_rules! html_impl {
     };
     // PATTERN: value="",
     (@vtag $stack:ident (value = $value:expr, $($tail:tt)*)) => {
-        $crate::macros::set_value(&mut $stack, $value);
+        $crate::macros::set_value_or_attribute(&mut $stack, $value);
         html_impl! { @vtag $stack ($($tail)*) }
     };
     // PATTERN: attribute=value, - workaround for `type` attribute
@@ -194,9 +194,13 @@ pub fn unpack<CTX, COMP: Component<CTX>>(mut stack: Stack<CTX, COMP>) -> VNode<C
 }
 
 #[doc(hidden)]
-pub fn set_value<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, value: T) {
+pub fn set_value_or_attribute<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, value: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
-        vtag.set_value(&value);
+        if vtag.tag().eq_ignore_ascii_case("option") {
+            vtag.add_attribute("value", &value)
+        } else {
+            vtag.set_value(&value)
+        }
     } else {
         panic!("no tag to set value: {}", value.to_string());
     }
@@ -279,7 +283,7 @@ pub fn child_to_parent<CTX, COMP: Component<CTX>>(
         // TODO Check it during compilation. Possible?
         if let (&mut VNode::VTag(ref mut vtag), Some(endtag)) = (&mut node, endtag) {
             let starttag = vtag.tag();
-            if starttag != endtag {
+            if !starttag.eq_ignore_ascii_case(endtag) {
                 panic!("wrong closing tag: <{}> -> </{}>", starttag, endtag);
             }
         }
