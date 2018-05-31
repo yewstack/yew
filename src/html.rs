@@ -167,7 +167,7 @@ where
 
     // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node (ancestor).
-    pub fn mount_in_place(
+    pub(crate) fn mount_in_place(
         self,
         element: Element,
         ancestor: Option<VNode<CTX, COMP>>,

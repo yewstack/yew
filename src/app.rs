@@ -30,6 +30,7 @@ where
 
     /// Alias to `mount("body", ...)`.
     pub fn mount_to_body(self) -> Activator<CTX, COMP> {
+        // Bootstrap the component for `Window` environment only (not for `Worker`)
         let element = document()
             .query_selector("body")
             .expect("can't get body node for rendering")
