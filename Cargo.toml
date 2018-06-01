@@ -1,6 +1,6 @@
 [package]
 name = "yew"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 repository = "https://github.com/DenisKolodin/yew"
 homepage = "https://github.com/DenisKolodin/yew"
