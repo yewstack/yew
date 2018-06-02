@@ -8,7 +8,7 @@ use serde::{Serialize, Deserialize};
 use bincode;
 use stdweb::Value;
 use stdweb::unstable::TryInto;
-use callback::Callback;
+//use callback::Callback;
 
 thread_local! {
     pub(crate) static AGENTS: RefCell<HashMap<TypeId, Box<FnMut(Vec<u8>)>>> =
@@ -76,7 +76,22 @@ pub trait Agent: Sized + 'static {
 
     /// Spawns an agent and returns `Addr` of an instance.
     fn spawn() -> Addr<Self> {
-        let mut routine = move |data: Vec<u8>| {
+        let worker_base = js! {
+            // TODO Use relative path. But how?
+            var worker = new Worker("main.js");
+            return worker;
+        };
+        let worker = worker_base.clone();
+        let send_to_app = move |msg: ToWorker| {
+            let bytes = bincode::serialize(&msg)
+                .expect("can't serialize message for app");
+            let worker = worker.clone();
+            js! {
+                var worker = @{worker};
+                worker.postMessage(@{bytes});
+            };
+        };
+        let routine = move |data: Vec<u8>| {
             let msg: FromWorker = bincode::deserialize(&data)
                 .expect("can't deserialize a message from a worker");
             info!("Received from worker: {:?}", msg);
@@ -85,6 +100,7 @@ pub trait Agent: Sized + 'static {
                     let type_id = TypeId::of::<Self>();
                     let raw_type_id: RawTypeId = unsafe { ::std::mem::transmute(type_id) };
                     let msg = ToWorker::SelectType(raw_type_id);
+                    send_to_app(msg);
                 },
                 FromWorker::TypeDetected => {
                     info!("Worker handshake finished");
@@ -93,18 +109,17 @@ pub trait Agent: Sized + 'static {
                 },
             }
         };
-        let worker = js! {
-            // TODO Use relative path. But how?
-            var worker = new Worker("main.js");
+        let worker = worker_base.clone();
+        js! {
+            var worker = @{worker};
             // TODO Send type id (but on ready event)
             var routine = @{routine};
             worker.onmessage = function(event) {
                 routine(event.data);
             };
-            return worker;
         };
         Addr {
-            worker,
+            worker: worker_base,
             _agent: PhantomData,
         }
     }
@@ -113,7 +128,7 @@ pub trait Agent: Sized + 'static {
     /// Uses in `main` function of a worker.
     fn register() {
         let mut this = Self::create();
-        let mut routine = move |data: Vec<u8>| {
+        let routine = move |data: Vec<u8>| {
             let msg: Self::Input = bincode::deserialize(&data)
                 .expect("can't deserialize an input message");
             this.handle(msg);
@@ -145,10 +160,11 @@ impl<T: Agent> Addr<T> {
         // and send them to an agent when it will reported readiness.
         let bytes = bincode::serialize(&msg)
             .expect("can't serialize message for agent");
+        let msg: Vec<u8> = ToWorker::ProcessInput(bytes).into();
         let worker = &self.worker;
         js! {
-            var bytes = @{bytes};
             var worker = @{worker};
+            var bytes = @{msg};
             console.log("Sending...", bytes);
             worker.postMessage(bytes);
         };
@@ -176,7 +192,7 @@ pub(crate) fn run_agent() {
         };
     };
     let mut handler = None;
-    let mut routine = move |data: Vec<u8>| {
+    let routine = move |data: Vec<u8>| {
         let msg = data.into();
         match msg {
             ToWorker::SelectType(raw_type_id) => {
@@ -194,10 +210,10 @@ pub(crate) fn run_agent() {
     };
     js! {
         let routine = @{routine};
-        self.console.log("Mounted...", self);
+        console.log("Mounted...", self);
         self.onmessage = function(event) {
             // TODO Send type_id, but how?
-            self.console.log("Received...", event.data);
+            console.log("Received...", event.data);
             routine(event.data);
         };
         // TODO Clean up the allocated memory
