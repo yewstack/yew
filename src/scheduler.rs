@@ -3,21 +3,18 @@
 use std::collections::VecDeque;
 use std::rc::Rc;
 use std::cell::RefCell;
-use {Shared, Hidden};
-
-/// Unspecified routine binded to a context.
-pub(crate) type BoxedRunnable<CTX> = Box<Runnable<CTX>>;
+use Shared;
 
 /// A routine which could be run.
 pub(crate) trait Runnable<CTX> {
     /// Runs a routine with a context instance.
-    fn run<'a>(&mut self, context: &'a mut CTX, msg: *mut Hidden);
+    fn run(&mut self, context: &mut CTX);
 }
 
 /// This is a global scheduler suitable to schedule and run any tasks.
 pub struct Scheduler<CTX> {
     context: Shared<CTX>,
-    sequence: Shared<VecDeque<(Shared<BoxedRunnable<CTX>>, *mut Hidden)>>,
+    sequence: Shared<VecDeque<Box<Runnable<CTX>>>>,
 }
 
 impl<CTX> Clone for Scheduler<CTX> {
@@ -39,14 +36,13 @@ impl<CTX> Scheduler<CTX> {
         }
     }
 
-    pub(crate) fn put_and_try_run(&mut self, pair: (Shared<BoxedRunnable<CTX>>, *mut Hidden)) {
-        self.sequence.borrow_mut().push_back(pair);
-        // Context lock also means the loop is running
+    pub(crate) fn put_and_try_run(&mut self, runnable: Box<Runnable<CTX>>) {
+        self.sequence.borrow_mut().push_back(runnable);
         if let Ok(ref mut context) = self.context.try_borrow_mut() {
             loop {
                 let do_next = self.sequence.borrow_mut().pop_front();
-                if let Some((routine, msg)) = do_next {
-                    routine.borrow_mut().run(context, msg);
+                if let Some(mut runnable) = do_next {
+                    runnable.run(context);
                 } else {
                     break;
                 }
