@@ -7,7 +7,6 @@ use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::marker::PhantomData;
-use stdweb::web::event::{BlurEvent, IKeyboardEvent, IMouseEvent};
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use stdweb::web::html_element::SelectElement;
 use virtual_dom::{Listener, VDiff, VNode};
@@ -310,12 +309,12 @@ macro_rules! impl_action {
 
 // Inspired by: http://package.elm-lang.org/packages/elm-lang/html/2.0.0/Html-Events
 impl_action! {
-    onclick(event: ClickEvent) -> MouseData => |_, event| { MouseData::from(event) }
-    ondoubleclick(event: DoubleClickEvent) -> MouseData => |_, event| { MouseData::from(event) }
-    onkeypress(event: KeyPressEvent) -> KeyData => |_, event| { KeyData::from(event) }
-    onkeydown(event: KeyDownEvent) -> KeyData => |_, event| { KeyData::from(event) }
-    onkeyup(event: KeyUpEvent) -> KeyData => |_, event| { KeyData::from(event) }
-    onmousemove(event: MouseMoveEvent) -> MouseData => |_, event| { MouseData::from(event) }
+    onclick(event: ClickEvent) -> ClickEvent => |_, event| { event }
+    ondoubleclick(event: DoubleClickEvent) -> DoubleClickEvent => |_, event| { event }
+    onkeypress(event: KeyPressEvent) -> KeyPressEvent => |_, event| { event }
+    onkeydown(event: KeyDownEvent) -> KeyDownEvent => |_, event| { event }
+    onkeyup(event: KeyUpEvent) -> KeyUpEvent => |_, event| { event }
+    onmousemove(event: MouseMoveEvent) -> MouseMoveEvent => |_, event| { event }
     /* TODO Add PR to https://github.com/koute/stdweb
     onmousedown(event: MouseDownEvent) -> () => |_, _| { () }
     onmouseup(event: MouseUpEvent) -> () => |_, _| { () }
@@ -324,9 +323,7 @@ impl_action! {
     onmouseover(event: MouseOverEvent) -> () => |_, _| { () }
     onmouseout(event: MouseOutEvent) -> () => |_, _| { () }
     */
-    onblur(event: BlurEvent) -> BlurData => |_, event| {
-        BlurData::from(event)
-    }
+    onblur(event: BlurEvent) -> BlurEvent => |_, event| { event }
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
         use stdweb::web::html_element::{InputElement, TextAreaElement};
         use stdweb::unstable::TryInto;
@@ -372,42 +369,6 @@ impl_action! {
     }
 }
 
-/// A type representing data from `onclick` and `ondoubleclick` event.
-#[derive(Debug)]
-pub struct MouseData {
-    /// The screenX is a read-only property of the
-    /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/screenX)
-    /// property which provides the horizontal coordinate (offset)
-    /// of the mouse pointer in global (screen) coordinates.
-    pub screen_x: i32,
-    /// The screenY is a read-only property of the
-    /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/screenY)
-    /// property which provides the vertical coordinate (offset)
-    /// of the mouse pointer in global (screen) coordinates.
-    pub screen_y: i32,
-    /// The clientX is a read-only property of the
-    /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/clientX)
-    /// interface which provides the horizontal coordinate within
-    /// the application's client area at which the event occurred
-    pub client_x: i32,
-    /// The clientY is a read-only property of the
-    /// [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/clientX)
-    /// interface which provides the vertical coordinate within
-    /// the application's client area at which the event occurred
-    pub client_y: i32,
-}
-
-impl<T: IMouseEvent> From<T> for MouseData {
-    fn from(event: T) -> Self {
-        MouseData {
-            screen_x: event.screen_x(),
-            screen_y: event.screen_y(),
-            client_x: event.client_x(),
-            client_y: event.client_y(),
-        }
-    }
-}
-
 /// A type representing data from `oninput` event.
 #[derive(Debug)]
 pub struct InputData {
@@ -432,30 +393,6 @@ pub enum ChangeData {
     /// to collect your required data such as: `value`, `selected_index`, `selected_indices` or
     /// `selected_values`. You can also iterate throught `selected_options` yourself.
     Select(SelectElement),
-}
-
-/// A type representing data from `onkeypress` event.
-#[derive(Debug)]
-pub struct KeyData {
-    /// Value of a pressed key. Contains key name from
-    /// [KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
-    pub key: String,
-}
-
-impl<T: IKeyboardEvent> From<T> for KeyData {
-    fn from(event: T) -> Self {
-        KeyData { key: event.key() }
-    }
-}
-
-/// A type representing `onblur` event.
-#[derive(Debug)]
-pub struct BlurData;
-
-impl From<BlurEvent> for BlurData {
-    fn from(_: BlurEvent) -> Self {
-        BlurData
-    }
 }
 
 /// A bridging type for checking `href` attribute value.

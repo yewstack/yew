@@ -14,10 +14,18 @@ pub use html::{
     Html,
     ChangeData,
     InputData,
-    KeyData,
-    MouseData,
     Renderable,
     ShouldRender,
+};
+
+pub use stdweb::web::event::{
+    ClickEvent,
+    DoubleClickEvent,
+    KeyPressEvent,
+    KeyDownEvent,
+    KeyUpEvent,
+    MouseMoveEvent,
+    BlurEvent,
 };
 
 pub use app::App;
