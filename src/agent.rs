@@ -83,8 +83,7 @@ pub trait Agent: Sized + 'static {
         };
         let worker = worker_base.clone();
         let send_to_app = move |msg: ToWorker| {
-            let bytes = bincode::serialize(&msg)
-                .expect("can't serialize message for app");
+            let bytes: Vec<u8> = msg.into();
             let worker = worker.clone();
             js! {
                 var worker = @{worker};
@@ -92,8 +91,7 @@ pub trait Agent: Sized + 'static {
             };
         };
         let routine = move |data: Vec<u8>| {
-            let msg: FromWorker = bincode::deserialize(&data)
-                .expect("can't deserialize a message from a worker");
+            let msg = FromWorker::from(data);
             info!("Received from worker: {:?}", msg);
             match msg {
                 FromWorker::WorkerLoaded => {
@@ -198,7 +196,10 @@ pub(crate) fn run_agent() {
             ToWorker::SelectType(raw_type_id) => {
                 let type_id: TypeId = unsafe { ::std::mem::transmute(raw_type_id) };
                 handler = AGENTS.with(move |agents| {
-                    agents.borrow_mut().remove(&type_id)
+                    let mut agents = agents.borrow_mut();
+                    let result = agents.remove(&type_id);
+                    agents.clear(); // Drop unnecessary types of handlers
+                    result
                 });
             },
             ToWorker::ProcessInput(data) => {
