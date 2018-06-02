@@ -178,7 +178,7 @@ where
 impl<'a, CTX, COMP, F, IN> Transformer<CTX, COMP, F, Option<Callback<IN>>> for VComp<CTX, COMP>
 where
     CTX: 'static,
-    COMP: Component<CTX>,
+    COMP: Component<CTX> + Renderable<CTX, COMP>,
     F: Fn(IN) -> COMP::Message + 'static,
 {
     fn transform(&mut self, from: F) -> Option<Callback<IN>> {
