@@ -61,7 +61,7 @@ pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
 /// shared reference to a context and a sender to a scope's loop.
 pub struct Env<'a, CTX: 'a, COMP: Component<CTX>> {
     context: &'a mut CTX,
-    activator: &'a mut Activator<CTX, COMP>,
+    activator: &'a mut Scope<CTX, COMP>,
 }
 
 impl<'a, CTX: 'a, COMP: Component<CTX>> Deref for Env<'a, CTX, COMP> {
@@ -93,17 +93,21 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
     }
 }
 
-/// Holds a reference to a scope, could put a message into the queue
-/// of the scope and activate processing (try borrow and call routine).
-pub struct Activator<CTX, COMP: Component<CTX>> {
+/// A context which contains a bridge to send a messages to a loop.
+/// Mostly services uses it.
+pub struct Scope<CTX, COMP: Component<CTX>> {
     runnable: Shared<Option<Shared<BoxedRunnable<CTX>>>>,
     scheduler: Scheduler<CTX>,
     _comp: PhantomData<COMP>,
 }
 
-impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
+/// Holds a reference to a scope, could put a message into the queue
+/// of the scope and activate processing (try borrow and call routine).
+pub type Activator<CTX, COMP> = Scope<CTX, COMP>; // TODO Should be removed
+
+impl<CTX, COMP: Component<CTX>> Clone for Scope<CTX, COMP> {
     fn clone(&self) -> Self {
-        Activator {
+        Scope {
             runnable: self.runnable.clone(),
             scheduler: self.scheduler.clone(),
             _comp: PhantomData,
@@ -111,7 +115,7 @@ impl<CTX, COMP: Component<CTX>> Clone for Activator<CTX, COMP> {
     }
 }
 
-impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
+impl<CTX, COMP: Component<CTX>> Scope<CTX, COMP> {
     /// Send the message and schedule an update.
     pub(crate) fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
         let msg = Box::into_raw(Box::new(update)) as *mut Hidden;
@@ -133,12 +137,6 @@ impl<CTX, COMP: Component<CTX>> Activator<CTX, COMP> {
     }
 }
 
-/// A context which contains a bridge to send a messages to a loop.
-/// Mostly services uses it.
-pub(crate) struct Scope<CTX, COMP: Component<CTX>> {
-    env: Activator<CTX, COMP>,
-}
-
 /// Holder for the element.
 pub type NodeCell = Rc<RefCell<Option<Node>>>;
 
@@ -150,12 +148,11 @@ where
     pub(crate) fn new(scheduler: Scheduler<CTX>) -> Self {
         let runnable = Rc::new(RefCell::new(None));
         let _comp = PhantomData;
-        let env = Activator { runnable, scheduler, _comp };
-        Scope { env }
+        Scope { runnable, scheduler, _comp }
     }
 
-    pub(crate) fn activator(&self) -> Activator<CTX, COMP> {
-        self.env.clone()
+    pub(crate) fn activator(&self) -> Scope<CTX, COMP> {
+        self.clone()
     }
 
     // TODO Consider to use &Node instead of Element as parent
@@ -166,9 +163,9 @@ where
         ancestor: Option<VNode<CTX, COMP>>,
         occupied: Option<NodeCell>,
         init_props: Option<COMP::Properties>,
-    ) -> Activator<CTX, COMP> {
+    ) -> Scope<CTX, COMP> {
         let runnable = ScopeRunnable {
-            env: self.env.clone(),
+            env: self.clone(),
             component: None,
             last_frame: None,
             element,
@@ -177,7 +174,7 @@ where
             init_props,
             destroyed: false,
         };
-        let mut activator = self.env.clone();
+        let mut activator = self.clone();
         let runnable = Box::new(runnable) as BoxedRunnable<CTX>;
         let runnable = Rc::new(RefCell::new(runnable));
         *activator.runnable.borrow_mut() = Some(runnable);
@@ -187,7 +184,7 @@ where
 }
 
 struct ScopeRunnable<CTX, COMP: Component<CTX>> {
-    env: Activator<CTX, COMP>,
+    env: Scope<CTX, COMP>,
     component: Option<COMP>,
     last_frame: Option<VNode<CTX, COMP>>,
     element: Element,
@@ -292,7 +289,7 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, mut activator: Activator<CTX, COMP>)
+                fn attach(&mut self, element: &Element, mut activator: Scope<CTX, COMP>)
                     -> EventListenerHandle {
                     let handler = self.0.take().expect("tried to attach listener twice");
                     let this = element.clone();
