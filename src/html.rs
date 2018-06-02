@@ -6,13 +6,12 @@
 use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-use std::marker::PhantomData;
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use stdweb::web::html_element::SelectElement;
 use virtual_dom::{Listener, VDiff, VNode};
 use callback::Callback;
-use scheduler::{Scheduler, Runnable, BoxedRunnable};
-use {Shared, Hidden};
+use scheduler::{Scheduler, Runnable};
+use Shared;
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -78,7 +77,11 @@ impl<'a, CTX: 'a, COMP: Component<CTX>> DerefMut for Env<'a, CTX, COMP> {
     }
 }
 
-impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
+impl<'a, CTX, COMP> Env<'a, CTX, COMP>
+where
+    CTX: 'static,
+    COMP: Component<CTX> + Renderable<CTX, COMP>,
+{
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
@@ -96,9 +99,8 @@ impl<'a, CTX: 'static, COMP: Component<CTX>> Env<'a, CTX, COMP> {
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
 pub struct Scope<CTX, COMP: Component<CTX>> {
-    runnable: Shared<Option<Shared<BoxedRunnable<CTX>>>>,
+    shared_component: Shared<Option<ScopeRunnable<CTX, COMP>>>,
     scheduler: Scheduler<CTX>,
-    _comp: PhantomData<COMP>,
 }
 
 /// Holds a reference to a scope, could put a message into the queue
@@ -108,21 +110,25 @@ pub type Activator<CTX, COMP> = Scope<CTX, COMP>; // TODO Should be removed
 impl<CTX, COMP: Component<CTX>> Clone for Scope<CTX, COMP> {
     fn clone(&self) -> Self {
         Scope {
-            runnable: self.runnable.clone(),
+            shared_component: self.shared_component.clone(),
             scheduler: self.scheduler.clone(),
-            _comp: PhantomData,
         }
     }
 }
 
-impl<CTX, COMP: Component<CTX>> Scope<CTX, COMP> {
+impl<CTX, COMP> Scope<CTX, COMP>
+where
+    CTX: 'static,
+    COMP: Component<CTX> + Renderable<CTX, COMP>,
+{
     /// Send the message and schedule an update.
     pub(crate) fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
-        let msg = Box::into_raw(Box::new(update)) as *mut Hidden;
-        let runnable = self.runnable.borrow().as_ref()
-            .cloned()
-            .expect("runnable was not set");
-        self.scheduler.put_and_try_run((runnable, msg));
+        let envelope = Envelope {
+            shared_component: self.shared_component.clone(),
+            message: Some(update),
+        };
+        let runnable: Box<Runnable<CTX>> = Box::new(envelope);
+        self.scheduler.put_and_try_run(runnable);
     }
 
     /// Send message to a component.
@@ -130,7 +136,12 @@ impl<CTX, COMP: Component<CTX>> Scope<CTX, COMP> {
         let update = ComponentUpdate::Message(message);
         self.send(update);
     }
+}
 
+impl<CTX, COMP> Scope<CTX, COMP>
+where
+    COMP: Component<CTX>,
+{
     /// Return an instance of a scheduler with a same pool of the app.
     pub fn scheduler(&self) -> Scheduler<CTX> {
         self.scheduler.clone()
@@ -146,9 +157,8 @@ where
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
     pub(crate) fn new(scheduler: Scheduler<CTX>) -> Self {
-        let runnable = Rc::new(RefCell::new(None));
-        let _comp = PhantomData;
-        Scope { runnable, scheduler, _comp }
+        let shared_component = Rc::new(RefCell::new(None));
+        Scope { shared_component, scheduler }
     }
 
     pub(crate) fn activator(&self) -> Scope<CTX, COMP> {
@@ -175,9 +185,7 @@ where
             destroyed: false,
         };
         let mut activator = self.clone();
-        let runnable = Box::new(runnable) as BoxedRunnable<CTX>;
-        let runnable = Rc::new(RefCell::new(runnable));
-        *activator.runnable.borrow_mut() = Some(runnable);
+        *activator.shared_component.borrow_mut() = Some(runnable);
         activator.send(ComponentUpdate::Create);
         activator
     }
@@ -194,61 +202,73 @@ struct ScopeRunnable<CTX, COMP: Component<CTX>> {
     destroyed: bool,
 }
 
-impl<CTX, COMP> Runnable<CTX> for ScopeRunnable<CTX, COMP>
+/// Wraps a component reference and a message to hide it under `Runnable` trait.
+/// It's necessary to schedule a processing of a message.
+struct Envelope<CTX, COMP>
+where
+    COMP: Component<CTX>,
+{
+    shared_component: Shared<Option<ScopeRunnable<CTX, COMP>>>,
+    message: Option<ComponentUpdate<CTX, COMP>>,
+}
+
+impl<CTX, COMP> Runnable<CTX> for Envelope<CTX, COMP>
 where
     CTX: 'static,
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
-    fn run<'a>(&mut self, context: &'a mut CTX, msg: *mut Hidden) {
-        if self.destroyed {
+    fn run<'a>(&mut self, context: &mut CTX) {
+        let mut scope = self.shared_component.borrow_mut();
+        let this = scope.as_mut().expect("shared component not set");
+        if this.destroyed {
             return;
         }
         let mut should_update = false;
-        let upd = unsafe { *Box::from_raw(msg as *mut ComponentUpdate<CTX, COMP>) };
+        let upd = self.message.take().expect("envelope called twice");
         // This loop pops one item, because the following
         // updates could try to borrow the same cell
         // Important! Don't use `while let` here, because it
         // won't free the lock.
-        let env = self.env.clone();
+        let env = this.env.clone();
         let mut context = Env {
             context: context,
-            activator: &mut self.env,
+            activator: &mut this.env,
         };
         match upd {
             ComponentUpdate::Create => {
-                let props = self.init_props.take().unwrap_or_default();
-                self.component = Some(COMP::create(props, &mut context));
+                let props = this.init_props.take().unwrap_or_default();
+                this.component = Some(COMP::create(props, &mut context));
                 // No messages at start
-                let current_frame = self.component.as_ref().unwrap().view();
-                self.last_frame = Some(current_frame);
+                let current_frame = this.component.as_ref().unwrap().view();
+                this.last_frame = Some(current_frame);
                 // First-time rendering the tree
-                let node = self.last_frame.as_mut()
+                let node = this.last_frame.as_mut()
                     .unwrap()
-                    .apply(self.element.as_node(), None, self.ancestor.take(), &env);
-                if let Some(ref mut cell) = self.occupied {
+                    .apply(this.element.as_node(), None, this.ancestor.take(), &env);
+                if let Some(ref mut cell) = this.occupied {
                     *cell.borrow_mut() = node;
                 }
             }
             ComponentUpdate::Message(msg) => {
-                should_update |= self.component.as_mut().unwrap().update(msg, &mut context);
+                should_update |= this.component.as_mut().unwrap().update(msg, &mut context);
             }
             ComponentUpdate::Properties(props) => {
-                should_update |= self.component.as_mut().unwrap().change(props, &mut context);
+                should_update |= this.component.as_mut().unwrap().change(props, &mut context);
             }
             ComponentUpdate::Destroy => {
-                self.component.as_mut().unwrap().destroy(&mut context);
-                self.destroyed = true;
+                this.component.as_mut().unwrap().destroy(&mut context);
+                this.destroyed = true;
             }
         }
         if should_update {
-            let mut next_frame = self.component.as_ref().unwrap().view();
+            let mut next_frame = this.component.as_ref().unwrap().view();
             // Re-rendering the tree
             let node =
-                next_frame.apply(self.element.as_node(), None, self.last_frame.take(), &env);
-            if let Some(ref mut cell) = self.occupied {
+                next_frame.apply(this.element.as_node(), None, this.last_frame.take(), &env);
+            if let Some(ref mut cell) = this.occupied {
                 *cell.borrow_mut() = node;
             }
-            self.last_frame = Some(next_frame);
+            this.last_frame = Some(next_frame);
         }
     }
 }
@@ -281,9 +301,11 @@ macro_rules! impl_action {
                 }
             }
 
-            impl<T, CTX: 'static, COMP: Component<CTX>> Listener<CTX, COMP> for Wrapper<T>
+            impl<T, CTX, COMP> Listener<CTX, COMP> for Wrapper<T>
             where
                 T: Fn($ret) -> COMP::Message + 'static,
+                CTX: 'static,
+                COMP: Component<CTX> + Renderable<CTX, COMP>,
             {
                 fn kind(&self) -> &'static str {
                     stringify!($action)
