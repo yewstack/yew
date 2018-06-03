@@ -23,13 +23,13 @@ impl AsMut<Context> for Context {
 }
 
 pub struct Model {
-    activator: Option<Activator<Context, Model>>,
+    scope: Option<Scope<Context, Model>>,
     selector: &'static str,
     title: String,
 }
 
 pub enum Msg {
-    SetActivator(Activator<Context, Model>),
+    SetScope(Scope<Context, Model>),
     SendToOpposite(String),
     SetTitle(String),
 }
@@ -43,7 +43,7 @@ where
 
     fn create(_: Self::Properties, _: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
         Model {
-            activator: None,
+            scope: None,
             selector: "",
             title: "Nothing".into(),
         }
@@ -51,22 +51,22 @@ where
 
     fn update(&mut self, msg: Self::Message, _: &mut CTX) -> ShouldRender {
         match msg {
-            Msg::SetActivator(activator) => {
-                self.activator = Some(activator);
+            Msg::SetScope(scope) => {
+                self.scope = Some(scope);
             }
             Msg::SendToOpposite(title) => {
-                self.activator.as_mut().unwrap().send_message(Msg::SetTitle(title));
+                self.scope.as_mut().unwrap().send_message(Msg::SetTitle(title));
             }
             Msg::SetTitle(title) => {
                 match title.as_ref() {
                     "Ping" => {
-                        self.activator.as_mut().unwrap().send_message(Msg::SetTitle("Pong".into()));
+                        self.scope.as_mut().unwrap().send_message(Msg::SetTitle("Pong".into()));
                     }
                     "Pong" => {
-                        self.activator.as_mut().unwrap().send_message(Msg::SetTitle("Pong Done".into()));
+                        self.scope.as_mut().unwrap().send_message(Msg::SetTitle("Pong Done".into()));
                     }
                     "Pong Done" => {
-                        self.activator.as_mut().unwrap().send_message(Msg::SetTitle("Ping Done".into()));
+                        self.scope.as_mut().unwrap().send_message(Msg::SetTitle("Ping Done".into()));
                     }
                     _ => {
                     }

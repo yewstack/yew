@@ -6,7 +6,7 @@ use std::marker::PhantomData;
 use std::rc::Rc;
 use stdweb::unstable::TryInto;
 use stdweb::web::{document, Element, INode, Node};
-use html::{Component, ComponentUpdate, Scope, NodeCell, Renderable, Activator};
+use html::{Component, ComponentUpdate, Scope, NodeCell, Renderable};
 use callback::Callback;
 use scheduler::Scheduler;
 use super::{Reform, VDiff, VNode};
@@ -18,7 +18,7 @@ type AnyProps = (TypeId, *mut Hidden);
 type Generator<CTX> = FnMut(Scheduler<CTX>, Element, Option<Node>, AnyProps);
 
 /// A reference to unknown activator which will be attached later with a generator function.
-type LazyActivator<CTX, COMP> = Rc<RefCell<Option<Activator<CTX, COMP>>>>;
+type LazyActivator<CTX, COMP> = Rc<RefCell<Option<Scope<CTX, COMP>>>>;
 
 /// A virtual component.
 pub struct VComp<CTX, COMP: Component<CTX>> {
@@ -54,7 +54,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
                 };
                 let opposite = obsolete.map(VNode::VRef);
                 let scope: Scope<CTX, CHILD> = Scope::new(scheduler);
-                let env = scope.activator();
+                let env = scope.clone();
                 *lazy_activator.borrow_mut() = Some(env);
                 scope.mount_in_place(
                     element,
@@ -120,7 +120,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
 
     /// This method attach sender to a listeners, because created properties
     /// know nothing about a parent.
-    fn activate_props(&mut self, sender: &Activator<CTX, COMP>) -> AnyProps {
+    fn activate_props(&mut self, sender: &Scope<CTX, COMP>) -> AnyProps {
         for activator in &self.activators {
             *activator.borrow_mut() = Some(sender.clone());
         }
@@ -253,7 +253,7 @@ where
         parent: &Node,
         _: Option<&Node>,
         opposite: Option<VNode<Self::Context, Self::Component>>,
-        env: &Activator<Self::Context, Self::Component>,
+        env: &Scope<Self::Context, Self::Component>,
     ) -> Option<Node> {
         let reform = {
             match opposite {

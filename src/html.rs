@@ -93,10 +93,6 @@ pub struct Scope<CTX, COMP: Component<CTX>> {
     scheduler: Scheduler<CTX>,
 }
 
-/// Holds a reference to a scope, could put a message into the queue
-/// of the scope and activate processing (try borrow and call routine).
-pub type Activator<CTX, COMP> = Scope<CTX, COMP>; // TODO Should be removed
-
 impl<CTX, COMP: Component<CTX>> Clone for Scope<CTX, COMP> {
     fn clone(&self) -> Self {
         Scope {
@@ -149,10 +145,6 @@ where
     pub(crate) fn new(scheduler: Scheduler<CTX>) -> Self {
         let shared_component = Rc::new(RefCell::new(None));
         Scope { shared_component, scheduler }
-    }
-
-    pub(crate) fn activator(&self) -> Scope<CTX, COMP> {
-        self.clone()
     }
 
     // TODO Consider to use &Node instead of Element as parent
