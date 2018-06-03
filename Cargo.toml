@@ -19,6 +19,7 @@ serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 bincode = "1.0"
+slab = "0.4"
 stdweb = "0.4"
 toml = { version = "0.4", optional = true }
 serde_yaml = { version = "0.7", optional = true }

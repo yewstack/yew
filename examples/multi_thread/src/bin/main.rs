@@ -10,9 +10,9 @@ pub struct Context {
     pub worker: Addr<worker::Worker>,
 }
 
-impl AsRef<Addr<worker::Worker>> for Context {
-    fn as_ref(&self) -> &Addr<worker::Worker> {
-        &self.worker
+impl AsMut<Addr<worker::Worker>> for Context {
+    fn as_mut(&mut self) -> &mut Addr<worker::Worker> {
+        &mut self.worker
     }
 }
 

@@ -39,6 +39,8 @@ pub use stdweb::web::event::{
     MouseUpEvent,
 };
 
+pub use agent::Bridge;
+
 // TODO Split to `prelude::app` and `prelude::agent`
 
 pub use agent::{
@@ -46,6 +48,7 @@ pub use agent::{
     Agent,
     AgentLink,
     Ambit,
+    HandlerId,
     Message,
     Worker,
 };
