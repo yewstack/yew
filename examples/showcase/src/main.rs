@@ -38,7 +38,7 @@ use crm::Model as Crm;
 use custom_components::Model as CustomComponents;
 use dashboard::Model as Dashboard;
 use fragments::Model as Fragments;
-use game_of_life::GameOfLife;
+use game_of_life::Model as GameOfLife;
 use inner_html::Model as InnerHtml;
 use large_table::Model as LargeTable;
 use mount_point::Model as MountPoint;

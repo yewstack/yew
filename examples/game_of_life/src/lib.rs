@@ -22,7 +22,7 @@ struct Cellule {
     life_state: LifeState
 }
 
-pub struct GameOfLife {
+pub struct Model {
     callback: Callback<()>,
     cellules: Vec<Cellule>,
     cellules_width: usize,
@@ -72,7 +72,7 @@ fn wrap(coord: isize, range: isize) -> usize {
 }
 
 
-impl GameOfLife {
+impl Model {
     pub fn random_mutate(&mut self) {
         for cellule in self.cellules.iter_mut() {
             if rand::thread_rng().gen() {
@@ -151,7 +151,7 @@ pub enum Msg {
     ToggleCellule(usize)
 }
 
-impl<CTX> Component<CTX> for GameOfLife
+impl<CTX> Component<CTX> for Model
 where
     CTX: AsMut<IntervalService> + 'static,
 {
@@ -159,7 +159,7 @@ where
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
-        GameOfLife {
+        Model {
             callback: link.send_back(|_| Msg::Step),
             cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
             cellules_width: 50,
@@ -202,7 +202,7 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, GameOfLife> for GameOfLife
+impl<CTX> Renderable<CTX, Model> for Model
 where
     CTX: AsMut<IntervalService> + 'static,
 {
@@ -238,7 +238,7 @@ where
     }
 }
 
-fn view_cellule<CTX>((idx, cellule): (usize, &Cellule)) -> Html<CTX, GameOfLife>
+fn view_cellule<CTX>((idx, cellule): (usize, &Cellule)) -> Html<CTX, Model>
 where
     CTX: AsMut<IntervalService> + 'static,
 {
