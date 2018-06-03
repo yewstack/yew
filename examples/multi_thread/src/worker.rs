@@ -1,5 +1,5 @@
 use std::time::Duration;
-use yew::prelude::*;
+use yew::prelude::worker::*;
 // TODO use yew::services::{IntervalService, FetchService, Task};
 use yew::services::Task;
 use yew::services::interval::IntervalService;
