@@ -39,16 +39,20 @@ pub use stdweb::web::event::{
     MouseUpEvent,
 };
 
-pub use agent::Bridge;
-
-// TODO Split to `prelude::app` and `prelude::agent`
-
 pub use agent::{
-    Addr,
-    Agent,
-    AgentLink,
     Ambit,
-    HandlerId,
-    Message,
+    Bridge,
     Worker,
 };
+
+/// Prelude module for creating worker.
+pub mod worker {
+    pub use agent::{
+        Addr,
+        Agent,
+        AgentLink,
+        HandlerId,
+        Message,
+        Worker,
+    };
+}
