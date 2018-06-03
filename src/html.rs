@@ -3,7 +3,6 @@
 //! Also this module contains declaration of `Component` trait which used
 //! to create own UI-components.
 
-use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::cell::RefCell;
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
@@ -26,16 +25,16 @@ pub trait Component<CTX>: Sized + 'static {
     /// with unknown type.
     type Properties: Clone + PartialEq + Default;
     /// Initialization routine which could use a context.
-    fn create(props: Self::Properties, context: &mut Env<CTX, Self>) -> Self;
+    fn create(props: Self::Properties, link: ComponentLink<CTX, Self>, context: &mut CTX) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
-    fn update(&mut self, msg: Self::Message, context: &mut Env<CTX, Self>) -> ShouldRender;
+    fn update(&mut self, msg: Self::Message, context: &mut CTX) -> ShouldRender;
     /// This method called when properties changes, and once when component created.
-    fn change(&mut self, _: Self::Properties, _context: &mut Env<CTX, Self>) -> ShouldRender {
+    fn change(&mut self, _: Self::Properties, _context: &mut CTX) -> ShouldRender {
         unimplemented!("you should implement `change` method for a component with properties")
     }
     /// Called for finalization on the final point of the component's lifetime.
-    fn destroy(&mut self, _context: &mut Env<CTX, Self>) { }
+    fn destroy(&mut self, _context: &mut CTX) { }
 }
 
 /// Should be rendered relative to context and component environment.
@@ -47,7 +46,7 @@ pub trait Renderable<CTX, COMP: Component<CTX>> {
 /// Update message for a `Components` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
     /// Creating an instance of the component
-    Create,
+    Create(ComponentLink<CTX, COMP>),
     /// Wraps messages for a component.
     Message(COMP::Message),
     /// Wraps properties for a component.
@@ -56,41 +55,32 @@ pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
     Destroy,
 }
 
-/// A reference to environment of a component (scope) which contains
-/// shared reference to a context and a sender to a scope's loop.
-pub struct Env<'a, CTX: 'a, COMP: Component<CTX>> {
-    context: &'a mut CTX,
-    activator: &'a mut Scope<CTX, COMP>,
+/// Link to component's scope for creating callbacks.
+pub struct ComponentLink<CTX, COMP: Component<CTX>> {
+    scope: Scope<CTX, COMP>,
 }
 
-impl<'a, CTX: 'a, COMP: Component<CTX>> Deref for Env<'a, CTX, COMP> {
-     type Target = CTX;
-
-     fn deref(&self) -> &CTX {
-         &self.context
-     }
- }
-
-impl<'a, CTX: 'a, COMP: Component<CTX>> DerefMut for Env<'a, CTX, COMP> {
-    fn deref_mut(&mut self) -> &mut CTX {
-        &mut self.context
-    }
-}
-
-impl<'a, CTX, COMP> Env<'a, CTX, COMP>
+impl<CTX, COMP> ComponentLink<CTX, COMP>
 where
     CTX: 'static,
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
+    /// Create link for a scope.
+    fn connect(scope: &Scope<CTX, COMP>) -> Self {
+        ComponentLink {
+            scope: scope.clone(),
+        }
+    }
+
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> COMP::Message + 'static,
     {
-        let activator = self.activator.clone();
+        let scope = self.scope.clone();
         let closure = move |input| {
             let output = function(input);
-            activator.clone().send_message(output);
+            scope.clone().send_message(output);
         };
         closure.into()
     }
@@ -123,7 +113,7 @@ where
 {
     /// Send the message and schedule an update.
     pub(crate) fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
-        let envelope = Envelope {
+        let envelope = ComponentEnvelope {
             shared_component: self.shared_component.clone(),
             message: Some(update),
         };
@@ -184,10 +174,11 @@ where
             init_props,
             destroyed: false,
         };
-        let mut activator = self.clone();
-        *activator.shared_component.borrow_mut() = Some(runnable);
-        activator.send(ComponentUpdate::Create);
-        activator
+        let mut scope = self.clone();
+        *scope.shared_component.borrow_mut() = Some(runnable);
+        let link = ComponentLink::connect(&scope);
+        scope.send(ComponentUpdate::Create(link));
+        scope
     }
 }
 
@@ -204,7 +195,7 @@ struct ComponentRunnable<CTX, COMP: Component<CTX>> {
 
 /// Wraps a component reference and a message to hide it under `Runnable` trait.
 /// It's necessary to schedule a processing of a message.
-struct Envelope<CTX, COMP>
+struct ComponentEnvelope<CTX, COMP>
 where
     COMP: Component<CTX>,
 {
@@ -212,12 +203,12 @@ where
     message: Option<ComponentUpdate<CTX, COMP>>,
 }
 
-impl<CTX, COMP> Runnable<CTX> for Envelope<CTX, COMP>
+impl<CTX, COMP> Runnable<CTX> for ComponentEnvelope<CTX, COMP>
 where
     CTX: 'static,
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
-    fn run<'a>(&mut self, context: &mut CTX) {
+    fn run<'a>(&mut self, mut context: &mut CTX) {
         let mut component = self.shared_component.borrow_mut();
         let this = component.as_mut().expect("shared component not set");
         if this.destroyed {
@@ -230,14 +221,10 @@ where
         // Important! Don't use `while let` here, because it
         // won't free the lock.
         let env = this.env.clone();
-        let mut context = Env {
-            context: context,
-            activator: &mut this.env,
-        };
         match upd {
-            ComponentUpdate::Create => {
+            ComponentUpdate::Create(link) => {
                 let props = this.init_props.take().unwrap_or_default();
-                this.component = Some(COMP::create(props, &mut context));
+                this.component = Some(COMP::create(props, link, &mut context));
                 // No messages at start
                 let current_frame = this.component.as_ref().unwrap().view();
                 this.last_frame = Some(current_frame);

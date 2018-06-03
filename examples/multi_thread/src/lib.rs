@@ -22,14 +22,14 @@ impl<CTX: 'static> Component<CTX> for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
-        let callback = env.send_back(|_| Msg::DataReceived);
+    fn create(_: Self::Properties, mut link: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
+        let callback = link.send_back(|_| Msg::DataReceived);
         let mut addr = worker::Worker::spawn();
         let bridge = addr.bridge(callback);
         Model { bridge }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, _: &mut CTX) -> ShouldRender {
         match msg {
             Msg::SendToThread => {
                 self.bridge.send(worker::Request::GetDataFromServer);
