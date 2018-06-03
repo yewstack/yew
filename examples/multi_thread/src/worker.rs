@@ -1,4 +1,4 @@
-use yew::agent::{Agent, Message};
+use yew::prelude::*;
 use yew::services::fetch::FetchService;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -18,7 +18,7 @@ impl Agent for Worker {
     type Input = Msg;
     type Output = Msg;
 
-    fn create() -> Self {
+    fn create(link: AgentLink<Self>) -> Self {
         Worker {
             fetch: FetchService::new(),
         }
