@@ -4,14 +4,14 @@ extern crate multi_thread;
 
 use yew::prelude::*;
 use multi_thread::Model;
-use multi_thread::worker::Worker;
+use multi_thread::worker;
 
 pub struct Context {
-    pub worker: Addr<Worker>,
+    pub worker: Addr<worker::Worker>,
 }
 
-impl AsRef<Addr<Worker>> for Context {
-    fn as_ref(&self) -> &Addr<Worker> {
+impl AsRef<Addr<worker::Worker>> for Context {
+    fn as_ref(&self) -> &Addr<worker::Worker> {
         &self.worker
     }
 }
@@ -21,14 +21,14 @@ fn main() {
     match yew::initialize() {
         Ambit::Application => {
             let context = Context {
-                worker: Worker::spawn(),
+                worker: worker::Worker::spawn(),
             };
             let app: App<_, Model> = App::new(context);
             app.mount_to_body();
             yew::run_loop();
         }
         Ambit::Agent => {
-            Worker::register();
+            worker::Worker::register();
             yew::run_agent();
         }
     }

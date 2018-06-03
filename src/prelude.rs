@@ -23,7 +23,7 @@ pub use app::App;
 
 pub use callback::Callback;
 
-pub use agent::{Addr, Agent, Ambit};
+pub use agent::{Addr, Agent, Ambit, Worker};
 
 pub use stdweb::web::event::{
     BlurEvent,
