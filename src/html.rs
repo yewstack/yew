@@ -99,7 +99,7 @@ where
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
 pub struct Scope<CTX, COMP: Component<CTX>> {
-    shared_component: Shared<Option<ScopeRunnable<CTX, COMP>>>,
+    shared_component: Shared<Option<ComponentRunnable<CTX, COMP>>>,
     scheduler: Scheduler<CTX>,
 }
 
@@ -174,7 +174,7 @@ where
         occupied: Option<NodeCell>,
         init_props: Option<COMP::Properties>,
     ) -> Scope<CTX, COMP> {
-        let runnable = ScopeRunnable {
+        let runnable = ComponentRunnable {
             env: self.clone(),
             component: None,
             last_frame: None,
@@ -191,7 +191,7 @@ where
     }
 }
 
-struct ScopeRunnable<CTX, COMP: Component<CTX>> {
+struct ComponentRunnable<CTX, COMP: Component<CTX>> {
     env: Scope<CTX, COMP>,
     component: Option<COMP>,
     last_frame: Option<VNode<CTX, COMP>>,
@@ -208,7 +208,7 @@ struct Envelope<CTX, COMP>
 where
     COMP: Component<CTX>,
 {
-    shared_component: Shared<Option<ScopeRunnable<CTX, COMP>>>,
+    shared_component: Shared<Option<ComponentRunnable<CTX, COMP>>>,
     message: Option<ComponentUpdate<CTX, COMP>>,
 }
 
@@ -218,13 +218,13 @@ where
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
     fn run<'a>(&mut self, context: &mut CTX) {
-        let mut scope = self.shared_component.borrow_mut();
-        let this = scope.as_mut().expect("shared component not set");
+        let mut component = self.shared_component.borrow_mut();
+        let this = component.as_mut().expect("shared component not set");
         if this.destroyed {
             return;
         }
         let mut should_update = false;
-        let upd = self.message.take().expect("envelope called twice");
+        let upd = self.message.take().expect("component's envelope called twice");
         // This loop pops one item, because the following
         // updates could try to borrow the same cell
         // Important! Don't use `while let` here, because it
@@ -256,6 +256,7 @@ where
                 should_update |= this.component.as_mut().unwrap().change(props, &mut context);
             }
             ComponentUpdate::Destroy => {
+                // TODO this.component.take() instead of destroyed
                 this.component.as_mut().unwrap().destroy(&mut context);
                 this.destroyed = true;
             }

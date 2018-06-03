@@ -14,6 +14,7 @@ pub struct Worker {
 }
 
 impl Agent for Worker {
+    type Message = Msg;
     type Input = Msg;
     type Output = Msg;
 
@@ -21,6 +22,9 @@ impl Agent for Worker {
         Worker {
             fetch: FetchService::new(),
         }
+    }
+
+    fn update(&mut self, msg: Self::Message) {
     }
 
     fn handle(&mut self, msg: Self::Input) {
