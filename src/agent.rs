@@ -68,16 +68,20 @@ where
 {
 }
 
-/// Declares the behavior of the agent.
-pub trait Agent: Sized + 'static {
-    /// Type of an input messagae.
-    type Message;
-    /// Incoming message type.
-    type Input: Message;
-    /// Outgoing message type.
-    type Output;
-
+/// This traits allow to get addres or register worker.
+// TODO Maybe use somethig like `App` for `Component`s.
+pub trait Worker: Sized + 'static {
     /// Spawns an agent and returns `Addr` of an instance.
+    fn spawn() -> Addr<Self>;
+    /// Executes an agent in the current environment.
+    /// Uses in `main` function of a worker.
+    fn register();
+}
+
+impl<T> Worker for T
+where
+    T: Agent,
+{
     fn spawn() -> Addr<Self> {
         let worker_base = js! {
             // TODO Use relative path. But how?
@@ -125,13 +129,11 @@ pub trait Agent: Sized + 'static {
         }
     }
 
-    /// Executes an agent in the current environment.
-    /// Uses in `main` function of a worker.
     fn register() {
         let scheduler = Scheduler::new(());
         let mut this = Self::create();
         let routine = move |data: Vec<u8>| {
-            let msg: Self::Input = bincode::deserialize(&data)
+            let msg: T::Input = bincode::deserialize(&data)
                 .expect("can't deserialize an input message");
             this.handle(msg);
         };
@@ -140,8 +142,16 @@ pub trait Agent: Sized + 'static {
             agents.borrow_mut().insert(type_id, Box::new(routine));
         });
     }
+}
 
-    // TODO ^^^^^^^^^ MOVE THIS TO `trait Worker` ^^^^^^^^^^^^
+/// Declares the behavior of the agent.
+pub trait Agent: 'static {
+    /// Type of an input messagae.
+    type Message;
+    /// Incoming message type.
+    type Input: Message;
+    /// Outgoing message type.
+    type Output;
 
     /// Creates an instance of an agent.
     fn create() -> Self;
