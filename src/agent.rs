@@ -8,7 +8,8 @@ use serde::{Serialize, Deserialize};
 use bincode;
 use stdweb::Value;
 use stdweb::unstable::TryInto;
-//use callback::Callback;
+use scheduler::{Scheduler, Runnable};
+use Shared;
 
 thread_local! {
     pub(crate) static AGENTS: RefCell<HashMap<TypeId, Box<FnMut(Vec<u8>)>>> =
@@ -70,8 +71,10 @@ where
 /// Declares the behavior of the agent.
 pub trait Agent: Sized + 'static {
     /// Type of an input messagae.
+    type Message;
+    /// Incoming message type.
     type Input: Message;
-    /// Type of an output message.
+    /// Outgoing message type.
     type Output;
 
     /// Spawns an agent and returns `Addr` of an instance.
@@ -125,6 +128,7 @@ pub trait Agent: Sized + 'static {
     /// Executes an agent in the current environment.
     /// Uses in `main` function of a worker.
     fn register() {
+        let scheduler = Scheduler::new(());
         let mut this = Self::create();
         let routine = move |data: Vec<u8>| {
             let msg: Self::Input = bincode::deserialize(&data)
@@ -137,11 +141,20 @@ pub trait Agent: Sized + 'static {
         });
     }
 
+    // TODO ^^^^^^^^^ MOVE THIS TO `trait Worker` ^^^^^^^^^^^^
+
     /// Creates an instance of an agent.
     fn create() -> Self;
 
+    /// This metthod called on every update message.
+    fn update(&mut self, msg: Self::Message);
+
     /// This metthod called on every incoming message.
     fn handle(&mut self, msg: Self::Input);
+
+    /// Creates an instance of an agent.
+    fn destroy(&mut self) { }
+
 }
 
 /// Address of an agent.
@@ -150,7 +163,10 @@ pub struct Addr<T> {
     _agent: PhantomData<T>,
 }
 
-impl<T: Agent> Addr<T> {
+impl<T> Addr<T>
+where
+    T: Agent,
+{
     /// Send a message to an agent.
     pub fn send(&self, msg: T::Input) {
         // TODO Important! Implement.
@@ -237,4 +253,66 @@ pub enum Ambit {
     Application,
     /// `Worker` environment
     Agent,
+}
+
+/// This sctruct holds a reference to a component and to a global scheduler.
+pub struct AgentScope<AGN: Agent> {
+    shared_agent: Shared<AgentRunnable<AGN>>,
+    scheduler: Scheduler<()>,
+}
+
+impl<AGN: Agent> AgentScope<AGN> {
+    fn send(&mut self, update: AgentUpdate<AGN>) {
+        let envelope = AgentEnvelope {
+            shared_agent: self.shared_agent.clone(),
+            message: Some(update),
+        };
+        let runnable: Box<Runnable<()>> = Box::new(envelope);
+        self.scheduler.put_and_try_run(runnable);
+    }
+}
+
+struct AgentRunnable<AGN> {
+    agent: Option<AGN>,
+    // TODO Use agent field to control create message this flag
+    destroyed: bool,
+}
+
+enum AgentUpdate<AGN: Agent> {
+    Create,
+    Message(AGN::Message),
+    Input(AGN::Input),
+    Destroy,
+}
+
+struct AgentEnvelope<AGN: Agent> {
+    shared_agent: Shared<AgentRunnable<AGN>>,
+    message: Option<AgentUpdate<AGN>>,
+}
+
+impl<AGN> Runnable<()> for AgentEnvelope<AGN>
+where
+    AGN: Agent,
+{
+    fn run<'a>(&mut self, context: &mut ()) {
+        let mut this = self.shared_agent.borrow_mut();
+        if this.destroyed {
+            return;
+        }
+        let upd = self.message.take().expect("agent's envelope called twice");
+        match upd {
+            AgentUpdate::Create => {
+                this.agent = Some(AGN::create());
+            }
+            AgentUpdate::Message(_) => {
+            }
+            AgentUpdate::Input(_) => {
+            }
+            AgentUpdate::Destroy => {
+                let mut agent = this.agent.take()
+                    .expect("trying to destroy not existent agent");
+                agent.destroy();
+            }
+        }
+    }
 }
