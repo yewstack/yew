@@ -19,6 +19,8 @@ use gravatar::{GravatarService, Profile};
 use ccxt::CcxtService;
 
 pub struct Model {
+    gravatar: GravatarService,
+    ccxt: CcxtService,
     callback: Callback<Result<Profile, Error>>,
     profile: Option<Profile>,
     exchanges: Vec<String>,
@@ -38,8 +40,10 @@ where
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<CTX, Self>) -> Self {
         Model {
+            gravatar: GravatarService::new(),
+            ccxt: CcxtService::new(),
             callback: link.send_back(Msg::GravatarReady),
             profile: None,
             exchanges: Vec::new(),
@@ -47,11 +51,10 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut CTX) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Gravatar => {
-                let gravatar: &mut GravatarService = env.as_mut();
-                let task = gravatar.profile("205e460b479e2e5b48aec07710c08d50", self.callback.clone());
+                let task = self.gravatar.profile("205e460b479e2e5b48aec07710c08d50", self.callback.clone());
                 self.task = Some(task);
             }
             Msg::GravatarReady(Ok(profile)) => {
@@ -61,8 +64,7 @@ where
                 // Can't load gravatar profile
             }
             Msg::Exchanges => {
-                let ccxt: &mut CcxtService = env.as_mut();
-                self.exchanges = ccxt.exchanges();
+                self.exchanges = self.ccxt.exchanges();
             }
         }
         true

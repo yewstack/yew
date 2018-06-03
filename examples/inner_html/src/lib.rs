@@ -4,7 +4,6 @@ extern crate stdweb;
 extern crate yew;
 
 use yew::prelude::*;
-use yew::services::console::ConsoleService;
 
 use stdweb::web::Node;
 use stdweb::unstable::TryFrom;
@@ -15,44 +14,19 @@ pub struct Model {
 }
 
 pub enum Msg {
-    Increment,
-    Decrement,
-    None,
-    Bulk(Vec<Msg>),
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: AsMut<ConsoleService>,
-{
+impl<CTX> Component<CTX> for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
         Model {
             value: 0,
         }
     }
 
-    fn update(&mut self, msg: Self::Message, ctx: &mut CTX) -> ShouldRender {
-        match msg {
-            Msg::Increment => {
-                self.value = self.value + 1;
-                ctx.as_mut().log("plus one");
-            }
-            Msg::Decrement => {
-                self.value = self.value - 1;
-                ctx.as_mut().log("minus one");
-            }
-            Msg::Bulk(list) => for msg in list {
-                self.update(msg, ctx);
-                ctx.as_mut().log("Bulk action");
-            },
-            Msg::None => {
-                ctx.as_mut().log("No action");
-                return false;
-            }
-        }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
         true
     }
 }
@@ -68,7 +42,7 @@ const SVG: &str = r#"
 
 impl<CTX> Renderable<CTX, Model> for Model
 where
-    CTX: AsMut<ConsoleService> + 'static,
+    CTX: 'static,
 
 {
     fn view(&self) -> Html<CTX, Self> {

@@ -60,7 +60,7 @@ struct Context {
     gravatar: GravatarService,
     ccxt: CcxtService,
     timeout: TimeoutService,
-    two_apps: two_apps::Context,
+    two_apps: two_apps::Context, // TODO Fix this app, and remove all above ^^^
 }
 
 impl AsMut<ConsoleService> for Context {
@@ -96,12 +96,6 @@ impl AsMut<WebSocketService> for Context {
 impl AsMut<IntervalService> for Context {
     fn as_mut(&mut self) -> &mut IntervalService {
         &mut self.interval
-    }
-}
-
-impl custom_components::Printer for Context {
-    fn print(&mut self, data: &str) {
-        self.console.log(data);
     }
 }
 
@@ -156,11 +150,11 @@ impl Component<Context> for Scene {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Context, Self>, _: &mut Context) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Context, Self>) -> Self {
         Scene::NotSelected
     }
 
-    fn update(&mut self, msg: Self::Message, _: &mut Context) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::SwitchTo(scene) => {
                 *self = scene;

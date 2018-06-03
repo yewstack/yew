@@ -31,7 +31,7 @@ impl<CTX: 'static> Component<CTX> for Barrier {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
+    fn create(props: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
         Barrier {
             limit: props.limit,
             counter: 0,
@@ -39,7 +39,7 @@ impl<CTX: 'static> Component<CTX> for Barrier {
         }
     }
 
-    fn update(&mut self, msg: Self::Message, _: &mut CTX) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::ChildClicked => {
                 self.counter += 1;
@@ -54,7 +54,7 @@ impl<CTX: 'static> Component<CTX> for Barrier {
         true
     }
 
-    fn change(&mut self, props: Self::Properties, _: &mut CTX) -> ShouldRender {
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
         self.limit = props.limit;
         self.onsignal = props.onsignal;
         true

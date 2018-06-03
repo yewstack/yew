@@ -9,10 +9,6 @@ use yew::prelude::*;
 use counter::{Counter, Color};
 use barrier::Barrier;
 
-pub trait Printer {
-    fn print(&mut self, data: &str);
-}
-
 pub struct Model {
     with_barrier: bool,
     color: Color,
@@ -25,20 +21,18 @@ pub enum Msg {
 }
 
 impl<CTX> Component<CTX> for Model
-where
-    CTX: Printer,
 {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
         Model {
             with_barrier: false,
             color: Color::Red,
         }
     }
 
-    fn update(&mut self, msg: Self::Message, ctx: &mut CTX) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Repaint => {
                 self.color = Color::Blue;
@@ -48,8 +42,7 @@ where
                 self.with_barrier = !self.with_barrier;
                 true
             }
-            Msg::ChildClicked(value) => {
-                ctx.print(&format!("child clicked: {}", value));
+            Msg::ChildClicked(_value) => {
                 false
             }
         }
@@ -58,7 +51,7 @@ where
 
 impl<CTX> Renderable<CTX, Model> for Model
 where
-    CTX: Printer + 'static,
+    CTX: 'static,
 {
     fn view(&self) -> Html<CTX, Self> {
         let counter = |x| html! {
@@ -77,7 +70,7 @@ where
 impl Model {
     fn view_barrier<CTX>(&self) -> Html<CTX, Self>
     where
-        CTX: Printer + 'static,
+        CTX: 'static,
     {
         if self.with_barrier {
             html! {

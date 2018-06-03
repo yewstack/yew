@@ -28,14 +28,14 @@ impl<CTX: 'static> Component<CTX> for Button {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
+    fn create(props: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
         Button {
             title: props.title,
             onsignal: props.onsignal,
         }
     }
 
-    fn update(&mut self, msg: Self::Message, _: &mut CTX) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Clicked => {
                 if let Some(ref mut callback) = self.onsignal {
@@ -46,7 +46,7 @@ impl<CTX: 'static> Component<CTX> for Button {
         false
     }
 
-    fn change(&mut self, props: Self::Properties, _: &mut CTX) -> ShouldRender {
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
         self.title = props.title;
         self.onsignal = props.onsignal;
         true
