@@ -6,7 +6,7 @@ extern crate web_logger;
 
 use yew::prelude::*;
 use yew::services::interval::IntervalService;
-use game_of_life::{GameOfLife, Msg};
+use game_of_life::{Model, Msg};
 
 
 
@@ -30,7 +30,7 @@ fn main() {
     let context = Context {
         interval: IntervalService::new(),
     };
-    let app: App<_, GameOfLife> = App::new(context);
+    let app: App<_, Model> = App::new(context);
 
     let mut env = app.mount_to_body();
     env.send_message(Msg::Random);
