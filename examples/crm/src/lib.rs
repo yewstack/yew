@@ -58,8 +58,8 @@ where
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
-        let storage: &mut StorageService = env.as_mut();
+    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>, ctx: &mut CTX) -> Self {
+        let storage: &mut StorageService = ctx.as_mut();
         let Json(database) = storage.restore(KEY);
         let database = database.unwrap_or_else(|_| Database {
             clients: Vec::new(),
@@ -70,7 +70,7 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, ctx: &mut CTX) -> ShouldRender {
         let mut new_scene = None;
         match self.scene {
             Scene::ClientsList => {
@@ -100,7 +100,7 @@ where
                         let mut new_client = Client::empty();
                         ::std::mem::swap(client, &mut new_client);
                         self.database.clients.push(new_client);
-                        let storage: &mut StorageService = env.as_mut();
+                        let storage: &mut StorageService = ctx.as_mut();
                         storage.store(KEY, Json(&self.database));
                     }
                     Msg::SwitchTo(Scene::ClientsList) => {
@@ -115,12 +115,12 @@ where
                 match msg {
                     Msg::Clear => {
                         let ok = {
-                            let dialog: &mut DialogService = env.as_mut();
+                            let dialog: &mut DialogService = ctx.as_mut();
                             dialog.confirm("Do you really want to clear the data?")
                         };
                         if ok {
                             self.database.clients.clear();
-                            let storage: &mut StorageService = env.as_mut();
+                            let storage: &mut StorageService = ctx.as_mut();
                             storage.remove(KEY);
                         }
                     }

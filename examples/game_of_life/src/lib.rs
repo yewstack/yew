@@ -23,6 +23,7 @@ struct Cellule {
 }
 
 pub struct GameOfLife {
+    callback: Callback<()>,
     cellules: Vec<Cellule>,
     cellules_width: usize,
     cellules_height: usize,
@@ -157,8 +158,9 @@ where
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
         GameOfLife {
+            callback: link.send_back(|_| Msg::Step),
             cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
             cellules_width: 50,
             cellules_height: 40,
@@ -166,16 +168,15 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, ctx: &mut CTX) -> ShouldRender {
         match msg {
             Msg::Random => {
                 self.random_mutate();
                 info!("Random");
             },
             Msg::Start => {
-                let callback = env.send_back(|_| Msg::Step);
-                let interval: &mut IntervalService = env.as_mut();
-                let handle = interval.spawn(Duration::from_millis(200), callback);
+                let interval: &mut IntervalService = ctx.as_mut();
+                let handle = interval.spawn(Duration::from_millis(200), self.callback.clone());
                 self.job = Some(Box::new(handle));
                 info!("Start");
             },

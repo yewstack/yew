@@ -73,7 +73,7 @@ where
     }
 
     /// This method sends messages back to the component's loop.
-    pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
+    pub fn send_back<F, IN>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> COMP::Message + 'static,
     {

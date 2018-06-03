@@ -156,11 +156,11 @@ impl Component<Context> for Scene {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<Context, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Context, Self>, _: &mut Context) -> Self {
         Scene::NotSelected
     }
 
-    fn update(&mut self, msg: Self::Message, _: &mut Env<Context, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, _: &mut Context) -> ShouldRender {
         match msg {
             Msg::SwitchTo(scene) => {
                 *self = scene;
@@ -231,7 +231,7 @@ impl Scene {
             }
             Scene::Dashboard => {
                 html! {
-                    <Dashboard: />
+                    <Dashboard<Context>: />
                 }
             }
             Scene::Fragments => {

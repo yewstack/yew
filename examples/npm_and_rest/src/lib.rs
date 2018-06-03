@@ -19,6 +19,7 @@ use gravatar::{GravatarService, Profile};
 use ccxt::CcxtService;
 
 pub struct Model {
+    callback: Callback<Result<Profile, Error>>,
     profile: Option<Profile>,
     exchanges: Vec<String>,
     task: Option<FetchTask>,
@@ -37,20 +38,20 @@ where
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
         Model {
+            callback: link.send_back(Msg::GravatarReady),
             profile: None,
             exchanges: Vec::new(),
             task: None,
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, env: &mut CTX) -> ShouldRender {
         match msg {
             Msg::Gravatar => {
-                let callback = env.send_back(Msg::GravatarReady);
                 let gravatar: &mut GravatarService = env.as_mut();
-                let task = gravatar.profile("205e460b479e2e5b48aec07710c08d50", callback);
+                let task = gravatar.profile("205e460b479e2e5b48aec07710c08d50", self.callback.clone());
                 self.task = Some(task);
             }
             Msg::GravatarReady(Ok(profile)) => {

@@ -39,7 +39,7 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(props: Self::Properties, _: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
         Counter {
             value: props.initial,
             color: props.color,
@@ -47,20 +47,20 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, ctx: &mut CTX) -> ShouldRender {
         match msg {
             Msg::Increase => {
                 self.value = self.value + 1;
                 if let Some(ref onclick) = self.onclick {
                     onclick.emit(self.value);
                 }
-                env.print(format!("<printer> value of model is {}", self.value).as_str());
+                ctx.print(format!("<printer> value of model is {}", self.value).as_str());
             }
         }
         true
     }
 
-    fn change(&mut self, props: Self::Properties, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn change(&mut self, props: Self::Properties, _: &mut CTX) -> ShouldRender {
         self.color = props.color;
         self.onclick = props.onclick;
         true

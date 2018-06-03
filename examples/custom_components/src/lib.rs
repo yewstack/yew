@@ -31,14 +31,14 @@ where
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
         Model {
             with_barrier: false,
             color: Color::Red,
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, ctx: &mut CTX) -> ShouldRender {
         match msg {
             Msg::Repaint => {
                 self.color = Color::Blue;
@@ -49,7 +49,7 @@ where
                 true
             }
             Msg::ChildClicked(value) => {
-                env.print(&format!("child clicked: {}", value));
+                ctx.print(&format!("child clicked: {}", value));
                 false
             }
         }

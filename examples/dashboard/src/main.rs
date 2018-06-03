@@ -29,7 +29,7 @@ fn main() {
         web: FetchService::new(),
         ws: WebSocketService::new(),
     };
-    let app: App<Context, Model> = App::new(context);
+    let app: App<Context, Model<Context>> = App::new(context);
     app.mount_to_body();
     yew::run_loop();
 }

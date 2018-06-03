@@ -15,13 +15,13 @@ impl<CTX> Component<CTX> for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
         Model {
             name: "Reversed".to_owned(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, _: &mut CTX) -> ShouldRender {
         match msg {
             Msg::UpdateName(new_name) => {
                 self.name = new_name;
