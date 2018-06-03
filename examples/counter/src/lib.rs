@@ -23,23 +23,23 @@ where
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
         Model { value: 0 }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, ctx: &mut CTX) -> ShouldRender {
         match msg {
             Msg::Increment => {
                 self.value = self.value + 1;
-                env.as_mut().log("plus one");
+                ctx.as_mut().log("plus one");
             }
             Msg::Decrement => {
                 self.value = self.value - 1;
-                env.as_mut().log("minus one");
+                ctx.as_mut().log("minus one");
             }
             Msg::Bulk(list) => for msg in list {
-                self.update(msg, env);
-                env.as_mut().log("Bulk action");
+                self.update(msg, ctx);
+                ctx.as_mut().log("Bulk action");
             },
         }
         true

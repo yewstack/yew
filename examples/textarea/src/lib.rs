@@ -16,13 +16,13 @@ impl<CTX> Component<CTX> for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
         Model {
             value: "".into(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, _: &mut CTX) -> ShouldRender {
         match msg {
             Msg::GotInput(new_value) => {
                 self.value = new_value;

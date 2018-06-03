@@ -51,9 +51,9 @@ where
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>, ctx: &mut CTX) -> Self {
         let entries = {
-            if let Json(Ok(restored_model)) = env.as_mut().restore(KEY) {
+            if let Json(Ok(restored_model)) = ctx.as_mut().restore(KEY) {
                 restored_model
             } else {
                 Vec::new()
@@ -67,7 +67,7 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, ctx: &mut CTX) -> ShouldRender {
         match msg {
             Msg::Add => {
                 let entry = Entry {
@@ -113,7 +113,7 @@ where
             }
             Msg::Nope => {}
         }
-        env.as_mut().store(KEY, Json(&self.entries));
+        ctx.as_mut().store(KEY, Json(&self.entries));
         true
     }
 }
