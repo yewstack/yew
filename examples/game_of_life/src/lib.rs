@@ -23,11 +23,11 @@ struct Cellule {
 }
 
 pub struct Model {
-    callback: Callback<()>,
+    active: bool,
     cellules: Vec<Cellule>,
     cellules_width: usize,
     cellules_height: usize,
-    job: Option<Box<Task>>,
+    job: Box<Task>,
 }
 
 impl Cellule {
@@ -148,36 +148,38 @@ pub enum Msg {
     Step,
     Reset,
     Stop,
-    ToggleCellule(usize)
+    ToggleCellule(usize),
+    Tick,
 }
 
 impl<CTX> Component<CTX> for Model
 where
-    CTX: AsMut<IntervalService> + 'static,
+    CTX: 'static,
 {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<CTX, Self>) -> Self {
+        let callback = link.send_back(|_| Msg::Tick);
+        let mut interval = IntervalService::new();
+        let handle = interval.spawn(Duration::from_millis(200), callback);
         Model {
-            callback: link.send_back(|_| Msg::Step),
+            active: false,
             cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
             cellules_width: 50,
             cellules_height: 40,
-            job : None
+            job : Box::new(handle),
         }
     }
 
-    fn update(&mut self, msg: Self::Message, ctx: &mut CTX) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Random => {
                 self.random_mutate();
                 info!("Random");
             },
             Msg::Start => {
-                let interval: &mut IntervalService = ctx.as_mut();
-                let handle = interval.spawn(Duration::from_millis(200), self.callback.clone());
-                self.job = Some(Box::new(handle));
+                self.active = true;
                 info!("Start");
             },
             Msg::Step => {
@@ -188,15 +190,17 @@ where
                 info!("Reset");
             },
             Msg::Stop => {
-                if let Some(mut task) = self.job.take() {
-                    task.cancel();
-                }
-                self.job = None;
+                self.active = false;
                 info!("Stop");
             },
             Msg::ToggleCellule(idx) => {
                 self.toggle_cellule(idx);
-            }
+            },
+            Msg::Tick => {
+                if self.active {
+                    self.step();
+                }
+            },
         }
         true
     }
@@ -204,7 +208,7 @@ where
 
 impl<CTX> Renderable<CTX, Model> for Model
 where
-    CTX: AsMut<IntervalService> + 'static,
+    CTX: 'static,
 {
     fn view(&self) -> Html<CTX, Self> {
         html! {
@@ -240,7 +244,7 @@ where
 
 fn view_cellule<CTX>((idx, cellule): (usize, &Cellule)) -> Html<CTX, Model>
 where
-    CTX: AsMut<IntervalService> + 'static,
+    CTX: 'static,
 {
     html! {
         <div class=("game-cellule", if cellule.life_state == LifeState::Alive { "cellule-live" } else { "cellule-dead" }),

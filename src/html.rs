@@ -25,16 +25,16 @@ pub trait Component<CTX>: Sized + 'static {
     /// with unknown type.
     type Properties: Clone + PartialEq + Default;
     /// Initialization routine which could use a context.
-    fn create(props: Self::Properties, link: ComponentLink<CTX, Self>, context: &mut CTX) -> Self;
+    fn create(props: Self::Properties, link: ComponentLink<CTX, Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
-    fn update(&mut self, msg: Self::Message, context: &mut CTX) -> ShouldRender;
+    fn update(&mut self, msg: Self::Message) -> ShouldRender;
     /// This method called when properties changes, and once when component created.
-    fn change(&mut self, _: Self::Properties, _context: &mut CTX) -> ShouldRender {
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
         unimplemented!("you should implement `change` method for a component with properties")
     }
     /// Called for finalization on the final point of the component's lifetime.
-    fn destroy(&mut self, _context: &mut CTX) { }
+    fn destroy(&mut self) { } // TODO Replace with `Drop`
 }
 
 /// Should be rendered relative to context and component environment.
@@ -200,7 +200,7 @@ where
     CTX: 'static,
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
-    fn run<'a>(&mut self, mut context: &mut CTX) {
+    fn run<'a>(&mut self, _: &mut CTX) {
         let mut component = self.shared_component.borrow_mut();
         let this = component.as_mut().expect("shared component not set");
         if this.destroyed {
@@ -216,7 +216,7 @@ where
         match upd {
             ComponentUpdate::Create(link) => {
                 let props = this.init_props.take().unwrap_or_default();
-                this.component = Some(COMP::create(props, link, &mut context));
+                this.component = Some(COMP::create(props, link));
                 // No messages at start
                 let current_frame = this.component.as_ref().unwrap().view();
                 this.last_frame = Some(current_frame);
@@ -231,16 +231,16 @@ where
             ComponentUpdate::Message(msg) => {
                 should_update |= this.component.as_mut()
                     .expect("component was not created to process messages")
-                    .update(msg, &mut context);
+                    .update(msg);
             }
             ComponentUpdate::Properties(props) => {
                 should_update |= this.component.as_mut()
                     .expect("component was not created to process properties")
-                    .change(props, &mut context);
+                    .change(props);
             }
             ComponentUpdate::Destroy => {
                 // TODO this.component.take() instead of destroyed
-                this.component.as_mut().unwrap().destroy(&mut context);
+                this.component.as_mut().unwrap().destroy();
                 this.destroyed = true;
             }
         }
