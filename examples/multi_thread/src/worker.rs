@@ -10,14 +10,21 @@ pub enum Request {
     GetDataFromServer,
 }
 
-impl Message for Request {
+impl Message for Request { }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum Response {
+    DataFetched,
 }
+
+impl Message for Response { }
 
 pub enum Msg {
     Updating,
 }
 
 pub struct Worker {
+    link: AgentLink<Worker>,
     interval: IntervalService,
     task: Box<Task>,
     fetch: FetchService,
@@ -26,7 +33,7 @@ pub struct Worker {
 impl Agent for Worker {
     type Message = Msg;
     type Input = Request;
-    type Output = Msg;
+    type Output = Response;
 
     fn create(link: AgentLink<Self>) -> Self {
         let mut interval = IntervalService::new();
@@ -34,6 +41,7 @@ impl Agent for Worker {
         let callback = link.send_back(|_| Msg::Updating);
         let task = interval.spawn(duration, callback);
         Worker {
+            link,
             interval,
             task: Box::new(task),
             fetch: FetchService::new(),
@@ -48,10 +56,11 @@ impl Agent for Worker {
         }
     }
 
-    fn handle(&mut self, msg: Self::Input) {
+    fn handle(&mut self, msg: Self::Input, who: HandlerId) {
         info!("Request: {:?}", msg);
         match msg {
             Request::GetDataFromServer => {
+                self.link.response(who, Response::DataFetched);
             }
         }
     }

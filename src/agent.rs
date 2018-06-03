@@ -3,17 +3,17 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::any::TypeId;
-use std::marker::PhantomData;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 use bincode;
+use slab::Slab;
 use stdweb::Value;
 use stdweb::unstable::TryInto;
 use scheduler::{Scheduler, Runnable};
 use callback::Callback;
 use Shared;
 
-type Pair = (Box<Fn()>, Box<Fn(Vec<u8>)>);
+type Pair = (Box<Fn()>, Box<Fn(HandlerId, Vec<u8>)>);
 
 thread_local! {
     pub(crate) static AGENTS: RefCell<HashMap<TypeId, Pair>> =
@@ -26,44 +26,20 @@ type RawTypeId = u64;
 #[derive(Serialize, Deserialize, Debug)]
 enum ToWorker {
     SelectType(RawTypeId),
-    ProcessInput(Vec<u8>),
+    ProcessInput(usize, Vec<u8>),
 }
 
-impl From<Vec<u8>> for ToWorker {
-    fn from(data: Vec<u8>) -> Self {
-        bincode::deserialize(&data)
-            .expect("can't deserialize a message from a component")
-    }
-}
-
-impl Into<Vec<u8>> for ToWorker {
-    fn into(self) -> Vec<u8> {
-        bincode::serialize(&self)
-            .expect("can't serialize a message from a component")
-    }
-}
+impl Message for ToWorker { }
 
 #[derive(Serialize, Deserialize, Debug)]
 enum FromWorker {
     /// Worker sends this message when `wasm` bundle has loaded.
     WorkerLoaded,
     TypeDetected,
-    ProcessOutput(Vec<u8>),
+    ProcessOutput(usize, Vec<u8>),
 }
 
-impl From<Vec<u8>> for FromWorker {
-    fn from(data: Vec<u8>) -> Self {
-        bincode::deserialize(&data)
-            .expect("can't deserialize a message from a worker")
-    }
-}
-
-impl Into<Vec<u8>> for FromWorker {
-    fn into(self) -> Vec<u8> {
-        bincode::serialize(&self)
-            .expect("can't serialize a message from a worker")
-    }
-}
+impl Message for FromWorker { }
 
 /// Represents a message which you could send to an agent.
 pub trait Message
@@ -72,9 +48,31 @@ where
 {
 }
 
+trait Transferable {
+    fn pack(&self) -> Vec<u8>;
+    fn unpack(data: &Vec<u8>) -> Self;
+}
+
+impl<T: Message> Transferable for T {
+    fn pack(&self) -> Vec<u8> {
+        bincode::serialize(&self)
+            .expect("can't serialize a transferable object")
+    }
+
+    fn unpack(data: &Vec<u8>) -> Self {
+        bincode::deserialize(&data)
+            .expect("can't deserialize a transferable object")
+    }
+}
+
+/// Id of responses handler.
+pub struct HandlerId(usize);
+
+type HandlersPool<T> = Rc<RefCell<Slab<Callback<T>>>>;
+
 /// This traits allow to get addres or register worker.
 // TODO Maybe use somethig like `App` for `Component`s.
-pub trait Worker: Sized + 'static {
+pub trait Worker: Agent + Sized + 'static {
     /// Spawns an agent and returns `Addr` of an instance.
     fn spawn() -> Addr<Self>;
     /// Executes an agent in the current environment.
@@ -94,15 +92,18 @@ where
         };
         let worker = worker_base.clone();
         let send_to_app = move |msg: ToWorker| {
-            let bytes: Vec<u8> = msg.into();
+            let bytes = msg.pack();
             let worker = worker.clone();
             js! {
                 var worker = @{worker};
                 worker.postMessage(@{bytes});
             };
         };
+        let slab: Slab<Callback<T::Output>> = Slab::new();
+        let callbacks_base = Rc::new(RefCell::new(slab));
+        let callbacks = callbacks_base.clone();
         let handshake = move |data: Vec<u8>| {
-            let msg = FromWorker::from(data);
+            let msg = FromWorker::unpack(&data);
             info!("Received from worker: {:?}", msg);
             match msg {
                 FromWorker::WorkerLoaded => {
@@ -114,7 +115,12 @@ where
                 FromWorker::TypeDetected => {
                     info!("Worker handshake finished");
                 },
-                FromWorker::ProcessOutput(_) => {
+                FromWorker::ProcessOutput(id, data) => {
+                    let msg = T::Output::unpack(&data);
+                    let callback = callbacks.borrow().get(id).cloned();
+                    if let Some(callback) = callback {
+                        callback.emit(msg);
+                    }
                 },
             }
         };
@@ -129,7 +135,7 @@ where
         };
         Addr {
             worker: worker_base,
-            _agent: PhantomData,
+            callbacks: callbacks_base,
         }
     }
 
@@ -143,10 +149,10 @@ where
             scope.send(upd);
         };
         let scope = scope_base.clone();
-        let routine = move |data: Vec<u8>| {
+        let routine = move |id: HandlerId, data: Vec<u8>| {
             let msg: T::Input = bincode::deserialize(&data)
                 .expect("can't deserialize an input message");
-            let upd = AgentUpdate::Input(msg);
+            let upd = AgentUpdate::Input(msg, id);
             scope.send(upd);
         };
         AGENTS.with(move |agents| {
@@ -164,7 +170,7 @@ pub trait Agent: Sized + 'static {
     /// Incoming message type.
     type Input: Message;
     /// Outgoing message type.
-    type Output;
+    type Output: Message;
 
     /// Creates an instance of an agent.
     fn create(link: AgentLink<Self>) -> Self;
@@ -173,23 +179,26 @@ pub trait Agent: Sized + 'static {
     fn update(&mut self, msg: Self::Message);
 
     /// This metthod called on every incoming message.
-    fn handle(&mut self, msg: Self::Input);
+    fn handle(&mut self, msg: Self::Input, id: HandlerId);
 
     /// Creates an instance of an agent.
     fn destroy(&mut self) { }
 
 }
 
-/// Address of an agent.
-pub struct Addr<T> {
+/// A connection manager for components interaction with workers.
+pub struct Bridge<T: Agent> {
     worker: Value,
-    _agent: PhantomData<T>,
+    callbacks: HandlersPool<T::Output>,
+    id: usize,
 }
 
-impl<T> Addr<T>
-where
-    T: Agent,
-{
+impl<T: Agent> Bridge<T> {
+    fn new(worker: Value, callbacks: HandlersPool<T::Output>, callback: Callback<T::Output>) -> Self {
+        let id = callbacks.borrow_mut().insert(callback);
+        Bridge { worker, callbacks, id }
+    }
+
     /// Send a message to an agent.
     pub fn send(&self, msg: T::Input) {
         // TODO Important! Implement.
@@ -197,7 +206,7 @@ where
         // and send them to an agent when it will reported readiness.
         let bytes = bincode::serialize(&msg)
             .expect("can't serialize message for agent");
-        let msg: Vec<u8> = ToWorker::ProcessInput(bytes).into();
+        let msg = ToWorker::ProcessInput(self.id, bytes).pack();
         let worker = &self.worker;
         js! {
             var worker = @{worker};
@@ -208,7 +217,31 @@ where
     }
 }
 
-impl<T> Drop for Addr<T> {
+impl<T: Agent> Drop for Bridge<T> {
+    fn drop(&mut self) {
+        let _ = self.callbacks.borrow_mut().remove(self.id);
+    }
+}
+
+/// Address of an agent.
+pub struct Addr<T: Agent> {
+    // TODO Wrap this value with special Rc and track when to terminate the worker.
+    worker: Value,
+    callbacks: HandlersPool<T::Output>,
+}
+
+impl<T> Addr<T>
+where
+    T: Agent,
+{
+    /// Creates bridge connection between a component and the agent.
+    pub fn bridge(&mut self, callback: Callback<T::Output>) -> Bridge<T> {
+        Bridge::new(self.worker.clone(), self.callbacks.clone(), callback)
+    }
+
+}
+
+impl<T: Agent> Drop for Addr<T> {
     fn drop(&mut self) {
         // TODO Use Rc if it will implement Clone
         let worker = &self.worker;
@@ -222,7 +255,7 @@ impl<T> Drop for Addr<T> {
 /// This function selects the agent to start.
 pub(crate) fn run_agent() {
     let sender = |msg: FromWorker| {
-        let data: Vec<u8> = msg.into();
+        let data = msg.pack();
         js! {
             var data = @{data};
             self.postMessage(data);
@@ -230,7 +263,7 @@ pub(crate) fn run_agent() {
     };
     let mut handler = None;
     let handshake = move |data: Vec<u8>| {
-        let msg = data.into();
+        let msg = ToWorker::unpack(&data);
         match msg {
             ToWorker::SelectType(raw_type_id) => {
                 let type_id: TypeId = unsafe { ::std::mem::transmute(raw_type_id) };
@@ -244,10 +277,11 @@ pub(crate) fn run_agent() {
                     })
                 });
             },
-            ToWorker::ProcessInput(data) => {
+            ToWorker::ProcessInput(id, data) => {
                 let func = handler.as_mut()
                     .expect("TypeId of agent was not selected.");
-                func(data);
+                let handler_id = HandlerId(id);
+                func(handler_id, data);
             },
         }
     };
@@ -326,6 +360,16 @@ impl<AGN: Agent> AgentLink<AGN> {
         }
     }
 
+    /// Send response to an actor.
+    pub fn response(&self, HandlerId(id): HandlerId, output: AGN::Output) {
+        let msg = FromWorker::ProcessOutput(id, output.pack());
+        let data = msg.pack();
+        js! {
+            var data = @{data};
+            self.postMessage(data);
+        };
+    }
+
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&self, function: F) -> Callback<IN>
     where
@@ -359,7 +403,7 @@ impl<AGN> AgentRunnable<AGN> {
 enum AgentUpdate<AGN: Agent> {
     Create(AgentLink<AGN>),
     Message(AGN::Message),
-    Input(AGN::Input),
+    Input(AGN::Input, HandlerId),
     Destroy,
 }
 
@@ -372,7 +416,7 @@ impl<AGN> Runnable<()> for AgentEnvelope<AGN>
 where
     AGN: Agent,
 {
-    fn run<'a>(&mut self, context: &mut ()) {
+    fn run<'a>(&mut self, _: &mut ()) {
         let mut this = self.shared_agent.borrow_mut();
         if this.destroyed {
             return;
@@ -387,10 +431,10 @@ where
                     .expect("agent was not created to process messages")
                     .update(msg);
             }
-            AgentUpdate::Input(inp) => {
+            AgentUpdate::Input(inp, id) => {
                 this.agent.as_mut()
                     .expect("agent was not created to process inputs")
-                    .handle(inp);
+                    .handle(inp, id);
             }
             AgentUpdate::Destroy => {
                 let mut agent = this.agent.take()
