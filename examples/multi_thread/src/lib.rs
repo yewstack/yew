@@ -18,16 +18,14 @@ pub enum Msg {
     DataReceived,
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: AsMut<Addr<worker::Worker>> + 'static,
-{
+impl<CTX: 'static> Component<CTX> for Model {
     type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
         let callback = env.send_back(|_| Msg::DataReceived);
-        let bridge = env.as_mut().bridge(callback);
+        let mut addr = worker::Worker::spawn();
+        let bridge = addr.bridge(callback);
         Model { bridge }
     }
 
@@ -44,10 +42,7 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: AsMut<Addr<worker::Worker>> + 'static,
-{
+impl<CTX: 'static> Renderable<CTX, Model> for Model {
     fn view(&self) -> Html<CTX, Self> {
         html! {
             <div>

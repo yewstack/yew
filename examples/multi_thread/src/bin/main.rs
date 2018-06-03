@@ -6,24 +6,11 @@ use yew::prelude::*;
 use multi_thread::Model;
 use multi_thread::worker;
 
-pub struct Context {
-    pub worker: Addr<worker::Worker>,
-}
-
-impl AsMut<Addr<worker::Worker>> for Context {
-    fn as_mut(&mut self) -> &mut Addr<worker::Worker> {
-        &mut self.worker
-    }
-}
-
 fn main() {
     web_logger::init();
     match yew::initialize() {
         Ambit::Application => {
-            let context = Context {
-                worker: worker::Worker::spawn(),
-            };
-            let app: App<_, Model> = App::new(context);
+            let app: App<_, Model> = App::new(());
             app.mount_to_body();
             yew::run_loop();
         }
