@@ -36,7 +36,7 @@ impl<CTX> Scheduler<CTX> {
         }
     }
 
-    pub(crate) fn put_and_try_run(&mut self, runnable: Box<Runnable<CTX>>) {
+    pub(crate) fn put_and_try_run(&self, runnable: Box<Runnable<CTX>>) {
         self.sequence.borrow_mut().push_back(runnable);
         if let Ok(ref mut context) = self.context.try_borrow_mut() {
             loop {

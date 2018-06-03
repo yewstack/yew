@@ -3,9 +3,9 @@
 //! Also this module contains declaration of `Component` trait which used
 //! to create own UI-components.
 
-use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
+use std::cell::RefCell;
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use stdweb::web::html_element::SelectElement;
 use virtual_dom::{Listener, VDiff, VNode};
@@ -250,10 +250,14 @@ where
                 }
             }
             ComponentUpdate::Message(msg) => {
-                should_update |= this.component.as_mut().unwrap().update(msg, &mut context);
+                should_update |= this.component.as_mut()
+                    .expect("component was not created to process messages")
+                    .update(msg, &mut context);
             }
             ComponentUpdate::Properties(props) => {
-                should_update |= this.component.as_mut().unwrap().change(props, &mut context);
+                should_update |= this.component.as_mut()
+                    .expect("component was not created to process properties")
+                    .change(props, &mut context);
             }
             ComponentUpdate::Destroy => {
                 // TODO this.component.take() instead of destroyed
