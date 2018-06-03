@@ -347,7 +347,7 @@ impl<AGN: Agent> AgentScope<AGN> {
     }
 }
 
-/// Link to agent scope for creating callbacks.
+/// Link to agent's scope for creating callbacks.
 pub struct AgentLink<AGN: Agent> {
     scope: AgentScope<AGN>,
 }

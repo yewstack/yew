@@ -10,7 +10,7 @@ extern crate stdweb;
 
 pub use html::{
     Component,
-    Env,
+    ComponentLink,
     Href,
     Html,
     ChangeData,
