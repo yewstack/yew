@@ -1,7 +1,8 @@
 //! This module contains types to support multi-threading in Yew.
 
-use std::any::TypeId;
+use std::rc::Rc;
 use std::cell::RefCell;
+use std::any::TypeId;
 use std::marker::PhantomData;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
@@ -11,8 +12,10 @@ use stdweb::unstable::TryInto;
 use scheduler::{Scheduler, Runnable};
 use Shared;
 
+type Pair = (Box<Fn()>, Box<Fn(Vec<u8>)>);
+
 thread_local! {
-    pub(crate) static AGENTS: RefCell<HashMap<TypeId, Box<FnMut(Vec<u8>)>>> =
+    pub(crate) static AGENTS: RefCell<HashMap<TypeId, Pair>> =
         RefCell::new(HashMap::new());
 }
 
@@ -97,7 +100,7 @@ where
                 worker.postMessage(@{bytes});
             };
         };
-        let routine = move |data: Vec<u8>| {
+        let handshake = move |data: Vec<u8>| {
             let msg = FromWorker::from(data);
             info!("Received from worker: {:?}", msg);
             match msg {
@@ -118,9 +121,9 @@ where
         js! {
             var worker = @{worker};
             // TODO Send type id (but on ready event)
-            var routine = @{routine};
+            var handshake = @{handshake};
             worker.onmessage = function(event) {
-                routine(event.data);
+                handshake(event.data);
             };
         };
         Addr {
@@ -130,16 +133,24 @@ where
     }
 
     fn register() {
-        let scheduler = Scheduler::new(());
-        let mut this = Self::create();
+        // Register function which puts every incoming message to a scheduler.
+        let scope_base: AgentScope<T> = AgentScope::new();
+        let scope = scope_base.clone();
+        let creator = move || {
+            let upd = AgentUpdate::Create;
+            scope.send(upd);
+        };
+        let scope = scope_base.clone();
         let routine = move |data: Vec<u8>| {
             let msg: T::Input = bincode::deserialize(&data)
                 .expect("can't deserialize an input message");
-            this.handle(msg);
+            let upd = AgentUpdate::Input(msg);
+            scope.send(upd);
         };
         AGENTS.with(move |agents| {
             let type_id = TypeId::of::<Self>();
-            agents.borrow_mut().insert(type_id, Box::new(routine));
+            let pair: Pair = (Box::new(creator), Box::new(routine));
+            agents.borrow_mut().insert(type_id, pair);
         });
     }
 }
@@ -216,7 +227,7 @@ pub(crate) fn run_agent() {
         };
     };
     let mut handler = None;
-    let routine = move |data: Vec<u8>| {
+    let handshake = move |data: Vec<u8>| {
         let msg = data.into();
         match msg {
             ToWorker::SelectType(raw_type_id) => {
@@ -225,7 +236,10 @@ pub(crate) fn run_agent() {
                     let mut agents = agents.borrow_mut();
                     let result = agents.remove(&type_id);
                     agents.clear(); // Drop unnecessary types of handlers
-                    result
+                    result.map(|(creator, handler)| {
+                        creator();
+                        handler
+                    })
                 });
             },
             ToWorker::ProcessInput(data) => {
@@ -236,12 +250,12 @@ pub(crate) fn run_agent() {
         }
     };
     js! {
-        let routine = @{routine};
+        let handshake = @{handshake};
         console.log("Mounted...", self);
         self.onmessage = function(event) {
             // TODO Send type_id, but how?
             console.log("Received...", event.data);
-            routine(event.data);
+            handshake(event.data);
         };
         // TODO Clean up the allocated memory
     };
@@ -268,11 +282,26 @@ pub enum Ambit {
 /// This sctruct holds a reference to a component and to a global scheduler.
 pub struct AgentScope<AGN: Agent> {
     shared_agent: Shared<AgentRunnable<AGN>>,
-    scheduler: Scheduler<()>,
+    scheduler: Scheduler<()>, // TODO Use thread-local `Scheduler`
+}
+
+impl<AGN: Agent> Clone for AgentScope<AGN> {
+    fn clone(&self) -> Self {
+        AgentScope {
+            shared_agent: self.shared_agent.clone(),
+            scheduler: self.scheduler.clone(),
+        }
+    }
 }
 
 impl<AGN: Agent> AgentScope<AGN> {
-    fn send(&mut self, update: AgentUpdate<AGN>) {
+    fn new() -> Self {
+        let shared_agent = Rc::new(RefCell::new(AgentRunnable::new()));
+        let scheduler = Scheduler::new(());
+        AgentScope { shared_agent, scheduler }
+    }
+
+    fn send(&self, update: AgentUpdate<AGN>) {
         let envelope = AgentEnvelope {
             shared_agent: self.shared_agent.clone(),
             message: Some(update),
@@ -286,6 +315,15 @@ struct AgentRunnable<AGN> {
     agent: Option<AGN>,
     // TODO Use agent field to control create message this flag
     destroyed: bool,
+}
+
+impl<AGN> AgentRunnable<AGN> {
+    fn new() -> Self {
+        AgentRunnable {
+            agent: None,
+            destroyed: false,
+        }
+    }
 }
 
 enum AgentUpdate<AGN: Agent> {
@@ -314,9 +352,15 @@ where
             AgentUpdate::Create => {
                 this.agent = Some(AGN::create());
             }
-            AgentUpdate::Message(_) => {
+            AgentUpdate::Message(msg) => {
+                this.agent.as_mut()
+                    .expect("agent was not created to process messages")
+                    .update(msg);
             }
-            AgentUpdate::Input(_) => {
+            AgentUpdate::Input(inp) => {
+                this.agent.as_mut()
+                    .expect("agent was not created to process inputs")
+                    .handle(inp);
             }
             AgentUpdate::Destroy => {
                 let mut agent = this.agent.take()
