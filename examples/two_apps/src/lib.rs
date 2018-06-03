@@ -41,7 +41,7 @@ where
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
         Model {
             scope: None,
             selector: "",
@@ -49,7 +49,7 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Message, _: &mut CTX) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::SetScope(scope) => {
                 self.scope = Some(scope);

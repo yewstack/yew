@@ -20,8 +20,10 @@ pub enum Format {
 
 pub struct Model<CTX>
 where
-    CTX: AsMut<FetchService> + AsMut<WebSocketService> + 'static,
+    CTX: 'static,
 {
+    fetch_service: FetchService,
+    ws_service: WebSocketService,
     link: ComponentLink<CTX, Model<CTX>>,
     fetching: bool,
     data: Option<u32>,
@@ -71,13 +73,15 @@ pub struct WsResponse {
 
 impl<CTX> Component<CTX> for Model<CTX>
 where
-    CTX: AsMut<FetchService> + AsMut<WebSocketService> + 'static,
+    CTX: 'static,
 {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<CTX, Self>) -> Self {
         Model {
+            fetch_service: FetchService::new(),
+            ws_service: WebSocketService::new(),
             link,
             fetching: false,
             data: None,
@@ -86,7 +90,7 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Message, ctx: &mut CTX) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::FetchData(format, binary) => {
                 self.fetching = true;
@@ -102,11 +106,10 @@ where
                             }
                         });
                         let request = Request::get("/data.json").body(Nothing).unwrap();
-                        let fetch_service: &mut FetchService = ctx.as_mut();
                         if binary {
-                            fetch_service.fetch_binary(request, callback)
+                            self.fetch_service.fetch_binary(request, callback)
                         } else {
-                            fetch_service.fetch(request, callback)
+                            self.fetch_service.fetch(request, callback)
                         }
                     },
                     Format::Toml => {
@@ -120,11 +123,10 @@ where
                             }
                         });
                         let request = Request::get("/data.toml").body(Nothing).unwrap();
-                        let fetch_service: &mut FetchService = ctx.as_mut();
                         if binary {
-                            fetch_service.fetch_binary(request, callback)
+                            self.fetch_service.fetch_binary(request, callback)
                         } else {
-                            fetch_service.fetch(request, callback)
+                            self.fetch_service.fetch(request, callback)
                         }
                     },
                 };
@@ -140,8 +142,7 @@ where
                                 WebSocketStatus::Closed | WebSocketStatus::Error => WsAction::Lost.into(),
                             }
                         });
-                        let ws_service: &mut WebSocketService = ctx.as_mut();
-                        let task = ws_service.connect("ws://localhost:9001/", callback, notification);
+                        let task = self.ws_service.connect("ws://localhost:9001/", callback, notification);
                         self.ws = Some(task);
                     }
                     WsAction::SendData(binary) => {
@@ -179,7 +180,7 @@ where
 
 impl<CTX> Renderable<CTX, Model<CTX>> for Model<CTX>
 where
-    CTX: AsMut<FetchService> + AsMut<WebSocketService> + 'static,
+    CTX: 'static,
 {
     fn view(&self) -> Html<CTX, Self> {
         html! {
@@ -206,11 +207,11 @@ where
 
 impl<CTX> Model<CTX>
 where
-    CTX: AsMut<FetchService> + AsMut<WebSocketService> + 'static,
+    CTX: 'static,
 {
     fn view_data(&self) -> Html<CTX, Model<CTX>>
     where
-        CTX: AsMut<FetchService> + AsMut<WebSocketService> + 'static,
+        CTX: 'static,
     {
         if let Some(value) = self.data {
             html! {

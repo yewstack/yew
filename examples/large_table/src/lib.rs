@@ -18,14 +18,14 @@ impl<CTX> Component<CTX> for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: (), _: ComponentLink<CTX, Self>, _: &mut CTX) -> Self {
+    fn create(_: (), _: ComponentLink<CTX, Self>) -> Self {
         Model {
             selected: None
         }
     }
 
     // Some details omitted. Explore the examples to get more.
-    fn update(&mut self, msg: Self::Message, _: &mut CTX) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Select(x, y) => {
                 self.selected = Some((x, y));
