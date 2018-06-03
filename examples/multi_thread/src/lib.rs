@@ -30,7 +30,7 @@ where
     fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
         match msg {
             Msg::SendToThread => {
-                env.as_ref().send(worker::Msg::RequestDataFromServer);
+                env.as_ref().send(worker::Request::GetDataFromServer);
             }
         }
         true
