@@ -8,8 +8,7 @@ extern crate web_logger;
 use std::time::Duration;
 use rand::Rng;
 use yew::prelude::*;
-use yew::services::Task;
-use yew::services::interval::IntervalService;
+use yew::services::{IntervalService, Task};
 
 #[derive(Clone, Copy, PartialEq)]
 enum LifeState {
