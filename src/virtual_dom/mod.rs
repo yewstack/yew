@@ -15,16 +15,16 @@ pub use self::vlist::VList;
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
-use html::{Component, Activator};
+use html::{Component, Scope};
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
 pub trait Listener<CTX, COMP: Component<CTX>> {
     /// Returns standard name of DOM's event.
     fn kind(&self) -> &'static str;
-    /// Attaches listener to the element and uses activator instance to send
+    /// Attaches listener to the element and uses scope instance to send
     /// prepaired event back to the yew main loop.
-    fn attach(&mut self, element: &Element, activator: Activator<CTX, COMP>) -> EventListenerHandle;
+    fn attach(&mut self, element: &Element, scope: Scope<CTX, COMP>) -> EventListenerHandle;
 }
 
 impl<CTX, COMP: Component<CTX>> fmt::Debug for Listener<CTX, COMP> {
@@ -106,6 +106,6 @@ pub trait VDiff {
         parent: &Node,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Context, Self::Component>>,
-        scope: &Activator<Self::Context, Self::Component>,
+        scope: &Scope<Self::Context, Self::Component>,
     ) -> Option<Node>;
 }

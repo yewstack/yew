@@ -4,7 +4,7 @@ use std::cmp::PartialEq;
 use std::fmt;
 use std::marker::PhantomData;
 use stdweb::web::{document, INode, Node, TextNode};
-use html::{Component, Activator};
+use html::{Component, Scope};
 use super::{Reform, VDiff, VNode};
 
 /// A type for a virtual
@@ -55,7 +55,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
         parent: &Node,
         _: Option<&Node>,
         opposite: Option<VNode<Self::Context, Self::Component>>,
-        _: &Activator<Self::Context, Self::Component>,
+        _: &Scope<Self::Context, Self::Component>,
     ) -> Option<Node> {
         assert!(self.reference.is_none(), "reference is ignored so must not be set");
         let reform = {

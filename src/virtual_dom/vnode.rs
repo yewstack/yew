@@ -1,7 +1,7 @@
 //! This module contains the implementation of abstract virtual node.
 
 use super::{VComp, VDiff, VList, VTag, VText};
-use html::{Component, Renderable, Activator};
+use html::{Component, Renderable, Scope};
 use std::cmp::PartialEq;
 use std::fmt;
 use stdweb::web::{INode, Node};
@@ -46,7 +46,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
         parent: &Node,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Context, Self::Component>>,
-        env: &Activator<Self::Context, Self::Component>,
+        env: &Scope<Self::Context, Self::Component>,
     ) -> Option<Node> {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.apply(parent, precursor, ancestor, env),

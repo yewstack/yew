@@ -2,7 +2,7 @@
 //! a component in an isolated scope.
 
 use stdweb::web::{document, Element, INode, IParentNode};
-use html::{Scope, Component, Renderable, Activator};
+use html::{Scope, Component, Renderable};
 use scheduler::Scheduler;
 
 /// An application instance.
@@ -29,7 +29,7 @@ where
     }
 
     /// Alias to `mount("body", ...)`.
-    pub fn mount_to_body(self) -> Activator<CTX, COMP> {
+    pub fn mount_to_body(self) -> Scope<CTX, COMP> {
         // Bootstrap the component for `Window` environment only (not for `Worker`)
         let element = document()
             .query_selector("body")
@@ -42,7 +42,7 @@ where
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount(self, element: Element) -> Activator<CTX, COMP> {
+    pub fn mount(self, element: Element) -> Scope<CTX, COMP> {
         clear_element(&element);
         self.scope.mount_in_place(element, None, None, None)
     }
