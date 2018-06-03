@@ -5,35 +5,14 @@ extern crate game_of_life;
 extern crate web_logger;
 
 use yew::prelude::*;
-use yew::services::interval::IntervalService;
 use game_of_life::{Model, Msg};
-
-
-
-struct Context {
-    interval: IntervalService,
-}
-
-impl AsMut<IntervalService> for Context {
-    fn as_mut(&mut self) -> &mut IntervalService {
-        &mut self.interval
-    }
-}
 
 fn main() {
     web_logger::init();
-
     trace!("Initializing yew...");
     yew::initialize();
-
-    trace!("Creating a context...");
-    let context = Context {
-        interval: IntervalService::new(),
-    };
-    let app: App<_, Model> = App::new(context);
-
+    let app: App<_, Model> = App::new(());
     let mut env = app.mount_to_body();
     env.send_message(Msg::Random);
-
     yew::run_loop();
 }
