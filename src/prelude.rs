@@ -23,8 +23,6 @@ pub use app::App;
 
 pub use callback::Callback;
 
-pub use agent::{Addr, Agent, Ambit, Worker};
-
 pub use stdweb::web::event::{
     BlurEvent,
     ClickEvent,
@@ -39,4 +37,15 @@ pub use stdweb::web::event::{
     MouseOutEvent,
     MouseOverEvent,
     MouseUpEvent,
+};
+
+// TODO Split to `prelude::app` and `prelude::agent`
+
+pub use agent::{
+    Addr,
+    Agent,
+    AgentLink,
+    Ambit,
+    Message,
+    Worker,
 };

@@ -10,6 +10,7 @@ use bincode;
 use stdweb::Value;
 use stdweb::unstable::TryInto;
 use scheduler::{Scheduler, Runnable};
+use callback::Callback;
 use Shared;
 
 type Pair = (Box<Fn()>, Box<Fn(Vec<u8>)>);
@@ -137,7 +138,8 @@ where
         let scope_base: AgentScope<T> = AgentScope::new();
         let scope = scope_base.clone();
         let creator = move || {
-            let upd = AgentUpdate::Create;
+            let link = AgentLink::connect(&scope);
+            let upd = AgentUpdate::Create(link);
             scope.send(upd);
         };
         let scope = scope_base.clone();
@@ -156,7 +158,7 @@ where
 }
 
 /// Declares the behavior of the agent.
-pub trait Agent: 'static {
+pub trait Agent: Sized + 'static {
     /// Type of an input messagae.
     type Message;
     /// Incoming message type.
@@ -165,7 +167,7 @@ pub trait Agent: 'static {
     type Output;
 
     /// Creates an instance of an agent.
-    fn create() -> Self;
+    fn create(link: AgentLink<Self>) -> Self;
 
     /// This metthod called on every update message.
     fn update(&mut self, msg: Self::Message);
@@ -311,6 +313,34 @@ impl<AGN: Agent> AgentScope<AGN> {
     }
 }
 
+/// Link to agent scope for creating callbacks.
+pub struct AgentLink<AGN: Agent> {
+    scope: AgentScope<AGN>,
+}
+
+impl<AGN: Agent> AgentLink<AGN> {
+    /// Create link for a scope.
+    fn connect(scope: &AgentScope<AGN>) -> Self {
+        AgentLink {
+            scope: scope.clone(),
+        }
+    }
+
+    /// This method sends messages back to the component's loop.
+    pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
+    where
+        F: Fn(IN) -> AGN::Message + 'static,
+    {
+        let scope = self.scope.clone();
+        let closure = move |input| {
+            let output = function(input);
+            let msg = AgentUpdate::Message(output);
+            scope.clone().send(msg);
+        };
+        closure.into()
+    }
+}
+
 struct AgentRunnable<AGN> {
     agent: Option<AGN>,
     // TODO Use agent field to control create message this flag
@@ -327,7 +357,7 @@ impl<AGN> AgentRunnable<AGN> {
 }
 
 enum AgentUpdate<AGN: Agent> {
-    Create,
+    Create(AgentLink<AGN>),
     Message(AGN::Message),
     Input(AGN::Input),
     Destroy,
@@ -349,8 +379,8 @@ where
         }
         let upd = self.message.take().expect("agent's envelope called twice");
         match upd {
-            AgentUpdate::Create => {
-                this.agent = Some(AGN::create());
+            AgentUpdate::Create(env) => {
+                this.agent = Some(AGN::create(env));
             }
             AgentUpdate::Message(msg) => {
                 this.agent.as_mut()
