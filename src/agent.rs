@@ -9,7 +9,7 @@ use bincode;
 use slab::Slab;
 use stdweb::Value;
 use stdweb::unstable::TryInto;
-use scheduler::{Scheduler, Runnable};
+use scheduler::{Runnable, scheduler};
 use callback::Callback;
 use Shared;
 
@@ -318,14 +318,12 @@ pub enum Ambit {
 /// This sctruct holds a reference to a component and to a global scheduler.
 pub struct AgentScope<AGN: Agent> {
     shared_agent: Shared<AgentRunnable<AGN>>,
-    scheduler: Scheduler, // TODO Use thread-local `Scheduler`
 }
 
 impl<AGN: Agent> Clone for AgentScope<AGN> {
     fn clone(&self) -> Self {
         AgentScope {
             shared_agent: self.shared_agent.clone(),
-            scheduler: self.scheduler.clone(),
         }
     }
 }
@@ -333,8 +331,7 @@ impl<AGN: Agent> Clone for AgentScope<AGN> {
 impl<AGN: Agent> AgentScope<AGN> {
     fn new() -> Self {
         let shared_agent = Rc::new(RefCell::new(AgentRunnable::new()));
-        let scheduler = Scheduler::new();
-        AgentScope { shared_agent, scheduler }
+        AgentScope { shared_agent }
     }
 
     fn send(&self, update: AgentUpdate<AGN>) {
@@ -343,7 +340,7 @@ impl<AGN: Agent> AgentScope<AGN> {
             message: Some(update),
         };
         let runnable: Box<Runnable> = Box::new(envelope);
-        self.scheduler.put_and_try_run(runnable);
+        scheduler().put_and_try_run(runnable);
     }
 }
 

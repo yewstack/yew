@@ -8,14 +8,13 @@ use stdweb::unstable::TryInto;
 use stdweb::web::{document, Element, INode, Node};
 use html::{Component, ComponentUpdate, Scope, NodeCell, Renderable};
 use callback::Callback;
-use scheduler::Scheduler;
 use super::{Reform, VDiff, VNode};
 use Hidden;
 
 type AnyProps = (TypeId, *mut Hidden);
 
 /// The method generates an instance of a (child) component.
-type Generator = FnMut(Scheduler, Element, Option<Node>, AnyProps);
+type Generator = FnMut(Element, Option<Node>, AnyProps);
 
 /// A reference to unknown activator which will be attached later with a generator function.
 type LazyActivator<COMP> = Rc<RefCell<Option<Scope<COMP>>>>;
@@ -44,7 +43,7 @@ impl<COMP: Component> VComp<COMP> {
         // This function creates and mounts a new component instance
         let generator = {
             let lazy_activator = lazy_activator.clone();
-            move |scheduler, element, obsolete: Option<Node>, (type_id, raw): AnyProps| {
+            move |element, obsolete: Option<Node>, (type_id, raw): AnyProps| {
                 if type_id != TypeId::of::<CHILD>() {
                     panic!("tried to unpack properties of the other component");
                 }
@@ -53,7 +52,7 @@ impl<COMP: Component> VComp<COMP> {
                     *Box::from_raw(raw)
                 };
                 let opposite = obsolete.map(VNode::VRef);
-                let scope: Scope<CHILD> = Scope::new(scheduler);
+                let scope: Scope<CHILD> = Scope::new();
                 let env = scope.clone();
                 *lazy_activator.borrow_mut() = Some(env);
                 scope.mount_in_place(
@@ -202,7 +201,6 @@ where
     /// This methods mount a virtual component with a generator created with `lazy` call.
     fn mount<T: INode>(
         &mut self,
-        scheduler: Scheduler,
         parent: &T,
         opposite: Option<Node>,
         props: AnyProps,
@@ -213,7 +211,7 @@ where
             .to_owned()
             .try_into()
             .expect("element expected to mount VComp");
-        (self.generator)(scheduler, element, opposite, props);
+        (self.generator)(element, opposite, props);
     }
 
     fn send_props(&mut self, props: AnyProps) {
@@ -288,7 +286,7 @@ where
                         .expect("can't insert dummy element for a component");
                     element.as_node().to_owned()
                 });
-                self.mount(env.scheduler(), parent, node, any_props);
+                self.mount(parent, node, any_props);
             }
         }
         self.cell.borrow().as_ref().map(|node| node.to_owned())

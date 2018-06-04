@@ -9,7 +9,7 @@ use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use stdweb::web::html_element::SelectElement;
 use virtual_dom::{Listener, VDiff, VNode};
 use callback::Callback;
-use scheduler::{Scheduler, Runnable};
+use scheduler::{Runnable, scheduler};
 use Shared;
 
 /// This type indicates that component should be rendered again.
@@ -89,14 +89,12 @@ where
 /// Mostly services uses it.
 pub struct Scope<COMP: Component> {
     shared_component: Shared<Option<ComponentRunnable<COMP>>>,
-    scheduler: Scheduler,
 }
 
 impl<COMP: Component> Clone for Scope<COMP> {
     fn clone(&self) -> Self {
         Scope {
             shared_component: self.shared_component.clone(),
-            scheduler: self.scheduler.clone(),
         }
     }
 }
@@ -112,23 +110,13 @@ where
             message: Some(update),
         };
         let runnable: Box<Runnable> = Box::new(envelope);
-        self.scheduler.put_and_try_run(runnable);
+        scheduler().put_and_try_run(runnable);
     }
 
     /// Send message to a component.
     pub fn send_message(&mut self, message: COMP::Message) {
         let update = ComponentUpdate::Message(message);
         self.send(update);
-    }
-}
-
-impl<COMP> Scope<COMP>
-where
-    COMP: Component,
-{
-    /// Return an instance of a scheduler with a same pool of the app.
-    pub fn scheduler(&self) -> Scheduler {
-        self.scheduler.clone()
     }
 }
 
@@ -139,9 +127,9 @@ impl<COMP> Scope<COMP>
 where
     COMP: Component + Renderable<COMP>,
 {
-    pub(crate) fn new(scheduler: Scheduler) -> Self {
+    pub(crate) fn new() -> Self {
         let shared_component = Rc::new(RefCell::new(None));
-        Scope { shared_component, scheduler }
+        Scope { shared_component }
     }
 
     // TODO Consider to use &Node instead of Element as parent
