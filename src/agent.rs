@@ -29,7 +29,7 @@ enum ToWorker {
     ProcessInput(usize, Vec<u8>),
 }
 
-impl Message for ToWorker { }
+impl Transferable for ToWorker { }
 
 #[derive(Serialize, Deserialize, Debug)]
 enum FromWorker {
@@ -39,21 +39,21 @@ enum FromWorker {
     ProcessOutput(usize, Vec<u8>),
 }
 
-impl Message for FromWorker { }
+impl Transferable for FromWorker { }
 
 /// Represents a message which you could send to an agent.
-pub trait Message
+pub trait Transferable
 where
     Self: Serialize + for <'de> Deserialize<'de>,
 {
 }
 
-trait Transferable {
+trait Packed {
     fn pack(&self) -> Vec<u8>;
     fn unpack(data: &Vec<u8>) -> Self;
 }
 
-impl<T: Message> Transferable for T {
+impl<T: Transferable> Packed for T {
     fn pack(&self) -> Vec<u8> {
         bincode::serialize(&self)
             .expect("can't serialize a transferable object")
@@ -168,9 +168,9 @@ pub trait Agent: Sized + 'static {
     /// Type of an input messagae.
     type Message;
     /// Incoming message type.
-    type Input: Message;
+    type Input: Transferable;
     /// Outgoing message type.
-    type Output: Message;
+    type Output: Transferable;
 
     /// Creates an instance of an agent.
     fn create(link: AgentLink<Self>) -> Self;

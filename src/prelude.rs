@@ -52,7 +52,7 @@ pub mod worker {
         Agent,
         AgentLink,
         HandlerId,
-        Message,
+        Transferable,
         Worker,
     };
 }
