@@ -4,25 +4,24 @@ use html::{Component, Scope};
 use stdweb::web::Node;
 
 /// This struct represents a fragment of the Virtual DOM tree.
-pub struct VList<CTX, COMP: Component<CTX>> {
+pub struct VList<COMP: Component> {
     /// The list of children nodes. Which also could have own children.
-    pub childs: Vec<VNode<CTX, COMP>>,
+    pub childs: Vec<VNode<COMP>>,
 }
 
-impl<CTX, COMP: Component<CTX>> VList<CTX, COMP> {
+impl<COMP: Component> VList<COMP> {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new() -> Self {
         VList { childs: Vec::new() }
     }
 
     /// Add `VNode` child.
-    pub fn add_child(&mut self, child: VNode<CTX, COMP>) {
+    pub fn add_child(&mut self, child: VNode<COMP>) {
         self.childs.push(child);
     }
 }
 
-impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
-    type Context = CTX;
+impl<COMP: Component> VDiff for VList<COMP> {
     type Component = COMP;
 
     fn detach(&mut self, parent: &Node) -> Option<Node> {
@@ -37,8 +36,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VList<CTX, COMP> {
         &mut self,
         parent: &Node,
         precursor: Option<&Node>,
-        opposite: Option<VNode<Self::Context, Self::Component>>,
-        env: &Scope<Self::Context, Self::Component>,
+        opposite: Option<VNode<Self::Component>>,
+        env: &Scope<Self::Component>,
     ) -> Option<Node> {
         let mut rights = {
             match opposite {
