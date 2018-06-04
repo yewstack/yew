@@ -10,14 +10,14 @@ pub enum Request {
     GetDataFromServer,
 }
 
-impl Message for Request { }
+impl Transferable for Request { }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Response {
     DataFetched,
 }
 
-impl Message for Response { }
+impl Transferable for Response { }
 
 pub enum Msg {
     Updating,
