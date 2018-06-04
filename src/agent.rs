@@ -342,7 +342,7 @@ impl<AGN: Agent> AgentScope<AGN> {
             shared_agent: self.shared_agent.clone(),
             message: Some(update),
         };
-        let runnable: Box<Runnable<()>> = Box::new(envelope);
+        let runnable: Box<Runnable> = Box::new(envelope);
         self.scheduler.put_and_try_run(runnable);
     }
 }
@@ -412,7 +412,7 @@ struct AgentEnvelope<AGN: Agent> {
     message: Option<AgentUpdate<AGN>>,
 }
 
-impl<AGN> Runnable<()> for AgentEnvelope<AGN>
+impl<AGN> Runnable for AgentEnvelope<AGN>
 where
     AGN: Agent,
 {
