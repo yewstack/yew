@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate yew;
 
-use yew::html::{Component, Env, Html, Renderable, ShouldRender};
+use yew::html::{Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::virtual_dom::VNode;
 
 // TODO Reuse it from vtag test
@@ -13,11 +13,11 @@ impl Component<Ctx> for Comp {
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<Ctx, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Ctx, Self>) -> Self {
         Comp
     }
 
-    fn update(&mut self, _: Self::Message, _: &mut Env<Ctx, Self>) -> ShouldRender {
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
         unimplemented!();
     }
 }
