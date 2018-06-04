@@ -18,13 +18,10 @@ pub enum Format {
     Toml,
 }
 
-pub struct Model<CTX>
-where
-    CTX: 'static,
-{
+pub struct Model {
     fetch_service: FetchService,
     ws_service: WebSocketService,
-    link: ComponentLink<CTX, Model<CTX>>,
+    link: ComponentLink<Model>,
     fetching: bool,
     data: Option<u32>,
     ft: Option<FetchTask>,
@@ -71,14 +68,11 @@ pub struct WsResponse {
     value: u32,
 }
 
-impl<CTX> Component<CTX> for Model<CTX>
-where
-    CTX: 'static,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
             fetch_service: FetchService::new(),
             ws_service: WebSocketService::new(),
@@ -178,11 +172,8 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, Model<CTX>> for Model<CTX>
-where
-    CTX: 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div>
                 <nav class="menu",>
@@ -205,14 +196,8 @@ where
 
 }
 
-impl<CTX> Model<CTX>
-where
-    CTX: 'static,
-{
-    fn view_data(&self) -> Html<CTX, Model<CTX>>
-    where
-        CTX: 'static,
-    {
+impl Model {
+    fn view_data(&self) -> Html<Model> {
         if let Some(value) = self.data {
             html! {
                 <p>{ value }</p>

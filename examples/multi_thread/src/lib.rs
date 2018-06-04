@@ -18,11 +18,11 @@ pub enum Msg {
     DataReceived,
 }
 
-impl<CTX: 'static> Component<CTX> for Model {
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, mut link: ComponentLink<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.send_back(|_| Msg::DataReceived);
         let mut addr = worker::Worker::spawn();
         let bridge = addr.bridge(callback);
@@ -42,8 +42,8 @@ impl<CTX: 'static> Component<CTX> for Model {
     }
 }
 
-impl<CTX: 'static> Renderable<CTX, Model> for Model {
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div>
                 <nav class="menu",>

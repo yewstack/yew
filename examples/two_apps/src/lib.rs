@@ -5,43 +5,23 @@ extern crate yew;
 
 use yew::html::*;
 
-#[derive(Default)]
-pub struct Context {
-}
-
-impl Context {
-    pub fn new() -> Self {
-        Context {
-        }
-    }
-}
-
-impl AsMut<Context> for Context {
-    fn as_mut(&mut self) -> &mut Context {
-        self
-    }
-}
-
 pub struct Model {
-    scope: Option<Scope<Context, Model>>,
+    scope: Option<Scope<Model>>,
     selector: &'static str,
     title: String,
 }
 
 pub enum Msg {
-    SetScope(Scope<Context, Model>),
+    SetScope(Scope<Model>),
     SendToOpposite(String),
     SetTitle(String),
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: AsMut<Context>,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         Model {
             scope: None,
             selector: "",
@@ -78,11 +58,8 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: AsMut<Context> + 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div>
                 <h3>{ format!("{} received <{}>", self.selector, self.title) }</h3>

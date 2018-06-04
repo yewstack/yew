@@ -53,11 +53,11 @@ pub enum Msg {
     Clear,
 }
 
-impl<CTX> Component<CTX> for Model {
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         let mut storage = StorageService::new(Area::Local);
         let Json(database) = storage.restore(KEY);
         let database = database.unwrap_or_else(|_| Database {
@@ -138,11 +138,8 @@ impl<CTX> Component<CTX> for Model {
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         match self.scene {
             Scene::ClientsList => html! {
                 <div class="crm",>
@@ -174,11 +171,8 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Client
-where
-    CTX: 'static,
-{
-    fn view(&self) -> Html<CTX, Model> {
+impl Renderable<Model> for Client {
+    fn view(&self) -> Html<Model> {
         html! {
             <div class="client",>
                 <p>{ format!("First Name: {}", self.first_name) }</p>
@@ -189,10 +183,7 @@ where
 }
 
 impl Client {
-    fn view_first_name_input<CTX>(&self) -> Html<CTX, Model>
-    where
-        CTX: 'static,
-    {
+    fn view_first_name_input(&self) -> Html<Model> {
         html! {
             <input class=("new-client", "firstname"),
                    placeholder="First name",
@@ -202,10 +193,7 @@ impl Client {
         }
     }
 
-    fn view_last_name_input<CTX>(&self) -> Html<CTX, Model>
-    where
-        CTX: 'static,
-    {
+    fn view_last_name_input(&self) -> Html<Model> {
         html! {
             <input class=("new-client", "lastname"),
                    placeholder="Last name",

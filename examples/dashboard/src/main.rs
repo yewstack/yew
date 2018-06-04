@@ -6,7 +6,6 @@ use dashboard::Model;
 
 fn main() {
     yew::initialize();
-    let app: App<(), Model<Context>> = App::new(());
-    app.mount_to_body();
+    App::<Model>::new().mount_to_body();
     yew::run_loop();
 }

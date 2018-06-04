@@ -6,9 +6,9 @@ use stdweb::web::{IParentNode, document};
 use yew::prelude::*;
 use yew::html::Scope;
 use yew::scheduler::Scheduler;
-use two_apps::{Context, Model, Msg};
+use two_apps::{Model, Msg};
 
-fn mount_app(selector: &'static str, app: App<Context, Model>) -> Scope<Context, Model> {
+fn mount_app(selector: &'static str, app: App<Model>) -> Scope<Model> {
     let element = document().query_selector(selector).unwrap().unwrap();
     app.mount(element)
 }
@@ -16,10 +16,8 @@ fn mount_app(selector: &'static str, app: App<Context, Model>) -> Scope<Context,
 fn main() {
     yew::initialize();
 
-    let context = Context::new();
-
     // Example how to reuse context in two scopes
-    let scheduler = Scheduler::new(context);
+    let scheduler = Scheduler::new();
 
     let first_app = App::reuse(&scheduler);
     let second_app = App::reuse(&scheduler);

@@ -11,8 +11,7 @@ fn main() {
     web_logger::init();
     trace!("Initializing yew...");
     yew::initialize();
-    let app: App<_, Model> = App::new(());
-    let mut env = app.mount_to_body();
-    env.send_message(Msg::Random);
+    App::<Model>::new().mount_to_body()
+        .send_message(Msg::Random);
     yew::run_loop();
 }

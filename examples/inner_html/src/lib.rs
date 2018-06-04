@@ -16,11 +16,11 @@ pub struct Model {
 pub enum Msg {
 }
 
-impl<CTX> Component<CTX> for Model {
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         Model {
             value: 0,
         }
@@ -40,12 +40,8 @@ const SVG: &str = r#"
 </svg>
 "#;
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: 'static,
-
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         let js_svg = js! {
             var div = document.createElement("div");
             div.innerHTML = @{SVG.to_string()};

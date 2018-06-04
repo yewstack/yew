@@ -20,12 +20,12 @@ pub enum Msg {
     ChildClicked(u32),
 }
 
-impl<CTX> Component<CTX> for Model
+impl Component for Model
 {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         Model {
             with_barrier: false,
             color: Color::Red,
@@ -49,11 +49,8 @@ impl<CTX> Component<CTX> for Model
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         let counter = |x| html! {
             <Counter: initial=x, color=&self.color, onclick=Msg::ChildClicked,/>
         };
@@ -68,10 +65,7 @@ where
 }
 
 impl Model {
-    fn view_barrier<CTX>(&self) -> Html<CTX, Self>
-    where
-        CTX: 'static,
-    {
+    fn view_barrier(&self) -> Html<Self> {
         if self.with_barrier {
             html! {
                 <Barrier: limit=10, onsignal=|_| Msg::Repaint, />
