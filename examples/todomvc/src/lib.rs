@@ -49,11 +49,11 @@ pub enum Msg {
     Nope,
 }
 
-impl<CTX> Component<CTX> for Model {
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         let mut storage = StorageService::new(Area::Local);
         let entries = {
             if let Json(Ok(restored_model)) = storage.restore(KEY) {
@@ -122,11 +122,8 @@ impl<CTX> Component<CTX> for Model {
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div class="todomvc-wrapper",>
                 <section class="todoapp",>
@@ -164,10 +161,7 @@ where
 }
 
 impl Model {
-    fn view_filter<CTX>(&self, filter: Filter) -> Html<CTX, Model>
-    where
-        CTX: 'static,
-    {
+    fn view_filter(&self, filter: Filter) -> Html<Model> {
         let flt = filter.clone();
         html! {
             <li>
@@ -180,10 +174,7 @@ impl Model {
         }
     }
 
-    fn view_input<CTX>(&self) -> Html<CTX, Model>
-    where
-        CTX: 'static,
-    {
+    fn view_input(&self) -> Html<Model> {
         html! {
             // You can use standard Rust comments. One line:
             // <li></li>
@@ -203,10 +194,7 @@ impl Model {
     }
 }
 
-fn view_entry<CTX>((idx, entry): (usize, &Entry)) -> Html<CTX, Model>
-where
-    CTX: 'static,
-{
+fn view_entry((idx, entry): (usize, &Entry)) -> Html<Model> {
     html! {
         <li class=if entry.editing == true { "editing" } else { "" },>
             <div class="view",>
@@ -219,10 +207,7 @@ where
     }
 }
 
-fn view_entry_edit_input<CTX>((idx, entry): (usize, &Entry)) -> Html<CTX, Model>
-where
-    CTX: 'static,
-{
+fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Model> {
     if entry.editing == true {
         html! {
             <input class="edit",

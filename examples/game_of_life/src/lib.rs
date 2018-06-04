@@ -151,14 +151,11 @@ pub enum Msg {
     Tick,
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: 'static,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.send_back(|_| Msg::Tick);
         let mut interval = IntervalService::new();
         let handle = interval.spawn(Duration::from_millis(200), callback);
@@ -205,11 +202,8 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div>
                 <section class="game-container",>
@@ -241,10 +235,7 @@ where
     }
 }
 
-fn view_cellule<CTX>((idx, cellule): (usize, &Cellule)) -> Html<CTX, Model>
-where
-    CTX: 'static,
-{
+fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Model> {
     html! {
         <div class=("game-cellule", if cellule.life_state == LifeState::Alive { "cellule-live" } else { "cellule-dead" }),
             onclick=|_| Msg::ToggleCellule(idx),> </div>

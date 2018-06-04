@@ -17,11 +17,11 @@ pub enum Msg {
     Bulk(Vec<Msg>),
 }
 
-impl<CTX> Component<CTX> for Model {
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         Model {
             console: ConsoleService::new(),
             value: 0,
@@ -39,7 +39,7 @@ impl<CTX> Component<CTX> for Model {
                 self.console.log("minus one");
             }
             Msg::Bulk(list) => for msg in list {
-                Component::<CTX>::update(self, msg);
+                self.update(msg);
                 self.console.log("Bulk action");
             },
         }
@@ -47,11 +47,8 @@ impl<CTX> Component<CTX> for Model {
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div>
                 <nav class="menu",>

@@ -33,14 +33,11 @@ pub enum Msg {
     Exchanges,
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: AsMut<GravatarService> + AsMut<CcxtService> + 'static,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
             gravatar: GravatarService::new(),
             ccxt: CcxtService::new(),
@@ -71,11 +68,8 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: AsMut<GravatarService> + AsMut<CcxtService> + 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         let view_exchange = |exchange| html! {
             <li>{ exchange }</li>
         };

@@ -29,7 +29,6 @@ fn main() {
     mount_point.class_list().add(mount_class).unwrap();
     body.append_child(&mount_point);
 
-    let app: App<_, Model> = App::new(());
-    app.mount(mount_point);
+    App::<Model>::new().mount(mount_point);
     yew::run_loop();
 }

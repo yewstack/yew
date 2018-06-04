@@ -34,11 +34,11 @@ impl Default for Props {
     }
 }
 
-impl<CTX: 'static> Component<CTX> for Counter {
+impl Component for Counter {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
+    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
         Counter {
             value: props.initial,
             color: props.color,
@@ -65,8 +65,8 @@ impl<CTX: 'static> Component<CTX> for Counter {
     }
 }
 
-impl<CTX: 'static> Renderable<CTX, Counter> for Counter {
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Counter> for Counter {
+    fn view(&self) -> Html<Self> {
         let colorize = {
             match self.color {
                 Color::Red => "background: red;",

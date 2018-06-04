@@ -10,8 +10,7 @@ fn main() {
     web_logger::init();
     match yew::initialize() {
         Ambit::Application => {
-            let app: App<_, Model> = App::new(());
-            app.mount_to_body();
+            App::<Model>::new().mount_to_body();
             yew::run_loop();
         }
         Ambit::Agent => {

@@ -24,11 +24,11 @@ impl Default for Props {
     }
 }
 
-impl<CTX: 'static> Component<CTX> for Button {
+impl Component for Button {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
+    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
         Button {
             title: props.title,
             onsignal: props.onsignal,
@@ -53,8 +53,8 @@ impl<CTX: 'static> Component<CTX> for Button {
     }
 }
 
-impl<CTX: 'static> Renderable<CTX, Button> for Button {
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Button> for Button {
+    fn view(&self) -> Html<Self> {
         html! {
             <button onclick=|_| Msg::Clicked,>{ &self.title }</button>
         }

@@ -26,13 +26,6 @@ extern crate two_apps;
 use strum::IntoEnumIterator;
 use std::str::FromStr;
 use yew::prelude::*;
-use yew::services::console::ConsoleService;
-use yew::services::dialog::DialogService;
-use yew::services::storage::{StorageService, Area};
-use yew::services::fetch::FetchService;
-use yew::services::websocket::WebSocketService;
-use yew::services::interval::IntervalService;
-use yew::services::timeout::TimeoutService;
 use counter::Model as Counter;
 use crm::Model as Crm;
 use custom_components::Model as CustomComponents;
@@ -43,85 +36,10 @@ use inner_html::Model as InnerHtml;
 use large_table::Model as LargeTable;
 use mount_point::Model as MountPoint;
 use npm_and_rest::Model as NpmAndRest;
-use npm_and_rest::gravatar::GravatarService;
-use npm_and_rest::ccxt::CcxtService;
 use textarea::Model as Textarea;
 use timer::Model as Timer;
 use todomvc::Model as Todomvc;
 use two_apps::Model as TwoApps;
-
-struct Context {
-    console: ConsoleService,
-    storage: StorageService,
-    dialog: DialogService,
-    web: FetchService,
-    ws: WebSocketService,
-    interval: IntervalService,
-    gravatar: GravatarService,
-    ccxt: CcxtService,
-    timeout: TimeoutService,
-    two_apps: two_apps::Context, // TODO Fix this app, and remove all above ^^^
-}
-
-impl AsMut<ConsoleService> for Context {
-    fn as_mut(&mut self) -> &mut ConsoleService {
-        &mut self.console
-    }
-}
-
-impl AsMut<StorageService> for Context {
-    fn as_mut(&mut self) -> &mut StorageService {
-        &mut self.storage
-    }
-}
-
-impl AsMut<DialogService> for Context {
-    fn as_mut(&mut self) -> &mut DialogService {
-        &mut self.dialog
-    }
-}
-
-impl AsMut<FetchService> for Context {
-    fn as_mut(&mut self) -> &mut FetchService {
-        &mut self.web
-    }
-}
-
-impl AsMut<WebSocketService> for Context {
-    fn as_mut(&mut self) -> &mut WebSocketService {
-        &mut self.ws
-    }
-}
-
-impl AsMut<IntervalService> for Context {
-    fn as_mut(&mut self) -> &mut IntervalService {
-        &mut self.interval
-    }
-}
-
-impl AsMut<GravatarService> for Context {
-    fn as_mut(&mut self) -> &mut GravatarService {
-        &mut self.gravatar
-    }
-}
-
-impl AsMut<CcxtService> for Context {
-    fn as_mut(&mut self) -> &mut CcxtService {
-        &mut self.ccxt
-    }
-}
-
-impl AsMut<TimeoutService> for Context {
-    fn as_mut(&mut self) -> &mut TimeoutService {
-        &mut self.timeout
-    }
-}
-
-impl AsMut<two_apps::Context> for Context {
-    fn as_mut(&mut self) -> &mut two_apps::Context {
-        &mut self.two_apps
-    }
-}
 
 #[derive(Debug, Display, EnumString, EnumIter)]
 enum Scene {
@@ -146,11 +64,11 @@ enum Msg {
     SwitchTo(Scene),
 }
 
-impl Component<Context> for Scene {
+impl Component for Scene {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Context, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         Scene::NotSelected
     }
 
@@ -164,8 +82,8 @@ impl Component<Context> for Scene {
     }
 }
 
-impl Renderable<Context, Scene> for Scene {
-    fn view(&self) -> Html<Context, Self> {
+impl Renderable<Scene> for Scene {
+    fn view(&self) -> Html<Self> {
         let _options = Scene::iter().map(|scene| {
             html! {
                 <option value={ scene.to_string() }, > { scene.to_string() } </option>
@@ -201,7 +119,7 @@ impl Renderable<Context, Scene> for Scene {
 }
 
 impl Scene {
-    fn view_scene(&self) -> Html<Context, Self> {
+    fn view_scene(&self) -> Html<Self> {
         match *self {
             Scene::NotSelected => {
                 html! {
@@ -225,7 +143,7 @@ impl Scene {
             }
             Scene::Dashboard => {
                 html! {
-                    <Dashboard<Context>: />
+                    <Dashboard: />
                 }
             }
             Scene::Fragments => {
@@ -286,21 +204,8 @@ fn main() {
     web_logger::init();
     trace!("Initializing yew...");
     yew::initialize();
-    trace!("Creating a context...");
-    let context = Context {
-        console: ConsoleService::new(),
-        storage: StorageService::new(Area::Local),
-        dialog: DialogService::new(),
-        web: FetchService::new(),
-        ws: WebSocketService::new(),
-        interval: IntervalService::new(),
-        gravatar: GravatarService::new(),
-        ccxt: CcxtService::new(),
-        timeout: TimeoutService::new(),
-        two_apps: two_apps::Context::new(),
-    };
     trace!("Creating an application instance...");
-    let app: App<_, Scene> = App::new(context);
+    let app: App<Scene> = App::new();
     trace!("Mount the App to the body of the page...");
     app.mount_to_body();
     trace!("Run");

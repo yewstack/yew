@@ -24,14 +24,11 @@ pub enum Msg {
     Tick,
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: AsMut<IntervalService> + AsMut<TimeoutService> + AsMut<ConsoleService> + 'static,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         // This callback doesn't send any message to a scope
         let callback = |_| {
             println!("Example of a standalone callback.");
@@ -98,11 +95,8 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: AsMut<IntervalService> + AsMut<TimeoutService> + AsMut<ConsoleService> + 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         let view_message = |message| {
             html! { <p>{ message }</p> }
         };

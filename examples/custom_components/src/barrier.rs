@@ -27,11 +27,11 @@ impl Default for Props {
 }
 
 
-impl<CTX: 'static> Component<CTX> for Barrier {
+impl Component for Barrier {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: ComponentLink<CTX, Self>) -> Self {
+    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
         Barrier {
             limit: props.limit,
             counter: 0,
@@ -61,8 +61,8 @@ impl<CTX: 'static> Component<CTX> for Barrier {
     }
 }
 
-impl<CTX: 'static> Renderable<CTX, Barrier> for Barrier {
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Barrier> for Barrier {
+    fn view(&self) -> Html<Self> {
         html! {
             <div class="barrier",>
                 <p>{ format!("{} on {} clicked", self.counter, self.limit) }</p>
