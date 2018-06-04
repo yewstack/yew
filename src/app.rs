@@ -3,7 +3,6 @@
 
 use stdweb::web::{document, Element, INode, IParentNode};
 use html::{Scope, Component, Renderable};
-use scheduler::Scheduler;
 
 /// An application instance.
 pub struct App<COMP: Component> {
@@ -17,13 +16,7 @@ where
 {
     /// Creates a new `App` with a component in a context.
     pub fn new() -> Self {
-        let scheduler = Scheduler::new();
-        App::reuse(&scheduler)
-    }
-
-    /// Creates isolated `App` instance, but reuse the context.
-    pub fn reuse(scheduler: &Scheduler) -> Self {
-        let scope = Scope::new(scheduler.clone());
+        let scope = Scope::new();
         App { scope }
     }
 

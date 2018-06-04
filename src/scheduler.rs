@@ -6,6 +6,15 @@ use std::cell::RefCell;
 use std::sync::atomic::{AtomicBool, Ordering};
 use Shared;
 
+thread_local! {
+    static SCHEDULER: Rc<Scheduler> =
+        Rc::new(Scheduler::new());
+}
+
+pub(crate) fn scheduler() -> Rc<Scheduler> {
+    SCHEDULER.with(Rc::clone)
+}
+
 /// A routine which could be run.
 pub(crate) trait Runnable {
     /// Runs a routine with a context instance.
@@ -13,7 +22,7 @@ pub(crate) trait Runnable {
 }
 
 /// This is a global scheduler suitable to schedule and run any tasks.
-pub struct Scheduler {
+pub(crate) struct Scheduler {
     lock: Rc<AtomicBool>,
     sequence: Shared<VecDeque<Box<Runnable>>>,
 }
@@ -29,7 +38,7 @@ impl Clone for Scheduler {
 
 impl Scheduler {
     /// Creates a new scheduler with a context.
-    pub fn new() -> Self { // TODO hide with pub(create)
+    fn new() -> Self {
         let sequence = VecDeque::new();
         Scheduler {
             lock: Rc::new(AtomicBool::new(false)),
