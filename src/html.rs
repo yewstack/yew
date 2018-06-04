@@ -16,7 +16,7 @@ use Shared;
 pub type ShouldRender = bool;
 
 /// An interface of a UI-component. Uses `self` as a model.
-pub trait Component<CTX>: Sized + 'static {
+pub trait Component: Sized + 'static {
     /// Control message type which `update` loop get.
     type Message: 'static;
     /// Properties type of component implementation.
@@ -25,7 +25,7 @@ pub trait Component<CTX>: Sized + 'static {
     /// with unknown type.
     type Properties: Clone + PartialEq + Default;
     /// Initialization routine which could use a context.
-    fn create(props: Self::Properties, link: ComponentLink<CTX, Self>) -> Self;
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
     fn update(&mut self, msg: Self::Message) -> ShouldRender;
@@ -38,15 +38,15 @@ pub trait Component<CTX>: Sized + 'static {
 }
 
 /// Should be rendered relative to context and component environment.
-pub trait Renderable<CTX, COMP: Component<CTX>> {
+pub trait Renderable<COMP: Component> {
     /// Called by rendering loop.
-    fn view(&self) -> Html<CTX, COMP>;
+    fn view(&self) -> Html<COMP>;
 }
 
 /// Update message for a `Components` instance. Used by scope sender.
-pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
+pub(crate) enum ComponentUpdate< COMP: Component> {
     /// Creating an instance of the component
-    Create(ComponentLink<CTX, COMP>),
+    Create(ComponentLink<COMP>),
     /// Wraps messages for a component.
     Message(COMP::Message),
     /// Wraps properties for a component.
@@ -56,17 +56,16 @@ pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
 }
 
 /// Link to component's scope for creating callbacks.
-pub struct ComponentLink<CTX, COMP: Component<CTX>> {
-    scope: Scope<CTX, COMP>,
+pub struct ComponentLink<COMP: Component> {
+    scope: Scope<COMP>,
 }
 
-impl<CTX, COMP> ComponentLink<CTX, COMP>
+impl<COMP> ComponentLink<COMP>
 where
-    CTX: 'static,
-    COMP: Component<CTX> + Renderable<CTX, COMP>,
+    COMP: Component + Renderable<COMP>,
 {
     /// Create link for a scope.
-    fn connect(scope: &Scope<CTX, COMP>) -> Self {
+    fn connect(scope: &Scope<COMP>) -> Self {
         ComponentLink {
             scope: scope.clone(),
         }
@@ -88,12 +87,12 @@ where
 
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
-pub struct Scope<CTX, COMP: Component<CTX>> {
-    shared_component: Shared<Option<ComponentRunnable<CTX, COMP>>>,
-    scheduler: Scheduler<CTX>,
+pub struct Scope<COMP: Component> {
+    shared_component: Shared<Option<ComponentRunnable<COMP>>>,
+    scheduler: Scheduler<()>,
 }
 
-impl<CTX, COMP: Component<CTX>> Clone for Scope<CTX, COMP> {
+impl<COMP: Component> Clone for Scope<COMP> {
     fn clone(&self) -> Self {
         Scope {
             shared_component: self.shared_component.clone(),
@@ -102,13 +101,12 @@ impl<CTX, COMP: Component<CTX>> Clone for Scope<CTX, COMP> {
     }
 }
 
-impl<CTX, COMP> Scope<CTX, COMP>
+impl<COMP> Scope<COMP>
 where
-    CTX: 'static,
-    COMP: Component<CTX> + Renderable<CTX, COMP>,
+    COMP: Component + Renderable<COMP>,
 {
     /// Send the message and schedule an update.
-    pub(crate) fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
+    pub(crate) fn send(&mut self, update: ComponentUpdate<COMP>) {
         let envelope = ComponentEnvelope {
             shared_component: self.shared_component.clone(),
             message: Some(update),
@@ -124,12 +122,12 @@ where
     }
 }
 
-impl<CTX, COMP> Scope<CTX, COMP>
+impl<COMP> Scope<COMP>
 where
-    COMP: Component<CTX>,
+    COMP: Component,
 {
     /// Return an instance of a scheduler with a same pool of the app.
-    pub fn scheduler(&self) -> Scheduler<CTX> {
+    pub fn scheduler(&self) -> Scheduler<()> {
         self.scheduler.clone()
     }
 }
@@ -137,12 +135,11 @@ where
 /// Holder for the element.
 pub type NodeCell = Rc<RefCell<Option<Node>>>;
 
-impl<CTX, COMP> Scope<CTX, COMP>
+impl<COMP> Scope<COMP>
 where
-    CTX: 'static,
-    COMP: Component<CTX> + Renderable<CTX, COMP>,
+    COMP: Component + Renderable<COMP>,
 {
-    pub(crate) fn new(scheduler: Scheduler<CTX>) -> Self {
+    pub(crate) fn new(scheduler: Scheduler<()>) -> Self {
         let shared_component = Rc::new(RefCell::new(None));
         Scope { shared_component, scheduler }
     }
@@ -152,10 +149,10 @@ where
     pub(crate) fn mount_in_place(
         self,
         element: Element,
-        ancestor: Option<VNode<CTX, COMP>>,
+        ancestor: Option<VNode<COMP>>,
         occupied: Option<NodeCell>,
         init_props: Option<COMP::Properties>,
-    ) -> Scope<CTX, COMP> {
+    ) -> Scope<COMP> {
         let runnable = ComponentRunnable {
             env: self.clone(),
             component: None,
@@ -174,12 +171,12 @@ where
     }
 }
 
-struct ComponentRunnable<CTX, COMP: Component<CTX>> {
-    env: Scope<CTX, COMP>,
+struct ComponentRunnable<COMP: Component> {
+    env: Scope<COMP>,
     component: Option<COMP>,
-    last_frame: Option<VNode<CTX, COMP>>,
+    last_frame: Option<VNode<COMP>>,
     element: Element,
-    ancestor: Option<VNode<CTX, COMP>>,
+    ancestor: Option<VNode<COMP>>,
     occupied: Option<NodeCell>,
     init_props: Option<COMP::Properties>,
     destroyed: bool,
@@ -187,18 +184,17 @@ struct ComponentRunnable<CTX, COMP: Component<CTX>> {
 
 /// Wraps a component reference and a message to hide it under `Runnable` trait.
 /// It's necessary to schedule a processing of a message.
-struct ComponentEnvelope<CTX, COMP>
+struct ComponentEnvelope<COMP>
 where
-    COMP: Component<CTX>,
+    COMP: Component,
 {
-    shared_component: Shared<Option<ComponentRunnable<CTX, COMP>>>,
-    message: Option<ComponentUpdate<CTX, COMP>>,
+    shared_component: Shared<Option<ComponentRunnable<COMP>>>,
+    message: Option<ComponentUpdate<COMP>>,
 }
 
-impl<CTX, COMP> Runnable for ComponentEnvelope<CTX, COMP>
+impl<COMP> Runnable for ComponentEnvelope<COMP>
 where
-    CTX: 'static,
-    COMP: Component<CTX> + Renderable<CTX, COMP>,
+    COMP: Component + Renderable<COMP>,
 {
     fn run<'a>(&mut self, _: &mut ()) {
         let mut component = self.shared_component.borrow_mut();
@@ -258,7 +254,7 @@ where
 }
 
 /// A type which expected as a result of `view` function implementation.
-pub type Html<CTX, MSG> = VNode<CTX, MSG>;
+pub type Html<MSG> = VNode<MSG>;
 
 macro_rules! impl_action {
     ($($action:ident($event:ident : $type:ident) -> $ret:ty => $convert:expr)*) => {$(
@@ -285,17 +281,16 @@ macro_rules! impl_action {
                 }
             }
 
-            impl<T, CTX, COMP> Listener<CTX, COMP> for Wrapper<T>
+            impl<T, COMP> Listener<COMP> for Wrapper<T>
             where
                 T: Fn($ret) -> COMP::Message + 'static,
-                CTX: 'static,
-                COMP: Component<CTX> + Renderable<CTX, COMP>,
+                COMP: Component + Renderable<COMP>,
             {
                 fn kind(&self) -> &'static str {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, mut activator: Scope<CTX, COMP>)
+                fn attach(&mut self, element: &Element, mut activator: Scope<COMP>)
                     -> EventListenerHandle {
                     let handler = self.0.take().expect("tried to attach listener twice");
                     let this = element.clone();

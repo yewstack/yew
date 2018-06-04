@@ -19,22 +19,22 @@ use html::{Component, Scope};
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
-pub trait Listener<CTX, COMP: Component<CTX>> {
+pub trait Listener<COMP: Component> {
     /// Returns standard name of DOM's event.
     fn kind(&self) -> &'static str;
     /// Attaches listener to the element and uses scope instance to send
     /// prepaired event back to the yew main loop.
-    fn attach(&mut self, element: &Element, scope: Scope<CTX, COMP>) -> EventListenerHandle;
+    fn attach(&mut self, element: &Element, scope: Scope<COMP>) -> EventListenerHandle;
 }
 
-impl<CTX, COMP: Component<CTX>> fmt::Debug for Listener<CTX, COMP> {
+impl<COMP: Component> fmt::Debug for Listener<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Listener {{ kind: {} }}", self.kind())
     }
 }
 
 /// A list of event listeners.
-type Listeners<CTX, COMP> = Vec<Box<Listener<CTX, COMP>>>;
+type Listeners<COMP> = Vec<Box<Listener<COMP>>>;
 
 /// A map of attributes.
 type Attributes = HashMap<String, String>;
@@ -72,10 +72,8 @@ enum Reform {
 
 /// This trait provides features to update a tree by other tree comparsion.
 pub trait VDiff {
-    /// The context where this instance live.
-    type Context;
     /// The component which this instance put into.
-    type Component: Component<Self::Context>;
+    type Component: Component;
 
     /// Remove itself from parent and return the next sibling.
     fn detach(&mut self, parent: &Node) -> Option<Node>;
@@ -105,7 +103,7 @@ pub trait VDiff {
         &mut self,
         parent: &Node,
         precursor: Option<&Node>,
-        ancestor: Option<VNode<Self::Context, Self::Component>>,
-        scope: &Scope<Self::Context, Self::Component>,
+        ancestor: Option<VNode<Self::Component>>,
+        scope: &Scope<Self::Component>,
     ) -> Option<Node>;
 }

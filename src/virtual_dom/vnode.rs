@@ -7,21 +7,20 @@ use std::fmt;
 use stdweb::web::{INode, Node};
 
 /// Bind virtual element to a DOM reference.
-pub enum VNode<CTX, COMP: Component<CTX>> {
+pub enum VNode<COMP: Component> {
     /// A bind between `VTag` and `Element`.
-    VTag(VTag<CTX, COMP>),
+    VTag(VTag<COMP>),
     /// A bind between `VText` and `TextNode`.
-    VText(VText<CTX, COMP>),
+    VText(VText<COMP>),
     /// A bind between `VComp` and `Element`.
-    VComp(VComp<CTX, COMP>),
+    VComp(VComp<COMP>),
     /// A holder for a list of other nodes.
-    VList(VList<CTX, COMP>),
+    VList(VList<COMP>),
     /// A holder for any `Node` (necessary for replacing node).
     VRef(Node),
 }
 
-impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
-    type Context = CTX;
+impl<COMP: Component> VDiff for VNode<COMP> {
     type Component = COMP;
 
     /// Remove VNode from parent.
@@ -45,8 +44,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
         &mut self,
         parent: &Node,
         precursor: Option<&Node>,
-        ancestor: Option<VNode<Self::Context, Self::Component>>,
-        env: &Scope<Self::Context, Self::Component>,
+        ancestor: Option<VNode<Self::Component>>,
+        env: &Scope<Self::Component>,
     ) -> Option<Node> {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.apply(parent, precursor, ancestor, env),
@@ -72,43 +71,43 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VNode<CTX, COMP> {
     }
 }
 
-impl<CTX, COMP: Component<CTX>> From<VText<CTX, COMP>> for VNode<CTX, COMP> {
-    fn from(vtext: VText<CTX, COMP>) -> Self {
+impl<COMP: Component> From<VText<COMP>> for VNode<COMP> {
+    fn from(vtext: VText<COMP>) -> Self {
         VNode::VText(vtext)
     }
 }
 
-impl<CTX, COMP: Component<CTX>> From<VList<CTX, COMP>> for VNode<CTX, COMP> {
-    fn from(vlist: VList<CTX, COMP>) -> Self {
+impl<COMP: Component> From<VList<COMP>> for VNode<COMP> {
+    fn from(vlist: VList<COMP>) -> Self {
         VNode::VList(vlist)
     }
 }
 
-impl<CTX, COMP: Component<CTX>> From<VTag<CTX, COMP>> for VNode<CTX, COMP> {
-    fn from(vtag: VTag<CTX, COMP>) -> Self {
+impl<COMP: Component> From<VTag<COMP>> for VNode<COMP> {
+    fn from(vtag: VTag<COMP>) -> Self {
         VNode::VTag(vtag)
     }
 }
 
-impl<CTX, COMP: Component<CTX>> From<VComp<CTX, COMP>> for VNode<CTX, COMP> {
-    fn from(vcomp: VComp<CTX, COMP>) -> Self {
+impl<COMP: Component> From<VComp<COMP>> for VNode<COMP> {
+    fn from(vcomp: VComp<COMP>) -> Self {
         VNode::VComp(vcomp)
     }
 }
 
-impl<CTX: 'static, COMP: Component<CTX>, T: ToString> From<T> for VNode<CTX, COMP> {
+impl<COMP: Component, T: ToString> From<T> for VNode<COMP> {
     fn from(value: T) -> Self {
         VNode::VText(VText::new(value.to_string()))
     }
 }
 
-impl<'a, CTX, COMP: Component<CTX>> From<&'a Renderable<CTX, COMP>> for VNode<CTX, COMP> {
-    fn from(value: &'a Renderable<CTX, COMP>) -> Self {
+impl<'a, COMP: Component> From<&'a Renderable<COMP>> for VNode<COMP> {
+    fn from(value: &'a Renderable<COMP>) -> Self {
         value.view()
     }
 }
 
-impl<CTX, COMP: Component<CTX>> fmt::Debug for VNode<CTX, COMP> {
+impl<COMP: Component> fmt::Debug for VNode<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             VNode::VTag(ref vtag) => vtag.fmt(f),
@@ -120,8 +119,8 @@ impl<CTX, COMP: Component<CTX>> fmt::Debug for VNode<CTX, COMP> {
     }
 }
 
-impl<CTX, COMP: Component<CTX>> PartialEq for VNode<CTX, COMP> {
-    fn eq(&self, other: &VNode<CTX, COMP>) -> bool {
+impl<COMP: Component> PartialEq for VNode<COMP> {
+    fn eq(&self, other: &VNode<COMP>) -> bool {
         match *self {
             VNode::VTag(ref vtag_a) => match *other {
                 VNode::VTag(ref vtag_b) => vtag_a == vtag_b,

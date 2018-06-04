@@ -15,28 +15,28 @@ use Hidden;
 type AnyProps = (TypeId, *mut Hidden);
 
 /// The method generates an instance of a (child) component.
-type Generator<CTX> = FnMut(Scheduler<CTX>, Element, Option<Node>, AnyProps);
+type Generator = FnMut(Scheduler<()>, Element, Option<Node>, AnyProps);
 
 /// A reference to unknown activator which will be attached later with a generator function.
-type LazyActivator<CTX, COMP> = Rc<RefCell<Option<Scope<CTX, COMP>>>>;
+type LazyActivator<COMP> = Rc<RefCell<Option<Scope<COMP>>>>;
 
 /// A virtual component.
-pub struct VComp<CTX, COMP: Component<CTX>> {
+pub struct VComp<COMP: Component> {
     type_id: TypeId,
     cell: NodeCell,
     props: Option<(TypeId, *mut Hidden)>,
     blind_sender: Box<FnMut(AnyProps)>,
-    generator: Box<Generator<CTX>>,
-    activators: Vec<LazyActivator<CTX, COMP>>,
+    generator: Box<Generator>,
+    activators: Vec<LazyActivator<COMP>>,
     destroyer: Box<Fn()>,
     _parent: PhantomData<COMP>,
 }
 
-impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
+impl<COMP: Component> VComp<COMP> {
     /// This method prepares a generator to make a new instance of the `Component`.
     pub fn lazy<CHILD>() -> (CHILD::Properties, Self)
     where
-        CHILD: Component<CTX> + Renderable<CTX, CHILD>,
+        CHILD: Component + Renderable<CHILD>,
     {
         let cell: NodeCell = Rc::new(RefCell::new(None));
         let lazy_activator = Rc::new(RefCell::new(None));
@@ -53,7 +53,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
                     *Box::from_raw(raw)
                 };
                 let opposite = obsolete.map(VNode::VRef);
-                let scope: Scope<CTX, CHILD> = Scope::new(scheduler);
+                let scope: Scope<CHILD> = Scope::new(scheduler);
                 let env = scope.clone();
                 *lazy_activator.borrow_mut() = Some(env);
                 scope.mount_in_place(
@@ -120,7 +120,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
 
     /// This method attach sender to a listeners, because created properties
     /// know nothing about a parent.
-    fn activate_props(&mut self, sender: &Scope<CTX, COMP>) -> AnyProps {
+    fn activate_props(&mut self, sender: &Scope<COMP>) -> AnyProps {
         for activator in &self.activators {
             *activator.borrow_mut() = Some(sender.clone());
         }
@@ -142,23 +142,23 @@ impl<CTX: 'static, COMP: Component<CTX>> VComp<CTX, COMP> {
 /// Converts property and attach lazy components to it.
 /// This type holds context and components types to store an activatior which
 /// will be used later buring rendering state to attach component sender.
-pub trait Transformer<CTX, COMP: Component<CTX>, FROM, TO> {
+pub trait Transformer<COMP: Component, FROM, TO> {
     /// Transforms one type to another.
     fn transform(&mut self, from: FROM) -> TO;
 }
 
-impl<CTX, COMP, T> Transformer<CTX, COMP, T, T> for VComp<CTX, COMP>
+impl<COMP, T> Transformer<COMP, T, T> for VComp<COMP>
 where
-    COMP: Component<CTX>,
+    COMP: Component,
 {
     fn transform(&mut self, from: T) -> T {
         from
     }
 }
 
-impl<'a, CTX, COMP, T> Transformer<CTX, COMP, &'a T, T> for VComp<CTX, COMP>
+impl<'a, COMP, T> Transformer<COMP, &'a T, T> for VComp<COMP>
 where
-    COMP: Component<CTX>,
+    COMP: Component,
     T: Clone,
 {
     fn transform(&mut self, from: &'a T) -> T {
@@ -166,19 +166,18 @@ where
     }
 }
 
-impl<'a, CTX, COMP> Transformer<CTX, COMP, &'a str, String> for VComp<CTX, COMP>
+impl<'a, COMP> Transformer<COMP, &'a str, String> for VComp<COMP>
 where
-    COMP: Component<CTX>,
+    COMP: Component,
 {
     fn transform(&mut self, from: &'a str) -> String {
         from.to_owned()
     }
 }
 
-impl<'a, CTX, COMP, F, IN> Transformer<CTX, COMP, F, Option<Callback<IN>>> for VComp<CTX, COMP>
+impl<'a, COMP, F, IN> Transformer<COMP, F, Option<Callback<IN>>> for VComp<COMP>
 where
-    CTX: 'static,
-    COMP: Component<CTX> + Renderable<CTX, COMP>,
+    COMP: Component + Renderable<COMP>,
     F: Fn(IN) -> COMP::Message + 'static,
 {
     fn transform(&mut self, from: F) -> Option<Callback<IN>> {
@@ -196,15 +195,14 @@ where
     }
 }
 
-impl<CTX, COMP> VComp<CTX, COMP>
+impl<COMP> VComp<COMP>
 where
-    CTX: 'static,
-    COMP: Component<CTX> + 'static,
+    COMP: Component + 'static,
 {
     /// This methods mount a virtual component with a generator created with `lazy` call.
     fn mount<T: INode>(
         &mut self,
-        scheduler: Scheduler<CTX>,
+        scheduler: Scheduler<()>,
         parent: &T,
         opposite: Option<Node>,
         props: AnyProps,
@@ -223,12 +221,10 @@ where
     }
 }
 
-impl<CTX, COMP> VDiff for VComp<CTX, COMP>
+impl<COMP> VDiff for VComp<COMP>
 where
-    CTX: 'static,
-    COMP: Component<CTX> + 'static,
+    COMP: Component + 'static,
 {
-    type Context = CTX;
     type Component = COMP;
 
     /// Remove VComp from parent.
@@ -252,8 +248,8 @@ where
         &mut self,
         parent: &Node,
         _: Option<&Node>,
-        opposite: Option<VNode<Self::Context, Self::Component>>,
-        env: &Scope<Self::Context, Self::Component>,
+        opposite: Option<VNode<Self::Component>>,
+        env: &Scope<Self::Component>,
     ) -> Option<Node> {
         let reform = {
             match opposite {
@@ -299,8 +295,8 @@ where
     }
 }
 
-impl<CTX, COMP: Component<CTX>> PartialEq for VComp<CTX, COMP> {
-    fn eq(&self, other: &VComp<CTX, COMP>) -> bool {
+impl<COMP: Component> PartialEq for VComp<COMP> {
+    fn eq(&self, other: &VComp<COMP>) -> bool {
         self.type_id == other.type_id
     }
 }
