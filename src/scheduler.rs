@@ -6,15 +6,15 @@ use std::cell::RefCell;
 use Shared;
 
 /// A routine which could be run.
-pub(crate) trait Runnable<CTX> {
+pub(crate) trait Runnable {
     /// Runs a routine with a context instance.
-    fn run(&mut self, context: &mut CTX);
+    fn run(&mut self, _: &mut ());
 }
 
 /// This is a global scheduler suitable to schedule and run any tasks.
 pub struct Scheduler<CTX> {
     context: Shared<CTX>,
-    sequence: Shared<VecDeque<Box<Runnable<CTX>>>>,
+    sequence: Shared<VecDeque<Box<Runnable>>>,
 }
 
 impl<CTX> Clone for Scheduler<CTX> {
@@ -36,13 +36,13 @@ impl<CTX> Scheduler<CTX> {
         }
     }
 
-    pub(crate) fn put_and_try_run(&self, runnable: Box<Runnable<CTX>>) {
+    pub(crate) fn put_and_try_run(&self, runnable: Box<Runnable>) {
         self.sequence.borrow_mut().push_back(runnable);
-        if let Ok(ref mut context) = self.context.try_borrow_mut() {
+        if let Ok(_) = self.context.try_borrow_mut() {
             loop {
                 let do_next = self.sequence.borrow_mut().pop_front();
                 if let Some(mut runnable) = do_next {
-                    runnable.run(context);
+                    runnable.run(&mut ());
                 } else {
                     break;
                 }

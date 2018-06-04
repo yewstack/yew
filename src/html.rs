@@ -113,7 +113,7 @@ where
             shared_component: self.shared_component.clone(),
             message: Some(update),
         };
-        let runnable: Box<Runnable<CTX>> = Box::new(envelope);
+        let runnable: Box<Runnable> = Box::new(envelope);
         self.scheduler.put_and_try_run(runnable);
     }
 
@@ -195,12 +195,12 @@ where
     message: Option<ComponentUpdate<CTX, COMP>>,
 }
 
-impl<CTX, COMP> Runnable<CTX> for ComponentEnvelope<CTX, COMP>
+impl<CTX, COMP> Runnable for ComponentEnvelope<CTX, COMP>
 where
     CTX: 'static,
     COMP: Component<CTX> + Renderable<CTX, COMP>,
 {
-    fn run<'a>(&mut self, _: &mut CTX) {
+    fn run<'a>(&mut self, _: &mut ()) {
         let mut component = self.shared_component.borrow_mut();
         let this = component.as_mut().expect("shared component not set");
         if this.destroyed {
