@@ -318,7 +318,7 @@ pub enum Ambit {
 /// This sctruct holds a reference to a component and to a global scheduler.
 pub struct AgentScope<AGN: Agent> {
     shared_agent: Shared<AgentRunnable<AGN>>,
-    scheduler: Scheduler<()>, // TODO Use thread-local `Scheduler`
+    scheduler: Scheduler, // TODO Use thread-local `Scheduler`
 }
 
 impl<AGN: Agent> Clone for AgentScope<AGN> {
@@ -333,7 +333,7 @@ impl<AGN: Agent> Clone for AgentScope<AGN> {
 impl<AGN: Agent> AgentScope<AGN> {
     fn new() -> Self {
         let shared_agent = Rc::new(RefCell::new(AgentRunnable::new()));
-        let scheduler = Scheduler::new(());
+        let scheduler = Scheduler::new();
         AgentScope { shared_agent, scheduler }
     }
 
@@ -416,7 +416,7 @@ impl<AGN> Runnable for AgentEnvelope<AGN>
 where
     AGN: Agent,
 {
-    fn run<'a>(&mut self, _: &mut ()) {
+    fn run(&mut self) {
         let mut this = self.shared_agent.borrow_mut();
         if this.destroyed {
             return;

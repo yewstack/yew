@@ -15,7 +15,7 @@ use Hidden;
 type AnyProps = (TypeId, *mut Hidden);
 
 /// The method generates an instance of a (child) component.
-type Generator = FnMut(Scheduler<()>, Element, Option<Node>, AnyProps);
+type Generator = FnMut(Scheduler, Element, Option<Node>, AnyProps);
 
 /// A reference to unknown activator which will be attached later with a generator function.
 type LazyActivator<COMP> = Rc<RefCell<Option<Scope<COMP>>>>;
@@ -202,7 +202,7 @@ where
     /// This methods mount a virtual component with a generator created with `lazy` call.
     fn mount<T: INode>(
         &mut self,
-        scheduler: Scheduler<()>,
+        scheduler: Scheduler,
         parent: &T,
         opposite: Option<Node>,
         props: AnyProps,
