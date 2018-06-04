@@ -16,13 +16,13 @@ where
     COMP: Component + Renderable<COMP>,
 {
     /// Creates a new `App` with a component in a context.
-    pub fn new(context: ()) -> Self {
-        let scheduler = Scheduler::new(context);
+    pub fn new() -> Self {
+        let scheduler = Scheduler::new();
         App::reuse(&scheduler)
     }
 
     /// Creates isolated `App` instance, but reuse the context.
-    pub fn reuse(scheduler: &Scheduler<()>) -> Self {
+    pub fn reuse(scheduler: &Scheduler) -> Self {
         let scope = Scope::new(scheduler.clone());
         App { scope }
     }

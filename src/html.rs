@@ -89,7 +89,7 @@ where
 /// Mostly services uses it.
 pub struct Scope<COMP: Component> {
     shared_component: Shared<Option<ComponentRunnable<COMP>>>,
-    scheduler: Scheduler<()>,
+    scheduler: Scheduler,
 }
 
 impl<COMP: Component> Clone for Scope<COMP> {
@@ -127,7 +127,7 @@ where
     COMP: Component,
 {
     /// Return an instance of a scheduler with a same pool of the app.
-    pub fn scheduler(&self) -> Scheduler<()> {
+    pub fn scheduler(&self) -> Scheduler {
         self.scheduler.clone()
     }
 }
@@ -139,7 +139,7 @@ impl<COMP> Scope<COMP>
 where
     COMP: Component + Renderable<COMP>,
 {
-    pub(crate) fn new(scheduler: Scheduler<()>) -> Self {
+    pub(crate) fn new(scheduler: Scheduler) -> Self {
         let shared_component = Rc::new(RefCell::new(None));
         Scope { shared_component, scheduler }
     }
@@ -196,7 +196,7 @@ impl<COMP> Runnable for ComponentEnvelope<COMP>
 where
     COMP: Component + Renderable<COMP>,
 {
-    fn run<'a>(&mut self, _: &mut ()) {
+    fn run(&mut self) {
         let mut component = self.shared_component.borrow_mut();
         let this = component.as_mut().expect("shared component not set");
         if this.destroyed {
