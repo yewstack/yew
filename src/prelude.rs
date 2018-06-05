@@ -53,6 +53,7 @@ pub mod worker {
         AgentLink,
         Global,
         HandlerId,
+        Job,
         Private,
         Public,
         Transferable,
