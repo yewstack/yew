@@ -51,7 +51,10 @@ pub mod worker {
         Addr,
         Agent,
         AgentLink,
+        Global,
         HandlerId,
+        Private,
+        Public,
         Transferable,
         Worker,
     };
