@@ -6,6 +6,7 @@ use std::any::TypeId;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 use bincode;
+use anymap::{AnyMap, Entry};
 use slab::Slab;
 use stdweb::Value;
 use stdweb::unstable::TryInto;
@@ -173,7 +174,7 @@ where
 /// Determine a visibility of an agent.
 #[doc(hidden)]
 pub trait Discoverer {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(_callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
         unimplemented!();
     }
 }
@@ -186,10 +187,43 @@ pub trait Bridge<AGN: Agent> {
 
 // <<< SAME THREAD >>>
 
-struct FacelessAgent;
+struct LaunchedAgent<AGN: Agent> {
+    scope: AgentScope<AGN>,
+    slab: Shared<Slab<Callback<AGN::Output>>>,
+}
+
+type Last = bool;
+
+impl<AGN: Agent> LaunchedAgent<AGN> {
+    pub fn new(scope: &AgentScope<AGN>) -> Self {
+        let slab = Rc::new(RefCell::new(Slab::new()));
+        LaunchedAgent {
+            scope: scope.clone(),
+            slab,
+        }
+    }
+
+    fn slab(&self) -> Shared<Slab<Callback<AGN::Output>>> {
+        self.slab.clone()
+    }
+
+    fn create_bridge(&mut self, callback: Callback<AGN::Output>) -> ContextBridge<AGN> {
+        let id = self.slab.borrow_mut().insert(callback);
+        ContextBridge {
+            scope: self.scope.clone(),
+            id,
+        }
+    }
+
+    fn remove_bridge(&mut self, bridge: &ContextBridge<AGN>) -> Last {
+        let mut slab = self.slab.borrow_mut();
+        let _ = slab.remove(bridge.id);
+        slab.is_empty()
+    }
+}
 
 thread_local! {
-    static CONTEXT_POOL: HashMap<TypeId, FacelessAgent> = HashMap::new();
+    static CONTEXT_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());
 }
 
 /// Create a single instance in the current thread.
@@ -197,19 +231,72 @@ pub struct Context;
 
 impl Discoverer for Context {
     fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
-        let type_id = TypeId::of::<Self>();
-        unimplemented!();
+        let mut scope_to_init = None;
+        let bridge = CONTEXT_POOL.with(|pool| {
+            match pool.borrow_mut().entry::<LaunchedAgent<AGN>>() {
+                Entry::Occupied(mut entry) => {
+                    // TODO Insert callback!
+                    entry.get_mut().create_bridge(callback)
+                },
+                Entry::Vacant(entry) => {
+                    let scope = AgentScope::<AGN>::new();
+                    let launched = LaunchedAgent::new(&scope);
+                    let responder = SlabResponder { slab: launched.slab() };
+                    scope_to_init = Some((scope.clone(), responder));
+                    entry.insert(launched).create_bridge(callback)
+                },
+            }
+        });
+        if let Some((scope, responder)) = scope_to_init {
+            let agent_link = AgentLink::connect(&scope, responder);
+            let upd = AgentUpdate::Create(agent_link);
+            scope.send(upd);
+        }
+        Box::new(bridge)
+    }
+}
+
+struct SlabResponder<AGN: Agent> {
+    slab: Shared<Slab<Callback<AGN::Output>>>,
+}
+
+impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
+    fn response(&self, id: usize, output: AGN::Output) {
+        let callback = self.slab.borrow().get(id).cloned();
+        if let Some(callback) = callback {
+            callback.emit(output);
+        } else {
+            warn!("Id of handler not exists <slab>: {}", id);
+        }
     }
 }
 
 struct ContextBridge<AGN: Agent> {
     scope: AgentScope<AGN>,
+    id: usize,
 }
 
 impl<AGN: Agent> Bridge<AGN> for ContextBridge<AGN> {
     fn send(&self, msg: AGN::Input) {
-        let upd = AgentUpdate::Input(msg, HandlerId(0));
+        let upd = AgentUpdate::Input(msg, HandlerId(self.id));
         self.scope.send(upd);
+    }
+}
+
+impl<AGN: Agent> Drop for ContextBridge<AGN> {
+    fn drop(&mut self) {
+        CONTEXT_POOL.with(|pool| {
+            let terminate_worker = {
+                if let Some(launched) = pool.borrow_mut().get_mut::<LaunchedAgent<AGN>>() {
+                    launched.remove_bridge(self)
+                } else {
+                    false
+                }
+            };
+            if terminate_worker {
+                pool.borrow_mut().remove::<LaunchedAgent<AGN>>();
+            }
+        });
     }
 }
 
@@ -228,13 +315,15 @@ impl Discoverer for Job {
     }
 }
 
+const JOB_SINGLE_ID: usize = 0;
+
 struct CallbackResponder<AGN: Agent> {
     callback: Callback<AGN::Output>,
 }
 
 impl<AGN: Agent> Responder<AGN> for CallbackResponder<AGN> {
     fn response(&self, id: usize, output: AGN::Output) {
-        assert_eq!(id, 0);
+        assert_eq!(id, JOB_SINGLE_ID);
         self.callback.emit(output);
     }
 }
@@ -245,7 +334,7 @@ struct JobBridge<AGN: Agent> {
 
 impl<AGN: Agent> Bridge<AGN> for JobBridge<AGN> {
     fn send(&self, msg: AGN::Input) {
-        let upd = AgentUpdate::Input(msg, HandlerId(0));
+        let upd = AgentUpdate::Input(msg, HandlerId(JOB_SINGLE_ID));
         self.scope.send(upd);
     }
 }

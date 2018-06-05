@@ -51,6 +51,7 @@ pub mod worker {
         Addr,
         Agent,
         AgentLink,
+        Context,
         Global,
         HandlerId,
         Job,

@@ -7,17 +7,21 @@ extern crate yew;
 
 pub mod worker;
 pub mod job;
+pub mod context;
 
 use yew::prelude::*;
 
 pub struct Model {
     worker: Box<Bridge<worker::Worker>>,
     job: Box<Bridge<job::Worker>>,
+    context: Box<Bridge<context::Worker>>,
+    context_2: Box<Bridge<context::Worker>>,
 }
 
 pub enum Msg {
     SendToWorker,
     SendToJob,
+    SendToContext,
     DataReceived,
 }
 
@@ -33,7 +37,13 @@ impl Component for Model {
         let callback = link.send_back(|_| Msg::DataReceived);
         let job = job::Worker::bridge(callback);
 
-        Model { worker, job }
+        let callback = link.send_back(|_| Msg::DataReceived);
+        let context = context::Worker::bridge(callback);
+
+        let callback = link.send_back(|_| Msg::DataReceived);
+        let context_2 = context::Worker::bridge(callback);
+
+        Model { worker, job, context, context_2 }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -43,6 +53,10 @@ impl Component for Model {
             }
             Msg::SendToJob => {
                 self.job.send(job::Request::GetDataFromServer);
+            }
+            Msg::SendToContext => {
+                self.context.send(context::Request::GetDataFromServer);
+                self.context_2.send(context::Request::GetDataFromServer);
             }
             Msg::DataReceived => {
                 info!("DataReceived");
@@ -59,6 +73,7 @@ impl Renderable<Model> for Model {
                 <nav class="menu",>
                     <button onclick=|_| Msg::SendToWorker,>{ "Send to Thread" }</button>
                     <button onclick=|_| Msg::SendToJob,>{ "Send to Job" }</button>
+                    <button onclick=|_| Msg::SendToContext,>{ "Send to Context" }</button>
                 </nav>
             </div>
         }
