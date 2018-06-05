@@ -31,6 +31,7 @@ pub struct Worker {
 }
 
 impl Agent for Worker {
+    type Reach = Private;
     type Message = Msg;
     type Input = Request;
     type Output = Response;

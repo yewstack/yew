@@ -163,8 +163,44 @@ where
     }
 }
 
+// <<< SAME THREAD >>>
+
+/// Create a single instance in the current thread.
+pub struct Context;
+
+impl Visibility for Context { }
+
+/*
+/// Create an instance in the current thread.
+pub struct Task;
+
+impl Visibility for Context { }
+*/
+
+// <<< SEPARATE THREAD >>>
+
+/// Determine a visibility of an agent.
+pub trait Visibility { }
+
+/// Create a new instance for every bridge.
+pub struct Private;
+
+impl Visibility for Private { }
+
+/// Create a single instance in a tab.
+pub struct Public;
+
+impl Visibility for Public { }
+
+/// Create a single instance in a browser.
+pub struct Global;
+
+impl Visibility for Global { }
+
 /// Declares the behavior of the agent.
 pub trait Agent: Sized + 'static {
+    /// Reach capaility of the agent.
+    type Reach: Visibility;
     /// Type of an input messagae.
     type Message;
     /// Incoming message type.
