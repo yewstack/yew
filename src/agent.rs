@@ -78,6 +78,8 @@ pub trait Worker: Agent + Sized + 'static {
     /// Executes an agent in the current environment.
     /// Uses in `main` function of a worker.
     fn register();
+    /// Creates a messaging bridge between a worker and the component.
+    fn bridge(callback: Callback<Self::Output>) -> Box<Bridge<Self>>;
 }
 
 impl<T> Worker for T
@@ -144,7 +146,8 @@ where
         let scope_base: AgentScope<T> = AgentScope::new();
         let scope = scope_base.clone();
         let creator = move || {
-            let link = AgentLink::connect(&scope);
+            let responder = WorkerResponder { };
+            let link = AgentLink::connect(&scope, responder);
             let upd = AgentUpdate::Create(link);
             scope.send(upd);
         };
@@ -161,46 +164,120 @@ where
             agents.borrow_mut().insert(type_id, pair);
         });
     }
+
+    fn bridge(callback: Callback<Self::Output>) -> Box<Bridge<Self>> {
+        Self::Reach::spawn_or_join(callback)
+    }
+}
+
+/// Determine a visibility of an agent.
+#[doc(hidden)]
+pub trait Discoverer {
+    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
+        unimplemented!();
+    }
+}
+
+/// Bridge to a specific kind of worker.
+pub trait Bridge<AGN: Agent> {
+    /// Send a message to an agent.
+    fn send(&self, msg: AGN::Input);
 }
 
 // <<< SAME THREAD >>>
 
+struct FacelessAgent;
+
+thread_local! {
+    static CONTEXT_POOL: HashMap<TypeId, FacelessAgent> = HashMap::new();
+}
+
 /// Create a single instance in the current thread.
 pub struct Context;
 
-impl Visibility for Context { }
+impl Discoverer for Context {
+    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
+        let type_id = TypeId::of::<Self>();
+        unimplemented!();
+    }
+}
 
-/*
+struct ContextBridge<AGN: Agent> {
+    scope: AgentScope<AGN>,
+}
+
+impl<AGN: Agent> Bridge<AGN> for ContextBridge<AGN> {
+    fn send(&self, msg: AGN::Input) {
+        let upd = AgentUpdate::Input(msg, HandlerId(0));
+        self.scope.send(upd);
+    }
+}
+
 /// Create an instance in the current thread.
-pub struct Task;
+pub struct Job;
 
-impl Visibility for Context { }
-*/
+impl Discoverer for Job {
+    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
+        let scope = AgentScope::<AGN>::new();
+        let responder = CallbackResponder { callback };
+        let agent_link = AgentLink::connect(&scope, responder);
+        let upd = AgentUpdate::Create(agent_link);
+        scope.send(upd);
+        let bridge = JobBridge { scope };
+        Box::new(bridge)
+    }
+}
+
+struct CallbackResponder<AGN: Agent> {
+    callback: Callback<AGN::Output>,
+}
+
+impl<AGN: Agent> Responder<AGN> for CallbackResponder<AGN> {
+    fn response(&self, id: usize, output: AGN::Output) {
+        assert_eq!(id, 0);
+        self.callback.emit(output);
+    }
+}
+
+struct JobBridge<AGN: Agent> {
+    scope: AgentScope<AGN>,
+}
+
+impl<AGN: Agent> Bridge<AGN> for JobBridge<AGN> {
+    fn send(&self, msg: AGN::Input) {
+        let upd = AgentUpdate::Input(msg, HandlerId(0));
+        self.scope.send(upd);
+    }
+}
+
+impl<AGN: Agent> Drop for JobBridge<AGN> {
+    fn drop(&mut self) {
+        let upd = AgentUpdate::Destroy;
+        self.scope.send(upd);
+    }
+}
 
 // <<< SEPARATE THREAD >>>
-
-/// Determine a visibility of an agent.
-pub trait Visibility { }
 
 /// Create a new instance for every bridge.
 pub struct Private;
 
-impl Visibility for Private { }
+impl Discoverer for Private { }
 
 /// Create a single instance in a tab.
 pub struct Public;
 
-impl Visibility for Public { }
+impl Discoverer for Public { }
 
 /// Create a single instance in a browser.
 pub struct Global;
 
-impl Visibility for Global { }
+impl Discoverer for Global { }
 
 /// Declares the behavior of the agent.
 pub trait Agent: Sized + 'static {
     /// Reach capaility of the agent.
-    type Reach: Visibility;
+    type Reach: Discoverer;
     /// Type of an input messagae.
     type Message;
     /// Incoming message type.
@@ -223,20 +300,21 @@ pub trait Agent: Sized + 'static {
 }
 
 /// A connection manager for components interaction with workers.
-pub struct Bridge<T: Agent> {
+pub struct PublicBridge<T: Agent> {
     worker: Value,
     callbacks: HandlersPool<T::Output>,
     id: usize,
 }
 
-impl<T: Agent> Bridge<T> {
+impl<T: Agent> PublicBridge<T> {
     fn new(worker: Value, callbacks: HandlersPool<T::Output>, callback: Callback<T::Output>) -> Self {
         let id = callbacks.borrow_mut().insert(callback);
-        Bridge { worker, callbacks, id }
+        PublicBridge { worker, callbacks, id }
     }
+}
 
-    /// Send a message to an agent.
-    pub fn send(&self, msg: T::Input) {
+impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
+    fn send(&self, msg: AGN::Input) {
         // TODO Important! Implement.
         // Use a queue to collect a messages if an instance is not ready
         // and send them to an agent when it will reported readiness.
@@ -253,7 +331,7 @@ impl<T: Agent> Bridge<T> {
     }
 }
 
-impl<T: Agent> Drop for Bridge<T> {
+impl<AGN: Agent> Drop for PublicBridge<AGN> {
     fn drop(&mut self) {
         let _ = self.callbacks.borrow_mut().remove(self.id);
     }
@@ -271,8 +349,9 @@ where
     T: Agent,
 {
     /// Creates bridge connection between a component and the agent.
-    pub fn bridge(&mut self, callback: Callback<T::Output>) -> Bridge<T> {
-        Bridge::new(self.worker.clone(), self.callbacks.clone(), callback)
+    pub fn bridge(&mut self, callback: Callback<T::Output>) -> Box<Bridge<T>> {
+        let bridge = PublicBridge::new(self.worker.clone(), self.callbacks.clone(), callback);
+        Box::new(bridge)
     }
 
 }
@@ -380,27 +459,45 @@ impl<AGN: Agent> AgentScope<AGN> {
     }
 }
 
-/// Link to agent's scope for creating callbacks.
-pub struct AgentLink<AGN: Agent> {
-    scope: AgentScope<AGN>,
+trait Responder<AGN: Agent> {
+    fn response(&self, id: usize, output: AGN::Output);
 }
 
-impl<AGN: Agent> AgentLink<AGN> {
-    /// Create link for a scope.
-    fn connect(scope: &AgentScope<AGN>) -> Self {
-        AgentLink {
-            scope: scope.clone(),
-        }
-    }
+struct WorkerResponder {
+}
 
-    /// Send response to an actor.
-    pub fn response(&self, HandlerId(id): HandlerId, output: AGN::Output) {
+impl<AGN: Agent> Responder<AGN> for WorkerResponder {
+    fn response(&self, id: usize, output: AGN::Output) {
         let msg = FromWorker::ProcessOutput(id, output.pack());
         let data = msg.pack();
         js! {
             var data = @{data};
             self.postMessage(data);
         };
+    }
+}
+
+/// Link to agent's scope for creating callbacks.
+pub struct AgentLink<AGN: Agent> {
+    scope: AgentScope<AGN>,
+    responder: Box<Responder<AGN>>,
+}
+
+impl<AGN: Agent> AgentLink<AGN> {
+    /// Create link for a scope.
+    fn connect<T>(scope: &AgentScope<AGN>, responder: T) -> Self
+    where
+        T: Responder<AGN> + 'static,
+    {
+        AgentLink {
+            scope: scope.clone(),
+            responder: Box::new(responder),
+        }
+    }
+
+    /// Send response to an actor.
+    pub fn response(&self, HandlerId(id): HandlerId, output: AGN::Output) {
+        self.responder.response(id, output);
     }
 
     /// This method sends messages back to the component's loop.
