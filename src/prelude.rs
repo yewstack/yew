@@ -43,12 +43,12 @@ pub use agent::{
     Ambit,
     Bridge,
     Worker,
+    Threaded,
 };
 
 /// Prelude module for creating worker.
 pub mod worker {
     pub use agent::{
-        Addr,
         Agent,
         AgentLink,
         Context,

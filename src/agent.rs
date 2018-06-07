@@ -74,74 +74,21 @@ type HandlersPool<T> = Rc<RefCell<Slab<Callback<T>>>>;
 /// This traits allow to get addres or register worker.
 // TODO Maybe use somethig like `App` for `Component`s.
 pub trait Worker: Agent + Sized + 'static {
-    /// Spawns an agent and returns `Addr` of an instance.
-    fn spawn() -> Addr<Self>;
-    /// Executes an agent in the current environment.
-    /// Uses in `main` function of a worker.
-    fn register();
     /// Creates a messaging bridge between a worker and the component.
     fn bridge(callback: Callback<Self::Output>) -> Box<Bridge<Self>>;
 }
 
-impl<T> Worker for T
-where
-    T: Agent,
-{
-    fn spawn() -> Addr<Self> {
-        let worker_base = js! {
-            // TODO Use relative path. But how?
-            var worker = new Worker("main.js");
-            return worker;
-        };
-        let worker = worker_base.clone();
-        let send_to_app = move |msg: ToWorker| {
-            let bytes = msg.pack();
-            let worker = worker.clone();
-            js! {
-                var worker = @{worker};
-                worker.postMessage(@{bytes});
-            };
-        };
-        let slab: Slab<Callback<T::Output>> = Slab::new();
-        let callbacks_base = Rc::new(RefCell::new(slab));
-        let callbacks = callbacks_base.clone();
-        let handshake = move |data: Vec<u8>| {
-            let msg = FromWorker::unpack(&data);
-            info!("Received from worker: {:?}", msg);
-            match msg {
-                FromWorker::WorkerLoaded => {
-                    let type_id = TypeId::of::<Self>();
-                    let raw_type_id: RawTypeId = unsafe { ::std::mem::transmute(type_id) };
-                    let msg = ToWorker::SelectType(raw_type_id);
-                    send_to_app(msg);
-                },
-                FromWorker::TypeDetected => {
-                    info!("Worker handshake finished");
-                },
-                FromWorker::ProcessOutput(id, data) => {
-                    let msg = T::Output::unpack(&data);
-                    let callback = callbacks.borrow().get(id).cloned();
-                    if let Some(callback) = callback {
-                        callback.emit(msg);
-                    }
-                },
-            }
-        };
-        let worker = worker_base.clone();
-        js! {
-            var worker = @{worker};
-            // TODO Send type id (but on ready event)
-            var handshake = @{handshake};
-            worker.onmessage = function(event) {
-                handshake(event.data);
-            };
-        };
-        Addr {
-            worker: worker_base,
-            callbacks: callbacks_base,
-        }
-    }
+/// Implements rules to register a worker in a separate thread.
+pub trait Threaded {
+    /// Executes an agent in the current environment.
+    /// Uses in `main` function of a worker.
+    fn register();
+}
 
+impl<T> Threaded for T
+where
+    T: Agent<Reach=Public>,
+{
     fn register() {
         // Register function which puts every incoming message to a scheduler.
         let scope_base: AgentScope<T> = AgentScope::new();
@@ -165,7 +112,12 @@ where
             agents.borrow_mut().insert(type_id, pair);
         });
     }
+}
 
+impl<T> Worker for T
+where
+    T: Agent,
+{
     fn bridge(callback: Callback<Self::Output>) -> Box<Bridge<Self>> {
         Self::Reach::spawn_or_join(callback)
     }
@@ -174,6 +126,7 @@ where
 /// Determine a visibility of an agent.
 #[doc(hidden)]
 pub trait Discoverer {
+    /// Spawns an agent and returns `Bridge` implementation.
     fn spawn_or_join<AGN: Agent>(_callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
         unimplemented!();
     }
@@ -356,7 +309,64 @@ impl Discoverer for Private { }
 /// Create a single instance in a tab.
 pub struct Public;
 
-impl Discoverer for Public { }
+impl Discoverer for Public {
+    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
+        let worker_base = js! {
+            // TODO Use relative path. But how?
+            var worker = new Worker("main.js");
+            return worker;
+        };
+        let worker = worker_base.clone();
+        let send_to_app = move |msg: ToWorker| {
+            let bytes = msg.pack();
+            let worker = worker.clone();
+            js! {
+                var worker = @{worker};
+                worker.postMessage(@{bytes});
+            };
+        };
+        let slab: Slab<Callback<AGN::Output>> = Slab::new();
+        let callbacks_base = Rc::new(RefCell::new(slab));
+        let callbacks = callbacks_base.clone();
+        let handshake = move |data: Vec<u8>| {
+            let msg = FromWorker::unpack(&data);
+            match msg {
+                FromWorker::WorkerLoaded => {
+                    let type_id = TypeId::of::<AGN>();
+                    let raw_type_id: RawTypeId = unsafe { ::std::mem::transmute(type_id) };
+                    let msg = ToWorker::SelectType(raw_type_id);
+                    send_to_app(msg);
+                },
+                FromWorker::TypeDetected => {
+                    info!("Worker handshake finished");
+                },
+                FromWorker::ProcessOutput(id, data) => {
+                    let msg = AGN::Output::unpack(&data);
+                    let callback = callbacks.borrow().get(id).cloned();
+                    if let Some(callback) = callback {
+                        callback.emit(msg);
+                    }
+                },
+            }
+        };
+        let worker = worker_base.clone();
+        js! {
+            var worker = @{worker};
+            // TODO Send type id (but on ready event)
+            var handshake = @{handshake};
+            worker.onmessage = function(event) {
+                handshake(event.data);
+            };
+        };
+        let id = callbacks_base.borrow_mut().insert(callback);
+        let bridge = PublicBridge {
+            worker: worker_base,
+            callbacks: callbacks_base,
+            id,
+        };
+        Box::new(bridge)
+    }
+}
 
 /// Create a single instance in a browser.
 pub struct Global;
@@ -395,13 +405,6 @@ pub struct PublicBridge<T: Agent> {
     id: usize,
 }
 
-impl<T: Agent> PublicBridge<T> {
-    fn new(worker: Value, callbacks: HandlersPool<T::Output>, callback: Callback<T::Output>) -> Self {
-        let id = callbacks.borrow_mut().insert(callback);
-        PublicBridge { worker, callbacks, id }
-    }
-}
-
 impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
     fn send(&self, msg: AGN::Input) {
         // TODO Important! Implement.
@@ -414,7 +417,6 @@ impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
         js! {
             var worker = @{worker};
             var bytes = @{msg};
-            console.log("Sending...", bytes);
             worker.postMessage(bytes);
         };
     }
@@ -423,36 +425,6 @@ impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
 impl<AGN: Agent> Drop for PublicBridge<AGN> {
     fn drop(&mut self) {
         let _ = self.callbacks.borrow_mut().remove(self.id);
-    }
-}
-
-/// Address of an agent.
-pub struct Addr<T: Agent> {
-    // TODO Wrap this value with special Rc and track when to terminate the worker.
-    worker: Value,
-    callbacks: HandlersPool<T::Output>,
-}
-
-impl<T> Addr<T>
-where
-    T: Agent,
-{
-    /// Creates bridge connection between a component and the agent.
-    pub fn bridge(&mut self, callback: Callback<T::Output>) -> Box<Bridge<T>> {
-        let bridge = PublicBridge::new(self.worker.clone(), self.callbacks.clone(), callback);
-        Box::new(bridge)
-    }
-
-}
-
-impl<T: Agent> Drop for Addr<T> {
-    fn drop(&mut self) {
-        // TODO Use Rc if it will implement Clone
-        let worker = &self.worker;
-        js! {
-            let worker = @{worker};
-            //worker.terminate();
-        };
     }
 }
 
@@ -491,10 +463,7 @@ pub(crate) fn run_agent() {
     };
     js! {
         let handshake = @{handshake};
-        console.log("Mounted...", self);
         self.onmessage = function(event) {
-            // TODO Send type_id, but how?
-            console.log("Received...", event.data);
             handshake(event.data);
         };
         // TODO Clean up the allocated memory
