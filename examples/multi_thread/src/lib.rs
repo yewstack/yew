@@ -31,8 +31,7 @@ impl Component for Model {
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.send_back(|_| Msg::DataReceived);
-        let mut addr = worker::Worker::spawn();
-        let worker = addr.bridge(callback);
+        let worker = worker::Worker::bridge(callback);
 
         let callback = link.send_back(|_| Msg::DataReceived);
         let job = job::Worker::bridge(callback);
