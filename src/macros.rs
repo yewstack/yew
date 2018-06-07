@@ -21,6 +21,13 @@ macro_rules! html_impl {
         let mut pair = $crate::virtual_dom::VComp::lazy::<$comp>();
         html_impl! { @vcomp $stack pair ($($tail)*) }
     };
+    // Set a whole struct as a properties
+    (@vcomp $stack:ident $pair:ident (with $props:ident, $($tail:tt)*)) => {
+        $pair.0 = $props;
+        html_impl! { @vcomp $stack $pair ($($tail)*) }
+    };
+    // Set a specific field as a property.
+    // It uses `Transformer` trait to convert a type used in template to a type of the field.
     (@vcomp $stack:ident $pair:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
         // It cloned for ergonomics in templates. Attribute with
         // `self.param` value could be reused and sholdn't be cloned
