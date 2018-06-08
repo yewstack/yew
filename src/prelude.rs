@@ -42,7 +42,7 @@ pub use stdweb::web::event::{
 pub use agent::{
     Ambit,
     Bridge,
-    Worker,
+    Bridged,
     Threaded,
 };
 
@@ -51,6 +51,8 @@ pub mod worker {
     pub use agent::{
         Agent,
         AgentLink,
+        Bridge,
+        Bridged,
         Context,
         Global,
         HandlerId,
@@ -58,6 +60,5 @@ pub mod worker {
         Private,
         Public,
         Transferable,
-        Worker,
     };
 }

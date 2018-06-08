@@ -72,8 +72,7 @@ pub struct HandlerId(usize);
 type HandlersPool<T> = Rc<RefCell<Slab<Callback<T>>>>;
 
 /// This traits allow to get addres or register worker.
-// TODO Maybe use somethig like `App` for `Component`s.
-pub trait Worker: Agent + Sized + 'static {
+pub trait Bridged: Agent + Sized + 'static {
     /// Creates a messaging bridge between a worker and the component.
     fn bridge(callback: Callback<Self::Output>) -> Box<Bridge<Self>>;
 }
@@ -114,7 +113,7 @@ where
     }
 }
 
-impl<T> Worker for T
+impl<T> Bridged for T
 where
     T: Agent,
 {
