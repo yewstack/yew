@@ -2,7 +2,14 @@
 
 # Yew
 
-Yew is a modern Rust framework inspired by Elm and ReactJS.
+Yew is a modern Rust framework inspired by Elm and ReactJS for
+creating multi-threaded frontent apps with WebAssembly.
+
+**NEW!** The framework supports ***multi-threading & concurrency*** out of the box.
+It uses [Web Workers API] for spawning actors (agents) in separate threads
+and uses a local scheduler attached to a thread for spawning concurrent tasks.
+
+[Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
 
 [Become a sponsor on Patreon](https://www.patreon.com/deniskolodin)
 
@@ -25,25 +32,23 @@ Yew implements strict application state management based on message passing and 
 extern crate yew;
 use yew::prelude::*;
 
-type Context = ();
-
 struct Model { }
 
 enum Msg {
     DoIt,
 }
 
-impl Component<Context> for Model {
+impl Component for Model {
     // Some details omitted. Explore the examples to get more.
 
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<Context, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         Model { }
     }
 
-    fn update(&mut self, msg: Self::Message, _: &mut Env<Context, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::DoIt => {
                 // Update your model on events
@@ -53,8 +58,8 @@ impl Component<Context> for Model {
     }
 }
 
-impl Renderable<Context, Model> for Model {
-    fn view(&self) -> Html<Context, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             // Render your model here
             <button onclick=|_| Msg::DoIt,>{ "Click me!" }</button>
@@ -64,8 +69,7 @@ impl Renderable<Context, Model> for Model {
 
 fn main() {
     yew::initialize();
-    let app: App<_, Model> = App::new(());
-    app.mount_to_body();
+    App::<Model>::new().mount_to_body();
     yew::run_loop();
 }
 ```
@@ -94,6 +98,91 @@ html! {
     </section>
 }
 ```
+
+### Agents - actors model inspired by Erlang and Actix
+
+Every `Component` could spawn an agent and attach to it.
+Agetns are separate tasks which works concurrently.
+
+Create your worker/agent (in `context.rs` for example):
+
+```rust
+use yew::prelude::worker::*;
+
+struct Worker {
+    link: AgentLink<Worker>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum Request {
+    Question(String),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum Response {
+    Answer(String),
+}
+
+impl Agent for Worker {
+    // Available:
+    // - `Job` (one per bridge)
+    // - `Context` (shared in the same thread)
+    // - `Public` (separate thread).
+    type Reach = Context; // Spawn only one instance per thread (all componentis could reach this)
+    type Message = Msg;
+    type Input = Request;
+    type Output = Response;
+
+    // Creates an instance with a link to agent's environment.
+    fn create(link: AgentLink<Self>) -> Self {
+        Worker { link }
+    }
+
+    // Implement it for handling inner messages (of services of `send_back` callbacks)
+    fn update(&mut self, msg: Self::Message) { /* ... */ }
+
+    // Implement it for handling incoming messages form components of other agents.
+    fn handle(&mut self, msg: Self::Input, who: HandlerId) {
+        match msg {
+            Request::Question(_) => {
+                self.link.response(who, Response::Answer("That's cool!".into()));
+            },
+        }
+    }
+}
+```
+
+Build the bridge to an instance of this agent.
+It spawns a worker automatically or reuse an existent (it depends of type of the agent):
+
+```rust
+struct Model {
+    context: Box<Bridge<context::Worker>>,
+}
+
+enum Msg {
+    ContextMsg(context::Response),
+}
+
+impl Component for Model {
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let callback = link.send_back(|_| Msg::ContextMsg);
+        // `Worker::bridge` method spawns an instance if no one available
+        let context = context::Worker::bridge(callback); // Connected! :tada:
+        Model { context }
+    }
+}
+```
+
+You could use as many agents as you want. For example you could separate all interactions
+with a server to a separate thread (real OS thread, because Web Workers maps to native threads).
+
+> **REMEMBER!** Not every APIs available for every environment. For example you couldn't use
+`StorageService` from a separate thread that means it won't work with `Public` kind of agent,
+but local storage available for `Job` and `Context` kind of agents.
 
 ### Components
 
@@ -149,7 +238,7 @@ and supports fine control of rendering.
 The `ShouldRender` return value informs the loop when the component should be re-rendered:
 
 ```rust
-fn update(&mut self, msg: Self::Message, _: &mut Env<Context, Self>) -> ShouldRender {
+fn update(&mut self, msg: Self::Message) -> ShouldRender {
     match msg {
         Msg::UpdateValue(value) => {
             self.value = value;
@@ -190,8 +279,8 @@ You can use external crates and put values from them into the template:
 extern crate chrono;
 use chrono::prelude::*;
 
-impl Renderable<Context, Model> for Model {
-    fn view(&self) -> Html<Context, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <p>{ Local::now() }</p>
         }
@@ -216,23 +305,23 @@ Implemented:
 * `WebSocketService`
 
 ```rust
-use yew::services::console::ConsoleService;
-use yew::services::timeout::TimeoutService;
+use yew::services::{ConsoleService, TimeoutService};
 
-struct Context {
+struct Model {
+    link: ComponentLink<Model>,
     console: ConsoleService,
-    timeout: TimeoutService<Msg>,
+    timeout: TimeoutService,
 }
 
-impl Component<Context> for Model {
-    fn update(&mut self, msg: Self::Message, context: &mut Env<Context, Self>) -> ShouldRender {
+impl Component for Model {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Fire => {
-                let send_msg = context.send_back(|_| Msg::Timeout);
-                context.timeout.spawn(Duration::from_secs(5), send_msg);
+                let send_msg = self.link.send_back(|_| Msg::Timeout);
+                self.timeout.spawn(Duration::from_secs(5), send_msg);
             }
             Msg::Timeout => {
-                context.console.log("Timeout!");
+                self.console.log("Timeout!");
             }
         }
     }
@@ -288,18 +377,19 @@ struct Client {
 }
 
 struct Model {
+    local_storage: StorageService,
     clients: Vec<Client>,
 }
 
-impl Component<Context> for Model {
-    fn update(&mut self, msg: Self::Message, context: &mut Env<Context, Self>) -> ShouldRender {
+impl Component for Model {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         Msg::Store => {
             // Stores it, but in JSON format/layout
-            context.local_storage.store(KEY, Json(&model.clients));
+            self.local_storage.store(KEY, Json(&model.clients));
         }
         Msg::Restore => {
             // Tries to read and destructure it as JSON formatted data
-            if let Json(Ok(clients)) = context.local_storage.restore(KEY) {
+            if let Json(Ok(clients)) = self.local_storage.restore(KEY) {
                 model.clients = clients;
             }
         }
