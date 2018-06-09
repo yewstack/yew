@@ -204,6 +204,8 @@ impl Discoverer for Context {
             let upd = AgentUpdate::Create(agent_link);
             scope.send(upd);
         }
+        let upd = AgentUpdate::Connected(HandlerId(bridge.id));
+        bridge.scope.send(upd);
         Box::new(bridge)
     }
 }
@@ -245,7 +247,11 @@ impl<AGN: Agent> Drop for ContextBridge<AGN> {
                     false
                 }
             };
+            let upd = AgentUpdate::Connected(HandlerId(self.id));
+            self.scope.send(upd);
             if terminate_worker {
+                let upd = AgentUpdate::Destroy;
+                self.scope.send(upd);
                 pool.borrow_mut().remove::<LaunchedAgent<AGN>>();
             }
         });
@@ -262,12 +268,14 @@ impl Discoverer for Job {
         let agent_link = AgentLink::connect(&scope, responder);
         let upd = AgentUpdate::Create(agent_link);
         scope.send(upd);
+        let upd = AgentUpdate::Connected(JOB_SINGLE_ID);
+        scope.send(upd);
         let bridge = JobBridge { scope };
         Box::new(bridge)
     }
 }
 
-const JOB_SINGLE_ID: usize = 0;
+const JOB_SINGLE_ID: HandlerId = HandlerId(0);
 
 struct CallbackResponder<AGN: Agent> {
     callback: Callback<AGN::Output>,
@@ -275,7 +283,7 @@ struct CallbackResponder<AGN: Agent> {
 
 impl<AGN: Agent> Responder<AGN> for CallbackResponder<AGN> {
     fn response(&self, id: usize, output: AGN::Output) {
-        assert_eq!(id, JOB_SINGLE_ID);
+        assert_eq!(id, JOB_SINGLE_ID.0);
         self.callback.emit(output);
     }
 }
@@ -286,13 +294,15 @@ struct JobBridge<AGN: Agent> {
 
 impl<AGN: Agent> Bridge<AGN> for JobBridge<AGN> {
     fn send(&self, msg: AGN::Input) {
-        let upd = AgentUpdate::Input(msg, HandlerId(JOB_SINGLE_ID));
+        let upd = AgentUpdate::Input(msg, JOB_SINGLE_ID);
         self.scope.send(upd);
     }
 }
 
 impl<AGN: Agent> Drop for JobBridge<AGN> {
     fn drop(&mut self) {
+        let upd = AgentUpdate::Disconnected(JOB_SINGLE_ID);
+        self.scope.send(upd);
         let upd = AgentUpdate::Destroy;
         self.scope.send(upd);
     }
@@ -338,6 +348,7 @@ impl Discoverer for Public {
                 },
                 FromWorker::TypeDetected => {
                     info!("Worker handshake finished");
+                    // TODO Send `AgetUpdate::Connected(_)` message
                 },
                 FromWorker::ProcessOutput(id, data) => {
                     let msg = AGN::Output::unpack(&data);
@@ -386,11 +397,17 @@ pub trait Agent: Sized + 'static {
     /// Creates an instance of an agent.
     fn create(link: AgentLink<Self>) -> Self;
 
-    /// This metthod called on every update message.
+    /// This method called on every update message.
     fn update(&mut self, msg: Self::Message);
 
-    /// This metthod called on every incoming message.
+    /// This method called on when a new bridge created.
+    fn connected(&mut self, _id: HandlerId) { }
+
+    /// This method called on every incoming message.
     fn handle(&mut self, msg: Self::Input, id: HandlerId);
+
+    /// This method called on when a new bridge destroyed.
+    fn disconnected(&mut self, _id: HandlerId) { }
 
     /// Creates an instance of an agent.
     fn destroy(&mut self) { }
@@ -590,7 +607,9 @@ impl<AGN> AgentRunnable<AGN> {
 enum AgentUpdate<AGN: Agent> {
     Create(AgentLink<AGN>),
     Message(AGN::Message),
+    Connected(HandlerId),
     Input(AGN::Input, HandlerId),
+    Disconnected(HandlerId),
     Destroy,
 }
 
@@ -618,10 +637,20 @@ where
                     .expect("agent was not created to process messages")
                     .update(msg);
             }
+            AgentUpdate::Connected(id) => {
+                this.agent.as_mut()
+                    .expect("agent was not created to send a connected message")
+                    .connected(id);
+            }
             AgentUpdate::Input(inp, id) => {
                 this.agent.as_mut()
                     .expect("agent was not created to process inputs")
                     .handle(inp, id);
+            }
+            AgentUpdate::Disconnected(id) => {
+                this.agent.as_mut()
+                    .expect("agent was not created to send a disconnected message")
+                    .disconnected(id);
             }
             AgentUpdate::Destroy => {
                 let mut agent = this.agent.take()
