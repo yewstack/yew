@@ -5,14 +5,14 @@ extern crate serde_derive;
 #[macro_use]
 extern crate yew;
 
-pub mod worker;
+pub mod native_worker;
 pub mod job;
 pub mod context;
 
 use yew::prelude::*;
 
 pub struct Model {
-    worker: Box<Bridge<worker::Worker>>,
+    worker: Box<Bridge<native_worker::Worker>>,
     job: Box<Bridge<job::Worker>>,
     context: Box<Bridge<context::Worker>>,
     context_2: Box<Bridge<context::Worker>>,
@@ -31,7 +31,7 @@ impl Component for Model {
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.send_back(|_| Msg::DataReceived);
-        let worker = worker::Worker::bridge(callback);
+        let worker = native_worker::Worker::bridge(callback);
 
         let callback = link.send_back(|_| Msg::DataReceived);
         let job = job::Worker::bridge(callback);
@@ -48,7 +48,7 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::SendToWorker => {
-                self.worker.send(worker::Request::GetDataFromServer);
+                self.worker.send(native_worker::Request::GetDataFromServer);
             }
             Msg::SendToJob => {
                 self.job.send(job::Request::GetDataFromServer);

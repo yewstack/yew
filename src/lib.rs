@@ -91,18 +91,11 @@ type Shared<T> = Rc<RefCell<T>>;
 struct Hidden;
 
 /// Initializes yew framework. It should be called first.
-pub fn initialize() -> agent::Ambit {
+pub fn initialize() {
     stdweb::initialize();
-    agent::detect_ambit()
 }
 
 /// Starts event loop.
 pub fn run_loop() {
-    stdweb::event_loop();
-}
-
-/// Starts event loop.
-pub fn run_agent() {
-    agent::run_agent();
     stdweb::event_loop();
 }
