@@ -2,45 +2,43 @@
 
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::any::TypeId;
-use std::collections::HashMap;
+use std::marker::PhantomData;
 use serde::{Serialize, Deserialize};
 use bincode;
 use anymap::{AnyMap, Entry};
 use slab::Slab;
 use stdweb::Value;
-use stdweb::unstable::TryInto;
 use scheduler::{Runnable, scheduler};
 use callback::Callback;
 use Shared;
 
-type Pair = (Box<Fn()>, Box<Fn(HandlerId, Vec<u8>)>);
-
-thread_local! {
-    pub(crate) static AGENTS: RefCell<HashMap<TypeId, Pair>> =
-        RefCell::new(HashMap::new());
+#[derive(Serialize, Deserialize)]
+enum ToWorker<T> {
+    Connected(HandlerId),
+    ProcessInput(HandlerId, T),
+    Disconnected(HandlerId),
+    Destroy,
 }
 
-/// WARNING! This thing depends on implementation of `TypeId` of Rust.
-type RawTypeId = u64;
-
-#[derive(Serialize, Deserialize, Debug)]
-enum ToWorker {
-    SelectType(RawTypeId),
-    ProcessInput(usize, Vec<u8>),
+impl<T> Transferable for ToWorker<T>
+where
+    T: Serialize + for <'de> Deserialize<'de>,
+{
 }
 
-impl Transferable for ToWorker { }
-
-#[derive(Serialize, Deserialize, Debug)]
-enum FromWorker {
+#[derive(Serialize, Deserialize)]
+enum FromWorker<T> {
     /// Worker sends this message when `wasm` bundle has loaded.
     WorkerLoaded,
-    TypeDetected,
-    ProcessOutput(usize, Vec<u8>),
+    ProcessOutput(HandlerId, T),
 }
 
-impl Transferable for FromWorker { }
+impl<T> Transferable for FromWorker<T>
+where
+    T: Serialize + for <'de> Deserialize<'de>,
+{
+}
+
 
 /// Represents a message which you could send to an agent.
 pub trait Transferable
@@ -67,9 +65,20 @@ impl<T: Transferable> Packed for T {
 }
 
 /// Id of responses handler.
+#[derive(Serialize, Deserialize, Clone, Copy)]
 pub struct HandlerId(usize);
 
-type HandlersPool<T> = Rc<RefCell<Slab<Callback<T>>>>;
+impl From<usize> for HandlerId {
+    fn from(id: usize) -> Self {
+        HandlerId(id)
+    }
+}
+
+impl HandlerId {
+    fn raw_id(&self) -> usize {
+        self.0
+    }
+}
 
 /// This traits allow to get addres or register worker.
 pub trait Bridged: Agent + Sized + 'static {
@@ -89,27 +98,45 @@ where
     T: Agent<Reach=Public>,
 {
     fn register() {
-        // Register function which puts every incoming message to a scheduler.
-        let scope_base: AgentScope<T> = AgentScope::new();
-        let scope = scope_base.clone();
-        let creator = move || {
-            let responder = WorkerResponder { };
-            let link = AgentLink::connect(&scope, responder);
-            let upd = AgentUpdate::Create(link);
-            scope.send(upd);
+        let scope = AgentScope::<T>::new();
+        let responder = WorkerResponder { };
+        let link = AgentLink::connect(&scope, responder);
+        let upd = AgentUpdate::Create(link);
+        scope.send(upd);
+        let handler = move |data: Vec<u8>| {
+            let msg = ToWorker::<T::Input>::unpack(&data);
+            match msg {
+                ToWorker::Connected(id) => {
+                    let upd = AgentUpdate::Connected(id);
+                    scope.send(upd);
+                },
+                ToWorker::ProcessInput(id, value) => {
+                    let upd = AgentUpdate::Input(value, id);
+                    scope.send(upd);
+                },
+                ToWorker::Disconnected(id) => {
+                    let upd = AgentUpdate::Disconnected(id);
+                    scope.send(upd);
+                },
+                ToWorker::Destroy => {
+                    let upd = AgentUpdate::Destroy;
+                    scope.send(upd);
+                    js! {
+                        // Terminates web worker
+                        self.close();
+                    };
+                },
+            }
         };
-        let scope = scope_base.clone();
-        let routine = move |id: HandlerId, data: Vec<u8>| {
-            let msg: T::Input = bincode::deserialize(&data)
-                .expect("can't deserialize an input message");
-            let upd = AgentUpdate::Input(msg, id);
-            scope.send(upd);
+        let loaded: FromWorker<T::Output> = FromWorker::WorkerLoaded;
+        let loaded = loaded.pack();
+        js! {
+            var handler = @{handler};
+            self.onmessage = function(event) {
+                handler(event.data);
+            };
+            self.postMessage(@{loaded});
         };
-        AGENTS.with(move |agents| {
-            let type_id = TypeId::of::<Self>();
-            let pair: Pair = (Box::new(creator), Box::new(routine));
-            agents.borrow_mut().insert(type_id, pair);
-        });
     }
 }
 
@@ -139,17 +166,17 @@ pub trait Bridge<AGN: Agent> {
 
 // <<< SAME THREAD >>>
 
-struct LaunchedAgent<AGN: Agent> {
+struct LocalAgent<AGN: Agent> {
     scope: AgentScope<AGN>,
     slab: Shared<Slab<Callback<AGN::Output>>>,
 }
 
 type Last = bool;
 
-impl<AGN: Agent> LaunchedAgent<AGN> {
+impl<AGN: Agent> LocalAgent<AGN> {
     pub fn new(scope: &AgentScope<AGN>) -> Self {
         let slab = Rc::new(RefCell::new(Slab::new()));
-        LaunchedAgent {
+        LocalAgent {
             scope: scope.clone(),
             slab,
         }
@@ -163,19 +190,19 @@ impl<AGN: Agent> LaunchedAgent<AGN> {
         let id = self.slab.borrow_mut().insert(callback);
         ContextBridge {
             scope: self.scope.clone(),
-            id,
+            id: id.into(),
         }
     }
 
     fn remove_bridge(&mut self, bridge: &ContextBridge<AGN>) -> Last {
         let mut slab = self.slab.borrow_mut();
-        let _ = slab.remove(bridge.id);
+        let _ = slab.remove(bridge.id.raw_id());
         slab.is_empty()
     }
 }
 
 thread_local! {
-    static CONTEXT_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());
+    static LOCAL_AGENTS_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());
 }
 
 /// Create a single instance in the current thread.
@@ -184,15 +211,15 @@ pub struct Context;
 impl Discoverer for Context {
     fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
         let mut scope_to_init = None;
-        let bridge = CONTEXT_POOL.with(|pool| {
-            match pool.borrow_mut().entry::<LaunchedAgent<AGN>>() {
+        let bridge = LOCAL_AGENTS_POOL.with(|pool| {
+            match pool.borrow_mut().entry::<LocalAgent<AGN>>() {
                 Entry::Occupied(mut entry) => {
                     // TODO Insert callback!
                     entry.get_mut().create_bridge(callback)
                 },
                 Entry::Vacant(entry) => {
                     let scope = AgentScope::<AGN>::new();
-                    let launched = LaunchedAgent::new(&scope);
+                    let launched = LocalAgent::new(&scope);
                     let responder = SlabResponder { slab: launched.slab() };
                     scope_to_init = Some((scope.clone(), responder));
                     entry.insert(launched).create_bridge(callback)
@@ -204,7 +231,7 @@ impl Discoverer for Context {
             let upd = AgentUpdate::Create(agent_link);
             scope.send(upd);
         }
-        let upd = AgentUpdate::Connected(HandlerId(bridge.id));
+        let upd = AgentUpdate::Connected(bridge.id.into());
         bridge.scope.send(upd);
         Box::new(bridge)
     }
@@ -215,44 +242,44 @@ struct SlabResponder<AGN: Agent> {
 }
 
 impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
-    fn response(&self, id: usize, output: AGN::Output) {
-        let callback = self.slab.borrow().get(id).cloned();
+    fn response(&self, id: HandlerId, output: AGN::Output) {
+        let callback = self.slab.borrow().get(id.raw_id()).cloned();
         if let Some(callback) = callback {
             callback.emit(output);
         } else {
-            warn!("Id of handler not exists <slab>: {}", id);
+            warn!("Id of handler not exists <slab>: {}", id.raw_id());
         }
     }
 }
 
 struct ContextBridge<AGN: Agent> {
     scope: AgentScope<AGN>,
-    id: usize,
+    id: HandlerId,
 }
 
 impl<AGN: Agent> Bridge<AGN> for ContextBridge<AGN> {
     fn send(&self, msg: AGN::Input) {
-        let upd = AgentUpdate::Input(msg, HandlerId(self.id));
+        let upd = AgentUpdate::Input(msg, self.id);
         self.scope.send(upd);
     }
 }
 
 impl<AGN: Agent> Drop for ContextBridge<AGN> {
     fn drop(&mut self) {
-        CONTEXT_POOL.with(|pool| {
+        LOCAL_AGENTS_POOL.with(|pool| {
             let terminate_worker = {
-                if let Some(launched) = pool.borrow_mut().get_mut::<LaunchedAgent<AGN>>() {
+                if let Some(launched) = pool.borrow_mut().get_mut::<LocalAgent<AGN>>() {
                     launched.remove_bridge(self)
                 } else {
                     false
                 }
             };
-            let upd = AgentUpdate::Connected(HandlerId(self.id));
+            let upd = AgentUpdate::Disconnected(self.id);
             self.scope.send(upd);
             if terminate_worker {
                 let upd = AgentUpdate::Destroy;
                 self.scope.send(upd);
-                pool.borrow_mut().remove::<LaunchedAgent<AGN>>();
+                pool.borrow_mut().remove::<LocalAgent<AGN>>();
             }
         });
     }
@@ -268,22 +295,22 @@ impl Discoverer for Job {
         let agent_link = AgentLink::connect(&scope, responder);
         let upd = AgentUpdate::Create(agent_link);
         scope.send(upd);
-        let upd = AgentUpdate::Connected(JOB_SINGLE_ID);
+        let upd = AgentUpdate::Connected(SINGLETON_ID);
         scope.send(upd);
         let bridge = JobBridge { scope };
         Box::new(bridge)
     }
 }
 
-const JOB_SINGLE_ID: HandlerId = HandlerId(0);
+const SINGLETON_ID: HandlerId = HandlerId(0);
 
 struct CallbackResponder<AGN: Agent> {
     callback: Callback<AGN::Output>,
 }
 
 impl<AGN: Agent> Responder<AGN> for CallbackResponder<AGN> {
-    fn response(&self, id: usize, output: AGN::Output) {
-        assert_eq!(id, JOB_SINGLE_ID.0);
+    fn response(&self, id: HandlerId, output: AGN::Output) {
+        assert_eq!(id.raw_id(), SINGLETON_ID.raw_id());
         self.callback.emit(output);
     }
 }
@@ -294,14 +321,14 @@ struct JobBridge<AGN: Agent> {
 
 impl<AGN: Agent> Bridge<AGN> for JobBridge<AGN> {
     fn send(&self, msg: AGN::Input) {
-        let upd = AgentUpdate::Input(msg, JOB_SINGLE_ID);
+        let upd = AgentUpdate::Input(msg, SINGLETON_ID);
         self.scope.send(upd);
     }
 }
 
 impl<AGN: Agent> Drop for JobBridge<AGN> {
     fn drop(&mut self) {
-        let upd = AgentUpdate::Disconnected(JOB_SINGLE_ID);
+        let upd = AgentUpdate::Disconnected(SINGLETON_ID);
         self.scope.send(upd);
         let upd = AgentUpdate::Destroy;
         self.scope.send(upd);
@@ -313,70 +340,198 @@ impl<AGN: Agent> Drop for JobBridge<AGN> {
 /// Create a new instance for every bridge.
 pub struct Private;
 
-impl Discoverer for Private { }
+impl Discoverer for Private {
+    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
+        let handler = move |data: Vec<u8>| {
+            let msg = FromWorker::<AGN::Output>::unpack(&data);
+            match msg {
+                FromWorker::WorkerLoaded => {
+                    // TODO Send `Connected` message
+                },
+                FromWorker::ProcessOutput(id, output) => {
+                    assert_eq!(id.raw_id(), SINGLETON_ID.raw_id());
+                    callback.emit(output);
+                },
+            }
+        };
+        // TODO Need somethig better...
+        let name_of_resource = AGN::name_of_resource();
+        let worker = js! {
+            var worker = new Worker(@{name_of_resource});
+            var handler = @{handler};
+            worker.onmessage = function(event) {
+                handler(event.data);
+            };
+            return worker;
+        };
+        let bridge = PrivateBridge {
+            worker,
+            _agent: PhantomData,
+        };
+        Box::new(bridge)
+    }
+}
+
+/// A connection manager for components interaction with workers.
+pub struct PrivateBridge<T: Agent> {
+    worker: Value,
+    _agent: PhantomData<T>,
+}
+
+impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
+    fn send(&self, msg: AGN::Input) {
+        // TODO Important! Implement.
+        // Use a queue to collect a messages if an instance is not ready
+        // and send them to an agent when it will reported readiness.
+        let msg = ToWorker::ProcessInput(SINGLETON_ID, msg).pack();
+        let worker = &self.worker;
+        js! {
+            var worker = @{worker};
+            var bytes = @{msg};
+            worker.postMessage(bytes);
+        };
+    }
+}
+
+impl<AGN: Agent> Drop for PrivateBridge<AGN> {
+    fn drop(&mut self) {
+        // TODO Send `Destroy` message.
+    }
+}
+
+struct RemoteAgent<AGN: Agent> {
+    worker: Value,
+    slab: Shared<Slab<Callback<AGN::Output>>>,
+}
+
+impl<AGN: Agent> RemoteAgent<AGN> {
+    pub fn new(worker: &Value, slab: Shared<Slab<Callback<AGN::Output>>>) -> Self {
+        RemoteAgent {
+            worker: worker.clone(),
+            slab,
+        }
+    }
+
+    fn create_bridge(&mut self, callback: Callback<AGN::Output>) -> PublicBridge<AGN> {
+        let id = self.slab.borrow_mut().insert(callback);
+        PublicBridge {
+            worker: self.worker.clone(),
+            id: id.into(),
+            _agent: PhantomData,
+        }
+    }
+
+    fn remove_bridge(&mut self, bridge: &PublicBridge<AGN>) -> Last {
+        let mut slab = self.slab.borrow_mut();
+        let _ = slab.remove(bridge.id.raw_id());
+        slab.is_empty()
+    }
+}
+
+thread_local! {
+    static REMOTE_AGENTS_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());
+}
 
 /// Create a single instance in a tab.
 pub struct Public;
 
 impl Discoverer for Public {
     fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
-        let worker_base = js! {
-            // TODO Use relative path. But how?
-            var worker = new Worker("main.js");
-            return worker;
-        };
-        let worker = worker_base.clone();
-        let send_to_app = move |msg: ToWorker| {
-            let bytes = msg.pack();
-            let worker = worker.clone();
-            js! {
-                var worker = @{worker};
-                worker.postMessage(@{bytes});
-            };
-        };
-        let slab: Slab<Callback<AGN::Output>> = Slab::new();
-        let callbacks_base = Rc::new(RefCell::new(slab));
-        let callbacks = callbacks_base.clone();
-        let handshake = move |data: Vec<u8>| {
-            let msg = FromWorker::unpack(&data);
-            match msg {
-                FromWorker::WorkerLoaded => {
-                    let type_id = TypeId::of::<AGN>();
-                    let raw_type_id: RawTypeId = unsafe { ::std::mem::transmute(type_id) };
-                    let msg = ToWorker::SelectType(raw_type_id);
-                    send_to_app(msg);
+        let bridge = REMOTE_AGENTS_POOL.with(|pool| {
+            match pool.borrow_mut().entry::<RemoteAgent<AGN>>() {
+                Entry::Occupied(mut entry) => {
+                    // TODO Insert callback!
+                    entry.get_mut().create_bridge(callback)
                 },
-                FromWorker::TypeDetected => {
-                    info!("Worker handshake finished");
-                    // TODO Send `AgetUpdate::Connected(_)` message
-                },
-                FromWorker::ProcessOutput(id, data) => {
-                    let msg = AGN::Output::unpack(&data);
-                    let callback = callbacks.borrow().get(id).cloned();
-                    if let Some(callback) = callback {
-                        callback.emit(msg);
-                    }
+                Entry::Vacant(entry) => {
+                    let slab_base: Shared<Slab<Callback<AGN::Output>>> =
+                        Rc::new(RefCell::new(Slab::new()));
+                    let slab = slab_base.clone();
+                    let handler = move |data: Vec<u8>| {
+                        let msg = FromWorker::<AGN::Output>::unpack(&data);
+                        match msg {
+                            FromWorker::WorkerLoaded => {
+                                // TODO Use `AtomicBool` lock to check its loaded
+                                // TODO Send `Connected` message
+                            },
+                            FromWorker::ProcessOutput(id, output) => {
+                                let callback = slab.borrow().get(id.raw_id()).cloned();
+                                if let Some(callback) = callback {
+                                    callback.emit(output);
+                                } else {
+                                    warn!("Id of handler for remote worker not exists <slab>: {}", id.raw_id());
+                                }
+                            },
+                        }
+                    };
+                    let name_of_resource = AGN::name_of_resource();
+                    let worker = js! {
+                        var worker = new Worker(@{name_of_resource});
+                        var handler = @{handler};
+                        worker.onmessage = function(event) {
+                            handler(event.data);
+                        };
+                        return worker;
+                    };
+                    let launched = RemoteAgent::new(&worker, slab_base);
+                    entry.insert(launched).create_bridge(callback)
                 },
             }
-        };
-        let worker = worker_base.clone();
-        js! {
-            var worker = @{worker};
-            // TODO Send type id (but on ready event)
-            var handshake = @{handshake};
-            worker.onmessage = function(event) {
-                handshake(event.data);
-            };
-        };
-        let id = callbacks_base.borrow_mut().insert(callback);
-        let bridge = PublicBridge {
-            worker: worker_base,
-            callbacks: callbacks_base,
-            id,
-        };
+        });
         Box::new(bridge)
     }
 }
+
+/// A connection manager for components interaction with workers.
+pub struct PublicBridge<T: Agent> {
+    worker: Value,
+    id: HandlerId,
+    _agent: PhantomData<T>,
+}
+
+impl<AGN: Agent> PublicBridge<AGN> {
+    fn send_to_remote(&self, msg: ToWorker<AGN::Input>) {
+        // TODO Important! Implement.
+        // Use a queue to collect a messages if an instance is not ready
+        // and send them to an agent when it will reported readiness.
+        let msg = msg.pack();
+        let worker = &self.worker;
+        js! {
+            var worker = @{worker};
+            var bytes = @{msg};
+            worker.postMessage(bytes);
+        };
+    }
+}
+
+impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
+    fn send(&self, msg: AGN::Input) {
+        let msg = ToWorker::ProcessInput(self.id, msg);
+        self.send_to_remote(msg);
+    }
+}
+
+impl<AGN: Agent> Drop for PublicBridge<AGN> {
+    fn drop(&mut self) {
+        REMOTE_AGENTS_POOL.with(|pool| {
+            let terminate_worker = {
+                if let Some(launched) = pool.borrow_mut().get_mut::<RemoteAgent<AGN>>() {
+                    launched.remove_bridge(self)
+                } else {
+                    false
+                }
+            };
+            let upd = ToWorker::Disconnected(self.id);
+            self.send_to_remote(upd);
+            if terminate_worker {
+                let upd = ToWorker::Destroy;
+                self.send_to_remote(upd);
+                pool.borrow_mut().remove::<RemoteAgent<AGN>>();
+            }
+        });
+    }
+}
+
 
 /// Create a single instance in a browser.
 pub struct Global;
@@ -412,96 +567,11 @@ pub trait Agent: Sized + 'static {
     /// Creates an instance of an agent.
     fn destroy(&mut self) { }
 
-}
+    /// Represents the name of loading resorce for remote workers which
+    /// have to live in a separate files.
+    fn name_of_resource() -> &'static str { "main.js" }
 
-/// A connection manager for components interaction with workers.
-pub struct PublicBridge<T: Agent> {
-    worker: Value,
-    callbacks: HandlersPool<T::Output>,
-    id: usize,
-}
 
-impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
-    fn send(&self, msg: AGN::Input) {
-        // TODO Important! Implement.
-        // Use a queue to collect a messages if an instance is not ready
-        // and send them to an agent when it will reported readiness.
-        let bytes = bincode::serialize(&msg)
-            .expect("can't serialize message for agent");
-        let msg = ToWorker::ProcessInput(self.id, bytes).pack();
-        let worker = &self.worker;
-        js! {
-            var worker = @{worker};
-            var bytes = @{msg};
-            worker.postMessage(bytes);
-        };
-    }
-}
-
-impl<AGN: Agent> Drop for PublicBridge<AGN> {
-    fn drop(&mut self) {
-        let _ = self.callbacks.borrow_mut().remove(self.id);
-    }
-}
-
-/// This function selects the agent to start.
-pub(crate) fn run_agent() {
-    let sender = |msg: FromWorker| {
-        let data = msg.pack();
-        js! {
-            var data = @{data};
-            self.postMessage(data);
-        };
-    };
-    let mut handler = None;
-    let handshake = move |data: Vec<u8>| {
-        let msg = ToWorker::unpack(&data);
-        match msg {
-            ToWorker::SelectType(raw_type_id) => {
-                let type_id: TypeId = unsafe { ::std::mem::transmute(raw_type_id) };
-                handler = AGENTS.with(move |agents| {
-                    let mut agents = agents.borrow_mut();
-                    let result = agents.remove(&type_id);
-                    agents.clear(); // Drop unnecessary types of handlers
-                    result.map(|(creator, handler)| {
-                        creator();
-                        handler
-                    })
-                });
-            },
-            ToWorker::ProcessInput(id, data) => {
-                let func = handler.as_mut()
-                    .expect("TypeId of agent was not selected.");
-                let handler_id = HandlerId(id);
-                func(handler_id, data);
-            },
-        }
-    };
-    js! {
-        let handshake = @{handshake};
-        self.onmessage = function(event) {
-            handshake(event.data);
-        };
-        // TODO Clean up the allocated memory
-    };
-    sender(FromWorker::WorkerLoaded);
-}
-
-pub(crate) fn detect_ambit() -> Ambit {
-    let res = js! {
-        return !(self.document === undefined);
-    };
-    let is_window = res.try_into().expect("can't check the type of self environment");
-    if is_window { Ambit::Application } else { Ambit::Agent }
-
-}
-
-/// Represents the kind of environment where the instance lives.
-pub enum Ambit {
-    /// `Window` environment
-    Application,
-    /// `Worker` environment
-    Agent,
 }
 
 /// This sctruct holds a reference to a component and to a global scheduler.
@@ -534,15 +604,15 @@ impl<AGN: Agent> AgentScope<AGN> {
 }
 
 trait Responder<AGN: Agent> {
-    fn response(&self, id: usize, output: AGN::Output);
+    fn response(&self, id: HandlerId, output: AGN::Output);
 }
 
 struct WorkerResponder {
 }
 
 impl<AGN: Agent> Responder<AGN> for WorkerResponder {
-    fn response(&self, id: usize, output: AGN::Output) {
-        let msg = FromWorker::ProcessOutput(id, output.pack());
+    fn response(&self, id: HandlerId, output: AGN::Output) {
+        let msg = FromWorker::ProcessOutput(id, output);
         let data = msg.pack();
         js! {
             var data = @{data};
@@ -570,7 +640,7 @@ impl<AGN: Agent> AgentLink<AGN> {
     }
 
     /// Send response to an actor.
-    pub fn response(&self, HandlerId(id): HandlerId, output: AGN::Output) {
+    pub fn response(&self, id: HandlerId, output: AGN::Output) {
         self.responder.response(id, output);
     }
 

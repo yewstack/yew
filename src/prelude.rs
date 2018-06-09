@@ -40,7 +40,6 @@ pub use stdweb::web::event::{
 };
 
 pub use agent::{
-    Ambit,
     Bridge,
     Bridged,
     Threaded,

@@ -65,4 +65,6 @@ impl Agent for Worker {
             }
         }
     }
+
+    fn name_of_resource() -> &'static str { "bin/native_worker.js" }
 }
