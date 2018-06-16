@@ -5,8 +5,8 @@ extern crate yew;
 
 use yew::prelude::*;
 use yew::format::Json;
-use yew::services::dialog::DialogService;
-use yew::services::storage::StorageService;
+use yew::services::{DialogService, StorageService};
+use yew::services::storage::Area;
 
 const KEY: &'static str = "yew.crm.database";
 
@@ -38,6 +38,8 @@ pub enum Scene {
 }
 
 pub struct Model {
+    storage: StorageService,
+    dialog: DialogService,
     database: Database,
     scene: Scene,
 }
@@ -51,26 +53,25 @@ pub enum Msg {
     Clear,
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: AsMut<StorageService> + AsMut<DialogService>,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
-        let storage: &mut StorageService = env.as_mut();
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        let mut storage = StorageService::new(Area::Local);
         let Json(database) = storage.restore(KEY);
         let database = database.unwrap_or_else(|_| Database {
             clients: Vec::new(),
         });
         Model {
+            storage,
+            dialog: DialogService::new(),
             database,
             scene: Scene::ClientsList,
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         let mut new_scene = None;
         match self.scene {
             Scene::ClientsList => {
@@ -100,8 +101,7 @@ where
                         let mut new_client = Client::empty();
                         ::std::mem::swap(client, &mut new_client);
                         self.database.clients.push(new_client);
-                        let storage: &mut StorageService = env.as_mut();
-                        storage.store(KEY, Json(&self.database));
+                        self.storage.store(KEY, Json(&self.database));
                     }
                     Msg::SwitchTo(Scene::ClientsList) => {
                         new_scene = Some(Scene::ClientsList);
@@ -115,13 +115,11 @@ where
                 match msg {
                     Msg::Clear => {
                         let ok = {
-                            let dialog: &mut DialogService = env.as_mut();
-                            dialog.confirm("Do you really want to clear the data?")
+                            self.dialog.confirm("Do you really want to clear the data?")
                         };
                         if ok {
                             self.database.clients.clear();
-                            let storage: &mut StorageService = env.as_mut();
-                            storage.remove(KEY);
+                            self.storage.remove(KEY);
                         }
                     }
                     Msg::SwitchTo(Scene::ClientsList) => {
@@ -140,11 +138,8 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: AsMut<StorageService> + AsMut<DialogService> + 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         match self.scene {
             Scene::ClientsList => html! {
                 <div class="crm",>
@@ -176,11 +171,8 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Client
-where
-    CTX: AsMut<StorageService> + AsMut<DialogService> + 'static,
-{
-    fn view(&self) -> Html<CTX, Model> {
+impl Renderable<Model> for Client {
+    fn view(&self) -> Html<Model> {
         html! {
             <div class="client",>
                 <p>{ format!("First Name: {}", self.first_name) }</p>
@@ -191,10 +183,7 @@ where
 }
 
 impl Client {
-    fn view_first_name_input<CTX>(&self) -> Html<CTX, Model>
-    where
-        CTX: AsMut<StorageService> + AsMut<DialogService> + 'static,
-    {
+    fn view_first_name_input(&self) -> Html<Model> {
         html! {
             <input class=("new-client", "firstname"),
                    placeholder="First name",
@@ -204,10 +193,7 @@ impl Client {
         }
     }
 
-    fn view_last_name_input<CTX>(&self) -> Html<CTX, Model>
-    where
-        CTX: AsMut<StorageService> + AsMut<DialogService> + 'static,
-    {
+    fn view_last_name_input(&self) -> Html<Model> {
         html! {
             <input class=("new-client", "lastname"),
                    placeholder="Last name",

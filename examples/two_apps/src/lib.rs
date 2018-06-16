@@ -5,68 +5,48 @@ extern crate yew;
 
 use yew::html::*;
 
-#[derive(Default)]
-pub struct Context {
-}
-
-impl Context {
-    pub fn new() -> Self {
-        Context {
-        }
-    }
-}
-
-impl AsMut<Context> for Context {
-    fn as_mut(&mut self) -> &mut Context {
-        self
-    }
-}
-
 pub struct Model {
-    activator: Option<Activator<Context, Model>>,
+    scope: Option<Scope<Model>>,
     selector: &'static str,
     title: String,
 }
 
 pub enum Msg {
-    SetActivator(Activator<Context, Model>),
+    SetScope(Scope<Model>),
     SendToOpposite(String),
     SetTitle(String),
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: AsMut<Context>,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         Model {
-            activator: None,
+            scope: None,
             selector: "",
             title: "Nothing".into(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::SetActivator(activator) => {
-                self.activator = Some(activator);
+            Msg::SetScope(scope) => {
+                self.scope = Some(scope);
             }
             Msg::SendToOpposite(title) => {
-                self.activator.as_mut().unwrap().send_message(Msg::SetTitle(title));
+                self.scope.as_mut().unwrap().send_message(Msg::SetTitle(title));
             }
             Msg::SetTitle(title) => {
                 match title.as_ref() {
                     "Ping" => {
-                        self.activator.as_mut().unwrap().send_message(Msg::SetTitle("Pong".into()));
+                        self.scope.as_mut().unwrap().send_message(Msg::SetTitle("Pong".into()));
                     }
                     "Pong" => {
-                        self.activator.as_mut().unwrap().send_message(Msg::SetTitle("Pong Done".into()));
+                        self.scope.as_mut().unwrap().send_message(Msg::SetTitle("Pong Done".into()));
                     }
                     "Pong Done" => {
-                        self.activator.as_mut().unwrap().send_message(Msg::SetTitle("Ping Done".into()));
+                        self.scope.as_mut().unwrap().send_message(Msg::SetTitle("Ping Done".into()));
                     }
                     _ => {
                     }
@@ -78,11 +58,8 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: AsMut<Context> + 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div>
                 <h3>{ format!("{} received <{}>", self.selector, self.title) }</h3>

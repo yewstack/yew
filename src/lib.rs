@@ -54,7 +54,12 @@ extern crate failure;
 extern crate log;
 extern crate http;
 extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
+extern crate bincode;
+extern crate anymap;
+extern crate slab;
 #[macro_use]
 extern crate stdweb;
 #[cfg(feature = "toml")]
@@ -76,6 +81,7 @@ pub mod services;
 pub mod virtual_dom;
 pub mod callback;
 pub mod scheduler;
+pub mod agent;
 
 use std::rc::Rc;
 use std::cell::RefCell;

@@ -190,10 +190,10 @@ macro_rules! html {
     }};
 }
 
-type Stack<CTX, COMP> = Vec<VNode<CTX, COMP>>;
+type Stack<COMP> = Vec<VNode<COMP>>;
 
 #[doc(hidden)]
-pub fn unpack<CTX, COMP: Component<CTX>>(mut stack: Stack<CTX, COMP>) -> VNode<CTX, COMP> {
+pub fn unpack<COMP: Component>(mut stack: Stack<COMP>) -> VNode<COMP> {
     if stack.len() != 1 {
         panic!("exactly one element have to be in html!");
     }
@@ -201,7 +201,7 @@ pub fn unpack<CTX, COMP: Component<CTX>>(mut stack: Stack<CTX, COMP>) -> VNode<C
 }
 
 #[doc(hidden)]
-pub fn set_value_or_attribute<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, value: T) {
+pub fn set_value_or_attribute<COMP: Component, T: ToString>(stack: &mut Stack<COMP>, value: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         if vtag.tag().eq_ignore_ascii_case("option") {
             vtag.add_attribute("value", &value)
@@ -214,7 +214,7 @@ pub fn set_value_or_attribute<CTX, COMP: Component<CTX>, T: ToString>(stack: &mu
 }
 
 #[doc(hidden)]
-pub fn set_kind<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, COMP>, value: T) {
+pub fn set_kind<COMP: Component, T: ToString>(stack: &mut Stack<COMP>, value: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.set_kind(&value);
     } else {
@@ -223,7 +223,7 @@ pub fn set_kind<CTX, COMP: Component<CTX>, T: ToString>(stack: &mut Stack<CTX, C
 }
 
 #[doc(hidden)]
-pub fn set_checked<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, value: bool) {
+pub fn set_checked<COMP: Component>(stack: &mut Stack<COMP>, value: bool) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.set_checked(value);
     } else {
@@ -232,8 +232,8 @@ pub fn set_checked<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, valu
 }
 
 #[doc(hidden)]
-pub fn add_attribute<CTX, COMP: Component<CTX>, T: ToString>(
-    stack: &mut Stack<CTX, COMP>,
+pub fn add_attribute<COMP: Component, T: ToString>(
+    stack: &mut Stack<COMP>,
     name: &str,
     value: T,
 ) {
@@ -245,7 +245,7 @@ pub fn add_attribute<CTX, COMP: Component<CTX>, T: ToString>(
 }
 
 #[doc(hidden)]
-pub fn attach_class<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, class: &'static str) {
+pub fn attach_class<COMP: Component>(stack: &mut Stack<COMP>, class: &'static str) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.add_classes(class);
     } else {
@@ -254,9 +254,9 @@ pub fn attach_class<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, cla
 }
 
 #[doc(hidden)]
-pub fn attach_listener<CTX, COMP: Component<CTX>>(
-    stack: &mut Stack<CTX, COMP>,
-    listener: Box<Listener<CTX, COMP>>,
+pub fn attach_listener<COMP: Component>(
+    stack: &mut Stack<COMP>,
+    listener: Box<Listener<COMP>>,
 ) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.add_listener(listener);
@@ -266,7 +266,7 @@ pub fn attach_listener<CTX, COMP: Component<CTX>>(
 }
 
 #[doc(hidden)]
-pub fn add_child<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, child: VNode<CTX, COMP>) {
+pub fn add_child<COMP: Component>(stack: &mut Stack<COMP>, child: VNode<COMP>) {
     match stack.last_mut() {
         Some(&mut VNode::VTag(ref mut vtag)) => {
             vtag.add_child(child);
@@ -281,8 +281,8 @@ pub fn add_child<CTX, COMP: Component<CTX>>(stack: &mut Stack<CTX, COMP>, child:
 }
 
 #[doc(hidden)]
-pub fn child_to_parent<CTX, COMP: Component<CTX>>(
-    stack: &mut Stack<CTX, COMP>,
+pub fn child_to_parent<COMP: Component>(
+    stack: &mut Stack<COMP>,
     endtag: Option<&'static str>,
 ) {
     if let Some(mut node) = stack.pop() {

@@ -12,17 +12,17 @@ pub enum Msg {
     Clicked,
 }
 
-impl<CTX> Component<CTX> for Model {
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         Model {
             value: "".into(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::GotInput(new_value) => {
                 self.value = new_value;
@@ -35,11 +35,8 @@ impl<CTX> Component<CTX> for Model {
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div>
                 <div>

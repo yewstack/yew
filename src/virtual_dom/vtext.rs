@@ -4,35 +4,32 @@ use std::cmp::PartialEq;
 use std::fmt;
 use std::marker::PhantomData;
 use stdweb::web::{document, INode, Node, TextNode};
-use html::{Component, Activator};
+use html::{Component, Scope};
 use super::{Reform, VDiff, VNode};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// represenation.
-pub struct VText<CTX, COMP: Component<CTX>> {
+pub struct VText<COMP: Component> {
     /// Contains a text of the node.
     pub text: String,
     /// A reference to the `TextNode`.
     pub reference: Option<TextNode>,
-    _ctx: PhantomData<CTX>,
     _comp: PhantomData<COMP>,
 }
 
-impl<CTX: 'static, COMP: Component<CTX>> VText<CTX, COMP> {
+impl<COMP: Component> VText<COMP> {
     /// Creates new virtual text node with a content.
     pub fn new(text: String) -> Self {
         VText {
             text,
             reference: None,
-            _ctx: PhantomData,
             _comp: PhantomData,
         }
     }
 }
 
-impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
-    type Context = CTX;
+impl<COMP: Component> VDiff for VText<COMP> {
     type Component = COMP;
 
     /// Remove VTag from parent.
@@ -54,8 +51,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
         &mut self,
         parent: &Node,
         _: Option<&Node>,
-        opposite: Option<VNode<Self::Context, Self::Component>>,
-        _: &Activator<Self::Context, Self::Component>,
+        opposite: Option<VNode<Self::Component>>,
+        _: &Scope<Self::Component>,
     ) -> Option<Node> {
         assert!(self.reference.is_none(), "reference is ignored so must not be set");
         let reform = {
@@ -95,14 +92,14 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VText<CTX, COMP> {
     }
 }
 
-impl<CTX, COMP: Component<CTX>> fmt::Debug for VText<CTX, COMP> {
+impl<COMP: Component> fmt::Debug for VText<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "VText {{ text: {} }}", self.text)
     }
 }
 
-impl<CTX, COMP: Component<CTX>> PartialEq for VText<CTX, COMP> {
-    fn eq(&self, other: &VText<CTX, COMP>) -> bool {
+impl<COMP: Component> PartialEq for VText<COMP> {
+    fn eq(&self, other: &VText<COMP>) -> bool {
         self.text == other.text
     }
 }

@@ -11,17 +11,17 @@ pub enum Msg {
     UpdateName(String),
 }
 
-impl<CTX> Component<CTX> for Model {
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         Model {
             name: "Reversed".to_owned(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::UpdateName(new_name) => {
                 self.name = new_name;
@@ -31,11 +31,8 @@ impl<CTX> Component<CTX> for Model {
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div>
                 <input value=&self.name, oninput=|e| Msg::UpdateName(e.value), />

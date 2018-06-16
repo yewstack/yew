@@ -14,18 +14,18 @@ pub enum Msg {
     Select(u32, u32),
 }
 
-impl<CTX> Component<CTX> for Model {
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: (), _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: (), _: ComponentLink<Self>) -> Self {
         Model {
             selected: None
         }
     }
 
     // Some details omitted. Explore the examples to get more.
-    fn update(&mut self, msg: Self::Message, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Select(x, y) => {
                 self.selected = Some((x, y));
@@ -42,10 +42,7 @@ fn square_class(this: (u32, u32), selected: Option<(u32, u32)>) -> &'static str 
     }
 }
 
-fn view_square<CTX>(selected: Option<(u32, u32)>, row: u32, column: u32) -> Html<CTX, Model>
-where
-    CTX: 'static,
-{
+fn view_square(selected: Option<(u32, u32)>, row: u32, column: u32) -> Html<Model> {
     html! {
         <td
             class=square_class((column, row), selected),
@@ -55,10 +52,7 @@ where
     }
 }
 
-fn view_row<CTX>(selected: Option<(u32, u32)>, row: u32) -> Html<CTX, Model>
-where
-    CTX: 'static,
-{
+fn view_row(selected: Option<(u32, u32)>, row: u32) -> Html<Model> {
     html! {
         <tr>
             {for (0..99).map(|column| {
@@ -68,11 +62,8 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <table>
                 {for (0..99).map(|row| {

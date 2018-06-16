@@ -3,15 +3,17 @@ extern crate yew;
 
 use std::time::Duration;
 use yew::prelude::*;
-use yew::services::Task;
-use yew::services::timeout::TimeoutService;
-use yew::services::interval::{IntervalService, IntervalTask};
-use yew::services::console::ConsoleService;
+use yew::services::{ConsoleService, IntervalService, TimeoutService, Task};
 
 pub struct Model {
+    timeout: TimeoutService,
+    interval: IntervalService,
+    console: ConsoleService,
+    callback_tick: Callback<()>,
+    callback_done: Callback<()>,
     job: Option<Box<Task>>,
     messages: Vec<&'static str>,
-    _standalone: IntervalTask,
+    _standalone: Box<Task>,
 }
 
 pub enum Msg {
@@ -22,89 +24,79 @@ pub enum Msg {
     Tick,
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: AsMut<IntervalService> + AsMut<TimeoutService> + AsMut<ConsoleService> + 'static,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         // This callback doesn't send any message to a scope
         let callback = |_| {
             println!("Example of a standalone callback.");
         };
-        let interval: &mut IntervalService = env.as_mut();
+        let mut interval = IntervalService::new();
         let handle = interval.spawn(Duration::from_secs(10), callback.into());
 
         Model {
+            timeout: TimeoutService::new(),
+            interval,
+            console: ConsoleService::new(),
+            callback_tick: link.send_back(|_| Msg::Tick),
+            callback_done: link.send_back(|_| Msg::Done),
             job: None,
             messages: Vec::new(),
-            _standalone: handle,
+            _standalone: Box::new(handle),
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::StartTimeout => {
                 {
-                    let callback = env.send_back(|_| Msg::Done);
-                    let timeout: &mut TimeoutService = env.as_mut();
-                    let handle = timeout.spawn(Duration::from_secs(3), callback);
+                    let handle = self.timeout.spawn(Duration::from_secs(3), self.callback_done.clone());
                     self.job = Some(Box::new(handle));
                 }
-                let console: &mut ConsoleService = env.as_mut();
                 self.messages.clear();
-                console.clear();
+                self.console.clear();
                 self.messages.push("Timer started!");
-                console.time_named("Timer");
+                self.console.time_named("Timer");
             }
             Msg::StartInterval => {
                 {
-                    let callback = env.send_back(|_| Msg::Tick);
-                    let interval: &mut IntervalService = env.as_mut();
-                    let handle = interval.spawn(Duration::from_secs(1), callback);
+                    let handle = self.interval.spawn(Duration::from_secs(1), self.callback_tick.clone());
                     self.job = Some(Box::new(handle));
                 }
-                let console: &mut ConsoleService = env.as_mut();
                 self.messages.clear();
-                console.clear();
+                self.console.clear();
                 self.messages.push("Interval started!");
-                console.log("Interval started!");
+                self.console.log("Interval started!");
             }
             Msg::Cancel => {
                 if let Some(mut task) = self.job.take() {
                     task.cancel();
                 }
                 self.messages.push("Canceled!");
-                let console: &mut ConsoleService = env.as_mut();
-                console.warn("Canceled!");
-                console.assert(self.job.is_none(), "Job still exists!");
+                self.console.warn("Canceled!");
+                self.console.assert(self.job.is_none(), "Job still exists!");
             }
             Msg::Done => {
                 self.messages.push("Done!");
-                let console: &mut ConsoleService = env.as_mut();
-                console.group();
-                console.info("Done!");
-                console.time_named_end("Timer");
-                console.group_end();
+                self.console.group();
+                self.console.info("Done!");
+                self.console.time_named_end("Timer");
+                self.console.group_end();
                 self.job = None;
             }
             Msg::Tick => {
                 self.messages.push("Tick...");
-                let console: &mut ConsoleService = env.as_mut();
-                console.count_named("Tick");
+                self.console.count_named("Tick");
             }
         }
         true
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: AsMut<IntervalService> + AsMut<TimeoutService> + AsMut<ConsoleService> + 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         let view_message = |message| {
             html! { <p>{ message }</p> }
         };

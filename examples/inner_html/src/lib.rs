@@ -4,7 +4,6 @@ extern crate stdweb;
 extern crate yew;
 
 use yew::prelude::*;
-use yew::services::console::ConsoleService;
 
 use stdweb::web::Node;
 use stdweb::unstable::TryFrom;
@@ -15,44 +14,19 @@ pub struct Model {
 }
 
 pub enum Msg {
-    Increment,
-    Decrement,
-    None,
-    Bulk(Vec<Msg>),
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: AsMut<ConsoleService>,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         Model {
             value: 0,
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
-        match msg {
-            Msg::Increment => {
-                self.value = self.value + 1;
-                env.as_mut().log("plus one");
-            }
-            Msg::Decrement => {
-                self.value = self.value - 1;
-                env.as_mut().log("minus one");
-            }
-            Msg::Bulk(list) => for msg in list {
-                self.update(msg, env);
-                env.as_mut().log("Bulk action");
-            },
-            Msg::None => {
-                env.as_mut().log("No action");
-                return false;
-            }
-        }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
         true
     }
 }
@@ -66,12 +40,8 @@ const SVG: &str = r#"
 </svg>
 "#;
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: AsMut<ConsoleService> + 'static,
-
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         let js_svg = js! {
             var div = document.createElement("div");
             div.innerHTML = @{SVG.to_string()};

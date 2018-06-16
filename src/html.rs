@@ -3,21 +3,20 @@
 //! Also this module contains declaration of `Component` trait which used
 //! to create own UI-components.
 
-use std::cell::RefCell;
-use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
+use std::cell::RefCell;
 use stdweb::web::{Element, EventListenerHandle, INode, Node};
 use stdweb::web::html_element::SelectElement;
 use virtual_dom::{Listener, VDiff, VNode};
 use callback::Callback;
-use scheduler::{Scheduler, Runnable};
+use scheduler::{Runnable, scheduler};
 use Shared;
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
 
 /// An interface of a UI-component. Uses `self` as a model.
-pub trait Component<CTX>: Sized + 'static {
+pub trait Component: Sized + 'static {
     /// Control message type which `update` loop get.
     type Message: 'static;
     /// Properties type of component implementation.
@@ -26,28 +25,28 @@ pub trait Component<CTX>: Sized + 'static {
     /// with unknown type.
     type Properties: Clone + PartialEq + Default;
     /// Initialization routine which could use a context.
-    fn create(props: Self::Properties, context: &mut Env<CTX, Self>) -> Self;
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
-    fn update(&mut self, msg: Self::Message, context: &mut Env<CTX, Self>) -> ShouldRender;
+    fn update(&mut self, msg: Self::Message) -> ShouldRender;
     /// This method called when properties changes, and once when component created.
-    fn change(&mut self, _: Self::Properties, _context: &mut Env<CTX, Self>) -> ShouldRender {
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
         unimplemented!("you should implement `change` method for a component with properties")
     }
     /// Called for finalization on the final point of the component's lifetime.
-    fn destroy(&mut self, _context: &mut Env<CTX, Self>) { }
+    fn destroy(&mut self) { } // TODO Replace with `Drop`
 }
 
 /// Should be rendered relative to context and component environment.
-pub trait Renderable<CTX, COMP: Component<CTX>> {
+pub trait Renderable<COMP: Component> {
     /// Called by rendering loop.
-    fn view(&self) -> Html<CTX, COMP>;
+    fn view(&self) -> Html<COMP>;
 }
 
 /// Update message for a `Components` instance. Used by scope sender.
-pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
+pub(crate) enum ComponentUpdate< COMP: Component> {
     /// Creating an instance of the component
-    Create,
+    Create(ComponentLink<COMP>),
     /// Wraps messages for a component.
     Message(COMP::Message),
     /// Wraps properties for a component.
@@ -56,41 +55,31 @@ pub(crate) enum ComponentUpdate<CTX, COMP: Component<CTX>> {
     Destroy,
 }
 
-/// A reference to environment of a component (scope) which contains
-/// shared reference to a context and a sender to a scope's loop.
-pub struct Env<'a, CTX: 'a, COMP: Component<CTX>> {
-    context: &'a mut CTX,
-    activator: &'a mut Scope<CTX, COMP>,
+/// Link to component's scope for creating callbacks.
+pub struct ComponentLink<COMP: Component> {
+    scope: Scope<COMP>,
 }
 
-impl<'a, CTX: 'a, COMP: Component<CTX>> Deref for Env<'a, CTX, COMP> {
-     type Target = CTX;
-
-     fn deref(&self) -> &CTX {
-         &self.context
-     }
- }
-
-impl<'a, CTX: 'a, COMP: Component<CTX>> DerefMut for Env<'a, CTX, COMP> {
-    fn deref_mut(&mut self) -> &mut CTX {
-        &mut self.context
-    }
-}
-
-impl<'a, CTX, COMP> Env<'a, CTX, COMP>
+impl<COMP> ComponentLink<COMP>
 where
-    CTX: 'static,
-    COMP: Component<CTX> + Renderable<CTX, COMP>,
+    COMP: Component + Renderable<COMP>,
 {
+    /// Create link for a scope.
+    fn connect(scope: &Scope<COMP>) -> Self {
+        ComponentLink {
+            scope: scope.clone(),
+        }
+    }
+
     /// This method sends messages back to the component's loop.
-    pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
+    pub fn send_back<F, IN>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> COMP::Message + 'static,
     {
-        let activator = self.activator.clone();
+        let scope = self.scope.clone();
         let closure = move |input| {
             let output = function(input);
-            activator.clone().send_message(output);
+            scope.clone().send_message(output);
         };
         closure.into()
     }
@@ -98,37 +87,30 @@ where
 
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
-pub struct Scope<CTX, COMP: Component<CTX>> {
-    shared_component: Shared<Option<ScopeRunnable<CTX, COMP>>>,
-    scheduler: Scheduler<CTX>,
+pub struct Scope<COMP: Component> {
+    shared_component: Shared<Option<ComponentRunnable<COMP>>>,
 }
 
-/// Holds a reference to a scope, could put a message into the queue
-/// of the scope and activate processing (try borrow and call routine).
-pub type Activator<CTX, COMP> = Scope<CTX, COMP>; // TODO Should be removed
-
-impl<CTX, COMP: Component<CTX>> Clone for Scope<CTX, COMP> {
+impl<COMP: Component> Clone for Scope<COMP> {
     fn clone(&self) -> Self {
         Scope {
             shared_component: self.shared_component.clone(),
-            scheduler: self.scheduler.clone(),
         }
     }
 }
 
-impl<CTX, COMP> Scope<CTX, COMP>
+impl<COMP> Scope<COMP>
 where
-    CTX: 'static,
-    COMP: Component<CTX> + Renderable<CTX, COMP>,
+    COMP: Component + Renderable<COMP>,
 {
     /// Send the message and schedule an update.
-    pub(crate) fn send(&mut self, update: ComponentUpdate<CTX, COMP>) {
-        let envelope = Envelope {
+    pub(crate) fn send(&mut self, update: ComponentUpdate<COMP>) {
+        let envelope = ComponentEnvelope {
             shared_component: self.shared_component.clone(),
             message: Some(update),
         };
-        let runnable: Box<Runnable<CTX>> = Box::new(envelope);
-        self.scheduler.put_and_try_run(runnable);
+        let runnable: Box<Runnable> = Box::new(envelope);
+        scheduler().put_and_try_run(runnable);
     }
 
     /// Send message to a component.
@@ -138,43 +120,28 @@ where
     }
 }
 
-impl<CTX, COMP> Scope<CTX, COMP>
-where
-    COMP: Component<CTX>,
-{
-    /// Return an instance of a scheduler with a same pool of the app.
-    pub fn scheduler(&self) -> Scheduler<CTX> {
-        self.scheduler.clone()
-    }
-}
-
 /// Holder for the element.
 pub type NodeCell = Rc<RefCell<Option<Node>>>;
 
-impl<CTX, COMP> Scope<CTX, COMP>
+impl<COMP> Scope<COMP>
 where
-    CTX: 'static,
-    COMP: Component<CTX> + Renderable<CTX, COMP>,
+    COMP: Component + Renderable<COMP>,
 {
-    pub(crate) fn new(scheduler: Scheduler<CTX>) -> Self {
+    pub(crate) fn new() -> Self {
         let shared_component = Rc::new(RefCell::new(None));
-        Scope { shared_component, scheduler }
-    }
-
-    pub(crate) fn activator(&self) -> Scope<CTX, COMP> {
-        self.clone()
+        Scope { shared_component }
     }
 
     // TODO Consider to use &Node instead of Element as parent
     /// Mounts elements in place of previous node (ancestor).
-    pub fn mount_in_place(
+    pub(crate) fn mount_in_place(
         self,
         element: Element,
-        ancestor: Option<VNode<CTX, COMP>>,
+        ancestor: Option<VNode<COMP>>,
         occupied: Option<NodeCell>,
         init_props: Option<COMP::Properties>,
-    ) -> Scope<CTX, COMP> {
-        let runnable = ScopeRunnable {
+    ) -> Scope<COMP> {
+        let runnable = ComponentRunnable {
             env: self.clone(),
             component: None,
             last_frame: None,
@@ -184,19 +151,20 @@ where
             init_props,
             destroyed: false,
         };
-        let mut activator = self.clone();
-        *activator.shared_component.borrow_mut() = Some(runnable);
-        activator.send(ComponentUpdate::Create);
-        activator
+        let mut scope = self.clone();
+        *scope.shared_component.borrow_mut() = Some(runnable);
+        let link = ComponentLink::connect(&scope);
+        scope.send(ComponentUpdate::Create(link));
+        scope
     }
 }
 
-struct ScopeRunnable<CTX, COMP: Component<CTX>> {
-    env: Scope<CTX, COMP>,
+struct ComponentRunnable<COMP: Component> {
+    env: Scope<COMP>,
     component: Option<COMP>,
-    last_frame: Option<VNode<CTX, COMP>>,
+    last_frame: Option<VNode<COMP>>,
     element: Element,
-    ancestor: Option<VNode<CTX, COMP>>,
+    ancestor: Option<VNode<COMP>>,
     occupied: Option<NodeCell>,
     init_props: Option<COMP::Properties>,
     destroyed: bool,
@@ -204,40 +172,35 @@ struct ScopeRunnable<CTX, COMP: Component<CTX>> {
 
 /// Wraps a component reference and a message to hide it under `Runnable` trait.
 /// It's necessary to schedule a processing of a message.
-struct Envelope<CTX, COMP>
+struct ComponentEnvelope<COMP>
 where
-    COMP: Component<CTX>,
+    COMP: Component,
 {
-    shared_component: Shared<Option<ScopeRunnable<CTX, COMP>>>,
-    message: Option<ComponentUpdate<CTX, COMP>>,
+    shared_component: Shared<Option<ComponentRunnable<COMP>>>,
+    message: Option<ComponentUpdate<COMP>>,
 }
 
-impl<CTX, COMP> Runnable<CTX> for Envelope<CTX, COMP>
+impl<COMP> Runnable for ComponentEnvelope<COMP>
 where
-    CTX: 'static,
-    COMP: Component<CTX> + Renderable<CTX, COMP>,
+    COMP: Component + Renderable<COMP>,
 {
-    fn run<'a>(&mut self, context: &mut CTX) {
-        let mut scope = self.shared_component.borrow_mut();
-        let this = scope.as_mut().expect("shared component not set");
+    fn run(&mut self) {
+        let mut component = self.shared_component.borrow_mut();
+        let this = component.as_mut().expect("shared component not set");
         if this.destroyed {
             return;
         }
         let mut should_update = false;
-        let upd = self.message.take().expect("envelope called twice");
+        let upd = self.message.take().expect("component's envelope called twice");
         // This loop pops one item, because the following
         // updates could try to borrow the same cell
         // Important! Don't use `while let` here, because it
         // won't free the lock.
         let env = this.env.clone();
-        let mut context = Env {
-            context: context,
-            activator: &mut this.env,
-        };
         match upd {
-            ComponentUpdate::Create => {
+            ComponentUpdate::Create(link) => {
                 let props = this.init_props.take().unwrap_or_default();
-                this.component = Some(COMP::create(props, &mut context));
+                this.component = Some(COMP::create(props, link));
                 // No messages at start
                 let current_frame = this.component.as_ref().unwrap().view();
                 this.last_frame = Some(current_frame);
@@ -250,13 +213,18 @@ where
                 }
             }
             ComponentUpdate::Message(msg) => {
-                should_update |= this.component.as_mut().unwrap().update(msg, &mut context);
+                should_update |= this.component.as_mut()
+                    .expect("component was not created to process messages")
+                    .update(msg);
             }
             ComponentUpdate::Properties(props) => {
-                should_update |= this.component.as_mut().unwrap().change(props, &mut context);
+                should_update |= this.component.as_mut()
+                    .expect("component was not created to process properties")
+                    .change(props);
             }
             ComponentUpdate::Destroy => {
-                this.component.as_mut().unwrap().destroy(&mut context);
+                // TODO this.component.take() instead of destroyed
+                this.component.as_mut().unwrap().destroy();
                 this.destroyed = true;
             }
         }
@@ -274,7 +242,7 @@ where
 }
 
 /// A type which expected as a result of `view` function implementation.
-pub type Html<CTX, MSG> = VNode<CTX, MSG>;
+pub type Html<MSG> = VNode<MSG>;
 
 macro_rules! impl_action {
     ($($action:ident($event:ident : $type:ident) -> $ret:ty => $convert:expr)*) => {$(
@@ -301,17 +269,16 @@ macro_rules! impl_action {
                 }
             }
 
-            impl<T, CTX, COMP> Listener<CTX, COMP> for Wrapper<T>
+            impl<T, COMP> Listener<COMP> for Wrapper<T>
             where
                 T: Fn($ret) -> COMP::Message + 'static,
-                CTX: 'static,
-                COMP: Component<CTX> + Renderable<CTX, COMP>,
+                COMP: Component + Renderable<COMP>,
             {
                 fn kind(&self) -> &'static str {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, mut activator: Scope<CTX, COMP>)
+                fn attach(&mut self, element: &Element, mut activator: Scope<COMP>)
                     -> EventListenerHandle {
                     let handler = self.0.take().expect("tried to attach listener twice");
                     let this = element.clone();

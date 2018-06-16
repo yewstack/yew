@@ -8,8 +8,7 @@ extern crate web_logger;
 use std::time::Duration;
 use rand::Rng;
 use yew::prelude::*;
-use yew::services::Task;
-use yew::services::interval::IntervalService;
+use yew::services::{IntervalService, Task};
 
 #[derive(Clone, Copy, PartialEq)]
 enum LifeState {
@@ -22,11 +21,12 @@ struct Cellule {
     life_state: LifeState
 }
 
-pub struct GameOfLife {
+pub struct Model {
+    active: bool,
     cellules: Vec<Cellule>,
     cellules_width: usize,
     cellules_height: usize,
-    job: Option<Box<Task>>,
+    job: Box<Task>,
 }
 
 impl Cellule {
@@ -71,7 +71,7 @@ fn wrap(coord: isize, range: isize) -> usize {
 }
 
 
-impl GameOfLife {
+impl Model {
     pub fn random_mutate(&mut self) {
         for cellule in self.cellules.iter_mut() {
             if rand::thread_rng().gen() {
@@ -147,36 +147,35 @@ pub enum Msg {
     Step,
     Reset,
     Stop,
-    ToggleCellule(usize)
+    ToggleCellule(usize),
+    Tick,
 }
 
-impl<CTX> Component<CTX> for GameOfLife
-where
-    CTX: AsMut<IntervalService> + 'static,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
-        GameOfLife {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let callback = link.send_back(|_| Msg::Tick);
+        let mut interval = IntervalService::new();
+        let handle = interval.spawn(Duration::from_millis(200), callback);
+        Model {
+            active: false,
             cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
             cellules_width: 50,
             cellules_height: 40,
-            job : None
+            job : Box::new(handle),
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Random => {
                 self.random_mutate();
                 info!("Random");
             },
             Msg::Start => {
-                let callback = env.send_back(|_| Msg::Step);
-                let interval: &mut IntervalService = env.as_mut();
-                let handle = interval.spawn(Duration::from_millis(200), callback);
-                self.job = Some(Box::new(handle));
+                self.active = true;
                 info!("Start");
             },
             Msg::Step => {
@@ -187,25 +186,24 @@ where
                 info!("Reset");
             },
             Msg::Stop => {
-                if let Some(mut task) = self.job.take() {
-                    task.cancel();
-                }
-                self.job = None;
+                self.active = false;
                 info!("Stop");
             },
             Msg::ToggleCellule(idx) => {
                 self.toggle_cellule(idx);
-            }
+            },
+            Msg::Tick => {
+                if self.active {
+                    self.step();
+                }
+            },
         }
         true
     }
 }
 
-impl<CTX> Renderable<CTX, GameOfLife> for GameOfLife
-where
-    CTX: AsMut<IntervalService> + 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div>
                 <section class="game-container",>
@@ -237,10 +235,7 @@ where
     }
 }
 
-fn view_cellule<CTX>((idx, cellule): (usize, &Cellule)) -> Html<CTX, GameOfLife>
-where
-    CTX: AsMut<IntervalService> + 'static,
-{
+fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Model> {
     html! {
         <div class=("game-cellule", if cellule.life_state == LifeState::Alive { "cellule-live" } else { "cellule-dead" }),
             onclick=|_| Msg::ToggleCellule(idx),> </div>

@@ -19,6 +19,9 @@ pub enum Format {
 }
 
 pub struct Model {
+    fetch_service: FetchService,
+    ws_service: WebSocketService,
+    link: ComponentLink<Model>,
     fetching: bool,
     data: Option<u32>,
     ft: Option<FetchTask>,
@@ -65,15 +68,15 @@ pub struct WsResponse {
     value: u32,
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: AsMut<FetchService> + AsMut<WebSocketService> + 'static,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
+            fetch_service: FetchService::new(),
+            ws_service: WebSocketService::new(),
+            link,
             fetching: false,
             data: None,
             ft: None,
@@ -81,13 +84,13 @@ where
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::FetchData(format, binary) => {
                 self.fetching = true;
                 let task = match format {
                     Format::Json => {
-                        let callback = env.send_back(move |response: Response<Json<Result<DataFromFile, Error>>>| {
+                        let callback = self.link.send_back(move |response: Response<Json<Result<DataFromFile, Error>>>| {
                             let (meta, Json(data)) = response.into_parts();
                             println!("META: {:?}, {:?}", meta, data);
                             if meta.status.is_success() {
@@ -97,15 +100,14 @@ where
                             }
                         });
                         let request = Request::get("/data.json").body(Nothing).unwrap();
-                        let fetch_service: &mut FetchService = env.as_mut();
                         if binary {
-                            fetch_service.fetch_binary(request, callback)
+                            self.fetch_service.fetch_binary(request, callback)
                         } else {
-                            fetch_service.fetch(request, callback)
+                            self.fetch_service.fetch(request, callback)
                         }
                     },
                     Format::Toml => {
-                        let callback = env.send_back(move |response: Response<Toml<Result<DataFromFile, Error>>>| {
+                        let callback = self.link.send_back(move |response: Response<Toml<Result<DataFromFile, Error>>>| {
                             let (meta, Toml(data)) = response.into_parts();
                             println!("META: {:?}, {:?}", meta, data);
                             if meta.status.is_success() {
@@ -115,11 +117,10 @@ where
                             }
                         });
                         let request = Request::get("/data.toml").body(Nothing).unwrap();
-                        let fetch_service: &mut FetchService = env.as_mut();
                         if binary {
-                            fetch_service.fetch_binary(request, callback)
+                            self.fetch_service.fetch_binary(request, callback)
                         } else {
-                            fetch_service.fetch(request, callback)
+                            self.fetch_service.fetch(request, callback)
                         }
                     },
                 };
@@ -128,15 +129,14 @@ where
             Msg::WsAction(action) => {
                 match action {
                     WsAction::Connect => {
-                        let callback = env.send_back(|Json(data)| Msg::WsReady(data));
-                        let notification = env.send_back(|status| {
+                        let callback = self.link.send_back(|Json(data)| Msg::WsReady(data));
+                        let notification = self.link.send_back(|status| {
                             match status {
                                 WebSocketStatus::Opened => Msg::Ignore,
                                 WebSocketStatus::Closed | WebSocketStatus::Error => WsAction::Lost.into(),
                             }
                         });
-                        let ws_service: &mut WebSocketService = env.as_mut();
-                        let task = ws_service.connect("ws://localhost:9001/", callback, notification);
+                        let task = self.ws_service.connect("ws://localhost:9001/", callback, notification);
                         self.ws = Some(task);
                     }
                     WsAction::SendData(binary) => {
@@ -172,11 +172,8 @@ where
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: AsMut<FetchService> + AsMut<WebSocketService> + 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div>
                 <nav class="menu",>
@@ -200,10 +197,7 @@ where
 }
 
 impl Model {
-    fn view_data<CTX>(&self) -> Html<CTX, Model>
-    where
-        CTX: AsMut<FetchService> + AsMut<WebSocketService> + 'static,
-    {
+    fn view_data(&self) -> Html<Model> {
         if let Some(value) = self.data {
             html! {
                 <p>{ value }</p>

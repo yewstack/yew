@@ -10,7 +10,7 @@ extern crate stdweb;
 
 pub use html::{
     Component,
-    Env,
+    ComponentLink,
     Href,
     Html,
     ChangeData,
@@ -38,3 +38,26 @@ pub use stdweb::web::event::{
     MouseOverEvent,
     MouseUpEvent,
 };
+
+pub use agent::{
+    Bridge,
+    Bridged,
+    Threaded,
+};
+
+/// Prelude module for creating worker.
+pub mod worker {
+    pub use agent::{
+        Agent,
+        AgentLink,
+        Bridge,
+        Bridged,
+        Context,
+        Global,
+        HandlerId,
+        Job,
+        Private,
+        Public,
+        Transferable,
+    };
+}
