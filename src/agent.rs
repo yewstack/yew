@@ -65,7 +65,7 @@ impl<T: Transferable> Packed for T {
 }
 
 /// Id of responses handler.
-#[derive(Serialize, Deserialize, Clone, Copy)]
+#[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct HandlerId(usize);
 
 impl From<usize> for HandlerId {
