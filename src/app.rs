@@ -2,34 +2,27 @@
 //! a component in an isolated scope.
 
 use stdweb::web::{document, Element, INode, IParentNode};
-use html::{Scope, Component, Renderable, Activator};
-use scheduler::Scheduler;
+use html::{Scope, Component, Renderable};
 
 /// An application instance.
-pub struct App<CTX, COMP: Component<CTX>> {
+pub struct App<COMP: Component> {
     /// `Scope` holder
-    scope: Scope<CTX, COMP>,
+    scope: Scope<COMP>,
 }
 
-impl<CTX, COMP> App<CTX, COMP>
+impl<COMP> App<COMP>
 where
-    CTX: 'static,
-    COMP: Component<CTX> + Renderable<CTX, COMP>,
+    COMP: Component + Renderable<COMP>,
 {
     /// Creates a new `App` with a component in a context.
-    pub fn new(context: CTX) -> Self {
-        let scheduler = Scheduler::new(context);
-        App::reuse(&scheduler)
-    }
-
-    /// Creates isolated `App` instance, but reuse the context.
-    pub fn reuse(scheduler: &Scheduler<CTX>) -> Self {
-        let scope = Scope::new(scheduler.clone());
+    pub fn new() -> Self {
+        let scope = Scope::new();
         App { scope }
     }
 
     /// Alias to `mount("body", ...)`.
-    pub fn mount_to_body(self) -> Activator<CTX, COMP> {
+    pub fn mount_to_body(self) -> Scope<COMP> {
+        // Bootstrap the component for `Window` environment only (not for `Worker`)
         let element = document()
             .query_selector("body")
             .expect("can't get body node for rendering")
@@ -41,7 +34,7 @@ where
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount(self, element: Element) -> Activator<CTX, COMP> {
+    pub fn mount(self, element: Element) -> Scope<COMP> {
         clear_element(&element);
         self.scope.mount_in_place(element, None, None, None)
     }

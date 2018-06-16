@@ -3,50 +3,61 @@
 use std::collections::VecDeque;
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::sync::atomic::{AtomicBool, Ordering};
 use Shared;
 
+thread_local! {
+    static SCHEDULER: Rc<Scheduler> =
+        Rc::new(Scheduler::new());
+}
+
+pub(crate) fn scheduler() -> Rc<Scheduler> {
+    SCHEDULER.with(Rc::clone)
+}
+
 /// A routine which could be run.
-pub(crate) trait Runnable<CTX> {
+pub(crate) trait Runnable {
     /// Runs a routine with a context instance.
-    fn run(&mut self, context: &mut CTX);
+    fn run(&mut self);
 }
 
 /// This is a global scheduler suitable to schedule and run any tasks.
-pub struct Scheduler<CTX> {
-    context: Shared<CTX>,
-    sequence: Shared<VecDeque<Box<Runnable<CTX>>>>,
+pub(crate) struct Scheduler {
+    lock: Rc<AtomicBool>,
+    sequence: Shared<VecDeque<Box<Runnable>>>,
 }
 
-impl<CTX> Clone for Scheduler<CTX> {
+impl Clone for Scheduler {
     fn clone(&self) -> Self {
         Scheduler {
-            context: self.context.clone(),
+            lock: self.lock.clone(),
             sequence: self.sequence.clone(),
         }
     }
 }
 
-impl<CTX> Scheduler<CTX> {
+impl Scheduler {
     /// Creates a new scheduler with a context.
-    pub fn new(context: CTX) -> Self {
+    fn new() -> Self {
         let sequence = VecDeque::new();
         Scheduler {
-            context: Rc::new(RefCell::new(context)),
+            lock: Rc::new(AtomicBool::new(false)),
             sequence: Rc::new(RefCell::new(sequence)),
         }
     }
 
-    pub(crate) fn put_and_try_run(&mut self, runnable: Box<Runnable<CTX>>) {
+    pub(crate) fn put_and_try_run(&self, runnable: Box<Runnable>) {
         self.sequence.borrow_mut().push_back(runnable);
-        if let Ok(ref mut context) = self.context.try_borrow_mut() {
+        if self.lock.compare_and_swap(false, true, Ordering::Relaxed) == false {
             loop {
                 let do_next = self.sequence.borrow_mut().pop_front();
                 if let Some(mut runnable) = do_next {
-                    runnable.run(context);
+                    runnable.run();
                 } else {
                     break;
                 }
             }
+            self.lock.store(false, Ordering::Relaxed);
         }
     }
 }

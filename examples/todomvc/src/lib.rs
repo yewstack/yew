@@ -11,12 +11,17 @@ extern crate yew;
 use strum::IntoEnumIterator;
 use yew::prelude::*;
 use yew::format::Json;
-use yew::services::storage::StorageService;
+use yew::services::storage::{StorageService, Area};
 
 const KEY: &'static str = "yew.todomvc.self";
 
-#[derive(Serialize, Deserialize)]
 pub struct Model {
+    storage: StorageService,
+    state: State,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct State {
     entries: Vec<Entry>,
     filter: Filter,
     value: String,
@@ -44,85 +49,81 @@ pub enum Msg {
     Nope,
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: AsMut<StorageService>,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, env: &mut Env<CTX, Self>) -> Self {
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        let mut storage = StorageService::new(Area::Local);
         let entries = {
-            if let Json(Ok(restored_model)) = env.as_mut().restore(KEY) {
+            if let Json(Ok(restored_model)) = storage.restore(KEY) {
                 restored_model
             } else {
                 Vec::new()
             }
         };
-        Model {
+        let state = State {
             entries,
             filter: Filter::All,
             value: "".into(),
             edit_value: "".into(),
-        }
+        };
+        Model { storage, state }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Add => {
                 let entry = Entry {
-                    description: self.value.clone(),
+                    description: self.state.value.clone(),
                     completed: false,
                     editing: false,
                 };
-                self.entries.push(entry);
-                self.value = "".to_string();
+                self.state.entries.push(entry);
+                self.state.value = "".to_string();
             }
             Msg::Edit(idx) => {
-                let edit_value = self.edit_value.clone();
-                self.complete_edit(idx, edit_value);
-                self.edit_value = "".to_string();
+                let edit_value = self.state.edit_value.clone();
+                self.state.complete_edit(idx, edit_value);
+                self.state.edit_value = "".to_string();
             }
             Msg::Update(val) => {
                 println!("Input: {}", val);
-                self.value = val;
+                self.state.value = val;
             }
             Msg::UpdateEdit(val) => {
                 println!("Input: {}", val);
-                self.edit_value = val;
+                self.state.edit_value = val;
             }
             Msg::Remove(idx) => {
-                self.remove(idx);
+                self.state.remove(idx);
             }
             Msg::SetFilter(filter) => {
-                self.filter = filter;
+                self.state.filter = filter;
             }
             Msg::ToggleEdit(idx) => {
-                self.edit_value = self.entries[idx].description.clone();
-                self.toggle_edit(idx);
+                self.state.edit_value = self.state.entries[idx].description.clone();
+                self.state.toggle_edit(idx);
             }
             Msg::ToggleAll => {
-                let status = !self.is_all_completed();
-                self.toggle_all(status);
+                let status = !self.state.is_all_completed();
+                self.state.toggle_all(status);
             }
             Msg::Toggle(idx) => {
-                self.toggle(idx);
+                self.state.toggle(idx);
             }
             Msg::ClearCompleted => {
-                self.clear_completed();
+                self.state.clear_completed();
             }
             Msg::Nope => {}
         }
-        env.as_mut().store(KEY, Json(&self.entries));
+        self.storage.store(KEY, Json(&self.state.entries));
         true
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: AsMut<StorageService> + 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div class="todomvc-wrapper",>
                 <section class="todoapp",>
@@ -131,21 +132,21 @@ where
                         { self.view_input() }
                     </header>
                     <section class="main",>
-                        <input class="toggle-all", type="checkbox", checked=self.is_all_completed(), onclick=|_| Msg::ToggleAll, />
+                        <input class="toggle-all", type="checkbox", checked=self.state.is_all_completed(), onclick=|_| Msg::ToggleAll, />
                         <ul class="todo-list",>
-                            { for self.entries.iter().filter(|e| self.filter.fit(e)).enumerate().map(view_entry) }
+                            { for self.state.entries.iter().filter(|e| self.state.filter.fit(e)).enumerate().map(view_entry) }
                         </ul>
                     </section>
                     <footer class="footer",>
                         <span class="todo-count",>
-                            <strong>{ self.total() }</strong>
+                            <strong>{ self.state.total() }</strong>
                             { " item(s) left" }
                         </span>
                         <ul class="filters",>
                             { for Filter::iter().map(|flt| self.view_filter(flt)) }
                         </ul>
                         <button class="clear-completed", onclick=|_| Msg::ClearCompleted,>
-                            { format!("Clear completed ({})", self.total_completed()) }
+                            { format!("Clear completed ({})", self.state.total_completed()) }
                         </button>
                     </footer>
                 </section>
@@ -160,14 +161,11 @@ where
 }
 
 impl Model {
-    fn view_filter<CTX>(&self, filter: Filter) -> Html<CTX, Model>
-    where
-        CTX: AsMut<StorageService> + 'static,
-    {
+    fn view_filter(&self, filter: Filter) -> Html<Model> {
         let flt = filter.clone();
         html! {
             <li>
-                <a class=if self.filter == flt { "selected" } else { "not-selected" },
+                <a class=if self.state.filter == flt { "selected" } else { "not-selected" },
                    href=&flt,
                    onclick=|_| Msg::SetFilter(flt.clone()),>
                     { filter }
@@ -176,16 +174,13 @@ impl Model {
         }
     }
 
-    fn view_input<CTX>(&self) -> Html<CTX, Model>
-    where
-        CTX: AsMut<StorageService> + 'static,
-    {
+    fn view_input(&self) -> Html<Model> {
         html! {
             // You can use standard Rust comments. One line:
             // <li></li>
             <input class="new-todo",
                    placeholder="What needs to be done?",
-                   value=&self.value,
+                   value=&self.state.value,
                    oninput=|e| Msg::Update(e.value),
                    onkeypress=|e| {
                        if e.key() == "Enter" { Msg::Add } else { Msg::Nope }
@@ -199,10 +194,7 @@ impl Model {
     }
 }
 
-fn view_entry<CTX>((idx, entry): (usize, &Entry)) -> Html<CTX, Model>
-where
-    CTX: AsMut<StorageService> + 'static,
-{
+fn view_entry((idx, entry): (usize, &Entry)) -> Html<Model> {
     html! {
         <li class=if entry.editing == true { "editing" } else { "" },>
             <div class="view",>
@@ -215,10 +207,7 @@ where
     }
 }
 
-fn view_entry_edit_input<CTX>((idx, entry): (usize, &Entry)) -> Html<CTX, Model>
-where
-    CTX: AsMut<StorageService> + 'static,
-{
+fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Model> {
     if entry.editing == true {
         html! {
             <input class="edit",
@@ -264,7 +253,7 @@ impl Filter {
     }
 }
 
-impl Model {
+impl State {
     fn total(&self) -> usize {
         self.entries.len()
     }

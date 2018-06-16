@@ -1,5 +1,4 @@
 use yew::prelude::*;
-use super::Printer;
 
 #[derive(PartialEq, Clone)]
 pub enum Color {
@@ -35,11 +34,11 @@ impl Default for Props {
     }
 }
 
-impl<CTX: Printer + 'static> Component<CTX> for Counter {
+impl Component for Counter {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
+    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
         Counter {
             value: props.initial,
             color: props.color,
@@ -47,28 +46,27 @@ impl<CTX: Printer + 'static> Component<CTX> for Counter {
         }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Increase => {
                 self.value = self.value + 1;
                 if let Some(ref onclick) = self.onclick {
                     onclick.emit(self.value);
                 }
-                env.print(format!("<printer> value of model is {}", self.value).as_str());
             }
         }
         true
     }
 
-    fn change(&mut self, props: Self::Properties, _: &mut Env<CTX, Self>) -> ShouldRender {
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
         self.color = props.color;
         self.onclick = props.onclick;
         true
     }
 }
 
-impl<CTX: Printer + 'static> Renderable<CTX, Counter> for Counter {
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Counter> for Counter {
+    fn view(&self) -> Html<Self> {
         let colorize = {
             match self.color {
                 Color::Red => "background: red;",

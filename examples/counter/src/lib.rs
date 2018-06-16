@@ -4,9 +4,10 @@ extern crate yew;
 
 use stdweb::web::Date;
 use yew::prelude::*;
-use yew::services::console::ConsoleService;
+use yew::services::ConsoleService;
 
 pub struct Model {
+    console: ConsoleService,
     value: i64,
 }
 
@@ -16,41 +17,38 @@ pub enum Msg {
     Bulk(Vec<Msg>),
 }
 
-impl<CTX> Component<CTX> for Model
-where
-    CTX: AsMut<ConsoleService>,
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: &mut Env<CTX, Self>) -> Self {
-        Model { value: 0 }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        Model {
+            console: ConsoleService::new(),
+            value: 0,
+        }
     }
 
-    fn update(&mut self, msg: Self::Message, env: &mut Env<CTX, Self>) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Increment => {
                 self.value = self.value + 1;
-                env.as_mut().log("plus one");
+                self.console.log("plus one");
             }
             Msg::Decrement => {
                 self.value = self.value - 1;
-                env.as_mut().log("minus one");
+                self.console.log("minus one");
             }
             Msg::Bulk(list) => for msg in list {
-                self.update(msg, env);
-                env.as_mut().log("Bulk action");
+                self.update(msg);
+                self.console.log("Bulk action");
             },
         }
         true
     }
 }
 
-impl<CTX> Renderable<CTX, Model> for Model
-where
-    CTX: AsMut<ConsoleService> + 'static,
-{
-    fn view(&self) -> Html<CTX, Self> {
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
         html! {
             <div>
                 <nav class="menu",>

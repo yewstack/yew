@@ -8,23 +8,23 @@ use stdweb::web::html_element::TextAreaElement;
 use stdweb::unstable::TryFrom;
 use stdweb::web::html_element::InputElement;
 use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node};
-use html::{Component, Activator};
+use html::{Component, Scope};
 use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
-pub struct VTag<CTX, COMP: Component<CTX>> {
+pub struct VTag<COMP: Component> {
     /// A tag of the element.
     tag: Cow<'static, str>,
     /// A reference to the `Element`.
     pub reference: Option<Element>,
     /// List of attached listeners.
-    pub listeners: Listeners<CTX, COMP>,
+    pub listeners: Listeners<COMP>,
     /// List of attributes.
     pub attributes: Attributes,
     /// The list of children nodes. Which also could have own children.
-    pub childs: Vec<VNode<CTX, COMP>>,
+    pub childs: Vec<VNode<COMP>>,
     /// List of attached classes.
     pub classes: Classes,
     /// Contains a value of an
@@ -45,7 +45,7 @@ pub struct VTag<CTX, COMP: Component<CTX>> {
     captured: Vec<EventListenerHandle>,
 }
 
-impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
+impl<COMP: Component> VTag<COMP> {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
         VTag {
@@ -70,7 +70,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     }
 
     /// Add `VNode` child.
-    pub fn add_child(&mut self, child: VNode<CTX, COMP>) {
+    pub fn add_child(&mut self, child: VNode<COMP>) {
         self.childs.push(child);
     }
 
@@ -114,7 +114,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     /// Adds new listener to the node.
     /// It's boxed because we want to keep it in a single list.
     /// Lates `Listener::attach` called to attach actual listener to a DOM node.
-    pub fn add_listener(&mut self, listener: Box<Listener<CTX, COMP>>) {
+    pub fn add_listener(&mut self, listener: Box<Listener<COMP>>) {
         self.listeners.push(listener);
     }
 
@@ -314,8 +314,7 @@ impl<CTX, COMP: Component<CTX>> VTag<CTX, COMP> {
     }
 }
 
-impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
-    type Context = CTX;
+impl<COMP: Component> VDiff for VTag<COMP> {
     type Component = COMP;
 
     /// Remove VTag from parent.
@@ -335,8 +334,8 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
         &mut self,
         parent: &Node,
         precursor: Option<&Node>,
-        ancestor: Option<VNode<Self::Context, Self::Component>>,
-        env: &Activator<Self::Context, Self::Component>,
+        ancestor: Option<VNode<Self::Component>>,
+        env: &Scope<Self::Component>,
     ) -> Option<Node> {
         assert!(self.reference.is_none(), "reference is ignored so must not be set");
         let (reform, mut ancestor) = {
@@ -449,7 +448,7 @@ impl<CTX: 'static, COMP: Component<CTX>> VDiff for VTag<CTX, COMP> {
     }
 }
 
-impl<CTX, COMP: Component<CTX>> fmt::Debug for VTag<CTX, COMP> {
+impl<COMP: Component> fmt::Debug for VTag<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "VTag {{ tag: {} }}", self.tag)
     }
@@ -471,8 +470,8 @@ fn set_checked(input: &InputElement, value: bool) {
     js!( @(no_return) @{input}.checked = @{value}; );
 }
 
-impl<CTX, COMP: Component<CTX>> PartialEq for VTag<CTX, COMP> {
-    fn eq(&self, other: &VTag<CTX, COMP>) -> bool {
+impl<COMP: Component> PartialEq for VTag<COMP> {
+    fn eq(&self, other: &VTag<COMP>) -> bool {
         if self.tag != other.tag {
             return false;
         }
