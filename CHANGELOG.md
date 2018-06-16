@@ -8,6 +8,10 @@
   Instead of a context a link to an environment provided with `Component::create` call.
   All examples had changed.
 
+- `html!` macro adds `move` modifier and the type of event for every handler (#240). Use
+`<input oninput=|e| Msg::UpdateEvent(e.value), />` instead of obsolete
+`<input oninput=move |e: InputData| Msg::UpdateEvent(e.value), />`.
+
 ### New features
 
 - Added `Agent`s concept. Agents are separate activities which you could run in the same thread
