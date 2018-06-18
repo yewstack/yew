@@ -79,6 +79,10 @@ macro_rules! html_impl {
         }
         html_impl! { @vtag $stack ($($tail)*) }
     };
+    (@vtag $stack:ident (selected_index = $index:expr, $($tail:tt)*)) => {
+        $crate::macros::set_selected_index(&mut $stack, $index);
+        html_impl! { @vtag $stack ($($tail)*) }
+    };
     // Events:
     (@vtag $stack:ident (onclick = | $var:pat | $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((onclick) = move | $var: $crate::prelude::ClickEvent | $handler, $($tail)*) }
@@ -201,10 +205,21 @@ pub fn unpack<COMP: Component>(mut stack: Stack<COMP>) -> VNode<COMP> {
 }
 
 #[doc(hidden)]
+pub fn set_selected_index<COMP: Component>(stack: &mut Stack<COMP>, value: Option<usize>) {
+    if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
+        vtag.set_selected_index(value);
+    } else {
+        panic!("no tag to set index: {:?}", value);
+    }
+}
+
+#[doc(hidden)]
 pub fn set_value_or_attribute<COMP: Component, T: ToString>(stack: &mut Stack<COMP>, value: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         if vtag.tag().eq_ignore_ascii_case("option") {
             vtag.add_attribute("value", &value)
+        } else if vtag.tag().eq_ignore_ascii_case("select") {
+            vtag.set_value_for_select(value)
         } else {
             vtag.set_value(&value)
         }
