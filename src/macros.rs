@@ -63,6 +63,16 @@ macro_rules! html_impl {
         $crate::macros::set_value_or_attribute(&mut $stack, $value);
         html_impl! { @vtag $stack ($($tail)*) }
     };
+    // PATTERN: selected_value=expr, use for `<select>`
+    (@vtag $stack:ident (selected_value = $value:expr, $($tail:tt)*)) => {
+        $crate::macros::set_selected_value(&mut $stack, $value);
+        html_impl! { @vtag $stack ($($tail)*) }
+    };
+    // PATTERN: selected_index=expr, use for `<select>`
+    (@vtag $stack:ident (selected_index = $index:expr, $($tail:tt)*)) => {
+        $crate::macros::set_selected_index(&mut $stack, $index);
+        html_impl! { @vtag $stack ($($tail)*) }
+    };
     // PATTERN: attribute=value, - workaround for `type` attribute
     // because `type` is a keyword in Rust
     (@vtag $stack:ident (type = $kind:expr, $($tail:tt)*)) => {
@@ -77,10 +87,6 @@ macro_rules! html_impl {
         if $kind {
             $crate::macros::add_attribute(&mut $stack, "disabled", "true");
         }
-        html_impl! { @vtag $stack ($($tail)*) }
-    };
-    (@vtag $stack:ident (selected_index = $index:expr, $($tail:tt)*)) => {
-        $crate::macros::set_selected_index(&mut $stack, $index);
         html_impl! { @vtag $stack ($($tail)*) }
     };
     // Events:
@@ -214,12 +220,19 @@ pub fn set_selected_index<COMP: Component>(stack: &mut Stack<COMP>, value: Optio
 }
 
 #[doc(hidden)]
+pub fn set_selected_value<COMP: Component>(stack: &mut Stack<COMP>, value: Option<String>) {
+    if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
+        vtag.set_value_for_select(value)
+    } else {
+        panic!("no tag to set value: {:?}", value);
+    }
+}
+
+#[doc(hidden)]
 pub fn set_value_or_attribute<COMP: Component, T: ToString>(stack: &mut Stack<COMP>, value: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         if vtag.tag().eq_ignore_ascii_case("option") {
             vtag.add_attribute("value", &value)
-        } else if vtag.tag().eq_ignore_ascii_case("select") {
-            vtag.set_value_for_select(value)
         } else {
             vtag.set_value(&value)
         }

@@ -86,7 +86,7 @@ impl Renderable<Scene> for Scene {
     fn view(&self) -> Html<Self> {
         let _options = Scene::iter().map(|scene| {
             html! {
-                <option value={ scene.to_string() }, > { scene.to_string() } </option>
+                <option selected_value={ Some(scene.to_string()) }, > { scene.to_string() } </option>
             }
         });
 

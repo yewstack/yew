@@ -33,8 +33,7 @@ pub struct VTag<COMP: Component> {
     pub value: Option<String>,
     /// Contains an index of an `<option>`, inside a `<select>` element, will be setted as selected for
     /// [SelectElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLSelectElement)
-    // Actual type use by JS and expose by stdweb is u32
-    // But we use usize here because an array in Rust use usize as index type.
+    // Actual expose by stdweb is u32. But we use usize here because Rust use usize as index type.
     pub selected_index: Option<usize>,
     /// Contains
     /// [kind](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types)
@@ -103,8 +102,8 @@ impl<COMP: Component> VTag<COMP> {
     //  * value=Some("some_value"): select an `<option value="some_value">` 
     //  * value=Some(""): select an `<option value="">` 
     //  * value=None: unselect all selected options in the select element
-    pub fn set_value_for_select<T: ToString>(&mut self, value: Option<&T>) {
-        self.value = value.map(|value| value.to_string());
+    pub fn set_value_for_select(&mut self, value: Option<String>) {
+        self.value = value;
     }
 
     /// Sets `selected_index` for an
@@ -255,17 +254,18 @@ impl<COMP: Component> VTag<COMP> {
     /// Is there a change for selected `value` (SelectElement)
     fn diff_selected_value(&mut self, ancestor: &mut Option<Self>) -> bool {
         // Because select_element.set_value() allow to set an Option<&str>, then
-        // if there is a difference, we will just set the whole thing.
+        // if there is a difference, we will just set the whole thing. It means
+        // we do not have to distinguish that it is added or it is removed!
 
         // If there is an ancestor, return the result of anc.value.eq
         // If there is no ancestor, return true => self.value must be applied
-        ancestor.as_mut().and_then(|anc| anc.value.eq(&self.value)).unwrap_or(true)
+        ancestor.as_mut().map(|anc| anc.value.eq(&self.value)).unwrap_or(true)
     }
 
     /// Is there a change for selected `index` (SelectElement)
     fn diff_selected_index(&mut self, ancestor: &mut Option<Self>) -> bool {
         // Same as diff_selected_value
-        ancestor.as_mut().and_then(|anc| anc.selected_index.eq(&self.selected_index)).unwrap_or(true)
+        ancestor.as_mut().map(|anc| anc.selected_index.eq(&self.selected_index)).unwrap_or(true)
     }
 
     fn apply_diffs(
@@ -351,7 +351,10 @@ impl<COMP: Component> VTag<COMP> {
             }
         } else if let Ok(select_element) = SelectElement::try_from(element.clone()) {
             if self.diff_selected_value(ancestor) {
-                select_element.set_value(self.value.as_ref())
+                let value = self.value.as_ref().map(|value| value.as_str());
+                if let Err(e) = select_element.set_value(value) {
+                    error!("{}", e);
+                }
             }
             if self.diff_selected_index(ancestor) {
                 select_element.set_selected_index(self.selected_index.map(|value| value as u32))
