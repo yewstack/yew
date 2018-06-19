@@ -74,14 +74,21 @@ impl<COMP: Component> VTag<COMP> {
         self.childs.push(child);
     }
 
-    /// Add classes to this virtual node. Actually it will set by
+    /// Adds asingle class to this virtual node. Actually it will set by
     /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
     /// call later.
-    pub fn add_classes(&mut self, class: &str) {
+    pub fn add_class(&mut self, class: &str) {
         let class = class.trim();
         if !class.is_empty() {
             self.classes.insert(class.into());
         }
+    }
+
+    /// Add classes to this virtual node. Actually it will set by
+    /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
+    /// call later.
+    pub fn set_classes(&mut self, classes: &str) {
+        self.classes = classes.split_whitespace().map(String::from).collect();
     }
 
     /// Sets `value` for an
