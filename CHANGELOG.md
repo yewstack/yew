@@ -26,6 +26,9 @@
 
 - All services reexported in `yew::services` moudle.
 
+- `html!` macro supports multiple classes in a single string. For example:
+  `<a class="button is-primary",>{ "Send" }</a>`.
+
 [Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
 
 ### Bug fixes
