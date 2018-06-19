@@ -69,7 +69,7 @@ impl Component for Scene {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Scene::InnerHtml
+        Scene::NotSelected
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -207,7 +207,7 @@ fn main() {
     trace!("Creating an application instance...");
     let app: App<Scene> = App::new();
     trace!("Mount the App to the body of the page...");
-    app.mount_to_body();
+    app.mount_to_body().send_message(Msg::SwitchTo(Scene::InnerHtml));
     trace!("Run");
     yew::run_loop();
 }
