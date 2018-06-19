@@ -69,7 +69,7 @@ impl Component for Scene {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Scene::NotSelected
+        Scene::InnerHtml
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -86,7 +86,7 @@ impl Renderable<Scene> for Scene {
     fn view(&self) -> Html<Self> {
         let _options = Scene::iter().map(|scene| {
             html! {
-                <option selected_value={ Some(scene.to_string()) }, > { scene.to_string() } </option>
+                <option value={ scene.to_string() }, > { scene.to_string() } </option>
             }
         });
 
@@ -94,7 +94,7 @@ impl Renderable<Scene> for Scene {
             <div id="fullscreen",>
                 <div id="left_pane",>
                     <h2>{ "Yew showcase" }</h2>
-                    <select size="20", value={Scene::NotSelected.to_string()},
+                    <select size="20", selected_value={Some(self.to_string())},
                         onchange=|cd| {
                             let scene = match cd {
                                 ChangeData::Select(se) => se.value().unwrap(),

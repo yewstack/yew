@@ -257,15 +257,15 @@ impl<COMP: Component> VTag<COMP> {
         // if there is a difference, we will just set the whole thing. It means
         // we do not have to distinguish that it is added or it is removed!
 
-        // If there is an ancestor, return the result of anc.value.eq
+        // If there is an ancestor, return the result of anc.value.ne
         // If there is no ancestor, return true => self.value must be applied
-        ancestor.as_mut().map(|anc| anc.value.eq(&self.value)).unwrap_or(true)
+        ancestor.as_mut().map(|anc| anc.value.ne(&self.value)).unwrap_or(true)
     }
 
     /// Is there a change for selected `index` (SelectElement)
     fn diff_selected_index(&mut self, ancestor: &mut Option<Self>) -> bool {
         // Same as diff_selected_value
-        ancestor.as_mut().map(|anc| anc.selected_index.eq(&self.selected_index)).unwrap_or(true)
+        ancestor.as_mut().map(|anc| anc.selected_index.ne(&self.selected_index)).unwrap_or(true)
     }
 
     fn apply_diffs(
@@ -355,9 +355,11 @@ impl<COMP: Component> VTag<COMP> {
                 if let Err(e) = select_element.set_value(value) {
                     error!("{}", e);
                 }
+                debug!("Set new value: {:?}", value);
             }
-            if self.diff_selected_index(ancestor) {
-                select_element.set_selected_index(self.selected_index.map(|value| value as u32))
+            else if self.diff_selected_index(ancestor) {
+                select_element.set_selected_index(self.selected_index.map(|value| value as u32));
+                debug!("Set new index: {:?}", self.selected_index);
             }
         }
     }
