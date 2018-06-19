@@ -117,8 +117,55 @@ fn it_compares_classes() {
         <div class="fail",></div>
     };
 
+    let d: VNode<Comp> = html! {
+        <div class=format!("fail"),></div>
+    };
+
     assert_eq!(a, b);
     assert_ne!(a, c);
+    assert_eq!(c, d);
+}
+
+#[test]
+fn classes_from_local_variables() {
+    let a: VNode<Comp> = html! {
+        <div class=("class-1", "class-2"),></div>
+    };
+
+    let class_2 = "class-2";
+    let b: VNode<Comp> = html! {
+        <div class=("class-1", class_2),></div>
+    };
+
+    let class_2_fmt = format!("class-{}", 2);
+    let c: VNode<Comp> = html! {
+        <div class=("class-1", class_2_fmt),></div>
+    };
+
+    assert_eq!(a, b);
+    assert_eq!(a, c);
+}
+
+#[test]
+fn supports_multiple_classes_string() {
+    let a: VNode<Comp> = html! {
+        <div class="class-1 class-2   class-3",></div>
+    };
+
+    let b: VNode<Comp> = html! {
+        <div class="class-2 class-3 class-1",></div>
+    };
+
+    assert_eq!(a, b);
+
+    if let VNode::VTag(vtag) = a {
+        println!("{:?}", vtag.classes);
+        assert!(vtag.classes.contains("class-1"));
+        assert!(vtag.classes.contains("class-2"));
+        assert!(vtag.classes.contains("class-3"));
+    } else {
+        panic!("vtag expected");
+    }
 }
 
 #[test]
