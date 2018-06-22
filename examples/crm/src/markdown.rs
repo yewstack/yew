@@ -159,6 +159,6 @@ where
             }
             el
         }
-        _ => unimplemented!("tag {:?}", t),
+        Tag::FootnoteDefinition(ref _footnote_id) => VTag::new("span") // Footnotes are not rendered as anything special
     }
 }
