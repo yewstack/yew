@@ -10,6 +10,7 @@ pub mod interval;
 pub mod storage;
 pub mod timeout;
 pub mod websocket;
+pub mod routing;
 
 pub use self::console::ConsoleService;
 pub use self::dialog::DialogService;
@@ -18,6 +19,7 @@ pub use self::interval::IntervalService;
 pub use self::storage::StorageService;
 pub use self::timeout::TimeoutService;
 pub use self::websocket::WebSocketService;
+pub use self::routing::RouteService;
 
 use std::time::Duration;
 
