@@ -8,6 +8,9 @@ extern crate yew;
 extern crate stdweb;
 
 mod router;
+mod b_component;
+use b_component::BModel;
+
 use router::Route;
 use yew::prelude::*;
 
@@ -118,6 +121,7 @@ impl Renderable<Model> for Child {
             Child::B => html! {
                 <>
                     {"This corresponds to route 'b'"}
+                    <BModel: />
                 </>
             },
             Child::PathNotFound(ref path) => html! {
