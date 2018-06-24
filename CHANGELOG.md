@@ -24,7 +24,7 @@
 
 - Added `<Component: with props />` rule to set a whole struct as a properties of a component.
 
-- All services reexported in `yew::services` moudle.
+- All services are reexported within the `yew::services` module.
 
 - `html!` macro supports multiple classes in a single string. For example:
   `<a class="button is-primary",>{ "Send" }</a>`.
