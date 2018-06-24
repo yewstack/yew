@@ -11,18 +11,18 @@ use stdweb::JsSerialize;
 use stdweb::unstable::TryFrom;
 use callback::Callback;
 
-//use std::collections::HashMap;
 use std::marker::PhantomData;
 
 
 /// A service that facilitates manipulation of the browser's URL bar and responding to browser
 /// 'forward' and 'back' events.
+///
+/// The `T` determines what route state can be stored in the route service.
 pub struct RouteService<T> {
     history: History,
     location: Location,
     event_listener: Option<EventListenerHandle>,
     phantom_data: PhantomData<T>
-//    callback: Option<Callback<(String, T)>>
 }
 
 
@@ -31,10 +31,7 @@ impl <T> RouteService<T>
 {
     /// Creates the route service.
     pub fn new() -> RouteService<T> {
-        // I think it is reasonable to assume that any browser that supports WASM will also support
-        // the Location API.
-        let location = window().location().unwrap();
-
+        let location = window().location().expect("browser does not support location API");
         RouteService {
             history: window().history(),
             location,
@@ -64,7 +61,10 @@ impl <T> RouteService<T>
     }
 
 
-    /// Sets the route.
+    /// Sets the browser's url bar to contain the provided route,
+    /// and creates a history entry that can be navigated via the forward and back buttons.
+    /// The route should be a relative path that starts with a '/'.
+    /// A state object be stored with the url.
     pub fn set_route(&mut self, route: &str, state: T) {
 
         self.history.push_state(
