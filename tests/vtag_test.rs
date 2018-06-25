@@ -173,7 +173,7 @@ fn it_compares_values() {
     let a: VNode<Comp> = html! {
         <input value="test",/>
     };
-
+    
     let b: VNode<Comp> = html! {
         <input value="test",/>
     };
@@ -251,6 +251,66 @@ fn it_allows_aria_attributes() {
             vtag.attributes.get("aria-controls"),
             Some(&"it-works".into())
         );
+    } else {
+        panic!("vtag expected");
+    }
+}
+
+#[test]
+fn test_selected_value() {
+    let selected_value: Option<String> = Some("val_1".to_string());
+    let se: VNode<Comp> = html! {
+        <select value=selected_value.clone(),>
+            <option value="val_1",>{"Value 1"}</option>
+        </select>
+    };
+
+    if let VNode::VTag(se) = se {
+        assert_eq!(se.value, selected_value);
+    } else {
+        panic!("vtag expected");
+    }
+    
+    let selected_value = None;
+    let se: VNode<Comp> = html! {
+        <select value=selected_value.clone(),>
+            <option value="val_1",>{"Value 1"}</option>
+        </select>
+    };
+
+    if let VNode::VTag(se) = se {
+        assert_eq!(se.value, None);
+    } else {
+        panic!("vtag expected");
+    }
+}
+
+#[test]
+fn test_selected_index() {
+    let selected_index = Some(1_usize);
+    let se: VNode<Comp> = html! {
+        <select index=selected_index,>
+            <option value="val_1",>{"Value 1"}</option>
+            <option value="val_2",>{"Value 2"}</option>
+        </select>
+    };
+
+    if let VNode::VTag(se) = se {
+        assert_eq!(se.selected_index, selected_index);
+    } else {
+        panic!("vtag expected");
+    }
+
+    let selected_index = None;
+    let se: VNode<Comp> = html! {
+        <select index=selected_index,>
+            <option value="val_1",>{"Value 1"}</option>
+            <option value="val_2",>{"Value 2"}</option>
+        </select>
+    };
+
+    if let VNode::VTag(se) = se {
+        assert_eq!(se.selected_index, None);
     } else {
         panic!("vtag expected");
     }

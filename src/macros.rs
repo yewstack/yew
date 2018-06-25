@@ -6,169 +6,178 @@ use virtual_dom::{Listener, VNode};
 
 #[macro_export]
 macro_rules! html_impl {
-    ($stack:ident (< > $($tail:tt)*)) => {
+    ($stack:ident ($($opentag:ident)*) (< > $($tail:tt)*)) => {
         let vlist = $crate::virtual_dom::VList::new();
         $stack.push(vlist.into());
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { $stack (_yew_fragment_ $($opentag)*) ($($tail)*) }
     };
-    ($stack:ident (< / > $($tail:tt)*)) => {
+    ($stack:ident (_yew_fragment_ $($opentag:ident)*) (< / > $($tail:tt)*)) => {
         $crate::macros::child_to_parent(&mut $stack, None);
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { $stack ($($opentag)*) ($($tail)*) }
     };
     // Start of component tag
-    ($stack:ident (< $comp:ty : $($tail:tt)*)) => {
+    ($stack:ident ($($opentag:ident)*) (< $comp:ty : $($tail:tt)*)) => {
         #[allow(unused_mut)]
         let mut pair = $crate::virtual_dom::VComp::lazy::<$comp>();
-        html_impl! { @vcomp $stack pair ($($tail)*) }
+        html_impl! { @vcomp $stack (_component_ $($opentag)*) pair ($($tail)*) }
     };
     // Set a whole struct as a properties
-    (@vcomp $stack:ident $pair:ident (with $props:ident, $($tail:tt)*)) => {
+    (@vcomp $stack:ident ($($opentag:ident)*) $pair:ident (with $props:ident, $($tail:tt)*)) => {
         $pair.0 = $props;
-        html_impl! { @vcomp $stack $pair ($($tail)*) }
+        html_impl! { @vcomp $stack ($($opentag)*) $pair ($($tail)*) }
     };
     // Set a specific field as a property.
     // It uses `Transformer` trait to convert a type used in template to a type of the field.
-    (@vcomp $stack:ident $pair:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
+    (@vcomp $stack:ident ($($opentag:ident)*) $pair:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
         // It cloned for ergonomics in templates. Attribute with
         // `self.param` value could be reused and sholdn't be cloned
         // by yourself
         ($pair.0).$attr = $crate::virtual_dom::vcomp::Transformer::transform(&mut $pair.1, $val);
-        html_impl! { @vcomp $stack $pair ($($tail)*) }
+        html_impl! { @vcomp $stack ($($opentag)*) $pair ($($tail)*) }
     };
     // Self-closing of tag
-    (@vcomp $stack:ident $pair:ident (/ > $($tail:tt)*)) => {
+    (@vcomp $stack:ident (_component_ $($opentag:ident)*) $pair:ident (/ > $($tail:tt)*)) => {
         let (props, mut comp) = $pair;
         comp.set_props(props);
         $stack.push(comp.into());
         $crate::macros::child_to_parent(&mut $stack, None);
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { $stack ($($opentag)*) ($($tail)*) }
     };
     // Start of opening tag
-    ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
+    ($stack:ident ($($opentag:ident)*) (< $starttag:ident $($tail:tt)*)) => {
         let vtag = $crate::virtual_dom::VTag::new(stringify!($starttag));
         $stack.push(vtag.into());
-        html_impl! { @vtag $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($starttag $($opentag)*) ($($tail)*) }
     };
     // PATTERN: class=("class-1", "class-2", local_variable),
-    (@vtag $stack:ident (class = ($($class:expr),*), $($tail:tt)*)) => {
+    (@vtag $stack:ident ($($opentag:ident)*) (class = ($($class:expr),*), $($tail:tt)*)) => {
         $( $crate::macros::append_class(&mut $stack, $class); )*
-        html_impl! { @vtag $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($opentag)*) ($($tail)*) }
     };
-    (@vtag $stack:ident (class = $class:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident ($($opentag:ident)*) (class = $class:expr, $($tail:tt)*)) => {
         $crate::macros::set_classes(&mut $stack, $class);
-        html_impl! { @vtag $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($opentag)*) ($($tail)*) }
     };
     // PATTERN: value="",
-    (@vtag $stack:ident (value = $value:expr, $($tail:tt)*)) => {
-        $crate::macros::set_value_or_attribute(&mut $stack, $value);
-        html_impl! { @vtag $stack ($($tail)*) }
+    (@vtag $stack:ident ($current_tag:ident $($opentag:ident)*) (value = $value:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag_value $stack $current_tag $value }
+        html_impl! { @vtag $stack ($current_tag $($opentag)*) ($($tail)*) }
     };
-    // PATTERN: selected_value=expr, use for `<select>`
-    (@vtag $stack:ident (selected_value = $value:expr, $($tail:tt)*)) => {
+    // `<option value="expr">`
+    (@vtag_value $stack:ident option $value:expr) => {
+        $crate::macros::add_attribute(&mut $stack, "value", $value);
+    };
+    // SelectElement.value (see `VTag::set_value` and `VTag::set_selected_value` for more info)
+    (@vtag_value $stack:ident select $value:expr) => {
         $crate::macros::set_selected_value(&mut $stack, $value);
-        html_impl! { @vtag $stack ($($tail)*) }
     };
-    // PATTERN: selected_index=expr, use for `<select>`
-    (@vtag $stack:ident (selected_index = $index:expr, $($tail:tt)*)) => {
+    // OtherElement (see `VTag::set_value` and `VTag::set_selected_value` for more info)
+    (@vtag_value $stack:ident $opentag:ident $value:expr) => {
+        $crate::macros::set_value(&mut $stack, $value);
+    };
+    // PATTERN: index=expr, use for `<select>`
+    (@vtag $stack:ident ($($opentag:ident)*) (index = $index:expr, $($tail:tt)*)) => {
         $crate::macros::set_selected_index(&mut $stack, $index);
-        html_impl! { @vtag $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($opentag)*) ($($tail)*) }
     };
     // PATTERN: attribute=value, - workaround for `type` attribute
     // because `type` is a keyword in Rust
-    (@vtag $stack:ident (type = $kind:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident ($($opentag:ident)*) (type = $kind:expr, $($tail:tt)*)) => {
         $crate::macros::set_kind(&mut $stack, $kind);
-        html_impl! { @vtag $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($opentag)*) ($($tail)*) }
     };
-    (@vtag $stack:ident (checked = $kind:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident ($($opentag:ident)*) (checked = $kind:expr, $($tail:tt)*)) => {
         $crate::macros::set_checked(&mut $stack, $kind);
-        html_impl! { @vtag $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($opentag)*) ($($tail)*) }
     };
-    (@vtag $stack:ident (disabled = $kind:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident ($($opentag:ident)*) (disabled = $kind:expr, $($tail:tt)*)) => {
         if $kind {
             $crate::macros::add_attribute(&mut $stack, "disabled", "true");
         }
-        html_impl! { @vtag $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($opentag)*) ($($tail)*) }
     };
     // Events:
-    (@vtag $stack:ident (onclick = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onclick) = move | $var: $crate::prelude::ClickEvent | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (onclick = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((onclick) = move | $var: $crate::prelude::ClickEvent | $handler, $($tail)*) }
     };
-    (@vtag $stack:ident (ondoubleclick = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((ondoubleclick) = move | $var: $crate::prelude::DoubleClickEvent | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (ondoubleclick = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((ondoubleclick) = move | $var: $crate::prelude::DoubleClickEvent | $handler, $($tail)*) }
     };
-    (@vtag $stack:ident (onkeypress = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onkeypress) = move | $var: $crate::prelude::KeyPressEvent | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (onkeypress = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((onkeypress) = move | $var: $crate::prelude::KeyPressEvent | $handler, $($tail)*) }
     };
-    (@vtag $stack:ident (onkeydown = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onkeydown) = move | $var: $crate::prelude::KeyDownEvent | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (onkeydown = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((onkeydown) = move | $var: $crate::prelude::KeyDownEvent | $handler, $($tail)*) }
     };
-    (@vtag $stack:ident (onkeyup = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onkeyup) = move | $var: $crate::prelude::KeyUpEvent | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (onkeyup = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((onkeyup) = move | $var: $crate::prelude::KeyUpEvent | $handler, $($tail)*) }
     };
-    (@vtag $stack:ident (onmousedown = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmousedown) = move | $var: $crate::prelude::MouseDownEvent | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (onmousedown = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((onmousedown) = move | $var: $crate::prelude::MouseDownEvent | $handler, $($tail)*) }
     };
-    (@vtag $stack:ident (onmousemove = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmousemove) = move | $var: $crate::prelude::MouseMoveEvent | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (onmousemove = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((onmousemove) = move | $var: $crate::prelude::MouseMoveEvent | $handler, $($tail)*) }
     };
-    (@vtag $stack:ident (onmouseout = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmouseout) = move | $var: $crate::prelude::MouseOutEvent | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (onmouseout = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((onmouseout) = move | $var: $crate::prelude::MouseOutEvent | $handler, $($tail)*) }
     };
-    (@vtag $stack:ident (onmouseover = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmouseover) = move | $var: $crate::prelude::MouseOverEvent | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (onmouseover = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((onmouseover) = move | $var: $crate::prelude::MouseOverEvent | $handler, $($tail)*) }
     };
-    (@vtag $stack:ident (onmouseup = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmouseup) = move | $var: $crate::prelude::MouseUpEvent | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (onmouseup = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((onmouseup) = move | $var: $crate::prelude::MouseUpEvent | $handler, $($tail)*) }
     };
-    (@vtag $stack:ident (onblur = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onblur) = move | $var: $crate::prelude::BlurEvent | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (onblur = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((onblur) = move | $var: $crate::prelude::BlurEvent | $handler, $($tail)*) }
     };
-    (@vtag $stack:ident (oninput = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((oninput) = move | $var: $crate::prelude::InputData | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (oninput = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((oninput) = move | $var: $crate::prelude::InputData | $handler, $($tail)*) }
     };
-    (@vtag $stack:ident (onchange = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onchange) = move | $var: $crate::prelude::ChangeData | $handler, $($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (onchange = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ($($opentag)*) ((onchange) = move | $var: $crate::prelude::ChangeData | $handler, $($tail)*) }
     };
     // PATTERN: (action)=expression,
-    (@vtag $stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident ($($opentag:ident)*) (($action:ident) = $handler:expr, $($tail:tt)*)) => {
         // Catch value to a separate variable for clear error messages
         let handler = $handler;
         let listener = $crate::html::$action::Wrapper::from(handler);
         $crate::macros::attach_listener(&mut $stack, Box::new(listener));
-        html_impl! { @vtag $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($opentag)*) ($($tail)*) }
     };
     // Attributes:
-    (@vtag $stack:ident (href = $href:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident ($($opentag:ident)*) (href = $href:expr, $($tail:tt)*)) => {
         let href: $crate::html::Href = $href.into();
         $crate::macros::add_attribute(&mut $stack, "href", href);
-        html_impl! { @vtag $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($opentag)*) ($($tail)*) }
     };
-    (@vtag $stack:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident ($($opentag:ident)*) ($attr:ident = $val:expr, $($tail:tt)*)) => {
         $crate::macros::add_attribute(&mut $stack, stringify!($attr), $val);
-        html_impl! { @vtag $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($opentag)*) ($($tail)*) }
     };
     // End of openging tag
-    (@vtag $stack:ident (> $($tail:tt)*)) => {
-        html_impl! { $stack ($($tail)*) }
+    (@vtag $stack:ident ($($opentag:ident)*) (> $($tail:tt)*)) => {
+        html_impl! { $stack ($($opentag)*) ($($tail)*) }
     };
     // Self-closing of tag
-    (@vtag $stack:ident (/ > $($tail:tt)*)) => {
+    (@vtag $stack:ident ($latest_tag:ident $($opentag:ident)*) (/ > $($tail:tt)*)) => {
         $crate::macros::child_to_parent(&mut $stack, None);
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { $stack ($($opentag)*) ($($tail)*) }
     };
-    (@vtag $stack:ident ($($attr:ident)-+ = $val:expr, $($tail:tt)*)) => {
+    (@vtag $stack:ident ($($opentag:ident)*) ($($attr:ident)-+ = $val:expr, $($tail:tt)*)) => {
         let attr = vec![$(stringify!($attr).to_string()),+].join("-");
         $crate::macros::add_attribute(&mut $stack, &attr, $val);
-        html_impl! { @vtag $stack ($($tail)*) }
+        html_impl! { @vtag $stack ($($opentag)*) ($($tail)*) }
     };
     // Traditional tag closing
-    ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
+    ($stack:ident ($last_starttag:ident $($opentag:ident)*) (< / $endtag:ident > $($tail:tt)*)) => {
+        // $last_starttag (opening-tag) should match $endtag (closing-tag) here
+        // If we have a macro to check this, just call it here. It will be checked at compile time.
         let endtag = stringify!($endtag);
         $crate::macros::child_to_parent(&mut $stack, Some(endtag));
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { $stack ($($opentag)*) ($($tail)*) }
     };
     // PATTERN: { for expression }
-    ($stack:ident ({ for $eval:expr } $($tail:tt)*)) => {
+    ($stack:ident ($($opentag:ident)*) ({ for $eval:expr } $($tail:tt)*)) => {
         let nodes = $eval;
         let mut vlist = $crate::virtual_dom::VList::new();
         for node in nodes {
@@ -177,16 +186,16 @@ macro_rules! html_impl {
         }
         $stack.push(vlist.into());
         $crate::macros::child_to_parent(&mut $stack, None);
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { $stack ($($opentag)*) ($($tail)*) }
     };
     // PATTERN: { expression }
-    ($stack:ident ({ $eval:expr } $($tail:tt)*)) => {
+    ($stack:ident ($($opentag:ident)*) ({ $eval:expr } $($tail:tt)*)) => {
         let node = $crate::virtual_dom::VNode::from($eval);
         $crate::macros::add_child(&mut $stack, node);
-        html_impl! { $stack ($($tail)*) }
+        html_impl! { $stack ($($opentag)*) ($($tail)*) }
     };
     // "End of paring" rule
-    ($stack:ident ()) => {
+    ($stack:ident () ()) => {
         $crate::macros::unpack($stack)
     };
 }
@@ -196,7 +205,7 @@ macro_rules! html_impl {
 macro_rules! html {
     ($($tail:tt)*) => {{
         let mut stack = Vec::new();
-        html_impl! { stack ($($tail)*) }
+        html_impl! { stack () ($($tail)*) }
     }};
 }
 
@@ -222,20 +231,16 @@ pub fn set_selected_index<COMP: Component>(stack: &mut Stack<COMP>, value: Optio
 #[doc(hidden)]
 pub fn set_selected_value<COMP: Component>(stack: &mut Stack<COMP>, value: Option<String>) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
-        vtag.set_value_for_select(value)
+        vtag.set_selected_value(value)
     } else {
         panic!("no tag to set value: {:?}", value);
     }
 }
 
 #[doc(hidden)]
-pub fn set_value_or_attribute<COMP: Component, T: ToString>(stack: &mut Stack<COMP>, value: T) {
+pub fn set_value<COMP: Component, T: ToString>(stack: &mut Stack<COMP>, value: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
-        if vtag.tag().eq_ignore_ascii_case("option") {
-            vtag.add_attribute("value", &value)
-        } else {
-            vtag.set_value(&value)
-        }
+        vtag.set_value(&value)
     } else {
         panic!("no tag to set value: {}", value.to_string());
     }

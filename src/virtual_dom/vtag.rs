@@ -109,7 +109,7 @@ impl<COMP: Component> VTag<COMP> {
     //  * value=Some("some_value"): select an `<option value="some_value">` 
     //  * value=Some(""): select an `<option value="">` 
     //  * value=None: unselect all selected options in the select element
-    pub fn set_value_for_select(&mut self, value: Option<String>) {
+    pub fn set_selected_value(&mut self, value: Option<String>) {
         self.value = value;
     }
 
