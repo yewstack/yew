@@ -3,7 +3,7 @@
 # Yew
 
 Yew is a modern Rust framework inspired by Elm and ReactJS for
-creating multi-threaded frontent apps with WebAssembly.
+creating multi-threaded frontend apps with WebAssembly.
 
 **NEW!** The framework supports ***multi-threading & concurrency*** out of the box.
 It uses [Web Workers API] for spawning actors (agents) in separate threads
@@ -39,7 +39,7 @@ enum Msg {
 }
 
 impl Component for Model {
-    // Some details omitted. Explore the examples to get more.
+    // Some details omitted. Explore the examples to see more.
 
     type Message = Msg;
     type Properties = ();
@@ -101,8 +101,8 @@ html! {
 
 ### Agents - actors model inspired by Erlang and Actix
 
-Every `Component` could spawn an agent and attach to it.
-Agetns are separate tasks which works concurrently.
+Every `Component` can spawn an agent and attach to it.
+Agents are separate tasks that work concurrently.
 
 Create your worker/agent (in `context.rs` for example):
 
@@ -128,20 +128,20 @@ impl Agent for Worker {
     // - `Job` (one per bridge)
     // - `Context` (shared in the same thread)
     // - `Public` (separate thread).
-    type Reach = Context; // Spawn only one instance per thread (all componentis could reach this)
+    type Reach = Context; // Spawn only one instance per thread (all components could reach this)
     type Message = Msg;
     type Input = Request;
     type Output = Response;
 
-    // Creates an instance with a link to agent's environment.
+    // Create an instance with a link to agent's environment.
     fn create(link: AgentLink<Self>) -> Self {
         Worker { link }
     }
 
-    // Implement it for handling inner messages (of services of `send_back` callbacks)
+    // Handle inner messages (of services of `send_back` callbacks)
     fn update(&mut self, msg: Self::Message) { /* ... */ }
 
-    // Implement it for handling incoming messages form components of other agents.
+    // Handle incoming messages form components of other agents.
     fn handle(&mut self, msg: Self::Input, who: HandlerId) {
         match msg {
             Request::Question(_) => {
@@ -153,7 +153,7 @@ impl Agent for Worker {
 ```
 
 Build the bridge to an instance of this agent.
-It spawns a worker automatically or reuse an existent (it depends of type of the agent):
+It spawns a worker automatically or reuses an existing one, depending on the type of the agent:
 
 ```rust
 struct Model {
@@ -170,19 +170,19 @@ impl Component for Model {
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.send_back(|_| Msg::ContextMsg);
-        // `Worker::bridge` method spawns an instance if no one available
+        // `Worker::bridge` spawns an instance if no one is available
         let context = context::Worker::bridge(callback); // Connected! :tada:
         Model { context }
     }
 }
 ```
 
-You could use as many agents as you want. For example you could separate all interactions
-with a server to a separate thread (real OS thread, because Web Workers maps to native threads).
+You can use as many agents as you want. For example you could separate all interactions
+with a server to a separate thread (a real OS thread, because Web Workers map to native threads).
 
-> **REMEMBER!** Not every APIs available for every environment. For example you couldn't use
-`StorageService` from a separate thread that means it won't work with `Public` kind of agent,
-but local storage available for `Job` and `Context` kind of agents.
+> **REMEMBER!** Not every API is available for every environment. For example you cannot use
+`StorageService` from a separate thread. That means it won't work with `Public` agents,
+only with `Job` and `Context` ones.
 
 ### Components
 
@@ -200,7 +200,7 @@ html! {
 
 ### Scopes
 
-Components lives in Angular-like scopes with **parent-to-child** *(properties)* and
+Components live in Angular-like scopes with **parent-to-child** *(properties)* and
 **child-to-parent** *(events)* interaction.
 
 Properties also are pure Rust types with strict checking during compilation.
@@ -230,9 +230,9 @@ html! {
 
 ### Virtual DOM, independent loops, fine updates
 
-Yew framework uses its own **virtual-dom** representation. It updates the browser's DOM
-with tiny patches when properties of elements had changed. Every component lives
-in its own independent loop, interacts with the environment (`Scope`) by messages passing
+Yew uses its own **virtual-dom** representation. It updates the browser's DOM
+with tiny patches when properties of elements have changed. Every component lives
+in its own independent loop, interacts with the environment (`Scope`) through message passing
 and supports fine control of rendering.
 
 The `ShouldRender` return value informs the loop when the component should be re-rendered:
@@ -251,7 +251,7 @@ fn update(&mut self, msg: Self::Message) -> ShouldRender {
 }
 ```
 
-It's more effective than comparing the model after every update, because not every model
+Using `ShouldRender` is more effective than comparing the model after every update, because not every model
 change leads to a view update. It lets us skip model comparison checks entirely.
 You can control updates very accurately.
 
@@ -265,7 +265,7 @@ html! {
    /* Write some ideas
     * in multiline comments
     */
-    <p>{ "and tags could be placed between comments!" }</p>
+    <p>{ "and tags can be placed between comments!" }</p>
     // <li>{ "or single-line comments" }</li>
     </section>
 }
@@ -328,7 +328,7 @@ impl Component for Model {
 }
 ```
 
-Can't find an essential service? Want to use library from `npm`?
+Can't find an essential service? Want to use a library from `npm`?
 You can reuse `JavaScript` libraries with `stdweb` capabilities and create
 your own service implementation. Here's an example below of how to wrap the
 [ccxt](https://www.npmjs.com/package/ccxt) library:
@@ -397,8 +397,8 @@ impl Component for Model {
 }
 ```
 
-By default only `Json` format available, but you can activate more with features in
-`Cargo.toml` of your project:
+By default only `JSON` is available, but you can activate the rest through features in
+your project's `Cargo.toml`:
 
 ```toml
 [dependencies]
@@ -413,14 +413,13 @@ Add necessary targets to your compiler:
 
     $ rustup target add wasm32-unknown-emscripten
 
-> We used `wasm32-unknown-emscripten` target here, because not every crate could be compiled to
-the pure `wasm32-unknown-unknown` target. But the crates still improving and you can do it soon.
+> We use `wasm32-unknown-emscripten` target here, because not every crate can be compiled using `wasm32-unknown-unknown`. This restriction should disappear as more crates start supporting the latter.
 
 To build this project you need to have [cargo-web] installed:
 
     $ cargo install cargo-web
 
-> Add `--force` option to ensure the latest version.
+> Add `--force` option to ensure you install the latest version.
 
 ### Build
 
@@ -444,7 +443,7 @@ To run an optimised build instead of a debug build use:
 
     $ cargo web start --release
 
-**Note**: By default `cargo-web` will use Emscripten to generate asm.js. You can also
+**Note**: By default, `cargo-web` will use Emscripten to generate asm.js. You can also
 compile to WebAssembly if you add either `--target=wasm32-unknown-emscripten` or
 `--target=wasm32-unknown-unknown`, where the first one will use Emscripten and
 the second one will use Rust's native WebAssembly backend (Rust nightly only!).

@@ -49,13 +49,13 @@ macro_rules! html_impl {
         $stack.push(vtag.into());
         html_impl! { @vtag $stack ($($tail)*) }
     };
-    // PATTERN: class=("class-1", "class-2"),
+    // PATTERN: class=("class-1", "class-2", local_variable),
     (@vtag $stack:ident (class = ($($class:expr),*), $($tail:tt)*)) => {
-        $( $crate::macros::attach_class(&mut $stack, $class); )*
+        $( $crate::macros::append_class(&mut $stack, $class); )*
         html_impl! { @vtag $stack ($($tail)*) }
     };
     (@vtag $stack:ident (class = $class:expr, $($tail:tt)*)) => {
-        $crate::macros::attach_class(&mut $stack, $class);
+        $crate::macros::set_classes(&mut $stack, $class);
         html_impl! { @vtag $stack ($($tail)*) }
     };
     // PATTERN: value="",
@@ -273,11 +273,20 @@ pub fn add_attribute<COMP: Component, T: ToString>(
 }
 
 #[doc(hidden)]
-pub fn attach_class<COMP: Component>(stack: &mut Stack<COMP>, class: &'static str) {
+pub fn append_class<COMP: Component, T: AsRef<str>>(stack: &mut Stack<COMP>, class: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
-        vtag.add_classes(class);
+        vtag.add_class(class.as_ref());
     } else {
-        panic!("no tag to attach class: {}", class);
+        panic!("no tag to attach class: {}", class.as_ref());
+    }
+}
+
+#[doc(hidden)]
+pub fn set_classes<COMP: Component, T: AsRef<str>>(stack: &mut Stack<COMP>, classes: T) {
+    if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
+        vtag.set_classes(classes.as_ref());
+    } else {
+        panic!("no tag to set classes: {}", classes.as_ref());
     }
 }
 

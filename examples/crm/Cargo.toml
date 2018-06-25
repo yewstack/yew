@@ -7,3 +7,4 @@ authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 serde = "1"
 serde_derive = "1"
 yew = { path = "../.." }
+pulldown-cmark = "0.1.2"
