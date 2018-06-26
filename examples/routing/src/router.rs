@@ -1,4 +1,6 @@
-use yew::services::routing::RouteService;
+//! Agent that exposes a usable routing interface to components.
+
+use routing::RouteService;
 
 use yew::prelude::worker::*;
 
