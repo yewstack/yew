@@ -179,6 +179,9 @@ macro_rules! html_impl {
     ($stack:ident ()) => {
         $crate::macros::unpack($stack)
     };
+    ($stack:ident $($tail:tt)*) => {
+        compile_error!("You should use curly bracets for text nodes: <a>{ \"Link\" }</a>");
+    };
 }
 
 // This entrypoint and implementation had separated to prevent infinite recursion.
