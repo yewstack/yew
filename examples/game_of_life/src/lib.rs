@@ -236,8 +236,11 @@ impl Renderable<Model> for Model {
 }
 
 fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Model> {
+    let cellule_status = {
+        if cellule.life_state == LifeState::Alive { "cellule-live" } else { "cellule-dead" }
+    };
     html! {
-        <div class=("game-cellule", if cellule.life_state == LifeState::Alive { "cellule-live" } else { "cellule-dead" }),
+        <div class=("game-cellule", cellule_status),
             onclick=|_| Msg::ToggleCellule(idx),> </div>
     }
 }

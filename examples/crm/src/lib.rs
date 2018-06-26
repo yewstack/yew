@@ -199,7 +199,7 @@ impl Renderable<Model> for Client {
 impl Client {
     fn view_first_name_input(&self) -> Html<Model> {
         html! {
-            <input class=("new-client", "firstname"),
+            <input class="new-client firstname",
                    placeholder="First name",
                    value=&self.first_name,
                    oninput=|e| Msg::UpdateFirstName(e.value),
@@ -209,7 +209,7 @@ impl Client {
 
     fn view_last_name_input(&self) -> Html<Model> {
         html! {
-            <input class=("new-client", "lastname"),
+            <input class="new-client lastname",
                    placeholder="Last name",
                    value=&self.last_name,
                    oninput=|e| Msg::UpdateLastName(e.value),
