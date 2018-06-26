@@ -9,7 +9,7 @@ use stdweb::web::event::PopStateEvent;
 use stdweb::web::IEventTarget;
 use stdweb::JsSerialize;
 use stdweb::unstable::TryFrom;
-use callback::Callback;
+use yew::callback::Callback;
 
 use std::marker::PhantomData;
 

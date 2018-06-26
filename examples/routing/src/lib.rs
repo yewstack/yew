@@ -8,6 +8,7 @@ extern crate yew;
 extern crate stdweb;
 
 mod router;
+mod routing;
 mod b_component;
 use b_component::BModel;
 
