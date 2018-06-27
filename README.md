@@ -6,8 +6,8 @@ Yew is a modern Rust framework inspired by Elm and ReactJS for
 creating multi-threaded frontend apps with WebAssembly.
 
 **NEW!** The framework supports ***multi-threading & concurrency*** out of the box.
-It uses [Web Workers API] for spawning actors (agents) in separate threads
-and uses a local scheduler attached to a thread for spawning concurrent tasks.
+It uses [Web Workers API] to spawn actors (agents) in separate threads
+and uses a local scheduler attached to a thread for concurrent tasks.
 
 [Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
 
@@ -19,7 +19,7 @@ and uses a local scheduler attached to a thread for spawning concurrent tasks.
 
 This framework is designed to be compiled into modern browsers' runtimes: wasm, asm.js, emscripten.
 
-To prepare the developments environment use installation instruction here: [wasm-and-rust](https://github.com/raphamorim/wasm-and-rust)
+To prepare the development environment use the installation instruction here: [wasm-and-rust](https://github.com/raphamorim/wasm-and-rust).
 
 ### Clean MVC approach inspired by Elm and Redux
 
@@ -74,12 +74,12 @@ fn main() {
 }
 ```
 
-Predictable mutability and lifetimes (thanks Rust) make it possible to reuse a single instance of the model
-without needing to create a fresh one every update. It helps reduce memory allocations.
+Predictable mutability and lifetimes (thanks Rust!) make it possible to reuse a single instance of the model
+without a need to create a fresh one on every update. It also helps to reduce memory allocations.
 
 ### JSX-like templates with `html!` macro
 
-Feel free to put pure Rust code into HTML tags with all the compiler's and borrow checker benefits.
+Feel free to put pure Rust code into HTML tags with all the compiler and borrow checker's benefits.
 
 ```rust
 html! {
@@ -178,15 +178,15 @@ impl Component for Model {
 ```
 
 You can use as many agents as you want. For example you could separate all interactions
-with a server to a separate thread (a real OS thread, because Web Workers map to native threads).
+with a server to a separate thread (a real OS thread because Web Workers map to the native threads).
 
-> **REMEMBER!** Not every API is available for every environment. For example you cannot use
-`StorageService` from a separate thread. That means it won't work with `Public` agents,
+> **REMEMBER!** Not every API is available for every environment. For example you can't use
+`StorageService` from a separate thread. It won't work with `Public` agents,
 only with `Job` and `Context` ones.
 
 ### Components
 
-Yew supports components! You can create a new one by implementing a `Component` trait
+Yew supports components! You could create a new one by implementing a `Component` trait
 and including it directly into the `html!` template:
 
 ```rust
@@ -200,10 +200,10 @@ html! {
 
 ### Scopes
 
-Components live in Angular-like scopes with **parent-to-child** *(properties)* and
+Components live in an Angular-like scopes with **parent-to-child** *(properties)* and
 **child-to-parent** *(events)* interaction.
 
-Properties also are pure Rust types with strict checking during compilation.
+Properties are also pure Rust types with strict type-checking during the compilation.
 
 ```rust
 html! {
@@ -230,12 +230,12 @@ html! {
 
 ### Virtual DOM, independent loops, fine updates
 
-Yew uses its own **virtual-dom** representation. It updates the browser's DOM
+Yew uses its own **virtual-dom** implementation. It updates the browser's DOM
 with tiny patches when properties of elements have changed. Every component lives
-in its own independent loop, interacts with the environment (`Scope`) through message passing
-and supports fine control of rendering.
+in its own independent loop interacting with the environment (`Scope`) through message passing
+and supports a fine control of rendering.
 
-The `ShouldRender` return value informs the loop when the component should be re-rendered:
+The `ShouldRender` returns the value which informs the loop when the component should be re-rendered:
 
 ```rust
 fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -251,9 +251,9 @@ fn update(&mut self, msg: Self::Message) -> ShouldRender {
 }
 ```
 
-Using `ShouldRender` is more effective than comparing the model after every update, because not every model
-change leads to a view update. It lets us skip model comparison checks entirely.
-You can control updates very accurately.
+Using `ShouldRender` is more effective than comparing the model after every update because not every model
+change leads to a view update. It allows the framework to skip the model comparison checks entirely.
+This also allows you to control updates as precisely as possible.
 
 ### Rust/JS/C-style comments in templates
 
@@ -273,7 +273,7 @@ html! {
 
 ### Third-party crates and pure Rust expressions inside
 
-You can use external crates and put values from them into the template:
+Use external crates and put values from them into the template:
 
 ```rust
 extern crate chrono;
@@ -363,9 +363,9 @@ impl CcxtService {
 
 Yew allows for serialization (store/send and restore/recieve) formats.
 
-Implemented: `JSON`, `TOML`, `YAML`, `MSGPACK`, `CBOR`
+Implemented: `JSON`, `TOML`, `YAML`, `MSGPACK`, `CBOR`.
 
-In development: `BSON`, `XML`
+In development: `BSON`, `XML`.
 
 ```rust
 use yew::format::Json;
@@ -397,7 +397,7 @@ impl Component for Model {
 }
 ```
 
-By default only `JSON` is available, but you can activate the rest through features in
+Only `JSON` is available by default but you can activate the rest through features in
 your project's `Cargo.toml`:
 
 ```toml
@@ -413,7 +413,7 @@ Add necessary targets to your compiler:
 
     $ rustup target add wasm32-unknown-emscripten
 
-> We use `wasm32-unknown-emscripten` target here, because not every crate can be compiled using `wasm32-unknown-unknown`. This restriction should disappear as more crates start supporting the latter.
+> We use `wasm32-unknown-emscripten` target here because not every crate can be compiled using `wasm32-unknown-unknown`. This restriction should disappear as more crates are starting to support the latter.
 
 To build this project you need to have [cargo-web] installed:
 
