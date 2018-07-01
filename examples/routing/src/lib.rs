@@ -39,7 +39,7 @@ impl Component for Model {
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
 
         let callback = link.send_back(|route: Route<()>| Msg::HandleRoute(route));
-        let router = router::Router::bridge(callback);
+        let mut router = router::Router::bridge(callback);
 
         // TODO Not sure if this is technically correct. This should be sent _after_ the component has been created.
         // I think the `Component` trait should have a hook called `on_mount()`
