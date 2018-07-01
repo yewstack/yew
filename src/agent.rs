@@ -161,7 +161,7 @@ pub trait Discoverer {
 /// Bridge to a specific kind of worker.
 pub trait Bridge<AGN: Agent> {
     /// Send a message to an agent.
-    fn send(&self, msg: AGN::Input);
+    fn send(&mut self, msg: AGN::Input);
 }
 
 // <<< SAME THREAD >>>
@@ -258,7 +258,7 @@ struct ContextBridge<AGN: Agent> {
 }
 
 impl<AGN: Agent> Bridge<AGN> for ContextBridge<AGN> {
-    fn send(&self, msg: AGN::Input) {
+    fn send(&mut self, msg: AGN::Input) {
         let upd = AgentUpdate::Input(msg, self.id);
         self.scope.send(upd);
     }
@@ -320,7 +320,7 @@ struct JobBridge<AGN: Agent> {
 }
 
 impl<AGN: Agent> Bridge<AGN> for JobBridge<AGN> {
-    fn send(&self, msg: AGN::Input) {
+    fn send(&mut self, msg: AGN::Input) {
         let upd = AgentUpdate::Input(msg, SINGLETON_ID);
         self.scope.send(upd);
     }
@@ -379,7 +379,7 @@ pub struct PrivateBridge<T: Agent> {
 }
 
 impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
-    fn send(&self, msg: AGN::Input) {
+    fn send(&mut self, msg: AGN::Input) {
         // TODO Important! Implement.
         // Use a queue to collect a messages if an instance is not ready
         // and send them to an agent when it will reported readiness.
@@ -505,7 +505,7 @@ impl<AGN: Agent> PublicBridge<AGN> {
 }
 
 impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
-    fn send(&self, msg: AGN::Input) {
+    fn send(&mut self, msg: AGN::Input) {
         let msg = ToWorker::ProcessInput(self.id, msg);
         self.send_to_remote(msg);
     }
