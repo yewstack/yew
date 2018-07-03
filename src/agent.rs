@@ -20,23 +20,11 @@ enum ToWorker<T> {
     Destroy,
 }
 
-impl<T> Transferable for ToWorker<T>
-where
-    T: Serialize + for <'de> Deserialize<'de>,
-{
-}
-
 #[derive(Serialize, Deserialize)]
 enum FromWorker<T> {
     /// Worker sends this message when `wasm` bundle has loaded.
     WorkerLoaded,
     ProcessOutput(HandlerId, T),
-}
-
-impl<T> Transferable for FromWorker<T>
-where
-    T: Serialize + for <'de> Deserialize<'de>,
-{
 }
 
 
@@ -46,6 +34,8 @@ where
     Self: Serialize + for <'de> Deserialize<'de>,
 {
 }
+
+impl <T> Transferable for T where T: Serialize + for<'de> Deserialize<'de> {}
 
 trait Packed {
     fn pack(&self) -> Vec<u8>;
