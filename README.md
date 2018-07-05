@@ -411,9 +411,9 @@ Clone or download this repository.
 
 Add necessary targets to your compiler:
 
-    $ rustup target add wasm32-unknown-emscripten
+    $ rustup target add wasm32-unknown-unknown
 
-> We use `wasm32-unknown-emscripten` target here because not every crate can be compiled using `wasm32-unknown-unknown`. This restriction should disappear as more crates are starting to support the latter.
+> We recommend to use `wasm32-unknown-unknown` target where possible, but some third-party crates can be compiled with `wasm32-unknown-emscripten` target only.
 
 To build this project you need to have [cargo-web] installed:
 
@@ -423,7 +423,7 @@ To build this project you need to have [cargo-web] installed:
 
 ### Build
 
-    $ cargo web build
+    $ cargo web build --target=wasm32-unknown-unknown
 
 ### Running Tests
 
