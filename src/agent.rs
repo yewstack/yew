@@ -93,9 +93,43 @@ pub trait Threaded {
     fn register();
 }
 
-impl<T> Threaded for T
+/// Trait for implementing run function of worker.
+pub trait ThreadedReach {
+    /// Start the worker.
+    fn start_worker<F: Fn(Vec<u8>) + 'static>(loaded: Vec<u8>, handler: F);
+}
+
+impl ThreadedReach for Public {
+    fn start_worker<F: Fn(Vec<u8>) + 'static>(loaded: Vec<u8>, handler: F) {
+        js! {
+            var handler = @{handler};
+            self.onmessage = function(event) {
+                handler(event.data);
+            };
+            self.postMessage(@{loaded});
+        };
+    }
+}
+
+impl ThreadedReach for Global {
+    fn start_worker<F: Fn(Vec<u8>) + 'static>(loaded: Vec<u8>, handler: F) {
+        js! {
+            var handler = @{handler};
+            self.onconnect = function(event) {
+                var port = event.ports[0];
+                port.onmessage = function(event) {
+                    handler(event.data);
+                };
+                port.postMessage(@{loaded});
+            };
+        };
+    }
+}
+
+impl<T, R> Threaded for T
 where
-    T: Agent<Reach=Public>,
+    R: Discoverer + ThreadedReach,
+    T: Agent<Reach=R>,
 {
     fn register() {
         let scope = AgentScope::<T>::new();
@@ -130,13 +164,7 @@ where
         };
         let loaded: FromWorker<T::Output> = FromWorker::WorkerLoaded;
         let loaded = loaded.pack();
-        js! {
-            var handler = @{handler};
-            self.onmessage = function(event) {
-                handler(event.data);
-            };
-            self.postMessage(@{loaded});
-        };
+        R::start_worker(loaded, handler);
     }
 }
 
@@ -466,6 +494,7 @@ impl Discoverer for Public {
                     };
                     let name_of_resource = AGN::name_of_resource();
                     let worker = js! {
+                        // TODO Can use universal code here (Worker and SharedWorker under port)
                         var worker = new Worker(@{name_of_resource});
                         var handler = @{handler};
                         worker.onmessage = function(event) {
