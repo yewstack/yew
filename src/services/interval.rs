@@ -8,6 +8,7 @@ use stdweb::Value;
 
 /// A handle which helps to cancel interval. Uses
 /// [clearInterval](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearInterval).
+#[derive(Serialize, Deserialize)]
 pub struct IntervalTask(Option<Value>);
 
 /// A service to send messages on every elapsed interval.

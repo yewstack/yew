@@ -7,6 +7,7 @@ use std::time::Duration;
 use stdweb::Value;
 
 /// A handle to cancel a timeout task.
+#[derive(Serialize, Deserialize)]
 pub struct TimeoutTask(Option<Value>);
 
 /// An service to set a timeout.
