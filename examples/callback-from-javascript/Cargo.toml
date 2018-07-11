@@ -1,0 +1,8 @@
+[package]
+name = "callback-from-javascript"
+version = "0.1.0"
+authors = ["Scott Steele <scottlsteele@gmail.com>"]
+
+[dependencies]
+yew = { path = "../.." }
+stdweb = "0.4.7"
