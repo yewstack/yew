@@ -169,6 +169,13 @@ macro_rules! html_impl {
         $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
     };
+    // Support root text nodes: #313
+    // Provides `html!` blocks with only expression inside
+    ($stack:ident ({ $eval:expr })) => {
+        let node = $crate::virtual_dom::VNode::from($eval);
+        $stack.push(node);
+        html_impl! { $stack () }
+    };
     // PATTERN: { expression }
     ($stack:ident ({ $eval:expr } $($tail:tt)*)) => {
         let node = $crate::virtual_dom::VNode::from($eval);
@@ -287,7 +294,7 @@ pub fn add_child<COMP: Component>(stack: &mut Stack<COMP>, child: VNode<COMP>) {
             vlist.add_child(child);
         }
         _ => {
-            panic!("no nodes in stack to add child: {:?}", child);
+            panic!("parent must be a tag or a fragment to add the node: {:?}", child);
         }
     }
 }
