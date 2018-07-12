@@ -44,7 +44,7 @@ impl WebSocketService {
         Self {}
     }
 
-    /// Connects to a server by a weboscket connection. Needs two functions to generate
+    /// Connects to a server by a websocket connection. Needs two functions to generate
     /// data and notification messages.
     pub fn connect<OUT: 'static>(
         &mut self,
