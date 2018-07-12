@@ -58,6 +58,5 @@ pub mod worker {
         Job,
         Private,
         Public,
-        Transferable,
     };
 }

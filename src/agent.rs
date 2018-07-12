@@ -20,12 +20,6 @@ enum ToWorker<T> {
     Destroy,
 }
 
-impl<T> Transferable for ToWorker<T>
-where
-    T: Serialize + for <'de> Deserialize<'de>,
-{
-}
-
 #[derive(Serialize, Deserialize)]
 enum FromWorker<T> {
     /// Worker sends this message when `wasm` bundle has loaded.
@@ -33,34 +27,21 @@ enum FromWorker<T> {
     ProcessOutput(HandlerId, T),
 }
 
-impl<T> Transferable for FromWorker<T>
-where
-    T: Serialize + for <'de> Deserialize<'de>,
-{
-}
-
-
-/// Represents a message which you could send to an agent.
-pub trait Transferable
-where
-    Self: Serialize + for <'de> Deserialize<'de>,
-{
-}
 
 trait Packed {
     fn pack(&self) -> Vec<u8>;
     fn unpack(data: &Vec<u8>) -> Self;
 }
 
-impl<T: Transferable> Packed for T {
+impl<T: Serialize + for <'de> Deserialize<'de>> Packed for T {
     fn pack(&self) -> Vec<u8> {
         bincode::serialize(&self)
-            .expect("can't serialize a transferable object")
+            .expect("can't serialize an agent message")
     }
 
     fn unpack(data: &Vec<u8>) -> Self {
         bincode::deserialize(&data)
-            .expect("can't deserialize a transferable object")
+            .expect("can't deserialize an agent message")
     }
 }
 
@@ -545,9 +526,9 @@ pub trait Agent: Sized + 'static {
     /// Type of an input messagae.
     type Message;
     /// Incoming message type.
-    type Input: Transferable;
+    type Input: Serialize + for <'de> Deserialize<'de>;
     /// Outgoing message type.
-    type Output: Transferable;
+    type Output: Serialize + for <'de> Deserialize<'de>;
 
     /// Creates an instance of an agent.
     fn create(link: AgentLink<Self>) -> Self;
