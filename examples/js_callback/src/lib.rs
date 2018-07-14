@@ -7,26 +7,20 @@ use yew::prelude::*;
 #[macro_use]
 extern crate stdweb;
 
-fn main() {
-    yew::initialize();
-    App::<Model>::new().mount_to_body();
-    yew::run_loop();
-}
-
-struct Model {
+pub struct Model {
     payload: String,
     // Pointless field just to have something that's been manipulated
     debugged_payload: String,
     link: ComponentLink<Model>,
 }
 
-enum Msg {
+pub enum Msg {
     Payload(String),
     AsyncPayload,
 }
 
 #[derive(Default, PartialEq, Eq, Clone)]
-struct Props {
+pub struct Props {
     payload: String,
 }
 
