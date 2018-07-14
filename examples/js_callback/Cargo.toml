@@ -1,5 +1,5 @@
 [package]
-name = "callback-from-javascript"
+name = "js_callback"
 version = "0.1.0"
 authors = ["Scott Steele <scottlsteele@gmail.com>"]
 
