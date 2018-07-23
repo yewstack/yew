@@ -1,4 +1,5 @@
-[![Build Status](https://api.travis-ci.org/DenisKolodin/yew.svg)](https://travis-ci.org/DenisKolodin/yew)[![Gitter chat](https://badges.gitter.im/yewframework.png)](https://gitter.im/yewframework/Lobby "Gitter chat")
+[![Build Status](https://api.travis-ci.org/DenisKolodin/yew.svg)](https://travis-ci.org/DenisKolodin/yew)
+[![Gitter chat](https://badges.gitter.im/yewframework.png)](https://gitter.im/yewframework/Lobby "Gitter chat")
 
 # Yew
 
