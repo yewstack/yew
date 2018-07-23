@@ -29,6 +29,8 @@
 - `html!` macro supports multiple classes in a single string. For example:
   `<a class="button is-primary",>{ "Send" }</a>`.
 
+- `Added `FetchOptions` to set `Credentials` of `fetch` request.
+
 [Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
 
 ### Bug fixes
