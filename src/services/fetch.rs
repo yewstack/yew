@@ -5,12 +5,33 @@ use std::collections::HashMap;
 use stdweb::{Value, JsSerialize};
 use stdweb::web::ArrayBuffer;
 use stdweb::unstable::{TryInto, TryFrom};
+use stdweb::serde::Serde;
 
 use super::Task;
 use format::{Format, Text, Binary};
 use callback::Callback;
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
+
+/// Type to set credentials for fetch.
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Credentials {
+    /// `omit` value of credentials.
+    Omit,
+    /// `include` value of credentials.
+    Include,
+    /// `same-origin` value of credentials.
+    SameOrigin,
+}
+
+/// Init options for `fetch()` function call.
+/// https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
+#[derive(Serialize)]
+pub struct FetchOptions {
+    /// Credentials of a fetch request.
+    pub credentials: Option<Credentials>,
+}
 
 /// Represents errors of a fetch service.
 #[derive(Debug, Fail)]
@@ -89,7 +110,30 @@ impl FetchService {
         IN: Into<Text>,
         OUT: From<Text>,
     {
-        fetch_impl::<IN, OUT, String, String>(false, request, callback)
+        fetch_impl::<IN, OUT, String, String>(false, request, None, callback)
+    }
+
+    /// `fetch` with provided `FetchOptions` object.
+    /// Use it if you need to send cookies with a request:
+    /// ```rust
+    ///     let request = fetch::Request::get("/path/")
+    ///         .body(Nothing).unwrap();
+    ///     let options = FetchOptions {
+    ///         credentials: Some(Credentials::SameOrigin),
+    ///     };
+    ///     let task = fetch_service.fetch_with_options(request, options, callback);
+    /// ```
+    pub fn fetch_with_options<IN, OUT: 'static>(
+        &mut self,
+        request: Request<IN>,
+        options: FetchOptions,
+        callback: Callback<Response<OUT>>,
+    ) -> FetchTask
+    where
+        IN: Into<Text>,
+        OUT: From<Text>,
+    {
+        fetch_impl::<IN, OUT, String, String>(false, request, Some(options), callback)
     }
 
     /// Fetch the data in binary format.
@@ -102,13 +146,28 @@ impl FetchService {
         IN: Into<Binary>,
         OUT: From<Binary>,
     {
-        fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, callback)
+        fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, None, callback)
+    }
+
+    /// Fetch the data in binary format.
+    pub fn fetch_binary_with_options<IN, OUT: 'static>(
+        &mut self,
+        request: Request<IN>,
+        options: FetchOptions,
+        callback: Callback<Response<OUT>>,
+    ) -> FetchTask
+    where
+        IN: Into<Binary>,
+        OUT: From<Binary>,
+    {
+        fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, Some(options), callback)
     }
 }
 
 fn fetch_impl<IN, OUT: 'static, T, X>(
     binary: bool,
     request: Request<IN>,
+    options: Option<FetchOptions>,
     callback: Callback<Response<OUT>>,
 ) -> FetchTask
 where
@@ -176,7 +235,8 @@ where
             active: true,
             callback,
         };
-        fetch(request).then(function(response) {
+        var init = @{Serde(options)};
+        fetch(request, init).then(function(response) {
             var promise = (@{binary}) ? response.arrayBuffer() : response.text();
             var status = response.status;
             var headers = {};
