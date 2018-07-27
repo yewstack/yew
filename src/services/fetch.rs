@@ -256,6 +256,13 @@ where
                     callback.drop();
                 }
             });
+        }).catch(function(e) {
+            if (handle.active == true) {
+                var data = (@{binary}) ? new ArrayBuffer() : "";
+                handle.active = false;
+                callback(false, 408, {}, data);
+                callback.drop();
+            }
         });
         return handle;
     };
