@@ -35,8 +35,11 @@ pub use stdweb::web::event::{
     MouseDownEvent,
     MouseMoveEvent,
     MouseOutEvent,
+    MouseEnterEvent,
+    MouseLeaveEvent,
     MouseOverEvent,
     MouseUpEvent,
+    MouseWheelEvent
 };
 
 pub use agent::{
