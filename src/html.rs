@@ -308,10 +308,9 @@ impl_action! {
     onmouseup(event: MouseUpEvent) -> MouseUpEvent => |_, event| { event }
     onmouseover(event: MouseOverEvent) -> MouseOverEvent => |_, event| { event }
     onmouseout(event: MouseOutEvent) -> MouseOutEvent => |_, event| { event }
-    /* TODO Add PR to https://github.com/koute/stdweb
-    onmouseenter(event: MouseEnterEvent) -> () => |_, _| { () }
-    onmouseleave(event: MouseLeaveEvent) -> () => |_, _| { () }
-    */
+    onmouseenter(event: MouseEnterEvent) -> MouseEnterEvent => |_, event| { event }
+    onmouseleave(event: MouseLeaveEvent) -> MouseLeaveEvent => |_, event| { event }
+    onmousewheel(event: MouseWheelEvent) -> MouseWheelEvent => |_, event| { event }
     onblur(event: BlurEvent) -> BlurEvent => |_, event| { event }
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
         use stdweb::web::html_element::{InputElement, TextAreaElement};
