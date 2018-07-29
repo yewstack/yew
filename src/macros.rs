@@ -113,6 +113,9 @@ macro_rules! html_impl {
     (@vtag $stack:ident (onblur = | $var:pat | $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((onblur) = move | $var: $crate::prelude::BlurEvent | $handler, $($tail)*) }
     };
+    (@vtag $stack:ident (onfocus = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onfocus) = move | $var: $crate::prelude::FocusEvent | $handler, $($tail)*) }
+    };
     (@vtag $stack:ident (oninput = | $var:pat | $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((oninput) = move | $var: $crate::prelude::InputData | $handler, $($tail)*) }
     };
