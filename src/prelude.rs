@@ -41,6 +41,7 @@ pub use stdweb::web::event::{
     MouseOverEvent,
     MouseUpEvent,
     MouseWheelEvent,
+    ScrollEvent,
     SubmitEvent
 };
 
