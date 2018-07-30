@@ -27,6 +27,7 @@ pub use stdweb::web::event::{
     BlurEvent,
     ClickEvent,
     DoubleClickEvent,
+    FocusEvent,
     IKeyboardEvent,
     IMouseEvent,
     KeyDownEvent,
