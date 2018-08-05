@@ -6,6 +6,7 @@ use counter::Model;
 
 fn main() {
     yew::initialize();
-    App::<Model>::new().mount_to_body();
+    let app: App<_, Model> = App::new(());
+    app.mount_to_body();
     yew::run_loop();
 }

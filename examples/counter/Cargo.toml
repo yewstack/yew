@@ -4,5 +4,5 @@ version = "0.1.1"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 
 [dependencies]
-stdweb = "0.4.2"
+stdweb = "0.4.8"
 yew = { path = "../.." }
