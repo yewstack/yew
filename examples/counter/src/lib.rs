@@ -4,7 +4,9 @@ extern crate yew;
 
 use stdweb::web::Date;
 use yew::prelude::*;
-use yew::services::ConsoleService;
+use yew::services::console::ConsoleService;
+
+type Context = ();
 
 pub struct Model {
     console: ConsoleService,
@@ -17,29 +19,29 @@ pub enum Msg {
     Bulk(Vec<Msg>),
 }
 
-impl Component for Model {
+impl Component<Context> for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, _: &mut Env<Context, Self>) -> Self {
         Model {
             console: ConsoleService::new(),
             value: 0,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message, context: &mut Env<Context, Self>) -> ShouldRender {
         match msg {
             Msg::Increment => {
-                self.value = self.value + 1;
+                self.value += 1;
                 self.console.log("plus one");
             }
             Msg::Decrement => {
-                self.value = self.value - 1;
+                self.value -= 1;
                 self.console.log("minus one");
             }
             Msg::Bulk(list) => for msg in list {
-                self.update(msg);
+                self.update(msg, context);
                 self.console.log("Bulk action");
             },
         }
@@ -47,8 +49,8 @@ impl Component for Model {
     }
 }
 
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+impl Renderable<Context, Model> for Model {
+    fn view(&self) -> Html<Context, Self> {
         html! {
             <div>
                 <nav class="menu",>
@@ -62,4 +64,3 @@ impl Renderable<Model> for Model {
         }
     }
 }
-
