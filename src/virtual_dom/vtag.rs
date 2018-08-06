@@ -359,7 +359,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                     }
                 }
                 Some(mut vnode) => {
-                    // It is not even a VTag, we must remove the ancestor.
+                    // It is not a VTag variant we must remove the ancestor.
                     let node = vnode.detach(parent);
                     (Reform::Before(node), None)
                 }
