@@ -1,5 +1,5 @@
 //! This module contains fragments implementation.
-use super::{VDiff, VNode};
+use super::{VDiff, VNode, VText};
 use html::{Component, Scope};
 use stdweb::web::Node;
 
@@ -36,25 +36,36 @@ impl<COMP: Component> VDiff for VList<COMP> {
         &mut self,
         parent: &Node,
         precursor: Option<&Node>,
-        opposite: Option<VNode<Self::Component>>,
+        ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,
     ) -> Option<Node> {
+        // Reuse precursor, because fragment reuse parent
+        let mut precursor = precursor.map(|node| node.to_owned());
         let mut rights = {
-            match opposite {
+            match ancestor {
                 // If element matched this type
                 Some(VNode::VList(mut vlist)) => {
+                    // Previously rendered items
                     vlist.childs.drain(..).map(Some).collect::<Vec<_>>()
                 }
                 Some(mut vnode) => {
-                    let _node = vnode.detach(parent);
-                    // TODO Replace precursor?
+                    let node = vnode.detach(parent);
+                    precursor = node;
                     Vec::new()
                 }
                 None => Vec::new(),
             }
         };
-        // Collect elements of an opposite if exists or use an empty vec
+        // Collect elements of an ancestor if exists or use an empty vec
         // TODO DRY?!
+        if self.childs.is_empty() {
+            // Fixes: https://github.com/DenisKolodin/yew/issues/294
+            // Without a placeholder the next element becomes first
+            // and corrupts the order of rendering
+            // We use empty text element to stake out a place
+            let placeholder = VText::new("".into());
+            self.childs.push(placeholder.into());
+        }
         let mut lefts = self.childs.iter_mut().map(Some).collect::<Vec<_>>();
         // Process children
         let diff = lefts.len() as i32 - rights.len() as i32;
@@ -67,8 +78,6 @@ impl<COMP: Component> VDiff for VList<COMP> {
                 lefts.push(None);
             }
         }
-        // Reuse precursor, because fragment reuse parent
-        let mut precursor = precursor.map(|node| node.to_owned());
         for pair in lefts.into_iter().zip(rights) {
             match pair {
                 (Some(left), right) => {
