@@ -44,8 +44,11 @@ impl Renderable<Model> for Model {
                 <nav class="menu",>{ self.view_menu() }</nav>
                 <table>
                     <tr>
+                        // Important! All columns have contain the same elements
                         { self.view_cols() }
+                        <td>{ "- - - >" }</td>
                         { self.view_cols() }
+                        <td>{ "< - - -" }</td>
                         { self.view_cols() }
                     </tr>
                 </table>
@@ -59,10 +62,8 @@ impl Model {
         let render = |idx| html! {
             <td>{ idx }</td>
         };
-        html! {
-            <>
-                { for (0..self.counter).map(render) }
-            </>
+        html! { // We use a fragment directly
+            { for (0..self.counter).map(render) }
         }
     }
 
