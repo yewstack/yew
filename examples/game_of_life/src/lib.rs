@@ -26,6 +26,7 @@ pub struct Model {
     cellules: Vec<Cellule>,
     cellules_width: usize,
     cellules_height: usize,
+    #[allow(unused)]
     job: Box<Task>,
 }
 
