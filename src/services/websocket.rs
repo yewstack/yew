@@ -18,6 +18,7 @@ use format::{Text, Binary};
 use callback::Callback;
 use super::Task;
 
+#[derive(Debug)]
 /// A status of a websocket connection. Used for status notification.
 pub enum WebSocketStatus {
     /// Fired when a websocket connection was opened.
