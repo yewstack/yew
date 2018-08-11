@@ -313,6 +313,7 @@ impl_action! {
     onmousewheel(event: MouseWheelEvent) -> MouseWheelEvent => |_, event| { event }
     onblur(event: BlurEvent) -> BlurEvent => |_, event| { event }
     onfocus(event: FocusEvent) -> FocusEvent => |_, event| { event }
+    onsubmit(event: SubmitEvent) -> SubmitEvent => |_, event| { event }
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
         use stdweb::web::html_element::{InputElement, TextAreaElement};
         use stdweb::unstable::TryInto;
