@@ -231,11 +231,16 @@ where
         };
         var request = new Request(@{uri}, data);
         var callback = @{callback};
+        var abortController = AbortController ? new AbortController() : null;
         var handle = {
             active: true,
             callback,
+            abortController,
         };
-        var init = @{Serde(options)};
+        var init = @{Serde(options)} || {};
+        if (abortController && !("signal" in init)) {
+            init.signal = abortController.signal;
+        }
         fetch(request, init).then(function(response) {
             var promise = (@{binary}) ? response.arrayBuffer() : response.text();
             var status = response.status;
@@ -274,7 +279,8 @@ impl Task for FetchTask {
         if let Some(ref task) = self.0 {
             let result = js! {
                 var the_task = @{task};
-                return the_task.active;
+                return the_task.active &&
+                        (!the_task.abortController || !the_task.abortController.signal.aborted);
             };
             result.try_into().unwrap_or(false)
         } else {
@@ -282,9 +288,9 @@ impl Task for FetchTask {
         }
     }
     fn cancel(&mut self) {
-        // Fetch API doesn't support request cancelling
+        // Fetch API doesn't support request cancelling in all browsers
         // and we should use this workaround with a flag.
-        // In fact, request not canceled, but callback won't be called.
+        // In that case, request not canceled, but callback won't be called.
         let handle = self.0
             .take()
             .expect("tried to cancel request fetching twice");
@@ -292,6 +298,9 @@ impl Task for FetchTask {
             var handle = @{handle};
             handle.active = false;
             handle.callback.drop();
+            if (handle.abortController) {
+                handle.abortController.abort();
+            }
         }
     }
 }
