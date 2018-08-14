@@ -33,6 +33,8 @@
 
 - `FetchService` aborts requests using `AbortController`.
 
+- Added `SubmitEvent` with `onsubmit` rule.
+
 [Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
 
 ### Bug fixes
