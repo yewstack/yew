@@ -125,6 +125,9 @@ macro_rules! html_impl {
     (@vtag $stack:ident (onfocus = | $var:pat | $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((onfocus) = move | $var: $crate::prelude::FocusEvent | $handler, $($tail)*) }
     };
+    (@vtag $stack:ident (onsubmit = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onsubmit) = move | $var: $crate::prelude::SubmitEvent | $handler, $($tail)*) }
+    };
     (@vtag $stack:ident (oninput = | $var:pat | $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((oninput) = move | $var: $crate::prelude::InputData | $handler, $($tail)*) }
     };

@@ -40,7 +40,8 @@ pub use stdweb::web::event::{
     MouseLeaveEvent,
     MouseOverEvent,
     MouseUpEvent,
-    MouseWheelEvent
+    MouseWheelEvent,
+    SubmitEvent
 };
 
 pub use agent::{
