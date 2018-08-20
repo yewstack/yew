@@ -83,6 +83,11 @@ where
         };
         closure.into()
     }
+
+    /// This method sends a message to this component immediately.
+    pub fn send_self(&mut self, msg: COMP::Message) {
+        self.scope.send_message(msg);
+    }
 }
 
 /// A context which contains a bridge to send a messages to a loop.
