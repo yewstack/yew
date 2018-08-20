@@ -30,6 +30,12 @@ impl<IN> PartialEq for Callback<IN> {
     }
 }
 
+impl<IN> Default for Callback<IN> {
+    fn default() -> Self {
+        Callback::from(|_| {})
+    }
+}
+
 impl<IN> Callback<IN> {
     /// This method calls the actual callback.
     pub fn emit(&self, value: IN) {
