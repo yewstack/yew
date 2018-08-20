@@ -35,6 +35,8 @@
 
 - Added `SubmitEvent` with `onsubmit` rule.
 
+- Added `send_self` method to `ComponentLink` to send messages itself immediately.
+
 [Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
 
 ### Bug fixes
