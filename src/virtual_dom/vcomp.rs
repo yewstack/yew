@@ -14,7 +14,7 @@ use Hidden;
 type AnyProps = (TypeId, *mut Hidden);
 
 /// The method generates an instance of a (child) component.
-type Generator = FnMut(Element, Option<Node>, AnyProps);
+type Generator = dyn FnMut(Element, Option<Node>, AnyProps);
 
 /// A reference to unknown activator which will be attached later with a generator function.
 type LazyActivator<COMP> = Rc<RefCell<Option<Scope<COMP>>>>;
@@ -24,10 +24,10 @@ pub struct VComp<COMP: Component> {
     type_id: TypeId,
     cell: NodeCell,
     props: Option<(TypeId, *mut Hidden)>,
-    blind_sender: Box<FnMut(AnyProps)>,
+    blind_sender: Box<dyn FnMut(AnyProps)>,
     generator: Box<Generator>,
     activators: Vec<LazyActivator<COMP>>,
-    destroyer: Box<Fn()>,
+    destroyer: Box<dyn Fn()>,
     _parent: PhantomData<COMP>,
 }
 

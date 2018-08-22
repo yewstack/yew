@@ -24,7 +24,7 @@ pub(crate) trait Runnable {
 /// This is a global scheduler suitable to schedule and run any tasks.
 pub(crate) struct Scheduler {
     lock: Rc<AtomicBool>,
-    sequence: Shared<VecDeque<Box<Runnable>>>,
+    sequence: Shared<VecDeque<Box<dyn Runnable>>>,
 }
 
 impl Clone for Scheduler {
@@ -46,7 +46,7 @@ impl Scheduler {
         }
     }
 
-    pub(crate) fn put_and_try_run(&self, runnable: Box<Runnable>) {
+    pub(crate) fn put_and_try_run(&self, runnable: Box<dyn Runnable>) {
         self.sequence.borrow_mut().push_back(runnable);
         if self.lock.compare_and_swap(false, true, Ordering::Relaxed) == false {
             loop {

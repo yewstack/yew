@@ -27,14 +27,14 @@ pub trait Listener<COMP: Component> {
     fn attach(&mut self, element: &Element, scope: Scope<COMP>) -> EventListenerHandle;
 }
 
-impl<COMP: Component> fmt::Debug for Listener<COMP> {
+impl<COMP: Component> fmt::Debug for dyn Listener<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Listener {{ kind: {} }}", self.kind())
     }
 }
 
 /// A list of event listeners.
-type Listeners<COMP> = Vec<Box<Listener<COMP>>>;
+type Listeners<COMP> = Vec<Box<dyn Listener<COMP>>>;
 
 /// A map of attributes.
 type Attributes = HashMap<String, String>;

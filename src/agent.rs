@@ -83,7 +83,7 @@ impl HandlerId {
 /// This traits allow to get addres or register worker.
 pub trait Bridged: Agent + Sized + 'static {
     /// Creates a messaging bridge between a worker and the component.
-    fn bridge(callback: Callback<Self::Output>) -> Box<Bridge<Self>>;
+    fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>>;
 }
 
 /// Implements rules to register a worker in a separate thread.
@@ -144,7 +144,7 @@ impl<T> Bridged for T
 where
     T: Agent,
 {
-    fn bridge(callback: Callback<Self::Output>) -> Box<Bridge<Self>> {
+    fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>> {
         Self::Reach::spawn_or_join(callback)
     }
 }
@@ -153,7 +153,7 @@ where
 #[doc(hidden)]
 pub trait Discoverer {
     /// Spawns an agent and returns `Bridge` implementation.
-    fn spawn_or_join<AGN: Agent>(_callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(_callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
         unimplemented!();
     }
 }
@@ -209,7 +209,7 @@ thread_local! {
 pub struct Context;
 
 impl Discoverer for Context {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
         let mut scope_to_init = None;
         let bridge = LOCAL_AGENTS_POOL.with(|pool| {
             match pool.borrow_mut().entry::<LocalAgent<AGN>>() {
@@ -289,7 +289,7 @@ impl<AGN: Agent> Drop for ContextBridge<AGN> {
 pub struct Job;
 
 impl Discoverer for Job {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
         let scope = AgentScope::<AGN>::new();
         let responder = CallbackResponder { callback };
         let agent_link = AgentLink::connect(&scope, responder);
@@ -341,7 +341,7 @@ impl<AGN: Agent> Drop for JobBridge<AGN> {
 pub struct Private;
 
 impl Discoverer for Private {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
         let handler = move |data: Vec<u8>| {
             let msg = FromWorker::<AGN::Output>::unpack(&data);
             match msg {
@@ -436,7 +436,7 @@ thread_local! {
 pub struct Public;
 
 impl Discoverer for Public {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
         let bridge = REMOTE_AGENTS_POOL.with(|pool| {
             match pool.borrow_mut().entry::<RemoteAgent<AGN>>() {
                 Entry::Occupied(mut entry) => {
@@ -598,7 +598,7 @@ impl<AGN: Agent> AgentScope<AGN> {
             shared_agent: self.shared_agent.clone(),
             message: Some(update),
         };
-        let runnable: Box<Runnable> = Box::new(envelope);
+        let runnable: Box<dyn Runnable> = Box::new(envelope);
         scheduler().put_and_try_run(runnable);
     }
 }
@@ -624,7 +624,7 @@ impl<AGN: Agent> Responder<AGN> for WorkerResponder {
 /// Link to agent's scope for creating callbacks.
 pub struct AgentLink<AGN: Agent> {
     scope: AgentScope<AGN>,
-    responder: Box<Responder<AGN>>,
+    responder: Box<dyn Responder<AGN>>,
 }
 
 impl<AGN: Agent> AgentLink<AGN> {
