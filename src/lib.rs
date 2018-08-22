@@ -56,7 +56,7 @@
 //! ```
 //!
 
-#![deny(missing_docs, bare_trait_objects)]
+#![deny(missing_docs, bare_trait_objects, anonymous_parameters)]
 #![recursion_limit = "512"]
 
 #[macro_use]
