@@ -11,15 +11,15 @@
 //! #[macro_use]
 //! extern crate yew;
 //! use yew::prelude::*;
-//! 
+//!
 //! struct Model {
 //!     value: i64,
 //! }
-//! 
+//!
 //! enum Msg {
 //!     DoIt,
 //! }
-//! 
+//!
 //! impl Component for Model {
 //!     type Message = Msg;
 //!     type Properties = ();
@@ -28,7 +28,7 @@
 //!             value: 0,
 //!         }
 //!     }
-//! 
+//!
 //!     fn update(&mut self, msg: Self::Message) -> ShouldRender {
 //!         match msg {
 //!             Msg::DoIt => self.value = self.value + 1
@@ -36,7 +36,7 @@
 //!         true
 //!     }
 //! }
-//! 
+//!
 //! impl Renderable<Model> for Model {
 //!     fn view(&self) -> Html<Self> {
 //!         html! {
@@ -47,7 +47,7 @@
 //!         }
 //!     }
 //! }
-//! 
+//!
 //! fn main() {
 //!     yew::initialize();
 //!     App::<Model>::new().mount_to_body();
@@ -56,7 +56,7 @@
 //! ```
 //!
 
-#![deny(missing_docs)]
+#![deny(missing_docs, bare_trait_objects)]
 #![recursion_limit = "512"]
 
 #[macro_use]

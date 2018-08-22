@@ -114,7 +114,7 @@ where
             shared_component: self.shared_component.clone(),
             message: Some(update),
         };
-        let runnable: Box<Runnable> = Box::new(envelope);
+        let runnable: Box<dyn Runnable> = Box::new(envelope);
         scheduler().put_and_try_run(runnable);
     }
 
