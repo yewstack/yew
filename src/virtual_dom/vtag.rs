@@ -121,7 +121,7 @@ impl<COMP: Component> VTag<COMP> {
     /// Adds new listener to the node.
     /// It's boxed because we want to keep it in a single list.
     /// Lates `Listener::attach` called to attach actual listener to a DOM node.
-    pub fn add_listener(&mut self, listener: Box<Listener<COMP>>) {
+    pub fn add_listener(&mut self, listener: Box<dyn Listener<COMP>>) {
         self.listeners.push(listener);
     }
 
@@ -456,7 +456,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
 }
 
 impl<COMP: Component> fmt::Debug for VTag<COMP> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "VTag {{ tag: {} }}", self.tag)
     }
 }

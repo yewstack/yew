@@ -10,7 +10,7 @@ use std::rc::Rc;
 /// </aside>
 /// `Rc` wrapper used to make it clonable.
 #[must_use]
-pub struct Callback<IN>(Rc<Fn(IN)>);
+pub struct Callback<IN>(Rc<dyn Fn(IN)>);
 
 impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
     fn from(func: F) -> Self {

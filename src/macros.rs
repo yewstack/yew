@@ -290,7 +290,7 @@ pub fn set_classes<COMP: Component, T: AsRef<str>>(stack: &mut Stack<COMP>, clas
 #[doc(hidden)]
 pub fn attach_listener<COMP: Component>(
     stack: &mut Stack<COMP>,
-    listener: Box<Listener<COMP>>,
+    listener: Box<dyn Listener<COMP>>,
 ) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.add_listener(listener);
