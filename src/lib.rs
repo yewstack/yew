@@ -56,7 +56,7 @@
 //! ```
 //!
 
-#![deny(missing_docs, bare_trait_objects, elided_lifetimes_in_paths)]
+#![deny(missing_docs, bare_trait_objects, elided_lifetimes_in_paths, anonymous_parameters)]
 #![recursion_limit = "512"]
 
 #[macro_use]
