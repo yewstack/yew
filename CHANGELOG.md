@@ -9,8 +9,11 @@
   All examples had changed.
 
 - `html!` macro adds `move` modifier and the type of event for every handler (#240). Use
-`<input oninput=|e| Msg::UpdateEvent(e.value), />` instead of obsolete
-`<input oninput=move |e: InputData| Msg::UpdateEvent(e.value), />`.
+  `<input oninput=|e| Msg::UpdateEvent(e.value), />` instead of obsolete
+  `<input oninput=move |e: InputData| Msg::UpdateEvent(e.value), />`.
+
+- `send_back` method requires a mutable reference to `self`. This was added to prevent creating
+  callbacks in `view` implementations.
 
 ### New features
 
