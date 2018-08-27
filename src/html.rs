@@ -319,6 +319,14 @@ impl_action! {
     onblur(event: BlurEvent) -> BlurEvent => |_, event| { event }
     onfocus(event: FocusEvent) -> FocusEvent => |_, event| { event }
     onsubmit(event: SubmitEvent) -> SubmitEvent => |_, event| { event }
+    ondragstart(event: DragStartEvent) -> DragStartEvent => |_, event| { event }
+    ondrag(event: DragEvent) -> DragEvent => |_, event| { event }
+    ondragend(event: DragEndEvent) -> DragEndEvent => |_, event| { event }
+    ondragenter(event: DragEnterEvent) -> DragEnterEvent => |_, event| { event }
+    ondragleave(event: DragLeaveEvent) -> DragLeaveEvent => |_, event| { event }
+    ondragover(event: DragOverEvent) -> DragOverEvent => |_, event| { event }
+    ondragexit(event: DragExitEvent) -> DragExitEvent => |_, event| { event }
+    ondrop(event: DragDropEvent) -> DragDropEvent => |_, event| { event }
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
         use stdweb::web::html_element::{InputElement, TextAreaElement};
         use stdweb::unstable::TryInto;

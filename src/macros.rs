@@ -134,6 +134,31 @@ macro_rules! html_impl {
     (@vtag $stack:ident (onchange = | $var:pat | $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((onchange) = move | $var: $crate::prelude::ChangeData | $handler, $($tail)*) }
     };
+    (@vtag $stack:ident (ondragstart = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((ondragstart) = move | $var: $crate::prelude::DragStartEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (ondrag = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((ondrag) = move | $var: $crate::prelude::DragEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (ondragend = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((ondragend) = move | $var: $crate::prelude::DragEndEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (ondragenter = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((ondragenter) = move | $var: $crate::prelude::DragEnterEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (ondragleave = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((ondragleave) = move | $var: $crate::prelude::DragLeaveEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (ondragover = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((ondragover) = move | $var: $crate::prelude::DragOverEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (ondragexit = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((ondragexit) = move | $var: $crate::prelude::DragExitEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (ondrop = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((ondrop) = move | $var: $crate::prelude::DragDropEvent | $handler, $($tail)*) }
+    };
+
     // PATTERN: (action)=expression,
     (@vtag $stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
         // Catch value to a separate variable for clear error messages
