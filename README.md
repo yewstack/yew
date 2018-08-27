@@ -142,7 +142,7 @@ impl Agent for Worker {
     // Handle inner messages (of services of `send_back` callbacks)
     fn update(&mut self, msg: Self::Message) { /* ... */ }
 
-    // Handle incoming messages form components of other agents.
+    // Handle incoming messages from components of other agents.
     fn handle(&mut self, msg: Self::Input, who: HandlerId) {
         match msg {
             Request::Question(_) => {
