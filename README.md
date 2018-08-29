@@ -3,10 +3,10 @@
 
 # Yew
 
-Yew is a modern Rust framework inspired by Elm and ReactJS for
+**Yew** (pronounced `/juː/`, the same way as "you") is a modern Rust framework inspired by Elm and ReactJS for
 creating multi-threaded frontend apps with WebAssembly.
 
-**NEW!** The framework supports ***multi-threading & concurrency*** out of the box.
+The framework supports ***multi-threading & concurrency*** out of the box.
 It uses [Web Workers API] to spawn actors (agents) in separate threads
 and uses a local scheduler attached to a thread for concurrent tasks.
 
