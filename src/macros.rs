@@ -1,6 +1,6 @@
-//! This module contains macros which implements `html!` macro
-//! and JSX-like templates.
+//! This module contains macros which implement the `html!` macro and JSX-like templates.
 
+use std::borrow::Cow;
 use html::Component;
 use virtual_dom::{Listener, VNode};
 
@@ -15,19 +15,22 @@ macro_rules! html_impl {
         $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
     };
-    // Start of component tag
+    // Begin component tag
+    // eg: <$type: ..
     ($stack:ident (< $comp:ty : $($tail:tt)*)) => {
         #[allow(unused_mut)]
         let mut pair = $crate::virtual_dom::VComp::lazy::<$comp>();
         html_impl! { @vcomp $stack pair ($($tail)*) }
     };
-    // Set a whole struct as a properties
+    // Set a whole struct as properties
+    // eg: with $ident, ..
     (@vcomp $stack:ident $pair:ident (with $props:ident, $($tail:tt)*)) => {
         $pair.0 = $props;
         html_impl! { @vcomp $stack $pair ($($tail)*) }
     };
-    // Set a specific field as a property.
+    // Set a specific field of the properties
     // It uses `Transformer` trait to convert a type used in template to a type of the field.
+    // eg: $ident = $expr, ..
     (@vcomp $stack:ident $pair:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
         // It cloned for ergonomics in templates. Attribute with
         // `self.param` value could be reused and sholdn't be cloned
@@ -35,7 +38,8 @@ macro_rules! html_impl {
         ($pair.0).$attr = $crate::virtual_dom::vcomp::Transformer::transform(&mut $pair.1, $val);
         html_impl! { @vcomp $stack $pair ($($tail)*) }
     };
-    // Self-closing of tag
+    // Tag self-close
+    // eg: /> ..
     (@vcomp $stack:ident $pair:ident (/ > $($tail:tt)*)) => {
         let (props, mut comp) = $pair;
         comp.set_props(props);
@@ -43,36 +47,54 @@ macro_rules! html_impl {
         $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
     };
-    // Start of opening tag
-    ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
-        let vtag = $crate::virtual_dom::VTag::new(stringify!($starttag));
+    // Begin open svg tag
+    // Sets the xmlns to the svg namespace
+    // eg: <svg ..
+    ($stack:ident (< svg $($tail:tt)*)) => {
+        let vtag = $crate::virtual_dom::VTag::new("svg", Some("http://www.w3.org/2000/svg".into()));
         $stack.push(vtag.into());
         html_impl! { @vtag $stack ($($tail)*) }
     };
+    // Begin open tag
+    // eg: <$ident ..
+    ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
+        let vtag = $crate::virtual_dom::VTag::new(stringify!($starttag), None);
+        $stack.push(vtag.into());
+        html_impl! { @vtag $stack ($($tail)*) }
+    };
+    // Set multiple classes
     // PATTERN: class=("class-1", "class-2", local_variable),
+    // eg: class=($expr, ...), ..
     (@vtag $stack:ident (class = ($($class:expr),*), $($tail:tt)*)) => {
         $( $crate::macros::append_class(&mut $stack, $class); )*
         html_impl! { @vtag $stack ($($tail)*) }
     };
+    // Set a single class
+    // eg: class=$expr, ..
     (@vtag $stack:ident (class = $class:expr, $($tail:tt)*)) => {
         $crate::macros::set_classes(&mut $stack, $class);
         html_impl! { @vtag $stack ($($tail)*) }
     };
+    // Set value
     // PATTERN: value="",
+    // eg: value=$expr, ..
     (@vtag $stack:ident (value = $value:expr, $($tail:tt)*)) => {
         $crate::macros::set_value_or_attribute(&mut $stack, $value);
         html_impl! { @vtag $stack ($($tail)*) }
     };
     // PATTERN: attribute=value, - workaround for `type` attribute
     // because `type` is a keyword in Rust
+    // eg: type=$expr, ..
     (@vtag $stack:ident (type = $kind:expr, $($tail:tt)*)) => {
         $crate::macros::set_kind(&mut $stack, $kind);
         html_impl! { @vtag $stack ($($tail)*) }
     };
+    // eg: checked=$expr, ..
     (@vtag $stack:ident (checked = $kind:expr, $($tail:tt)*)) => {
         $crate::macros::set_checked(&mut $stack, $kind);
         html_impl! { @vtag $stack ($($tail)*) }
     };
+    // eg: disabled=$expr, ..
     (@vtag $stack:ident (disabled = $kind:expr, $($tail:tt)*)) => {
         if $kind {
             $crate::macros::add_attribute(&mut $stack, "disabled", "true");
@@ -160,6 +182,7 @@ macro_rules! html_impl {
     };
 
     // PATTERN: (action)=expression,
+    // eg: ($ident)=$expr, ..
     (@vtag $stack:ident (($action:ident) = $handler:expr, $($tail:tt)*)) => {
         // Catch value to a separate variable for clear error messages
         let handler = $handler;
@@ -167,21 +190,25 @@ macro_rules! html_impl {
         $crate::macros::attach_listener(&mut $stack, Box::new(listener));
         html_impl! { @vtag $stack ($($tail)*) }
     };
-    // Attributes:
+    // Attributes
+    // eg: href=$expr, ..
     (@vtag $stack:ident (href = $href:expr, $($tail:tt)*)) => {
         let href: $crate::html::Href = $href.into();
         $crate::macros::add_attribute(&mut $stack, "href", href);
         html_impl! { @vtag $stack ($($tail)*) }
     };
+    // eg: $ident=$expr, ..
     (@vtag $stack:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
         $crate::macros::add_attribute(&mut $stack, stringify!($attr), $val);
         html_impl! { @vtag $stack ($($tail)*) }
     };
-    // End of openging tag
+    // Terminate open tag
+    // eg: > ..
     (@vtag $stack:ident (> $($tail:tt)*)) => {
         html_impl! { $stack ($($tail)*) }
     };
-    // Self-closing of tag
+    // Self-close tag
+    // eg: /> ..
     (@vtag $stack:ident (/ > $($tail:tt)*)) => {
         $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
@@ -191,13 +218,15 @@ macro_rules! html_impl {
         $crate::macros::add_attribute(&mut $stack, &attr, $val);
         html_impl! { @vtag $stack ($($tail)*) }
     };
-    // Traditional tag closing
+    // Close tag
+    // eg: </$ident> ..
     ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
         let endtag = stringify!($endtag);
         $crate::macros::child_to_parent(&mut $stack, Some(endtag));
         html_impl! { $stack ($($tail)*) }
     };
     // PATTERN: { for expression }
+    // eg: { for $expr }
     ($stack:ident ({ for $eval:expr } $($tail:tt)*)) => {
         let nodes = $eval;
         let mut vlist = $crate::virtual_dom::VList::new();
@@ -217,6 +246,7 @@ macro_rules! html_impl {
         html_impl! { $stack () }
     };
     // PATTERN: { expression }
+    // eg: { $expr } ..
     ($stack:ident ({ $eval:expr } $($tail:tt)*)) => {
         let node = $crate::virtual_dom::VNode::from($eval);
         $crate::macros::add_child(&mut $stack, node);
@@ -244,10 +274,41 @@ type Stack<COMP> = Vec<VNode<COMP>>;
 
 #[doc(hidden)]
 pub fn unpack<COMP: Component>(mut stack: Stack<COMP>) -> VNode<COMP> {
+    const LENGTH_ERROR: &'static str = "html must contain exactly one element!";
+
     if stack.len() != 1 {
-        panic!("exactly one element have to be in html!");
+        panic!(LENGTH_ERROR);
     }
-    stack.pop().expect("no html elements in the stack")
+    let mut node = stack.pop().expect(LENGTH_ERROR);
+
+    // Recursively update tag namespaces
+    // 1. a parent sets a child's namespace, overriding its parent's namespaces
+    // 2. a child adopts its parent's namespace
+    fn proliferate_namespaces<COMP: Component>(node: &mut VNode<COMP>, ns: Option<Cow<'static, str>>) {
+        match node {
+            VNode::VTag(ref mut tag) => {
+                let mut current_ns = ns;
+                if let Some(ref tag_ns) = tag.ns {
+                    current_ns = Some(tag_ns.clone());
+                } else if let Some(ref some_ns) = current_ns {
+                    tag.ns = Some(some_ns.clone());
+                }
+
+                for mut child in &mut tag.childs {
+                    proliferate_namespaces(&mut child, current_ns.clone());
+                }
+            },
+            VNode::VList(ref mut list) => {
+                for mut child in &mut list.childs {
+                    proliferate_namespaces(&mut child, ns.clone());
+                }
+            },
+            VNode::VText(_) | VNode::VComp(_) | VNode::VRef(_) => (),
+        }
+    };
+
+    proliferate_namespaces(&mut node, None);
+    node
 }
 
 #[doc(hidden)]
@@ -282,11 +343,7 @@ pub fn set_checked<COMP: Component>(stack: &mut Stack<COMP>, value: bool) {
 }
 
 #[doc(hidden)]
-pub fn add_attribute<COMP: Component, T: ToString>(
-    stack: &mut Stack<COMP>,
-    name: &str,
-    value: T,
-) {
+pub fn add_attribute<COMP: Component, T: ToString>(stack: &mut Stack<COMP>, name: &str, value: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.add_attribute(name, &value);
     } else {
@@ -340,10 +397,7 @@ pub fn add_child<COMP: Component>(stack: &mut Stack<COMP>, child: VNode<COMP>) {
 }
 
 #[doc(hidden)]
-pub fn child_to_parent<COMP: Component>(
-    stack: &mut Stack<COMP>,
-    endtag: Option<&'static str>,
-) {
+pub fn child_to_parent<COMP: Component>(stack: &mut Stack<COMP>, endtag: Option<&'static str>) {
     if let Some(mut node) = stack.pop() {
         // Check the enclosing tag
         // TODO Check it during compilation. Possible?

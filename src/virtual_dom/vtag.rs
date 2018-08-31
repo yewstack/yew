@@ -11,12 +11,15 @@ use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node}
 use html::{Component, Scope};
 use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
 
+
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
 pub struct VTag<COMP: Component> {
     /// A tag of the element.
     tag: Cow<'static, str>,
+    /// The namespace the tag belongs to where None is the default namespace.
+    pub ns: Option<Cow<'static, str>>,
     /// A reference to the `Element`.
     pub reference: Option<Element>,
     /// List of attached listeners.
@@ -47,9 +50,14 @@ pub struct VTag<COMP: Component> {
 
 impl<COMP: Component> VTag<COMP> {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
-    pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
+    pub fn new<S, NS>(tag: S, ns: NS) -> Self 
+    where 
+        S: Into<Cow<'static, str>>,
+        NS: Into<Option<Cow<'static, str>>>
+    {
         VTag {
             tag: tag.into(),
+            ns: ns.into(),
             reference: None,
             classes: Classes::new(),
             attributes: Attributes::new(),
@@ -74,7 +82,7 @@ impl<COMP: Component> VTag<COMP> {
         self.childs.push(child);
     }
 
-    /// Adds asingle class to this virtual node. Actually it will set by
+    /// Adds a single class to this virtual node. Actually it will set by
     /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
     /// call later.
     pub fn add_class(&mut self, class: &str) {
@@ -303,8 +311,8 @@ impl<COMP: Component> VTag<COMP> {
                 }
             }
 
-            // IMPORTANT! This parameters have to be set every time
-            // to prevent strange behaviour in browser when DOM changed
+            // IMPORTANT! This parameters has to be set every time
+            // to prevent strange behaviour in the browser when the DOM changes
             set_checked(&input, self.checked);
         } else if let Ok(tae) = TextAreaElement::try_from(element.clone()) {
             if let Some(change) = self.diff_value(ancestor) {
@@ -375,9 +383,12 @@ impl<COMP: Component> VDiff for VTag<COMP> {
         match reform {
             Reform::Keep => {}
             Reform::Before(before) => {
-                let element = document()
-                    .create_element(&self.tag)
-                    .expect("can't create element for vtag");
+                let element = if let Some(ns) = &self.ns {
+                    document().create_element_ns(&ns, &self.tag)
+                } else {
+                    document().create_element(&self.tag)
+                }.expect("can't create element for vtag");
+
                 if let Some(sibling) = before {
                     parent
                         .insert_before(&element, &sibling)
