@@ -332,6 +332,7 @@ impl_action! {
         use stdweb::web::html_element::{InputElement, TextAreaElement};
         use stdweb::unstable::TryInto;
         use stdweb::web::IElement;
+        use stdweb::web::{IHtmlElement,HtmlElement};
         let value = match this.clone().try_into() {
             Ok(input) => {
                 let input: InputElement = input;
@@ -344,12 +345,19 @@ impl_action! {
                         tae.value()
                     }
                     Err(_e) => {
-                        let cte = this.clone();
-                        if cte.has_attribute("contentEditable"){
-                            cte.text_content().unwrap_or("".into())
-                        }
-                        else{
-                            panic!("only an InputElement, TextAreaElement or Div with contentEditable can have an oninput event listener");
+                        match this.clone().try_into(){
+                            Ok(html) => {
+                                let html: HtmlElement = html;
+                                if html.has_attribute("contentEditable"){
+                                    html.inner_text()
+                                }
+                                else{
+                                    panic!("only an InputElement, TextAreaElement or Div with contentEditable can have an oninput event listener");
+                                }
+                            }
+                            Err(_e) => {
+                                panic!("only an InputElement, TextAreaElement or Div with contentEditable can have an oninput event listener");
+                            }
                         }
                     }
                 }
