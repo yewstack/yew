@@ -18,6 +18,7 @@ extern crate inner_html;
 extern crate large_table;
 extern crate mount_point;
 extern crate npm_and_rest;
+extern crate routing;
 extern crate textarea;
 extern crate timer;
 extern crate todomvc;
@@ -36,6 +37,7 @@ use inner_html::Model as InnerHtml;
 use large_table::Model as LargeTable;
 use mount_point::Model as MountPoint;
 use npm_and_rest::Model as NpmAndRest;
+use routing::Model as Routing;
 use textarea::Model as Textarea;
 use timer::Model as Timer;
 use todomvc::Model as Todomvc;
@@ -54,6 +56,7 @@ enum Scene {
     LargeTable,
     MountPoint,
     NpmAndRest,
+    Routing,
     Textarea,
     Timer,
     Todomvc,
@@ -174,6 +177,11 @@ impl Scene {
             Scene::NpmAndRest => {
                 html! {
                     <NpmAndRest: />
+                }
+            }
+            Scene::Routing => {
+                html! {
+                    <Routing: />
                 }
             }
             Scene::Textarea => {
