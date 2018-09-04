@@ -2,3 +2,5 @@ target
 **/*.rs.bk
 Cargo.lock
 orig.*
+/.idea
+/cmake-build-debug
