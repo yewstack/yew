@@ -23,9 +23,9 @@ anymap = "0.12"
 slab = "0.4"
 stdweb = "^0.4.9"
 toml = { version = "0.4", optional = true }
-serde_yaml = { version = "0.7", optional = true }
+serde_yaml = { version = "0.8", optional = true }
 rmp-serde = { version = "0.13.7", optional = true }
-serde_cbor = { version = "0.8.2", optional = true }
+serde_cbor = { version = "0.9", optional = true }
 
 [dev-dependencies]
 serde_derive = "1"
