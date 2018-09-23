@@ -108,7 +108,7 @@ impl<'a, COMP: Component> From<&'a dyn Renderable<COMP>> for VNode<COMP> {
 }
 
 impl<COMP: Component> fmt::Debug for VNode<COMP> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             VNode::VTag(ref vtag) => vtag.fmt(f),
             VNode::VText(ref vtext) => vtext.fmt(f),
