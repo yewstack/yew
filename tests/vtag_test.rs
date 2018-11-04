@@ -205,11 +205,30 @@ fn supports_multiple_classes_string() {
 
     if let VNode::VTag(vtag) = a {
         println!("{:?}", vtag.classes);
-        assert!(vtag.classes.contains("class-1"));
-        assert!(vtag.classes.contains("class-2"));
-        assert!(vtag.classes.contains("class-3"));
+        assert!(vtag.classes.iter().any(|c| c == "class-1"));
+        assert!(vtag.classes.iter().any(|c| c == "class-2"));
+        assert!(vtag.classes.iter().any(|c| c == "class-3"));
     } else {
         panic!("vtag expected");
+    }
+}
+
+#[test]
+fn keeps_order_of_classes() {
+    let a: VNode<Comp> = html! {
+        <div class="class-1 class-2   class-3",></div>
+    };
+
+    if let VNode::VTag(vtag) = a {
+        println!("{:?}", vtag.classes);
+        assert_eq!(
+            vtag.classes,
+            vec![
+                String::from("class-1"),
+                String::from("class-2"),
+                String::from("class-3")
+            ]
+        )
     }
 }
 
