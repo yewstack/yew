@@ -90,7 +90,7 @@ impl<COMP: Component> VTag<COMP> {
     pub fn add_class(&mut self, class: &str) {
         let class = class.trim();
         if !class.is_empty() {
-            self.classes.insert(class.into());
+            self.classes.push(class.into());
         }
     }
 
@@ -179,15 +179,21 @@ impl<COMP: Component> VTag<COMP> {
         let mut changes = Vec::new();
         if let Some(ref ancestor) = ancestor {
             // Only change what is necessary.
-            let to_add = self
-                .classes
-                .difference(&ancestor.classes)
-                .map(|class| Patch::Add(class.to_owned(), ()));
+            let to_add = (&self.classes).into_iter().filter_map(|class| {
+                if !ancestor.classes.contains(&class) {
+                    Some(Patch::Add(class.to_owned(), ()))
+                } else {
+                    None
+                }
+            });
             changes.extend(to_add);
-            let to_remove = ancestor
-                .classes
-                .difference(&self.classes)
-                .map(|class| Patch::Remove(class.to_owned()));
+            let to_remove = (&ancestor.classes).into_iter().filter_map(|class| {
+                if !self.classes.contains(&class) {
+                    Some(Patch::Remove(class.to_owned()))
+                } else {
+                    None
+                }
+            });
             changes.extend(to_remove);
         } else {
             // Add everything
