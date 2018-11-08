@@ -316,6 +316,7 @@ impl_action! {
     onmouseenter(event: MouseEnterEvent) -> MouseEnterEvent => |_, event| { event }
     onmouseleave(event: MouseLeaveEvent) -> MouseLeaveEvent => |_, event| { event }
     onmousewheel(event: MouseWheelEvent) -> MouseWheelEvent => |_, event| { event }
+    onpointerup(event: PointerUpEvent) -> PointerUpEvent => |_, event| { event }
     onscroll(event: ScrollEvent) -> ScrollEvent => |_, event| { event }
     onblur(event: BlurEvent) -> BlurEvent => |_, event| { event }
     onfocus(event: FocusEvent) -> FocusEvent => |_, event| { event }
