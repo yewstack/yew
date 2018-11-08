@@ -119,6 +119,9 @@ macro_rules! html_impl {
     (@vtag $stack:ident (onmouseup = | $var:pat | $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((onmouseup) = move | $var: $crate::prelude::MouseUpEvent | $handler, $($tail)*) }
     };
+    (@vtag $stack:ident (onpointerup = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onpointerup) = move | $var: $crate::prelude::PointerUpEvent | $handler, $($tail)*) }
+    };
     (@vtag $stack:ident (onscroll = | $var:pat | $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((onscroll) = move | $var: $crate::prelude::ScrollEvent | $handler, $($tail)*) }
     };
