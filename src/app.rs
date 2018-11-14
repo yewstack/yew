@@ -20,6 +20,19 @@ where
         App { scope }
     }
 
+    pub fn mount_body(self) -> Scope<COMP> {
+        let html_element = document()
+            .query_selector("html")
+            .expect("can't get html node for rendering")
+            .expect("can't unwrap html node");
+        let body_element = document()
+            .query_selector("body")
+            .expect("can't get body node for rendering")
+            .expect("can't unwrap body node");
+        html_element.remove_child(&body_element).expect("can't remove body child");
+        self.scope.mount_in_place(html_element, None, None, None)
+    }
+
     /// Alias to `mount("body", ...)`.
     pub fn mount_to_body(self) -> Scope<COMP> {
         // Bootstrap the component for `Window` environment only (not for `Worker`)
