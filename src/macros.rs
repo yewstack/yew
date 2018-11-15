@@ -79,6 +79,12 @@ macro_rules! html_impl {
         }
         html_impl! { @vtag $stack ($($tail)*) }
     };
+    (@vtag $stack:ident (selected = $kind:expr, $($tail:tt)*)) => {
+        if $kind {
+            $crate::macros::add_attribute(&mut $stack, "selected", "selected");
+        }
+        html_impl! { @vtag $stack ($($tail)*) }
+    };
     // Events:
     (@vtag $stack:ident (onclick = | $var:pat | $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((onclick) = move | $var: $crate::prelude::ClickEvent | $handler, $($tail)*) }
