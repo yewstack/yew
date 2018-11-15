@@ -93,6 +93,7 @@ pub mod virtual_dom;
 pub mod callback;
 pub mod scheduler;
 pub mod agent;
+pub mod components;
 
 use std::rc::Rc;
 use std::cell::RefCell;
