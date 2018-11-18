@@ -49,9 +49,9 @@ impl<COMP: Component> VDiff for VList<COMP> {
                     vlist.childs.drain(..).map(Some).collect::<Vec<_>>()
                 }
                 Some(mut vnode) => {
-                    let node = vnode.detach(parent);
-                    precursor = node;
-                    Vec::new()
+                    // Use the current node as a single fragment list
+                    // and let the `apply` of `VNode` to handle it.
+                    vec![Some(vnode)]
                 }
                 None => Vec::new(),
             }
