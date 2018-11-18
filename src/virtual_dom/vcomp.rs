@@ -14,7 +14,7 @@ use Hidden;
 type AnyProps = (TypeId, *mut Hidden);
 
 /// The method generates an instance of a (child) component.
-type Generator = dyn FnMut(Element, Option<Node>, AnyProps);
+type Generator = dyn FnMut(Element, Node, AnyProps);
 
 /// A reference to unknown activator which will be attached later with a generator function.
 type LazyActivator<COMP> = Rc<RefCell<Option<Scope<COMP>>>>;
@@ -43,7 +43,7 @@ impl<COMP: Component> VComp<COMP> {
         // This function creates and mounts a new component instance
         let generator = {
             let lazy_activator = lazy_activator.clone();
-            move |element, obsolete: Option<Node>, (type_id, raw): AnyProps| {
+            move |element, ancestor: Node, (type_id, raw): AnyProps| {
                 if type_id != TypeId::of::<CHILD>() {
                     panic!("tried to unpack properties of the other component");
                 }
@@ -51,13 +51,12 @@ impl<COMP: Component> VComp<COMP> {
                     let raw: *mut CHILD::Properties = ::std::mem::transmute(raw);
                     *Box::from_raw(raw)
                 };
-                let opposite = obsolete.map(VNode::VRef);
                 let scope: Scope<CHILD> = Scope::new();
                 let env = scope.clone();
                 *lazy_activator.borrow_mut() = Some(env);
                 scope.mount_in_place(
                     element,
-                    opposite,
+                    Some(VNode::VRef(ancestor)),
                     Some(occupied.clone()),
                     Some(props),
                 );
@@ -202,7 +201,7 @@ where
     fn mount<T: INode>(
         &mut self,
         parent: &T,
-        opposite: Option<Node>,
+        ancestor: Node, // Any dummy expected
         props: AnyProps,
     ) {
         let element: Element = parent
@@ -211,7 +210,7 @@ where
             .to_owned()
             .try_into()
             .expect("element expected to mount VComp");
-        (self.generator)(element, opposite, props);
+        (self.generator)(element, ancestor, props);
     }
 
     fn send_props(&mut self, props: AnyProps) {
@@ -241,16 +240,16 @@ where
     }
 
     /// Renders independent component over DOM `Element`.
-    /// It also compares this with an opposite `VComp` and inherits sender of it.
+    /// It also compares this with an ancestor `VComp` and inherits sender of it.
     fn apply(
         &mut self,
         parent: &Node,
-        _: Option<&Node>,
-        opposite: Option<VNode<Self::Component>>,
+        precursor: Option<&Node>,
+        ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,
     ) -> Option<Node> {
         let reform = {
-            match opposite {
+            match ancestor {
                 Some(VNode::VComp(mut vcomp)) => {
                     if self.type_id == vcomp.type_id {
                         self.grab_sender_of(vcomp);
@@ -275,17 +274,26 @@ where
                 // properties directly without this channel.
                 self.send_props(any_props);
             }
-            Reform::Before(node) => {
+            Reform::Before(before) => {
                 // This is a workaround, because component should be mounted
-                // over opposite element if it exists.
+                // over ancestor element if it exists.
                 // There is created an empty text node to be replaced with mount call.
-                let node = node.map(|sibling| {
-                    let element = document().create_text_node("");
+                let element = document().create_text_node("");
+                if let Some(sibling) = before {
                     parent
                         .insert_before(&element, &sibling)
                         .expect("can't insert dummy element for a component");
-                    element.as_node().to_owned()
-                });
+                } else {
+                    let precursor = precursor.and_then(|before| before.next_sibling());
+                    if let Some(precursor) = precursor {
+                        parent
+                            .insert_before(&element, &precursor)
+                            .expect("can't insert dummy element before precursor");
+                    } else {
+                        parent.append_child(&element);
+                    }
+                }
+                let node = element.as_node().to_owned();
                 self.mount(parent, node, any_props);
             }
         }
