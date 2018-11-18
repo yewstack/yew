@@ -26,6 +26,7 @@ pub use callback::Callback;
 pub use stdweb::web::event::{
     BlurEvent,
     ClickEvent,
+    ContextMenuEvent,
     DoubleClickEvent,
     DragDropEvent,
     DragEndEvent,
