@@ -329,6 +329,7 @@ impl_action! {
     ondragover(event: DragOverEvent) -> DragOverEvent => |_, event| { event }
     ondragexit(event: DragExitEvent) -> DragExitEvent => |_, event| { event }
     ondrop(event: DragDropEvent) -> DragDropEvent => |_, event| { event }
+    oncontextmenu(event: ContextMenuEvent) -> ContextMenuEvent => |_, event| { event }
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
         use stdweb::web::html_element::{InputElement, TextAreaElement};
         use stdweb::unstable::TryInto;
