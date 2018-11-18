@@ -363,7 +363,9 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                     let node = vnode.detach(parent);
                     (Reform::Before(node), None)
                 }
-                None => (Reform::Before(None), None),
+                None => {
+                    (Reform::Before(None), None)
+                },
             }
         };
 
