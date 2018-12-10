@@ -299,6 +299,7 @@ It's a handy alternative to subscriptions.
 
 Implemented:
 * `IntervalService`
+* `RenderService`
 * `TimeoutService`
 * `StorageService`
 * `DialogService`
