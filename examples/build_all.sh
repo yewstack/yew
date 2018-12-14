@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 PID=-1
 
 function ctrl_c() {
