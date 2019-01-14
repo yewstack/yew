@@ -43,6 +43,12 @@ macro_rules! html_impl {
         $crate::macros::child_to_parent(&mut $stack, None);
         html_impl! { $stack ($($tail)*) }
     };
+    // Start of opening tag with expression as tag name
+    ($stack:ident (< { $starttag:expr } $($tail:tt)*)) => {
+        let vtag = $crate::virtual_dom::VTag::new($starttag);
+        $stack.push(vtag.into());
+        html_impl! { @vtag $stack ($($tail)*) }
+    };
     // Start of opening tag
     ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
         let vtag = $crate::virtual_dom::VTag::new(stringify!($starttag));
@@ -205,6 +211,11 @@ macro_rules! html_impl {
         let attr = vec![$(stringify!($attr).to_string()),+].join("-");
         $crate::macros::add_attribute(&mut $stack, &attr, $val);
         html_impl! { @vtag $stack ($($tail)*) }
+    };
+    // Traditional tag closing with expression as tag name
+    ($stack:ident (< / { $endtag:expr } > $($tail:tt)*)) => {
+        $crate::macros::child_to_parent(&mut $stack, Some($endtag));
+        html_impl! { $stack ($($tail)*) }
     };
     // Traditional tag closing
     ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
