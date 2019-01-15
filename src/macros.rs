@@ -125,6 +125,33 @@ macro_rules! html_impl {
     (@vtag $stack:ident (onmouseup = | $var:pat | $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((onmouseup) = move | $var: $crate::prelude::MouseUpEvent | $handler, $($tail)*) }
     };
+    (@vtag $stack:ident (ongotpointercapture = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((ongotpointercapture) = move | $var: $crate::prelude::GotPointerCaptureEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (onlostpointercapture = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onlostpointercapture) = move | $var: $crate::prelude::LostPointerCaptureEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (onpointercancel = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onpointercancel) = move | $var: $crate::prelude::PointerCancelEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (onpointerdown = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onpointerdown) = move | $var: $crate::prelude::PointerDownEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (onpointerenter = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onpointerenter) = move | $var: $crate::prelude::PointerEnterEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (onpointerleave = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onpointerleave) = move | $var: $crate::prelude::PointerLeaveEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (onpointermove = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onpointermove) = move | $var: $crate::prelude::PointerMoveEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (onpointerout = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onpointerout) = move | $var: $crate::prelude::PointerOutEvent | $handler, $($tail)*) }
+    };
+    (@vtag $stack:ident (onpointerover = | $var:pat | $handler:expr, $($tail:tt)*)) => {
+        html_impl! { @vtag $stack ((onpointerover) = move | $var: $crate::prelude::PointerOverEvent | $handler, $($tail)*) }
+    };
     (@vtag $stack:ident (onpointerup = | $var:pat | $handler:expr, $($tail:tt)*)) => {
         html_impl! { @vtag $stack ((onpointerup) = move | $var: $crate::prelude::PointerUpEvent | $handler, $($tail)*) }
     };
