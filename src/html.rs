@@ -316,6 +316,15 @@ impl_action! {
     onmouseenter(event: MouseEnterEvent) -> MouseEnterEvent => |_, event| { event }
     onmouseleave(event: MouseLeaveEvent) -> MouseLeaveEvent => |_, event| { event }
     onmousewheel(event: MouseWheelEvent) -> MouseWheelEvent => |_, event| { event }
+    ongotpointercapture(event: GotPointerCaptureEvent) -> GotPointerCaptureEvent => |_, event| { event }
+    onlostpointercapture(event: LostPointerCaptureEvent) -> LostPointerCaptureEvent => |_, event| { event }
+    onpointercancel(event: PointerCancelEvent) -> PointerCancelEvent => |_, event| { event }
+    onpointerdown(event: PointerDownEvent) -> PointerDownEvent => |_, event| { event }
+    onpointerenter(event: PointerEnterEvent) -> PointerEnterEvent => |_, event| { event }
+    onpointerleave(event: PointerLeaveEvent) -> PointerLeaveEvent => |_, event| { event }
+    onpointermove(event: PointerMoveEvent) -> PointerMoveEvent => |_, event| { event }
+    onpointerout(event: PointerOutEvent) -> PointerOutEvent => |_, event| { event }
+    onpointerover(event: PointerOverEvent) -> PointerOverEvent => |_, event| { event }
     onpointerup(event: PointerUpEvent) -> PointerUpEvent => |_, event| { event }
     onscroll(event: ScrollEvent) -> ScrollEvent => |_, event| { event }
     onblur(event: BlurEvent) -> BlurEvent => |_, event| { event }
