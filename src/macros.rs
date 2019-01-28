@@ -4,6 +4,7 @@
 use html::Component;
 use virtual_dom::{Listener, VNode};
 
+/// The html! entrypoint and this implementation had to be separated to prevent infinite recursion.
 #[macro_export]
 macro_rules! html_impl {
     ($stack:ident (< > $($tail:tt)*)) => {
@@ -273,7 +274,7 @@ macro_rules! html_impl {
     };
 }
 
-// This entrypoint and implementation had separated to prevent infinite recursion.
+/// This macro implements JSX-like templates.
 #[macro_export]
 macro_rules! html {
     ($($tail:tt)*) => {{
