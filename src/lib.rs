@@ -118,8 +118,6 @@ pub mod prelude {
         ComponentLink,
         Href,
         Html,
-        ChangeData,
-        InputData,
         Renderable,
         ShouldRender,
     };
@@ -127,6 +125,41 @@ pub mod prelude {
     pub use app::App;
 
     pub use callback::Callback;
+
+    pub use agent::{
+        Bridge,
+        Bridged,
+        Threaded,
+    };
+
+    pub use events::*;
+
+    /// Prelude module for creating worker.
+    pub mod worker {
+        pub use agent::{
+            Agent,
+            AgentLink,
+            Bridge,
+            Bridged,
+            Context,
+            Global,
+            HandlerId,
+            Job,
+            Private,
+            Public,
+            Transferable,
+        };
+    }
+}
+
+pub use self::prelude::*;
+
+/// The module that contains all events available in the framework.
+pub mod events {
+    pub use html::{
+        ChangeData,
+        InputData,
+    };
 
     pub use stdweb::web::event::{
         BlurEvent,
@@ -169,29 +202,4 @@ pub mod prelude {
         ScrollEvent,
         SubmitEvent
     };
-
-    pub use agent::{
-        Bridge,
-        Bridged,
-        Threaded,
-    };
-
-    /// Prelude module for creating worker.
-    pub mod worker {
-        pub use agent::{
-            Agent,
-            AgentLink,
-            Bridge,
-            Bridged,
-            Context,
-            Global,
-            HandlerId,
-            Job,
-            Private,
-            Public,
-            Transferable,
-        };
-    }
 }
-
-pub use self::prelude::*;
