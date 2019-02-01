@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.5 - unreleased
+## 0.6 - unreleased
+
+### Breaking changes
+
+### New features
+
+### Bug fixes
+
+## 0.5 - Released 2019-02-01
 
 ### Breaking changes
 
