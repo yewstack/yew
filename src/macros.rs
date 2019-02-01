@@ -4,8 +4,17 @@
 use html::Component;
 use virtual_dom::{Listener, VNode};
 
-/// The html! entrypoint and this implementation had to be separated to prevent infinite recursion.
+#[doc(hidden)]
 #[macro_export]
+macro_rules! local_stringify {
+    ($s:ident) => {
+        stringify!($s)
+    }
+}
+
+/// The html! entrypoint and this implementation had to be separated to prevent infinite recursion.
+#[doc(hidden)]
+#[macro_export(local_inner_macros)]
 macro_rules! html_impl {
     ($stack:ident (< > $($tail:tt)*)) => {
         let vlist = $crate::virtual_dom::VList::new();
@@ -46,7 +55,7 @@ macro_rules! html_impl {
     };
     // Start of opening tag
     ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
-        let vtag = $crate::virtual_dom::VTag::new(stringify!($starttag));
+        let vtag = $crate::virtual_dom::VTag::new(local_stringify!($starttag));
         $stack.push(vtag.into());
         html_impl! { @vtag $stack ($($tail)*) }
     };
@@ -217,7 +226,7 @@ macro_rules! html_impl {
         html_impl! { @vtag $stack ($($tail)*) }
     };
     (@vtag $stack:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
-        $crate::macros::add_attribute(&mut $stack, stringify!($attr), $val);
+        $crate::macros::add_attribute(&mut $stack, local_stringify!($attr), $val);
         html_impl! { @vtag $stack ($($tail)*) }
     };
     // End of openging tag
@@ -230,13 +239,13 @@ macro_rules! html_impl {
         html_impl! { $stack ($($tail)*) }
     };
     (@vtag $stack:ident ($($attr:ident)-+ = $val:expr, $($tail:tt)*)) => {
-        let attr = vec![$(stringify!($attr).to_string()),+].join("-");
+        let attr = vec![$(local_stringify!($attr).to_string()),+].join("-");
         $crate::macros::add_attribute(&mut $stack, &attr, $val);
         html_impl! { @vtag $stack ($($tail)*) }
     };
     // Traditional tag closing
     ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
-        let endtag = stringify!($endtag);
+        let endtag = local_stringify!($endtag);
         $crate::macros::child_to_parent(&mut $stack, Some(endtag));
         html_impl! { $stack ($($tail)*) }
     };
@@ -279,7 +288,7 @@ macro_rules! html_impl {
 macro_rules! html {
     ($($tail:tt)*) => {{
         let mut stack = Vec::new();
-        html_impl! { stack ($($tail)*) }
+        $crate::html_impl! { stack ($($tail)*) }
     }};
 }
 

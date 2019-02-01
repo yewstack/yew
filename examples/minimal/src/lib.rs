@@ -1,7 +1,4 @@
-#[macro_use]
-extern crate yew;
-
-use yew::prelude::*;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
 }
