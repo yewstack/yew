@@ -6,6 +6,8 @@
 
 ### New features
 
+- Added `start_app` method. It's a shortcut to initialize a component and mount it to the body.
+
 ### Bug fixes
 
 ## 0.5 - Released 2019-02-01

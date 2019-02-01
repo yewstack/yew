@@ -1,7 +1,3 @@
-extern crate stdweb;
-extern crate yew;
-extern crate two_apps;
-
 use stdweb::web::{IParentNode, document};
 use yew::prelude::*;
 use yew::html::Scope;

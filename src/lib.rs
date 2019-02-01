@@ -104,55 +104,15 @@ pub fn run_loop() {
     stdweb::event_loop();
 }
 
-/// The Yew Prelude
-///
-/// The purpose of this module is to alleviate imports of many common types:
-///
-/// ```
-/// # #![allow(unused_imports)]
-/// use yew::prelude::*;
-/// ```
-pub mod prelude {
-    pub use html::{
-        Component,
-        ComponentLink,
-        Href,
-        Html,
-        Renderable,
-        ShouldRender,
-    };
-
-    pub use app::App;
-
-    pub use callback::Callback;
-
-    pub use agent::{
-        Bridge,
-        Bridged,
-        Threaded,
-    };
-
-    pub use events::*;
-
-    /// Prelude module for creating worker.
-    pub mod worker {
-        pub use agent::{
-            Agent,
-            AgentLink,
-            Bridge,
-            Bridged,
-            Context,
-            Global,
-            HandlerId,
-            Job,
-            Private,
-            Public,
-            Transferable,
-        };
-    }
+/// Starts an app mounted to a body of the document.
+pub fn start_app<COMP>()
+where
+    COMP: Component + Renderable<COMP>,
+{
+    initialize();
+    App::<COMP>::new().mount_to_body();
+    run_loop();
 }
-
-pub use self::prelude::*;
 
 /// The module that contains all events available in the framework.
 pub mod events {
@@ -203,3 +163,53 @@ pub mod events {
         SubmitEvent
     };
 }
+
+/// The Yew Prelude
+///
+/// The purpose of this module is to alleviate imports of many common types:
+///
+/// ```
+/// # #![allow(unused_imports)]
+/// use yew::prelude::*;
+/// ```
+pub mod prelude {
+    pub use html::{
+        Component,
+        ComponentLink,
+        Href,
+        Html,
+        Renderable,
+        ShouldRender,
+    };
+
+    pub use app::App;
+
+    pub use callback::Callback;
+
+    pub use agent::{
+        Bridge,
+        Bridged,
+        Threaded,
+    };
+
+    pub use events::*;
+
+    /// Prelude module for creating worker.
+    pub mod worker {
+        pub use agent::{
+            Agent,
+            AgentLink,
+            Bridge,
+            Bridged,
+            Context,
+            Global,
+            HandlerId,
+            Job,
+            Private,
+            Public,
+            Transferable,
+        };
+    }
+}
+
+pub use self::prelude::*;
