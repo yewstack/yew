@@ -9,7 +9,8 @@ use stdweb::web::{document, Element, INode, Node};
 use html::{Component, ComponentUpdate, Scope, NodeCell, Renderable};
 use callback::Callback;
 use super::{Reform, VDiff, VNode};
-use Hidden;
+
+struct Hidden;
 
 type AnyProps = (TypeId, *mut Hidden);
 

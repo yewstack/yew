@@ -4,7 +4,8 @@ use std::collections::VecDeque;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::sync::atomic::{AtomicBool, Ordering};
-use Shared;
+
+pub(crate) type Shared<T> = Rc<RefCell<T>>;
 
 thread_local! {
     static SCHEDULER: Rc<Scheduler> =
