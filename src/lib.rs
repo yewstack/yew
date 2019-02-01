@@ -95,13 +95,6 @@ pub mod scheduler;
 pub mod agent;
 pub mod components;
 
-use std::rc::Rc;
-use std::cell::RefCell;
-
-type Shared<T> = Rc<RefCell<T>>;
-
-struct Hidden;
-
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
     stdweb::initialize();
