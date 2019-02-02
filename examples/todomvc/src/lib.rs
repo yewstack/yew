@@ -190,8 +190,15 @@ impl Model {
 }
 
 fn view_entry((idx, entry): (usize, &Entry)) -> Html<Model> {
+    let mut class = "todo".to_string();
+    if entry.editing {
+        class.push_str(" editing");
+    }
+    if entry.completed {
+        class.push_str(" completed");
+    }
     html! {
-        <li class=if entry.editing == true { "editing" } else { "" },>
+        <li class=class,>
             <div class="view",>
                 <input class="toggle", type="checkbox", checked=entry.completed, onclick=|_| Msg::Toggle(idx), />
                 <label ondoubleclick=|_| Msg::ToggleEdit(idx),>{ &entry.description }</label>
