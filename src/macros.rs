@@ -12,6 +12,14 @@ macro_rules! local_stringify {
     }
 }
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! local_vec {
+    [$($e:expr),+] => {
+        vec![$($e,)+]
+    }
+}
+
 /// The html! entrypoint and this implementation had to be separated to prevent infinite recursion.
 #[doc(hidden)]
 #[macro_export(local_inner_macros)]
@@ -240,7 +248,7 @@ macro_rules! html_impl {
         html_impl! { $stack ($($tail)*) }
     };
     (@vtag $stack:ident ($($attr:ident)-+ = $val:expr, $($tail:tt)*)) => {
-        let attr = vec![$(local_stringify!($attr).to_string()),+].join("-");
+        let attr = local_vec![$(local_stringify!($attr).to_string()),+].join("-");
         $crate::macros::add_attribute(&mut $stack, &attr, $val);
         html_impl! { @vtag $stack ($($tail)*) }
     };
