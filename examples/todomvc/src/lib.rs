@@ -1,12 +1,8 @@
 #![recursion_limit="128"]
 
-extern crate strum;
-#[macro_use]
-extern crate strum_macros;
-#[macro_use]
-extern crate serde_derive;
-
+use serde_derive::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
+use strum_macros::{EnumIter, ToString};
 use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
 use yew::events::IKeyboardEvent;
 use yew::format::Json;
