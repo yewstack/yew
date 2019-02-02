@@ -1,15 +1,10 @@
 #![recursion_limit="128"]
 
-extern crate strum;
-#[macro_use]
-extern crate strum_macros;
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate yew;
-
+use serde_derive::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
-use yew::prelude::*;
+use strum_macros::{EnumIter, ToString};
+use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
+use yew::events::IKeyboardEvent;
 use yew::format::Json;
 use yew::services::storage::{StorageService, Area};
 
@@ -195,8 +190,15 @@ impl Model {
 }
 
 fn view_entry((idx, entry): (usize, &Entry)) -> Html<Model> {
+    let mut class = "todo".to_string();
+    if entry.editing {
+        class.push_str(" editing");
+    }
+    if entry.completed {
+        class.push_str(" completed");
+    }
     html! {
-        <li class=if entry.editing == true { "editing" } else { "" },>
+        <li class=class,>
             <div class="view",>
                 <input class="toggle", type="checkbox", checked=entry.completed, onclick=|_| Msg::Toggle(idx), />
                 <label ondoubleclick=|_| Msg::ToggleEdit(idx),>{ &entry.description }</label>

@@ -1,9 +1,7 @@
 #[macro_use]
 extern crate stdweb;
-extern crate yew;
-extern crate mount_point;
 
-use yew::prelude::*;
+use yew::App;
 use stdweb::web::{IElement, INode, IParentNode, document};
 use mount_point::Model;
 

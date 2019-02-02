@@ -2,12 +2,13 @@
 name = "showcase"
 version = "0.1.0"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>", "Limira"]
+edition = "2018"
 
 [dependencies]
 log = "0.4"
 web_logger = "0.1"
-strum = "0.9"
-strum_macros = "0.9"
+strum = "0.13"
+strum_macros = "0.13"
 yew = { path = "../.." }
 counter = { path = "../counter" }
 crm = { path = "../crm" }

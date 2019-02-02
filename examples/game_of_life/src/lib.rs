@@ -1,13 +1,9 @@
 #![recursion_limit="128"]
 
-extern crate rand;
-#[macro_use] extern crate log;
-extern crate web_logger;
-#[macro_use] extern crate yew;
-
+use log::info;
 use std::time::Duration;
 use rand::Rng;
-use yew::prelude::*;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::services::{IntervalService, Task};
 
 #[derive(Clone, Copy, PartialEq)]

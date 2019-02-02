@@ -29,9 +29,7 @@ Yew implements strict application state management based on message passing and 
 `src/main.rs`
 
 ```rust
-#[macro_use]
-extern crate yew;
-use yew::prelude::*;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 struct Model { }
 
@@ -69,9 +67,7 @@ impl Renderable<Model> for Model {
 }
 
 fn main() {
-    yew::initialize();
-    App::<Model>::new().mount_to_body();
-    yew::run_loop();
+    yew::start_app::<Model>();
 }
 ```
 
@@ -108,7 +104,7 @@ Agents are separate tasks that work concurrently.
 Create your worker/agent (in `context.rs` for example):
 
 ```rust
-use yew::prelude::worker::*;
+use yew::worker::*;
 
 struct Worker {
     link: AgentLink<Worker>,
@@ -439,7 +435,9 @@ To run an optimised build instead of a debug build use:
 
     $ cargo web start --release
 
-This will use the `wasm32-unknown-unknown` target by default, which is Rust's native WebAssembly target. The Emscripten-based `wasm32-unknown-emscripten` and `asmjs-unknown-emscripten` targets are also supported if you tell the `cargo-web` to build for them using the `--target` parameter.
+This will use the `wasm32-unknown-unknown` target by default, which is Rust's native WebAssembly target.
+The Emscripten-based `wasm32-unknown-emscripten` and `asmjs-unknown-emscripten` targets are also supported
+if you tell the `cargo-web` to build for them using the `--target` parameter.
 
 [counter]: examples/counter
 [crm]: examples/crm

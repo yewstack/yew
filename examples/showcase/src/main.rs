@@ -1,32 +1,10 @@
 #![recursion_limit="128"]
 
-#[macro_use]
-extern crate log;
-extern crate web_logger;
-extern crate strum;
-#[macro_use]
-extern crate strum_macros;
-#[macro_use]
-extern crate yew;
-extern crate counter;
-extern crate crm;
-extern crate custom_components;
-extern crate dashboard;
-extern crate fragments;
-extern crate game_of_life;
-extern crate inner_html;
-extern crate large_table;
-extern crate mount_point;
-extern crate npm_and_rest;
-extern crate routing;
-extern crate textarea;
-extern crate timer;
-extern crate todomvc;
-extern crate two_apps;
-
+use log::trace;
 use strum::IntoEnumIterator;
+use strum_macros::{Display, EnumIter, EnumString};
+use yew::{html, App, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::components::Select;
-use yew::prelude::*;
 use counter::Model as Counter;
 use crm::Model as Crm;
 use custom_components::Model as CustomComponents;

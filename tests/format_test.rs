@@ -1,7 +1,7 @@
-#[macro_use]
 extern crate serde_derive;
 extern crate yew;
 
+use serde_derive::{Serialize, Deserialize};
 use yew::format::{Json, Text, Binary};
 
 #[test]

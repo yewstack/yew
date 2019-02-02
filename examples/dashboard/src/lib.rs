@@ -1,11 +1,6 @@
-extern crate failure;
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate yew;
-
 use failure::Error;
-use yew::prelude::*;
+use serde_derive::{Deserialize, Serialize};
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::format::{Nothing, Json, Toml};
 use yew::services::Task;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};

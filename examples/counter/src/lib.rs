@@ -1,9 +1,5 @@
-extern crate stdweb;
-#[macro_use]
-extern crate yew;
-
 use stdweb::web::Date;
-use yew::prelude::*;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::services::ConsoleService;
 
 pub struct Model {

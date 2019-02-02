@@ -4,8 +4,25 @@
 use html::Component;
 use virtual_dom::{Listener, VNode};
 
-/// The html! entrypoint and this implementation had to be separated to prevent infinite recursion.
+#[doc(hidden)]
 #[macro_export]
+macro_rules! local_stringify {
+    ($s:ident) => {
+        stringify!($s)
+    }
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! local_vec {
+    [$($e:expr),+] => {
+        vec![$($e,)+]
+    }
+}
+
+/// The html! entrypoint and this implementation had to be separated to prevent infinite recursion.
+#[doc(hidden)]
+#[macro_export(local_inner_macros)]
 macro_rules! html_impl {
     ($stack:ident (< > $($tail:tt)*)) => {
         let vlist = $crate::virtual_dom::VList::new();
@@ -46,7 +63,7 @@ macro_rules! html_impl {
     };
     // Start of opening tag
     ($stack:ident (< $starttag:ident $($tail:tt)*)) => {
-        let vtag = $crate::virtual_dom::VTag::new(stringify!($starttag));
+        let vtag = $crate::virtual_dom::VTag::new(local_stringify!($starttag));
         $stack.push(vtag.into());
         html_impl! { @vtag $stack ($($tail)*) }
     };
@@ -87,119 +104,120 @@ macro_rules! html_impl {
         html_impl! { @vtag $stack ($($tail)*) }
     };
     // Events:
+    // TODO Try to rewrite with procedural macro.
     (@vtag $stack:ident (onclick = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onclick) = move | $var: $crate::prelude::ClickEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onclick) = move | $var: $crate::events::ClickEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (ondoubleclick = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((ondoubleclick) = move | $var: $crate::prelude::DoubleClickEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((ondoubleclick) = move | $var: $crate::events::DoubleClickEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onkeypress = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onkeypress) = move | $var: $crate::prelude::KeyPressEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onkeypress) = move | $var: $crate::events::KeyPressEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onkeydown = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onkeydown) = move | $var: $crate::prelude::KeyDownEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onkeydown) = move | $var: $crate::events::KeyDownEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onkeyup = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onkeyup) = move | $var: $crate::prelude::KeyUpEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onkeyup) = move | $var: $crate::events::KeyUpEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onmousedown = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmousedown) = move | $var: $crate::prelude::MouseDownEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onmousedown) = move | $var: $crate::events::MouseDownEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onmousemove = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmousemove) = move | $var: $crate::prelude::MouseMoveEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onmousemove) = move | $var: $crate::events::MouseMoveEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onmouseout = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmouseout) = move | $var: $crate::prelude::MouseOutEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onmouseout) = move | $var: $crate::events::MouseOutEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onmouseenter = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmouseenter) = move | $var: $crate::prelude::MouseEnterEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onmouseenter) = move | $var: $crate::events::MouseEnterEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onmouseleave = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmouseleave) = move | $var: $crate::prelude::MouseLeaveEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onmouseleave) = move | $var: $crate::events::MouseLeaveEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onmousewheel = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmousewheel) = move | $var: $crate::prelude::MouseWheelEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onmousewheel) = move | $var: $crate::events::MouseWheelEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onmouseover = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmouseover) = move | $var: $crate::prelude::MouseOverEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onmouseover) = move | $var: $crate::events::MouseOverEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onmouseup = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onmouseup) = move | $var: $crate::prelude::MouseUpEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onmouseup) = move | $var: $crate::events::MouseUpEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (ongotpointercapture = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((ongotpointercapture) = move | $var: $crate::prelude::GotPointerCaptureEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((ongotpointercapture) = move | $var: $crate::events::GotPointerCaptureEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onlostpointercapture = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onlostpointercapture) = move | $var: $crate::prelude::LostPointerCaptureEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onlostpointercapture) = move | $var: $crate::events::LostPointerCaptureEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onpointercancel = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onpointercancel) = move | $var: $crate::prelude::PointerCancelEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onpointercancel) = move | $var: $crate::events::PointerCancelEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onpointerdown = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onpointerdown) = move | $var: $crate::prelude::PointerDownEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onpointerdown) = move | $var: $crate::events::PointerDownEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onpointerenter = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onpointerenter) = move | $var: $crate::prelude::PointerEnterEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onpointerenter) = move | $var: $crate::events::PointerEnterEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onpointerleave = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onpointerleave) = move | $var: $crate::prelude::PointerLeaveEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onpointerleave) = move | $var: $crate::events::PointerLeaveEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onpointermove = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onpointermove) = move | $var: $crate::prelude::PointerMoveEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onpointermove) = move | $var: $crate::events::PointerMoveEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onpointerout = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onpointerout) = move | $var: $crate::prelude::PointerOutEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onpointerout) = move | $var: $crate::events::PointerOutEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onpointerover = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onpointerover) = move | $var: $crate::prelude::PointerOverEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onpointerover) = move | $var: $crate::events::PointerOverEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onpointerup = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onpointerup) = move | $var: $crate::prelude::PointerUpEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onpointerup) = move | $var: $crate::events::PointerUpEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onscroll = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onscroll) = move | $var: $crate::prelude::ScrollEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onscroll) = move | $var: $crate::events::ScrollEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onblur = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onblur) = move | $var: $crate::prelude::BlurEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onblur) = move | $var: $crate::events::BlurEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onfocus = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onfocus) = move | $var: $crate::prelude::FocusEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onfocus) = move | $var: $crate::events::FocusEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onsubmit = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onsubmit) = move | $var: $crate::prelude::SubmitEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onsubmit) = move | $var: $crate::events::SubmitEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (oninput = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((oninput) = move | $var: $crate::prelude::InputData | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((oninput) = move | $var: $crate::events::InputData | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (onchange = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((onchange) = move | $var: $crate::prelude::ChangeData | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((onchange) = move | $var: $crate::events::ChangeData | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (ondragstart = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((ondragstart) = move | $var: $crate::prelude::DragStartEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((ondragstart) = move | $var: $crate::events::DragStartEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (ondrag = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((ondrag) = move | $var: $crate::prelude::DragEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((ondrag) = move | $var: $crate::events::DragEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (ondragend = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((ondragend) = move | $var: $crate::prelude::DragEndEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((ondragend) = move | $var: $crate::events::DragEndEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (ondragenter = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((ondragenter) = move | $var: $crate::prelude::DragEnterEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((ondragenter) = move | $var: $crate::events::DragEnterEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (ondragleave = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((ondragleave) = move | $var: $crate::prelude::DragLeaveEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((ondragleave) = move | $var: $crate::events::DragLeaveEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (ondragover = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((ondragover) = move | $var: $crate::prelude::DragOverEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((ondragover) = move | $var: $crate::events::DragOverEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (ondragexit = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((ondragexit) = move | $var: $crate::prelude::DragExitEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((ondragexit) = move | $var: $crate::events::DragExitEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (ondrop = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((ondrop) = move | $var: $crate::prelude::DragDropEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((ondrop) = move | $var: $crate::events::DragDropEvent | $handler, $($tail)*) }
     };
     (@vtag $stack:ident (oncontextmenu = | $var:pat | $handler:expr, $($tail:tt)*)) => {
-        html_impl! { @vtag $stack ((oncontextmenu) = move | $var: $crate::prelude::ContextMenuEvent | $handler, $($tail)*) }
+        html_impl! { @vtag $stack ((oncontextmenu) = move | $var: $crate::events::ContextMenuEvent | $handler, $($tail)*) }
     };
 
     // PATTERN: (action)=expression,
@@ -217,7 +235,7 @@ macro_rules! html_impl {
         html_impl! { @vtag $stack ($($tail)*) }
     };
     (@vtag $stack:ident ($attr:ident = $val:expr, $($tail:tt)*)) => {
-        $crate::macros::add_attribute(&mut $stack, stringify!($attr), $val);
+        $crate::macros::add_attribute(&mut $stack, local_stringify!($attr), $val);
         html_impl! { @vtag $stack ($($tail)*) }
     };
     // End of openging tag
@@ -230,13 +248,13 @@ macro_rules! html_impl {
         html_impl! { $stack ($($tail)*) }
     };
     (@vtag $stack:ident ($($attr:ident)-+ = $val:expr, $($tail:tt)*)) => {
-        let attr = vec![$(stringify!($attr).to_string()),+].join("-");
+        let attr = local_vec![$(local_stringify!($attr).to_string()),+].join("-");
         $crate::macros::add_attribute(&mut $stack, &attr, $val);
         html_impl! { @vtag $stack ($($tail)*) }
     };
     // Traditional tag closing
     ($stack:ident (< / $endtag:ident > $($tail:tt)*)) => {
-        let endtag = stringify!($endtag);
+        let endtag = local_stringify!($endtag);
         $crate::macros::child_to_parent(&mut $stack, Some(endtag));
         html_impl! { $stack ($($tail)*) }
     };
@@ -279,7 +297,7 @@ macro_rules! html_impl {
 macro_rules! html {
     ($($tail:tt)*) => {{
         let mut stack = Vec::new();
-        html_impl! { stack ($($tail)*) }
+        $crate::html_impl! { stack ($($tail)*) }
     }};
 }
 

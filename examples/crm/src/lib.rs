@@ -1,13 +1,9 @@
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
-extern crate yew;
-
-extern crate pulldown_cmark;
 
 mod markdown;
 
-use yew::prelude::*;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::format::Json;
 use yew::services::{DialogService, StorageService};
 use yew::services::storage::Area;

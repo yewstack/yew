@@ -8,9 +8,8 @@ use bincode;
 use anymap::{AnyMap, Entry};
 use slab::Slab;
 use stdweb::Value;
-use scheduler::{Runnable, scheduler};
+use scheduler::{Runnable, Shared, scheduler};
 use callback::Callback;
-use Shared;
 
 #[derive(Serialize, Deserialize)]
 enum ToWorker<T> {

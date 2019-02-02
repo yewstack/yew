@@ -87,20 +87,12 @@ pub mod macros;
 pub mod format;
 pub mod html;
 pub mod app;
-pub mod prelude;
 pub mod services;
 pub mod virtual_dom;
 pub mod callback;
 pub mod scheduler;
 pub mod agent;
 pub mod components;
-
-use std::rc::Rc;
-use std::cell::RefCell;
-
-type Shared<T> = Rc<RefCell<T>>;
-
-struct Hidden;
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
@@ -111,3 +103,113 @@ pub fn initialize() {
 pub fn run_loop() {
     stdweb::event_loop();
 }
+
+/// Starts an app mounted to a body of the document.
+pub fn start_app<COMP>()
+where
+    COMP: Component + Renderable<COMP>,
+{
+    initialize();
+    App::<COMP>::new().mount_to_body();
+    run_loop();
+}
+
+/// The module that contains all events available in the framework.
+pub mod events {
+    pub use html::{
+        ChangeData,
+        InputData,
+    };
+
+    pub use stdweb::web::event::{
+        BlurEvent,
+        ClickEvent,
+        ContextMenuEvent,
+        DoubleClickEvent,
+        DragDropEvent,
+        DragEndEvent,
+        DragEnterEvent,
+        DragEvent,
+        DragExitEvent,
+        DragLeaveEvent,
+        DragOverEvent,
+        DragStartEvent,
+        FocusEvent,
+        GotPointerCaptureEvent,
+        IKeyboardEvent,
+        IMouseEvent,
+        IPointerEvent,
+        KeyDownEvent,
+        KeyPressEvent,
+        KeyUpEvent,
+        LostPointerCaptureEvent,
+        MouseDownEvent,
+        MouseMoveEvent,
+        MouseOutEvent,
+        MouseEnterEvent,
+        MouseLeaveEvent,
+        MouseOverEvent,
+        MouseUpEvent,
+        MouseWheelEvent,
+        PointerCancelEvent,
+        PointerDownEvent,
+        PointerEnterEvent,
+        PointerLeaveEvent,
+        PointerMoveEvent,
+        PointerOutEvent,
+        PointerOverEvent,
+        PointerUpEvent,
+        ScrollEvent,
+        SubmitEvent
+    };
+}
+
+/// The Yew Prelude
+///
+/// The purpose of this module is to alleviate imports of many common types:
+///
+/// ```
+/// # #![allow(unused_imports)]
+/// use yew::prelude::*;
+/// ```
+pub mod prelude {
+    pub use html::{
+        Component,
+        ComponentLink,
+        Href,
+        Html,
+        Renderable,
+        ShouldRender,
+    };
+
+    pub use app::App;
+
+    pub use callback::Callback;
+
+    pub use agent::{
+        Bridge,
+        Bridged,
+        Threaded,
+    };
+
+    pub use events::*;
+
+    /// Prelude module for creating worker.
+    pub mod worker {
+        pub use agent::{
+            Agent,
+            AgentLink,
+            Bridge,
+            Bridged,
+            Context,
+            Global,
+            HandlerId,
+            Job,
+            Private,
+            Public,
+            Transferable,
+        };
+    }
+}
+
+pub use self::prelude::*;
