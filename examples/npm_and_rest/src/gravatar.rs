@@ -1,4 +1,5 @@
-use failure::Error;
+use failure::{format_err, Error};
+use serde_derive::Deserialize;
 use yew::callback::Callback;
 use yew::format::{Json, Nothing};
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};

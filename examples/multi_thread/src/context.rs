@@ -1,5 +1,7 @@
+use log::info;
+use serde_derive::{Deserialize, Serialize};
 use std::time::Duration;
-use yew::prelude::worker::*;
+use yew::worker::*;
 // TODO use yew::services::{IntervalService, FetchService, Task};
 use yew::services::Task;
 use yew::services::interval::IntervalService;

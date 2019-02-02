@@ -5,11 +5,10 @@ extern crate strum;
 extern crate strum_macros;
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
-extern crate yew;
 
 use strum::IntoEnumIterator;
-use yew::prelude::*;
+use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
+use yew::events::IKeyboardEvent;
 use yew::format::Json;
 use yew::services::storage::{StorageService, Area};
 

@@ -1,18 +1,12 @@
 #[macro_use]
-extern crate failure;
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
 extern crate stdweb;
-#[macro_use]
-extern crate yew;
 
 // Own services implementation
 pub mod gravatar;
 pub mod ccxt;
 
 use failure::Error;
-use yew::prelude::*;
+use yew::{html, Callback, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::services::fetch::FetchTask;
 
 use gravatar::{GravatarService, Profile};

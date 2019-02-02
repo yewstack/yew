@@ -1,18 +1,15 @@
 //! Agent that exposes a usable routing interface to components.
 
-use routing::RouteService;
-
-use yew::prelude::worker::*;
-
+use crate::routing::RouteService;
+use yew::worker::*;
+use log::info;
+use serde_derive::{Deserialize, Serialize};
 use std::collections::HashSet;
-
 use stdweb::Value;
 use stdweb::JsSerialize;
 use stdweb::unstable::TryFrom;
-
 use serde::Serialize;
 use serde::Deserialize;
-
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize) ]

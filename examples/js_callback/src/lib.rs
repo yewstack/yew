@@ -1,11 +1,9 @@
 #![deny(warnings)]
 
 #[macro_use]
-extern crate yew;
-use yew::prelude::*;
-
-#[macro_use]
 extern crate stdweb;
+
+use yew::{html, Callback, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
     payload: String,

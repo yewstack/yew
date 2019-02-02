@@ -172,7 +172,7 @@ pub mod events {
 /// # #![allow(unused_imports)]
 /// use yew::prelude::*;
 /// ```
-pub mod prelude_1 {
+pub mod prelude {
     pub use html::{
         Component,
         ComponentLink,
@@ -212,4 +212,4 @@ pub mod prelude_1 {
     }
 }
 
-pub use self::prelude_1::*;
+pub use self::prelude::*;

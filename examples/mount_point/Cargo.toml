@@ -2,6 +2,7 @@
 name = "mount_point"
 version = "0.1.0"
 authors = ["Ben Berman <ben@standardbots.com>"]
+edition = "2018"
 
 [dependencies]
 stdweb = "0.4"
