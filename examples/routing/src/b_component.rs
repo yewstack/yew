@@ -1,14 +1,14 @@
 
-use router;
-use router::Route;
-use yew::prelude::*;
-use std::usize;
+use log::info;
+use crate::router::{Request, Route, Router};
+use yew::{html, Bridge, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::agent::Bridged;
 
 
 pub struct BModel {
     number: Option<usize>,
     sub_path: Option<String>,
-    router: Box<Bridge<router::Router<()>>>
+    router: Box<Bridge<Router<()>>>
 }
 
 pub enum Msg {
@@ -27,9 +27,9 @@ impl Component for BModel {
     fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
 
         let callback = link.send_back(|route: Route<()>| Msg::HandleRoute(route));
-        let mut router = router::Router::bridge(callback);
+        let mut router = Router::bridge(callback);
 
-        router.send(router::Request::GetCurrentRoute);
+        router.send(Request::GetCurrentRoute);
 
         BModel {
             number: None,
@@ -54,14 +54,14 @@ impl Component for BModel {
 
                 let fragment: Option<String> = self.number.map(|x: usize | x.to_string());
 
-                let route = router::Route {
+                let route = Route {
                     path_segments,
                     query: None,
                     fragment,
                     state: (),
                 };
 
-                self.router.send(router::Request::ChangeRoute(route));
+                self.router.send(Request::ChangeRoute(route));
                 false
             }
             Msg::HandleRoute(route) => {

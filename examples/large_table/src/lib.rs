@@ -1,10 +1,7 @@
 //! This demo originally created by https://github.com/qthree
 //! Source: https://github.com/qthree/yew_table100x100_test
 
-#[macro_use]
-extern crate yew;
-
-use yew::prelude::*;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
     selected: Option<(u32, u32)>

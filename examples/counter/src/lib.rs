@@ -1,5 +1,5 @@
 use stdweb::web::Date;
-use yew::{html, Component, ComponentLink, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::services::ConsoleService;
 
 pub struct Model {

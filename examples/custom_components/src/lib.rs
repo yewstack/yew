@@ -1,11 +1,8 @@
-#[macro_use]
-extern crate yew;
-
 mod counter;
 mod button;
 mod barrier;
 
-use yew::prelude::*;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 use counter::{Counter, Color};
 use barrier::Barrier;
 

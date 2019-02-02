@@ -1,15 +1,10 @@
-#[macro_use]
-extern crate log;
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate yew;
-
 pub mod native_worker;
 pub mod job;
 pub mod context;
 
-use yew::prelude::*;
+use log::info;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::worker::*;
 
 pub struct Model {
     worker: Box<Bridge<native_worker::Worker>>,

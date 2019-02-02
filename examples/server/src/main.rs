@@ -1,5 +1,3 @@
-extern crate tungstenite;
-
 use std::net::TcpListener;
 use std::thread::spawn;
 use tungstenite::server::accept;
