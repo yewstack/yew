@@ -1,11 +1,9 @@
 #![recursion_limit="128"]
 
-#[macro_use]
-extern crate strum_macros;
-
 use log::trace;
 use strum::IntoEnumIterator;
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use strum_macros::{Display, EnumIter, EnumString};
+use yew::{html, App, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::components::Select;
 use counter::Model as Counter;
 use crm::Model as Crm;
