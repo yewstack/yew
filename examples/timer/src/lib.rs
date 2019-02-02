@@ -1,8 +1,5 @@
-#[macro_use]
-extern crate yew;
-
 use std::time::Duration;
-use yew::prelude::*;
+use yew::{html, Callback, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::services::{ConsoleService, IntervalService, TimeoutService, Task};
 
 pub struct Model {

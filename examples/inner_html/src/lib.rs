@@ -1,12 +1,10 @@
 #![recursion_limit="512"]
 #[macro_use]
 extern crate stdweb;
-extern crate yew;
-
-use yew::prelude::*;
 
 use stdweb::web::Node;
 use stdweb::unstable::TryFrom;
+use yew::{Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::virtual_dom::VNode;
 
 pub struct Model {

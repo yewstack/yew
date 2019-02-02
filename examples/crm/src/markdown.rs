@@ -3,8 +3,7 @@
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
 
 use pulldown_cmark::{Alignment, Event, Parser, Tag, OPTION_ENABLE_TABLES};
-use yew::html::Html;
-use yew::html::Component;
+use yew::{html, Component, Html};
 use yew::virtual_dom::{VNode, VTag, VText};
 
 /// Renders a string of Markdown to HTML with the default options (footnotes

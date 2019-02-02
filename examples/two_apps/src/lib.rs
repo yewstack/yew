@@ -1,9 +1,7 @@
 /// This example demonstrates low-level usage of scopes.
 
-#[macro_use]
-extern crate yew;
-
-use yew::html::*;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::html::Scope;
 
 pub struct Model {
     scope: Option<Scope<Model>>,
