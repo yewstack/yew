@@ -8,6 +8,13 @@
 
 - Added `start_app` method. It's a shortcut to initialize a component and mount it to the body.
 
+- Added handling of files of `input` element. There is new `ChangeData::Files` variant
+  of `onchange` handler.
+
+- Added `ReaderService` to read data from `File` instances.
+
+- New example `file_upload` that prints sizes of uploaded files.
+
 ### Bug fixes
 
 ## 0.5 - Released 2019-02-01

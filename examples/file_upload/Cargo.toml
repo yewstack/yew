@@ -1,0 +1,8 @@
+[package]
+name = "file_upload"
+version = "0.1.0"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+yew = { path = "../.." }
