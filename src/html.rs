@@ -5,7 +5,7 @@
 
 use std::rc::Rc;
 use std::cell::RefCell;
-use stdweb::web::{Element, EventListenerHandle, INode, Node};
+use stdweb::web::{Element, EventListenerHandle, FileList, INode, Node};
 use stdweb::web::html_element::SelectElement;
 use virtual_dom::{Listener, VDiff, VNode};
 use callback::Callback;
@@ -361,12 +361,24 @@ impl_action! {
         InputData { value }
     }
     onchange(event: ChangeEvent) -> ChangeData => |this: &Element, _| {
+        use stdweb::web::{FileList, IElement};
         use stdweb::web::html_element::{InputElement, TextAreaElement, SelectElement};
         use stdweb::unstable::TryInto;
         match this.node_name().as_ref() {
             "INPUT" => {
                 let input: InputElement = this.clone().try_into().unwrap();
-                ChangeData::Value(input.raw_value())
+                let is_file = input.get_attribute("type").map(|value| {
+                        value.eq_ignore_ascii_case("file")
+                    })
+                    .unwrap_or(false);
+                if is_file {
+                    let files: FileList = js!( return @{input}.files; )
+                        .try_into()
+                        .unwrap();
+                    ChangeData::Files(files)
+                } else {
+                    ChangeData::Value(input.raw_value())
+                }
             }
             "TEXTAREA" => {
                 let tae: TextAreaElement = this.clone().try_into().unwrap();
@@ -407,6 +419,8 @@ pub enum ChangeData {
     /// to collect your required data such as: `value`, `selected_index`, `selected_indices` or
     /// `selected_values`. You can also iterate throught `selected_options` yourself.
     Select(SelectElement),
+    /// Files
+    Files(FileList),
 }
 
 /// A bridging type for checking `href` attribute value.
