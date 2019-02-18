@@ -18,6 +18,10 @@
 
 ### Bug fixes
 
+- It was impossible to set `value` attribute for any tag instead of `option`, because it used
+  inner value of `VTag` to keep the value for `input` element. Now `value` attribute works
+  for `options`, `progress` tags, etc.
+
 ## 0.5 - Released 2019-02-01
 
 ### Breaking changes
