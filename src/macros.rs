@@ -311,13 +311,15 @@ pub fn unpack<COMP: Component>(mut stack: Stack<COMP>) -> VNode<COMP> {
     stack.pop().expect("no html elements in the stack")
 }
 
+/// This method uses `value` attribute of macro to set a value of `input` element
+/// or set that attribute as is for other elements like: `option`, `progress`, etc.
 #[doc(hidden)]
 pub fn set_value_or_attribute<COMP: Component, T: ToString>(stack: &mut Stack<COMP>, value: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
-        if vtag.tag().eq_ignore_ascii_case("option") {
-            vtag.add_attribute("value", &value)
-        } else {
+        if vtag.tag().eq_ignore_ascii_case("input") {
             vtag.set_value(&value)
+        } else {
+            vtag.add_attribute("value", &value)
         }
     } else {
         panic!("no tag to set value: {}", value.to_string());
