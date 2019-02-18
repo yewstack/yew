@@ -11,7 +11,8 @@
 - Added handling of files of `input` element. There is new `ChangeData::Files` variant
   of `onchange` handler.
 
-- Added `ReaderService` to read data from `File` instances.
+- Added `ReaderService` to read data from `File` instances. It supports two methods: `read_file`
+  to read an entire file at a time and `read_file_by_chunks` to read a file by small pieces of data.
 
 - New example `file_upload` that prints sizes of uploaded files.
 
