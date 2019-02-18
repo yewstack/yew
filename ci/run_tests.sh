@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Originally this ci script borrowed from https://github.com/koute/stdweb
 # because both use `cargo-web` tool to check the compilation.
