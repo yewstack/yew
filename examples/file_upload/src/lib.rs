@@ -1,16 +1,21 @@
 use yew::{html, ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
-use yew::services::reader::{File, FileData, ReaderService, ReaderTask};
+use yew::services::reader::{File, FileChunk, FileData, ReaderService, ReaderTask};
 
 pub struct Model {
     link: ComponentLink<Model>,
     reader: ReaderService,
     tasks: Vec<ReaderTask>,
-    files: Vec<FileData>,
+    files: Vec<String>,
+    by_chunks: bool,
 }
+
+type Chunks = bool;
 
 pub enum Msg {
     Loaded(FileData),
-    Files(Vec<File>),
+    Chunk(FileChunk),
+    Files(Vec<File>, Chunks),
+    ToggleByChunks,
 }
 
 impl Component for Model {
@@ -23,20 +28,36 @@ impl Component for Model {
             link,
             tasks: vec![],
             files: vec![],
+            by_chunks: false,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Loaded(file) => {
-                self.files.push(file);
+                let info = format!("file: {:?}", file);
+                self.files.push(info);
             }
-            Msg::Files(files) => {
+            Msg::Chunk(chunk) => {
+                let info = format!("chunk: {:?}", chunk);
+                self.files.push(info);
+            }
+            Msg::Files(files, chunks) => {
                 for file in files.into_iter() {
-                    let callback = self.link.send_back(Msg::Loaded);
-                    let task = self.reader.read_file(file, callback);
+                    let task = {
+                        if chunks {
+                            let callback = self.link.send_back(Msg::Chunk);
+                            self.reader.read_file_by_chunks(file, callback, 10)
+                        } else {
+                            let callback = self.link.send_back(Msg::Loaded);
+                            self.reader.read_file(file, callback)
+                        }
+                    };
                     self.tasks.push(task);
                 }
+            }
+            Msg::ToggleByChunks => {
+                self.by_chunks = !self.by_chunks;
             }
         }
         true
@@ -45,15 +66,22 @@ impl Component for Model {
 
 impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
+        let flag = self.by_chunks;
         html! {
             <div>
-                <input type="file", multiple=true, onchange=|value| {
-                        let mut result = Vec::new();
-                        if let ChangeData::Files(files) = value {
-                            result.extend(files);
-                        }
-                        Msg::Files(result)
-                    },/>
+                <div>
+                    <input type="file", multiple=true, onchange=|value| {
+                            let mut result = Vec::new();
+                            if let ChangeData::Files(files) = value {
+                                result.extend(files);
+                            }
+                            Msg::Files(result, flag)
+                        },/>
+                </div>
+                <div>
+                    <label>{ "By chunks" }</label>
+                    <input type="checkbox", checked=flag, onclick=|_| Msg::ToggleByChunks, />
+                </div>
                 <ul>
                     { for self.files.iter().map(|f| self.view_file(f)) }
                 </ul>
@@ -63,9 +91,9 @@ impl Renderable<Model> for Model {
 }
 
 impl Model {
-    fn view_file(&self, file: &FileData) -> Html<Self> {
+    fn view_file(&self, data: &str) -> Html<Self> {
         html! {
-            <li>{ format!("file: {}, size: {}", file.name, file.content.len()) }</li>
+            <li>{ data }</li>
         }
     }
 }
