@@ -30,6 +30,7 @@ pub enum WebSocketStatus {
 }
 
 /// A handle to control current websocket connection. Implements `Task` and could be canceled.
+#[must_use]
 pub struct WebSocketTask {
     ws: WebSocket,
     notification: Callback<WebSocketStatus>,

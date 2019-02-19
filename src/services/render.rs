@@ -7,6 +7,7 @@ use services::Task;
 use callback::Callback;
 
 /// A handle to cancel a render task.
+#[must_use]
 pub struct RenderTask(Option<Value>);
 
 /// A service to request animation frames.
