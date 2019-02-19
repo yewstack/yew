@@ -41,6 +41,7 @@ enum FetchError {
 }
 
 /// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
+#[must_use]
 pub struct FetchTask(Option<Value>);
 
 /// A service to fetch resources.
