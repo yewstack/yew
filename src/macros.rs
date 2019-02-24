@@ -316,7 +316,8 @@ pub fn unpack<COMP: Component>(mut stack: Stack<COMP>) -> VNode<COMP> {
 #[doc(hidden)]
 pub fn set_value_or_attribute<COMP: Component, T: ToString>(stack: &mut Stack<COMP>, value: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
-        if vtag.tag().eq_ignore_ascii_case("input") {
+        if vtag.tag().eq_ignore_ascii_case("input")
+        || vtag.tag().eq_ignore_ascii_case("textarea") {
             vtag.set_value(&value)
         } else {
             vtag.add_attribute("value", &value)
