@@ -49,7 +49,7 @@ impl StorageService {
     }
 
     /// Restores value from the storage.
-    pub fn restore<T>(&mut self, key: &str) -> T
+    pub fn restore<T>(&self, key: &str) -> T
     where
         T: From<Text>,
     {
