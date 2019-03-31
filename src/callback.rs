@@ -1,5 +1,6 @@
 //! This module contains structs to interact with `Scope`s.
 
+use std::fmt;
 use std::rc::Rc;
 
 /// Universal callback wrapper.
@@ -27,6 +28,12 @@ impl<IN> Clone for Callback<IN> {
 impl<IN> PartialEq for Callback<IN> {
     fn eq(&self, other: &Callback<IN>) -> bool {
         Rc::ptr_eq(&self.0, &other.0)
+    }
+}
+
+impl<IN> fmt::Debug for Callback<IN> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Callback<_>")
     }
 }
 
