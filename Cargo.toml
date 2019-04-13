@@ -10,6 +10,7 @@ readme = "README.md"
 keywords = ["web", "asmjs", "webasm", "javascript"]
 categories = ["gui", "web-programming"]
 description = "A framework for making client-side single-page apps"
+edition = "2018"
 
 [dependencies]
 failure = "0.1"

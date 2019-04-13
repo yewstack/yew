@@ -6,8 +6,8 @@ use std::marker::PhantomData;
 use std::rc::Rc;
 use stdweb::unstable::TryInto;
 use stdweb::web::{document, Element, INode, Node};
-use html::{Component, ComponentUpdate, Scope, NodeCell, Renderable};
-use callback::Callback;
+use crate::html::{Component, ComponentUpdate, Scope, NodeCell, Renderable};
+use crate::callback::Callback;
 use super::{Reform, VDiff, VNode};
 
 struct Hidden;

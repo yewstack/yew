@@ -8,8 +8,8 @@ use stdweb::unstable::{TryInto, TryFrom};
 use stdweb::serde::Serde;
 
 use super::Task;
-use format::{Format, Text, Binary};
-use callback::Callback;
+use crate::format::{Format, Text, Binary};
+use crate::callback::Callback;
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 

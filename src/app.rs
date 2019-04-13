@@ -2,7 +2,7 @@
 //! a component in an isolated scope.
 
 use stdweb::web::{document, Element, INode, IParentNode};
-use html::{Scope, Component, Renderable};
+use crate::html::{Scope, Component, Renderable};
 
 /// An application instance.
 pub struct App<COMP: Component> {

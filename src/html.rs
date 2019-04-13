@@ -7,9 +7,9 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use stdweb::web::{Element, EventListenerHandle, FileList, INode, Node};
 use stdweb::web::html_element::SelectElement;
-use virtual_dom::{Listener, VDiff, VNode};
-use callback::Callback;
-use scheduler::{Runnable, Shared, scheduler};
+use crate::virtual_dom::{Listener, VDiff, VNode};
+use crate::callback::Callback;
+use crate::scheduler::{Runnable, Shared, scheduler};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;

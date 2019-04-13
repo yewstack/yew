@@ -2,7 +2,7 @@
 //! periodic sending messages to a loop.
 
 use super::{to_ms, Task};
-use callback::Callback;
+use crate::callback::Callback;
 use std::time::Duration;
 use stdweb::Value;
 

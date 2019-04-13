@@ -116,7 +116,7 @@ where
 
 /// The module that contains all events available in the framework.
 pub mod events {
-    pub use html::{
+    pub use crate::html::{
         ChangeData,
         InputData,
     };
@@ -173,7 +173,7 @@ pub mod events {
 /// use yew::prelude::*;
 /// ```
 pub mod prelude {
-    pub use html::{
+    pub use crate::html::{
         Component,
         ComponentLink,
         Href,
@@ -182,21 +182,21 @@ pub mod prelude {
         ShouldRender,
     };
 
-    pub use app::App;
+    pub use crate::app::App;
 
-    pub use callback::Callback;
+    pub use crate::callback::Callback;
 
-    pub use agent::{
+    pub use crate::agent::{
         Bridge,
         Bridged,
         Threaded,
     };
 
-    pub use events::*;
+    pub use crate::events::*;
 
     /// Prelude module for creating worker.
     pub mod worker {
-        pub use agent::{
+        pub use crate::agent::{
             Agent,
             AgentLink,
             Bridge,

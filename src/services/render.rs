@@ -3,8 +3,8 @@
 
 use stdweb::Value;
 use stdweb::unstable::TryInto;
-use services::Task;
-use callback::Callback;
+use crate::services::Task;
+use crate::callback::Callback;
 
 /// A handle to cancel a render task.
 #[must_use]

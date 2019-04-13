@@ -14,8 +14,8 @@ use stdweb::web::event::{
     SocketErrorEvent,
 };
 use stdweb::traits::IMessageEvent;
-use format::{Text, Binary};
-use callback::Callback;
+use crate::format::{Text, Binary};
+use crate::callback::Callback;
 use super::Task;
 
 #[derive(Debug)]

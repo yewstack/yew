@@ -8,7 +8,7 @@ use stdweb::web::html_element::TextAreaElement;
 use stdweb::unstable::TryFrom;
 use stdweb::web::html_element::InputElement;
 use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node};
-use html::{Component, Scope};
+use crate::html::{Component, Scope};
 use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
 
 /// A type for a virtual

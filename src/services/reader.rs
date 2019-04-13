@@ -13,7 +13,7 @@ use stdweb::web::event::{
     LoadEndEvent,
 };
 use stdweb::unstable::TryInto;
-use callback::Callback;
+use crate::callback::Callback;
 use super::Task;
 
 /// Struct that represents data of a file.

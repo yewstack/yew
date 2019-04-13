@@ -1,7 +1,7 @@
 //! This module contains the implementation of a service to
 //! use local and session storage of a browser.
 
-use format::Text;
+use crate::format::Text;
 use stdweb::web::{window, Storage};
 
 /// Represents errors of a storage.

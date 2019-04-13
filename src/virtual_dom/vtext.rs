@@ -4,7 +4,7 @@ use std::cmp::PartialEq;
 use std::fmt;
 use std::marker::PhantomData;
 use stdweb::web::{document, INode, Node, TextNode};
-use html::{Component, Scope};
+use crate::html::{Component, Scope};
 use super::{Reform, VDiff, VNode};
 
 /// A type for a virtual
