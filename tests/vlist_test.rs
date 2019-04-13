@@ -1,7 +1,7 @@
 extern crate yew;
 
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::virtual_dom::VNode;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 struct Comp;
 

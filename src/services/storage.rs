@@ -53,7 +53,8 @@ impl StorageService {
     where
         T: From<Text>,
     {
-        let data = self.storage
+        let data = self
+            .storage
             .get(key)
             .ok_or_else(|| StorageError::CantRestore.into());
         T::from(data)

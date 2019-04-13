@@ -56,7 +56,12 @@
 //! ```
 //!
 
-#![deny(missing_docs, bare_trait_objects, anonymous_parameters, elided_lifetimes_in_paths)]
+#![deny(
+    missing_docs,
+    bare_trait_objects,
+    anonymous_parameters,
+    elided_lifetimes_in_paths
+)]
 #![recursion_limit = "512"]
 
 #[macro_use]
@@ -67,32 +72,32 @@ extern crate http;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
-extern crate bincode;
 extern crate anymap;
+extern crate bincode;
+extern crate serde_json;
 extern crate slab;
 #[macro_use]
 extern crate stdweb;
-#[cfg(feature = "toml")]
-extern crate toml;
-#[cfg(feature = "yaml")]
-extern crate serde_yaml;
 #[cfg(feature = "msgpack")]
 extern crate rmp_serde;
 #[cfg(feature = "cbor")]
 extern crate serde_cbor;
+#[cfg(feature = "yaml")]
+extern crate serde_yaml;
+#[cfg(feature = "toml")]
+extern crate toml;
 
 #[macro_use]
 pub mod macros;
+pub mod agent;
+pub mod app;
+pub mod callback;
+pub mod components;
 pub mod format;
 pub mod html;
-pub mod app;
+pub mod scheduler;
 pub mod services;
 pub mod virtual_dom;
-pub mod callback;
-pub mod scheduler;
-pub mod agent;
-pub mod components;
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
@@ -116,51 +121,17 @@ where
 
 /// The module that contains all events available in the framework.
 pub mod events {
-    pub use crate::html::{
-        ChangeData,
-        InputData,
-    };
+    pub use crate::html::{ChangeData, InputData};
 
     pub use stdweb::web::event::{
-        BlurEvent,
-        ClickEvent,
-        ContextMenuEvent,
-        DoubleClickEvent,
-        DragDropEvent,
-        DragEndEvent,
-        DragEnterEvent,
-        DragEvent,
-        DragExitEvent,
-        DragLeaveEvent,
-        DragOverEvent,
-        DragStartEvent,
-        FocusEvent,
-        GotPointerCaptureEvent,
-        IKeyboardEvent,
-        IMouseEvent,
-        IPointerEvent,
-        KeyDownEvent,
-        KeyPressEvent,
-        KeyUpEvent,
-        LostPointerCaptureEvent,
-        MouseDownEvent,
-        MouseMoveEvent,
-        MouseOutEvent,
-        MouseEnterEvent,
-        MouseLeaveEvent,
-        MouseOverEvent,
-        MouseUpEvent,
-        MouseWheelEvent,
-        PointerCancelEvent,
-        PointerDownEvent,
-        PointerEnterEvent,
-        PointerLeaveEvent,
-        PointerMoveEvent,
-        PointerOutEvent,
-        PointerOverEvent,
-        PointerUpEvent,
-        ScrollEvent,
-        SubmitEvent
+        BlurEvent, ClickEvent, ContextMenuEvent, DoubleClickEvent, DragDropEvent, DragEndEvent,
+        DragEnterEvent, DragEvent, DragExitEvent, DragLeaveEvent, DragOverEvent, DragStartEvent,
+        FocusEvent, GotPointerCaptureEvent, IKeyboardEvent, IMouseEvent, IPointerEvent,
+        KeyDownEvent, KeyPressEvent, KeyUpEvent, LostPointerCaptureEvent, MouseDownEvent,
+        MouseEnterEvent, MouseLeaveEvent, MouseMoveEvent, MouseOutEvent, MouseOverEvent,
+        MouseUpEvent, MouseWheelEvent, PointerCancelEvent, PointerDownEvent, PointerEnterEvent,
+        PointerLeaveEvent, PointerMoveEvent, PointerOutEvent, PointerOverEvent, PointerUpEvent,
+        ScrollEvent, SubmitEvent,
     };
 }
 
@@ -173,40 +144,20 @@ pub mod events {
 /// use yew::prelude::*;
 /// ```
 pub mod prelude {
-    pub use crate::html::{
-        Component,
-        ComponentLink,
-        Href,
-        Html,
-        Renderable,
-        ShouldRender,
-    };
+    pub use crate::html::{Component, ComponentLink, Href, Html, Renderable, ShouldRender};
 
     pub use crate::app::App;
 
     pub use crate::callback::Callback;
 
-    pub use crate::agent::{
-        Bridge,
-        Bridged,
-        Threaded,
-    };
+    pub use crate::agent::{Bridge, Bridged, Threaded};
 
     pub use crate::events::*;
 
     /// Prelude module for creating worker.
     pub mod worker {
         pub use crate::agent::{
-            Agent,
-            AgentLink,
-            Bridge,
-            Bridged,
-            Context,
-            Global,
-            HandlerId,
-            Job,
-            Private,
-            Public,
+            Agent, AgentLink, Bridge, Bridged, Context, Global, HandlerId, Job, Private, Public,
             Transferable,
         };
     }

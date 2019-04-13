@@ -3,13 +3,13 @@
 //! Also this module contains declaration of `Component` trait which used
 //! to create own UI-components.
 
-use std::rc::Rc;
-use std::cell::RefCell;
-use stdweb::web::{Element, EventListenerHandle, FileList, INode, Node};
-use stdweb::web::html_element::SelectElement;
-use crate::virtual_dom::{Listener, VDiff, VNode};
 use crate::callback::Callback;
-use crate::scheduler::{Runnable, Shared, scheduler};
+use crate::scheduler::{scheduler, Runnable, Shared};
+use crate::virtual_dom::{Listener, VDiff, VNode};
+use std::cell::RefCell;
+use std::rc::Rc;
+use stdweb::web::html_element::SelectElement;
+use stdweb::web::{Element, EventListenerHandle, FileList, INode, Node};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -33,7 +33,7 @@ pub trait Component: Sized + 'static {
         unimplemented!("you should implement `change` method for a component with properties")
     }
     /// Called for finalization on the final point of the component's lifetime.
-    fn destroy(&mut self) { } // TODO Replace with `Drop`
+    fn destroy(&mut self) {} // TODO Replace with `Drop`
 }
 
 /// Should be rendered relative to context and component environment.
@@ -43,7 +43,7 @@ pub trait Renderable<COMP: Component> {
 }
 
 /// Update message for a `Components` instance. Used by scope sender.
-pub(crate) enum ComponentUpdate< COMP: Component> {
+pub(crate) enum ComponentUpdate<COMP: Component> {
     /// Creating an instance of the component
     Create(ComponentLink<COMP>),
     /// Wraps messages for a component.
@@ -195,7 +195,10 @@ where
             return;
         }
         let mut should_update = false;
-        let upd = self.message.take().expect("component's envelope called twice");
+        let upd = self
+            .message
+            .take()
+            .expect("component's envelope called twice");
         // This loop pops one item, because the following
         // updates could try to borrow the same cell
         // Important! Don't use `while let` here, because it
@@ -209,20 +212,27 @@ where
                 let current_frame = this.component.as_ref().unwrap().view();
                 this.last_frame = Some(current_frame);
                 // First-time rendering the tree
-                let node = this.last_frame.as_mut()
-                    .unwrap()
-                    .apply(this.element.as_node(), None, this.ancestor.take(), &env);
+                let node = this.last_frame.as_mut().unwrap().apply(
+                    this.element.as_node(),
+                    None,
+                    this.ancestor.take(),
+                    &env,
+                );
                 if let Some(ref mut cell) = this.occupied {
                     *cell.borrow_mut() = node;
                 }
             }
             ComponentUpdate::Message(msg) => {
-                should_update |= this.component.as_mut()
+                should_update |= this
+                    .component
+                    .as_mut()
                     .expect("component was not created to process messages")
                     .update(msg);
             }
             ComponentUpdate::Properties(props) => {
-                should_update |= this.component.as_mut()
+                should_update |= this
+                    .component
+                    .as_mut()
                     .expect("component was not created to process properties")
                     .change(props);
             }
@@ -235,8 +245,7 @@ where
         if should_update {
             let mut next_frame = this.component.as_ref().unwrap().view();
             // Re-rendering the tree
-            let node =
-                next_frame.apply(this.element.as_node(), None, this.last_frame.take(), &env);
+            let node = next_frame.apply(this.element.as_node(), None, this.last_frame.take(), &env);
             if let Some(ref mut cell) = this.occupied {
                 *cell.borrow_mut() = node;
             }

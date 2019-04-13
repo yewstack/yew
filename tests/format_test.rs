@@ -1,8 +1,8 @@
 extern crate serde_derive;
 extern crate yew;
 
-use serde_derive::{Serialize, Deserialize};
-use yew::format::{Json, Text, Binary};
+use serde_derive::{Deserialize, Serialize};
+use yew::format::{Binary, Json, Text};
 
 #[test]
 fn json_format() {

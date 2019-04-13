@@ -1,22 +1,12 @@
 //! Service to connect to a servers by
 //! [`WebSocket` Protocol](https://tools.ietf.org/html/rfc6455).
 
-use stdweb::web::{
-    WebSocket,
-    SocketReadyState,
-    SocketBinaryType,
-    IEventTarget,
-};
-use stdweb::web::event::{
-    SocketOpenEvent,
-    SocketMessageEvent,
-    SocketCloseEvent,
-    SocketErrorEvent,
-};
-use stdweb::traits::IMessageEvent;
-use crate::format::{Text, Binary};
-use crate::callback::Callback;
 use super::Task;
+use crate::callback::Callback;
+use crate::format::{Binary, Text};
+use stdweb::traits::IMessageEvent;
+use stdweb::web::event::{SocketCloseEvent, SocketErrorEvent, SocketMessageEvent, SocketOpenEvent};
+use stdweb::web::{IEventTarget, SocketBinaryType, SocketReadyState, WebSocket};
 
 #[derive(Debug)]
 /// A status of a websocket connection. Used for status notification.
