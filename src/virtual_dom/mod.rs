@@ -8,6 +8,7 @@ pub mod vtext;
 
 use std::collections::{HashMap, HashSet};
 use std::fmt;
+use std::ops::{Deref, DerefMut};
 use stdweb::web::{Element, EventListenerHandle, Node};
 
 pub use self::vcomp::VComp;
@@ -107,3 +108,49 @@ pub trait VDiff {
         scope: &Scope<Self::Component>,
     ) -> Option<Node>;
 }
+
+/// A wrapper for Option<T> to allow conditional rendering without colliding with the
+/// ToString-implementation
+pub struct RenderableOption<T>(Option<T>);
+
+impl<T> Deref for RenderableOption<T> {
+    type Target = Option<T>;
+
+    fn deref(&self) -> &Option<T> {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for RenderableOption<T> {
+    fn deref_mut(&mut self) -> &mut Option<T> {
+        &mut self.0
+    }
+}
+
+impl<T> From<Option<T>> for RenderableOption<T> {
+    fn from(opt: Option<T>) -> Self {
+        Self(opt)
+    }
+}
+
+impl<COMP: Component, T> From<RenderableOption<T>> for VNode<COMP> where VNode<COMP>: From<T> {
+    fn from(value: RenderableOption<T>) -> Self {
+        match value.0 {
+            Some(val) => val.into(),
+            None => VNode::VList(VList::new()),
+        }
+    }
+}
+
+/// A trait to allow conversion from Option<T> to something that can be rendered
+pub trait ToRenderableOption<T> {
+    /// convert self into what essentially is an option but can be used inside html!
+    fn renderable(self: Self) -> RenderableOption<T>;
+}
+
+impl<T> ToRenderableOption<T> for Option<T> {
+    fn renderable(self) -> RenderableOption<T> {
+        self.into()
+    }
+}
+

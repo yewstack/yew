@@ -182,6 +182,8 @@ pub mod prelude {
         ShouldRender,
     };
 
+    pub use virtual_dom::{RenderableOption, ToRenderableOption};
+
     pub use app::App;
 
     pub use callback::Callback;
