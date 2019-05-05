@@ -1,0 +1,9 @@
+[package]
+name = "optional"
+version = "0.1.0"
+authors = ["Densa-Inc <spam.1999@gmx.de>"]
+edition = "2018"
+
+[dependencies]
+yew = { path = "../.." }
+
