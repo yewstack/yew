@@ -1,0 +1,7 @@
+[package]
+name = "yew-html"
+version = "0.1.0"
+authors = ["Justin Starry <jstarry@users.noreply.github.com>"]
+edition = "2018"
+
+[dependencies]
