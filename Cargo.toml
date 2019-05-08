@@ -1,7 +1,15 @@
 [package]
 name = "yew-html"
 version = "0.1.0"
-authors = ["Justin Starry <jstarry@users.noreply.github.com>"]
+authors = ["Justin Starry"]
+license = "MIT/Apache-2.0"
+repository = "https://github.com/jstarry/yew-html"
 edition = "2018"
 
 [dependencies]
+syn = "0.15"
+quote = "0.6"
+proc-macro2 = "0.4"
+
+[lib]
+proc-macro = true
