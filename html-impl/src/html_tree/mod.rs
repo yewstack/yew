@@ -18,7 +18,7 @@ impl Parse for HtmlTree {
         if input.is_empty() {
             Ok(HtmlTree::Empty)
         } else {
-            Err(input.error("expected some kind of html element"))
+            Err(input.error("expected valid html element"))
         }
     }
 }

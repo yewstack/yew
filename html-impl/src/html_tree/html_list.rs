@@ -39,6 +39,12 @@ impl ToTokens for HtmlListOpen {
 
 struct HtmlListClose {}
 
+impl Peek for HtmlListClose {
+    fn peek(input: &ParseStream) -> bool {
+        input.peek(token::Lt) && input.peek2(token::Div) && input.peek3(token::Gt)
+    }
+}
+
 impl Parse for HtmlListClose {
     fn parse(input: ParseStream) -> Result<Self> {
         input.parse::<token::Lt>()?;
@@ -70,19 +76,21 @@ impl Parse for HtmlList {
         let open = input.parse::<HtmlListOpen>()?;
 
         let mut content: Vec<TokenTree> = vec![];
+        let mut list_stack_count = 0;
         while !input.is_empty() {
+            if HtmlListOpen::peek(&input) {
+                list_stack_count += 1;
+            } else if HtmlListClose::peek(&input) {
+                if list_stack_count == 0 {
+                    break;
+                } else {
+                    list_stack_count -= 1;
+                }
+            }
             content.push(input.parse::<TokenTree>()?);
         }
 
-        let split = if content.len() < 3 {
-            0
-        } else {
-            content.len() - 3
-        };
-
-        let last_tokens = content.split_off(split);
-        let token_stream: proc_macro2::TokenStream = last_tokens.into_iter().collect();
-        syn::parse::<HtmlListClose>(token_stream.into()).map_err(|_| {
+        input.parse::<HtmlListClose>().map_err(|_| {
             syn::Error::new_spanned(open, "this open tag has no corresponding close tag")
         })?;
 

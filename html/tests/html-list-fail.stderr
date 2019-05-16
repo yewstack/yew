@@ -1,0 +1,17 @@
+error: this open tag has no corresponding close tag
+ --> $DIR/html-list-fail.rs:5:9
+  |
+5 |         <><>
+  |         ^^
+
+error: expected valid html element
+ --> $DIR/html-list-fail.rs:9:9
+  |
+9 |         </></>
+  |         ^
+
+error: this open tag has no corresponding close tag
+  --> $DIR/html-list-fail.rs:13:9
+   |
+13 |         <><></>
+   |         ^^
