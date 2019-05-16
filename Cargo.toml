@@ -1,15 +1,14 @@
 [package]
-name = "yew-html"
-version = "0.1.0"
-authors = ["Justin Starry"]
-license = "MIT/Apache-2.0"
-repository = "https://github.com/jstarry/yew-html"
+name = "yew-macros"
+version = "0.0.1"
 edition = "2018"
 
-[dependencies]
-syn = "0.15"
-quote = "0.6"
-proc-macro2 = "0.4"
+[workspace]
 
-[lib]
-proc-macro = true
+[[bin]]
+name = "macros"
+path = "main.rs"
+
+[dependencies]
+yew-html = { path = "html" }
+yew-html-impl = { path = "html-impl" }

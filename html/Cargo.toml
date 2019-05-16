@@ -1,0 +1,16 @@
+[package]
+name = "yew-html"
+version = "0.0.1"
+edition = "2018"
+autotests = false
+
+[[test]]
+name = "tests"
+path = "tests/cases.rs"
+
+[dev-dependencies]
+trybuild = "1.0"
+
+[dependencies]
+proc-macro-hack = "0.5"
+yew-html-impl = { path = "../html-impl" }

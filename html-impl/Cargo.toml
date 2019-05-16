@@ -1,0 +1,13 @@
+[package]
+name = "yew-html-impl"
+version = "0.0.1"
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "0.15", features = ["full"] }
+quote = "0.6"
+proc-macro-hack = "0.5"
+proc-macro2 = "0.4"
