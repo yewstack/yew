@@ -16,4 +16,13 @@ error[E0308]: mismatched types
    = note: expected type `yew_html_common::html_tree::HtmlTree`
               found type `NotHtmlTree`
 
+error[E0308]: mismatched types
+  --> $DIR/html-block-fail.rs:23:15
+   |
+23 |             { (0..3).map(|_| not_tree()) }
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected enum `yew_html_common::html_tree::HtmlTree`, found struct `std::iter::Map`
+   |
+   = note: expected type `yew_html_common::html_tree::HtmlTree`
+              found type `std::iter::Map<std::ops::Range<{integer}>, [closure@$DIR/tests/html-block-fail.rs:23:26: 23:40]>`
+
 For more information about this error, try `rustc --explain E0308`.

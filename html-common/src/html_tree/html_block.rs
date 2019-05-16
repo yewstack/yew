@@ -5,11 +5,12 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::braced;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
-use syn::spanned::Spanned;
+use syn::token;
 
 pub struct HtmlBlock {
     pub tree: Box<HtmlTree>,
     content: TokenStream,
+    brace: Option<token::Brace>,
 }
 
 impl HtmlBlock {
@@ -17,6 +18,7 @@ impl HtmlBlock {
         HtmlBlock {
             tree: Box::new(tree),
             content: TokenStream::new(),
+            brace: None,
         }
     }
 }
@@ -30,9 +32,9 @@ impl Peek for HtmlBlock {
 impl Parse for HtmlBlock {
     fn parse(input: ParseStream) -> Result<Self> {
         let content;
-        braced!(content in input);
         Ok(HtmlBlock {
             tree: Box::new(HtmlTree::Empty),
+            brace: Some(braced!(content in input)),
             content: content.parse()?,
         })
     }
@@ -40,11 +42,12 @@ impl Parse for HtmlBlock {
 
 impl ToTokens for HtmlBlock {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlBlock { content, .. } = self;
+        let HtmlBlock { content, brace, .. } = self;
         let tree = Ident::new("__yew_html_tree", Span::call_site());
-        let init_tree = quote_spanned! {content.span()=>
+        let init_tree = quote_spanned! {brace.unwrap().span=>
             let #tree: ::yew_html_common::html_tree::HtmlTree = {#content};
         };
+
         tokens.extend(quote! {{
             #init_tree
             ::yew_html_common::html_tree::html_block::HtmlBlock::new(#tree)

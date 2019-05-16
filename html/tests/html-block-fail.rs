@@ -17,4 +17,10 @@ fn main() {
             not_a_tree
         }
     };
+
+    html! {
+        <>
+            { (0..3).map(|_| not_tree()) }
+        </>
+    };
 }

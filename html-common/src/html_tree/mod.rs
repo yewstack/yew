@@ -5,12 +5,23 @@ use crate::Peek;
 use html_block::HtmlBlock;
 use html_list::HtmlList;
 use quote::{quote, ToTokens};
+use std::iter::FromIterator;
 use syn::parse::{Parse, ParseStream, Result};
 
 pub enum HtmlTree {
     Block(HtmlBlock),
     List(HtmlList),
     Empty,
+}
+
+impl FromIterator<HtmlTree> for HtmlTree {
+    fn from_iter<I: IntoIterator<Item = HtmlTree>>(iter: I) -> Self {
+        let mut trees = vec![];
+        for tree in iter {
+            trees.push(tree);
+        }
+        HtmlTree::List(HtmlList(trees))
+    }
 }
 
 pub struct HtmlRoot(HtmlTree);

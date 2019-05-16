@@ -16,4 +16,8 @@ fn main() {
             stmt
         }
     };
+
+    html! {
+        { (0..3).map(|_| tree_block()).collect() }
+    };
 }
