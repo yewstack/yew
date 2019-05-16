@@ -1,0 +1,19 @@
+error[E0308]: mismatched types
+  --> $DIR/html-block-fail.rs:11:11
+   |
+11 |         { not_tree() }
+   |           ^^^^^^^^^^ expected enum `yew_html_common::html_tree::HtmlTree`, found struct `NotHtmlTree`
+   |
+   = note: expected type `yew_html_common::html_tree::HtmlTree`
+              found type `NotHtmlTree`
+
+error[E0308]: mismatched types
+  --> $DIR/html-block-fail.rs:17:13
+   |
+17 |             not_a_tree
+   |             ^^^^^^^^^^ expected enum `yew_html_common::html_tree::HtmlTree`, found struct `NotHtmlTree`
+   |
+   = note: expected type `yew_html_common::html_tree::HtmlTree`
+              found type `NotHtmlTree`
+
+For more information about this error, try `rustc --explain E0308`.

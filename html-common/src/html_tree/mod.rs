@@ -1,11 +1,14 @@
+pub mod html_block;
 pub mod html_list;
 
 use crate::Peek;
+use html_block::HtmlBlock;
 use html_list::HtmlList;
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream, Result};
 
 pub enum HtmlTree {
+    Block(HtmlBlock),
     List(HtmlList),
     Empty,
 }
@@ -33,6 +36,8 @@ impl Parse for HtmlTree {
     fn parse(input: ParseStream) -> Result<Self> {
         if HtmlList::peek(&input) {
             Ok(HtmlTree::List(input.parse()?))
+        } else if HtmlBlock::peek(&input) {
+            Ok(HtmlTree::Block(input.parse()?))
         } else if input.is_empty() {
             Ok(HtmlTree::Empty)
         } else {
@@ -49,6 +54,9 @@ impl ToTokens for HtmlTree {
             },
             HtmlTree::List(list) => quote! {
                 ::yew_html_common::html_tree::HtmlTree::List(#list)
+            },
+            HtmlTree::Block(block) => quote! {
+                ::yew_html_common::html_tree::HtmlTree::Block(#block)
             },
         };
 
