@@ -15,3 +15,9 @@ error: this open tag has no corresponding close tag
    |
 13 |         <><></>
    |         ^^
+
+error: only one root html element allowed
+  --> $DIR/html-list-fail.rs:18:9
+   |
+18 |         <></>
+   |         ^

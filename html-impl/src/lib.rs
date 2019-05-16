@@ -2,7 +2,7 @@ extern crate proc_macro;
 
 mod html_tree;
 
-use html_tree::HtmlTree;
+use html_tree::HtmlRoot;
 use proc_macro::TokenStream;
 use proc_macro_hack::proc_macro_hack;
 use quote::quote;
@@ -15,6 +15,6 @@ trait Peek: Sized {
 
 #[proc_macro_hack]
 pub fn html(input: TokenStream) -> TokenStream {
-    parse_macro_input!(input as HtmlTree);
+    parse_macro_input!(input as HtmlRoot);
     TokenStream::from(quote! { 42 })
 }
