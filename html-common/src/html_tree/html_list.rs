@@ -8,61 +8,6 @@ use syn::token;
 
 pub struct HtmlList(pub Vec<HtmlTree>);
 
-struct HtmlListOpen {
-    lt_token: token::Lt,
-    gt_token: token::Gt,
-}
-
-impl Peek for HtmlListOpen {
-    fn peek(cursor: Cursor) -> Option<()> {
-        let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '<').as_option()?;
-
-        let (punct, _) = cursor.punct()?;
-        (punct.as_char() == '>').as_option()
-    }
-}
-
-impl Parse for HtmlListOpen {
-    fn parse(input: ParseStream) -> Result<Self> {
-        Ok(HtmlListOpen {
-            lt_token: input.parse()?,
-            gt_token: input.parse()?,
-        })
-    }
-}
-
-impl ToTokens for HtmlListOpen {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlListOpen { lt_token, gt_token } = self;
-        tokens.extend(quote! {#lt_token#gt_token});
-    }
-}
-
-struct HtmlListClose {}
-
-impl Peek for HtmlListClose {
-    fn peek(cursor: Cursor) -> Option<()> {
-        let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '<').as_option()?;
-
-        let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '/').as_option()?;
-
-        let (punct, _) = cursor.punct()?;
-        (punct.as_char() == '>').as_option()
-    }
-}
-
-impl Parse for HtmlListClose {
-    fn parse(input: ParseStream) -> Result<Self> {
-        input.parse::<token::Lt>()?;
-        input.parse::<token::Div>()?;
-        input.parse::<token::Gt>()?;
-        Ok(HtmlListClose {})
-    }
-}
-
 impl Peek for HtmlList {
     fn peek(cursor: Cursor) -> Option<()> {
         HtmlListOpen::peek(cursor)
@@ -118,5 +63,60 @@ impl ToTokens for HtmlList {
                 vec![#(#html_trees,)*]
             )
         });
+    }
+}
+
+struct HtmlListOpen {
+    lt_token: token::Lt,
+    gt_token: token::Gt,
+}
+
+impl Peek for HtmlListOpen {
+    fn peek(cursor: Cursor) -> Option<()> {
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '<').as_option()?;
+
+        let (punct, _) = cursor.punct()?;
+        (punct.as_char() == '>').as_option()
+    }
+}
+
+impl Parse for HtmlListOpen {
+    fn parse(input: ParseStream) -> Result<Self> {
+        Ok(HtmlListOpen {
+            lt_token: input.parse()?,
+            gt_token: input.parse()?,
+        })
+    }
+}
+
+impl ToTokens for HtmlListOpen {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let HtmlListOpen { lt_token, gt_token } = self;
+        tokens.extend(quote! {#lt_token#gt_token});
+    }
+}
+
+struct HtmlListClose {}
+
+impl Peek for HtmlListClose {
+    fn peek(cursor: Cursor) -> Option<()> {
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '<').as_option()?;
+
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '/').as_option()?;
+
+        let (punct, _) = cursor.punct()?;
+        (punct.as_char() == '>').as_option()
+    }
+}
+
+impl Parse for HtmlListClose {
+    fn parse(input: ParseStream) -> Result<Self> {
+        input.parse::<token::Lt>()?;
+        input.parse::<token::Div>()?;
+        input.parse::<token::Gt>()?;
+        Ok(HtmlListClose {})
     }
 }
