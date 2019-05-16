@@ -1,9 +1,11 @@
 pub mod html_block;
 pub mod html_list;
+pub mod html_tag;
 
 use crate::Peek;
 use html_block::HtmlBlock;
 use html_list::HtmlList;
+use html_tag::HtmlTag;
 use quote::{quote, ToTokens};
 use std::iter::FromIterator;
 use syn::parse::{Parse, ParseStream, Result};
@@ -11,6 +13,7 @@ use syn::parse::{Parse, ParseStream, Result};
 pub enum HtmlTree {
     Block(HtmlBlock),
     List(HtmlList),
+    Tag(HtmlTag),
     Empty,
 }
 
@@ -20,7 +23,12 @@ impl FromIterator<HtmlTree> for HtmlTree {
         for tree in iter {
             trees.push(tree);
         }
-        HtmlTree::List(HtmlList(trees))
+
+        match trees.len() {
+            0 => HtmlTree::Empty,
+            1 => trees.remove(0),
+            _ => HtmlTree::List(HtmlList(trees)),
+        }
     }
 }
 
@@ -49,6 +57,8 @@ impl Parse for HtmlTree {
             Ok(HtmlTree::List(input.parse()?))
         } else if HtmlBlock::peek(input.cursor()).is_some() {
             Ok(HtmlTree::Block(input.parse()?))
+        } else if HtmlTag::peek(input.cursor()).is_some() {
+            Ok(HtmlTree::Tag(input.parse()?))
         } else if input.is_empty() {
             Ok(HtmlTree::Empty)
         } else {
@@ -62,6 +72,9 @@ impl ToTokens for HtmlTree {
         let token_stream = match self {
             HtmlTree::Empty => quote! {
                 ::yew_html_common::html_tree::HtmlTree::Empty
+            },
+            HtmlTree::Tag(tag) => quote! {
+                ::yew_html_common::html_tree::HtmlTree::Tag(#tag)
             },
             HtmlTree::List(list) => quote! {
                 ::yew_html_common::html_tree::HtmlTree::List(#list)

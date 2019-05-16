@@ -5,4 +5,6 @@ fn tests() {
     t.compile_fail("tests/html-block-fail.rs");
     t.pass("tests/html-list-pass.rs");
     t.compile_fail("tests/html-list-fail.rs");
+    t.pass("tests/html-tag-pass.rs");
+    t.compile_fail("tests/html-tag-fail.rs");
 }

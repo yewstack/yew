@@ -1,23 +1,35 @@
 error: this open tag has no corresponding close tag
  --> $DIR/html-list-fail.rs:5:9
   |
-5 |         <><>
+5 |         <>
   |         ^^
 
 error: expected valid html element
  --> $DIR/html-list-fail.rs:9:9
   |
-9 |         </></>
+9 |         </>
   |         ^
 
 error: this open tag has no corresponding close tag
   --> $DIR/html-list-fail.rs:13:9
    |
-13 |         <><></>
+13 |         <><>
+   |         ^^
+
+error: expected valid html element
+  --> $DIR/html-list-fail.rs:17:9
+   |
+17 |         </></>
+   |         ^
+
+error: this open tag has no corresponding close tag
+  --> $DIR/html-list-fail.rs:21:9
+   |
+21 |         <><></>
    |         ^^
 
 error: only one root html element allowed
-  --> $DIR/html-list-fail.rs:18:9
+  --> $DIR/html-list-fail.rs:26:9
    |
-18 |         <></>
+26 |         <></>
    |         ^

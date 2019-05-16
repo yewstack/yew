@@ -1,0 +1,35 @@
+error: this open tag has no corresponding close tag
+ --> $DIR/html-tag-fail.rs:5:9
+  |
+5 |         <div>
+  |         ^^^^^
+
+error: this open tag has no corresponding close tag
+ --> $DIR/html-tag-fail.rs:9:9
+  |
+9 |         <div><div>
+  |         ^^^^^
+
+error: expected valid html element
+  --> $DIR/html-tag-fail.rs:13:9
+   |
+13 |         </div>
+   |         ^
+
+error: this open tag has no corresponding close tag
+  --> $DIR/html-tag-fail.rs:17:9
+   |
+17 |         <div><div></div>
+   |         ^^^^^
+
+error: only one root html element allowed
+  --> $DIR/html-tag-fail.rs:22:9
+   |
+22 |         <div></div>
+   |         ^
+
+error: this open tag has no corresponding close tag
+  --> $DIR/html-tag-fail.rs:26:9
+   |
+26 |         <div></span>
+   |         ^^^^^

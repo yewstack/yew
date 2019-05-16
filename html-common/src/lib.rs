@@ -4,6 +4,6 @@ pub mod html_tree;
 
 use syn::buffer::Cursor;
 
-pub trait Peek {
-    fn peek(cursor: Cursor) -> Option<()>;
+pub trait Peek<T> {
+    fn peek(cursor: Cursor) -> Option<T>;
 }

@@ -8,7 +8,7 @@ use syn::token;
 
 pub struct HtmlList(pub Vec<HtmlTree>);
 
-impl Peek for HtmlList {
+impl Peek<()> for HtmlList {
     fn peek(cursor: Cursor) -> Option<()> {
         HtmlListOpen::peek(cursor)
     }
@@ -71,7 +71,7 @@ struct HtmlListOpen {
     gt_token: token::Gt,
 }
 
-impl Peek for HtmlListOpen {
+impl Peek<()> for HtmlListOpen {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
@@ -99,7 +99,7 @@ impl ToTokens for HtmlListOpen {
 
 struct HtmlListClose {}
 
-impl Peek for HtmlListClose {
+impl Peek<()> for HtmlListClose {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;

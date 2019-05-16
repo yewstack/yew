@@ -23,7 +23,7 @@ impl HtmlBlock {
     }
 }
 
-impl Peek for HtmlBlock {
+impl Peek<()> for HtmlBlock {
     fn peek(cursor: Cursor) -> Option<()> {
         cursor.group(Delimiter::Brace).map(|_| ())
     }
