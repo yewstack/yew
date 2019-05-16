@@ -1,7 +1,7 @@
 pub mod html_tree;
 
-use syn::parse::ParseStream;
+use syn::buffer::Cursor;
 
-pub trait Peek: Sized {
-    fn peek(input: &ParseStream) -> bool;
+pub trait Peek {
+    fn peek(cursor: Cursor) -> Option<()>;
 }

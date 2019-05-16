@@ -1,10 +1,11 @@
 use super::HtmlTree;
 use crate::Peek;
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Delimiter, Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
+use syn::braced;
+use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
-use syn::{braced, token};
 
 pub struct HtmlBlock {
     pub tree: Box<HtmlTree>,
@@ -21,8 +22,8 @@ impl HtmlBlock {
 }
 
 impl Peek for HtmlBlock {
-    fn peek(input: &ParseStream) -> bool {
-        input.peek(token::Brace)
+    fn peek(cursor: Cursor) -> Option<()> {
+        cursor.group(Delimiter::Brace).map(|_| ())
     }
 }
 

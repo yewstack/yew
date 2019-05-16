@@ -34,9 +34,9 @@ impl ToTokens for HtmlRoot {
 
 impl Parse for HtmlTree {
     fn parse(input: ParseStream) -> Result<Self> {
-        if HtmlList::peek(&input) {
+        if HtmlList::peek(input.cursor()).is_some() {
             Ok(HtmlTree::List(input.parse()?))
-        } else if HtmlBlock::peek(&input) {
+        } else if HtmlBlock::peek(input.cursor()).is_some() {
             Ok(HtmlTree::Block(input.parse()?))
         } else if input.is_empty() {
             Ok(HtmlTree::Empty)

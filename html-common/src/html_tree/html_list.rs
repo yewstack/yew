@@ -1,24 +1,12 @@
 use super::HtmlTree;
 use crate::Peek;
-use proc_macro2::TokenTree;
+use boolinator::Boolinator;
 use quote::{quote, ToTokens};
+use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::token;
 
-pub struct HtmlListChildren(pub Vec<HtmlTree>);
-impl ToTokens for HtmlListChildren {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlListChildren(html_trees) = self;
-        let html_trees = html_trees.iter().map(|html_tree| quote! { #html_tree });
-        tokens.extend(quote! {
-            ::yew_html_common::html_tree::html_list::HtmlListChildren(vec![#(#html_trees,)*])
-        });
-    }
-}
-
-pub struct HtmlList {
-    pub children: HtmlListChildren,
-}
+pub struct HtmlList(pub Vec<HtmlTree>);
 
 struct HtmlListOpen {
     lt_token: token::Lt,
@@ -26,8 +14,12 @@ struct HtmlListOpen {
 }
 
 impl Peek for HtmlListOpen {
-    fn peek(input: &ParseStream) -> bool {
-        input.peek(token::Lt) && input.peek2(token::Gt)
+    fn peek(cursor: Cursor) -> Option<()> {
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '<').as_option()?;
+
+        let (punct, _) = cursor.punct()?;
+        (punct.as_char() == '>').as_option()
     }
 }
 
@@ -50,8 +42,15 @@ impl ToTokens for HtmlListOpen {
 struct HtmlListClose {}
 
 impl Peek for HtmlListClose {
-    fn peek(input: &ParseStream) -> bool {
-        input.peek(token::Lt) && input.peek2(token::Div) && input.peek3(token::Gt)
+    fn peek(cursor: Cursor) -> Option<()> {
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '<').as_option()?;
+
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '/').as_option()?;
+
+        let (punct, _) = cursor.punct()?;
+        (punct.as_char() == '>').as_option()
     }
 }
 
@@ -64,20 +63,9 @@ impl Parse for HtmlListClose {
     }
 }
 
-impl Parse for HtmlListChildren {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let mut children: Vec<HtmlTree> = vec![];
-        while !input.is_empty() {
-            children.push(input.parse::<HtmlTree>()?);
-        }
-
-        Ok(HtmlListChildren(children))
-    }
-}
-
 impl Peek for HtmlList {
-    fn peek(input: &ParseStream) -> bool {
-        HtmlListOpen::peek(input)
+    fn peek(cursor: Cursor) -> Option<()> {
+        HtmlListOpen::peek(cursor)
     }
 }
 
@@ -85,39 +73,50 @@ impl Parse for HtmlList {
     fn parse(input: ParseStream) -> Result<Self> {
         let open = input.parse::<HtmlListOpen>()?;
 
-        let mut content: Vec<TokenTree> = vec![];
-        let mut list_stack_count = 0;
-        while !input.is_empty() {
-            if HtmlListOpen::peek(&input) {
+        let mut cursor = input.cursor();
+        let mut list_stack_count = 1;
+        loop {
+            if HtmlListOpen::peek(cursor).is_some() {
                 list_stack_count += 1;
-            } else if HtmlListClose::peek(&input) {
+            } else if HtmlListClose::peek(cursor).is_some() {
+                list_stack_count -= 1;
                 if list_stack_count == 0 {
                     break;
-                } else {
-                    list_stack_count -= 1;
                 }
             }
-            content.push(input.parse::<TokenTree>()?);
+            if let Some((_, next)) = cursor.token_tree() {
+                cursor = next;
+            } else {
+                break;
+            }
         }
 
-        input.parse::<HtmlListClose>().map_err(|_| {
-            syn::Error::new_spanned(open, "this open tag has no corresponding close tag")
-        })?;
+        if list_stack_count > 0 {
+            return Err(syn::Error::new_spanned(
+                open,
+                "this open tag has no corresponding close tag",
+            ));
+        }
 
-        let token_stream: proc_macro2::TokenStream = content.into_iter().collect();
-        let children = syn::parse::<HtmlListChildren>(token_stream.into())?;
+        let mut children: Vec<HtmlTree> = vec![];
+        while let Ok(html_tree) = input.parse::<HtmlTree>() {
+            children.push(html_tree);
+        }
 
-        Ok(HtmlList { children })
+        input.parse::<HtmlListClose>()?;
+
+        Ok(HtmlList(children))
     }
 }
 
 impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlList { children } = self;
+        let HtmlList(html_trees) = self;
+        let html_trees = html_trees.iter().map(|html_tree| quote! { #html_tree });
         tokens.extend(quote! {
-            ::yew_html_common::html_tree::html_list::HtmlList {
-                children: #children,
-            }
+            ::yew_html_common::html_tree::html_list::HtmlList(
+                vec![#(#html_trees,)*]
+            )
         });
     }
 }
