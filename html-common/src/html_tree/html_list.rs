@@ -5,9 +5,19 @@ use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream, Result};
 use syn::token;
 
-struct HtmlListChildren(Vec<HtmlTree>);
+pub struct HtmlListChildren(pub Vec<HtmlTree>);
+impl ToTokens for HtmlListChildren {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let HtmlListChildren(html_trees) = self;
+        let html_trees = html_trees.iter().map(|html_tree| quote! { #html_tree });
+        tokens.extend(quote! {
+            ::yew_html_common::html_tree::html_list::HtmlListChildren(vec![#(#html_trees,)*])
+        });
+    }
+}
+
 pub struct HtmlList {
-    children: HtmlListChildren,
+    pub children: HtmlListChildren,
 }
 
 struct HtmlListOpen {
@@ -98,5 +108,16 @@ impl Parse for HtmlList {
         let children = syn::parse::<HtmlListChildren>(token_stream.into())?;
 
         Ok(HtmlList { children })
+    }
+}
+
+impl ToTokens for HtmlList {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let HtmlList { children } = self;
+        tokens.extend(quote! {
+            ::yew_html_common::html_tree::html_list::HtmlList {
+                children: #children,
+            }
+        });
     }
 }

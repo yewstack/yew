@@ -2,6 +2,7 @@ pub mod html_list;
 
 use crate::Peek;
 use html_list::HtmlList;
+use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream, Result};
 
 pub enum HtmlTree {
@@ -21,6 +22,13 @@ impl Parse for HtmlRoot {
     }
 }
 
+impl ToTokens for HtmlRoot {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let HtmlRoot(html_tree) = self;
+        tokens.extend(quote! { #html_tree });
+    }
+}
+
 impl Parse for HtmlTree {
     fn parse(input: ParseStream) -> Result<Self> {
         if HtmlList::peek(&input) {
@@ -30,5 +38,20 @@ impl Parse for HtmlTree {
         } else {
             Err(input.error("expected valid html element"))
         }
+    }
+}
+
+impl ToTokens for HtmlTree {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let token_stream = match self {
+            HtmlTree::Empty => quote! {
+                ::yew_html_common::html_tree::HtmlTree::Empty
+            },
+            HtmlTree::List(list) => quote! {
+                ::yew_html_common::html_tree::HtmlTree::List(#list)
+            },
+        };
+
+        tokens.extend(token_stream);
     }
 }

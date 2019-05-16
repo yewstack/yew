@@ -1,14 +1,10 @@
 [package]
-name = "yew-html-impl"
+name = "yew-html-common"
 version = "0.0.1"
 edition = "2018"
-
-[lib]
-proc-macro = true
 
 [dependencies]
 syn = { version = "0.15", features = ["full"] }
 quote = "0.6"
 proc-macro-hack = "0.5"
 proc-macro2 = "0.4"
-yew-html-common = { path = "../html-common" }

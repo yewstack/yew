@@ -14,3 +14,4 @@ trybuild = "1.0"
 [dependencies]
 proc-macro-hack = "0.5"
 yew-html-impl = { path = "../html-impl" }
+yew-html-common = { path = "../html-common" }
