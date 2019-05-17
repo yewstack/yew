@@ -33,3 +33,9 @@ error: this open tag has no corresponding close tag
    |
 26 |         <div></span>
    |         ^^^^^
+
+error: only one root html element allowed
+  --> $DIR/html-tag-fail.rs:30:16
+   |
+30 |         <img /></img>
+   |                ^

@@ -28,6 +28,11 @@ impl Peek<()> for HtmlTag {
 impl Parse for HtmlTag {
     fn parse(input: ParseStream) -> Result<Self> {
         let open = input.parse::<HtmlTagOpen>()?;
+        if open.div.is_some() {
+            return Ok(HtmlTag {
+                tree: Box::new(HtmlTree::Empty),
+            });
+        }
 
         let mut cursor = input.cursor();
         let mut tag_stack_count = 1;
@@ -83,6 +88,7 @@ impl ToTokens for HtmlTag {
 struct HtmlTagOpen {
     lt: token::Lt,
     ident: Ident,
+    div: Option<token::Div>,
     gt: token::Gt,
 }
 
@@ -94,7 +100,12 @@ impl Peek<Ident> for HtmlTagOpen {
         let (ident, cursor) = cursor.ident()?;
         (ident.to_string().to_lowercase() == ident.to_string()).as_option()?;
 
-        let (punct, _) = cursor.punct()?;
+        let (mut punct, cursor) = cursor.punct()?;
+        if punct.as_char() == '/' {
+            let extra_punct = cursor.punct()?;
+            punct = extra_punct.0;
+        }
+
         (punct.as_char() == '>').as_option()?;
 
         Some(ident)
@@ -106,6 +117,7 @@ impl Parse for HtmlTagOpen {
         Ok(HtmlTagOpen {
             lt: input.parse()?,
             ident: input.parse()?,
+            div: input.parse().ok(),
             gt: input.parse()?,
         })
     }
@@ -113,8 +125,12 @@ impl Parse for HtmlTagOpen {
 
 impl ToTokens for HtmlTagOpen {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlTagOpen { lt, ident, gt } = self;
-        tokens.extend(quote! {#lt#ident#gt});
+        let HtmlTagOpen { lt, ident, div, gt } = self;
+        let open_tag = match div {
+            Some(div) => quote! {#lt#ident#div#gt},
+            None => quote! {#lt#ident#gt},
+        };
+        tokens.extend(open_tag);
     }
 }
 

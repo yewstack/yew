@@ -25,4 +25,8 @@ fn main() {
     html! {
         <div></span>
     };
+
+    html! {
+        <img /></img>
+    };
 }

@@ -11,4 +11,8 @@ fn main() {
             <div></div>
         </div>
     };
+
+    html! {
+        <img />
+    };
 }

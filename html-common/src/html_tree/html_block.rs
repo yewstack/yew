@@ -8,7 +8,7 @@ use syn::parse::{Parse, ParseStream, Result};
 use syn::token;
 
 pub struct HtmlBlock {
-    pub tree: Box<HtmlTree>,
+    tree: Box<HtmlTree>,
     content: TokenStream,
     brace: Option<token::Brace>,
 }
