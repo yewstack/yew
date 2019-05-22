@@ -4,7 +4,7 @@ use proc_macro2::{Delimiter, Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::braced;
 use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result};
+use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::token;
 
 pub struct HtmlBlock {
@@ -30,7 +30,7 @@ impl Peek<()> for HtmlBlock {
 }
 
 impl Parse for HtmlBlock {
-    fn parse(input: ParseStream) -> Result<Self> {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
         let content;
         Ok(HtmlBlock {
             tree: Box::new(HtmlTree::Empty),

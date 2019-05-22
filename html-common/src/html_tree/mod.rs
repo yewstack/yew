@@ -6,6 +6,7 @@ use crate::Peek;
 use html_block::HtmlBlock;
 use html_list::HtmlList;
 use html_tag::HtmlTag;
+use proc_macro2::Span;
 use quote::{quote, ToTokens};
 use std::iter::FromIterator;
 use syn::parse::{Parse, ParseStream, Result};
@@ -37,7 +38,10 @@ impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> Result<Self> {
         let html_tree = input.parse::<HtmlTree>()?;
         if !input.is_empty() {
-            Err(input.error("only one root html element allowed"))
+            Err(syn::Error::new(
+                Span::call_site(),
+                "only one root html element allowed",
+            ))
         } else {
             Ok(HtmlRoot(html_tree))
         }

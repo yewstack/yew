@@ -3,7 +3,7 @@ use crate::Peek;
 use boolinator::Boolinator;
 use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result};
+use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::token;
 
 pub struct HtmlList(pub Vec<HtmlTree>);
@@ -11,11 +11,23 @@ pub struct HtmlList(pub Vec<HtmlTree>);
 impl Peek<()> for HtmlList {
     fn peek(cursor: Cursor) -> Option<()> {
         HtmlListOpen::peek(cursor)
+            .or(HtmlListClose::peek(cursor))
+            .map(|_| ())
     }
 }
 
 impl Parse for HtmlList {
-    fn parse(input: ParseStream) -> Result<Self> {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        if HtmlListClose::peek(input.cursor()).is_some() {
+            return match input.parse::<HtmlListClose>() {
+                Ok(close) => Err(syn::Error::new_spanned(
+                    close,
+                    "this close tag has no corresponding open tag",
+                )),
+                Err(err) => Err(err),
+            };
+        }
+
         let open = input.parse::<HtmlListOpen>()?;
 
         let mut cursor = input.cursor();
@@ -44,8 +56,8 @@ impl Parse for HtmlList {
         }
 
         let mut children: Vec<HtmlTree> = vec![];
-        while let Ok(html_tree) = input.parse::<HtmlTree>() {
-            children.push(html_tree);
+        while HtmlListClose::peek(input.cursor()).is_none() {
+            children.push(input.parse()?);
         }
 
         input.parse::<HtmlListClose>()?;
@@ -67,8 +79,8 @@ impl ToTokens for HtmlList {
 }
 
 struct HtmlListOpen {
-    lt_token: token::Lt,
-    gt_token: token::Gt,
+    lt: token::Lt,
+    gt: token::Gt,
 }
 
 impl Peek<()> for HtmlListOpen {
@@ -82,22 +94,26 @@ impl Peek<()> for HtmlListOpen {
 }
 
 impl Parse for HtmlListOpen {
-    fn parse(input: ParseStream) -> Result<Self> {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
         Ok(HtmlListOpen {
-            lt_token: input.parse()?,
-            gt_token: input.parse()?,
+            lt: input.parse()?,
+            gt: input.parse()?,
         })
     }
 }
 
 impl ToTokens for HtmlListOpen {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlListOpen { lt_token, gt_token } = self;
-        tokens.extend(quote! {#lt_token#gt_token});
+        let HtmlListOpen { lt, gt } = self;
+        tokens.extend(quote! {#lt#gt});
     }
 }
 
-struct HtmlListClose {}
+struct HtmlListClose {
+    lt: token::Lt,
+    div: token::Div,
+    gt: token::Gt,
+}
 
 impl Peek<()> for HtmlListClose {
     fn peek(cursor: Cursor) -> Option<()> {
@@ -113,10 +129,18 @@ impl Peek<()> for HtmlListClose {
 }
 
 impl Parse for HtmlListClose {
-    fn parse(input: ParseStream) -> Result<Self> {
-        input.parse::<token::Lt>()?;
-        input.parse::<token::Div>()?;
-        input.parse::<token::Gt>()?;
-        Ok(HtmlListClose {})
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        Ok(HtmlListClose {
+            lt: input.parse()?,
+            div: input.parse()?,
+            gt: input.parse()?,
+        })
+    }
+}
+
+impl ToTokens for HtmlListClose {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let HtmlListClose { lt, div, gt } = self;
+        tokens.extend(quote! {#lt#div#gt});
     }
 }

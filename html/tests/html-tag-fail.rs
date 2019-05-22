@@ -29,4 +29,12 @@ fn main() {
     html! {
         <img /></img>
     };
+
+    html! {
+        <div>Invalid</div>
+    };
+
+    html! {
+        <div></span></div>
+    };
 }

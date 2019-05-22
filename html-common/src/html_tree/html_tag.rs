@@ -3,7 +3,7 @@ use crate::Peek;
 use boolinator::Boolinator;
 use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result};
+use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::token;
 use syn::Ident;
 
@@ -21,12 +21,24 @@ impl HtmlTag {
 
 impl Peek<()> for HtmlTag {
     fn peek(cursor: Cursor) -> Option<()> {
-        HtmlTagOpen::peek(cursor).map(|_| ())
+        HtmlTagOpen::peek(cursor)
+            .or(HtmlTagClose::peek(cursor))
+            .map(|_| ())
     }
 }
 
 impl Parse for HtmlTag {
-    fn parse(input: ParseStream) -> Result<Self> {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        if HtmlTagClose::peek(input.cursor()).is_some() {
+            return match input.parse::<HtmlTagClose>() {
+                Ok(close) => Err(syn::Error::new_spanned(
+                    close,
+                    "this close tag has no corresponding open tag",
+                )),
+                Err(err) => Err(err),
+            };
+        }
+
         let open = input.parse::<HtmlTagOpen>()?;
         if open.div.is_some() {
             return Ok(HtmlTag {
@@ -64,8 +76,14 @@ impl Parse for HtmlTag {
         }
 
         let mut children: Vec<HtmlTree> = vec![];
-        while let Ok(html_tree) = input.parse::<HtmlTree>() {
-            children.push(html_tree);
+        loop {
+            if let Some(next_close_ident) = HtmlTagClose::peek(input.cursor()) {
+                if open.ident.to_string() == next_close_ident.to_string() {
+                    break;
+                }
+            }
+
+            children.push(input.parse()?);
         }
 
         input.parse::<HtmlTagClose>()?;
@@ -113,7 +131,7 @@ impl Peek<Ident> for HtmlTagOpen {
 }
 
 impl Parse for HtmlTagOpen {
-    fn parse(input: ParseStream) -> Result<Self> {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
         Ok(HtmlTagOpen {
             lt: input.parse()?,
             ident: input.parse()?,
@@ -134,7 +152,12 @@ impl ToTokens for HtmlTagOpen {
     }
 }
 
-struct HtmlTagClose {}
+struct HtmlTagClose {
+    lt: token::Lt,
+    div: Option<token::Div>,
+    ident: Ident,
+    gt: token::Gt,
+}
 
 impl Peek<Ident> for HtmlTagClose {
     fn peek(cursor: Cursor) -> Option<Ident> {
@@ -155,11 +178,19 @@ impl Peek<Ident> for HtmlTagClose {
 }
 
 impl Parse for HtmlTagClose {
-    fn parse(input: ParseStream) -> Result<Self> {
-        input.parse::<token::Lt>()?;
-        input.parse::<token::Div>()?;
-        input.parse::<Ident>()?;
-        input.parse::<token::Gt>()?;
-        Ok(HtmlTagClose {})
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        Ok(HtmlTagClose {
+            lt: input.parse()?,
+            div: input.parse()?,
+            ident: input.parse()?,
+            gt: input.parse()?,
+        })
+    }
+}
+
+impl ToTokens for HtmlTagClose {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let HtmlTagClose { lt, div, ident, gt } = self;
+        tokens.extend(quote! {#lt#div#ident#gt});
     }
 }
