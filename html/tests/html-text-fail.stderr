@@ -1,0 +1,31 @@
+error: only one root html element allowed
+ --> $DIR/html-text-fail.rs:4:5
+  |
+4 |     html! { "valid" "invalid" };
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error: unexpected token
+ --> $DIR/html-text-fail.rs:7:25
+  |
+7 |         <span>{ "valid" "invalid" }</span>
+  |                         ^^^^^^^^^
+
+error: unsupported type
+  --> $DIR/html-text-fail.rs:11:13
+   |
+11 |     html! { b'a' };
+   |             ^^^^
+
+error: unsupported type
+  --> $DIR/html-text-fail.rs:12:13
+   |
+12 |     html! { b"str" };
+   |             ^^^^^^
+
+error: unsupported type
+  --> $DIR/html-text-fail.rs:13:13
+   |
+13 |     html! { 1111111111111111111111111111111111111111111111111111111111111111111111111111 };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,20 +1,31 @@
 pub mod html_block;
 pub mod html_list;
 pub mod html_tag;
+pub mod html_text;
 
 use crate::Peek;
 use html_block::HtmlBlock;
 use html_list::HtmlList;
 use html_tag::HtmlTag;
+use html_text::HtmlText;
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
 use std::iter::FromIterator;
+use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
+
+pub enum HtmlType {
+    Block,
+    List,
+    Tag,
+    Empty,
+}
 
 pub enum HtmlTree {
     Block(HtmlBlock),
     List(HtmlList),
     Tag(HtmlTag),
+    Text(HtmlText),
     Empty,
 }
 
@@ -36,14 +47,19 @@ impl FromIterator<HtmlTree> for HtmlTree {
 pub struct HtmlRoot(HtmlTree);
 impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> Result<Self> {
-        let html_tree = input.parse::<HtmlTree>()?;
+        let html_root = if HtmlTree::peek(input.cursor()).is_some() {
+            HtmlRoot(input.parse()?)
+        } else {
+            HtmlRoot(HtmlTree::Text(input.parse()?))
+        };
+
         if !input.is_empty() {
             Err(syn::Error::new(
                 Span::call_site(),
                 "only one root html element allowed",
             ))
         } else {
-            Ok(HtmlRoot(html_tree))
+            Ok(html_root)
         }
     }
 }
@@ -57,16 +73,30 @@ impl ToTokens for HtmlRoot {
 
 impl Parse for HtmlTree {
     fn parse(input: ParseStream) -> Result<Self> {
-        if HtmlList::peek(input.cursor()).is_some() {
-            Ok(HtmlTree::List(input.parse()?))
-        } else if HtmlBlock::peek(input.cursor()).is_some() {
-            Ok(HtmlTree::Block(input.parse()?))
-        } else if HtmlTag::peek(input.cursor()).is_some() {
-            Ok(HtmlTree::Tag(input.parse()?))
-        } else if input.is_empty() {
-            Ok(HtmlTree::Empty)
+        let html_type =
+            HtmlTree::peek(input.cursor()).ok_or(input.error("expected valid html element"))?;
+        let html_tree = match html_type {
+            HtmlType::Empty => HtmlTree::Empty,
+            HtmlType::Tag => HtmlTree::Tag(input.parse()?),
+            HtmlType::Block => HtmlTree::Block(input.parse()?),
+            HtmlType::List => HtmlTree::List(input.parse()?),
+        };
+        Ok(html_tree)
+    }
+}
+
+impl Peek<HtmlType> for HtmlTree {
+    fn peek(cursor: Cursor) -> Option<HtmlType> {
+        if cursor.eof() {
+            Some(HtmlType::Empty)
+        } else if HtmlTag::peek(cursor).is_some() {
+            Some(HtmlType::Tag)
+        } else if HtmlBlock::peek(cursor).is_some() {
+            Some(HtmlType::Block)
+        } else if HtmlList::peek(cursor).is_some() {
+            Some(HtmlType::List)
         } else {
-            Err(input.error("expected valid html element"))
+            None
         }
     }
 }
@@ -76,6 +106,9 @@ impl ToTokens for HtmlTree {
         let token_stream = match self {
             HtmlTree::Empty => quote! {
                 ::yew_html_common::html_tree::HtmlTree::Empty
+            },
+            HtmlTree::Text(text) => quote! {
+                ::yew_html_common::html_tree::HtmlTree::Text(#text)
             },
             HtmlTree::Tag(tag) => quote! {
                 ::yew_html_common::html_tree::HtmlTree::Tag(#tag)
