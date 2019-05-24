@@ -1,4 +1,5 @@
 pub mod html_block;
+pub mod html_component;
 pub mod html_iterable;
 pub mod html_list;
 pub mod html_node;
@@ -6,6 +7,7 @@ pub mod html_tag;
 
 use crate::Peek;
 use html_block::HtmlBlock;
+use html_component::HtmlComponent;
 use html_iterable::HtmlIterable;
 use html_list::HtmlList;
 use html_node::HtmlNode;
@@ -17,6 +19,7 @@ use syn::parse::{Parse, ParseStream, Result};
 
 pub enum HtmlType {
     Block,
+    Component,
     List,
     Tag,
     Empty,
@@ -24,6 +27,7 @@ pub enum HtmlType {
 
 pub enum HtmlTree {
     Block(HtmlBlock),
+    Component(HtmlComponent),
     Iterable(HtmlIterable),
     List(HtmlList),
     Tag(HtmlTag),
@@ -71,6 +75,7 @@ impl Parse for HtmlTree {
             HtmlTree::peek(input.cursor()).ok_or(input.error("expected valid html element"))?;
         let html_tree = match html_type {
             HtmlType::Empty => HtmlTree::Empty,
+            HtmlType::Component => HtmlTree::Component(input.parse()?),
             HtmlType::Tag => HtmlTree::Tag(input.parse()?),
             HtmlType::Block => HtmlTree::Block(input.parse()?),
             HtmlType::List => HtmlTree::List(input.parse()?),
@@ -83,6 +88,8 @@ impl Peek<HtmlType> for HtmlTree {
     fn peek(cursor: Cursor) -> Option<HtmlType> {
         if cursor.eof() {
             Some(HtmlType::Empty)
+        } else if HtmlComponent::peek(cursor).is_some() {
+            Some(HtmlType::Component)
         } else if HtmlTag::peek(cursor).is_some() {
             Some(HtmlType::Tag)
         } else if HtmlBlock::peek(cursor).is_some() {
@@ -102,6 +109,9 @@ impl ToTokens for HtmlTree {
                 ::yew::virtual_dom::VNode::VList(
                     ::yew::virtual_dom::vlist::VList::new()
                 )
+            },
+            HtmlTree::Component(comp) => quote! {
+                ::yew::virtual_dom::VNode::VComp(#comp)
             },
             HtmlTree::Tag(tag) => quote! {
                 ::yew::virtual_dom::VNode::VTag(#tag)

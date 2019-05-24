@@ -14,6 +14,7 @@ macro_rules! test_html {
         mod $tc {
             use ::yew::prelude::*;
             use ::yew_html::html;
+            use super::*;
 
             struct TestComponent {}
             impl Component for TestComponent {

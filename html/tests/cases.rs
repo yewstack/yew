@@ -5,6 +5,9 @@ fn tests() {
     t.pass("tests/html-block-pass.rs");
     t.compile_fail("tests/html-block-fail.rs");
 
+    t.pass("tests/html-component-pass.rs");
+    t.compile_fail("tests/html-component-fail.rs");
+
     t.pass("tests/html-iterable-pass.rs");
     t.compile_fail("tests/html-iterable-fail.rs");
 
