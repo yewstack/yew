@@ -11,9 +11,9 @@ fn tests() {
     t.pass("tests/html-list-pass.rs");
     t.compile_fail("tests/html-list-fail.rs");
 
+    t.pass("tests/html-node-pass.rs");
+    t.compile_fail("tests/html-node-fail.rs");
+
     t.pass("tests/html-tag-pass.rs");
     t.compile_fail("tests/html-tag-fail.rs");
-
-    t.pass("tests/html-text-pass.rs");
-    t.compile_fail("tests/html-text-fail.rs");
 }

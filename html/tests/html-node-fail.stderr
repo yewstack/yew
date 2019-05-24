@@ -1,0 +1,55 @@
+error: unsupported type
+  --> $DIR/html-node-fail.rs:12:28
+   |
+12 | test_html! { |t15| <span>{ 1111111111111111111111111111111111111111111111111111111111111111111111111111 }</span> }
+   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unsupported type
+  --> $DIR/html-node-fail.rs:11:28
+   |
+11 | test_html! { |t14| <span>{ b"str" }</span> }
+   |                            ^^^^^^
+
+error: unsupported type
+  --> $DIR/html-node-fail.rs:10:28
+   |
+10 | test_html! { |t13| <span>{ b'a' }</span> }
+   |                            ^^^^
+
+error: invalid root html element
+ --> $DIR/html-node-fail.rs:9:1
+  |
+9 | test_html! { |t12| 1111111111111111111111111111111111111111111111111111111111111111111111111111 }
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error: invalid root html element
+ --> $DIR/html-node-fail.rs:8:1
+  |
+8 | test_html! { |t11| b"str" }
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error: invalid root html element
+ --> $DIR/html-node-fail.rs:7:1
+  |
+7 | test_html! { |t10| b'a' }
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error: unexpected token
+ --> $DIR/html-node-fail.rs:4:35
+  |
+4 | test_html! { |t2| <span>{ "valid" "invalid" }</span> }
+  |                                   ^^^^^^^^^
+
+error: only one root html element allowed
+ --> $DIR/html-node-fail.rs:3:1
+  |
+3 | test_html! { |t1| "valid" "invalid" }
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)

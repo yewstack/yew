@@ -1,4 +1,4 @@
-use yew_html::test_html;
+use yew_html::{test_html, test_html_block};
 
 test_html! { |t1| "" }
 test_html! { |t2| 'a' }
@@ -13,5 +13,12 @@ test_html! { |t12| <span>{ "hello" }</span> }
 test_html! { |t13| <span>{ 42 }</span> }
 test_html! { |t14| <span>{ 1.234 }</span> }
 test_html! { |t15| <span>{ true }</span> }
+
+test_html! { |t20| format!("Hello") }
+test_html! { |t21| String::from("Hello") }
+test_html_block! { |t22|
+    let msg = "Hello";
+    html! { msg }
+}
 
 fn main() {}
