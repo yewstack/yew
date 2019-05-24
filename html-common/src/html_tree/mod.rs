@@ -1,10 +1,12 @@
 pub mod html_block;
+pub mod html_iterable;
 pub mod html_list;
 pub mod html_tag;
 pub mod html_text;
 
 use crate::Peek;
 use html_block::HtmlBlock;
+use html_iterable::HtmlIterable;
 use html_list::HtmlList;
 use html_tag::HtmlTag;
 use html_text::HtmlText;
@@ -22,6 +24,7 @@ pub enum HtmlType {
 
 pub enum HtmlTree {
     Block(HtmlBlock),
+    Iterable(HtmlIterable),
     List(HtmlList),
     Tag(HtmlTag),
     Text(HtmlText),
@@ -35,6 +38,8 @@ impl Parse for HtmlRoot {
             HtmlRoot(input.parse()?)
         } else if HtmlText::peek(input.cursor()).is_some() {
             HtmlRoot(HtmlTree::Text(input.parse()?))
+        } else if HtmlIterable::peek(input.cursor()).is_some() {
+            HtmlRoot(HtmlTree::Iterable(input.parse()?))
         } else {
             return Err(input.error("invalid root html element"));
         };
@@ -102,6 +107,7 @@ impl ToTokens for HtmlTree {
                 ::yew::virtual_dom::VNode::VList(#list)
             },
             HtmlTree::Text(text) => quote! {#text},
+            HtmlTree::Iterable(iterable) => quote! {#iterable},
             HtmlTree::Block(block) => quote! {#block},
         };
 

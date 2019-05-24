@@ -17,13 +17,9 @@ impl Component for TestComponent {
 
 impl Renderable<TestComponent> for TestComponent {
     fn view(&self) -> Html<Self> {
-        let item = |num| html! { <li>{format!("item {}!", num)}</li> };
+        let empty: Vec<Html<Self>> = Vec::new();
 
-        html! {
-            <ul>
-                { for (0..3).map(item) }
-            </ul>
-        }
+        html! { for empty.iter() }
     }
 }
 
