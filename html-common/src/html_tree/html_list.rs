@@ -68,12 +68,11 @@ impl Parse for HtmlList {
 
 impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlList(html_trees) = self;
-        let html_trees = html_trees.iter().map(|html_tree| quote! { #html_tree });
+        let html_trees = &self.0;
         tokens.extend(quote! {
-            ::yew_html_common::html_tree::html_list::HtmlList(
-                vec![#(#html_trees,)*]
-            )
+            ::yew::virtual_dom::vlist::VList {
+                childs: vec![#(#html_trees,)*],
+            }
         });
     }
 }

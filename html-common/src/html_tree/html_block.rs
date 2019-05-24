@@ -1,21 +1,22 @@
 use super::html_text::HtmlText;
-use super::HtmlTree;
 use crate::Peek;
-use proc_macro2::{Delimiter, Ident, Span, TokenStream};
+use boolinator::Boolinator;
+use proc_macro2::{Delimiter, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::braced;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::token;
+use syn::Token;
 
 pub struct HtmlBlock {
-    tree: Box<HtmlTree>,
     content: BlockContent,
-    brace: Option<token::Brace>,
+    brace: token::Brace,
 }
 
 enum BlockContent {
     Text(HtmlText),
+    Iterable(HtmlIterable),
     Stream(TokenStream),
 }
 
@@ -31,46 +32,61 @@ impl Parse for HtmlBlock {
         let brace = braced!(content in input);
         let content = if HtmlText::peek(content.cursor()).is_some() {
             BlockContent::Text(content.parse()?)
+        } else if HtmlIterable::peek(content.cursor()).is_some() {
+            BlockContent::Iterable(content.parse()?)
         } else {
             BlockContent::Stream(content.parse()?)
         };
 
-        Ok(HtmlBlock {
-            tree: Box::new(HtmlTree::Empty),
-            brace: Some(brace),
-            content,
-        })
-    }
-}
-
-impl HtmlBlock {
-    pub fn new(tree: HtmlTree) -> Self {
-        HtmlBlock {
-            tree: Box::new(tree),
-            content: BlockContent::Stream(TokenStream::new()),
-            brace: None,
-        }
+        Ok(HtmlBlock { brace, content })
     }
 }
 
 impl ToTokens for HtmlBlock {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlBlock { content, brace, .. } = self;
-        let tree = Ident::new("__yew_html_tree", Span::call_site());
-        let content: Box<dyn ToTokens> = match content {
-            BlockContent::Text(html_text) => Box::new(quote! {
-                ::yew_html_common::html_tree::HtmlTree::Text(#html_text)
-            }),
-            BlockContent::Stream(stream) => Box::new(stream),
+        let HtmlBlock { content, brace } = self;
+        let new_tokens = match content {
+            BlockContent::Text(html_text) => quote! {#html_text},
+            BlockContent::Iterable(html_iterable) => quote! {#html_iterable},
+            BlockContent::Stream(stream) => quote! {
+                ::yew::virtual_dom::VNode::from({#stream})
+            },
         };
 
-        let init_tree = quote_spanned! {brace.unwrap().span=>
-            let #tree: ::yew_html_common::html_tree::HtmlTree = {#content};
+        tokens.extend(quote_spanned! {brace.span=> #new_tokens});
+    }
+}
+
+struct HtmlIterable(TokenStream);
+
+impl Peek<()> for HtmlIterable {
+    fn peek(cursor: Cursor) -> Option<()> {
+        let (ident, _) = cursor.ident()?;
+        (ident.to_string() == "for").as_option()
+    }
+}
+
+impl Parse for HtmlIterable {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        input.parse::<Token![for]>()?;
+        Ok(HtmlIterable(input.parse()?))
+    }
+}
+
+impl ToTokens for HtmlIterable {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let stream = &self.0;
+        let new_tokens = quote! {
+            {
+                let mut __yew_vlist = ::yew::virtual_dom::VList::new();
+                for __yew_node in {#stream} {
+                    let __yew_vnode = ::yew::virtual_dom::VNode::from(__yew_node);
+                    __yew_vlist.add_child(__yew_vnode);
+                }
+                ::yew::virtual_dom::VNode::from(__yew_vlist)
+            }
         };
 
-        tokens.extend(quote! {{
-            #init_tree
-            ::yew_html_common::html_tree::html_block::HtmlBlock::new(#tree)
-        }});
+        tokens.extend(new_tokens);
     }
 }

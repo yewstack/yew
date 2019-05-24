@@ -1,62 +1,57 @@
-error: this open tag has no corresponding close tag
- --> $DIR/html-tag-fail.rs:5:9
-  |
-5 |         <div>
-  |         ^^^^^
-
-error: this open tag has no corresponding close tag
- --> $DIR/html-tag-fail.rs:9:9
-  |
-9 |         <div><div>
-  |         ^^^^^
-
-error: this close tag has no corresponding open tag
-  --> $DIR/html-tag-fail.rs:13:9
-   |
-13 |         </div>
-   |         ^^^^^^
-
-error: this open tag has no corresponding close tag
-  --> $DIR/html-tag-fail.rs:17:9
-   |
-17 |         <div><div></div>
-   |         ^^^^^
-
-error: only one root html element allowed
-  --> $DIR/html-tag-fail.rs:20:5
-   |
-20 | /     html! {
-21 | |         <div></div>
-22 | |         <div></div>
-23 | |     };
-   | |______^
-   |
-   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
-
-error: this open tag has no corresponding close tag
-  --> $DIR/html-tag-fail.rs:26:9
-   |
-26 |         <div></span>
-   |         ^^^^^
-
-error: only one root html element allowed
-  --> $DIR/html-tag-fail.rs:29:5
-   |
-29 | /     html! {
-30 | |         <img /></img>
-31 | |     };
-   | |______^
-   |
-   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
-
 error: expected valid html element
-  --> $DIR/html-tag-fail.rs:34:14
+  --> $DIR/html-tag-fail.rs:11:24
    |
-34 |         <div>Invalid</div>
-   |              ^^^^^^^
+11 | test_html! { |t9| <div>Invalid</div> }
+   |                        ^^^^^^^
+
+error: only one root html element allowed
+  --> $DIR/html-tag-fail.rs:10:1
+   |
+10 | test_html! { |t8| <img /></img> }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error: this close tag has no corresponding open tag
-  --> $DIR/html-tag-fail.rs:38:14
-   |
-38 |         <div></span></div>
-   |              ^^^^^^^
+ --> $DIR/html-tag-fail.rs:9:24
+  |
+9 | test_html! { |t7| <div></span></div> }
+  |                        ^^^^^^^
+
+error: this open tag has no corresponding close tag
+ --> $DIR/html-tag-fail.rs:8:19
+  |
+8 | test_html! { |t6| <div></span> }
+  |                   ^^^^^
+
+error: only one root html element allowed
+ --> $DIR/html-tag-fail.rs:7:1
+  |
+7 | test_html! { |t5| <div></div><div></div> }
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error: this open tag has no corresponding close tag
+ --> $DIR/html-tag-fail.rs:6:19
+  |
+6 | test_html! { |t4| <div><div></div> }
+  |                   ^^^^^
+
+error: this close tag has no corresponding open tag
+ --> $DIR/html-tag-fail.rs:5:19
+  |
+5 | test_html! { |t3| </div> }
+  |                   ^^^^^^
+
+error: this open tag has no corresponding close tag
+ --> $DIR/html-tag-fail.rs:4:19
+  |
+4 | test_html! { |t2| <div><div> }
+  |                   ^^^^^
+
+error: this open tag has no corresponding close tag
+ --> $DIR/html-tag-fail.rs:3:19
+  |
+3 | test_html! { |t1| <div> }
+  |                   ^^^^^

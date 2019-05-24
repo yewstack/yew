@@ -8,15 +8,8 @@ use syn::token;
 use syn::Ident;
 
 pub struct HtmlTag {
-    pub tree: Box<HtmlTree>,
-}
-
-impl HtmlTag {
-    pub fn new(tree: HtmlTree) -> Self {
-        HtmlTag {
-            tree: Box::new(tree),
-        }
-    }
+    open: HtmlTagOpen,
+    children: Vec<HtmlTree>,
 }
 
 impl Peek<()> for HtmlTag {
@@ -42,7 +35,8 @@ impl Parse for HtmlTag {
         let open = input.parse::<HtmlTagOpen>()?;
         if open.div.is_some() {
             return Ok(HtmlTag {
-                tree: Box::new(HtmlTree::Empty),
+                open,
+                children: Vec::new(),
             });
         }
 
@@ -88,18 +82,19 @@ impl Parse for HtmlTag {
 
         input.parse::<HtmlTagClose>()?;
 
-        Ok(HtmlTag {
-            tree: Box::new(children.into_iter().collect()),
-        })
+        Ok(HtmlTag { open, children })
     }
 }
 
 impl ToTokens for HtmlTag {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlTag { tree, .. } = self;
-        tokens.extend(quote! {
-            ::yew_html_common::html_tree::html_tag::HtmlTag::new(#tree)
-        });
+        let HtmlTag { open, children } = self;
+        let tag_name = open.ident.to_string();
+        tokens.extend(quote! {{
+            let mut __yew_vtag = ::yew::virtual_dom::vtag::VTag::new(#tag_name);
+            #(__yew_vtag.add_child(#children);)*
+            __yew_vtag
+        }});
     }
 }
 

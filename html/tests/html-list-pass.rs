@@ -1,16 +1,11 @@
-use yew_html::html;
+use yew_html::test_html;
 
-fn main() {
-    html! {};
-
-    html! {
+test_html! { |t1| <></> }
+test_html! { |t2|
+    <>
         <></>
-    };
-
-    html! {
-        <>
-            <></>
-            <></>
-        </>
-    };
+        <></>
+    </>
 }
+
+fn main() {}

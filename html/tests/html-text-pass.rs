@@ -1,34 +1,17 @@
-use yew_html::html;
+use yew_html::test_html;
 
-fn main() {
-    html! { "" };
-    html! { 'a' };
-    html! { "hello" };
-    html! { 42 };
-    html! { 1.234 };
-    html! { true };
+test_html! { |t1| "" }
+test_html! { |t2| 'a' }
+test_html! { |t3| "hello" }
+test_html! { |t4| 42 }
+test_html! { |t5| 1.234 }
+test_html! { |t6| true }
 
-    html! {
-        <span>{ "" }</span>
-    };
+test_html! { |t10| <span>{ "" }</span> }
+test_html! { |t11| <span>{ 'a' }</span> }
+test_html! { |t12| <span>{ "hello" }</span> }
+test_html! { |t13| <span>{ 42 }</span> }
+test_html! { |t14| <span>{ 1.234 }</span> }
+test_html! { |t15| <span>{ true }</span> }
 
-    html! {
-        <span>{ 'a' }</span>
-    };
-
-    html! {
-        <span>{ "hello" }</span>
-    };
-
-    html! {
-        <span>{ 42 }</span>
-    };
-
-    html! {
-        <span>{ 1.234 }</span>
-    };
-
-    html! {
-        <span>{ true }</span>
-    };
-}
+fn main() {}

@@ -1,26 +1,23 @@
-use yew_html::html;
+use yew_html::{test_html, test_html_block};
 
-struct NotHtmlTree {}
-
-fn not_tree() -> NotHtmlTree {
-    NotHtmlTree {}
+test_html! { |t1|
+    { () }
 }
 
-fn main() {
-    html! {
-        { not_tree() }
-    };
+test_html_block! { |t2|
+    let not_tree = || ();
 
     html! {
-        {
-            let not_a_tree = not_tree();
-            not_a_tree
-        }
-    };
-
-    html! {
-        <>
-            { (0..3).map(|_| not_tree()) }
-        </>
-    };
+        <div>{ not_tree() }</div>
+    }
 }
+
+test_html_block! { |t3|
+    let not_tree = || ();
+
+    html! {
+        <>{ for (0..3).map(|_| not_tree()) }</>
+    }
+}
+
+fn main() {}

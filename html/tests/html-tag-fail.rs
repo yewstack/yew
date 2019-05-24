@@ -1,40 +1,13 @@
-use yew_html::html;
+use yew_html::test_html;
 
-fn main() {
-    html! {
-        <div>
-    };
+test_html! { |t1| <div> }
+test_html! { |t2| <div><div> }
+test_html! { |t3| </div> }
+test_html! { |t4| <div><div></div> }
+test_html! { |t5| <div></div><div></div> }
+test_html! { |t6| <div></span> }
+test_html! { |t7| <div></span></div> }
+test_html! { |t8| <img /></img> }
+test_html! { |t9| <div>Invalid</div> }
 
-    html! {
-        <div><div>
-    };
-
-    html! {
-        </div>
-    };
-
-    html! {
-        <div><div></div>
-    };
-
-    html! {
-        <div></div>
-        <div></div>
-    };
-
-    html! {
-        <div></span>
-    };
-
-    html! {
-        <img /></img>
-    };
-
-    html! {
-        <div>Invalid</div>
-    };
-
-    html! {
-        <div></span></div>
-    };
-}
+fn main() {}

@@ -1,18 +1,18 @@
-use yew_html::html;
+use yew_html::test_html;
 
-fn main() {
-    html! {
-        <div></div>
-    };
-
-    html! {
-        <div>
-            <div></div>
-            <div></div>
-        </div>
-    };
-
-    html! {
-        <img />
-    };
+test_html! { |t1|
+    <div></div>
 }
+
+test_html! { |t2|
+    <div>
+        <div></div>
+        <div></div>
+    </div>
+}
+
+test_html! { |t3|
+    <img />
+}
+
+fn main() {}
