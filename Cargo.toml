@@ -10,6 +10,7 @@ name = "macros"
 path = "main.rs"
 
 [dependencies]
+yew = "0.6"
 yew-html = { path = "html" }
 yew-html-impl = { path = "html-impl" }
 yew-html-common = { path = "html-common" }
