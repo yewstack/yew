@@ -28,6 +28,15 @@ mod scoped {
 }
 
 test_html! { |t1|
+    <ChildComponent />
+}
+
+test_html! { |t2|
+    // backwards compat
+    <ChildComponent: />
+}
+
+test_html! { |t3|
     <>
         <ChildComponent />
         <scoped::ChildComponent />
