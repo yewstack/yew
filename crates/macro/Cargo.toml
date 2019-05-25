@@ -1,0 +1,19 @@
+[package]
+name = "yew-macro"
+version = "0.7.0"
+edition = "2018"
+autotests = false
+
+[[test]]
+name = "tests"
+path = "tests/cases.rs"
+
+[dev-dependencies]
+trybuild = "1.0"
+yew = { path = "../.." }
+
+[dependencies]
+proc-macro-hack = "0.5"
+proc-macro-nested = "0.1"
+yew-macro-impl = { path = "../macro-impl" }
+yew-shared = { path = "../shared" }

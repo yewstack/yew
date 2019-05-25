@@ -61,7 +61,6 @@
 
 #[macro_use]
 extern crate failure;
-#[macro_use]
 extern crate log;
 extern crate http;
 extern crate serde;
@@ -71,6 +70,7 @@ extern crate serde_json;
 extern crate bincode;
 extern crate anymap;
 extern crate slab;
+extern crate yew_shared;
 #[macro_use]
 extern crate stdweb;
 #[cfg(feature = "toml")]
@@ -81,19 +81,17 @@ extern crate serde_yaml;
 extern crate rmp_serde;
 #[cfg(feature = "cbor")]
 extern crate serde_cbor;
-extern crate yew_html;
+#[cfg(feature = "proc_macro")]
+extern crate yew_macro;
 
 #[macro_use]
+#[cfg(not(feature = "proc_macro"))]
 pub mod macros;
 pub mod format;
-pub mod html;
-pub mod app;
 pub mod services;
-pub mod virtual_dom;
-pub mod callback;
-pub mod scheduler;
-pub mod agent;
 pub mod components;
+
+pub use yew_shared::*;
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
@@ -211,8 +209,9 @@ pub mod prelude {
             Transferable,
         };
     }
-    
-    pub use yew_html::html;
+
+    #[cfg(feature = "proc_macro")]
+    pub use yew_macro::html;
 }
 
 pub use self::prelude::*;

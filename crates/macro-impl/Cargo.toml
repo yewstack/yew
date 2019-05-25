@@ -1,0 +1,14 @@
+[package]
+name = "yew-macro-impl"
+version = "0.7.0"
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+boolinator = "2.4.0"
+proc-macro-hack = "0.5"
+proc-macro2 = "0.4"
+quote = "0.6"
+syn = { version = "0.15", features = ["full"] }
