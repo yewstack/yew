@@ -7,8 +7,8 @@ edition = "2018"
 proc-macro = true
 
 [dependencies]
-syn = { version = "0.15", features = ["full"] }
-quote = "0.6"
+boolinator = "2.4.0"
 proc-macro-hack = "0.5"
 proc-macro2 = "0.4"
-yew-html-common = { path = "../html-common" }
+quote = "0.6"
+syn = { version = "0.15", features = ["full"] }
