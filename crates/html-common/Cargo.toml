@@ -1,0 +1,11 @@
+[package]
+name = "yew-html-common"
+version = "0.0.1"
+edition = "2018"
+
+[dependencies]
+boolinator = "2.4.0"
+proc-macro-hack = "0.5"
+proc-macro2 = "0.4"
+quote = "0.6"
+syn = { version = "0.15", features = ["full"] }
