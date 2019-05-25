@@ -81,6 +81,7 @@ extern crate serde_yaml;
 extern crate rmp_serde;
 #[cfg(feature = "cbor")]
 extern crate serde_cbor;
+extern crate yew_html;
 
 #[macro_use]
 pub mod macros;
@@ -210,6 +211,8 @@ pub mod prelude {
             Transferable,
         };
     }
+    
+    pub use yew_html::html;
 }
 
 pub use self::prelude::*;
