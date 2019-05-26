@@ -12,7 +12,7 @@ macro_rules! test_html {
     };
     ( @gen $tc:ident $view:block ) => {
         mod $tc {
-            use ::yew::prelude::*;
+            use ::yew_shared::prelude::*;
             use ::yew_macro::html;
             use super::*;
 

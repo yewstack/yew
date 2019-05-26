@@ -113,56 +113,6 @@ where
     run_loop();
 }
 
-/// The module that contains all events available in the framework.
-pub mod events {
-    pub use html::{
-        ChangeData,
-        InputData,
-    };
-
-    pub use stdweb::web::event::{
-        BlurEvent,
-        ClickEvent,
-        ContextMenuEvent,
-        DoubleClickEvent,
-        DragDropEvent,
-        DragEndEvent,
-        DragEnterEvent,
-        DragEvent,
-        DragExitEvent,
-        DragLeaveEvent,
-        DragOverEvent,
-        DragStartEvent,
-        FocusEvent,
-        GotPointerCaptureEvent,
-        IKeyboardEvent,
-        IMouseEvent,
-        IPointerEvent,
-        KeyDownEvent,
-        KeyPressEvent,
-        KeyUpEvent,
-        LostPointerCaptureEvent,
-        MouseDownEvent,
-        MouseMoveEvent,
-        MouseOutEvent,
-        MouseEnterEvent,
-        MouseLeaveEvent,
-        MouseOverEvent,
-        MouseUpEvent,
-        MouseWheelEvent,
-        PointerCancelEvent,
-        PointerDownEvent,
-        PointerEnterEvent,
-        PointerLeaveEvent,
-        PointerMoveEvent,
-        PointerOutEvent,
-        PointerOverEvent,
-        PointerUpEvent,
-        ScrollEvent,
-        SubmitEvent
-    };
-}
-
 /// The Yew Prelude
 ///
 /// The purpose of this module is to alleviate imports of many common types:
@@ -172,43 +122,7 @@ pub mod events {
 /// use yew::prelude::*;
 /// ```
 pub mod prelude {
-    pub use html::{
-        Component,
-        ComponentLink,
-        Href,
-        Html,
-        Renderable,
-        ShouldRender,
-    };
-
-    pub use app::App;
-
-    pub use callback::Callback;
-
-    pub use agent::{
-        Bridge,
-        Bridged,
-        Threaded,
-    };
-
-    pub use events::*;
-
-    /// Prelude module for creating worker.
-    pub mod worker {
-        pub use agent::{
-            Agent,
-            AgentLink,
-            Bridge,
-            Bridged,
-            Context,
-            Global,
-            HandlerId,
-            Job,
-            Private,
-            Public,
-            Transferable,
-        };
-    }
+    pub use yew_shared::prelude::*;
 
     #[cfg(feature = "proc_macro")]
     pub use yew_macro::html;
