@@ -1,23 +1,124 @@
+error: expected literal or expression block
+  --> $DIR/html-component-fail.rs:60:32
+   |
+60 |         <ChildComponent string=name_expr />
+   |                                ^^^^^^^^^
+
+error: expected identifier
+  --> $DIR/html-component-fail.rs:53:21
+   |
+53 |     <ChildComponent type=0 />
+   |                     ^^^^
+
+error: expected literal or expression block
+  --> $DIR/html-component-fail.rs:49:29
+   |
+49 |     <ChildComponent string= />
+   |                             ^
+
+error: expected `/`
+  --> $DIR/html-component-fail.rs:45:31
+   |
+45 |     <ChildComponent with props>
+   |                               ^
+
+error: expected `/`
+  --> $DIR/html-component-fail.rs:41:21
+   |
+41 |     <ChildComponent props />
+   |                     ^^^^^
+
+error: expected identifier
+  --> $DIR/html-component-fail.rs:37:26
+   |
+37 |     <ChildComponent with />
+   |                          ^
+
+error: expected `/`
+  --> $DIR/html-component-fail.rs:33:20
+   |
+33 |     <ChildComponent>
+   |                    ^
+
+error[E0425]: cannot find value `blah` in this scope
+  --> $DIR/html-component-fail.rs:69:26
+   |
+69 |     <ChildComponent with blah />
+   |                          ^^^^ not found in this scope
+
 error[E0277]: the trait bound `std::string::String: yew_shared::html::Component` is not satisfied
- --> $DIR/html-component-fail.rs:3:1
-  |
-3 | / test_html! { |t1|
-4 | |     <String />
-5 | | }
-  | |_^ the trait `yew_shared::html::Component` is not implemented for `std::string::String`
-  |
-  = note: required by `<yew_shared::virtual_dom::vcomp::VComp<COMP>>::lazy`
-  = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+  --> $DIR/html-component-fail.rs:65:6
+   |
+65 |     <String />
+   |      ^^^^^^ the trait `yew_shared::html::Component` is not implemented for `std::string::String`
+   |
+   = note: required by `<yew_shared::virtual_dom::vcomp::VComp<COMP>>::lazy`
 
 error[E0277]: the trait bound `std::string::String: yew_shared::html::Renderable<std::string::String>` is not satisfied
- --> $DIR/html-component-fail.rs:3:1
-  |
-3 | / test_html! { |t1|
-4 | |     <String />
-5 | | }
-  | |_^ the trait `yew_shared::html::Renderable<std::string::String>` is not implemented for `std::string::String`
-  |
-  = note: required by `<yew_shared::virtual_dom::vcomp::VComp<COMP>>::lazy`
-  = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+  --> $DIR/html-component-fail.rs:65:6
+   |
+65 |     <String />
+   |      ^^^^^^ the trait `yew_shared::html::Renderable<std::string::String>` is not implemented for `std::string::String`
+   |
+   = note: required by `<yew_shared::virtual_dom::vcomp::VComp<COMP>>::lazy`
 
-For more information about this error, try `rustc --explain E0277`.
+error[E0609]: no field `unknown` on type `ChildProperties`
+  --> $DIR/html-component-fail.rs:73:21
+   |
+73 |     <ChildComponent unknown="unknown" />
+   |                     ^^^^^^^ unknown field
+   |
+   = note: available fields are: `string`, `int`
+
+error[E0277]: the trait bound `std::string::String: std::convert::From<()>` is not satisfied
+  --> $DIR/html-component-fail.rs:77:28
+   |
+77 |     <ChildComponent string={} />
+   |                            ^^ the trait `std::convert::From<()>` is not implemented for `std::string::String`
+   |
+   = help: the following implementations were found:
+             <std::string::String as std::convert::From<&'a str>>
+             <std::string::String as std::convert::From<std::borrow::Cow<'a, str>>>
+             <std::string::String as std::convert::From<std::boxed::Box<str>>>
+   = note: required because of the requirements on the impl of `std::convert::Into<std::string::String>` for `()`
+
+error[E0277]: the trait bound `std::string::String: std::convert::From<{integer}>` is not satisfied
+  --> $DIR/html-component-fail.rs:81:28
+   |
+81 |     <ChildComponent string=3 />
+   |                            ^ the trait `std::convert::From<{integer}>` is not implemented for `std::string::String`
+   |
+   = help: the following implementations were found:
+             <std::string::String as std::convert::From<&'a str>>
+             <std::string::String as std::convert::From<std::borrow::Cow<'a, str>>>
+             <std::string::String as std::convert::From<std::boxed::Box<str>>>
+   = note: required because of the requirements on the impl of `std::convert::Into<std::string::String>` for `{integer}`
+
+error[E0277]: the trait bound `std::string::String: std::convert::From<{integer}>` is not satisfied
+  --> $DIR/html-component-fail.rs:85:28
+   |
+85 |     <ChildComponent string={3} />
+   |                            ^^^ the trait `std::convert::From<{integer}>` is not implemented for `std::string::String`
+   |
+   = help: the following implementations were found:
+             <std::string::String as std::convert::From<&'a str>>
+             <std::string::String as std::convert::From<std::borrow::Cow<'a, str>>>
+             <std::string::String as std::convert::From<std::boxed::Box<str>>>
+   = note: required because of the requirements on the impl of `std::convert::Into<std::string::String>` for `{integer}`
+
+error[E0277]: the trait bound `i32: std::convert::From<u32>` is not satisfied
+  --> $DIR/html-component-fail.rs:89:25
+   |
+89 |     <ChildComponent int=0u32 />
+   |                         ^^^^ the trait `std::convert::From<u32>` is not implemented for `i32`
+   |
+   = help: the following implementations were found:
+             <i32 as std::convert::From<bool>>
+             <i32 as std::convert::From<i16>>
+             <i32 as std::convert::From<i8>>
+             <i32 as std::convert::From<std::num::NonZeroI32>>
+           and 2 others
+   = note: required because of the requirements on the impl of `std::convert::Into<i32>` for `u32`
+
+Some errors occurred: E0277, E0425, E0609.
+For more information about an error, try `rustc --explain E0277`.
