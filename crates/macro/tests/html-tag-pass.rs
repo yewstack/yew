@@ -7,6 +7,7 @@ test_html! { |t1|
         <div></div>
         <div class="parent">
             <span class="child",></span>
+            <input type="text" />
         </div>
         <img class=("avatar", "hidden") src="http://pic.com" />
         <img class="avatar", class="hidden", />
