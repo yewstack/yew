@@ -14,5 +14,13 @@ test_html! { |t20| <input attr=1 attr=2 /> }
 test_html! { |t21| <input value="123" value="456" /> }
 test_html! { |t22| <input kind="checkbox" kind="submit" /> }
 test_html! { |t23| <input checked=true checked=false /> }
+test_html! { |t24| <input disabled=true disabled=false /> }
+test_html! { |t25| <option selected=true selected=false /> }
+
+test_html! { |t30| <input checked=1 /> }
+test_html! { |t31| <input disabled=1 /> }
+test_html! { |t32| <option selected=1 /> }
+test_html! { |t33| <input type=() /> }
+test_html! { |t34| <input value=() /> }
 
 fn main() {}
