@@ -8,6 +8,7 @@ proc-macro = true
 
 [dependencies]
 boolinator = "2.4.0"
+lazy_static = "1.3.0"
 proc-macro-hack = "0.5"
 proc-macro2 = "0.4"
 quote = "0.6"

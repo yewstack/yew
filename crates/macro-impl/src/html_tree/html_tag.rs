@@ -3,12 +3,14 @@ use super::HtmlPropSuffix as TagSuffix;
 use super::HtmlTree;
 use crate::Peek;
 use boolinator::Boolinator;
-use proc_macro2::Span;
-use quote::{quote, ToTokens};
+use lazy_static::lazy_static;
+use proc_macro2::{Span, TokenStream};
+use quote::{quote, quote_spanned, ToTokens};
+use std::collections::HashMap;
 use syn::buffer::Cursor;
 use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::{Expr, ExprTuple, Ident, Token};
+use syn::{Expr, ExprClosure, ExprTuple, Ident, Token};
 
 pub struct HtmlTag {
     open: HtmlTagOpen,
@@ -101,6 +103,7 @@ impl ToTokens for HtmlTag {
             checked,
             disabled,
             selected,
+            listeners,
         } = &open.attributes;
         let attr_names = attributes.iter().map(|attr| attr.name.to_string());
         let attr_values = attributes.iter().map(|attr| &attr.value);
@@ -132,6 +135,7 @@ impl ToTokens for HtmlTag {
             let mut __yew_vtag = $crate::virtual_dom::vtag::VTag::new(#tag_name);
             #(__yew_vtag.add_class(&(#classes));)*
             #(__yew_vtag.add_attribute(#attr_names, &(#attr_values));)*
+            #(__yew_vtag.add_listener(::std::boxed::Box::new(#listeners));)*
             #(#set_kind)*
             #(#set_value)*
             #(#set_checked)*
@@ -202,12 +206,64 @@ impl ToTokens for HtmlTagOpen {
 
 struct TagAttributes {
     attributes: Vec<TagAttribute>,
+    listeners: Vec<TokenStream>,
     classes: Vec<Expr>,
     value: Option<Expr>,
     kind: Option<Expr>,
     checked: Option<Expr>,
     disabled: Option<Expr>,
     selected: Option<Expr>,
+}
+
+struct TagListener {
+    name: Ident,
+    handler: Expr,
+    event_name: String,
+}
+
+lazy_static! {
+    static ref LISTENER_MAP: HashMap<&'static str, &'static str> = {
+        let mut m = HashMap::new();
+        m.insert("onclick", "ClickEvent");
+        m.insert("ondoubleclick", "DoubleClickEvent");
+        m.insert("onkeypress", "KeyPressEvent");
+        m.insert("onkeydown", "KeyDownEvent");
+        m.insert("onkeyup", "KeyUpEvent");
+        m.insert("onmousedown", "MouseDownEvent");
+        m.insert("onmousemove", "MouseMoveEvent");
+        m.insert("onmouseout", "MouseOutEvent");
+        m.insert("onmouseenter", "MouseEnterEvent");
+        m.insert("onmouseleave", "MouseLeaveEvent");
+        m.insert("onmousewheel", "MouseWheelEvent");
+        m.insert("onmouseover", "MouseOverEvent");
+        m.insert("onmouseup", "MouseUpEvent");
+        m.insert("ongotpointercapture", "GotPointerCaptureEvent");
+        m.insert("onlostpointercapture", "LostPointerCaptureEvent");
+        m.insert("onpointercancel", "PointerCancelEvent");
+        m.insert("onpointerdown", "PointerDownEvent");
+        m.insert("onpointerenter", "PointerEnterEvent");
+        m.insert("onpointerleave", "PointerLeaveEvent");
+        m.insert("onpointermove", "PointerMoveEvent");
+        m.insert("onpointerout", "PointerOutEvent");
+        m.insert("onpointerover", "PointerOverEvent");
+        m.insert("onpointerup", "PointerUpEvent");
+        m.insert("onscroll", "ScrollEvent");
+        m.insert("onblur", "BlurEvent");
+        m.insert("onfocus", "FocusEvent");
+        m.insert("onsubmit", "SubmitEvent");
+        m.insert("oninput", "InputData");
+        m.insert("onchange", "ChangeData");
+        m.insert("ondrag", "DragEvent");
+        m.insert("ondragstart", "DragStartEvent");
+        m.insert("ondragend", "DragEndEvent");
+        m.insert("ondragenter", "DragEnterEvent");
+        m.insert("ondragleave", "DragLeaveEvent");
+        m.insert("ondragover", "DragOverEvent");
+        m.insert("ondragexit", "DragExitEvent");
+        m.insert("ondrop", "DragDropEvent");
+        m.insert("oncontextmenu", "ContextMenuEvent");
+        m
+    };
 }
 
 impl TagAttributes {
@@ -224,20 +280,79 @@ impl TagAttributes {
         drained
     }
 
-    fn remove_attr(attrs: &mut Vec<TagAttribute>, name: &str) -> ParseResult<Option<Expr>> {
-        let drained = TagAttributes::drain_attr(attrs, name);
-        let attr_expr = if drained.len() == 1 {
-            Some(drained[0].value.clone())
-        } else if drained.len() > 1 {
-            return Err(syn::Error::new_spanned(
-                &drained[1].name,
-                format!("only one {} allowed", name),
-            ));
-        } else {
-            None
-        };
+    fn drain_listeners(attrs: &mut Vec<TagAttribute>) -> Vec<TagListener> {
+        let mut i = 0;
+        let mut drained = Vec::new();
+        while i < attrs.len() {
+            let name_str = attrs[i].name.to_string();
+            if let Some(event_type) = LISTENER_MAP.get(&name_str.as_str()) {
+                let TagAttribute { name, value } = attrs.remove(i);
+                drained.push(TagListener {
+                    name,
+                    handler: value,
+                    event_name: event_type.to_owned().to_string(),
+                });
+            } else {
+                i += 1;
+            }
+        }
+        drained
+    }
 
-        Ok(attr_expr)
+    fn remove_attr(attrs: &mut Vec<TagAttribute>, name: &str) -> Option<Expr> {
+        let mut i = 0;
+        while i < attrs.len() {
+            if attrs[i].name.to_string() == name {
+                return Some(attrs.remove(i).value);
+            } else {
+                i += 1;
+            }
+        }
+        None
+    }
+
+    fn map_listener(listener: TagListener) -> ParseResult<TokenStream> {
+        let TagListener {
+            name,
+            event_name,
+            handler,
+        } = listener;
+
+        match handler {
+            Expr::Closure(ExprClosure { inputs, body, .. }) => {
+                if inputs.len() != 1 {
+                    return Err(syn::Error::new_spanned(
+                        inputs,
+                        "there must be one closure argument",
+                    ));
+                }
+                let var = match inputs.first().unwrap().into_value() {
+                    syn::FnArg::Inferred(pat) => pat,
+                    _ => return Err(syn::Error::new_spanned(inputs, "invalid closure argument")),
+                };
+                let handler =
+                    Ident::new(&format!("__yew_{}_handler", name.to_string()), name.span());
+                let listener =
+                    Ident::new(&format!("__yew_{}_listener", name.to_string()), name.span());
+                let segment = syn::PathSegment {
+                    ident: Ident::new(&event_name, name.span()),
+                    arguments: syn::PathArguments::None,
+                };
+                let var_type = quote! { $crate::events::#segment };
+                let wrapper_type = quote! { $crate::html::#name::Wrapper };
+                let listener_stream = quote_spanned! {name.span()=> {
+                    let #handler = move | #var: #var_type | #body;
+                    let #listener = #wrapper_type::from(#handler);
+                    #listener
+                }};
+
+                Ok(listener_stream)
+            }
+            _ => Err(syn::Error::new_spanned(
+                &name,
+                format!("{} attribute value should be a closure", name),
+            )),
+        }
     }
 }
 
@@ -258,12 +373,12 @@ impl Parse for TagAttributes {
                 expr @ _ => classes.push(expr),
             });
 
-        let value = TagAttributes::remove_attr(&mut attributes, "value")?;
-        let kind = TagAttributes::remove_attr(&mut attributes, "type")?;
-        let checked = TagAttributes::remove_attr(&mut attributes, "checked")?;
-        let disabled = TagAttributes::remove_attr(&mut attributes, "disabled")?;
-        let selected = TagAttributes::remove_attr(&mut attributes, "selected")?;
+        let mut listeners = Vec::new();
+        for listener in TagAttributes::drain_listeners(&mut attributes) {
+            listeners.push(TagAttributes::map_listener(listener)?);
+        }
 
+        // Multiple class and listener attributes are allowed, but no others
         attributes.sort_by(|a, b| a.name.to_string().partial_cmp(&b.name.to_string()).unwrap());
         let mut i = 0;
         while i + 1 < attributes.len() {
@@ -277,9 +392,16 @@ impl Parse for TagAttributes {
             i += 1;
         }
 
+        let value = TagAttributes::remove_attr(&mut attributes, "value");
+        let kind = TagAttributes::remove_attr(&mut attributes, "type");
+        let checked = TagAttributes::remove_attr(&mut attributes, "checked");
+        let disabled = TagAttributes::remove_attr(&mut attributes, "disabled");
+        let selected = TagAttributes::remove_attr(&mut attributes, "selected");
+
         Ok(TagAttributes {
             attributes,
             classes,
+            listeners,
             value,
             kind,
             checked,

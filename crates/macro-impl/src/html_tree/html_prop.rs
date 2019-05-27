@@ -56,8 +56,8 @@ impl Parse for HtmlPropSuffix {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let mut trees: Vec<TokenTree> = vec![];
         let mut div: Option<Token![/]> = None;
-        let mut gt: Option<Token![>]> = None;
         let mut angle_count = 1;
+        let gt: Option<Token![>]>;
 
         loop {
             let next = input.parse()?;
