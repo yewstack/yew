@@ -96,14 +96,47 @@ impl ToTokens for HtmlTag {
         let TagAttributes {
             classes,
             attributes,
-            ..
+            kind,
+            value,
+            checked,
+            disabled,
+            selected,
         } = &open.attributes;
         let attr_names = attributes.iter().map(|attr| attr.name.to_string());
         let attr_values = attributes.iter().map(|attr| &attr.value);
+        let set_kind = kind.iter().map(|kind| {
+            quote! { __yew_vtag.set_kind(&(#kind)); }
+        });
+        let set_value = value.iter().map(|value| {
+            quote! { __yew_vtag.set_value(&(#value)); }
+        });
+        let set_checked = checked.iter().map(|checked| {
+            quote! { __yew_vtag.set_checked(#checked); }
+        });
+        let add_disabled = disabled.iter().map(|disabled| {
+            quote! {
+                if #disabled {
+                    __yew_vtag.add_attribute("disabled", &"true");
+                }
+            }
+        });
+        let add_selected = selected.iter().map(|selected| {
+            quote! {
+                if #selected {
+                    __yew_vtag.add_attribute("selected", &"selected");
+                }
+            }
+        });
+
         tokens.extend(quote! {{
             let mut __yew_vtag = $crate::virtual_dom::vtag::VTag::new(#tag_name);
             #(__yew_vtag.add_class(&(#classes));)*
             #(__yew_vtag.add_attribute(#attr_names, &(#attr_values));)*
+            #(#set_kind)*
+            #(#set_value)*
+            #(#set_checked)*
+            #(#add_disabled)*
+            #(#add_selected)*
             #(__yew_vtag.add_child(#children);)*
             __yew_vtag
         }});
@@ -173,6 +206,8 @@ struct TagAttributes {
     value: Option<Expr>,
     kind: Option<Expr>,
     checked: Option<Expr>,
+    disabled: Option<Expr>,
+    selected: Option<Expr>,
 }
 
 impl TagAttributes {
@@ -226,6 +261,8 @@ impl Parse for TagAttributes {
         let value = TagAttributes::remove_attr(&mut attributes, "value")?;
         let kind = TagAttributes::remove_attr(&mut attributes, "type")?;
         let checked = TagAttributes::remove_attr(&mut attributes, "checked")?;
+        let disabled = TagAttributes::remove_attr(&mut attributes, "disabled")?;
+        let selected = TagAttributes::remove_attr(&mut attributes, "selected")?;
 
         attributes.sort_by(|a, b| a.name.to_string().partial_cmp(&b.name.to_string()).unwrap());
         let mut i = 0;
@@ -246,6 +283,8 @@ impl Parse for TagAttributes {
             value,
             kind,
             checked,
+            disabled,
+            selected,
         })
     }
 }
