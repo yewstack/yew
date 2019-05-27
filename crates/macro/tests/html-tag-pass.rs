@@ -6,7 +6,7 @@ test_html! { |t1|
     <div>
         <div></div>
         <div class="parent">
-            <span class="child",></span>
+            <span class="child", value="anything",></span>
             <input type="text" value="placeholder" />
             <input type="checkbox" checked=true />
             <textarea value="write a story" />
@@ -17,6 +17,7 @@ test_html! { |t1|
         </div>
         <img class=("avatar", "hidden") src="http://pic.com" />
         <img class="avatar", class="hidden", />
+        <button onclick=|e| panic!(e) />
     </div>
 }
 
