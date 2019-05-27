@@ -204,6 +204,13 @@ impl Parse for ListProps {
         while HtmlProp::peek(input.cursor()).is_some() {
             props.push(input.parse::<HtmlProp>()?);
         }
+
+        for prop in &props {
+            if prop.name.to_string() == "type" {
+                return Err(syn::Error::new_spanned(&prop.name, "expected identifier"));
+            }
+        }
+
         Ok(ListProps(props))
     }
 }
