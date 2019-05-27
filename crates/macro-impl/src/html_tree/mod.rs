@@ -3,6 +3,7 @@ pub mod html_component;
 pub mod html_iterable;
 pub mod html_list;
 pub mod html_node;
+pub mod html_prop;
 pub mod html_tag;
 
 use crate::Peek;
@@ -11,6 +12,8 @@ use html_component::HtmlComponent;
 use html_iterable::HtmlIterable;
 use html_list::HtmlList;
 use html_node::HtmlNode;
+use html_prop::HtmlProp;
+use html_prop::HtmlPropSuffix;
 use html_tag::HtmlTag;
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
@@ -52,10 +55,7 @@ impl Parse for HtmlRoot {
         };
 
         if !input.is_empty() {
-            Err(syn::Error::new(
-                Span::call_site(),
-                "only one root html element allowed",
-            ))
+            Err(input.error("only one root html element allowed"))
         } else {
             Ok(html_root)
         }

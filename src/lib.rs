@@ -56,40 +56,45 @@
 //! ```
 //!
 
-#![deny(missing_docs, bare_trait_objects, anonymous_parameters, elided_lifetimes_in_paths)]
+#![deny(
+    missing_docs,
+    bare_trait_objects,
+    anonymous_parameters,
+    elided_lifetimes_in_paths
+)]
 #![recursion_limit = "512"]
 
 #[macro_use]
 extern crate failure;
-extern crate log;
 extern crate http;
+extern crate log;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
-extern crate bincode;
 extern crate anymap;
+extern crate bincode;
+extern crate serde_json;
 extern crate slab;
 extern crate yew_shared;
 #[macro_use]
 extern crate stdweb;
-#[cfg(feature = "toml")]
-extern crate toml;
-#[cfg(feature = "yaml")]
-extern crate serde_yaml;
 #[cfg(feature = "msgpack")]
 extern crate rmp_serde;
 #[cfg(feature = "cbor")]
 extern crate serde_cbor;
+#[cfg(feature = "yaml")]
+extern crate serde_yaml;
+#[cfg(feature = "toml")]
+extern crate toml;
 #[cfg(feature = "proc_macro")]
 extern crate yew_macro;
 
 #[macro_use]
 #[cfg(not(feature = "proc_macro"))]
 pub mod macros;
+pub mod components;
 pub mod format;
 pub mod services;
-pub mod components;
 
 pub use yew_shared::*;
 
