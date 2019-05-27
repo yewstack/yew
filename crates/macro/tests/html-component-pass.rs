@@ -89,4 +89,13 @@ test_html! { |t5|
     </>
 }
 
+test_html_block! { |t6|
+    let name_expr = "child";
+
+    html! {
+        <ChildComponent string=name_expr />
+    }
+}
+
+
 fn main() {}
