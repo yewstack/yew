@@ -88,8 +88,7 @@ impl ToTokens for HtmlComponent {
 }
 
 impl HtmlComponent {
-    fn double_colon(cursor: Cursor) -> Option<Cursor> {
-        let mut cursor = cursor;
+    fn double_colon(mut cursor: Cursor) -> Option<Cursor> {
         for _ in 0..2 {
             let (punct, c) = cursor.punct()?;
             (punct.as_char() == ':').as_option()?;
@@ -99,8 +98,7 @@ impl HtmlComponent {
         Some(cursor)
     }
 
-    fn peek_type(cursor: Cursor) -> Option<()> {
-        let mut cursor = cursor;
+    fn peek_type(mut cursor: Cursor) -> Option<()> {
         let mut type_str: String = "".to_owned();
         let mut colons_optional = true;
 
