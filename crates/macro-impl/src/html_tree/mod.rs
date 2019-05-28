@@ -15,6 +15,7 @@ use html_node::HtmlNode;
 use html_prop::HtmlProp;
 use html_prop::HtmlPropSuffix;
 use html_tag::HtmlTag;
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
@@ -49,7 +50,11 @@ impl Parse for HtmlRoot {
         };
 
         if !input.is_empty() {
-            Err(input.error("only one root html element allowed"))
+            let stream: TokenStream = input.parse()?;
+            Err(syn::Error::new_spanned(
+                stream,
+                "only one root html element allowed",
+            ))
         } else {
             Ok(html_root)
         }

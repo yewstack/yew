@@ -122,16 +122,26 @@ impl TagAttributes {
         } = listener;
 
         match handler {
-            Expr::Closure(ExprClosure { inputs, body, .. }) => {
+            Expr::Closure(closure) => {
+                let ExprClosure {
+                    inputs,
+                    body,
+                    or1_token,
+                    or2_token,
+                    ..
+                } = closure;
+
+                let or_span = quote! {#or1_token#or2_token};
                 if inputs.len() != 1 {
                     return Err(syn::Error::new_spanned(
-                        inputs,
+                        or_span,
                         "there must be one closure argument",
                     ));
                 }
+
                 let var = match inputs.first().unwrap().into_value() {
                     syn::FnArg::Inferred(pat) => pat,
-                    _ => return Err(syn::Error::new_spanned(inputs, "invalid closure argument")),
+                    _ => return Err(syn::Error::new_spanned(or_span, "invalid closure argument")),
                 };
                 let handler =
                     Ident::new(&format!("__yew_{}_handler", name.to_string()), name.span());
@@ -153,7 +163,7 @@ impl TagAttributes {
             }
             _ => Err(syn::Error::new_spanned(
                 &name,
-                format!("{} attribute value should be a closure", name),
+                format!("`{}` attribute value should be a closure", name),
             )),
         }
     }

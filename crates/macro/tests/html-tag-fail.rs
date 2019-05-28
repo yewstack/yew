@@ -25,4 +25,9 @@ test_html! { |t33| <input type=() /> }
 test_html! { |t34| <input value=() /> }
 test_html! { |t35| <a href=() /> }
 
+test_html! { |t40| <input onclick=1 /> }
+test_html! { |t41| <input onclick=|| () /> }
+test_html! { |t42| <input onclick=|a, b| () /> }
+test_html! { |t43| <input onclick=|a: String| () /> }
+
 fn main() {}

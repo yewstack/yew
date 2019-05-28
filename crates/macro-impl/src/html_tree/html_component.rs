@@ -137,7 +137,7 @@ pub struct HtmlComponentInner {
 impl Parse for HtmlComponentInner {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let ty = input.parse()?;
-        // backwards compatibility
+        // backwards compat
         let _ = input.parse::<Token![:]>();
 
         let props = if let Some(prop_type) = Props::peek(input.cursor()) {
