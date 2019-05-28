@@ -1,44 +1,38 @@
 error: unsupported type
-  --> $DIR/html-node-fail.rs:12:28
+  --> $DIR/html-node-fail.rs:14:28
    |
-12 | test_html! { |t15| <span>{ 1111111111111111111111111111111111111111111111111111111111111111111111111111 }</span> }
+14 | test_html! { |t15| <span>{ 1111111111111111111111111111111111111111111111111111111111111111111111111111 }</span> }
    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unsupported type
-  --> $DIR/html-node-fail.rs:11:28
+  --> $DIR/html-node-fail.rs:13:28
    |
-11 | test_html! { |t14| <span>{ b"str" }</span> }
+13 | test_html! { |t14| <span>{ b"str" }</span> }
    |                            ^^^^^^
 
 error: unsupported type
-  --> $DIR/html-node-fail.rs:10:28
+  --> $DIR/html-node-fail.rs:12:28
    |
-10 | test_html! { |t13| <span>{ b'a' }</span> }
+12 | test_html! { |t13| <span>{ b'a' }</span> }
    |                            ^^^^
 
-error: invalid root html element
- --> $DIR/html-node-fail.rs:9:1
-  |
-9 | test_html! { |t12| 1111111111111111111111111111111111111111111111111111111111111111111111111111 }
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+error: unsupported type
+  --> $DIR/html-node-fail.rs:11:20
+   |
+11 | test_html! { |t12| 1111111111111111111111111111111111111111111111111111111111111111111111111111 }
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: invalid root html element
- --> $DIR/html-node-fail.rs:8:1
-  |
-8 | test_html! { |t11| b"str" }
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+error: unsupported type
+  --> $DIR/html-node-fail.rs:10:20
+   |
+10 | test_html! { |t11| b"str" }
+   |                    ^^^^^^
 
-error: invalid root html element
- --> $DIR/html-node-fail.rs:7:1
+error: unsupported type
+ --> $DIR/html-node-fail.rs:9:20
   |
-7 | test_html! { |t10| b'a' }
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+9 | test_html! { |t10| b'a' }
+  |                    ^^^^
 
 error: unexpected token
  --> $DIR/html-node-fail.rs:4:35
@@ -51,3 +45,36 @@ error: only one root html element allowed
   |
 3 | test_html! { |t1| "valid" "invalid" }
   |                           ^^^^^^^^^
+
+error[E0425]: cannot find value `invalid` in this scope
+ --> $DIR/html-node-fail.rs:6:19
+  |
+6 | test_html! { |t4| invalid }
+  |                   ^^^^^^^ not found in this scope
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/html-node-fail.rs:20:9
+   |
+20 |         not_node()
+   |         ^^^^^^^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew_shared::virtual_dom::vnode::VNode<_>`
+   = note: required by `std::convert::From::from`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+ --> $DIR/html-node-fail.rs:5:19
+  |
+5 | test_html! { |t3| () }
+  |                   ^^ `()` cannot be formatted with the default formatter
+  |
+  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew_shared::virtual_dom::vnode::VNode<_>`
+  = note: required by `std::convert::From::from`
+
+Some errors occurred: E0277, E0425.
+For more information about an error, try `rustc --explain E0277`.

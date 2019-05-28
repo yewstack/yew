@@ -15,7 +15,6 @@ use html_node::HtmlNode;
 use html_prop::HtmlProp;
 use html_prop::HtmlPropSuffix;
 use html_tag::HtmlTag;
-use proc_macro2::Span;
 use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
@@ -45,13 +44,8 @@ impl Parse for HtmlRoot {
             HtmlRoot(input.parse()?)
         } else if HtmlIterable::peek(input.cursor()).is_some() {
             HtmlRoot(HtmlTree::Iterable(input.parse()?))
-        } else if let Ok(html_node) = input.parse::<HtmlNode>() {
-            HtmlRoot(HtmlTree::Node(html_node))
         } else {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "invalid root html element",
-            ));
+            HtmlRoot(HtmlTree::Node(input.parse()?))
         };
 
         if !input.is_empty() {

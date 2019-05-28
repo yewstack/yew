@@ -1,12 +1,13 @@
 use crate::Peek;
 use boolinator::Boolinator;
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::Token;
+use syn::spanned::Spanned;
+use syn::{Expr, Ident, Token};
 
-pub struct HtmlIterable(TokenStream);
+pub struct HtmlIterable(Expr);
 
 impl Peek<()> for HtmlIterable {
     fn peek(cursor: Cursor) -> Option<()> {
@@ -17,23 +18,40 @@ impl Peek<()> for HtmlIterable {
 
 impl Parse for HtmlIterable {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        input.parse::<Token![for]>()?;
-        Ok(HtmlIterable(input.parse()?))
+        let for_token = input.parse::<Token![for]>()?;
+
+        match input.parse() {
+            Ok(expr) => Ok(HtmlIterable(expr)),
+            Err(err) => {
+                if err.to_string().starts_with("unexpected end of input") {
+                    Err(syn::Error::new_spanned(
+                        for_token,
+                        "expected expression after `for`",
+                    ))
+                } else {
+                    Err(err)
+                }
+            }
+        }
     }
 }
 
 impl ToTokens for HtmlIterable {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let stream = &self.0;
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let expr = &self.0;
+        let vlist = Ident::new("__yew_vlist", expr.span());
+        let add_children = quote_spanned! {expr.span()=>
+            let __yew_nodes: ::std::boxed::Box<::std::iter::Iterator<Item = _>> = ::std::boxed::Box::new(#expr);
+            for __yew_node in __yew_nodes.into_iter() {
+                #vlist.add_child(__yew_node);
+            }
+        };
+
         let new_tokens = quote! {
             {
-                let mut __yew_vlist = $crate::virtual_dom::VList::new();
-                let __yew_nodes: ::std::boxed::Box<::std::iter::Iterator<Item = $crate::virtual_dom::VNode<_>>> = ::std::boxed::Box::new({#stream});
-                for __yew_node in __yew_nodes {
-                    let __yew_vnode = $crate::virtual_dom::VNode::from(__yew_node);
-                    __yew_vlist.add_child(__yew_vnode);
-                }
-                $crate::virtual_dom::VNode::from(__yew_vlist)
+                let mut #vlist = $crate::virtual_dom::VList::new();
+                #add_children
+                $crate::virtual_dom::VNode::from(#vlist)
             }
         };
 

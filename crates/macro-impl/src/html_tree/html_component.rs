@@ -71,14 +71,12 @@ impl ToTokens for HtmlComponent {
             }
         });
 
-        // hack because span breaks with $crate inline
-        let alias_virtual_dom = quote! { use $crate::virtual_dom as _virtual_dom; };
         let lazy_init = quote_spanned! { ty.span()=>
-            #alias_virtual_dom
             let (mut #vcomp_props, mut #vcomp) = _virtual_dom::VComp::lazy::<#ty>();
         };
 
         tokens.extend(quote! {{
+            use $crate::virtual_dom as _virtual_dom;
             #lazy_init
             #(#override_props)*
             #vcomp.set_props(#vcomp_props);
