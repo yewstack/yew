@@ -64,55 +64,44 @@ error[E0609]: no field `unknown` on type `ChildProperties`
    |
    = note: available fields are: `string`, `int`
 
-error[E0277]: the trait bound `std::string::String: std::convert::From<()>` is not satisfied
+error[E0308]: mismatched types
   --> $DIR/html-component-fail.rs:69:28
    |
 69 |     <ChildComponent string={} />
-   |                            ^^ the trait `std::convert::From<()>` is not implemented for `std::string::String`
+   |                            ^^ expected struct `std::string::String`, found ()
    |
-   = help: the following implementations were found:
-             <std::string::String as std::convert::From<&'a str>>
-             <std::string::String as std::convert::From<std::borrow::Cow<'a, str>>>
-             <std::string::String as std::convert::From<std::boxed::Box<str>>>
-   = note: required because of the requirements on the impl of `std::convert::Into<std::string::String>` for `()`
+   = note: expected type `std::string::String`
+              found type `()`
 
-error[E0277]: the trait bound `std::string::String: std::convert::From<{integer}>` is not satisfied
+error[E0308]: mismatched types
   --> $DIR/html-component-fail.rs:73:28
    |
 73 |     <ChildComponent string=3 />
-   |                            ^ the trait `std::convert::From<{integer}>` is not implemented for `std::string::String`
+   |                            ^
+   |                            |
+   |                            expected struct `std::string::String`, found integer
+   |                            help: try using a conversion method: `3.to_string()`
    |
-   = help: the following implementations were found:
-             <std::string::String as std::convert::From<&'a str>>
-             <std::string::String as std::convert::From<std::borrow::Cow<'a, str>>>
-             <std::string::String as std::convert::From<std::boxed::Box<str>>>
-   = note: required because of the requirements on the impl of `std::convert::Into<std::string::String>` for `{integer}`
+   = note: expected type `std::string::String`
+              found type `{integer}`
 
-error[E0277]: the trait bound `std::string::String: std::convert::From<{integer}>` is not satisfied
+error[E0308]: mismatched types
   --> $DIR/html-component-fail.rs:77:28
    |
 77 |     <ChildComponent string={3} />
-   |                            ^^^ the trait `std::convert::From<{integer}>` is not implemented for `std::string::String`
+   |                            ^^^
+   |                            |
+   |                            expected struct `std::string::String`, found integer
+   |                            help: try using a conversion method: `{3}.to_string()`
    |
-   = help: the following implementations were found:
-             <std::string::String as std::convert::From<&'a str>>
-             <std::string::String as std::convert::From<std::borrow::Cow<'a, str>>>
-             <std::string::String as std::convert::From<std::boxed::Box<str>>>
-   = note: required because of the requirements on the impl of `std::convert::Into<std::string::String>` for `{integer}`
+   = note: expected type `std::string::String`
+              found type `{integer}`
 
-error[E0277]: the trait bound `i32: std::convert::From<u32>` is not satisfied
+error[E0308]: mismatched types
   --> $DIR/html-component-fail.rs:81:25
    |
 81 |     <ChildComponent int=0u32 />
-   |                         ^^^^ the trait `std::convert::From<u32>` is not implemented for `i32`
-   |
-   = help: the following implementations were found:
-             <i32 as std::convert::From<bool>>
-             <i32 as std::convert::From<i16>>
-             <i32 as std::convert::From<i8>>
-             <i32 as std::convert::From<std::num::NonZeroI32>>
-           and 2 others
-   = note: required because of the requirements on the impl of `std::convert::Into<i32>` for `u32`
+   |                         ^^^^ expected i32, found u32
 
-Some errors occurred: E0277, E0425, E0609.
+Some errors occurred: E0277, E0308, E0425, E0609.
 For more information about an error, try `rustc --explain E0277`.

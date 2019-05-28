@@ -58,7 +58,9 @@ impl ToTokens for HtmlComponent {
                 });
 
                 let set_props = vec_props.0.iter().map(|HtmlProp { name, value }| {
-                    quote_spanned! { value.span()=> #vcomp_props.#name = #value.into(); }
+                    quote_spanned! { value.span()=>
+                        #vcomp_props.#name = _virtual_dom::vcomp::Transformer::transform(&mut #vcomp, #value);
+                    }
                 });
 
                 quote! {

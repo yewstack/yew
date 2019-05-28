@@ -16,6 +16,7 @@ test_html! { |t22| <input kind="checkbox" kind="submit" /> }
 test_html! { |t23| <input checked=true checked=false /> }
 test_html! { |t24| <input disabled=true disabled=false /> }
 test_html! { |t25| <option selected=true selected=false /> }
+test_html! { |t26| <div class="first" class="second" /> }
 
 test_html! { |t30| <input checked=1 /> }
 test_html! { |t31| <input disabled=1 /> }
