@@ -143,14 +143,16 @@ impl ToTokens for HtmlTag {
             #(#set_kind)*
             #(#set_value)*
             #(#add_href)*
-            let __yew_vtag = &mut #vtag;
-            #(#set_classes)*
-            #(__yew_vtag.add_attribute(#attr_names, &(#attr_values));)*
-            #(__yew_vtag.add_listener(::std::boxed::Box::new(#listeners));)*
-            #(#set_checked)*
-            #(#add_disabled)*
-            #(#add_selected)*
-            #(__yew_vtag.add_child(#children);)*
+            {
+                let __yew_vtag = &mut #vtag;
+                #(#set_classes)*
+                #(__yew_vtag.add_attribute(#attr_names, &(#attr_values));)*
+                #(__yew_vtag.add_listener(::std::boxed::Box::new(#listeners));)*
+                #(#set_checked)*
+                #(#add_disabled)*
+                #(#add_selected)*
+                #(__yew_vtag.add_child(#children);)*
+            }
             #vtag
         }});
     }
