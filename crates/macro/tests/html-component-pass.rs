@@ -1,7 +1,7 @@
 #![recursion_limit = "128"]
 
-use yew_shared::prelude::*;
 use yew_macro::{html, test_html, test_html_block};
+use yew_shared::prelude::*;
 
 #[derive(Clone, Default, PartialEq)]
 pub struct ChildProperties {
@@ -96,6 +96,5 @@ test_html_block! { |t6|
         <ChildComponent string=name_expr />
     }
 }
-
 
 fn main() {}

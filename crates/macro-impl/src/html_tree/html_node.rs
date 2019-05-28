@@ -15,10 +15,8 @@ impl Parse for HtmlNode {
             match lit {
                 Lit::Str(_) | Lit::Char(_) | Lit::Int(_) | Lit::Float(_) | Lit::Bool(_) => {}
                 _ => return Err(syn::Error::new(lit.span(), "unsupported type")),
-            };
-            let mut stream = TokenStream::new();
-            stream.extend(quote! {#lit});
-            stream
+            }
+            TokenStream::from(quote! {#lit})
         } else {
             input.parse()?
         };
@@ -40,7 +38,7 @@ impl Peek<()> for HtmlNode {
 }
 
 impl ToTokens for HtmlNode {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let stream = &self.0;
         tokens.extend(quote! { $crate::virtual_dom::VNode::from({#stream}) });
     }
