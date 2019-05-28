@@ -29,26 +29,7 @@ impl Parse for HtmlList {
         }
 
         let open = input.parse::<HtmlListOpen>()?;
-
-        let mut cursor = input.cursor();
-        let mut list_stack_count = 1;
-        loop {
-            if HtmlListOpen::peek(cursor).is_some() {
-                list_stack_count += 1;
-            } else if HtmlListClose::peek(cursor).is_some() {
-                list_stack_count -= 1;
-                if list_stack_count == 0 {
-                    break;
-                }
-            }
-            if let Some((_, next)) = cursor.token_tree() {
-                cursor = next;
-            } else {
-                break;
-            }
-        }
-
-        if list_stack_count > 0 {
+        if !HtmlList::verify_end(input.cursor()) {
             return Err(syn::Error::new_spanned(
                 open,
                 "this open tag has no corresponding close tag",
@@ -74,6 +55,29 @@ impl ToTokens for HtmlList {
                 childs: vec![#(#html_trees,)*],
             }
         });
+    }
+}
+
+impl HtmlList {
+    fn verify_end(mut cursor: Cursor) -> bool {
+        let mut list_stack_count = 1;
+        loop {
+            if HtmlListOpen::peek(cursor).is_some() {
+                list_stack_count += 1;
+            } else if HtmlListClose::peek(cursor).is_some() {
+                list_stack_count -= 1;
+                if list_stack_count == 0 {
+                    break;
+                }
+            }
+            if let Some((_, next)) = cursor.token_tree() {
+                cursor = next;
+            } else {
+                break;
+            }
+        }
+
+        list_stack_count == 0
     }
 }
 
