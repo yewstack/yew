@@ -43,9 +43,7 @@ impl ToTokens for HtmlBlock {
         let HtmlBlock { content, brace } = self;
         let new_tokens = match content {
             BlockContent::Iterable(html_iterable) => quote! {#html_iterable},
-            BlockContent::Node(html_node) => quote! {
-                $crate::virtual_dom::VNode::from({#html_node})
-            },
+            BlockContent::Node(html_node) => quote! {#html_node},
         };
 
         tokens.extend(quote_spanned! {brace.span=> #new_tokens});
