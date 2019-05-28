@@ -130,10 +130,16 @@ impl ToTokens for HtmlTag {
                 }
             }
         });
+        let set_classes = classes.iter().map(|classes_form| match classes_form {
+            ClassesForm::Tuple(classes) => quote! { #(__yew_vtag.add_class(&(#classes));)* },
+            ClassesForm::Single(classes) => quote! {
+                __yew_vtag.set_classes(&(#classes));
+            },
+        });
 
         tokens.extend(quote! {{
             let mut __yew_vtag = $crate::virtual_dom::vtag::VTag::new(#tag_name);
-            #(__yew_vtag.add_class(&(#classes));)*
+            #(#set_classes)*
             #(__yew_vtag.add_attribute(#attr_names, &(#attr_values));)*
             #(__yew_vtag.add_listener(::std::boxed::Box::new(#listeners));)*
             #(#set_kind)*
@@ -207,12 +213,17 @@ impl ToTokens for HtmlTagOpen {
 struct TagAttributes {
     attributes: Vec<TagAttribute>,
     listeners: Vec<TokenStream>,
-    classes: Vec<Expr>,
+    classes: Option<ClassesForm>,
     value: Option<Expr>,
     kind: Option<Expr>,
     checked: Option<Expr>,
     disabled: Option<Expr>,
     selected: Option<Expr>,
+}
+
+enum ClassesForm {
+    Tuple(Vec<Expr>),
+    Single(Expr),
 }
 
 struct TagListener {
@@ -267,19 +278,6 @@ lazy_static! {
 }
 
 impl TagAttributes {
-    fn drain_attr(attrs: &mut Vec<TagAttribute>, name: &str) -> Vec<TagAttribute> {
-        let mut i = 0;
-        let mut drained = Vec::new();
-        while i < attrs.len() {
-            if attrs[i].name.to_string() == name {
-                drained.push(attrs.remove(i));
-            } else {
-                i += 1;
-            }
-        }
-        drained
-    }
-
     fn drain_listeners(attrs: &mut Vec<TagAttribute>) -> Vec<TagListener> {
         let mut i = 0;
         let mut drained = Vec::new();
@@ -309,6 +307,13 @@ impl TagAttributes {
             }
         }
         None
+    }
+
+    fn map_classes(class_expr: Expr) -> ClassesForm {
+        match class_expr {
+            Expr::Tuple(ExprTuple { elems, .. }) => ClassesForm::Tuple(elems.into_iter().collect()),
+            expr @ _ => ClassesForm::Single(expr),
+        }
     }
 
     fn map_listener(listener: TagListener) -> ParseResult<TokenStream> {
@@ -363,22 +368,12 @@ impl Parse for TagAttributes {
             attributes.push(input.parse::<TagAttribute>()?);
         }
 
-        let mut classes: Vec<Expr> = Vec::new();
-        TagAttributes::drain_attr(&mut attributes, "class")
-            .into_iter()
-            .for_each(|TagAttribute { value, .. }| match value {
-                Expr::Tuple(ExprTuple { elems, .. }) => {
-                    elems.into_iter().for_each(|expr| classes.push(expr))
-                }
-                expr @ _ => classes.push(expr),
-            });
-
         let mut listeners = Vec::new();
         for listener in TagAttributes::drain_listeners(&mut attributes) {
             listeners.push(TagAttributes::map_listener(listener)?);
         }
 
-        // Multiple class and listener attributes are allowed, but no others
+        // Multiple listener attributes are allowed, but no others
         attributes.sort_by(|a, b| a.name.to_string().partial_cmp(&b.name.to_string()).unwrap());
         let mut i = 0;
         while i + 1 < attributes.len() {
@@ -386,12 +381,14 @@ impl Parse for TagAttributes {
                 let name = &attributes[i + 1].name;
                 return Err(syn::Error::new_spanned(
                     name,
-                    format!("only one {} allowed", name),
+                    format!("only one `{}` attribute allowed", name),
                 ));
             }
             i += 1;
         }
 
+        let classes =
+            TagAttributes::remove_attr(&mut attributes, "class").map(TagAttributes::map_classes);
         let value = TagAttributes::remove_attr(&mut attributes, "value");
         let kind = TagAttributes::remove_attr(&mut attributes, "type");
         let checked = TagAttributes::remove_attr(&mut attributes, "checked");
