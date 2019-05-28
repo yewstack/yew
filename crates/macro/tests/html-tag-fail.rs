@@ -23,5 +23,6 @@ test_html! { |t31| <input disabled=1 /> }
 test_html! { |t32| <option selected=1 /> }
 test_html! { |t33| <input type=() /> }
 test_html! { |t34| <input value=() /> }
+test_html! { |t35| <a href=() /> }
 
 fn main() {}

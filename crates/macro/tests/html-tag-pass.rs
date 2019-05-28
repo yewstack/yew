@@ -18,6 +18,7 @@ test_html! { |t1|
         <img class=("avatar", "hidden") src="http://pic.com" />
         <img class="avatar hidden", />
         <button onclick=|e| panic!(e) />
+        <a href="http://google.com" />
     </div>
 }
 
