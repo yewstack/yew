@@ -103,6 +103,7 @@ impl ToTokens for HtmlTag {
             checked,
             disabled,
             selected,
+            href,
             listeners,
         } = &open.attributes;
         let attr_names = attributes.iter().map(|attr| attr.name.to_string());
@@ -130,6 +131,12 @@ impl ToTokens for HtmlTag {
                 }
             }
         });
+        let add_href = href.iter().map(|href| {
+            quote! {
+                let __yew_href: $crate::html::Href = #href.into();
+                __yew_vtag.add_attribute("href", &__yew_href);
+            }
+        });
         let set_classes = classes.iter().map(|classes_form| match classes_form {
             ClassesForm::Tuple(classes) => quote! { #(__yew_vtag.add_class(&(#classes));)* },
             ClassesForm::Single(classes) => quote! {
@@ -147,6 +154,7 @@ impl ToTokens for HtmlTag {
             #(#set_checked)*
             #(#add_disabled)*
             #(#add_selected)*
+            #(#add_href)*
             #(__yew_vtag.add_child(#children);)*
             __yew_vtag
         }});
@@ -219,6 +227,7 @@ struct TagAttributes {
     checked: Option<Expr>,
     disabled: Option<Expr>,
     selected: Option<Expr>,
+    href: Option<Expr>,
 }
 
 enum ClassesForm {
@@ -394,6 +403,7 @@ impl Parse for TagAttributes {
         let checked = TagAttributes::remove_attr(&mut attributes, "checked");
         let disabled = TagAttributes::remove_attr(&mut attributes, "disabled");
         let selected = TagAttributes::remove_attr(&mut attributes, "selected");
+        let href = TagAttributes::remove_attr(&mut attributes, "href");
 
         Ok(TagAttributes {
             attributes,
@@ -404,6 +414,7 @@ impl Parse for TagAttributes {
             checked,
             disabled,
             selected,
+            href,
         })
     }
 }
