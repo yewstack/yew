@@ -4,7 +4,7 @@ use boolinator::Boolinator;
 use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::token;
+use syn::Token;
 
 pub struct HtmlList(pub Vec<HtmlTree>);
 
@@ -78,8 +78,8 @@ impl ToTokens for HtmlList {
 }
 
 struct HtmlListOpen {
-    lt: token::Lt,
-    gt: token::Gt,
+    lt: Token![<],
+    gt: Token![>],
 }
 
 impl Peek<()> for HtmlListOpen {
@@ -109,9 +109,9 @@ impl ToTokens for HtmlListOpen {
 }
 
 struct HtmlListClose {
-    lt: token::Lt,
-    div: token::Div,
-    gt: token::Gt,
+    lt: Token![<],
+    div: Token![/],
+    gt: Token![>],
 }
 
 impl Peek<()> for HtmlListClose {

@@ -17,8 +17,7 @@ impl Peek<()> for HtmlComponent {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
 
-        let (type_str, _) = HtmlComponent::type_str(cursor)?;
-        (type_str.to_lowercase() != type_str).as_option()
+        HtmlComponent::peek_type(cursor)
     }
 }
 
@@ -51,13 +50,13 @@ impl ToTokens for HtmlComponent {
         let HtmlComponentInner { ty, props } = &self.0;
         let vcomp = Ident::new("__yew_vcomp", Span::call_site());
         let vcomp_props = Ident::new("__yew_vcomp_props", Span::call_site());
-        let override_props = match props {
-            Props::List(vec_props) => {
-                let check_props = vec_props.0.iter().map(|HtmlProp { name, .. }| {
+        let override_props = props.iter().map(|props| match props {
+            Props::List(ListProps(vec_props)) => {
+                let check_props = vec_props.iter().map(|HtmlProp { name, .. }| {
                     quote_spanned! { name.span()=> let _ = #vcomp_props.#name; }
                 });
 
-                let set_props = vec_props.0.iter().map(|HtmlProp { name, value }| {
+                let set_props = vec_props.iter().map(|HtmlProp { name, value }| {
                     quote_spanned! { value.span()=>
                         #vcomp_props.#name = _virtual_dom::vcomp::Transformer::transform(&mut #vcomp, #value);
                     }
@@ -70,8 +69,7 @@ impl ToTokens for HtmlComponent {
             Props::With(WithProps(props)) => {
                 quote_spanned! { props.span()=> #vcomp_props = #props; }
             }
-            Props::None => quote! {},
-        };
+        });
 
         // hack because span breaks with $crate inline
         let alias_virtual_dom = quote! { use $crate::virtual_dom as _virtual_dom; };
@@ -82,7 +80,7 @@ impl ToTokens for HtmlComponent {
 
         tokens.extend(quote! {{
             #lazy_init
-            #override_props
+            #(#override_props)*
             #vcomp.set_props(#vcomp_props);
             #vcomp
         }});
@@ -101,43 +99,43 @@ impl HtmlComponent {
         Some(cursor)
     }
 
-    fn type_str(cursor: Cursor) -> Option<(String, Cursor)> {
+    fn peek_type(cursor: Cursor) -> Option<()> {
         let mut cursor = cursor;
         let mut type_str: String = "".to_owned();
-        let mut parse_ident_ok = true;
-        let mut parse_colons_ok = true;
+        let mut colons_optional = true;
 
-        while parse_ident_ok {
-            if let Some((ident, c)) = cursor.ident() {
-                if parse_ident_ok {
-                    cursor = c;
-                    type_str += &ident.to_string();
-                    parse_colons_ok = true;
-                } else {
-                    break;
-                }
+        loop {
+            let mut found_colons = false;
+            let mut post_colons_cursor = cursor;
+            if let Some(c) = Self::double_colon(post_colons_cursor) {
+                found_colons = true;
+                post_colons_cursor = c;
+            } else if !colons_optional {
+                break;
             }
-            parse_ident_ok = false;
 
-            if let Some(c) = Self::double_colon(cursor) {
-                if parse_colons_ok {
-                    cursor = c;
+            if let Some((ident, c)) = post_colons_cursor.ident() {
+                cursor = c;
+                if found_colons {
                     type_str += "::";
-                    parse_ident_ok = true;
-                } else {
-                    break;
                 }
+                type_str += &ident.to_string();
+            } else {
+                break;
             }
-            parse_colons_ok = false;
+
+            // only first `::` is optional
+            colons_optional = false;
         }
 
-        Some((type_str, cursor))
+        (type_str.len() > 0).as_option()?;
+        (type_str.to_lowercase() != type_str).as_option()
     }
 }
 
 pub struct HtmlComponentInner {
     ty: Type,
-    props: Props,
+    props: Option<Props>,
 }
 
 impl Parse for HtmlComponentInner {
@@ -145,7 +143,16 @@ impl Parse for HtmlComponentInner {
         let ty = input.parse()?;
         // backwards compatibility
         let _ = input.parse::<Token![:]>();
-        let props = input.parse()?;
+
+        let props = if let Some(prop_type) = Props::peek(input.cursor()) {
+            match prop_type {
+                PropType::List => input.parse().map(Props::List).map(Some)?,
+                PropType::With => input.parse().map(Props::With).map(Some)?,
+            }
+        } else {
+            None
+        };
+
         Ok(HtmlComponentInner { ty, props })
     }
 }
@@ -157,7 +164,7 @@ struct HtmlComponentTag {
 
 impl ToTokens for HtmlComponentTag {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlComponentTag { lt, gt, .. } = self;
+        let HtmlComponentTag { lt, gt } = self;
         tokens.extend(quote! {#lt#gt});
     }
 }
@@ -170,32 +177,18 @@ enum PropType {
 enum Props {
     List(ListProps),
     With(WithProps),
-    None,
 }
 
 impl Peek<PropType> for Props {
     fn peek(cursor: Cursor) -> Option<PropType> {
         let (ident, _) = cursor.ident()?;
-        if ident.to_string() == "with" {
-            Some(PropType::With)
+        let prop_type = if ident.to_string() == "with" {
+            PropType::With
         } else {
-            Some(PropType::List)
-        }
-    }
-}
-
-impl Parse for Props {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
-        let props = if let Some(prop_type) = Props::peek(input.cursor()) {
-            match prop_type {
-                PropType::List => input.parse().map(Props::List)?,
-                PropType::With => input.parse().map(Props::With)?,
-            }
-        } else {
-            Props::None
+            PropType::List
         };
 
-        Ok(props)
+        Some(prop_type)
     }
 }
 
@@ -222,7 +215,7 @@ impl Parse for WithProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let with = input.parse::<Ident>()?;
         if with.to_string() != "with" {
-            return Err(input.error("expected to find with token"));
+            return Err(input.error("expected to find `with` token"));
         }
         let props = input.parse::<Ident>()?;
         let _ = input.parse::<Token![,]>();

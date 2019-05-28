@@ -1,7 +1,7 @@
 #![recursion_limit = "128"]
 
-use yew_shared::prelude::*;
 use yew_macro::test_html;
+use yew_shared::prelude::*;
 
 #[derive(Clone, Default, PartialEq)]
 pub struct ChildProperties {
@@ -51,6 +51,14 @@ test_html! { |t5|
 
 test_html! { |t6|
     <ChildComponent type=0 />
+}
+
+test_html! { |t7|
+    <ChildComponent:: />
+}
+
+test_html! { |t8|
+    <ChildComponent with props () />
 }
 
 test_html! { |t10|

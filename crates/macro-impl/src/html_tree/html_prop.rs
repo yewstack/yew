@@ -4,7 +4,7 @@ use proc_macro::TokenStream;
 use proc_macro2::TokenTree;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::{Attribute, Expr, Ident, Token};
+use syn::{Expr, Ident, Token};
 
 pub struct HtmlProp {
     pub name: Ident,
@@ -16,18 +16,6 @@ impl Peek<()> for HtmlProp {
         let (_, cursor) = cursor.ident()?;
         let (punct, _) = cursor.punct()?;
         (punct.as_char() == '=').as_option()
-    }
-}
-
-struct ExprBlock(syn::ExprBlock);
-
-impl Parse for ExprBlock {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
-        Ok(ExprBlock(syn::ExprBlock {
-            attrs: input.call(Attribute::parse_outer)?,
-            label: input.parse().ok(),
-            block: input.parse()?,
-        }))
     }
 }
 
