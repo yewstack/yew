@@ -92,6 +92,13 @@ extern crate yew_macro;
 #[macro_use]
 #[cfg(not(feature = "proc_macro"))]
 pub mod macros;
+
+#[cfg(feature = "proc_macro")]
+/// Alias module for the procedural macro.
+pub mod macros {
+    pub use yew_macro::html;
+}
+
 pub mod components;
 pub mod format;
 pub mod services;

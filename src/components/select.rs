@@ -16,8 +16,8 @@
 //! }
 
 use callback::Callback;
-use html;
 use html::{ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
+use macros::html;
 
 /// `Select` component.
 pub struct Select<T> {
