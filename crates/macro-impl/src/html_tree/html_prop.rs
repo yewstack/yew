@@ -29,6 +29,7 @@ impl Parse for HtmlProp {
 
         input.parse::<Token![=]>()?;
         let value = input.parse::<Expr>()?;
+        // backwards compat
         let _ = input.parse::<Token![,]>();
         Ok(HtmlProp { name, value })
     }

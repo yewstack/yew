@@ -8,7 +8,7 @@ error: only one root html element allowed
  --> $DIR/html-list-fail.rs:8:24
   |
 8 | test_html! { |t6| <></><></> }
-  |                        ^
+  |                        ^^^^^
 
 error: this open tag has no corresponding close tag
  --> $DIR/html-list-fail.rs:7:19
