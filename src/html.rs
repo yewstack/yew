@@ -229,6 +229,7 @@ where
             ComponentUpdate::Destroy => {
                 // TODO this.component.take() instead of destroyed
                 this.component.as_mut().unwrap().destroy();
+                this.last_frame.as_mut().unwrap().detach(this.element.as_node());
                 this.destroyed = true;
             }
         }
