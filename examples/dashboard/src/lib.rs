@@ -1,3 +1,5 @@
+#![recursion_limit = "256"]
+
 use failure::Error;
 use serde_derive::{Deserialize, Serialize};
 use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
