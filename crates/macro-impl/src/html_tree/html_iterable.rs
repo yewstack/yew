@@ -43,7 +43,7 @@ impl ToTokens for HtmlIterable {
         let add_children = quote_spanned! {expr.span()=>
             let __yew_nodes: ::std::boxed::Box<::std::iter::Iterator<Item = _>> = ::std::boxed::Box::new(#expr);
             for __yew_node in __yew_nodes.into_iter() {
-                #vlist.add_child(__yew_node);
+                #vlist.add_child(__yew_node.into());
             }
         };
 
