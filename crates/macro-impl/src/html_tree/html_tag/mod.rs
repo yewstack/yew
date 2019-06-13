@@ -110,7 +110,8 @@ impl ToTokens for HtmlTag {
         });
         let add_href = href.iter().map(|href| {
             quote_spanned! {href.span()=>
-                #vtag.add_attribute("href", &(__yew_html::Href::from(#href)));
+                let __yew_href: __yew_html::Href = (#href).into();
+                #vtag.add_attribute("href", &__yew_href);
             }
         });
         let set_checked = checked.iter().map(|checked| {
