@@ -25,7 +25,7 @@ pub struct StorageService {
 }
 
 impl StorageService {
-    /// Creates a new storage service instance with specified storate area.
+    /// Creates a new storage service instance with specified storage area.
     pub fn new(area: Area) -> Self {
         let storage = {
             match area {
