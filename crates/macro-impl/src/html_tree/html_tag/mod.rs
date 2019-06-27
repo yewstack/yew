@@ -110,51 +110,49 @@ impl ToTokens for HtmlTag {
         });
         let add_href = href.iter().map(|href| {
             quote_spanned! {href.span()=>
-                let __yew_href: __yew_html::Href = (#href).into();
+                let __yew_href: ::yew::html::Href = (#href).into();
                 #vtag.add_attribute("href", &__yew_href);
             }
         });
         let set_checked = checked.iter().map(|checked| {
-            quote! { __yew_vtag.set_checked(#checked); }
+            quote_spanned! {checked.span()=> #vtag.set_checked(#checked); }
         });
         let add_disabled = disabled.iter().map(|disabled| {
-            quote! {
+            quote_spanned! {disabled.span()=>
                 if #disabled {
-                    __yew_vtag.add_attribute("disabled", &"true");
+                    #vtag.add_attribute("disabled", &"true");
                 }
             }
         });
         let add_selected = selected.iter().map(|selected| {
-            quote! {
+            quote_spanned! {selected.span()=>
                 if #selected {
-                    __yew_vtag.add_attribute("selected", &"selected");
+                    #vtag.add_attribute("selected", &"selected");
                 }
             }
         });
         let set_classes = classes.iter().map(|classes_form| match classes_form {
-            ClassesForm::Tuple(classes) => quote! { #(__yew_vtag.add_class(&(#classes));)* },
+            ClassesForm::Tuple(classes) => quote! {
+                #vtag.add_classes(vec![#(&(#classes)),*]);
+            },
             ClassesForm::Single(classes) => quote! {
-                __yew_vtag.set_classes(&(#classes));
+                #vtag.set_classes(&(#classes));
             },
         });
 
         tokens.extend(quote! {{
-            use $crate::html as __yew_html;
-            let mut #vtag = $crate::virtual_dom::vtag::VTag::new(#name);
+            let mut #vtag = ::yew::virtual_dom::vtag::VTag::new(#name);
             #(#set_kind)*
             #(#set_value)*
             #(#add_href)*
-            {
-                let __yew_vtag = &mut #vtag;
-                #(#set_classes)*
-                #(__yew_vtag.add_attribute(#attr_names, &(#attr_values));)*
-                #(__yew_vtag.add_listener(::std::boxed::Box::new(#listeners));)*
-                #(#set_checked)*
-                #(#add_disabled)*
-                #(#add_selected)*
-                #(__yew_vtag.add_child(#children);)*
-            }
-            #vtag
+            #(#set_checked)*
+            #(#add_disabled)*
+            #(#add_selected)*
+            #(#set_classes)*
+            #vtag.add_attributes(vec![#((#attr_names.to_owned(), (#attr_values).to_string())),*]);
+            #vtag.add_listeners(vec![#(::std::boxed::Box::new(#listeners)),*]);
+            #vtag.add_children(vec![#(#children),*]);
+            ::yew::virtual_dom::VNode::VTag(#vtag)
         }});
     }
 }

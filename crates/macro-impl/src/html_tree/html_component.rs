@@ -53,12 +53,12 @@ impl ToTokens for HtmlComponent {
         let override_props = props.iter().map(|props| match props {
             Props::List(ListProps(vec_props)) => {
                 let check_props = vec_props.iter().map(|HtmlProp { name, .. }| {
-                    quote_spanned! { name.span()=> let _ = #vcomp_props.#name; }
+                    quote_spanned! { name.span()=> #vcomp_props.#name; }
                 });
 
                 let set_props = vec_props.iter().map(|HtmlProp { name, value }| {
                     quote_spanned! { value.span()=>
-                        #vcomp_props.#name = _virtual_dom::vcomp::Transformer::transform(&mut #vcomp, #value);
+                        #vcomp_props.#name = ::yew::virtual_dom::vcomp::Transformer::transform(&mut #vcomp, #value);
                     }
                 });
 
@@ -71,16 +71,11 @@ impl ToTokens for HtmlComponent {
             }
         });
 
-        let lazy_init = quote_spanned! { ty.span()=>
-            let (mut #vcomp_props, mut #vcomp) = _virtual_dom::VComp::lazy::<#ty>();
-        };
-
-        tokens.extend(quote! {{
-            use $crate::virtual_dom as _virtual_dom;
-            #lazy_init
+        tokens.extend(quote_spanned! { ty.span()=> {
+            let (mut #vcomp_props, mut #vcomp) = ::yew::virtual_dom::VComp::lazy::<#ty>();
             #(#override_props)*
             #vcomp.set_props(#vcomp_props);
-            #vcomp
+            ::yew::virtual_dom::VNode::VComp(#vcomp)
         }});
     }
 }

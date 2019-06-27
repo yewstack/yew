@@ -1,11 +1,11 @@
 use crate::Peek;
 use boolinator::Boolinator;
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
-use syn::{Expr, Ident, Token};
+use syn::{Expr, Token};
 
 pub struct HtmlIterable(Expr);
 
@@ -39,21 +39,14 @@ impl Parse for HtmlIterable {
 impl ToTokens for HtmlIterable {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let expr = &self.0;
-        let vlist = Ident::new("__yew_vlist", expr.span());
-        let add_children = quote_spanned! {expr.span()=>
-            let __yew_nodes: ::std::boxed::Box<::std::iter::Iterator<Item = _>> = ::std::boxed::Box::new(#expr);
+        let new_tokens = quote_spanned! {expr.span()=> {
+            let mut __yew_vlist = ::yew::virtual_dom::VList::new();
+            let __yew_nodes: &mut ::std::iter::Iterator<Item = _> = &mut(#expr);
             for __yew_node in __yew_nodes.into_iter() {
-                #vlist.add_child(__yew_node.into());
+                __yew_vlist.add_child(__yew_node.into());
             }
-        };
-
-        let new_tokens = quote! {
-            {
-                let mut #vlist = $crate::virtual_dom::VList::new();
-                #add_children
-                $crate::virtual_dom::VNode::from(#vlist)
-            }
-        };
+            ::yew::virtual_dom::VNode::from(__yew_vlist)
+        }};
 
         tokens.extend(new_tokens);
     }

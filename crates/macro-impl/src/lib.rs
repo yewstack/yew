@@ -17,5 +17,5 @@ trait Peek<T> {
 #[proc_macro_hack]
 pub fn html(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRoot);
-    TokenStream::from(quote! { #root })
+    TokenStream::from(quote! {#root})
 }

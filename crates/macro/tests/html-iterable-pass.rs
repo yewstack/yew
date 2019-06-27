@@ -1,5 +1,5 @@
 use std::iter;
-use yew_macro::{test_html, test_html_block};
+use yew_macro::{html, test_html, test_html_block};
 
 test_html! { |t1| for iter::empty::<Html<Self>>() }
 test_html! { |t2| for Vec::<Html<Self>>::new().into_iter() }

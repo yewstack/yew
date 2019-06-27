@@ -1,6 +1,6 @@
 #![recursion_limit = "256"]
 
-use yew_macro::test_html;
+use yew_macro::{html, test_html};
 
 test_html! { |t1|
     <div>
