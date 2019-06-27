@@ -10,6 +10,7 @@ path = "tests/cases.rs"
 
 [dev-dependencies]
 trybuild = "1.0"
+yew = { path = "../.." }
 
 [dependencies]
 proc-macro-hack = "0.5"

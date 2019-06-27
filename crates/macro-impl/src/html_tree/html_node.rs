@@ -39,13 +39,7 @@ impl Peek<()> for HtmlNode {
 
 impl ToTokens for HtmlNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let node = &self.0;
-        let node_tokens = quote! {{
-            use $crate::virtual_dom as _virtual_dom;
-            #node
-        }};
-
-        tokens.extend(node_tokens);
+        self.0.to_tokens(tokens);
     }
 }
 
@@ -53,10 +47,10 @@ impl ToTokens for Node {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let node_token = match &self {
             Node::Literal(lit) => quote! {
-                _virtual_dom::VNode::from(#lit)
+                ::yew::virtual_dom::VNode::from(#lit)
             },
             Node::Raw(stream) => quote_spanned! {stream.span()=>
-                _virtual_dom::VNode::from({#stream})
+                ::yew::virtual_dom::VNode::from({#stream})
             },
         };
 

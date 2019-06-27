@@ -11,7 +11,7 @@ error[E0277]: `()` is not an iterator
   |                       ^^ `()` is not an iterator
   |
   = help: the trait `std::iter::Iterator` is not implemented for `()`
-  = note: required for the cast to the object type `dyn std::iter::Iterator<Item=_>`
+  = note: required for the cast to the object type `dyn std::iter::Iterator<Item = _>`
 
 error[E0277]: `()` is not an iterator
  --> $DIR/html-iterable-fail.rs:5:23
@@ -20,34 +20,43 @@ error[E0277]: `()` is not an iterator
   |                       ^^^^ `()` is not an iterator
   |
   = help: the trait `std::iter::Iterator` is not implemented for `()`
-  = note: required for the cast to the object type `dyn std::iter::Iterator<Item=_>`
+  = note: required for the cast to the object type `dyn std::iter::Iterator<Item = _>`
 
-error[E0308]: mismatched types
+error[E0277]: `()` doesn't implement `std::fmt::Display`
  --> $DIR/html-iterable-fail.rs:6:23
   |
 6 | test_html! { |t4| for Vec::<()>::new().into_iter() }
-  |                       ^^^ expected enum `yew_shared::virtual_dom::vnode::VNode`, found ()
+  |                       ^^^ `()` cannot be formatted with the default formatter
   |
-  = note: expected type `yew_shared::virtual_dom::vnode::VNode<_>`
-             found type `()`
+  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew_shared::virtual_dom::vnode::VNode<_>`
+  = note: required because of the requirements on the impl of `std::convert::Into<yew_shared::virtual_dom::vnode::VNode<_>>` for `()`
 
-error[E0308]: mismatched types
+error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-iterable-fail.rs:10:17
    |
 10 |     html! { for empty }
-   |                 ^^^^^ expected enum `yew_shared::virtual_dom::vnode::VNode`, found ()
+   |                 ^^^^^ `()` cannot be formatted with the default formatter
    |
-   = note: expected type `yew_shared::virtual_dom::vnode::VNode<_>`
-              found type `()`
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew_shared::virtual_dom::vnode::VNode<_>`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew_shared::virtual_dom::vnode::VNode<_>>` for `()`
 
-error[E0308]: mismatched types
+error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-iterable-fail.rs:15:17
    |
 15 |     html! { for empty.iter() }
-   |                 ^^^^^ expected enum `yew_shared::virtual_dom::vnode::VNode`, found &()
+   |                 ^^^^^ `()` cannot be formatted with the default formatter
    |
-   = note: expected type `yew_shared::virtual_dom::vnode::VNode<_>`
-              found type `&()`
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::fmt::Display` for `&()`
+   = note: required because of the requirements on the impl of `std::string::ToString` for `&()`
+   = note: required because of the requirements on the impl of `std::convert::From<&()>` for `yew_shared::virtual_dom::vnode::VNode<_>`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew_shared::virtual_dom::vnode::VNode<_>>` for `&()`
 
-Some errors occurred: E0277, E0308.
-For more information about an error, try `rustc --explain E0277`.
+For more information about this error, try `rustc --explain E0277`.

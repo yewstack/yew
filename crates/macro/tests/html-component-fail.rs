@@ -1,6 +1,6 @@
 #![recursion_limit = "128"]
 
-use yew_macro::test_html;
+use yew_macro::{html, test_html};
 use yew_shared::prelude::*;
 
 #[derive(Clone, Default, PartialEq)]

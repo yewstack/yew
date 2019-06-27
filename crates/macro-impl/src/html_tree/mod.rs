@@ -16,7 +16,7 @@ use html_prop::HtmlProp;
 use html_prop::HtmlPropSuffix;
 use html_tag::HtmlTag;
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::ToTokens;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 
@@ -64,7 +64,7 @@ impl Parse for HtmlRoot {
 impl ToTokens for HtmlRoot {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let HtmlRoot(html_tree) = self;
-        tokens.extend(quote! { #html_tree });
+        html_tree.to_tokens(tokens);
     }
 }
 
@@ -103,26 +103,17 @@ impl Peek<HtmlType> for HtmlTree {
 
 impl ToTokens for HtmlTree {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let token_stream = match self {
-            HtmlTree::Empty => quote! {
-                $crate::virtual_dom::VNode::VList(
-                    $crate::virtual_dom::vlist::VList::new()
-                )
-            },
-            HtmlTree::Component(comp) => quote! {
-                $crate::virtual_dom::VNode::VComp(#comp)
-            },
-            HtmlTree::Tag(tag) => quote! {
-                $crate::virtual_dom::VNode::VTag(#tag)
-            },
-            HtmlTree::List(list) => quote! {
-                $crate::virtual_dom::VNode::VList(#list)
-            },
-            HtmlTree::Node(node) => quote! {#node},
-            HtmlTree::Iterable(iterable) => quote! {#iterable},
-            HtmlTree::Block(block) => quote! {#block},
+        let empty_html_el = HtmlList(Vec::new());
+        let html_tree_el: &dyn ToTokens = match self {
+            HtmlTree::Empty => &empty_html_el,
+            HtmlTree::Component(comp) => comp,
+            HtmlTree::Tag(tag) => tag,
+            HtmlTree::List(list) => list,
+            HtmlTree::Node(node) => node,
+            HtmlTree::Iterable(iterable) => iterable,
+            HtmlTree::Block(block) => block,
         };
 
-        tokens.extend(token_stream);
+        html_tree_el.to_tokens(tokens);
     }
 }

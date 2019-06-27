@@ -63,6 +63,7 @@
     elided_lifetimes_in_paths
 )]
 #![recursion_limit = "512"]
+extern crate self as yew;
 
 #[macro_use]
 extern crate failure;

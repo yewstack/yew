@@ -1,4 +1,4 @@
-use yew_macro::test_html;
+use yew_macro::{html, test_html};
 
 test_html! { |t0| }
 test_html! { |t1| <></> }

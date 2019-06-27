@@ -151,8 +151,8 @@ impl TagAttributes {
                     ident: Ident::new(&event_name, name.span()),
                     arguments: syn::PathArguments::None,
                 };
-                let var_type = quote! { $crate::events::#segment };
-                let wrapper_type = quote! { $crate::html::#name::Wrapper };
+                let var_type = quote! { ::yew::events::#segment };
+                let wrapper_type = quote! { ::yew::html::#name::Wrapper };
                 let listener_stream = quote_spanned! {name.span()=> {
                     let #handler = move | #var: #var_type | #body;
                     let #listener = #wrapper_type::from(#handler);

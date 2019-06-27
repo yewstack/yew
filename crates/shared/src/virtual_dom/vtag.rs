@@ -1,15 +1,15 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
+use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
+use html::{Component, Scope};
 use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::collections::HashSet;
 use std::fmt;
-use stdweb::web::html_element::TextAreaElement;
 use stdweb::unstable::TryFrom;
 use stdweb::web::html_element::InputElement;
+use stdweb::web::html_element::TextAreaElement;
 use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node};
-use html::{Component, Scope};
-use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
@@ -74,13 +74,32 @@ impl<COMP: Component> VTag<COMP> {
         self.childs.push(child);
     }
 
-    /// Adds asingle class to this virtual node. Actually it will set by
+    /// Add multiple `VNode` children.
+    pub fn add_children(&mut self, children: Vec<VNode<COMP>>) {
+        for child in children {
+            self.childs.push(child);
+        }
+    }
+
+    /// Adds a single class to this virtual node. Actually it will set by
     /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
     /// call later.
     pub fn add_class(&mut self, class: &str) {
         let class = class.trim();
         if !class.is_empty() {
             self.classes.insert(class.into());
+        }
+    }
+
+    /// Adds multiple classes to this virtual node. Actually it will set by
+    /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
+    /// call later.
+    pub fn add_classes(&mut self, classes: Vec<&str>) {
+        for class in classes {
+            let class = class.trim();
+            if !class.is_empty() {
+                self.classes.insert(class.into());
+            }
         }
     }
 
@@ -118,11 +137,29 @@ impl<COMP: Component> VTag<COMP> {
         self.attributes.insert(name.to_owned(), value.to_string());
     }
 
+    /// Adds attributes to a virtual node. Not every attribute works when
+    /// it set as attribute. We use workarounds for:
+    /// `class`, `type/kind`, `value` and `checked`.
+    pub fn add_attributes(&mut self, attrs: Vec<(String, String)>) {
+        for (name, value) in attrs {
+            self.attributes.insert(name, value);
+        }
+    }
+
     /// Adds new listener to the node.
     /// It's boxed because we want to keep it in a single list.
     /// Lates `Listener::attach` called to attach actual listener to a DOM node.
     pub fn add_listener(&mut self, listener: Box<dyn Listener<COMP>>) {
         self.listeners.push(listener);
+    }
+
+    /// Adds new listeners to the node.
+    /// They are boxed because we want to keep them in a single list.
+    /// Lates `Listener::attach` called to attach actual listener to a DOM node.
+    pub fn add_listeners(&mut self, listeners: Vec<Box<dyn Listener<COMP>>>) {
+        for listener in listeners {
+            self.listeners.push(listener);
+        }
     }
 
     /// Compute differences between the ancestor and determine patch changes.
@@ -137,7 +174,8 @@ impl<COMP: Component> VTag<COMP> {
         let mut changes = Vec::new();
         if let &mut Some(ref ancestor) = ancestor {
             // Only change what is necessary.
-            let to_add = self.classes
+            let to_add = self
+                .classes
                 .difference(&ancestor.classes)
                 .map(|class| Patch::Add(class.to_owned(), ()));
             changes.extend(to_add);
@@ -148,7 +186,8 @@ impl<COMP: Component> VTag<COMP> {
             changes.extend(to_remove);
         } else {
             // Add everything
-            let to_add = self.classes
+            let to_add = self
+                .classes
                 .iter()
                 .map(|class| Patch::Add(class.to_owned(), ()));
             changes.extend(to_add);
@@ -172,7 +211,8 @@ impl<COMP: Component> VTag<COMP> {
             });
             changes.extend(to_add);
             for key in self_keys.intersection(&ancestor_keys) {
-                let self_value = self.attributes
+                let self_value = self
+                    .attributes
                     .get(*key)
                     .expect("attribute of self side lost");
                 let ancestor_value = ancestor
@@ -236,11 +276,7 @@ impl<COMP: Component> VTag<COMP> {
         }
     }
 
-    fn apply_diffs(
-        &mut self,
-        element: &Element,
-        ancestor: &mut Option<Self>,
-    ) {
+    fn apply_diffs(&mut self, element: &Element, ancestor: &mut Option<Self>) {
         // Update parameters
         let changes = self.diff_classes(ancestor);
         for change in changes {
@@ -326,7 +362,9 @@ impl<COMP: Component> VDiff for VTag<COMP> {
 
     /// Remove VTag from parent.
     fn detach(&mut self, parent: &Node) -> Option<Node> {
-        let node = self.reference.take()
+        let node = self
+            .reference
+            .take()
             .expect("tried to remove not rendered VTag from DOM");
         let sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
@@ -344,7 +382,10 @@ impl<COMP: Component> VDiff for VTag<COMP> {
         ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,
     ) -> Option<Node> {
-        assert!(self.reference.is_none(), "reference is ignored so must not be set");
+        assert!(
+            self.reference.is_none(),
+            "reference is ignored so must not be set"
+        );
         let (reform, mut ancestor) = {
             match ancestor {
                 Some(VNode::VTag(mut vtag)) => {
@@ -363,9 +404,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                     let node = vnode.detach(parent);
                     (Reform::Before(node), None)
                 }
-                None => {
-                    (Reform::Before(None), None)
-                },
+                None => (Reform::Before(None), None),
             }
         };
 
@@ -441,8 +480,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             for pair in self_childs.into_iter().zip(ancestor_childs) {
                 match pair {
                     (Some(left), right) => {
-                        precursor =
-                            left.apply(element.as_node(), precursor.as_ref(), right, &env);
+                        precursor = left.apply(element.as_node(), precursor.as_ref(), right, &env);
                     }
                     (None, Some(mut right)) => {
                         right.detach(element.as_node());

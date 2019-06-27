@@ -1,4 +1,4 @@
-use yew_macro::{test_html, test_html_block};
+use yew_macro::{html, test_html, test_html_block};
 
 test_html! { |t1| <>{ "Hi" }</> }
 test_html! { |t2| <>{ format!("Hello") }</> }
