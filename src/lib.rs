@@ -56,43 +56,55 @@
 //! ```
 //!
 
-#![deny(missing_docs, bare_trait_objects, anonymous_parameters, elided_lifetimes_in_paths)]
+#![deny(
+    missing_docs,
+    bare_trait_objects,
+    anonymous_parameters,
+    elided_lifetimes_in_paths
+)]
 #![recursion_limit = "512"]
+extern crate self as yew;
 
 #[macro_use]
 extern crate failure;
-#[macro_use]
-extern crate log;
 extern crate http;
+extern crate log;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
-extern crate bincode;
 extern crate anymap;
+extern crate bincode;
+extern crate serde_json;
 extern crate slab;
+extern crate yew_shared;
 #[macro_use]
 extern crate stdweb;
-#[cfg(feature = "toml")]
-extern crate toml;
-#[cfg(feature = "yaml")]
-extern crate serde_yaml;
 #[cfg(feature = "msgpack")]
 extern crate rmp_serde;
 #[cfg(feature = "cbor")]
 extern crate serde_cbor;
+#[cfg(feature = "yaml")]
+extern crate serde_yaml;
+#[cfg(feature = "toml")]
+extern crate toml;
+#[cfg(feature = "proc_macro")]
+extern crate yew_macro;
 
 #[macro_use]
+#[cfg(not(feature = "proc_macro"))]
 pub mod macros;
-pub mod format;
-pub mod html;
-pub mod app;
-pub mod services;
-pub mod virtual_dom;
-pub mod callback;
-pub mod scheduler;
-pub mod agent;
+
+#[cfg(feature = "proc_macro")]
+/// Alias module for the procedural macro.
+pub mod macros {
+    pub use yew_macro::html;
+}
+
 pub mod components;
+pub mod format;
+pub mod services;
+
+pub use yew_shared::*;
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
@@ -114,56 +126,6 @@ where
     run_loop();
 }
 
-/// The module that contains all events available in the framework.
-pub mod events {
-    pub use html::{
-        ChangeData,
-        InputData,
-    };
-
-    pub use stdweb::web::event::{
-        BlurEvent,
-        ClickEvent,
-        ContextMenuEvent,
-        DoubleClickEvent,
-        DragDropEvent,
-        DragEndEvent,
-        DragEnterEvent,
-        DragEvent,
-        DragExitEvent,
-        DragLeaveEvent,
-        DragOverEvent,
-        DragStartEvent,
-        FocusEvent,
-        GotPointerCaptureEvent,
-        IKeyboardEvent,
-        IMouseEvent,
-        IPointerEvent,
-        KeyDownEvent,
-        KeyPressEvent,
-        KeyUpEvent,
-        LostPointerCaptureEvent,
-        MouseDownEvent,
-        MouseMoveEvent,
-        MouseOutEvent,
-        MouseEnterEvent,
-        MouseLeaveEvent,
-        MouseOverEvent,
-        MouseUpEvent,
-        MouseWheelEvent,
-        PointerCancelEvent,
-        PointerDownEvent,
-        PointerEnterEvent,
-        PointerLeaveEvent,
-        PointerMoveEvent,
-        PointerOutEvent,
-        PointerOverEvent,
-        PointerUpEvent,
-        ScrollEvent,
-        SubmitEvent
-    };
-}
-
 /// The Yew Prelude
 ///
 /// The purpose of this module is to alleviate imports of many common types:
@@ -173,43 +135,10 @@ pub mod events {
 /// use yew::prelude::*;
 /// ```
 pub mod prelude {
-    pub use html::{
-        Component,
-        ComponentLink,
-        Href,
-        Html,
-        Renderable,
-        ShouldRender,
-    };
+    pub use yew_shared::prelude::*;
 
-    pub use app::App;
-
-    pub use callback::Callback;
-
-    pub use agent::{
-        Bridge,
-        Bridged,
-        Threaded,
-    };
-
-    pub use events::*;
-
-    /// Prelude module for creating worker.
-    pub mod worker {
-        pub use agent::{
-            Agent,
-            AgentLink,
-            Bridge,
-            Bridged,
-            Context,
-            Global,
-            HandlerId,
-            Job,
-            Private,
-            Public,
-            Transferable,
-        };
-    }
+    #[cfg(feature = "proc_macro")]
+    pub use yew_macro::html;
 }
 
 pub use self::prelude::*;

@@ -1,0 +1,41 @@
+error: expected valid html element
+ --> $DIR/html-list-fail.rs:9:21
+  |
+9 | test_html! { |t7| <>invalid</> }
+  |                     ^^^^^^^
+
+error: only one root html element allowed
+ --> $DIR/html-list-fail.rs:8:24
+  |
+8 | test_html! { |t6| <></><></> }
+  |                        ^^^^^
+
+error: this open tag has no corresponding close tag
+ --> $DIR/html-list-fail.rs:7:19
+  |
+7 | test_html! { |t5| <><></> }
+  |                   ^^
+
+error: this close tag has no corresponding open tag
+ --> $DIR/html-list-fail.rs:6:19
+  |
+6 | test_html! { |t4| </></> }
+  |                   ^^^
+
+error: this open tag has no corresponding close tag
+ --> $DIR/html-list-fail.rs:5:19
+  |
+5 | test_html! { |t3| <><> }
+  |                   ^^
+
+error: this close tag has no corresponding open tag
+ --> $DIR/html-list-fail.rs:4:19
+  |
+4 | test_html! { |t2| </> }
+  |                   ^^^
+
+error: this open tag has no corresponding close tag
+ --> $DIR/html-list-fail.rs:3:19
+  |
+3 | test_html! { |t1| <> }
+  |                   ^^

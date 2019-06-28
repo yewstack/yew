@@ -1,3 +1,5 @@
+#![recursion_limit = "128"]
+
 /// This example demonstrates low-level usage of scopes.
 
 use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};

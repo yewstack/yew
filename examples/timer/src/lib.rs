@@ -1,3 +1,5 @@
+#![recursion_limit="128"]
+
 use std::time::Duration;
 use yew::{html, Callback, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::services::{ConsoleService, IntervalService, TimeoutService, Task};
