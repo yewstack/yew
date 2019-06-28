@@ -1,0 +1,119 @@
+error: unexpected token
+  --> $DIR/html-component-fail.rs:61:32
+   |
+61 |     <ChildComponent with props () />
+   |                                ^^
+
+error: unexpected end of input, expected identifier
+  --> $DIR/html-component-fail.rs:57:23
+   |
+57 |     <ChildComponent:: />
+   |                       ^
+
+error: expected identifier
+  --> $DIR/html-component-fail.rs:53:21
+   |
+53 |     <ChildComponent type=0 />
+   |                     ^^^^
+
+error: unexpected end of input, expected expression
+  --> $DIR/html-component-fail.rs:49:29
+   |
+49 |     <ChildComponent string= />
+   |                             ^
+
+error: expected component tag be of form `< .. />`
+  --> $DIR/html-component-fail.rs:45:5
+   |
+45 |     <ChildComponent with props>
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unexpected token
+  --> $DIR/html-component-fail.rs:41:21
+   |
+41 |     <ChildComponent props />
+   |                     ^^^^^
+
+error: unexpected end of input, expected identifier
+  --> $DIR/html-component-fail.rs:37:26
+   |
+37 |     <ChildComponent with />
+   |                          ^
+
+error: expected component tag be of form `< .. />`
+  --> $DIR/html-component-fail.rs:33:5
+   |
+33 |     <ChildComponent>
+   |     ^^^^^^^^^^^^^^^^
+
+error[E0425]: cannot find value `blah` in this scope
+  --> $DIR/html-component-fail.rs:69:26
+   |
+69 |     <ChildComponent with blah />
+   |                          ^^^^ not found in this scope
+
+error[E0277]: the trait bound `std::string::String: yew_shared::html::Component` is not satisfied
+  --> $DIR/html-component-fail.rs:65:6
+   |
+65 |     <String />
+   |      ^^^^^^ the trait `yew_shared::html::Component` is not implemented for `std::string::String`
+   |
+   = note: required by `yew_shared::virtual_dom::vcomp::VComp::<COMP>::lazy`
+
+error[E0277]: the trait bound `std::string::String: yew_shared::html::Renderable<std::string::String>` is not satisfied
+  --> $DIR/html-component-fail.rs:65:6
+   |
+65 |     <String />
+   |      ^^^^^^ the trait `yew_shared::html::Renderable<std::string::String>` is not implemented for `std::string::String`
+   |
+   = note: required by `yew_shared::virtual_dom::vcomp::VComp::<COMP>::lazy`
+
+error[E0609]: no field `unknown` on type `ChildProperties`
+  --> $DIR/html-component-fail.rs:73:21
+   |
+73 |     <ChildComponent unknown="unknown" />
+   |                     ^^^^^^^ unknown field
+   |
+   = note: available fields are: `string`, `int`
+
+error[E0308]: mismatched types
+  --> $DIR/html-component-fail.rs:77:28
+   |
+77 |     <ChildComponent string={} />
+   |                            ^^ expected struct `std::string::String`, found ()
+   |
+   = note: expected type `std::string::String`
+              found type `()`
+
+error[E0308]: mismatched types
+  --> $DIR/html-component-fail.rs:81:28
+   |
+81 |     <ChildComponent string=3 />
+   |                            ^
+   |                            |
+   |                            expected struct `std::string::String`, found integer
+   |                            help: try using a conversion method: `3.to_string()`
+   |
+   = note: expected type `std::string::String`
+              found type `{integer}`
+
+error[E0308]: mismatched types
+  --> $DIR/html-component-fail.rs:85:28
+   |
+85 |     <ChildComponent string={3} />
+   |                            ^^^
+   |                            |
+   |                            expected struct `std::string::String`, found integer
+   |                            help: try using a conversion method: `{3}.to_string()`
+   |
+   = note: expected type `std::string::String`
+              found type `{integer}`
+
+error[E0308]: mismatched types
+  --> $DIR/html-component-fail.rs:89:25
+   |
+89 |     <ChildComponent int=0u32 />
+   |                         ^^^^ expected i32, found u32
+
+Some errors occurred: E0277, E0308, E0425, E0609.
+For more information about an error, try `rustc --explain E0277`.

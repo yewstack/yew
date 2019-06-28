@@ -1,0 +1,37 @@
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/html-block-fail.rs:11:16
+   |
+11 |         <div>{ not_tree() }</div>
+   |                ^^^^^^^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew_shared::virtual_dom::vnode::VNode<_>`
+   = note: required by `std::convert::From::from`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/html-block-fail.rs:19:17
+   |
+19 |         <>{ for (0..3).map(|_| not_tree()) }</>
+   |                 ^^^^^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew_shared::virtual_dom::vnode::VNode<_>`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew_shared::virtual_dom::vnode::VNode<_>>` for `()`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+ --> $DIR/html-block-fail.rs:4:7
+  |
+4 |     { () }
+  |       ^^ `()` cannot be formatted with the default formatter
+  |
+  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew_shared::virtual_dom::vnode::VNode<_>`
+  = note: required by `std::convert::From::from`
+
+For more information about this error, try `rustc --explain E0277`.

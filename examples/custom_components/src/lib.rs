@@ -1,3 +1,5 @@
+#![recursion_limit = "128"]
+
 mod counter;
 mod button;
 mod barrier;

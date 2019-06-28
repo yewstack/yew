@@ -26,6 +26,8 @@ toml = { version = "0.4", optional = true }
 serde_yaml = { version = "0.8.3", optional = true }
 rmp-serde = { version = "0.13.7", optional = true }
 serde_cbor = { version = "0.9.0", optional = true }
+yew-macro = { path = "crates/macro", optional = true }
+yew-shared = { path = "crates/shared" }
 
 [dev-dependencies]
 serde_derive = "1"
@@ -36,3 +38,32 @@ web_test = []
 yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
+proc_macro = ["yew-macro"]
+
+[workspace]
+members = [
+  "crates/macro",
+  "crates/macro-impl",
+  "crates/shared",
+  "examples/counter",
+  "examples/crm",
+  "examples/custom_components",
+  "examples/dashboard",
+  "examples/file_upload",
+  "examples/fragments",
+  "examples/game_of_life",
+  "examples/inner_html",
+  "examples/js_callback",
+  "examples/large_table",
+  "examples/minimal",
+  "examples/mount_point",
+  "examples/multi_thread",
+  "examples/npm_and_rest",
+  "examples/routing",
+  "examples/server",
+  "examples/showcase",
+  "examples/textarea",
+  "examples/timer",
+  "examples/todomvc",
+  "examples/two_apps",
+]
