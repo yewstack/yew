@@ -119,7 +119,7 @@ impl HtmlComponent {
             colons_optional = false;
         }
 
-        (type_str.len() > 0).as_option()?;
+        (!type_str.is_empty()).as_option()?;
         (type_str.to_lowercase() != type_str).as_option()
     }
 }
