@@ -11,7 +11,7 @@ pub struct HtmlList(pub Vec<HtmlTree>);
 impl Peek<()> for HtmlList {
     fn peek(cursor: Cursor) -> Option<()> {
         HtmlListOpen::peek(cursor)
-            .or(HtmlListClose::peek(cursor))
+            .or_else(|| HtmlListClose::peek(cursor))
             .map(|_| ())
     }
 }

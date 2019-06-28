@@ -110,7 +110,7 @@ impl TagAttributes {
     fn map_classes(class_expr: Expr) -> ClassesForm {
         match class_expr {
             Expr::Tuple(ExprTuple { elems, .. }) => ClassesForm::Tuple(elems.into_iter().collect()),
-            expr @ _ => ClassesForm::Single(expr),
+            expr => ClassesForm::Single(expr),
         }
     }
 

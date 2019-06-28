@@ -23,7 +23,7 @@ pub struct HtmlTag {
 impl Peek<()> for HtmlTag {
     fn peek(cursor: Cursor) -> Option<()> {
         HtmlTagOpen::peek(cursor)
-            .or(HtmlTagClose::peek(cursor))
+            .or_else(|| HtmlTagClose::peek(cursor))
             .map(|_| ())
     }
 }

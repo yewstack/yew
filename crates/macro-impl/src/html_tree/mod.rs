@@ -70,8 +70,8 @@ impl ToTokens for HtmlRoot {
 
 impl Parse for HtmlTree {
     fn parse(input: ParseStream) -> Result<Self> {
-        let html_type =
-            HtmlTree::peek(input.cursor()).ok_or(input.error("expected valid html element"))?;
+        let html_type = HtmlTree::peek(input.cursor())
+            .ok_or_else(|| input.error("expected valid html element"))?;
         let html_tree = match html_type {
             HtmlType::Empty => HtmlTree::Empty,
             HtmlType::Component => HtmlTree::Component(input.parse()?),

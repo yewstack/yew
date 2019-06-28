@@ -50,8 +50,8 @@ impl Parse for HtmlPropSuffix {
 
         loop {
             let next = input.parse()?;
-            match &next {
-                TokenTree::Punct(punct) => match punct.as_char() {
+            if let TokenTree::Punct(punct) = &next {
+                match punct.as_char() {
                     '>' => {
                         angle_count -= 1;
                         if angle_count == 0 {
@@ -72,13 +72,12 @@ impl Parse for HtmlPropSuffix {
                         }
                     }
                     _ => {}
-                },
-                _ => {}
+                };
             }
             trees.push(next);
         }
 
-        let gt: Token![>] = gt.ok_or(input.error("missing tag close"))?;
+        let gt: Token![>] = gt.ok_or_else(|| input.error("missing tag close"))?;
         let stream: proc_macro2::TokenStream = trees.into_iter().collect();
         let stream = TokenStream::from(stream);
 
