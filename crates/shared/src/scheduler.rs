@@ -1,8 +1,8 @@
 //! This module contains a scheduler.
 
+use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::rc::Rc;
-use std::cell::RefCell;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 pub(crate) type Shared<T> = Rc<RefCell<T>>;

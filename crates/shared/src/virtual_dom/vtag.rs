@@ -1,7 +1,8 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
 use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
-use html::{Component, Scope};
+use crate::html::{Component, Scope};
+use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::collections::HashSet;
@@ -10,6 +11,7 @@ use stdweb::unstable::TryFrom;
 use stdweb::web::html_element::InputElement;
 use stdweb::web::html_element::TextAreaElement;
 use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node};
+use stdweb::{_js_impl, js};
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
