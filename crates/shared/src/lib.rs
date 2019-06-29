@@ -1,14 +1,3 @@
-#[macro_use]
-extern crate log;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate anymap;
-extern crate bincode;
-extern crate slab;
-#[macro_use]
-extern crate stdweb;
-
 pub mod agent;
 pub mod app;
 pub mod callback;
@@ -18,7 +7,7 @@ pub mod virtual_dom;
 
 /// The module that contains all events available in the framework.
 pub mod events {
-    pub use html::{ChangeData, InputData};
+    pub use crate::html::{ChangeData, InputData};
 
     pub use stdweb::web::event::{
         BlurEvent, ClickEvent, ContextMenuEvent, DoubleClickEvent, DragDropEvent, DragEndEvent,
@@ -33,19 +22,15 @@ pub mod events {
 }
 
 pub mod prelude {
-    pub use html::{Component, ComponentLink, Href, Html, Renderable, ShouldRender};
-
-    pub use app::App;
-
-    pub use callback::Callback;
-
-    pub use agent::{Bridge, Bridged, Threaded};
-
-    pub use events::*;
+    pub use crate::agent::{Bridge, Bridged, Threaded};
+    pub use crate::app::App;
+    pub use crate::callback::Callback;
+    pub use crate::events::*;
+    pub use crate::html::{Component, ComponentLink, Href, Html, Renderable, ShouldRender};
 
     /// Prelude module for creating worker.
     pub mod worker {
-        pub use agent::{
+        pub use crate::agent::{
             Agent, AgentLink, Bridge, Bridged, Context, Global, HandlerId, Job, Private, Public,
             Transferable,
         };

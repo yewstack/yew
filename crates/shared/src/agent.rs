@@ -1,15 +1,17 @@
 //! This module contains types to support multi-threading in Yew.
 
-use std::rc::Rc;
+use crate::callback::Callback;
+use crate::scheduler::{scheduler, Runnable, Shared};
+use anymap::{AnyMap, Entry};
+use bincode;
+use log::warn;
+use serde::{Deserialize, Serialize};
+use slab::Slab;
 use std::cell::RefCell;
 use std::marker::PhantomData;
-use serde::{Serialize, Deserialize};
-use bincode;
-use anymap::{AnyMap, Entry};
-use slab::Slab;
+use std::rc::Rc;
 use stdweb::Value;
-use scheduler::{Runnable, Shared, scheduler};
-use callback::Callback;
+use stdweb::{_js_impl, js};
 
 #[derive(Serialize, Deserialize)]
 enum ToWorker<T> {
@@ -19,11 +21,7 @@ enum ToWorker<T> {
     Destroy,
 }
 
-impl<T> Transferable for ToWorker<T>
-where
-    T: Serialize + for <'de> Deserialize<'de>,
-{
-}
+impl<T> Transferable for ToWorker<T> where T: Serialize + for<'de> Deserialize<'de> {}
 
 #[derive(Serialize, Deserialize)]
 enum FromWorker<T> {
@@ -32,17 +30,12 @@ enum FromWorker<T> {
     ProcessOutput(HandlerId, T),
 }
 
-impl<T> Transferable for FromWorker<T>
-where
-    T: Serialize + for <'de> Deserialize<'de>,
-{
-}
-
+impl<T> Transferable for FromWorker<T> where T: Serialize + for<'de> Deserialize<'de> {}
 
 /// Represents a message which you could send to an agent.
 pub trait Transferable
 where
-    Self: Serialize + for <'de> Deserialize<'de>,
+    Self: Serialize + for<'de> Deserialize<'de>,
 {
 }
 
@@ -53,13 +46,11 @@ trait Packed {
 
 impl<T: Transferable> Packed for T {
     fn pack(&self) -> Vec<u8> {
-        bincode::serialize(&self)
-            .expect("can't serialize a transferable object")
+        bincode::serialize(&self).expect("can't serialize a transferable object")
     }
 
     fn unpack(data: &Vec<u8>) -> Self {
-        bincode::deserialize(&data)
-            .expect("can't deserialize a transferable object")
+        bincode::deserialize(&data).expect("can't deserialize a transferable object")
     }
 }
 
@@ -94,11 +85,11 @@ pub trait Threaded {
 
 impl<T> Threaded for T
 where
-    T: Agent<Reach=Public>,
+    T: Agent<Reach = Public>,
 {
     fn register() {
         let scope = AgentScope::<T>::new();
-        let responder = WorkerResponder { };
+        let responder = WorkerResponder {};
         let link = AgentLink::connect(&scope, responder);
         let upd = AgentUpdate::Create(link);
         scope.send(upd);
@@ -108,15 +99,15 @@ where
                 ToWorker::Connected(id) => {
                     let upd = AgentUpdate::Connected(id);
                     scope.send(upd);
-                },
+                }
                 ToWorker::ProcessInput(id, value) => {
                     let upd = AgentUpdate::Input(value, id);
                     scope.send(upd);
-                },
+                }
                 ToWorker::Disconnected(id) => {
                     let upd = AgentUpdate::Disconnected(id);
                     scope.send(upd);
-                },
+                }
                 ToWorker::Destroy => {
                     let upd = AgentUpdate::Destroy;
                     scope.send(upd);
@@ -124,7 +115,7 @@ where
                         // Terminates web worker
                         self.close();
                     };
-                },
+                }
             }
         };
         let loaded: FromWorker<T::Output> = FromWorker::WorkerLoaded;
@@ -215,14 +206,16 @@ impl Discoverer for Context {
                 Entry::Occupied(mut entry) => {
                     // TODO Insert callback!
                     entry.get_mut().create_bridge(callback)
-                },
+                }
                 Entry::Vacant(entry) => {
                     let scope = AgentScope::<AGN>::new();
                     let launched = LocalAgent::new(&scope);
-                    let responder = SlabResponder { slab: launched.slab() };
+                    let responder = SlabResponder {
+                        slab: launched.slab(),
+                    };
                     scope_to_init = Some((scope.clone(), responder));
                     entry.insert(launched).create_bridge(callback)
-                },
+                }
             }
         });
         if let Some((scope, responder)) = scope_to_init {
@@ -346,11 +339,11 @@ impl Discoverer for Private {
             match msg {
                 FromWorker::WorkerLoaded => {
                     // TODO Send `Connected` message
-                },
+                }
                 FromWorker::ProcessOutput(id, output) => {
                     assert_eq!(id.raw_id(), SINGLETON_ID.raw_id());
                     callback.emit(output);
-                },
+                }
             }
         };
         // TODO Need somethig better...
@@ -441,7 +434,7 @@ impl Discoverer for Public {
                 Entry::Occupied(mut entry) => {
                     // TODO Insert callback!
                     entry.get_mut().create_bridge(callback)
-                },
+                }
                 Entry::Vacant(entry) => {
                     let slab_base: Shared<Slab<Callback<AGN::Output>>> =
                         Rc::new(RefCell::new(Slab::new()));
@@ -452,15 +445,18 @@ impl Discoverer for Public {
                             FromWorker::WorkerLoaded => {
                                 // TODO Use `AtomicBool` lock to check its loaded
                                 // TODO Send `Connected` message
-                            },
+                            }
                             FromWorker::ProcessOutput(id, output) => {
                                 let callback = slab.borrow().get(id.raw_id()).cloned();
                                 if let Some(callback) = callback {
                                     callback.emit(output);
                                 } else {
-                                    warn!("Id of handler for remote worker not exists <slab>: {}", id.raw_id());
+                                    warn!(
+                                        "Id of handler for remote worker not exists <slab>: {}",
+                                        id.raw_id()
+                                    );
                                 }
-                            },
+                            }
                         }
                     };
                     let name_of_resource = AGN::name_of_resource();
@@ -474,7 +470,7 @@ impl Discoverer for Public {
                     };
                     let launched = RemoteAgent::new(&worker, slab_base);
                     entry.insert(launched).create_bridge(callback)
-                },
+                }
             }
         });
         Box::new(bridge)
@@ -531,11 +527,10 @@ impl<AGN: Agent> Drop for PublicBridge<AGN> {
     }
 }
 
-
 /// Create a single instance in a browser.
 pub struct Global;
 
-impl Discoverer for Global { }
+impl Discoverer for Global {}
 
 /// Declares the behavior of the agent.
 pub trait Agent: Sized + 'static {
@@ -555,22 +550,22 @@ pub trait Agent: Sized + 'static {
     fn update(&mut self, msg: Self::Message);
 
     /// This method called on when a new bridge created.
-    fn connected(&mut self, _id: HandlerId) { }
+    fn connected(&mut self, _id: HandlerId) {}
 
     /// This method called on every incoming message.
     fn handle(&mut self, msg: Self::Input, id: HandlerId);
 
     /// This method called on when a new bridge destroyed.
-    fn disconnected(&mut self, _id: HandlerId) { }
+    fn disconnected(&mut self, _id: HandlerId) {}
 
     /// Creates an instance of an agent.
-    fn destroy(&mut self) { }
+    fn destroy(&mut self) {}
 
     /// Represents the name of loading resorce for remote workers which
     /// have to live in a separate files.
-    fn name_of_resource() -> &'static str { "main.js" }
-
-
+    fn name_of_resource() -> &'static str {
+        "main.js"
+    }
 }
 
 /// This sctruct holds a reference to a component and to a global scheduler.
@@ -606,8 +601,7 @@ trait Responder<AGN: Agent> {
     fn response(&self, id: HandlerId, output: AGN::Output);
 }
 
-struct WorkerResponder {
-}
+struct WorkerResponder {}
 
 impl<AGN: Agent> Responder<AGN> for WorkerResponder {
     fn response(&self, id: HandlerId, output: AGN::Output) {
@@ -702,27 +696,33 @@ where
                 this.agent = Some(AGN::create(env));
             }
             AgentUpdate::Message(msg) => {
-                this.agent.as_mut()
+                this.agent
+                    .as_mut()
                     .expect("agent was not created to process messages")
                     .update(msg);
             }
             AgentUpdate::Connected(id) => {
-                this.agent.as_mut()
+                this.agent
+                    .as_mut()
                     .expect("agent was not created to send a connected message")
                     .connected(id);
             }
             AgentUpdate::Input(inp, id) => {
-                this.agent.as_mut()
+                this.agent
+                    .as_mut()
                     .expect("agent was not created to process inputs")
                     .handle(inp, id);
             }
             AgentUpdate::Disconnected(id) => {
-                this.agent.as_mut()
+                this.agent
+                    .as_mut()
                     .expect("agent was not created to send a disconnected message")
                     .disconnected(id);
             }
             AgentUpdate::Destroy => {
-                let mut agent = this.agent.take()
+                let mut agent = this
+                    .agent
+                    .take()
                     .expect("trying to destroy not existent agent");
                 agent.destroy();
             }
