@@ -1,7 +1,7 @@
 //! This module contains the implementation of abstract virtual node.
 
 use super::{VComp, VDiff, VList, VTag, VText};
-use html::{Component, Renderable, Scope};
+use crate::html::{Component, Renderable, Scope};
 use std::cmp::PartialEq;
 use std::fmt;
 use stdweb::web::{INode, Node};

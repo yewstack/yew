@@ -1,8 +1,8 @@
 //! This module contains `App` sctruct which used to bootstrap
 //! a component in an isolated scope.
 
+use crate::html::{Component, Renderable, Scope};
 use stdweb::web::{document, Element, INode, IParentNode};
-use html::{Scope, Component, Renderable};
 
 /// An application instance.
 pub struct App<COMP: Component> {
@@ -46,4 +46,3 @@ fn clear_element(element: &Element) {
         element.remove_child(&child).expect("can't remove a child");
     }
 }
-

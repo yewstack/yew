@@ -1,14 +1,14 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
+use super::{Reform, VDiff, VNode};
+use crate::callback::Callback;
+use crate::html::{Component, ComponentUpdate, NodeCell, Renderable, Scope};
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::rc::Rc;
 use stdweb::unstable::TryInto;
 use stdweb::web::{document, Element, INode, Node};
-use html::{Component, ComponentUpdate, Scope, NodeCell, Renderable};
-use callback::Callback;
-use super::{Reform, VDiff, VNode};
 
 struct Hidden;
 
@@ -79,7 +79,8 @@ impl<COMP: Component> VComp<COMP> {
                 // Ignore update till properties changed
                 if previous_props != new_props {
                     let props = new_props.as_ref().unwrap().clone();
-                    lazy_activator.borrow_mut()
+                    lazy_activator
+                        .borrow_mut()
                         .as_mut()
                         .expect("activator for child scope was not set (blind sender)")
                         .send(ComponentUpdate::Properties(props));
@@ -90,7 +91,8 @@ impl<COMP: Component> VComp<COMP> {
         let destroyer = {
             let lazy_activator = lazy_activator;
             move || {
-                lazy_activator.borrow_mut()
+                lazy_activator
+                    .borrow_mut()
                     .as_mut()
                     .expect("activator for child scope was not set (destroyer)")
                     .send(ComponentUpdate::Destroy);
@@ -229,7 +231,8 @@ where
     fn detach(&mut self, parent: &Node) -> Option<Node> {
         // Destroy the loop. It's impossible to use `Drop`,
         // because parts can be reused with `grab_sender_of`.
-        (self.destroyer)(); // TODO Chech it works
+        (self.destroyer)(); // TODO Check it works
+
         // Keep the sibling in the cell and send a message `Drop` to a loop
         self.cell.borrow_mut().take().and_then(|node| {
             let sibling = node.next_sibling();
