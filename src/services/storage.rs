@@ -1,7 +1,8 @@
 //! This module contains the implementation of a service to
 //! use local and session storage of a browser.
 
-use format::Text;
+use crate::format::Text;
+use failure::Fail;
 use stdweb::web::{window, Storage};
 
 /// Represents errors of a storage.
@@ -53,7 +54,8 @@ impl StorageService {
     where
         T: From<Text>,
     {
-        let data = self.storage
+        let data = self
+            .storage
             .get(key)
             .ok_or_else(|| StorageError::CantRestore.into());
         T::from(data)
