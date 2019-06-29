@@ -1,7 +1,5 @@
-extern crate yew;
-
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::virtual_dom::VNode;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 struct Comp;
 
@@ -30,4 +28,3 @@ fn text_as_root() {
         { "Text Node As Root" }
     };
 }
-
