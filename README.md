@@ -407,19 +407,30 @@ yew = { git = "https://github.com/DenisKolodin/yew", features = ["toml", "yaml",
 
 Clone or download this repository.
 
-To build this project you need to have [cargo-web] installed:
+### Install [cargo-web]
 
-    $ cargo install cargo-web
+This is an optional tool that simplifies deploying web applications:
+
+```bash
+cargo install cargo-web
+```
 
 > Add `--force` option to ensure you install the latest version.
 
 ### Build
 
-    $ cargo web build
+```bash
+cargo web build
+
+# without cargo-web, only the wasm32-unknown-unknown target is supported
+cargo build --target wasm32-unknown-unknown
+```
 
 ### Running Tests
 
-    $ ./ci/run_tests.sh
+```bash
+./ci/run_tests.sh
+```
 
 ### Running the examples
 
@@ -429,11 +440,15 @@ There are many examples that show how the framework works:
 
 To start an example enter its directory and start it with [cargo-web]:
 
-    $ cargo web start
+```bash
+cargo web start
+```
 
 To run an optimised build instead of a debug build use:
 
-    $ cargo web start --release
+```bash
+cargo web start --release
+```
 
 This will use the `wasm32-unknown-unknown` target by default, which is Rust's native WebAssembly target.
 The Emscripten-based `wasm32-unknown-emscripten` and `asmjs-unknown-emscripten` targets are also supported
