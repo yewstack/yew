@@ -8,27 +8,28 @@ use failure::Error;
 
 #[macro_use]
 pub mod macros;
-pub mod nothing;
+
+#[cfg(feature = "cbor")]
+pub mod cbor;
 pub mod json;
+#[cfg(feature = "msgpack")]
+pub mod msgpack;
+pub mod nothing;
 #[cfg(feature = "toml")]
 pub mod toml;
 #[cfg(feature = "yaml")]
 pub mod yaml;
-#[cfg(feature = "msgpack")]
-pub mod msgpack;
-#[cfg(feature = "cbor")]
-pub mod cbor;
 
-pub use self::nothing::Nothing;
+#[cfg(feature = "cbor")]
+pub use self::cbor::Cbor;
 pub use self::json::Json;
+#[cfg(feature = "msgpack")]
+pub use self::msgpack::MsgPack;
+pub use self::nothing::Nothing;
 #[cfg(feature = "toml")]
 pub use self::toml::Toml;
 #[cfg(feature = "yaml")]
 pub use self::yaml::Yaml;
-#[cfg(feature = "msgpack")]
-pub use self::msgpack::MsgPack;
-#[cfg(feature = "cbor")]
-pub use self::cbor::Cbor;
 
 /// A representation of a value which can be stored and restored as a text.
 pub type Text = Result<String, Error>;

@@ -1,5 +1,7 @@
 //! This module contains a service implementation to use browser's console.
 
+use stdweb::{_js_impl, js};
+
 /// A service to use methods of a
 /// [Console](https://developer.mozilla.org/en-US/docs/Web/API/Console).
 #[derive(Default)]

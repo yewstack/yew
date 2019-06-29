@@ -15,10 +15,12 @@
 //!     }
 //! }
 
-use callback::Callback;
-use html::{ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
+use crate::callback::Callback;
+#[cfg(not(feature = "proc_macro"))]
+use crate::html;
+use crate::html::{ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
 #[cfg(feature = "proc_macro")]
-use macros::html;
+use crate::macros::html;
 
 /// `Select` component.
 pub struct Select<T> {
