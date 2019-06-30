@@ -2,6 +2,7 @@
 //! to show alerts and confirm dialogs in a browser.
 
 use stdweb::Value;
+use stdweb::{_js_impl, js};
 
 /// A dialog service.
 #[derive(Default)]
