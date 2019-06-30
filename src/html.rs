@@ -45,7 +45,7 @@ pub trait Renderable<COMP: Component> {
     fn view(&self) -> Html<COMP>;
 }
 
-/// Update message for a `Components` instance. Used by scope sender.
+/// Updates for a `Components` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {
     /// Creating an instance of the component
     Create(ComponentLink<COMP>),
@@ -114,7 +114,7 @@ where
     pub(crate) fn send(&mut self, update: ComponentUpdate<COMP>) {
         let envelope = ComponentEnvelope {
             shared_component: self.shared_component.clone(),
-            message: Some(update),
+            update,
         };
         let runnable: Box<dyn Runnable> = Box::new(envelope);
         scheduler().put_and_try_run(runnable);
@@ -177,37 +177,33 @@ struct ComponentRunnable<COMP: Component> {
     destroyed: bool,
 }
 
-/// Wraps a component reference and a message to hide it under `Runnable` trait.
-/// It's necessary to schedule a processing of a message.
+/// Wraps a component reference and an update to hide it under `Runnable` trait.
+/// It's necessary to schedule a processing of an update.
 struct ComponentEnvelope<COMP>
 where
     COMP: Component,
 {
     shared_component: Shared<Option<ComponentRunnable<COMP>>>,
-    message: Option<ComponentUpdate<COMP>>,
+    update: ComponentUpdate<COMP>,
 }
 
 impl<COMP> Runnable for ComponentEnvelope<COMP>
 where
     COMP: Component + Renderable<COMP>,
 {
-    fn run(&mut self) {
+    fn run(self: Box<Self>) {
         let mut component = self.shared_component.borrow_mut();
         let this = component.as_mut().expect("shared component not set");
         if this.destroyed {
             return;
         }
         let mut should_update = false;
-        let upd = self
-            .message
-            .take()
-            .expect("component's envelope called twice");
         // This loop pops one item, because the following
         // updates could try to borrow the same cell
         // Important! Don't use `while let` here, because it
         // won't free the lock.
         let env = this.env.clone();
-        match upd {
+        match self.update {
             ComponentUpdate::Create(link) => {
                 let props = this.init_props.take().unwrap_or_default();
                 this.component = Some(COMP::create(props, link));
