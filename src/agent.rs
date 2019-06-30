@@ -590,7 +590,7 @@ impl<AGN: Agent> AgentScope<AGN> {
     fn send(&self, update: AgentUpdate<AGN>) {
         let envelope = AgentEnvelope {
             shared_agent: self.shared_agent.clone(),
-            message: Some(update),
+            update,
         };
         let runnable: Box<dyn Runnable> = Box::new(envelope);
         scheduler().put_and_try_run(runnable);
@@ -678,20 +678,19 @@ enum AgentUpdate<AGN: Agent> {
 
 struct AgentEnvelope<AGN: Agent> {
     shared_agent: Shared<AgentRunnable<AGN>>,
-    message: Option<AgentUpdate<AGN>>,
+    update: AgentUpdate<AGN>,
 }
 
 impl<AGN> Runnable for AgentEnvelope<AGN>
 where
     AGN: Agent,
 {
-    fn run(&mut self) {
+    fn run(self: Box<Self>) {
         let mut this = self.shared_agent.borrow_mut();
         if this.destroyed {
             return;
         }
-        let upd = self.message.take().expect("agent's envelope called twice");
-        match upd {
+        match self.update {
             AgentUpdate::Create(env) => {
                 this.agent = Some(AGN::create(env));
             }
