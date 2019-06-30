@@ -2,9 +2,10 @@
 //! send a messages when timeout elapsed.
 
 use super::{to_ms, Task};
-use callback::Callback;
+use crate::callback::Callback;
 use std::time::Duration;
 use stdweb::Value;
+use stdweb::{_js_impl, js};
 
 /// A handle to cancel a timeout task.
 #[must_use]
