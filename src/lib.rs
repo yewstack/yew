@@ -65,37 +65,11 @@
 #![recursion_limit = "512"]
 extern crate self as yew;
 
-#[macro_use]
-extern crate failure;
-extern crate http;
-extern crate log;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate anymap;
-extern crate bincode;
-extern crate serde_json;
-extern crate slab;
-extern crate yew_shared;
-#[macro_use]
-extern crate stdweb;
-#[cfg(feature = "msgpack")]
-extern crate rmp_serde;
-#[cfg(feature = "cbor")]
-extern crate serde_cbor;
-#[cfg(feature = "yaml")]
-extern crate serde_yaml;
-#[cfg(feature = "toml")]
-extern crate toml;
-#[cfg(feature = "proc_macro")]
-extern crate yew_macro;
-
-#[macro_use]
 #[cfg(not(feature = "proc_macro"))]
 pub mod macros;
 
-#[cfg(feature = "proc_macro")]
 /// Alias module for the procedural macro.
+#[cfg(feature = "proc_macro")]
 pub mod macros {
     pub use yew_macro::html;
 }

@@ -1,6 +1,3 @@
-extern crate serde_derive;
-extern crate yew;
-
 use serde_derive::{Deserialize, Serialize};
 #[cfg(feature = "wasm-bindgen-test")]
 use wasm_bindgen_test::wasm_bindgen_test as test;

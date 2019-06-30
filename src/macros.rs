@@ -1,15 +1,15 @@
 //! This module contains macros which implements `html!` macro
 //! and JSX-like templates.
 
-use html::Component;
-use virtual_dom::{Listener, VNode};
+use crate::html::Component;
+use crate::virtual_dom::{Listener, VNode};
 
 #[doc(hidden)]
 #[macro_export]
 macro_rules! local_stringify {
     ($s:ident) => {
         stringify!($s)
-    }
+    };
 }
 
 #[doc(hidden)]
@@ -316,8 +316,7 @@ pub fn unpack<COMP: Component>(mut stack: Stack<COMP>) -> VNode<COMP> {
 #[doc(hidden)]
 pub fn set_value_or_attribute<COMP: Component, T: ToString>(stack: &mut Stack<COMP>, value: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
-        if vtag.tag().eq_ignore_ascii_case("input")
-        || vtag.tag().eq_ignore_ascii_case("textarea") {
+        if vtag.tag().eq_ignore_ascii_case("input") || vtag.tag().eq_ignore_ascii_case("textarea") {
             vtag.set_value(&value)
         } else {
             vtag.add_attribute("value", &value)
@@ -346,11 +345,7 @@ pub fn set_checked<COMP: Component>(stack: &mut Stack<COMP>, value: bool) {
 }
 
 #[doc(hidden)]
-pub fn add_attribute<COMP: Component, T: ToString>(
-    stack: &mut Stack<COMP>,
-    name: &str,
-    value: T,
-) {
+pub fn add_attribute<COMP: Component, T: ToString>(stack: &mut Stack<COMP>, name: &str, value: T) {
     if let Some(&mut VNode::VTag(ref mut vtag)) = stack.last_mut() {
         vtag.add_attribute(name, &value);
     } else {
@@ -398,16 +393,16 @@ pub fn add_child<COMP: Component>(stack: &mut Stack<COMP>, child: VNode<COMP>) {
             vlist.add_child(child);
         }
         _ => {
-            panic!("parent must be a tag or a fragment to add the node: {:?}", child);
+            panic!(
+                "parent must be a tag or a fragment to add the node: {:?}",
+                child
+            );
         }
     }
 }
 
 #[doc(hidden)]
-pub fn child_to_parent<COMP: Component>(
-    stack: &mut Stack<COMP>,
-    endtag: Option<&'static str>,
-) {
+pub fn child_to_parent<COMP: Component>(stack: &mut Stack<COMP>, endtag: Option<&'static str>) {
     if let Some(mut node) = stack.pop() {
         // Check the enclosing tag
         // TODO Check it during compilation. Possible?

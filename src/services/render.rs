@@ -1,10 +1,11 @@
 //! This module contains the implementation of a service to
 //! request frame rendering
 
-use stdweb::Value;
+use crate::callback::Callback;
+use crate::services::Task;
 use stdweb::unstable::TryInto;
-use services::Task;
-use callback::Callback;
+use stdweb::Value;
+use stdweb::{_js_impl, js};
 
 /// A handle to cancel a render task.
 #[must_use]
@@ -25,7 +26,7 @@ impl RenderService {
         let callback = move |v| {
             let time: f64 = match v {
                 Value::Number(n) => n.try_into().unwrap(),
-                _ => 0.0
+                _ => 0.0,
             };
             callback.emit(time);
         };
