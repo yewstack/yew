@@ -19,7 +19,7 @@ pub(crate) fn scheduler() -> Rc<Scheduler> {
 /// A routine which could be run.
 pub(crate) trait Runnable {
     /// Runs a routine with a context instance.
-    fn run(&mut self);
+    fn run(self: Box<Self>);
 }
 
 /// This is a global scheduler suitable to schedule and run any tasks.
@@ -52,7 +52,7 @@ impl Scheduler {
         if self.lock.compare_and_swap(false, true, Ordering::Relaxed) == false {
             loop {
                 let do_next = self.sequence.borrow_mut().pop_front();
-                if let Some(mut runnable) = do_next {
+                if let Some(runnable) = do_next {
                     runnable.run();
                 } else {
                     break;
