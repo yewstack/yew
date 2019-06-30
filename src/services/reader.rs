@@ -1,20 +1,13 @@
 //! Service to load files using `FileReader`.
 
-use std::cmp;
-pub use stdweb::web::{Blob, IBlob, File};
-use stdweb::web::{
-    IEventTarget,
-    FileReader,
-    FileReaderReadyState,
-    FileReaderResult,
-    TypedArray,
-};
-use stdweb::web::event::{
-    LoadEndEvent,
-};
-use stdweb::unstable::TryInto;
-use callback::Callback;
 use super::Task;
+use crate::callback::Callback;
+use std::cmp;
+use stdweb::unstable::TryInto;
+use stdweb::web::event::LoadEndEvent;
+pub use stdweb::web::{Blob, File, IBlob};
+use stdweb::web::{FileReader, FileReaderReadyState, FileReaderResult, IEventTarget, TypedArray};
+use stdweb::{_js_impl, js};
 
 /// Struct that represents data of a file.
 #[derive(Clone, Debug)]
@@ -59,30 +52,31 @@ impl ReaderService {
         let file_reader = FileReader::new();
         let reader = file_reader.clone();
         let name = file.name();
-        file_reader.add_event_listener(move |_event: LoadEndEvent| {
-            match reader.result() {
-                Some(FileReaderResult::String(_)) => {
-                    unreachable!();
-                }
-                Some(FileReaderResult::ArrayBuffer(buffer)) => {
-                    let array: TypedArray<u8> = buffer.into();
-                    let data = FileData {
-                        name: name.clone(),
-                        content: array.to_vec(),
-                    };
-                    callback.emit(data);
-                }
-                None => { }
+        file_reader.add_event_listener(move |_event: LoadEndEvent| match reader.result() {
+            Some(FileReaderResult::String(_)) => {
+                unreachable!();
             }
+            Some(FileReaderResult::ArrayBuffer(buffer)) => {
+                let array: TypedArray<u8> = buffer.into();
+                let data = FileData {
+                    name: name.clone(),
+                    content: array.to_vec(),
+                };
+                callback.emit(data);
+            }
+            None => {}
         });
         file_reader.read_as_array_buffer(&file).unwrap();
-        ReaderTask {
-            file_reader,
-        }
+        ReaderTask { file_reader }
     }
 
     /// Reads data chunks from a file and returns them with a callback.
-    pub fn read_file_by_chunks(&mut self, file: File, callback: Callback<FileChunk>, chunk_size: usize) -> ReaderTask {
+    pub fn read_file_by_chunks(
+        &mut self,
+        file: File,
+        callback: Callback<FileChunk>,
+        chunk_size: usize,
+    ) -> ReaderTask {
         let file_reader = FileReader::new();
         let name = file.name();
         let mut position = 0;
@@ -92,9 +86,7 @@ impl ReaderService {
             match reader.result() {
                 // This branch is used to start reading
                 Some(FileReaderResult::String(_)) => {
-                    let started = FileChunk::Started {
-                        name: name.clone(),
-                    };
+                    let started = FileChunk::Started { name: name.clone() };
                     callback.emit(started);
                 }
                 // This branch is used to send a chunk value
@@ -106,7 +98,7 @@ impl ReaderService {
                     };
                     callback.emit(chunk);
                 }
-                None => { }
+                None => {}
             }
             // Read the next chunk
             if position < total_size {
@@ -118,8 +110,8 @@ impl ReaderService {
                 let blob: Blob = (js! {
                     return @{file}.slice(@{from as u32}, @{to as u32});
                 })
-                    .try_into()
-                    .unwrap();
+                .try_into()
+                .unwrap();
                 reader.read_as_array_buffer(&blob).unwrap();
             } else {
                 let finished = FileChunk::Finished;
@@ -128,11 +120,11 @@ impl ReaderService {
         });
         let blob: Blob = (js! {
             return (new Blob());
-        }).try_into().unwrap();
+        })
+        .try_into()
+        .unwrap();
         file_reader.read_as_text(&blob).unwrap();
-        ReaderTask {
-            file_reader,
-        }
+        ReaderTask { file_reader }
     }
 }
 

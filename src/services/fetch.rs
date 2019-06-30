@@ -1,15 +1,16 @@
 //! Service to send HTTP-request to a server.
 
-use std::collections::HashMap;
-
-use stdweb::{Value, JsSerialize};
-use stdweb::web::ArrayBuffer;
-use stdweb::unstable::{TryInto, TryFrom};
-use stdweb::serde::Serde;
-
 use super::Task;
-use format::{Format, Text, Binary};
-use callback::Callback;
+use crate::callback::Callback;
+use crate::format::{Binary, Format, Text};
+use failure::Fail;
+use serde_derive::Serialize;
+use std::collections::HashMap;
+use stdweb::serde::Serde;
+use stdweb::unstable::{TryFrom, TryInto};
+use stdweb::web::ArrayBuffer;
+use stdweb::{JsSerialize, Value};
+use stdweb::{_js_impl, js};
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
@@ -187,9 +188,8 @@ where
         .map(|(k, v)| {
             (
                 k.as_str(),
-                v.to_str().expect(
-                    format!("Unparsable request header {}: {:?}", k.as_str(), v).as_str(),
-                ),
+                v.to_str()
+                    .expect(format!("Unparsable request header {}: {:?}", k.as_str(), v).as_str()),
             )
         })
         .collect();
@@ -292,7 +292,8 @@ impl Task for FetchTask {
         // Fetch API doesn't support request cancelling in all browsers
         // and we should use this workaround with a flag.
         // In that case, request not canceled, but callback won't be called.
-        let handle = self.0
+        let handle = self
+            .0
             .take()
             .expect("tried to cancel request fetching twice");
         js! {  @(no_return)
