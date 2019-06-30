@@ -12,7 +12,7 @@ pub struct App<COMP: Component> {
 
 impl<COMP> App<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component<Properties = ()> + Renderable<COMP>,
 {
     /// Creates a new `App` with a component in a context.
     pub fn new() -> Self {
@@ -36,7 +36,7 @@ where
     /// will render the model to a virtual DOM tree.
     pub fn mount(self, element: Element) -> Scope<COMP> {
         clear_element(&element);
-        self.scope.mount_in_place(element, None, None, None)
+        self.scope.mount_in_place(element, None, None, ())
     }
 }
 
