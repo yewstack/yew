@@ -67,12 +67,12 @@ impl<COMP: Component> VComp<COMP> {
                         element,
                         Some(VNode::VRef(ancestor)),
                         Some(occupied.clone()),
-                        Some(props),
+                        props,
                     );
 
                     let destroyer = Box::new({
                         let mut scope = scope.clone();
-                        move || scope.send(ComponentUpdate::Destroy)
+                        move || scope.destroy()
                     });
 
                     Mounted {
@@ -91,11 +91,11 @@ impl<COMP: Component> VComp<COMP> {
                         *Box::from_raw(raw)
                     };
 
-                    scope.send(ComponentUpdate::Properties(props));
+                    scope.update(ComponentUpdate::Properties(props));
 
                     let destroyer = Box::new({
                         let mut scope = scope.clone();
-                        move || scope.send(ComponentUpdate::Destroy)
+                        move || scope.destroy()
                     });
 
                     Mounted {
@@ -159,7 +159,7 @@ where
         let callback = move |arg| {
             let msg = from(arg);
             if let Some(ref mut sender) = *scope.borrow_mut() {
-                sender.send(ComponentUpdate::Message(msg));
+                sender.send_message(msg);
             } else {
                 panic!("unactivated callback, parent component have to activate it");
             }

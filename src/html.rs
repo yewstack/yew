@@ -9,6 +9,7 @@ use crate::virtual_dom::{Listener, VDiff, VNode};
 use log::debug;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::fmt;
 use stdweb::web::html_element::SelectElement;
 use stdweb::web::{Element, EventListenerHandle, FileList, INode, Node};
 #[allow(unused_imports)]
@@ -47,14 +48,10 @@ pub trait Renderable<COMP: Component> {
 
 /// Updates for a `Components` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {
-    /// Creating an instance of the component
-    Create(ComponentLink<COMP>),
     /// Wraps messages for a component.
     Message(COMP::Message),
     /// Wraps properties for a component.
     Properties(COMP::Properties),
-    /// Removes the component
-    Destroy,
 }
 
 /// Link to component's scope for creating callbacks.
@@ -92,16 +89,84 @@ where
     }
 }
 
+enum ComponentState<COMP: Component> {
+    Empty,
+    Ready(ReadyState<COMP>),
+    Created(CreatedState<COMP>),
+    Processing,
+    Destroyed,
+}
+
+impl<COMP: Component> fmt::Display for ComponentState<COMP> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let name = match self {
+            ComponentState::Empty => "empty",
+            ComponentState::Ready(_) => "ready",
+            ComponentState::Created(_) => "created",
+            ComponentState::Processing => "processing",
+            ComponentState::Destroyed => "destroyed",
+        };
+        write!(f, "{}", name)
+    }
+}
+
+struct ReadyState<COMP: Component> {
+    env: Scope<COMP>,
+    element: Element,
+    occupied: Option<NodeCell>,
+    props: COMP::Properties,
+    link: ComponentLink<COMP>,
+    ancestor: Option<VNode<COMP>>,
+}
+
+impl<COMP: Component> ReadyState<COMP> {
+    fn create(self) -> CreatedState<COMP> {
+        CreatedState {
+            component: COMP::create(self.props, self.link),
+            env: self.env,
+            element: self.element,
+            last_frame: self.ancestor,
+            occupied: self.occupied,
+        }
+    }
+}
+
+struct CreatedState<COMP: Component> {
+    env: Scope<COMP>,
+    element: Element,
+    component: COMP,
+    last_frame: Option<VNode<COMP>>,
+    occupied: Option<NodeCell>,
+}
+
+impl<COMP: Component + Renderable<COMP>> CreatedState<COMP> {
+    fn update(mut self) -> Self {
+        let mut next_frame = self.component.view();
+        let node = next_frame.apply(self.element.as_node(), None, self.last_frame, &self.env);
+        if let Some(ref mut cell) = self.occupied {
+            *cell.borrow_mut() = node;
+        }
+
+        Self {
+            env: self.env,
+            component: self.component,
+            last_frame: Some(next_frame),
+            element: self.element,
+            occupied: self.occupied,
+        }
+    }
+}
+
 /// A context which contains a bridge to send a messages to a loop.
 /// Mostly services uses it.
 pub struct Scope<COMP: Component> {
-    shared_component: Shared<Option<ComponentRunnable<COMP>>>,
+    shared_state: Shared<ComponentState<COMP>>,
 }
 
 impl<COMP: Component> Clone for Scope<COMP> {
     fn clone(&self) -> Self {
         Scope {
-            shared_component: self.shared_component.clone(),
+            shared_state: self.shared_state.clone(),
         }
     }
 }
@@ -110,20 +175,28 @@ impl<COMP> Scope<COMP>
 where
     COMP: Component + Renderable<COMP>,
 {
-    /// Send the message and schedule an update.
-    pub(crate) fn send(&mut self, update: ComponentUpdate<COMP>) {
-        let envelope = ComponentEnvelope {
-            shared_component: self.shared_component.clone(),
-            update,
-        };
-        let runnable: Box<dyn Runnable> = Box::new(envelope);
-        scheduler().put_and_try_run(runnable);
+    pub(crate) fn create(&mut self) {
+        let shared_state = self.shared_state.clone();
+        let create = CreateComponent { shared_state };
+        scheduler().put_and_try_run(Box::new(create));
     }
 
-    /// Send message to a component.
-    pub fn send_message(&mut self, message: COMP::Message) {
-        let update = ComponentUpdate::Message(message);
-        self.send(update);
+    pub(crate) fn update(&mut self, update: ComponentUpdate<COMP>) {
+        let update = UpdateComponent {
+            shared_state: self.shared_state.clone(),
+            update,
+        };
+        scheduler().put_and_try_run(Box::new(update));
+    }
+
+    pub(crate) fn destroy(&mut self) {
+        let shared_state = self.shared_state.clone();
+        let destroy = DestroyComponent { shared_state };
+        scheduler().put_and_try_run(Box::new(destroy));
+    }
+
+    pub fn send_message(&mut self, msg: COMP::Message) {
+        self.update(ComponentUpdate::Message(msg));
     }
 }
 
@@ -135,8 +208,8 @@ where
     COMP: Component + Renderable<COMP>,
 {
     pub(crate) fn new() -> Self {
-        let shared_component = Rc::new(RefCell::new(None));
-        Scope { shared_component }
+        let shared_state = Rc::new(RefCell::new(ComponentState::Empty));
+        Scope { shared_state }
     }
 
     // TODO Consider to use &Node instead of Element as parent
@@ -146,114 +219,105 @@ where
         element: Element,
         ancestor: Option<VNode<COMP>>,
         occupied: Option<NodeCell>,
-        init_props: Option<COMP::Properties>,
+        props: COMP::Properties,
     ) -> Scope<COMP> {
-        let runnable = ComponentRunnable {
-            env: self.clone(),
-            component: None,
-            last_frame: None,
-            element,
-            ancestor,
-            occupied,
-            init_props,
-            destroyed: false,
-        };
         let mut scope = self.clone();
-        *scope.shared_component.borrow_mut() = Some(runnable);
         let link = ComponentLink::connect(&scope);
-        scope.send(ComponentUpdate::Create(link));
+        let ready_state = ReadyState {
+            env: self.clone(),
+            element,
+            occupied,
+            link,
+            props,
+            ancestor,
+        };
+        *scope.shared_state.borrow_mut() = ComponentState::Ready(ready_state);
+        scope.create();
         scope
     }
 }
 
-struct ComponentRunnable<COMP: Component> {
-    env: Scope<COMP>,
-    component: Option<COMP>,
-    last_frame: Option<VNode<COMP>>,
-    element: Element,
-    ancestor: Option<VNode<COMP>>,
-    occupied: Option<NodeCell>,
-    init_props: Option<COMP::Properties>,
-    destroyed: bool,
-}
-
-/// Wraps a component reference and an update to hide it under `Runnable` trait.
-/// It's necessary to schedule a processing of an update.
-struct ComponentEnvelope<COMP>
+struct CreateComponent<COMP>
 where
     COMP: Component,
 {
-    shared_component: Shared<Option<ComponentRunnable<COMP>>>,
-    update: ComponentUpdate<COMP>,
+    shared_state: Shared<ComponentState<COMP>>,
 }
 
-impl<COMP> Runnable for ComponentEnvelope<COMP>
+impl<COMP> Runnable for CreateComponent<COMP>
 where
     COMP: Component + Renderable<COMP>,
 {
     fn run(self: Box<Self>) {
-        let mut component = self.shared_component.borrow_mut();
-        let this = component.as_mut().expect("shared component not set");
-        if this.destroyed {
-            return;
-        }
-        let mut should_update = false;
-        // This loop pops one item, because the following
-        // updates could try to borrow the same cell
-        // Important! Don't use `while let` here, because it
-        // won't free the lock.
-        let env = this.env.clone();
-        match self.update {
-            ComponentUpdate::Create(link) => {
-                let props = this.init_props.take().unwrap_or_default();
-                this.component = Some(COMP::create(props, link));
-                // No messages at start
-                let current_frame = this.component.as_ref().unwrap().view();
-                this.last_frame = Some(current_frame);
-                // First-time rendering the tree
-                let node = this.last_frame.as_mut().unwrap().apply(
-                    this.element.as_node(),
-                    None,
-                    this.ancestor.take(),
-                    &env,
-                );
-                if let Some(ref mut cell) = this.occupied {
-                    *cell.borrow_mut() = node;
+        let current_state = self.shared_state.replace(ComponentState::Processing);
+        self.shared_state.replace(match current_state {
+            ComponentState::Ready(state) => ComponentState::Created(state.create().update()),
+            ComponentState::Created(_) | ComponentState::Destroyed => current_state,
+            ComponentState::Empty | ComponentState::Processing => {
+                panic!("unexpected component state: {}", current_state);
+            }
+        });
+    }
+}
+
+struct DestroyComponent<COMP>
+where
+    COMP: Component,
+{
+    shared_state: Shared<ComponentState<COMP>>,
+}
+
+impl<COMP> Runnable for DestroyComponent<COMP>
+where
+    COMP: Component + Renderable<COMP>,
+{
+    fn run(self: Box<Self>) {
+        match self.shared_state.replace(ComponentState::Destroyed) {
+            ComponentState::Created(mut this) => {
+                this.component.destroy();
+                if let Some(last_frame) = &mut this.last_frame {
+                    last_frame.detach(this.element.as_node());
                 }
             }
-            ComponentUpdate::Message(msg) => {
-                should_update |= this
-                    .component
-                    .as_mut()
-                    .expect("component was not created to process messages")
-                    .update(msg);
+            ComponentState::Ready(mut this) => {
+                if let Some(ancestor) = &mut this.ancestor {
+                    ancestor.detach(this.element.as_node());
+                }
             }
-            ComponentUpdate::Properties(props) => {
-                should_update |= this
-                    .component
-                    .as_mut()
-                    .expect("component was not created to process properties")
-                    .change(props);
+            ComponentState::Empty | ComponentState::Destroyed => {},
+            s @ ComponentState::Processing => panic!("unexpected component state: {}", s),
+        };
+    }
+}
+
+struct UpdateComponent<COMP>
+where
+    COMP: Component,
+{
+    shared_state: Shared<ComponentState<COMP>>,
+    update: ComponentUpdate<COMP>,
+}
+
+impl<COMP> Runnable for UpdateComponent<COMP>
+where
+    COMP: Component + Renderable<COMP>,
+{
+    fn run(self: Box<Self>) {
+        let current_state = self.shared_state.replace(ComponentState::Processing);
+        self.shared_state.replace(match current_state {
+            ComponentState::Created(mut this) => {
+                let should_update = match self.update {
+                    ComponentUpdate::Message(msg) => this.component.update(msg),
+                    ComponentUpdate::Properties(props) => this.component.change(props),
+                };
+                let next_state = if should_update { this.update() } else { this };
+                ComponentState::Created(next_state)
             }
-            ComponentUpdate::Destroy => {
-                // TODO this.component.take() instead of destroyed
-                this.component.as_mut().unwrap().destroy();
-                this.last_frame
-                    .as_mut()
-                    .unwrap()
-                    .detach(this.element.as_node());
-                this.destroyed = true;
+            ComponentState::Destroyed => current_state,
+            ComponentState::Processing | ComponentState::Ready(_) | ComponentState::Empty => {
+                panic!("unexpected component state: {}", current_state);
             }
-        }
-        if should_update {
-            let mut next_frame = this.component.as_ref().unwrap().view();
-            // Re-rendering the tree
-            let node = next_frame.apply(this.element.as_node(), None, this.last_frame.take(), &env);
-            if let Some(ref mut cell) = this.occupied {
-                *cell.borrow_mut() = node;
-            }
-            this.last_frame = Some(next_frame);
-        }
+        });
     }
 }
 
