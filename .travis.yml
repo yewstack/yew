@@ -25,7 +25,13 @@ matrix:
   allow_failures:
     - rust: nightly
 
-script:
+install:
   - nvm install 9
+  - rustup target add wasm32-unknown-unknown
+  - cargo install wasm-bindgen-cli --force
+  - curl --retry 5 -LO https://chromedriver.storage.googleapis.com/2.41/chromedriver_linux64.zip
+  - unzip chromedriver_linux64.zip
   - ./ci/install_cargo_web.sh
-  - ./ci/run_tests.sh
+
+script:
+  - CHROMEDRIVER=$(pwd)/chromedriver ./ci/run_tests.sh
