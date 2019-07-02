@@ -65,11 +65,7 @@
 #![recursion_limit = "512"]
 extern crate self as yew;
 
-#[cfg(not(feature = "proc_macro"))]
-pub mod macros;
-
 /// Alias module for the procedural macro.
-#[cfg(feature = "proc_macro")]
 pub mod macros {
     pub use yew_macro::html;
 }
@@ -110,10 +106,8 @@ where
 /// use yew::prelude::*;
 /// ```
 pub mod prelude {
-    pub use yew_shared::prelude::*;
-
-    #[cfg(feature = "proc_macro")]
     pub use yew_macro::html;
+    pub use yew_shared::prelude::*;
 }
 
 pub use self::prelude::*;

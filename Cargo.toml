@@ -27,7 +27,7 @@ toml = { version = "0.4", optional = true }
 serde_yaml = { version = "0.8.3", optional = true }
 rmp-serde = { version = "0.13.7", optional = true }
 serde_cbor = { version = "0.9.0", optional = true }
-yew-macro = { path = "crates/macro", optional = true }
+yew-macro = { path = "crates/macro" }
 yew-shared = { path = "crates/shared" }
 
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
@@ -45,7 +45,6 @@ web_test = []
 yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
-proc_macro = ["yew-macro"]
 
 [workspace]
 members = [

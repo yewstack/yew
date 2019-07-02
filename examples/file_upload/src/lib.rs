@@ -1,3 +1,5 @@
+#![recursion_limit="256"]
+
 use yew::{html, ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::services::reader::{File, FileChunk, FileData, ReaderService, ReaderTask};
 
