@@ -48,8 +48,8 @@ impl Parse for HtmlComponent {
 impl ToTokens for HtmlComponent {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let HtmlComponentInner { ty, props } = &self.0;
-        let vcomp = Ident::new("__yew_vcomp", Span::call_site());
         let vcomp_props = Ident::new("__yew_vcomp_props", Span::call_site());
+        let vcomp_scope = Ident::new("__yew_vcomp_scope", Span::call_site());
         let override_props = props.iter().map(|props| match props {
             Props::List(ListProps(vec_props)) => {
                 let check_props = vec_props.iter().map(|HtmlProp { name, .. }| {
@@ -58,7 +58,7 @@ impl ToTokens for HtmlComponent {
 
                 let set_props = vec_props.iter().map(|HtmlProp { name, value }| {
                     quote_spanned! { value.span()=>
-                        #vcomp_props.#name = ::yew::virtual_dom::vcomp::Transformer::transform(&mut #vcomp, #value);
+                        #vcomp_props.#name = <::yew::virtual_dom::vcomp::VComp<Self> as ::yew::virtual_dom::vcomp::Transformer<Self, _, _>>::transform(#vcomp_scope.clone(), #value);
                     }
                 });
 
@@ -72,10 +72,12 @@ impl ToTokens for HtmlComponent {
         });
 
         tokens.extend(quote_spanned! { ty.span()=> {
-            let (mut #vcomp_props, mut #vcomp) = ::yew::virtual_dom::VComp::lazy::<#ty>();
+            let #vcomp_scope: ::yew::virtual_dom::vcomp::ScopeHolder<Self> = ::std::default::Default::default();
+            let mut #vcomp_props: <#ty as ::yew::html::Component>::Properties = ::std::default::Default::default();
             #(#override_props)*
-            #vcomp.set_props(#vcomp_props);
-            ::yew::virtual_dom::VNode::VComp(#vcomp)
+            ::yew::virtual_dom::VNode::VComp(
+                ::yew::virtual_dom::VComp::new::<#ty>(#vcomp_props, #vcomp_scope)
+            )
         }});
     }
 }
