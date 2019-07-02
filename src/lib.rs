@@ -77,6 +77,7 @@ pub mod macros {
 pub mod components;
 pub mod format;
 pub mod services;
+pub mod utils;
 
 pub use yew_shared::*;
 
