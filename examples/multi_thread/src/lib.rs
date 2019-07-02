@@ -1,3 +1,5 @@
+#![recursion_limit="128"]
+
 pub mod native_worker;
 pub mod job;
 pub mod context;
@@ -73,4 +75,3 @@ impl Renderable<Model> for Model {
         }
     }
 }
-
