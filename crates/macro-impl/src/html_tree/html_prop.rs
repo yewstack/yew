@@ -1,37 +1,40 @@
 use crate::Peek;
 use boolinator::Boolinator;
 use proc_macro::TokenStream;
-use proc_macro2::TokenTree;
+use proc_macro2::{Ident, TokenTree};
+use quote::{quote, ToTokens};
+use std::fmt;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::{Expr, Ident, Token};
+use syn::{Expr, Token};
 
 pub struct HtmlProp {
-    pub name: Ident,
+    pub label: HtmlPropLabel,
     pub value: Expr,
 }
 
 impl Peek<()> for HtmlProp {
-    fn peek(cursor: Cursor) -> Option<()> {
-        let (_, cursor) = cursor.ident()?;
-        let (punct, _) = cursor.punct()?;
-        (punct.as_char() == '=').as_option()
+    fn peek(mut cursor: Cursor) -> Option<()> {
+        loop {
+            let (_, c) = cursor.ident()?;
+            let (punct, c) = c.punct()?;
+            if punct.as_char() == '-' {
+                cursor = c;
+                continue;
+            }
+            return (punct.as_char() == '=').as_option();
+        }
     }
 }
 
 impl Parse for HtmlProp {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let name = if let Ok(ty) = input.parse::<Token![type]>() {
-            Ident::new("type", ty.span)
-        } else {
-            input.parse::<Ident>()?
-        };
-
+        let label = input.parse::<HtmlPropLabel>()?;
         input.parse::<Token![=]>()?;
         let value = input.parse::<Expr>()?;
         // backwards compat
         let _ = input.parse::<Token![,]>();
-        Ok(HtmlProp { name, value })
+        Ok(HtmlProp { label, value })
     }
 }
 
@@ -82,5 +85,56 @@ impl Parse for HtmlPropSuffix {
         let stream = TokenStream::from(stream);
 
         Ok(HtmlPropSuffix { div, gt, stream })
+    }
+}
+
+pub struct HtmlPropLabel {
+    pub name: Ident,
+    pub extended: Vec<(Token![-], Ident)>,
+}
+
+impl HtmlPropLabel {
+    pub fn new(name: Ident) -> Self {
+        HtmlPropLabel {
+            name,
+            extended: Vec::new(),
+        }
+    }
+}
+
+impl fmt::Display for HtmlPropLabel {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.name)?;
+        for (_, ident) in &self.extended {
+            write!(f, "-{}", ident)?;
+        }
+        Ok(())
+    }
+}
+
+impl Parse for HtmlPropLabel {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        let name = if let Ok(ty) = input.parse::<Token![type]>() {
+            Ident::new("type", ty.span).into()
+        } else {
+            input.parse::<Ident>()?.into()
+        };
+
+        let mut extended = Vec::new();
+        while input.peek(Token![-]) {
+            extended.push((input.parse::<Token![-]>()?, input.parse::<Ident>()?));
+        }
+
+        Ok(HtmlPropLabel { name, extended })
+    }
+}
+
+impl ToTokens for HtmlPropLabel {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let HtmlPropLabel { name, extended } = self;
+        let dashes = extended.iter().map(|(dash, _)| quote! {#dash});
+        let idents = extended.iter().map(|(_, ident)| quote! {#ident});
+        let extended = quote! { #(#dashes#idents)* };
+        tokens.extend(quote! {#name#extended});
     }
 }

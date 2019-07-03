@@ -80,11 +80,11 @@ impl TagAttributes {
         let mut i = 0;
         let mut drained = Vec::new();
         while i < attrs.len() {
-            let name_str = attrs[i].name.to_string();
+            let name_str = attrs[i].label.to_string();
             if let Some(event_type) = LISTENER_MAP.get(&name_str.as_str()) {
-                let TagAttribute { name, value } = attrs.remove(i);
+                let TagAttribute { label, value } = attrs.remove(i);
                 drained.push(TagListener {
-                    name,
+                    name: label.name,
                     handler: value,
                     event_name: event_type.to_owned().to_string(),
                 });
@@ -98,7 +98,7 @@ impl TagAttributes {
     fn remove_attr(attrs: &mut Vec<TagAttribute>, name: &str) -> Option<Expr> {
         let mut i = 0;
         while i < attrs.len() {
-            if attrs[i].name.to_string() == name {
+            if attrs[i].label.to_string() == name {
                 return Some(attrs.remove(i).value);
             } else {
                 i += 1;
@@ -182,14 +182,19 @@ impl Parse for TagAttributes {
         }
 
         // Multiple listener attributes are allowed, but no others
-        attributes.sort_by(|a, b| a.name.to_string().partial_cmp(&b.name.to_string()).unwrap());
+        attributes.sort_by(|a, b| {
+            a.label
+                .to_string()
+                .partial_cmp(&b.label.to_string())
+                .unwrap()
+        });
         let mut i = 0;
         while i + 1 < attributes.len() {
-            if attributes[i].name.to_string() == attributes[i + 1].name.to_string() {
-                let name = &attributes[i + 1].name;
+            if attributes[i].label.to_string() == attributes[i + 1].label.to_string() {
+                let label = &attributes[i + 1].label;
                 return Err(syn::Error::new_spanned(
-                    name,
-                    format!("only one `{}` attribute allowed", name),
+                    label,
+                    format!("only one `{}` attribute allowed", label),
                 ));
             }
             i += 1;

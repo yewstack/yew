@@ -4,7 +4,7 @@ use yew_macro::{html, test_html};
 
 test_html! { |t1|
     <div>
-        <div></div>
+        <div data-key="abc"></div>
         <div class="parent">
             <span class="child", value="anything",></span>
             <input type="text" value="placeholder" />
