@@ -1,6 +1,7 @@
 mod tag_attributes;
 
 use super::HtmlProp as TagAttribute;
+use super::HtmlPropLabel as TagLabel;
 use super::HtmlPropSuffix as TagSuffix;
 use super::HtmlTree;
 use crate::Peek;
@@ -100,7 +101,7 @@ impl ToTokens for HtmlTag {
         } = &attributes;
 
         let vtag = Ident::new("__yew_vtag", ident.span());
-        let attr_names = attributes.iter().map(|attr| attr.name.to_string());
+        let attr_labels = attributes.iter().map(|attr| attr.label.to_string());
         let attr_values = attributes.iter().map(|attr| &attr.value);
         let set_kind = kind.iter().map(|kind| {
             quote_spanned! {kind.span()=> #vtag.set_kind(&(#kind)); }
@@ -149,7 +150,7 @@ impl ToTokens for HtmlTag {
             #(#add_disabled)*
             #(#add_selected)*
             #(#set_classes)*
-            #vtag.add_attributes(vec![#((#attr_names.to_owned(), (#attr_values).to_string())),*]);
+            #vtag.add_attributes(vec![#((#attr_labels.to_owned(), (#attr_values).to_string())),*]);
             #vtag.add_listeners(vec![#(::std::boxed::Box::new(#listeners)),*]);
             #vtag.add_children(vec![#(#children),*]);
             ::yew::virtual_dom::VNode::VTag(#vtag)
@@ -217,7 +218,7 @@ impl Parse for HtmlTagOpen {
             _ => {
                 if let Some(value) = attributes.value.take() {
                     attributes.attributes.push(TagAttribute {
-                        name: Ident::new("value", Span::call_site()),
+                        label: TagLabel::new(Ident::new("value", Span::call_site())),
                         value,
                     });
                 }
