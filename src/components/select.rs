@@ -16,10 +16,7 @@
 //! }
 
 use crate::callback::Callback;
-#[cfg(not(feature = "proc_macro"))]
-use crate::html;
 use crate::html::{ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
-#[cfg(feature = "proc_macro")]
 use crate::macros::html;
 
 /// `Select` component.
