@@ -61,6 +61,10 @@ test_html! { |t8|
     <ChildComponent with props () />
 }
 
+test_html! { |t9|
+    <ChildComponent invalid-prop-name=0 />
+}
+
 test_html! { |t10|
     <String />
 }

@@ -1,3 +1,9 @@
+error: expected identifier
+  --> $DIR/html-component-fail.rs:65:21
+   |
+65 |     <ChildComponent invalid-prop-name=0 />
+   |                     ^^^^^^^^^^^^^^^^^
+
 error: unexpected token
   --> $DIR/html-component-fail.rs:61:32
    |
@@ -47,48 +53,48 @@ error: expected component tag be of form `< .. />`
    |     ^^^^^^^^^^^^^^^^
 
 error[E0425]: cannot find value `blah` in this scope
-  --> $DIR/html-component-fail.rs:69:26
+  --> $DIR/html-component-fail.rs:73:26
    |
-69 |     <ChildComponent with blah />
+73 |     <ChildComponent with blah />
    |                          ^^^^ not found in this scope
 
 error[E0277]: the trait bound `std::string::String: yew_shared::html::Component` is not satisfied
-  --> $DIR/html-component-fail.rs:65:6
+  --> $DIR/html-component-fail.rs:69:6
    |
-65 |     <String />
+69 |     <String />
    |      ^^^^^^ the trait `yew_shared::html::Component` is not implemented for `std::string::String`
    |
    = note: required by `yew_shared::virtual_dom::vcomp::VComp::<COMP>::lazy`
 
 error[E0277]: the trait bound `std::string::String: yew_shared::html::Renderable<std::string::String>` is not satisfied
-  --> $DIR/html-component-fail.rs:65:6
+  --> $DIR/html-component-fail.rs:69:6
    |
-65 |     <String />
+69 |     <String />
    |      ^^^^^^ the trait `yew_shared::html::Renderable<std::string::String>` is not implemented for `std::string::String`
    |
    = note: required by `yew_shared::virtual_dom::vcomp::VComp::<COMP>::lazy`
 
 error[E0609]: no field `unknown` on type `ChildProperties`
-  --> $DIR/html-component-fail.rs:73:21
+  --> $DIR/html-component-fail.rs:77:21
    |
-73 |     <ChildComponent unknown="unknown" />
+77 |     <ChildComponent unknown="unknown" />
    |                     ^^^^^^^ unknown field
    |
    = note: available fields are: `string`, `int`
 
 error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:77:28
+  --> $DIR/html-component-fail.rs:81:28
    |
-77 |     <ChildComponent string={} />
+81 |     <ChildComponent string={} />
    |                            ^^ expected struct `std::string::String`, found ()
    |
    = note: expected type `std::string::String`
               found type `()`
 
 error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:81:28
+  --> $DIR/html-component-fail.rs:85:28
    |
-81 |     <ChildComponent string=3 />
+85 |     <ChildComponent string=3 />
    |                            ^
    |                            |
    |                            expected struct `std::string::String`, found integer
@@ -98,9 +104,9 @@ error[E0308]: mismatched types
               found type `{integer}`
 
 error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:85:28
+  --> $DIR/html-component-fail.rs:89:28
    |
-85 |     <ChildComponent string={3} />
+89 |     <ChildComponent string={3} />
    |                            ^^^
    |                            |
    |                            expected struct `std::string::String`, found integer
@@ -110,9 +116,9 @@ error[E0308]: mismatched types
               found type `{integer}`
 
 error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:89:25
+  --> $DIR/html-component-fail.rs:93:25
    |
-89 |     <ChildComponent int=0u32 />
+93 |     <ChildComponent int=0u32 />
    |                         ^^^^ expected i32, found u32
 
 Some errors occurred: E0277, E0308, E0425, E0609.

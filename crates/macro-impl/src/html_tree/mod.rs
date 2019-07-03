@@ -13,6 +13,7 @@ use html_iterable::HtmlIterable;
 use html_list::HtmlList;
 use html_node::HtmlNode;
 use html_prop::HtmlProp;
+use html_prop::HtmlPropLabel;
 use html_prop::HtmlPropSuffix;
 use html_tag::HtmlTag;
 use proc_macro2::TokenStream;
