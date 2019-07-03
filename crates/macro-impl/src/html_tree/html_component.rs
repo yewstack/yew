@@ -58,7 +58,7 @@ impl ToTokens for HtmlComponent {
 
                 let set_props = vec_props.iter().map(|HtmlProp { name, value }| {
                     quote_spanned! { value.span()=>
-                        #vcomp_props.#name = <::yew::virtual_dom::vcomp::VComp<Self> as ::yew::virtual_dom::vcomp::Transformer<Self, _, _>>::transform(#vcomp_scope.clone(), #value);
+                        #vcomp_props.#name = <::yew::virtual_dom::vcomp::VComp<_> as ::yew::virtual_dom::vcomp::Transformer<_, _, _>>::transform(#vcomp_scope.clone(), #value);
                     }
                 });
 
@@ -72,7 +72,7 @@ impl ToTokens for HtmlComponent {
         });
 
         tokens.extend(quote_spanned! { ty.span()=> {
-            let #vcomp_scope: ::yew::virtual_dom::vcomp::ScopeHolder<Self> = ::std::default::Default::default();
+            let #vcomp_scope: ::yew::virtual_dom::vcomp::ScopeHolder<_> = ::std::default::Default::default();
             let mut #vcomp_props: <#ty as ::yew::html::Component>::Properties = ::std::default::Default::default();
             #(#override_props)*
             ::yew::virtual_dom::VNode::VComp(
