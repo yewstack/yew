@@ -203,29 +203,29 @@ impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <div>
-                <section class="game-container",>
-                    <header class="app-header",>
-                        <img src="favicon.ico", class="app-logo",/>
-                        <h1 class="app-title",>{ "Game of Life" }</h1>
+                <section class="game-container">
+                    <header class="app-header">
+                        <img src="favicon.ico" class="app-logo"/>
+                        <h1 class="app-title">{ "Game of Life" }</h1>
                     </header>
-                    <section class="game-area",>
-                        <div class="game-of-life",>
+                    <section class="game-area">
+                        <div class="game-of-life">
                             { for self.cellules.iter().enumerate().map(view_cellule) }
                         </div>
-                        <div class="game-buttons",>
-                            <button class="game-button", onclick=|_| Msg::Random,>{ "Random" }</button>
-                            <button class="game-button", onclick=|_| Msg::Step,>{ "Step" }</button>
-                            <button class="game-button", onclick=|_| Msg::Start,>{ "Start" }</button>
-                            <button class="game-button", onclick=|_| Msg::Stop,>{ "Stop" }</button>
-                            <button class="game-button", onclick=|_| Msg::Reset,>{ "Reset" }</button>
+                        <div class="game-buttons">
+                            <button class="game-button" onclick=|_| Msg::Random>{ "Random" }</button>
+                            <button class="game-button" onclick=|_| Msg::Step>{ "Step" }</button>
+                            <button class="game-button" onclick=|_| Msg::Start>{ "Start" }</button>
+                            <button class="game-button" onclick=|_| Msg::Stop>{ "Stop" }</button>
+                            <button class="game-button" onclick=|_| Msg::Reset>{ "Reset" }</button>
                         </div>
                     </section>
                 </section>
-                <footer class="app-footer",>
-                    <strong class="footer-text",>
+                <footer class="app-footer">
+                    <strong class="footer-text">
                       { "Game of Life - a yew experiment " }
                     </strong>
-                    <a href="https://github.com/DenisKolodin/yew", target="_blank",>{ "source" }</a>
+                    <a href="https://github.com/DenisKolodin/yew" target="_blank">{ "source" }</a>
                 </footer>
             </div>
         }
@@ -237,7 +237,7 @@ fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Model> {
         if cellule.life_state == LifeState::Alive { "cellule-live" } else { "cellule-dead" }
     };
     html! {
-        <div class=("game-cellule", cellule_status),
-            onclick=|_| Msg::ToggleCellule(idx),> </div>
+        <div class=("game-cellule", cellule_status) onclick=|_| Msg::ToggleCellule(idx)>
+        </div>
     }
 }

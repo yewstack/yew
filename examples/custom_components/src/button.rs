@@ -56,8 +56,7 @@ impl Component for Button {
 impl Renderable<Button> for Button {
     fn view(&self) -> Html<Self> {
         html! {
-            <button onclick=|_| Msg::Clicked,>{ &self.title }</button>
+            <button onclick=|_| Msg::Clicked>{ &self.title }</button>
         }
     }
 }
-

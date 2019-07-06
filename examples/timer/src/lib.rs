@@ -102,9 +102,9 @@ impl Renderable<Model> for Model {
         let has_job = self.job.is_some();
         html! {
             <div>
-                <button disabled= has_job, onclick=|_| Msg::StartTimeout,>{ "Start Timeout" }</button>
-                <button disabled= has_job, onclick=|_| Msg::StartInterval,>{ "Start Interval" }</button>
-                <button disabled=!has_job, onclick=|_| Msg::Cancel,>{ "Cancel!" }</button>
+                <button disabled=has_job onclick=|_| Msg::StartTimeout>{ "Start Timeout" }</button>
+                <button disabled=has_job onclick=|_| Msg::StartInterval>{ "Start Interval" }</button>
+                <button disabled=!has_job onclick=|_| Msg::Cancel>{ "Cancel!" }</button>
                 <div>
                     { for self.messages.iter().map(view_message) }
                 </div>

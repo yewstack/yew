@@ -30,6 +30,10 @@ impl Renderable<Comp> for Comp {
 #[test]
 fn text_as_root() {
     let _: VNode<Comp> = html! {
+        "Text Node As Root"
+    };
+
+    let _: VNode<Comp> = html! {
         { "Text Node As Root" }
     };
 }

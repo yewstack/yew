@@ -39,12 +39,12 @@ impl Renderable<Model> for Model {
         html! {
             <div>
                 <div>
-                    <textarea rows=5,
-                        value=&self.value,
-                        oninput=|e| Msg::GotInput(e.value),
-                        placeholder="placeholder",>
+                    <textarea rows=5
+                        value=&self.value
+                        oninput=|e| Msg::GotInput(e.value)
+                        placeholder="placeholder">
                     </textarea>
-                     <button onclick=|_| Msg::Clicked,>{ "change value" }</button>
+                    <button onclick=|_| Msg::Clicked>{ "change value" }</button>
                 </div>
                 <div>
                     {&self.value}

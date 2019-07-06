@@ -66,10 +66,10 @@ impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <div>
-                <nav class="menu",>
-                    <button onclick=|_| Msg::SendToWorker,>{ "Send to Thread" }</button>
-                    <button onclick=|_| Msg::SendToJob,>{ "Send to Job" }</button>
-                    <button onclick=|_| Msg::SendToContext,>{ "Send to Context" }</button>
+                <nav class="menu">
+                    <button onclick=|_| Msg::SendToWorker>{ "Send to Thread" }</button>
+                    <button onclick=|_| Msg::SendToJob>{ "Send to Job" }</button>
+                    <button onclick=|_| Msg::SendToContext>{ "Send to Context" }</button>
                 </nav>
             </div>
         }

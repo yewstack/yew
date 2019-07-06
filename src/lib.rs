@@ -41,7 +41,7 @@
 //!     fn view(&self) -> Html<Self> {
 //!         html! {
 //!             <div>
-//!                <button onclick=|_| Msg::DoIt,>{ "+1" }</button>
+//!                <button onclick=|_| Msg::DoIt>{ "+1" }</button>
 //!                 <p>{ self.value }</p>
 //!             </div>
 //!         }

@@ -11,7 +11,7 @@
 //! fn view() -> Html<Model> {
 //!     let scenes = vec![Scene::First, Scene::Second];
 //!     html! {
-//!         <Select<Scenes>: options=scenes, />
+//!         <Select<Scenes> options=scenes />
 //!     }
 //! }
 
@@ -96,11 +96,11 @@ where
         let view_option = |value: &T| {
             let flag = selected == Some(value);
             html! {
-                <option selected=flag,>{ value.to_string() }</option>
+                <option selected=flag>{ value.to_string() }</option>
             }
         };
         html! {
-            <select disabled=self.props.disabled,
+            <select disabled=self.props.disabled
                     onchange=|event| {
                         match event {
                             ChangeData::Select(elem) => {
@@ -111,10 +111,10 @@ where
                                 unreachable!();
                             }
                         }
-                    },>
-                <option disabled=true,
-                        selected=selected.is_none(),
-                        >{ "↪" }</option>
+                    }>
+                <option disabled=true selected=selected.is_none()>
+                    { "↪" }
+                </option>
                 { for self.props.options.iter().map(view_option) }
             </select>
         }
