@@ -63,8 +63,6 @@ error[E0277]: the trait bound `std::string::String: yew_shared::html::Component`
    |
 69 |     <String />
    |      ^^^^^^ the trait `yew_shared::html::Component` is not implemented for `std::string::String`
-   |
-   = note: required by `yew_shared::virtual_dom::vcomp::VComp::<COMP>::lazy`
 
 error[E0277]: the trait bound `std::string::String: yew_shared::html::Renderable<std::string::String>` is not satisfied
   --> $DIR/html-component-fail.rs:69:6
@@ -72,7 +70,7 @@ error[E0277]: the trait bound `std::string::String: yew_shared::html::Renderable
 69 |     <String />
    |      ^^^^^^ the trait `yew_shared::html::Renderable<std::string::String>` is not implemented for `std::string::String`
    |
-   = note: required by `yew_shared::virtual_dom::vcomp::VComp::<COMP>::lazy`
+   = note: required by `yew_shared::virtual_dom::vcomp::VComp::<COMP>::new`
 
 error[E0609]: no field `unknown` on type `ChildProperties`
   --> $DIR/html-component-fail.rs:77:21
