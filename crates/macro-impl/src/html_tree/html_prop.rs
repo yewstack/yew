@@ -114,8 +114,10 @@ impl fmt::Display for HtmlPropLabel {
 
 impl Parse for HtmlPropLabel {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let name = if let Ok(ty) = input.parse::<Token![type]>() {
-            Ident::new("type", ty.span).into()
+        let name = if let Ok(token) = input.parse::<Token![type]>() {
+            Ident::new("type", token.span).into()
+        } else if let Ok(token) = input.parse::<Token![for]>() {
+            Ident::new("for", token.span).into()
         } else {
             input.parse::<Ident>()?.into()
         };
