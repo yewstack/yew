@@ -64,15 +64,14 @@ impl Component for Barrier {
 impl Renderable<Barrier> for Barrier {
     fn view(&self) -> Html<Self> {
         html! {
-            <div class="barrier",>
+            <div class="barrier">
                 <p>{ format!("{} on {} clicked", self.counter, self.limit) }</p>
-                <Button: onsignal=|_| Msg::ChildClicked, />
-                <Button: onsignal=|_| Msg::ChildClicked, />
-                <Button: onsignal=|_| Msg::ChildClicked, title="Middle", />
-                <Button: onsignal=|_| Msg::ChildClicked, />
-                <Button: onsignal=|_| Msg::ChildClicked, />
+                <Button onsignal=|_| Msg::ChildClicked />
+                <Button onsignal=|_| Msg::ChildClicked />
+                <Button onsignal=|_| Msg::ChildClicked title="Middle" />
+                <Button onsignal=|_| Msg::ChildClicked />
+                <Button onsignal=|_| Msg::ChildClicked />
             </div>
         }
     }
 }
-

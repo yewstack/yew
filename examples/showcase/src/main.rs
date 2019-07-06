@@ -71,16 +71,15 @@ impl Component for Model {
 impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
-            <div id="fullscreen",>
-                <div id="left_pane",>
+            <div id="fullscreen">
+                <div id="left_pane">
                     <h2>{ "Yew showcase" }</h2>
-                    <Select<Scene>:
-                        selected=self.scene.clone(),
-                        options=Scene::iter().collect::<Vec<_>>(),
-                        onchange=Msg::SwitchTo,
-                        />
+                    <Select<Scene>
+                        selected=self.scene.clone()
+                        options=Scene::iter().collect::<Vec<_>>()
+                        onchange=Msg::SwitchTo />
                 </div>
-                <div id="right_pane",>
+                <div id="right_pane">
                     { self.view_scene() }
                 </div>
             </div>
@@ -92,81 +91,21 @@ impl Model {
     fn view_scene(&self) -> Html<Self> {
         if let Some(scene) = self.scene.as_ref() {
             match scene {
-                Scene::Counter => {
-                    html! {
-                        <Counter: />
-                    }
-                }
-                Scene::Crm => {
-                    html! {
-                        <Crm: />
-                    }
-                }
-                Scene::CustomComponents => {
-                    html! {
-                        <CustomComponents: />
-                    }
-                }
-                Scene::Dashboard => {
-                    html! {
-                        <Dashboard: />
-                    }
-                }
-                Scene::Fragments => {
-                    html! {
-                        <Fragments: />
-                    }
-                }
-                Scene::GameOfLife => {
-                    html! {
-                        <GameOfLife: />
-                    }
-                }
-                Scene::InnerHtml => {
-                    html! {
-                        <InnerHtml: />
-                    }
-                }
-                Scene::LargeTable => {
-                    html! {
-                        <LargeTable: />
-                    }
-                }
-                Scene::MountPoint => {
-                    html! {
-                        <MountPoint: />
-                    }
-                }
-                Scene::NpmAndRest => {
-                    html! {
-                        <NpmAndRest: />
-                    }
-                }
-                Scene::Routing => {
-                    html! {
-                        <Routing: />
-                    }
-                }
-                Scene::Textarea => {
-                    html! {
-                        <Textarea: />
-                    }
-                }
-                Scene::Timer => {
-                    html! {
-                        <Timer: />
-                    }
-                }
-                Scene::Todomvc => {
-                    html! {
-                        <Todomvc: />
-                    }
-                }
-                Scene::TwoApps => {
-                    html! {
-                        <TwoApps: />
-                    }
-                }
+                Scene::Counter => html! { <Counter /> },
+                Scene::Crm => html! { <Crm /> },
+                Scene::CustomComponents => html! { <CustomComponents /> },
+                Scene::Dashboard => html! { <Dashboard /> },
+                Scene::Fragments => html! { <Fragments /> },
+                Scene::GameOfLife => html! { <GameOfLife /> },
+                Scene::InnerHtml => html! { <InnerHtml /> },
+                Scene::LargeTable => html! { <LargeTable /> },
+                Scene::MountPoint => html! { <MountPoint /> },
+                Scene::NpmAndRest => html! { <NpmAndRest /> },
+                Scene::Routing => html! { <Routing /> },
+                Scene::Textarea => html! { <Textarea /> },
+                Scene::Timer => html! { <Timer /> },
+                Scene::Todomvc => html! { <Todomvc /> },
+                Scene::TwoApps => html! { <TwoApps /> },
             }
         } else {
             html! {
@@ -187,4 +126,3 @@ fn main() {
     trace!("Run");
     yew::run_loop();
 }
-

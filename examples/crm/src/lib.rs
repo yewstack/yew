@@ -151,30 +151,30 @@ impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         match self.scene {
             Scene::ClientsList => html! {
-                <div class="crm",>
-                    <div class="clients",>
+                <div class="crm">
+                    <div class="clients">
                         { for self.database.clients.iter().map(Renderable::view) }
                     </div>
-                    <button onclick=|_| Msg::SwitchTo(Scene::NewClientForm(Client::empty())),>{ "Add New" }</button>
-                    <button onclick=|_| Msg::SwitchTo(Scene::Settings),>{ "Settings" }</button>
+                    <button onclick=|_| Msg::SwitchTo(Scene::NewClientForm(Client::empty()))>{ "Add New" }</button>
+                    <button onclick=|_| Msg::SwitchTo(Scene::Settings)>{ "Settings" }</button>
                 </div>
             },
             Scene::NewClientForm(ref client) => html! {
-                <div class="crm",>
-                    <div class="names",>
+                <div class="crm">
+                    <div class="names">
                         { client.view_first_name_input() }
                         { client.view_last_name_input() }
                         { client.view_description_textarea() }
                     </div>
-                    <button disabled=client.first_name.is_empty() || client.last_name.is_empty(),
-                            onclick=|_| Msg::AddNew,>{ "Add New" }</button>
-                    <button onclick=|_| Msg::SwitchTo(Scene::ClientsList),>{ "Go Back" }</button>
+                    <button disabled=client.first_name.is_empty() || client.last_name.is_empty()
+                            onclick=|_| Msg::AddNew>{ "Add New" }</button>
+                    <button onclick=|_| Msg::SwitchTo(Scene::ClientsList)>{ "Go Back" }</button>
                 </div>
             },
             Scene::Settings => html! {
                 <div>
-                    <button onclick=|_| Msg::Clear,>{ "Clear Database" }</button>
-                    <button onclick=|_| Msg::SwitchTo(Scene::ClientsList),>{ "Go Back" }</button>
+                    <button onclick=|_| Msg::Clear>{ "Clear Database" }</button>
+                    <button onclick=|_| Msg::SwitchTo(Scene::ClientsList)>{ "Go Back" }</button>
                 </div>
             },
         }
@@ -184,11 +184,11 @@ impl Renderable<Model> for Model {
 impl Renderable<Model> for Client {
     fn view(&self) -> Html<Model> {
         html! {
-            <div class="client",>
+            <div class="client">
                 <p>{ format!("First Name: {}", self.first_name) }</p>
                 <p>{ format!("Last Name: {}", self.last_name) }</p>
-                <p>{ "Description:"}</p>
-                {markdown::render_markdown(&self.description)}
+                <p>{ "Description:" }</p>
+                { markdown::render_markdown(&self.description) }
             </div>
         }
     }
@@ -197,30 +197,27 @@ impl Renderable<Model> for Client {
 impl Client {
     fn view_first_name_input(&self) -> Html<Model> {
         html! {
-            <input class="new-client firstname",
-                   placeholder="First name",
-                   value=&self.first_name,
-                   oninput=|e| Msg::UpdateFirstName(e.value),
-                   />
+            <input class="new-client firstname"
+                   placeholder="First name"
+                   value=&self.first_name
+                   oninput=|e| Msg::UpdateFirstName(e.value) />
         }
     }
 
     fn view_last_name_input(&self) -> Html<Model> {
         html! {
-            <input class="new-client lastname",
-                   placeholder="Last name",
-                   value=&self.last_name,
-                   oninput=|e| Msg::UpdateLastName(e.value),
-                   />
+            <input class="new-client lastname"
+                   placeholder="Last name"
+                   value=&self.last_name
+                   oninput=|e| Msg::UpdateLastName(e.value) />
         }
     }
     fn view_description_textarea(&self) -> Html<Model> {
         html! {
-            <textarea class=("new-client", "description"),
-               placeholder="Description",
-               value=&self.description,
-               oninput=|e| Msg::UpdateDescription(e.value),
-               />
+            <textarea class=("new-client", "description")
+               placeholder="Description"
+               value=&self.description
+               oninput=|e| Msg::UpdateDescription(e.value) />
         }
     }
 }

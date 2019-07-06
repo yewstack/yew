@@ -120,35 +120,35 @@ impl Component for Model {
 impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
-            <div class="todomvc-wrapper",>
-                <section class="todoapp",>
-                    <header class="header",>
+            <div class="todomvc-wrapper">
+                <section class="todoapp">
+                    <header class="header">
                         <h1>{ "todos" }</h1>
                         { self.view_input() }
                     </header>
-                    <section class="main",>
-                        <input class="toggle-all", type="checkbox", checked=self.state.is_all_completed(), onclick=|_| Msg::ToggleAll, />
-                        <ul class="todo-list",>
+                    <section class="main">
+                        <input class="toggle-all" type="checkbox" checked=self.state.is_all_completed() onclick=|_| Msg::ToggleAll />
+                        <ul class="todo-list">
                             { for self.state.entries.iter().filter(|e| self.state.filter.fit(e)).enumerate().map(view_entry) }
                         </ul>
                     </section>
-                    <footer class="footer",>
-                        <span class="todo-count",>
+                    <footer class="footer">
+                        <span class="todo-count">
                             <strong>{ self.state.total() }</strong>
                             { " item(s) left" }
                         </span>
-                        <ul class="filters",>
+                        <ul class="filters">
                             { for Filter::iter().map(|flt| self.view_filter(flt)) }
                         </ul>
-                        <button class="clear-completed", onclick=|_| Msg::ClearCompleted,>
+                        <button class="clear-completed" onclick=|_| Msg::ClearCompleted>
                             { format!("Clear completed ({})", self.state.total_completed()) }
                         </button>
                     </footer>
                 </section>
-                <footer class="info",>
+                <footer class="info">
                     <p>{ "Double-click to edit a todo" }</p>
-                    <p>{ "Written by " }<a href="https://github.com/DenisKolodin/", target="_blank",>{ "Denis Kolodin" }</a></p>
-                    <p>{ "Part of " }<a href="http://todomvc.com/", target="_blank",>{ "TodoMVC" }</a></p>
+                    <p>{ "Written by " }<a href="https://github.com/DenisKolodin/" target="_blank">{ "Denis Kolodin" }</a></p>
+                    <p>{ "Part of " }<a href="http://todomvc.com/" target="_blank">{ "TodoMVC" }</a></p>
                 </footer>
             </div>
         }
@@ -160,9 +160,9 @@ impl Model {
         let flt = filter.clone();
         html! {
             <li>
-                <a class=if self.state.filter == flt { "selected" } else { "not-selected" },
-                   href=&flt,
-                   onclick=|_| Msg::SetFilter(flt.clone()),>
+                <a class=if self.state.filter == flt { "selected" } else { "not-selected" }
+                   href=&flt
+                   onclick=|_| Msg::SetFilter(flt.clone())>
                     { filter }
                 </a>
             </li>
@@ -173,13 +173,13 @@ impl Model {
         html! {
             // You can use standard Rust comments. One line:
             // <li></li>
-            <input class="new-todo",
-                   placeholder="What needs to be done?",
-                   value=&self.state.value,
-                   oninput=|e| Msg::Update(e.value),
+            <input class="new-todo"
+                   placeholder="What needs to be done?"
+                   value=&self.state.value
+                   oninput=|e| Msg::Update(e.value)
                    onkeypress=|e| {
                        if e.key() == "Enter" { Msg::Add } else { Msg::Nope }
-                   }, />
+                   } />
             /* Or multiline:
             <ul>
                 <li></li>
@@ -198,11 +198,11 @@ fn view_entry((idx, entry): (usize, &Entry)) -> Html<Model> {
         class.push_str(" completed");
     }
     html! {
-        <li class=class,>
-            <div class="view",>
-                <input class="toggle", type="checkbox", checked=entry.completed, onclick=|_| Msg::Toggle(idx), />
-                <label ondoubleclick=|_| Msg::ToggleEdit(idx),>{ &entry.description }</label>
-                <button class="destroy", onclick=|_| Msg::Remove(idx), />
+        <li class=class>
+            <div class="view">
+                <input class="toggle" type="checkbox" checked=entry.completed onclick=|_| Msg::Toggle(idx) />
+                <label ondoubleclick=|_| Msg::ToggleEdit(idx)>{ &entry.description }</label>
+                <button class="destroy" onclick=|_| Msg::Remove(idx) />
             </div>
             { view_entry_edit_input((idx, &entry)) }
         </li>
@@ -212,17 +212,17 @@ fn view_entry((idx, entry): (usize, &Entry)) -> Html<Model> {
 fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Model> {
     if entry.editing == true {
         html! {
-            <input class="edit",
-                   type="text",
-                   value=&entry.description,
-                   oninput=|e| Msg::UpdateEdit(e.value),
-                   onblur=|_| Msg::Edit(idx),
+            <input class="edit"
+                   type="text"
+                   value=&entry.description
+                   oninput=|e| Msg::UpdateEdit(e.value)
+                   onblur=|_| Msg::Edit(idx)
                    onkeypress=|e| {
                       if e.key() == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
-                   }, />
+                   } />
         }
     } else {
-        html! { <input type="hidden", /> }
+        html! { <input type="hidden" /> }
     }
 }
 
