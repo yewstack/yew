@@ -13,6 +13,7 @@ addons:
 
 cache:
   cargo: true
+  timeout: 1000
   directories:
     - /home/travis/.local/share/cargo-web/emscripten
 
