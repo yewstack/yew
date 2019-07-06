@@ -52,13 +52,13 @@ impl ToTokens for HtmlComponent {
         let vcomp_scope = Ident::new("__yew_vcomp_scope", Span::call_site());
         let override_props = props.iter().map(|props| match props {
             Props::List(ListProps(vec_props)) => {
-                let check_props = vec_props.iter().map(|HtmlProp { name, .. }| {
-                    quote_spanned! { name.span()=> #vcomp_props.#name; }
+                let check_props = vec_props.iter().map(|HtmlProp { label, .. }| {
+                    quote_spanned! { label.span()=> #vcomp_props.#label; }
                 });
 
-                let set_props = vec_props.iter().map(|HtmlProp { name, value }| {
+                let set_props = vec_props.iter().map(|HtmlProp { label, value }| {
                     quote_spanned! { value.span()=>
-                        #vcomp_props.#name = <::yew::virtual_dom::vcomp::VComp<_> as ::yew::virtual_dom::vcomp::Transformer<_, _, _>>::transform(#vcomp_scope.clone(), #value);
+                        #vcomp_props.#label = <::yew::virtual_dom::vcomp::VComp<_> as ::yew::virtual_dom::vcomp::Transformer<_, _, _>>::transform(#vcomp_scope.clone(), #value);
                     }
                 });
 
@@ -194,8 +194,11 @@ impl Parse for ListProps {
         }
 
         for prop in &props {
-            if prop.name.to_string() == "type" {
-                return Err(syn::Error::new_spanned(&prop.name, "expected identifier"));
+            if prop.label.to_string() == "type" {
+                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
+            }
+            if !prop.label.extended.is_empty() {
+                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
             }
         }
 
