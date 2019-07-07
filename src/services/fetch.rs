@@ -85,6 +85,7 @@ impl FetchService {
     ///                 Msg::Error
     ///             }
     ///         }
+    ///     )
     /// ```
     ///
     /// One can also simply consume and pass the response or body object into
@@ -101,6 +102,7 @@ impl FetchService {
     ///                 Msg::FetchResourceFailed
     ///             }
     ///         }
+    ///     )
     /// ```
     ///
     pub fn fetch<IN, OUT: 'static>(
