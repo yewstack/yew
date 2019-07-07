@@ -61,7 +61,7 @@ impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             // Render your model here
-            <button onclick=|_| Msg::DoIt,>{ "Click me!" }</button>
+            <button onclick=|_| Msg::DoIt>{ "Click me!" }</button>
         }
     }
 }
@@ -80,16 +80,16 @@ Feel free to put pure Rust code into HTML tags with all the compiler and borrow 
 
 ```rust
 html! {
-    <section class="todoapp",>
-        <header class="header",>
+    <section class="todoapp">
+        <header class="header">
             <h1>{ "todos" }</h1>
             { view_input(&model) }
         </header>
-        <section class="main",>
-            <input class="toggle-all",
-                   type="checkbox",
-                   checked=model.is_all_completed(),
-                   onclick=|_| Msg::ToggleAll, />
+        <section class="main">
+            <input class="toggle-all"
+                   type="checkbox"
+                   checked=model.is_all_completed()
+                   onclick=|_| Msg::ToggleAll />
             { view_entries(&model) }
         </section>
     </section>
@@ -188,9 +188,9 @@ and including it directly into the `html!` template:
 
 ```rust
 html! {
-    <nav class="menu",>
-        <MyButton: title="First Button",/>
-        <MyButton: title="Second Button",/>
+    <nav class="menu">
+        <MyButton title="First Button" />
+        <MyButton title="Second Button "/>
     </nav>
 }
 ```
@@ -204,9 +204,9 @@ Properties are also pure Rust types with strict type-checking during the compila
 
 ```rust
 html! {
-    <nav class="menu",>
-        <MyButton: color=Color::Red,/>
-        <MyButton: onclick=|_| ParentMsg::DoIt,/>
+    <nav class="menu">
+        <MyButton color=Color::Red />
+        <MyButton onclick=|_| ParentMsg::DoIt />
     </nav>
 }
 ```

@@ -40,7 +40,7 @@ impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <>
-                <nav class="menu",>{ self.view_menu() }</nav>
+                <nav class="menu">{ self.view_menu() }</nav>
                 <table>
                     <tr>
                         // Important! All columns have contain the same elements
@@ -69,8 +69,8 @@ impl Model {
     fn view_menu(&self) -> Html<Self> {
         html! {
             <>
-                <button onclick=|_| Msg::More,>{ "More" }</button>
-                <button onclick=|_| Msg::Less,>{ "Less" }</button>
+                <button onclick=|_| Msg::More>{ "More" }</button>
+                <button onclick=|_| Msg::Less>{ "Less" }</button>
             </>
         }
     }

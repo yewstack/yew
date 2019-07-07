@@ -62,20 +62,19 @@ impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <div>
-                <textarea
-                    oninput=|input| Msg::Payload(input.value),
-                    style="font-family: 'Monaco', monospace;",
-                    value={ &self.payload },
-                ></textarea>
-                <button onclick=|_| Msg::Payload(get_payload()), >{
-                    "Get the payload!"
-                }</button>
-                <button onclick=|_| Msg::AsyncPayload, >{
-                    "Get the payload later!"
-                }</button>
-                <p style="font-family: 'Monaco', monospace;", >{
-                    nbsp(self.debugged_payload.as_ref())
-                }</p>
+                <textarea oninput=|input| Msg::Payload(input.value)
+                    style="font-family: 'Monaco' monospace;"
+                    value={ &self.payload }>
+                </textarea>
+                <button onclick=|_| Msg::Payload(get_payload())>
+                    { "Get the payload!" }
+                </button>
+                <button onclick=|_| Msg::AsyncPayload >
+                    { "Get the payload later!" }
+                </button>
+                <p style="font-family: 'Monaco', monospace;">
+                    { nbsp(self.debugged_payload.as_ref()) }
+                </p>
             </div>
         }
     }

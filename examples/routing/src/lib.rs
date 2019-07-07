@@ -94,9 +94,9 @@ impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <div>
-                <nav class="menu",>
-                    <button onclick=|_| Msg::NavigateTo(Child::A),>{ "Go to A" }</button>
-                    <button onclick=|_| Msg::NavigateTo(Child::B),>{ "Go to B" }</button>
+                <nav class="menu">
+                    <button onclick=|_| Msg::NavigateTo(Child::A)>{ "Go to A" }</button>
+                    <button onclick=|_| Msg::NavigateTo(Child::B)>{ "Go to B" }</button>
                 </nav>
                 <div>
                     {self.child.view()}
@@ -117,7 +117,7 @@ impl Renderable<Model> for Child {
             Child::B => html! {
                 <>
                     {"This corresponds to route 'b'"}
-                    <BModel: />
+                    <BModel />
                 </>
             },
             Child::PathNotFound(ref path) => html! {

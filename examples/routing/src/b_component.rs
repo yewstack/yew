@@ -114,8 +114,8 @@ impl Renderable<BModel> for BModel {
             <div>
                 <div>
                     { self.display_number() }
-                    <button onclick=|_| Msg::Navigate(vec![Msg::Increment]),>{ "Increment" }</button>
-                    <button onclick=|_| Msg::Navigate(vec![Msg::Decrement]),>{ "Decrement" }</button>
+                    <button onclick=|_| Msg::Navigate(vec![Msg::Increment])>{ "Increment" }</button>
+                    <button onclick=|_| Msg::Navigate(vec![Msg::Decrement])>{ "Decrement" }</button>
                 </div>
 
                 { self.display_subpath_input() }
@@ -136,11 +136,9 @@ impl BModel {
     fn display_subpath_input(&self) -> Html<BModel> {
         let sub_path = self.sub_path.clone();
         html! {
-            <input
-                placeholder="subpath",
-                value=sub_path.unwrap_or("".into()),
-                oninput=|e| Msg::Navigate(vec![Msg::UpdateSubpath(e.value)]),
-                />
+            <input placeholder="subpath"
+                value=sub_path.unwrap_or("".into())
+                oninput=|e| Msg::Navigate(vec![Msg::UpdateSubpath(e.value)]) />
         }
     }
 }
