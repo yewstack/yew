@@ -7,7 +7,8 @@ test_html! { |t1|
         <div data-key="abc"></div>
         <div class="parent">
             <span class="child", value="anything",></span>
-            <input type="text" value="placeholder" />
+            <label for="first-name">{"First Name"}</label>
+            <input type="text" id="first-name" value="placeholder" />
             <input type="checkbox" checked=true />
             <textarea value="write a story" />
             <select name="status">
