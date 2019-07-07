@@ -75,12 +75,10 @@ impl Renderable<Counter> for Counter {
             }
         };
         html! {
-            <div class="couter",>
+            <div class="couter">
                 <p>{ self.value }</p>
-                <button style=colorize, onclick=|_| Msg::Increase,>{ "Increase internal counter" }</button>
+                <button style=colorize onclick=|_| Msg::Increase>{ "Increase internal counter" }</button>
             </div>
         }
     }
 }
-
-

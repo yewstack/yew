@@ -45,19 +45,19 @@ impl Renderable<Comp> for Comp {
 #[test]
 fn set_properties_to_component() {
     let _: VNode<Comp> = html! {
-        <Comp: />
+        <Comp />
     };
 
     let _: VNode<Comp> = html! {
-        <Comp: field_1=1, />
+        <Comp field_1=1 />
     };
 
     let _: VNode<Comp> = html! {
-        <Comp: field_2=2, />
+        <Comp field_2=2 />
     };
 
     let _: VNode<Comp> = html! {
-        <Comp: field_1=1, field_2=2, />
+        <Comp field_1=1 field_2=2 />
     };
 
     let props = Props {
@@ -66,6 +66,6 @@ fn set_properties_to_component() {
     };
 
     let _: VNode<Comp> = html! {
-        <Comp: with props, field_2=2, />
+        <Comp with props />
     };
 }

@@ -71,8 +71,8 @@ impl Renderable<Model> for Model {
         };
         html! {
             <div>
-                <button onclick=|_| Msg::Exchanges,>{ "Get Exchanges" }</button>
-                <button onclick=|_| Msg::Gravatar,>{ "Get Gravatar" }</button>
+                <button onclick=|_| Msg::Exchanges>{ "Get Exchanges" }</button>
+                <button onclick=|_| Msg::Gravatar>{ "Get Gravatar" }</button>
                 <ul>
                     { for self.exchanges.iter().map(view_exchange) }
                 </ul>

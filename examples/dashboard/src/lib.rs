@@ -173,19 +173,19 @@ impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <div>
-                <nav class="menu",>
-                    <button onclick=|_| Msg::FetchData(Format::Json, false),>{ "Fetch Data" }</button>
-                    <button onclick=|_| Msg::FetchData(Format::Json, true),>{ "Fetch Data [binary]" }</button>
-                    <button onclick=|_| Msg::FetchData(Format::Toml, false),>{ "Fetch Data [toml]" }</button>
+                <nav class="menu">
+                    <button onclick=|_| Msg::FetchData(Format::Json, false)>{ "Fetch Data" }</button>
+                    <button onclick=|_| Msg::FetchData(Format::Json, true)>{ "Fetch Data [binary]" }</button>
+                    <button onclick=|_| Msg::FetchData(Format::Toml, false)>{ "Fetch Data [toml]" }</button>
                     { self.view_data() }
-                    <button disabled=self.ws.is_some(),
-                            onclick=|_| WsAction::Connect.into(),>{ "Connect To WebSocket" }</button>
-                    <button disabled=self.ws.is_none(),
-                            onclick=|_| WsAction::SendData(false).into(),>{ "Send To WebSocket" }</button>
-                    <button disabled=self.ws.is_none(),
-                            onclick=|_| WsAction::SendData(true).into(),>{ "Send To WebSocket [binary]" }</button>
-                    <button disabled=self.ws.is_none(),
-                            onclick=|_| WsAction::Disconnect.into(),>{ "Close WebSocket connection" }</button>
+                    <button disabled=self.ws.is_some()
+                            onclick=|_| WsAction::Connect.into()>{ "Connect To WebSocket" }</button>
+                    <button disabled=self.ws.is_none()
+                            onclick=|_| WsAction::SendData(false).into()>{ "Send To WebSocket" }</button>
+                    <button disabled=self.ws.is_none()
+                            onclick=|_| WsAction::SendData(true).into()>{ "Send To WebSocket [binary]" }</button>
+                    <button disabled=self.ws.is_none()
+                            onclick=|_| WsAction::Disconnect.into()>{ "Close WebSocket connection" }</button>
                 </nav>
             </div>
         }

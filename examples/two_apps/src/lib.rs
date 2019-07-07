@@ -63,10 +63,10 @@ impl Renderable<Model> for Model {
         html! {
             <div>
                 <h3>{ format!("{} received <{}>", self.selector, self.title) }</h3>
-                <button onclick=|_| Msg::SendToOpposite("One".into()),>{ "One" }</button>
-                <button onclick=|_| Msg::SendToOpposite("Two".into()),>{ "Two" }</button>
-                <button onclick=|_| Msg::SendToOpposite("Three".into()),>{ "Three" }</button>
-                <button onclick=|_| Msg::SendToOpposite("Ping".into()),>{ "Ping" }</button>
+                <button onclick=|_| Msg::SendToOpposite("One".into())>{ "One" }</button>
+                <button onclick=|_| Msg::SendToOpposite("Two".into())>{ "Two" }</button>
+                <button onclick=|_| Msg::SendToOpposite("Three".into())>{ "Three" }</button>
+                <button onclick=|_| Msg::SendToOpposite("Ping".into())>{ "Ping" }</button>
             </div>
         }
     }

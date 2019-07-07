@@ -41,10 +41,8 @@ fn square_class(this: (u32, u32), selected: Option<(u32, u32)>) -> &'static str 
 
 fn view_square(selected: Option<(u32, u32)>, row: u32, column: u32) -> Html<Model> {
     html! {
-        <td
-            class=square_class((column, row), selected),
-            onclick=|_| Msg::Select(column, row),
-        >
+        <td class=square_class((column, row), selected)
+            onclick=|_| Msg::Select(column, row)>
         </td>
     }
 }
