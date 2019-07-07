@@ -359,7 +359,7 @@ impl CcxtService {
 
 ### Easy-to-use data conversion and destructuring
 
-Yew allows for serialization (store/send and restore/recieve) formats.
+Yew allows for serialization (store/send and restore/receive) formats.
 
 Implemented: `JSON`, `TOML`, `YAML`, `MSGPACK`, `CBOR`.
 
