@@ -28,6 +28,48 @@ impl Renderable<Comp> for Comp {
     }
 }
 
+struct CompInt;
+
+impl Component for CompInt {
+    type Message = u32;
+    type Properties = ();
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        CompInt
+    }
+
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!();
+    }
+}
+
+impl Renderable<CompInt> for CompInt {
+    fn view(&self) -> Html<Self> {
+        unimplemented!();
+    }
+}
+
+struct CompBool;
+
+impl Component for CompBool {
+    type Message = bool;
+    type Properties = ();
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        CompBool
+    }
+
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!();
+    }
+}
+
+impl Renderable<CompBool> for CompBool {
+    fn view(&self) -> Html<Self> {
+        unimplemented!();
+    }
+}
+
 #[test]
 fn it_compares_tags() {
     let a: VNode<Comp> = html! {
@@ -257,4 +299,37 @@ fn it_allows_aria_attributes() {
     } else {
         panic!("vtag expected");
     }
+}
+
+#[test]
+fn it_checks_mixed_closing_tags() {
+    let a: VNode<Comp> = html! { <div> <div/>      </div> };
+    let b: VNode<Comp> = html! { <div> <div></div> </div> };
+    assert_eq!(a, b);
+
+    let a: VNode<Comp> = html! { <div> <div data-val={ 2 / 1 }/>  </div> };
+    let b: VNode<Comp> = html! { <div> <div data-val={ 2 }></div> </div> };
+    assert_eq!(a, b);
+
+    let a: VNode<Comp> = html! { <div> <div data-val={ 2 > 1 }/>  </div> };
+    let b: VNode<Comp> = html! { <div> <div data-val={ true }></div> </div> };
+    assert_eq!(a, b);
+
+    let a: VNode<CompInt> = html! { <div> <div onblur=|_| 2 / 1/>  </div> };
+    let b: VNode<CompInt> = html! { <div> <div onblur=|_| 3></div> </div> };
+    assert_eq!(a, b); // NB: assert_eq! doesn't (cannot) compare the closures
+
+    // This is a known limitation of the html! macro:
+    //
+    //   html! { <div> <img onblur=|_| 2 > 1 /> </div> }
+    //
+    // You have to put braces or parenthesis around the expression:
+    //
+    //   html! { <div> <img onblur=|_| { 2 > 1 } /> </div> }
+    //
+    let a: VNode<CompBool> = html! { <div> <div onblur=|_| { 2 > 1 } />  </div> };
+    let b: VNode<CompBool> = html! { <div> <div onblur=|_| ( 2 > 1 ) />  </div> };
+    let c: VNode<CompBool> = html! { <div> <div onblur=|_| false></div> </div> };
+    assert_eq!(a, c); // NB: assert_eq! doesn't (cannot) compare the closures
+    assert_eq!(b, c);
 }
