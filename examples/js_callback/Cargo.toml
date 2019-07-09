@@ -6,4 +6,7 @@ edition = "2018"
 
 [dependencies]
 yew = { path = "../.." }
-stdweb = "0.4.7"
+stdweb = "^0.4.16"
+
+[target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
+wasm-bindgen = "0.2"

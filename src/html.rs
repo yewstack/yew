@@ -23,10 +23,7 @@ pub trait Component: Sized + 'static {
     /// Control message type which `update` loop get.
     type Message: 'static;
     /// Properties type of component implementation.
-    /// It sould be serializable because it's sent to dynamicaly created
-    /// component (layed under `VComp`) and must be restored for a component
-    /// with unknown type.
-    type Properties: Clone + Default;
+    type Properties: Properties;
     /// Initialization routine which could use a context.
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
@@ -38,6 +35,30 @@ pub trait Component: Sized + 'static {
     }
     /// Called for finalization on the final point of the component's lifetime.
     fn destroy(&mut self) {} // TODO Replace with `Drop`
+}
+
+/// Trait for building properties for a component
+pub trait Properties {
+    /// Builder that will be used to construct properties
+    type Builder;
+
+    /// Entrypoint for building properties
+    fn builder() -> Self::Builder;
+}
+
+/// Builder for when a component has no properties
+pub struct EmptyBuilder;
+
+impl Properties for () {
+    type Builder = EmptyBuilder;
+
+    fn builder() -> Self::Builder {
+        EmptyBuilder
+    }
+}
+impl EmptyBuilder {
+    /// Build empty properties
+    pub fn build(self) {}
 }
 
 /// Should be rendered relative to context and component environment.

@@ -1,0 +1,34 @@
+error: expected `props(required)`
+  --> $DIR/fail.rs:21:11
+   |
+21 |         #[props(optional)]
+   |           ^^^^^
+
+error[E0277]: the trait bound `t1::Value: std::default::Default` is not satisfied
+ --> $DIR/fail.rs:9:14
+  |
+9 |     #[derive(Properties)]
+  |              ^^^^^^^^^^ the trait `std::default::Default` is not implemented for `t1::Value`
+  |
+  = note: required by `std::default::Default::default`
+
+error[E0599]: no method named `build` found for type `t3::PropsBuilder<t3::Props_value_is_required>` in the current scope
+  --> $DIR/fail.rs:35:26
+   |
+28 |     #[derive(Properties)]
+   |                       - method `build` not found for this
+...
+35 |         Props::builder().build();
+   |                          ^^^^^
+
+error[E0599]: no method named `b` found for type `t4::PropsBuilder<t4::Props_a_is_required>` in the current scope
+  --> $DIR/fail.rs:49:26
+   |
+41 |     #[derive(Properties)]
+   |                       - method `b` not found for this
+...
+49 |         Props::builder().b(1).a(2).build();
+   |                          ^ help: there is a method with a similar name: `a`
+
+Some errors have detailed explanations: E0277, E0599.
+For more information about an error, try `rustc --explain E0277`.

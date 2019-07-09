@@ -1,12 +1,12 @@
 #![recursion_limit = "128"]
 
-mod counter;
-mod button;
 mod barrier;
+mod button;
+mod counter;
 
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
-use counter::{Counter, Color};
 use barrier::Barrier;
+use counter::{Color, Counter};
+use yew::prelude::*;
 
 pub struct Model {
     with_barrier: bool,
@@ -19,8 +19,7 @@ pub enum Msg {
     ChildClicked(u32),
 }
 
-impl Component for Model
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
@@ -41,17 +40,17 @@ impl Component for Model
                 self.with_barrier = !self.with_barrier;
                 true
             }
-            Msg::ChildClicked(_value) => {
-                false
-            }
+            Msg::ChildClicked(_value) => false,
         }
     }
 }
 
 impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
-        let counter = |x| html! {
-            <Counter initial=x color=&self.color onclick=Msg::ChildClicked/>
+        let counter = |x| {
+            html! {
+                <Counter initial=x color=&self.color onclick=Msg::ChildClicked />
+            }
         };
         html! {
             <div class="custom-components-example">
