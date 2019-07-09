@@ -74,6 +74,7 @@ pub use yew_macro::html;
 /// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
     pub use crate::html;
+    pub use yew_props_derive::Properties;
 }
 
 pub mod agent;

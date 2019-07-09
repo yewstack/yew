@@ -204,11 +204,27 @@ Components live in an Angular-like scopes with **parent-to-child** *(properties)
 Properties are also pure Rust types with strict type-checking during the compilation.
 
 ```rust
+// my_button.rs
+
+#[derive(Properties, PartialEq)]
+pub struct Properties {
+    pub hidden: bool,
+    #[props(required)]
+    pub color: Color,
+    #[props(required)]
+    pub onclick: Callback<()>,
+}
+
+```
+
+```rust
+// confirm_dialog.rs
+
 html! {
-    <nav class="menu">
-        <MyButton color=Color::Red />
-        <MyButton onclick=|_| ParentMsg::DoIt />
-    </nav>
+    <div class="confirm-dialog">
+        <MyButton onclick=|_| DialogMsg::Cancel color=Color::Red hidden=false />
+        <MyButton onclick=|_| DialogMsg::Submit color=Color::Blue />
+    </div>
 }
 ```
 

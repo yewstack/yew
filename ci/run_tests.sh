@@ -29,6 +29,9 @@ cargo test --target=wasm32-unknown-unknown
 echo "Testing macro..."
 cargo test --test macro_test
 
+echo "Testing props derive macro..."
+(cd crates/props-derive && cargo test)
+
 check_example() {
     echo "Checking example [$2]"
     pushd $2 > /dev/null

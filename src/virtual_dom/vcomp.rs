@@ -150,12 +150,12 @@ where
     }
 }
 
-impl<'a, COMP, F, IN> Transformer<COMP, F, Option<Callback<IN>>> for VComp<COMP>
+impl<'a, COMP, F, IN> Transformer<COMP, F, Callback<IN>> for VComp<COMP>
 where
     COMP: Component + Renderable<COMP>,
     F: Fn(IN) -> COMP::Message + 'static,
 {
-    fn transform(scope: ScopeHolder<COMP>, from: F) -> Option<Callback<IN>> {
+    fn transform(scope: ScopeHolder<COMP>, from: F) -> Callback<IN> {
         let callback = move |arg| {
             let msg = from(arg);
             if let Some(ref mut sender) = *scope.borrow_mut() {
@@ -164,7 +164,7 @@ where
                 panic!("unactivated callback, parent component have to activate it");
             }
         };
-        Some(callback.into())
+        callback.into()
     }
 }
 
