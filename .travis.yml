@@ -12,10 +12,11 @@ addons:
   chrome: stable
 
 cache:
-  cargo: true
   timeout: 1000
   directories:
-    - /home/travis/.local/share/cargo-web/emscripten
+    - $HOME/.cargo
+    - $HOME/.rustup
+    - $HOME/.local/share/cargo-web/emscripten
 
 rust:
   - nightly
