@@ -1,12 +1,15 @@
-use yew_macro::{html, test_html};
+#[macro_use]
+mod helpers;
 
-test_html! { |t0| }
-test_html! { |t1| <></> }
-test_html! { |t2|
-    <>
-        <></>
-        <></>
-    </>
+pass_helper! {
+    html! {};
+    html! { <></> };
+    html! {
+        <>
+            <></>
+            <></>
+        </>
+    };
 }
 
 fn main() {}
