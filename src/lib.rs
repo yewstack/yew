@@ -65,17 +65,37 @@
 #![recursion_limit = "512"]
 extern crate self as yew;
 
-/// Alias module for the procedural macro.
+/// This module contains macros which implements html! macro and JSX-like templates.
 pub mod macros {
     pub use yew_macro::html;
 }
 
+pub mod agent;
+pub mod app;
+pub mod callback;
 pub mod components;
 pub mod format;
+pub mod html;
+pub mod scheduler;
 pub mod services;
 pub mod utils;
+pub mod virtual_dom;
 
-pub use yew_shared::*;
+/// The module that contains all events available in the framework.
+pub mod events {
+    pub use crate::html::{ChangeData, InputData};
+
+    pub use stdweb::web::event::{
+        BlurEvent, ClickEvent, ContextMenuEvent, DoubleClickEvent, DragDropEvent, DragEndEvent,
+        DragEnterEvent, DragEvent, DragExitEvent, DragLeaveEvent, DragOverEvent, DragStartEvent,
+        FocusEvent, GotPointerCaptureEvent, IKeyboardEvent, IMouseEvent, IPointerEvent,
+        KeyDownEvent, KeyPressEvent, KeyUpEvent, LostPointerCaptureEvent, MouseDownEvent,
+        MouseEnterEvent, MouseLeaveEvent, MouseMoveEvent, MouseOutEvent, MouseOverEvent,
+        MouseUpEvent, MouseWheelEvent, PointerCancelEvent, PointerDownEvent, PointerEnterEvent,
+        PointerLeaveEvent, PointerMoveEvent, PointerOutEvent, PointerOverEvent, PointerUpEvent,
+        ScrollEvent, SubmitEvent,
+    };
+}
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
@@ -107,7 +127,20 @@ where
 /// ```
 pub mod prelude {
     pub use yew_macro::html;
-    pub use yew_shared::prelude::*;
+
+    pub use crate::agent::{Bridge, Bridged, Threaded};
+    pub use crate::app::App;
+    pub use crate::callback::Callback;
+    pub use crate::events::*;
+    pub use crate::html::{Component, ComponentLink, Href, Html, Renderable, ShouldRender};
+
+    /// Prelude module for creating worker.
+    pub mod worker {
+        pub use crate::agent::{
+            Agent, AgentLink, Bridge, Bridged, Context, Global, HandlerId, Job, Private, Public,
+            Transferable,
+        };
+    }
 }
 
 pub use self::prelude::*;
