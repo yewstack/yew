@@ -62,12 +62,18 @@
     anonymous_parameters,
     elided_lifetimes_in_paths
 )]
+#![allow(macro_expanded_macro_exports_accessed_by_absolute_paths)]
 #![recursion_limit = "512"]
 extern crate self as yew;
 
-/// This module contains macros which implements html! macro and JSX-like templates.
+use proc_macro_hack::proc_macro_hack;
+/// This macro implements JSX-like templates.
+#[proc_macro_hack(support_nested)]
+pub use yew_macro::html;
+
+/// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
-    pub use yew_macro::html;
+    pub use crate::html;
 }
 
 pub mod agent;
@@ -126,13 +132,12 @@ where
 /// use yew::prelude::*;
 /// ```
 pub mod prelude {
-    pub use yew_macro::html;
-
     pub use crate::agent::{Bridge, Bridged, Threaded};
     pub use crate::app::App;
     pub use crate::callback::Callback;
     pub use crate::events::*;
     pub use crate::html::{Component, ComponentLink, Href, Html, Renderable, ShouldRender};
+    pub use crate::macros::*;
 
     /// Prelude module for creating worker.
     pub mod worker {
