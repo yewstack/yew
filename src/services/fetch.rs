@@ -4,7 +4,7 @@ use super::Task;
 use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
 use failure::Fail;
-use serde_derive::Serialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use stdweb::serde::Serde;
 use stdweb::unstable::{TryFrom, TryInto};

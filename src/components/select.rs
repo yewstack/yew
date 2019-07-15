@@ -16,8 +16,8 @@
 //! }
 
 use crate::callback::Callback;
+use crate::html;
 use crate::html::{ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
-use crate::macros::html;
 
 /// `Select` component.
 pub struct Select<T> {
