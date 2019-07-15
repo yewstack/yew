@@ -26,6 +26,9 @@ cargo web test --features web_test --target=wasm32-unknown-emscripten
 echo "Testing for wasm32-unknown-unknown..."
 cargo test --target=wasm32-unknown-unknown
 
+echo "Testing macro..."
+cargo test --test macro_test
+
 check_example() {
     echo "Checking example [$2]"
     pushd $2 > /dev/null
