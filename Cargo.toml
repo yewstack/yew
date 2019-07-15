@@ -13,19 +13,21 @@ description = "A framework for making client-side single-page apps"
 edition = "2018"
 
 [dependencies]
-failure = "0.1"
-log = "0.4"
-http = "0.1"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-bincode = "=1.0.1"
 anymap = "0.12"
+bincode = "=1.0.1"
+failure = "0.1"
+http = "0.1"
+log = "0.4"
+proc-macro-hack = "0.5"
+proc-macro-nested = "0.1"
+rmp-serde = { version = "0.13.7", optional = true }
+serde = { version = "1.0", features = ["derive"] }
+serde_cbor = { version = "0.9.0", optional = true }
+serde_json = "1.0"
+serde_yaml = { version = "0.8.3", optional = true }
 slab = "0.4"
 stdweb = "^0.4.16"
 toml = { version = "0.4", optional = true }
-serde_yaml = { version = "0.8.3", optional = true }
-rmp-serde = { version = "0.13.7", optional = true }
-serde_cbor = { version = "0.9.0", optional = true }
 yew-macro = { path = "crates/macro" }
 
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
@@ -33,6 +35,7 @@ wasm-bindgen = "0.2"
 
 [dev-dependencies]
 serde_derive = "1"
+trybuild = "1.0"
 
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dev-dependencies]
 wasm-bindgen-test = "0.2"
@@ -47,7 +50,6 @@ cbor = ["serde_cbor"]
 [workspace]
 members = [
   "crates/macro",
-  "crates/macro-impl",
   "examples/counter",
   "examples/crm",
   "examples/custom_components",
