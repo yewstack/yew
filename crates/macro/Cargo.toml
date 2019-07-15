@@ -16,4 +16,3 @@ yew = { path = "../.." }
 proc-macro-hack = "0.5"
 proc-macro-nested = "0.1"
 yew-macro-impl = { path = "../macro-impl" }
-yew-shared = { path = "../shared" }

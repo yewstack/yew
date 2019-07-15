@@ -1,80 +1,80 @@
-error: unsupported type
-  --> $DIR/html-node-fail.rs:14:28
-   |
-14 | test_html! { |t15| <span>{ 1111111111111111111111111111111111111111111111111111111111111111111111111111 }</span> }
-   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: unsupported type
-  --> $DIR/html-node-fail.rs:13:28
-   |
-13 | test_html! { |t14| <span>{ b"str" }</span> }
-   |                            ^^^^^^
-
-error: unsupported type
-  --> $DIR/html-node-fail.rs:12:28
-   |
-12 | test_html! { |t13| <span>{ b'a' }</span> }
-   |                            ^^^^
-
-error: unsupported type
-  --> $DIR/html-node-fail.rs:11:20
-   |
-11 | test_html! { |t12| 1111111111111111111111111111111111111111111111111111111111111111111111111111 }
-   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: unsupported type
-  --> $DIR/html-node-fail.rs:10:20
-   |
-10 | test_html! { |t11| b"str" }
-   |                    ^^^^^^
-
-error: unsupported type
- --> $DIR/html-node-fail.rs:9:20
+error: only one root html element allowed
+ --> $DIR/html-node-fail.rs:4:21
   |
-9 | test_html! { |t10| b'a' }
-  |                    ^^^^
+4 |     html! { "valid" "invalid" };
+  |                     ^^^^^^^^^
 
 error: unexpected token
- --> $DIR/html-node-fail.rs:4:35
+ --> $DIR/html-node-fail.rs:5:29
   |
-4 | test_html! { |t2| <span>{ "valid" "invalid" }</span> }
-  |                                   ^^^^^^^^^
+5 |     html! { <span>{ "valid" "invalid" }</span> };
+  |                             ^^^^^^^^^
 
-error: only one root html element allowed
- --> $DIR/html-node-fail.rs:3:27
-  |
-3 | test_html! { |t1| "valid" "invalid" }
-  |                           ^^^^^^^^^
+error: unsupported type
+  --> $DIR/html-node-fail.rs:10:14
+   |
+10 |     html! {  b'a' };
+   |              ^^^^
+
+error: unsupported type
+  --> $DIR/html-node-fail.rs:11:14
+   |
+11 |     html! {  b"str" };
+   |              ^^^^^^
+
+error: unsupported type
+  --> $DIR/html-node-fail.rs:12:14
+   |
+12 |     html! {  1111111111111111111111111111111111111111111111111111111111111111111111111111 };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unsupported type
+  --> $DIR/html-node-fail.rs:13:22
+   |
+13 |     html! {  <span>{ b'a' }</span> };
+   |                      ^^^^
+
+error: unsupported type
+  --> $DIR/html-node-fail.rs:14:22
+   |
+14 |     html! {  <span>{ b"str" }</span> };
+   |                      ^^^^^^
+
+error: unsupported type
+  --> $DIR/html-node-fail.rs:15:22
+   |
+15 |     html! {  <span>{ 1111111111111111111111111111111111111111111111111111111111111111111111111111 }</span> };
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0425]: cannot find value `invalid` in this scope
- --> $DIR/html-node-fail.rs:6:19
+ --> $DIR/html-node-fail.rs:7:13
   |
-6 | test_html! { |t4| invalid }
-  |                   ^^^^^^^ not found in this scope
+7 |     html! { invalid };
+  |             ^^^^^^^ not found in this scope
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-node-fail.rs:20:9
+ --> $DIR/html-node-fail.rs:6:13
+  |
+6 |     html! { () };
+  |             ^^ `()` cannot be formatted with the default formatter
+  |
+  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode<_>`
+  = note: required by `std::convert::From::from`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/html-node-fail.rs:19:9
    |
-20 |         not_node()
+19 |         not_node()
    |         ^^^^^^^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
-   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew_shared::virtual_dom::vnode::VNode<_>`
+   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode<_>`
    = note: required by `std::convert::From::from`
 
-error[E0277]: `()` doesn't implement `std::fmt::Display`
- --> $DIR/html-node-fail.rs:5:19
-  |
-5 | test_html! { |t3| () }
-  |                   ^^ `()` cannot be formatted with the default formatter
-  |
-  = help: the trait `std::fmt::Display` is not implemented for `()`
-  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-  = note: required because of the requirements on the impl of `std::string::ToString` for `()`
-  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew_shared::virtual_dom::vnode::VNode<_>`
-  = note: required by `std::convert::From::from`
-
-Some errors occurred: E0277, E0425.
+Some errors have detailed explanations: E0277, E0425.
 For more information about an error, try `rustc --explain E0277`.
