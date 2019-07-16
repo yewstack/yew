@@ -1,4 +1,5 @@
-#[test]
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "web_test"), test)]
 fn tests() {
     let t = trybuild::TestCases::new();
 
