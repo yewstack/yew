@@ -1,5 +1,6 @@
 [![Build Status](https://api.travis-ci.org/DenisKolodin/yew.svg)](https://travis-ci.org/DenisKolodin/yew)
 [![Gitter chat](https://badges.gitter.im/yewframework.svg)](https://gitter.im/yewframework/Lobby "Gitter chat")
+[![Rustc Version 1.30+](https://img.shields.io/badge/rustc-1.30+-lightgray.svg)](https://blog.rust-lang.org/2018/10/25/Rust-1.30.0.html)
 
 # Yew
 
