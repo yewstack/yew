@@ -1,6 +1,7 @@
 [package]
 name = "yew"
 version = "0.7.0"
+edition = "2018"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 repository = "https://github.com/DenisKolodin/yew"
 homepage = "https://github.com/DenisKolodin/yew"
@@ -10,7 +11,9 @@ readme = "README.md"
 keywords = ["web", "asmjs", "webasm", "javascript"]
 categories = ["gui", "web-programming"]
 description = "A framework for making client-side single-page apps"
-edition = "2018"
+
+[badges]
+travis-ci = { repository = "DenisKolodin/yew" }
 
 [dependencies]
 anymap = "0.12"
@@ -28,7 +31,7 @@ serde_yaml = { version = "0.8.3", optional = true }
 slab = "0.4"
 stdweb = "^0.4.16"
 toml = { version = "0.4", optional = true }
-yew-macro = { path = "crates/macro" }
+yew-macro = { version = "0.7.0", path = "crates/macro" }
 
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
 wasm-bindgen = "0.2"
