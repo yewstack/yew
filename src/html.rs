@@ -8,8 +8,8 @@ use crate::scheduler::{scheduler, Runnable, Shared};
 use crate::virtual_dom::{Listener, VDiff, VNode};
 use log::debug;
 use std::cell::RefCell;
-use std::rc::Rc;
 use std::fmt;
+use std::rc::Rc;
 use stdweb::web::html_element::SelectElement;
 use stdweb::web::{Element, EventListenerHandle, FileList, INode, Node};
 #[allow(unused_imports)]
@@ -98,7 +98,7 @@ enum ComponentState<COMP: Component> {
 }
 
 impl<COMP: Component> fmt::Display for ComponentState<COMP> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let name = match self {
             ComponentState::Empty => "empty",
             ComponentState::Ready(_) => "ready",
@@ -195,6 +195,7 @@ where
         scheduler().put_and_try_run(Box::new(destroy));
     }
 
+    /// Send a message to the component
     pub fn send_message(&mut self, msg: COMP::Message) {
         self.update(ComponentUpdate::Message(msg));
     }
@@ -284,7 +285,7 @@ where
                     ancestor.detach(this.element.as_node());
                 }
             }
-            ComponentState::Empty | ComponentState::Destroyed => {},
+            ComponentState::Empty | ComponentState::Destroyed => {}
             s @ ComponentState::Processing => panic!("unexpected component state: {}", s),
         };
     }
