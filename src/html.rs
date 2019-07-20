@@ -24,7 +24,7 @@ pub trait Component: Sized + 'static {
     /// It sould be serializable because it's sent to dynamicaly created
     /// component (layed under `VComp`) and must be restored for a component
     /// with unknown type.
-    type Properties: Clone + PartialEq + Default;
+    type Properties: Clone + Default;
     /// Initialization routine which could use a context.
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self;
     /// Called everytime when a messages of `Msg` type received. It also takes a
