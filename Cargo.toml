@@ -32,7 +32,6 @@ slab = "0.4"
 stdweb = "^0.4.16"
 toml = { version = "0.4", optional = true }
 yew-macro = { version = "0.8.0", path = "crates/macro" }
-yew-props-derive = { path = "crates/props-derive" }
 
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
 wasm-bindgen = "0.2"
@@ -55,7 +54,6 @@ cbor = ["serde_cbor"]
 [workspace]
 members = [
   "crates/macro",
-  "crates/props-derive",
   "examples/counter",
   "examples/crm",
   "examples/custom_components",

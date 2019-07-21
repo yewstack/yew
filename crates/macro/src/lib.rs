@@ -46,17 +46,25 @@
 #![recursion_limit = "128"]
 extern crate proc_macro;
 
+mod derive_props;
 mod html_tree;
 
+use derive_props::DerivePropsInput;
 use html_tree::HtmlRoot;
 use proc_macro::TokenStream;
 use proc_macro_hack::proc_macro_hack;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse_macro_input;
 
 trait Peek<T> {
     fn peek(cursor: Cursor) -> Option<T>;
+}
+
+#[proc_macro_derive(Properties, attributes(props))]
+pub fn derive_props(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DerivePropsInput);
+    TokenStream::from(input.into_token_stream())
 }
 
 #[proc_macro_hack]
