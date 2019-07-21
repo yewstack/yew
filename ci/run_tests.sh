@@ -26,11 +26,11 @@ cargo web test --features web_test --target=wasm32-unknown-emscripten
 echo "Testing for wasm32-unknown-unknown..."
 cargo test --target=wasm32-unknown-unknown
 
-echo "Testing macro..."
+echo "Testing html macro..."
 cargo test --test macro_test
 
-echo "Testing props derive macro..."
-(cd crates/props-derive && cargo test)
+echo "Testing derive props macro..."
+cargo test --test derive_props_test
 
 check_example() {
     echo "Checking example [$2]"
