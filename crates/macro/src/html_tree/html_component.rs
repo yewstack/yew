@@ -101,7 +101,12 @@ impl ToTokens for HtmlComponent {
         };
 
         let validate_comp = quote_spanned! { ty.span()=>
-            struct __yew_validate_comp where #ty: ::yew::html::Component;
+            trait __yew_validate_comp {
+                type C: ::yew::html::Component;
+            }
+            impl __yew_validate_comp for () {
+                type C = #ty;
+            }
         };
 
         tokens.extend(quote! {{
