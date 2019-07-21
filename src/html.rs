@@ -11,6 +11,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use stdweb::web::html_element::SelectElement;
 use stdweb::web::{Element, EventListenerHandle, FileList, INode, Node};
+#[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
 /// This type indicates that component should be rendered again.

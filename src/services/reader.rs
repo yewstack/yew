@@ -7,6 +7,7 @@ use stdweb::unstable::TryInto;
 use stdweb::web::event::LoadEndEvent;
 pub use stdweb::web::{Blob, File, IBlob};
 use stdweb::web::{FileReader, FileReaderReadyState, FileReaderResult, IEventTarget, TypedArray};
+#[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
 /// Struct that represents data of a file.

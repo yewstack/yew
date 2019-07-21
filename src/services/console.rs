@@ -1,5 +1,6 @@
 //! This module contains a service implementation to use browser's console.
 
+#[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
 /// A service to use methods of a

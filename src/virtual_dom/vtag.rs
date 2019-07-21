@@ -11,6 +11,7 @@ use stdweb::unstable::TryFrom;
 use stdweb::web::html_element::InputElement;
 use stdweb::web::html_element::TextAreaElement;
 use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node};
+#[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
 /// A type for a virtual
