@@ -8,7 +8,6 @@ fn tests() {
 
     t.pass("tests/macro/html-component-pass.rs");
     t.compile_fail("tests/macro/html-component-fail.rs");
-    t.compile_fail("tests/macro/html-component-fail-unimplemented.rs");
 
     t.pass("tests/macro/html-iterable-pass.rs");
     t.compile_fail("tests/macro/html-iterable-fail.rs");
