@@ -222,7 +222,7 @@ pub struct Properties {
 
 html! {
     <div class="confirm-dialog">
-        <MyButton onclick=|_| DialogMsg::Cancel color=Color::Red hidden=false />
+        <MyButton onclick=|_| DialogMsg::Cancel color=Color::Red hidden=true />
         <MyButton onclick=|_| DialogMsg::Submit color=Color::Blue />
     </div>
 }
