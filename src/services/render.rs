@@ -5,6 +5,7 @@ use crate::callback::Callback;
 use crate::services::Task;
 use stdweb::unstable::TryInto;
 use stdweb::Value;
+#[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
 /// A handle to cancel a render task.

@@ -10,6 +10,7 @@ use stdweb::serde::Serde;
 use stdweb::unstable::{TryFrom, TryInto};
 use stdweb::web::ArrayBuffer;
 use stdweb::{JsSerialize, Value};
+#[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};

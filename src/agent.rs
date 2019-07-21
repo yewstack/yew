@@ -11,6 +11,7 @@ use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::rc::Rc;
 use stdweb::Value;
+#[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
 #[derive(Serialize, Deserialize)]

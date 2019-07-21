@@ -5,6 +5,7 @@ use super::{to_ms, Task};
 use crate::callback::Callback;
 use std::time::Duration;
 use stdweb::Value;
+#[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
 /// A handle to cancel a timeout task.
