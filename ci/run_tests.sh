@@ -32,6 +32,9 @@ cargo test --test macro_test
 echo "Testing derive props macro..."
 cargo test --test derive_props_test
 
+echo "Testing macro docs..."
+(cd crates/macro && cargo test)
+
 check_example() {
     echo "Checking example [$2]"
     pushd $2 > /dev/null
