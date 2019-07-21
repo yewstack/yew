@@ -1,7 +1,6 @@
 #![recursion_limit = "128"]
 
-use yew::html::Properties;
-use yew_props_derive::Properties;
+use yew::prelude::*;
 
 mod t1 {
     use super::*;
