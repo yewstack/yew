@@ -174,8 +174,10 @@ impl<COMP: Component> VTag<COMP> {
     ///
     /// Otherwise just add everything.
     fn diff_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, ()>> {
+        // TODO: Use generator in order to avoid useless alloc
+
         let mut changes = Vec::new();
-        if let &mut Some(ref ancestor) = ancestor {
+        if let Some(ref ancestor) = ancestor {
             // Only change what is necessary.
             let to_add = self
                 .classes
@@ -204,7 +206,7 @@ impl<COMP: Component> VTag<COMP> {
     /// the values are different.
     fn diff_attributes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, String>> {
         let mut changes = Vec::new();
-        if let &mut Some(ref mut ancestor) = ancestor {
+        if let Some(ref mut ancestor) = ancestor {
             // Only change what is necessary.
             let self_keys = self.attributes.keys().collect::<HashSet<_>>();
             let ancestor_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
@@ -443,13 +445,10 @@ impl<COMP: Component> VDiff for VTag<COMP> {
         let element = self.reference.clone().expect("element expected");
 
         {
-            let mut ancestor_childs = {
-                if let Some(ref mut a) = ancestor {
-                    a.childs.drain(..).map(Some).collect::<Vec<_>>()
-                } else {
-                    Vec::new()
-                }
-            };
+            let mut ancestor_childs = Vec::new();
+            if let Some(ref mut a) = ancestor {
+                std::mem::swap(&mut ancestor_childs, &mut a.childs);
+            }
 
             self.apply_diffs(&element, &mut ancestor);
 
@@ -466,31 +465,23 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                 self.captured.push(handle);
             }
 
-            let mut self_childs = self.childs.iter_mut().map(Some).collect::<Vec<_>>();
             // Process children
-            let diff = self_childs.len() as i32 - ancestor_childs.len() as i32;
-            if diff > 0 {
-                for _ in 0..diff {
-                    ancestor_childs.push(None);
-                }
-            } else if diff < 0 {
-                for _ in 0..-diff {
-                    self_childs.push(None);
-                }
-            }
             // Start with an empty precursor, because it put childs to itself
             let mut precursor = None;
-            for pair in self_childs.into_iter().zip(ancestor_childs) {
-                match pair {
-                    (Some(left), right) => {
-                        precursor = left.apply(element.as_node(), precursor.as_ref(), right, &env);
+            let mut self_childs = self.childs.iter_mut();
+            let mut ancestor_childs = ancestor_childs.drain(..);
+            loop {
+                match (self_childs.next(), ancestor_childs.next()) {
+                    (Some(left), Some(right)) => {
+                        precursor = left.apply(element.as_node(), precursor.as_ref(), Some(right), &env);
                     }
-                    (None, Some(mut right)) => {
+                    (Some(left), None) => {
+                        precursor = left.apply(element.as_node(), precursor.as_ref(), None, &env);
+                    }
+                    (None, Some(ref mut right)) => {
                         right.detach(element.as_node());
                     }
-                    (None, None) => {
-                        panic!("redundant iterations during diff");
-                    }
+                    (None, None) => break,
                 }
             }
         }
