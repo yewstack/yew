@@ -74,6 +74,7 @@ pub use yew_macro::html;
 /// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
     pub use crate::html;
+    pub use yew_macro::Properties;
 }
 
 pub mod agent;
@@ -116,7 +117,7 @@ pub fn run_loop() {
 /// Starts an app mounted to a body of the document.
 pub fn start_app<COMP>()
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component<Properties = ()> + Renderable<COMP>,
 {
     initialize();
     App::<COMP>::new().mount_to_body();
@@ -136,7 +137,9 @@ pub mod prelude {
     pub use crate::app::App;
     pub use crate::callback::Callback;
     pub use crate::events::*;
-    pub use crate::html::{Component, ComponentLink, Href, Html, Renderable, ShouldRender};
+    pub use crate::html::{
+        Component, ComponentLink, Href, Html, Properties, Renderable, ShouldRender,
+    };
     pub use crate::macros::*;
 
     /// Prelude module for creating worker.

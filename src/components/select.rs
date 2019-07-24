@@ -17,7 +17,7 @@
 
 use crate::callback::Callback;
 use crate::html::{ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
-use crate::macros::html;
+use crate::macros::{html, Properties};
 
 /// `Select` component.
 pub struct Select<T> {
@@ -31,7 +31,7 @@ pub enum Msg {
 }
 
 /// Properties of `Select` component.
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Properties)]
 pub struct Props<T> {
     /// Initially selected value.
     pub selected: Option<T>,
@@ -40,18 +40,8 @@ pub struct Props<T> {
     /// Options are available to choose.
     pub options: Vec<T>,
     /// Callback to handle changes.
-    pub onchange: Option<Callback<T>>,
-}
-
-impl<T> Default for Props<T> {
-    fn default() -> Self {
-        Props {
-            selected: None,
-            disabled: false,
-            options: Vec::new(),
-            onchange: None,
-        }
-    }
+    #[props(required)]
+    pub onchange: Callback<T>,
 }
 
 impl<T> Component for Select<T>
@@ -69,11 +59,9 @@ where
         match msg {
             Msg::Selected(value) => {
                 if let Some(idx) = value {
-                    if let Some(ref mut callback) = self.props.onchange {
-                        let item = self.props.options.get(idx - 1).cloned();
-                        if let Some(value) = item {
-                            callback.emit(value);
-                        }
+                    let item = self.props.options.get(idx - 1).cloned();
+                    if let Some(value) = item {
+                        self.props.onchange.emit(value);
                     }
                 }
             }

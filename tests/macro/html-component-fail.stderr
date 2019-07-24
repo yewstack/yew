@@ -1,127 +1,131 @@
 error: expected component tag be of form `< .. />`
-  --> $DIR/html-component-fail.rs:32:13
+  --> $DIR/html-component-fail.rs:33:13
    |
-32 |     html! { <ChildComponent> };
+33 |     html! { <ChildComponent> };
    |             ^^^^^^^^^^^^^^^^
 
 error: unexpected end of input, expected identifier
-  --> $DIR/html-component-fail.rs:33:31
+  --> $DIR/html-component-fail.rs:34:31
    |
-33 |     html! { <ChildComponent:: /> };
+34 |     html! { <ChildComponent:: /> };
    |                               ^
 
 error: unexpected end of input, expected identifier
-  --> $DIR/html-component-fail.rs:34:34
+  --> $DIR/html-component-fail.rs:35:34
    |
-34 |     html! { <ChildComponent with /> };
+35 |     html! { <ChildComponent with /> };
    |                                  ^
 
 error: unexpected token
-  --> $DIR/html-component-fail.rs:35:29
+  --> $DIR/html-component-fail.rs:36:29
    |
-35 |     html! { <ChildComponent props /> };
+36 |     html! { <ChildComponent props /> };
    |                             ^^^^^
 
 error: expected component tag be of form `< .. />`
-  --> $DIR/html-component-fail.rs:36:13
+  --> $DIR/html-component-fail.rs:37:13
    |
-36 |     html! { <ChildComponent with props > };
+37 |     html! { <ChildComponent with props > };
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unexpected token
-  --> $DIR/html-component-fail.rs:38:40
+  --> $DIR/html-component-fail.rs:39:40
    |
-38 |     html! { <ChildComponent with props () /> };
+39 |     html! { <ChildComponent with props () /> };
    |                                        ^^
-
-error: expected identifier
-  --> $DIR/html-component-fail.rs:39:29
-   |
-39 |     html! { <ChildComponent type=0 /> };
-   |                             ^^^^
 
 error: expected identifier
   --> $DIR/html-component-fail.rs:40:29
    |
-40 |     html! { <ChildComponent invalid-prop-name=0 /> };
+40 |     html! { <ChildComponent type=0 /> };
+   |                             ^^^^
+
+error: expected identifier
+  --> $DIR/html-component-fail.rs:41:29
+   |
+41 |     html! { <ChildComponent invalid-prop-name=0 /> };
    |                             ^^^^^^^^^^^^^^^^^
 
 error: unexpected end of input, expected expression
-  --> $DIR/html-component-fail.rs:42:37
+  --> $DIR/html-component-fail.rs:43:37
    |
-42 |     html! { <ChildComponent string= /> };
+43 |     html! { <ChildComponent string= /> };
    |                                     ^
 
 error[E0425]: cannot find value `blah` in this scope
-  --> $DIR/html-component-fail.rs:37:34
+  --> $DIR/html-component-fail.rs:38:34
    |
-37 |     html! { <ChildComponent with blah /> };
+38 |     html! { <ChildComponent with blah /> };
    |                                  ^^^^ not found in this scope
 
 error[E0609]: no field `unknown` on type `ChildProperties`
-  --> $DIR/html-component-fail.rs:41:29
+  --> $DIR/html-component-fail.rs:42:29
    |
-41 |     html! { <ChildComponent unknown="unknown" /> };
+42 |     html! { <ChildComponent unknown="unknown" /> };
    |                             ^^^^^^^ unknown field
    |
    = note: available fields are: `string`, `int`
 
-error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:43:36
+error[E0599]: no method named `unknown` found for type `ChildPropertiesBuilder<ChildProperties_int_is_required>` in the current scope
+  --> $DIR/html-component-fail.rs:42:29
    |
-43 |     html! { <ChildComponent string={} /> };
-   |                                    ^^ expected struct `std::string::String`, found ()
+5  | #[derive(Properties, PartialEq)]
+   |                   - method `unknown` not found for this
+...
+42 |     html! { <ChildComponent unknown="unknown" /> };
+   |                             ^^^^^^^
+
+error[E0308]: mismatched types
+  --> $DIR/html-component-fail.rs:44:42
+   |
+44 |     html! { <ChildComponent int=1 string={} /> };
+   |                                          ^^ expected struct `std::string::String`, found ()
    |
    = note: expected type `std::string::String`
               found type `()`
 
 error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:44:36
+  --> $DIR/html-component-fail.rs:45:42
    |
-44 |     html! { <ChildComponent string=3 /> };
-   |                                    ^
-   |                                    |
-   |                                    expected struct `std::string::String`, found integer
-   |                                    help: try using a conversion method: `3.to_string()`
-   |
-   = note: expected type `std::string::String`
-              found type `{integer}`
-
-error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:45:36
-   |
-45 |     html! { <ChildComponent string={3} /> };
-   |                                    ^^^
-   |                                    |
-   |                                    expected struct `std::string::String`, found integer
-   |                                    help: try using a conversion method: `{3}.to_string()`
+45 |     html! { <ChildComponent int=1 string=3 /> };
+   |                                          ^
+   |                                          |
+   |                                          expected struct `std::string::String`, found integer
+   |                                          help: try using a conversion method: `3.to_string()`
    |
    = note: expected type `std::string::String`
               found type `{integer}`
 
 error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:46:33
+  --> $DIR/html-component-fail.rs:46:42
    |
-46 |     html! { <ChildComponent int=0u32 /> };
+46 |     html! { <ChildComponent int=1 string={3} /> };
+   |                                          ^^^
+   |                                          |
+   |                                          expected struct `std::string::String`, found integer
+   |                                          help: try using a conversion method: `{3}.to_string()`
+   |
+   = note: expected type `std::string::String`
+              found type `{integer}`
+
+error[E0308]: mismatched types
+  --> $DIR/html-component-fail.rs:47:33
+   |
+47 |     html! { <ChildComponent int=0u32 /> };
    |                                 ^^^^ expected i32, found u32
 help: you can convert an `u32` to `i32` and panic if the converted value wouldn't fit
    |
-46 |     html! { <ChildComponent int=0u32.try_into().unwrap() /> };
+47 |     html! { <ChildComponent int=0u32.try_into().unwrap() /> };
    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: the trait bound `std::string::String: yew::html::Component` is not satisfied
-  --> $DIR/html-component-fail.rs:50:14
+error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<ChildProperties_int_is_required>` in the current scope
+  --> $DIR/html-component-fail.rs:48:29
    |
-50 |     html! { <String /> };
-   |              ^^^^^^ the trait `yew::html::Component` is not implemented for `std::string::String`
+5  | #[derive(Properties, PartialEq)]
+   |                   - method `string` not found for this
+...
+48 |     html! { <ChildComponent string="abc" /> };
+   |                             ^^^^^^
 
-error[E0277]: the trait bound `std::string::String: yew::html::Renderable<std::string::String>` is not satisfied
-  --> $DIR/html-component-fail.rs:50:14
-   |
-50 |     html! { <String /> };
-   |              ^^^^^^ the trait `yew::html::Renderable<std::string::String>` is not implemented for `std::string::String`
-   |
-   = note: required by `yew::virtual_dom::vcomp::VComp::<COMP>::new`
-
-Some errors have detailed explanations: E0277, E0308, E0425, E0609.
-For more information about an error, try `rustc --explain E0277`.
+Some errors have detailed explanations: E0308, E0425, E0599, E0609.
+For more information about an error, try `rustc --explain E0308`.

@@ -2,9 +2,10 @@
 
 use yew::prelude::*;
 
-#[derive(Clone, Default, PartialEq)]
+#[derive(Properties, PartialEq)]
 pub struct ChildProperties {
     pub string: String,
+    #[props(required)]
     pub int: i32,
 }
 
@@ -40,14 +41,11 @@ fn compile_fail() {
     html! { <ChildComponent invalid-prop-name=0 /> };
     html! { <ChildComponent unknown="unknown" /> };
     html! { <ChildComponent string= /> };
-    html! { <ChildComponent string={} /> };
-    html! { <ChildComponent string=3 /> };
-    html! { <ChildComponent string={3} /> };
+    html! { <ChildComponent int=1 string={} /> };
+    html! { <ChildComponent int=1 string=3 /> };
+    html! { <ChildComponent int=1 string={3} /> };
     html! { <ChildComponent int=0u32 /> };
-}
-
-fn additional_fail() {
-    html! { <String /> };
+    html! { <ChildComponent string="abc" /> };
 }
 
 fn main() {}

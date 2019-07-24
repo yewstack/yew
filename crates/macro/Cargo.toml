@@ -27,3 +27,6 @@ syn = { version = "^0.15.34", features = ["full"] }
 
 [dev-dependencies]
 yew = { path = "../.." }
+
+[build-dependencies]
+autocfg = "0.1.3"

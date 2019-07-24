@@ -1,10 +1,8 @@
-#![recursion_limit="128"]
+#![recursion_limit = "128"]
 #![deny(warnings)]
 
-#[macro_use]
-extern crate stdweb;
-
-use yew::{html, Callback, Component, ComponentLink, Html, Renderable, ShouldRender};
+use stdweb::{_js_impl, js};
+use yew::prelude::*;
 
 pub struct Model {
     payload: String,
@@ -18,16 +16,12 @@ pub enum Msg {
     AsyncPayload,
 }
 
-#[derive(Default, PartialEq, Eq, Clone)]
-pub struct Props {
-    payload: String,
-}
-
 impl Component for Model {
     type Message = Msg;
-    type Properties = Props;
+    type Properties = ();
 
-    fn create(Props { payload }: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let payload = String::default();
         let debugged_payload = format!("{:?}", payload);
         Self {
             payload,
@@ -39,7 +33,15 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         use Msg::*;
         match msg {
-            Payload(payload) => self.change(Self::Properties { payload }),
+            Payload(payload) => {
+                if payload != self.payload {
+                    self.debugged_payload = format!("{:?}", payload);
+                    self.payload = payload;
+                    true
+                } else {
+                    false
+                }
+            }
             AsyncPayload => {
                 get_payload_later(self.link.send_back(Msg::Payload));
                 false
@@ -47,14 +49,8 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, Self::Properties { payload }: Self::Properties) -> ShouldRender {
-        if payload == self.payload {
-            false
-        } else {
-            self.debugged_payload = format!("{:?}", payload);
-            self.payload = payload;
-            true
-        }
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        false
     }
 }
 
@@ -73,7 +69,7 @@ impl Renderable<Model> for Model {
                     { "Get the payload later!" }
                 </button>
                 <p style="font-family: 'Monaco', monospace;">
-                    { nbsp(self.debugged_payload.as_ref()) }
+                    { nbsp(self.debugged_payload.as_str()) }
                 </p>
             </div>
         }
