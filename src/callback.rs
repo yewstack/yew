@@ -10,7 +10,6 @@ use std::rc::Rc;
 /// Callbacks should be used from JS callbacks or `setTimeout` calls.
 /// </aside>
 /// `Rc` wrapper used to make it clonable.
-#[must_use]
 pub struct Callback<IN>(Rc<dyn Fn(IN)>);
 
 impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {

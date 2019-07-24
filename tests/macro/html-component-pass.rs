@@ -3,9 +3,10 @@
 #[macro_use]
 mod helpers;
 
-#[derive(Clone, Default, PartialEq)]
+#[derive(Properties, Default, PartialEq)]
 pub struct ChildProperties {
     pub string: String,
+    #[props(required)]
     pub int: i32,
     pub vec: Vec<i32>,
 }
@@ -35,19 +36,19 @@ mod scoped {
 }
 
 pass_helper! {
-    html! { <ChildComponent /> };
+    html! { <ChildComponent int=1 /> };
 
     // backwards compat
-    html! { <ChildComponent: /> };
+    html! { <ChildComponent: int=1 /> };
 
     html! {
         <>
-            <ChildComponent />
-            <scoped::ChildComponent />
+            <ChildComponent int=1 />
+            <scoped::ChildComponent int=1 />
 
             // backwards compat
-            <ChildComponent: />
-            <scoped::ChildComponent: />
+            <ChildComponent: int=1 />
+            <scoped::ChildComponent: int=1 />
         </>
     };
 
@@ -64,10 +65,10 @@ pass_helper! {
 
     html! {
         <>
-            <ChildComponent string="child" />
+            <ChildComponent int=1 string="child" />
             <ChildComponent int=1 />
             <ChildComponent int={1+1} />
-            <ChildComponent vec={vec![1]} />
+            <ChildComponent int=1 vec={vec![1]} />
             <ChildComponent string={String::from("child")} int=1 />
 
             // backwards compat
@@ -77,7 +78,7 @@ pass_helper! {
 
     let name_expr = "child";
     html! {
-        <ChildComponent string=name_expr />
+        <ChildComponent int=1 string=name_expr />
     };
 }
 

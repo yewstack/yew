@@ -48,35 +48,77 @@ impl Parse for HtmlComponent {
 impl ToTokens for HtmlComponent {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let HtmlComponentInner { ty, props } = &self.0;
-        let vcomp_props = Ident::new("__yew_vcomp_props", Span::call_site());
         let vcomp_scope = Ident::new("__yew_vcomp_scope", Span::call_site());
-        let override_props = props.iter().map(|props| match props {
-            Props::List(ListProps(vec_props)) => {
-                let check_props = vec_props.iter().map(|HtmlProp { label, .. }| {
-                    quote_spanned! { label.span()=> #vcomp_props.#label; }
-                });
 
-                let set_props = vec_props.iter().map(|HtmlProp { label, value }| {
-                    quote_spanned! { value.span()=>
-                        #vcomp_props.#label = <::yew::virtual_dom::vcomp::VComp<_> as ::yew::virtual_dom::vcomp::Transformer<_, _, _>>::transform(#vcomp_scope.clone(), #value);
+        let validate_props = if let Some(Props::List(ListProps(vec_props))) = props {
+            let prop_ref = Ident::new("__yew_prop_ref", Span::call_site());
+            let check_props = vec_props.iter().map(|HtmlProp { label, .. }| {
+                quote! { #prop_ref.#label; }
+            });
+
+            // This is a hack to avoid allocating memory but still have a reference to a props
+            // struct so that attributes can be checked against it
+
+            #[cfg(has_maybe_uninit)]
+            let unallocated_prop_ref = quote! {
+                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe { ::std::mem::MaybeUninit::uninit().assume_init() };
+            };
+
+            #[cfg(not(has_maybe_uninit))]
+            let unallocated_prop_ref = quote! {
+                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe { ::std::mem::uninitialized() };
+            };
+
+            quote! {
+                #unallocated_prop_ref
+                #(#check_props)*
+            }
+        } else {
+            quote! {}
+        };
+
+        let init_props = if let Some(props) = props {
+            match props {
+                Props::List(ListProps(vec_props)) => {
+                    let set_props = vec_props.iter().map(|HtmlProp { label, value }| {
+                        quote_spanned! { value.span()=>
+                            .#label(<::yew::virtual_dom::vcomp::VComp<_> as ::yew::virtual_dom::vcomp::Transformer<_, _, _>>::transform(#vcomp_scope.clone(), #value))
+                        }
+                    });
+
+                    quote! {
+                        <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder()
+                            #(#set_props)*
+                            .build()
                     }
-                });
-
-                quote! {
-                    #(#check_props#set_props)*
                 }
+                Props::With(WithProps(props)) => quote! { #props },
             }
-            Props::With(WithProps(props)) => {
-                quote_spanned! { props.span()=> #vcomp_props = #props; }
+        } else {
+            quote! {
+                <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder().build()
             }
-        });
+        };
 
-        tokens.extend(quote_spanned! { ty.span()=> {
+        let validate_comp = quote_spanned! { ty.span()=>
+            trait __yew_validate_comp {
+                type C: ::yew::html::Component;
+            }
+            impl __yew_validate_comp for () {
+                type C = #ty;
+            }
+        };
+
+        tokens.extend(quote! {{
+            // Validation nevers executes at runtime
+            if false {
+                #validate_comp
+                #validate_props
+            }
+
             let #vcomp_scope: ::yew::virtual_dom::vcomp::ScopeHolder<_> = ::std::default::Default::default();
-            let mut #vcomp_props: <#ty as ::yew::html::Component>::Properties = ::std::default::Default::default();
-            #(#override_props)*
             ::yew::virtual_dom::VNode::VComp(
-                ::yew::virtual_dom::VComp::new::<#ty>(#vcomp_props, #vcomp_scope)
+                ::yew::virtual_dom::VComp::new::<#ty>(#init_props, #vcomp_scope)
             )
         }});
     }
@@ -201,6 +243,14 @@ impl Parse for ListProps {
                 return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
             }
         }
+
+        // alphabetize
+        props.sort_by(|a, b| {
+            a.label
+                .to_string()
+                .partial_cmp(&b.label.to_string())
+                .unwrap()
+        });
 
         Ok(ListProps(props))
     }

@@ -67,12 +67,12 @@ impl<COMP: Component> VComp<COMP> {
                         element,
                         Some(VNode::VRef(ancestor)),
                         Some(occupied.clone()),
-                        Some(props),
+                        props,
                     );
 
                     let destroyer = Box::new({
                         let mut scope = scope.clone();
-                        move || scope.send(ComponentUpdate::Destroy)
+                        move || scope.destroy()
                     });
 
                     Mounted {
@@ -91,11 +91,11 @@ impl<COMP: Component> VComp<COMP> {
                         *Box::from_raw(raw)
                     };
 
-                    scope.send(ComponentUpdate::Properties(props));
+                    scope.update(ComponentUpdate::Properties(props));
 
                     let destroyer = Box::new({
                         let mut scope = scope.clone();
-                        move || scope.send(ComponentUpdate::Destroy)
+                        move || scope.destroy()
                     });
 
                     Mounted {
@@ -150,21 +150,21 @@ where
     }
 }
 
-impl<'a, COMP, F, IN> Transformer<COMP, F, Option<Callback<IN>>> for VComp<COMP>
+impl<'a, COMP, F, IN> Transformer<COMP, F, Callback<IN>> for VComp<COMP>
 where
     COMP: Component + Renderable<COMP>,
     F: Fn(IN) -> COMP::Message + 'static,
 {
-    fn transform(scope: ScopeHolder<COMP>, from: F) -> Option<Callback<IN>> {
+    fn transform(scope: ScopeHolder<COMP>, from: F) -> Callback<IN> {
         let callback = move |arg| {
             let msg = from(arg);
             if let Some(ref mut sender) = *scope.borrow_mut() {
-                sender.send(ComponentUpdate::Message(msg));
+                sender.send_message(msg);
             } else {
                 panic!("unactivated callback, parent component have to activate it");
             }
         };
-        Some(callback.into())
+        callback.into()
     }
 }
 
