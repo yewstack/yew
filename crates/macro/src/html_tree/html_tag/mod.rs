@@ -6,7 +6,7 @@ use super::HtmlPropSuffix as TagSuffix;
 use super::HtmlTree;
 use crate::Peek;
 use boolinator::Boolinator;
-use proc_macro2::Span;
+use proc_macro2::{Delimiter, Span};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse;
@@ -42,6 +42,7 @@ impl Parse for HtmlTag {
         }
 
         let open = input.parse::<HtmlTagOpen>()?;
+        // Return early if it's a self-closing tag
         if open.div.is_some() {
             return Ok(HtmlTag {
                 ident: open.ident,
@@ -60,7 +61,7 @@ impl Parse for HtmlTag {
         let mut children: Vec<HtmlTree> = vec![];
         loop {
             if let Some(next_close_ident) = HtmlTagClose::peek(input.cursor()) {
-                if open.ident.to_string() == next_close_ident.to_string() {
+                if open.ident == next_close_ident {
                     break;
                 }
             }
@@ -162,7 +163,9 @@ impl HtmlTag {
     fn verify_end(mut cursor: Cursor, open_ident: &Ident) -> bool {
         let mut tag_stack_count = 1;
         loop {
-            if let Some(next_open_ident) = HtmlTagOpen::peek(cursor) {
+            if HtmlSelfClosingTag::peek(cursor).is_some() {
+                // Do nothing
+            } else if let Some(next_open_ident) = HtmlTagOpen::peek(cursor) {
                 if open_ident.to_string() == next_open_ident.to_string() {
                     tag_stack_count += 1;
                 }
@@ -182,6 +185,66 @@ impl HtmlTag {
         }
 
         tag_stack_count == 0
+    }
+}
+
+/// This struct is only used for its Peek implementation in verify_end. Parsing
+/// is done with HtmlTagOpen with `div` set to true.
+struct HtmlSelfClosingTag;
+
+impl Peek<Ident> for HtmlSelfClosingTag {
+    fn peek(cursor: Cursor) -> Option<Ident> {
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '<').as_option()?;
+
+        let (ident, cursor) = cursor.ident()?;
+        (ident.to_string().to_lowercase() == ident.to_string()).as_option()?;
+
+        let mut cursor = cursor;
+        let mut after_slash = false;
+        loop {
+            if let Some((punct, next_cursor)) = cursor.punct() {
+                match punct.as_char() {
+                    '/' => after_slash = true,
+                    '>' if after_slash => return Some(ident),
+                    '>' if !after_slash => {
+                        // We need to read after the '>' for cases like this:
+                        // <div onblur=|_| 2 > 1 />
+                        //                   ^ in order to handle this
+                        //
+                        // Because those cases are NOT handled by the html!
+                        // macro, so we want nice error messages.
+                        //
+                        // This idea here is that, in valid "JSX", after a tag,
+                        // only '<' or '{ ... }' can follow. (that should be
+                        // enough for reasonable cases)
+                        //
+                        let is_next_lt = next_cursor
+                            .punct()
+                            .map(|(p, _)| p.as_char() == '<')
+                            .unwrap_or(false);
+                        let is_next_brace = next_cursor.group(Delimiter::Brace).is_some();
+                        let no_next = next_cursor.token_tree().is_none();
+                        if is_next_lt || is_next_brace || no_next {
+                            return None;
+                        } else {
+                            // TODO: Use proc-macro's Diagnostic when stable
+                            eprintln!(
+                                "HELP: You must wrap expressions containing \
+                                 '>' in braces or parenthesis. See #523."
+                            );
+                        }
+                    }
+                    _ => after_slash = false,
+                }
+                cursor = next_cursor;
+            } else if let Some((_, next)) = cursor.token_tree() {
+                after_slash = false;
+                cursor = next;
+            } else {
+                return None;
+            }
+        }
     }
 }
 
