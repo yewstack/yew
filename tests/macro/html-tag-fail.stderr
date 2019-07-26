@@ -118,6 +118,13 @@ error: invalid closure argument
 32 |     html! { <input onclick=|a: String| () /> };
    |                            ^^^^^^^^^^^
 
+HELP: You must wrap expressions containing '>' in braces or parenthesis. See #523.
+error: expected valid html element
+  --> $DIR/html-tag-fail.rs:36:39
+   |
+36 |     html! { <div> <div onblur=|_| 2 > 1 /> </div> };
+   |                                       ^
+
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:22:28
    |
