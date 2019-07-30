@@ -1,8 +1,8 @@
 #![recursion_limit = "128"]
 
 use stdweb::web::Date;
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::services::ConsoleService;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
     console: ConsoleService,
@@ -36,10 +36,12 @@ impl Component for Model {
                 self.value = self.value - 1;
                 self.console.log("minus one");
             }
-            Msg::Bulk(list) => for msg in list {
-                self.update(msg);
-                self.console.log("Bulk action");
-            },
+            Msg::Bulk(list) => {
+                for msg in list {
+                    self.update(msg);
+                    self.console.log("Bulk action");
+                }
+            }
         }
         true
     }

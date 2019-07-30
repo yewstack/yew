@@ -1,7 +1,7 @@
-use stdweb::web::{IParentNode, document};
-use yew::App;
-use yew::html::Scope;
+use stdweb::web::{document, IParentNode};
 use two_apps::{Model, Msg};
+use yew::html::Scope;
+use yew::App;
 
 fn mount_app(selector: &'static str, app: App<Model>) -> Scope<Model> {
     let element = document().query_selector(selector).unwrap().unwrap();

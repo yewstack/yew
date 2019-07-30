@@ -1,10 +1,5 @@
-#![recursion_limit="128"]
+#![recursion_limit = "128"]
 
-use log::trace;
-use strum::IntoEnumIterator;
-use strum_macros::{Display, EnumIter, EnumString};
-use yew::{html, App, Component, ComponentLink, Html, Renderable, ShouldRender};
-use yew::components::Select;
 use counter::Model as Counter;
 use crm::Model as Crm;
 use custom_components::Model as CustomComponents;
@@ -13,13 +8,18 @@ use fragments::Model as Fragments;
 use game_of_life::Model as GameOfLife;
 use inner_html::Model as InnerHtml;
 use large_table::Model as LargeTable;
+use log::trace;
 use mount_point::Model as MountPoint;
 use npm_and_rest::Model as NpmAndRest;
 use routing::Model as Routing;
+use strum::IntoEnumIterator;
+use strum_macros::{Display, EnumIter, EnumString};
 use textarea::Model as Textarea;
 use timer::Model as Timer;
 use todomvc::Model as Todomvc;
 use two_apps::Model as TwoApps;
+use yew::components::Select;
+use yew::{html, App, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 #[derive(Clone, Debug, Display, EnumString, EnumIter, PartialEq)]
 enum Scene {
@@ -53,9 +53,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Self {
-            scene: None,
-        }
+        Self { scene: None }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {

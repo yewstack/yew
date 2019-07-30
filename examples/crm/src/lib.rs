@@ -1,14 +1,14 @@
-#![recursion_limit="128"]
+#![recursion_limit = "128"]
 
 #[macro_use]
 extern crate serde_derive;
 
 mod markdown;
 
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::format::Json;
-use yew::services::{DialogService, StorageService};
 use yew::services::storage::Area;
+use yew::services::{DialogService, StorageService};
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 const KEY: &'static str = "yew.crm.database";
 
@@ -21,7 +21,7 @@ struct Database {
 pub struct Client {
     first_name: String,
     last_name: String,
-    description: String
+    description: String,
 }
 
 impl Client {
@@ -29,7 +29,7 @@ impl Client {
         Client {
             first_name: "".into(),
             last_name: "".into(),
-            description: "".into()
+            description: "".into(),
         }
     }
 }
@@ -79,66 +79,64 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         let mut new_scene = None;
         match self.scene {
-            Scene::ClientsList => {
-                match msg {
-                    Msg::SwitchTo(Scene::NewClientForm(client)) => {
-                        new_scene = Some(Scene::NewClientForm(client));
-                    }
-                    Msg::SwitchTo(Scene::Settings) => {
-                        new_scene = Some(Scene::Settings);
-                    }
-                    unexpected => {
-                        panic!("Unexpected message when clients list shown: {:?}", unexpected);
+            Scene::ClientsList => match msg {
+                Msg::SwitchTo(Scene::NewClientForm(client)) => {
+                    new_scene = Some(Scene::NewClientForm(client));
+                }
+                Msg::SwitchTo(Scene::Settings) => {
+                    new_scene = Some(Scene::Settings);
+                }
+                unexpected => {
+                    panic!(
+                        "Unexpected message when clients list shown: {:?}",
+                        unexpected
+                    );
+                }
+            },
+            Scene::NewClientForm(ref mut client) => match msg {
+                Msg::UpdateFirstName(val) => {
+                    println!("Input: {}", val);
+                    client.first_name = val;
+                }
+                Msg::UpdateLastName(val) => {
+                    println!("Input: {}", val);
+                    client.last_name = val;
+                }
+                Msg::UpdateDescription(val) => {
+                    println!("Input: {}", val);
+                    client.description = val;
+                }
+                Msg::AddNew => {
+                    let mut new_client = Client::empty();
+                    ::std::mem::swap(client, &mut new_client);
+                    self.database.clients.push(new_client);
+                    self.storage.store(KEY, Json(&self.database));
+                }
+                Msg::SwitchTo(Scene::ClientsList) => {
+                    new_scene = Some(Scene::ClientsList);
+                }
+                unexpected => {
+                    panic!(
+                        "Unexpected message during new client editing: {:?}",
+                        unexpected
+                    );
+                }
+            },
+            Scene::Settings => match msg {
+                Msg::Clear => {
+                    let ok = { self.dialog.confirm("Do you really want to clear the data?") };
+                    if ok {
+                        self.database.clients.clear();
+                        self.storage.remove(KEY);
                     }
                 }
-            }
-            Scene::NewClientForm(ref mut client) => {
-                match msg {
-                    Msg::UpdateFirstName(val) => {
-                        println!("Input: {}", val);
-                        client.first_name = val;
-                    }
-                    Msg::UpdateLastName(val) => {
-                        println!("Input: {}", val);
-                        client.last_name = val;
-                    }
-                    Msg::UpdateDescription(val) => {
-                        println!("Input: {}", val);
-                        client.description = val;
-                    }
-                    Msg::AddNew => {
-                        let mut new_client = Client::empty();
-                        ::std::mem::swap(client, &mut new_client);
-                        self.database.clients.push(new_client);
-                        self.storage.store(KEY, Json(&self.database));
-                    }
-                    Msg::SwitchTo(Scene::ClientsList) => {
-                        new_scene = Some(Scene::ClientsList);
-                    }
-                    unexpected => {
-                        panic!("Unexpected message during new client editing: {:?}", unexpected);
-                    }
+                Msg::SwitchTo(Scene::ClientsList) => {
+                    new_scene = Some(Scene::ClientsList);
                 }
-            }
-            Scene::Settings => {
-                match msg {
-                    Msg::Clear => {
-                        let ok = {
-                            self.dialog.confirm("Do you really want to clear the data?")
-                        };
-                        if ok {
-                            self.database.clients.clear();
-                            self.storage.remove(KEY);
-                        }
-                    }
-                    Msg::SwitchTo(Scene::ClientsList) => {
-                        new_scene = Some(Scene::ClientsList);
-                    }
-                    unexpected => {
-                        panic!("Unexpected message for settings scene: {:?}", unexpected);
-                    }
+                unexpected => {
+                    panic!("Unexpected message for settings scene: {:?}", unexpected);
                 }
-            }
+            },
         }
         if let Some(new_scene) = new_scene.take() {
             self.scene = new_scene;

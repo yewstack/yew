@@ -4,7 +4,7 @@
 use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
-    selected: Option<(u32, u32)>
+    selected: Option<(u32, u32)>,
 }
 
 pub enum Msg {
@@ -16,9 +16,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: (), _: ComponentLink<Self>) -> Self {
-        Model {
-            selected: None
-        }
+        Model { selected: None }
     }
 
     // Some details omitted. Explore the examples to get more.
@@ -34,8 +32,8 @@ impl Component for Model {
 
 fn square_class(this: (u32, u32), selected: Option<(u32, u32)>) -> &'static str {
     match selected {
-        Some(xy) if xy == this => {"square_green"},
-        _ => {"square_red"}
+        Some(xy) if xy == this => "square_green",
+        _ => "square_red",
     }
 }
 

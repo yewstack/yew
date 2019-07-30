@@ -2,11 +2,11 @@
 
 use failure::Error;
 use serde_derive::{Deserialize, Serialize};
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
-use yew::format::{Nothing, Json, Toml};
-use yew::services::Task;
+use yew::format::{Json, Nothing, Toml};
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
-use yew::services::websocket::{WebSocketService, WebSocketTask, WebSocketStatus};
+use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
+use yew::services::Task;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 type AsBinary = bool;
 
@@ -87,73 +87,73 @@ impl Component for Model {
                 self.fetching = true;
                 let task = match format {
                     Format::Json => {
-                        let callback = self.link.send_back(move |response: Response<Json<Result<DataFromFile, Error>>>| {
-                            let (meta, Json(data)) = response.into_parts();
-                            println!("META: {:?}, {:?}", meta, data);
-                            if meta.status.is_success() {
-                                Msg::FetchReady(data)
-                            } else {
-                                Msg::Ignore  // FIXME: Handle this error accordingly.
-                            }
-                        });
+                        let callback = self.link.send_back(
+                            move |response: Response<Json<Result<DataFromFile, Error>>>| {
+                                let (meta, Json(data)) = response.into_parts();
+                                println!("META: {:?}, {:?}", meta, data);
+                                if meta.status.is_success() {
+                                    Msg::FetchReady(data)
+                                } else {
+                                    Msg::Ignore // FIXME: Handle this error accordingly.
+                                }
+                            },
+                        );
                         let request = Request::get("/data.json").body(Nothing).unwrap();
                         if binary {
                             self.fetch_service.fetch_binary(request, callback)
                         } else {
                             self.fetch_service.fetch(request, callback)
                         }
-                    },
+                    }
                     Format::Toml => {
-                        let callback = self.link.send_back(move |response: Response<Toml<Result<DataFromFile, Error>>>| {
-                            let (meta, Toml(data)) = response.into_parts();
-                            println!("META: {:?}, {:?}", meta, data);
-                            if meta.status.is_success() {
-                                Msg::FetchReady(data)
-                            } else {
-                                Msg::Ignore  // FIXME: Handle this error accordingly.
-                            }
-                        });
+                        let callback = self.link.send_back(
+                            move |response: Response<Toml<Result<DataFromFile, Error>>>| {
+                                let (meta, Toml(data)) = response.into_parts();
+                                println!("META: {:?}, {:?}", meta, data);
+                                if meta.status.is_success() {
+                                    Msg::FetchReady(data)
+                                } else {
+                                    Msg::Ignore // FIXME: Handle this error accordingly.
+                                }
+                            },
+                        );
                         let request = Request::get("/data.toml").body(Nothing).unwrap();
                         if binary {
                             self.fetch_service.fetch_binary(request, callback)
                         } else {
                             self.fetch_service.fetch(request, callback)
                         }
-                    },
+                    }
                 };
                 self.ft = Some(task);
             }
-            Msg::WsAction(action) => {
-                match action {
-                    WsAction::Connect => {
-                        let callback = self.link.send_back(|Json(data)| Msg::WsReady(data));
-                        let notification = self.link.send_back(|status| {
-                            match status {
-                                WebSocketStatus::Opened => Msg::Ignore,
-                                WebSocketStatus::Closed | WebSocketStatus::Error => WsAction::Lost.into(),
-                            }
-                        });
-                        let task = self.ws_service.connect("ws://localhost:9001/", callback, notification);
-                        self.ws = Some(task);
-                    }
-                    WsAction::SendData(binary) => {
-                        let request = WsRequest {
-                            value: 321,
-                        };
-                        if binary {
-                            self.ws.as_mut().unwrap().send_binary(Json(&request));
-                        } else {
-                            self.ws.as_mut().unwrap().send(Json(&request));
-                        }
-                    }
-                    WsAction::Disconnect => {
-                        self.ws.take().unwrap().cancel();
-                    }
-                    WsAction::Lost => {
-                        self.ws = None;
+            Msg::WsAction(action) => match action {
+                WsAction::Connect => {
+                    let callback = self.link.send_back(|Json(data)| Msg::WsReady(data));
+                    let notification = self.link.send_back(|status| match status {
+                        WebSocketStatus::Opened => Msg::Ignore,
+                        WebSocketStatus::Closed | WebSocketStatus::Error => WsAction::Lost.into(),
+                    });
+                    let task =
+                        self.ws_service
+                            .connect("ws://localhost:9001/", callback, notification);
+                    self.ws = Some(task);
+                }
+                WsAction::SendData(binary) => {
+                    let request = WsRequest { value: 321 };
+                    if binary {
+                        self.ws.as_mut().unwrap().send_binary(Json(&request));
+                    } else {
+                        self.ws.as_mut().unwrap().send(Json(&request));
                     }
                 }
-            }
+                WsAction::Disconnect => {
+                    self.ws.take().unwrap().cancel();
+                }
+                WsAction::Lost => {
+                    self.ws = None;
+                }
+            },
             Msg::FetchReady(response) => {
                 self.fetching = false;
                 self.data = response.map(|data| data.value).ok();
@@ -190,7 +190,6 @@ impl Renderable<Model> for Model {
             </div>
         }
     }
-
 }
 
 impl Model {
