@@ -16,9 +16,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model {
-            counter: 0,
-        }
+        Model { counter: 0 }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -58,8 +56,10 @@ impl Renderable<Model> for Model {
 
 impl Model {
     fn view_cols(&self) -> Html<Self> {
-        let render = |idx| html! {
-            <td>{ idx }</td>
+        let render = |idx| {
+            html! {
+                <td>{ idx }</td>
+            }
         };
         html! { // We use a fragment directly
             { for (0..self.counter).map(render) }

@@ -1,10 +1,10 @@
-#![recursion_limit="512"]
+#![recursion_limit = "512"]
 
 use log::info;
-use std::time::Duration;
 use rand::Rng;
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use std::time::Duration;
 use yew::services::{IntervalService, Task};
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 #[derive(Clone, Copy, PartialEq)]
 enum LifeState {
@@ -14,7 +14,7 @@ enum LifeState {
 
 #[derive(Clone, Copy)]
 struct Cellule {
-    life_state: LifeState
+    life_state: LifeState,
 }
 
 pub struct Model {
@@ -67,7 +67,6 @@ fn wrap(coord: isize, range: isize) -> usize {
     result as usize
 }
 
-
 impl Model {
     pub fn random_mutate(&mut self) {
         for cellule in self.cellules.iter_mut() {
@@ -104,8 +103,12 @@ impl Model {
                 }
             }
         }
-        to_dead.iter().for_each(|idx| self.cellules[*idx].set_dead());
-        to_live.iter().for_each(|idx| self.cellules[*idx].set_alive());
+        to_dead
+            .iter()
+            .for_each(|idx| self.cellules[*idx].set_dead());
+        to_live
+            .iter()
+            .for_each(|idx| self.cellules[*idx].set_alive());
     }
 
     fn neighbors(&self, row: isize, col: isize) -> [Cellule; 8] {
@@ -158,10 +161,15 @@ impl Component for Model {
         let handle = interval.spawn(Duration::from_millis(200), callback);
         Model {
             active: false,
-            cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
+            cellules: vec![
+                Cellule {
+                    life_state: LifeState::Dead
+                };
+                2000
+            ],
             cellules_width: 50,
             cellules_height: 40,
-            job : Box::new(handle),
+            job: Box::new(handle),
         }
     }
 
@@ -170,30 +178,30 @@ impl Component for Model {
             Msg::Random => {
                 self.random_mutate();
                 info!("Random");
-            },
+            }
             Msg::Start => {
                 self.active = true;
                 info!("Start");
-            },
+            }
             Msg::Step => {
                 self.step();
-            },
+            }
             Msg::Reset => {
                 self.reset();
                 info!("Reset");
-            },
+            }
             Msg::Stop => {
                 self.active = false;
                 info!("Stop");
-            },
+            }
             Msg::ToggleCellule(idx) => {
                 self.toggle_cellule(idx);
-            },
+            }
             Msg::Tick => {
                 if self.active {
                     self.step();
                 }
-            },
+            }
         }
         true
     }
@@ -234,7 +242,11 @@ impl Renderable<Model> for Model {
 
 fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Model> {
     let cellule_status = {
-        if cellule.life_state == LifeState::Alive { "cellule-live" } else { "cellule-dead" }
+        if cellule.life_state == LifeState::Alive {
+            "cellule-live"
+        } else {
+            "cellule-dead"
+        }
     };
     html! {
         <div class=("game-cellule", cellule_status) onclick=|_| Msg::ToggleCellule(idx)>

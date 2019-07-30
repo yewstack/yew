@@ -1,30 +1,29 @@
 #![recursion_limit = "128"]
 
+mod b_component;
 mod router;
 mod routing;
-mod b_component;
 use b_component::BModel;
 
 use log::info;
 use router::Route;
-use yew::{html, Bridge, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::agent::Bridged;
-
+use yew::{html, Bridge, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub enum Child {
     A,
     B,
-    PathNotFound(String)
+    PathNotFound(String),
 }
 
 pub struct Model {
     child: Child,
-    router: Box<Bridge<router::Router<()>>>
+    router: Box<Bridge<router::Router<()>>>,
 }
 
 pub enum Msg {
     NavigateTo(Child),
-    HandleRoute(Route<()>)
+    HandleRoute(Route<()>),
 }
 
 impl Component for Model {
@@ -32,7 +31,6 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
-
         let callback = link.send_back(|route: Route<()>| Msg::HandleRoute(route));
         let mut router = router::Router::bridge(callback);
 
@@ -45,18 +43,17 @@ impl Component for Model {
 
         Model {
             child: Child::A, // This should be quickly overwritten by the actual route.
-            router
+            router,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::NavigateTo(child) => {
-
                 let path_segments = match child {
                     Child::A => vec!["a".into()],
                     Child::B => vec!["b".into()],
-                    Child::PathNotFound(_) => vec!["path_not_found".into()]
+                    Child::PathNotFound(_) => vec!["path_not_found".into()],
                 };
 
                 let route = router::Route {
@@ -75,11 +72,11 @@ impl Component for Model {
                 // it is also possible to match on the `route.to_route_string().as_str()` once
                 // and create enum variants representing the different children and pass them as props.
                 self.child = if let Some(first_segment) = route.path_segments.get(0) {
-                   match first_segment.as_str() {
-                       "a" => Child::A,
-                       "b" => Child::B,
-                        other => Child::PathNotFound(other.into())
-                   }
+                    match first_segment.as_str() {
+                        "a" => Child::A,
+                        "b" => Child::B,
+                        other => Child::PathNotFound(other.into()),
+                    }
                 } else {
                     Child::PathNotFound("path_not_found".into())
                 };
@@ -124,7 +121,7 @@ impl Renderable<Model> for Child {
                 <>
                     {format!("Invalid path: '{}'", path)}
                 </>
-            }
+            },
         }
     }
 }

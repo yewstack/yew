@@ -1,7 +1,6 @@
 use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
-pub struct Model {
-}
+pub struct Model {}
 
 pub enum Msg {
     Click,
@@ -12,13 +11,12 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model { }
+        Model {}
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::Click => {
-            }
+            Msg::Click => {}
         }
         true
     }

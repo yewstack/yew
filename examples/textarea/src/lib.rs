@@ -16,9 +16,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model {
-            value: "".into(),
-        }
+        Model { value: "".into() }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
