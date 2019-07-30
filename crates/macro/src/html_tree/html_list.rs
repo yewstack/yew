@@ -1,5 +1,5 @@
 use super::HtmlTree;
-use crate::Peek;
+use crate::PeekValue;
 use boolinator::Boolinator;
 use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
@@ -8,7 +8,7 @@ use syn::Token;
 
 pub struct HtmlList(pub Vec<HtmlTree>);
 
-impl Peek<()> for HtmlList {
+impl PeekValue<()> for HtmlList {
     fn peek(cursor: Cursor) -> Option<()> {
         HtmlListOpen::peek(cursor)
             .or_else(|| HtmlListClose::peek(cursor))
@@ -88,7 +88,7 @@ struct HtmlListOpen {
     gt: Token![>],
 }
 
-impl Peek<()> for HtmlListOpen {
+impl PeekValue<()> for HtmlListOpen {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
@@ -120,7 +120,7 @@ struct HtmlListClose {
     gt: Token![>],
 }
 
-impl Peek<()> for HtmlListClose {
+impl PeekValue<()> for HtmlListClose {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;

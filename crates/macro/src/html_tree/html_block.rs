@@ -1,6 +1,6 @@
 use super::html_iterable::HtmlIterable;
 use super::html_node::HtmlNode;
-use crate::Peek;
+use crate::PeekValue;
 use proc_macro2::Delimiter;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::braced;
@@ -18,7 +18,7 @@ enum BlockContent {
     Iterable(HtmlIterable),
 }
 
-impl Peek<()> for HtmlBlock {
+impl PeekValue<()> for HtmlBlock {
     fn peek(cursor: Cursor) -> Option<()> {
         cursor.group(Delimiter::Brace).map(|_| ())
     }

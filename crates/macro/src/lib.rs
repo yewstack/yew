@@ -67,7 +67,11 @@ use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse_macro_input;
 
-trait Peek<T> {
+trait Peek<'a, T> {
+    fn peek(cursor: Cursor<'a>) -> Option<(T, Cursor<'a>)>;
+}
+
+trait PeekValue<T> {
     fn peek(cursor: Cursor) -> Option<T>;
 }
 

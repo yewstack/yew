@@ -1,5 +1,5 @@
-use crate::html_tree::HtmlDashedName;
-use crate::Peek;
+use crate::html_tree::HtmlDashedName as HtmlPropLabel;
+use crate::{Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro::TokenStream;
 use proc_macro2::TokenTree;
@@ -8,27 +8,21 @@ use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::{Expr, Token};
 
 pub struct HtmlProp {
-    pub label: HtmlDashedName,
+    pub label: HtmlPropLabel,
     pub value: Expr,
 }
 
-impl Peek<()> for HtmlProp {
-    fn peek(mut cursor: Cursor) -> Option<()> {
-        loop {
-            let (_, c) = cursor.ident()?;
-            let (punct, c) = c.punct()?;
-            if punct.as_char() == '-' {
-                cursor = c;
-                continue;
-            }
-            return (punct.as_char() == '=').as_option();
-        }
+impl PeekValue<()> for HtmlProp {
+    fn peek(cursor: Cursor) -> Option<()> {
+        let (_, cursor) = HtmlPropLabel::peek(cursor)?;
+        let (punct, _) = cursor.punct()?;
+        return (punct.as_char() == '=').as_option();
     }
 }
 
 impl Parse for HtmlProp {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let label = input.parse::<HtmlDashedName>()?;
+        let label = input.parse::<HtmlPropLabel>()?;
         input.parse::<Token![=]>()?;
         let value = input.parse::<Expr>()?;
         // backwards compat

@@ -1,6 +1,10 @@
+use crate::Peek;
+use boolinator::Boolinator;
 use proc_macro2::Ident;
+use proc_macro2::Span;
 use quote::{quote, ToTokens};
 use std::fmt;
+use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::Token;
 
@@ -25,6 +29,29 @@ impl fmt::Display for HtmlDashedName {
             write!(f, "-{}", ident)?;
         }
         Ok(())
+    }
+}
+
+impl Peek<'_, Self> for HtmlDashedName {
+    fn peek(cursor: Cursor) -> Option<(Self, Cursor)> {
+        let (name, cursor) = cursor.ident()?;
+        (name.to_string().to_lowercase() == name.to_string()).as_option()?;
+
+        let mut extended = Vec::new();
+        let mut cursor = cursor;
+        loop {
+            if let Some((punct, p_cursor)) = cursor.punct() {
+                if punct.as_char() == '-' {
+                    let (ident, i_cursor) = p_cursor.ident()?;
+                    cursor = i_cursor;
+                    extended.push((Token![-](Span::call_site()), ident));
+                    continue;
+                }
+            }
+            break;
+        }
+
+        Some((HtmlDashedName { name, extended }, cursor))
     }
 }
 

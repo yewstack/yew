@@ -1,4 +1,4 @@
-use crate::Peek;
+use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
@@ -9,7 +9,7 @@ use syn::{Expr, Token};
 
 pub struct HtmlIterable(Expr);
 
-impl Peek<()> for HtmlIterable {
+impl PeekValue<()> for HtmlIterable {
     fn peek(cursor: Cursor) -> Option<()> {
         let (ident, _) = cursor.ident()?;
         (ident.to_string() == "for").as_option()
