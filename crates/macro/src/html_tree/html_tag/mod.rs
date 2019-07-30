@@ -1,7 +1,7 @@
 mod tag_attributes;
 
+use super::HtmlDashedName;
 use super::HtmlProp as TagAttribute;
-use super::HtmlPropLabel as TagLabel;
 use super::HtmlPropSuffix as TagSuffix;
 use super::HtmlTree;
 use crate::Peek;
@@ -16,16 +16,17 @@ use syn::{Ident, Token};
 use tag_attributes::{ClassesForm, TagAttributes};
 
 pub struct HtmlTag {
-    ident: Ident,
+    tag_name: HtmlDashedName,
     attributes: TagAttributes,
     children: Vec<HtmlTree>,
 }
 
 impl Peek<()> for HtmlTag {
     fn peek(cursor: Cursor) -> Option<()> {
-        HtmlTagOpen::peek(cursor)
-            .or_else(|| HtmlTagClose::peek(cursor))
-            .map(|_| ())
+        HtmlTagOpen::peek(cursor).map(|_| ()).or_else(|| {
+            HtmlTagClose::peek(cursor)?;
+            Some(())
+        })
     }
 }
 
@@ -45,13 +46,13 @@ impl Parse for HtmlTag {
         // Return early if it's a self-closing tag
         if open.div.is_some() {
             return Ok(HtmlTag {
-                ident: open.ident,
+                tag_name: open.tag_name,
                 attributes: open.attributes,
                 children: Vec::new(),
             });
         }
 
-        if !HtmlTag::verify_end(input.cursor(), &open.ident) {
+        if !HtmlTag::verify_end(input.cursor(), &open.tag_name) {
             return Err(syn::Error::new_spanned(
                 open,
                 "this open tag has no corresponding close tag",
@@ -60,8 +61,8 @@ impl Parse for HtmlTag {
 
         let mut children: Vec<HtmlTree> = vec![];
         loop {
-            if let Some(next_close_ident) = HtmlTagClose::peek(input.cursor()) {
-                if open.ident == next_close_ident {
+            if let Some(next_close_tag_name) = HtmlTagClose::peek(input.cursor()) {
+                if open.tag_name.to_string() == next_close_tag_name.to_string() {
                     break;
                 }
             }
@@ -72,7 +73,7 @@ impl Parse for HtmlTag {
         input.parse::<HtmlTagClose>()?;
 
         Ok(HtmlTag {
-            ident: open.ident,
+            tag_name: open.tag_name,
             attributes: open.attributes,
             children,
         })
@@ -82,12 +83,12 @@ impl Parse for HtmlTag {
 impl ToTokens for HtmlTag {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let HtmlTag {
-            ident,
+            tag_name,
             attributes,
             children,
         } = self;
 
-        let name = ident.to_string();
+        let name = tag_name.to_string();
 
         let TagAttributes {
             classes,
@@ -101,7 +102,7 @@ impl ToTokens for HtmlTag {
             listeners,
         } = &attributes;
 
-        let vtag = Ident::new("__yew_vtag", ident.span());
+        let vtag = Ident::new("__yew_vtag", tag_name.span());
         let attr_labels = attributes.iter().map(|attr| attr.label.to_string());
         let attr_values = attributes.iter().map(|attr| &attr.value);
         let set_kind = kind.iter().map(|kind| {
@@ -160,17 +161,17 @@ impl ToTokens for HtmlTag {
 }
 
 impl HtmlTag {
-    fn verify_end(mut cursor: Cursor, open_ident: &Ident) -> bool {
+    fn verify_end(mut cursor: Cursor, open_tag_name: &HtmlDashedName) -> bool {
         let mut tag_stack_count = 1;
         loop {
             if HtmlSelfClosingTag::peek(cursor).is_some() {
                 // Do nothing
-            } else if let Some(next_open_ident) = HtmlTagOpen::peek(cursor) {
-                if open_ident.to_string() == next_open_ident.to_string() {
+            } else if let Some(next_open_tag_name) = HtmlTagOpen::peek(cursor) {
+                if open_tag_name.to_string() == next_open_tag_name.to_string() {
                     tag_stack_count += 1;
                 }
-            } else if let Some(next_close_ident) = HtmlTagClose::peek(cursor) {
-                if open_ident.to_string() == next_close_ident.to_string() {
+            } else if let Some(next_close_tag_name) = HtmlTagClose::peek(cursor) {
+                if open_tag_name.to_string() == next_close_tag_name.to_string() {
                     tag_stack_count -= 1;
                     if tag_stack_count == 0 {
                         break;
@@ -192,21 +193,35 @@ impl HtmlTag {
 /// is done with HtmlTagOpen with `div` set to true.
 struct HtmlSelfClosingTag;
 
-impl Peek<Ident> for HtmlSelfClosingTag {
-    fn peek(cursor: Cursor) -> Option<Ident> {
+impl Peek<HtmlDashedName> for HtmlSelfClosingTag {
+    fn peek(cursor: Cursor) -> Option<HtmlDashedName> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
 
-        let (ident, cursor) = cursor.ident()?;
-        (ident.to_string().to_lowercase() == ident.to_string()).as_option()?;
+        let (name, cursor) = cursor.ident()?;
+        (name.to_string().to_lowercase() == name.to_string()).as_option()?;
 
+        let mut extended = Vec::new();
         let mut cursor = cursor;
+        loop {
+            if let Some((punct, p_cursor)) = cursor.punct() {
+                if punct.as_char() == '-' {
+                    let (ident, i_cursor) = p_cursor.ident()?;
+                    cursor = i_cursor;
+                    extended.push((Token![-](Span::call_site()), ident));
+                    continue;
+                }
+            }
+            break;
+        }
+
+        let tag_name = HtmlDashedName { name, extended };
         let mut after_slash = false;
         loop {
             if let Some((punct, next_cursor)) = cursor.punct() {
                 match punct.as_char() {
                     '/' => after_slash = true,
-                    '>' if after_slash => return Some(ident),
+                    '>' if after_slash => return Some(tag_name),
                     '>' if !after_slash => {
                         // We need to read after the '>' for cases like this:
                         // <div onblur=|_| 2 > 1 />
@@ -250,7 +265,7 @@ impl Peek<Ident> for HtmlSelfClosingTag {
 
 struct HtmlTagOpen {
     lt: Token![<],
-    ident: Ident,
+    tag_name: HtmlDashedName,
     attributes: TagAttributes,
     div: Option<Token![/]>,
     gt: Token![>],
@@ -271,17 +286,17 @@ impl Peek<Ident> for HtmlTagOpen {
 impl Parse for HtmlTagOpen {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let lt = input.parse::<Token![<]>()?;
-        let ident = input.parse::<Ident>()?;
+        let tag_name = input.parse::<HtmlDashedName>()?;
         let TagSuffix { stream, div, gt } = input.parse()?;
         let mut attributes: TagAttributes = parse(stream)?;
 
         // Don't treat value as special for non input / textarea fields
-        match ident.to_string().as_str() {
+        match tag_name.to_string().as_str() {
             "input" | "textarea" => {}
             _ => {
                 if let Some(value) = attributes.value.take() {
                     attributes.attributes.push(TagAttribute {
-                        label: TagLabel::new(Ident::new("value", Span::call_site())),
+                        label: HtmlDashedName::new(Ident::new("value", Span::call_site())),
                         value,
                     });
                 }
@@ -290,7 +305,7 @@ impl Parse for HtmlTagOpen {
 
         Ok(HtmlTagOpen {
             lt,
-            ident,
+            tag_name,
             attributes,
             div,
             gt,
@@ -308,25 +323,39 @@ impl ToTokens for HtmlTagOpen {
 struct HtmlTagClose {
     lt: Token![<],
     div: Option<Token![/]>,
-    ident: Ident,
+    tag_name: HtmlDashedName,
     gt: Token![>],
 }
 
-impl Peek<Ident> for HtmlTagClose {
-    fn peek(cursor: Cursor) -> Option<Ident> {
+impl Peek<HtmlDashedName> for HtmlTagClose {
+    fn peek(cursor: Cursor) -> Option<HtmlDashedName> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
 
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '/').as_option()?;
 
-        let (ident, cursor) = cursor.ident()?;
-        (ident.to_string().to_lowercase() == ident.to_string()).as_option()?;
+        let (name, cursor) = cursor.ident()?;
+        (name.to_string().to_lowercase() == name.to_string()).as_option()?;
+
+        let mut extended = Vec::new();
+        let mut cursor = cursor;
+        loop {
+            if let Some((punct, p_cursor)) = cursor.punct() {
+                if punct.as_char() == '-' {
+                    let (ident, i_cursor) = p_cursor.ident()?;
+                    cursor = i_cursor;
+                    extended.push((Token![-](Span::call_site()), ident));
+                    continue;
+                }
+            }
+            break;
+        }
 
         let (punct, _) = cursor.punct()?;
         (punct.as_char() == '>').as_option()?;
 
-        Some(ident)
+        Some(HtmlDashedName { name, extended })
     }
 }
 
@@ -335,7 +364,7 @@ impl Parse for HtmlTagClose {
         Ok(HtmlTagClose {
             lt: input.parse()?,
             div: input.parse()?,
-            ident: input.parse()?,
+            tag_name: input.parse()?,
             gt: input.parse()?,
         })
     }
@@ -343,7 +372,12 @@ impl Parse for HtmlTagClose {
 
 impl ToTokens for HtmlTagClose {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlTagClose { lt, div, ident, gt } = self;
-        tokens.extend(quote! {#lt#div#ident#gt});
+        let HtmlTagClose {
+            lt,
+            div,
+            tag_name,
+            gt,
+        } = self;
+        tokens.extend(quote! {#lt#div#tag_name#gt});
     }
 }
