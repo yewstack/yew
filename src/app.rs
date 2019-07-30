@@ -36,7 +36,7 @@ where
         html_element
             .remove_child(&body_element)
             .expect("can't remove body child");
-        self.scope.mount_in_place(html_element, None, None, None)
+        self.scope.mount_in_place(html_element, None, None, ())
     }
 
     /// Alias to `mount("body", ...)`.
