@@ -1,7 +1,7 @@
-#![recursion_limit="256"]
+#![recursion_limit = "256"]
 
-use yew::{html, ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::services::reader::{File, FileChunk, FileData, ReaderService, ReaderTask};
+use yew::{html, ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
     link: ComponentLink<Model>,
