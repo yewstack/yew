@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate stdweb;
 
-use yew::App;
-use stdweb::web::{IElement, INode, IParentNode, document};
 use mount_point::Model;
+use stdweb::web::{document, IElement, INode, IParentNode};
+use yew::App;
 
 fn main() {
     yew::initialize();

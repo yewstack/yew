@@ -1,12 +1,12 @@
-#![recursion_limit="128"]
+#![recursion_limit = "128"]
 
-pub mod native_worker;
-pub mod job;
 pub mod context;
+pub mod job;
+pub mod native_worker;
 
 use log::info;
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::worker::*;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
     worker: Box<Bridge<native_worker::Worker>>,
@@ -39,7 +39,12 @@ impl Component for Model {
         let callback = link.send_back(|_| Msg::DataReceived);
         let context_2 = context::Worker::bridge(callback);
 
-        Model { worker, job, context, context_2 }
+        Model {
+            worker,
+            job,
+            context,
+            context_2,
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {

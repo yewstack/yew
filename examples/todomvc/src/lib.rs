@@ -1,12 +1,12 @@
-#![recursion_limit="512"]
+#![recursion_limit = "512"]
 
 use serde_derive::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, ToString};
-use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
 use yew::events::IKeyboardEvent;
 use yew::format::Json;
-use yew::services::storage::{StorageService, Area};
+use yew::services::storage::{Area, StorageService};
+use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
 
 const KEY: &'static str = "yew.todomvc.self";
 
@@ -226,9 +226,7 @@ fn view_entry_edit_input((idx, entry): (usize, &Entry)) -> Html<Model> {
     }
 }
 
-
-#[derive(EnumIter, ToString, Clone, PartialEq)]
-#[derive(Serialize, Deserialize)]
+#[derive(EnumIter, ToString, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Filter {
     All,
     Active,
@@ -261,14 +259,18 @@ impl State {
     }
 
     fn total_completed(&self) -> usize {
-        self.entries.iter().filter(|e| Filter::Completed.fit(e)).count()
+        self.entries
+            .iter()
+            .filter(|e| Filter::Completed.fit(e))
+            .count()
     }
 
     fn is_all_completed(&self) -> bool {
-        let mut filtered_iter = self.entries
-                                    .iter()
-                                    .filter(|e| self.filter.fit(e))
-                                    .peekable();
+        let mut filtered_iter = self
+            .entries
+            .iter()
+            .filter(|e| self.filter.fit(e))
+            .peekable();
 
         if filtered_iter.peek().is_none() {
             return false;
@@ -286,7 +288,9 @@ impl State {
     }
 
     fn clear_completed(&mut self) {
-        let entries = self.entries.drain(..)
+        let entries = self
+            .entries
+            .drain(..)
             .filter(|e| Filter::Active.fit(e))
             .collect();
         self.entries = entries;
@@ -294,7 +298,8 @@ impl State {
 
     fn toggle(&mut self, idx: usize) {
         let filter = self.filter.clone();
-        let mut entries = self.entries
+        let mut entries = self
+            .entries
             .iter_mut()
             .filter(|e| filter.fit(e))
             .collect::<Vec<_>>();
@@ -304,7 +309,8 @@ impl State {
 
     fn toggle_edit(&mut self, idx: usize) {
         let filter = self.filter.clone();
-        let mut entries = self.entries
+        let mut entries = self
+            .entries
             .iter_mut()
             .filter(|e| filter.fit(e))
             .collect::<Vec<_>>();
@@ -314,7 +320,8 @@ impl State {
 
     fn complete_edit(&mut self, idx: usize, val: String) {
         let filter = self.filter.clone();
-        let mut entries = self.entries
+        let mut entries = self
+            .entries
             .iter_mut()
             .filter(|e| filter.fit(e))
             .collect::<Vec<_>>();
@@ -326,7 +333,8 @@ impl State {
     fn remove(&mut self, idx: usize) {
         let idx = {
             let filter = self.filter.clone();
-            let entries = self.entries
+            let entries = self
+                .entries
                 .iter()
                 .enumerate()
                 .filter(|&(_, e)| filter.fit(e))
