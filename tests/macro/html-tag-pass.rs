@@ -18,6 +18,8 @@ pass_helper! {
                     <option selected=false disabled=true value="">{"Unselected"}</option>
                 </select>
             </div>
+            <custom-tag />
+            <another-custom-tag></another-custom-tag>
             <img class=("avatar", "hidden") src="http://pic.com" />
             <img class="avatar hidden", />
             <button onclick=|e| panic!(e) />

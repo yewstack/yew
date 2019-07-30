@@ -1,15 +1,14 @@
+use crate::html_tree::HtmlDashedName;
 use crate::Peek;
 use boolinator::Boolinator;
 use proc_macro::TokenStream;
-use proc_macro2::{Ident, TokenTree};
-use quote::{quote, ToTokens};
-use std::fmt;
+use proc_macro2::TokenTree;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::{Expr, Token};
 
 pub struct HtmlProp {
-    pub label: HtmlPropLabel,
+    pub label: HtmlDashedName,
     pub value: Expr,
 }
 
@@ -29,7 +28,7 @@ impl Peek<()> for HtmlProp {
 
 impl Parse for HtmlProp {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let label = input.parse::<HtmlPropLabel>()?;
+        let label = input.parse::<HtmlDashedName>()?;
         input.parse::<Token![=]>()?;
         let value = input.parse::<Expr>()?;
         // backwards compat
@@ -85,58 +84,5 @@ impl Parse for HtmlPropSuffix {
         let stream = TokenStream::from(stream);
 
         Ok(HtmlPropSuffix { div, gt, stream })
-    }
-}
-
-pub struct HtmlPropLabel {
-    pub name: Ident,
-    pub extended: Vec<(Token![-], Ident)>,
-}
-
-impl HtmlPropLabel {
-    pub fn new(name: Ident) -> Self {
-        HtmlPropLabel {
-            name,
-            extended: Vec::new(),
-        }
-    }
-}
-
-impl fmt::Display for HtmlPropLabel {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.name)?;
-        for (_, ident) in &self.extended {
-            write!(f, "-{}", ident)?;
-        }
-        Ok(())
-    }
-}
-
-impl Parse for HtmlPropLabel {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
-        let name = if let Ok(token) = input.parse::<Token![type]>() {
-            Ident::new("type", token.span).into()
-        } else if let Ok(token) = input.parse::<Token![for]>() {
-            Ident::new("for", token.span).into()
-        } else {
-            input.parse::<Ident>()?.into()
-        };
-
-        let mut extended = Vec::new();
-        while input.peek(Token![-]) {
-            extended.push((input.parse::<Token![-]>()?, input.parse::<Ident>()?));
-        }
-
-        Ok(HtmlPropLabel { name, extended })
-    }
-}
-
-impl ToTokens for HtmlPropLabel {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlPropLabel { name, extended } = self;
-        let dashes = extended.iter().map(|(dash, _)| quote! {#dash});
-        let idents = extended.iter().map(|(_, ident)| quote! {#ident});
-        let extended = quote! { #(#dashes#idents)* };
-        tokens.extend(quote! {#name#extended});
     }
 }
