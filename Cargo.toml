@@ -2,7 +2,10 @@
 name = "yew"
 version = "0.8.0"
 edition = "2018"
-authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+authors = [
+    "Denis Kolodin <deniskolodin@gmail.com>",
+    "Justin Starry <justin.starry@icloud.com>",
+]
 repository = "https://github.com/DenisKolodin/yew"
 homepage = "https://github.com/DenisKolodin/yew"
 documentation = "https://docs.rs/yew/"
