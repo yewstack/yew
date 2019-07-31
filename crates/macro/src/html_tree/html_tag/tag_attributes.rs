@@ -1,5 +1,5 @@
 use crate::html_tree::HtmlProp as TagAttribute;
-use crate::Peek;
+use crate::PeekValue;
 use lazy_static::lazy_static;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};

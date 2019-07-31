@@ -1,19 +1,20 @@
 pub mod html_block;
 pub mod html_component;
+pub mod html_dashed_name;
 pub mod html_iterable;
 pub mod html_list;
 pub mod html_node;
 pub mod html_prop;
 pub mod html_tag;
 
-use crate::Peek;
+use crate::PeekValue;
 use html_block::HtmlBlock;
 use html_component::HtmlComponent;
+use html_dashed_name::HtmlDashedName;
 use html_iterable::HtmlIterable;
 use html_list::HtmlList;
 use html_node::HtmlNode;
 use html_prop::HtmlProp;
-use html_prop::HtmlPropLabel;
 use html_prop::HtmlPropSuffix;
 use html_tag::HtmlTag;
 use proc_macro2::TokenStream;
@@ -84,7 +85,7 @@ impl Parse for HtmlTree {
     }
 }
 
-impl Peek<HtmlType> for HtmlTree {
+impl PeekValue<HtmlType> for HtmlTree {
     fn peek(cursor: Cursor) -> Option<HtmlType> {
         if cursor.eof() {
             Some(HtmlType::Empty)

@@ -22,6 +22,9 @@ pass_helper! {
             <img class="avatar hidden", />
             <button onclick=|e| panic!(e) />
             <a href="http://google.com" />
+            <custom-tag-a>
+                <custom-tag-b />
+            </custom-tag-a>
         </div>
     };
 }

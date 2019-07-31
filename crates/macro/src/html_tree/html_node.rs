@@ -1,4 +1,4 @@
-use crate::Peek;
+use crate::PeekValue;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
@@ -25,7 +25,7 @@ impl Parse for HtmlNode {
     }
 }
 
-impl Peek<()> for HtmlNode {
+impl PeekValue<()> for HtmlNode {
     fn peek(cursor: Cursor) -> Option<()> {
         cursor.literal().map(|_| ()).or_else(|| {
             let (ident, _) = cursor.ident()?;
