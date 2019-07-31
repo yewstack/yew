@@ -8,6 +8,7 @@ use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::Token;
 
+#[derive(PartialEq)]
 pub struct HtmlDashedName {
     pub name: Ident,
     pub extended: Vec<(Token![-], Ident)>,
