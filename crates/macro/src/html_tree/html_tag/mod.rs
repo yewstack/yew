@@ -23,10 +23,9 @@ pub struct HtmlTag {
 
 impl PeekValue<()> for HtmlTag {
     fn peek(cursor: Cursor) -> Option<()> {
-        HtmlTagOpen::peek(cursor).map(|_| ()).or_else(|| {
-            HtmlTagClose::peek(cursor)?;
-            Some(())
-        })
+        HtmlTagOpen::peek(cursor)
+            .or_else(|| HtmlTagClose::peek(cursor))
+            .map(|_| ())
     }
 }
 
@@ -62,7 +61,7 @@ impl Parse for HtmlTag {
         let mut children: Vec<HtmlTree> = vec![];
         loop {
             if let Some(next_close_tag_name) = HtmlTagClose::peek(input.cursor()) {
-                if open.tag_name.to_string() == next_close_tag_name.to_string() {
+                if open.tag_name == next_close_tag_name {
                     break;
                 }
             }
@@ -166,12 +165,12 @@ impl HtmlTag {
         loop {
             if HtmlSelfClosingTag::peek(cursor).is_some() {
                 // Do nothing
-            } else if let Some(next_open_tag_name) = HtmlTagOpen::peek(cursor) {
-                if open_tag_name.to_string() == next_open_tag_name.to_string() {
+            } else if let Some(next_open_tag_name) = &HtmlTagOpen::peek(cursor) {
+                if open_tag_name == next_open_tag_name {
                     tag_stack_count += 1;
                 }
-            } else if let Some(next_close_tag_name) = HtmlTagClose::peek(cursor) {
-                if open_tag_name.to_string() == next_close_tag_name.to_string() {
+            } else if let Some(next_close_tag_name) = &HtmlTagClose::peek(cursor) {
+                if open_tag_name == next_close_tag_name {
                     tag_stack_count -= 1;
                     if tag_stack_count == 0 {
                         break;

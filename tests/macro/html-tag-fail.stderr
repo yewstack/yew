@@ -34,128 +34,134 @@ error: this open tag has no corresponding close tag
 9 |     html! { <div></span> };
   |             ^^^^^
 
-error: this close tag has no corresponding open tag
-  --> $DIR/html-tag-fail.rs:10:18
+error: this open tag has no corresponding close tag
+  --> $DIR/html-tag-fail.rs:10:13
    |
-10 |     html! { <div></span></div> };
+10 |     html! { <tag-a></tag-b> };
+   |             ^^^^^^^
+
+error: this close tag has no corresponding open tag
+  --> $DIR/html-tag-fail.rs:11:18
+   |
+11 |     html! { <div></span></div> };
    |                  ^^^^^^^
 
 error: only one root html element allowed
-  --> $DIR/html-tag-fail.rs:11:20
+  --> $DIR/html-tag-fail.rs:12:20
    |
-11 |     html! { <img /></img> };
+12 |     html! { <img /></img> };
    |                    ^^^^^^
 
 error: expected valid html element
-  --> $DIR/html-tag-fail.rs:12:18
+  --> $DIR/html-tag-fail.rs:13:18
    |
-12 |     html! { <div>Invalid</div> };
+13 |     html! { <div>Invalid</div> };
    |                  ^^^^^^^
 
 error: only one `attr` attribute allowed
-  --> $DIR/html-tag-fail.rs:14:27
+  --> $DIR/html-tag-fail.rs:15:27
    |
-14 |     html! { <input attr=1 attr=2 /> };
+15 |     html! { <input attr=1 attr=2 /> };
    |                           ^^^^
 
 error: only one `value` attribute allowed
-  --> $DIR/html-tag-fail.rs:15:32
+  --> $DIR/html-tag-fail.rs:16:32
    |
-15 |     html! { <input value="123" value="456" /> };
+16 |     html! { <input value="123" value="456" /> };
    |                                ^^^^^
 
 error: only one `kind` attribute allowed
-  --> $DIR/html-tag-fail.rs:16:36
+  --> $DIR/html-tag-fail.rs:17:36
    |
-16 |     html! { <input kind="checkbox" kind="submit" /> };
+17 |     html! { <input kind="checkbox" kind="submit" /> };
    |                                    ^^^^
 
 error: only one `checked` attribute allowed
-  --> $DIR/html-tag-fail.rs:17:33
+  --> $DIR/html-tag-fail.rs:18:33
    |
-17 |     html! { <input checked=true checked=false /> };
+18 |     html! { <input checked=true checked=false /> };
    |                                 ^^^^^^^
 
 error: only one `disabled` attribute allowed
-  --> $DIR/html-tag-fail.rs:18:34
+  --> $DIR/html-tag-fail.rs:19:34
    |
-18 |     html! { <input disabled=true disabled=false /> };
+19 |     html! { <input disabled=true disabled=false /> };
    |                                  ^^^^^^^^
 
 error: only one `selected` attribute allowed
-  --> $DIR/html-tag-fail.rs:19:35
+  --> $DIR/html-tag-fail.rs:20:35
    |
-19 |     html! { <option selected=true selected=false /> };
+20 |     html! { <option selected=true selected=false /> };
    |                                   ^^^^^^^^
 
 error: only one `class` attribute allowed
-  --> $DIR/html-tag-fail.rs:20:32
+  --> $DIR/html-tag-fail.rs:21:32
    |
-20 |     html! { <div class="first" class="second" /> };
+21 |     html! { <div class="first" class="second" /> };
    |                                ^^^^^
 
 error: `onclick` attribute value should be a closure
-  --> $DIR/html-tag-fail.rs:29:20
+  --> $DIR/html-tag-fail.rs:30:20
    |
-29 |     html! { <input onclick=1 /> };
+30 |     html! { <input onclick=1 /> };
    |                    ^^^^^^^
-
-error: there must be one closure argument
-  --> $DIR/html-tag-fail.rs:30:28
-   |
-30 |     html! { <input onclick=|| () /> };
-   |                            ^^
 
 error: there must be one closure argument
   --> $DIR/html-tag-fail.rs:31:28
    |
-31 |     html! { <input onclick=|a, b| () /> };
+31 |     html! { <input onclick=|| () /> };
+   |                            ^^
+
+error: there must be one closure argument
+  --> $DIR/html-tag-fail.rs:32:28
+   |
+32 |     html! { <input onclick=|a, b| () /> };
    |                            ^^^^^^
 
 error: invalid closure argument
-  --> $DIR/html-tag-fail.rs:32:28
+  --> $DIR/html-tag-fail.rs:33:28
    |
-32 |     html! { <input onclick=|a: String| () /> };
+33 |     html! { <input onclick=|a: String| () /> };
    |                            ^^^^^^^^^^^
 
 HELP: You must wrap expressions containing '>' in braces or parenthesis. See #523.
 error: expected valid html element
-  --> $DIR/html-tag-fail.rs:36:39
+  --> $DIR/html-tag-fail.rs:37:39
    |
-36 |     html! { <div> <div onblur=|_| 2 > 1 /> </div> };
+37 |     html! { <div> <div onblur=|_| 2 > 1 /> </div> };
    |                                       ^
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:22:28
+  --> $DIR/html-tag-fail.rs:23:28
    |
-22 |     html! { <input checked=1 /> };
+23 |     html! { <input checked=1 /> };
    |                            ^ expected bool, found integer
    |
    = note: expected type `bool`
               found type `{integer}`
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:23:29
+  --> $DIR/html-tag-fail.rs:24:29
    |
-23 |     html! { <input disabled=1 /> };
+24 |     html! { <input disabled=1 /> };
    |                             ^ expected bool, found integer
    |
    = note: expected type `bool`
               found type `{integer}`
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:24:30
+  --> $DIR/html-tag-fail.rs:25:30
    |
-24 |     html! { <option selected=1 /> };
+25 |     html! { <option selected=1 /> };
    |                              ^ expected bool, found integer
    |
    = note: expected type `bool`
               found type `{integer}`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-tag-fail.rs:25:25
+  --> $DIR/html-tag-fail.rs:26:25
    |
-25 |     html! { <input type=() /> };
+26 |     html! { <input type=() /> };
    |                         ^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
@@ -163,9 +169,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-tag-fail.rs:26:26
+  --> $DIR/html-tag-fail.rs:27:26
    |
-26 |     html! { <input value=() /> };
+27 |     html! { <input value=() /> };
    |                          ^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
@@ -173,9 +179,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
 
 error[E0277]: the trait bound `yew::html::Href: std::convert::From<()>` is not satisfied
-  --> $DIR/html-tag-fail.rs:27:21
+  --> $DIR/html-tag-fail.rs:28:21
    |
-27 |     html! { <a href=() /> };
+28 |     html! { <a href=() /> };
    |                     ^^ the trait `std::convert::From<()>` is not implemented for `yew::html::Href`
    |
    = help: the following implementations were found:
