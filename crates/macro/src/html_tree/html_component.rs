@@ -1,6 +1,6 @@
 use super::HtmlProp;
 use super::HtmlPropSuffix;
-use crate::Peek;
+use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
@@ -12,7 +12,7 @@ use syn::{Ident, Token, Type};
 
 pub struct HtmlComponent(HtmlComponentInner);
 
-impl Peek<()> for HtmlComponent {
+impl PeekValue<()> for HtmlComponent {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
@@ -214,7 +214,7 @@ enum Props {
     With(WithProps),
 }
 
-impl Peek<PropType> for Props {
+impl PeekValue<PropType> for Props {
     fn peek(cursor: Cursor) -> Option<PropType> {
         let (ident, _) = cursor.ident()?;
         let prop_type = if ident.to_string() == "with" {

@@ -7,6 +7,7 @@ fn compile_fail() {
     html! { <div><div></div> };
     html! { <div></div><div></div> };
     html! { <div></span> };
+    html! { <tag-a></tag-b> };
     html! { <div></span></div> };
     html! { <img /></img> };
     html! { <div>Invalid</div> };
