@@ -15,6 +15,8 @@ and uses a local scheduler attached to a thread for concurrent tasks.
 
 [Become a sponsor on Patreon](https://www.patreon.com/deniskolodin)
 
+[Check out a live demo](https://yew-todomvc.netlify.com/) powered by [`yew-wasm-pack-template`](https://github.com/yewstack/yew-wasm-pack-template)
+
 ## Cutting Edge technologies
 
 ### Rust to WASM compilation
