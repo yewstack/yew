@@ -439,23 +439,15 @@ impl_action! {
     oninput(event: InputEvent) -> InputData => |this: &Element, _| {
         use stdweb::web::html_element::{InputElement, TextAreaElement};
         use stdweb::unstable::TryInto;
-        let value = match this.clone().try_into() {
-            Ok(input) => {
-                let input: InputElement = input;
-                input.raw_value()
-            }
-            Err(_e) => {
-                match this.clone().try_into() {
-                    Ok(tae) => {
-                        let tae: TextAreaElement = tae;
-                        tae.value()
-                    }
-                    Err(_e) => {
-                        panic!("only an InputElement or TextAreaElement can have an oninput event listener");
-                    }
-                }
-            }
-        };
+        // Normally only InputElement or TextAreaElement can have an oninput event listener. In
+        // practice though any element with `contenteditable=true` may generate such events,
+        // therefore here we fall back to just returning the text content of the node.
+        // See https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/input_event.
+        let v1 = this.clone().try_into().map(|input: InputElement| input.raw_value()).ok();
+        let v2 = this.clone().try_into().map(|input: TextAreaElement| input.value()).ok();
+        let v3 = this.text_content();
+        let value = v1.or(v2).or(v3)
+            .expect("only an InputElement or TextAreaElement or an element with contenteditable=true can have an oninput event listener");
         InputData { value }
     }
     onchange(event: ChangeEvent) -> ChangeData => |this: &Element, _| {
