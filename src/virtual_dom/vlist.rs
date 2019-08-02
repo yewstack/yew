@@ -44,20 +44,19 @@ impl<COMP: Component> VDiff for VList<COMP> {
         let mut rights = {
             match ancestor {
                 // If element matched this type
-                Some(VNode::VList(mut vlist)) => {
+                Some(VNode::VList(vlist)) => {
                     // Previously rendered items
-                    vlist.childs.drain(..).map(Some).collect::<Vec<_>>()
+                    vlist.childs
                 }
                 Some(vnode) => {
                     // Use the current node as a single fragment list
                     // and let the `apply` of `VNode` to handle it.
-                    vec![Some(vnode)]
+                    vec![vnode]
                 }
                 None => Vec::new(),
             }
         };
-        // Collect elements of an ancestor if exists or use an empty vec
-        // TODO DRY?!
+
         if self.childs.is_empty() {
             // Fixes: https://github.com/DenisKolodin/yew/issues/294
             // Without a placeholder the next element becomes first
@@ -66,29 +65,22 @@ impl<COMP: Component> VDiff for VList<COMP> {
             let placeholder = VText::new("".into());
             self.childs.push(placeholder.into());
         }
-        let mut lefts = self.childs.iter_mut().map(Some).collect::<Vec<_>>();
+
         // Process children
-        let diff = lefts.len() as i32 - rights.len() as i32;
-        if diff > 0 {
-            for _ in 0..diff {
-                rights.push(None);
-            }
-        } else if diff < 0 {
-            for _ in 0..-diff {
-                lefts.push(None);
-            }
-        }
-        for pair in lefts.into_iter().zip(rights) {
-            match pair {
-                (Some(left), right) => {
-                    precursor = left.apply(parent, precursor.as_ref(), right, &env);
+        let mut lefts = self.childs.iter_mut();
+        let mut rights = rights.drain(..);
+        loop {
+            match (lefts.next(), rights.next()) {
+                (Some(left), Some(right)) => {
+                    precursor = left.apply(parent, precursor.as_ref(), Some(right), &env);
                 }
-                (None, Some(mut right)) => {
+                (Some(left), None) => {
+                    precursor = left.apply(parent, precursor.as_ref(), None, &env);
+                }
+                (None, Some(ref mut right)) => {
                     right.detach(parent);
                 }
-                (None, None) => {
-                    panic!("redundant iterations during diff");
-                }
+                (None, None) => break,
             }
         }
         precursor
