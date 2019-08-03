@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "wasm-bindgen-test")]
+#[cfg(feature = "wasm_test")]
 use wasm_bindgen_test::wasm_bindgen_test as test;
 use yew::format::{Binary, Json, Text};
 
