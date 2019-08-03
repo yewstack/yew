@@ -163,7 +163,7 @@ struct CreatedState<COMP: Component> {
 impl<COMP: Component + Renderable<COMP>> CreatedState<COMP> {
     fn update(mut self) -> Self {
         let mut next_frame = self.component.view();
-        let node = next_frame.apply(self.element.as_node(), None, self.last_frame, &self.env);
+        let node = next_frame.apply(&self.element, None, self.last_frame, &self.env);
         if let Some(ref mut cell) = self.occupied {
             *cell.borrow_mut() = node;
         }
@@ -229,7 +229,8 @@ impl<COMP> Scope<COMP>
 where
     COMP: Component + Renderable<COMP>,
 {
-    pub(crate) fn new() -> Self {
+    /// visible for testing
+    pub fn new() -> Self {
         let shared_state = Rc::new(RefCell::new(ComponentState::Empty));
         Scope { shared_state }
     }
@@ -298,12 +299,12 @@ where
             ComponentState::Created(mut this) => {
                 this.component.destroy();
                 if let Some(last_frame) = &mut this.last_frame {
-                    last_frame.detach(this.element.as_node());
+                    last_frame.detach(&this.element);
                 }
             }
             ComponentState::Ready(mut this) => {
                 if let Some(ancestor) = &mut this.ancestor {
-                    ancestor.detach(this.element.as_node());
+                    ancestor.detach(&this.element);
                 }
             }
             ComponentState::Empty | ComponentState::Destroyed => {}
