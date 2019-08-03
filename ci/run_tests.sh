@@ -24,7 +24,7 @@ echo "Testing for wasm32-unknown-emscripten..."
 cargo web test --features web_test --target=wasm32-unknown-emscripten
 
 echo "Testing for wasm32-unknown-unknown..."
-cargo test --target=wasm32-unknown-unknown
+cargo test --features wasm_test --target=wasm32-unknown-unknown
 
 echo "Testing html macro..."
 cargo test --test macro_test

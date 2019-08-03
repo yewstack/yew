@@ -1,10 +1,10 @@
 #![recursion_limit = "128"]
-#[cfg(feature = "wasm-bindgen-test")]
+#[cfg(feature = "wasm_test")]
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::virtual_dom::VNode;
 use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
-#[cfg(feature = "wasm-bindgen-test")]
+#[cfg(feature = "wasm_test")]
 wasm_bindgen_test_configure!(run_in_browser);
 
 struct Comp;
