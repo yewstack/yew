@@ -6,7 +6,7 @@ use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::marker::PhantomData;
-use stdweb::web::{document, INode, Node, TextNode};
+use stdweb::web::{document, Element, INode, Node, TextNode};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -34,7 +34,7 @@ impl<COMP: Component> VDiff for VText<COMP> {
     type Component = COMP;
 
     /// Remove VTag from parent.
-    fn detach(&mut self, parent: &Node) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) -> Option<Node> {
         let node = self
             .reference
             .take()
@@ -52,7 +52,7 @@ impl<COMP: Component> VDiff for VText<COMP> {
     /// has children and renders them.
     fn apply(
         &mut self,
-        parent: &Node,
+        parent: &Element,
         _: Option<&Node>,
         opposite: Option<VNode<Self::Component>>,
         _: &Scope<Self::Component>,

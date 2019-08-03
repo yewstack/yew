@@ -206,7 +206,7 @@ where
     type Component = COMP;
 
     /// Remove VComp from parent.
-    fn detach(&mut self, parent: &Node) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) -> Option<Node> {
         match self.state.replace(MountState::Detached) {
             MountState::Mounted(this) => {
                 (this.destroyer)();
@@ -226,7 +226,7 @@ where
     /// It compares this with an ancestor `VComp` and overwrites it if it is the same type.
     fn apply(
         &mut self,
-        parent: &Node,
+        parent: &Element,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,
