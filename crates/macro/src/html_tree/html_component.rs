@@ -136,14 +136,12 @@ impl HtmlComponent {
     }
 
     fn peek_type(mut cursor: Cursor) -> Option<()> {
-        let mut type_str: String = "".to_owned();
         let mut colons_optional = true;
+        let mut last_ident = None;
 
         loop {
-            let mut found_colons = false;
             let mut post_colons_cursor = cursor;
             if let Some(c) = Self::double_colon(post_colons_cursor) {
-                found_colons = true;
                 post_colons_cursor = c;
             } else if !colons_optional {
                 break;
@@ -151,10 +149,7 @@ impl HtmlComponent {
 
             if let Some((ident, c)) = post_colons_cursor.ident() {
                 cursor = c;
-                if found_colons {
-                    type_str += "::";
-                }
-                type_str += &ident.to_string();
+                last_ident = Some(ident);
             } else {
                 break;
             }
@@ -163,8 +158,9 @@ impl HtmlComponent {
             colons_optional = false;
         }
 
-        (!type_str.is_empty()).as_option()?;
-        (type_str.to_lowercase() != type_str).as_option()
+        let type_str = last_ident?.to_string();
+        type_str.is_ascii().as_option()?;
+        type_str.bytes().next()?.is_ascii_uppercase().as_option()
     }
 }
 

@@ -1,10 +1,11 @@
-use crate::Peek;
+use crate::{non_capitalized_ascii, Peek};
 use boolinator::Boolinator;
 use proc_macro2::Ident;
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
 use std::fmt;
 use syn::buffer::Cursor;
+use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::Token;
 
@@ -36,7 +37,7 @@ impl fmt::Display for HtmlDashedName {
 impl Peek<'_, Self> for HtmlDashedName {
     fn peek(cursor: Cursor) -> Option<(Self, Cursor)> {
         let (name, cursor) = cursor.ident()?;
-        (name.to_string().to_lowercase() == name.to_string()).as_option()?;
+        non_capitalized_ascii(&name.to_string()).as_option()?;
 
         let mut extended = Vec::new();
         let mut cursor = cursor;
@@ -58,14 +59,7 @@ impl Peek<'_, Self> for HtmlDashedName {
 
 impl Parse for HtmlDashedName {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let name = if let Ok(token) = input.parse::<Token![type]>() {
-            Ident::new("type", token.span).into()
-        } else if let Ok(token) = input.parse::<Token![for]>() {
-            Ident::new("for", token.span).into()
-        } else {
-            input.parse::<Ident>()?.into()
-        };
-
+        let name = input.call(Ident::parse_any)?;
         let mut extended = Vec::new();
         while input.peek(Token![-]) {
             extended.push((input.parse::<Token![-]>()?, input.parse::<Ident>()?));
