@@ -201,13 +201,13 @@ fn supports_multiple_classes_string() {
         <div class="class-2 class-3 class-1"></div>
     };
 
-    assert_eq!(a, b);
+    assert_ne!(a, b);
 
     if let VNode::VTag(vtag) = a {
         println!("{:?}", vtag.classes);
-        assert!(vtag.classes.iter().any(|c| c == "class-1"));
-        assert!(vtag.classes.iter().any(|c| c == "class-2"));
-        assert!(vtag.classes.iter().any(|c| c == "class-3"));
+        assert!(vtag.classes.contains("class-1"));
+        assert!(vtag.classes.contains("class-2"));
+        assert!(vtag.classes.contains("class-3"));
     } else {
         panic!("vtag expected");
     }
@@ -219,10 +219,10 @@ fn keeps_order_of_classes() {
         <div class="class-1 class-2   class-3",></div>
     };
 
-    if let VNode::VTag(vtag) = a {
+    if let VNode::VTag(mut vtag) = a {
         println!("{:?}", vtag.classes);
         assert_eq!(
-            vtag.classes,
+            vtag.classes.drain(..).collect::<Vec<String>>(),
             vec![
                 String::from("class-1"),
                 String::from("class-2"),
