@@ -546,7 +546,7 @@ impl<COMP: Component> PartialEq for VTag<COMP> {
             return false;
         }
 
-        if self.classes.iter().collect::<Vec<&String>>() != other.classes.iter().collect::<Vec<&String>>() {
+        if self.classes.iter().ne(other.classes.iter()) {
             return false;
         }
 
