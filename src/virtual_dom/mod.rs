@@ -9,6 +9,7 @@ pub mod vtext;
 use std::collections::HashMap;
 use std::fmt;
 use stdweb::web::{Element, EventListenerHandle, Node};
+use indexmap::set::IndexSet;
 
 pub use self::vcomp::VComp;
 pub use self::vlist::VList;
@@ -39,8 +40,8 @@ type Listeners<COMP> = Vec<Box<dyn Listener<COMP>>>;
 /// A map of attributes.
 type Attributes = HashMap<String, String>;
 
-/// A list of classes.
-type Classes = Vec<String>;
+/// A set of classes.
+type Classes = IndexSet<String>;
 
 /// Patch for DOM node modification.
 enum Patch<ID, T> {
