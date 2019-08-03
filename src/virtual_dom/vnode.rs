@@ -4,7 +4,7 @@ use super::{VComp, VDiff, VList, VTag, VText};
 use crate::html::{Component, Renderable, Scope};
 use std::cmp::PartialEq;
 use std::fmt;
-use stdweb::web::{INode, Node};
+use stdweb::web::{Element, INode, Node};
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<COMP: Component> {
@@ -24,7 +24,7 @@ impl<COMP: Component> VDiff for VNode<COMP> {
     type Component = COMP;
 
     /// Remove VNode from parent.
-    fn detach(&mut self, parent: &Node) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) -> Option<Node> {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.detach(parent),
             VNode::VText(ref mut vtext) => vtext.detach(parent),
@@ -42,7 +42,7 @@ impl<COMP: Component> VDiff for VNode<COMP> {
 
     fn apply(
         &mut self,
-        parent: &Node,
+        parent: &Element,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,

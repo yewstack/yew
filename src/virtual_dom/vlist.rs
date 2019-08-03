@@ -1,7 +1,7 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
 use crate::html::{Component, Scope};
-use stdweb::web::Node;
+use stdweb::web::{Element, Node};
 
 /// This struct represents a fragment of the Virtual DOM tree.
 pub struct VList<COMP: Component> {
@@ -24,7 +24,7 @@ impl<COMP: Component> VList<COMP> {
 impl<COMP: Component> VDiff for VList<COMP> {
     type Component = COMP;
 
-    fn detach(&mut self, parent: &Node) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) -> Option<Node> {
         let mut last_sibling = None;
         for mut child in self.childs.drain(..) {
             last_sibling = child.detach(parent);
@@ -34,7 +34,7 @@ impl<COMP: Component> VDiff for VList<COMP> {
 
     fn apply(
         &mut self,
-        parent: &Node,
+        parent: &Element,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,

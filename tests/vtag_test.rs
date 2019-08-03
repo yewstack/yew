@@ -1,7 +1,10 @@
 #![recursion_limit = "128"]
+use stdweb::web::{document, IElement};
 #[cfg(feature = "wasm_test")]
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-use yew::virtual_dom::VNode;
+use yew::html::Scope;
+use yew::virtual_dom::vtag::{VTag, HTML_NAMESPACE, SVG_NAMESPACE};
+use yew::virtual_dom::{VDiff, VNode};
 use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 #[cfg(feature = "wasm_test")]
@@ -211,6 +214,45 @@ fn supports_multiple_classes_string() {
     } else {
         panic!("vtag expected");
     }
+}
+
+fn assert_vtag(node: &mut VNode<Comp>) -> &mut VTag<Comp> {
+    if let VNode::VTag(vtag) = node {
+        return vtag;
+    }
+    panic!("should be vtag");
+}
+
+fn assert_namespace(vtag: &VTag<Comp>, namespace: &'static str) {
+    assert_eq!(
+        vtag.reference.as_ref().unwrap().namespace_uri().unwrap(),
+        namespace
+    );
+}
+
+#[test]
+fn supports_svg() {
+    let scope = Scope::new();
+    let div_el = document().create_element("div").unwrap();
+    let svg_el = document().create_element_ns(SVG_NAMESPACE, "svg").unwrap();
+
+    let mut g_node: VNode<Comp> = html! { <g></g> };
+    let path_node: VNode<Comp> = html! { <path></path> };
+    let mut svg_node: VNode<Comp> = html! { <svg>{path_node}</svg> };
+
+    let svg_tag = assert_vtag(&mut svg_node);
+    svg_tag.apply(&div_el, None, None, &scope);
+    assert_namespace(svg_tag, SVG_NAMESPACE);
+    let path_tag = assert_vtag(svg_tag.childs.get_mut(0).unwrap());
+    assert_namespace(path_tag, SVG_NAMESPACE);
+
+    let g_tag = assert_vtag(&mut g_node);
+    g_tag.apply(&div_el, None, None, &scope);
+    assert_namespace(g_tag, HTML_NAMESPACE);
+    g_tag.reference = None;
+
+    g_tag.apply(&svg_el, None, None, &scope);
+    assert_namespace(g_tag, SVG_NAMESPACE);
 }
 
 #[test]

@@ -4,7 +4,7 @@ use super::HtmlDashedName as TagName;
 use super::HtmlProp as TagAttribute;
 use super::HtmlPropSuffix as TagSuffix;
 use super::HtmlTree;
-use crate::{Peek, PeekValue};
+use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, Span};
 use quote::{quote, quote_spanned, ToTokens};
@@ -198,7 +198,7 @@ impl PeekValue<TagName> for HtmlSelfClosingTag {
         (punct.as_char() == '<').as_option()?;
 
         let (name, mut cursor) = TagName::peek(cursor)?;
-        (name.to_string().to_lowercase() == name.to_string()).as_option()?;
+        non_capitalized_ascii(&name.to_string()).as_option()?;
 
         let mut after_slash = false;
         loop {
@@ -261,7 +261,7 @@ impl PeekValue<TagName> for HtmlTagOpen {
         (punct.as_char() == '<').as_option()?;
 
         let (name, _) = TagName::peek(cursor)?;
-        (name.to_string().to_lowercase() == name.to_string()).as_option()?;
+        non_capitalized_ascii(&name.to_string()).as_option()?;
 
         Some(name)
     }
@@ -320,7 +320,7 @@ impl PeekValue<TagName> for HtmlTagClose {
         (punct.as_char() == '/').as_option()?;
 
         let (name, cursor) = TagName::peek(cursor)?;
-        (name.to_string().to_lowercase() == name.to_string()).as_option()?;
+        non_capitalized_ascii(&name.to_string()).as_option()?;
 
         let (punct, _) = cursor.punct()?;
         (punct.as_char() == '>').as_option()?;
