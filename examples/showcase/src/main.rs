@@ -19,7 +19,7 @@ use timer::Model as Timer;
 use todomvc::Model as Todomvc;
 use two_apps::Model as TwoApps;
 use yew::components::Select;
-use yew::{html, App, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, App, Component, ComponentLink, Html, ShouldRender};
 
 #[derive(Clone, Debug, Display, EnumString, EnumIter, PartialEq)]
 enum Scene {
@@ -64,10 +64,8 @@ impl Component for Model {
             }
         }
     }
-}
 
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         html! {
             <div id="fullscreen">
                 <div id="left_pane">

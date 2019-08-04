@@ -10,7 +10,7 @@ use crate::router_button::RouterButton;
 use log::info;
 use router::Route;
 use yew::agent::Bridged;
-use yew::{html, Bridge, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Bridge, Component, ComponentLink, Html, ShouldRender};
 
 pub enum Child {
     A,
@@ -67,10 +67,8 @@ impl Component for Model {
             }
         }
     }
-}
 
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         html! {
             <div>
                 <nav class="menu">

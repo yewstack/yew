@@ -1,7 +1,7 @@
 #![recursion_limit = "256"]
 
 use yew::services::reader::{File, FileChunk, FileData, ReaderService, ReaderTask};
-use yew::{html, ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, ChangeData, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     link: ComponentLink<Model>,
@@ -64,10 +64,8 @@ impl Component for Model {
         }
         true
     }
-}
 
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         let flag = self.by_chunks;
         html! {
             <div>

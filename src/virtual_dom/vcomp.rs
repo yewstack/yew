@@ -2,7 +2,7 @@
 
 use super::{VDiff, VNode};
 use crate::callback::Callback;
-use crate::html::{Component, ComponentUpdate, NodeCell, Renderable, Scope};
+use crate::html::{Component, ComponentUpdate, NodeCell, Scope};
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -53,7 +53,7 @@ where
 impl<COMP, CHILD> From<VChild<CHILD, COMP>> for VComp<COMP>
 where
     COMP: Component,
-    CHILD: Component + Renderable<CHILD>,
+    CHILD: Component,
 {
     fn from(vchild: VChild<CHILD, COMP>) -> Self {
         VComp::new::<CHILD>(vchild.props, vchild.scope)
@@ -82,7 +82,7 @@ impl<COMP: Component> VComp<COMP> {
     /// This method prepares a generator to make a new instance of the `Component`.
     pub fn new<CHILD>(props: CHILD::Properties, scope_holder: ScopeHolder<COMP>) -> Self
     where
-        CHILD: Component + Renderable<CHILD>,
+        CHILD: Component,
     {
         let generator = move |generator_type: GeneratorType, parent: Scope<COMP>| -> Mounted {
             *scope_holder.borrow_mut() = Some(parent);
@@ -171,7 +171,7 @@ where
 
 impl<'a, COMP, F, IN> Transformer<COMP, F, Callback<IN>> for VComp<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
     F: Fn(IN) -> COMP::Message + 'static,
 {
     fn transform(scope: ScopeHolder<COMP>, from: F) -> Callback<IN> {
@@ -189,7 +189,7 @@ where
 
 impl<'a, COMP, F, IN> Transformer<COMP, F, Option<Callback<IN>>> for VComp<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
     F: Fn(IN) -> COMP::Message + 'static,
 {
     fn transform(scope: ScopeHolder<COMP>, from: F) -> Option<Callback<IN>> {

@@ -143,10 +143,8 @@ impl Component for Model {
         }
         true
     }
-}
 
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         match self.scene {
             Scene::ClientsList => html! {
                 <div class="crm">

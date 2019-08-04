@@ -4,7 +4,7 @@ use log::info;
 use rand::Rng;
 use std::time::Duration;
 use yew::services::{IntervalService, Task};
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 #[derive(Clone, Copy, PartialEq)]
 enum LifeState {
@@ -205,10 +205,8 @@ impl Component for Model {
         }
         true
     }
-}
 
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         html! {
             <div>
                 <section class="game-container">

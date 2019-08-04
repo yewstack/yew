@@ -1,4 +1,4 @@
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     name: String,
@@ -26,10 +26,8 @@ impl Component for Model {
         }
         true
     }
-}
 
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         html! {
             <div>
                 <input value=&self.name oninput=|e| Msg::UpdateName(e.value) />

@@ -52,10 +52,8 @@ impl Component for Model {
     fn change(&mut self, _: Self::Properties) -> ShouldRender {
         false
     }
-}
 
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         html! {
             <div>
                 <textarea oninput=|input| Msg::Payload(input.value)

@@ -48,10 +48,8 @@ impl Component for Barrier {
         self.onsignal = props.onsignal;
         true
     }
-}
 
-impl Renderable<Barrier> for Barrier {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         html! {
             <div class="barrier">
                 <p>{ format!("{} on {} clicked", self.counter, self.limit) }</p>

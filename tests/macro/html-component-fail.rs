@@ -21,10 +21,8 @@ impl Component for Child {
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         unimplemented!()
     }
-}
 
-impl Renderable<Self> for Child {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         unimplemented!()
     }
 }
@@ -46,10 +44,8 @@ impl Component for ChildContainer {
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         unimplemented!()
     }
-}
 
-impl Renderable<Self> for ChildContainer {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         unimplemented!()
     }
 }

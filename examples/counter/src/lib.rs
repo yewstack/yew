@@ -2,7 +2,7 @@
 
 use stdweb::web::Date;
 use yew::services::ConsoleService;
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     console: ConsoleService,
@@ -45,10 +45,8 @@ impl Component for Model {
         }
         true
     }
-}
 
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         html! {
             <div>
                 <nav class="menu">

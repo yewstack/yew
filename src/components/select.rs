@@ -34,7 +34,7 @@
 //! ```
 
 use crate::callback::Callback;
-use crate::html::{ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
+use crate::html::{ChangeData, Component, ComponentLink, Html, ShouldRender};
 use crate::macros::{html, Properties};
 
 /// `Select` component.
@@ -64,7 +64,7 @@ pub struct Props<T> {
 
 impl<T> Component for Select<T>
 where
-    T: PartialEq + Clone + 'static,
+    T: ToString + PartialEq + Clone + 'static,
 {
     type Message = Msg;
     type Properties = Props<T>;
@@ -91,13 +91,8 @@ where
         self.props = props;
         true
     }
-}
 
-impl<T> Renderable<Select<T>> for Select<T>
-where
-    T: ToString + PartialEq + Clone + 'static,
-{
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         let selected = self.props.selected.as_ref();
         let view_option = |value: &T| {
             let flag = selected == Some(value);

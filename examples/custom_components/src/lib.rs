@@ -43,10 +43,8 @@ impl Component for Model {
             Msg::ChildClicked(_value) => false,
         }
     }
-}
 
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         let counter = |x| {
             html! {
                 <Counter initial=x color=&self.color onclick=Msg::ChildClicked />

@@ -1,7 +1,7 @@
 #[cfg(feature = "wasm_test")]
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::virtual_dom::VNode;
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 #[cfg(feature = "wasm_test")]
 wasm_bindgen_test_configure!(run_in_browser);
@@ -19,10 +19,8 @@ impl Component for Comp {
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         unimplemented!();
     }
-}
 
-impl Renderable<Comp> for Comp {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         unimplemented!();
     }
 }

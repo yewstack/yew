@@ -22,10 +22,8 @@ impl Component for Model {
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         true
     }
-}
 
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         html! {
             <div class="main">
                 <h1>{ "Nested List Demo" }</h1>

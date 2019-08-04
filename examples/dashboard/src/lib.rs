@@ -6,7 +6,7 @@ use yew::format::{Json, Nothing, Toml};
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
 use yew::services::Task;
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 type AsBinary = bool;
 
@@ -167,10 +167,8 @@ impl Component for Model {
         }
         true
     }
-}
 
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         html! {
             <div>
                 <nav class="menu">

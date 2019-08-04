@@ -42,6 +42,8 @@ pub trait Component: Sized + 'static {
     fn change(&mut self, _: Self::Properties) -> ShouldRender {
         true
     }
+    /// Called by rendering loop.
+    fn render(&self) -> Html<Self>;
     /// Called for finalization on the final point of the component's lifetime.
     fn destroy(&mut self) {} // TODO Replace with `Drop`
 }
@@ -263,6 +265,12 @@ pub trait Renderable<COMP: Component> {
     fn view(&self) -> Html<COMP>;
 }
 
+impl<COMP: Component> Renderable<COMP> for COMP {
+    fn view(&self) -> Html<COMP> {
+        self.render()
+    }
+}
+
 /// Trait for building properties for a component
 pub trait Properties {
     /// Builder that will be used to construct properties
@@ -295,7 +303,7 @@ pub struct ComponentLink<COMP: Component> {
 
 impl<COMP> ComponentLink<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
 {
     /// Create link for a scope.
     fn connect(scope: &Scope<COMP>) -> Self {

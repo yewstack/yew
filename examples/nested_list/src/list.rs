@@ -68,10 +68,8 @@ impl Component for List {
         }
         true
     }
-}
 
-impl Renderable<List> for List {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         html! {
             <div
                 class="list-container"
