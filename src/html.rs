@@ -29,9 +29,10 @@ pub trait Component: Sized + 'static {
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
     fn update(&mut self, msg: Self::Message) -> ShouldRender;
-    /// This method called when properties changes, and once when component created.
+    /// This method called when properties changes, and once when component created. It defaults
+    /// to true if not implemented.
     fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!("you should implement `change` method for a component with properties")
+        true
     }
     /// Called for finalization on the final point of the component's lifetime.
     fn destroy(&mut self) {} // TODO Replace with `Drop`
