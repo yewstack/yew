@@ -19,13 +19,15 @@ cache:
     - $HOME/.local/share/cargo-web/emscripten
 
 rust:
-  - nightly
+  - 1.35.0 # min supported
   - stable
   - beta
+  - nightly
 
 matrix:
   allow_failures:
     - rust: nightly
+  fast_finish: true
 
 install:
   - nvm install 9
