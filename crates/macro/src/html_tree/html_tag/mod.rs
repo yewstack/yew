@@ -6,7 +6,7 @@ use super::HtmlPropSuffix as TagSuffix;
 use super::HtmlTree;
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
-use proc_macro2::{Delimiter, Span};
+use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse;
@@ -51,15 +51,14 @@ impl Parse for HtmlTag {
             });
         }
 
-        if !HtmlTag::verify_end(input.cursor(), &open.tag_name) {
-            return Err(syn::Error::new_spanned(
-                open,
-                "this open tag has no corresponding close tag",
-            ));
-        }
-
         let mut children: Vec<HtmlTree> = vec![];
         loop {
+            if input.is_empty() {
+                return Err(syn::Error::new_spanned(
+                    open,
+                    "this open tag has no corresponding close tag",
+                ));
+            }
             if let Some(next_close_tag_name) = HtmlTagClose::peek(input.cursor()) {
                 if open.tag_name == next_close_tag_name {
                     break;
@@ -156,94 +155,6 @@ impl ToTokens for HtmlTag {
             #vtag.add_children(vec![#(#children),*]);
             ::yew::virtual_dom::VNode::VTag(#vtag)
         }});
-    }
-}
-
-impl HtmlTag {
-    fn verify_end(mut cursor: Cursor, open_tag_name: &TagName) -> bool {
-        let mut tag_stack_count = 1;
-        loop {
-            if HtmlSelfClosingTag::peek(cursor).is_some() {
-                // Do nothing
-            } else if let Some(next_open_tag_name) = &HtmlTagOpen::peek(cursor) {
-                if open_tag_name == next_open_tag_name {
-                    tag_stack_count += 1;
-                }
-            } else if let Some(next_close_tag_name) = &HtmlTagClose::peek(cursor) {
-                if open_tag_name == next_close_tag_name {
-                    tag_stack_count -= 1;
-                    if tag_stack_count == 0 {
-                        break;
-                    }
-                }
-            }
-            if let Some((_, next)) = cursor.token_tree() {
-                cursor = next;
-            } else {
-                break;
-            }
-        }
-
-        tag_stack_count == 0
-    }
-}
-
-/// This struct is only used for its Peek implementation in verify_end. Parsing
-/// is done with HtmlTagOpen with `div` set to true.
-struct HtmlSelfClosingTag;
-
-impl PeekValue<TagName> for HtmlSelfClosingTag {
-    fn peek(cursor: Cursor) -> Option<TagName> {
-        let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '<').as_option()?;
-
-        let (name, mut cursor) = TagName::peek(cursor)?;
-        non_capitalized_ascii(&name.to_string()).as_option()?;
-
-        let mut after_slash = false;
-        loop {
-            if let Some((punct, next_cursor)) = cursor.punct() {
-                match punct.as_char() {
-                    '/' => after_slash = true,
-                    '>' if after_slash => return Some(name),
-                    '>' if !after_slash => {
-                        // We need to read after the '>' for cases like this:
-                        // <div onblur=|_| 2 > 1 />
-                        //                   ^ in order to handle this
-                        //
-                        // Because those cases are NOT handled by the html!
-                        // macro, so we want nice error messages.
-                        //
-                        // This idea here is that, in valid "JSX", after a tag,
-                        // only '<' or '{ ... }' can follow. (that should be
-                        // enough for reasonable cases)
-                        //
-                        let is_next_lt = next_cursor
-                            .punct()
-                            .map(|(p, _)| p.as_char() == '<')
-                            .unwrap_or(false);
-                        let is_next_brace = next_cursor.group(Delimiter::Brace).is_some();
-                        let no_next = next_cursor.token_tree().is_none();
-                        if is_next_lt || is_next_brace || no_next {
-                            return None;
-                        } else {
-                            // TODO: Use proc-macro's Diagnostic when stable
-                            eprintln!(
-                                "HELP: You must wrap expressions containing \
-                                 '>' in braces or parenthesis. See #523."
-                            );
-                        }
-                    }
-                    _ => after_slash = false,
-                }
-                cursor = next_cursor;
-            } else if let Some((_, next)) = cursor.token_tree() {
-                after_slash = false;
-                cursor = next;
-            } else {
-                return None;
-            }
-        }
     }
 }
 

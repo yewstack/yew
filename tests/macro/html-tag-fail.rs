@@ -31,10 +31,6 @@ fn compile_fail() {
     html! { <input onclick=|| () /> };
     html! { <input onclick=|a, b| () /> };
     html! { <input onclick=|a: String| () /> };
-
-    // This is a known limitation. Put braces or parenthesis around expressions
-    // that contain '>'.
-    html! { <div> <div onblur=|_| 2 > 1 /> </div> };
 }
 
 fn main() {}
