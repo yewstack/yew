@@ -380,6 +380,10 @@ fn it_checks_mixed_closing_tags() {
     let b: VNode<CompInt> = html! { <div> <div onblur=|_| 3></div> </div> };
     assert_eq!(a, b); // NB: assert_eq! doesn't (cannot) compare the closures
 
+    let b: VNode<CompInt> = html! { <div> <a onblur=|_| 0></a> </div> };
+    let a: VNode<CompInt> = html! { <div> <a onblur=|_| -> u32 { 0 } />  </div> };
+    assert_eq!(a, b); // NB: assert_eq! doesn't (cannot) compare the closures
+
     // This is a known limitation of the html! macro:
     //
     //   html! { <div> <img onblur=|_| 2 > 1 /> </div> }
