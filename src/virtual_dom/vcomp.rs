@@ -63,22 +63,17 @@ impl<COMP: Component> VComp<COMP> {
                     let scope: Scope<CHILD> = Scope::new();
 
                     // TODO Consider to send ComponentUpdate::Create after `mount_in_place` call
-                    let scope = scope.mount_in_place(
+                    let mut scope = scope.mount_in_place(
                         element,
                         Some(VNode::VRef(ancestor)),
                         Some(occupied.clone()),
                         props,
                     );
 
-                    let destroyer = Box::new({
-                        let mut scope = scope.clone();
-                        move || scope.destroy()
-                    });
-
                     Mounted {
                         occupied,
-                        destroyer: Box::new(destroyer),
-                        scope: Box::into_raw(Box::new(scope)) as *mut Hidden,
+                        scope: Box::into_raw(Box::new(scope.clone())) as *mut Hidden,
+                        destroyer: Box::new(move || scope.destroy()),
                     }
                 }
                 GeneratorType::Overwrite(type_id, scope, occupied) => {
@@ -93,15 +88,10 @@ impl<COMP: Component> VComp<COMP> {
 
                     scope.update(ComponentUpdate::Properties(props));
 
-                    let destroyer = Box::new({
-                        let mut scope = scope.clone();
-                        move || scope.destroy()
-                    });
-
                     Mounted {
                         occupied,
-                        destroyer: Box::new(destroyer),
-                        scope: Box::into_raw(Box::new(scope)) as *mut Hidden,
+                        scope: Box::into_raw(Box::new(scope.clone())) as *mut Hidden,
+                        destroyer: Box::new(move || scope.destroy()),
                     }
                 }
             }
