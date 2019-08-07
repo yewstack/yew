@@ -377,24 +377,25 @@ fn it_checks_mixed_closing_tags() {
     assert_eq!(a, b);
 
     let a: VNode<CompInt> = html! { <div> <div onblur=|_| 2 / 1/>  </div> };
-    let b: VNode<CompInt> = html! { <div> <div onblur=|_| 3></div> </div> };
-    assert_eq!(a, b); // NB: assert_eq! doesn't (cannot) compare the closures
+    let b: VNode<CompInt> = html! { <div> <div onblur=|_| 2></div> </div> };
+    assert_eq!(a, b);
+}
 
-    let b: VNode<CompInt> = html! { <div> <a onblur=|_| 0></a> </div> };
+#[test]
+fn it_checks_misleading_gt() {
+    let a: VNode<CompBool> = html! { <div> <div onblur=|_|   2 > 1   /> </div> };
+    let b: VNode<CompBool> = html! { <div> <div onblur=|_| { 2 > 1 } /> </div> };
+    let c: VNode<CompBool> = html! { <div> <div onblur=|_| ( 2 > 1 ) /> </div> };
+    let d: VNode<CompBool> = html! { <div> <div onblur=|_| true ></div> </div> };
+    assert_eq!(a, b);
+    assert_eq!(a, c);
+    assert_eq!(a, d);
+
+    let a: VNode<CompBool> = html! { <div><div onblur=|_|  2 > 1 />      </div> };
+    let b: VNode<CompBool> = html! { <div><div onblur=|_| { true }></div></div> };
+    assert_eq!(a, b);
+
     let a: VNode<CompInt> = html! { <div> <a onblur=|_| -> u32 { 0 } />  </div> };
-    assert_eq!(a, b); // NB: assert_eq! doesn't (cannot) compare the closures
-
-    // This is a known limitation of the html! macro:
-    //
-    //   html! { <div> <img onblur=|_| 2 > 1 /> </div> }
-    //
-    // You have to put braces or parenthesis around the expression:
-    //
-    //   html! { <div> <img onblur=|_| { 2 > 1 } /> </div> }
-    //
-    let a: VNode<CompBool> = html! { <div> <div onblur=|_| { 2 > 1 } />  </div> };
-    let b: VNode<CompBool> = html! { <div> <div onblur=|_| ( 2 > 1 ) />  </div> };
-    let c: VNode<CompBool> = html! { <div> <div onblur=|_| false></div> </div> };
-    assert_eq!(a, c); // NB: assert_eq! doesn't (cannot) compare the closures
-    assert_eq!(b, c);
+    let b: VNode<CompInt> = html! { <div> <a onblur=|_| 0></a> </div> };
+    assert_eq!(a, b);
 }
