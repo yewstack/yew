@@ -11,6 +11,7 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 use stdweb::web::html_element::SelectElement;
+#[allow(unused_imports)]
 use stdweb::web::{Element, EventListenerHandle, FileList, INode, Node};
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
