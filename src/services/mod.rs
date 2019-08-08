@@ -38,6 +38,6 @@ pub trait Task: Drop {
 
 #[doc(hidden)]
 fn to_ms(duration: Duration) -> u32 {
-    let ms = duration.subsec_nanos() / 1_000_000;
+    let ms = duration.subsec_millis();
     ms + duration.as_secs() as u32 * 1000
 }

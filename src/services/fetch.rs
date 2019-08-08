@@ -245,8 +245,9 @@ where
         .map(|(k, v)| {
             (
                 k.as_str(),
-                v.to_str()
-                    .expect(format!("Unparsable request header {}: {:?}", k.as_str(), v).as_str()),
+                v.to_str().unwrap_or_else(|_| {
+                    panic!("Unparsable request header {}: {:?}", k.as_str(), v)
+                }),
             )
         })
         .collect();
