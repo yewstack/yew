@@ -30,7 +30,10 @@ pub trait Component: Sized + 'static {
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
     fn update(&mut self, msg: Self::Message) -> ShouldRender;
-    /// This method called when properties changes, and once when component created. It defaults
+    /// Called when the component's parent component re-renders and the
+    /// component's place in the DOM tree remains unchanged. If the component's
+    /// place in the DOM tree changes, calling this method is unnecessary as the
+    /// component is recreated from scratch. It defaults
     /// to true if not implemented.
     fn change(&mut self, _: Self::Properties) -> ShouldRender {
         true
