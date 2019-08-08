@@ -5,10 +5,10 @@ error: this open tag has no corresponding close tag
   |             ^^^^^
 
 error: this open tag has no corresponding close tag
- --> $DIR/html-tag-fail.rs:5:13
+ --> $DIR/html-tag-fail.rs:5:18
   |
 5 |     html! { <div><div> };
-  |             ^^^^^
+  |                  ^^^^^
 
 error: this close tag has no corresponding open tag
  --> $DIR/html-tag-fail.rs:6:13
@@ -28,17 +28,17 @@ error: only one root html element allowed
 8 |     html! { <div></div><div></div> };
   |                        ^^^^^^^^^^^
 
-error: this open tag has no corresponding close tag
- --> $DIR/html-tag-fail.rs:9:13
+error: this close tag has no corresponding open tag
+ --> $DIR/html-tag-fail.rs:9:18
   |
 9 |     html! { <div></span> };
-  |             ^^^^^
+  |                  ^^^^^^^
 
-error: this open tag has no corresponding close tag
-  --> $DIR/html-tag-fail.rs:10:13
+error: this close tag has no corresponding open tag
+  --> $DIR/html-tag-fail.rs:10:20
    |
 10 |     html! { <tag-a></tag-b> };
-   |             ^^^^^^^
+   |                    ^^^^^^^^
 
 error: this close tag has no corresponding open tag
   --> $DIR/html-tag-fail.rs:11:18
@@ -52,11 +52,13 @@ error: only one root html element allowed
 12 |     html! { <img /></img> };
    |                    ^^^^^^
 
-error: expected valid html element
-  --> $DIR/html-tag-fail.rs:13:18
+error: unexpected end of input, expected token tree
+  --> $DIR/html-tag-fail.rs:13:5
    |
 13 |     html! { <div>Invalid</div> };
-   |                  ^^^^^^^
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error: only one `attr` attribute allowed
   --> $DIR/html-tag-fail.rs:15:27
@@ -124,13 +126,6 @@ error: invalid closure argument
 33 |     html! { <input onclick=|a: String| () /> };
    |                            ^^^^^^^^^^^
 
-HELP: You must wrap expressions containing '>' in braces or parenthesis. See #523.
-error: expected valid html element
-  --> $DIR/html-tag-fail.rs:37:39
-   |
-37 |     html! { <div> <div onblur=|_| 2 > 1 /> </div> };
-   |                                       ^
-
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:23:28
    |
@@ -189,5 +184,5 @@ error[E0277]: the trait bound `yew::html::Href: std::convert::From<()>` is not s
              <yew::html::Href as std::convert::From<std::string::String>>
    = note: required because of the requirements on the impl of `std::convert::Into<yew::html::Href>` for `()`
 
-Some errors have detailed explanations: E0277, E0308.
+Some errors occurred: E0277, E0308.
 For more information about an error, try `rustc --explain E0277`.

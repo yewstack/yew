@@ -75,6 +75,16 @@ trait PeekValue<T> {
     fn peek(cursor: Cursor) -> Option<T>;
 }
 
+fn non_capitalized_ascii(string: &str) -> bool {
+    if !string.is_ascii() {
+        false
+    } else if let Some(c) = string.bytes().next() {
+        c.is_ascii_lowercase()
+    } else {
+        false
+    }
+}
+
 #[proc_macro_derive(Properties, attributes(props))]
 pub fn derive_props(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DerivePropsInput);

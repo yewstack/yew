@@ -63,22 +63,17 @@ impl<COMP: Component> VComp<COMP> {
                     let scope: Scope<CHILD> = Scope::new();
 
                     // TODO Consider to send ComponentUpdate::Create after `mount_in_place` call
-                    let scope = scope.mount_in_place(
+                    let mut scope = scope.mount_in_place(
                         element,
                         Some(VNode::VRef(ancestor)),
                         Some(occupied.clone()),
                         props,
                     );
 
-                    let destroyer = Box::new({
-                        let mut scope = scope.clone();
-                        move || scope.destroy()
-                    });
-
                     Mounted {
                         occupied,
-                        destroyer: Box::new(destroyer),
-                        scope: Box::into_raw(Box::new(scope)) as *mut Hidden,
+                        scope: Box::into_raw(Box::new(scope.clone())) as *mut Hidden,
+                        destroyer: Box::new(move || scope.destroy()),
                     }
                 }
                 GeneratorType::Overwrite(type_id, scope, occupied) => {
@@ -93,15 +88,10 @@ impl<COMP: Component> VComp<COMP> {
 
                     scope.update(ComponentUpdate::Properties(props));
 
-                    let destroyer = Box::new({
-                        let mut scope = scope.clone();
-                        move || scope.destroy()
-                    });
-
                     Mounted {
                         occupied,
-                        destroyer: Box::new(destroyer),
-                        scope: Box::into_raw(Box::new(scope)) as *mut Hidden,
+                        scope: Box::into_raw(Box::new(scope.clone())) as *mut Hidden,
+                        destroyer: Box::new(move || scope.destroy()),
                     }
                 }
             }
@@ -206,7 +196,7 @@ where
     type Component = COMP;
 
     /// Remove VComp from parent.
-    fn detach(&mut self, parent: &Node) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) -> Option<Node> {
         match self.state.replace(MountState::Detached) {
             MountState::Mounted(this) => {
                 (this.destroyer)();
@@ -226,7 +216,7 @@ where
     /// It compares this with an ancestor `VComp` and overwrites it if it is the same type.
     fn apply(
         &mut self,
-        parent: &Node,
+        parent: &Element,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,

@@ -1,10 +1,13 @@
 #![recursion_limit = "128"]
-#[cfg(feature = "wasm-bindgen-test")]
+use stdweb::web::{document, IElement};
+#[cfg(feature = "wasm_test")]
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-use yew::virtual_dom::VNode;
+use yew::html::Scope;
+use yew::virtual_dom::vtag::{VTag, HTML_NAMESPACE, SVG_NAMESPACE};
+use yew::virtual_dom::{VDiff, VNode};
 use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
-#[cfg(feature = "wasm-bindgen-test")]
+#[cfg(feature = "wasm_test")]
 wasm_bindgen_test_configure!(run_in_browser);
 
 struct Comp;
@@ -201,7 +204,7 @@ fn supports_multiple_classes_string() {
         <div class="class-2 class-3 class-1"></div>
     };
 
-    assert_eq!(a, b);
+    assert_ne!(a, b);
 
     if let VNode::VTag(vtag) = a {
         println!("{:?}", vtag.classes);
@@ -210,6 +213,64 @@ fn supports_multiple_classes_string() {
         assert!(vtag.classes.contains("class-3"));
     } else {
         panic!("vtag expected");
+    }
+}
+
+fn assert_vtag(node: &mut VNode<Comp>) -> &mut VTag<Comp> {
+    if let VNode::VTag(vtag) = node {
+        return vtag;
+    }
+    panic!("should be vtag");
+}
+
+fn assert_namespace(vtag: &VTag<Comp>, namespace: &'static str) {
+    assert_eq!(
+        vtag.reference.as_ref().unwrap().namespace_uri().unwrap(),
+        namespace
+    );
+}
+
+#[test]
+fn supports_svg() {
+    let scope = Scope::new();
+    let div_el = document().create_element("div").unwrap();
+    let svg_el = document().create_element_ns(SVG_NAMESPACE, "svg").unwrap();
+
+    let mut g_node: VNode<Comp> = html! { <g></g> };
+    let path_node: VNode<Comp> = html! { <path></path> };
+    let mut svg_node: VNode<Comp> = html! { <svg>{path_node}</svg> };
+
+    let svg_tag = assert_vtag(&mut svg_node);
+    svg_tag.apply(&div_el, None, None, &scope);
+    assert_namespace(svg_tag, SVG_NAMESPACE);
+    let path_tag = assert_vtag(svg_tag.childs.get_mut(0).unwrap());
+    assert_namespace(path_tag, SVG_NAMESPACE);
+
+    let g_tag = assert_vtag(&mut g_node);
+    g_tag.apply(&div_el, None, None, &scope);
+    assert_namespace(g_tag, HTML_NAMESPACE);
+    g_tag.reference = None;
+
+    g_tag.apply(&svg_el, None, None, &scope);
+    assert_namespace(g_tag, SVG_NAMESPACE);
+}
+
+#[test]
+fn keeps_order_of_classes() {
+    let a: VNode<Comp> = html! {
+        <div class="class-1 class-2   class-3",></div>
+    };
+
+    if let VNode::VTag(mut vtag) = a {
+        println!("{:?}", vtag.classes);
+        assert_eq!(
+            vtag.classes.drain(..).collect::<Vec<String>>(),
+            vec![
+                String::from("class-1"),
+                String::from("class-2"),
+                String::from("class-3")
+            ]
+        )
     }
 }
 
@@ -316,20 +377,25 @@ fn it_checks_mixed_closing_tags() {
     assert_eq!(a, b);
 
     let a: VNode<CompInt> = html! { <div> <div onblur=|_| 2 / 1/>  </div> };
-    let b: VNode<CompInt> = html! { <div> <div onblur=|_| 3></div> </div> };
-    assert_eq!(a, b); // NB: assert_eq! doesn't (cannot) compare the closures
+    let b: VNode<CompInt> = html! { <div> <div onblur=|_| 2></div> </div> };
+    assert_eq!(a, b);
+}
 
-    // This is a known limitation of the html! macro:
-    //
-    //   html! { <div> <img onblur=|_| 2 > 1 /> </div> }
-    //
-    // You have to put braces or parenthesis around the expression:
-    //
-    //   html! { <div> <img onblur=|_| { 2 > 1 } /> </div> }
-    //
-    let a: VNode<CompBool> = html! { <div> <div onblur=|_| { 2 > 1 } />  </div> };
-    let b: VNode<CompBool> = html! { <div> <div onblur=|_| ( 2 > 1 ) />  </div> };
-    let c: VNode<CompBool> = html! { <div> <div onblur=|_| false></div> </div> };
-    assert_eq!(a, c); // NB: assert_eq! doesn't (cannot) compare the closures
-    assert_eq!(b, c);
+#[test]
+fn it_checks_misleading_gt() {
+    let a: VNode<CompBool> = html! { <div> <div onblur=|_|   2 > 1   /> </div> };
+    let b: VNode<CompBool> = html! { <div> <div onblur=|_| { 2 > 1 } /> </div> };
+    let c: VNode<CompBool> = html! { <div> <div onblur=|_| ( 2 > 1 ) /> </div> };
+    let d: VNode<CompBool> = html! { <div> <div onblur=|_| true ></div> </div> };
+    assert_eq!(a, b);
+    assert_eq!(a, c);
+    assert_eq!(a, d);
+
+    let a: VNode<CompBool> = html! { <div><div onblur=|_|  2 > 1 />      </div> };
+    let b: VNode<CompBool> = html! { <div><div onblur=|_| { true }></div></div> };
+    assert_eq!(a, b);
+
+    let a: VNode<CompInt> = html! { <div> <a onblur=|_| -> u32 { 0 } />  </div> };
+    let b: VNode<CompInt> = html! { <div> <a onblur=|_| 0></a> </div> };
+    assert_eq!(a, b);
 }

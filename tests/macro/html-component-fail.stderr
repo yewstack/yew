@@ -113,10 +113,6 @@ error[E0308]: mismatched types
    |
 47 |     html! { <ChildComponent int=0u32 /> };
    |                                 ^^^^ expected i32, found u32
-help: you can convert an `u32` to `i32` and panic if the converted value wouldn't fit
-   |
-47 |     html! { <ChildComponent int=0u32.try_into().unwrap() /> };
-   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<ChildProperties_int_is_required>` in the current scope
   --> $DIR/html-component-fail.rs:48:29
@@ -127,5 +123,5 @@ error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<Ch
 48 |     html! { <ChildComponent string="abc" /> };
    |                             ^^^^^^
 
-Some errors have detailed explanations: E0308, E0425, E0599, E0609.
+Some errors occurred: E0308, E0425, E0599, E0609.
 For more information about an error, try `rustc --explain E0308`.

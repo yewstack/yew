@@ -14,6 +14,12 @@ use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node}
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
+/// SVG namespace string used for creating svg elements
+pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
+
+/// Default namespace for html elements
+pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
+
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
@@ -344,8 +350,8 @@ impl<COMP: Component> VTag<COMP> {
                 }
             }
 
-            // IMPORTANT! This parameters have to be set every time
-            // to prevent strange behaviour in browser when DOM changed
+            // IMPORTANT! This parameter has to be set every time
+            // to prevent strange behaviour in the browser when the DOM changes
             set_checked(&input, self.checked);
         } else if let Ok(tae) = TextAreaElement::try_from(element.clone()) {
             if let Some(change) = self.diff_value(ancestor) {
@@ -366,7 +372,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
     type Component = COMP;
 
     /// Remove VTag from parent.
-    fn detach(&mut self, parent: &Node) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) -> Option<Node> {
         let node = self
             .reference
             .take()
@@ -382,7 +388,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
     /// to compute what to patch in the actual DOM nodes.
     fn apply(
         &mut self,
-        parent: &Node,
+        parent: &Element,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,
@@ -421,9 +427,18 @@ impl<COMP: Component> VDiff for VTag<COMP> {
         match reform {
             Reform::Keep => {}
             Reform::Before(before) => {
-                let element = document()
-                    .create_element(&self.tag)
-                    .expect("can't create element for vtag");
+                let element = if self.tag == "svg"
+                    || parent.namespace_uri() == Some(SVG_NAMESPACE.to_string())
+                {
+                    document()
+                        .create_element_ns(SVG_NAMESPACE, &self.tag)
+                        .expect("can't create namespaced element for vtag")
+                } else {
+                    document()
+                        .create_element(&self.tag)
+                        .expect("can't create element for vtag")
+                };
+
                 if let Some(sibling) = before {
                     parent
                         .insert_before(&element, &sibling)
@@ -472,14 +487,11 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             let mut ancestor_childs = ancestor_childs.drain(..);
             loop {
                 match (self_childs.next(), ancestor_childs.next()) {
-                    (Some(left), Some(right)) => {
-                        precursor = left.apply(element.as_node(), precursor.as_ref(), Some(right), &env);
-                    }
-                    (Some(left), None) => {
-                        precursor = left.apply(element.as_node(), precursor.as_ref(), None, &env);
+                    (Some(left), right) => {
+                        precursor = left.apply(&element, precursor.as_ref(), right, &env);
                     }
                     (None, Some(ref mut right)) => {
-                        right.detach(element.as_node());
+                        right.detach(&element);
                     }
                     (None, None) => break,
                 }
@@ -546,7 +558,7 @@ impl<COMP: Component> PartialEq for VTag<COMP> {
             return false;
         }
 
-        if self.classes != other.classes {
+        if self.classes.iter().ne(other.classes.iter()) {
             return false;
         }
 

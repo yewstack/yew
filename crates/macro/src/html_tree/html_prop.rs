@@ -32,9 +32,9 @@ impl Parse for HtmlProp {
 }
 
 pub struct HtmlPropSuffix {
+    pub stream: TokenStream,
     pub div: Option<Token![/]>,
     pub gt: Token![>],
-    pub stream: TokenStream,
 }
 
 impl Parse for HtmlPropSuffix {
@@ -49,12 +49,18 @@ impl Parse for HtmlPropSuffix {
             if let TokenTree::Punct(punct) = &next {
                 match punct.as_char() {
                     '>' => {
-                        angle_count -= 1;
-                        if angle_count == 0 {
-                            gt = Some(syn::token::Gt {
-                                spans: [punct.span()],
-                            });
-                            break;
+                        let possible_tag_end = input.peek(Token![<])
+                            || input.peek(syn::token::Brace)
+                            || input.is_empty();
+
+                        if angle_count > 1 || possible_tag_end {
+                            angle_count -= 1;
+                            if angle_count == 0 {
+                                gt = Some(syn::token::Gt {
+                                    spans: [punct.span()],
+                                });
+                                break;
+                            }
                         }
                     }
                     '<' => angle_count += 1,
@@ -67,6 +73,14 @@ impl Parse for HtmlPropSuffix {
                             break;
                         }
                     }
+                    '-' => {
+                        if input.peek(Token![>]) {
+                            // Handle explicit return types in callbacks (#560)
+                            // We increase angle_count here in order to ignore
+                            // the following >.
+                            angle_count += 1;
+                        }
+                    }
                     _ => {}
                 };
             }
@@ -77,6 +91,6 @@ impl Parse for HtmlPropSuffix {
         let stream: proc_macro2::TokenStream = trees.into_iter().collect();
         let stream = TokenStream::from(stream);
 
-        Ok(HtmlPropSuffix { div, gt, stream })
+        Ok(HtmlPropSuffix { stream, div, gt })
     }
 }

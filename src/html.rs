@@ -11,6 +11,7 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 use stdweb::web::html_element::SelectElement;
+#[allow(unused_imports)]
 use stdweb::web::{Element, EventListenerHandle, FileList, INode, Node};
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
@@ -29,12 +30,13 @@ pub trait Component: Sized + 'static {
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
     fn update(&mut self, msg: Self::Message) -> ShouldRender;
-    /// Called if both the component's parent component re-renders and the
+    /// Called when the component's parent component re-renders and the
     /// component's place in the DOM tree remains unchanged. If the component's
     /// place in the DOM tree changes, calling this method is unnecessary as the
-    /// component is recreated from scratch.
+    /// component is recreated from scratch. It defaults
+    /// to true if not implemented.
     fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!("you should implement `change` method for a component with properties")
+        true
     }
     /// Called for finalization on the final point of the component's lifetime.
     fn destroy(&mut self) {} // TODO Replace with `Drop`
@@ -166,7 +168,7 @@ struct CreatedState<COMP: Component> {
 impl<COMP: Component + Renderable<COMP>> CreatedState<COMP> {
     fn update(mut self) -> Self {
         let mut next_frame = self.component.view();
-        let node = next_frame.apply(self.element.as_node(), None, self.last_frame, &self.env);
+        let node = next_frame.apply(&self.element, None, self.last_frame, &self.env);
         if let Some(ref mut cell) = self.occupied {
             *cell.borrow_mut() = node;
         }
@@ -232,7 +234,8 @@ impl<COMP> Scope<COMP>
 where
     COMP: Component + Renderable<COMP>,
 {
-    pub(crate) fn new() -> Self {
+    /// visible for testing
+    pub fn new() -> Self {
         let shared_state = Rc::new(RefCell::new(ComponentState::Empty));
         Scope { shared_state }
     }
@@ -301,12 +304,12 @@ where
             ComponentState::Created(mut this) => {
                 this.component.destroy();
                 if let Some(last_frame) = &mut this.last_frame {
-                    last_frame.detach(this.element.as_node());
+                    last_frame.detach(&this.element);
                 }
             }
             ComponentState::Ready(mut this) => {
                 if let Some(ancestor) = &mut this.ancestor {
-                    ancestor.detach(this.element.as_node());
+                    ancestor.detach(&this.element);
                 }
             }
             ComponentState::Empty | ComponentState::Destroyed => {}
