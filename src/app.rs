@@ -12,12 +12,27 @@ pub struct App<COMP: Component> {
 
 impl<COMP> App<COMP>
 where
-    COMP: Component<Properties = ()> + Renderable<COMP>,
+    COMP: Component + Renderable<COMP>,
+    COMP::Properties: Default,
 {
-    /// Creates a new `App` with a component in a context.
-    pub fn new() -> Self {
-        let scope = Scope::new();
-        App { scope }
+    /// The main entrypoint of a yew program. It works similarly to the `program`
+    /// function in Elm. You should provide an initial model, `update` function
+    /// which will update the state of the model and a `view` function which
+    /// will render the model to a virtual DOM tree.
+    pub fn mount(self, element: Element) -> Scope<COMP> {
+        clear_element(&element);
+        self.scope
+            .mount_in_place(element, None, None, COMP::Properties::default())
+    }
+
+    /// Alias to `mount("body", ...)`.
+    pub fn mount_to_body(self) -> Scope<COMP> {
+        // Bootstrap the component for `Window` environment only (not for `Worker`)
+        let element = document()
+            .query_selector("body")
+            .expect("can't get body node for rendering")
+            .expect("can't unwrap body node");
+        self.mount(element)
     }
 
     /// Alias to `mount_in_place` taking a component having a body element at the
@@ -36,26 +51,38 @@ where
         html_element
             .remove_child(&body_element)
             .expect("can't remove body child");
-        self.scope.mount_in_place(html_element, None, None, ())
+        self.scope
+            .mount_in_place(html_element, None, None, COMP::Properties::default())
+    }
+}
+
+impl<COMP> App<COMP>
+where
+    COMP: Component + Renderable<COMP>,
+{
+    /// Creates a new `App` with a component in a context.
+    pub fn new() -> Self {
+        let scope = Scope::new();
+        App { scope }
     }
 
-    /// Alias to `mount("body", ...)`.
-    pub fn mount_to_body(self) -> Scope<COMP> {
+    /// The main entrypoint of a yew program which also allows passing properties. It works
+    /// similarly to the `program` function in Elm. You should provide an initial model, `update`
+    /// function which will update the state of the model and a `view` function which
+    /// will render the model to a virtual DOM tree.
+    pub fn mount_with_props(self, element: Element, props: COMP::Properties) -> Scope<COMP> {
+        clear_element(&element);
+        self.scope.mount_in_place(element, None, None, props)
+    }
+
+    /// Alias to `mount_with_props("body", ...)`.
+    pub fn mount_to_body_with_props(self, props: COMP::Properties) -> Scope<COMP> {
         // Bootstrap the component for `Window` environment only (not for `Worker`)
         let element = document()
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
-        self.mount(element)
-    }
-
-    /// The main entrypoint of a yew program. It works similar as `program`
-    /// function in Elm. You should provide an initial model, `update` function
-    /// which will update the state of the model and a `view` function which
-    /// will render the model to a virtual DOM tree.
-    pub fn mount(self, element: Element) -> Scope<COMP> {
-        clear_element(&element);
-        self.scope.mount_in_place(element, None, None, ())
+        self.mount_with_props(element, props)
     }
 }
 
