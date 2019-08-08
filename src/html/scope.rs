@@ -168,6 +168,15 @@ where
     }
 }
 
+impl<COMP> Default for Scope<COMP>
+where
+    COMP: Component + Renderable<COMP>,
+{
+    fn default() -> Self {
+        Scope::new()
+    }
+}
+
 struct CreateComponent<COMP>
 where
     COMP: Component,
