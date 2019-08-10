@@ -23,7 +23,7 @@ lazy_static = "1.3.0"
 proc-macro-hack = "0.5"
 proc-macro2 = "0.4"
 quote = "0.6"
-syn = { version = "^0.15.34", features = ["full"] }
+syn = { version = "^0.15.34", features = ["full", "extra-traits"] }
 
 [dev-dependencies]
 yew = { path = "../.." }
