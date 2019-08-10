@@ -18,7 +18,8 @@ where
     /// The main entrypoint of a yew program. It works similarly to the `program`
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
-    /// will render the model to a virtual DOM tree.
+    /// will render the model to a virtual DOM tree. If you would like to pass props,
+    /// use the `mount_with_props` method.
     pub fn mount(self, element: Element) -> Scope<COMP> {
         clear_element(&element);
         self.scope
