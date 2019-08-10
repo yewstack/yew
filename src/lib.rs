@@ -117,10 +117,21 @@ pub fn run_loop() {
 /// Starts an app mounted to a body of the document.
 pub fn start_app<COMP>()
 where
-    COMP: Component<Properties = ()> + Renderable<COMP>,
+    COMP: Component + Renderable<COMP>,
+    COMP::Properties: Default,
 {
     initialize();
     App::<COMP>::new().mount_to_body();
+    run_loop();
+}
+
+/// Starts an app mounted to a body of the document.
+pub fn start_app_with_props<COMP>(props: COMP::Properties)
+where
+    COMP: Component + Renderable<COMP>,
+{
+    initialize();
+    App::<COMP>::new().mount_to_body_with_props(props);
     run_loop();
 }
 
