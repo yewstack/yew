@@ -1,10 +1,34 @@
-[![Build Status](https://api.travis-ci.org/DenisKolodin/yew.svg)](https://travis-ci.org/DenisKolodin/yew)
-[![Gitter chat](https://badges.gitter.im/yewframework.svg)](https://gitter.im/yewframework/Lobby "Gitter chat")
-[![Rustc Version 1.35+](https://img.shields.io/badge/rustc-1.35+-lightgray.svg)](https://blog.rust-lang.org/2019/05/23/Rust-1.35.0.html)
+<div align="center">
 
-# Yew
+  <img src="https://github.com/jstarry/yew/blob/update-readme/.static/yew.svg" width="150" />
 
-**Yew** (pronounced `/juː/`, the same way as "you") is a modern Rust framework inspired by Elm and ReactJS for
+  <h1>
+    Yew &nbsp;
+    <a href="https://crates.io/crates/yew"><img alt="Build Status" src="https://img.shields.io/crates/v/yew.svg"/></a>
+  </h1>
+
+  <p>
+    <strong>Rust / Wasm UI framework</strong>
+  </p>
+
+  <p>
+    <a href="https://travis-ci.com/yewstack/yew"><img alt="Build Status" src="https://travis-ci.com/yewstack/yew.svg?branch=master"/></a>
+    <a href="https://gitter.im/yewframework/Lobby"><img alt="Gitter Chat" src="https://badges.gitter.im/yewframework.svg"/></a>
+    <a href="https://blog.rust-lang.org/2019/05/23/Rust-1.35.0.html"><img alt="Rustc Version 1.35+" src="https://img.shields.io/badge/rustc-1.35+-lightgray.svg"/></a>
+  </p>
+
+  <h4>
+    <a href="#running-the-examples">Examples</a>
+    <span> | </span>
+    <a href="https://github.com/yewstack/yew/blob/master/CHANGELOG.md">Changelog</a>
+    <span> | </span>
+    <a href="https://github.com/yewstack/yew/blob/master/CODE_OF_CONDUCT.md">Code of Conduct</a>
+  </h4>
+</div>
+
+## Overview
+
+**Yew** is a modern Rust framework inspired by Elm and React for
 creating multi-threaded frontend apps with WebAssembly.
 
 The framework supports ***multi-threading & concurrency*** out of the box.
