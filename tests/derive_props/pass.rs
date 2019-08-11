@@ -64,4 +64,23 @@ mod t4 {
     }
 }
 
+mod t5 {
+    use super::*;
+
+    #[derive(Properties)]
+    pub struct Props<'a, T: Default + 'a> {
+        static_value: &'static str,
+        #[props(required)]
+        value: &'a T,
+    }
+
+    fn optional_prop_generics_with_lifetime_should_work() {
+        Props::<String>::builder().value(&String::from("")).build();
+        Props::<String>::builder()
+            .static_value("")
+            .value(&String::from(""))
+            .build();
+    }
+}
+
 fn main() {}

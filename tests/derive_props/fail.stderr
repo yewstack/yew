@@ -12,7 +12,7 @@ error[E0277]: the trait bound `t1::Value: std::default::Default` is not satisfie
   |
   = note: required by `std::default::Default::default`
 
-error[E0599]: no method named `build` found for type `t3::PropsBuilder<t3::Props_value_is_required>` in the current scope
+error[E0599]: no method named `build` found for type `t3::PropsBuilder<t3::PropsBuilderStep_missing_required_prop_value>` in the current scope
   --> $DIR/fail.rs:34:26
    |
 27 |     #[derive(Properties)]
@@ -21,7 +21,7 @@ error[E0599]: no method named `build` found for type `t3::PropsBuilder<t3::Props
 34 |         Props::builder().build();
    |                          ^^^^^
 
-error[E0599]: no method named `b` found for type `t4::PropsBuilder<t4::Props_a_is_required>` in the current scope
+error[E0599]: no method named `b` found for type `t4::PropsBuilder<t4::PropsBuilderStep_missing_required_prop_a>` in the current scope
   --> $DIR/fail.rs:48:26
    |
 40 |     #[derive(Properties)]

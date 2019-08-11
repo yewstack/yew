@@ -4,6 +4,8 @@
 
 - #### ⚡️ Features
 
+  - The derive props macro now supports Properties with lifetimes [[@jstarry], [#580](https://github.com/yewstack/yew/pull/580)]
+
 - #### 🛠 Fixes
 
 - #### 🚨 Breaking changes
