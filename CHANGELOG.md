@@ -5,6 +5,7 @@
 - #### ⚡️ Features
 
   - The derive props macro now supports Properties with lifetimes [[@jstarry], [#580](https://github.com/yewstack/yew/pull/580)]
+  - New `ResizeService` for registering for `window` size updates [[@hgzimmerman], [#577](https://github.com/yewstack/yew/pull/577)]
 
 - #### 🛠 Fixes
 
@@ -150,6 +151,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@charvp]: https://github.com/charvp
 [@DenisKolodin]: https://github.com/DenisKolodin
 [@dermetfan]: https://github.com/dermetfan
+[@hgzimmerman]: https://github.com/hgzimmerman
 [@jstarry]: https://github.com/jstarry
 [@kellytk]: https://github.com/kellytk
 [@tiziano88]: https://github.com/tiziano88
