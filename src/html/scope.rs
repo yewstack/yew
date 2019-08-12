@@ -125,11 +125,8 @@ impl<COMP: Component + Renderable<COMP>> CreatedState<COMP> {
         }
 
         Self {
-            env: self.env,
-            component: self.component,
             last_frame: Some(next_frame),
-            element: self.element,
-            occupied: self.occupied,
+            ..self
         }
     }
 }
