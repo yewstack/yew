@@ -112,6 +112,11 @@ struct CreatedState<COMP: Component> {
 }
 
 impl<COMP: Component + Renderable<COMP>> CreatedState<COMP> {
+    /// Called once immediately after the component is created.
+    fn mounted(mut self) -> Self {
+        self.component.on_mount();
+        self
+    }
     fn update(mut self) -> Self {
         let mut next_frame = self.component.view();
         let node = next_frame.apply(&self.element, None, self.last_frame, &self.env);
@@ -178,7 +183,9 @@ where
     fn run(self: Box<Self>) {
         let current_state = self.shared_state.replace(ComponentState::Processing);
         self.shared_state.replace(match current_state {
-            ComponentState::Ready(state) => ComponentState::Created(state.create().update()),
+            ComponentState::Ready(state) => {
+                ComponentState::Created(state.create().update().mounted())
+            },
             ComponentState::Created(_) | ComponentState::Destroyed => current_state,
             ComponentState::Empty | ComponentState::Processing => {
                 panic!("unexpected component state: {}", current_state);
