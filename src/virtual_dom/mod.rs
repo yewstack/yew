@@ -6,10 +6,10 @@ pub mod vnode;
 pub mod vtag;
 pub mod vtext;
 
+use indexmap::set::IndexSet;
 use std::collections::HashMap;
 use std::fmt;
 use stdweb::web::{Element, EventListenerHandle, Node};
-use indexmap::set::IndexSet;
 
 pub use self::vcomp::VComp;
 pub use self::vlist::VList;
@@ -41,7 +41,62 @@ type Listeners<COMP> = Vec<Box<dyn Listener<COMP>>>;
 type Attributes = HashMap<String, String>;
 
 /// A set of classes.
-type Classes = IndexSet<String>;
+#[derive(Debug)]
+pub struct Classes {
+    set: IndexSet<String>,
+}
+
+impl Classes {
+    /// Creates empty set of classes.
+    pub fn new() -> Self {
+        Self {
+            set: IndexSet::new(),
+        }
+    }
+
+    /// Adds a class to a set.
+    pub fn push(&mut self, class: &str) {
+        self.set.insert(class.into());
+    }
+
+    /// Check the set contains a class.
+    pub fn contains(&self, class: &str) -> bool {
+        self.set.contains(class)
+    }
+}
+
+impl ToString for Classes {
+    fn to_string(&self) -> String {
+        let mut buf = String::new();
+        for class in &self.set {
+            buf.push_str(class);
+            buf.push(' ');
+        }
+        buf.pop();
+        buf
+    }
+}
+
+impl From<&str> for Classes {
+    fn from(t: &str) -> Self {
+        let set = t.split_whitespace().map(String::from).collect();
+        Self { set }
+    }
+}
+
+impl From<String> for Classes {
+    fn from(t: String) -> Self {
+        let set = t.split_whitespace().map(String::from).collect();
+        Self { set }
+    }
+}
+
+impl<T: AsRef<str>> From<Vec<T>> for Classes {
+    fn from(t: Vec<T>) -> Self {
+        let set = t.iter().map(|x| x.as_ref().to_string()).collect();
+        Self { set }
+    }
+}
 
 /// Patch for DOM node modification.
 enum Patch<ID, T> {
