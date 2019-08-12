@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="https://github.com/jstarry/yew/blob/update-readme/.static/yew.svg" width="150" />
+  <img src="https://github.com/yewstack/yew/blob/master/.static/yew.svg" width="150" />
 
   <h1>
     Yew &nbsp;
