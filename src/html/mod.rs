@@ -24,6 +24,10 @@ pub trait Component: Sized + 'static {
     type Properties: Properties;
     /// Initialization routine which could use a context.
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self;
+    /// Called after the component has been attached to the VDOM and it is safe to receive messages
+    /// from agents but before the browser updates the screen. If true is returned, the view will
+    /// be re-rendered and the user will not see the initial render.
+    fn mounted(&mut self) -> ShouldRender { false }
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
     fn update(&mut self, msg: Self::Message) -> ShouldRender;
