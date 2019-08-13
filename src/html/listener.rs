@@ -144,6 +144,11 @@ impl_action! {
             }
         }
     }
+    touchcancel(event: TouchCancel) -> TouchCancel => |_, event| { event }
+    touchend(event: TouchEnd) -> TouchEnd => |_, event| { event }
+    touchenter(event: TouchEnter) -> TouchEnter => |_, event| { event }
+    touchmove(event: TouchMove) -> TouchMove => |_, event| { event }
+    touchstart(event: TouchStart) -> TouchStart => |_, event| { event }
 }
 
 /// A type representing data from `oninput` event.
