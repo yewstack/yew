@@ -15,6 +15,25 @@ use stdweb::{_js_impl, js};
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
+/// Type to set cache for fetch.
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Cache {
+    /// `default` value of cache.
+    #[serde(rename = "default")]
+    DefaultCache,
+    /// `no-store` value of cache.
+    NoStore,
+    /// `reload` value of cache.
+    Reload,
+    /// `no-cache` value of cache.
+    NoCache,
+    /// `force-cache` value of cache
+    ForceCache,
+    /// `only-if-cached` value of cache
+    OnlyIfCached,
+}
+
 /// Type to set credentials for fetch.
 #[derive(Serialize)]
 #[serde(rename_all = "kebab-case")]
@@ -27,12 +46,46 @@ pub enum Credentials {
     SameOrigin,
 }
 
+/// Type to set mode for fetch.
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Mode {
+    /// `same-origin` value of mode.
+    SameOrigin,
+    /// `no-cors` value of mode.
+    NoCors,
+    /// `cors` value of mode.
+    Cors,
+}
+
+/// Type to set redirect behaviour for fetch.
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Redirect {
+    /// `follow` value of redirect.
+    Follow,
+    /// `error` value of redirect.
+    Error,
+    /// `manual` value of redirect.
+    Manual,
+}
+
 /// Init options for `fetch()` function call.
 /// https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-#[derive(Serialize)]
+#[derive(Serialize, Default)]
 pub struct FetchOptions {
+    /// Cache of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache: Option<Cache>,
     /// Credentials of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub credentials: Option<Credentials>,
+    /// Redirect behaviour of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redirect: Option<Redirect>,
+    /// Request mode of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mode: Option<Mode>,
 }
 
 /// Represents errors of a fetch service.
@@ -125,6 +178,7 @@ impl FetchService {
     ///         .body(Nothing).unwrap();
     ///     let options = FetchOptions {
     ///         credentials: Some(Credentials::SameOrigin),
+    ///         ..FetchOptions::default()
     ///     };
     ///     let task = fetch_service.fetch_with_options(request, options, callback);
     /// ```
