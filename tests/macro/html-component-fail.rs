@@ -29,6 +29,8 @@ impl Renderable<ChildComponent> for ChildComponent {
     }
 }
 
+// TODO add test for nested component with children prop set
+// TODO add test for nested component `with props`
 fn compile_fail() {
     html! { <ChildComponent> };
     html! { <ChildComponent:: /> };
@@ -46,6 +48,7 @@ fn compile_fail() {
     html! { <ChildComponent int=1 string={3} /> };
     html! { <ChildComponent int=0u32 /> };
     html! { <ChildComponent string="abc" /> };
+    html! { </ChildComponent> };
 }
 
 fn main() {}
