@@ -96,7 +96,7 @@ impl<COMP: Component> VTag<COMP> {
     pub fn add_class(&mut self, class: &str) {
         let class = class.trim();
         if !class.is_empty() {
-            self.classes.insert(class.into());
+            self.classes.push(class);
         }
     }
 
@@ -107,7 +107,7 @@ impl<COMP: Component> VTag<COMP> {
         for class in classes {
             let class = class.trim();
             if !class.is_empty() {
-                self.classes.insert(class.into());
+                self.classes.push(class);
             }
         }
     }
@@ -115,8 +115,8 @@ impl<COMP: Component> VTag<COMP> {
     /// Add classes to this virtual node. Actually it will set by
     /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
     /// call later.
-    pub fn set_classes(&mut self, classes: &str) {
-        self.classes = classes.split_whitespace().map(String::from).collect();
+    pub fn set_classes(&mut self, classes: impl Into<Classes>) {
+        self.classes = classes.into();
     }
 
     /// Sets `value` for an
@@ -187,18 +187,21 @@ impl<COMP: Component> VTag<COMP> {
             // Only change what is necessary.
             let to_add = self
                 .classes
-                .difference(&ancestor.classes)
+                .set
+                .difference(&ancestor.classes.set)
                 .map(|class| Patch::Add(class.to_owned(), ()));
             changes.extend(to_add);
             let to_remove = ancestor
                 .classes
-                .difference(&self.classes)
+                .set
+                .difference(&self.classes.set)
                 .map(|class| Patch::Remove(class.to_owned()));
             changes.extend(to_remove);
         } else {
             // Add everything
             let to_add = self
                 .classes
+                .set
                 .iter()
                 .map(|class| Patch::Add(class.to_owned(), ()));
             changes.extend(to_add);
@@ -558,7 +561,7 @@ impl<COMP: Component> PartialEq for VTag<COMP> {
             return false;
         }
 
-        if self.classes.iter().ne(other.classes.iter()) {
+        if self.classes.set.iter().ne(other.classes.set.iter()) {
             return false;
         }
 
