@@ -114,9 +114,13 @@ struct CreatedState<COMP: Component> {
 impl<COMP: Component + Renderable<COMP>> CreatedState<COMP> {
     /// Called once immediately after the component is created.
     fn mounted(mut self) -> Self {
-        self.component.on_mount();
-        self
+        if self.component.mounted() {
+            self.update()
+        } else {
+            self
+        }
     }
+
     fn update(mut self) -> Self {
         let mut next_frame = self.component.view();
         let node = next_frame.apply(&self.element, None, self.last_frame, &self.env);
@@ -124,10 +128,8 @@ impl<COMP: Component + Renderable<COMP>> CreatedState<COMP> {
             *cell.borrow_mut() = node;
         }
 
-        Self {
-            last_frame: Some(next_frame),
-            ..self
-        }
+        self.last_frame = Some(next_frame);
+        self
     }
 }
 
