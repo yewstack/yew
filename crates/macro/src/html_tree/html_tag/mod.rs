@@ -137,7 +137,7 @@ impl ToTokens for HtmlTag {
                 #vtag.add_classes(vec![#(&(#classes)),*]);
             },
             ClassesForm::Single(classes) => quote! {
-                #vtag.set_classes(&(#classes));
+                #vtag.set_classes(#classes);
             },
         });
 
