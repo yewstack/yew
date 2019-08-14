@@ -179,34 +179,33 @@ impl<COMP: Component> VTag<COMP> {
     /// - items that are the same stay the same.
     ///
     /// Otherwise just add everything.
-    fn diff_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, ()>> {
+    fn diff_classes<'a>(&'a self, ancestor: &'a Option<Self>) -> Vec<Patch<&'a str, ()>> {
         // TODO: Use generator in order to avoid useless alloc
 
-        let mut changes = Vec::new();
         if let Some(ref ancestor) = ancestor {
             // Only change what is necessary.
+            let mut changes = Vec::with_capacity(self.classes.set.len() + ancestor.classes.set.len());
             let to_add = self
                 .classes
                 .set
                 .difference(&ancestor.classes.set)
-                .map(|class| Patch::Add(class.to_owned(), ()));
-            changes.extend(to_add);
+                .map(|class| Patch::Add(&**class, ()));
             let to_remove = ancestor
                 .classes
                 .set
                 .difference(&self.classes.set)
-                .map(|class| Patch::Remove(class.to_owned()));
-            changes.extend(to_remove);
+                .map(|class| Patch::Remove(&**class));
+            changes.extend(to_add.chain(to_remove));
+            changes
         } else {
             // Add everything
-            let to_add = self
+            self
                 .classes
                 .set
                 .iter()
-                .map(|class| Patch::Add(class.to_owned(), ()));
-            changes.extend(to_add);
+                .map(|class| Patch::Add(&**class, ()))
+                .collect()
         }
-        changes
     }
 
     /// Similar to diff_classes except for attributes.
@@ -297,10 +296,10 @@ impl<COMP: Component> VTag<COMP> {
             let list = element.class_list();
             match change {
                 Patch::Add(class, _) | Patch::Replace(class, _) => {
-                    list.add(&class).expect("can't add a class");
+                    list.add(class).expect("can't add a class");
                 }
                 Patch::Remove(class) => {
-                    list.remove(&class).expect("can't remove a class");
+                    list.remove(class).expect("can't remove a class");
                 }
             }
         }
