@@ -10,6 +10,15 @@ pub struct App<COMP: Component> {
     scope: Scope<COMP>,
 }
 
+impl<COMP> Default for App<COMP>
+where
+    COMP: Component + Renderable<COMP>,
+{
+    fn default() -> Self {
+        App::new()
+    }
+}
+
 impl<COMP> App<COMP>
 where
     COMP: Component + Renderable<COMP>,

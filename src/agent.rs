@@ -42,7 +42,7 @@ where
 
 trait Packed {
     fn pack(&self) -> Vec<u8>;
-    fn unpack(data: &Vec<u8>) -> Self;
+    fn unpack(data: &[u8]) -> Self;
 }
 
 impl<T: Transferable> Packed for T {
@@ -50,7 +50,7 @@ impl<T: Transferable> Packed for T {
         bincode::serialize(&self).expect("can't serialize a transferable object")
     }
 
-    fn unpack(data: &Vec<u8>) -> Self {
+    fn unpack(data: &[u8]) -> Self {
         bincode::deserialize(&data).expect("can't deserialize a transferable object")
     }
 }
@@ -66,7 +66,7 @@ impl From<usize> for HandlerId {
 }
 
 impl HandlerId {
-    fn raw_id(&self) -> usize {
+    fn raw_id(self) -> usize {
         self.0
     }
 }
@@ -224,7 +224,7 @@ impl Discoverer for Context {
             let upd = AgentUpdate::Create(agent_link);
             scope.send(upd);
         }
-        let upd = AgentUpdate::Connected(bridge.id.into());
+        let upd = AgentUpdate::Connected(bridge.id);
         bridge.scope.send(upd);
         Box::new(bridge)
     }

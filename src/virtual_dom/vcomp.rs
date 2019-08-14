@@ -82,7 +82,7 @@ impl<COMP: Component> VComp<COMP> {
                     }
 
                     let mut scope = unsafe {
-                        let raw: *mut Scope<CHILD> = ::std::mem::transmute(scope);
+                        let raw: *mut Scope<CHILD> = scope as *mut Scope<CHILD>;
                         *Box::from_raw(raw)
                     };
 

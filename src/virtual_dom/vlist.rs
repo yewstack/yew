@@ -9,6 +9,12 @@ pub struct VList<COMP: Component> {
     pub childs: Vec<VNode<COMP>>,
 }
 
+impl<COMP: Component> Default for VList<COMP> {
+    fn default() -> Self {
+        VList::new()
+    }
+}
+
 impl<COMP: Component> VList<COMP> {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new() -> Self {
