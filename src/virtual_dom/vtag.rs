@@ -398,7 +398,9 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             Reform::Keep => {}
             Reform::Before(before) => {
                 let element = if self.tag == "svg"
-                    || parent.namespace_uri().map_or(false, |ns| ns == SVG_NAMESPACE)
+                    || parent
+                        .namespace_uri()
+                        .map_or(false, |ns| ns == SVG_NAMESPACE)
                 {
                     document()
                         .create_element_ns(SVG_NAMESPACE, &self.tag)
@@ -430,16 +432,11 @@ impl<COMP: Component> VDiff for VTag<COMP> {
         let element = self.reference.clone().expect("element expected");
 
         {
-            let mut ancestor_childs = Vec::new();
-            if let Some(ref mut a) = ancestor {
-                std::mem::swap(&mut ancestor_childs, &mut a.childs);
-            }
-
             self.apply_diffs(&element, &ancestor);
 
             // Every render it removes all listeners and attach it back later
             // TODO Compare references of handler to do listeners update better
-            if let Some(mut ancestor) = ancestor {
+            if let Some(ref mut ancestor) = ancestor {
                 for handle in ancestor.captured.drain(..) {
                     handle.remove();
                 }
@@ -454,7 +451,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             // Start with an empty precursor, because it put childs to itself
             let mut precursor = None;
             let mut self_childs = self.childs.iter_mut();
-            let mut ancestor_childs = ancestor_childs.drain(..);
+            let mut ancestor_childs = ancestor.into_iter().flat_map(|a| a.childs);
             loop {
                 match (self_childs.next(), ancestor_childs.next()) {
                     (Some(left), right) => {
@@ -495,56 +492,19 @@ fn set_checked(input: &InputElement, value: bool) {
 
 impl<COMP: Component> PartialEq for VTag<COMP> {
     fn eq(&self, other: &VTag<COMP>) -> bool {
-        if self.tag != other.tag {
-            return false;
-        }
-
-        if self.value != other.value {
-            return false;
-        }
-
-        if self.kind != other.kind {
-            return false;
-        }
-
-        if self.checked != other.checked {
-            return false;
-        }
-
-        if self.listeners.len() != other.listeners.len() {
-            return false;
-        }
-
-        for i in 0..self.listeners.len() {
-            let a = &self.listeners[i];
-            let b = &other.listeners[i];
-
-            if a.kind() != b.kind() {
-                return false;
-            }
-        }
-
-        if self.attributes != other.attributes {
-            return false;
-        }
-
-        if self.classes.set.iter().ne(other.classes.set.iter()) {
-            return false;
-        }
-
-        if self.childs.len() != other.childs.len() {
-            return false;
-        }
-
-        for i in 0..self.childs.len() {
-            let a = &self.childs[i];
-            let b = &other.childs[i];
-
-            if a != b {
-                return false;
-            }
-        }
-
-        true
+        self.tag == other.tag
+            && self.value == other.value
+            && self.kind == other.kind
+            && self.checked == other.checked
+            && self.listeners.len() == other.listeners.len()
+            && self
+                .listeners
+                .iter()
+                .map(|l| l.kind())
+                .eq(other.listeners.iter().map(|l| l.kind()))
+            && self.attributes == other.attributes
+            && self.classes.set.len() == other.classes.set.len()
+            && self.classes.set.iter().eq(other.classes.set.iter())
+            && &self.childs == &other.childs
     }
 }
