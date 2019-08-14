@@ -49,16 +49,18 @@ impl Scheduler {
 
     pub(crate) fn put_and_try_run(&self, runnable: Box<dyn Runnable>) {
         self.sequence.borrow_mut().push_back(runnable);
-        if self.lock.compare_and_swap(false, true, Ordering::Relaxed) == false {
-            loop {
-                let do_next = self.sequence.borrow_mut().pop_front();
-                if let Some(runnable) = do_next {
-                    runnable.run();
-                } else {
-                    break;
-                }
-            }
-            self.lock.store(false, Ordering::Relaxed);
+        if self.lock.compare_and_swap(false, true, Ordering::Relaxed) {
+            return;
         }
+
+        loop {
+            let do_next = self.sequence.borrow_mut().pop_front();
+            if let Some(runnable) = do_next {
+                runnable.run();
+            } else {
+                break;
+            }
+        }
+        self.lock.store(false, Ordering::Relaxed);
     }
 }

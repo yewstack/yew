@@ -84,7 +84,7 @@ impl WebSocketTask {
         IN: Into<Text>,
     {
         if let Ok(body) = data.into() {
-            if let Err(_) = self.ws.send_text(&body) {
+            if self.ws.send_text(&body).is_err() {
                 self.notification.emit(WebSocketStatus::Error);
             }
         }
@@ -96,7 +96,7 @@ impl WebSocketTask {
         IN: Into<Binary>,
     {
         if let Ok(body) = data.into() {
-            if let Err(_) = self.ws.send_bytes(&body) {
+            if self.ws.send_bytes(&body).is_err() {
                 self.notification.emit(WebSocketStatus::Error);
             }
         }
