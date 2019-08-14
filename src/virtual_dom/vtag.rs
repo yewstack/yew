@@ -178,63 +178,45 @@ impl<COMP: Component> VTag<COMP> {
     /// - items that are the same stay the same.
     ///
     /// Otherwise just add everything.
-    fn diff_classes<'a>(&'a self, ancestor: &'a Option<Self>) -> Vec<Patch<&'a str, ()>> {
-        // TODO: Use generator in order to avoid useless alloc
+    fn diff_classes<'a>(&'a self, ancestor: &'a Option<Self>) -> impl Iterator<Item = Patch<&'a str, ()>> + 'a {
+        let to_add = self.classes.set.iter()
+            .filter(move |class| ancestor.as_ref().map_or(true, |ancestor| !ancestor.classes.set.contains(&**class)))
+            .map(|class| Patch::Add(&**class, ()));
 
-        if let Some(ref ancestor) = ancestor {
-            // Only change what is necessary.
-            let mut changes = Vec::with_capacity(self.classes.set.len() + ancestor.classes.set.len());
-            let to_add = self
-                .classes
-                .set
-                .difference(&ancestor.classes.set)
-                .map(|class| Patch::Add(&**class, ()));
-            let to_remove = ancestor
-                .classes
-                .set
-                .difference(&self.classes.set)
-                .map(|class| Patch::Remove(&**class));
-            changes.extend(to_add.chain(to_remove));
-            changes
-        } else {
-            // Add everything
-            self
-                .classes
-                .set
-                .iter()
-                .map(|class| Patch::Add(&**class, ()))
-                .collect()
-        }
+        let to_remove = ancestor
+            .iter()
+            .flat_map(move |ancestor| ancestor.classes.set.difference(&self.classes.set))
+            .map(|class| Patch::Remove(&**class));
+
+        to_add.chain(to_remove)
     }
 
     /// Similar to diff_classes except for attributes.
     ///
     /// This also handles patching of attributes when the keys are equal but
     /// the values are different.
-    fn diff_attributes<'a>(&'a self, ancestor: &'a Option<Self>) -> Vec<Patch<&'a str, &'a str>> {
-        if let Some(ref ancestor) = ancestor {
-            // Only change what is necessary.
-            let mut changes = Vec::with_capacity(self.attributes.len() + ancestor.attributes.len());
-            let to_add_or_replace = self.attributes
-                .iter()
-                .filter_map(|(key, value)| match ancestor.attributes.get(&**key) {
+    fn diff_attributes<'a>(&'a self, ancestor: &'a Option<Self>) 
+        -> impl Iterator<Item = Patch<&'a str, &'a str>> + 'a 
+    {
+        // Only change what is necessary.
+        let to_add_or_replace = self.attributes
+            .iter()
+            .filter_map(move |(key, value)| {
+                match ancestor.as_ref().and_then(|ancestor| ancestor.attributes.get(&**key)) {
                     None => Some(Patch::Add(&**key, &**value)),
                     Some(ancestor_value) if value == ancestor_value => {
                         Some(Patch::Replace(&**key, &**value))
                     }
                     _ => None,
-                });
-            let to_remove = ancestor
-                .attributes
-                .keys()
-                .filter(|key| !self.attributes.contains_key(&**key))
-                .map(|key| Patch::Remove(&**key));
-            changes.extend(to_add_or_replace.chain(to_remove));
-            changes
-        } else {
-            // Add everything
-            self.attributes.iter().map(|(key, value)| Patch::Add(&**key, &**value)).collect()
-        }
+                }
+            });
+        let to_remove = ancestor
+            .iter()
+            .flat_map(|ancestor| ancestor.attributes.keys())
+            .filter(move |key| !self.attributes.contains_key(&**key))
+            .map(|key| Patch::Remove(&**key));
+
+        to_add_or_replace.chain(to_remove)
     }
 
     /// Similar to `diff_attributers` except there is only a single `kind`.
