@@ -270,7 +270,7 @@ impl<COMP: Component> VTag<COMP> {
         }
     }
 
-    fn apply_diffs(&mut self, element: &Element, ancestor: &mut Option<Self>) {
+    fn apply_diffs(&mut self, element: &Element, ancestor: &Option<Self>) {
         // Update parameters
         let changes = self.diff_classes(ancestor);
         for change in changes {
@@ -303,34 +303,24 @@ impl<COMP: Component> VTag<COMP> {
         // attribute as `checked` parameter, not `defaultChecked` as browsers do
         if let Ok(input) = InputElement::try_from(element.clone()) {
             if let Some(change) = self.diff_kind(ancestor) {
-                match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => {
-                        //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
-                        //input.set_kind(&kind);
-                        let input = &input;
-                        js! { @(no_return)
-                            @{input}.type = @{kind};
-                        }
-                    }
-                    Patch::Remove(_) => {
-                        //input.set_kind("");
-                        let input = &input;
-                        js! { @(no_return)
-                            @{input}.type = "";
-                        }
-                    }
+                let kind = match change {
+                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                    Patch::Remove(_) => "",
+                };
+                //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
+                //input.set_kind(&kind);
+                let input = &input;
+                js! { @(no_return)
+                    @{input}.type = @{kind};
                 }
             }
 
             if let Some(change) = self.diff_value(ancestor) {
-                match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => {
-                        input.set_raw_value(&kind);
-                    }
-                    Patch::Remove(_) => {
-                        input.set_raw_value("");
-                    }
-                }
+                let raw_value = match change {
+                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                    Patch::Remove(_) => "",
+                };
+                input.set_raw_value(raw_value);
             }
 
             // IMPORTANT! This parameter has to be set every time
@@ -338,14 +328,11 @@ impl<COMP: Component> VTag<COMP> {
             set_checked(&input, self.checked);
         } else if let Ok(tae) = TextAreaElement::try_from(element.clone()) {
             if let Some(change) = self.diff_value(ancestor) {
-                match change {
-                    Patch::Add(value, _) | Patch::Replace(value, _) => {
-                        tae.set_value(&value);
-                    }
-                    Patch::Remove(_) => {
-                        tae.set_value("");
-                    }
-                }
+                let value = match change {
+                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                    Patch::Remove(_) => "",
+                };
+                tae.set_value(value);
             }
         }
     }
@@ -411,7 +398,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             Reform::Keep => {}
             Reform::Before(before) => {
                 let element = if self.tag == "svg"
-                    || parent.namespace_uri() == Some(SVG_NAMESPACE.to_string())
+                    || parent.namespace_uri().map_or(false, |ns| ns == SVG_NAMESPACE)
                 {
                     document()
                         .create_element_ns(SVG_NAMESPACE, &self.tag)
@@ -448,7 +435,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                 std::mem::swap(&mut ancestor_childs, &mut a.childs);
             }
 
-            self.apply_diffs(&element, &mut ancestor);
+            self.apply_diffs(&element, &ancestor);
 
             // Every render it removes all listeners and attach it back later
             // TODO Compare references of handler to do listeners update better
