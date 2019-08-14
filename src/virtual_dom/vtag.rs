@@ -178,9 +178,19 @@ impl<COMP: Component> VTag<COMP> {
     /// - items that are the same stay the same.
     ///
     /// Otherwise just add everything.
-    fn diff_classes<'a>(&'a self, ancestor: &'a Option<Self>) -> impl Iterator<Item = Patch<&'a str, ()>> + 'a {
-        let to_add = self.classes.set.iter()
-            .filter(move |class| ancestor.as_ref().map_or(true, |ancestor| !ancestor.classes.set.contains(&**class)))
+    fn diff_classes<'a>(
+        &'a self,
+        ancestor: &'a Option<Self>,
+    ) -> impl Iterator<Item = Patch<&'a str, ()>> + 'a {
+        let to_add = self
+            .classes
+            .set
+            .iter()
+            .filter(move |class| {
+                ancestor
+                    .as_ref()
+                    .map_or(true, |ancestor| !ancestor.classes.set.contains(&**class))
+            })
             .map(|class| Patch::Add(&**class, ()));
 
         let to_remove = ancestor
@@ -195,14 +205,17 @@ impl<COMP: Component> VTag<COMP> {
     ///
     /// This also handles patching of attributes when the keys are equal but
     /// the values are different.
-    fn diff_attributes<'a>(&'a self, ancestor: &'a Option<Self>) 
-        -> impl Iterator<Item = Patch<&'a str, &'a str>> + 'a 
-    {
+    fn diff_attributes<'a>(
+        &'a self,
+        ancestor: &'a Option<Self>,
+    ) -> impl Iterator<Item = Patch<&'a str, &'a str>> + 'a {
         // Only change what is necessary.
-        let to_add_or_replace = self.attributes
-            .iter()
-            .filter_map(move |(key, value)| {
-                match ancestor.as_ref().and_then(|ancestor| ancestor.attributes.get(&**key)) {
+        let to_add_or_replace =
+            self.attributes.iter().filter_map(move |(key, value)| {
+                match ancestor
+                    .as_ref()
+                    .and_then(|ancestor| ancestor.attributes.get(&**key))
+                {
                     None => Some(Patch::Add(&**key, &**value)),
                     Some(ancestor_value) if value == ancestor_value => {
                         Some(Patch::Replace(&**key, &**value))
