@@ -252,20 +252,20 @@ impl<COMP: Component> VTag<COMP> {
     }
 
     /// Similar to `diff_attributers` except there is only a single `kind`.
-    fn diff_kind(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
+    fn diff_kind<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
         match (
-            &self.kind,
-            ancestor.as_mut().and_then(|anc| anc.kind.take()),
+            &self.kind.as_ref(),
+            ancestor.as_ref().and_then(|anc| anc.kind.as_ref()),
         ) {
             (&Some(ref left), Some(ref right)) => {
                 if left != right {
-                    Some(Patch::Replace(left.to_string(), ()))
+                    Some(Patch::Replace(&**left, ()))
                 } else {
                     None
                 }
             }
-            (&Some(ref left), None) => Some(Patch::Add(left.to_string(), ())),
-            (&None, Some(right)) => Some(Patch::Remove(right)),
+            (&Some(ref left), None) => Some(Patch::Add(&**left, ())),
+            (&None, Some(right)) => Some(Patch::Remove(&**right)),
             (&None, None) => None,
         }
     }
