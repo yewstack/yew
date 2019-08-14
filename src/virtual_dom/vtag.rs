@@ -5,7 +5,6 @@ use crate::html::{Component, Scope};
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
-use std::collections::HashSet;
 use std::fmt;
 use stdweb::unstable::TryFrom;
 use stdweb::web::html_element::InputElement;
@@ -212,43 +211,30 @@ impl<COMP: Component> VTag<COMP> {
     ///
     /// This also handles patching of attributes when the keys are equal but
     /// the values are different.
-    fn diff_attributes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, String>> {
-        let mut changes = Vec::new();
-        if let Some(ref mut ancestor) = ancestor {
+    fn diff_attributes<'a>(&'a self, ancestor: &'a Option<Self>) -> Vec<Patch<&'a str, &'a str>> {
+        if let Some(ref ancestor) = ancestor {
             // Only change what is necessary.
-            let self_keys = self.attributes.keys().collect::<HashSet<_>>();
-            let ancestor_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
-            let to_add = self_keys.difference(&ancestor_keys).map(|key| {
-                let value = self.attributes.get(*key).expect("attribute of vtag lost");
-                Patch::Add(key.to_string(), value.to_string())
-            });
-            changes.extend(to_add);
-            for key in self_keys.intersection(&ancestor_keys) {
-                let self_value = self
-                    .attributes
-                    .get(*key)
-                    .expect("attribute of self side lost");
-                let ancestor_value = ancestor
-                    .attributes
-                    .get(*key)
-                    .expect("attribute of ancestor side lost");
-                if self_value != ancestor_value {
-                    let mutator = Patch::Replace(key.to_string(), self_value.to_string());
-                    changes.push(mutator);
-                }
-            }
-            let to_remove = ancestor_keys
-                .difference(&self_keys)
-                .map(|key| Patch::Remove(key.to_string()));
-            changes.extend(to_remove);
+            let mut changes = Vec::with_capacity(self.attributes.len() + ancestor.attributes.len());
+            let to_add_or_replace = self.attributes
+                .iter()
+                .filter_map(|(key, value)| match ancestor.attributes.get(&**key) {
+                    None => Some(Patch::Add(&**key, &**value)),
+                    Some(ancestor_value) if value == ancestor_value => {
+                        Some(Patch::Replace(&**key, &**value))
+                    }
+                    _ => None,
+                });
+            let to_remove = ancestor
+                .attributes
+                .keys()
+                .filter(|key| !self.attributes.contains_key(&**key))
+                .map(|key| Patch::Remove(&**key));
+            changes.extend(to_add_or_replace.chain(to_remove));
+            changes
         } else {
             // Add everything
-            for (key, value) in &self.attributes {
-                let mutator = Patch::Add(key.to_string(), value.to_string());
-                changes.push(mutator);
-            }
+            self.attributes.iter().map(|(key, value)| Patch::Add(&**key, &**value)).collect()
         }
-        changes
     }
 
     /// Similar to `diff_attributers` except there is only a single `kind`.
