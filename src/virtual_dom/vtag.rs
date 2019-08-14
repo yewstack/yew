@@ -271,20 +271,20 @@ impl<COMP: Component> VTag<COMP> {
     }
 
     /// Almost identical in spirit to `diff_kind`
-    fn diff_value(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
+    fn diff_value<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
         match (
-            &self.value,
-            ancestor.as_mut().and_then(|anc| anc.value.take()),
+            &self.value.as_ref(),
+            ancestor.as_ref().and_then(|anc| anc.value.as_ref()),
         ) {
             (&Some(ref left), Some(ref right)) => {
                 if left != right {
-                    Some(Patch::Replace(left.to_string(), ()))
+                    Some(Patch::Replace(&**left, ()))
                 } else {
                     None
                 }
             }
-            (&Some(ref left), None) => Some(Patch::Add(left.to_string(), ())),
-            (&None, Some(right)) => Some(Patch::Remove(right)),
+            (&Some(ref left), None) => Some(Patch::Add(&**left, ())),
+            (&None, Some(right)) => Some(Patch::Remove(&**right)),
             (&None, None) => None,
         }
     }
