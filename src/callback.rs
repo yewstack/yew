@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 /// Universal callback wrapper.
 /// <aside class="warning">
-/// Use callbacks carefully, because it you call it from `update` loop
+/// Use callbacks carefully, because if you call it from `update` loop
 /// of `Components` (even from JS) it will delay a message until next.
 /// Callbacks should be used from JS callbacks or `setTimeout` calls.
 /// </aside>
