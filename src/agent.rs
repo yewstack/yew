@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use slab::Slab;
 use std::cell::RefCell;
 use std::marker::PhantomData;
+use std::collections::{HashSet, HashMap};
 use std::rc::Rc;
 use stdweb::Value;
 #[allow(unused_imports)]
@@ -35,8 +36,8 @@ impl<T> Transferable for FromWorker<T> where T: Serialize + for<'de> Deserialize
 
 /// Represents a message which you could send to an agent.
 pub trait Transferable
-where
-    Self: Serialize + for<'de> Deserialize<'de>,
+    where
+        Self: Serialize + for<'de> Deserialize<'de>,
 {
 }
 
@@ -85,8 +86,8 @@ pub trait Threaded {
 }
 
 impl<T> Threaded for T
-where
-    T: Agent<Reach = Public>,
+    where
+        T: Agent<Reach = Public>,
 {
     fn register() {
         let scope = AgentScope::<T>::new();
@@ -132,8 +133,8 @@ where
 }
 
 impl<T> Bridged for T
-where
-    T: Agent,
+    where
+        T: Agent,
 {
     fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>> {
         Self::Reach::spawn_or_join(callback)
@@ -398,9 +399,9 @@ struct RemoteAgent<AGN: Agent> {
 }
 
 impl<AGN: Agent> RemoteAgent<AGN> {
-    pub fn new(worker: &Value, slab: Shared<Slab<Callback<AGN::Output>>>) -> Self {
+    pub fn new(worker: Value, slab: Shared<Slab<Callback<AGN::Output>>>) -> Self {
         RemoteAgent {
-            worker: worker.clone(),
+            worker,
             slab,
         }
     }
@@ -423,6 +424,8 @@ impl<AGN: Agent> RemoteAgent<AGN> {
 
 thread_local! {
     static REMOTE_AGENTS_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());
+    static DEDICATED_WORKERS_LOADED: RefCell<HashSet<&'static str>> = RefCell::new(HashSet::new());
+    static DEDICATED_WORKERS_EARLY_MSGS_QUEUE: RefCell<HashMap<&'static str, Vec<Vec<u8>>>> = RefCell::new(HashMap::new());
 }
 
 /// Create a single instance in a tab.
@@ -437,25 +440,35 @@ impl Discoverer for Public {
                     entry.get_mut().create_bridge(callback)
                 }
                 Entry::Vacant(entry) => {
-                    let slab_base: Shared<Slab<Callback<AGN::Output>>> =
+                    let slab: Shared<Slab<Callback<AGN::Output>>> =
                         Rc::new(RefCell::new(Slab::new()));
-                    let slab = slab_base.clone();
-                    let handler = move |data: Vec<u8>| {
-                        let msg = FromWorker::<AGN::Output>::unpack(&data);
-                        match msg {
-                            FromWorker::WorkerLoaded => {
-                                // TODO Use `AtomicBool` lock to check its loaded
-                                // TODO Send `Connected` message
-                            }
-                            FromWorker::ProcessOutput(id, output) => {
-                                let callback = slab.borrow().get(id.raw_id()).cloned();
-                                if let Some(callback) = callback {
-                                    callback.emit(output);
-                                } else {
-                                    warn!(
-                                        "Id of handler for remote worker not exists <slab>: {}",
-                                        id.raw_id()
-                                    );
+                    let handler = {
+                        let slab = slab.clone();
+                        move |data: Vec<u8>, worker: Value| {
+                            let msg = FromWorker::<AGN::Output>::unpack(&data);
+                            match msg {
+                                FromWorker::WorkerLoaded => {
+                                    // TODO Send `Connected` message
+                                    let _ = DEDICATED_WORKERS_LOADED.with(|local| local.borrow_mut().insert(AGN::name_of_resource()));
+                                    DEDICATED_WORKERS_EARLY_MSGS_QUEUE.with(|local| {
+                                        if let Some(msgs) = local.borrow_mut().get_mut(AGN::name_of_resource()) {
+                                            for msg in msgs.drain(..) {
+                                                let worker = &worker;
+                                                js!{@{worker}.postMessage(@{msg});};
+                                            }
+                                        }
+                                    });
+                                }
+                                FromWorker::ProcessOutput(id, output) => {
+                                    let callback = slab.borrow().get(id.raw_id()).cloned();
+                                    if let Some(callback) = callback {
+                                        callback.emit(output);
+                                    } else {
+                                        warn!(
+                                            "Id of handler for remote worker not exists <slab>: {}",
+                                            id.raw_id()
+                                        );
+                                    }
                                 }
                             }
                         }
@@ -465,11 +478,11 @@ impl Discoverer for Public {
                         var worker = new Worker(@{name_of_resource});
                         var handler = @{handler};
                         worker.onmessage = function(event) {
-                            handler(event.data);
+                            handler(event.data, worker);
                         };
                         return worker;
                     };
-                    let launched = RemoteAgent::new(&worker, slab_base);
+                    let launched = RemoteAgent::new(worker, slab);
                     entry.insert(launched).create_bridge(callback)
                 }
             }
@@ -483,20 +496,31 @@ pub struct PublicBridge<T: Agent> {
     worker: Value,
     id: HandlerId,
     _agent: PhantomData<T>,
+
 }
 
 impl<AGN: Agent> PublicBridge<AGN> {
     fn send_to_remote(&self, msg: ToWorker<AGN::Input>) {
-        // TODO Important! Implement.
-        // Use a queue to collect a messages if an instance is not ready
-        // and send them to an agent when it will reported readiness.
         let msg = msg.pack();
-        let worker = &self.worker;
-        js! {
-            var worker = @{worker};
-            var bytes = @{msg};
-            worker.postMessage(bytes);
-        };
+        if self.worker_is_loaded() {
+            let worker = &self.worker;
+            js! {
+                var worker = @{worker};
+                var bytes = @{msg};
+                worker.postMessage(bytes);
+            };
+        } else {
+            self.msg_to_queue(msg);
+        }
+    }
+    fn worker_is_loaded(&self) -> bool { DEDICATED_WORKERS_LOADED.with(|local| local.borrow().contains(AGN::name_of_resource())) }
+    fn msg_to_queue(&self, msg: Vec<u8>) {
+        DEDICATED_WORKERS_EARLY_MSGS_QUEUE.with(|local|
+            match local.borrow_mut().entry(AGN::name_of_resource()) {
+                std::collections::hash_map::Entry::Vacant(record) => {record.insert({let mut v = Vec::new(); v.push(msg); v});},
+                std::collections::hash_map::Entry::Occupied(ref mut record) => {record.get_mut().push(msg);},
+            }
+        );
     }
 }
 
@@ -624,8 +648,8 @@ pub struct AgentLink<AGN: Agent> {
 impl<AGN: Agent> AgentLink<AGN> {
     /// Create link for a scope.
     fn connect<T>(scope: &AgentScope<AGN>, responder: T) -> Self
-    where
-        T: Responder<AGN> + 'static,
+        where
+            T: Responder<AGN> + 'static,
     {
         AgentLink {
             scope: scope.clone(),
@@ -640,8 +664,8 @@ impl<AGN: Agent> AgentLink<AGN> {
 
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&self, function: F) -> Callback<IN>
-    where
-        F: Fn(IN) -> AGN::Message + 'static,
+        where
+            F: Fn(IN) -> AGN::Message + 'static,
     {
         let scope = self.scope.clone();
         let closure = move |input| {
@@ -683,8 +707,8 @@ struct AgentEnvelope<AGN: Agent> {
 }
 
 impl<AGN> Runnable for AgentEnvelope<AGN>
-where
-    AGN: Agent,
+    where
+        AGN: Agent,
 {
     fn run(self: Box<Self>) {
         let mut this = self.shared_agent.borrow_mut();
