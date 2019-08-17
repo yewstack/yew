@@ -193,7 +193,7 @@ where
         self.shared_state.replace(match current_state {
             ComponentState::Ready(state) => {
                 ComponentState::Created(state.create().update().mounted())
-            },
+            }
             ComponentState::Created(_) | ComponentState::Destroyed => current_state,
             ComponentState::Empty | ComponentState::Processing => {
                 panic!("unexpected component state: {}", current_state);
