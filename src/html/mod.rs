@@ -9,7 +9,6 @@ mod scope;
 pub use listener::*;
 pub(crate) use scope::ComponentUpdate;
 pub use scope::{NodeCell, Scope};
-use std::ops::Deref;
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VNode};
@@ -46,22 +45,8 @@ pub trait Component: Sized + 'static {
     fn destroy(&mut self) {} // TODO Replace with `Drop`
 }
 
-/// A type used for rendering children html.
-pub struct ChildrenRenderer<T>(pub Box<dyn Fn() -> Vec<T>>);
-
-impl<T> Deref for ChildrenRenderer<T> {
-    type Target = Box<dyn Fn() -> Vec<T>>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<T> Default for ChildrenRenderer<T> {
-    fn default() -> Self {
-        Self(Box::new(|| Vec::new()))
-    }
-}
+/// A type which expected as a result of `view` function implementation.
+pub type Html<MSG> = VNode<MSG>;
 
 /// A type used for accepting children elements in Component::Properties.
 pub type Children<T> = ChildrenRenderer<Html<T>>;
@@ -69,8 +54,35 @@ pub type Children<T> = ChildrenRenderer<Html<T>>;
 /// A type used for accepting children elements in Component::Properties and accessing their props.
 pub type ChildrenWithProps<C, P> = ChildrenRenderer<VChild<C, P>>;
 
-/// A type which expected as a result of `view` function implementation.
-pub type Html<MSG> = VNode<MSG>;
+/// A type used for rendering children html.
+pub struct ChildrenRenderer<T> {
+    boxed_render: Box<dyn Fn() -> Vec<T>>,
+}
+
+impl<T> ChildrenRenderer<T> {
+    /// Create children
+    pub fn new(boxed_render: Box<dyn Fn() -> Vec<T>>) -> Self {
+        Self { boxed_render }
+    }
+
+    /// Build children components and return `Vec`
+    pub fn to_vec(&self) -> Vec<T> {
+        (&self.boxed_render)()
+    }
+
+    /// Render children components and return `Iterator`
+    pub fn iter(&self) -> impl Iterator<Item = T> {
+        (&self.boxed_render)().into_iter()
+    }
+}
+
+impl<T> Default for ChildrenRenderer<T> {
+    fn default() -> Self {
+        Self {
+            boxed_render: Box::new(|| Vec::new()),
+        }
+    }
+}
 
 /// Should be rendered relative to context and component environment.
 pub trait Renderable<COMP: Component> {

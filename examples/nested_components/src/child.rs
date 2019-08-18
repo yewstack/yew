@@ -42,7 +42,7 @@ impl Renderable<Child> for Child {
         html! {
             <div class="child">
                 { format!("My name is {}", self.props.name) }
-                { for (*self.props.children)().into_iter() }
+                { for self.props.children.iter() }
                 <button onclick=|_| Msg::Click>
                     { "Child button" }
                 </button>
