@@ -383,7 +383,12 @@ where
     // Notice that the callback signature must match the call from the javascript
     // side. There is no static check at this point.
     let callback = move |success: bool, status: u16, headers: HashMap<String, String>, data: X| {
-        let mut response_builder = Response::builder().status(status);
+        let mut response_builder = Response::builder();
+
+        if let Ok(status) = StatusCode::from_u16(status) {
+            response_builder = response_builder.status(status);
+        }
+
         for (key, values) in headers {
             response_builder = response_builder.header(key.as_str(), values.as_str());
         }
@@ -405,12 +410,6 @@ where
         if (@{binary} && body != null) {
             body = Uint8Array.from(body);
         }
-        var data = {
-            method: @{method},
-            body: body,
-            headers: @{header_map},
-        };
-        var request = new Request(@{uri}, data);
         var callback = @{callback};
         var abortController = AbortController ? new AbortController() : null;
         var handle = {
@@ -418,11 +417,19 @@ where
             callback,
             abortController,
         };
-        var init = @{Serde(options)} || {};
+        var init = {
+            method: @{method},
+            body: body,
+            headers: @{header_map},
+        };
+        var opts = @{Serde(options)} || {};
+        for (var attrname in opts) {
+            init[attrname] = opts[attrname];
+        }
         if (abortController && !("signal" in init)) {
             init.signal = abortController.signal;
         }
-        fetch(request, init).then(function(response) {
+        fetch(@{uri}, init).then(function(response) {
             var promise = (@{binary}) ? response.arrayBuffer() : response.text();
             var status = response.status;
             var headers = {};
