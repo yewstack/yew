@@ -54,15 +54,6 @@ pub trait Renderable<COMP: Component> {
     fn view(&self) -> Html<COMP>;
 }
 
-impl<F, COMP: Component> Renderable<COMP> for F
-where
-    F: Fn() -> Html<COMP>,
-{
-    fn view(&self) -> Html<COMP> {
-        self()
-    }
-}
-
 /// Trait for building properties for a component
 pub trait Properties {
     /// Builder that will be used to construct properties

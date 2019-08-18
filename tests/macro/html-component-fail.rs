@@ -31,6 +31,9 @@ impl Renderable<ChildComponent> for ChildComponent {
 
 // TODO add test for nested component with children prop set
 // TODO add test for nested component `with props`
+// TODO add test for nested component with no children
+// TODO add test for nested component with block rendered components
+
 fn compile_fail() {
     html! { <ChildComponent> };
     html! { <ChildComponent:: /> };
