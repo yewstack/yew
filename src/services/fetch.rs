@@ -71,6 +71,45 @@ pub enum Redirect {
     Manual,
 }
 
+/// Type to set referrer for fetch.
+pub enum Referrer {
+    /// `no-referrer` value of referrer.
+    NoReferrer,
+    /// `client` value of referrer.
+    Client,
+    /// URL value of referrer.
+    Url(String),
+}
+
+impl Serialize for Referrer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match *self {
+            Referrer::NoReferrer => serializer.serialize_unit_variant("Referrer", 0, "no-referrer"),
+            Referrer::Client => serializer.serialize_unit_variant("Referrer", 1, "client"),
+            Referrer::Url(ref s) => serializer.serialize_str(s),
+        }
+    }
+}
+
+/// Type to set referrer policy for fetch.
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReferrerPolicy {
+    /// `no-referrer` value of referrerPolicy.
+    NoReferrer,
+    /// `no-referrer-when-downgrade` value of referrerPolicy.
+    NoReferrerWhenDowngrade,
+    /// `origin` value of referrerPolicy.
+    Origin,
+    /// `origin-when-cross-origin` value of referrerPolicy.
+    OriginWhenCrossOrigin,
+    /// `unsafe-url` value of referrerPolicy.
+    UnsafeUrl,
+}
+
 /// Init options for `fetch()` function call.
 /// https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
 #[derive(Serialize, Default, Debug)]
@@ -87,6 +126,15 @@ pub struct FetchOptions {
     /// Request mode of a fetch request.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mode: Option<Mode>,
+    /// Referrer of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub referrer: Option<Referrer>,
+    /// Referrer policy of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub referrer_policy: Option<ReferrerPolicy>,
+    /// Integrity of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub integrity: Option<String>,
 }
 
 /// Represents errors of a fetch service.
