@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::fmt;
 use stdweb::web::{Element, EventListenerHandle, Node};
 
-pub use self::vcomp::VComp;
+pub use self::vcomp::{VChild, VComp};
 pub use self::vlist::VList;
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;

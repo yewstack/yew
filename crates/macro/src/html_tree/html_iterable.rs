@@ -45,7 +45,7 @@ impl ToTokens for HtmlIterable {
             for __yew_node in __yew_nodes.into_iter() {
                 __yew_vlist.add_child(__yew_node.into());
             }
-            ::yew::virtual_dom::VNode::from(__yew_vlist)
+            __yew_vlist
         }};
 
         tokens.extend(new_tokens);

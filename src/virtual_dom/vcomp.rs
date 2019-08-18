@@ -31,6 +31,35 @@ pub struct VComp<COMP: Component> {
     state: Rc<RefCell<MountState<COMP>>>,
 }
 
+/// A virtual child component.
+pub struct VChild<SELF: Component, PARENT: Component> {
+    /// The component properties
+    pub props: SELF::Properties,
+    /// The parent component scope
+    scope: ScopeHolder<PARENT>,
+}
+
+impl<SELF, PARENT> VChild<SELF, PARENT>
+where
+    SELF: Component,
+    PARENT: Component,
+{
+    /// Creates a child component that can be accessed and modified by its parent.
+    pub fn new(props: SELF::Properties, scope: ScopeHolder<PARENT>) -> Self {
+        Self { props, scope }
+    }
+}
+
+impl<COMP, CHILD> From<VChild<CHILD, COMP>> for VComp<COMP>
+where
+    COMP: Component,
+    CHILD: Component + Renderable<CHILD>,
+{
+    fn from(vchild: VChild<CHILD, COMP>) -> Self {
+        VComp::new::<CHILD>(vchild.props, vchild.scope)
+    }
+}
+
 enum MountState<COMP: Component> {
     Unmounted(Unmounted<COMP>),
     Mounted(Mounted),

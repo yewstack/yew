@@ -51,11 +51,9 @@ impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let html_trees = &self.0;
         tokens.extend(quote! {
-            ::yew::virtual_dom::VNode::VList(
-                ::yew::virtual_dom::vlist::VList {
-                    childs: vec![#(#html_trees,)*],
-                }
-            )
+            ::yew::virtual_dom::vlist::VList {
+                childs: vec![#(#html_trees,)*],
+            }
         });
     }
 }

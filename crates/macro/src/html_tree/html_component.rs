@@ -1,6 +1,6 @@
 use super::HtmlProp;
 use super::HtmlPropSuffix;
-use super::HtmlTree;
+use super::HtmlTreeNested;
 use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::Span;
@@ -15,7 +15,7 @@ use syn::{Ident, Path, PathArguments, PathSegment, Token, Type, TypePath};
 pub struct HtmlComponent {
     ty: Type,
     props: Option<Props>,
-    children: Vec<HtmlTree>,
+    children: Vec<HtmlTreeNested>,
 }
 
 impl PeekValue<Type> for HtmlComponent {
@@ -50,7 +50,7 @@ impl Parse for HtmlComponent {
             });
         }
 
-        let mut children: Vec<HtmlTree> = vec![];
+        let mut children: Vec<HtmlTreeNested> = vec![];
         loop {
             if input.is_empty() {
                 return Err(syn::Error::new_spanned(
@@ -123,12 +123,9 @@ impl ToTokens for HtmlComponent {
         let set_children = if !children.is_empty() {
             quote! {
                 .children(::std::boxed::Box::new(move || {
-                    || -> ::yew::html::Html<#ty> {
-                        ::yew::virtual_dom::VNode::VList(
-                            ::yew::virtual_dom::vlist::VList {
-                                childs: vec![#(#children,)*],
-                            }
-                        )
+                    #[allow(unused_must_use)]
+                    || -> ::std::vec::Vec<_> {
+                        vec![#(#children.into(),)*]
                     }
                 }()))
             }
@@ -179,9 +176,7 @@ impl ToTokens for HtmlComponent {
             }
 
             let #vcomp_scope: ::yew::virtual_dom::vcomp::ScopeHolder<_> = ::std::default::Default::default();
-            ::yew::virtual_dom::VNode::VComp(
-                ::yew::virtual_dom::VComp::new::<#ty>(#init_props, #vcomp_scope)
-            )
+            ::yew::virtual_dom::VChild::<#ty, _>::new(#init_props, #vcomp_scope)
         }});
     }
 }
