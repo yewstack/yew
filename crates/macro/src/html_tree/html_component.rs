@@ -122,7 +122,7 @@ impl ToTokens for HtmlComponent {
 
         let set_children = if !children.is_empty() {
             quote! {
-                .children(::yew::html::ChildrenRenderer(
+                .children(::yew::html::ChildrenRenderer::new(
                     ::std::boxed::Box::new(move || {
                         #[allow(unused_must_use)]
                         || -> ::std::vec::Vec<_> {

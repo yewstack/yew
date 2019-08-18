@@ -44,7 +44,10 @@ impl Renderable<Parent> for Parent {
             <div class="parent">
                 { format!("Last clicked by {}", self.clicker) }
                 <button onclick=|_| Msg::Click>{"Parent button"}</button>
-                { for (*self.props.children)().into_iter().filter(|c| !c.props.hide) }
+                { for self.props.children.iter().filter(|c| !c.props.hide).map(|mut c| {
+                    c.props.name = format!("{} Imposter", c.props.name);
+                    c
+                }) }
             </div>
         }
     }
