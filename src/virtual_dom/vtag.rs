@@ -182,16 +182,19 @@ impl<COMP: Component> VTag<COMP> {
         &'a self,
         ancestor: &'a Option<Self>,
     ) -> impl Iterator<Item = Patch<&'a str, ()>> + 'a {
-        let to_add = self
-            .classes
-            .set
-            .iter()
-            .filter(move |class| {
-                ancestor
-                    .as_ref()
-                    .map_or(true, |ancestor| !ancestor.classes.set.contains(&**class))
-            })
-            .map(|class| Patch::Add(&**class, ()));
+        let to_add = {
+            let all_or_nothing = not(ancestor)
+                .iter()
+                .flat_map(move |_| self.classes.set.iter())
+                .map(|class| Patch::Add(&**class, ()));
+
+            let ancestor_difference = ancestor
+                .iter()
+                .flat_map(move |ancestor| self.classes.set.difference(&ancestor.classes.set))
+                .map(|class| Patch::Add(&**class, ()));
+
+            all_or_nothing.chain(ancestor_difference)
+        };
 
         let to_remove = ancestor
             .iter()
@@ -235,38 +238,38 @@ impl<COMP: Component> VTag<COMP> {
     /// Similar to `diff_attributers` except there is only a single `kind`.
     fn diff_kind<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
         match (
-            &self.kind.as_ref(),
+            self.kind.as_ref(),
             ancestor.as_ref().and_then(|anc| anc.kind.as_ref()),
         ) {
-            (&Some(ref left), Some(ref right)) => {
+            (Some(ref left), Some(ref right)) => {
                 if left != right {
                     Some(Patch::Replace(&**left, ()))
                 } else {
                     None
                 }
             }
-            (&Some(ref left), None) => Some(Patch::Add(&**left, ())),
-            (&None, Some(right)) => Some(Patch::Remove(&**right)),
-            (&None, None) => None,
+            (Some(ref left), None) => Some(Patch::Add(&**left, ())),
+            (None, Some(right)) => Some(Patch::Remove(&**right)),
+            (None, None) => None,
         }
     }
 
     /// Almost identical in spirit to `diff_kind`
     fn diff_value<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
         match (
-            &self.value.as_ref(),
+            self.value.as_ref(),
             ancestor.as_ref().and_then(|anc| anc.value.as_ref()),
         ) {
-            (&Some(ref left), Some(ref right)) => {
+            (Some(ref left), Some(ref right)) => {
                 if left != right {
                     Some(Patch::Replace(&**left, ()))
                 } else {
                     None
                 }
             }
-            (&Some(ref left), None) => Some(Patch::Add(&**left, ())),
-            (&None, Some(right)) => Some(Patch::Remove(&**right)),
-            (&None, None) => None,
+            (Some(ref left), None) => Some(Patch::Add(&**left, ())),
+            (None, Some(right)) => Some(Patch::Remove(&**right)),
+            (None, None) => None,
         }
     }
 
@@ -436,7 +439,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
 
             // Every render it removes all listeners and attach it back later
             // TODO Compare references of handler to do listeners update better
-            if let Some(ref mut ancestor) = ancestor {
+            if let Some(ancestor) = ancestor.as_mut() {
                 for handle in ancestor.captured.drain(..) {
                     handle.remove();
                 }
@@ -506,5 +509,13 @@ impl<COMP: Component> PartialEq for VTag<COMP> {
             && self.classes.set.len() == other.classes.set.len()
             && self.classes.set.iter().eq(other.classes.set.iter())
             && &self.childs == &other.childs
+    }
+}
+
+pub(crate) fn not<T>(option: &Option<T>) -> &Option<()> {
+    if option.is_some() {
+        &None
+    } else {
+        &Some(())
     }
 }
