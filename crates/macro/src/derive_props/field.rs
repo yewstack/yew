@@ -4,7 +4,6 @@ use quote::quote;
 use std::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::TryFrom;
 use syn::parse::Result;
-use syn::punctuated;
 use syn::spanned::Spanned;
 use syn::{Error, Field, Meta, MetaList, NestedMeta, Type, Visibility};
 
@@ -121,12 +120,12 @@ impl PropField {
             return Err(expected_required);
         };
 
-        let word_ident = match first_nested {
-            punctuated::Pair::End(NestedMeta::Meta(Meta::Word(ident))) => ident,
+        let word_path = match first_nested {
+            NestedMeta::Meta(Meta::Path(path)) => path,
             _ => return Err(expected_required),
         };
 
-        if word_ident != "required" {
+        if !word_path.is_ident("required") {
             return Err(expected_required);
         }
 
@@ -149,7 +148,7 @@ impl PropField {
                 _ => None,
             })?;
 
-        if meta_list.ident == "props" {
+        if meta_list.path.is_ident("props") {
             Some(meta_list)
         } else {
             None

@@ -9,7 +9,6 @@ use super::generics::{to_arguments, with_param_bounds, GenericArguments};
 use super::{DerivePropsInput, PropField};
 use proc_macro2::{Ident, Span};
 use quote::{quote, ToTokens};
-use std::iter;
 
 pub struct PropsBuilder<'a> {
     builder_name: &'a Ident,
@@ -36,9 +35,6 @@ impl ToTokens for PropsBuilder<'_> {
             ..
         } = props;
 
-        let step_trait_repeat = iter::repeat(step_trait);
-        let vis_repeat = iter::repeat(&vis);
-
         let build_step = self.build_step();
         let impl_steps = self.impl_steps();
         let set_fields = self.set_fields();
@@ -59,13 +55,13 @@ impl ToTokens for PropsBuilder<'_> {
         let builder = quote! {
             #(
                 #[doc(hidden)]
-                #vis_repeat struct #step_names;
+                #vis struct #step_names;
             )*
 
             #[doc(hidden)]
             #vis trait #step_trait {}
 
-            #(impl #step_trait_repeat for #step_names {})*
+            #(impl #step_trait for #step_names {})*
 
             #[doc(hidden)]
             #vis struct #builder_name#step_generics {
@@ -73,7 +69,7 @@ impl ToTokens for PropsBuilder<'_> {
                 _marker: ::std::marker::PhantomData<#step_generic_param>,
             }
 
-            #(#impl_steps)*
+            #impl_steps
 
             impl#impl_generics #builder_name<#generic_args> #where_clause {
                 #[doc(hidden)]
