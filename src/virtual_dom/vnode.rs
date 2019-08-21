@@ -121,19 +121,10 @@ impl<COMP: Component> fmt::Debug for VNode<COMP> {
 
 impl<COMP: Component> PartialEq for VNode<COMP> {
     fn eq(&self, other: &VNode<COMP>) -> bool {
-        match *self {
-            VNode::VTag(ref vtag_a) => match *other {
-                VNode::VTag(ref vtag_b) => vtag_a == vtag_b,
-                _ => false,
-            },
-            VNode::VText(ref vtext_a) => match *other {
-                VNode::VText(ref vtext_b) => vtext_a == vtext_b,
-                _ => false,
-            },
-            _ => {
-                // TODO Implement it
-                false
-            }
+        match (self, other) {
+            (VNode::VTag(vtag_a), VNode::VTag(vtag_b)) => vtag_a == vtag_b,
+            (VNode::VText(vtext_a), VNode::VText(vtext_b)) => vtext_a == vtext_b,
+            _ => false, // TODO: Implement other variants
         }
     }
 }
