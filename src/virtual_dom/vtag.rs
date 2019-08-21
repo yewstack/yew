@@ -5,7 +5,6 @@ use crate::html::{Component, Scope};
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
-use std::collections::HashSet;
 use std::fmt;
 use stdweb::unstable::TryFrom;
 use stdweb::web::html_element::InputElement;
@@ -179,128 +178,112 @@ impl<COMP: Component> VTag<COMP> {
     /// - items that are the same stay the same.
     ///
     /// Otherwise just add everything.
-    fn diff_classes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, ()>> {
-        // TODO: Use generator in order to avoid useless alloc
-
-        let mut changes = Vec::new();
-        if let Some(ref ancestor) = ancestor {
-            // Only change what is necessary.
-            let to_add = self
-                .classes
-                .set
-                .difference(&ancestor.classes.set)
-                .map(|class| Patch::Add(class.to_owned(), ()));
-            changes.extend(to_add);
-            let to_remove = ancestor
-                .classes
-                .set
-                .difference(&self.classes.set)
-                .map(|class| Patch::Remove(class.to_owned()));
-            changes.extend(to_remove);
-        } else {
-            // Add everything
-            let to_add = self
-                .classes
-                .set
+    fn diff_classes<'a>(
+        &'a self,
+        ancestor: &'a Option<Self>,
+    ) -> impl Iterator<Item = Patch<&'a str, ()>> + 'a {
+        let to_add = {
+            let all_or_nothing = not(ancestor)
                 .iter()
-                .map(|class| Patch::Add(class.to_owned(), ()));
-            changes.extend(to_add);
-        }
-        changes
+                .flat_map(move |_| self.classes.set.iter())
+                .map(|class| Patch::Add(&**class, ()));
+
+            let ancestor_difference = ancestor
+                .iter()
+                .flat_map(move |ancestor| self.classes.set.difference(&ancestor.classes.set))
+                .map(|class| Patch::Add(&**class, ()));
+
+            all_or_nothing.chain(ancestor_difference)
+        };
+
+        let to_remove = ancestor
+            .iter()
+            .flat_map(move |ancestor| ancestor.classes.set.difference(&self.classes.set))
+            .map(|class| Patch::Remove(&**class));
+
+        to_add.chain(to_remove)
     }
 
     /// Similar to diff_classes except for attributes.
     ///
     /// This also handles patching of attributes when the keys are equal but
     /// the values are different.
-    fn diff_attributes(&mut self, ancestor: &mut Option<Self>) -> Vec<Patch<String, String>> {
-        let mut changes = Vec::new();
-        if let Some(ref mut ancestor) = ancestor {
-            // Only change what is necessary.
-            let self_keys = self.attributes.keys().collect::<HashSet<_>>();
-            let ancestor_keys = ancestor.attributes.keys().collect::<HashSet<_>>();
-            let to_add = self_keys.difference(&ancestor_keys).map(|key| {
-                let value = self.attributes.get(*key).expect("attribute of vtag lost");
-                Patch::Add(key.to_string(), value.to_string())
-            });
-            changes.extend(to_add);
-            for key in self_keys.intersection(&ancestor_keys) {
-                let self_value = self
-                    .attributes
-                    .get(*key)
-                    .expect("attribute of self side lost");
-                let ancestor_value = ancestor
-                    .attributes
-                    .get(*key)
-                    .expect("attribute of ancestor side lost");
-                if self_value != ancestor_value {
-                    let mutator = Patch::Replace(key.to_string(), self_value.to_string());
-                    changes.push(mutator);
+    fn diff_attributes<'a>(
+        &'a self,
+        ancestor: &'a Option<Self>,
+    ) -> impl Iterator<Item = Patch<&'a str, &'a str>> + 'a {
+        // Only change what is necessary.
+        let to_add_or_replace =
+            self.attributes.iter().filter_map(move |(key, value)| {
+                match ancestor
+                    .as_ref()
+                    .and_then(|ancestor| ancestor.attributes.get(&**key))
+                {
+                    None => Some(Patch::Add(&**key, &**value)),
+                    Some(ancestor_value) if value == ancestor_value => {
+                        Some(Patch::Replace(&**key, &**value))
+                    }
+                    _ => None,
                 }
-            }
-            let to_remove = ancestor_keys
-                .difference(&self_keys)
-                .map(|key| Patch::Remove(key.to_string()));
-            changes.extend(to_remove);
-        } else {
-            // Add everything
-            for (key, value) in &self.attributes {
-                let mutator = Patch::Add(key.to_string(), value.to_string());
-                changes.push(mutator);
-            }
-        }
-        changes
+            });
+        let to_remove = ancestor
+            .iter()
+            .flat_map(|ancestor| ancestor.attributes.keys())
+            .filter(move |key| !self.attributes.contains_key(&**key))
+            .map(|key| Patch::Remove(&**key));
+
+        to_add_or_replace.chain(to_remove)
     }
 
     /// Similar to `diff_attributers` except there is only a single `kind`.
-    fn diff_kind(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
+    fn diff_kind<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
         match (
-            &self.kind,
-            ancestor.as_mut().and_then(|anc| anc.kind.take()),
+            self.kind.as_ref(),
+            ancestor.as_ref().and_then(|anc| anc.kind.as_ref()),
         ) {
-            (&Some(ref left), Some(ref right)) => {
+            (Some(ref left), Some(ref right)) => {
                 if left != right {
-                    Some(Patch::Replace(left.to_string(), ()))
+                    Some(Patch::Replace(&**left, ()))
                 } else {
                     None
                 }
             }
-            (&Some(ref left), None) => Some(Patch::Add(left.to_string(), ())),
-            (&None, Some(right)) => Some(Patch::Remove(right)),
-            (&None, None) => None,
+            (Some(ref left), None) => Some(Patch::Add(&**left, ())),
+            (None, Some(right)) => Some(Patch::Remove(&**right)),
+            (None, None) => None,
         }
     }
 
     /// Almost identical in spirit to `diff_kind`
-    fn diff_value(&mut self, ancestor: &mut Option<Self>) -> Option<Patch<String, ()>> {
+    fn diff_value<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
         match (
-            &self.value,
-            ancestor.as_mut().and_then(|anc| anc.value.take()),
+            self.value.as_ref(),
+            ancestor.as_ref().and_then(|anc| anc.value.as_ref()),
         ) {
-            (&Some(ref left), Some(ref right)) => {
+            (Some(ref left), Some(ref right)) => {
                 if left != right {
-                    Some(Patch::Replace(left.to_string(), ()))
+                    Some(Patch::Replace(&**left, ()))
                 } else {
                     None
                 }
             }
-            (&Some(ref left), None) => Some(Patch::Add(left.to_string(), ())),
-            (&None, Some(right)) => Some(Patch::Remove(right)),
-            (&None, None) => None,
+            (Some(ref left), None) => Some(Patch::Add(&**left, ())),
+            (None, Some(right)) => Some(Patch::Remove(&**right)),
+            (None, None) => None,
         }
     }
 
-    fn apply_diffs(&mut self, element: &Element, ancestor: &mut Option<Self>) {
+    fn apply_diffs(&mut self, element: &Element, ancestor: &Option<Self>) {
         // Update parameters
         let changes = self.diff_classes(ancestor);
         for change in changes {
             let list = element.class_list();
             match change {
                 Patch::Add(class, _) | Patch::Replace(class, _) => {
-                    list.add(&class).expect("can't add a class");
+                    list.add(class).expect("can't add a class");
                 }
                 Patch::Remove(class) => {
-                    list.remove(&class).expect("can't remove a class");
+                    list.remove(class).expect("can't remove a class");
                 }
             }
         }
@@ -323,34 +306,24 @@ impl<COMP: Component> VTag<COMP> {
         // attribute as `checked` parameter, not `defaultChecked` as browsers do
         if let Ok(input) = InputElement::try_from(element.clone()) {
             if let Some(change) = self.diff_kind(ancestor) {
-                match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => {
-                        //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
-                        //input.set_kind(&kind);
-                        let input = &input;
-                        js! { @(no_return)
-                            @{input}.type = @{kind};
-                        }
-                    }
-                    Patch::Remove(_) => {
-                        //input.set_kind("");
-                        let input = &input;
-                        js! { @(no_return)
-                            @{input}.type = "";
-                        }
-                    }
+                let kind = match change {
+                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                    Patch::Remove(_) => "",
+                };
+                //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
+                //input.set_kind(&kind);
+                let input = &input;
+                js! { @(no_return)
+                    @{input}.type = @{kind};
                 }
             }
 
             if let Some(change) = self.diff_value(ancestor) {
-                match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => {
-                        input.set_raw_value(&kind);
-                    }
-                    Patch::Remove(_) => {
-                        input.set_raw_value("");
-                    }
-                }
+                let raw_value = match change {
+                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                    Patch::Remove(_) => "",
+                };
+                input.set_raw_value(raw_value);
             }
 
             // IMPORTANT! This parameter has to be set every time
@@ -358,14 +331,11 @@ impl<COMP: Component> VTag<COMP> {
             set_checked(&input, self.checked);
         } else if let Ok(tae) = TextAreaElement::try_from(element.clone()) {
             if let Some(change) = self.diff_value(ancestor) {
-                match change {
-                    Patch::Add(value, _) | Patch::Replace(value, _) => {
-                        tae.set_value(&value);
-                    }
-                    Patch::Remove(_) => {
-                        tae.set_value("");
-                    }
-                }
+                let value = match change {
+                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                    Patch::Remove(_) => "",
+                };
+                tae.set_value(value);
             }
         }
     }
@@ -431,7 +401,9 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             Reform::Keep => {}
             Reform::Before(before) => {
                 let element = if self.tag == "svg"
-                    || parent.namespace_uri() == Some(SVG_NAMESPACE.to_string())
+                    || parent
+                        .namespace_uri()
+                        .map_or(false, |ns| ns == SVG_NAMESPACE)
                 {
                     document()
                         .create_element_ns(SVG_NAMESPACE, &self.tag)
@@ -463,16 +435,11 @@ impl<COMP: Component> VDiff for VTag<COMP> {
         let element = self.reference.clone().expect("element expected");
 
         {
-            let mut ancestor_childs = Vec::new();
-            if let Some(ref mut a) = ancestor {
-                std::mem::swap(&mut ancestor_childs, &mut a.childs);
-            }
-
-            self.apply_diffs(&element, &mut ancestor);
+            self.apply_diffs(&element, &ancestor);
 
             // Every render it removes all listeners and attach it back later
             // TODO Compare references of handler to do listeners update better
-            if let Some(mut ancestor) = ancestor {
+            if let Some(ancestor) = ancestor.as_mut() {
                 for handle in ancestor.captured.drain(..) {
                     handle.remove();
                 }
@@ -487,7 +454,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             // Start with an empty precursor, because it put childs to itself
             let mut precursor = None;
             let mut self_childs = self.childs.iter_mut();
-            let mut ancestor_childs = ancestor_childs.drain(..);
+            let mut ancestor_childs = ancestor.into_iter().flat_map(|a| a.childs);
             loop {
                 match (self_childs.next(), ancestor_childs.next()) {
                     (Some(left), right) => {
@@ -528,56 +495,27 @@ fn set_checked(input: &InputElement, value: bool) {
 
 impl<COMP: Component> PartialEq for VTag<COMP> {
     fn eq(&self, other: &VTag<COMP>) -> bool {
-        if self.tag != other.tag {
-            return false;
-        }
+        self.tag == other.tag
+            && self.value == other.value
+            && self.kind == other.kind
+            && self.checked == other.checked
+            && self.listeners.len() == other.listeners.len()
+            && self
+                .listeners
+                .iter()
+                .map(|l| l.kind())
+                .eq(other.listeners.iter().map(|l| l.kind()))
+            && self.attributes == other.attributes
+            && self.classes.set.len() == other.classes.set.len()
+            && self.classes.set.iter().eq(other.classes.set.iter())
+            && &self.childs == &other.childs
+    }
+}
 
-        if self.value != other.value {
-            return false;
-        }
-
-        if self.kind != other.kind {
-            return false;
-        }
-
-        if self.checked != other.checked {
-            return false;
-        }
-
-        if self.listeners.len() != other.listeners.len() {
-            return false;
-        }
-
-        for i in 0..self.listeners.len() {
-            let a = &self.listeners[i];
-            let b = &other.listeners[i];
-
-            if a.kind() != b.kind() {
-                return false;
-            }
-        }
-
-        if self.attributes != other.attributes {
-            return false;
-        }
-
-        if self.classes.set.iter().ne(other.classes.set.iter()) {
-            return false;
-        }
-
-        if self.childs.len() != other.childs.len() {
-            return false;
-        }
-
-        for i in 0..self.childs.len() {
-            let a = &self.childs[i];
-            let b = &other.childs[i];
-
-            if a != b {
-                return false;
-            }
-        }
-
-        true
+pub(crate) fn not<T>(option: &Option<T>) -> &Option<()> {
+    if option.is_some() {
+        &None
+    } else {
+        &Some(())
     }
 }
