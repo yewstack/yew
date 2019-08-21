@@ -2,10 +2,10 @@ use crate::html_tree::HtmlProp as TagAttribute;
 use crate::PeekValue;
 use lazy_static::lazy_static;
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned};
+use quote::{quote, quote_spanned, ToTokens};
 use std::collections::HashMap;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::{Expr, ExprClosure, ExprTuple, Ident};
+use syn::{Expr, ExprClosure, ExprTuple, Ident, Pat};
 
 pub struct TagAttributes {
     pub attributes: Vec<TagAttribute>,
@@ -144,10 +144,11 @@ impl TagAttributes {
                     ));
                 }
 
-                let var = match inputs.first().unwrap().into_value() {
-                    syn::FnArg::Inferred(pat) => pat,
-                    _ => return Err(syn::Error::new_spanned(or_span, "invalid closure argument")),
-                };
+                let var = match inputs.first().unwrap() {
+                    Pat::Ident(pat) => Ok(pat.into_token_stream()),
+                    Pat::Wild(pat) => Ok(pat.into_token_stream()),
+                    _ => Err(syn::Error::new_spanned(or_span, "invalid closure argument")),
+                }?;
                 let handler =
                     Ident::new(&format!("__yew_{}_handler", name.to_string()), name.span());
                 let listener =
