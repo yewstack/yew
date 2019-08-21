@@ -1,18 +1,16 @@
 use crate::child::Child;
+use yew::html::ChildrenWithProps;
 use yew::prelude::*;
-use yew::virtual_dom::VChild;
 
 pub enum Msg {
     Click,
     ChildClick,
 }
 
-type Children<T> = Box<dyn Fn() -> Vec<VChild<T, Parent>>>;
-
 #[derive(Properties)]
 pub struct Props {
     #[props(required)]
-    pub children: Children<Child>,
+    pub children: ChildrenWithProps<Child, Parent>,
 }
 
 pub struct Parent {
@@ -46,7 +44,7 @@ impl Renderable<Parent> for Parent {
             <div class="parent">
                 { format!("Last clicked by {}", self.clicker) }
                 <button onclick=|_| Msg::Click>{"Parent button"}</button>
-                { for (self.props.children)().into_iter().filter(|c| !c.props.hide) }
+                { for (*self.props.children)().into_iter().filter(|c| !c.props.hide) }
             </div>
         }
     }

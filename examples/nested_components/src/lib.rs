@@ -1,3 +1,4 @@
+#![recursion_limit = "128"]
 use yew::prelude::*;
 
 mod child;
@@ -31,6 +32,7 @@ impl Renderable<Model> for Model {
                 <Child name="Rustifer" on_click=|_| ParentMsg::ChildClick>
                     <p>{"Rustifer says hello"}</p>
                 </Child>
+                <Child name="Quiet" on_click=|_| ParentMsg::ChildClick />
             </Parent>
         }
     }
