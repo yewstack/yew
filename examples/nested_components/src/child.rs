@@ -1,10 +1,9 @@
+use yew::html::Children;
 use yew::prelude::*;
 
 pub struct Child {
     props: Props,
 }
-
-type Children<T> = Box<dyn Fn() -> Vec<Html<T>>>;
 
 #[derive(Properties)]
 pub struct Props {
@@ -13,7 +12,6 @@ pub struct Props {
     pub on_click: Callback<()>,
     #[props(required)]
     pub name: String,
-    #[props(required)]
     pub children: Children<Child>,
 }
 
@@ -44,7 +42,7 @@ impl Renderable<Child> for Child {
         html! {
             <div class="child">
                 { format!("My name is {}", self.props.name) }
-                { for (self.props.children)().into_iter() }
+                { for (*self.props.children)().into_iter() }
                 <button onclick=|_| Msg::Click>
                     { "Child button" }
                 </button>

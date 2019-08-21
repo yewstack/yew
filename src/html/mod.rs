@@ -9,9 +9,10 @@ mod scope;
 pub use listener::*;
 pub(crate) use scope::ComponentUpdate;
 pub use scope::{NodeCell, Scope};
+use std::ops::Deref;
 
 use crate::callback::Callback;
-use crate::virtual_dom::VNode;
+use crate::virtual_dom::{VChild, VNode};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -44,6 +45,29 @@ pub trait Component: Sized + 'static {
     /// Called for finalization on the final point of the component's lifetime.
     fn destroy(&mut self) {} // TODO Replace with `Drop`
 }
+
+/// A type used for rendering children html.
+pub struct ChildrenRenderer<T>(pub Box<dyn Fn() -> Vec<T>>);
+
+impl<T> Deref for ChildrenRenderer<T> {
+    type Target = Box<dyn Fn() -> Vec<T>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> Default for ChildrenRenderer<T> {
+    fn default() -> Self {
+        Self(Box::new(|| Vec::new()))
+    }
+}
+
+/// A type used for accepting children elements in Component::Properties.
+pub type Children<T> = ChildrenRenderer<Html<T>>;
+
+/// A type used for accepting children elements in Component::Properties and accessing their props.
+pub type ChildrenWithProps<C, P> = ChildrenRenderer<VChild<C, P>>;
 
 /// A type which expected as a result of `view` function implementation.
 pub type Html<MSG> = VNode<MSG>;
