@@ -1,4 +1,4 @@
-//! This module contains `App` struct which used to bootstrap
+//! This module contains the `App` struct, which is used to bootstrap
 //! a component in an isolated scope.
 
 use crate::html::{Component, Renderable, Scope};
