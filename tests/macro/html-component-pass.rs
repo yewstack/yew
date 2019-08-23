@@ -9,6 +9,7 @@ pub struct ChildProperties {
     #[props(required)]
     pub int: i32,
     pub vec: Vec<i32>,
+    pub optional_callback: Option<Callback<()>>,
 }
 
 pub struct ChildComponent;
@@ -79,6 +80,13 @@ pass_helper! {
     let name_expr = "child";
     html! {
         <ChildComponent int=1 string=name_expr />
+    };
+
+    html! {
+        <>
+            <ChildComponent int=1 />
+            <ChildComponent int=1 optional_callback=|_| () />
+        </>
     };
 }
 
