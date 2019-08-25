@@ -1,7 +1,11 @@
 use yew::prelude::*;
 
 fn compile_fail() {
-    html! { () };
+    html! {
+        <>
+            { () }
+        </>
+    };
 
     let not_tree = || ();
     html! {

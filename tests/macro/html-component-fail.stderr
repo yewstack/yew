@@ -1,62 +1,99 @@
-error: expected component tag be of form `< .. />`
+error: this open tag has no corresponding close tag
   --> $DIR/html-component-fail.rs:33:13
    |
 33 |     html! { <ChildComponent> };
    |             ^^^^^^^^^^^^^^^^
 
-error: unexpected end of input, expected identifier
+error: expected identifier
   --> $DIR/html-component-fail.rs:34:31
    |
 34 |     html! { <ChildComponent:: /> };
    |                               ^
 
-error: unexpected end of input, expected identifier
-  --> $DIR/html-component-fail.rs:35:34
-   |
-35 |     html! { <ChildComponent with /> };
-   |                                  ^
-
-error: unexpected token
-  --> $DIR/html-component-fail.rs:36:29
-   |
-36 |     html! { <ChildComponent props /> };
-   |                             ^^^^^
-
-error: expected component tag be of form `< .. />`
+error: this open tag has no corresponding close tag
   --> $DIR/html-component-fail.rs:37:13
    |
 37 |     html! { <ChildComponent with props > };
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: unexpected token
-  --> $DIR/html-component-fail.rs:39:40
+error: expected type, found `/`
+  --> $DIR/html-component-fail.rs:49:14
    |
-39 |     html! { <ChildComponent with props () /> };
-   |                                        ^^
+49 |     html! { </ChildComponent> };
+   |              ^
 
-error: expected identifier
-  --> $DIR/html-component-fail.rs:40:29
+error: this open tag has no corresponding close tag
+  --> $DIR/html-component-fail.rs:50:13
    |
-40 |     html! { <ChildComponent type=0 /> };
-   |                             ^^^^
+50 |     html! { <ChildComponent><ChildComponent></ChildComponent> };
+   |             ^^^^^^^^^^^^^^^^
 
-error: expected identifier
-  --> $DIR/html-component-fail.rs:41:29
+error: only one root html element allowed
+  --> $DIR/html-component-fail.rs:51:46
    |
-41 |     html! { <ChildComponent invalid-prop-name=0 /> };
-   |                             ^^^^^^^^^^^^^^^^^
-
-error: unexpected end of input, expected expression
-  --> $DIR/html-component-fail.rs:43:37
-   |
-43 |     html! { <ChildComponent string= /> };
-   |                                     ^
+51 |     html! { <ChildComponent></ChildComponent><ChildComponent></ChildComponent> };
+   |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0425]: cannot find value `blah` in this scope
   --> $DIR/html-component-fail.rs:38:34
    |
 38 |     html! { <ChildComponent with blah /> };
    |                                  ^^^^ not found in this scope
+
+error[E0599]: no method named `build` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+  --> $DIR/html-component-fail.rs:35:5
+   |
+5  | #[derive(Properties, PartialEq)]
+   |                   - method `build` not found for this
+...
+35 |     html! { <ChildComponent with /> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error[E0599]: no method named `build` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+  --> $DIR/html-component-fail.rs:36:5
+   |
+5  | #[derive(Properties, PartialEq)]
+   |                   - method `build` not found for this
+...
+36 |     html! { <ChildComponent props /> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error[E0599]: no method named `build` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+  --> $DIR/html-component-fail.rs:39:5
+   |
+5  | #[derive(Properties, PartialEq)]
+   |                   - method `build` not found for this
+...
+39 |     html! { <ChildComponent with props () /> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error[E0599]: no method named `build` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+  --> $DIR/html-component-fail.rs:40:5
+   |
+5  | #[derive(Properties, PartialEq)]
+   |                   - method `build` not found for this
+...
+40 |     html! { <ChildComponent type=0 /> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error[E0599]: no method named `build` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+  --> $DIR/html-component-fail.rs:41:5
+   |
+5  | #[derive(Properties, PartialEq)]
+   |                   - method `build` not found for this
+...
+41 |     html! { <ChildComponent invalid-prop-name=0 /> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0609]: no field `unknown` on type `ChildProperties`
   --> $DIR/html-component-fail.rs:42:29
@@ -74,6 +111,17 @@ error[E0599]: no method named `unknown` found for type `ChildPropertiesBuilder<C
 ...
 42 |     html! { <ChildComponent unknown="unknown" /> };
    |                             ^^^^^^^
+
+error[E0599]: no method named `build` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+  --> $DIR/html-component-fail.rs:43:5
+   |
+5  | #[derive(Properties, PartialEq)]
+   |                   - method `build` not found for this
+...
+43 |     html! { <ChildComponent string= /> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0308]: mismatched types
   --> $DIR/html-component-fail.rs:44:42

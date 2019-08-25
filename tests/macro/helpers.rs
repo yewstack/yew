@@ -12,7 +12,6 @@ macro_rules! pass_helper {
     ( $($content:tt)* ) => {
         mod test_component;
         use test_component::TestComponent;
-        // #[allow(unused_imports)]
         use yew::prelude::*;
         impl Renderable<TestComponent> for TestComponent {
             fn view(&self) -> Html<Self> {
