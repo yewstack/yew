@@ -49,6 +49,7 @@ fn compile_fail() {
     html! { </ChildComponent> };
     html! { <ChildComponent><ChildComponent></ChildComponent> };
     html! { <ChildComponent></ChildComponent><ChildComponent></ChildComponent> };
+    html! { <ChildComponent>{ "Not allowed" }</ChildComponent> };
 }
 
 fn main() {}

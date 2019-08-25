@@ -171,5 +171,16 @@ error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<Ch
 48 |     html! { <ChildComponent string="abc" /> };
    |                             ^^^^^^
 
+error[E0599]: no method named `children` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+  --> $DIR/html-component-fail.rs:52:5
+   |
+5  | #[derive(Properties, PartialEq)]
+   |                   - method `children` not found for this
+...
+52 |     html! { <ChildComponent>{ "Not allowed" }</ChildComponent> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
 Some errors occurred: E0308, E0425, E0599, E0609.
 For more information about an error, try `rustc --explain E0308`.
