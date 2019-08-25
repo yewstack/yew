@@ -1,5 +1,4 @@
 #![recursion_limit = "128"]
-use yew::prelude::*;
 
 mod header;
 mod item;
@@ -8,6 +7,7 @@ mod list;
 use header::ListHeader;
 use item::ListItem;
 use list::{List, Msg as ListMsg};
+use yew::prelude::*;
 
 pub struct Model;
 

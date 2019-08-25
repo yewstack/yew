@@ -14,21 +14,6 @@ pub enum Hovered {
     None,
 }
 
-impl fmt::Display for Hovered {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Hovered::Header => "Header",
-                Hovered::Item(name) => name,
-                Hovered::List => "List container",
-                Hovered::None => "Nothing",
-            }
-        )
-    }
-}
-
 pub enum Msg {
     Hover(Hovered),
 }
@@ -59,28 +44,6 @@ pub struct ListVariant {
 pub struct Props {
     #[props(required)]
     pub children: ChildrenRenderer<ListVariant>,
-}
-
-impl<CHILD> From<VChild<CHILD, List>> for ListVariant
-where
-    CHILD: Component + Renderable<CHILD>,
-    CHILD::Properties: Into<Variants>,
-{
-    fn from(vchild: VChild<CHILD, List>) -> Self {
-        ListVariant {
-            props: vchild.props.into(),
-            scope: vchild.scope,
-        }
-    }
-}
-
-impl Into<VNode<List>> for ListVariant {
-    fn into(self) -> VNode<List> {
-        match self.props {
-            Variants::Header(props) => VComp::new::<ListHeader>(props, self.scope).into(),
-            Variants::Item(props) => VComp::new::<ListItem>(props, self.scope).into(),
-        }
-    }
 }
 
 pub struct List {
@@ -128,6 +91,29 @@ impl Renderable<List> for List {
 }
 
 impl List {
+    fn view_header(&self) -> Html<Self> {
+        html! {{
+            for self.props.children.iter().filter(|c| match c.props {
+                Variants::Header(_) => true,
+                _ => false
+            })
+        }}
+    }
+
+    fn view_items(&self) -> Html<Self> {
+        html! {{
+            for self.props.children.iter().filter(|c| match &c.props {
+                Variants::Item(props) => !props.hide,
+                _ => false,
+            }).enumerate().map(|(i, mut c)| {
+                if let Variants::Item(ref mut props) = c.props {
+                    props.name = format!("#{} - {}", i + 1, props.name);
+                }
+                c
+            })
+        }}
+    }
+
     fn view_last_hovered(&self) -> Html<Self> {
         html! {
             <div class="last-hovered">
@@ -140,31 +126,39 @@ impl List {
     }
 }
 
-impl List {
-    fn view_header(&self) -> Html<Self> {
-        html! {
-            {
-                for self.props.children.iter().filter(|c| match c.props {
-                    Variants::Header(_) => true,
-                    _ => false
-                })
+impl fmt::Display for Hovered {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Hovered::Header => "Header",
+                Hovered::Item(name) => name,
+                Hovered::List => "List container",
+                Hovered::None => "Nothing",
             }
+        )
+    }
+}
+
+impl<CHILD> From<VChild<CHILD, List>> for ListVariant
+where
+    CHILD: Component + Renderable<CHILD>,
+    CHILD::Properties: Into<Variants>,
+{
+    fn from(vchild: VChild<CHILD, List>) -> Self {
+        ListVariant {
+            props: vchild.props.into(),
+            scope: vchild.scope,
         }
     }
+}
 
-    fn view_items(&self) -> Html<Self> {
-        html! {
-            {
-                for self.props.children.iter().filter(|c| match &c.props {
-                    Variants::Item(props) => !props.hide,
-                    _ => false,
-                }).enumerate().map(|(i, mut c)| {
-                    if let Variants::Item(ref mut props) = c.props {
-                        props.name = format!("#{} - {}", i + 1, props.name);
-                    }
-                    c
-                })
-            }
+impl Into<VNode<List>> for ListVariant {
+    fn into(self) -> VNode<List> {
+        match self.props {
+            Variants::Header(props) => VComp::new::<ListHeader>(props, self.scope).into(),
+            Variants::Item(props) => VComp::new::<ListItem>(props, self.scope).into(),
         }
     }
 }
