@@ -72,7 +72,7 @@ members = [
   "examples/minimal",
   "examples/mount_point",
   "examples/multi_thread",
-  "examples/nested_components",
+  "examples/nested_list",
   "examples/npm_and_rest",
   "examples/routing",
   "examples/server",
