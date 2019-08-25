@@ -5,6 +5,7 @@ use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
+use std::cmp::Ordering;
 use syn::buffer::Cursor;
 use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
@@ -369,10 +370,18 @@ impl Parse for ListProps {
 
         // alphabetize
         props.sort_by(|a, b| {
-            a.label
-                .to_string()
-                .partial_cmp(&b.label.to_string())
-                .unwrap()
+            if a.label == b.label {
+                Ordering::Equal
+            } else if a.label.to_string() == "children" {
+                Ordering::Greater
+            } else if b.label.to_string() == "children" {
+                Ordering::Less
+            } else {
+                a.label
+                    .to_string()
+                    .partial_cmp(&b.label.to_string())
+                    .unwrap()
+            }
         });
 
         Ok(ListProps(props))

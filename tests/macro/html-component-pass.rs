@@ -1,7 +1,9 @@
-#![recursion_limit = "128"]
+#![recursion_limit = "256"]
 
 #[macro_use]
 mod helpers;
+
+use yew::html::ChildrenRenderer;
 
 #[derive(Properties, Default, PartialEq)]
 pub struct ChildProperties {
@@ -32,8 +34,36 @@ impl Renderable<ChildComponent> for ChildComponent {
     }
 }
 
+#[derive(Properties, Default)]
+pub struct ParentProperties {
+    #[props(required)]
+    pub int: i32,
+    pub children: Children<ChildComponent>,
+}
+
+pub struct ParentComponent;
+impl Component for ParentComponent {
+    type Message = ();
+    type Properties = ParentProperties;
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        ParentComponent
+    }
+
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+}
+
+impl Renderable<Self> for ParentComponent {
+    fn view(&self) -> Html<Self> {
+        unimplemented!()
+    }
+}
+
 mod scoped {
     pub use super::ChildComponent;
+    pub use super::ParentComponent;
 }
 
 pass_helper! {
@@ -86,6 +116,34 @@ pass_helper! {
         <>
             <ChildComponent int=1 />
             <ChildComponent int=1 optional_callback=|_| () />
+        </>
+    };
+
+    let props = <ParentComponent as Component>::Properties::default();
+    html! {
+        <>
+            <ParentComponent int=1 />
+            <ParentComponent int=1></ParentComponent>
+
+            <ParentComponent with props>
+                <></>
+            </ParentComponent>
+
+            <ParentComponent int=1>
+                <ChildComponent int=2 />
+            </ParentComponent>
+
+            <scoped::ParentComponent int=1>
+                <scoped::ParentComponent int=2/>
+            </scoped::ParentComponent>
+
+            <ParentComponent int=1 children=ChildrenRenderer::new(
+                ::std::boxed::Box::new(move || {
+                    || -> ::std::vec::Vec<_> {
+                        vec![html!{ "String" }]
+                    }
+                }())
+            ) />
         </>
     };
 }

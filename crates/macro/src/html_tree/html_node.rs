@@ -46,8 +46,12 @@ impl ToTokens for HtmlNode {
 impl ToTokens for Node {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let node_token = match &self {
-            Node::Literal(lit) => quote! { #lit },
-            Node::Raw(stream) => quote_spanned! { stream.span()=> {#stream} },
+            Node::Literal(lit) => quote! {
+                ::yew::virtual_dom::VNode::from(#lit)
+            },
+            Node::Raw(stream) => quote_spanned! {stream.span()=>
+                ::yew::virtual_dom::VNode::from({#stream})
+            },
         };
 
         tokens.extend(node_token);
