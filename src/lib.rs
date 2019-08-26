@@ -152,6 +152,7 @@ pub mod prelude {
         Component, ComponentLink, Href, Html, Properties, Renderable, ShouldRender,
     };
     pub use crate::macros::*;
+    pub use crate::virtual_dom::Classes;
 
     /// Prelude module for creating worker.
     pub mod worker {
