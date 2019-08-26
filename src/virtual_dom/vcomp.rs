@@ -158,6 +158,24 @@ where
     }
 }
 
+impl<'a, COMP, F, IN> Transformer<COMP, F, Option<Callback<IN>>> for VComp<COMP>
+where
+    COMP: Component + Renderable<COMP>,
+    F: Fn(IN) -> COMP::Message + 'static,
+{
+    fn transform(scope: ScopeHolder<COMP>, from: F) -> Option<Callback<IN>> {
+        let callback = move |arg| {
+            let msg = from(arg);
+            if let Some(ref mut sender) = *scope.borrow_mut() {
+                sender.send_message(msg);
+            } else {
+                panic!("unactivated callback, parent component have to activate it");
+            }
+        };
+        Some(callback.into())
+    }
+}
+
 impl<COMP: Component> Unmounted<COMP> {
     /// mount a virtual component with a generator.
     fn mount<T: INode>(

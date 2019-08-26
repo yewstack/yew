@@ -24,7 +24,7 @@ pub trait Listener<COMP: Component> {
     /// Returns standard name of DOM's event.
     fn kind(&self) -> &'static str;
     /// Attaches listener to the element and uses scope instance to send
-    /// prepaired event back to the yew main loop.
+    /// prepared event back to the yew main loop.
     fn attach(&mut self, element: &Element, scope: Scope<COMP>) -> EventListenerHandle;
 }
 
