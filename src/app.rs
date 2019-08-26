@@ -1,4 +1,4 @@
-//! This module contains `App` sctruct which used to bootstrap
+//! This module contains the `App` struct, which is used to bootstrap
 //! a component in an isolated scope.
 
 use crate::html::{Component, Renderable, Scope};
@@ -11,8 +11,8 @@ pub struct App<COMP: Component> {
 }
 
 impl<COMP> Default for App<COMP>
-where
-    COMP: Component + Renderable<COMP>,
+    where
+        COMP: Component + Renderable<COMP>,
 {
     fn default() -> Self {
         App::new()
@@ -20,9 +20,9 @@ where
 }
 
 impl<COMP> App<COMP>
-where
-    COMP: Component + Renderable<COMP>,
-    COMP::Properties: Default,
+    where
+        COMP: Component + Renderable<COMP>,
+        COMP::Properties: Default,
 {
     /// The main entrypoint of a yew program. It works similarly to the `program`
     /// function in Elm. You should provide an initial model, `update` function
@@ -67,8 +67,8 @@ where
 }
 
 impl<COMP> App<COMP>
-where
-    COMP: Component + Renderable<COMP>,
+    where
+        COMP: Component + Renderable<COMP>,
 {
     /// Creates a new `App` with a component in a context.
     pub fn new() -> Self {
