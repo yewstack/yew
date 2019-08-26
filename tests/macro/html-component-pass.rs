@@ -14,13 +14,13 @@ pub struct ChildProperties {
     pub optional_callback: Option<Callback<()>>,
 }
 
-pub struct ChildComponent;
-impl Component for ChildComponent {
+pub struct Child;
+impl Component for Child {
     type Message = ();
     type Properties = ChildProperties;
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        ChildComponent
+        Child
     }
 
     fn update(&mut self, _: Self::Message) -> ShouldRender {
@@ -28,26 +28,26 @@ impl Component for ChildComponent {
     }
 }
 
-impl Renderable<ChildComponent> for ChildComponent {
+impl Renderable<Child> for Child {
     fn view(&self) -> Html<Self> {
         unimplemented!()
     }
 }
 
 #[derive(Properties, Default)]
-pub struct ParentProperties {
+pub struct ContainerProperties {
     #[props(required)]
     pub int: i32,
-    pub children: Children<ChildComponent>,
+    pub children: Children<Container>,
 }
 
-pub struct ParentComponent;
-impl Component for ParentComponent {
+pub struct Container;
+impl Component for Container {
     type Message = ();
-    type Properties = ParentProperties;
+    type Properties = ContainerProperties;
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        ParentComponent
+        Container
     }
 
     fn update(&mut self, _: Self::Message) -> ShouldRender {
@@ -55,95 +55,131 @@ impl Component for ParentComponent {
     }
 }
 
-impl Renderable<Self> for ParentComponent {
+impl Renderable<Self> for Container {
+    fn view(&self) -> Html<Self> {
+        unimplemented!()
+    }
+}
+
+#[derive(Properties, Default)]
+pub struct ChildContainerProperties {
+    #[props(required)]
+    pub int: i32,
+    pub children: ChildrenWithProps<Child, ChildContainer>,
+}
+
+pub struct ChildContainer;
+impl Component for ChildContainer {
+    type Message = ();
+    type Properties = ChildContainerProperties;
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        ChildContainer
+    }
+
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+}
+
+impl Renderable<Self> for ChildContainer {
     fn view(&self) -> Html<Self> {
         unimplemented!()
     }
 }
 
 mod scoped {
-    pub use super::ChildComponent;
-    pub use super::ParentComponent;
+    pub use super::Child;
+    pub use super::Container;
 }
 
 pass_helper! {
-    html! { <ChildComponent int=1 /> };
+    html! { <Child int=1 /> };
 
     // backwards compat
-    html! { <ChildComponent: int=1 /> };
+    html! { <Child: int=1 /> };
 
     html! {
         <>
-            <ChildComponent int=1 />
-            <scoped::ChildComponent int=1 />
+            <Child int=1 />
+            <scoped::Child int=1 />
 
             // backwards compat
-            <ChildComponent: int=1 />
-            <scoped::ChildComponent: int=1 />
+            <Child: int=1 />
+            <scoped::Child: int=1 />
         </>
     };
 
-    let props = <ChildComponent as Component>::Properties::default();
-    let props2 = <ChildComponent as Component>::Properties::default();
+    let props = <Child as Component>::Properties::default();
+    let props2 = <Child as Component>::Properties::default();
     html! {
         <>
-            <ChildComponent with props />
+            <Child with props />
 
             // backwards compat
-            <ChildComponent: with props2, />
+            <Child: with props2, />
         </>
     };
 
     html! {
         <>
-            <ChildComponent int=1 string="child" />
-            <ChildComponent int=1 />
-            <ChildComponent int={1+1} />
-            <ChildComponent int=1 vec={vec![1]} />
-            <ChildComponent string={String::from("child")} int=1 />
+            <Child int=1 string="child" />
+            <Child int=1 />
+            <Child int={1+1} />
+            <Child int=1 vec={vec![1]} />
+            <Child string={String::from("child")} int=1 />
 
             // backwards compat
-            <ChildComponent: string="child", int=3, />
+            <Child: string="child", int=3, />
         </>
     };
 
     let name_expr = "child";
     html! {
-        <ChildComponent int=1 string=name_expr />
+        <Child int=1 string=name_expr />
     };
 
     html! {
         <>
-            <ChildComponent int=1 />
-            <ChildComponent int=1 optional_callback=|_| () />
+            <Child int=1 />
+            <Child int=1 optional_callback=|_| () />
         </>
     };
 
-    let props = <ParentComponent as Component>::Properties::default();
+    let props = <Container as Component>::Properties::default();
     html! {
         <>
-            <ParentComponent int=1 />
-            <ParentComponent int=1></ParentComponent>
+            <Container int=1 />
+            <Container int=1></Container>
 
-            <ParentComponent with props>
+            <Container with props>
                 <></>
-            </ParentComponent>
+            </Container>
 
-            <ParentComponent int=1>
-                <ChildComponent int=2 />
-            </ParentComponent>
+            <Container int=1>
+                <Child int=2 />
+            </Container>
 
-            <scoped::ParentComponent int=1>
-                <scoped::ParentComponent int=2/>
-            </scoped::ParentComponent>
+            <scoped::Container int=1>
+                <scoped::Container int=2/>
+            </scoped::Container>
 
-            <ParentComponent int=1 children=ChildrenRenderer::new(
+            <Container int=1 children=ChildrenRenderer::new(
                 ::std::boxed::Box::new(move || {
                     || -> ::std::vec::Vec<_> {
                         vec![html!{ "String" }]
                     }
                 }())
             ) />
+        </>
+    };
+
+    html! {
+        <>
+            <ChildContainer int=1 />
+            <ChildContainer int=1></ChildContainer>
+            <ChildContainer int=1><Child int = 2 /></ChildContainer>
+            <ChildContainer int=1><Child int = 2 /><Child int = 2 /></ChildContainer>
         </>
     };
 }
