@@ -12,6 +12,7 @@ pub use scope::{NodeCell, Scope};
 
 use crate::callback::Callback;
 use crate::virtual_dom::VNode;
+use stdweb::web::Element;
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -27,7 +28,7 @@ pub trait Component: Sized + 'static {
     /// Called after the component has been attached to the VDOM and it is safe to receive messages
     /// from agents but before the browser updates the screen. If true is returned, the view will
     /// be re-rendered and the user will not see the initial render.
-    fn mounted(&mut self) -> ShouldRender {
+    fn mounted(&mut self, _: &Element) -> ShouldRender {
         false
     }
     /// Called everytime when a messages of `Msg` type received. It also takes a

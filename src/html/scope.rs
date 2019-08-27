@@ -114,7 +114,7 @@ struct CreatedState<COMP: Component> {
 impl<COMP: Component + Renderable<COMP>> CreatedState<COMP> {
     /// Called once immediately after the component is created.
     fn mounted(mut self) -> Self {
-        if self.component.mounted() {
+        if self.component.mounted(&self.element) {
             self.update()
         } else {
             self
