@@ -13,5 +13,4 @@
 pub struct Json<T>(pub T);
 
 text_format!(Json based on serde_json);
-
 binary_format!(Json based on serde_json);
