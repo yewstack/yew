@@ -14,7 +14,7 @@ use bincode;
 /// ```
 pub struct Bincode<T>(pub T);
 
-impl<'a, T> Into<super::Binary> for Bincode<&'a T> where T: serde::Serialize,
+impl<T: serde::Serialize> Into<super::Binary> for Bincode<T>
 {
     fn into(self) -> super::Binary {
         bincode::serialize(&self.0).map_err(failure::Error::from)
