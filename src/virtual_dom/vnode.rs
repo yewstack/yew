@@ -109,7 +109,7 @@ impl<'a, COMP: Component> From<&'a dyn Renderable<COMP>> for VNode<COMP> {
 
 /// Iterator adaptor for displaying html.
 pub struct HtmlAdaptor<I> {
-    it: I
+    it: I,
 }
 /// Trait to convert to html adaptor.
 pub trait ToHtmlAdaptor<I> {
@@ -117,20 +117,21 @@ pub trait ToHtmlAdaptor<I> {
     fn html(self) -> HtmlAdaptor<I>;
 }
 
-impl <I, II, T> ToHtmlAdaptor<I> for II
-    where
-        II: IntoIterator<Item=T, IntoIter=I>,
-        I: Iterator<Item=T>
- {
+impl<I, II, T> ToHtmlAdaptor<I> for II
+where
+    II: IntoIterator<Item = T, IntoIter = I>,
+    I: Iterator<Item = T>,
+{
     fn html(self) -> HtmlAdaptor<I> {
         HtmlAdaptor {
-            it: self.into_iter()
+            it: self.into_iter(),
         }
     }
 }
 
 impl<'a, I, T: 'a> Iterator for HtmlAdaptor<I>
-where I: Iterator<Item=T>,
+where
+    I: Iterator<Item = T>,
 {
     type Item = T;
 
@@ -139,20 +140,18 @@ where I: Iterator<Item=T>,
     }
 }
 
-
 impl<COMP, I, T> From<HtmlAdaptor<I>> for VNode<COMP>
 where
     COMP: Component,
-    I: Iterator<Item=T>,
-    T: Into<VNode<COMP>>
+    I: Iterator<Item = T>,
+    T: Into<VNode<COMP>>,
 {
     fn from(i: HtmlAdaptor<I>) -> Self {
-        let vlist = i
-            .into_iter()
-            .fold(VList::new(), |mut acc, x| {
-                acc.add_child(x.into());
-                acc
-            });
+        let vlist = i.into_iter().fold(VList::new(), |mut acc, x| {
+            // TODO, adding a VList::with_size(usize) might improve performance via eliminating reallocation as the vec grows.
+            acc.add_child(x.into());
+            acc
+        });
         VNode::VList(vlist)
     }
 }
