@@ -57,10 +57,9 @@ fn view_row(selected: Option<(u32, u32)>, row: u32) -> Html<Model> {
 
 impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
-        use yew::virtual_dom::vnode::ToHtmlAdaptor;
         html! {
             <table>
-                { (0..99).map(|row| view_row(self.selected, row)).html() }
+                { (0..99).map(|row| view_row(self.selected, row)).collect::<Html<Self>>() }
             </table>
         }
     }
