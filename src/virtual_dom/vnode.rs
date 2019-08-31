@@ -4,8 +4,8 @@ use super::{VComp, VDiff, VList, VTag, VText};
 use crate::html::{Component, Renderable, Scope};
 use std::cmp::PartialEq;
 use std::fmt;
-use stdweb::web::{Element, INode, Node};
 use std::iter::FromIterator;
+use stdweb::web::{Element, INode, Node};
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<COMP: Component> {
@@ -108,8 +108,8 @@ impl<'a, COMP: Component> From<&'a dyn Renderable<COMP>> for VNode<COMP> {
     }
 }
 
-impl <COMP: Component, A: Into<VNode<COMP>>> FromIterator<A> for VNode<COMP> {
-    fn from_iter<T: IntoIterator<Item=A>>(iter: T) -> Self {
+impl<COMP: Component, A: Into<VNode<COMP>>> FromIterator<A> for VNode<COMP> {
+    fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
         let vlist = iter.into_iter().fold(VList::new(), |mut acc, x| {
             acc.add_child(x.into());
             acc
