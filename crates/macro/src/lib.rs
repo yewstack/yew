@@ -51,7 +51,7 @@
 //! # fn main() {}
 //! ```
 //!
-//! Please refer to [https://github.com/DenisKolodin/yew](https://github.com/DenisKolodin/yew) for how to set this up.
+//! Please refer to [https://github.com/yewstack/yew](https://github.com/yewstack/yew) for how to set this up.
 
 #![recursion_limit = "128"]
 extern crate proc_macro;

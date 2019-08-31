@@ -233,7 +233,7 @@ impl Renderable<Model> for Model {
                     <strong class="footer-text">
                       { "Game of Life - a yew experiment " }
                     </strong>
-                    <a href="https://github.com/DenisKolodin/yew" target="_blank">{ "source" }</a>
+                    <a href="https://github.com/yewstack/yew" target="_blank">{ "source" }</a>
                 </footer>
             </div>
         }

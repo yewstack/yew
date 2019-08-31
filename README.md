@@ -443,7 +443,7 @@ your project's `Cargo.toml`:
 
 ```toml
 [dependencies]
-yew = { git = "https://github.com/DenisKolodin/yew", features = ["toml", "yaml", "msgpack", "cbor"] }
+yew = { git = "https://github.com/yewstack/yew", features = ["toml", "yaml", "msgpack", "cbor"] }
 ```
 
 ## Development setup
