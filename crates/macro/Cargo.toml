@@ -3,8 +3,8 @@ name = "yew-macro"
 version = "0.9.0"
 edition = "2018"
 authors = ["Justin Starry <justin.starry@icloud.com>"]
-repository = "https://github.com/DenisKolodin/yew"
-homepage = "https://github.com/DenisKolodin/yew"
+repository = "https://github.com/yewstack/yew"
+homepage = "https://github.com/yewstack/yew"
 documentation = "https://docs.rs/yew-macro/"
 license = "MIT/Apache-2.0"
 keywords = ["web", "wasm", "frontend", "webasm", "webassembly"]
@@ -12,7 +12,7 @@ categories = ["gui", "web-programming", "wasm"]
 description = "A framework for making client-side single-page apps"
 
 [badges]
-travis-ci = { repository = "DenisKolodin/yew" }
+travis-ci = { repository = "yewstack/yew" }
 
 [lib]
 proc-macro = true
