@@ -64,7 +64,7 @@ impl<COMP: Component> VDiff for VList<COMP> {
         };
 
         if self.childs.is_empty() {
-            // Fixes: https://github.com/DenisKolodin/yew/issues/294
+            // Fixes: https://github.com/yewstack/yew/issues/294
             // Without a placeholder the next element becomes first
             // and corrupts the order of rendering
             // We use empty text element to stake out a place
