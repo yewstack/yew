@@ -5,6 +5,7 @@ use crate::html::{Component, Renderable, Scope};
 use std::cmp::PartialEq;
 use std::fmt;
 use stdweb::web::{Element, INode, Node};
+use std::iter::FromIterator;
 
 /// Bind virtual element to a DOM reference.
 pub enum VNode<COMP: Component> {
@@ -107,54 +108,64 @@ impl<'a, COMP: Component> From<&'a dyn Renderable<COMP>> for VNode<COMP> {
     }
 }
 
-/// Iterator adaptor for displaying html.
-pub struct HtmlAdaptor<I> {
-    it: I,
-}
-/// Trait to convert to html adaptor.
-pub trait ToHtmlAdaptor<I> {
-    /// Converts existing iterator to an html adaptor
-    fn html(self) -> HtmlAdaptor<I>;
-}
-
-impl<I, II, T> ToHtmlAdaptor<I> for II
-where
-    II: IntoIterator<Item = T, IntoIter = I>,
-    I: Iterator<Item = T>,
-{
-    fn html(self) -> HtmlAdaptor<I> {
-        HtmlAdaptor {
-            it: self.into_iter(),
-        }
-    }
-}
-
-impl<'a, I, T: 'a> Iterator for HtmlAdaptor<I>
-where
-    I: Iterator<Item = T>,
-{
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.it.next()
-    }
-}
-
-impl<COMP, I, T> From<HtmlAdaptor<I>> for VNode<COMP>
-where
-    COMP: Component,
-    I: Iterator<Item = T>,
-    T: Into<VNode<COMP>>,
-{
-    fn from(i: HtmlAdaptor<I>) -> Self {
-        let vlist = i.into_iter().fold(VList::new(), |mut acc, x| {
-            // TODO, adding a VList::with_size(usize) might improve performance via eliminating reallocation as the vec grows.
+impl <COMP: Component, A: Into<VNode<COMP>>> FromIterator<A> for VNode<COMP> {
+    fn from_iter<T: IntoIterator<Item=A>>(iter: T) -> Self {
+        let vlist = iter.into_iter().fold(VList::new(), |mut acc, x| {
             acc.add_child(x.into());
             acc
         });
         VNode::VList(vlist)
     }
 }
+//
+///// Iterator adaptor for displaying html.
+//pub struct HtmlAdaptor<I> {
+//    it: I,
+//}
+///// Trait to convert to html adaptor.
+//pub trait ToHtmlAdaptor<I> {
+//    /// Converts existing iterator to an html adaptor
+//    fn html(self) -> HtmlAdaptor<I>;
+//}
+//
+//impl<I, II, T> ToHtmlAdaptor<I> for II
+//where
+//    II: IntoIterator<Item = T, IntoIter = I>,
+//    I: Iterator<Item = T>,
+//{
+//    fn html(self) -> HtmlAdaptor<I> {
+//        HtmlAdaptor {
+//            it: self.into_iter(),
+//        }
+//    }
+//}
+//
+//impl<'a, I, T: 'a> Iterator for HtmlAdaptor<I>
+//where
+//    I: Iterator<Item = T>,
+//{
+//    type Item = T;
+//
+//    fn next(&mut self) -> Option<Self::Item> {
+//        self.it.next()
+//    }
+//}
+//
+//impl<COMP, I, T> From<HtmlAdaptor<I>> for VNode<COMP>
+//where
+//    COMP: Component,
+//    I: Iterator<Item = T>,
+//    T: Into<VNode<COMP>>,
+//{
+//    fn from(i: HtmlAdaptor<I>) -> Self {
+//        let vlist = i.into_iter().fold(VList::new(), |mut acc, x| {
+//            // TODO, adding a VList::with_size(usize) might improve performance via eliminating reallocation as the vec grows.
+//            acc.add_child(x.into());
+//            acc
+//        });
+//        VNode::VList(vlist)
+//    }
+//}
 
 impl<COMP: Component> fmt::Debug for VNode<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
