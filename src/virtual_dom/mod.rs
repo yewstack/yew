@@ -56,6 +56,8 @@ impl Classes {
     }
 
     /// Adds a class to a set.
+    ///
+    /// Prevents duplication of class names.
     pub fn push(&mut self, class: &str) {
         self.set.insert(class.into());
     }
@@ -65,10 +67,11 @@ impl Classes {
         self.set.contains(class)
     }
 
-    /// Adds other classes to this class; returning itself.
-    pub fn union<T: Into<Classes>>(mut self, other: T) -> Self {
-        let mut other: Classes = other.into();
-        self.set.extend(other.set.drain(RangeFull));
+    /// Adds other classes to this set of classes; returning itself.
+    ///
+    /// Takes the logical union of both `Classes`.
+    pub fn extend<T: Into<Classes>>(mut self, other: T) -> Self {
+        self.set.extend(other.into().set.into_iter());
         self
     }
 }
