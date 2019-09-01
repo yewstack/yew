@@ -17,6 +17,7 @@ pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
 use crate::html::{Component, Scope};
+use std::ops::RangeFull;
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
@@ -41,7 +42,7 @@ type Listeners<COMP> = Vec<Box<dyn Listener<COMP>>>;
 type Attributes = HashMap<String, String>;
 
 /// A set of classes.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Classes {
     set: IndexSet<String>,
 }
@@ -62,6 +63,13 @@ impl Classes {
     /// Check the set contains a class.
     pub fn contains(&self, class: &str) -> bool {
         self.set.contains(class)
+    }
+
+    /// Adds other classes to this class; returning itself.
+    pub fn extend<T: Into<Classes>>(mut self, other: T) -> Self {
+        let mut other: Classes = other.into();
+        self.set.extend(other.set.drain(RangeFull));
+        self
     }
 }
 
