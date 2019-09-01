@@ -66,7 +66,7 @@ impl Classes {
     }
 
     /// Adds other classes to this class; returning itself.
-    pub fn extend<T: Into<Classes>>(mut self, other: T) -> Self {
+    pub fn union<T: Into<Classes>>(mut self, other: T) -> Self {
         let mut other: Classes = other.into();
         self.set.extend(other.set.drain(RangeFull));
         self
