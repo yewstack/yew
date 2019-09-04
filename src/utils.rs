@@ -14,7 +14,7 @@ pub fn host() -> Result<String, Error> {
 
 
 
-/// Blanket trait to provide a convenience method for assigning props in `changed` or updating values in `update`
+/// Blanket trait to provide a convenience method for assigning props in `changed` or updating values in `update`.
 pub trait NeqAssign {
     /// If `self` and `new` aren't equal, assigns `new` to `self` and returns true, otherwise returns false.
     ///
