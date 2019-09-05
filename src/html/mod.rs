@@ -11,7 +11,7 @@ pub(crate) use scope::ComponentUpdate;
 pub use scope::{NodeCell, Scope};
 
 use crate::callback::Callback;
-use crate::virtual_dom::{VChild, VNode};
+use crate::virtual_dom::{VChild, VNode, VList};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -49,9 +49,71 @@ pub trait Component: Sized + 'static {
 pub type Html<MSG> = VNode<MSG>;
 
 /// A type used for accepting children elements in Component::Properties.
+///
+/// # Example
+/// **`model.rs`**
+///
+/// In this example, the Wrapper component is used to wrap other elements.
+/// ```
+/// html!{
+///   <Wrapper>
+///     <h4> {"Hi"} </h4>
+///     <div> {"Hello"} </div>
+///   </Wrapper>
+/// }
+/// ```
+///
+/// **`wrapper.rs`**
+///
+/// The Wrapper component must define a `children` property in order to wrap other elements. The
+/// children property can be used to render the wrapped elements.
+/// ```
+/// #[derive(Properties)]
+/// struct WrapperProps {
+///   children: Children<Wrapper>,
+/// }
+///
+/// html!{
+///   <div id="container">
+///     { self.props.children.view() }
+///   </div>
+/// }
+/// ```
 pub type Children<T> = ChildrenRenderer<Html<T>>;
 
 /// A type used for accepting children elements in Component::Properties and accessing their props.
+///
+/// # Example
+/// **`model.rs`**
+///
+/// In this example, the `List` component can wrap `ListItem` components.
+/// ```
+/// html!{
+///   <List>
+///     <ListItem value="a" />
+///     <ListItem value="b" />
+///     <ListItem value="c" />
+///   </List>
+/// }
+/// ```
+///
+/// **`list.rs`**
+///
+/// The `List` component must define a `children` property in order to wrap the list items. The
+/// `children` property can be used to filter, mutate, and render the items.
+/// ```
+/// #[derive(Properties)]
+/// struct ListProps {
+///   children: ChildrenWithProps<ListItem, List>,
+/// }
+///
+/// html!{{
+///   for self.props.children.iter().map(|mut item| {
+///     item.props.value = format!("item-{}", item.props.value);
+///     item
+///   })
+/// }}
+/// ```
 pub type ChildrenWithProps<C, P> = ChildrenRenderer<VChild<C, P>>;
 
 /// A type used for rendering children html.
@@ -93,6 +155,14 @@ impl<T> Default for ChildrenRenderer<T> {
             len: 0,
             boxed_render: Box::new(|| Vec::new()),
         }
+    }
+}
+
+impl<T, COMP: Component> Renderable<COMP> for ChildrenRenderer<T> where T: Into<VNode<COMP>>{
+    fn view(&self) -> Html<COMP> {
+        VList {
+            childs: self.iter().map(|c| c.into()).collect()
+        }.into()
     }
 }
 
