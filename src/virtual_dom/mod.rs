@@ -41,7 +41,7 @@ type Listeners<COMP> = Vec<Box<dyn Listener<COMP>>>;
 type Attributes = HashMap<String, String>;
 
 /// A set of classes.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Classes {
     set: IndexSet<String>,
 }
@@ -55,6 +55,8 @@ impl Classes {
     }
 
     /// Adds a class to a set.
+    ///
+    /// Prevents duplication of class names.
     pub fn push(&mut self, class: &str) {
         self.set.insert(class.into());
     }
@@ -62,6 +64,14 @@ impl Classes {
     /// Check the set contains a class.
     pub fn contains(&self, class: &str) -> bool {
         self.set.contains(class)
+    }
+
+    /// Adds other classes to this set of classes; returning itself.
+    ///
+    /// Takes the logical union of both `Classes`.
+    pub fn extend<T: Into<Classes>>(mut self, other: T) -> Self {
+        self.set.extend(other.into().set.into_iter());
+        self
     }
 }
 
