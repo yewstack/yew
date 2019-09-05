@@ -53,14 +53,13 @@ impl Renderable<ListItem> for ListItem {
 
 impl ListItem {
     fn view_details(&self) -> Html<Self> {
-        let children = self.props.children.to_vec();
-        if children.is_empty() {
+        if self.props.children.is_empty() {
             return html! {};
         }
 
         html! {
             <div class="list-item-details">
-                { for children.into_iter() }
+                { for self.props.children.iter() }
             </div>
         }
     }

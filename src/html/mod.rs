@@ -56,13 +56,24 @@ pub type ChildrenWithProps<C, P> = ChildrenRenderer<VChild<C, P>>;
 
 /// A type used for rendering children html.
 pub struct ChildrenRenderer<T> {
+    len: usize,
     boxed_render: Box<dyn Fn() -> Vec<T>>,
 }
 
 impl<T> ChildrenRenderer<T> {
     /// Create children
-    pub fn new(boxed_render: Box<dyn Fn() -> Vec<T>>) -> Self {
-        Self { boxed_render }
+    pub fn new(len: usize, boxed_render: Box<dyn Fn() -> Vec<T>>) -> Self {
+        Self { len, boxed_render }
+    }
+
+    /// Children list is empty
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
+    /// Number of children elements
+    pub fn len(&self) -> usize {
+        self.len
     }
 
     /// Build children components and return `Vec`
@@ -79,6 +90,7 @@ impl<T> ChildrenRenderer<T> {
 impl<T> Default for ChildrenRenderer<T> {
     fn default() -> Self {
         Self {
+            len: 0,
             boxed_render: Box::new(|| Vec::new()),
         }
     }
