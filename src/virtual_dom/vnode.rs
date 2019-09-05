@@ -4,6 +4,7 @@ use super::{VComp, VDiff, VList, VTag, VText};
 use crate::html::{Component, Renderable, Scope};
 use std::cmp::PartialEq;
 use std::fmt;
+use std::iter::FromIterator;
 use stdweb::web::{Element, INode, Node};
 
 /// Bind virtual element to a DOM reference.
@@ -104,6 +105,16 @@ impl<COMP: Component, T: ToString> From<T> for VNode<COMP> {
 impl<'a, COMP: Component> From<&'a dyn Renderable<COMP>> for VNode<COMP> {
     fn from(value: &'a dyn Renderable<COMP>) -> Self {
         value.view()
+    }
+}
+
+impl<COMP: Component, A: Into<VNode<COMP>>> FromIterator<A> for VNode<COMP> {
+    fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
+        let vlist = iter.into_iter().fold(VList::new(), |mut acc, x| {
+            acc.add_child(x.into());
+            acc
+        });
+        VNode::VList(vlist)
     }
 }
 

@@ -59,9 +59,7 @@ impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <table>
-                {for (0..99).map(|row| {
-                    view_row(self.selected, row)
-                })}
+                { (0..99).map(|row| view_row(self.selected, row)).collect::<Html<Self>>() }
             </table>
         }
     }
