@@ -443,7 +443,7 @@ your project's `Cargo.toml`:
 
 ```toml
 [dependencies]
-yew = { git = "https://github.com/DenisKolodin/yew", features = ["toml", "yaml", "msgpack", "cbor"] }
+yew = { git = "https://github.com/yewstack/yew", features = ["toml", "yaml", "msgpack", "cbor"] }
 ```
 
 ## Development setup
@@ -509,3 +509,9 @@ if you tell the `cargo-web` to build for them using the `--target` parameter.
 [todomvc]: examples/todomvc
 [two_apps]: examples/two_apps
 [cargo-web]: https://github.com/koute/cargo-web
+
+
+## Project templates
+
+* [`yew-wasm-pack-template`](https://github.com/yewstack/yew-wasm-pack-template)
+* [`yew-wasm-pack-minimal`](https://github.com/yewstack/yew-wasm-pack-minimal)
