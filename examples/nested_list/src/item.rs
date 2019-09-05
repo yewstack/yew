@@ -59,7 +59,7 @@ impl ListItem {
 
         html! {
             <div class="list-item-details">
-                { for self.props.children.iter() }
+                { self.props.children.view() }
             </div>
         }
     }

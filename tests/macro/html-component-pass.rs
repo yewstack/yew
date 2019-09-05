@@ -165,11 +165,12 @@ pass_helper! {
             </scoped::Container>
 
             <Container int=1 children=ChildrenRenderer::new(
+                1,
                 ::std::boxed::Box::new(move || {
                     || -> ::std::vec::Vec<_> {
                         vec![html!{ "String" }]
                     }
-                }())
+                }()),
             ) />
         </>
     };
