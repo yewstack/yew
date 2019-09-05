@@ -83,6 +83,7 @@ pub mod callback;
 pub mod components;
 pub mod format;
 pub mod html;
+pub mod neq_assign;
 pub mod scheduler;
 pub mod services;
 pub mod utils;
