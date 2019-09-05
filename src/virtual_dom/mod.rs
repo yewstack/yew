@@ -17,7 +17,6 @@ pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
 use crate::html::{Component, Scope};
-use std::ops::RangeFull;
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
