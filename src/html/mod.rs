@@ -11,7 +11,7 @@ pub(crate) use scope::ComponentUpdate;
 pub use scope::{NodeCell, Scope};
 
 use crate::callback::Callback;
-use crate::virtual_dom::{VChild, VNode, VList};
+use crate::virtual_dom::{VChild, VList, VNode};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -158,11 +158,15 @@ impl<T> Default for ChildrenRenderer<T> {
     }
 }
 
-impl<T, COMP: Component> Renderable<COMP> for ChildrenRenderer<T> where T: Into<VNode<COMP>>{
+impl<T, COMP: Component> Renderable<COMP> for ChildrenRenderer<T>
+where
+    T: Into<VNode<COMP>>,
+{
     fn view(&self) -> Html<COMP> {
         VList {
-            childs: self.iter().map(|c| c.into()).collect()
-        }.into()
+            childs: self.iter().map(|c| c.into()).collect(),
+        }
+        .into()
     }
 }
 
