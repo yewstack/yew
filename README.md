@@ -218,6 +218,9 @@ html! {
     <nav class="menu">
         <MyButton title="First Button" />
         <MyButton title="Second Button "/>
+        <MyList name="Grocery List">
+          <MyListItem text="Apples" />
+        </MyList>
     </nav>
 }
 ```
