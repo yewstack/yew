@@ -170,13 +170,29 @@ impl TryFrom<Field> for PropField {
 
 impl PartialOrd for PropField {
     fn partial_cmp(&self, other: &PropField) -> Option<Ordering> {
-        self.name.partial_cmp(&other.name)
+        if self.name == other.name {
+            Some(Ordering::Equal)
+        } else if self.name == "children" {
+            Some(Ordering::Greater)
+        } else if other.name == "children" {
+            Some(Ordering::Less)
+        } else {
+            self.name.partial_cmp(&other.name)
+        }
     }
 }
 
 impl Ord for PropField {
     fn cmp(&self, other: &PropField) -> Ordering {
-        self.name.cmp(&other.name)
+        if self.name == other.name {
+            Ordering::Equal
+        } else if self.name == "children" {
+            Ordering::Greater
+        } else if other.name == "children" {
+            Ordering::Less
+        } else {
+            self.name.cmp(&other.name)
+        }
     }
 }
 
