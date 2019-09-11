@@ -1,53 +1,88 @@
 use super::HtmlProp;
 use super::HtmlPropSuffix;
+use super::HtmlTreeNested;
 use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
+use std::cmp::Ordering;
 use syn::buffer::Cursor;
 use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
+use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{Ident, Token, Type};
+use syn::{Ident, Path, PathArguments, PathSegment, Token, Type, TypePath};
 
-pub struct HtmlComponent(HtmlComponentInner);
+pub struct HtmlComponent {
+    ty: Type,
+    props: Option<Props>,
+    children: Vec<HtmlTreeNested>,
+}
 
 impl PeekValue<()> for HtmlComponent {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
 
-        HtmlComponent::peek_type(cursor)
+        HtmlComponent::peek_type(cursor)?;
+        Some(())
     }
 }
 
 impl Parse for HtmlComponent {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let lt = input.parse::<Token![<]>()?;
-        let HtmlPropSuffix { stream, div, gt } = input.parse()?;
-        if div.is_none() {
-            return Err(syn::Error::new_spanned(
-                HtmlComponentTag { lt, gt },
-                "expected component tag be of form `< .. />`",
-            ));
+        if HtmlComponentClose::peek(input.cursor()).is_some() {
+            return match input.parse::<HtmlComponentClose>() {
+                Ok(close) => Err(syn::Error::new_spanned(
+                    close,
+                    "this close tag has no corresponding open tag",
+                )),
+                Err(err) => Err(err),
+            };
         }
 
-        match parse(stream) {
-            Ok(comp) => Ok(HtmlComponent(comp)),
-            Err(err) => {
-                if err.to_string().starts_with("unexpected end of input") {
-                    Err(syn::Error::new_spanned(div, err.to_string()))
-                } else {
-                    Err(err)
-                }
-            }
+        let open = input.parse::<HtmlComponentOpen>()?;
+        // Return early if it's a self-closing tag
+        if open.div.is_some() {
+            return Ok(HtmlComponent {
+                ty: open.ty,
+                props: open.props,
+                children: Vec::new(),
+            });
         }
+
+        let mut children: Vec<HtmlTreeNested> = vec![];
+        loop {
+            if input.is_empty() {
+                return Err(syn::Error::new_spanned(
+                    open,
+                    "this open tag has no corresponding close tag",
+                ));
+            }
+            if HtmlComponentClose::peek(input.cursor()).is_some() {
+                break;
+            }
+
+            children.push(input.parse()?);
+        }
+
+        input.parse::<HtmlComponentClose>()?;
+
+        Ok(HtmlComponent {
+            ty: open.ty,
+            props: open.props,
+            children,
+        })
     }
 }
 
 impl ToTokens for HtmlComponent {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlComponentInner { ty, props } = &self.0;
+        let Self {
+            ty,
+            props,
+            children,
+        } = self;
         let vcomp_scope = Ident::new("__yew_vcomp_scope", Span::call_site());
 
         let validate_props = if let Some(Props::List(ListProps(vec_props))) = props {
@@ -55,6 +90,12 @@ impl ToTokens for HtmlComponent {
             let check_props = vec_props.iter().map(|HtmlProp { label, .. }| {
                 quote! { #prop_ref.#label; }
             });
+
+            let check_children = if !children.is_empty() {
+                quote! { #prop_ref.children; }
+            } else {
+                quote! {}
+            };
 
             // This is a hack to avoid allocating memory but still have a reference to a props
             // struct so that attributes can be checked against it
@@ -71,7 +112,25 @@ impl ToTokens for HtmlComponent {
 
             quote! {
                 #unallocated_prop_ref
+                #check_children
                 #(#check_props)*
+            }
+        } else {
+            quote! {}
+        };
+
+        let set_children = if !children.is_empty() {
+            let children_len = children.len();
+            quote! {
+                .children(::yew::html::ChildrenRenderer::new(
+                    #children_len,
+                    ::std::boxed::Box::new(move || {
+                        #[allow(unused_must_use)]
+                        || -> ::std::vec::Vec<_> {
+                            vec![#(#children.into(),)*]
+                        }
+                    }()),
+                ))
             }
         } else {
             quote! {}
@@ -89,6 +148,7 @@ impl ToTokens for HtmlComponent {
                     quote! {
                         <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder()
                             #(#set_props)*
+                            #set_children
                             .build()
                     }
                 }
@@ -96,7 +156,9 @@ impl ToTokens for HtmlComponent {
             }
         } else {
             quote! {
-                <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder().build()
+                <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder()
+                    #set_children
+                    .build()
             }
         };
 
@@ -117,9 +179,7 @@ impl ToTokens for HtmlComponent {
             }
 
             let #vcomp_scope: ::yew::virtual_dom::vcomp::ScopeHolder<_> = ::std::default::Default::default();
-            ::yew::virtual_dom::VNode::VComp(
-                ::yew::virtual_dom::VComp::new::<#ty>(#init_props, #vcomp_scope)
-            )
+            ::yew::virtual_dom::VChild::<#ty, _>::new(#init_props, #vcomp_scope)
         }});
     }
 }
@@ -135,13 +195,18 @@ impl HtmlComponent {
         Some(cursor)
     }
 
-    fn peek_type(mut cursor: Cursor) -> Option<()> {
+    fn peek_type(mut cursor: Cursor) -> Option<Type> {
         let mut colons_optional = true;
         let mut last_ident = None;
+        let mut leading_colon = None;
+        let mut segments = Punctuated::new();
 
         loop {
             let mut post_colons_cursor = cursor;
             if let Some(c) = Self::double_colon(post_colons_cursor) {
+                if colons_optional {
+                    leading_colon = Some(Token![::](Span::call_site()));
+                }
                 post_colons_cursor = c;
             } else if !colons_optional {
                 break;
@@ -149,7 +214,11 @@ impl HtmlComponent {
 
             if let Some((ident, c)) = post_colons_cursor.ident() {
                 cursor = c;
-                last_ident = Some(ident);
+                last_ident = Some(ident.clone());
+                segments.push(PathSegment {
+                    ident,
+                    arguments: PathArguments::None,
+                });
             } else {
                 break;
             }
@@ -160,43 +229,93 @@ impl HtmlComponent {
 
         let type_str = last_ident?.to_string();
         type_str.is_ascii().as_option()?;
-        type_str.bytes().next()?.is_ascii_uppercase().as_option()
+        type_str.bytes().next()?.is_ascii_uppercase().as_option()?;
+
+        Some(Type::Path(TypePath {
+            qself: None,
+            path: Path {
+                leading_colon,
+                segments,
+            },
+        }))
     }
 }
 
-pub struct HtmlComponentInner {
+struct HtmlComponentOpen {
+    lt: Token![<],
     ty: Type,
     props: Option<Props>,
-}
-
-impl Parse for HtmlComponentInner {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
-        let ty = input.parse()?;
-        // backwards compat
-        let _ = input.parse::<Token![:]>();
-
-        let props = if let Some(prop_type) = Props::peek(input.cursor()) {
-            match prop_type {
-                PropType::List => input.parse().map(Props::List).map(Some)?,
-                PropType::With => input.parse().map(Props::With).map(Some)?,
-            }
-        } else {
-            None
-        };
-
-        Ok(HtmlComponentInner { ty, props })
-    }
-}
-
-struct HtmlComponentTag {
-    lt: Token![<],
+    div: Option<Token![/]>,
     gt: Token![>],
 }
 
-impl ToTokens for HtmlComponentTag {
+impl PeekValue<Type> for HtmlComponentOpen {
+    fn peek(cursor: Cursor) -> Option<Type> {
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '<').as_option()?;
+        HtmlComponent::peek_type(cursor)
+    }
+}
+
+impl Parse for HtmlComponentOpen {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        let lt = input.parse::<Token![<]>()?;
+        let ty = input.parse()?;
+        // backwards compat
+        let _ = input.parse::<Token![:]>();
+        let HtmlPropSuffix { stream, div, gt } = input.parse()?;
+        let props: Option<Props> = parse(stream).ok();
+
+        Ok(HtmlComponentOpen {
+            lt,
+            ty,
+            props,
+            div,
+            gt,
+        })
+    }
+}
+
+impl ToTokens for HtmlComponentOpen {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlComponentTag { lt, gt } = self;
+        let HtmlComponentOpen { lt, gt, .. } = self;
         tokens.extend(quote! {#lt#gt});
+    }
+}
+
+struct HtmlComponentClose {
+    lt: Token![<],
+    div: Token![/],
+    ty: Type,
+    gt: Token![>],
+}
+
+impl PeekValue<Type> for HtmlComponentClose {
+    fn peek(cursor: Cursor) -> Option<Type> {
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '<').as_option()?;
+
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '/').as_option()?;
+
+        HtmlComponent::peek_type(cursor)
+    }
+}
+impl Parse for HtmlComponentClose {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        Ok(HtmlComponentClose {
+            lt: input.parse()?,
+            div: input.parse()?,
+            ty: input.parse()?,
+            gt: input.parse()?,
+        })
+    }
+}
+
+impl ToTokens for HtmlComponentClose {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let HtmlComponentClose { lt, div, ty, gt } = self;
+        tokens.extend(quote! {#lt#div#ty#gt});
     }
 }
 
@@ -223,6 +342,17 @@ impl PeekValue<PropType> for Props {
     }
 }
 
+impl Parse for Props {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        let prop_type = Props::peek(input.cursor())
+            .ok_or_else(|| syn::Error::new(Span::call_site(), "ignore - no props found"))?;
+        match prop_type {
+            PropType::List => input.parse().map(Props::List),
+            PropType::With => input.parse().map(Props::With),
+        }
+    }
+}
+
 struct ListProps(Vec<HtmlProp>);
 impl Parse for ListProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
@@ -242,10 +372,18 @@ impl Parse for ListProps {
 
         // alphabetize
         props.sort_by(|a, b| {
-            a.label
-                .to_string()
-                .partial_cmp(&b.label.to_string())
-                .unwrap()
+            if a.label == b.label {
+                Ordering::Equal
+            } else if a.label.to_string() == "children" {
+                Ordering::Greater
+            } else if b.label.to_string() == "children" {
+                Ordering::Less
+            } else {
+                a.label
+                    .to_string()
+                    .partial_cmp(&b.label.to_string())
+                    .unwrap()
+            }
         });
 
         Ok(ListProps(props))
