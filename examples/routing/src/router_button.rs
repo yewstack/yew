@@ -1,11 +1,11 @@
 //! A component wrapping a <button/> tag that changes the route.
 use crate::router::Route;
 use crate::router::Router;
-use yew::prelude::*;
 use yew::agent::Dispatched;
+use yew::prelude::*;
 
-use yew::agent::Dispatcher;
 use crate::router::Request;
+use yew::agent::Dispatcher;
 
 /// Changes the route when clicked.
 pub struct RouterButton {
@@ -14,9 +14,8 @@ pub struct RouterButton {
 }
 
 pub enum Msg {
-    Clicked
+    Clicked,
 }
-
 
 /// Properties for Routing Components
 #[derive(Properties, Default, Clone, Debug, PartialEq)]
@@ -45,10 +44,16 @@ impl Component for RouterButton {
         match msg {
             Msg::Clicked => {
                 let route = Route {
-                    path_segments: self.props.path.split("/").skip(1).map(|s| s.to_string()).collect::<Vec<_>>(),
+                    path_segments: self
+                        .props
+                        .path
+                        .split("/")
+                        .skip(1)
+                        .map(|s| s.to_string())
+                        .collect::<Vec<_>>(),
                     query: None,
                     state: (),
-                    fragment: None
+                    fragment: None,
                 };
                 self.router.send(Request::ChangeRoute(route));
                 false

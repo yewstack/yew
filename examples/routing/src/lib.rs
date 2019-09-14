@@ -2,15 +2,15 @@
 
 mod b_component;
 mod router;
-mod routing;
 mod router_button;
+mod routing;
 use b_component::BModel;
 
+use crate::router_button::RouterButton;
 use log::info;
 use router::Route;
 use yew::agent::Bridged;
 use yew::{html, Bridge, Component, ComponentLink, Html, Renderable, ShouldRender};
-use crate::router_button::RouterButton;
 
 pub enum Child {
     A,

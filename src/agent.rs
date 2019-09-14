@@ -154,10 +154,10 @@ where
     }
 }
 
-impl <T> Dispatched for T
+impl<T> Dispatched for T
 where
     T: Agent,
-    <T as Agent>::Reach: Dispatchable
+    <T as Agent>::Reach: Dispatchable,
 {
     fn dispatcher() -> Box<dyn Dispatcher<Self>> {
         Self::Reach::spawn_or_join_without_callback()
@@ -172,7 +172,7 @@ pub trait Discoverer {
         unimplemented!();
     }
 
-    fn spawn_or_join_without_callback<AGN: Agent>() -> Box<dyn Dispatcher<AGN>>{
+    fn spawn_or_join_without_callback<AGN: Agent>() -> Box<dyn Dispatcher<AGN>> {
         unimplemented!();
     }
 }
@@ -185,7 +185,6 @@ pub trait Bridge<AGN: Agent> {
 
 /// A marker trait for Bridges to indicate that they were created without a callback.
 pub trait Dispatcher<AGN: Agent>: Bridge<AGN> {}
-
 
 // <<< SAME THREAD >>>
 
@@ -219,7 +218,7 @@ impl<AGN: Agent> LocalAgent<AGN> {
 
     fn create_dispatcher(&self) -> ContextDispatcher<AGN> {
         ContextDispatcher {
-            scope: self.scope.clone()
+            scope: self.scope.clone(),
         }
     }
 
@@ -317,7 +316,6 @@ struct ContextBridge<AGN: Agent> {
     id: HandlerId,
 }
 
-
 impl<AGN: Agent> Bridge<AGN> for ContextBridge<AGN> {
     fn send(&mut self, msg: AGN::Input) {
         let upd = AgentUpdate::Input(msg, Some(self.id));
@@ -347,7 +345,7 @@ impl<AGN: Agent> Drop for ContextBridge<AGN> {
 }
 
 struct ContextDispatcher<AGN: Agent> {
-    scope: AgentScope<AGN>
+    scope: AgentScope<AGN>,
 }
 
 impl<AGN: Agent> Bridge<AGN> for ContextDispatcher<AGN> {
@@ -357,7 +355,7 @@ impl<AGN: Agent> Bridge<AGN> for ContextDispatcher<AGN> {
     }
 }
 
-impl <AGN: Agent> Dispatcher<AGN> for ContextDispatcher<AGN> {}
+impl<AGN: Agent> Dispatcher<AGN> for ContextDispatcher<AGN> {}
 
 /// Create an instance in the current thread.
 pub struct Job;
@@ -498,9 +496,8 @@ impl<AGN: Agent> RemoteAgent<AGN> {
     fn create_dispatcher(&self) -> PublicDispatcher<AGN> {
         PublicDispatcher {
             worker: self.worker.clone(),
-            _agent: PhantomData
+            _agent: PhantomData,
         }
-
     }
 
     fn remove_bridge(&mut self, bridge: &PublicBridge<AGN>) -> Last {
@@ -590,8 +587,6 @@ impl Discoverer for Public {
     }
 }
 
-
-
 impl Dispatchable for Public {}
 
 /// A connection manager for components interaction with workers.
@@ -654,7 +649,7 @@ impl<AGN: Agent> Bridge<AGN> for PublicDispatcher<AGN> {
     }
 }
 
-impl <AGN: Agent> Dispatcher<AGN> for PublicDispatcher<AGN> {}
+impl<AGN: Agent> Dispatcher<AGN> for PublicDispatcher<AGN> {}
 
 /// Create a single instance in a browser.
 pub struct Global;
