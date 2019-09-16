@@ -46,7 +46,7 @@ pub trait Component: Sized + 'static {
 }
 
 /// A pure component does not hold state, only providing rendering abilities to a set of inputs.
-pub trait PureComponent: Properties + Sized + 'static {
+pub trait PureComponent: Properties + PartialEq + Sized + 'static {
     /// Message type
     type Message: 'static;
     /// A render function for a pure component.
@@ -74,8 +74,12 @@ impl <T: Properties + 'static> Component for T
     }
 
     fn change(&mut self, props: T) -> ShouldRender {
-        *self = props;
-        true
+        if *self != props {
+            *self = props;
+            true
+        } else {
+            false
+        }
     }
 }
 
