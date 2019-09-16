@@ -45,22 +45,24 @@ pub trait Component: Sized + 'static {
     fn destroy(&mut self) {} // TODO Replace with `Drop`
 }
 
-/// A pure component does not hold state, only providing rendering abilities to a set of inputs.
+/// A pure component does not hold state, only providing rendering capability to a collection of properties.
+///
+/// PureComponents should be used instead of Components if the Component in question does not mutate
+/// the state passed to it via props and if it does not own services or connections to agents.
 pub trait PureComponent: Properties + PartialEq + Sized + 'static {
-    /// Message type
+    /// Message type that can be emitted back to Components higher up in the hierarchy.
     type Message: 'static;
-    /// A render function for a pure component.
+
+    /// Produces VDOM nodes that will be rendered to html.
     fn render(&self) -> Html<Self>;
-    /// Override this if the pure component will pass its messages upwards.
+    /// Called when the PureComponent receives a Message.
     ///
-    /// If the implementing struct in question has a callback, this should be overwritten.
+    /// If the PureComponent has a callback, this should be overwritten.
     fn emit(&self, _msg: Self::Message) { }
 }
 
 
-impl <T: Properties + 'static> Component for T
-    where T: PureComponent {
-
+impl <T: PureComponent> Component for T {
     type Message = <T as PureComponent>::Message;
     type Properties = T;
 

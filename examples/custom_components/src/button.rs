@@ -1,5 +1,4 @@
 use yew::prelude::*;
-use yew::html::PureComponent;
 
 pub enum Msg {
     Clicked,
