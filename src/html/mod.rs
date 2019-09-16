@@ -45,6 +45,48 @@ pub trait Component: Sized + 'static {
     fn destroy(&mut self) {} // TODO Replace with `Drop`
 }
 
+/// A pure component does not hold state, only providing rendering abilities to a set of inputs.
+pub trait PureComponent: Properties + Sized + 'static {
+    /// Message type
+    type Message: 'static;
+    /// A render function for a pure component.
+    fn render(&self) -> Html<Self>;
+    /// Override this if the pure component will pass its messages upwards.
+    ///
+    /// If the implementing struct in question has a callback, this should be overwritten.
+    fn emit(&self, _msg: Self::Message) { }
+}
+
+
+impl <T: Properties + 'static> Component for T
+    where T: PureComponent {
+
+    type Message = <T as PureComponent>::Message;
+    type Properties = T;
+
+    fn create(props: T, _link: ComponentLink<Self>) -> Self {
+        props
+    }
+
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        self.emit(msg);
+        false
+    }
+
+    fn change(&mut self, props: T) -> ShouldRender {
+        *self = props;
+        true
+    }
+}
+
+impl <T> Renderable<T> for T
+where T: PureComponent + Properties,
+{
+    fn view(&self) -> Html<T> {
+        self.render()
+    }
+}
+
 /// A type which expected as a result of `view` function implementation.
 pub type Html<MSG> = VNode<MSG>;
 
