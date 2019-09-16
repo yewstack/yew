@@ -49,7 +49,7 @@ This framework is designed to be compiled into modern browsers' runtimes: wasm, 
 
 To prepare the development environment use the installation instruction here: [wasm-and-rust](https://github.com/raphamorim/wasm-and-rust).
 
-### Clean MVC approach inspired by Elm and Redux
+### Clean Flux architecture inspired by Elm and Redux
 
 Yew implements strict application state management based on message passing and updates:
 
@@ -123,12 +123,11 @@ html! {
 }
 ```
 
-### Agents - actors model inspired by Erlang and Actix
+### Agents - actor model inspired by Erlang and Actix
 
 Every `Component` can spawn an agent and attach to it.
-Agents are separate tasks that work concurrently.
-
-Create your worker/agent (in `context.rs` for example):
+Agents can coordinate global state, spawn long-running tasks, and offload tasks to a web worker.
+They run independently of components, but hook nicely into their update mechanism.
 
 ```rust
 use yew::worker::*;
@@ -149,10 +148,11 @@ pub enum Response {
 
 impl Agent for Worker {
     // Available:
-    // - `Job` (one per bridge)
-    // - `Context` (shared in the same thread)
-    // - `Public` (separate thread).
-    type Reach = Context; // Spawn only one instance per thread (all components could reach this)
+    // - `Job` (one per bridge on the main thread)
+    // - `Context` (shared in the main thread)
+    // - `Private` (one per bridge in a separate thread)
+    // - `Public` (shared in a separate thread)
+    type Reach = Context; // Spawn only one instance on the main thread (all components can share this agent)
     type Message = Msg;
     type Input = Request;
     type Output = Response;
@@ -205,7 +205,7 @@ You can use as many agents as you want. For example you could separate all inter
 with a server to a separate thread (a real OS thread because Web Workers map to the native threads).
 
 > **REMEMBER!** Not every API is available for every environment. For example you can't use
-`StorageService` from a separate thread. It won't work with `Public` agents,
+`StorageService` from a separate thread. It won't work with `Public` or `Private` agents,
 only with `Job` and `Context` ones.
 
 ### Components
@@ -259,7 +259,7 @@ html! {
 
 ### Fragments
 
-Yew supports fragments: elements without a parent which could be attached somewhere later.
+Yew supports fragments: elements without a parent which can be attached to one somewhere else.
 
 ```rust
 html! {
@@ -294,9 +294,8 @@ fn update(&mut self, msg: Self::Message) -> ShouldRender {
 }
 ```
 
-Using `ShouldRender` is more effective than comparing the model after every update because not every model
-change leads to a view update. It allows the framework to skip the model comparison checks entirely.
-This also allows you to control updates as precisely as possible.
+Using `ShouldRender` is more effective than comparing the model after every update because not every change to the model
+causes an update to the view. It allows the framework to only compare parts of the model essential to rendering the view.
 
 ### Rust/JS/C-style comments in templates
 
@@ -342,9 +341,11 @@ It's a handy alternative to subscriptions.
 Implemented:
 * `IntervalService`
 * `RenderService`
+* `ResizeService`
 * `TimeoutService`
 * `StorageService`
 * `DialogService`
+* `ConsoleService`
 * `FetchService`
 * `WebSocketService`
 
@@ -373,7 +374,7 @@ impl Component for Model {
 ```
 
 Can't find an essential service? Want to use a library from `npm`?
-You can reuse `JavaScript` libraries with `stdweb` capabilities and create
+You can wrap `JavaScript` libraries using `stdweb` and create
 your own service implementation. Here's an example below of how to wrap the
 [ccxt](https://www.npmjs.com/package/ccxt) library:
 
