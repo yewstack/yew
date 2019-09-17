@@ -7,13 +7,13 @@ pub mod console;
 pub mod dialog;
 pub mod fetch;
 pub mod interval;
+pub mod keyboard;
 pub mod reader;
 pub mod render;
 pub mod resize;
 pub mod storage;
 pub mod timeout;
 pub mod websocket;
-pub mod keyboard;
 
 pub use self::console::ConsoleService;
 pub use self::dialog::DialogService;

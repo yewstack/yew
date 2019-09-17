@@ -1,5 +1,8 @@
-use stdweb::web::{document, IEventTarget, EventListenerHandle};
+//! Service to register key press event listeners on elements.
+use crate::callback::Callback;
+use crate::events::IKeyboardEvent;
 use stdweb::web::event::KeyPressEvent;
+use stdweb::web::{EventListenerHandle, IEventTarget};
 
 /// Service for registering callbacks on elements to get keystrokes from the user.
 ///
@@ -15,21 +18,25 @@ pub struct KeyboardService {}
 /// Handle to the key event listener.
 ///
 /// When it goes out of scope, the listener will be removed from the element.
-pub struct KeyListenerHandle(EventListenerHandle);
+pub struct KeyListenerHandle(Option<EventListenerHandle>);
 
 impl KeyboardService {
     /// Registers a callback that listens to KeyPressEvents on a provided element.
-    pub fn register(element: &IEventTarget, callback: Callback<String>) -> KeyListenerHandle {
+    pub fn register<T: IEventTarget>(element: &T, callback: Callback<String>) -> KeyListenerHandle {
         let handle = element.add_event_listener(move |event: KeyPressEvent| {
             let key = event.key();
             callback.emit(key);
         });
-        KeyListenerHandle(handle)
+        KeyListenerHandle(Some(handle))
     }
 }
 
 impl Drop for KeyListenerHandle {
     fn drop(&mut self) {
-        self.0.remove()
+        if let Some(handle) = self.0.take() {
+            handle.remove()
+        } else {
+            panic!("Tried to drop KeyListenerHandle twice")
+        }
     }
 }
