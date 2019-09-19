@@ -14,9 +14,9 @@ use serde::export::PhantomData;
 ///
 /// # Example
 /// ```
-/// use yew::{Component, ComponentLink, ShouldRender, Renderable, Html, Properties};
-/// use yew::html;
-/// use yew::html::{HocData, Hoc};
+///# use yew::{Component, ComponentLink, ShouldRender, Renderable, Html, Properties};
+///# use yew::html;
+///# use yew::html::{HocData, Hoc};
 /// pub struct MyComponent {
 ///     props: Props
 /// }
@@ -54,9 +54,7 @@ use serde::export::PhantomData;
 ///
 /// impl <T> HocData<Hoc<Props, (), Self, T>, Props, ()> for WithLoggingHoc
 /// where
-///     T: Component + Renderable<T>,
-///     (): From<<T as Component>::Message>,
-///     WithLoggingHoc: HocData<Hoc<Props, (), WithLoggingHoc, T>, <T as yew::Component>::Properties, ()>
+///     T: Component<Properties=Props, Message=()> + Renderable<T>,
 /// {
 ///     fn create(props: <Hoc<Props, (), WithLoggingHoc, T> as Component>::Properties, link: ComponentLink<Hoc<Props, (), WithLoggingHoc, T>>) -> Self {
 ///         log::trace!("create: {:?}", props);
@@ -81,10 +79,8 @@ use serde::export::PhantomData;
 ///     }
 /// }
 ///
+/// /// Use this alias in the `html!` macro.
 /// type MyComponentWithLogging = Hoc<Props, (), WithLoggingHoc, MyComponent>;
-///
-///
-///
 /// ```
 pub trait HocData<Parent, ChildProps, Message>
 where
