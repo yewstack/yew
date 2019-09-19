@@ -56,7 +56,7 @@ use serde::export::PhantomData;
 /// where
 ///     T: Component<Properties=Props, Message=()> + Renderable<T>,
 /// {
-///     fn create(props: <Hoc<Props, (), WithLoggingHoc, T> as Component>::Properties, link: ComponentLink<Hoc<Props, (), WithLoggingHoc, T>>) -> Self {
+///     fn create(props: Props, link: ComponentLink<Hoc<Props, (), WithLoggingHoc, T>>) -> Self {
 ///         log::trace!("create: {:?}", props);
 ///         WithLoggingHoc {
 ///             props
