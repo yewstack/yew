@@ -1,8 +1,8 @@
-use crate::html::{Component, Html, ShouldRender, ComponentLink, Renderable};
+use crate::html::{Component, ComponentLink, Html, Renderable, ShouldRender};
+use crate::virtual_dom::vcomp::ScopeHolder;
+use crate::virtual_dom::{VComp, VNode};
 use crate::Properties as PropertiesTrait;
 use serde::export::PhantomData;
-use crate::virtual_dom::vcomp::ScopeHolder;
-use crate::virtual_dom::{VNode, VComp};
 
 // TODO it might make sense to decompose HocData into smaller, interchangeable parts so that props/state behavior can be changed independently of update behavior.
 // Not sure how valuable that would be though?
@@ -15,7 +15,7 @@ pub trait HocData<Parent, ChildProps, Message>
 where
     Parent: Component + Renderable<Parent>,
     <Parent as Component>::Properties: PartialEq,
-    ChildProps: PropertiesTrait
+    ChildProps: PropertiesTrait,
 {
     /// Creates the data for the HOC.
     fn create(props: &Parent::Properties, link: ComponentLink<Parent>) -> Self;
@@ -50,7 +50,7 @@ where
     target: PhantomData<Target>,
 }
 
-impl <Properties, Message, Data, Target> Component for Hoc<Properties, Message, Data, Target>
+impl<Properties, Message, Data, Target> Component for Hoc<Properties, Message, Data, Target>
 where
     Properties: PropertiesTrait + PartialEq + 'static,
     Message: From<Target::Message> + 'static,
@@ -87,13 +87,13 @@ where
     }
 }
 
-
-impl <Properties, Message, Data, Target> Renderable<Hoc<Properties, Message, Data, Target>> for Hoc<Properties, Message, Data, Target>
-    where
-        Properties: PropertiesTrait + PartialEq +  'static,
-        Message: From<Target::Message> + 'static,
-        Data: HocData<Self, Target::Properties, Message> + 'static,
-        Target: Component + Renderable<Target>,
+impl<Properties, Message, Data, Target> Renderable<Hoc<Properties, Message, Data, Target>>
+    for Hoc<Properties, Message, Data, Target>
+where
+    Properties: PropertiesTrait + PartialEq + 'static,
+    Message: From<Target::Message> + 'static,
+    Data: HocData<Self, Target::Properties, Message> + 'static,
+    Target: Component + Renderable<Target>,
 {
     fn view(&self) -> Html<Self> {
         let vcomp_scope: ScopeHolder<_> = Default::default();

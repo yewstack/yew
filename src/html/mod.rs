@@ -3,10 +3,9 @@
 //! Also this module contains declaration of `Component` trait which used
 //! to create own UI-components.
 
+mod hoc;
 mod listener;
 mod scope;
-mod hoc;
-
 
 pub use listener::*;
 pub(crate) use scope::ComponentUpdate;
