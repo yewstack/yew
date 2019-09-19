@@ -10,7 +10,7 @@ use serde::export::PhantomData;
 /// Abstracts over the data layer of a Higher Order Component without a conception of the
 /// target component it will render.
 ///
-/// Specifying the data for the HOC, requires reimplementing methods that are part of the component lifecycle.
+/// Specifying the data for the HOC, requires implementing methods that are part of the component lifecycle.
 ///
 /// # Example
 /// ```
@@ -52,11 +52,14 @@ use serde::export::PhantomData;
 ///     props: Props
 /// }
 ///
-/// impl <T> HocData<Hoc<Props, (), Self, T>, Props, ()> for WithLoggingHoc
+/// impl <T> HocData<Hoc<Props, (), Self, T>> for WithLoggingHoc
 /// where
 ///     T: Component<Properties=Props, Message=()> + Renderable<T>,
 /// {
-///     fn create(props: Props, link: ComponentLink<Hoc<Props, (), WithLoggingHoc, T>>) -> Self {
+///      type ChildProperties = Props;
+///      type Message = ();
+///
+///      fn create(props: Props, link: ComponentLink<Hoc<Props, (), WithLoggingHoc, T>>) -> Self {
 ///         log::trace!("create: {:?}", props);
 ///         WithLoggingHoc {
 ///             props
@@ -82,37 +85,44 @@ use serde::export::PhantomData;
 /// /// Use this alias in the `html!` macro.
 /// type MyComponentWithLogging = Hoc<Props, (), WithLoggingHoc, MyComponent>;
 /// ```
-pub trait HocData<Parent, ChildProps, Message>
-where
-    Parent: Component + Renderable<Parent>,
-    <Parent as Component>::Properties: PartialEq,
-    ChildProps: PropertiesTrait,
-{
+pub trait HocData<H: Component + Renderable<H>> {
+    /// The properties of the target child.
+    type ChildProperties: PropertiesTrait;
+    /// The message type to handle in update.
+    type Message;
     /// Creates the data for the HOC.
-    fn create(props: Parent::Properties, link: ComponentLink<Parent>) -> Self;
+    fn create(props: H::Properties, link: ComponentLink<H>) -> Self;
     /// Runs when the HOC is mounted.
     fn mounted(&mut self) -> ShouldRender {
         false
     }
     /// Runs when the HOC updates.
-    fn update(&self, msg: Message) -> ShouldRender;
+    fn update(&self, msg: Self::Message) -> ShouldRender;
     /// Runs to extract props used to create target components.
-    fn child_props(&self) -> ChildProps;
+    fn child_props(&self) -> Self::ChildProperties;
     /// Runs when the HOC changes.
-    fn change(&mut self, props: Parent::Properties) -> ShouldRender;
+    fn change(&mut self, props: H::Properties) -> ShouldRender;
     /// Runs when the HOC is destroyed.
     fn destroy(&mut self) {}
 }
 
 /// Higher Order Component.
 ///
-/// Data handling logic can be specified in a `HocData` implementation,
-/// while rendering can be shared between a variety of target components.
+/// A pattern exists where "container components" are used to hold state,
+/// and then rendering is delegated to pure components inheriting parts of that state.
+///
+/// Higher Order Components are a way to parametrize those container components.
+/// By specifying the data and lifecycle methods with `HocData`, you can swap out
+/// compatible target components that will have their props provided by implementation specified
+/// in `HocData`.
+/// These target components should often be `PureComponents`, responsible only for rendering the
+/// props given to them, although it is possible to specify a plain `Component` with all its lifecycle
+/// methods present.
 pub struct Hoc<Properties, Message, Data, Target>
 where
-    Properties: PropertiesTrait + PartialEq + 'static,
+    Properties: PropertiesTrait + 'static,
     Message: From<Target::Message> + 'static,
-    Data: HocData<Self, Target::Properties, Message> + 'static,
+    Data: HocData<Self, ChildProperties=Target::Properties, Message=Message> + 'static,
     Target: Component + Renderable<Target>,
 {
     data: Data,
@@ -123,9 +133,9 @@ where
 
 impl<Properties, Message, Data, Target> Component for Hoc<Properties, Message, Data, Target>
 where
-    Properties: PropertiesTrait + PartialEq + 'static,
+    Properties: PropertiesTrait + 'static,
     Message: From<Target::Message> + 'static,
-    Data: HocData<Self, Target::Properties, Message> + 'static,
+    Data: HocData<Self, ChildProperties= Target::Properties, Message = Message> + 'static,
     Target: Component + Renderable<Target>,
 {
     type Message = Message;
@@ -142,28 +152,28 @@ where
     }
 
     fn mounted(&mut self) -> ShouldRender {
-        <Data as HocData<Self, _, _>>::mounted(&mut self.data)
+        <Data as HocData<Self>>::mounted(&mut self.data)
     }
 
     fn update(&mut self, msg: Message) -> ShouldRender {
-        <Data as HocData<Self, _, Message>>::update(&mut self.data, msg)
+        <Data as HocData<Self>>::update(&mut self.data, msg)
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        <Data as HocData<Self, Target::Properties, _>>::change(&mut self.data, props)
+        <Data as HocData<Self>>::change(&mut self.data, props)
     }
 
     fn destroy(&mut self) {
-        <Data as HocData<Self, _, _>>::destroy(&mut self.data)
+        <Data as HocData<Self>>::destroy(&mut self.data)
     }
 }
 
 impl<Properties, Message, Data, Target> Renderable<Hoc<Properties, Message, Data, Target>>
     for Hoc<Properties, Message, Data, Target>
 where
-    Properties: PropertiesTrait + PartialEq + 'static,
+    Properties: PropertiesTrait + 'static,
     Message: From<Target::Message> + 'static,
-    Data: HocData<Self, Target::Properties, Message> + 'static,
+    Data: HocData<Self, ChildProperties= Target::Properties, Message = Message> + 'static,
     Target: Component + Renderable<Target>,
 {
     fn view(&self) -> Html<Self> {
