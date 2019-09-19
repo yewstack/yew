@@ -5,10 +5,14 @@
 
 mod listener;
 mod scope;
+mod hoc;
+
 
 pub use listener::*;
 pub(crate) use scope::ComponentUpdate;
 pub use scope::{NodeCell, Scope};
+
+pub use hoc::{Hoc, HocData};
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VList, VNode};
