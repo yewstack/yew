@@ -11,6 +11,81 @@ use serde::export::PhantomData;
 /// target component it will render.
 ///
 /// Specifying the data for the HOC, requires reimplementing methods that are part of the component lifecycle.
+///
+/// # Example
+/// ```
+/// use yew::{Component, ComponentLink, ShouldRender, Renderable, Html, Properties};
+/// use yew::html;
+/// use yew::html::{HocData, Hoc};
+/// pub struct MyComponent {
+///     props: Props
+/// }
+/// #[derive(Debug, Properties, PartialEq, Clone)]
+/// pub struct Props {
+///     name: String
+/// }
+///
+/// impl Component for MyComponent {
+///     type Message = ();
+///     type Properties = Props;
+///
+///     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+///         MyComponent { props }
+///     }
+///     fn update(&mut self, msg: Self::Message) -> ShouldRender {
+///         true
+///     }
+///     fn change(&mut self, props: Self::Properties) -> ShouldRender {
+///         self.props = props;
+///         true
+///     }
+/// }
+/// impl Renderable<MyComponent> for MyComponent {
+///     fn view(&self) -> Html<MyComponent> {
+///         let s = format!("Hi! My name is {}", self.props.name);
+///         html!{ s }
+///     }
+/// }
+///
+/// /// An incomplete (for terseness) log annotator for components.
+/// pub struct WithLoggingHoc {
+///     props: Props
+/// }
+///
+/// impl <T> HocData<Hoc<Props, (), Self, T>, Props, ()> for WithLoggingHoc
+/// where
+///     T: Component + Renderable<T>,
+///     (): From<<T as Component>::Message>,
+///     WithLoggingHoc: HocData<Hoc<Props, (), WithLoggingHoc, T>, <T as yew::Component>::Properties, ()>
+/// {
+///     fn create(props: <Hoc<Props, (), WithLoggingHoc, T> as Component>::Properties, link: ComponentLink<Hoc<Props, (), WithLoggingHoc, T>>) -> Self {
+///         log::trace!("create: {:?}", props);
+///         WithLoggingHoc {
+///             props
+///         }
+///     }
+///
+///     fn update(&self,msg: ()) -> bool {
+///         log::trace!("updating: {:?}", msg);
+///         false
+///     }
+///
+///     fn child_props(&self) -> Props {
+///         self.props.clone()
+///     }
+///
+///     fn change(&mut self, props: <Hoc<Props, (), WithLoggingHoc, T> as Component>::Properties) -> bool {
+///         log::trace!("changing: {:?}", props);
+///         self.props = props;
+///         true
+///     }
+/// }
+///
+/// type MyComponentWithLogging = Hoc<Props, (), WithLoggingHoc, MyComponent>;
+///
+///
+///
+/// ```
 pub trait HocData<Parent, ChildProps, Message>
 where
     Parent: Component + Renderable<Parent>,
@@ -18,7 +93,7 @@ where
     ChildProps: PropertiesTrait,
 {
     /// Creates the data for the HOC.
-    fn create(props: &Parent::Properties, link: ComponentLink<Parent>) -> Self;
+    fn create(props: Parent::Properties, link: ComponentLink<Parent>) -> Self;
     /// Runs when the HOC is mounted.
     fn mounted(&mut self) -> ShouldRender {
         false
@@ -61,7 +136,7 @@ where
     type Properties = Properties;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let data = Data::create(&props, link);
+        let data = Data::create(props, link);
         Hoc {
             data,
             props: PhantomData,
