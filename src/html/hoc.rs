@@ -122,7 +122,7 @@ pub struct Hoc<Properties, Message, Data, Target>
 where
     Properties: PropertiesTrait + 'static,
     Message: From<Target::Message> + 'static,
-    Data: HocData<Self, ChildProperties=Target::Properties, Message=Message> + 'static,
+    Data: HocData<Self, ChildProperties = Target::Properties, Message = Message> + 'static,
     Target: Component + Renderable<Target>,
 {
     data: Data,
@@ -135,7 +135,7 @@ impl<Properties, Message, Data, Target> Component for Hoc<Properties, Message, D
 where
     Properties: PropertiesTrait + 'static,
     Message: From<Target::Message> + 'static,
-    Data: HocData<Self, ChildProperties= Target::Properties, Message = Message> + 'static,
+    Data: HocData<Self, ChildProperties = Target::Properties, Message = Message> + 'static,
     Target: Component + Renderable<Target>,
 {
     type Message = Message;
@@ -173,7 +173,7 @@ impl<Properties, Message, Data, Target> Renderable<Hoc<Properties, Message, Data
 where
     Properties: PropertiesTrait + 'static,
     Message: From<Target::Message> + 'static,
-    Data: HocData<Self, ChildProperties= Target::Properties, Message = Message> + 'static,
+    Data: HocData<Self, ChildProperties = Target::Properties, Message = Message> + 'static,
     Target: Component + Renderable<Target>,
 {
     fn view(&self) -> Html<Self> {
