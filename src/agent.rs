@@ -77,14 +77,21 @@ pub trait Bridged: Agent + Sized + 'static {
     fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>>;
 }
 
-/// This trait allows the creation of a dispatcher that will not send replies when messages are sent.
+/// This trait allows the creation of a dispatcher to an existing agent that will not send replies when messages are sent.
 pub trait Dispatched: Agent + Sized + 'static {
-    /// Creates a dispatcher between the worker and the component
-    /// that will not send messages back to the component.
+    /// Creates a dispatcher to the agent that will not send messages back.
     ///
     /// # Note
-    /// Dispatchers don't have `HandlerId`s and therefore `Agent::handle` will be supplied `None` for the `id` parameter,
-    /// and Connected and Disconnected will not be called.
+    /// Dispatchers don't have `HandlerId`s and therefore `Agent::handle` will be supplied `None`
+    /// for the `id` parameter, and `connected` and `disconnected` will not be called.
+    ///
+    /// # Important
+    /// Because the Agents using Context or Public reaches use the number of existing bridges to
+    /// keep track of if the agent itself should exist, creating dispatchers will not guarantee that
+    /// an Agent will exist to service requests sent from Dispatchers. You **must** keep at least one
+    /// bridge around if you wish to use a dispatcher. If you are using agents in a write-only manner,
+    /// then it is suggested that you create a bridge that handles no-op responses as high up in the
+    /// component hierarchy as possible - oftentimes the root component for simplicity's sake.
     fn dispatcher() -> Box<dyn Dispatcher<Self>>;
 }
 
