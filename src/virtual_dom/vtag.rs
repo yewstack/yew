@@ -350,6 +350,12 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             .reference
             .take()
             .expect("tried to remove not rendered VTag from DOM");
+
+        // recursively remove its children
+        self.childs.drain(..).for_each(|mut v|{
+            v.detach(&node);
+        });
+
         let sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VTag");
