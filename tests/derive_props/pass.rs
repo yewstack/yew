@@ -83,4 +83,22 @@ mod t5 {
     }
 }
 
+mod t6 {
+    use super::*;
+    use std::str::FromStr;
+
+    #[derive(Properties, Clone)]
+    pub struct Props<T: FromStr + Clone>
+    where
+    <T as FromStr>::Err: Clone,
+    {
+        #[props(required)]
+        value: Result<T, <T as FromStr>::Err>,
+    }
+
+    fn required_prop_generics_with_where_clause_should_work() {
+        Props::<String>::builder().value(Ok(String::from(""))).build();
+    }
+}
+
 fn main() {}
