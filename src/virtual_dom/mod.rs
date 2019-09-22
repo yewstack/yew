@@ -41,7 +41,7 @@ type Listeners<COMP> = Vec<Box<dyn Listener<COMP>>>;
 type Attributes = HashMap<String, String>;
 
 /// A set of classes.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Classes {
     set: IndexSet<String>,
 }
