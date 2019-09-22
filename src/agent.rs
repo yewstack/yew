@@ -8,6 +8,7 @@ use log::warn;
 use serde::{Deserialize, Serialize};
 use slab::Slab;
 use std::cell::RefCell;
+use std::fmt;
 use std::marker::PhantomData;
 use std::rc::Rc;
 use stdweb::Value;
@@ -650,6 +651,12 @@ impl<AGN: Agent> AgentLink<AGN> {
             scope.clone().send(msg);
         };
         closure.into()
+    }
+}
+
+impl<AGN: Agent> fmt::Debug for AgentLink<AGN> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("AgentLink<_>")
     }
 }
 
