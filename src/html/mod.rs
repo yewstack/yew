@@ -12,6 +12,7 @@ pub use scope::{NodeCell, Scope};
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VList, VNode};
+use std::fmt;
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -233,6 +234,12 @@ where
     /// This method sends a message to this component immediately.
     pub fn send_self(&mut self, msg: COMP::Message) {
         self.scope.send_message(msg);
+    }
+}
+
+impl<COMP: Component> fmt::Debug for ComponentLink<COMP> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("ComponentLink<_>")
     }
 }
 
