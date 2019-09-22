@@ -65,7 +65,7 @@ impl ToTokens for PropsBuilder<'_> {
 
             #[doc(hidden)]
             #vis struct #builder_name#step_generics
-            #where_clause
+                #where_clause
             {
                 wrapped: ::std::boxed::Box<#wrapper_name#ty_generics>,
                 _marker: ::std::marker::PhantomData<#step_generic_param>,
