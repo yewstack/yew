@@ -92,7 +92,7 @@ pub trait Dispatched: Agent + Sized + 'static {
     /// bridge around if you wish to use a dispatcher. If you are using agents in a write-only manner,
     /// then it is suggested that you create a bridge that handles no-op responses as high up in the
     /// component hierarchy as possible - oftentimes the root component for simplicity's sake.
-    fn dispatcher() -> Box<dyn Dispatcher<Self>>;
+    fn dispatcher() -> Box<dyn Bridge<Self>>;
 }
 
 /// Marker trait to indicate which Discoverers are able to be used with dispatchers.
@@ -157,7 +157,7 @@ where
     T: Agent,
 {
     fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>> {
-        Self::Reach::spawn_or_join(callback)
+        Self::Reach::spawn_or_join(Some(callback))
     }
 }
 
@@ -166,8 +166,8 @@ where
     T: Agent,
     <T as Agent>::Reach: Dispatchable,
 {
-    fn dispatcher() -> Box<dyn Dispatcher<Self>> {
-        Self::Reach::spawn_or_join_without_callback()
+    fn dispatcher() -> Box<dyn Bridge<Self>> {
+        Self::Reach::spawn_or_join(None)
     }
 }
 
@@ -175,11 +175,7 @@ where
 #[doc(hidden)]
 pub trait Discoverer {
     /// Spawns an agent and returns `Bridge` implementation.
-    fn spawn_or_join<AGN: Agent>(_callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
-        unimplemented!();
-    }
-
-    fn spawn_or_join_without_callback<AGN: Agent>() -> Box<dyn Dispatcher<AGN>> {
+    fn spawn_or_join<AGN: Agent>(_callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         unimplemented!();
     }
 }
@@ -215,23 +211,18 @@ impl<AGN: Agent> LocalAgent<AGN> {
         self.slab.clone()
     }
 
-    fn create_bridge(&mut self, callback: Callback<AGN::Output>) -> ContextBridge<AGN> {
-        let id = self.slab.borrow_mut().insert(callback);
+    fn create_bridge(&mut self, callback: Option<Callback<AGN::Output>>) -> ContextBridge<AGN> {
         ContextBridge {
             scope: self.scope.clone(),
-            id: id.into(),
-        }
-    }
-
-    fn create_dispatcher(&self) -> ContextDispatcher<AGN> {
-        ContextDispatcher {
-            scope: self.scope.clone(),
+            id: callback.map(|callback| self.slab.borrow_mut().insert(callback).into()),
         }
     }
 
     fn remove_bridge(&mut self, bridge: &ContextBridge<AGN>) -> Last {
         let mut slab = self.slab.borrow_mut();
-        let _ = slab.remove(bridge.id.raw_id());
+        if let Some(id) = bridge.id {
+            let _ = slab.remove(id.raw_id());
+        }
         slab.is_empty()
     }
 }
@@ -244,7 +235,7 @@ thread_local! {
 pub struct Context;
 
 impl Discoverer for Context {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let mut scope_to_init = None;
         let bridge = LOCAL_AGENTS_POOL.with(|pool| {
             match pool.borrow_mut().entry::<LocalAgent<AGN>>() {
@@ -268,36 +259,11 @@ impl Discoverer for Context {
             let upd = AgentUpdate::Create(agent_link);
             scope.send(upd);
         }
-        let upd = AgentUpdate::Connected(bridge.id);
-        bridge.scope.send(upd);
-        Box::new(bridge)
-    }
-
-    fn spawn_or_join_without_callback<AGN: Agent>() -> Box<dyn Dispatcher<AGN>> {
-        let mut scope_to_init = None;
-        let dispatcher = LOCAL_AGENTS_POOL.with(|pool| {
-            match pool.borrow_mut().entry::<LocalAgent<AGN>>() {
-                Entry::Occupied(entry) => {
-                    // TODO Insert callback!
-                    entry.get().create_dispatcher()
-                }
-                Entry::Vacant(entry) => {
-                    let scope = AgentScope::<AGN>::new();
-                    let launched = LocalAgent::new(&scope);
-                    let responder = SlabResponder {
-                        slab: launched.slab(),
-                    };
-                    scope_to_init = Some((scope.clone(), responder));
-                    entry.insert(launched).create_dispatcher()
-                }
-            }
-        });
-        if let Some((scope, responder)) = scope_to_init {
-            let agent_link = AgentLink::connect(&scope, responder);
-            let upd = AgentUpdate::Create(agent_link);
-            scope.send(upd);
+        if let Some(id) = bridge.id {
+            let upd = AgentUpdate::Connected(id);
+            bridge.scope.send(upd);
         }
-        Box::new(dispatcher)
+        Box::new(bridge)
     }
 }
 
@@ -320,12 +286,12 @@ impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
 
 struct ContextBridge<AGN: Agent> {
     scope: AgentScope<AGN>,
-    id: HandlerId,
+    id: Option<HandlerId>,
 }
 
 impl<AGN: Agent> Bridge<AGN> for ContextBridge<AGN> {
     fn send(&mut self, msg: AGN::Input) {
-        let upd = AgentUpdate::Input(msg, Some(self.id));
+        let upd = AgentUpdate::Input(msg, self.id);
         self.scope.send(upd);
     }
 }
@@ -340,8 +306,10 @@ impl<AGN: Agent> Drop for ContextBridge<AGN> {
                     false
                 }
             };
-            let upd = AgentUpdate::Disconnected(self.id);
-            self.scope.send(upd);
+            if let Some(id) = self.id {
+                let upd = AgentUpdate::Disconnected(id);
+                self.scope.send(upd);
+            }
             if terminate_worker {
                 let upd = AgentUpdate::Destroy;
                 self.scope.send(upd);
@@ -351,24 +319,12 @@ impl<AGN: Agent> Drop for ContextBridge<AGN> {
     }
 }
 
-struct ContextDispatcher<AGN: Agent> {
-    scope: AgentScope<AGN>,
-}
-
-impl<AGN: Agent> Bridge<AGN> for ContextDispatcher<AGN> {
-    fn send(&mut self, msg: <AGN as Agent>::Input) {
-        let upd = AgentUpdate::Input(msg, None);
-        self.scope.send(upd);
-    }
-}
-
-impl<AGN: Agent> Dispatcher<AGN> for ContextDispatcher<AGN> {}
-
 /// Create an instance in the current thread.
 pub struct Job;
 
 impl Discoverer for Job {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+        let callback = callback.expect("Callback required for Job");
         let scope = AgentScope::<AGN>::new();
         let responder = CallbackResponder { callback };
         let agent_link = AgentLink::connect(&scope, responder);
@@ -420,7 +376,8 @@ impl<AGN: Agent> Drop for JobBridge<AGN> {
 pub struct Private;
 
 impl Discoverer for Private {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+        let callback = callback.expect("Callback required for Private agents");
         let handler = move |data: Vec<u8>| {
             let msg = FromWorker::<AGN::Output>::unpack(&data);
             match msg {
@@ -491,25 +448,19 @@ impl<AGN: Agent> RemoteAgent<AGN> {
         }
     }
 
-    fn create_bridge(&mut self, callback: Callback<AGN::Output>) -> PublicBridge<AGN> {
-        let id = self.slab.borrow_mut().insert(callback);
+    fn create_bridge(&mut self, callback: Option<Callback<AGN::Output>>) -> PublicBridge<AGN> {
         PublicBridge {
             worker: self.worker.clone(),
-            id: id.into(),
-            _agent: PhantomData,
-        }
-    }
-
-    fn create_dispatcher(&self) -> PublicDispatcher<AGN> {
-        PublicDispatcher {
-            worker: self.worker.clone(),
+            id: callback.map(|callback| self.slab.borrow_mut().insert(callback).into()),
             _agent: PhantomData,
         }
     }
 
     fn remove_bridge(&mut self, bridge: &PublicBridge<AGN>) -> Last {
         let mut slab = self.slab.borrow_mut();
-        let _ = slab.remove(bridge.id.raw_id());
+        if let Some(id) = bridge.id {
+            let _ = slab.remove(id.raw_id());
+        }
         slab.is_empty()
     }
 }
@@ -522,7 +473,7 @@ thread_local! {
 pub struct Public;
 
 impl Discoverer for Public {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let bridge = REMOTE_AGENTS_POOL.with(|pool| {
             match pool.borrow_mut().entry::<RemoteAgent<AGN>>() {
                 Entry::Occupied(mut entry) => {
@@ -569,29 +520,6 @@ impl Discoverer for Public {
         });
         Box::new(bridge)
     }
-
-    fn spawn_or_join_without_callback<AGN: Agent>() -> Box<dyn Dispatcher<AGN>> {
-        let dispatcher = REMOTE_AGENTS_POOL.with(|pool| {
-            match pool.borrow_mut().entry::<RemoteAgent<AGN>>() {
-                Entry::Occupied(mut entry) => {
-                    // TODO Insert callback!
-                    entry.get_mut().create_dispatcher()
-                }
-                Entry::Vacant(entry) => {
-                    let slab_base: Shared<Slab<Callback<AGN::Output>>> =
-                        Rc::new(RefCell::new(Slab::new()));
-                    let name_of_resource = AGN::name_of_resource();
-                    let worker = js! {
-                        var worker = new Worker(@{name_of_resource});
-                        return worker;
-                    };
-                    let launched = RemoteAgent::new(&worker, slab_base);
-                    entry.insert(launched).create_dispatcher()
-                }
-            }
-        });
-        Box::new(dispatcher)
-    }
 }
 
 impl Dispatchable for Public {}
@@ -599,7 +527,7 @@ impl Dispatchable for Public {}
 /// A connection manager for components interaction with workers.
 pub struct PublicBridge<T: Agent> {
     worker: Value,
-    id: HandlerId,
+    id: Option<HandlerId>,
     _agent: PhantomData<T>,
 }
 
@@ -617,7 +545,7 @@ fn send_to_remote<AGN: Agent>(worker: &Value, msg: ToWorker<AGN::Input>) {
 
 impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
     fn send(&mut self, msg: AGN::Input) {
-        let msg = ToWorker::ProcessInput(Some(self.id), msg);
+        let msg = ToWorker::ProcessInput(self.id, msg);
         send_to_remote::<AGN>(&self.worker, msg);
     }
 }
@@ -632,8 +560,10 @@ impl<AGN: Agent> Drop for PublicBridge<AGN> {
                     false
                 }
             };
-            let upd = ToWorker::Disconnected(self.id);
-            send_to_remote::<AGN>(&self.worker, upd);
+            if let Some(id) = self.id {
+                let upd = ToWorker::Disconnected(id);
+                send_to_remote::<AGN>(&self.worker, upd);
+            }
             if terminate_worker {
                 let upd = ToWorker::Destroy;
                 send_to_remote::<AGN>(&self.worker, upd);
