@@ -8,12 +8,13 @@ use log::warn;
 use serde::{Deserialize, Serialize};
 use slab::Slab;
 use std::cell::RefCell;
+use std::fmt;
 use std::marker::PhantomData;
+use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use stdweb::Value;
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
-use std::ops::{Deref, DerefMut};
 
 #[derive(Serialize, Deserialize)]
 enum ToWorker<T> {
@@ -78,7 +79,6 @@ pub trait Bridged: Agent + Sized + 'static {
     fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>>;
 }
 
-
 /// This trait allows the creation of a dispatcher to an existing agent that will not send replies when messages are sent.
 pub trait Dispatched: Agent + Sized + 'static {
     /// Creates a dispatcher to the agent that will not send messages back.
@@ -99,14 +99,21 @@ pub trait Dispatched: Agent + Sized + 'static {
 
 /// A newtype around a bridge to indicate that it is distinct from a normal bridge
 pub struct Dispatcher<T>(Box<dyn Bridge<T>>);
-impl <T> Deref for Dispatcher<T> {
+
+impl<T> fmt::Debug for Dispatcher<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Dispatcher<_>")
+    }
+}
+
+impl<T> Deref for Dispatcher<T> {
     type Target = dyn Bridge<T>;
 
     fn deref(&self) -> &Self::Target {
         self.0.deref()
     }
 }
-impl <T> DerefMut for Dispatcher<T> {
+impl<T> DerefMut for Dispatcher<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.0.deref_mut()
     }
