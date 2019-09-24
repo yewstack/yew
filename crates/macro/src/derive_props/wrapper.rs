@@ -24,7 +24,9 @@ impl ToTokens for PropsWrapper<'_> {
         let wrapper_default_setters = self.default_setters();
 
         let wrapper = quote! {
-            struct #wrapper_name#generics {
+            struct #wrapper_name#generics
+                #where_clause
+            {
                 #(#wrapper_field_defs)*
             }
 
