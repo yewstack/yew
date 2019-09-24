@@ -9,6 +9,7 @@ mod scope;
 pub use listener::*;
 pub(crate) use scope::ComponentUpdate;
 pub use scope::{NodeCell, Scope};
+use std::fmt;
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VList, VNode};
@@ -155,6 +156,12 @@ impl<T> Default for ChildrenRenderer<T> {
             len: 0,
             boxed_render: Box::new(|| Vec::new()),
         }
+    }
+}
+
+impl <T> fmt::Debug for ChildrenRenderer<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("ChildrenRenderer<_>")
     }
 }
 
