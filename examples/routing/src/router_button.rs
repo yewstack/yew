@@ -9,7 +9,7 @@ use yew::agent::Dispatcher;
 
 /// Changes the route when clicked.
 pub struct RouterButton {
-    router: Box<dyn Dispatcher<Router<()>>>,
+    router: Dispatcher<Router<()>>,
     props: Props,
 }
 
