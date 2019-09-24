@@ -13,6 +13,7 @@ use std::rc::Rc;
 use stdweb::Value;
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
+use std::ops::{Deref, DerefMut};
 
 #[derive(Serialize, Deserialize)]
 enum ToWorker<T> {
@@ -77,6 +78,7 @@ pub trait Bridged: Agent + Sized + 'static {
     fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>>;
 }
 
+
 /// This trait allows the creation of a dispatcher to an existing agent that will not send replies when messages are sent.
 pub trait Dispatched: Agent + Sized + 'static {
     /// Creates a dispatcher to the agent that will not send messages back.
@@ -92,7 +94,22 @@ pub trait Dispatched: Agent + Sized + 'static {
     /// bridge around if you wish to use a dispatcher. If you are using agents in a write-only manner,
     /// then it is suggested that you create a bridge that handles no-op responses as high up in the
     /// component hierarchy as possible - oftentimes the root component for simplicity's sake.
-    fn dispatcher() -> Box<dyn Bridge<Self>>;
+    fn dispatcher() -> Dispatcher<Self>;
+}
+
+/// A newtype around a bridge to indicate that it is distinct from a normal bridge
+pub struct Dispatcher<T>(Box<dyn Bridge<T>>);
+impl <T> Deref for Dispatcher<T> {
+    type Target = dyn Bridge<T>;
+
+    fn deref(&self) -> &Self::Target {
+        self.0.deref()
+    }
+}
+impl <T> DerefMut for Dispatcher<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.0.deref_mut()
+    }
 }
 
 /// Marker trait to indicate which Discoverers are able to be used with dispatchers.
@@ -166,8 +183,8 @@ where
     T: Agent,
     <T as Agent>::Reach: Dispatchable,
 {
-    fn dispatcher() -> Box<dyn Bridge<Self>> {
-        Self::Reach::spawn_or_join(None)
+    fn dispatcher() -> Dispatcher<T> {
+        Dispatcher(Self::Reach::spawn_or_join::<T>(None))
     }
 }
 
@@ -185,9 +202,6 @@ pub trait Bridge<AGN: Agent> {
     /// Send a message to an agent.
     fn send(&mut self, msg: AGN::Input);
 }
-
-/// A marker trait for Bridges to indicate that they were created without a callback.
-pub trait Dispatcher<AGN: Agent>: Bridge<AGN> {}
 
 // <<< SAME THREAD >>>
 
@@ -585,8 +599,6 @@ impl<AGN: Agent> Bridge<AGN> for PublicDispatcher<AGN> {
         send_to_remote::<AGN>(&self.worker, msg);
     }
 }
-
-impl<AGN: Agent> Dispatcher<AGN> for PublicDispatcher<AGN> {}
 
 /// Create a single instance in a browser.
 pub struct Global;
