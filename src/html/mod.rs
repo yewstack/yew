@@ -159,6 +159,12 @@ impl<T> Default for ChildrenRenderer<T> {
     }
 }
 
+impl<T> fmt::Debug for ChildrenRenderer<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("ChildrenRenderer<_>")
+    }
+}
+
 impl<T, COMP: Component> Renderable<COMP> for ChildrenRenderer<T>
 where
     T: Into<VNode<COMP>>,
