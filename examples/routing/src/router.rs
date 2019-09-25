@@ -147,7 +147,7 @@ where
         }
     }
 
-    fn handle(&mut self, msg: Self::Input, who: Option<HandlerId>) {
+    fn handle(&mut self, msg: Self::Input, who: HandlerId) {
         info!("Request: {:?}", msg);
         match msg {
             Request::ChangeRoute(route) => {
@@ -167,9 +167,7 @@ where
             }
             Request::GetCurrentRoute => {
                 let route = Route::current_route(&self.route_service);
-                if let Some(who) = who {
-                    self.link.response(who, route.clone());
-                }
+                self.link.response(who, route.clone());
             }
         }
     }
