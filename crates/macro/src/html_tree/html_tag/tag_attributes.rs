@@ -46,11 +46,11 @@ lazy_static! {
         m.insert("onmousewheel", "MouseWheelEvent");
         m.insert("onmouseover", "MouseOverEvent");
         m.insert("onmouseup", "MouseUpEvent");
-        m.insert("touchcancel", "TouchCancel");
-        m.insert("touchend", "TouchEnd");
-        m.insert("touchenter", "TouchEnter");
-        m.insert("touchmove", "TouchMove");
-        m.insert("touchstart", "TouchStart");
+        m.insert("ontouchcancel", "TouchCancel");
+        m.insert("ontouchend", "TouchEnd");
+        m.insert("ontouchenter", "TouchEnter");
+        m.insert("ontouchmove", "TouchMove");
+        m.insert("ontouchstart", "TouchStart");
         m.insert("ongotpointercapture", "GotPointerCaptureEvent");
         m.insert("onlostpointercapture", "LostPointerCaptureEvent");
         m.insert("onpointercancel", "PointerCancelEvent");
