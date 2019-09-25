@@ -1,15 +1,84 @@
 # Changelog
 
-## ✨ **0.9** *(TBD)*
+## ✨ **0.10** *(TBD)*
 
 - #### ⚡️ Features
 
+- #### 🛠 Fixes
+
+- #### 🚨 Breaking changes
+
+## ✨ **0.9** *(2019-09-24)*
+
+- #### ⚡️ Features
+
+  - Components can now accept children in the `html!` macro. [[@jstarry], [#589](https://github.com/yewstack/yew/pull/589)]
+
+    ```rust
+    // app.rs
+
+    html! {
+      <MyList name="Grocery List">
+        <MyListItem text="Apples" />
+      </MyList>
+    }
+    ```
+
+    ```rust
+    // my_list.rs
+
+    use yew::prelude::*;
+
+    pub struct MyList(Props);
+
+    #[derive(Properties)]
+    pub struct Props {
+        #[props(required)]
+        pub name: String,
+        pub children: Children<MyListItem>,
+    }
+
+    impl Renderable<MyList> for MyList {
+      fn view(&self) -> Html<Self> {
+        html! {{
+          self.props.children.iter().collect::<Html<Self>>()
+        }}
+      }
+    }
+    ```
+
+  - Iterators can now be rendered in the `html!` macro without using the `for` keyword. [[@hgzimmerman], [#622](https://github.com/yewstack/yew/pull/622)]
+
+    Before:
+    ```rust
+    html! {{
+      for self.props.items.iter().map(renderItem)
+    }}
+    ```
+
+    After:
+    ```rust
+    html! {{
+      self.props.items.iter().map(renderItem).collect::<Html<Self>>()
+    }}
+    ```
+
+  - Closures are now able to be transformed into optional `Callback` properties. [[@Wodann], [#612](https://github.com/yewstack/yew/pull/612)]
+  - Improved CSS class ergonomics with new `Classes` type. [[@DenisKolodin], [#585](https://github.com/yewstack/yew/pull/585)], [[@hgzimmerman], [#626](https://github.com/yewstack/yew/pull/626)]
+  - Touch events are now supported `<div ontouchstart=|_| Msg::TouchStart>` [[@boydjohnson], [#584](https://github.com/yewstack/yew/pull/584)], [[@jstarry], [#656](https://github.com/yewstack/yew/pull/656)]
+  - The `Component` trait now has an `mounted` method which can be implemented to react to when your components have been mounted to the DOM. [[@hgzimmerman], [#583](https://github.com/yewstack/yew/pull/583)]
+  - Additional Fetch options `mode`, `cache`, and `redirect` are now supported [[@davidkna], [#579](https://github.com/yewstack/yew/pull/579)]
   - The derive props macro now supports Properties with lifetimes [[@jstarry], [#580](https://github.com/yewstack/yew/pull/580)]
   - New `ResizeService` for registering for `window` size updates [[@hgzimmerman], [#577](https://github.com/yewstack/yew/pull/577)]
 
 - #### 🛠 Fixes
 
+  - Fixed `VNode` orphaning bug when destroying `VTag` elements. This caused some `Component`s to not be properly destroyed when they should have been. [[@hgzimmerman], [#651](https://github.com/yewstack/yew/pull/651)]
+  - Fix mishandling of Properties `where` clause in derive_props macro [[@astraw], [#640](https://github.com/yewstack/yew/pull/640)]
+
 - #### 🚨 Breaking changes
+
+  None
 
 ## ✨ **0.8** *(2019-08-10)*
 
@@ -148,7 +217,10 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 ## ✨ **0.1** *(2017-12-31)*
 
 [Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
+[@astraw]: https://github.com/astraw
+[@boydjohnson]: https://github.com/boydjohnson
 [@charvp]: https://github.com/charvp
+[@davidkna]: https://github.com/davidkna
 [@DenisKolodin]: https://github.com/DenisKolodin
 [@dermetfan]: https://github.com/dermetfan
 [@hgzimmerman]: https://github.com/hgzimmerman
@@ -156,3 +228,4 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@kellytk]: https://github.com/kellytk
 [@tiziano88]: https://github.com/tiziano88
 [@totorigolo]: https://github.com/totorigolo
+[@Wodann]: https://github.com/Wodann
