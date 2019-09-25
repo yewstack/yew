@@ -21,6 +21,13 @@ pub struct KeyListenerHandle(Option<EventListenerHandle>);
 
 impl KeyboardService {
     /// Registers a callback that listens to KeyPressEvents on a provided element.
+    ///
+    /// # Documentation
+    /// [keypress event](https://developer.mozilla.org/en-US/docs/Web/API/Document/keypress_event)
+    ///
+    /// # Warning
+    /// This API has been deprecated in the HTML standard and it is not recommended for use in new projects.
+    /// Consult with the browser compatibility chart in the linked MDN documentation.
     pub fn register_key_press<T: IEventTarget>(
         element: &T,
         callback: Callback<KeyPressEvent>,
@@ -32,6 +39,14 @@ impl KeyboardService {
     }
 
     /// Registers a callback that listens to KeyDownEvents on a provided element.
+    ///
+    /// # Documentation
+    /// [keydown event](https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event)
+    ///
+    /// # Note
+    /// This browser feature is relatively new and is set to replace keypress events.
+    /// Not all browsers may support it completely.
+    /// Consult with the browser compatibility chart in the linked MDN documentation.
     pub fn register_key_down<T: IEventTarget>(
         element: &T,
         callback: Callback<KeyDownEvent>,
@@ -43,6 +58,14 @@ impl KeyboardService {
     }
 
     /// Registers a callback that listens to KeyUpEvents on a provided element.
+    ///
+    /// # Documentation
+    /// [keyup event](https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event)
+    ///
+    /// # Note
+    /// This browser feature is relatively new and is set to replace keypress events.
+    /// Not all browsers may support it completely.
+    /// Consult with the browser compatibility chart in the linked MDN documentation.
     pub fn register_key_up<T: IEventTarget>(
         element: &T,
         callback: Callback<KeyUpEvent>,
