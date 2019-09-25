@@ -285,10 +285,10 @@ impl Discoverer for Context {
             let upd = AgentUpdate::Create(agent_link);
             scope.send(upd);
         }
-//        if let Some(id) = bridge.id {
-            let upd = AgentUpdate::Connected(bridge.id);
-            bridge.scope.send(upd);
-//        }
+        //        if let Some(id) = bridge.id {
+        let upd = AgentUpdate::Connected(bridge.id);
+        bridge.scope.send(upd);
+        //        }
         Box::new(bridge)
     }
 }
@@ -302,7 +302,8 @@ struct SlabResponder<AGN: Agent> {
 impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
     fn response(&self, id: HandlerId, output: AGN::Output) {
         let callback: Option<Option<Callback<_>>> = self.slab.borrow().get(id.raw_id()).cloned();
-        if let Some(callback) = callback.and_then(std::convert::identity) { // TODO replace with flatten when option_flattening (60258) stabilizes.
+        if let Some(callback) = callback.and_then(std::convert::identity) {
+            // TODO replace with flatten when option_flattening (60258) stabilizes.
             callback.emit(output);
         } else {
             warn!("Id of handler not exists <slab>: {}", id.raw_id());
@@ -520,7 +521,8 @@ impl Discoverer for Public {
                             }
                             FromWorker::ProcessOutput(id, output) => {
                                 let callback = slab.borrow().get(id.raw_id()).cloned();
-                                if let Some(callback) = callback.and_then(std::convert::identity) { // TODO replace with flatten when option_flattening (60258) stabilizes.
+                                if let Some(callback) = callback.and_then(std::convert::identity) {
+                                    // TODO replace with flatten when option_flattening (60258) stabilizes.
                                     callback.emit(output);
                                 } else {
                                     warn!(
