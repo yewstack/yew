@@ -61,12 +61,6 @@ impl<T: Transferable> Packed for T {
 #[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct HandlerId(usize, bool);
 
-impl From<usize> for HandlerId {
-    fn from(id: usize) -> Self {
-        HandlerId(id, false) // TODO should this initialize to false?
-    }
-}
-
 impl HandlerId {
     fn new(id: usize, respondable: bool) -> Self {
         HandlerId(id, respondable)
@@ -240,9 +234,12 @@ impl<AGN: Agent> LocalAgent<AGN> {
     }
 
     fn create_bridge(&mut self, callback: Option<Callback<AGN::Output>>) -> ContextBridge<AGN> {
+        let respondable = callback.is_some();
+        let id: usize = self.slab.borrow_mut().insert(callback);
+        let id = HandlerId::new(id, respondable);
         ContextBridge {
             scope: self.scope.clone(),
-            id: self.slab.borrow_mut().insert(callback).into(),
+            id
         }
     }
 
