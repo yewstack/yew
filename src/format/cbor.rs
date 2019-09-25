@@ -15,4 +15,3 @@ use serde_cbor;
 pub struct Cbor<T>(pub T);
 
 binary_format!(Cbor based on serde_cbor);
-unimplemented_text_format!(Cbor based on serde_cbor);

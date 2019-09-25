@@ -2,13 +2,13 @@
 
 use crate::callback::Callback;
 use crate::scheduler::{scheduler, Runnable, Shared};
-use anymap::{AnyMap, Entry};
+use anymap::{self, AnyMap};
 use bincode;
 use log::warn;
 use serde::{Deserialize, Serialize};
 use slab::Slab;
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet, hash_map::Entry};
+use std::collections::{hash_map, HashMap, HashSet};
 use std::fmt;
 use std::marker::PhantomData;
 use std::rc::Rc;
@@ -206,11 +206,11 @@ impl Discoverer for Context {
         let mut scope_to_init = None;
         let bridge = LOCAL_AGENTS_POOL.with(|pool| {
             match pool.borrow_mut().entry::<LocalAgent<AGN>>() {
-                Entry::Occupied(mut entry) => {
+                anymap::Entry::Occupied(mut entry) => {
                     // TODO Insert callback!
                     entry.get_mut().create_bridge(callback)
                 }
-                Entry::Vacant(entry) => {
+                anymap::Entry::Vacant(entry) => {
                     let scope = AgentScope::<AGN>::new();
                     let launched = LocalAgent::new(&scope);
                     let responder = SlabResponder {
@@ -433,11 +433,11 @@ impl Discoverer for Public {
     fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
         let bridge = REMOTE_AGENTS_POOL.with(|pool| {
             match pool.borrow_mut().entry::<RemoteAgent<AGN>>() {
-                Entry::Occupied(mut entry) => {
+                anymap::Entry::Occupied(mut entry) => {
                     // TODO Insert callback!
                     entry.get_mut().create_bridge(callback)
                 }
-                Entry::Vacant(entry) => {
+                anymap::Entry::Vacant(entry) => {
                     let slab: Shared<Slab<Callback<AGN::Output>>> =
                         Rc::new(RefCell::new(Slab::new()));
                     let handler = {
@@ -520,14 +520,14 @@ impl<AGN: Agent> PublicBridge<AGN> {
     fn msg_to_queue(&self, msg: Vec<u8>) {
         REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|local| {
             match local.borrow_mut().entry(AGN::name_of_resource()) {
-                Entry::Vacant(record) => {
+                hash_map::Entry::Vacant(record) => {
                     record.insert({
                         let mut v = Vec::new();
                         v.push(msg);
                         v
                     });
                 }
-                Entry::Occupied(ref mut record) => {
+                hash_map::Entry::Occupied(ref mut record) => {
                     record.get_mut().push(msg);
                 }
             }
