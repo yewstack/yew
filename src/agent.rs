@@ -377,7 +377,7 @@ struct JobBridge<AGN: Agent> {
 
 impl<AGN: Agent> Bridge<AGN> for JobBridge<AGN> {
     fn send(&mut self, msg: AGN::Input) {
-        let upd = AgentUpdate::Input(msg, None);
+        let upd = AgentUpdate::Input(msg, Some(SINGLETON_ID));
         self.scope.send(upd);
     }
 }
@@ -440,7 +440,7 @@ impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
         // TODO Important! Implement.
         // Use a queue to collect a messages if an instance is not ready
         // and send them to an agent when it will reported readiness.
-        let msg = ToWorker::ProcessInput(None, msg).pack();
+        let msg = ToWorker::ProcessInput(Some(SINGLETON_ID), msg).pack();
         let worker = &self.worker;
         js! {
             var worker = @{worker};
