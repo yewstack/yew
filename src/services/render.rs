@@ -54,7 +54,7 @@ impl Task for RenderTask {
         let handle = self.0.take().expect("tried to cancel render twice");
         js! { @(no_return)
             var handle = @{handle};
-            cancelAnimationFrame(handle.timeout_id);
+            cancelAnimationFrame(handle.render_id);
             handle.callback.drop();
         }
     }

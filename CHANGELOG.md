@@ -73,6 +73,7 @@
 
 - #### 🛠 Fixes
 
+  - Fixed JS typo in RenderService. This was causing animation frames to not be dropped correctly. [[@jstarry], [#658](https://github.com/yewstack/yew/pull/658)]
   - Fixed `VNode` orphaning bug when destroying `VTag` elements. This caused some `Component`s to not be properly destroyed when they should have been. [[@hgzimmerman], [#651](https://github.com/yewstack/yew/pull/651)]
   - Fix mishandling of Properties `where` clause in derive_props macro [[@astraw], [#640](https://github.com/yewstack/yew/pull/640)]
 
