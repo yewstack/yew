@@ -42,7 +42,6 @@ impl Component for Model {
     }
 
     fn mounted(&mut self) -> ShouldRender {
-        // Once the component has successfully mounted, it is safe to send messages to agents.
         self.router.send(router::Request::GetCurrentRoute);
         false
     }
