@@ -285,10 +285,8 @@ impl Discoverer for Context {
             let upd = AgentUpdate::Create(agent_link);
             scope.send(upd);
         }
-        //        if let Some(id) = bridge.id {
         let upd = AgentUpdate::Connected(bridge.id);
         bridge.scope.send(upd);
-        //        }
         Box::new(bridge)
     }
 }
