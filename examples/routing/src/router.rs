@@ -147,10 +147,6 @@ where
         }
     }
 
-    fn connected(&mut self, id: HandlerId) {
-        self.subscribers.insert(id);
-    }
-
     fn handle(&mut self, msg: Self::Input, who: Option<HandlerId>) {
         info!("Request: {:?}", msg);
         match msg {
@@ -170,13 +166,20 @@ where
                 self.route_service.set_route(&route_string, route.state);
             }
             Request::GetCurrentRoute => {
+                let route = Route::current_route(&self.route_service);
                 if let Some(who) = who {
-                    let route = Route::current_route(&self.route_service);
                     self.link.response(who, route.clone());
                 }
             }
         }
     }
+
+    fn connected(&mut self, id: HandlerId) {
+        self.link
+            .response(id, Route::current_route(&self.route_service));
+        self.subscribers.insert(id);
+    }
+
     fn disconnected(&mut self, id: HandlerId) {
         self.subscribers.remove(&id);
     }

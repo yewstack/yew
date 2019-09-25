@@ -732,6 +732,12 @@ impl<AGN: Agent> AgentLink<AGN> {
     }
 }
 
+impl<AGN: Agent> fmt::Debug for AgentLink<AGN> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("AgentLink<_>")
+    }
+}
+
 struct AgentRunnable<AGN> {
     agent: Option<AGN>,
     // TODO Use agent field to control create message this flag
