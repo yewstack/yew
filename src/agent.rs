@@ -239,7 +239,7 @@ impl<AGN: Agent> LocalAgent<AGN> {
         let id = HandlerId::new(id, respondable);
         ContextBridge {
             scope: self.scope.clone(),
-            id
+            id,
         }
     }
 
@@ -296,13 +296,21 @@ struct SlabResponder<AGN: Agent> {
 
 impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
     fn response(&self, id: HandlerId, output: AGN::Output) {
-        let callback: Option<Option<Callback<_>>> = self.slab.borrow().get(id.raw_id()).cloned();
-        if let Some(callback) = callback.and_then(std::convert::identity) {
-            // TODO replace with flatten when option_flattening (60258) stabilizes.
-            callback.emit(output);
-        } else {
-            warn!("Id of handler not exists <slab>: {}", id.raw_id());
-        }
+        locate_callback_and_respond(&self.slab, id, output);
+    }
+}
+
+/// The slab contains the callback, the id is used to look up the callback,
+/// and the output is the message that will be sent via the callback.
+fn locate_callback_and_respond<AGN: Agent>(
+    slab: &Shared<Slab<Option<Callback<AGN::Output>>>>,
+    id: HandlerId,
+    output: AGN::Output,
+) {
+    match slab.borrow().get(id.raw_id()).cloned() {
+        Some(Some(callback)) => callback.emit(output),
+        Some(None) => warn!("The Id of the handler: {}, while present in the slab, is not associated with a callback.", id.raw_id()),
+        None => warn!("Id of handler does not exist in the slab: {}.", id.raw_id()),
     }
 }
 
@@ -515,16 +523,7 @@ impl Discoverer for Public {
                                 // TODO Send `Connected` message
                             }
                             FromWorker::ProcessOutput(id, output) => {
-                                let callback = slab.borrow().get(id.raw_id()).cloned();
-                                if let Some(callback) = callback.and_then(std::convert::identity) {
-                                    // TODO replace with flatten when option_flattening (60258) stabilizes.
-                                    callback.emit(output);
-                                } else {
-                                    warn!(
-                                        "Id of handler for remote worker not exists <slab>: {}",
-                                        id.raw_id()
-                                    );
-                                }
+                                locate_callback_and_respond(slab, id, output);
                             }
                         }
                     };
