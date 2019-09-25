@@ -41,7 +41,7 @@ type Listeners<COMP> = Vec<Box<dyn Listener<COMP>>>;
 type Attributes = HashMap<String, String>;
 
 /// A set of classes.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Classes {
     set: IndexSet<String>,
 }
@@ -96,6 +96,13 @@ impl From<&str> for Classes {
 
 impl From<String> for Classes {
     fn from(t: String) -> Self {
+        let set = t.split_whitespace().map(String::from).collect();
+        Self { set }
+    }
+}
+
+impl From<&String> for Classes {
+    fn from(t: &String) -> Self {
         let set = t.split_whitespace().map(String::from).collect();
         Self { set }
     }

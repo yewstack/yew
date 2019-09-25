@@ -173,8 +173,11 @@ where
     }
 
     fn connected(&mut self, id: HandlerId) {
+        self.link
+            .response(id, Route::current_route(&self.route_service));
         self.subscribers.insert(id);
     }
+
     fn disconnected(&mut self, id: HandlerId) {
         self.subscribers.remove(&id);
     }
