@@ -16,7 +16,7 @@ pub enum Child {
     A,
     B,
     PathNotFound(String),
-    Loading
+    Loading,
 }
 
 pub struct Model {
@@ -107,7 +107,7 @@ impl Renderable<Model> for Child {
             },
             Child::Loading => html! {
                 {"Loading"}
-            }
+            },
         }
     }
 }
