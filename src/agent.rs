@@ -80,7 +80,7 @@ impl HandlerId {
     }
 }
 
-/// This trait allows to get the address of or register a worker.
+/// This trait allows registering or getting the address of a worker.
 pub trait Bridged: Agent + Sized + 'static {
     /// Creates a messaging bridge between a worker and the component.
     fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>>;
