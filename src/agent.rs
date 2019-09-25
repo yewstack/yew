@@ -12,6 +12,7 @@ use std::collections::{hash_map, HashMap, HashSet};
 use std::fmt;
 use std::marker::PhantomData;
 use std::rc::Rc;
+use std::any::TypeId;
 use stdweb::Value;
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
@@ -422,8 +423,8 @@ impl<AGN: Agent> RemoteAgent<AGN> {
 
 thread_local! {
     static REMOTE_AGENTS_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());
-    static REMOTE_AGENTS_LOADED: RefCell<HashSet<&'static str>> = RefCell::new(HashSet::new());
-    static REMOTE_AGENTS_EARLY_MSGS_QUEUE: RefCell<HashMap<&'static str, Vec<Vec<u8>>>> = RefCell::new(HashMap::new());
+    static REMOTE_AGENTS_LOADED: RefCell<HashSet<TypeId>> = RefCell::new(HashSet::new());
+    static REMOTE_AGENTS_EARLY_MSGS_QUEUE: RefCell<HashMap<TypeId, Vec<Vec<u8>>>> = RefCell::new(HashMap::new());
 }
 
 /// Create a single instance in a tab.
@@ -448,11 +449,11 @@ impl Discoverer for Public {
                                 FromWorker::WorkerLoaded => {
                                     // TODO Send `Connected` message
                                     let _ = REMOTE_AGENTS_LOADED.with(|local| {
-                                        local.borrow_mut().insert(AGN::name_of_resource())
+                                        local.borrow_mut().insert(TypeId::of::<AGN>())
                                     });
                                     REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|local| {
                                         if let Some(msgs) =
-                                            local.borrow_mut().get_mut(AGN::name_of_resource())
+                                            local.borrow_mut().get_mut(&TypeId::of::<AGN>())
                                         {
                                             for msg in msgs.drain(..) {
                                                 let worker = &worker;
@@ -515,11 +516,11 @@ impl<AGN: Agent> PublicBridge<AGN> {
         }
     }
     fn worker_is_loaded(&self) -> bool {
-        REMOTE_AGENTS_LOADED.with(|local| local.borrow().contains(AGN::name_of_resource()))
+        REMOTE_AGENTS_LOADED.with(|local| local.borrow().contains(&TypeId::of::<AGN>()))
     }
     fn msg_to_queue(&self, msg: Vec<u8>) {
         REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|local| {
-            match local.borrow_mut().entry(AGN::name_of_resource()) {
+            match local.borrow_mut().entry(TypeId::of::<AGN>()) {
                 hash_map::Entry::Vacant(record) => {
                     record.insert({
                         let mut v = Vec::new();
@@ -559,10 +560,10 @@ impl<AGN: Agent> Drop for PublicBridge<AGN> {
                 self.send_to_remote(upd);
                 pool.borrow_mut().remove::<RemoteAgent<AGN>>();
                 REMOTE_AGENTS_LOADED.with(|pool| {
-                    pool.borrow_mut().remove(AGN::name_of_resource());
+                    pool.borrow_mut().remove(&TypeId::of::<AGN>());
                 });
                 REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|pool| {
-                    pool.borrow_mut().remove(AGN::name_of_resource());
+                    pool.borrow_mut().remove(&TypeId::of::<AGN>());
                 });
             }
         });
