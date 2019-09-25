@@ -4,3 +4,5 @@ Cargo.lock
 orig.*
 /.idea
 /cmake-build-debug
+.idea
+*.patch

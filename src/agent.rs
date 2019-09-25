@@ -8,9 +8,9 @@ use log::warn;
 use serde::{Deserialize, Serialize};
 use slab::Slab;
 use std::cell::RefCell;
+use std::collections::{HashMap, HashSet, hash_map::Entry};
 use std::fmt;
 use std::marker::PhantomData;
-use std::collections::{HashSet, HashMap};
 use std::rc::Rc;
 use stdweb::Value;
 #[allow(unused_imports)]
@@ -37,8 +37,8 @@ impl<T> Transferable for FromWorker<T> where T: Serialize + for<'de> Deserialize
 
 /// Represents a message which you could send to an agent.
 pub trait Transferable
-    where
-        Self: Serialize + for<'de> Deserialize<'de>,
+where
+    Self: Serialize + for<'de> Deserialize<'de>,
 {
 }
 
@@ -87,8 +87,8 @@ pub trait Threaded {
 }
 
 impl<T> Threaded for T
-    where
-        T: Agent<Reach = Public>,
+where
+    T: Agent<Reach = Public>,
 {
     fn register() {
         let scope = AgentScope::<T>::new();
@@ -134,8 +134,8 @@ impl<T> Threaded for T
 }
 
 impl<T> Bridged for T
-    where
-        T: Agent,
+where
+    T: Agent,
 {
     fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>> {
         Self::Reach::spawn_or_join(callback)
@@ -401,10 +401,7 @@ struct RemoteAgent<AGN: Agent> {
 
 impl<AGN: Agent> RemoteAgent<AGN> {
     pub fn new(worker: Value, slab: Shared<Slab<Callback<AGN::Output>>>) -> Self {
-        RemoteAgent {
-            worker,
-            slab,
-        }
+        RemoteAgent { worker, slab }
     }
 
     fn create_bridge(&mut self, callback: Callback<AGN::Output>) -> PublicBridge<AGN> {
@@ -425,8 +422,8 @@ impl<AGN: Agent> RemoteAgent<AGN> {
 
 thread_local! {
     static REMOTE_AGENTS_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());
-    static DEDICATED_WORKERS_LOADED: RefCell<HashSet<&'static str>> = RefCell::new(HashSet::new());
-    static DEDICATED_WORKERS_EARLY_MSGS_QUEUE: RefCell<HashMap<&'static str, Vec<Vec<u8>>>> = RefCell::new(HashMap::new());
+    static REMOTE_AGENTS_LOADED: RefCell<HashSet<&'static str>> = RefCell::new(HashSet::new());
+    static REMOTE_AGENTS_EARLY_MSGS_QUEUE: RefCell<HashMap<&'static str, Vec<Vec<u8>>>> = RefCell::new(HashMap::new());
 }
 
 /// Create a single instance in a tab.
@@ -450,12 +447,16 @@ impl Discoverer for Public {
                             match msg {
                                 FromWorker::WorkerLoaded => {
                                     // TODO Send `Connected` message
-                                    let _ = DEDICATED_WORKERS_LOADED.with(|local| local.borrow_mut().insert(AGN::name_of_resource()));
-                                    DEDICATED_WORKERS_EARLY_MSGS_QUEUE.with(|local| {
-                                        if let Some(msgs) = local.borrow_mut().get_mut(AGN::name_of_resource()) {
+                                    let _ = REMOTE_AGENTS_LOADED.with(|local| {
+                                        local.borrow_mut().insert(AGN::name_of_resource())
+                                    });
+                                    REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|local| {
+                                        if let Some(msgs) =
+                                            local.borrow_mut().get_mut(AGN::name_of_resource())
+                                        {
                                             for msg in msgs.drain(..) {
                                                 let worker = &worker;
-                                                js!{@{worker}.postMessage(@{msg});};
+                                                js! {@{worker}.postMessage(@{msg});};
                                             }
                                         }
                                     });
@@ -497,7 +498,6 @@ pub struct PublicBridge<T: Agent> {
     worker: Value,
     id: HandlerId,
     _agent: PhantomData<T>,
-
 }
 
 impl<AGN: Agent> PublicBridge<AGN> {
@@ -514,14 +514,24 @@ impl<AGN: Agent> PublicBridge<AGN> {
             self.msg_to_queue(msg);
         }
     }
-    fn worker_is_loaded(&self) -> bool { DEDICATED_WORKERS_LOADED.with(|local| local.borrow().contains(AGN::name_of_resource())) }
+    fn worker_is_loaded(&self) -> bool {
+        REMOTE_AGENTS_LOADED.with(|local| local.borrow().contains(AGN::name_of_resource()))
+    }
     fn msg_to_queue(&self, msg: Vec<u8>) {
-        DEDICATED_WORKERS_EARLY_MSGS_QUEUE.with(|local|
+        REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|local| {
             match local.borrow_mut().entry(AGN::name_of_resource()) {
-                std::collections::hash_map::Entry::Vacant(record) => {record.insert({let mut v = Vec::new(); v.push(msg); v});},
-                std::collections::hash_map::Entry::Occupied(ref mut record) => {record.get_mut().push(msg);},
+                Entry::Vacant(record) => {
+                    record.insert({
+                        let mut v = Vec::new();
+                        v.push(msg);
+                        v
+                    });
+                }
+                Entry::Occupied(ref mut record) => {
+                    record.get_mut().push(msg);
+                }
             }
-        );
+        });
     }
 }
 
@@ -548,6 +558,12 @@ impl<AGN: Agent> Drop for PublicBridge<AGN> {
                 let upd = ToWorker::Destroy;
                 self.send_to_remote(upd);
                 pool.borrow_mut().remove::<RemoteAgent<AGN>>();
+                REMOTE_AGENTS_LOADED.with(|pool| {
+                    pool.borrow_mut().remove(AGN::name_of_resource());
+                });
+                REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|pool| {
+                    pool.borrow_mut().remove(AGN::name_of_resource());
+                });
             }
         });
     }
@@ -649,8 +665,8 @@ pub struct AgentLink<AGN: Agent> {
 impl<AGN: Agent> AgentLink<AGN> {
     /// Create link for a scope.
     fn connect<T>(scope: &AgentScope<AGN>, responder: T) -> Self
-        where
-            T: Responder<AGN> + 'static,
+    where
+        T: Responder<AGN> + 'static,
     {
         AgentLink {
             scope: scope.clone(),
@@ -665,8 +681,8 @@ impl<AGN: Agent> AgentLink<AGN> {
 
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&self, function: F) -> Callback<IN>
-        where
-            F: Fn(IN) -> AGN::Message + 'static,
+    where
+        F: Fn(IN) -> AGN::Message + 'static,
     {
         let scope = self.scope.clone();
         let closure = move |input| {
@@ -714,8 +730,8 @@ struct AgentEnvelope<AGN: Agent> {
 }
 
 impl<AGN> Runnable for AgentEnvelope<AGN>
-    where
-        AGN: Agent,
+where
+    AGN: Agent,
 {
     fn run(self: Box<Self>) {
         let mut this = self.shared_agent.borrow_mut();

@@ -14,14 +14,15 @@ use bincode;
 /// ```
 pub struct Bincode<T>(pub T);
 
-impl<T: serde::Serialize> Into<super::Binary> for Bincode<T>
-{
+impl<T: serde::Serialize> Into<super::Binary> for Bincode<T> {
     fn into(self) -> super::Binary {
         bincode::serialize(&self.0).map_err(failure::Error::from)
     }
 }
 
-impl<T> From<super::Binary> for Bincode<Result<T, failure::Error>> where T: for<'de> serde::Deserialize<'de>,
+impl<T> From<super::Binary> for Bincode<Result<T, failure::Error>>
+where
+    T: for<'de> serde::Deserialize<'de>,
 {
     fn from(value: super::Binary) -> Self {
         match value {

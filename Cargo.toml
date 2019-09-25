@@ -20,7 +20,7 @@ travis-ci = { repository = "yewstack/yew" }
 
 [dependencies]
 anymap = "0.12"
-bincode = "=1.1.4"
+bincode = "=1.2.0"
 failure = "0.1"
 http = "0.1"
 indexmap = "1.0.2"
