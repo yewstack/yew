@@ -57,6 +57,9 @@ impl<T: Transferable> Packed for T {
     }
 }
 
+/// Type alias to a sharable Slab that owns optional callbacks that emit messages of the type of the specified Agent.
+type SharedOutputSlab<AGN> = Shared<Slab<Option<Callback<<AGN as Agent>::Output>>>>;
+
 /// Id of responses handler.
 #[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct HandlerId(usize, bool);
@@ -215,7 +218,7 @@ pub trait Bridge<AGN: Agent> {
 
 struct LocalAgent<AGN: Agent> {
     scope: AgentScope<AGN>,
-    slab: Shared<Slab<Option<Callback<AGN::Output>>>>,
+    slab: SharedOutputSlab<AGN>,
 }
 
 type Last = bool;
@@ -229,7 +232,7 @@ impl<AGN: Agent> LocalAgent<AGN> {
         }
     }
 
-    fn slab(&self) -> Shared<Slab<Option<Callback<AGN::Output>>>> {
+    fn slab(&self) -> SharedOutputSlab<AGN> {
         self.slab.clone()
     }
 
@@ -296,14 +299,14 @@ struct SlabResponder<AGN: Agent> {
 
 impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
     fn response(&self, id: HandlerId, output: AGN::Output) {
-        locate_callback_and_respond(&self.slab, id, output);
+        locate_callback_and_respond::<AGN>(&self.slab, id, output);
     }
 }
 
 /// The slab contains the callback, the id is used to look up the callback,
 /// and the output is the message that will be sent via the callback.
 fn locate_callback_and_respond<AGN: Agent>(
-    slab: &Shared<Slab<Option<Callback<AGN::Output>>>>,
+    slab: &SharedOutputSlab<AGN>,
     id: HandlerId,
     output: AGN::Output,
 ) {
@@ -467,11 +470,11 @@ impl<AGN: Agent> Drop for PrivateBridge<AGN> {
 
 struct RemoteAgent<AGN: Agent> {
     worker: Value,
-    slab: Shared<Slab<Option<Callback<AGN::Output>>>>,
+    slab: SharedOutputSlab<AGN>,
 }
 
 impl<AGN: Agent> RemoteAgent<AGN> {
-    pub fn new(worker: &Value, slab: Shared<Slab<Option<Callback<AGN::Output>>>>) -> Self {
+    pub fn new(worker: &Value, slab: SharedOutputSlab<AGN>) -> Self {
         RemoteAgent {
             worker: worker.clone(),
             slab,
@@ -523,7 +526,7 @@ impl Discoverer for Public {
                                 // TODO Send `Connected` message
                             }
                             FromWorker::ProcessOutput(id, output) => {
-                                locate_callback_and_respond(slab, id, output);
+                                locate_callback_and_respond::<AGN>(&slab, id, output);
                             }
                         }
                     };
