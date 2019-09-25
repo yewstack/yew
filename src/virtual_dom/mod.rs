@@ -101,6 +101,13 @@ impl From<String> for Classes {
     }
 }
 
+impl From<&String> for Classes {
+    fn from(t: &String) -> Self {
+        let set = t.split_whitespace().map(String::from).collect();
+        Self { set }
+    }
+}
+
 impl<T: AsRef<str>> From<Vec<T>> for Classes {
     fn from(t: Vec<T>) -> Self {
         let set = t.iter().map(|x| x.as_ref().to_string()).collect();
