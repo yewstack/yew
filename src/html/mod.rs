@@ -227,8 +227,8 @@ where
     /// This method create an effect that provider a dispatch function to send messages mutiple
     /// times.
     pub fn create_effect<F, IN>(&mut self, function: F) -> Callback<IN>
-        where 
-            F: Fn(IN, &dyn Fn(COMP::Message)) + 'static,
+    where
+        F: Fn(IN, &dyn Fn(COMP::Message)) + 'static,
     {
         let scope = self.scope.clone();
         let dispatch = move |msg: COMP::Message| {
