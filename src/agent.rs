@@ -19,7 +19,7 @@ use stdweb::{_js_impl, js};
 #[derive(Serialize, Deserialize)]
 enum ToWorker<T> {
     Connected(HandlerId),
-    ProcessInput(Option<HandlerId>, T),
+    ProcessInput(HandlerId, T),
     Disconnected(HandlerId),
     Destroy,
 }
@@ -59,17 +59,24 @@ impl<T: Transferable> Packed for T {
 
 /// Id of responses handler.
 #[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
-pub struct HandlerId(usize);
+pub struct HandlerId(usize, bool);
 
 impl From<usize> for HandlerId {
     fn from(id: usize) -> Self {
-        HandlerId(id)
+        HandlerId(id, false) // TODO should this initialize to false?
     }
 }
 
 impl HandlerId {
+    fn new(id: usize, respondable: bool) -> Self {
+        HandlerId(id, respondable)
+    }
     fn raw_id(self) -> usize {
         self.0
+    }
+    /// Indicates if a handler id corresponds to callback in the Agent runtime.
+    pub fn is_respondable(&self) -> bool {
+        self.1
     }
 }
 
@@ -214,7 +221,7 @@ pub trait Bridge<AGN: Agent> {
 
 struct LocalAgent<AGN: Agent> {
     scope: AgentScope<AGN>,
-    slab: Shared<Slab<Callback<AGN::Output>>>,
+    slab: Shared<Slab<Option<Callback<AGN::Output>>>>,
 }
 
 type Last = bool;
@@ -228,22 +235,20 @@ impl<AGN: Agent> LocalAgent<AGN> {
         }
     }
 
-    fn slab(&self) -> Shared<Slab<Callback<AGN::Output>>> {
+    fn slab(&self) -> Shared<Slab<Option<Callback<AGN::Output>>>> {
         self.slab.clone()
     }
 
     fn create_bridge(&mut self, callback: Option<Callback<AGN::Output>>) -> ContextBridge<AGN> {
         ContextBridge {
             scope: self.scope.clone(),
-            id: callback.map(|callback| self.slab.borrow_mut().insert(callback).into()),
+            id: self.slab.borrow_mut().insert(callback).into(),
         }
     }
 
     fn remove_bridge(&mut self, bridge: &ContextBridge<AGN>) -> Last {
         let mut slab = self.slab.borrow_mut();
-        if let Some(id) = bridge.id {
-            let _ = slab.remove(id.raw_id());
-        }
+        let _ = slab.remove(bridge.id.raw_id());
         slab.is_empty()
     }
 }
@@ -280,10 +285,10 @@ impl Discoverer for Context {
             let upd = AgentUpdate::Create(agent_link);
             scope.send(upd);
         }
-        if let Some(id) = bridge.id {
-            let upd = AgentUpdate::Connected(id);
+//        if let Some(id) = bridge.id {
+            let upd = AgentUpdate::Connected(bridge.id);
             bridge.scope.send(upd);
-        }
+//        }
         Box::new(bridge)
     }
 }
@@ -291,13 +296,13 @@ impl Discoverer for Context {
 impl Dispatchable for Context {}
 
 struct SlabResponder<AGN: Agent> {
-    slab: Shared<Slab<Callback<AGN::Output>>>,
+    slab: Shared<Slab<Option<Callback<AGN::Output>>>>,
 }
 
 impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
     fn response(&self, id: HandlerId, output: AGN::Output) {
-        let callback = self.slab.borrow().get(id.raw_id()).cloned();
-        if let Some(callback) = callback {
+        let callback: Option<Option<Callback<_>>> = self.slab.borrow().get(id.raw_id()).cloned();
+        if let Some(callback) = callback.and_then(std::convert::identity) { // TODO replace with flatten when option_flattening (60258) stabilizes.
             callback.emit(output);
         } else {
             warn!("Id of handler not exists <slab>: {}", id.raw_id());
@@ -307,7 +312,7 @@ impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
 
 struct ContextBridge<AGN: Agent> {
     scope: AgentScope<AGN>,
-    id: Option<HandlerId>,
+    id: HandlerId,
 }
 
 impl<AGN: Agent> Bridge<AGN> for ContextBridge<AGN> {
@@ -327,10 +332,10 @@ impl<AGN: Agent> Drop for ContextBridge<AGN> {
                     false
                 }
             };
-            if let Some(id) = self.id {
-                let upd = AgentUpdate::Disconnected(id);
-                self.scope.send(upd);
-            }
+
+            let upd = AgentUpdate::Disconnected(self.id);
+            self.scope.send(upd);
+
             if terminate_worker {
                 let upd = AgentUpdate::Destroy;
                 self.scope.send(upd);
@@ -358,7 +363,7 @@ impl Discoverer for Job {
     }
 }
 
-const SINGLETON_ID: HandlerId = HandlerId(0);
+const SINGLETON_ID: HandlerId = HandlerId(0, true);
 
 struct CallbackResponder<AGN: Agent> {
     callback: Callback<AGN::Output>,
@@ -377,7 +382,7 @@ struct JobBridge<AGN: Agent> {
 
 impl<AGN: Agent> Bridge<AGN> for JobBridge<AGN> {
     fn send(&mut self, msg: AGN::Input) {
-        let upd = AgentUpdate::Input(msg, Some(SINGLETON_ID));
+        let upd = AgentUpdate::Input(msg, SINGLETON_ID);
         self.scope.send(upd);
     }
 }
@@ -440,7 +445,7 @@ impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
         // TODO Important! Implement.
         // Use a queue to collect a messages if an instance is not ready
         // and send them to an agent when it will reported readiness.
-        let msg = ToWorker::ProcessInput(Some(SINGLETON_ID), msg).pack();
+        let msg = ToWorker::ProcessInput(SINGLETON_ID, msg).pack();
         let worker = &self.worker;
         js! {
             var worker = @{worker};
@@ -458,11 +463,11 @@ impl<AGN: Agent> Drop for PrivateBridge<AGN> {
 
 struct RemoteAgent<AGN: Agent> {
     worker: Value,
-    slab: Shared<Slab<Callback<AGN::Output>>>,
+    slab: Shared<Slab<Option<Callback<AGN::Output>>>>,
 }
 
 impl<AGN: Agent> RemoteAgent<AGN> {
-    pub fn new(worker: &Value, slab: Shared<Slab<Callback<AGN::Output>>>) -> Self {
+    pub fn new(worker: &Value, slab: Shared<Slab<Option<Callback<AGN::Output>>>>) -> Self {
         RemoteAgent {
             worker: worker.clone(),
             slab,
@@ -470,18 +475,19 @@ impl<AGN: Agent> RemoteAgent<AGN> {
     }
 
     fn create_bridge(&mut self, callback: Option<Callback<AGN::Output>>) -> PublicBridge<AGN> {
+        let respondable = callback.is_some();
+        let id: usize = self.slab.borrow_mut().insert(callback);
+        let id = HandlerId::new(id, respondable);
         PublicBridge {
             worker: self.worker.clone(),
-            id: callback.map(|callback| self.slab.borrow_mut().insert(callback).into()),
+            id,
             _agent: PhantomData,
         }
     }
 
     fn remove_bridge(&mut self, bridge: &PublicBridge<AGN>) -> Last {
         let mut slab = self.slab.borrow_mut();
-        if let Some(id) = bridge.id {
-            let _ = slab.remove(id.raw_id());
-        }
+        let _ = slab.remove(bridge.id.raw_id());
         slab.is_empty()
     }
 }
@@ -502,7 +508,7 @@ impl Discoverer for Public {
                     entry.get_mut().create_bridge(callback)
                 }
                 Entry::Vacant(entry) => {
-                    let slab_base: Shared<Slab<Callback<AGN::Output>>> =
+                    let slab_base: Shared<Slab<Option<Callback<AGN::Output>>>> =
                         Rc::new(RefCell::new(Slab::new()));
                     let slab = slab_base.clone();
                     let handler = move |data: Vec<u8>| {
@@ -514,7 +520,7 @@ impl Discoverer for Public {
                             }
                             FromWorker::ProcessOutput(id, output) => {
                                 let callback = slab.borrow().get(id.raw_id()).cloned();
-                                if let Some(callback) = callback {
+                                if let Some(callback) = callback.and_then(std::convert::identity) { // TODO replace with flatten when option_flattening (60258) stabilizes.
                                     callback.emit(output);
                                 } else {
                                     warn!(
@@ -548,7 +554,7 @@ impl Dispatchable for Public {}
 /// A connection manager for components interaction with workers.
 pub struct PublicBridge<T: Agent> {
     worker: Value,
-    id: Option<HandlerId>,
+    id: HandlerId,
     _agent: PhantomData<T>,
 }
 
@@ -581,29 +587,14 @@ impl<AGN: Agent> Drop for PublicBridge<AGN> {
                     false
                 }
             };
-            if let Some(id) = self.id {
-                let upd = ToWorker::Disconnected(id);
-                send_to_remote::<AGN>(&self.worker, upd);
-            }
+            let upd = ToWorker::Disconnected(self.id);
+            send_to_remote::<AGN>(&self.worker, upd);
             if terminate_worker {
                 let upd = ToWorker::Destroy;
                 send_to_remote::<AGN>(&self.worker, upd);
                 pool.borrow_mut().remove::<RemoteAgent<AGN>>();
             }
         });
-    }
-}
-
-/// Dispatcher for the Public Reach.
-pub struct PublicDispatcher<T: Agent> {
-    worker: Value,
-    _agent: PhantomData<T>,
-}
-
-impl<AGN: Agent> Bridge<AGN> for PublicDispatcher<AGN> {
-    fn send(&mut self, msg: AGN::Input) {
-        let msg = ToWorker::ProcessInput(None, msg);
-        send_to_remote::<AGN>(&self.worker, msg);
     }
 }
 
@@ -633,7 +624,7 @@ pub trait Agent: Sized + 'static {
     fn connected(&mut self, _id: HandlerId) {}
 
     /// This method called on every incoming message.
-    fn handle(&mut self, msg: Self::Input, id: Option<HandlerId>);
+    fn handle(&mut self, msg: Self::Input, id: HandlerId);
 
     /// This method called on when a new bridge destroyed.
     fn disconnected(&mut self, _id: HandlerId) {}
@@ -757,7 +748,7 @@ enum AgentUpdate<AGN: Agent> {
     Create(AgentLink<AGN>),
     Message(AGN::Message),
     Connected(HandlerId),
-    Input(AGN::Input, Option<HandlerId>),
+    Input(AGN::Input, HandlerId),
     Disconnected(HandlerId),
     Destroy,
 }
