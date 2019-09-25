@@ -16,6 +16,7 @@ pub enum Child {
     A,
     B,
     PathNotFound(String),
+    Loading
 }
 
 pub struct Model {
@@ -35,7 +36,7 @@ impl Component for Model {
         let callback = link.send_back(|route: Route<()>| Msg::HandleRoute(route));
         let router = router::Router::bridge(callback);
         Model {
-            child: Child::PathNotFound("".to_string()), // This should be quickly overwritten by the actual route.
+            child: Child::Loading, // This should be quickly overwritten by the actual route.
             router,
         }
     }
@@ -87,7 +88,7 @@ impl Renderable<Model> for Model {
 
 impl Renderable<Model> for Child {
     fn view(&self) -> Html<Model> {
-        match *self {
+        match self {
             Child::A => html! {
                 <>
                     {"This corresponds to route 'a'"}
@@ -104,6 +105,9 @@ impl Renderable<Model> for Child {
                     {format!("Invalid path: '{}'", path)}
                 </>
             },
+            Child::Loading => html! {
+                {"Loading"}
+            }
         }
     }
 }
