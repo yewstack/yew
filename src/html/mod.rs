@@ -224,6 +224,22 @@ where
         }
     }
 
+    /// This method create an effect that provider a dispatch function to send messages mutiple
+    /// times.
+    pub fn create_effect<F, IN>(&mut self, function: F) -> Callback<IN>
+        where 
+            F: Fn(IN, &dyn Fn(COMP::Message)) + 'static,
+    {
+        let scope = self.scope.clone();
+        let dispatch = move |msg: COMP::Message| {
+            scope.clone().send_message(msg);
+        };
+        let closure = move |input| {
+            function(input, &dispatch);
+        };
+        closure.into()
+    }
+
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
