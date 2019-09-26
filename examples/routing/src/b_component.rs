@@ -6,7 +6,7 @@ use yew::{html, Bridge, Component, ComponentLink, Html, Renderable, ShouldRender
 pub struct BModel {
     number: Option<usize>,
     sub_path: Option<String>,
-    router: Box<Bridge<Router<()>>>,
+    router: Box<dyn Bridge<Router<()>>>,
 }
 
 pub enum Msg {
