@@ -11,6 +11,7 @@ pub(crate) use scope::ComponentUpdate;
 pub use scope::{NodeCell, Scope};
 
 use crate::callback::Callback;
+use crate::html::scope::ManyOrSingleMessage::{Many, Single};
 use crate::virtual_dom::{VChild, VList, VNode};
 use std::fmt;
 
@@ -224,18 +225,16 @@ where
         }
     }
 
-    /// This method create an effect that provider a dispatch function to send messages mutiple
-    /// times.
-    pub fn create_effect<F, IN>(&mut self, function: F) -> Callback<IN>
+    /// This method sends a bunch of messages back to the component's loop
+    /// It will trigger a bunch update in one render loop
+    pub fn send_bunch_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
-        F: Fn(IN, &dyn Fn(COMP::Message)) + 'static,
+        F: Fn(IN) -> Vec<COMP::Message> + 'static,
     {
         let scope = self.scope.clone();
-        let dispatch = move |msg: COMP::Message| {
-            scope.clone().send_message(msg);
-        };
         let closure = move |input| {
-            function(input, &dispatch);
+            let messages = function(input);
+            scope.clone().send_messages(messages);
         };
         closure.into()
     }

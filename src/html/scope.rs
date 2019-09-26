@@ -9,10 +9,14 @@ use stdweb::web::{Element, Node};
 /// Holder for the element.
 pub type NodeCell = Rc<RefCell<Option<Node>>>;
 
+pub(crate) enum ManyOrSingleMessage<COMP: Component> {
+    Single(COMP::Message),
+    Many(Vec<COMP::Message>),
+}
 /// Updates for a `Components` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {
     /// Wraps messages for a component.
-    Message(COMP::Message),
+    Message(ManyOrSingleMessage<COMP>),
     /// Wraps properties for a component.
     Properties(COMP::Properties),
 }
@@ -57,7 +61,12 @@ where
 
     /// Send a message to the component
     pub fn send_message(&mut self, msg: COMP::Message) {
-        self.update(ComponentUpdate::Message(msg));
+        self.update(ComponentUpdate::Message(Single(msg)));
+    }
+
+    /// send many messages to the component
+    pub fn send_messages(&mut self, msgs: Vec<COMP::Message>) {
+        self.update(ComponentUpdate::Message(Many(msgs)));
     }
 }
 
@@ -249,7 +258,12 @@ where
         self.shared_state.replace(match current_state {
             ComponentState::Created(mut this) => {
                 let should_update = match self.update {
-                    ComponentUpdate::Message(msg) => this.component.update(msg),
+                    ComponentUpdate::Message(message) => match message {
+                        Many(msgs) => msgs
+                            .into_iter()
+                            .fold(false, |acc, msg| this.component.update(msg) || acc),
+                        Single(msg) => this.component.update(msg),
+                    },
                     ComponentUpdate::Properties(props) => this.component.change(props),
                 };
                 let next_state = if should_update { this.update() } else { this };
