@@ -12,6 +12,8 @@
 
 - #### ⚡️ Features
 
+  - Messages to Public Agents will now be queued if the Agent hasn't finished setting up yet. [[@serzhiio], [#596](https://github.com/yewstack/yew/pull/596)]
+  - Agents can now be connected to without a callback. Instead of creating a bridge to the agent, create a dispatcher like so: `MyAgent::dispatcher()`. [[@hgzimmerman], [#639](https://github.com/yewstack/yew/pull/639)]
   - Components can now accept children in the `html!` macro. [[@jstarry], [#589](https://github.com/yewstack/yew/pull/589)]
 
     ```rust
@@ -227,6 +229,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@hgzimmerman]: https://github.com/hgzimmerman
 [@jstarry]: https://github.com/jstarry
 [@kellytk]: https://github.com/kellytk
+[@serzhiio]: https://github.com/serzhiio
 [@tiziano88]: https://github.com/tiziano88
 [@totorigolo]: https://github.com/totorigolo
 [@Wodann]: https://github.com/Wodann
