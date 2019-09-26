@@ -574,15 +574,10 @@ pub struct PublicBridge<T: Agent> {
 
 impl<AGN: Agent> PublicBridge<AGN> {
     fn send_to_remote(&self, msg: ToWorker<AGN::Input>) {
-        let msg = msg.pack();
         if self.worker_is_loaded() {
-            let worker = &self.worker;
-            js! {
-                var worker = @{worker};
-                var bytes = @{msg};
-                worker.postMessage(bytes);
-            };
+            send_to_remote::<AGN>(&self.worker, msg);
         } else {
+            let msg = msg.pack();
             self.msg_to_queue(msg);
         }
     }
