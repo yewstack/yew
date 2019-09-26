@@ -10,6 +10,7 @@ use slab::Slab;
 use std::cell::RefCell;
 use std::fmt;
 use std::marker::PhantomData;
+use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use stdweb::Value;
 #[allow(unused_imports)]
@@ -56,27 +57,74 @@ impl<T: Transferable> Packed for T {
     }
 }
 
+/// Type alias to a sharable Slab that owns optional callbacks that emit messages of the type of the specified Agent.
+type SharedOutputSlab<AGN> = Shared<Slab<Option<Callback<<AGN as Agent>::Output>>>>;
+
 /// Id of responses handler.
 #[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
-pub struct HandlerId(usize);
-
-impl From<usize> for HandlerId {
-    fn from(id: usize) -> Self {
-        HandlerId(id)
-    }
-}
+pub struct HandlerId(usize, bool);
 
 impl HandlerId {
+    fn new(id: usize, respondable: bool) -> Self {
+        HandlerId(id, respondable)
+    }
     fn raw_id(self) -> usize {
         self.0
     }
+    /// Indicates if a handler id corresponds to callback in the Agent runtime.
+    pub fn is_respondable(&self) -> bool {
+        self.1
+    }
 }
 
-/// This traits allow to get addres or register worker.
+/// This trait allows registering or getting the address of a worker.
 pub trait Bridged: Agent + Sized + 'static {
     /// Creates a messaging bridge between a worker and the component.
     fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>>;
 }
+
+/// This trait allows the creation of a dispatcher to an existing agent that will not send replies when messages are sent.
+pub trait Dispatched: Agent + Sized + 'static {
+    /// Creates a dispatcher to the agent that will not send messages back.
+    ///
+    /// # Note
+    /// Dispatchers don't have `HandlerId`s and therefore `Agent::handle` will be supplied `None`
+    /// for the `id` parameter, and `connected` and `disconnected` will not be called.
+    ///
+    /// # Important
+    /// Because the Agents using Context or Public reaches use the number of existing bridges to
+    /// keep track of if the agent itself should exist, creating dispatchers will not guarantee that
+    /// an Agent will exist to service requests sent from Dispatchers. You **must** keep at least one
+    /// bridge around if you wish to use a dispatcher. If you are using agents in a write-only manner,
+    /// then it is suggested that you create a bridge that handles no-op responses as high up in the
+    /// component hierarchy as possible - oftentimes the root component for simplicity's sake.
+    fn dispatcher() -> Dispatcher<Self>;
+}
+
+/// A newtype around a bridge to indicate that it is distinct from a normal bridge
+pub struct Dispatcher<T>(Box<dyn Bridge<T>>);
+
+impl<T> fmt::Debug for Dispatcher<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Dispatcher<_>")
+    }
+}
+
+impl<T> Deref for Dispatcher<T> {
+    type Target = dyn Bridge<T>;
+
+    fn deref(&self) -> &Self::Target {
+        self.0.deref()
+    }
+}
+impl<T> DerefMut for Dispatcher<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.0.deref_mut()
+    }
+}
+
+/// Marker trait to indicate which Discoverers are able to be used with dispatchers.
+pub trait Dispatchable: Discoverer {}
 
 /// Implements rules to register a worker in a separate thread.
 pub trait Threaded {
@@ -137,7 +185,17 @@ where
     T: Agent,
 {
     fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>> {
-        Self::Reach::spawn_or_join(callback)
+        Self::Reach::spawn_or_join(Some(callback))
+    }
+}
+
+impl<T> Dispatched for T
+where
+    T: Agent,
+    <T as Agent>::Reach: Dispatchable,
+{
+    fn dispatcher() -> Dispatcher<T> {
+        Dispatcher(Self::Reach::spawn_or_join::<T>(None))
     }
 }
 
@@ -145,7 +203,7 @@ where
 #[doc(hidden)]
 pub trait Discoverer {
     /// Spawns an agent and returns `Bridge` implementation.
-    fn spawn_or_join<AGN: Agent>(_callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(_callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         unimplemented!();
     }
 }
@@ -160,7 +218,7 @@ pub trait Bridge<AGN: Agent> {
 
 struct LocalAgent<AGN: Agent> {
     scope: AgentScope<AGN>,
-    slab: Shared<Slab<Callback<AGN::Output>>>,
+    slab: SharedOutputSlab<AGN>,
 }
 
 type Last = bool;
@@ -174,15 +232,17 @@ impl<AGN: Agent> LocalAgent<AGN> {
         }
     }
 
-    fn slab(&self) -> Shared<Slab<Callback<AGN::Output>>> {
+    fn slab(&self) -> SharedOutputSlab<AGN> {
         self.slab.clone()
     }
 
-    fn create_bridge(&mut self, callback: Callback<AGN::Output>) -> ContextBridge<AGN> {
-        let id = self.slab.borrow_mut().insert(callback);
+    fn create_bridge(&mut self, callback: Option<Callback<AGN::Output>>) -> ContextBridge<AGN> {
+        let respondable = callback.is_some();
+        let id: usize = self.slab.borrow_mut().insert(callback);
+        let id = HandlerId::new(id, respondable);
         ContextBridge {
             scope: self.scope.clone(),
-            id: id.into(),
+            id,
         }
     }
 
@@ -201,7 +261,7 @@ thread_local! {
 pub struct Context;
 
 impl Discoverer for Context {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let mut scope_to_init = None;
         let bridge = LOCAL_AGENTS_POOL.with(|pool| {
             match pool.borrow_mut().entry::<LocalAgent<AGN>>() {
@@ -231,18 +291,29 @@ impl Discoverer for Context {
     }
 }
 
+impl Dispatchable for Context {}
+
 struct SlabResponder<AGN: Agent> {
-    slab: Shared<Slab<Callback<AGN::Output>>>,
+    slab: Shared<Slab<Option<Callback<AGN::Output>>>>,
 }
 
 impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
     fn response(&self, id: HandlerId, output: AGN::Output) {
-        let callback = self.slab.borrow().get(id.raw_id()).cloned();
-        if let Some(callback) = callback {
-            callback.emit(output);
-        } else {
-            warn!("Id of handler not exists <slab>: {}", id.raw_id());
-        }
+        locate_callback_and_respond::<AGN>(&self.slab, id, output);
+    }
+}
+
+/// The slab contains the callback, the id is used to look up the callback,
+/// and the output is the message that will be sent via the callback.
+fn locate_callback_and_respond<AGN: Agent>(
+    slab: &SharedOutputSlab<AGN>,
+    id: HandlerId,
+    output: AGN::Output,
+) {
+    match slab.borrow().get(id.raw_id()).cloned() {
+        Some(Some(callback)) => callback.emit(output),
+        Some(None) => warn!("The Id of the handler: {}, while present in the slab, is not associated with a callback.", id.raw_id()),
+        None => warn!("Id of handler does not exist in the slab: {}.", id.raw_id()),
     }
 }
 
@@ -268,8 +339,10 @@ impl<AGN: Agent> Drop for ContextBridge<AGN> {
                     false
                 }
             };
+
             let upd = AgentUpdate::Disconnected(self.id);
             self.scope.send(upd);
+
             if terminate_worker {
                 let upd = AgentUpdate::Destroy;
                 self.scope.send(upd);
@@ -283,7 +356,8 @@ impl<AGN: Agent> Drop for ContextBridge<AGN> {
 pub struct Job;
 
 impl Discoverer for Job {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+        let callback = callback.expect("Callback required for Job");
         let scope = AgentScope::<AGN>::new();
         let responder = CallbackResponder { callback };
         let agent_link = AgentLink::connect(&scope, responder);
@@ -296,7 +370,7 @@ impl Discoverer for Job {
     }
 }
 
-const SINGLETON_ID: HandlerId = HandlerId(0);
+const SINGLETON_ID: HandlerId = HandlerId(0, true);
 
 struct CallbackResponder<AGN: Agent> {
     callback: Callback<AGN::Output>,
@@ -335,7 +409,8 @@ impl<AGN: Agent> Drop for JobBridge<AGN> {
 pub struct Private;
 
 impl Discoverer for Private {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+        let callback = callback.expect("Callback required for Private agents");
         let handler = move |data: Vec<u8>| {
             let msg = FromWorker::<AGN::Output>::unpack(&data);
             match msg {
@@ -395,22 +470,24 @@ impl<AGN: Agent> Drop for PrivateBridge<AGN> {
 
 struct RemoteAgent<AGN: Agent> {
     worker: Value,
-    slab: Shared<Slab<Callback<AGN::Output>>>,
+    slab: SharedOutputSlab<AGN>,
 }
 
 impl<AGN: Agent> RemoteAgent<AGN> {
-    pub fn new(worker: &Value, slab: Shared<Slab<Callback<AGN::Output>>>) -> Self {
+    pub fn new(worker: &Value, slab: SharedOutputSlab<AGN>) -> Self {
         RemoteAgent {
             worker: worker.clone(),
             slab,
         }
     }
 
-    fn create_bridge(&mut self, callback: Callback<AGN::Output>) -> PublicBridge<AGN> {
-        let id = self.slab.borrow_mut().insert(callback);
+    fn create_bridge(&mut self, callback: Option<Callback<AGN::Output>>) -> PublicBridge<AGN> {
+        let respondable = callback.is_some();
+        let id: usize = self.slab.borrow_mut().insert(callback);
+        let id = HandlerId::new(id, respondable);
         PublicBridge {
             worker: self.worker.clone(),
-            id: id.into(),
+            id,
             _agent: PhantomData,
         }
     }
@@ -430,7 +507,7 @@ thread_local! {
 pub struct Public;
 
 impl Discoverer for Public {
-    fn spawn_or_join<AGN: Agent>(callback: Callback<AGN::Output>) -> Box<dyn Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let bridge = REMOTE_AGENTS_POOL.with(|pool| {
             match pool.borrow_mut().entry::<RemoteAgent<AGN>>() {
                 Entry::Occupied(mut entry) => {
@@ -438,7 +515,7 @@ impl Discoverer for Public {
                     entry.get_mut().create_bridge(callback)
                 }
                 Entry::Vacant(entry) => {
-                    let slab_base: Shared<Slab<Callback<AGN::Output>>> =
+                    let slab_base: Shared<Slab<Option<Callback<AGN::Output>>>> =
                         Rc::new(RefCell::new(Slab::new()));
                     let slab = slab_base.clone();
                     let handler = move |data: Vec<u8>| {
@@ -449,15 +526,7 @@ impl Discoverer for Public {
                                 // TODO Send `Connected` message
                             }
                             FromWorker::ProcessOutput(id, output) => {
-                                let callback = slab.borrow().get(id.raw_id()).cloned();
-                                if let Some(callback) = callback {
-                                    callback.emit(output);
-                                } else {
-                                    warn!(
-                                        "Id of handler for remote worker not exists <slab>: {}",
-                                        id.raw_id()
-                                    );
-                                }
+                                locate_callback_and_respond::<AGN>(&slab, id, output);
                             }
                         }
                     };
@@ -479,6 +548,8 @@ impl Discoverer for Public {
     }
 }
 
+impl Dispatchable for Public {}
+
 /// A connection manager for components interaction with workers.
 pub struct PublicBridge<T: Agent> {
     worker: Value,
@@ -486,25 +557,22 @@ pub struct PublicBridge<T: Agent> {
     _agent: PhantomData<T>,
 }
 
-impl<AGN: Agent> PublicBridge<AGN> {
-    fn send_to_remote(&self, msg: ToWorker<AGN::Input>) {
-        // TODO Important! Implement.
-        // Use a queue to collect a messages if an instance is not ready
-        // and send them to an agent when it will reported readiness.
-        let msg = msg.pack();
-        let worker = &self.worker;
-        js! {
-            var worker = @{worker};
-            var bytes = @{msg};
-            worker.postMessage(bytes);
-        };
-    }
+fn send_to_remote<AGN: Agent>(worker: &Value, msg: ToWorker<AGN::Input>) {
+    // TODO Important! Implement.
+    // Use a queue to collect a messages if an instance is not ready
+    // and send them to an agent when it will reported readiness.
+    let msg = msg.pack();
+    js! {
+        var worker = @{worker};
+        var bytes = @{msg};
+        worker.postMessage(bytes);
+    };
 }
 
 impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
     fn send(&mut self, msg: AGN::Input) {
         let msg = ToWorker::ProcessInput(self.id, msg);
-        self.send_to_remote(msg);
+        send_to_remote::<AGN>(&self.worker, msg);
     }
 }
 
@@ -519,10 +587,10 @@ impl<AGN: Agent> Drop for PublicBridge<AGN> {
                 }
             };
             let upd = ToWorker::Disconnected(self.id);
-            self.send_to_remote(upd);
+            send_to_remote::<AGN>(&self.worker, upd);
             if terminate_worker {
                 let upd = ToWorker::Destroy;
-                self.send_to_remote(upd);
+                send_to_remote::<AGN>(&self.worker, upd);
                 pool.borrow_mut().remove::<RemoteAgent<AGN>>();
             }
         });
