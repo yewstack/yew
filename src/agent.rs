@@ -7,13 +7,13 @@ use bincode;
 use log::warn;
 use serde::{Deserialize, Serialize};
 use slab::Slab;
+use std::any::TypeId;
 use std::cell::RefCell;
 use std::collections::{hash_map, HashMap, HashSet};
 use std::fmt;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-use std::any::TypeId;
 use stdweb::Value;
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
@@ -573,15 +573,6 @@ pub struct PublicBridge<T: Agent> {
 }
 
 impl<AGN: Agent> PublicBridge<AGN> {
-    fn send_to_remote(&self, msg: ToWorker<AGN::Input>) {
-        if self.worker_is_loaded() {
-            send_to_remote::<AGN>(&self.worker, msg);
-        } else {
-            let msg = msg.pack();
-            self.msg_to_queue(msg);
-        }
-    }
-
     fn worker_is_loaded(&self) -> bool {
         REMOTE_AGENTS_LOADED.with(|local| local.borrow().contains(&TypeId::of::<AGN>()))
     }
@@ -619,7 +610,12 @@ fn send_to_remote<AGN: Agent>(worker: &Value, msg: ToWorker<AGN::Input>) {
 impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
     fn send(&mut self, msg: AGN::Input) {
         let msg = ToWorker::ProcessInput(self.id, msg);
-        send_to_remote::<AGN>(&self.worker, msg);
+        if self.worker_is_loaded() {
+            send_to_remote::<AGN>(&self.worker, msg);
+        } else {
+            let msg = msg.pack();
+            self.msg_to_queue(msg);
+        }
     }
 }
 
