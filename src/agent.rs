@@ -624,10 +624,7 @@ fn send_to_remote<AGN: Agent>(worker: &Value, msg: ToWorker<AGN::Input>) {
 impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
     fn send(&mut self, msg: AGN::Input) {
         let msg = ToWorker::ProcessInput(self.id, msg);
-        
-      
-      
-      ::<AGN>(&self.worker, msg);
+        send_to_remote::<AGN>(&self.worker, msg);
     }
 }
 
