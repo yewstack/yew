@@ -2,9 +2,11 @@
 
 mod b_component;
 mod router;
+mod router_button;
 mod routing;
 use b_component::BModel;
 
+use crate::router_button::RouterButton;
 use log::info;
 use router::Route;
 use yew::agent::Bridged;
@@ -14,15 +16,15 @@ pub enum Child {
     A,
     B,
     PathNotFound(String),
+    Loading,
 }
 
 pub struct Model {
     child: Child,
-    router: Box<Bridge<router::Router<()>>>,
+    router: Box<dyn Bridge<router::Router<()>>>,
 }
 
 pub enum Msg {
-    NavigateTo(Child),
     HandleRoute(Route<()>),
 }
 
@@ -32,40 +34,20 @@ impl Component for Model {
 
     fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
         let callback = link.send_back(|route: Route<()>| Msg::HandleRoute(route));
-        let mut router = router::Router::bridge(callback);
-
-        // TODO Not sure if this is technically correct. This should be sent _after_ the component has been created.
-        // I think the `Component` trait should have a hook called `on_mount()`
-        // that is called after the component has been attached to the vdom.
-        // It seems like this only works because the JS engine decides to activate the
-        // router worker logic after the mounting has finished.
-        router.send(router::Request::GetCurrentRoute);
-
+        let router = router::Router::bridge(callback);
         Model {
-            child: Child::A, // This should be quickly overwritten by the actual route.
+            child: Child::Loading, // This should be quickly overwritten by the actual route.
             router,
         }
     }
 
+    fn mounted(&mut self) -> ShouldRender {
+        self.router.send(router::Request::GetCurrentRoute);
+        false
+    }
+
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::NavigateTo(child) => {
-                let path_segments = match child {
-                    Child::A => vec!["a".into()],
-                    Child::B => vec!["b".into()],
-                    Child::PathNotFound(_) => vec!["path_not_found".into()],
-                };
-
-                let route = router::Route {
-                    path_segments,
-                    query: None,
-                    fragment: None,
-                    state: (),
-                };
-
-                self.router.send(router::Request::ChangeRoute(route));
-                false
-            }
             Msg::HandleRoute(route) => {
                 info!("Routing: {}", route.to_route_string());
                 // Instead of each component selecting which parts of the path are important to it,
@@ -92,8 +74,8 @@ impl Renderable<Model> for Model {
         html! {
             <div>
                 <nav class="menu">
-                    <button onclick=|_| Msg::NavigateTo(Child::A)>{ "Go to A" }</button>
-                    <button onclick=|_| Msg::NavigateTo(Child::B)>{ "Go to B" }</button>
+                    <RouterButton text="Go to A" path="/a" />
+                    <RouterButton text="Go to B" path="/b" />
                 </nav>
                 <div>
                     {self.child.view()}
@@ -105,7 +87,7 @@ impl Renderable<Model> for Model {
 
 impl Renderable<Model> for Child {
     fn view(&self) -> Html<Model> {
-        match *self {
+        match self {
             Child::A => html! {
                 <>
                     {"This corresponds to route 'a'"}
@@ -121,6 +103,9 @@ impl Renderable<Model> for Child {
                 <>
                     {format!("Invalid path: '{}'", path)}
                 </>
+            },
+            Child::Loading => html! {
+                {"Loading"}
             },
         }
     }
