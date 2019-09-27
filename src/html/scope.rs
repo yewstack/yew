@@ -73,10 +73,8 @@ where
             ComponentState::Created(created_state) => {
                 Some(created_state.element.clone()) // Is cloning the element here a good thing?
             }
-            ComponentState::Ready(ready_state) => {
-                Some(ready_state.element.clone())
-            }
-            _ => None
+            ComponentState::Ready(ready_state) => Some(ready_state.element.clone()),
+            _ => None,
         }
     }
 }
