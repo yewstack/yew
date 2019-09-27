@@ -7,6 +7,7 @@ pub mod console;
 pub mod dialog;
 pub mod fetch;
 pub mod interval;
+pub mod keyboard;
 pub mod reader;
 pub mod render;
 pub mod resize;
