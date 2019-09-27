@@ -1,14 +1,10 @@
-#![recursion_limit="128"]
+#![recursion_limit = "512"]
 
-extern crate rand;
-#[macro_use] extern crate log;
-extern crate web_logger;
-#[macro_use] extern crate yew;
-
-use std::time::Duration;
+use log::info;
 use rand::Rng;
-use yew::prelude::*;
+use std::time::Duration;
 use yew::services::{IntervalService, Task};
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 #[derive(Clone, Copy, PartialEq)]
 enum LifeState {
@@ -18,7 +14,7 @@ enum LifeState {
 
 #[derive(Clone, Copy)]
 struct Cellule {
-    life_state: LifeState
+    life_state: LifeState,
 }
 
 pub struct Model {
@@ -26,6 +22,7 @@ pub struct Model {
     cellules: Vec<Cellule>,
     cellules_width: usize,
     cellules_height: usize,
+    #[allow(unused)]
     job: Box<Task>,
 }
 
@@ -70,7 +67,6 @@ fn wrap(coord: isize, range: isize) -> usize {
     result as usize
 }
 
-
 impl Model {
     pub fn random_mutate(&mut self) {
         for cellule in self.cellules.iter_mut() {
@@ -107,8 +103,12 @@ impl Model {
                 }
             }
         }
-        to_dead.iter().for_each(|idx| self.cellules[*idx].set_dead());
-        to_live.iter().for_each(|idx| self.cellules[*idx].set_alive());
+        to_dead
+            .iter()
+            .for_each(|idx| self.cellules[*idx].set_dead());
+        to_live
+            .iter()
+            .for_each(|idx| self.cellules[*idx].set_alive());
     }
 
     fn neighbors(&self, row: isize, col: isize) -> [Cellule; 8] {
@@ -155,16 +155,21 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
         let callback = link.send_back(|_| Msg::Tick);
         let mut interval = IntervalService::new();
         let handle = interval.spawn(Duration::from_millis(200), callback);
         Model {
             active: false,
-            cellules: vec![Cellule { life_state: LifeState::Dead }; 2000],
+            cellules: vec![
+                Cellule {
+                    life_state: LifeState::Dead
+                };
+                2000
+            ],
             cellules_width: 50,
             cellules_height: 40,
-            job : Box::new(handle),
+            job: Box::new(handle),
         }
     }
 
@@ -173,30 +178,30 @@ impl Component for Model {
             Msg::Random => {
                 self.random_mutate();
                 info!("Random");
-            },
+            }
             Msg::Start => {
                 self.active = true;
                 info!("Start");
-            },
+            }
             Msg::Step => {
                 self.step();
-            },
+            }
             Msg::Reset => {
                 self.reset();
                 info!("Reset");
-            },
+            }
             Msg::Stop => {
                 self.active = false;
                 info!("Stop");
-            },
+            }
             Msg::ToggleCellule(idx) => {
                 self.toggle_cellule(idx);
-            },
+            }
             Msg::Tick => {
                 if self.active {
                     self.step();
                 }
-            },
+            }
         }
         true
     }
@@ -206,29 +211,29 @@ impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <div>
-                <section class="game-container",>
-                    <header class="app-header",>
-                        <img src="favicon.ico", class="app-logo",/>
-                        <h1 class="app-title",>{ "Game of Life" }</h1>
+                <section class="game-container">
+                    <header class="app-header">
+                        <img src="favicon.ico" class="app-logo"/>
+                        <h1 class="app-title">{ "Game of Life" }</h1>
                     </header>
-                    <section class="game-area",>
-                        <div class="game-of-life",>
+                    <section class="game-area">
+                        <div class="game-of-life">
                             { for self.cellules.iter().enumerate().map(view_cellule) }
                         </div>
-                        <div class="game-buttons",>
-                            <button class="game-button", onclick=|_| Msg::Random,>{ "Random" }</button>
-                            <button class="game-button", onclick=|_| Msg::Step,>{ "Step" }</button>
-                            <button class="game-button", onclick=|_| Msg::Start,>{ "Start" }</button>
-                            <button class="game-button", onclick=|_| Msg::Stop,>{ "Stop" }</button>
-                            <button class="game-button", onclick=|_| Msg::Reset,>{ "Reset" }</button>
+                        <div class="game-buttons">
+                            <button class="game-button" onclick=|_| Msg::Random>{ "Random" }</button>
+                            <button class="game-button" onclick=|_| Msg::Step>{ "Step" }</button>
+                            <button class="game-button" onclick=|_| Msg::Start>{ "Start" }</button>
+                            <button class="game-button" onclick=|_| Msg::Stop>{ "Stop" }</button>
+                            <button class="game-button" onclick=|_| Msg::Reset>{ "Reset" }</button>
                         </div>
                     </section>
                 </section>
-                <footer class="app-footer",>
-                    <strong class="footer-text",>
+                <footer class="app-footer">
+                    <strong class="footer-text">
                       { "Game of Life - a yew experiment " }
                     </strong>
-                    <a href="https://github.com/DenisKolodin/yew", target="_blank",>{ "source" }</a>
+                    <a href="https://github.com/yewstack/yew" target="_blank">{ "source" }</a>
                 </footer>
             </div>
         }
@@ -237,10 +242,14 @@ impl Renderable<Model> for Model {
 
 fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Model> {
     let cellule_status = {
-        if cellule.life_state == LifeState::Alive { "cellule-live" } else { "cellule-dead" }
+        if cellule.life_state == LifeState::Alive {
+            "cellule-live"
+        } else {
+            "cellule-dead"
+        }
     };
     html! {
-        <div class=("game-cellule", cellule_status),
-            onclick=|_| Msg::ToggleCellule(idx),> </div>
+        <div class=("game-cellule", cellule_status) onclick=|_| Msg::ToggleCellule(idx)>
+        </div>
     }
 }

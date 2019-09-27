@@ -1,13 +1,12 @@
-#[macro_use]
-extern crate yew;
+#![recursion_limit = "128"]
 
-mod counter;
-mod button;
 mod barrier;
+mod button;
+mod counter;
 
-use yew::prelude::*;
-use counter::{Counter, Color};
 use barrier::Barrier;
+use counter::{Color, Counter};
+use yew::prelude::*;
 
 pub struct Model {
     with_barrier: bool,
@@ -20,8 +19,7 @@ pub enum Msg {
     ChildClicked(u32),
 }
 
-impl Component for Model
-{
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
@@ -42,21 +40,21 @@ impl Component for Model
                 self.with_barrier = !self.with_barrier;
                 true
             }
-            Msg::ChildClicked(_value) => {
-                false
-            }
+            Msg::ChildClicked(_value) => false,
         }
     }
 }
 
 impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
-        let counter = |x| html! {
-            <Counter: initial=x, color=&self.color, onclick=Msg::ChildClicked,/>
+        let counter = |x| {
+            html! {
+                <Counter initial=x color=&self.color onclick=Msg::ChildClicked />
+            }
         };
         html! {
-            <div class="custom-components-example",>
-                <button onclick=|_| Msg::Toggle,>{ "Toggle" }</button>
+            <div class="custom-components-example">
+                <button onclick=|_| Msg::Toggle>{ "Toggle" }</button>
                 { self.view_barrier() }
                 { for (1..1001).map(counter) }
             </div>
@@ -68,7 +66,7 @@ impl Model {
     fn view_barrier(&self) -> Html<Self> {
         if self.with_barrier {
             html! {
-                <Barrier: limit=10, onsignal=|_| Msg::Repaint, />
+                <Barrier limit=10 onsignal=|_| Msg::Repaint />
             }
         } else {
             html! {

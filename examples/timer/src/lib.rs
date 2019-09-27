@@ -1,9 +1,8 @@
-#[macro_use]
-extern crate yew;
+#![recursion_limit = "128"]
 
 use std::time::Duration;
-use yew::prelude::*;
-use yew::services::{ConsoleService, IntervalService, TimeoutService, Task};
+use yew::services::{ConsoleService, IntervalService, Task, TimeoutService};
+use yew::{html, Callback, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
     timeout: TimeoutService,
@@ -28,7 +27,7 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
         // This callback doesn't send any message to a scope
         let callback = |_| {
             println!("Example of a standalone callback.");
@@ -52,7 +51,9 @@ impl Component for Model {
         match msg {
             Msg::StartTimeout => {
                 {
-                    let handle = self.timeout.spawn(Duration::from_secs(3), self.callback_done.clone());
+                    let handle = self
+                        .timeout
+                        .spawn(Duration::from_secs(3), self.callback_done.clone());
                     self.job = Some(Box::new(handle));
                 }
                 self.messages.clear();
@@ -62,7 +63,9 @@ impl Component for Model {
             }
             Msg::StartInterval => {
                 {
-                    let handle = self.interval.spawn(Duration::from_secs(1), self.callback_tick.clone());
+                    let handle = self
+                        .interval
+                        .spawn(Duration::from_secs(1), self.callback_tick.clone());
                     self.job = Some(Box::new(handle));
                 }
                 self.messages.clear();
@@ -103,9 +106,9 @@ impl Renderable<Model> for Model {
         let has_job = self.job.is_some();
         html! {
             <div>
-                <button disabled= has_job, onclick=|_| Msg::StartTimeout,>{ "Start Timeout" }</button>
-                <button disabled= has_job, onclick=|_| Msg::StartInterval,>{ "Start Interval" }</button>
-                <button disabled=!has_job, onclick=|_| Msg::Cancel,>{ "Cancel!" }</button>
+                <button disabled=has_job onclick=|_| Msg::StartTimeout>{ "Start Timeout" }</button>
+                <button disabled=has_job onclick=|_| Msg::StartInterval>{ "Start Interval" }</button>
+                <button disabled=!has_job onclick=|_| Msg::Cancel>{ "Cancel!" }</button>
                 <div>
                     { for self.messages.iter().map(view_message) }
                 </div>

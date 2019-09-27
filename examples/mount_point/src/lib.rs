@@ -1,7 +1,4 @@
-#[macro_use]
-extern crate yew;
-
-use yew::prelude::*;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
     name: String,
@@ -35,7 +32,7 @@ impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <div>
-                <input value=&self.name, oninput=|e| Msg::UpdateName(e.value), />
+                <input value=&self.name oninput=|e| Msg::UpdateName(e.value) />
                 <p>{ self.name.chars().rev().collect::<String>() }</p>
             </div>
         }

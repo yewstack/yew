@@ -7,31 +7,28 @@ pub enum Color {
     Blue,
 }
 
+impl Default for Color {
+    fn default() -> Self {
+        Color::Green
+    }
+}
+
 pub struct Counter {
     value: u32,
     color: Color,
-    onclick: Option<Callback<u32>>,
+    onclick: Callback<u32>,
 }
 
 pub enum Msg {
     Increase,
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Properties)]
 pub struct Props {
     pub initial: u32,
     pub color: Color,
-    pub onclick: Option<Callback<u32>>,
-}
-
-impl Default for Props {
-    fn default() -> Self {
-        Props {
-            initial: 0,
-            color: Color::Green,
-            onclick: None,
-        }
-    }
+    #[props(required)]
+    pub onclick: Callback<u32>,
 }
 
 impl Component for Counter {
@@ -50,9 +47,7 @@ impl Component for Counter {
         match msg {
             Msg::Increase => {
                 self.value = self.value + 1;
-                if let Some(ref onclick) = self.onclick {
-                    onclick.emit(self.value);
-                }
+                self.onclick.emit(self.value);
             }
         }
         true
@@ -75,12 +70,10 @@ impl Renderable<Counter> for Counter {
             }
         };
         html! {
-            <div class="couter",>
+            <div class="counter">
                 <p>{ self.value }</p>
-                <button style=colorize, onclick=|_| Msg::Increase,>{ "Increase internal counter" }</button>
+                <button style=colorize onclick=|_| Msg::Increase>{ "Increase internal counter" }</button>
             </div>
         }
     }
 }
-
-

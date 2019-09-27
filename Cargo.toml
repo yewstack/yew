@@ -1,9 +1,13 @@
 [package]
 name = "yew"
-version = "0.5.0"
-authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
-repository = "https://github.com/DenisKolodin/yew"
-homepage = "https://github.com/DenisKolodin/yew"
+version = "0.10.0"
+edition = "2018"
+authors = [
+    "Denis Kolodin <deniskolodin@gmail.com>",
+    "Justin Starry <justin.starry@icloud.com>",
+]
+repository = "https://github.com/yewstack/yew"
+homepage = "https://github.com/yewstack/yew"
 documentation = "https://docs.rs/yew/"
 license = "MIT/Apache-2.0"
 readme = "README.md"
@@ -11,28 +15,70 @@ keywords = ["web", "asmjs", "webasm", "javascript"]
 categories = ["gui", "web-programming"]
 description = "A framework for making client-side single-page apps"
 
+[badges]
+travis-ci = { repository = "yewstack/yew" }
+
 [dependencies]
-failure = "0.1"
-log = "0.4"
-http = "0.1"
-serde = "1.0"
-serde_derive = "1.0"
-serde_json = "1.0"
-bincode = "1.0"
 anymap = "0.12"
-slab = "0.4"
-stdweb = "0.4"
-toml = { version = "0.4", optional = true }
-serde_yaml = { version = "0.7", optional = true }
+bincode = "=1.0.1"
+failure = "0.1"
+http = "0.1"
+indexmap = "1.0.2"
+log = "0.4"
+proc-macro-hack = "0.5"
+proc-macro-nested = "0.1"
 rmp-serde = { version = "0.13.7", optional = true }
-serde_cbor = { version = "0.8.2", optional = true }
+serde = { version = "1.0", features = ["derive"] }
+serde_cbor = { version = "0.9.0", optional = true }
+serde_json = "1.0"
+serde_yaml = { version = "0.8.3", optional = true }
+slab = "0.4"
+stdweb = "^0.4.16"
+toml = { version = "0.4", optional = true }
+yew-macro = { version = "0.10.0", path = "crates/macro" }
+
+[target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
+wasm-bindgen = "=0.2.42"
 
 [dev-dependencies]
 serde_derive = "1"
+trybuild = "1.0"
+rustversion = "0.1"
+
+[target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dev-dependencies]
+wasm-bindgen-test = "0.2"
 
 [features]
 default = []
 web_test = []
+wasm_test = []
 yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
+
+[workspace]
+members = [
+  "crates/macro",
+  "examples/counter",
+  "examples/crm",
+  "examples/custom_components",
+  "examples/dashboard",
+  "examples/file_upload",
+  "examples/fragments",
+  "examples/game_of_life",
+  "examples/inner_html",
+  "examples/js_callback",
+  "examples/large_table",
+  "examples/minimal",
+  "examples/mount_point",
+  "examples/multi_thread",
+  "examples/nested_list",
+  "examples/npm_and_rest",
+  "examples/routing",
+  "examples/server",
+  "examples/showcase",
+  "examples/textarea",
+  "examples/timer",
+  "examples/todomvc",
+  "examples/two_apps",
+]

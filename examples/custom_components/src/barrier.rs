@@ -1,31 +1,22 @@
+use crate::button::Button;
 use yew::prelude::*;
-use button::Button;
 
 pub struct Barrier {
     limit: u32,
     counter: u32,
-    onsignal: Option<Callback<()>>,
+    onsignal: Callback<()>,
 }
 
 pub enum Msg {
     ChildClicked,
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Properties)]
 pub struct Props {
     pub limit: u32,
-    pub onsignal: Option<Callback<()>>,
+    #[props(required)]
+    pub onsignal: Callback<()>,
 }
-
-impl Default for Props {
-    fn default() -> Self {
-        Props {
-            limit: 0,
-            onsignal: None,
-        }
-    }
-}
-
 
 impl Component for Barrier {
     type Message = Msg;
@@ -44,10 +35,8 @@ impl Component for Barrier {
             Msg::ChildClicked => {
                 self.counter += 1;
                 if self.counter >= self.limit {
-                    if let Some(ref mut callback) = self.onsignal {
-                        callback.emit(());
-                        self.counter = 0;
-                    }
+                    self.onsignal.emit(());
+                    self.counter = 0;
                 }
             }
         }
@@ -64,15 +53,14 @@ impl Component for Barrier {
 impl Renderable<Barrier> for Barrier {
     fn view(&self) -> Html<Self> {
         html! {
-            <div class="barrier",>
+            <div class="barrier">
                 <p>{ format!("{} on {} clicked", self.counter, self.limit) }</p>
-                <Button: onsignal=|_| Msg::ChildClicked, />
-                <Button: onsignal=|_| Msg::ChildClicked, />
-                <Button: onsignal=|_| Msg::ChildClicked, title="Middle", />
-                <Button: onsignal=|_| Msg::ChildClicked, />
-                <Button: onsignal=|_| Msg::ChildClicked, />
+                <Button onsignal=|_| Msg::ChildClicked />
+                <Button onsignal=|_| Msg::ChildClicked />
+                <Button onsignal=|_| Msg::ChildClicked title="Middle" />
+                <Button onsignal=|_| Msg::ChildClicked />
+                <Button onsignal=|_| Msg::ChildClicked />
             </div>
         }
     }
 }
-

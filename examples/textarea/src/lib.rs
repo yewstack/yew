@@ -1,7 +1,6 @@
-#[macro_use]
-extern crate yew;
+#![recursion_limit = "128"]
 
-use yew::prelude::*;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
     value: String,
@@ -17,9 +16,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model {
-            value: "".into(),
-        }
+        Model { value: "".into() }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -40,12 +37,12 @@ impl Renderable<Model> for Model {
         html! {
             <div>
                 <div>
-                    <textarea rows=5,
-                        value=&self.value,
-                        oninput=|e| Msg::GotInput(e.value),
-                        placeholder="placeholder",>
+                    <textarea rows=5
+                        value=&self.value
+                        oninput=|e| Msg::GotInput(e.value)
+                        placeholder="placeholder">
                     </textarea>
-                     <button onclick=|_| Msg::Clicked,>{ "change value" }</button>
+                    <button onclick=|_| Msg::Clicked>{ "change value" }</button>
                 </div>
                 <div>
                     {&self.value}

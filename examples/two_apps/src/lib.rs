@@ -1,9 +1,8 @@
+#![recursion_limit = "128"]
+
+use yew::html::Scope;
 /// This example demonstrates low-level usage of scopes.
-
-#[macro_use]
-extern crate yew;
-
-use yew::html::*;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
     scope: Option<Scope<Model>>,
@@ -35,21 +34,32 @@ impl Component for Model {
                 self.scope = Some(scope);
             }
             Msg::SendToOpposite(title) => {
-                self.scope.as_mut().unwrap().send_message(Msg::SetTitle(title));
+                self.scope
+                    .as_mut()
+                    .unwrap()
+                    .send_message(Msg::SetTitle(title));
             }
             Msg::SetTitle(title) => {
                 match title.as_ref() {
                     "Ping" => {
-                        self.scope.as_mut().unwrap().send_message(Msg::SetTitle("Pong".into()));
+                        self.scope
+                            .as_mut()
+                            .unwrap()
+                            .send_message(Msg::SetTitle("Pong".into()));
                     }
                     "Pong" => {
-                        self.scope.as_mut().unwrap().send_message(Msg::SetTitle("Pong Done".into()));
+                        self.scope
+                            .as_mut()
+                            .unwrap()
+                            .send_message(Msg::SetTitle("Pong Done".into()));
                     }
                     "Pong Done" => {
-                        self.scope.as_mut().unwrap().send_message(Msg::SetTitle("Ping Done".into()));
+                        self.scope
+                            .as_mut()
+                            .unwrap()
+                            .send_message(Msg::SetTitle("Ping Done".into()));
                     }
-                    _ => {
-                    }
+                    _ => {}
                 }
                 self.title = title;
             }
@@ -63,10 +73,10 @@ impl Renderable<Model> for Model {
         html! {
             <div>
                 <h3>{ format!("{} received <{}>", self.selector, self.title) }</h3>
-                <button onclick=|_| Msg::SendToOpposite("One".into()),>{ "One" }</button>
-                <button onclick=|_| Msg::SendToOpposite("Two".into()),>{ "Two" }</button>
-                <button onclick=|_| Msg::SendToOpposite("Three".into()),>{ "Three" }</button>
-                <button onclick=|_| Msg::SendToOpposite("Ping".into()),>{ "Ping" }</button>
+                <button onclick=|_| Msg::SendToOpposite("One".into())>{ "One" }</button>
+                <button onclick=|_| Msg::SendToOpposite("Two".into())>{ "Two" }</button>
+                <button onclick=|_| Msg::SendToOpposite("Three".into())>{ "Three" }</button>
+                <button onclick=|_| Msg::SendToOpposite("Ping".into())>{ "Ping" }</button>
             </div>
         }
     }

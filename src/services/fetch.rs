@@ -1,16 +1,92 @@
 //! Service to send HTTP-request to a server.
 
-use std::collections::HashMap;
-
-use stdweb::{Value, JsSerialize};
-use stdweb::web::ArrayBuffer;
-use stdweb::unstable::{TryInto, TryFrom};
-
 use super::Task;
-use format::{Format, Text, Binary};
-use callback::Callback;
+use crate::callback::Callback;
+use crate::format::{Binary, Format, Text};
+use failure::Fail;
+use serde::Serialize;
+use std::collections::HashMap;
+use stdweb::serde::Serde;
+use stdweb::unstable::{TryFrom, TryInto};
+use stdweb::web::ArrayBuffer;
+use stdweb::{JsSerialize, Value};
+#[allow(unused_imports)]
+use stdweb::{_js_impl, js};
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
+
+/// Type to set cache for fetch.
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Cache {
+    /// `default` value of cache.
+    #[serde(rename = "default")]
+    DefaultCache,
+    /// `no-store` value of cache.
+    NoStore,
+    /// `reload` value of cache.
+    Reload,
+    /// `no-cache` value of cache.
+    NoCache,
+    /// `force-cache` value of cache
+    ForceCache,
+    /// `only-if-cached` value of cache
+    OnlyIfCached,
+}
+
+/// Type to set credentials for fetch.
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Credentials {
+    /// `omit` value of credentials.
+    Omit,
+    /// `include` value of credentials.
+    Include,
+    /// `same-origin` value of credentials.
+    SameOrigin,
+}
+
+/// Type to set mode for fetch.
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Mode {
+    /// `same-origin` value of mode.
+    SameOrigin,
+    /// `no-cors` value of mode.
+    NoCors,
+    /// `cors` value of mode.
+    Cors,
+}
+
+/// Type to set redirect behaviour for fetch.
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Redirect {
+    /// `follow` value of redirect.
+    Follow,
+    /// `error` value of redirect.
+    Error,
+    /// `manual` value of redirect.
+    Manual,
+}
+
+/// Init options for `fetch()` function call.
+/// https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
+#[derive(Serialize, Default)]
+pub struct FetchOptions {
+    /// Cache of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache: Option<Cache>,
+    /// Credentials of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub credentials: Option<Credentials>,
+    /// Redirect behaviour of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redirect: Option<Redirect>,
+    /// Request mode of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mode: Option<Mode>,
+}
 
 /// Represents errors of a fetch service.
 #[derive(Debug, Fail)]
@@ -20,6 +96,7 @@ enum FetchError {
 }
 
 /// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
+#[must_use]
 pub struct FetchTask(Option<Value>);
 
 /// A service to fetch resources.
@@ -62,6 +139,7 @@ impl FetchService {
     ///                 Msg::Error
     ///             }
     ///         }
+    ///     )
     /// ```
     ///
     /// One can also simply consume and pass the response or body object into
@@ -78,6 +156,7 @@ impl FetchService {
     ///                 Msg::FetchResourceFailed
     ///             }
     ///         }
+    ///     )
     /// ```
     ///
     pub fn fetch<IN, OUT: 'static>(
@@ -89,7 +168,31 @@ impl FetchService {
         IN: Into<Text>,
         OUT: From<Text>,
     {
-        fetch_impl::<IN, OUT, String, String>(false, request, callback)
+        fetch_impl::<IN, OUT, String, String>(false, request, None, callback)
+    }
+
+    /// `fetch` with provided `FetchOptions` object.
+    /// Use it if you need to send cookies with a request:
+    /// ```rust
+    ///     let request = fetch::Request::get("/path/")
+    ///         .body(Nothing).unwrap();
+    ///     let options = FetchOptions {
+    ///         credentials: Some(Credentials::SameOrigin),
+    ///         ..FetchOptions::default()
+    ///     };
+    ///     let task = fetch_service.fetch_with_options(request, options, callback);
+    /// ```
+    pub fn fetch_with_options<IN, OUT: 'static>(
+        &mut self,
+        request: Request<IN>,
+        options: FetchOptions,
+        callback: Callback<Response<OUT>>,
+    ) -> FetchTask
+    where
+        IN: Into<Text>,
+        OUT: From<Text>,
+    {
+        fetch_impl::<IN, OUT, String, String>(false, request, Some(options), callback)
     }
 
     /// Fetch the data in binary format.
@@ -102,13 +205,28 @@ impl FetchService {
         IN: Into<Binary>,
         OUT: From<Binary>,
     {
-        fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, callback)
+        fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, None, callback)
+    }
+
+    /// Fetch the data in binary format.
+    pub fn fetch_binary_with_options<IN, OUT: 'static>(
+        &mut self,
+        request: Request<IN>,
+        options: FetchOptions,
+        callback: Callback<Response<OUT>>,
+    ) -> FetchTask
+    where
+        IN: Into<Binary>,
+        OUT: From<Binary>,
+    {
+        fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, Some(options), callback)
     }
 }
 
 fn fetch_impl<IN, OUT: 'static, T, X>(
     binary: bool,
     request: Request<IN>,
+    options: Option<FetchOptions>,
     callback: Callback<Response<OUT>>,
 ) -> FetchTask
 where
@@ -127,9 +245,9 @@ where
         .map(|(k, v)| {
             (
                 k.as_str(),
-                v.to_str().expect(
-                    format!("Unparsable request header {}: {:?}", k.as_str(), v).as_str(),
-                ),
+                v.to_str().unwrap_or_else(|_| {
+                    panic!("Unparsable request header {}: {:?}", k.as_str(), v)
+                }),
             )
         })
         .collect();
@@ -172,11 +290,17 @@ where
         };
         var request = new Request(@{uri}, data);
         var callback = @{callback};
+        var abortController = AbortController ? new AbortController() : null;
         var handle = {
             active: true,
             callback,
+            abortController,
         };
-        fetch(request).then(function(response) {
+        var init = @{Serde(options)} || {};
+        if (abortController && !("signal" in init)) {
+            init.signal = abortController.signal;
+        }
+        fetch(request, init).then(function(response) {
             var promise = (@{binary}) ? response.arrayBuffer() : response.text();
             var status = response.status;
             var headers = {};
@@ -196,6 +320,13 @@ where
                     callback.drop();
                 }
             });
+        }).catch(function(e) {
+            if (handle.active == true) {
+                var data = (@{binary}) ? new ArrayBuffer() : "";
+                handle.active = false;
+                callback(false, 408, {}, data);
+                callback.drop();
+            }
         });
         return handle;
     };
@@ -207,7 +338,8 @@ impl Task for FetchTask {
         if let Some(ref task) = self.0 {
             let result = js! {
                 var the_task = @{task};
-                return the_task.active;
+                return the_task.active &&
+                        (!the_task.abortController || !the_task.abortController.signal.aborted);
             };
             result.try_into().unwrap_or(false)
         } else {
@@ -215,16 +347,20 @@ impl Task for FetchTask {
         }
     }
     fn cancel(&mut self) {
-        // Fetch API doesn't support request cancelling
+        // Fetch API doesn't support request cancelling in all browsers
         // and we should use this workaround with a flag.
-        // In fact, request not canceled, but callback won't be called.
-        let handle = self.0
+        // In that case, request not canceled, but callback won't be called.
+        let handle = self
+            .0
             .take()
             .expect("tried to cancel request fetching twice");
         js! {  @(no_return)
             var handle = @{handle};
             handle.active = false;
             handle.callback.drop();
+            if (handle.abortController) {
+                handle.abortController.abort();
+            }
         }
     }
 }

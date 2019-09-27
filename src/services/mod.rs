@@ -7,6 +7,10 @@ pub mod console;
 pub mod dialog;
 pub mod fetch;
 pub mod interval;
+pub mod keyboard;
+pub mod reader;
+pub mod render;
+pub mod resize;
 pub mod storage;
 pub mod timeout;
 pub mod websocket;
@@ -15,6 +19,9 @@ pub use self::console::ConsoleService;
 pub use self::dialog::DialogService;
 pub use self::fetch::FetchService;
 pub use self::interval::IntervalService;
+pub use self::reader::ReaderService;
+pub use self::render::RenderService;
+pub use self::resize::ResizeService;
 pub use self::storage::StorageService;
 pub use self::timeout::TimeoutService;
 pub use self::websocket::WebSocketService;
@@ -32,6 +39,6 @@ pub trait Task: Drop {
 
 #[doc(hidden)]
 fn to_ms(duration: Duration) -> u32 {
-    let ms = duration.subsec_nanos() / 1_000_000;
+    let ms = duration.subsec_millis();
     ms + duration.as_secs() as u32 * 1000
 }

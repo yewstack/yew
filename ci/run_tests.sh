@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Originally this ci script borrowed from https://github.com/koute/stdweb
 # because both use `cargo-web` tool to check the compilation.
@@ -23,10 +23,17 @@ cargo web test --features web_test --target=asmjs-unknown-emscripten
 echo "Testing for wasm32-unknown-emscripten..."
 cargo web test --features web_test --target=wasm32-unknown-emscripten
 
-if [ "$IS_NIGHTLY" = "1" ]; then
-    echo "Testing for wasm32-unknown-unknown..."
-    cargo web test --nodejs --target=wasm32-unknown-unknown
-fi
+echo "Testing for wasm32-unknown-unknown..."
+cargo test --features wasm_test --target=wasm32-unknown-unknown
+
+echo "Testing html macro..."
+cargo test --test macro_test
+
+echo "Testing derive props macro..."
+cargo test --test derive_props_test
+
+echo "Testing macro docs..."
+(cd crates/macro && cargo test)
 
 check_example() {
     echo "Checking example [$2]"
@@ -41,17 +48,6 @@ check_example() {
 check_all_examples() {
     echo "Checking examples on $1..."
     for EXAMPLE in $(pwd)/examples/showcase/sub/*; do
-        if [ "$1" == "wasm32-unknown-unknown" ]; then
-            # The counter example doesn't yet build here.
-            case $(basename $EXAMPLE) in
-                "counter")
-                continue
-                ;;
-                *)
-                ;;
-            esac
-        fi
-
         if [ -d "$EXAMPLE" ]; then
             check_example $1 $EXAMPLE
         fi
@@ -63,7 +59,4 @@ check_all_examples() {
 SHOWCASE=$(pwd)/examples/showcase
 check_example asmjs-unknown-emscripten $SHOWCASE
 check_example wasm32-unknown-emscripten $SHOWCASE
-
-if [ "$IS_NIGHTLY" = "1" ]; then
-    check_example wasm32-unknown-unknown $SHOWCASE
-fi
+check_example wasm32-unknown-unknown $SHOWCASE

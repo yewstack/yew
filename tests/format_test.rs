@@ -1,8 +1,7 @@
-#[macro_use]
-extern crate serde_derive;
-extern crate yew;
-
-use yew::format::{Json, Text, Binary};
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "wasm_test")]
+use wasm_bindgen_test::wasm_bindgen_test as test;
+use yew::format::{Binary, Json, Text};
 
 #[test]
 fn json_format() {

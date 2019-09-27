@@ -1,16 +1,16 @@
 //! This module contains structs to interact with `Scope`s.
 
+use std::fmt;
 use std::rc::Rc;
 
 /// Universal callback wrapper.
 /// <aside class="warning">
-/// Use callbacks carefully, because it you call it from `update` loop
+/// Use callbacks carefully, because if you call it from `update` loop
 /// of `Components` (even from JS) it will delay a message until next.
 /// Callbacks should be used from JS callbacks or `setTimeout` calls.
 /// </aside>
 /// `Rc` wrapper used to make it clonable.
-#[must_use]
-pub struct Callback<IN>(Rc<Fn(IN)>);
+pub struct Callback<IN>(Rc<dyn Fn(IN)>);
 
 impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
     fn from(func: F) -> Self {
@@ -27,6 +27,12 @@ impl<IN> Clone for Callback<IN> {
 impl<IN> PartialEq for Callback<IN> {
     fn eq(&self, other: &Callback<IN>) -> bool {
         Rc::ptr_eq(&self.0, &other.0)
+    }
+}
+
+impl<IN> fmt::Debug for Callback<IN> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Callback<_>")
     }
 }
 

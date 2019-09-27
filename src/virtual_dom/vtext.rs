@@ -1,11 +1,12 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
+use super::{Reform, VDiff, VNode};
+use crate::html::{Component, Scope};
+use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::marker::PhantomData;
-use stdweb::web::{document, INode, Node, TextNode};
-use html::{Component, Scope};
-use super::{Reform, VDiff, VNode};
+use stdweb::web::{document, Element, INode, Node, TextNode};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -33,8 +34,10 @@ impl<COMP: Component> VDiff for VText<COMP> {
     type Component = COMP;
 
     /// Remove VTag from parent.
-    fn detach(&mut self, parent: &Node) -> Option<Node> {
-        let node = self.reference.take()
+    fn detach(&mut self, parent: &Element) -> Option<Node> {
+        let node = self
+            .reference
+            .take()
             .expect("tried to remove not rendered VText from DOM");
         let sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
@@ -49,12 +52,15 @@ impl<COMP: Component> VDiff for VText<COMP> {
     /// has children and renders them.
     fn apply(
         &mut self,
-        parent: &Node,
+        parent: &Element,
         _: Option<&Node>,
         opposite: Option<VNode<Self::Component>>,
         _: &Scope<Self::Component>,
     ) -> Option<Node> {
-        assert!(self.reference.is_none(), "reference is ignored so must not be set");
+        assert!(
+            self.reference.is_none(),
+            "reference is ignored so must not be set"
+        );
         let reform = {
             match opposite {
                 // If element matched this type
@@ -93,7 +99,7 @@ impl<COMP: Component> VDiff for VText<COMP> {
 }
 
 impl<COMP: Component> fmt::Debug for VText<COMP> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "VText {{ text: {} }}", self.text)
     }
 }

@@ -1,12 +1,18 @@
 //! This module contains fragments implementation.
-use super::{VDiff, VNode};
-use html::{Component, Scope};
-use stdweb::web::Node;
+use super::{VDiff, VNode, VText};
+use crate::html::{Component, Scope};
+use stdweb::web::{Element, Node};
 
 /// This struct represents a fragment of the Virtual DOM tree.
 pub struct VList<COMP: Component> {
     /// The list of children nodes. Which also could have own children.
     pub childs: Vec<VNode<COMP>>,
+}
+
+impl<COMP: Component> Default for VList<COMP> {
+    fn default() -> Self {
+        VList::new()
+    }
 }
 
 impl<COMP: Component> VList<COMP> {
@@ -24,7 +30,7 @@ impl<COMP: Component> VList<COMP> {
 impl<COMP: Component> VDiff for VList<COMP> {
     type Component = COMP;
 
-    fn detach(&mut self, parent: &Node) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) -> Option<Node> {
         let mut last_sibling = None;
         for mut child in self.childs.drain(..) {
             last_sibling = child.detach(parent);
@@ -34,52 +40,53 @@ impl<COMP: Component> VDiff for VList<COMP> {
 
     fn apply(
         &mut self,
-        parent: &Node,
+        parent: &Element,
         precursor: Option<&Node>,
-        opposite: Option<VNode<Self::Component>>,
+        ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,
     ) -> Option<Node> {
+        // Reuse precursor, because fragment reuse parent
+        let mut precursor = precursor.map(|node| node.to_owned());
         let mut rights = {
-            match opposite {
+            match ancestor {
                 // If element matched this type
-                Some(VNode::VList(mut vlist)) => {
-                    vlist.childs.drain(..).map(Some).collect::<Vec<_>>()
+                Some(VNode::VList(vlist)) => {
+                    // Previously rendered items
+                    vlist.childs
                 }
-                Some(mut vnode) => {
-                    let _node = vnode.detach(parent);
-                    // TODO Replace precursor?
-                    Vec::new()
+                Some(vnode) => {
+                    // Use the current node as a single fragment list
+                    // and let the `apply` of `VNode` to handle it.
+                    vec![vnode]
                 }
                 None => Vec::new(),
             }
         };
-        // Collect elements of an opposite if exists or use an empty vec
-        // TODO DRY?!
-        let mut lefts = self.childs.iter_mut().map(Some).collect::<Vec<_>>();
-        // Process children
-        let diff = lefts.len() as i32 - rights.len() as i32;
-        if diff > 0 {
-            for _ in 0..diff {
-                rights.push(None);
-            }
-        } else if diff < 0 {
-            for _ in 0..-diff {
-                lefts.push(None);
-            }
+
+        if self.childs.is_empty() {
+            // Fixes: https://github.com/yewstack/yew/issues/294
+            // Without a placeholder the next element becomes first
+            // and corrupts the order of rendering
+            // We use empty text element to stake out a place
+            let placeholder = VText::new("".into());
+            self.childs.push(placeholder.into());
         }
-        // Reuse precursor, because fragment reuse parent
-        let mut precursor = precursor.map(|node| node.to_owned());
-        for pair in lefts.into_iter().zip(rights) {
-            match pair {
-                (Some(left), right) => {
-                    precursor = left.apply(parent, precursor.as_ref(), right, &env);
+
+        // Process children
+        let mut lefts = self.childs.iter_mut();
+        let mut rights = rights.drain(..);
+        loop {
+            match (lefts.next(), rights.next()) {
+                (Some(left), Some(right)) => {
+                    precursor = left.apply(parent, precursor.as_ref(), Some(right), &env);
                 }
-                (None, Some(mut right)) => {
+                (Some(left), None) => {
+                    precursor = left.apply(parent, precursor.as_ref(), None, &env);
+                }
+                (None, Some(ref mut right)) => {
                     right.detach(parent);
                 }
-                (None, None) => {
-                    panic!("redundant iterations during diff");
-                }
+                (None, None) => break,
             }
         }
         precursor

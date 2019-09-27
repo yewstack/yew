@@ -2,6 +2,8 @@
 //! to show alerts and confirm dialogs in a browser.
 
 use stdweb::Value;
+#[allow(unused_imports)]
+use stdweb::{_js_impl, js};
 
 /// A dialog service.
 #[derive(Default)]

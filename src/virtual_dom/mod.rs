@@ -6,16 +6,17 @@ pub mod vnode;
 pub mod vtag;
 pub mod vtext;
 
-use std::collections::{HashMap, HashSet};
+use indexmap::set::IndexSet;
+use std::collections::HashMap;
 use std::fmt;
 use stdweb::web::{Element, EventListenerHandle, Node};
 
-pub use self::vcomp::VComp;
+pub use self::vcomp::{VChild, VComp};
 pub use self::vlist::VList;
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
-use html::{Component, Scope};
+use crate::html::{Component, Scope};
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
@@ -23,24 +24,96 @@ pub trait Listener<COMP: Component> {
     /// Returns standard name of DOM's event.
     fn kind(&self) -> &'static str;
     /// Attaches listener to the element and uses scope instance to send
-    /// prepaired event back to the yew main loop.
+    /// prepared event back to the yew main loop.
     fn attach(&mut self, element: &Element, scope: Scope<COMP>) -> EventListenerHandle;
 }
 
-impl<COMP: Component> fmt::Debug for Listener<COMP> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl<COMP: Component> fmt::Debug for dyn Listener<COMP> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Listener {{ kind: {} }}", self.kind())
     }
 }
 
 /// A list of event listeners.
-type Listeners<COMP> = Vec<Box<Listener<COMP>>>;
+type Listeners<COMP> = Vec<Box<dyn Listener<COMP>>>;
 
 /// A map of attributes.
 type Attributes = HashMap<String, String>;
 
 /// A set of classes.
-type Classes = HashSet<String>;
+#[derive(Debug, Clone, Default)]
+pub struct Classes {
+    set: IndexSet<String>,
+}
+
+impl Classes {
+    /// Creates empty set of classes.
+    pub fn new() -> Self {
+        Self {
+            set: IndexSet::new(),
+        }
+    }
+
+    /// Adds a class to a set.
+    ///
+    /// Prevents duplication of class names.
+    pub fn push(&mut self, class: &str) {
+        self.set.insert(class.into());
+    }
+
+    /// Check the set contains a class.
+    pub fn contains(&self, class: &str) -> bool {
+        self.set.contains(class)
+    }
+
+    /// Adds other classes to this set of classes; returning itself.
+    ///
+    /// Takes the logical union of both `Classes`.
+    pub fn extend<T: Into<Classes>>(mut self, other: T) -> Self {
+        self.set.extend(other.into().set.into_iter());
+        self
+    }
+}
+
+impl ToString for Classes {
+    fn to_string(&self) -> String {
+        let mut buf = String::new();
+        for class in &self.set {
+            buf.push_str(class);
+            buf.push(' ');
+        }
+        buf.pop();
+        buf
+    }
+}
+
+impl From<&str> for Classes {
+    fn from(t: &str) -> Self {
+        let set = t.split_whitespace().map(String::from).collect();
+        Self { set }
+    }
+}
+
+impl From<String> for Classes {
+    fn from(t: String) -> Self {
+        let set = t.split_whitespace().map(String::from).collect();
+        Self { set }
+    }
+}
+
+impl From<&String> for Classes {
+    fn from(t: &String) -> Self {
+        let set = t.split_whitespace().map(String::from).collect();
+        Self { set }
+    }
+}
+
+impl<T: AsRef<str>> From<Vec<T>> for Classes {
+    fn from(t: Vec<T>) -> Self {
+        let set = t.iter().map(|x| x.as_ref().to_string()).collect();
+        Self { set }
+    }
+}
 
 /// Patch for DOM node modification.
 enum Patch<ID, T> {
@@ -76,7 +149,7 @@ pub trait VDiff {
     type Component: Component;
 
     /// Remove itself from parent and return the next sibling.
-    fn detach(&mut self, parent: &Node) -> Option<Node>;
+    fn detach(&mut self, parent: &Element) -> Option<Node>;
 
     /// Scoped diff apply to other tree.
     ///
@@ -101,7 +174,7 @@ pub trait VDiff {
     /// (always removes the `Node` that exists).
     fn apply(
         &mut self,
-        parent: &Node,
+        parent: &Element,
         precursor: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         scope: &Scope<Self::Component>,

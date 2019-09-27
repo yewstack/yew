@@ -1,0 +1,188 @@
+error: this open tag has no corresponding close tag
+ --> $DIR/html-tag-fail.rs:4:13
+  |
+4 |     html! { <div> };
+  |             ^^^^^
+
+error: this open tag has no corresponding close tag
+ --> $DIR/html-tag-fail.rs:5:18
+  |
+5 |     html! { <div><div> };
+  |                  ^^^^^
+
+error: this close tag has no corresponding open tag
+ --> $DIR/html-tag-fail.rs:6:13
+  |
+6 |     html! { </div> };
+  |             ^^^^^^
+
+error: this open tag has no corresponding close tag
+ --> $DIR/html-tag-fail.rs:7:13
+  |
+7 |     html! { <div><div></div> };
+  |             ^^^^^
+
+error: only one root html element allowed
+ --> $DIR/html-tag-fail.rs:8:24
+  |
+8 |     html! { <div></div><div></div> };
+  |                        ^^^^^^^^^^^
+
+error: this close tag has no corresponding open tag
+ --> $DIR/html-tag-fail.rs:9:18
+  |
+9 |     html! { <div></span> };
+  |                  ^^^^^^^
+
+error: this close tag has no corresponding open tag
+  --> $DIR/html-tag-fail.rs:10:20
+   |
+10 |     html! { <tag-a></tag-b> };
+   |                    ^^^^^^^^
+
+error: this close tag has no corresponding open tag
+  --> $DIR/html-tag-fail.rs:11:18
+   |
+11 |     html! { <div></span></div> };
+   |                  ^^^^^^^
+
+error: only one root html element allowed
+  --> $DIR/html-tag-fail.rs:12:20
+   |
+12 |     html! { <img /></img> };
+   |                    ^^^^^^
+
+error: unexpected end of input, expected token tree
+  --> $DIR/html-tag-fail.rs:13:5
+   |
+13 |     html! { <div>Invalid</div> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error: only one `attr` attribute allowed
+  --> $DIR/html-tag-fail.rs:15:27
+   |
+15 |     html! { <input attr=1 attr=2 /> };
+   |                           ^^^^
+
+error: only one `value` attribute allowed
+  --> $DIR/html-tag-fail.rs:16:32
+   |
+16 |     html! { <input value="123" value="456" /> };
+   |                                ^^^^^
+
+error: only one `kind` attribute allowed
+  --> $DIR/html-tag-fail.rs:17:36
+   |
+17 |     html! { <input kind="checkbox" kind="submit" /> };
+   |                                    ^^^^
+
+error: only one `checked` attribute allowed
+  --> $DIR/html-tag-fail.rs:18:33
+   |
+18 |     html! { <input checked=true checked=false /> };
+   |                                 ^^^^^^^
+
+error: only one `disabled` attribute allowed
+  --> $DIR/html-tag-fail.rs:19:34
+   |
+19 |     html! { <input disabled=true disabled=false /> };
+   |                                  ^^^^^^^^
+
+error: only one `selected` attribute allowed
+  --> $DIR/html-tag-fail.rs:20:35
+   |
+20 |     html! { <option selected=true selected=false /> };
+   |                                   ^^^^^^^^
+
+error: only one `class` attribute allowed
+  --> $DIR/html-tag-fail.rs:21:32
+   |
+21 |     html! { <div class="first" class="second" /> };
+   |                                ^^^^^
+
+error: `onclick` attribute value should be a closure
+  --> $DIR/html-tag-fail.rs:30:20
+   |
+30 |     html! { <input onclick=1 /> };
+   |                    ^^^^^^^
+
+error: there must be one closure argument
+  --> $DIR/html-tag-fail.rs:31:28
+   |
+31 |     html! { <input onclick=|| () /> };
+   |                            ^^
+
+error: there must be one closure argument
+  --> $DIR/html-tag-fail.rs:32:28
+   |
+32 |     html! { <input onclick=|a, b| () /> };
+   |                            ^^^^^^
+
+error: invalid closure argument
+  --> $DIR/html-tag-fail.rs:33:28
+   |
+33 |     html! { <input onclick=|a: String| () /> };
+   |                            ^^^^^^^^^^^
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:23:28
+   |
+23 |     html! { <input checked=1 /> };
+   |                            ^ expected bool, found integer
+   |
+   = note: expected type `bool`
+              found type `{integer}`
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:24:29
+   |
+24 |     html! { <input disabled=1 /> };
+   |                             ^ expected bool, found integer
+   |
+   = note: expected type `bool`
+              found type `{integer}`
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:25:30
+   |
+25 |     html! { <option selected=1 /> };
+   |                              ^ expected bool, found integer
+   |
+   = note: expected type `bool`
+              found type `{integer}`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/html-tag-fail.rs:26:25
+   |
+26 |     html! { <input type=() /> };
+   |                         ^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/html-tag-fail.rs:27:26
+   |
+27 |     html! { <input value=() /> };
+   |                          ^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+
+error[E0277]: the trait bound `yew::html::Href: std::convert::From<()>` is not satisfied
+  --> $DIR/html-tag-fail.rs:28:21
+   |
+28 |     html! { <a href=() /> };
+   |                     ^^ the trait `std::convert::From<()>` is not implemented for `yew::html::Href`
+   |
+   = help: the following implementations were found:
+             <yew::html::Href as std::convert::From<&'a str>>
+             <yew::html::Href as std::convert::From<std::string::String>>
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::html::Href>` for `()`
+
+Some errors occurred: E0277, E0308.
+For more information about an error, try `rustc --explain E0277`.

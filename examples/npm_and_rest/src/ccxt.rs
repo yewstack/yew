@@ -1,5 +1,5 @@
-use stdweb::Value;
 use stdweb::unstable::TryInto;
+use stdweb::Value;
 
 #[derive(Default)]
 pub struct CcxtService(Option<Value>);

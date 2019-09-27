@@ -2,11 +2,11 @@
 name = "routing"
 version = "0.1.0"
 authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
+edition = "2018"
 
 [dependencies]
 log = "0.4"
 web_logger = "0.1"
-serde = "1.0"
-serde_derive = "1.0"
+serde = { version = "1.0", features = ["derive"] }
 yew = { path = "../.." }
 stdweb = "0.4"

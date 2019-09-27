@@ -1,36 +1,30 @@
-#![recursion_limit="512"]
+#![recursion_limit = "512"]
 #[macro_use]
 extern crate stdweb;
-extern crate yew;
 
-use yew::prelude::*;
-
-use stdweb::web::Node;
 use stdweb::unstable::TryFrom;
+use stdweb::web::Node;
 use yew::virtual_dom::VNode;
+use yew::{Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub struct Model {
     pub value: i64,
 }
 
-pub enum Msg {
-}
+pub enum Msg {}
 
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model {
-            value: 0,
-        }
+        Model { value: 0 }
     }
 
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         true
     }
 }
-
 
 const SVG: &str = r#"
 <h2>Inline SVG or <i>any</i> HTML:</h2>

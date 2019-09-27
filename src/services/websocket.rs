@@ -1,23 +1,14 @@
 //! Service to connect to a servers by
 //! [`WebSocket` Protocol](https://tools.ietf.org/html/rfc6455).
 
-use stdweb::web::{
-    WebSocket,
-    SocketReadyState,
-    SocketBinaryType,
-    IEventTarget,
-};
-use stdweb::web::event::{
-    SocketOpenEvent,
-    SocketMessageEvent,
-    SocketCloseEvent,
-    SocketErrorEvent,
-};
-use stdweb::traits::IMessageEvent;
-use format::{Text, Binary};
-use callback::Callback;
 use super::Task;
+use crate::callback::Callback;
+use crate::format::{Binary, Text};
+use stdweb::traits::IMessageEvent;
+use stdweb::web::event::{SocketCloseEvent, SocketErrorEvent, SocketMessageEvent, SocketOpenEvent};
+use stdweb::web::{IEventTarget, SocketBinaryType, SocketReadyState, WebSocket};
 
+#[derive(Debug)]
 /// A status of a websocket connection. Used for status notification.
 pub enum WebSocketStatus {
     /// Fired when a websocket connection was opened.
@@ -29,6 +20,7 @@ pub enum WebSocketStatus {
 }
 
 /// A handle to control current websocket connection. Implements `Task` and could be canceled.
+#[must_use]
 pub struct WebSocketTask {
     ws: WebSocket,
     notification: Callback<WebSocketStatus>,
@@ -44,7 +36,7 @@ impl WebSocketService {
         Self {}
     }
 
-    /// Connects to a server by a weboscket connection. Needs two functions to generate
+    /// Connects to a server by a websocket connection. Needs two functions to generate
     /// data and notification messages.
     pub fn connect<OUT: 'static>(
         &mut self,
@@ -92,7 +84,7 @@ impl WebSocketTask {
         IN: Into<Text>,
     {
         if let Ok(body) = data.into() {
-            if let Err(_) = self.ws.send_text(&body) {
+            if self.ws.send_text(&body).is_err() {
                 self.notification.emit(WebSocketStatus::Error);
             }
         }
@@ -104,7 +96,7 @@ impl WebSocketTask {
         IN: Into<Binary>,
     {
         if let Ok(body) = data.into() {
-            if let Err(_) = self.ws.send_bytes(&body) {
+            if self.ws.send_bytes(&body).is_err() {
                 self.notification.emit(WebSocketStatus::Error);
             }
         }

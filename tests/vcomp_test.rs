@@ -1,24 +1,18 @@
-#[macro_use]
-extern crate yew;
-
-use yew::prelude::*;
+#[cfg(feature = "wasm_test")]
+use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+use yew::macros::Properties;
 use yew::virtual_dom::VNode;
+use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+
+#[cfg(feature = "wasm_test")]
+wasm_bindgen_test_configure!(run_in_browser);
 
 struct Comp;
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Properties)]
 struct Props {
     field_1: u32,
     field_2: u32,
-}
-
-impl Default for Props {
-    fn default() -> Self {
-        Props {
-            field_1: 0,
-            field_2: 0,
-        }
-    }
 }
 
 impl Component for Comp {
@@ -43,19 +37,19 @@ impl Renderable<Comp> for Comp {
 #[test]
 fn set_properties_to_component() {
     let _: VNode<Comp> = html! {
-        <Comp: />
+        <Comp />
     };
 
     let _: VNode<Comp> = html! {
-        <Comp: field_1=1, />
+        <Comp field_1=1 />
     };
 
     let _: VNode<Comp> = html! {
-        <Comp: field_2=2, />
+        <Comp field_2=2 />
     };
 
     let _: VNode<Comp> = html! {
-        <Comp: field_1=1, field_2=2, />
+        <Comp field_1=1 field_2=2 />
     };
 
     let props = Props {
@@ -64,6 +58,6 @@ fn set_properties_to_component() {
     };
 
     let _: VNode<Comp> = html! {
-        <Comp: with props, field_2=2, />
+        <Comp with props />
     };
 }

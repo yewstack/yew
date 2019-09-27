@@ -1,7 +1,8 @@
-use failure::Error;
-use yew::format::{Nothing, Json};
-use yew::services::fetch::{FetchService, FetchTask, Request, Response};
+use failure::{format_err, Error};
+use serde_derive::Deserialize;
 use yew::callback::Callback;
+use yew::format::{Json, Nothing};
+use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
 #[derive(Deserialize, Debug)]
 pub struct Profile {
@@ -9,7 +10,7 @@ pub struct Profile {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename_all="camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct Entry {
     id: String,
     hash: String,
@@ -31,14 +32,17 @@ impl GravatarService {
     }
 
     pub fn profile(&mut self, hash: &str, callback: Callback<Result<Profile, Error>>) -> FetchTask {
-        let url = format!("https://gravatar.com/{}", hash);
+        let url = format!("https://en.gravatar.com/{}.json", hash);
         let handler = move |response: Response<Json<Result<Profile, Error>>>| {
             let (meta, Json(data)) = response.into_parts();
             if meta.status.is_success() {
                 callback.emit(data)
             } else {
                 // format_err! is a macro in crate `failure`
-                callback.emit(Err(format_err!("{}: error getting profile https://gravatar.com/", meta.status)))
+                callback.emit(Err(format_err!(
+                    "{}: error getting profile https://gravatar.com/",
+                    meta.status
+                )))
             }
         };
         let request = Request::get(url.as_str()).body(Nothing).unwrap();

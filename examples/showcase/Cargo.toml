@@ -2,12 +2,13 @@
 name = "showcase"
 version = "0.1.0"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>", "Limira"]
+edition = "2018"
 
 [dependencies]
 log = "0.4"
 web_logger = "0.1"
-strum = "0.9"
-strum_macros = "0.9"
+strum = "0.13"
+strum_macros = "0.13"
 yew = { path = "../.." }
 counter = { path = "../counter" }
 crm = { path = "../crm" }
@@ -19,6 +20,7 @@ inner_html = { path = "../inner_html" }
 large_table = { path = "../large_table" }
 mount_point = { path = "../mount_point" }
 npm_and_rest = { path = "../npm_and_rest" }
+routing = { path = "../routing" }
 textarea = { path = "../textarea" }
 timer = { path = "../timer" }
 todomvc = { path = "../todomvc" }
