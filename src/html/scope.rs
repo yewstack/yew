@@ -13,6 +13,8 @@ pub type NodeCell = Rc<RefCell<Option<Node>>>;
 pub(crate) enum ComponentUpdate<COMP: Component> {
     /// Wraps messages for a component.
     Message(COMP::Message),
+    /// Wraps batch of messages for a component.
+    MessageBatch(Vec<COMP::Message>),
     /// Wraps properties for a component.
     Properties(COMP::Properties),
 }
@@ -58,6 +60,11 @@ where
     /// Send a message to the component
     pub fn send_message(&mut self, msg: COMP::Message) {
         self.update(ComponentUpdate::Message(msg));
+    }
+
+    /// send batch of messages to the component
+    pub fn send_message_batch(&mut self, messages: Vec<COMP::Message>) {
+        self.update(ComponentUpdate::MessageBatch(messages));
     }
 }
 
@@ -249,7 +256,10 @@ where
         self.shared_state.replace(match current_state {
             ComponentState::Created(mut this) => {
                 let should_update = match self.update {
-                    ComponentUpdate::Message(msg) => this.component.update(msg),
+                    ComponentUpdate::Message(message) => this.component.update(message),
+                    ComponentUpdate::MessageBatch(messages) => messages
+                        .into_iter()
+                        .fold(false, |acc, msg| this.component.update(msg) || acc),
                     ComponentUpdate::Properties(props) => this.component.change(props),
                 };
                 let next_state = if should_update { this.update() } else { this };
