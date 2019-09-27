@@ -12,11 +12,11 @@
 
 - #### ⚡️ Features
 
-  - KeyboardService has been added which allows setting key listeners for browsers which support the feature. [[@hgzimmerman], [#647](https://github.com/yewstack/yew/pull/647)]
-  - ComponentLink can now create a Callback with more than one Message. The Messages will be batched together so that the Component will not be re-rendered more than necessary. [[@stkevintan], [#660](https://github.com/yewstack/yew/pull/660)]
-  - Messages to Public Agents will now be queued if the Agent hasn't finished setting up yet. [[@serzhiio], [#596](https://github.com/yewstack/yew/pull/596)]
-  - Agents can now be connected to without a callback. Instead of creating a bridge to the agent, create a dispatcher like so: `MyAgent::dispatcher()`. [[@hgzimmerman], [#639](https://github.com/yewstack/yew/pull/639)]
-  - Components can now accept children in the `html!` macro. [[@jstarry], [#589](https://github.com/yewstack/yew/pull/589)]
+  - New `KeyboardService` for setting up key listeners on browsers which support the feature. [[@hgzimmerman], [#647](https://github.com/yewstack/yew/pull/647)]
+  - `ComponentLink` can now create a `Callback` with more than one `Message`. The `Message`'s will be batched together so that the `Component` will not be re-rendered more than necessary. [[@stkevintan], [#660](https://github.com/yewstack/yew/pull/660)]
+  - `Message`'s to `Public` `Agent`'s will now be queued if the `Agent` hasn't finished setting up yet. [[@serzhiio], [#596](https://github.com/yewstack/yew/pull/596)]
+  - `Agent`'s can now be connected to without a `Callback`. Instead of creating a bridge to the agent, create a dispatcher like so: `MyAgent::dispatcher()`. [[@hgzimmerman], [#639](https://github.com/yewstack/yew/pull/639)]
+  - `Component`'s can now accept children in the `html!` macro. [[@jstarry], [#589](https://github.com/yewstack/yew/pull/589)]
 
     ```rust
     // app.rs
@@ -51,7 +51,7 @@
     }
     ```
 
-  - Iterators can now be rendered in the `html!` macro without using the `for` keyword. [[@hgzimmerman], [#622](https://github.com/yewstack/yew/pull/622)]
+  - `Iterator`s can now be rendered in the `html!` macro without using the `for` keyword. [[@hgzimmerman], [#622](https://github.com/yewstack/yew/pull/622)]
 
     Before:
     ```rust
