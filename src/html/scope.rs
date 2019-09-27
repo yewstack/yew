@@ -66,6 +66,19 @@ where
     pub fn send_message_batch(&mut self, messages: Vec<COMP::Message>) {
         self.update(ComponentUpdate::MessageBatch(messages));
     }
+
+    pub(crate) fn get_element(&self) -> Option<Element> {
+        use std::ops::Deref;
+        match self.shared_state.as_ref().borrow().deref() {
+            ComponentState::Created(created_state) => {
+                Some(created_state.element.clone()) // Is cloning the element here a good thing?
+            }
+            ComponentState::Ready(ready_state) => {
+                Some(ready_state.element.clone())
+            }
+            _ => None
+        }
+    }
 }
 
 enum ComponentState<COMP: Component> {

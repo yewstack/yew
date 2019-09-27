@@ -254,6 +254,11 @@ where
     pub fn send_self(&mut self, msg: COMP::Message) {
         self.scope.send_message(msg);
     }
+
+    /// Gets the reference to the parent element.
+    pub fn get_ref(&self) -> stdweb::web::Element {
+        self.scope.get_element().expect("Component was not in either the created or ready state required to get the parent element.")
+    }
 }
 
 impl<COMP: Component> fmt::Debug for ComponentLink<COMP> {
