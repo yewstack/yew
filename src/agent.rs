@@ -33,21 +33,18 @@ enum FromWorker<T> {
     ProcessOutput(HandlerId, T),
 }
 
-
 trait Packed {
     fn pack(&self) -> Vec<u8>;
     fn unpack(data: &[u8]) -> Self;
 }
 
-impl<T: Serialize + for <'de> Deserialize<'de>> Packed for T {
+impl<T: Serialize + for<'de> Deserialize<'de>> Packed for T {
     fn pack(&self) -> Vec<u8> {
-        bincode::serialize(&self)
-            .expect("can't serialize an agent message")
+        bincode::serialize(&self).expect("can't serialize an agent message")
     }
 
     fn unpack(data: &[u8]) -> Self {
-        bincode::deserialize(&data)
-            .expect("can't deserialize an agent message")
+        bincode::deserialize(&data).expect("can't deserialize an agent message")
     }
 }
 
@@ -650,9 +647,9 @@ pub trait Agent: Sized + 'static {
     /// Type of an input messagae.
     type Message;
     /// Incoming message type.
-    type Input: Serialize + for <'de> Deserialize<'de>;
+    type Input: Serialize + for<'de> Deserialize<'de>;
     /// Outgoing message type.
-    type Output: Serialize + for <'de> Deserialize<'de>;
+    type Output: Serialize + for<'de> Deserialize<'de>;
 
     /// Creates an instance of an agent.
     fn create(link: AgentLink<Self>) -> Self;

@@ -71,7 +71,6 @@ where
     BrowserNavigationRouteChanged((String, T)),
 }
 
-impl<T> Transferable for Route<T> where for<'de> T: Serialize + Deserialize<'de> {}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request<T> {
@@ -81,8 +80,6 @@ pub enum Request<T> {
     ChangeRouteNoBroadcast(Route<T>),
     GetCurrentRoute,
 }
-
-impl<T> Transferable for Request<T> where for<'de> T: Serialize + Deserialize<'de> {}
 
 /// The Router worker holds on to the RouteService singleton and mediates access to it.
 pub struct Router<T>
