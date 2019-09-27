@@ -224,6 +224,19 @@ where
         }
     }
 
+    /// This method sends batch of messages back to the component's loop
+    pub fn send_back_batch<F, IN>(&mut self, function: F) -> Callback<IN>
+    where
+        F: Fn(IN) -> Vec<COMP::Message> + 'static,
+    {
+        let scope = self.scope.clone();
+        let closure = move |input| {
+            let messages = function(input);
+            scope.clone().send_message_batch(messages);
+        };
+        closure.into()
+    }
+
     /// This method sends messages back to the component's loop.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
