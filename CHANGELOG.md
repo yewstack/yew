@@ -8,10 +8,12 @@
 
 - #### 🚨 Breaking changes
 
-## ✨ **0.9** *(2019-09-24)*
+## ✨ **0.9** *(2019-09-27)*
 
 - #### ⚡️ Features
 
+  - KeyboardService has been added which allows setting key listeners for browsers which support the feature. [[@hgzimmerman], [#647](https://github.com/yewstack/yew/pull/647)]
+  - ComponentLink can now create a Callback with more than one Message. The Messages will be batched together so that the Component will not be re-rendered more than necessary. [[@stkevintan], [#660](https://github.com/yewstack/yew/pull/660)]
   - Messages to Public Agents will now be queued if the Agent hasn't finished setting up yet. [[@serzhiio], [#596](https://github.com/yewstack/yew/pull/596)]
   - Agents can now be connected to without a callback. Instead of creating a bridge to the agent, create a dispatcher like so: `MyAgent::dispatcher()`. [[@hgzimmerman], [#639](https://github.com/yewstack/yew/pull/639)]
   - Components can now accept children in the `html!` macro. [[@jstarry], [#589](https://github.com/yewstack/yew/pull/589)]
@@ -230,6 +232,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@jstarry]: https://github.com/jstarry
 [@kellytk]: https://github.com/kellytk
 [@serzhiio]: https://github.com/serzhiio
+[@stkevintan]: https://github.com/stkevintan
 [@tiziano88]: https://github.com/tiziano88
 [@totorigolo]: https://github.com/totorigolo
 [@Wodann]: https://github.com/Wodann
