@@ -348,6 +348,7 @@ Implemented:
 * `ConsoleService`
 * `FetchService`
 * `WebSocketService`
+* `KeyboardService`
 
 ```rust
 use yew::services::{ConsoleService, TimeoutService};
