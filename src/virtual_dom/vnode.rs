@@ -120,44 +120,44 @@ impl<COMP: Component> From<&String> for VNode<COMP> {
 }
 /// Macro used to implement From<T> for VNode<COMP> for types that implement to_string.
 macro_rules! impl_from_for_vnode {
-    ($t: ty) => {
+    ($($t: ty),*) => {
+        $(
         impl<COMP: Component> From<$t> for VNode<COMP> {
             fn from(value: $t) -> Self {
                 VNode::VText(VText::new(value.to_string()))
             }
         }
+        )*
     }
 }
 
-impl_from_for_vnode!(&str);
-impl_from_for_vnode!(Cow<'_, &str>);
-impl_from_for_vnode!(bool);
-
-impl_from_for_vnode!(usize);
-impl_from_for_vnode!(u128);
-impl_from_for_vnode!(u64);
-impl_from_for_vnode!(u32);
-impl_from_for_vnode!(u16);
-impl_from_for_vnode!(u8);
-impl_from_for_vnode!(std::num::NonZeroU128);
-impl_from_for_vnode!(std::num::NonZeroU64);
-impl_from_for_vnode!(std::num::NonZeroU32);
-impl_from_for_vnode!(std::num::NonZeroU16);
-impl_from_for_vnode!(std::num::NonZeroU8);
-
-impl_from_for_vnode!(isize);
-impl_from_for_vnode!(i128);
-impl_from_for_vnode!(i64);
-impl_from_for_vnode!(i32);
-impl_from_for_vnode!(i16);
-impl_from_for_vnode!(i8);
-impl_from_for_vnode!(std::num::NonZeroI128);
-impl_from_for_vnode!(std::num::NonZeroI64);
-impl_from_for_vnode!(std::num::NonZeroI32);
-impl_from_for_vnode!(std::num::NonZeroI16);
-impl_from_for_vnode!(std::num::NonZeroI8);
-
-
+impl_from_for_vnode!(
+    &str,
+    Cow<'_, &str>,
+    bool,
+    usize,
+    u128,
+    u64,
+    u32,
+    u16,
+    u8,
+    std::num::NonZeroU128,
+    std::num::NonZeroU64,
+    std::num::NonZeroU32,
+    std::num::NonZeroU16,
+    std::num::NonZeroU8,
+    isize,
+    i128,
+    i64,
+    i32,
+    i16,
+    i8,
+    std::num::NonZeroI128,
+    std::num::NonZeroI64,
+    std::num::NonZeroI32,
+    std::num::NonZeroI16,
+    std::num::NonZeroI8
+);
 
 impl<'a, COMP: Component> From<&'a dyn Renderable<COMP>> for VNode<COMP> {
     fn from(value: &'a dyn Renderable<COMP>) -> Self {
