@@ -49,7 +49,7 @@ This framework is designed to be compiled into modern browsers' runtimes: wasm, 
 
 To prepare the development environment use the installation instruction here: [wasm-and-rust](https://github.com/raphamorim/wasm-and-rust).
 
-### Clean Flux architecture inspired by Elm and Redux
+### Architecture inspired by Elm and Redux
 
 Yew implements strict application state management based on message passing and updates:
 
