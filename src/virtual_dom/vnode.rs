@@ -119,7 +119,7 @@ impl<COMP: Component> From<&String> for VNode<COMP> {
     }
 }
 /// Macro used to implement From<T> for VNode<COMP> for types that implement to_string.
-macro_rules! impl_from_for_vnode {
+macro_rules! impl_from_tostring_for_vnode {
     ($($t: ty),*) => {
         $(
         impl<COMP: Component> From<$t> for VNode<COMP> {
@@ -131,7 +131,7 @@ macro_rules! impl_from_for_vnode {
     }
 }
 
-impl_from_for_vnode!(
+impl_from_tostring_for_vnode!(
     &str,
     Cow<'_, &str>,
     bool,
