@@ -2,6 +2,7 @@
 
 use super::{VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{Component, Renderable, Scope};
+use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
@@ -106,8 +107,26 @@ where
     }
 }
 
-impl<COMP: Component, T: ToString> From<T> for VNode<COMP> {
-    fn from(value: T) -> Self {
+impl<COMP: Component> From<String> for VNode<COMP> {
+    fn from(value: String) -> Self {
+        VNode::VText(VText::new(value.to_string()))
+    }
+}
+
+impl<COMP: Component> From<&String> for VNode<COMP> {
+    fn from(value: &String) -> Self {
+        VNode::VText(VText::new(value.clone()))
+    }
+}
+
+impl<COMP: Component> From<&str> for VNode<COMP> {
+    fn from(value: &str) -> Self {
+        VNode::VText(VText::new(value.to_string()))
+    }
+}
+
+impl<COMP: Component> From<Cow<'_, &str>> for VNode<COMP> {
+    fn from(value: Cow<'_, &str>) -> Self {
         VNode::VText(VText::new(value.to_string()))
     }
 }
@@ -115,6 +134,15 @@ impl<COMP: Component, T: ToString> From<T> for VNode<COMP> {
 impl<'a, COMP: Component> From<&'a dyn Renderable<COMP>> for VNode<COMP> {
     fn from(value: &'a dyn Renderable<COMP>) -> Self {
         value.view()
+    }
+}
+
+impl<COMP: Component, T: Into<VNode<COMP>>> From<Option<T>> for VNode<COMP> {
+    fn from(value: Option<T>) -> Self {
+        match value {
+            Some(vnode) => vnode.into(),
+            None => VNode::VList(VList { childs: vec![] }),
+        }
     }
 }
 
