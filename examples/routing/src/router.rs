@@ -71,7 +71,6 @@ where
     BrowserNavigationRouteChanged((String, T)),
 }
 
-
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request<T> {
     /// Changes the route using a RouteInfo struct and alerts connected components to the route change.
