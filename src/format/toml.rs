@@ -5,12 +5,16 @@ use toml;
 /// A representation of a TOML data. Use it as wrapper to
 /// set a format you want to use for conversion:
 ///
-/// ```rust
+/// ```
 /// // Converts (lazy) data to a Toml
+///# use yew::format::Toml;
+///# fn dont_execute() {
+///# let data: String = unimplemented!();
 /// let dump = Toml(&data);
 ///
 /// // Converts TOML string to a data (lazy).
 /// let Toml(data) = dump;
+/// }
 /// ```
 pub struct Toml<T>(pub T);
 
