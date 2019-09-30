@@ -10,7 +10,7 @@ use stdweb::web::{document, Element, INode, Node, TextNode};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
-/// represenation.
+/// representation.
 pub struct VText<COMP: Component> {
     /// Contains a text of the node.
     pub text: String,
@@ -33,7 +33,7 @@ impl<COMP: Component> VText<COMP> {
 impl<COMP: Component> VDiff for VText<COMP> {
     type Component = COMP;
 
-    /// Remove VTag from parent.
+    /// Remove VText from parent.
     fn detach(&mut self, parent: &Element) -> Option<Node> {
         let node = self
             .reference
@@ -48,7 +48,7 @@ impl<COMP: Component> VDiff for VText<COMP> {
 
     /// Renders virtual node over existent `TextNode`, but
     /// only if value of text had changed.
-    /// Parameter `precursor` is necesssary for `VTag` and `VList` which
+    /// Parameter `precursor` is necessary for `VTag` and `VList` which
     /// has children and renders them.
     fn apply(
         &mut self,

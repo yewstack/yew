@@ -135,7 +135,7 @@ enum Reform {
     /// new node in the correct slot of the parent.
     ///
     /// If it does not exist, a `precursor` must be
-    /// speccified (see `VDiff::apply()`).
+    /// specified (see `VDiff::apply()`).
     Before(Option<Node>),
 }
 
@@ -143,7 +143,7 @@ enum Reform {
 // In makes possible to include ANY element into the tree.
 // `Ace` editor embedding for example?
 
-/// This trait provides features to update a tree by other tree comparsion.
+/// This trait provides features to update a tree by calculating a difference against another tree.
 pub trait VDiff {
     /// The component which this instance put into.
     type Component: Component;
@@ -154,7 +154,7 @@ pub trait VDiff {
     /// Scoped diff apply to other tree.
     ///
     /// Virtual rendering for the node. It uses parent node and existing children (virtual and DOM)
-    /// to check the difference and apply patches to the actual DOM represenatation.
+    /// to check the difference and apply patches to the actual DOM representation.
     ///
     /// Parameters:
     /// - `parent`: the parent node in the DOM.
