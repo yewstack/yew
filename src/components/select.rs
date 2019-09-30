@@ -3,17 +3,35 @@
 //! helps you to track selected value in an original type. Example:
 //!
 //! ```
+//!# use yew::{Html, Component, components::Select, ComponentLink, Renderable, html};
+//!# struct Model;
+//!# impl Component for Model {
+//!#     type Message = ();type Properties = ();
+//!#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
+//!#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+//!# }
+//!# impl Renderable<Model> for Model {fn view(&self) -> Html<Model> {unimplemented!()}}
+//! #[derive(PartialEq, Clone)]
 //! enum Scene {
 //!     First,
 //!     Second,
+//! }
+//! impl ToString for Scene {
+//!     fn to_string(&self) -> String {
+//!         match self {
+//!             Scene::First => "First".to_string(),
+//!             Scene::Second => "Second".to_string()
+//!         }
+//!     }
 //! }
 //!
 //! fn view() -> Html<Model> {
 //!     let scenes = vec![Scene::First, Scene::Second];
 //!     html! {
-//!         <Select<Scenes> options=scenes />
+//!         <Select<Scene> options=scenes onchange=|_| () />
 //!     }
 //! }
+//! ```
 
 use crate::callback::Callback;
 use crate::html::{ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
