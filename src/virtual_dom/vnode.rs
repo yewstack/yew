@@ -72,7 +72,7 @@ impl<COMP: Component> VDiff for VNode<COMP> {
     }
 }
 
-impl <COMP: Component> Default for VNode<COMP> {
+impl<COMP: Component> Default for VNode<COMP> {
     fn default() -> Self {
         VNode::VList(VList::new())
     }
