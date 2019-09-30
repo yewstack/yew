@@ -3,7 +3,7 @@
 /// A representation of a JSON data. Use it as wrapper to
 /// set a format you want to use for conversion:
 ///
-/// ```rust
+/// ```
 /// // Converts (lazy) data to a Json
 /// use yew::format::Json;
 /// let data: String = r#"{lorem: "ipsum"}"#.to_string();
