@@ -2,7 +2,7 @@
 
 use yew::html::Scope;
 /// This example demonstrates low-level usage of scopes.
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     scope: Option<Scope<Model>>,

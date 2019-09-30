@@ -10,7 +10,7 @@ use crate::router_button::RouterButton;
 use log::info;
 use router::Route;
 use yew::agent::Bridged;
-use yew::{html, Bridge, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Bridge, Component, ComponentLink, Html, Renderable, ShouldRender};
 
 pub enum Child {
     A,

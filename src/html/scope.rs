@@ -177,7 +177,7 @@ where
 
 impl<COMP> Default for Scope<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
 {
     fn default() -> Self {
         Scope::new()

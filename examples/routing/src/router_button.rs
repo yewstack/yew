@@ -60,14 +60,13 @@ impl Component for RouterButton {
             }
         }
     }
+
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         self.props = props;
         true
     }
-}
 
-impl Renderable<RouterButton> for RouterButton {
-    fn view(&self) -> Html<RouterButton> {
+    fn render(&self) -> Html<RouterButton> {
         html! {
             <button
                 class=self.props.classes.clone(),
