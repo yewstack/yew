@@ -653,9 +653,9 @@ impl Discoverer for Global {}
 
 /// Declares the behavior of the agent.
 pub trait Agent: Sized + 'static {
-    /// Reach capaility of the agent.
+    /// Reach capability of the agent.
     type Reach: Discoverer;
-    /// Type of an input messagae.
+    /// Type of an input message.
     type Message;
     /// Incoming message type.
     type Input: Transferable;
@@ -687,7 +687,7 @@ pub trait Agent: Sized + 'static {
     }
 }
 
-/// This sctruct holds a reference to a component and to a global scheduler.
+/// This struct holds a reference to a component and to a global scheduler.
 pub struct AgentScope<AGN: Agent> {
     shared_agent: Shared<AgentRunnable<AGN>>,
 }
