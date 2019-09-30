@@ -133,9 +133,7 @@ macro_rules! impl_from_tostring_for_vnode {
 
 impl<COMP: Component> From<()> for VNode<COMP> {
     fn from(value: ()) -> Self {
-        VNode::VList(VList {
-            childs: vec![]
-        })
+        VNode::VList(VList { childs: vec![] })
     }
 }
 
