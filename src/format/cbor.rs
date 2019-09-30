@@ -12,6 +12,7 @@ use serde_cbor;
 /// // Converts CBOR string to a data (lazy).
 /// let Cbor(data) = dump;
 /// ```
+#[derive(Debug)]
 pub struct Cbor<T>(pub T);
 
 binary_format!(Cbor based on serde_cbor);

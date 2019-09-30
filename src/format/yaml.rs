@@ -12,6 +12,7 @@ use serde_yaml;
 /// // Converts YAML string to a data (lazy).
 /// let Yaml(data) = dump;
 /// ```
+#[derive(Debug)]
 pub struct Yaml<T>(pub T);
 
 text_format!(Yaml based on serde_yaml);

@@ -12,6 +12,7 @@ use toml;
 /// // Converts TOML string to a data (lazy).
 /// let Toml(data) = dump;
 /// ```
+#[derive(Debug)]
 pub struct Toml<T>(pub T);
 
 text_format!(Toml based on toml);
