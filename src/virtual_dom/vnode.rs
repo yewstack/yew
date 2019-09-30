@@ -72,6 +72,12 @@ impl<COMP: Component> VDiff for VNode<COMP> {
     }
 }
 
+impl<COMP: Component> Default for VNode<COMP> {
+    fn default() -> Self {
+        VNode::VList(VList::new())
+    }
+}
+
 impl<COMP: Component> From<VText<COMP>> for VNode<COMP> {
     fn from(vtext: VText<COMP>) -> Self {
         VNode::VText(vtext)
