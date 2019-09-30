@@ -7,9 +7,10 @@ use crate::format::{Binary, Text};
 use stdweb::traits::IMessageEvent;
 use stdweb::web::event::{SocketCloseEvent, SocketErrorEvent, SocketMessageEvent, SocketOpenEvent};
 use stdweb::web::{IEventTarget, SocketBinaryType, SocketReadyState, WebSocket};
+use std::fmt;
 
-#[derive(Debug)]
 /// A status of a websocket connection. Used for status notification.
+#[derive(Debug)]
 pub enum WebSocketStatus {
     /// Fired when a websocket connection was opened.
     Opened,
@@ -26,8 +27,14 @@ pub struct WebSocketTask {
     notification: Callback<WebSocketStatus>,
 }
 
+impl fmt::Debug for WebSocketTask {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("WebSocketTask")
+    }
+}
+
 /// A websocket service attached to a user context.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct WebSocketService {}
 
 impl WebSocketService {

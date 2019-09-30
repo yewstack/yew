@@ -5,16 +5,24 @@ use stdweb::{
     web::{window, Window},
 };
 use yew::callback::Callback;
+use std::fmt;
 
 /// A service that fires events when the browser window resizes.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ResizeService {}
 
 /// A handle to the event listener for resize events.
 #[must_use]
 pub struct ResizeTask(Option<Value>);
 
+impl fmt::Debug for ResizeTask {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("ResizeTask")
+    }
+}
+
 /// Dimensions of the window.
+#[derive(Debug)]
 pub struct WindowDimensions {
     /// The width of the viewport of the browser window.
     pub width: i32,

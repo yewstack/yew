@@ -68,6 +68,13 @@ impl HandlerId {
     }
 }
 
+
+impl fmt::Debug for HandlerId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("HandlerId")
+    }
+}
+
 /// This trait allows registering or getting the address of a worker.
 pub trait Bridged: Agent + Sized + 'static {
     /// Creates a messaging bridge between a worker and the component.
@@ -249,6 +256,7 @@ thread_local! {
 }
 
 /// Create a single instance in the current thread.
+#[allow(missing_debug_implementations)]
 pub struct Context;
 
 impl Discoverer for Context {
@@ -344,6 +352,7 @@ impl<AGN: Agent> Drop for ContextBridge<AGN> {
 }
 
 /// Create an instance in the current thread.
+#[allow(missing_debug_implementations)]
 pub struct Job;
 
 impl Discoverer for Job {
@@ -397,6 +406,7 @@ impl<AGN: Agent> Drop for JobBridge<AGN> {
 // <<< SEPARATE THREAD >>>
 
 /// Create a new instance for every bridge.
+#[allow(missing_debug_implementations)]
 pub struct Private;
 
 impl Discoverer for Private {
@@ -436,6 +446,12 @@ impl Discoverer for Private {
 pub struct PrivateBridge<T: Agent> {
     worker: Value,
     _agent: PhantomData<T>,
+}
+
+impl <AGN: Agent> fmt::Debug for PrivateBridge<AGN> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("PrivateBridge<_>")
+    }
 }
 
 impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
@@ -494,6 +510,7 @@ thread_local! {
 }
 
 /// Create a single instance in a tab.
+#[allow(missing_debug_implementations)]
 pub struct Public;
 
 impl Discoverer for Public {
@@ -555,10 +572,17 @@ impl Discoverer for Public {
 impl Dispatchable for Public {}
 
 /// A connection manager for components interaction with workers.
-pub struct PublicBridge<T: Agent> {
+pub struct PublicBridge<AGN: Agent> {
     worker: Value,
     id: HandlerId,
-    _agent: PhantomData<T>,
+    _agent: PhantomData<AGN>,
+}
+
+
+impl <AGN: Agent> fmt::Debug for PublicBridge<AGN> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("PublicBridge<_>")
+    }
 }
 
 impl<AGN: Agent> PublicBridge<AGN> {
@@ -636,6 +660,7 @@ impl<AGN: Agent> Drop for PublicBridge<AGN> {
 }
 
 /// Create a single instance in a browser.
+#[allow(missing_debug_implementations)]
 pub struct Global;
 
 impl Discoverer for Global {}
@@ -679,6 +704,12 @@ pub trait Agent: Sized + 'static {
 /// This struct holds a reference to a component and to a global scheduler.
 pub struct AgentScope<AGN: Agent> {
     shared_agent: Shared<AgentRunnable<AGN>>,
+}
+
+impl <AGN: Agent> fmt::Debug for AgentScope<AGN> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("AgentScope<_>")
+    }
 }
 
 impl<AGN: Agent> Clone for AgentScope<AGN> {

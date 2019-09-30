@@ -10,6 +10,7 @@
 /// // Converts JSON string to a data (lazy).
 /// let Json(data) = dump;
 /// ```
+#[derive(Debug)]
 pub struct Json<T>(pub T);
 
 text_format!(Json based on serde_json);

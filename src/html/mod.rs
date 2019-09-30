@@ -193,6 +193,7 @@ pub trait Properties {
 }
 
 /// Builder for when a component has no properties
+#[derive(Debug)]
 pub struct EmptyBuilder;
 
 impl Properties for () {

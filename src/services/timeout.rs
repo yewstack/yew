@@ -7,13 +7,21 @@ use std::time::Duration;
 use stdweb::Value;
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
+use std::fmt;
 
 /// A handle to cancel a timeout task.
 #[must_use]
 pub struct TimeoutTask(Option<Value>);
 
+
+impl fmt::Debug for TimeoutTask {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("TimeoutTask")
+    }
+}
+
 /// An service to set a timeout.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct TimeoutService {}
 
 impl TimeoutService {
