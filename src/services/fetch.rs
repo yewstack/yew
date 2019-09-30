@@ -133,11 +133,9 @@ impl FetchService {
     /// response body and metadata.
     ///
     /// ```
-    ///
     ///# use yew::{Component, ComponentLink, Html, Renderable};
-    /// use yew::services::FetchService;
-    /// use yew::services::fetch::{Response, Request};
-    ///
+    ///# use yew::services::FetchService;
+    ///# use yew::services::fetch::{Response, Request};
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
@@ -183,7 +181,6 @@ impl FetchService {
     ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
     ///# }
     ///# impl Renderable<Comp> for Comp {fn view(&self) -> Html<Comp> {unimplemented!()}}
-    ///
     ///# enum Msg {
     ///#     FetchResourceComplete(Data),
     ///#     FetchResourceFailed
@@ -196,8 +193,7 @@ impl FetchService {
     ///# let mut link: ComponentLink<Comp> = unimplemented!();
     /// let get_request = Request::get("/thing").body(Nothing).unwrap();
     /// let callback = link.send_back(|response: Response<Json<Result<Data, failure::Error>>>| {
-    ///         let (meta, Json(body)) = response.into_parts();
-    ///         if let Ok(body) = body {
+    ///         if let (meta, Json(Ok(body))) = response.into_parts() {
     ///            if meta.status.is_success() {
     ///                return Msg::FetchResourceComplete(body);
     ///            }
@@ -231,9 +227,8 @@ impl FetchService {
     ///# use yew::format::Nothing;
     ///# use yew::services::fetch::{self, FetchOptions, Credentials};
     ///# use yew::{Renderable, Html, Component, ComponentLink};
-    /// use yew::services::FetchService;
-    /// use http::Response;
-    ///
+    ///# use yew::services::FetchService;
+    ///# use http::Response;
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
@@ -245,14 +240,15 @@ impl FetchService {
     ///# fn dont_execute() {
     ///# let mut link: ComponentLink<Comp> = unimplemented!();
     ///# let callback = link.send_back(|response: Response<Result<String, failure::Error>>| unimplemented!());
-    ///
     /// let request = fetch::Request::get("/path/")
-    ///     .body(Nothing).unwrap();
+    ///     .body(Nothing)
+    ///     .unwrap();
     /// let options = FetchOptions {
     ///     credentials: Some(Credentials::SameOrigin),
     ///     ..FetchOptions::default()
     /// };
-    /// let task = FetchService::new().fetch_with_options(request, options, callback);
+    ///# let mut fetch_service = FetchService::new();
+    /// let task = fetch_service.fetch_with_options(request, options, callback);
     ///# }
     /// ```
     pub fn fetch_with_options<IN, OUT: 'static>(
