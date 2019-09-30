@@ -159,7 +159,6 @@ pub mod prelude {
     pub mod worker {
         pub use crate::agent::{
             Agent, AgentLink, Bridge, Bridged, Context, Global, HandlerId, Job, Private, Public,
-            Transferable,
         };
     }
 }
