@@ -5,12 +5,17 @@ use serde_yaml;
 /// A representation of a YAML data. Use it as wrapper to
 /// set a format you want to use for conversion:
 ///
-/// ```rust
+/// ```
 /// // Converts (lazy) data to a Yaml
+///# use yew::format::Yaml;
+///
+///# fn dont_execute() {
+///# let data: String = unimplemented!();
 /// let dump = Yaml(&data);
 ///
 /// // Converts YAML string to a data (lazy).
 /// let Yaml(data) = dump;
+///# }
 /// ```
 pub struct Yaml<T>(pub T);
 

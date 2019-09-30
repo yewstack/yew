@@ -8,8 +8,6 @@
 //! Minimal example:
 //!
 //! ```rust
-//! #[macro_use]
-//! extern crate yew;
 //! use yew::prelude::*;
 //!
 //! struct Model {
@@ -47,12 +45,13 @@
 //!         }
 //!     }
 //! }
-//!
+//!# fn dont_execute() {
 //! fn main() {
 //!     yew::initialize();
 //!     App::<Model>::new().mount_to_body();
 //!     yew::run_loop();
 //! }
+//!# }
 //! ```
 //!
 
