@@ -132,6 +132,7 @@ macro_rules! impl_from_tostring_for_vnode {
 }
 
 impl_from_tostring_for_vnode!(
+    char,
     f32,
     f64,
     &str,
