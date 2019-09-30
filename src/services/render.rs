@@ -3,11 +3,11 @@
 
 use crate::callback::Callback;
 use crate::services::Task;
+use std::fmt;
 use stdweb::unstable::TryInto;
 use stdweb::Value;
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
-use std::fmt;
 
 /// A handle to cancel a render task.
 #[must_use]

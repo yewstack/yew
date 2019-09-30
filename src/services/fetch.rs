@@ -6,13 +6,13 @@ use crate::format::{Binary, Format, Text};
 use failure::Fail;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::fmt;
 use stdweb::serde::Serde;
 use stdweb::unstable::{TryFrom, TryInto};
 use stdweb::web::ArrayBuffer;
 use stdweb::{JsSerialize, Value};
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
-use std::fmt;
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
@@ -99,7 +99,6 @@ enum FetchError {
 /// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
 #[must_use]
 pub struct FetchTask(Option<Value>);
-
 
 impl fmt::Debug for FetchTask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -3,13 +3,13 @@
 use super::Task;
 use crate::callback::Callback;
 use std::cmp;
+use std::fmt;
 use stdweb::unstable::TryInto;
 use stdweb::web::event::LoadEndEvent;
 pub use stdweb::web::{Blob, File, IBlob};
 use stdweb::web::{FileReader, FileReaderReadyState, FileReaderResult, IEventTarget, TypedArray};
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
-use std::fmt;
 
 /// Struct that represents data of a file.
 #[derive(Clone, Debug)]

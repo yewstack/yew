@@ -1,8 +1,8 @@
 //! Service to register key press event listeners on elements.
 use crate::callback::Callback;
+use std::fmt;
 use stdweb::web::event::{KeyDownEvent, KeyPressEvent, KeyUpEvent};
 use stdweb::web::{EventListenerHandle, IEventTarget};
-use std::fmt;
 
 /// Service for registering callbacks on elements to get keystrokes from the user.
 ///

@@ -68,7 +68,6 @@ impl HandlerId {
     }
 }
 
-
 impl fmt::Debug for HandlerId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("HandlerId")
@@ -448,7 +447,7 @@ pub struct PrivateBridge<T: Agent> {
     _agent: PhantomData<T>,
 }
 
-impl <AGN: Agent> fmt::Debug for PrivateBridge<AGN> {
+impl<AGN: Agent> fmt::Debug for PrivateBridge<AGN> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("PrivateBridge<_>")
     }
@@ -578,8 +577,7 @@ pub struct PublicBridge<AGN: Agent> {
     _agent: PhantomData<AGN>,
 }
 
-
-impl <AGN: Agent> fmt::Debug for PublicBridge<AGN> {
+impl<AGN: Agent> fmt::Debug for PublicBridge<AGN> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("PublicBridge<_>")
     }
@@ -706,7 +704,7 @@ pub struct AgentScope<AGN: Agent> {
     shared_agent: Shared<AgentRunnable<AGN>>,
 }
 
-impl <AGN: Agent> fmt::Debug for AgentScope<AGN> {
+impl<AGN: Agent> fmt::Debug for AgentScope<AGN> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("AgentScope<_>")
     }

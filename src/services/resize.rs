@@ -1,11 +1,11 @@
 //! This module contains the implementation of a service that listens for browser window resize events.
+use std::fmt;
 use stdweb::Value;
 use stdweb::{
     js,
     web::{window, Window},
 };
 use yew::callback::Callback;
-use std::fmt;
 
 /// A service that fires events when the browser window resizes.
 #[derive(Default, Debug)]

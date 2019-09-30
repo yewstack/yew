@@ -4,10 +4,10 @@
 use super::Task;
 use crate::callback::Callback;
 use crate::format::{Binary, Text};
+use std::fmt;
 use stdweb::traits::IMessageEvent;
 use stdweb::web::event::{SocketCloseEvent, SocketErrorEvent, SocketMessageEvent, SocketOpenEvent};
 use stdweb::web::{IEventTarget, SocketBinaryType, SocketReadyState, WebSocket};
-use std::fmt;
 
 /// A status of a websocket connection. Used for status notification.
 #[derive(Debug)]

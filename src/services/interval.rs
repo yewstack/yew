@@ -3,11 +3,11 @@
 
 use super::{to_ms, Task};
 use crate::callback::Callback;
+use std::fmt;
 use std::time::Duration;
 use stdweb::Value;
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
-use std::fmt;
 
 /// A handle which helps to cancel interval. Uses
 /// [clearInterval](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearInterval).

@@ -3,8 +3,8 @@
 
 use crate::format::Text;
 use failure::Fail;
-use stdweb::web::{window, Storage};
 use std::fmt;
+use stdweb::web::{window, Storage};
 
 /// Represents errors of a storage.
 #[derive(Debug, Fail)]
