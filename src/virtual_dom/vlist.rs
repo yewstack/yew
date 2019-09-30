@@ -5,7 +5,7 @@ use stdweb::web::{Element, Node};
 
 /// This struct represents a fragment of the Virtual DOM tree.
 pub struct VList<COMP: Component> {
-    /// The list of children nodes. Which also could have own children.
+    /// The list of children nodes. Which also could have their own children.
     pub childs: Vec<VNode<COMP>>,
 }
 
@@ -16,7 +16,7 @@ impl<COMP: Component> Default for VList<COMP> {
 }
 
 impl<COMP: Component> VList<COMP> {
-    /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
+    /// Creates a new empty `VList` instance.
     pub fn new() -> Self {
         VList { childs: Vec::new() }
     }
