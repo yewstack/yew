@@ -170,11 +170,12 @@ impl FetchService {
     /// the message.
     ///
     /// ```
-    ///# use yew::format::{Json, Nothing};
+    ///# use yew::format::{Json, Nothing, Format};
     ///# use yew::services::FetchService;
     ///# use http::Request;
     ///# use yew::services::fetch::Response;
     ///# use yew::{Component, ComponentLink, Renderable, Html};
+    ///# use serde_derive::Deserialize;
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
@@ -184,14 +185,18 @@ impl FetchService {
     ///# impl Renderable<Comp> for Comp {fn view(&self) -> Html<Comp> {unimplemented!()}}
     ///
     ///# enum Msg {
-    ///#     FetchResourceComplete(String),
+    ///#     FetchResourceComplete(Data),
     ///#     FetchResourceFailed
     ///# }
+    /// #[derive(Deserialize)]
+    /// struct Data {
+    ///    value: String
+    /// }
     ///# fn dont_execute() {
     ///# let mut link: ComponentLink<Comp> = unimplemented!();
     /// let get_request = Request::get("/thing").body(Nothing).unwrap();
-    /// let callback = link.send_back(|response: Response<Result<String, failure::Error>>| {
-    ///         let (meta, body) = response.into_parts();
+    /// let callback = link.send_back(|response: Response<Json<Result<Data, failure::Error>>>| {
+    ///         let (meta, Json(body)) = response.into_parts();
     ///         if let Ok(body) = body {
     ///            if meta.status.is_success() {
     ///                return Msg::FetchResourceComplete(body);
