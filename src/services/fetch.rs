@@ -164,8 +164,9 @@ impl FetchService {
     ///# }
     /// ```
     ///
-    /// One can also simply consume and pass the response or body object into
-    /// the message.
+    /// For a full example, the you can specify that the response must be in the JSON format,
+    /// and be a specific serialized data type. If the mesage isn't Json, or isn't the specified
+    /// data type, then you will get a message indicating failure.
     ///
     /// ```
     ///# use yew::format::{Json, Nothing, Format};
