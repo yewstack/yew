@@ -131,7 +131,15 @@ macro_rules! impl_from_tostring_for_vnode {
     }
 }
 
+impl<COMP: Component> From<()> for VNode<COMP> {
+    fn from(value: ()) -> Self {
+        VNode::VText(VText::new(value.clone()))
+    }
+}
+
 impl_from_tostring_for_vnode!(
+    f32,
+    f64,
     &str,
     Cow<'_, &str>,
     bool,
