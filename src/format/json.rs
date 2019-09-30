@@ -5,6 +5,8 @@
 ///
 /// ```rust
 /// // Converts (lazy) data to a Json
+/// use yew::format::Json;
+/// let data: String = r#"{lorem: "ipsum"}"#.to_string();
 /// let dump = Json(&data);
 ///
 /// // Converts JSON string to a data (lazy).
