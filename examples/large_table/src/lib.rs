@@ -1,7 +1,7 @@
 //! This demo originally created by https://github.com/qthree
 //! Source: https://github.com/qthree/yew_table100x100_test
 
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     selected: Option<(u32, u32)>,
@@ -28,6 +28,14 @@ impl Component for Model {
         }
         true
     }
+
+    fn view(&self) -> Html<Self> {
+        html! {
+            <table>
+                { (0..99).map(|row| view_row(self.selected, row)).collect::<Html<Self>>() }
+            </table>
+        }
+    }
 }
 
 fn square_class(this: (u32, u32), selected: Option<(u32, u32)>) -> &'static str {
@@ -52,15 +60,5 @@ fn view_row(selected: Option<(u32, u32)>, row: u32) -> Html<Model> {
                 view_square(selected, row, column)
             })}
         </tr>
-    }
-}
-
-impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
-        html! {
-            <table>
-                { (0..99).map(|row| view_row(self.selected, row)).collect::<Html<Self>>() }
-            </table>
-        }
     }
 }

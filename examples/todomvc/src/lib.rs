@@ -6,7 +6,7 @@ use strum_macros::{EnumIter, ToString};
 use yew::events::IKeyboardEvent;
 use yew::format::Json;
 use yew::services::storage::{Area, StorageService};
-use yew::{html, Component, ComponentLink, Href, Html, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Href, Html, ShouldRender};
 
 const KEY: &'static str = "yew.todomvc.self";
 
@@ -115,9 +115,7 @@ impl Component for Model {
         self.storage.store(KEY, Json(&self.state.entries));
         true
     }
-}
 
-impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <div class="todomvc-wrapper">

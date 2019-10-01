@@ -33,9 +33,7 @@
 //!         }
 //!         true
 //!     }
-//! }
 //!
-//! impl Renderable<Model> for Model {
 //!     fn view(&self) -> Html<Self> {
 //!         html! {
 //!             <div>
@@ -116,7 +114,7 @@ pub fn run_loop() {
 /// Starts an app mounted to a body of the document.
 pub fn start_app<COMP>()
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
     COMP::Properties: Default,
 {
     initialize();
@@ -127,7 +125,7 @@ where
 /// Starts an app mounted to a body of the document.
 pub fn start_app_with_props<COMP>(props: COMP::Properties)
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
 {
     initialize();
     App::<COMP>::new().mount_to_body_with_props(props);

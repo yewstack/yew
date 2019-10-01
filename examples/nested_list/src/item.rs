@@ -38,9 +38,7 @@ impl Component for ListItem {
         }
         false
     }
-}
 
-impl Renderable<ListItem> for ListItem {
     fn view(&self) -> Html<Self> {
         html! {
             <div class="list-item" onmouseover=|_| Msg::Hover>
@@ -59,7 +57,7 @@ impl ListItem {
 
         html! {
             <div class="list-item-details">
-                { self.props.children.view() }
+                { self.props.children.render() }
             </div>
         }
     }

@@ -5,7 +5,15 @@ extern crate stdweb;
 use stdweb::unstable::TryFrom;
 use stdweb::web::Node;
 use yew::virtual_dom::VNode;
-use yew::{Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{Component, ComponentLink, Html, ShouldRender};
+
+const SVG: &str = r#"
+<h2>Inline SVG or <i>any</i> HTML:</h2>
+<svg height="250" width="500">
+  <polygon points="220,10 300,210 170,250 123,234" style="fill:lime;stroke:purple;stroke-width:1" />
+    Sorry, your browser does not support inline SVG.
+</svg>
+"#;
 
 pub struct Model {
     pub value: i64,
@@ -24,17 +32,7 @@ impl Component for Model {
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         true
     }
-}
 
-const SVG: &str = r#"
-<h2>Inline SVG or <i>any</i> HTML:</h2>
-<svg height="250" width="500">
-  <polygon points="220,10 300,210 170,250 123,234" style="fill:lime;stroke:purple;stroke-width:1" />
-    Sorry, your browser does not support inline SVG.
-</svg>
-"#;
-
-impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         let js_svg = js! {
             var div = document.createElement("div");

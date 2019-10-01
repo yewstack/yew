@@ -143,15 +143,13 @@ impl Component for Model {
         }
         true
     }
-}
 
-impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         match self.scene {
             Scene::ClientsList => html! {
                 <div class="crm">
                     <div class="clients">
-                        { for self.database.clients.iter().map(Renderable::view) }
+                        { for self.database.clients.iter().map(Renderable::render) }
                     </div>
                     <button onclick=|_| Msg::SwitchTo(Scene::NewClientForm(Client::empty()))>{ "Add New" }</button>
                     <button onclick=|_| Msg::SwitchTo(Scene::Settings)>{ "Settings" }</button>
@@ -180,7 +178,7 @@ impl Renderable<Model> for Model {
 }
 
 impl Renderable<Model> for Client {
-    fn view(&self) -> Html<Model> {
+    fn render(&self) -> Html<Model> {
         html! {
             <div class="client">
                 <p>{ format!("First Name: {}", self.first_name) }</p>

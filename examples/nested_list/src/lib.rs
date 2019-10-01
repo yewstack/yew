@@ -22,9 +22,7 @@ impl Component for Model {
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         true
     }
-}
 
-impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <div class="main">

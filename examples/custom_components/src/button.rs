@@ -41,9 +41,7 @@ impl Component for Button {
         self.onsignal = props.onsignal;
         true
     }
-}
 
-impl Renderable<Button> for Button {
     fn view(&self) -> Html<Self> {
         html! {
             <button onclick=|_| Msg::Clicked>{ &self.title }</button>

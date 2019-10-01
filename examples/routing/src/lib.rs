@@ -67,9 +67,7 @@ impl Component for Model {
             }
         }
     }
-}
 
-impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <div>
@@ -78,7 +76,7 @@ impl Renderable<Model> for Model {
                     <RouterButton text="Go to B" path="/b" />
                 </nav>
                 <div>
-                    {self.child.view()}
+                    {self.child.render()}
                 </div>
             </div>
         }
@@ -86,7 +84,7 @@ impl Renderable<Model> for Model {
 }
 
 impl Renderable<Model> for Child {
-    fn view(&self) -> Html<Model> {
+    fn render(&self) -> Html<Model> {
         match self {
             Child::A => html! {
                 <>

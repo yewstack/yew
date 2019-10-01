@@ -9,7 +9,7 @@ pub mod gravatar;
 
 use failure::Error;
 use yew::services::fetch::FetchTask;
-use yew::{html, Callback, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Callback, Component, ComponentLink, Html, ShouldRender};
 
 use ccxt::CcxtService;
 use gravatar::{GravatarService, Profile};
@@ -64,9 +64,7 @@ impl Component for Model {
         }
         true
     }
-}
 
-impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         let view_exchange = |exchange| {
             html! {

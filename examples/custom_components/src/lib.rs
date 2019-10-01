@@ -43,9 +43,7 @@ impl Component for Model {
             Msg::ChildClicked(_value) => false,
         }
     }
-}
 
-impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         let counter = |x| {
             html! {

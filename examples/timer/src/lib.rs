@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 use yew::services::{ConsoleService, IntervalService, Task, TimeoutService};
-use yew::{html, Callback, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Callback, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     timeout: TimeoutService,
@@ -96,9 +96,7 @@ impl Component for Model {
         }
         true
     }
-}
 
-impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         let view_message = |message| {
             html! { <p>{ message }</p> }

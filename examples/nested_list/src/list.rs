@@ -68,9 +68,7 @@ impl Component for List {
         }
         true
     }
-}
 
-impl Renderable<List> for List {
     fn view(&self) -> Html<Self> {
         html! {
             <div
@@ -143,7 +141,7 @@ impl fmt::Display for Hovered {
 
 impl<CHILD> From<VChild<CHILD, List>> for ListVariant
 where
-    CHILD: Component + Renderable<CHILD>,
+    CHILD: Component,
     CHILD::Properties: Into<Variants>,
 {
     fn from(vchild: VChild<CHILD, List>) -> Self {

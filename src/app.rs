@@ -1,7 +1,7 @@
 //! This module contains the `App` struct, which is used to bootstrap
 //! a component in an isolated scope.
 
-use crate::html::{Component, Renderable, Scope};
+use crate::html::{Component, Scope};
 use stdweb::web::{document, Element, INode, IParentNode};
 
 /// An application instance.
@@ -12,7 +12,7 @@ pub struct App<COMP: Component> {
 
 impl<COMP> Default for App<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
 {
     fn default() -> Self {
         App::new()
@@ -21,7 +21,7 @@ where
 
 impl<COMP> App<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
     COMP::Properties: Default,
 {
     /// The main entrypoint of a yew program. It works similarly to the `program`
@@ -68,7 +68,7 @@ where
 
 impl<COMP> App<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
 {
     /// Creates a new `App` with a component in a context.
     pub fn new() -> Self {

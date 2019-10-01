@@ -35,7 +35,7 @@ macro_rules! impl_action {
             impl<T, COMP> Listener<COMP> for Wrapper<T>
             where
                 T: Fn($ret) -> COMP::Message + 'static,
-                COMP: Component + Renderable<COMP>,
+                COMP: Component,
             {
                 fn kind(&self) -> &'static str {
                     stringify!($action)

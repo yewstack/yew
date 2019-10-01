@@ -33,9 +33,7 @@ impl Component for ListHeader {
         }
         false
     }
-}
 
-impl Renderable<ListHeader> for ListHeader {
     fn view(&self) -> Html<Self> {
         html! {
             <div class="list-header" onmouseover=|_| Msg::Hover>
