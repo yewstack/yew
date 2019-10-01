@@ -76,7 +76,7 @@ impl Component for Model {
                     <RouterButton text="Go to B" path="/b" />
                 </nav>
                 <div>
-                    {self.child.view()}
+                    {self.child.render()}
                 </div>
             </div>
         }
