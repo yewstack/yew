@@ -69,7 +69,7 @@ impl Component for List {
         true
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         html! {
             <div
                 class="list-container"

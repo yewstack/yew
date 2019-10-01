@@ -23,7 +23,7 @@ impl Component for TestComponent {
         unimplemented!()
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         unimplemented!()
     }
 }

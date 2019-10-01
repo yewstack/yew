@@ -83,7 +83,7 @@ impl Component for Model {
         }
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         html! {
             // Render your model here
             <button onclick=|_| Msg::DoIt>{ "Click me!" }</button>
@@ -320,7 +320,7 @@ extern crate chrono;
 use chrono::prelude::*;
 
 impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         html! {
             <p>{ Local::now() }</p>
         }

@@ -24,7 +24,7 @@ impl Component for Comp {
         unimplemented!();
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         unimplemented!();
     }
 }
@@ -43,7 +43,7 @@ impl Component for CompInt {
         unimplemented!();
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         unimplemented!();
     }
 }
@@ -62,7 +62,7 @@ impl Component for CompBool {
         unimplemented!();
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         unimplemented!();
     }
 }

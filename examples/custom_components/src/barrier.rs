@@ -49,7 +49,7 @@ impl Component for Barrier {
         true
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         html! {
             <div class="barrier">
                 <p>{ format!("{} on {} clicked", self.counter, self.limit) }</p>

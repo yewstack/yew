@@ -65,7 +65,7 @@ impl Component for Model {
         true
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         let flag = self.by_chunks;
         html! {
             <div>

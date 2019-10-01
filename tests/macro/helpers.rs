@@ -15,7 +15,7 @@ macro_rules! pass_helper {
         use yew::prelude::*;
         struct SubComponent;
         impl Renderable<TestComponent> for SubComponent {
-            fn view(&self) -> Html<TestComponent> {
+            fn render(&self) -> Html<TestComponent> {
                 pass_helper! { @ html $($content)* }
             }
         }

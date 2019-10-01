@@ -92,7 +92,7 @@ where
         true
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         let selected = self.props.selected.as_ref();
         let view_option = |value: &T| {
             let flag = selected == Some(value);

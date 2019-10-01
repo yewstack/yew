@@ -44,7 +44,7 @@ impl Component for Model {
         }
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         let counter = |x| {
             html! {
                 <Counter initial=x color=&self.color onclick=Msg::ChildClicked />

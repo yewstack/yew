@@ -43,7 +43,7 @@ pub trait Component: Sized + 'static {
         true
     }
     /// Called by rendering loop.
-    fn render(&self) -> Html<Self>;
+    fn view(&self) -> Html<Self>;
     /// Called for finalization on the final point of the component's lifetime.
     fn destroy(&mut self) {} // TODO Replace with `Drop`
 }
@@ -251,7 +251,7 @@ impl<T, COMP: Component> Renderable<COMP> for ChildrenRenderer<T>
 where
     T: Into<VNode<COMP>>,
 {
-    fn view(&self) -> Html<COMP> {
+    fn render(&self) -> Html<COMP> {
         VList {
             childs: self.iter().map(|c| c.into()).collect(),
         }
@@ -262,12 +262,12 @@ where
 /// Should be rendered relative to context and component environment.
 pub trait Renderable<COMP: Component> {
     /// Called by rendering loop.
-    fn view(&self) -> Html<COMP>;
+    fn render(&self) -> Html<COMP>;
 }
 
 impl<COMP: Component> Renderable<COMP> for COMP {
-    fn view(&self) -> Html<COMP> {
-        self.render()
+    fn render(&self) -> Html<COMP> {
+        self.view()
     }
 }
 

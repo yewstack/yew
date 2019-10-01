@@ -42,7 +42,7 @@ impl Component for Button {
         true
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         html! {
             <button onclick=|_| Msg::Clicked>{ &self.title }</button>
         }

@@ -59,7 +59,7 @@ impl Component for Counter {
         true
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         let colorize = {
             match self.color {
                 Color::Red => "background: red;",

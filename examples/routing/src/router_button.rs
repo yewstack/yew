@@ -66,7 +66,7 @@ impl Component for RouterButton {
         true
     }
 
-    fn render(&self) -> Html<RouterButton> {
+    fn view(&self) -> Html<RouterButton> {
         html! {
             <button
                 class=self.props.classes.clone(),

@@ -23,7 +23,7 @@ impl Component for Model {
         true
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         html! {
             <div class="main">
                 <h1>{ "Nested List Demo" }</h1>

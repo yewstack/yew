@@ -120,7 +120,7 @@ impl<COMP: Component, T: ToString> From<T> for VNode<COMP> {
 
 impl<'a, COMP: Component> From<&'a dyn Renderable<COMP>> for VNode<COMP> {
     fn from(value: &'a dyn Renderable<COMP>) -> Self {
-        value.view()
+        value.render()
     }
 }
 

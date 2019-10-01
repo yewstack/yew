@@ -68,7 +68,7 @@ impl Component for Model {
         }
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         html! {
             <div>
                 <nav class="menu">
@@ -84,7 +84,7 @@ impl Component for Model {
 }
 
 impl Renderable<Model> for Child {
-    fn view(&self) -> Html<Model> {
+    fn render(&self) -> Html<Model> {
         match self {
             Child::A => html! {
                 <>

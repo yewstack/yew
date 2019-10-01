@@ -27,7 +27,7 @@ impl Component for Child {
         unimplemented!()
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         unimplemented!()
     }
 }
@@ -52,7 +52,7 @@ impl Component for Container {
         unimplemented!()
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         unimplemented!()
     }
 }
@@ -77,7 +77,7 @@ impl Component for ChildContainer {
         unimplemented!()
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         unimplemented!()
     }
 }

@@ -43,7 +43,7 @@
     }
 
     impl Renderable<MyList> for MyList {
-      fn view(&self) -> Html<Self> {
+      fn render(&self) -> Html<Self> {
         html! {{
           self.props.children.iter().collect::<Html<Self>>()
         }}

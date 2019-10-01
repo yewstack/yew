@@ -129,7 +129,7 @@ impl<COMP: Component> CreatedState<COMP> {
     }
 
     fn update(mut self) -> Self {
-        let mut next_frame = self.component.view();
+        let mut next_frame = self.component.render();
         let node = next_frame.apply(&self.element, None, self.last_frame, &self.env);
         if let Some(ref mut cell) = self.occupied {
             *cell.borrow_mut() = node;

@@ -33,7 +33,7 @@ impl Component for Model {
         true
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         let js_svg = js! {
             var div = document.createElement("div");
             div.innerHTML = @{SVG.to_string()};

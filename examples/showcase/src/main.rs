@@ -65,7 +65,7 @@ impl Component for Model {
         }
     }
 
-    fn render(&self) -> Html<Self> {
+    fn view(&self) -> Html<Self> {
         html! {
             <div id="fullscreen">
                 <div id="left_pane">
