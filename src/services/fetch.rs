@@ -141,8 +141,8 @@ impl FetchService {
     ///#     type Message = Msg;type Properties = ();
     ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
     ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+    ///#     fn view(&self) -> Html<Comp> {unimplemented!()}
     ///# }
-    ///# impl Renderable<Comp> for Comp {fn view(&self) -> Html<Comp> {unimplemented!()}}
     ///# enum Msg {
     ///#     Noop,
     ///#     Error
@@ -151,15 +151,15 @@ impl FetchService {
     ///# let mut link: ComponentLink<Comp> = unimplemented!();
     ///# let mut fetch_service: FetchService = FetchService::new();
     ///# let post_request: Request<Result<String, failure::Error>> = unimplemented!();
-    ///  let task = fetch_service.fetch(
-    ///      post_request,
-    ///      link.send_back(|response: Response<Result<String, failure::Error>>| {
+    /// let task = fetch_service.fetch(
+    ///     post_request,
+    ///     link.send_back(|response: Response<Result<String, failure::Error>>| {
     ///         if response.status().is_success() {
     ///             Msg::Noop
     ///         } else {
     ///             Msg::Error
     ///         }
-    ///    })
+    ///     }),
     /// );
     ///# }
     /// ```
@@ -180,8 +180,8 @@ impl FetchService {
     ///#     type Message = Msg;type Properties = ();
     ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
     ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+    ///#     fn view(&self) -> Html<Comp> {unimplemented!()}
     ///# }
-    ///# impl Renderable<Comp> for Comp {fn view(&self) -> Html<Comp> {unimplemented!()}}
     ///# enum Msg {
     ///#     FetchResourceComplete(Data),
     ///#     FetchResourceFailed
@@ -190,23 +190,20 @@ impl FetchService {
     /// struct Data {
     ///    value: String
     /// }
+    ///
     ///# fn dont_execute() {
     ///# let mut link: ComponentLink<Comp> = unimplemented!();
     /// let get_request = Request::get("/thing").body(Nothing).unwrap();
     /// let callback = link.send_back(|response: Response<Json<Result<Data, failure::Error>>>| {
-    ///         if let (meta, Json(Ok(body))) = response.into_parts() {
-    ///            if meta.status.is_success() {
-    ///                return Msg::FetchResourceComplete(body);
-    ///            }
+    ///     if let (meta, Json(Ok(body))) = response.into_parts() {
+    ///         if meta.status.is_success() {
+    ///             return Msg::FetchResourceComplete(body);
     ///         }
-    ///         Msg::FetchResourceFailed
     ///     }
-    /// );
+    ///     Msg::FetchResourceFailed
+    /// });
     ///
-    /// let task = FetchService::new().fetch(
-    ///     get_request,
-    ///     callback
-    /// );
+    /// let task = FetchService::new().fetch(get_request, callback);
     ///# }
     /// ```
     ///
@@ -232,11 +229,12 @@ impl FetchService {
     ///# use http::Response;
     ///# struct Comp;
     ///# impl Component for Comp {
-    ///#     type Message = Msg;type Properties = ();
-    ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-    ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+    ///#     type Message = Msg;
+    ///#     type Properties = ();
+    ///#     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {unimplemented!()}
+    ///#     fn update(&mut self, msg: Self::Message) -> bool {unimplemented!()}
+    ///#     fn view(&self) -> Html<Comp> {unimplemented!()}
     ///# }
-    ///# impl Renderable<Comp> for Comp {fn view(&self) -> Html<Comp> {unimplemented!()}}
     ///# pub enum Msg {}
     ///# fn dont_execute() {
     ///# let mut link: ComponentLink<Comp> = unimplemented!();
@@ -248,8 +246,7 @@ impl FetchService {
     ///     credentials: Some(Credentials::SameOrigin),
     ///     ..FetchOptions::default()
     /// };
-    ///# let mut fetch_service = FetchService::new();
-    /// let task = fetch_service.fetch_with_options(request, options, callback);
+    /// let task = FetchService::new().fetch_with_options(request, options, callback);
     ///# }
     /// ```
     pub fn fetch_with_options<IN, OUT: 'static>(

@@ -3,19 +3,18 @@
 //! helps you to track selected value in an original type. Example:
 //!
 //! ```
-//!# use yew::{Html, Component, components::Select, ComponentLink, Renderable, html};
-//!# struct Model;
-//!# impl Component for Model {
-//!#     type Message = ();type Properties = ();
-//!#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-//!#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-//!# }
-//!# impl Renderable<Model> for Model {fn view(&self) -> Html<Model> {unimplemented!()}}
+//!# use yew::{Html, Component, components::Select, ComponentLink, html};
 //! #[derive(PartialEq, Clone)]
 //! enum Scene {
 //!     First,
 //!     Second,
 //! }
+//!# struct Model;
+//!# impl Component for Model {
+//!#     type Message = ();type Properties = ();
+//!#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
+//!#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+//!#     fn view(&self) -> Html<Model> {unimplemented!()}}
 //! impl ToString for Scene {
 //!     fn to_string(&self) -> String {
 //!         match self {
