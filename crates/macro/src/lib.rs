@@ -28,9 +28,7 @@
 //! #     fn update(&mut self, msg: Self::Message) -> ShouldRender {
 //! #         unimplemented!()
 //! #     }
-//! # }
 //! #
-//! # impl Renderable<Component> for Component {
 //! #     fn view(&self) -> Html<Self> {
 //! #
 //! // ...

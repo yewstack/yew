@@ -48,9 +48,7 @@ impl Component for Barrier {
         self.onsignal = props.onsignal;
         true
     }
-}
 
-impl Renderable<Barrier> for Barrier {
     fn view(&self) -> Html<Self> {
         html! {
             <div class="barrier">

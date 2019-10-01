@@ -6,7 +6,7 @@ pub mod native_worker;
 
 use log::info;
 use yew::worker::*;
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     worker: Box<Bridge<native_worker::Worker>>,
@@ -65,9 +65,7 @@ impl Component for Model {
         }
         true
     }
-}
 
-impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             <div>

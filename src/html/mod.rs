@@ -42,6 +42,8 @@ pub trait Component: Sized + 'static {
     fn change(&mut self, _: Self::Properties) -> ShouldRender {
         true
     }
+    /// Called by rendering loop.
+    fn view(&self) -> Html<Self>;
     /// Called for finalization on the final point of the component's lifetime.
     fn destroy(&mut self) {} // TODO Replace with `Drop`
 }
@@ -54,29 +56,28 @@ pub type Html<MSG> = VNode<MSG>;
 /// # Example
 /// **`model.rs`**
 ///
-/// In this example, the Wrapper component is used to wrap other elements.
+/// In this example, the `Wrapper` component is used to wrap other elements.
 /// ```
-///
-///# use yew::{Children, Html, Renderable, Properties, Component, ComponentLink, html};
-/// #[derive(Properties)]
+///# use yew::{Children, Html, Properties, Component, ComponentLink, html};
+///# #[derive(Properties)]
 ///# struct WrapperProps {
-///#   children: Children<Wrapper>,
+///#     children: Children<Wrapper>,
 ///# }
 ///# struct Wrapper;
 ///# impl Component for Wrapper{
-///#     type Message = ();type Properties = WrapperProps;
+///#     type Message = ();
+///#     type Properties = WrapperProps;
 ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
 ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-///# }
-///# impl Renderable<Wrapper> for Wrapper {
-///# fn view(&self) -> Html<Wrapper> { // This is a recursively defined render impl - which would never work. This is done for space convenience.
-/// html!{
-///   <Wrapper>
-///     <h4> {"Hi"} </h4>
-///     <div> {"Hello"} </div>
-///   </Wrapper>
+///#     // This is not a valid implementation.  This is done for space convenience.
+///#     fn view(&self) -> Html<Self> {
+/// html! {
+///     <Wrapper>
+///         <h4>{ "Hi" }</h4>
+///         <div>{ "Hello" }</div>
+///     </Wrapper>
 /// }
-///# }
+///#     }
 ///# }
 /// ```
 ///
@@ -85,25 +86,26 @@ pub type Html<MSG> = VNode<MSG>;
 /// The Wrapper component must define a `children` property in order to wrap other elements. The
 /// children property can be used to render the wrapped elements.
 /// ```
-///# use yew::{Children, Html, Renderable, Properties, Component, ComponentLink, html};
-///# struct Wrapper {props: WrapperProps};
-///# impl Component for Wrapper{
-///#     type Message = ();type Properties = WrapperProps;
-///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-///# }
+///# use yew::{Children, Html, Properties, Renderable, Component, ComponentLink, html};
 /// #[derive(Properties)]
 /// struct WrapperProps {
-///   children: Children<Wrapper>,
+///     children: Children<Wrapper>,
 /// }
-/// impl Renderable<Wrapper> for Wrapper {
-///    fn view(&self) -> Html<Wrapper> {
-///        html!{
-///            <div id="container">
-///                { self.props.children.view() }
-///            </div>
-///        }
-///    }
+///
+///# struct Wrapper {props: WrapperProps};
+/// impl Component for Wrapper {
+///     // ...
+///#     type Message = ();
+///#     type Properties = WrapperProps;
+///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
+///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+///     fn view(&self) -> Html<Wrapper> {
+///         html! {
+///             <div id="container">
+///                 { self.props.children.render() }
+///             </div>
+///         }
+///     }
 /// }
 /// ```
 pub type Children<T> = ChildrenRenderer<Html<T>>;
@@ -115,33 +117,32 @@ pub type Children<T> = ChildrenRenderer<Html<T>>;
 ///
 /// In this example, the `List` component can wrap `ListItem` components.
 /// ```
-/// use yew::{html, Component, Renderable, Html, ComponentLink, ChildrenWithProps, Properties};
-///
+///# use yew::{html, Component, Renderable, Html, ComponentLink, ChildrenWithProps, Properties};
+///#
 ///# #[derive(Properties)]
 ///# struct ListProps {
-///#   children: ChildrenWithProps<ListItem, List>,
+///#     children: ChildrenWithProps<ListItem, List>,
 ///# }
-///
 ///# struct List;
 ///# impl Component for List {
-///#     type Message = ();type Properties = ListProps;
-///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+///#     type Message = ();
+///#     type Properties = ListProps;
+///#     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {unimplemented!()}
+///#     fn update(&mut self, msg: Self::Message) -> bool {unimplemented!()}
+///#     fn view(&self) -> Html<List> {unimplemented!()}
 ///# }
-///# impl Renderable<List> for List {fn view(&self) -> Html<List> {unimplemented!()}}
-///
-///
 ///# #[derive(Properties)]
 ///# struct ListItemProps {
-///#    value: String
+///#     value: String
 ///# }
 ///# struct ListItem;
 ///# impl Component for ListItem {
-///#     type Message = ();type Properties = ListItemProps;
-///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+///#     type Message = ();
+///#     type Properties = ListItemProps;
+///#     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {unimplemented!()}
+///#     fn update(&mut self, msg: Self::Message) -> bool {unimplemented!()}
+///#     fn view(&self) -> Html<Self> {unimplemented!()}
 ///# }
-///# impl Renderable<ListItem> for ListItem {fn view(&self) -> Html<ListItem> {unimplemented!()}}
 ///# fn view() -> Html<List> {
 /// html!{
 ///   <List>
@@ -158,42 +159,43 @@ pub type Children<T> = ChildrenRenderer<Html<T>>;
 /// The `List` component must define a `children` property in order to wrap the list items. The
 /// `children` property can be used to filter, mutate, and render the items.
 /// ```
-/// use yew::ChildrenWithProps;
-///# use yew::{html, Component, Renderable, Html, ComponentLink, Properties};
-///# struct List {props: ListProps};
-///# impl Component for List {
-///#     type Message = ();type Properties = ListProps;
-///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-///# }
-///
-///# #[derive(Properties)]
-///# struct ListItemProps {
-///#    value: String
-///# }
-///# struct ListItem;
-///# impl Component for ListItem {
-///#     type Message = ();type Properties = ListItemProps;
-///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-///# }
-///# impl Renderable<ListItem> for ListItem {fn view(&self) -> Html<ListItem> {unimplemented!()}}
-///
+///# use yew::{html, Component, Html, ChildrenWithProps, ComponentLink, Properties};
+///#
 /// #[derive(Properties)]
 /// struct ListProps {
 ///   children: ChildrenWithProps<ListItem, List>,
 /// }
 ///
-/// impl Renderable<List> for List {
-///    fn view(&self) -> Html<List> {
-///       html!{{
-///           for self.props.children.iter().map(|mut item| {
-///               item.props.value = format!("item-{}", item.props.value);
-///               item
-///           })
-///       }}
-///    }
+///# struct List {props: ListProps};
+/// impl Component for List {
+///#     type Message = ();
+///#     type Properties = ListProps;
+///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
+///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+///     // ...
+///     fn view(&self) -> Html<Self> {
+///         html!{{
+///             for self.props.children.iter().map(|mut item| {
+///                 item.props.value = format!("item-{}", item.props.value);
+///                 item
+///             })
+///         }}
+///     }
 /// }
+///#
+///# #[derive(Properties)]
+///# struct ListItemProps {
+///#     value: String
+///# }
+///#
+///# struct ListItem;
+///# impl Component for ListItem {
+///#     type Message = ();
+///#     type Properties = ListItemProps;
+///#     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {unimplemented!()}
+///#     fn update(&mut self, msg: Self::Message) -> bool {unimplemented!()}
+///#     fn view(&self) -> Html<ListItem> {unimplemented!()}
+///# }
 /// ```
 pub type ChildrenWithProps<C, P> = ChildrenRenderer<VChild<C, P>>;
 
@@ -249,7 +251,7 @@ impl<T, COMP: Component> Renderable<COMP> for ChildrenRenderer<T>
 where
     T: Into<VNode<COMP>>,
 {
-    fn view(&self) -> Html<COMP> {
+    fn render(&self) -> Html<COMP> {
         VList {
             childs: self.iter().map(|c| c.into()).collect(),
         }
@@ -260,7 +262,13 @@ where
 /// Should be rendered relative to context and component environment.
 pub trait Renderable<COMP: Component> {
     /// Called by rendering loop.
-    fn view(&self) -> Html<COMP>;
+    fn render(&self) -> Html<COMP>;
+}
+
+impl<COMP: Component> Renderable<COMP> for COMP {
+    fn render(&self) -> Html<COMP> {
+        self.view()
+    }
 }
 
 /// Trait for building properties for a component
@@ -295,7 +303,7 @@ pub struct ComponentLink<COMP: Component> {
 
 impl<COMP> ComponentLink<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
 {
     /// Create link for a scope.
     fn connect(scope: &Scope<COMP>) -> Self {

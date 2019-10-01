@@ -1,7 +1,7 @@
 use crate::router::{Request, Route, Router};
 use log::info;
 use yew::agent::Bridged;
-use yew::{html, Bridge, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Bridge, Component, ComponentLink, Html, ShouldRender};
 
 pub struct BModel {
     number: Option<usize>,
@@ -105,8 +105,7 @@ impl Component for BModel {
         // Apparently change MUST be implemented in this case, even though no props were changed
         true
     }
-}
-impl Renderable<BModel> for BModel {
+
     fn view(&self) -> Html<Self> {
         html! {
             <div>

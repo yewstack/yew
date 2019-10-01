@@ -58,9 +58,7 @@ impl Component for Counter {
         self.onclick = props.onclick;
         true
     }
-}
 
-impl Renderable<Counter> for Counter {
     fn view(&self) -> Html<Self> {
         let colorize = {
             match self.color {

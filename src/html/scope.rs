@@ -35,7 +35,7 @@ impl<COMP: Component> Clone for Scope<COMP> {
 
 impl<COMP> Scope<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
 {
     pub(crate) fn create(&mut self) {
         let shared_state = self.shared_state.clone();
@@ -118,7 +118,7 @@ struct CreatedState<COMP: Component> {
     occupied: Option<NodeCell>,
 }
 
-impl<COMP: Component + Renderable<COMP>> CreatedState<COMP> {
+impl<COMP: Component> CreatedState<COMP> {
     /// Called once immediately after the component is created.
     fn mounted(mut self) -> Self {
         if self.component.mounted() {
@@ -129,7 +129,7 @@ impl<COMP: Component + Renderable<COMP>> CreatedState<COMP> {
     }
 
     fn update(mut self) -> Self {
-        let mut next_frame = self.component.view();
+        let mut next_frame = self.component.render();
         let node = next_frame.apply(&self.element, None, self.last_frame, &self.env);
         if let Some(ref mut cell) = self.occupied {
             *cell.borrow_mut() = node;
@@ -142,7 +142,7 @@ impl<COMP: Component + Renderable<COMP>> CreatedState<COMP> {
 
 impl<COMP> Scope<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
 {
     /// visible for testing
     pub fn new() -> Self {
@@ -177,7 +177,7 @@ where
 
 impl<COMP> Default for Scope<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
 {
     fn default() -> Self {
         Scope::new()
@@ -193,7 +193,7 @@ where
 
 impl<COMP> Runnable for CreateComponent<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
 {
     fn run(self: Box<Self>) {
         let current_state = self.shared_state.replace(ComponentState::Processing);
@@ -218,7 +218,7 @@ where
 
 impl<COMP> Runnable for DestroyComponent<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
 {
     fn run(self: Box<Self>) {
         match self.shared_state.replace(ComponentState::Destroyed) {
@@ -249,7 +249,7 @@ where
 
 impl<COMP> Runnable for UpdateComponent<COMP>
 where
-    COMP: Component + Renderable<COMP>,
+    COMP: Component,
 {
     fn run(self: Box<Self>) {
         let current_state = self.shared_state.replace(ComponentState::Processing);

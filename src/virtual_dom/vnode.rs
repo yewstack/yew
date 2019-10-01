@@ -105,7 +105,7 @@ impl<COMP: Component> From<VComp<COMP>> for VNode<COMP> {
 impl<COMP, CHILD> From<VChild<CHILD, COMP>> for VNode<COMP>
 where
     COMP: Component,
-    CHILD: Component + Renderable<CHILD>,
+    CHILD: Component,
 {
     fn from(vchild: VChild<CHILD, COMP>) -> Self {
         VNode::VComp(VComp::from(vchild))
@@ -120,7 +120,7 @@ impl<COMP: Component, T: ToString> From<T> for VNode<COMP> {
 
 impl<'a, COMP: Component> From<&'a dyn Renderable<COMP>> for VNode<COMP> {
     fn from(value: &'a dyn Renderable<COMP>) -> Self {
-        value.view()
+        value.render()
     }
 }
 

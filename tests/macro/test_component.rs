@@ -18,4 +18,12 @@ impl Component for TestComponent {
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         unimplemented!()
     }
+
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        unimplemented!()
+    }
+
+    fn view(&self) -> Html<Self> {
+        unimplemented!()
+    }
 }

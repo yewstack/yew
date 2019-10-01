@@ -3,19 +3,18 @@
 //! helps you to track selected value in an original type. Example:
 //!
 //! ```
-//!# use yew::{Html, Component, components::Select, ComponentLink, Renderable, html};
-//!# struct Model;
-//!# impl Component for Model {
-//!#     type Message = ();type Properties = ();
-//!#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-//!#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-//!# }
-//!# impl Renderable<Model> for Model {fn view(&self) -> Html<Model> {unimplemented!()}}
+//!# use yew::{Html, Component, components::Select, ComponentLink, html};
 //! #[derive(PartialEq, Clone)]
 //! enum Scene {
 //!     First,
 //!     Second,
 //! }
+//!# struct Model;
+//!# impl Component for Model {
+//!#     type Message = ();type Properties = ();
+//!#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
+//!#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+//!#     fn view(&self) -> Html<Model> {unimplemented!()}}
 //! impl ToString for Scene {
 //!     fn to_string(&self) -> String {
 //!         match self {
@@ -34,7 +33,7 @@
 //! ```
 
 use crate::callback::Callback;
-use crate::html::{ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
+use crate::html::{ChangeData, Component, ComponentLink, Html, ShouldRender};
 use crate::macros::{html, Properties};
 
 /// `Select` component.
@@ -64,7 +63,7 @@ pub struct Props<T> {
 
 impl<T> Component for Select<T>
 where
-    T: PartialEq + Clone + 'static,
+    T: ToString + PartialEq + Clone + 'static,
 {
     type Message = Msg;
     type Properties = Props<T>;
@@ -91,12 +90,7 @@ where
         self.props = props;
         true
     }
-}
 
-impl<T> Renderable<Select<T>> for Select<T>
-where
-    T: ToString + PartialEq + Clone + 'static,
-{
     fn view(&self) -> Html<Self> {
         let selected = self.props.selected.as_ref();
         let view_option = |value: &T| {

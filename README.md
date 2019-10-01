@@ -56,7 +56,7 @@ Yew implements strict application state management based on message passing and 
 `src/main.rs`
 
 ```rust
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 struct Model { }
 
@@ -82,9 +82,7 @@ impl Component for Model {
             }
         }
     }
-}
 
-impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         html! {
             // Render your model here
@@ -322,7 +320,7 @@ extern crate chrono;
 use chrono::prelude::*;
 
 impl Renderable<Model> for Model {
-    fn view(&self) -> Html<Self> {
+    fn render(&self) -> Html<Self> {
         html! {
             <p>{ Local::now() }</p>
         }
