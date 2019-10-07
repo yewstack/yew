@@ -24,7 +24,7 @@ pub enum Msg {
 pub struct Worker {
     link: AgentLink<Worker>,
     interval: IntervalService,
-    task: Box<Task>,
+    task: Box<dyn Task>,
     fetch: FetchService,
 }
 
