@@ -5,5 +5,5 @@ authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-stdweb = "0.4.2"
+stdweb = "0.4.19"
 yew = { path = "../.." }
