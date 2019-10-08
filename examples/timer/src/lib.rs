@@ -10,9 +10,9 @@ pub struct Model {
     console: ConsoleService,
     callback_tick: Callback<()>,
     callback_done: Callback<()>,
-    job: Option<Box<Task>>,
+    job: Option<Box<dyn Task>>,
     messages: Vec<&'static str>,
-    _standalone: Box<Task>,
+    _standalone: Box<dyn Task>,
 }
 
 pub enum Msg {
