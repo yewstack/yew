@@ -23,7 +23,7 @@ pub struct Model {
     cellules_width: usize,
     cellules_height: usize,
     #[allow(unused)]
-    job: Box<Task>,
+    job: Box<dyn Task>,
 }
 
 impl Cellule {
