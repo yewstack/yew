@@ -38,9 +38,14 @@ pub trait Component: Sized + 'static {
     /// component's place in the DOM tree remains unchanged. If the component's
     /// place in the DOM tree changes, calling this method is unnecessary as the
     /// component is recreated from scratch. It defaults
-    /// to true if not implemented.
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        true
+    /// to true if not implemented and Self::Properties doesn't have a () value.
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        if props == () {
+            false
+        }
+        else {
+            true
+        }
     }
     /// Called by rendering loop.
     fn view(&self) -> Html<Self>;
