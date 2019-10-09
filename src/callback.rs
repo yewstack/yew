@@ -38,8 +38,8 @@ impl<IN> fmt::Debug for Callback<IN> {
 
 impl<IN> Callback<IN> {
     /// This method calls the actual callback.
-    pub fn emit(&self, value: IN) {
-        (self.0)(value);
+    pub fn emit<INN: Into<IN>>(&self, value: INN) {
+        (self.0)(value.into());
     }
 }
 
