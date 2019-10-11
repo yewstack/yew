@@ -8,5 +8,5 @@ edition = "2018"
 failure = "0.1"
 serde = "1"
 serde_derive = "1"
-stdweb = "0.4.19"
+stdweb = "0.4.20"
 yew = { path = "../.." }
