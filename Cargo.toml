@@ -38,7 +38,7 @@ toml = { version = "0.4", optional = true }
 yew-macro = { version = "0.10.0", path = "crates/macro" }
 
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
-wasm-bindgen = "=0.2.42"
+wasm-bindgen = "=0.2.50"
 
 [dev-dependencies]
 serde_derive = "1"
@@ -46,7 +46,7 @@ trybuild = "1.0"
 rustversion = "0.1"
 
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dev-dependencies]
-wasm-bindgen-test = "0.2"
+wasm-bindgen-test = "=0.2.50"
 
 [features]
 default = []
