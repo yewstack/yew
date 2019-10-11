@@ -19,7 +19,7 @@ cache:
     - $HOME/.local/share/cargo-web/emscripten
 
 rust:
-  # - 1.35.0 # min supported
+  # - 1.39.0 # min supported
   # - stable
   - beta
   - nightly

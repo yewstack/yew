@@ -60,3 +60,4 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode<_>>` for `&()`
 
 For more information about this error, try `rustc --explain E0277`.
+error: could not compile `yew-tests`.
