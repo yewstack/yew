@@ -3,6 +3,7 @@ branches:
     - staging
     - trying
     - master
+    - futures
 
 language: rust
 
