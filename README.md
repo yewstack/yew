@@ -14,7 +14,7 @@
   <p>
     <a href="https://travis-ci.com/yewstack/yew"><img alt="Build Status" src="https://travis-ci.com/yewstack/yew.svg?branch=master"/></a>
     <a href="https://gitter.im/yewframework/Lobby"><img alt="Gitter Chat" src="https://badges.gitter.im/yewframework.svg"/></a>
-    <a href="https://blog.rust-lang.org/2019/05/23/Rust-1.35.0.html"><img alt="Rustc Version 1.35+" src="https://img.shields.io/badge/rustc-1.35+-lightgray.svg"/></a>
+    <a href="https://blog.rust-lang.org/2019/09/30/Async-await-hits-beta.html"><img alt="Rustc Version beta (1.39)+" src="https://img.shields.io/badge/rustc-beta+-lightgray.svg"/></a>
   </p>
 
   <h4>

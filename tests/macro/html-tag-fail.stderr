@@ -184,5 +184,6 @@ error[E0277]: the trait bound `yew::html::Href: std::convert::From<()>` is not s
              <yew::html::Href as std::convert::From<std::string::String>>
    = note: required because of the requirements on the impl of `std::convert::Into<yew::html::Href>` for `()`
 
-Some errors occurred: E0277, E0308.
+Some errors have detailed explanations: E0277, E0308.
 For more information about an error, try `rustc --explain E0277`.
+error: could not compile `yew-tests`.
