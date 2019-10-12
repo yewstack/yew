@@ -46,14 +46,11 @@ impl<COMP: Component> VDiff for VText<COMP> {
         sibling
     }
 
-    /// Renders virtual node over existent `TextNode`, but
-    /// only if value of text had changed.
-    /// Parameter `previous_sibling` is necessary for `VTag` and `VList` which
-    /// has children and renders them.
+    /// Renders virtual node over existing `TextNode`, but only if value of text had changed.
     fn apply(
         &mut self,
         parent: &Element,
-        _: Option<&Node>,
+        previous_sibling: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         _: &Scope<Self::Component>,
     ) -> Option<Node> {
@@ -88,6 +85,12 @@ impl<COMP: Component> VDiff for VText<COMP> {
                     parent
                         .insert_before(&element, &ancestor)
                         .expect("can't insert text before ancestor");
+                } else if let Some(next_sibling) =
+                    previous_sibling.and_then(|previous_sibling| previous_sibling.next_sibling())
+                {
+                    parent
+                        .insert_before(&element, &next_sibling)
+                        .expect("can't insert text before next_sibling");
                 } else {
                     parent.append_child(&element);
                 }
