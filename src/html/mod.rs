@@ -251,7 +251,7 @@ where
 {
     fn view(&self) -> Html<COMP> {
         VList {
-            childs: self.iter().map(|c| c.into()).collect(),
+            children: self.iter().map(|c| c.into()).collect(),
         }
         .into()
     }

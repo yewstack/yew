@@ -53,7 +53,7 @@ impl ToTokens for HtmlList {
         tokens.extend(quote! {
             ::yew::virtual_dom::VNode::VList(
                 ::yew::virtual_dom::vlist::VList {
-                    childs: vec![#(#html_trees,)*],
+                    children: vec![#(#html_trees,)*],
                 }
             )
         });
