@@ -18,7 +18,9 @@ impl<COMP: Component> Default for VList<COMP> {
 impl<COMP: Component> VList<COMP> {
     /// Creates a new empty `VList` instance.
     pub fn new() -> Self {
-        VList { children: Vec::new() }
+        VList {
+            children: Vec::new(),
+        }
     }
 
     /// Add `VNode` child.
@@ -78,7 +80,8 @@ impl<COMP: Component> VDiff for VList<COMP> {
         loop {
             match (lefts.next(), rights.next()) {
                 (Some(left), Some(right)) => {
-                    previous_sibling = left.apply(parent, previous_sibling.as_ref(), Some(right), &env);
+                    previous_sibling =
+                        left.apply(parent, previous_sibling.as_ref(), Some(right), &env);
                 }
                 (Some(left), None) => {
                     previous_sibling = left.apply(parent, previous_sibling.as_ref(), None, &env);

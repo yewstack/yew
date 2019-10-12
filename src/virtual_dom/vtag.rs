@@ -425,7 +425,8 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                         .insert_before(&element, &sibling)
                         .expect("can't insert tag before sibling");
                 } else {
-                    let previous_sibling = previous_sibling.and_then(|before| before.next_sibling());
+                    let previous_sibling =
+                        previous_sibling.and_then(|before| before.next_sibling());
                     if let Some(previous_sibling) = previous_sibling {
                         parent
                             .insert_before(&element, &previous_sibling)
@@ -464,7 +465,8 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             loop {
                 match (self_children.next(), ancestor_children.next()) {
                     (Some(left), right) => {
-                        previous_sibling = left.apply(&element, previous_sibling.as_ref(), right, &env);
+                        previous_sibling =
+                            left.apply(&element, previous_sibling.as_ref(), right, &env);
                     }
                     (None, Some(ref mut right)) => {
                         right.detach(&element);

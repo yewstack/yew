@@ -308,7 +308,8 @@ where
                                 .insert_before(&element, &sibling)
                                 .expect("can't insert dummy element for a component");
                         } else {
-                            let previous_sibling = previous_sibling.and_then(|before| before.next_sibling());
+                            let previous_sibling =
+                                previous_sibling.and_then(|before| before.next_sibling());
                             if let Some(previous_sibling) = previous_sibling {
                                 parent
                                     .insert_before(&element, &previous_sibling)
