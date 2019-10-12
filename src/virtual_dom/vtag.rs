@@ -32,7 +32,7 @@ pub struct VTag<COMP: Component> {
     /// List of attributes.
     pub attributes: Attributes,
     /// The list of children nodes. Which also could have own children.
-    pub childs: Vec<VNode<COMP>>,
+    pub children: Vec<VNode<COMP>>,
     /// List of attached classes.
     pub classes: Classes,
     /// Contains a value of an
@@ -63,7 +63,7 @@ impl<COMP: Component> VTag<COMP> {
             attributes: Attributes::new(),
             listeners: Vec::new(),
             captured: Vec::new(),
-            childs: Vec::new(),
+            children: Vec::new(),
             value: None,
             kind: None,
             // In HTML node `checked` attribute sets `defaultChecked` parameter,
@@ -79,13 +79,13 @@ impl<COMP: Component> VTag<COMP> {
 
     /// Add `VNode` child.
     pub fn add_child(&mut self, child: VNode<COMP>) {
-        self.childs.push(child);
+        self.children.push(child);
     }
 
     /// Add multiple `VNode` children.
     pub fn add_children(&mut self, children: Vec<VNode<COMP>>) {
         for child in children {
-            self.childs.push(child);
+            self.children.push(child);
         }
     }
 
@@ -352,7 +352,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             .expect("tried to remove not rendered VTag from DOM");
 
         // recursively remove its children
-        self.childs.drain(..).for_each(|mut child| {
+        self.children.drain(..).for_each(|mut child| {
             child.detach(&node);
         });
 
@@ -457,12 +457,12 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             }
 
             // Process children
-            // Start with an empty precursor, because it put childs to itself
+            // Start with an empty precursor, because it put children to itself
             let mut precursor = None;
-            let mut self_childs = self.childs.iter_mut();
-            let mut ancestor_childs = ancestor.into_iter().flat_map(|a| a.childs);
+            let mut self_children = self.children.iter_mut();
+            let mut ancestor_children = ancestor.into_iter().flat_map(|a| a.children);
             loop {
-                match (self_childs.next(), ancestor_childs.next()) {
+                match (self_children.next(), ancestor_children.next()) {
                     (Some(left), right) => {
                         precursor = left.apply(&element, precursor.as_ref(), right, &env);
                     }
@@ -514,7 +514,7 @@ impl<COMP: Component> PartialEq for VTag<COMP> {
             && self.attributes == other.attributes
             && self.classes.set.len() == other.classes.set.len()
             && self.classes.set.iter().eq(other.classes.set.iter())
-            && &self.childs == &other.childs
+            && &self.children == &other.children
     }
 }
 
