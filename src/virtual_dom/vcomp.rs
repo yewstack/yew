@@ -264,7 +264,7 @@ where
     fn apply(
         &mut self,
         parent: &Element,
-        precursor: Option<&Node>,
+        previous_sibling: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,
     ) -> Option<Node> {
@@ -308,11 +308,12 @@ where
                                 .insert_before(&element, &sibling)
                                 .expect("can't insert dummy element for a component");
                         } else {
-                            let precursor = precursor.and_then(|before| before.next_sibling());
-                            if let Some(precursor) = precursor {
+                            let previous_sibling =
+                                previous_sibling.and_then(|before| before.next_sibling());
+                            if let Some(previous_sibling) = previous_sibling {
                                 parent
-                                    .insert_before(&element, &precursor)
-                                    .expect("can't insert dummy element before precursor");
+                                    .insert_before(&element, &previous_sibling)
+                                    .expect("can't insert dummy element before previous_sibling");
                             } else {
                                 parent.append_child(&element);
                             }
