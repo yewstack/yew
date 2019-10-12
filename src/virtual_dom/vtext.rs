@@ -48,7 +48,7 @@ impl<COMP: Component> VDiff for VText<COMP> {
 
     /// Renders virtual node over existent `TextNode`, but
     /// only if value of text had changed.
-    /// Parameter `precursor` is necessary for `VTag` and `VList` which
+    /// Parameter `previous_sibling` is necessary for `VTag` and `VList` which
     /// has children and renders them.
     fn apply(
         &mut self,

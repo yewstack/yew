@@ -41,12 +41,12 @@ impl<COMP: Component> VDiff for VList<COMP> {
     fn apply(
         &mut self,
         parent: &Element,
-        precursor: Option<&Node>,
+        previous_sibling: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,
     ) -> Option<Node> {
-        // Reuse precursor, because fragment reuse parent
-        let mut precursor = precursor.map(|node| node.to_owned());
+        // Reuse previous_sibling, because fragment reuse parent
+        let mut previous_sibling = previous_sibling.cloned();
         let mut rights = {
             match ancestor {
                 // If element matched this type
@@ -78,10 +78,10 @@ impl<COMP: Component> VDiff for VList<COMP> {
         loop {
             match (lefts.next(), rights.next()) {
                 (Some(left), Some(right)) => {
-                    precursor = left.apply(parent, precursor.as_ref(), Some(right), &env);
+                    previous_sibling = left.apply(parent, previous_sibling.as_ref(), Some(right), &env);
                 }
                 (Some(left), None) => {
-                    precursor = left.apply(parent, precursor.as_ref(), None, &env);
+                    previous_sibling = left.apply(parent, previous_sibling.as_ref(), None, &env);
                 }
                 (None, Some(ref mut right)) => {
                     right.detach(parent);
@@ -89,6 +89,6 @@ impl<COMP: Component> VDiff for VList<COMP> {
                 (None, None) => break,
             }
         }
-        precursor
+        previous_sibling
     }
 }

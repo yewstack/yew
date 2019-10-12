@@ -134,7 +134,7 @@ enum Reform {
     /// The optional `Node` is used to insert the
     /// new node in the correct slot of the parent.
     ///
-    /// If it does not exist, a `precursor` must be
+    /// If it does not exist, a `previous_sibling` must be
     /// specified (see `VDiff::apply()`).
     Before(Option<Node>),
 }
@@ -158,7 +158,7 @@ pub trait VDiff {
     ///
     /// Parameters:
     /// - `parent`: the parent node in the DOM.
-    /// - `precursor`: the "previous node" in a list of nodes, used to efficiently
+    /// - `previous_sibling`: the "previous node" in a list of nodes, used to efficiently
     ///   find where to put the node.
     /// - `ancestor`: the node that this node will be replacing in the DOM.
     ///   This method will _always_ remove the `ancestor` from the `parent`.
@@ -175,7 +175,7 @@ pub trait VDiff {
     fn apply(
         &mut self,
         parent: &Element,
-        precursor: Option<&Node>,
+        previous_sibling: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         scope: &Scope<Self::Component>,
     ) -> Option<Node>;

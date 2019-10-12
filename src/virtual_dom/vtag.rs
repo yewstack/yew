@@ -368,7 +368,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
     fn apply(
         &mut self,
         parent: &Element,
-        precursor: Option<&Node>,
+        previous_sibling: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,
     ) -> Option<Node> {
@@ -425,11 +425,11 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                         .insert_before(&element, &sibling)
                         .expect("can't insert tag before sibling");
                 } else {
-                    let precursor = precursor.and_then(|before| before.next_sibling());
-                    if let Some(precursor) = precursor {
+                    let previous_sibling = previous_sibling.and_then(|before| before.next_sibling());
+                    if let Some(previous_sibling) = previous_sibling {
                         parent
-                            .insert_before(&element, &precursor)
-                            .expect("can't insert tag before precursor");
+                            .insert_before(&element, &previous_sibling)
+                            .expect("can't insert tag before previous_sibling");
                     } else {
                         parent.append_child(&element);
                     }
@@ -457,14 +457,14 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             }
 
             // Process children
-            // Start with an empty precursor, because it put children to itself
-            let mut precursor = None;
+            // Start with an empty previous_sibling, because it put children to itself
+            let mut previous_sibling = None;
             let mut self_children = self.children.iter_mut();
             let mut ancestor_children = ancestor.into_iter().flat_map(|a| a.children);
             loop {
                 match (self_children.next(), ancestor_children.next()) {
                     (Some(left), right) => {
-                        precursor = left.apply(&element, precursor.as_ref(), right, &env);
+                        previous_sibling = left.apply(&element, previous_sibling.as_ref(), right, &env);
                     }
                     (None, Some(ref mut right)) => {
                         right.detach(&element);
