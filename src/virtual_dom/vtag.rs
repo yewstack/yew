@@ -220,7 +220,7 @@ impl<COMP: Component> VTag<COMP> {
                     .and_then(|ancestor| ancestor.attributes.get(&**key))
                 {
                     None => Some(Patch::Add(&**key, &**value)),
-                    Some(ancestor_value) if value == ancestor_value => {
+                    Some(ancestor_value) if value != ancestor_value => {
                         Some(Patch::Replace(&**key, &**value))
                     }
                     _ => None,
