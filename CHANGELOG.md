@@ -8,6 +8,10 @@
 
 - #### 🚨 Breaking changes
 
+## ✨ **0.9.2** *(2019-10-12)*
+
+Fixed `yew-macro` dependency version
+
 ## ✨ **0.9.1** *(2019-10-12)*
 
 Happy Canadian Thanksgiving! 🦃
