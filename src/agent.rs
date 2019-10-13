@@ -52,7 +52,7 @@ impl<T: Serialize + for<'de> Deserialize<'de>> Packed for T {
 type SharedOutputSlab<AGN> = Shared<Slab<Option<Callback<<AGN as Agent>::Output>>>>;
 
 /// Id of responses handler.
-#[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct HandlerId(usize, bool);
 
 impl HandlerId {
@@ -65,12 +65,6 @@ impl HandlerId {
     /// Indicates if a handler id corresponds to callback in the Agent runtime.
     pub fn is_respondable(&self) -> bool {
         self.1
-    }
-}
-
-impl fmt::Debug for HandlerId {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("HandlerId")
     }
 }
 
