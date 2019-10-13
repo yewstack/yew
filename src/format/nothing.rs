@@ -4,6 +4,7 @@ use super::{Binary, Text};
 use failure::err_msg;
 
 /// A representation of an empty data. Nothing stored. Nothing restored.
+#[derive(Debug)]
 pub struct Nothing;
 
 impl Into<Text> for Nothing {

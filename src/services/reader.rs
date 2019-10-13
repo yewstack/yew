@@ -3,6 +3,7 @@
 use super::Task;
 use crate::callback::Callback;
 use std::cmp;
+use std::fmt;
 use stdweb::unstable::TryInto;
 use stdweb::web::event::LoadEndEvent;
 pub use stdweb::web::{Blob, File, IBlob};
@@ -39,7 +40,7 @@ pub enum FileChunk {
 }
 
 /// A reader service attached to a user context.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ReaderService {}
 
 impl ReaderService {
@@ -133,6 +134,12 @@ impl ReaderService {
 #[must_use]
 pub struct ReaderTask {
     file_reader: FileReader,
+}
+
+impl fmt::Debug for ReaderTask {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("ReaderTask")
+    }
 }
 
 impl Task for ReaderTask {

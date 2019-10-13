@@ -5,6 +5,7 @@ use crate::html::{Component, Scope};
 use stdweb::web::{document, Element, INode, IParentNode};
 
 /// An application instance.
+#[derive(Debug)]
 pub struct App<COMP: Component> {
     /// `Scope` holder
     scope: Scope<COMP>,

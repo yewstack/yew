@@ -6,6 +6,7 @@ use crate::format::{Binary, Format, Text};
 use failure::Fail;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::fmt;
 use stdweb::serde::Serde;
 use stdweb::unstable::{TryFrom, TryInto};
 use stdweb::web::ArrayBuffer;
@@ -16,7 +17,7 @@ use stdweb::{_js_impl, js};
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
 /// Type to set cache for fetch.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "kebab-case")]
 pub enum Cache {
     /// `default` value of cache.
@@ -35,7 +36,7 @@ pub enum Cache {
 }
 
 /// Type to set credentials for fetch.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "kebab-case")]
 pub enum Credentials {
     /// `omit` value of credentials.
@@ -47,7 +48,7 @@ pub enum Credentials {
 }
 
 /// Type to set mode for fetch.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "kebab-case")]
 pub enum Mode {
     /// `same-origin` value of mode.
@@ -59,7 +60,7 @@ pub enum Mode {
 }
 
 /// Type to set redirect behaviour for fetch.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "kebab-case")]
 pub enum Redirect {
     /// `follow` value of redirect.
@@ -72,7 +73,7 @@ pub enum Redirect {
 
 /// Init options for `fetch()` function call.
 /// https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-#[derive(Serialize, Default)]
+#[derive(Serialize, Default, Debug)]
 pub struct FetchOptions {
     /// Cache of a fetch request.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -99,8 +100,14 @@ enum FetchError {
 #[must_use]
 pub struct FetchTask(Option<Value>);
 
+impl fmt::Debug for FetchTask {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("FetchTask")
+    }
+}
+
 /// A service to fetch resources.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct FetchService {}
 
 impl FetchService {
