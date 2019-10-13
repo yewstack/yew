@@ -235,9 +235,12 @@ impl<T> ChildrenRenderer<T> {
 
 impl<T> Default for ChildrenRenderer<T> {
     fn default() -> Self {
+        // False positive: https://github.com/rust-lang/rust-clippy/issues/4002
+        #[allow(clippy::redundant_closure)]
+        let boxed_render = Box::new(|| Vec::new());
         Self {
             len: 0,
-            boxed_render: Box::new(|| Vec::new()),
+            boxed_render,
         }
     }
 }

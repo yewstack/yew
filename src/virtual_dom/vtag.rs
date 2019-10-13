@@ -516,7 +516,7 @@ impl<COMP: Component> PartialEq for VTag<COMP> {
             && self.attributes == other.attributes
             && self.classes.set.len() == other.classes.set.len()
             && self.classes.set.iter().eq(other.classes.set.iter())
-            && &self.children == &other.children
+            && self.children == other.children
     }
 }
 

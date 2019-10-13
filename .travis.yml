@@ -27,6 +27,7 @@ matrix:
 install:
   - nvm install 9
   - rustup component add rustfmt
+  - rustup component add clippy
   - rustup target add wasm32-unknown-unknown
   - cargo install cargo-update || true
   - cargo install-update-config --version =0.2.50 wasm-bindgen-cli
@@ -37,6 +38,5 @@ install:
   - ./ci/install_cargo_web.sh
 
 script:
-  - rustup target list --installed
-  - cargo fmt --all -- --check
+  - ./ci/run_checks.sh
   - CHROMEDRIVER=$(pwd)/chromedriver ./ci/run_tests.sh
