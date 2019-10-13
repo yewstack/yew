@@ -5,6 +5,7 @@ use crate::callback::Callback;
 use crate::html::{Component, ComponentUpdate, NodeCell, Scope};
 use std::any::TypeId;
 use std::cell::RefCell;
+use std::fmt;
 use std::rc::Rc;
 use stdweb::unstable::TryInto;
 use stdweb::web::{document, Element, INode, Node};
@@ -31,12 +32,24 @@ pub struct VComp<COMP: Component> {
     state: Rc<RefCell<MountState<COMP>>>,
 }
 
+impl<COMP: Component> fmt::Debug for VComp<COMP> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("VComp<_>")
+    }
+}
+
 /// A virtual child component.
 pub struct VChild<SELF: Component, PARENT: Component> {
     /// The component properties
     pub props: SELF::Properties,
     /// The parent component scope
     pub scope: ScopeHolder<PARENT>,
+}
+
+impl<SELF: Component, PARENT: Component> fmt::Debug for VChild<SELF, PARENT> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("VChild<_,_>")
+    }
 }
 
 impl<SELF, PARENT> VChild<SELF, PARENT>

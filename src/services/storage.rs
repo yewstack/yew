@@ -3,6 +3,7 @@
 
 use crate::format::Text;
 use failure::Fail;
+use std::fmt;
 use stdweb::web::{window, Storage};
 
 /// Represents errors of a storage.
@@ -13,6 +14,7 @@ enum StorageError {
 }
 
 /// An area to keep the data in.
+#[derive(Debug)]
 pub enum Area {
     /// Use `localStorage` of a browser.
     Local,
@@ -23,6 +25,12 @@ pub enum Area {
 /// A storage service attached to a context.
 pub struct StorageService {
     storage: Storage,
+}
+
+impl fmt::Debug for StorageService {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("StorageService")
+    }
 }
 
 impl StorageService {

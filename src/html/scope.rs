@@ -25,6 +25,12 @@ pub struct Scope<COMP: Component> {
     shared_state: Shared<ComponentState<COMP>>,
 }
 
+impl<COMP: Component> fmt::Debug for Scope<COMP> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Scope<_>")
+    }
+}
+
 impl<COMP: Component> Clone for Scope<COMP> {
     fn clone(&self) -> Self {
         Scope {

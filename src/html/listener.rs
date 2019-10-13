@@ -17,6 +17,7 @@ macro_rules! impl_action {
 
             /// A wrapper for a callback.
             /// Listener extracted from here when attached.
+            #[allow(missing_debug_implementations)]
             pub struct Wrapper<F>(Option<F>);
 
             /// And event type which keeps the returned type.

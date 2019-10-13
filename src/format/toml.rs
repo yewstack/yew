@@ -16,6 +16,7 @@ use toml;
 /// let Toml(data) = dump;
 /// }
 /// ```
+#[derive(Debug)]
 pub struct Toml<T>(pub T);
 
 text_format!(Toml based on toml);

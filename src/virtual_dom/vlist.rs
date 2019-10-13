@@ -4,6 +4,7 @@ use crate::html::{Component, Scope};
 use stdweb::web::{Element, Node};
 
 /// This struct represents a fragment of the Virtual DOM tree.
+#[derive(Debug)]
 pub struct VList<COMP: Component> {
     /// The list of children nodes. Which also could have their own children.
     pub children: Vec<VNode<COMP>>,

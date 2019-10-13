@@ -1,5 +1,6 @@
 //! Service to register key press event listeners on elements.
 use crate::callback::Callback;
+use std::fmt;
 use stdweb::web::event::{KeyDownEvent, KeyPressEvent, KeyUpEvent};
 use stdweb::web::{EventListenerHandle, IEventTarget};
 
@@ -12,12 +13,19 @@ use stdweb::web::{EventListenerHandle, IEventTarget};
 ///
 /// This service is for adding key event listeners to elements that don't support these attributes,
 /// like the `document` or `<canvas>` elements for example.
+#[derive(Debug)]
 pub struct KeyboardService {}
 
 /// Handle to the key event listener.
 ///
 /// When it goes out of scope, the listener will be removed from the element.
 pub struct KeyListenerHandle(Option<EventListenerHandle>);
+
+impl fmt::Debug for KeyListenerHandle {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("KeyListenerHandle")
+    }
+}
 
 impl KeyboardService {
     /// Registers a callback that listens to KeyPressEvents on a provided element.
