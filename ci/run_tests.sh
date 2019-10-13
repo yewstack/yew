@@ -33,10 +33,10 @@ echo "Testing derive props macro..."
 cargo test --test derive_props_test
 
 echo "Testing docs"
-cargo test --doc
+cargo doc_test
 
 echo "Testing macro docs..."
-(cd crates/macro && cargo test)
+(cd crates/macro && cargo doc_test)
 
 check_example() {
     echo "Checking example [$2]"

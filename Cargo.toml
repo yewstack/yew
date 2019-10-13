@@ -53,6 +53,7 @@ wasm-bindgen-test = "=0.2.50"
 
 [features]
 default = []
+doc_test = []
 web_test = []
 wasm_test = []
 yaml = ["serde_yaml"]
