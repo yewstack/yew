@@ -41,3 +41,4 @@ script:
   - rustup target list --installed
   - cargo fmt --all -- --check
   - CHROMEDRIVER=$(pwd)/chromedriver ./ci/run_tests.sh
+  - CHROMEDRIVER=$(pwd)/chromedriver ./ci/check_examples.sh
