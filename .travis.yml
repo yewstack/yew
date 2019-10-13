@@ -36,5 +36,6 @@ install:
   - ./ci/install_cargo_web.sh
 
 script:
+  - rustup target list --installed
   - cargo fmt --all -- --check
   - CHROMEDRIVER=$(pwd)/chromedriver ./ci/run_tests.sh

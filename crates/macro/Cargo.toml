@@ -30,3 +30,6 @@ yew = { path = "../.." }
 
 [build-dependencies]
 autocfg = "0.1.3"
+
+[features]
+doc_test = []
