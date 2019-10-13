@@ -352,6 +352,7 @@ where
         callback.emit(response);
     };
 
+    #[allow(clippy::too_many_arguments)]
     let handle = js! {
         var body = @{body};
         if (@{binary} && body != null) {
