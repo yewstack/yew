@@ -1,10 +1,30 @@
 # Changelog
 
-## ✨ **0.10** *(TBD)*
+## ✨ **0.10.0** *(TBD)*
 
 - #### ⚡️ Features
 
 - #### 🛠 Fixes
+
+- #### 🚨 Breaking changes
+
+## ✨ **0.9.1** *(2019-10-12)*
+
+Happy Canadian Thanksgiving! 🦃
+
+- #### ⚡️ Features
+
+  - Implemented `Default` trait for `VNode` so that `unwrap_or_default` can be called on `Option<Html<Self>>`. [[@hgzimmerman], [#672](https://github.com/yewstack/yew/pull/672)]
+  - Implemented `PartialEq` trait for `Classes` so that is more ergonomic to use `Classes` type in component props. [[@hgzimmerman], [#680](https://github.com/yewstack/yew/pull/680)]
+  - Updated `wasm-bindgen` dependency to `0.2.50`. Please update your `wasm-bindgen-cli` tool by running `cargo install --force --version 0.2.50 -- wasm-bindgen-cli`. [[@jstarry], [#695](https://github.com/yewstack/yew/pull/695)]
+
+- #### 🛠 Fixes
+
+  - Fixed issue where text nodes were sometimes rendered out of order. [[@jstarry], [#697](https://github.com/yewstack/yew/pull/697)]
+  - Fixed regression introduced in 0.9.0 that prevented tag attributes from updating properly. [[@jstarry], [#698](https://github.com/yewstack/yew/pull/698)]
+  - Fixed emscripten builds by pinning the version for the `ryu` downstream dependency. [[@jstarry], [#703](https://github.com/yewstack/yew/pull/703)]
+  - Updated `stdweb` to `0.4.20` which fixed emscripten builds and unblocked updating `wasm-bindgen` to `0.2.50`. [[@ctaggart], [@jstarry], [#683](https://github.com/yewstack/yew/pull/683), [#694](https://github.com/yewstack/yew/pull/694)]
+  - Cleaned up build warnings for missing `dyn` keywords. [[@benreyn], [#687](https://github.com/yewstack/yew/pull/687)]
 
 - #### 🚨 Breaking changes
 
@@ -223,8 +243,10 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 
 [Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
 [@astraw]: https://github.com/astraw
+[@benreyn]: https://github.com/benreyn
 [@boydjohnson]: https://github.com/boydjohnson
 [@charvp]: https://github.com/charvp
+[@ctaggart]: https://github.com/ctaggart
 [@davidkna]: https://github.com/davidkna
 [@DenisKolodin]: https://github.com/DenisKolodin
 [@dermetfan]: https://github.com/dermetfan
