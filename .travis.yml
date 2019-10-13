@@ -39,7 +39,5 @@ install:
   - ./ci/install_cargo_web.sh
 
 script:
-  - rustup target list --installed
-  - cargo fmt --all -- --check
-  - cargo clippy -- --deny=warnings
+  - ./ci/run_checks.sh
   - CHROMEDRIVER=$(pwd)/chromedriver ./ci/run_tests.sh
