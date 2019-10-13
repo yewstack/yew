@@ -31,7 +31,8 @@ install:
   - cargo install cargo-update || true
   - cargo install-update-config --version =0.2.50 wasm-bindgen-cli
   - cargo install-update wasm-bindgen-cli
-  - curl --retry 5 -LO https://chromedriver.storage.googleapis.com/2.41/chromedriver_linux64.zip
+  - LATEST_CHROMEDRIVER_VERSION=`curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE"`
+  - curl --retry 5 -LO "https://chromedriver.storage.googleapis.com/${LATEST_CHROMEDRIVER_VERSION}/chromedriver_linux64.zip"
   - unzip chromedriver_linux64.zip
   - ./ci/install_cargo_web.sh
 
