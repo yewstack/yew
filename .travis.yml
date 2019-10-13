@@ -15,6 +15,7 @@ cache:
   timeout: 1000
   directories:
     - $HOME/.cargo
+    - $HOME/.nvm
     - $HOME/.rustup
     - $HOME/.local/share/cargo-web/emscripten
 
