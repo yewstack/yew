@@ -40,3 +40,4 @@ install:
 script:
   - ./ci/run_checks.sh
   - CHROMEDRIVER=$(pwd)/chromedriver ./ci/run_tests.sh
+  - CHROMEDRIVER=$(pwd)/chromedriver ./ci/check_examples.sh
