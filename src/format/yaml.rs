@@ -17,6 +17,7 @@ use serde_yaml;
 /// let Yaml(data) = dump;
 ///# }
 /// ```
+#[derive(Debug)]
 pub struct Yaml<T>(pub T);
 
 text_format!(Yaml based on serde_yaml);

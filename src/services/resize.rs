@@ -1,4 +1,5 @@
 //! This module contains the implementation of a service that listens for browser window resize events.
+use std::fmt;
 use stdweb::Value;
 use stdweb::{
     js,
@@ -7,14 +8,21 @@ use stdweb::{
 use yew::callback::Callback;
 
 /// A service that fires events when the browser window resizes.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ResizeService {}
 
 /// A handle to the event listener for resize events.
 #[must_use]
 pub struct ResizeTask(Option<Value>);
 
+impl fmt::Debug for ResizeTask {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("ResizeTask")
+    }
+}
+
 /// Dimensions of the window.
+#[derive(Debug)]
 pub struct WindowDimensions {
     /// The width of the viewport of the browser window.
     pub width: i32,
