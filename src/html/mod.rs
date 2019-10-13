@@ -12,6 +12,7 @@ pub use scope::{NodeCell, Scope};
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VList, VNode};
+use std::any::TypeId;
 use std::fmt;
 
 /// This type indicates that component should be rendered again.
@@ -37,10 +38,10 @@ pub trait Component: Sized + 'static {
     /// Called when the component's parent component re-renders and the
     /// component's place in the DOM tree remains unchanged. If the component's
     /// place in the DOM tree changes, calling this method is unnecessary as the
-    /// component is recreated from scratch. It defaults
-    /// to true if not implemented.
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        true
+    /// component is recreated from scratch. It defaults to true if not implemented
+    /// and Self::Properties is not the unit type `()`.
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        TypeId::of::<Self::Properties>() != TypeId::of::<()>()
     }
     /// Called by rendering loop.
     fn view(&self) -> Html<Self>;
