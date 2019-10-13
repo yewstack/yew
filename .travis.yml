@@ -33,7 +33,9 @@ install:
   - nvm install 9
   - rustup component add rustfmt
   - rustup target add wasm32-unknown-unknown
-  - cargo install --force --version 0.2.50 -- wasm-bindgen-cli
+  - cargo install cargo-update
+  - cargo install-update-config --version =0.2.50 wasm-bindgen-cli
+  - cargo install-update wasm-bindgen-cli
   - curl --retry 5 -LO https://chromedriver.storage.googleapis.com/2.41/chromedriver_linux64.zip
   - unzip chromedriver_linux64.zip
   - ./ci/install_cargo_web.sh
