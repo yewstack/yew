@@ -20,3 +20,4 @@ rm -fr ./target/wasm32-unknown-unknown/debug/incremental
 rm -f  ./target/.rustc_info.json
 rm -f  ./target/tests/target/.rustc_info.json
 rm -fr ./target/wasm32-unknown-unknown/wbg-tmp
+rm -fr /home/travis/.cargo/registry/index/github.com-*
