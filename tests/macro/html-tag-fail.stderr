@@ -1,162 +1,162 @@
 error: this open tag has no corresponding close tag
- --> $DIR/html-tag-fail.rs:4:13
+ --> $DIR/html-tag-fail.rs:6:13
   |
-4 |     html! { <div> };
+6 |     html! { <div> };
   |             ^^^^^
 
 error: this open tag has no corresponding close tag
- --> $DIR/html-tag-fail.rs:5:18
+ --> $DIR/html-tag-fail.rs:7:18
   |
-5 |     html! { <div><div> };
+7 |     html! { <div><div> };
   |                  ^^^^^
 
 error: this close tag has no corresponding open tag
- --> $DIR/html-tag-fail.rs:6:13
+ --> $DIR/html-tag-fail.rs:8:13
   |
-6 |     html! { </div> };
+8 |     html! { </div> };
   |             ^^^^^^
 
 error: this open tag has no corresponding close tag
- --> $DIR/html-tag-fail.rs:7:13
+ --> $DIR/html-tag-fail.rs:9:13
   |
-7 |     html! { <div><div></div> };
+9 |     html! { <div><div></div> };
   |             ^^^^^
 
 error: only one root html element allowed
- --> $DIR/html-tag-fail.rs:8:24
-  |
-8 |     html! { <div></div><div></div> };
-  |                        ^^^^^^^^^^^
-
-error: this close tag has no corresponding open tag
- --> $DIR/html-tag-fail.rs:9:18
-  |
-9 |     html! { <div></span> };
-  |                  ^^^^^^^
-
-error: this close tag has no corresponding open tag
-  --> $DIR/html-tag-fail.rs:10:20
+  --> $DIR/html-tag-fail.rs:10:24
    |
-10 |     html! { <tag-a></tag-b> };
-   |                    ^^^^^^^^
+10 |     html! { <div></div><div></div> };
+   |                        ^^^^^^^^^^^
 
 error: this close tag has no corresponding open tag
   --> $DIR/html-tag-fail.rs:11:18
    |
-11 |     html! { <div></span></div> };
+11 |     html! { <div></span> };
+   |                  ^^^^^^^
+
+error: this close tag has no corresponding open tag
+  --> $DIR/html-tag-fail.rs:12:20
+   |
+12 |     html! { <tag-a></tag-b> };
+   |                    ^^^^^^^^
+
+error: this close tag has no corresponding open tag
+  --> $DIR/html-tag-fail.rs:13:18
+   |
+13 |     html! { <div></span></div> };
    |                  ^^^^^^^
 
 error: only one root html element allowed
-  --> $DIR/html-tag-fail.rs:12:20
+  --> $DIR/html-tag-fail.rs:14:20
    |
-12 |     html! { <img /></img> };
+14 |     html! { <img /></img> };
    |                    ^^^^^^
 
 error: unexpected end of input, expected token tree
-  --> $DIR/html-tag-fail.rs:13:5
+  --> $DIR/html-tag-fail.rs:15:5
    |
-13 |     html! { <div>Invalid</div> };
+15 |     html! { <div>Invalid</div> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error: only one `attr` attribute allowed
-  --> $DIR/html-tag-fail.rs:15:27
+  --> $DIR/html-tag-fail.rs:17:27
    |
-15 |     html! { <input attr=1 attr=2 /> };
+17 |     html! { <input attr=1 attr=2 /> };
    |                           ^^^^
 
 error: only one `value` attribute allowed
-  --> $DIR/html-tag-fail.rs:16:32
+  --> $DIR/html-tag-fail.rs:18:32
    |
-16 |     html! { <input value="123" value="456" /> };
+18 |     html! { <input value="123" value="456" /> };
    |                                ^^^^^
 
 error: only one `kind` attribute allowed
-  --> $DIR/html-tag-fail.rs:17:36
+  --> $DIR/html-tag-fail.rs:19:36
    |
-17 |     html! { <input kind="checkbox" kind="submit" /> };
+19 |     html! { <input kind="checkbox" kind="submit" /> };
    |                                    ^^^^
 
 error: only one `checked` attribute allowed
-  --> $DIR/html-tag-fail.rs:18:33
+  --> $DIR/html-tag-fail.rs:20:33
    |
-18 |     html! { <input checked=true checked=false /> };
+20 |     html! { <input checked=true checked=false /> };
    |                                 ^^^^^^^
 
 error: only one `disabled` attribute allowed
-  --> $DIR/html-tag-fail.rs:19:34
+  --> $DIR/html-tag-fail.rs:21:34
    |
-19 |     html! { <input disabled=true disabled=false /> };
+21 |     html! { <input disabled=true disabled=false /> };
    |                                  ^^^^^^^^
 
 error: only one `selected` attribute allowed
-  --> $DIR/html-tag-fail.rs:20:35
+  --> $DIR/html-tag-fail.rs:22:35
    |
-20 |     html! { <option selected=true selected=false /> };
+22 |     html! { <option selected=true selected=false /> };
    |                                   ^^^^^^^^
 
 error: only one `class` attribute allowed
-  --> $DIR/html-tag-fail.rs:21:32
+  --> $DIR/html-tag-fail.rs:23:32
    |
-21 |     html! { <div class="first" class="second" /> };
+23 |     html! { <div class="first" class="second" /> };
    |                                ^^^^^
 
 error: `onclick` attribute value should be a closure
-  --> $DIR/html-tag-fail.rs:30:20
+  --> $DIR/html-tag-fail.rs:32:20
    |
-30 |     html! { <input onclick=1 /> };
+32 |     html! { <input onclick=1 /> };
    |                    ^^^^^^^
 
 error: there must be one closure argument
-  --> $DIR/html-tag-fail.rs:31:28
+  --> $DIR/html-tag-fail.rs:33:28
    |
-31 |     html! { <input onclick=|| () /> };
+33 |     html! { <input onclick=|| () /> };
    |                            ^^
 
 error: there must be one closure argument
-  --> $DIR/html-tag-fail.rs:32:28
+  --> $DIR/html-tag-fail.rs:34:28
    |
-32 |     html! { <input onclick=|a, b| () /> };
+34 |     html! { <input onclick=|a, b| () /> };
    |                            ^^^^^^
 
 error: invalid closure argument
-  --> $DIR/html-tag-fail.rs:33:28
+  --> $DIR/html-tag-fail.rs:35:28
    |
-33 |     html! { <input onclick=|a: String| () /> };
+35 |     html! { <input onclick=|a: String| () /> };
    |                            ^^^^^^^^^^^
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:23:28
+  --> $DIR/html-tag-fail.rs:25:28
    |
-23 |     html! { <input checked=1 /> };
+25 |     html! { <input checked=1 /> };
    |                            ^ expected bool, found integer
    |
    = note: expected type `bool`
               found type `{integer}`
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:24:29
+  --> $DIR/html-tag-fail.rs:26:29
    |
-24 |     html! { <input disabled=1 /> };
+26 |     html! { <input disabled=1 /> };
    |                             ^ expected bool, found integer
    |
    = note: expected type `bool`
               found type `{integer}`
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:25:30
+  --> $DIR/html-tag-fail.rs:27:30
    |
-25 |     html! { <option selected=1 /> };
+27 |     html! { <option selected=1 /> };
    |                              ^ expected bool, found integer
    |
    = note: expected type `bool`
               found type `{integer}`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-tag-fail.rs:26:25
+  --> $DIR/html-tag-fail.rs:28:25
    |
-26 |     html! { <input type=() /> };
+28 |     html! { <input type=() /> };
    |                         ^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
@@ -164,9 +164,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-tag-fail.rs:27:26
+  --> $DIR/html-tag-fail.rs:29:26
    |
-27 |     html! { <input value=() /> };
+29 |     html! { <input value=() /> };
    |                          ^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
@@ -174,9 +174,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
 
 error[E0277]: the trait bound `yew::html::Href: std::convert::From<()>` is not satisfied
-  --> $DIR/html-tag-fail.rs:28:21
+  --> $DIR/html-tag-fail.rs:30:21
    |
-28 |     html! { <a href=() /> };
+30 |     html! { <a href=() /> };
    |                     ^^ the trait `std::convert::From<()>` is not implemented for `yew::html::Href`
    |
    = help: the following implementations were found:
@@ -184,5 +184,19 @@ error[E0277]: the trait bound `yew::html::Href: std::convert::From<()>` is not s
              <yew::html::Href as std::convert::From<std::string::String>>
    = note: required because of the requirements on the impl of `std::convert::Into<yew::html::Href>` for `()`
 
-Some errors occurred: E0277, E0308.
-For more information about an error, try `rustc --explain E0277`.
+error[E0599]: no method named `to_string` found for type `NotToString` in the current scope
+  --> $DIR/html-tag-fail.rs:37:27
+   |
+3  | struct NotToString;
+   | ------------------- method `to_string` not found for this
+...
+37 |     html! { <input string=NotToString /> };
+   |                           ^^^^^^^^^^^
+   |
+   = note: the method `to_string` exists but the following trait bounds were not satisfied:
+           `NotToString : std::string::ToString`
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `to_string`, perhaps you need to implement it:
+           candidate #1: `std::string::ToString`
+
+Some errors occurred: E0277, E0308, E0599.

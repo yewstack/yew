@@ -101,8 +101,10 @@ impl ToTokens for HtmlTag {
         } = &attributes;
 
         let vtag = Ident::new("__yew_vtag", tag_name.span());
-        let attr_labels = attributes.iter().map(|attr| attr.label.to_string());
-        let attr_values = attributes.iter().map(|attr| &attr.value);
+        let attr_pairs = attributes.iter().map(|TagAttribute { label, value }| {
+            let label_str = label.to_string();
+            quote_spanned! {value.span() => (#label_str.to_owned(), (#value).to_string()) }
+        });
         let set_kind = kind.iter().map(|kind| {
             quote_spanned! {kind.span()=> #vtag.set_kind(&(#kind)); }
         });
@@ -150,7 +152,7 @@ impl ToTokens for HtmlTag {
             #(#add_disabled)*
             #(#add_selected)*
             #(#set_classes)*
-            #vtag.add_attributes(vec![#((#attr_labels.to_owned(), (#attr_values).to_string())),*]);
+            #vtag.add_attributes(vec![#(#attr_pairs),*]);
             #vtag.add_listeners(vec![#(::std::boxed::Box::new(#listeners)),*]);
             #vtag.add_children(vec![#(#children),*]);
             ::yew::virtual_dom::VNode::VTag(#vtag)
