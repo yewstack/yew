@@ -8,7 +8,6 @@ use std::iter::FromIterator;
 use stdweb::web::{Element, INode, Node};
 
 /// Bind virtual element to a DOM reference.
-#[allow(clippy::large_enum_variant)] // ISSUE: #571
 pub enum VNode<COMP: Component> {
     /// A bind between `VTag` and `Element`.
     VTag(Box<VTag<COMP>>),
