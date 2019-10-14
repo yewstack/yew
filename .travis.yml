@@ -4,14 +4,15 @@ branches:
     - trying
     - master
 
-language: rust
-
 dist: trusty
+language: rust
 sudo: false
 addons:
   chrome: stable
 
 cache: cargo
+before_cache:
+  - ./ci/clear_cache.sh
 
 rust:
   - 1.35.0 # min supported
