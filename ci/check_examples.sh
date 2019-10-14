@@ -8,3 +8,5 @@ cargo web build --target asmjs-unknown-emscripten
 cargo web build --target wasm32-unknown-emscripten
 # TODO showcase doesn't support wasm-bindgen yet
 cargo web build --target wasm32-unknown-unknown
+# Reset cwd
+cd ../..
