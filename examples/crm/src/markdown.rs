@@ -73,7 +73,7 @@ where
     }
 
     if elems.len() == 1 {
-        VNode::VTag(elems.pop().unwrap())
+        VNode::VTag(Box::new(elems.pop().unwrap()))
     } else {
         html! {
             <div>{ for elems.into_iter() }</div>
