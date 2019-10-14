@@ -180,7 +180,7 @@ impl<COMP: Component> VTag<COMP> {
     /// Otherwise just add everything.
     fn diff_classes<'a>(
         &'a self,
-        ancestor: &'a Option<Self>,
+        ancestor: &'a Option<Box<Self>>,
     ) -> impl Iterator<Item = Patch<&'a str, ()>> + 'a {
         let to_add = {
             let all_or_nothing = not(ancestor)
@@ -210,7 +210,7 @@ impl<COMP: Component> VTag<COMP> {
     /// the values are different.
     fn diff_attributes<'a>(
         &'a self,
-        ancestor: &'a Option<Self>,
+        ancestor: &'a Option<Box<Self>>,
     ) -> impl Iterator<Item = Patch<&'a str, &'a str>> + 'a {
         // Only change what is necessary.
         let to_add_or_replace =
@@ -236,7 +236,7 @@ impl<COMP: Component> VTag<COMP> {
     }
 
     /// Similar to `diff_attributers` except there is only a single `kind`.
-    fn diff_kind<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
+    fn diff_kind<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
             self.kind.as_ref(),
             ancestor.as_ref().and_then(|anc| anc.kind.as_ref()),
@@ -255,7 +255,7 @@ impl<COMP: Component> VTag<COMP> {
     }
 
     /// Almost identical in spirit to `diff_kind`
-    fn diff_value<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
+    fn diff_value<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
             self.value.as_ref(),
             ancestor.as_ref().and_then(|anc| anc.value.as_ref()),
@@ -273,7 +273,7 @@ impl<COMP: Component> VTag<COMP> {
         }
     }
 
-    fn apply_diffs(&mut self, element: &Element, ancestor: &Option<Self>) {
+    fn apply_diffs(&mut self, element: &Element, ancestor: &Option<Box<Self>>) {
         // Update parameters
         let changes = self.diff_classes(ancestor);
         for change in changes {

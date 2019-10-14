@@ -155,7 +155,7 @@ impl ToTokens for HtmlTag {
             #vtag.add_attributes(vec![#(#attr_pairs),*]);
             #vtag.add_listeners(vec![#(::std::boxed::Box::new(#listeners)),*]);
             #vtag.add_children(vec![#(#children),*]);
-            ::yew::virtual_dom::VNode::VTag(#vtag)
+            ::yew::virtual_dom::VNode::from(#vtag)
         }});
     }
 }
