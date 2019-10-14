@@ -14,7 +14,7 @@ pub enum VNode<COMP: Component> {
     /// A bind between `VText` and `TextNode`.
     VText(VText<COMP>),
     /// A bind between `VComp` and `Element`.
-    VComp(Box<VComp<COMP>>),
+    VComp(VComp<COMP>),
     /// A holder for a list of other nodes.
     VList(VList<COMP>),
     /// A holder for any `Node` (necessary for replacing node).
@@ -92,7 +92,7 @@ impl<COMP: Component> From<VTag<COMP>> for VNode<COMP> {
 
 impl<COMP: Component> From<VComp<COMP>> for VNode<COMP> {
     fn from(vcomp: VComp<COMP>) -> Self {
-        VNode::VComp(Box::new(vcomp))
+        VNode::VComp(vcomp)
     }
 }
 
@@ -102,7 +102,7 @@ where
     CHILD: Component + Renderable<CHILD>,
 {
     fn from(vchild: VChild<CHILD, COMP>) -> Self {
-        VNode::from(VComp::from(vchild))
+        VNode::VComp(VComp::from(vchild))
     }
 }
 
