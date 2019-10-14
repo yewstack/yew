@@ -11,7 +11,7 @@ use stdweb::web::{Element, INode, Node};
 #[allow(clippy::large_enum_variant)] // ISSUE: #571
 pub enum VNode<COMP: Component> {
     /// A bind between `VTag` and `Element`.
-    VTag(VTag<COMP>),
+    VTag(Box<VTag<COMP>>),
     /// A bind between `VText` and `TextNode`.
     VText(VText<COMP>),
     /// A bind between `VComp` and `Element`.
@@ -93,7 +93,7 @@ impl<COMP: Component> From<VList<COMP>> for VNode<COMP> {
 
 impl<COMP: Component> From<VTag<COMP>> for VNode<COMP> {
     fn from(vtag: VTag<COMP>) -> Self {
-        VNode::VTag(vtag)
+        VNode::VTag(Box::new(vtag))
     }
 }
 
