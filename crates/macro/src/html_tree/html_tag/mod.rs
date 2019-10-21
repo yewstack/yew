@@ -96,6 +96,7 @@ impl ToTokens for HtmlTag {
             checked,
             disabled,
             selected,
+            node_ref,
             href,
             listeners,
         } = &attributes;
@@ -142,6 +143,11 @@ impl ToTokens for HtmlTag {
                 #vtag.set_classes(#classes);
             },
         });
+        let set_node_ref = node_ref.iter().map(|node_ref| {
+            quote! {
+                #vtag.node_ref = #node_ref;
+            }
+        });
 
         tokens.extend(quote! {{
             let mut #vtag = ::yew::virtual_dom::vtag::VTag::new(#name);
@@ -152,6 +158,7 @@ impl ToTokens for HtmlTag {
             #(#add_disabled)*
             #(#add_selected)*
             #(#set_classes)*
+            #(#set_node_ref)*
             #vtag.add_attributes(vec![#(#attr_pairs),*]);
             #vtag.add_listeners(vec![#(::std::boxed::Box::new(#listeners)),*]);
             #vtag.add_children(vec![#(#children),*]);
