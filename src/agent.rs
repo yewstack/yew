@@ -198,7 +198,7 @@ pub trait Discoverer {
         unimplemented!(
 "The Reach type that you tried to use with this Agent does not have
 Discoverer properly implemented for it yet. Please see
-https://docs.rs/yew/0.9.2/yew/agent/ for other Reach options."
+https://docs.rs/yew/latest/yew/agent/ for other Reach options."
         );
     }
 }
