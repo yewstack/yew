@@ -344,9 +344,10 @@ where
     #[cfg(all(target_arch = "wasm32", not(cargo_web)))]
     /// This method processes a Future that returns a message and sends it back to the component's
     /// loop.
-    pub fn send_future<F>(&self, future: F)
+    pub fn send_future<F, E>(&self, future: F)
     where
-        F: Future<Output = Result<COMP::Message, Box<dyn std::error::Error + 'static>>> + 'static,
+        F: Future<Output = Result<COMP::Message, E>> + 'static,
+        E: std::error::Error,
     {
         use wasm_bindgen::JsValue;
         use wasm_bindgen_futures::future_to_promise;
