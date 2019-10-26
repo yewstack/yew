@@ -14,6 +14,9 @@ use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VList, VNode};
 use std::fmt;
 
+#[cfg(all(target_arch = "wasm32", not(cargo_web)))]
+use std::future::Future;
+
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
 
@@ -336,6 +339,28 @@ where
             scope.clone().send_message(output);
         };
         closure.into()
+    }
+
+    #[cfg(all(target_arch = "wasm32", not(cargo_web)))]
+    /// This method processes a Future that returns a message and sends it back to the component's
+    /// loop.
+    pub fn send_future<F>(&self, future: F)
+        where F: Future<Output=Result<COMP::Message, Box<dyn std::error::Error + 'static>>> + 'static
+    {
+        use wasm_bindgen::JsValue;
+        use wasm_bindgen_futures::future_to_promise;
+        
+        let mut scope = self.scope.clone();
+
+        let js_future = async {
+            future.await
+                .and_then(move |message| {
+                    scope.send_message(message);
+                    Ok(JsValue::NULL)
+                })
+                .map_err(|e| JsValue::from_str(&format!("{}", e)))
+        };
+        future_to_promise(js_future);
     }
 
     /// This method sends a message to this component immediately.
