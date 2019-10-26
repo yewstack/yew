@@ -345,15 +345,17 @@ where
     /// This method processes a Future that returns a message and sends it back to the component's
     /// loop.
     pub fn send_future<F>(&self, future: F)
-        where F: Future<Output=Result<COMP::Message, Box<dyn std::error::Error + 'static>>> + 'static
+    where
+        F: Future<Output = Result<COMP::Message, Box<dyn std::error::Error + 'static>>> + 'static,
     {
         use wasm_bindgen::JsValue;
         use wasm_bindgen_futures::future_to_promise;
-        
+
         let mut scope = self.scope.clone();
 
         let js_future = async {
-            future.await
+            future
+                .await
                 .and_then(move |message| {
                     scope.send_message(message);
                     Ok(JsValue::NULL)
