@@ -362,7 +362,7 @@ where
                 })
                 .map_err(|e| JsValue::from_str(&format!("{}", e)))
         };
-        future_to_promise(js_future);
+        future_to_promise(js_future); // TODO should this return the Promise as a handle?
     }
 
     /// This method sends a message to this component immediately.
