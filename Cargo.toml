@@ -47,6 +47,7 @@ ryu = "=1.0.0" # 1.0.1 breaks emscripten
 serde_derive = "1"
 trybuild = "1.0"
 rustversion = "0.1"
+toml = "=0.5.3"
 
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dev-dependencies]
 wasm-bindgen-test = "=0.2.50"
