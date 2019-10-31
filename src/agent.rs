@@ -18,23 +18,47 @@ use stdweb::Value;
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
+/// Serializable messages to worker
+<<<<<<< HEAD
+#[derive(Serialize, Deserialize, Debug)]
+pub enum ToWorker<T> {
+    /// Client is connected
+    Connected(HandlerId),
+    /// Client using this structure to pack messages to Worker
+=======
 #[derive(Serialize, Deserialize)]
 enum ToWorker<T> {
+    /// Client is connected
     Connected(HandlerId),
+    /// Incoming message to Worker
+>>>>>>> 56e2f34... allow to extend agent's communication channels
     ProcessInput(HandlerId, T),
+    /// Client is disconnected
     Disconnected(HandlerId),
+    /// Worker should be terminated
     Destroy,
 }
 
-#[derive(Serialize, Deserialize)]
-enum FromWorker<T> {
+/// Serializable messages sent by worker to consumer
+#[derive(Serialize, Deserialize, Debug)]
+pub enum FromWorker<T> {
+<<<<<<< HEAD
     /// Worker sends this message when `wasm` bundle has loaded.
     WorkerLoaded,
+    /// Worker using this structure to pack messages to consumers
+=======
+    /// Worker was registered and ready to accept messages
+    WorkerLoaded,
+    /// Outgoing message to consumer
+>>>>>>> 56e2f34... allow to extend agent's communication channels
     ProcessOutput(HandlerId, T),
 }
 
-trait Packed {
+/// Message packager, based on serde::Serialize/Deserialize
+pub trait Packed {
+    /// Pack serializable message into Vec<u8>
     fn pack(&self) -> Vec<u8>;
+    /// Unpack deserializable message of byte slice
     fn unpack(data: &[u8]) -> Self;
 }
 
@@ -713,12 +737,13 @@ impl<AGN: Agent> Clone for AgentScope<AGN> {
 }
 
 impl<AGN: Agent> AgentScope<AGN> {
-    fn new() -> Self {
+    /// Create agent scope
+    pub fn new() -> Self {
         let shared_agent = Rc::new(RefCell::new(AgentRunnable::new()));
         AgentScope { shared_agent }
     }
-
-    fn send(&self, update: AgentUpdate<AGN>) {
+    /// Schedule message for sending to agent
+    pub fn send(&self, update: AgentUpdate<AGN>) {
         let envelope = AgentEnvelope {
             shared_agent: self.shared_agent.clone(),
             update,
@@ -728,7 +753,9 @@ impl<AGN: Agent> AgentScope<AGN> {
     }
 }
 
-trait Responder<AGN: Agent> {
+/// Defines communication from Worker to Consumers
+pub trait Responder<AGN: Agent> {
+    /// Implementation for communication channel from Worker to Consumers
     fn response(&self, id: HandlerId, output: AGN::Output);
 }
 
@@ -753,7 +780,7 @@ pub struct AgentLink<AGN: Agent> {
 
 impl<AGN: Agent> AgentLink<AGN> {
     /// Create link for a scope.
-    fn connect<T>(scope: &AgentScope<AGN>, responder: T) -> Self
+    pub fn connect<T>(scope: &AgentScope<AGN>, responder: T) -> Self
     where
         T: Responder<AGN> + 'static,
     {
@@ -804,12 +831,20 @@ impl<AGN> AgentRunnable<AGN> {
     }
 }
 
-enum AgentUpdate<AGN: Agent> {
+/// Local Agent messages
+#[derive(Debug)]
+pub enum AgentUpdate<AGN: Agent> {
+    /// Request to create link
     Create(AgentLink<AGN>),
+    /// Internal Agent message
     Message(AGN::Message),
+    /// Client connected
     Connected(HandlerId),
+    /// Received mesasge from Client
     Input(AGN::Input, HandlerId),
+    /// Client disconnected
     Disconnected(HandlerId),
+    /// Request to destroy agent
     Destroy,
 }
 
