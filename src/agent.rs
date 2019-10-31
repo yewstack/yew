@@ -739,6 +739,12 @@ impl<AGN: Agent> AgentScope<AGN> {
     }
 }
 
+impl<AGN: Agent> Default for AgentScope<AGN> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Defines communication from Worker to Consumers
 pub trait Responder<AGN: Agent> {
     /// Implementation for communication channel from Worker to Consumers
