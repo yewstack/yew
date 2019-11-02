@@ -1,6 +1,5 @@
 use super::*;
 use crate::virtual_dom::Listener;
-use log::debug;
 use stdweb::web::html_element::SelectElement;
 #[allow(unused_imports)]
 use stdweb::web::{EventListenerHandle, FileList, INode};
@@ -47,7 +46,6 @@ macro_rules! impl_action {
                     let handler = self.0.take().expect("tried to attach listener twice");
                     let this = element.clone();
                     let listener = move |event: $type| {
-                        debug!("Event handler: {}", stringify!($type));
                         event.stop_propagation();
                         let handy_event: $ret = $convert(&this, event);
                         let msg = handler(handy_event);
