@@ -1,10 +1,25 @@
+use crate::Msg::FutureFinished;
+use std::fmt::{Error, Formatter};
+use wasm_bindgen::prelude::*;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
-struct Model {}
+struct Model {
+    future_data: Option<String>,
+}
 
 enum Msg {
-    DoIt,
+    FutureFinished(String),
 }
+
+/// An error that can never happen (because an instance of this can not be created).
+#[derive(Debug, Clone, PartialEq)]
+pub enum InfallibleFutureError {}
+impl std::fmt::Display for InfallibleFutureError {
+    fn fmt(&self, _f: &mut Formatter<'_>) -> Result<(), Error> {
+        unimplemented!()
+    }
+}
+impl std::error::Error for InfallibleFutureError {}
 
 impl Component for Model {
     // Some details omitted. Explore the examples to see more.
@@ -12,14 +27,20 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model {}
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let future = async {
+            let x: Result<Msg, InfallibleFutureError> =
+                Ok(Msg::FutureFinished("Hello Future World!".to_string()));
+            x
+        };
+        link.send_future(future);
+        Model { future_data: None }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::DoIt => {
-                // Update your model on events
+            FutureFinished(resolved_future) => {
+                self.future_data = Some(resolved_future);
                 true
             }
         }
@@ -27,13 +48,18 @@ impl Component for Model {
 
     fn view(&self) -> Html<Self> {
         html! {
-            // Render your model here
-            <button onclick=|_| Msg::DoIt>{ "Click me!" }</button>
+            if let Some(future_data) = &self.future_data {
+                html! {
+                    &future_data
+                }
+            } else {
+                html! {
+                    "no future yet"
+                }
+            }
         }
     }
 }
-
-use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn run_app() {
