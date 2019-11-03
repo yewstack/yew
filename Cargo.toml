@@ -65,6 +65,7 @@ members = [
   "examples/custom_components",
   "examples/dashboard",
   "examples/file_upload",
+  "examples/futures",
   "examples/fragments",
   "examples/game_of_life",
   "examples/inner_html",
