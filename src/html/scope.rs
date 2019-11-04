@@ -4,10 +4,7 @@ use crate::virtual_dom::{VDiff, VNode};
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
-use stdweb::web::{Element, Node};
-
-/// Holder for the element.
-pub type NodeCell = Rc<RefCell<Option<Node>>>;
+use stdweb::web::Element;
 
 /// Updates for a `Components` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {
@@ -57,7 +54,7 @@ impl<COMP: Component> Scope<COMP> {
         self,
         element: Element,
         ancestor: Option<VNode<COMP>>,
-        occupied: Option<NodeCell>,
+        node_ref: NodeRef,
         props: COMP::Properties,
     ) -> Scope<COMP> {
         let mut scope = self.clone();
@@ -65,7 +62,7 @@ impl<COMP: Component> Scope<COMP> {
         let ready_state = ReadyState {
             env: self.clone(),
             element,
-            occupied,
+            node_ref,
             link,
             props,
             ancestor,
@@ -141,7 +138,7 @@ impl<COMP: Component> fmt::Display for ComponentState<COMP> {
 struct ReadyState<COMP: Component> {
     env: Scope<COMP>,
     element: Element,
-    occupied: Option<NodeCell>,
+    node_ref: NodeRef,
     props: COMP::Properties,
     link: ComponentLink<COMP>,
     ancestor: Option<VNode<COMP>>,
@@ -154,7 +151,7 @@ impl<COMP: Component> ReadyState<COMP> {
             env: self.env,
             element: self.element,
             last_frame: self.ancestor,
-            occupied: self.occupied,
+            node_ref: self.node_ref,
         }
     }
 }
@@ -164,7 +161,7 @@ struct CreatedState<COMP: Component> {
     element: Element,
     component: COMP,
     last_frame: Option<VNode<COMP>>,
-    occupied: Option<NodeCell>,
+    node_ref: NodeRef,
 }
 
 impl<COMP: Component> CreatedState<COMP> {
@@ -180,10 +177,7 @@ impl<COMP: Component> CreatedState<COMP> {
     fn update(mut self) -> Self {
         let mut next_frame = self.component.render();
         let node = next_frame.apply(&self.element, None, self.last_frame, &self.env);
-        if let Some(ref mut cell) = self.occupied {
-            *cell.borrow_mut() = node;
-        }
-
+        self.node_ref.set(node);
         self.last_frame = Some(next_frame);
         self
     }

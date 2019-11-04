@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
 use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
-use crate::html::{Component, Scope};
+use crate::html::{Component, NodeRef, Scope};
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
@@ -48,6 +48,8 @@ pub struct VTag<COMP: Component> {
     /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
     /// frameworks it's more useful to control `checked` value of an `InputElement`.
     pub checked: bool,
+    /// A node reference used for DOM access in Component lifecycle methods
+    pub node_ref: NodeRef,
     /// _Service field_. Keeps handler for attached listeners
     /// to have an opportunity to drop them later.
     captured: Vec<EventListenerHandle>,
@@ -64,6 +66,7 @@ impl<COMP: Component> VTag<COMP> {
             listeners: Vec::new(),
             captured: Vec::new(),
             children: Vec::new(),
+            node_ref: NodeRef::default(),
             value: None,
             kind: None,
             // In HTML node `checked` attribute sets `defaultChecked` parameter,
@@ -475,7 +478,9 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                 }
             }
         }
-        self.reference.as_ref().map(|e| e.as_node().to_owned())
+        let node = self.reference.as_ref().map(|e| e.as_node().to_owned());
+        self.node_ref.set(node.clone());
+        node
     }
 }
 

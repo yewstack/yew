@@ -4,6 +4,7 @@ use counter::Model as Counter;
 use crm::Model as Crm;
 use custom_components::Model as CustomComponents;
 use dashboard::Model as Dashboard;
+use node_refs::Model as NodeRefs;
 use fragments::Model as Fragments;
 use game_of_life::Model as GameOfLife;
 use inner_html::Model as InnerHtml;
@@ -27,6 +28,7 @@ enum Scene {
     Crm,
     CustomComponents,
     Dashboard,
+    NodeRefs,
     Fragments,
     GameOfLife,
     InnerHtml,
@@ -91,6 +93,7 @@ impl Model {
                 Scene::Crm => html! { <Crm /> },
                 Scene::CustomComponents => html! { <CustomComponents /> },
                 Scene::Dashboard => html! { <Dashboard /> },
+                Scene::NodeRefs => html! { <NodeRefs /> },
                 Scene::Fragments => html! { <Fragments /> },
                 Scene::GameOfLife => html! { <GameOfLife /> },
                 Scene::InnerHtml => html! { <InnerHtml /> },

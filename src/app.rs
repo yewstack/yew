@@ -1,7 +1,7 @@
 //! This module contains the `App` struct, which is used to bootstrap
 //! a component in an isolated scope.
 
-use crate::html::{Component, Scope};
+use crate::html::{Component, NodeRef, Scope};
 use stdweb::web::{document, Element, INode, IParentNode};
 
 /// An application instance.
@@ -32,8 +32,12 @@ where
     /// use the `mount_with_props` method.
     pub fn mount(self, element: Element) -> Scope<COMP> {
         clear_element(&element);
-        self.scope
-            .mount_in_place(element, None, None, COMP::Properties::default())
+        self.scope.mount_in_place(
+            element,
+            None,
+            NodeRef::default(),
+            COMP::Properties::default(),
+        )
     }
 
     /// Alias to `mount("body", ...)`.
@@ -62,8 +66,12 @@ where
         html_element
             .remove_child(&body_element)
             .expect("can't remove body child");
-        self.scope
-            .mount_in_place(html_element, None, None, COMP::Properties::default())
+        self.scope.mount_in_place(
+            html_element,
+            None,
+            NodeRef::default(),
+            COMP::Properties::default(),
+        )
     }
 }
 
@@ -83,7 +91,8 @@ where
     /// will render the model to a virtual DOM tree.
     pub fn mount_with_props(self, element: Element, props: COMP::Properties) -> Scope<COMP> {
         clear_element(&element);
-        self.scope.mount_in_place(element, None, None, props)
+        self.scope
+            .mount_in_place(element, None, NodeRef::default(), props)
     }
 
     /// Alias to `mount_with_props("body", ...)`.
@@ -112,7 +121,8 @@ where
         html_element
             .remove_child(&body_element)
             .expect("can't remove body child");
-        self.scope.mount_in_place(html_element, None, None, props)
+        self.scope
+            .mount_in_place(html_element, None, NodeRef::default(), props)
     }
 }
 
