@@ -39,16 +39,58 @@ impl<COMP: Component> Clone for Scope<COMP> {
     }
 }
 
-impl<COMP> Scope<COMP>
-where
-    COMP: Component,
-{
+impl<COMP: Component> Default for Scope<COMP> {
+    fn default() -> Self {
+        Scope::new()
+    }
+}
+
+impl<COMP: Component> Scope<COMP> {
+    /// visible for testing
+    pub fn new() -> Self {
+        let shared_state = Rc::new(RefCell::new(ComponentState::Empty));
+        Scope { shared_state }
+    }
+
+    /// Mounts a component with `props` to the specified `element` in the DOM.
+    pub(crate) fn mount_in_place(
+        self,
+        element: Element,
+        ancestor: Option<VNode<COMP>>,
+        occupied: Option<NodeCell>,
+        props: COMP::Properties,
+    ) -> Scope<COMP> {
+        let mut scope = self.clone();
+        let link = ComponentLink::connect(&scope);
+        let ready_state = ReadyState {
+            env: self.clone(),
+            element,
+            occupied,
+            link,
+            props,
+            ancestor,
+        };
+        *scope.shared_state.borrow_mut() = ComponentState::Ready(ready_state);
+        scope.create();
+        scope.mounted();
+        scope
+    }
+
+    /// Schedules a task to call the mounted method on a component and optionally re-render
+    pub(crate) fn mounted(&mut self) {
+        let shared_state = self.shared_state.clone();
+        let mounted = Box::new(MountedComponent { shared_state });
+        scheduler().put_and_try_run(mounted);
+    }
+
+    /// Schedules a task to create and render a component and then mount it to the DOM
     pub(crate) fn create(&mut self) {
         let shared_state = self.shared_state.clone();
         let create = CreateComponent { shared_state };
         scheduler().put_and_try_run(Box::new(create));
     }
 
+    /// Schedules a task to send a message or new props to a component
     pub(crate) fn update(&mut self, update: ComponentUpdate<COMP>) {
         let update = UpdateComponent {
             shared_state: self.shared_state.clone(),
@@ -57,6 +99,7 @@ where
         scheduler().put_and_try_run(Box::new(update));
     }
 
+    /// Schedules a task to destroy a component
     pub(crate) fn destroy(&mut self) {
         let shared_state = self.shared_state.clone();
         let destroy = DestroyComponent { shared_state };
@@ -68,7 +111,7 @@ where
         self.update(ComponentUpdate::Message(msg));
     }
 
-    /// send batch of messages to the component
+    /// Send a batch of messages to the component
     pub fn send_message_batch(&mut self, messages: Vec<COMP::Message>) {
         self.update(ComponentUpdate::MessageBatch(messages));
     }
@@ -146,47 +189,26 @@ impl<COMP: Component> CreatedState<COMP> {
     }
 }
 
-impl<COMP> Scope<COMP>
+struct MountedComponent<COMP>
 where
     COMP: Component,
 {
-    /// visible for testing
-    pub fn new() -> Self {
-        let shared_state = Rc::new(RefCell::new(ComponentState::Empty));
-        Scope { shared_state }
-    }
-
-    // TODO Consider to use &Node instead of Element as parent
-    /// Mounts elements in place of previous node (ancestor).
-    pub(crate) fn mount_in_place(
-        self,
-        element: Element,
-        ancestor: Option<VNode<COMP>>,
-        occupied: Option<NodeCell>,
-        props: COMP::Properties,
-    ) -> Scope<COMP> {
-        let mut scope = self.clone();
-        let link = ComponentLink::connect(&scope);
-        let ready_state = ReadyState {
-            env: self.clone(),
-            element,
-            occupied,
-            link,
-            props,
-            ancestor,
-        };
-        *scope.shared_state.borrow_mut() = ComponentState::Ready(ready_state);
-        scope.create();
-        scope
-    }
+    shared_state: Shared<ComponentState<COMP>>,
 }
 
-impl<COMP> Default for Scope<COMP>
+impl<COMP> Runnable for MountedComponent<COMP>
 where
     COMP: Component,
 {
-    fn default() -> Self {
-        Scope::new()
+    fn run(self: Box<Self>) {
+        let current_state = self.shared_state.replace(ComponentState::Processing);
+        self.shared_state.replace(match current_state {
+            ComponentState::Created(state) => ComponentState::Created(state.mounted()),
+            ComponentState::Destroyed => current_state,
+            ComponentState::Empty | ComponentState::Processing | ComponentState::Ready(_) => {
+                panic!("unexpected component state: {}", current_state);
+            }
+        });
     }
 }
 
@@ -204,9 +226,7 @@ where
     fn run(self: Box<Self>) {
         let current_state = self.shared_state.replace(ComponentState::Processing);
         self.shared_state.replace(match current_state {
-            ComponentState::Ready(state) => {
-                ComponentState::Created(state.create().update().mounted())
-            }
+            ComponentState::Ready(state) => ComponentState::Created(state.create().update()),
             ComponentState::Created(_) | ComponentState::Destroyed => current_state,
             ComponentState::Empty | ComponentState::Processing => {
                 panic!("unexpected component state: {}", current_state);
