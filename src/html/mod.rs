@@ -357,7 +357,7 @@ where
         let mut scope = self.scope.clone();
 
         let js_future = async {
-            let message = future.await;
+            let message: COMP::Message = future.await;
             // Force movement of the cloned scope into the async block.
             let scope_send = move || scope.send_message(message);
             scope_send();

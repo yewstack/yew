@@ -1,18 +1,10 @@
+use crate::Msg::SetMarkdownFetchState;
 use std::fmt::{Error, Formatter};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response, Window};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
-
-struct Model {
-    future_data: Option<String>,
-}
-
-enum Msg {
-    FetchSuccess(String),
-    FetchFailed(FetchError),
-}
 
 /// An error that can never happen (because an instance of this can not be created).
 #[derive(Debug, Clone, PartialEq)]
@@ -30,6 +22,14 @@ impl From<JsValue> for FetchError {
     fn from(value: JsValue) -> Self {
         FetchError { err: value }
     }
+}
+
+/// The possible states a fetch request can be in.
+pub enum FetchState<T> {
+    NotFetching,
+    Fetching,
+    Success(T),
+    Failed(FetchError),
 }
 
 /// Gets the markdown from yew's readme.
@@ -56,6 +56,16 @@ async fn get_markdown() -> Result<String, FetchError> {
     Ok(text.as_string().unwrap())
 }
 
+struct Model {
+    markdown: FetchState<String>,
+    link: ComponentLink<Self>,
+}
+
+enum Msg {
+    SetMarkdownFetchState(FetchState<String>),
+    GetMarkdown,
+}
+
 impl Component for Model {
     // Some details omitted. Explore the examples to see more.
 
@@ -63,37 +73,39 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let future = async {
-            match get_markdown().await {
-                Ok(md) => Msg::FetchSuccess(md),
-                Err(err) => Msg::FetchFailed(err),
-            }
-        };
-        link.send_future(future);
-        Model { future_data: None }
+        Model {
+            markdown: FetchState::NotFetching,
+            link,
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::FetchSuccess(resolved_future) => {
-                self.future_data = Some(resolved_future);
+            Msg::SetMarkdownFetchState(fetch_state) => {
+                self.markdown = fetch_state;
                 true
             }
-            Msg::FetchFailed(_) => false,
+            Msg::GetMarkdown => {
+                let future = async {
+                    match get_markdown().await {
+                        Ok(md) => Msg::SetMarkdownFetchState(FetchState::Success(md)),
+                        Err(err) => Msg::SetMarkdownFetchState(FetchState::Failed(err)),
+                    }
+                };
+                self.link.send_future(future);
+                self.link
+                    .send_self(SetMarkdownFetchState(FetchState::Fetching));
+                false
+            }
         }
     }
 
     fn view(&self) -> Html<Self> {
-        html! {
-            if let Some(future_data) = &self.future_data {
-                html! {
-                    &future_data
-                }
-            } else {
-                html! {
-                    "no future yet"
-                }
-            }
+        match &self.markdown {
+            FetchState::NotFetching => html! {<button onclick=|_| Msg::GetMarkdown>{"Get Markdown"}</button>},
+            FetchState::Fetching => html! {"Fetching"},
+            FetchState::Success(data) => html! {&data},
+            FetchState::Failed(err) => html! {&err},
         }
     }
 }
