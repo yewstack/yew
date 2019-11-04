@@ -10,132 +10,124 @@ error: expected identifier
 55 |     html! { <Child:: /> };
    |                      ^
 
+error: unexpected end of input, expected identifier
+  --> $DIR/html-component-fail.rs:56:5
+   |
+56 |     html! { <Child with /> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error: unexpected token
+  --> $DIR/html-component-fail.rs:57:20
+   |
+57 |     html! { <Child props /> };
+   |                    ^^^^^
+
 error: this open tag has no corresponding close tag
   --> $DIR/html-component-fail.rs:58:13
    |
 58 |     html! { <Child with props > };
    |             ^^^^^^^^^^^^^^^^^^^
 
-error: expected type, found `/`
-  --> $DIR/html-component-fail.rs:70:14
+error: unexpected token
+  --> $DIR/html-component-fail.rs:59:38
    |
-70 |     html! { </Child> };
+59 |     html! { <Child with props ref=() ref=() /> };
+   |                                      ^^^
+
+error: unexpected token
+  --> $DIR/html-component-fail.rs:60:27
+   |
+60 |     html! { <Child ref=() with props /> };
+   |                           ^^^^
+
+error: unexpected token
+  --> $DIR/html-component-fail.rs:62:31
+   |
+62 |     html! { <Child with props () /> };
+   |                               ^^
+
+error: expected identifier
+  --> $DIR/html-component-fail.rs:63:20
+   |
+63 |     html! { <Child type=0 /> };
+   |                    ^^^^
+
+error: expected identifier
+  --> $DIR/html-component-fail.rs:64:20
+   |
+64 |     html! { <Child invalid-prop-name=0 /> };
+   |                    ^^^^^^^^^^^^^^^^^
+
+error: unexpected end of input, expected expression
+  --> $DIR/html-component-fail.rs:66:5
+   |
+66 |     html! { <Child string= /> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error: too many refs set
+  --> $DIR/html-component-fail.rs:71:33
+   |
+71 |     html! { <Child int=1 ref=() ref=() /> };
+   |                                 ^^^
+
+error: expected type, found `/`
+  --> $DIR/html-component-fail.rs:74:14
+   |
+74 |     html! { </Child> };
    |              ^
 
 error: this open tag has no corresponding close tag
-  --> $DIR/html-component-fail.rs:71:13
+  --> $DIR/html-component-fail.rs:75:13
    |
-71 |     html! { <Child><Child></Child> };
+75 |     html! { <Child><Child></Child> };
    |             ^^^^^^^
 
 error: only one root html element allowed
-  --> $DIR/html-component-fail.rs:72:28
+  --> $DIR/html-component-fail.rs:76:28
    |
-72 |     html! { <Child></Child><Child></Child> };
+76 |     html! { <Child></Child><Child></Child> };
    |                            ^^^^^^^^^^^^^^^
 
 error[E0425]: cannot find value `blah` in this scope
-  --> $DIR/html-component-fail.rs:59:25
+  --> $DIR/html-component-fail.rs:61:25
    |
-59 |     html! { <Child with blah /> };
+61 |     html! { <Child with blah /> };
    |                         ^^^^ not found in this scope
 
-error[E0599]: no method named `build` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/html-component-fail.rs:56:5
-   |
-5  | #[derive(Properties, PartialEq)]
-   |                   - method `build` not found for this
-...
-56 |     html! { <Child with /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
-
-error[E0599]: no method named `build` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/html-component-fail.rs:57:5
-   |
-5  | #[derive(Properties, PartialEq)]
-   |                   - method `build` not found for this
-...
-57 |     html! { <Child props /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
-
-error[E0599]: no method named `build` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/html-component-fail.rs:60:5
-   |
-5  | #[derive(Properties, PartialEq)]
-   |                   - method `build` not found for this
-...
-60 |     html! { <Child with props () /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
-
-error[E0599]: no method named `build` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/html-component-fail.rs:61:5
-   |
-5  | #[derive(Properties, PartialEq)]
-   |                   - method `build` not found for this
-...
-61 |     html! { <Child type=0 /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
-
-error[E0599]: no method named `build` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/html-component-fail.rs:62:5
-   |
-5  | #[derive(Properties, PartialEq)]
-   |                   - method `build` not found for this
-...
-62 |     html! { <Child invalid-prop-name=0 /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
-
 error[E0609]: no field `unknown` on type `ChildProperties`
-  --> $DIR/html-component-fail.rs:63:20
+  --> $DIR/html-component-fail.rs:65:20
    |
-63 |     html! { <Child unknown="unknown" /> };
+65 |     html! { <Child unknown="unknown" /> };
    |                    ^^^^^^^ unknown field
    |
    = note: available fields are: `string`, `int`
 
 error[E0599]: no method named `unknown` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/html-component-fail.rs:63:20
+  --> $DIR/html-component-fail.rs:65:20
    |
 5  | #[derive(Properties, PartialEq)]
    |                   - method `unknown` not found for this
 ...
-63 |     html! { <Child unknown="unknown" /> };
+65 |     html! { <Child unknown="unknown" /> };
    |                    ^^^^^^^
 
-error[E0599]: no method named `build` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/html-component-fail.rs:64:5
-   |
-5  | #[derive(Properties, PartialEq)]
-   |                   - method `build` not found for this
-...
-64 |     html! { <Child string= /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
-
 error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:65:33
+  --> $DIR/html-component-fail.rs:67:33
    |
-65 |     html! { <Child int=1 string={} /> };
+67 |     html! { <Child int=1 string={} /> };
    |                                 ^^ expected struct `std::string::String`, found ()
    |
    = note: expected type `std::string::String`
               found type `()`
 
 error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:66:33
+  --> $DIR/html-component-fail.rs:68:33
    |
-66 |     html! { <Child int=1 string=3 /> };
+68 |     html! { <Child int=1 string=3 /> };
    |                                 ^
    |                                 |
    |                                 expected struct `std::string::String`, found integer
@@ -145,9 +137,9 @@ error[E0308]: mismatched types
               found type `{integer}`
 
 error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:67:33
+  --> $DIR/html-component-fail.rs:69:33
    |
-67 |     html! { <Child int=1 string={3} /> };
+69 |     html! { <Child int=1 string={3} /> };
    |                                 ^^^
    |                                 |
    |                                 expected struct `std::string::String`, found integer
@@ -157,75 +149,83 @@ error[E0308]: mismatched types
               found type `{integer}`
 
 error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:68:24
+  --> $DIR/html-component-fail.rs:70:30
    |
-68 |     html! { <Child int=0u32 /> };
+70 |     html! { <Child int=1 ref=() /> };
+   |                              ^^ expected struct `yew::html::NodeRef`, found ()
+   |
+   = note: expected type `yew::html::NodeRef`
+              found type `()`
+
+error[E0308]: mismatched types
+  --> $DIR/html-component-fail.rs:72:24
+   |
+72 |     html! { <Child int=0u32 /> };
    |                        ^^^^ expected i32, found u32
 
 error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/html-component-fail.rs:69:20
+  --> $DIR/html-component-fail.rs:73:20
    |
 5  | #[derive(Properties, PartialEq)]
    |                   - method `string` not found for this
 ...
-69 |     html! { <Child string="abc" /> };
+73 |     html! { <Child string="abc" /> };
    |                    ^^^^^^
 
 error[E0599]: no method named `children` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/html-component-fail.rs:73:5
+  --> $DIR/html-component-fail.rs:77:5
    |
 5  | #[derive(Properties, PartialEq)]
    |                   - method `children` not found for this
 ...
-73 |     html! { <Child>{ "Not allowed" }</Child> };
+77 |     html! { <Child>{ "Not allowed" }</Child> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>: std::convert::From<yew::virtual_dom::vnode::VNode<_>>` is not satisfied
-  --> $DIR/html-component-fail.rs:74:5
+  --> $DIR/html-component-fail.rs:78:5
    |
-74 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
+78 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode<_>>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>`
    |
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child, ChildContainer>>` for `yew::virtual_dom::vnode::VNode<_>`
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>: std::convert::From<yew::virtual_dom::vnode::VNode<_>>` is not satisfied
-  --> $DIR/html-component-fail.rs:75:5
+  --> $DIR/html-component-fail.rs:79:5
    |
-75 |     html! { <ChildContainer><></></ChildContainer> };
+79 |     html! { <ChildContainer><></></ChildContainer> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode<_>>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>`
    |
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child, ChildContainer>>` for `yew::virtual_dom::vnode::VNode<_>`
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>: std::convert::From<yew::virtual_dom::vcomp::VChild<ChildContainer, _>>` is not satisfied
-  --> $DIR/html-component-fail.rs:76:5
+  --> $DIR/html-component-fail.rs:80:5
    |
-76 |     html! { <ChildContainer><ChildContainer /></ChildContainer> };
+80 |     html! { <ChildContainer><ChildContainer /></ChildContainer> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vcomp::VChild<ChildContainer, _>>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>`
    |
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child, ChildContainer>>` for `yew::virtual_dom::vcomp::VChild<ChildContainer, _>`
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>: std::convert::From<yew::virtual_dom::vcomp::VChild<ChildContainer, _>>` is not satisfied
-  --> $DIR/html-component-fail.rs:77:5
+  --> $DIR/html-component-fail.rs:81:5
    |
-77 |     html! { <ChildContainer><ChildContainer /></ChildContainer> };
+81 |     html! { <ChildContainer><ChildContainer /></ChildContainer> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vcomp::VChild<ChildContainer, _>>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>`
    |
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child, ChildContainer>>` for `yew::virtual_dom::vcomp::VChild<ChildContainer, _>`
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>: std::convert::From<yew::virtual_dom::vnode::VNode<_>>` is not satisfied
-  --> $DIR/html-component-fail.rs:78:5
+  --> $DIR/html-component-fail.rs:82:5
    |
-78 |     html! { <ChildContainer><Child int=1 /><other /></ChildContainer> };
+82 |     html! { <ChildContainer><Child int=1 /><other /></ChildContainer> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode<_>>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>`
    |
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child, ChildContainer>>` for `yew::virtual_dom::vnode::VNode<_>`
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 Some errors occurred: E0277, E0308, E0425, E0599, E0609.
-For more information about an error, try `rustc --explain E0277`.

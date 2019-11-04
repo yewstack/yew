@@ -8,12 +8,16 @@ mod scope;
 
 pub use listener::*;
 pub(crate) use scope::ComponentUpdate;
-pub use scope::{NodeCell, Scope};
+pub use scope::Scope;
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VList, VNode};
 use std::any::TypeId;
+use std::cell::RefCell;
 use std::fmt;
+use std::rc::Rc;
+use stdweb::unstable::TryFrom;
+use stdweb::web::Node;
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -260,6 +264,66 @@ where
             children: self.iter().map(|c| c.into()).collect(),
         }
         .into()
+    }
+}
+
+/// Wrapped Node reference for later use in Component lifecycle methods.
+///
+/// # Example
+/// Focus an `<input>` element on mount.
+/// ```
+/// use stdweb::web::html_element::InputElement;
+/// use stdweb::web::IHtmlElement;
+///# use yew::*;
+///
+/// pub struct Input {
+///     node_ref: NodeRef,
+/// }
+///
+/// impl Component for Input {
+///     type Message = ();
+///     type Properties = ();
+///
+///     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+///         Input {
+///             node_ref: NodeRef::default(),
+///         }
+///     }
+///
+///     fn mounted(&mut self) -> ShouldRender {
+///         if let Some(input) = self.node_ref.try_into::<InputElement>() {
+///             input.focus();
+///         }
+///         false
+///     }
+///
+///     fn update(&mut self, _: Self::Message) -> ShouldRender {
+///         false
+///     }
+///
+///     fn view(&self) -> Html<Self> {
+///         html! {
+///             <input ref=self.node_ref.clone() type="text" />
+///         }
+///     }
+/// }
+#[derive(PartialEq, Debug, Default, Clone)]
+pub struct NodeRef(Rc<RefCell<Option<Node>>>);
+
+impl NodeRef {
+    /// Get the wrapped Node reference if it exists
+    pub fn get(&self) -> Option<Node> {
+        self.0.borrow().clone()
+    }
+
+    /// Try converting the node reference into another form
+    pub fn try_into<INTO: TryFrom<Node>>(&self) -> Option<INTO> {
+        self.get().and_then(|node| INTO::try_from(node).ok())
+    }
+
+    /// Place a Node in a reference for later use
+    pub(crate) fn set(&self, node: Option<Node>) {
+        *self.0.borrow_mut() = node;
     }
 }
 

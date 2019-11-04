@@ -35,6 +35,9 @@ fn compile_fail() {
     html! { <input onclick=|a: String| () /> };
 
     html! { <input string=NotToString /> };
+
+    html! { <input ref=() /> };
+    html! { <input ref=() ref=() /> };
 }
 
 fn main() {}

@@ -4,6 +4,7 @@ members = [
   "crm",
   "custom_components",
   "dashboard",
+  "node_refs",
   "file_upload",
   "fragments",
   "game_of_life",
