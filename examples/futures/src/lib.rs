@@ -11,7 +11,7 @@ struct Model {
 
 enum Msg {
     FetchSuccess(String),
-    FetchFailed(FetchError)
+    FetchFailed(FetchError),
 }
 
 /// An error that can never happen (because an instance of this can not be created).
@@ -66,7 +66,7 @@ impl Component for Model {
         let future = async {
             match get_markdown().await {
                 Ok(md) => Msg::FetchSuccess(md),
-                Err(err) => Msg::FetchFailed(err)
+                Err(err) => Msg::FetchFailed(err),
             }
         };
         link.send_future(future);
@@ -79,7 +79,7 @@ impl Component for Model {
                 self.future_data = Some(resolved_future);
                 true
             }
-            Msg::FetchFailed(_) => {false}
+            Msg::FetchFailed(_) => false,
         }
     }
 
