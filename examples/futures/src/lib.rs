@@ -1,4 +1,3 @@
-use crate::Msg::FutureFinished;
 use std::fmt::{Error, Formatter};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -11,7 +10,8 @@ struct Model {
 }
 
 enum Msg {
-    FutureFinished(String),
+    FetchSuccess(String),
+    FetchFailed(FetchError)
 }
 
 /// An error that can never happen (because an instance of this can not be created).
@@ -20,8 +20,8 @@ pub struct FetchError {
     err: JsValue,
 }
 impl std::fmt::Display for FetchError {
-    fn fmt(&self, _f: &mut Formatter<'_>) -> Result<(), Error> {
-        unimplemented!()
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        std::fmt::Debug::fmt(&self.err, f)
     }
 }
 impl std::error::Error for FetchError {}
@@ -64,8 +64,10 @@ impl Component for Model {
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let future = async {
-            let md = get_markdown().await;
-            md.map(Msg::FutureFinished)
+            match get_markdown().await {
+                Ok(md) => Msg::FetchSuccess(md),
+                Err(err) => Msg::FetchFailed(err)
+            }
         };
         link.send_future(future);
         Model { future_data: None }
@@ -73,10 +75,11 @@ impl Component for Model {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            FutureFinished(resolved_future) => {
+            Msg::FetchSuccess(resolved_future) => {
                 self.future_data = Some(resolved_future);
                 true
             }
+            Msg::FetchFailed(_) => {false}
         }
     }
 

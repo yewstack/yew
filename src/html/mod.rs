@@ -344,10 +344,12 @@ where
     #[cfg(all(target_arch = "wasm32", not(cargo_web)))]
     /// This method processes a Future that returns a message and sends it back to the component's
     /// loop.
-    pub fn send_future<F, E>(&self, future: F)
+    ///
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and will leak.
+    pub fn send_future<F>(&self, future: F)
     where
-        F: Future<Output = Result<COMP::Message, E>> + 'static,
-        E: std::error::Error,
+        F: Future<Output = COMP::Message> + 'static,
     {
         use wasm_bindgen::JsValue;
         use wasm_bindgen_futures::future_to_promise;
@@ -355,15 +357,13 @@ where
         let mut scope = self.scope.clone();
 
         let js_future = async {
-            future
-                .await
-                .and_then(move |message| {
-                    scope.send_message(message);
-                    Ok(JsValue::NULL)
-                })
-                .map_err(|e| JsValue::from_str(&format!("{}", e)))
+            let message = future.await;
+            // Force movement of the cloned scope into the async block.
+            let scope_send = move || scope.send_message(message);
+            scope_send();
+            Ok(JsValue::NULL)
         };
-        future_to_promise(js_future); // TODO should this return the Promise as a handle?
+        future_to_promise(js_future);
     }
 
     /// This method sends a message to this component immediately.
