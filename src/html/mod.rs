@@ -381,7 +381,8 @@ where
         }
     }
 
-    /// This method sends batch of messages back to the component's loop
+    /// This method sends batch of messages back to the component's loop when the
+    /// returned callback is called.
     pub fn send_back_batch<F, IN>(&mut self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> Vec<COMP::Message> + 'static,
@@ -394,7 +395,7 @@ where
         closure.into()
     }
 
-    /// This method sends messages back to the component's loop.
+    /// This method sends messages back to the component's loop when the returned callback is called.
     pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> COMP::Message + 'static,
@@ -407,7 +408,8 @@ where
         closure.into()
     }
 
-    /// This method sends a message to this component immediately.
+    /// This method sends a message to this component to be processed immediately after the current
+    /// loop has finished.
     pub fn send_self(&mut self, msg: COMP::Message) {
         self.scope.send_message(msg);
     }
