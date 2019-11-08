@@ -137,7 +137,7 @@ impl Component for Model {
                     let task =
                         self.ws_service
                             .connect("ws://localhost:9001/", callback, notification);
-                    self.ws = Some(task);
+                    self.ws = Some(task.unwrap());
                 }
                 WsAction::SendData(binary) => {
                     let request = WsRequest { value: 321 };
