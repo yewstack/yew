@@ -56,7 +56,7 @@ impl WebSocketService {
     {
         let ws = WebSocket::new(url);
         if ws.is_err() {
-            return Err("Failed to created websocket with given URL")
+            return Err("Failed to created websocket with given URL");
         }
 
         let ws = ws.unwrap();
