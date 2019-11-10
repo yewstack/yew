@@ -196,7 +196,7 @@ pub trait Discoverer {
     /// Spawns an agent and returns `Bridge` implementation.
     fn spawn_or_join<AGN: Agent>(_callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         unimplemented!(
-"The Reach type that you tried to use with this Agent does not have
+            "The Reach type that you tried to use with this Agent does not have
 Discoverer properly implemented for it yet. Please see
 https://docs.rs/yew/latest/yew/agent/ for other Reach options."
         );
