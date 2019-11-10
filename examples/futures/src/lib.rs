@@ -6,7 +6,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response, Window};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
-/// An error that can never happen (because an instance of this can not be created).
+/// Something wrong has occurred while fetching an external resource.
 #[derive(Debug, Clone, PartialEq)]
 pub struct FetchError {
     err: JsValue,
@@ -32,11 +32,11 @@ pub enum FetchState<T> {
     Failed(FetchError),
 }
 
-/// Gets the markdown from yew's readme.
+/// Gets the markdown from Yew's readme.
 ///
 /// Consult the following for an example of the fetch api by the team behind web_sys:
 /// https://rustwasm.github.io/wasm-bindgen/examples/fetch.html
-async fn get_markdown() -> Result<String, FetchError> {
+async fn fetch_markdown() -> Result<String, FetchError> {
     let mut opts = RequestInit::new();
     opts.method("GET");
     opts.mode(RequestMode::Cors);
@@ -87,7 +87,7 @@ impl Component for Model {
             }
             Msg::GetMarkdown => {
                 let future = async {
-                    match get_markdown().await {
+                    match fetch_markdown().await {
                         Ok(md) => Msg::SetMarkdownFetchState(FetchState::Success(md)),
                         Err(err) => Msg::SetMarkdownFetchState(FetchState::Failed(err)),
                     }
@@ -102,7 +102,9 @@ impl Component for Model {
 
     fn view(&self) -> Html<Self> {
         match &self.markdown {
-            FetchState::NotFetching => html! {<button onclick=|_| Msg::GetMarkdown>{"Get Markdown"}</button>},
+            FetchState::NotFetching => {
+                html! {<button onclick=|_| Msg::GetMarkdown>{"Get Markdown"}</button>}
+            }
             FetchState::Fetching => html! {"Fetching"},
             FetchState::Success(data) => html! {&data},
             FetchState::Failed(err) => html! {&err},
