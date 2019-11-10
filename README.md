@@ -18,6 +18,8 @@
   </p>
 
   <h4>
+    <a href="https://docs.rs/yew">Docs</a>
+    <span> | </span>
     <a href="#running-the-examples">Examples</a>
     <span> | </span>
     <a href="https://github.com/yewstack/yew/blob/master/CHANGELOG.md">Changelog</a>
