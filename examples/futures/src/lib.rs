@@ -32,7 +32,7 @@ pub enum FetchState<T> {
     Failed(FetchError),
 }
 
-/// Gets the markdown from Yew's readme.
+/// Fetches markdown from Yew's README.md.
 ///
 /// Consult the following for an example of the fetch api by the team behind web_sys:
 /// https://rustwasm.github.io/wasm-bindgen/examples/fetch.html
