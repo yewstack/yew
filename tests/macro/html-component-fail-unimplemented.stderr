@@ -5,3 +5,4 @@ error[E0277]: the trait bound `std::string::String: yew::html::Component` is not
   |              ^^^^^^ the trait `yew::html::Component` is not implemented for `std::string::String`
 
 For more information about this error, try `rustc --explain E0277`.
+error: could not compile `yew-tests`.
