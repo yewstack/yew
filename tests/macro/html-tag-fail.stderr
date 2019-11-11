@@ -197,7 +197,7 @@ error[E0599]: no method named `to_string` found for type `NotToString` in the cu
    | ------------------- method `to_string` not found for this
 ...
 37 |     html! { <input string=NotToString /> };
-   |                           ^^^^^^^^^^^
+   |                           ^^^^^^^^^^^ method not found in `NotToString`
    |
    = note: the method `to_string` exists but the following trait bounds were not satisfied:
            `NotToString : std::string::ToString`
@@ -213,5 +213,3 @@ error[E0308]: mismatched types
    |
    = note: expected type `yew::html::NodeRef`
               found type `()`
-
-Some errors occurred: E0277, E0308, E0599.
