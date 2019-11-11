@@ -1,5 +1,7 @@
 use yew::prelude::*;
 
+struct NotToString;
+
 fn compile_fail() {
     html! { <div> };
     html! { <div><div> };
@@ -31,6 +33,11 @@ fn compile_fail() {
     html! { <input onclick=|| () /> };
     html! { <input onclick=|a, b| () /> };
     html! { <input onclick=|a: String| () /> };
+
+    html! { <input string=NotToString /> };
+
+    html! { <input ref=() /> };
+    html! { <input ref=() ref=() /> };
 }
 
 fn main() {}

@@ -56,6 +56,8 @@ fn compile_fail() {
     html! { <Child with /> };
     html! { <Child props /> };
     html! { <Child with props > };
+    html! { <Child with props ref=() ref=() /> };
+    html! { <Child ref=() with props /> };
     html! { <Child with blah /> };
     html! { <Child with props () /> };
     html! { <Child type=0 /> };
@@ -65,6 +67,8 @@ fn compile_fail() {
     html! { <Child int=1 string={} /> };
     html! { <Child int=1 string=3 /> };
     html! { <Child int=1 string={3} /> };
+    html! { <Child int=1 ref=() /> };
+    html! { <Child int=1 ref=() ref=() /> };
     html! { <Child int=0u32 /> };
     html! { <Child string="abc" /> };
     html! { </Child> };

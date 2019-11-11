@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
 use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
-use crate::html::{Component, Scope};
+use crate::html::{Component, NodeRef, Scope};
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
@@ -32,7 +32,7 @@ pub struct VTag<COMP: Component> {
     /// List of attributes.
     pub attributes: Attributes,
     /// The list of children nodes. Which also could have own children.
-    pub childs: Vec<VNode<COMP>>,
+    pub children: Vec<VNode<COMP>>,
     /// List of attached classes.
     pub classes: Classes,
     /// Contains a value of an
@@ -48,6 +48,8 @@ pub struct VTag<COMP: Component> {
     /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
     /// frameworks it's more useful to control `checked` value of an `InputElement`.
     pub checked: bool,
+    /// A node reference used for DOM access in Component lifecycle methods
+    pub node_ref: NodeRef,
     /// _Service field_. Keeps handler for attached listeners
     /// to have an opportunity to drop them later.
     captured: Vec<EventListenerHandle>,
@@ -63,7 +65,8 @@ impl<COMP: Component> VTag<COMP> {
             attributes: Attributes::new(),
             listeners: Vec::new(),
             captured: Vec::new(),
-            childs: Vec::new(),
+            children: Vec::new(),
+            node_ref: NodeRef::default(),
             value: None,
             kind: None,
             // In HTML node `checked` attribute sets `defaultChecked` parameter,
@@ -79,13 +82,13 @@ impl<COMP: Component> VTag<COMP> {
 
     /// Add `VNode` child.
     pub fn add_child(&mut self, child: VNode<COMP>) {
-        self.childs.push(child);
+        self.children.push(child);
     }
 
     /// Add multiple `VNode` children.
     pub fn add_children(&mut self, children: Vec<VNode<COMP>>) {
         for child in children {
-            self.childs.push(child);
+            self.children.push(child);
         }
     }
 
@@ -180,7 +183,7 @@ impl<COMP: Component> VTag<COMP> {
     /// Otherwise just add everything.
     fn diff_classes<'a>(
         &'a self,
-        ancestor: &'a Option<Self>,
+        ancestor: &'a Option<Box<Self>>,
     ) -> impl Iterator<Item = Patch<&'a str, ()>> + 'a {
         let to_add = {
             let all_or_nothing = not(ancestor)
@@ -210,7 +213,7 @@ impl<COMP: Component> VTag<COMP> {
     /// the values are different.
     fn diff_attributes<'a>(
         &'a self,
-        ancestor: &'a Option<Self>,
+        ancestor: &'a Option<Box<Self>>,
     ) -> impl Iterator<Item = Patch<&'a str, &'a str>> + 'a {
         // Only change what is necessary.
         let to_add_or_replace =
@@ -220,7 +223,7 @@ impl<COMP: Component> VTag<COMP> {
                     .and_then(|ancestor| ancestor.attributes.get(&**key))
                 {
                     None => Some(Patch::Add(&**key, &**value)),
-                    Some(ancestor_value) if value == ancestor_value => {
+                    Some(ancestor_value) if value != ancestor_value => {
                         Some(Patch::Replace(&**key, &**value))
                     }
                     _ => None,
@@ -236,7 +239,7 @@ impl<COMP: Component> VTag<COMP> {
     }
 
     /// Similar to `diff_attributers` except there is only a single `kind`.
-    fn diff_kind<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
+    fn diff_kind<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
             self.kind.as_ref(),
             ancestor.as_ref().and_then(|anc| anc.kind.as_ref()),
@@ -255,7 +258,7 @@ impl<COMP: Component> VTag<COMP> {
     }
 
     /// Almost identical in spirit to `diff_kind`
-    fn diff_value<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
+    fn diff_value<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
             self.value.as_ref(),
             ancestor.as_ref().and_then(|anc| anc.value.as_ref()),
@@ -273,7 +276,7 @@ impl<COMP: Component> VTag<COMP> {
         }
     }
 
-    fn apply_diffs(&mut self, element: &Element, ancestor: &Option<Self>) {
+    fn apply_diffs(&mut self, element: &Element, ancestor: &Option<Box<Self>>) {
         // Update parameters
         let changes = self.diff_classes(ancestor);
         for change in changes {
@@ -352,7 +355,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             .expect("tried to remove not rendered VTag from DOM");
 
         // recursively remove its children
-        self.childs.drain(..).for_each(|mut child| {
+        self.children.drain(..).for_each(|mut child| {
             child.detach(&node);
         });
 
@@ -368,7 +371,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
     fn apply(
         &mut self,
         parent: &Element,
-        precursor: Option<&Node>,
+        previous_sibling: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,
     ) -> Option<Node> {
@@ -425,11 +428,12 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                         .insert_before(&element, &sibling)
                         .expect("can't insert tag before sibling");
                 } else {
-                    let precursor = precursor.and_then(|before| before.next_sibling());
-                    if let Some(precursor) = precursor {
+                    let previous_sibling =
+                        previous_sibling.and_then(|before| before.next_sibling());
+                    if let Some(previous_sibling) = previous_sibling {
                         parent
-                            .insert_before(&element, &precursor)
-                            .expect("can't insert tag before precursor");
+                            .insert_before(&element, &previous_sibling)
+                            .expect("can't insert tag before previous_sibling");
                     } else {
                         parent.append_child(&element);
                     }
@@ -457,14 +461,15 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             }
 
             // Process children
-            // Start with an empty precursor, because it put childs to itself
-            let mut precursor = None;
-            let mut self_childs = self.childs.iter_mut();
-            let mut ancestor_childs = ancestor.into_iter().flat_map(|a| a.childs);
+            // Start with an empty previous_sibling, because it put children to itself
+            let mut previous_sibling = None;
+            let mut self_children = self.children.iter_mut();
+            let mut ancestor_children = ancestor.into_iter().flat_map(|a| a.children);
             loop {
-                match (self_childs.next(), ancestor_childs.next()) {
+                match (self_children.next(), ancestor_children.next()) {
                     (Some(left), right) => {
-                        precursor = left.apply(&element, precursor.as_ref(), right, &env);
+                        previous_sibling =
+                            left.apply(&element, previous_sibling.as_ref(), right, &env);
                     }
                     (None, Some(ref mut right)) => {
                         right.detach(&element);
@@ -473,7 +478,9 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                 }
             }
         }
-        self.reference.as_ref().map(|e| e.as_node().to_owned())
+        let node = self.reference.as_ref().map(|e| e.as_node().to_owned());
+        self.node_ref.set(node.clone());
+        node
     }
 }
 
@@ -514,7 +521,7 @@ impl<COMP: Component> PartialEq for VTag<COMP> {
             && self.attributes == other.attributes
             && self.classes.set.len() == other.classes.set.len()
             && self.classes.set.iter().eq(other.classes.set.iter())
-            && &self.childs == &other.childs
+            && self.children == other.children
     }
 }
 

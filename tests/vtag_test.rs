@@ -255,7 +255,7 @@ fn supports_svg() {
     let svg_tag = assert_vtag(&mut svg_node);
     svg_tag.apply(&div_el, None, None, &scope);
     assert_namespace(svg_tag, SVG_NAMESPACE);
-    let path_tag = assert_vtag(svg_tag.childs.get_mut(0).unwrap());
+    let path_tag = assert_vtag(svg_tag.children.get_mut(0).unwrap());
     assert_namespace(path_tag, SVG_NAMESPACE);
 
     let g_tag = assert_vtag(&mut g_node);

@@ -140,6 +140,13 @@ pass_helper! {
         </>
     };
 
+    let node_ref = NodeRef::default();
+    html! {
+        <>
+            <Child int=1 ref=node_ref />
+        </>
+    };
+
     let props = <Container as Component>::Properties::default();
     html! {
         <>
