@@ -75,16 +75,19 @@ pub mod macros {
     pub use yew_macro::Properties;
 }
 
-pub mod agent;
 pub mod app;
 pub mod callback;
 pub mod components;
 pub mod format;
 pub mod html;
 pub mod scheduler;
-pub mod services;
 pub mod utils;
 pub mod virtual_dom;
+
+#[cfg(feature = "agent")]
+pub mod agent;
+#[cfg(feature = "services")]
+pub mod services;
 
 /// The module that contains all events available in the framework.
 pub mod events {
@@ -142,6 +145,7 @@ where
 /// use yew::prelude::*;
 /// ```
 pub mod prelude {
+    #[cfg(feature = "agent")]
     pub use crate::agent::{Bridge, Bridged, Threaded};
     pub use crate::app::App;
     pub use crate::callback::Callback;
@@ -154,6 +158,7 @@ pub mod prelude {
     pub use crate::virtual_dom::Classes;
 
     /// Prelude module for creating worker.
+    #[cfg(feature = "agent")]
     pub mod worker {
         pub use crate::agent::{
             Agent, AgentLink, Bridge, Bridged, Context, Global, HandlerId, Job, Private, Public,

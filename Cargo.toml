@@ -53,10 +53,12 @@ trybuild = "1.0"
 rustversion = "0.1"
 
 [features]
-default = []
+default = ["services", "agent"]
 doc_test = []
 web_test = []
 wasm_test = []
+services = []
+agent = []
 yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
