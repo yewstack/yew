@@ -1,12 +1,151 @@
 # Changelog
 
-## ✨ **0.10** *(TBD)*
+## ✨ **0.10** *(2019-11-11)*
 
 - #### ⚡️ Features
 
+  - `Future` support :tada: A `Component` can update following the completion of a `Future`. Check out [this example](https://github.com/yewstack/yew/tree/master/examples/futures) to see how it works. This approach was borrowed from a fork of Yew called [`plaster`](https://github.com/carlosdp/plaster) created by [@carlosdp]. [[@hgzimmerman], [#717](https://github.com/yewstack/yew/pull/717)]
+  - Added the `agent` and `services` features so that this functionality can be disabled (useful if you are switching to using `Future`s). [[@hgzimmerman], [#684](https://github.com/yewstack/yew/pull/684)]
+  - Add `ref` keyword for allowing a `Component` to have a direct reference to its rendered elements. For example, you can now easily focus an `<input>` element after mounting. [[@jstarry], [#715](https://github.com/yewstack/yew/pull/715)]
+
+  ```rust
+  use stdweb::web::html_element::InputElement;
+  use stdweb::web::IHtmlElement;
+  use yew::*;
+
+  pub struct Input {
+      node_ref: NodeRef,
+  }
+
+  impl Component for Input {
+      type Message = ();
+      type Properties = ();
+
+      fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+          Input {
+              node_ref: NodeRef::default(),
+          }
+      }
+
+      fn mounted(&mut self) -> ShouldRender {
+          if let Some(input) = self.node_ref.try_into::<InputElement>() {
+              input.focus();
+          }
+          false
+      }
+
+      fn update(&mut self, _: Self::Message) -> ShouldRender {
+          false
+      }
+
+      fn view(&self) -> Html<Self> {
+          html! {
+              <input ref=self.node_ref.clone() type="text" />
+          }
+      }
+  }
+  ```
+
+  - Make `Agent` related types `public` to allow other crates to create custom agents. [[@dunnock], [#721](https://github.com/yewstack/yew/pull/721)]
+  - `Component::change` will now return `false` for components that have `Component::Properties == ()`. [[@kellytk], [#690](https://github.com/yewstack/yew/pull/690)]]
+  - Updated `wasm-bindgen` dependency to `0.2.54`. Please update your `wasm-bindgen-cli` tool by running `cargo install --force --version 0.2.54 -- wasm-bindgen-cli`. [[@jstarry], [#730](https://github.com/yewstack/yew/pull/730)], [[@ctaggart], [#681](https://github.com/yewstack/yew/pull/681)]
+
 - #### 🛠 Fixes
 
+  - Fixed the mount order of components. The root component will be mounted after all descendants have been mounted. [[@jstarry], [#725](https://github.com/yewstack/yew/pull/725)]
+  - All public items now implement `Debug`. [[@hgzimmerman], [#673](https://github.com/yewstack/yew/pull/673)]
+
 - #### 🚨 Breaking changes
+
+  - Minimum rustc version has been bumped to `1.39.0` for `Future` support. [[@jstarry], [#730](https://github.com/yewstack/yew/pull/730)]
+  - `Component` now has a required `view` method and automatically implements the `Renderable` trait. The `view` method in the `Renderable` trait has been renamed to `render`. [[@jstarry], [#563](https://github.com/yewstack/yew/pull/563)]
+
+    Before:
+    ```rust
+    impl Component for Model {
+        type Message = Msg;
+        type Properties = ();
+
+        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+            Model {}
+        }
+
+        fn update(&mut self, msg: Self::Message) -> ShouldRender {
+            true
+        }
+    }
+
+    impl Renderable<Model> for Model {
+        fn view(&self) -> Html<Self> {
+            html! { "hello" }
+        }
+    }
+    ```
+
+    After:
+    ```rust
+    impl Component for Model {
+        type Message = Msg;
+        type Properties = ();
+
+        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+            Model {}
+        }
+
+        fn update(&mut self, msg: Self::Message) -> ShouldRender {
+            true
+        }
+
+        fn view(&self) -> Html<Self> {
+            html! { "hello" }
+        }
+    }
+    ```
+
+  - Removed the `Transferable` trait since it did no more than extend the serde `Serialize` and `Deserialize` traits. [[@hgzimmerman], [#319](https://github.com/yewstack/yew/pull/319)]
+
+    Before:
+    ```rust
+    impl Transferable for Input {}
+    #[derive(Serialize, Deserialize)]
+    pub enum Input {
+      Connect,
+    }
+    ```
+
+    After:
+    ```rust
+    #[derive(Serialize, Deserialize)]
+    pub enum Input {
+      Connect,
+    }
+    ```
+  - `WebSocketService::connect` will now return a `Result` in order to stop panicking on malformed urls. [[@lizhaoxian], [#727](https://github.com/yewstack/yew/pull/727)]
+  - `VTag` now is boxed within `VNode` to shrink the size of its enum representation. [[@hgzimmerman], [#675](https://github.com/yewstack/yew/pull/675)]
+
+## ✨ **0.9.2** *(2019-10-12)*
+
+- #### 🛠 Fixes
+
+  - Fix `yew-macro` dependency version
+
+## ✨ **0.9.1** *(2019-10-12)*
+
+Happy Canadian Thanksgiving! 🦃
+
+- #### ⚡️ Features
+
+  - Implemented `Default` trait for `VNode` so that `unwrap_or_default` can be called on `Option<Html<Self>>`. [[@hgzimmerman], [#672](https://github.com/yewstack/yew/pull/672)]
+  - Implemented `PartialEq` trait for `Classes` so that is more ergonomic to use `Classes` type in component props. [[@hgzimmerman], [#680](https://github.com/yewstack/yew/pull/680)]
+  - Updated `wasm-bindgen` dependency to `0.2.50`. Please update your `wasm-bindgen-cli` tool by running `cargo install --force --version 0.2.50 -- wasm-bindgen-cli`. [[@jstarry], [#695](https://github.com/yewstack/yew/pull/695)]
+
+- #### 🛠 Fixes
+
+  - Fixed issue where text nodes were sometimes rendered out of order. [[@jstarry], [#697](https://github.com/yewstack/yew/pull/697)]
+  - Fixed regression introduced in 0.9.0 that prevented tag attributes from updating properly. [[@jstarry], [#698](https://github.com/yewstack/yew/pull/698)]
+  - Fixed emscripten builds by pinning the version for the `ryu` downstream dependency. [[@jstarry], [#703](https://github.com/yewstack/yew/pull/703)]
+  - Updated `stdweb` to `0.4.20` which fixed emscripten builds and unblocked updating `wasm-bindgen` to `0.2.50`. [[@ctaggart], [@jstarry], [#683](https://github.com/yewstack/yew/pull/683), [#694](https://github.com/yewstack/yew/pull/694)]
+  - Cleaned up build warnings for missing `dyn` keywords. [[@benreyn], [#687](https://github.com/yewstack/yew/pull/687)]
 
 ## ✨ **0.9** *(2019-09-27)*
 
@@ -224,13 +363,17 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
 [@astraw]: https://github.com/astraw
 [@boydjohnson]: https://github.com/boydjohnson
+[@carlosdp]: https://github.com/carlosdp
 [@charvp]: https://github.com/charvp
+[@ctaggart]: https://github.com/ctaggart
 [@davidkna]: https://github.com/davidkna
 [@DenisKolodin]: https://github.com/DenisKolodin
 [@dermetfan]: https://github.com/dermetfan
+[@dunnock]: https://github.com/dunnock
 [@hgzimmerman]: https://github.com/hgzimmerman
 [@jstarry]: https://github.com/jstarry
 [@kellytk]: https://github.com/kellytk
+[@lizhaoxian]: https://github.com/lizhaoxian
 [@serzhiio]: https://github.com/serzhiio
 [@stkevintan]: https://github.com/stkevintan
 [@tiziano88]: https://github.com/tiziano88
