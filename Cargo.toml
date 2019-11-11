@@ -33,23 +33,28 @@ serde_cbor = { version = "0.9.0", optional = true }
 serde_json = "1.0"
 serde_yaml = { version = "0.8.3", optional = true }
 slab = "0.4"
-stdweb = "^0.4.16"
+stdweb = "0.4.20"
 toml = { version = "0.4", optional = true }
 yew-macro = { version = "0.10.0", path = "crates/macro" }
 
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
-wasm-bindgen = "=0.2.42"
+wasm-bindgen = "0.2.54"
+wasm-bindgen-futures = "0.4.4"
+
+[target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dev-dependencies]
+wasm-bindgen-test = "0.3.4"
+
+[target.'cfg(target_os = "emscripten")'.dependencies]
+ryu = "=1.0.0" # 1.0.1 breaks emscripten
 
 [dev-dependencies]
 serde_derive = "1"
 trybuild = "1.0"
 rustversion = "0.1"
 
-[target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dev-dependencies]
-wasm-bindgen-test = "0.2"
-
 [features]
 default = ["services", "agents"]
+doc_test = []
 web_test = []
 wasm_test = []
 services = []
@@ -61,26 +66,4 @@ cbor = ["serde_cbor"]
 [workspace]
 members = [
   "crates/macro",
-  "examples/counter",
-  "examples/crm",
-  "examples/custom_components",
-  "examples/dashboard",
-  "examples/file_upload",
-  "examples/fragments",
-  "examples/game_of_life",
-  "examples/inner_html",
-  "examples/js_callback",
-  "examples/large_table",
-  "examples/minimal",
-  "examples/mount_point",
-  "examples/multi_thread",
-  "examples/nested_list",
-  "examples/npm_and_rest",
-  "examples/routing",
-  "examples/server",
-  "examples/showcase",
-  "examples/textarea",
-  "examples/timer",
-  "examples/todomvc",
-  "examples/two_apps",
 ]

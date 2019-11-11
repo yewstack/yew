@@ -14,6 +14,7 @@ counter = { path = "../counter" }
 crm = { path = "../crm" }
 custom_components = { path = "../custom_components" }
 dashboard = { path = "../dashboard" }
+node_refs = { path = "../node_refs" }
 fragments = { path = "../fragments" }
 game_of_life = { path = "../game_of_life" }
 inner_html = { path = "../inner_html" }

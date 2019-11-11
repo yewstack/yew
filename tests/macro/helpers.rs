@@ -6,7 +6,7 @@ macro_rules! pass_helper {
         pass_helper! { @ html $($tail)* }
     };
     ( @html $head:stmt; $($tail:tt)* ) => {
-        $head;
+        $head
         pass_helper! { @ html $($tail)* }
     };
     ( $($content:tt)* ) => {

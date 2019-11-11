@@ -18,23 +18,33 @@ use stdweb::Value;
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
-#[derive(Serialize, Deserialize)]
-enum ToWorker<T> {
+/// Serializable messages to worker
+#[derive(Serialize, Deserialize, Debug)]
+pub enum ToWorker<T> {
+    /// Client is connected
     Connected(HandlerId),
+    /// Incoming message to Worker
     ProcessInput(HandlerId, T),
+    /// Client is disconnected
     Disconnected(HandlerId),
+    /// Worker should be terminated
     Destroy,
 }
 
-#[derive(Serialize, Deserialize)]
-enum FromWorker<T> {
+/// Serializable messages sent by worker to consumer
+#[derive(Serialize, Deserialize, Debug)]
+pub enum FromWorker<T> {
     /// Worker sends this message when `wasm` bundle has loaded.
     WorkerLoaded,
+    /// Outgoing message to consumer
     ProcessOutput(HandlerId, T),
 }
 
-trait Packed {
+/// Message packager, based on serde::Serialize/Deserialize
+pub trait Packed {
+    /// Pack serializable message into Vec<u8>
     fn pack(&self) -> Vec<u8>;
+    /// Unpack deserializable message of byte slice
     fn unpack(data: &[u8]) -> Self;
 }
 
@@ -52,7 +62,7 @@ impl<T: Serialize + for<'de> Deserialize<'de>> Packed for T {
 type SharedOutputSlab<AGN> = Shared<Slab<Option<Callback<<AGN as Agent>::Output>>>>;
 
 /// Id of responses handler.
-#[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct HandlerId(usize, bool);
 
 impl HandlerId {
@@ -195,7 +205,11 @@ where
 pub trait Discoverer {
     /// Spawns an agent and returns `Bridge` implementation.
     fn spawn_or_join<AGN: Agent>(_callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
-        unimplemented!();
+        unimplemented!(
+            "The Reach type that you tried to use with this Agent does not have
+Discoverer properly implemented for it yet. Please see
+https://docs.rs/yew/latest/yew/agent/ for other Reach options."
+        );
     }
 }
 
@@ -249,6 +263,7 @@ thread_local! {
 }
 
 /// Create a single instance in the current thread.
+#[allow(missing_debug_implementations)]
 pub struct Context;
 
 impl Discoverer for Context {
@@ -344,6 +359,7 @@ impl<AGN: Agent> Drop for ContextBridge<AGN> {
 }
 
 /// Create an instance in the current thread.
+#[allow(missing_debug_implementations)]
 pub struct Job;
 
 impl Discoverer for Job {
@@ -397,6 +413,7 @@ impl<AGN: Agent> Drop for JobBridge<AGN> {
 // <<< SEPARATE THREAD >>>
 
 /// Create a new instance for every bridge.
+#[allow(missing_debug_implementations)]
 pub struct Private;
 
 impl Discoverer for Private {
@@ -436,6 +453,12 @@ impl Discoverer for Private {
 pub struct PrivateBridge<T: Agent> {
     worker: Value,
     _agent: PhantomData<T>,
+}
+
+impl<AGN: Agent> fmt::Debug for PrivateBridge<AGN> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("PrivateBridge<_>")
+    }
 }
 
 impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
@@ -494,6 +517,7 @@ thread_local! {
 }
 
 /// Create a single instance in a tab.
+#[allow(missing_debug_implementations)]
 pub struct Public;
 
 impl Discoverer for Public {
@@ -555,10 +579,16 @@ impl Discoverer for Public {
 impl Dispatchable for Public {}
 
 /// A connection manager for components interaction with workers.
-pub struct PublicBridge<T: Agent> {
+pub struct PublicBridge<AGN: Agent> {
     worker: Value,
     id: HandlerId,
-    _agent: PhantomData<T>,
+    _agent: PhantomData<AGN>,
+}
+
+impl<AGN: Agent> fmt::Debug for PublicBridge<AGN> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("PublicBridge<_>")
+    }
 }
 
 impl<AGN: Agent> PublicBridge<AGN> {
@@ -636,6 +666,7 @@ impl<AGN: Agent> Drop for PublicBridge<AGN> {
 }
 
 /// Create a single instance in a browser.
+#[allow(missing_debug_implementations)]
 pub struct Global;
 
 impl Discoverer for Global {}
@@ -681,6 +712,12 @@ pub struct AgentScope<AGN: Agent> {
     shared_agent: Shared<AgentRunnable<AGN>>,
 }
 
+impl<AGN: Agent> fmt::Debug for AgentScope<AGN> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("AgentScope<_>")
+    }
+}
+
 impl<AGN: Agent> Clone for AgentScope<AGN> {
     fn clone(&self) -> Self {
         AgentScope {
@@ -690,12 +727,13 @@ impl<AGN: Agent> Clone for AgentScope<AGN> {
 }
 
 impl<AGN: Agent> AgentScope<AGN> {
-    fn new() -> Self {
+    /// Create agent scope
+    pub fn new() -> Self {
         let shared_agent = Rc::new(RefCell::new(AgentRunnable::new()));
         AgentScope { shared_agent }
     }
-
-    fn send(&self, update: AgentUpdate<AGN>) {
+    /// Schedule message for sending to agent
+    pub fn send(&self, update: AgentUpdate<AGN>) {
         let envelope = AgentEnvelope {
             shared_agent: self.shared_agent.clone(),
             update,
@@ -705,7 +743,15 @@ impl<AGN: Agent> AgentScope<AGN> {
     }
 }
 
-trait Responder<AGN: Agent> {
+impl<AGN: Agent> Default for AgentScope<AGN> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Defines communication from Worker to Consumers
+pub trait Responder<AGN: Agent> {
+    /// Implementation for communication channel from Worker to Consumers
     fn response(&self, id: HandlerId, output: AGN::Output);
 }
 
@@ -730,7 +776,7 @@ pub struct AgentLink<AGN: Agent> {
 
 impl<AGN: Agent> AgentLink<AGN> {
     /// Create link for a scope.
-    fn connect<T>(scope: &AgentScope<AGN>, responder: T) -> Self
+    pub fn connect<T>(scope: &AgentScope<AGN>, responder: T) -> Self
     where
         T: Responder<AGN> + 'static,
     {
@@ -781,12 +827,20 @@ impl<AGN> AgentRunnable<AGN> {
     }
 }
 
-enum AgentUpdate<AGN: Agent> {
+/// Local Agent messages
+#[derive(Debug)]
+pub enum AgentUpdate<AGN: Agent> {
+    /// Request to create link
     Create(AgentLink<AGN>),
+    /// Internal Agent message
     Message(AGN::Message),
+    /// Client connected
     Connected(HandlerId),
+    /// Received mesasge from Client
     Input(AGN::Input, HandlerId),
+    /// Client disconnected
     Disconnected(HandlerId),
+    /// Request to destroy agent
     Destroy,
 }
 
