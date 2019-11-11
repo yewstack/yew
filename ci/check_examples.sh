@@ -10,12 +10,12 @@ cd examples/showcase
 
 if [ "$is_stable" == "0" ]; then
   # TODO - Emscripten builds are broken on beta/nightly
-  cargo web build --target asmjs-unknown-emscripten
-  cargo web build --target wasm32-unknown-emscripten
+  # cargo web build --target asmjs-unknown-emscripten --use-system-emscripten
+  cargo web build --target wasm32-unknown-emscripten --use-system-emscripten
 fi
 
 # TODO showcase doesn't support wasm-bindgen yet
-cargo web build --target wasm32-unknown-unknown
+cargo web build --target wasm32-unknown-unknown --use-system-emscripten
 
 # Reset cwd
 cd ../..
