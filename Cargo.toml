@@ -49,11 +49,11 @@ rustversion = "0.1"
 wasm-bindgen-test = "0.2"
 
 [features]
-default = ["services", "agents"]
+default = ["services", "agent"]
 web_test = []
 wasm_test = []
 services = []
-agents = []
+agent = []
 yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
