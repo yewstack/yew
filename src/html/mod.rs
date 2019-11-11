@@ -8,11 +8,19 @@ mod scope;
 
 pub use listener::*;
 pub(crate) use scope::ComponentUpdate;
-pub use scope::{NodeCell, Scope};
+pub use scope::Scope;
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VList, VNode};
+use std::any::TypeId;
+use std::cell::RefCell;
 use std::fmt;
+use std::rc::Rc;
+use stdweb::unstable::TryFrom;
+use stdweb::web::Node;
+
+#[cfg(all(target_arch = "wasm32", not(cargo_web)))]
+use std::future::Future;
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -37,10 +45,10 @@ pub trait Component: Sized + 'static {
     /// Called when the component's parent component re-renders and the
     /// component's place in the DOM tree remains unchanged. If the component's
     /// place in the DOM tree changes, calling this method is unnecessary as the
-    /// component is recreated from scratch. It defaults
-    /// to true if not implemented.
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        true
+    /// component is recreated from scratch. It defaults to true if not implemented
+    /// and Self::Properties is not the unit type `()`.
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        TypeId::of::<Self::Properties>() != TypeId::of::<()>()
     }
     /// Called by rendering loop.
     fn view(&self) -> Html<Self>;
@@ -234,9 +242,12 @@ impl<T> ChildrenRenderer<T> {
 
 impl<T> Default for ChildrenRenderer<T> {
     fn default() -> Self {
+        // False positive: https://github.com/rust-lang/rust-clippy/issues/4002
+        #[allow(clippy::redundant_closure)]
+        let boxed_render = Box::new(|| Vec::new());
         Self {
             len: 0,
-            boxed_render: Box::new(|| Vec::new()),
+            boxed_render,
         }
     }
 }
@@ -253,9 +264,69 @@ where
 {
     fn render(&self) -> Html<COMP> {
         VList {
-            childs: self.iter().map(|c| c.into()).collect(),
+            children: self.iter().map(|c| c.into()).collect(),
         }
         .into()
+    }
+}
+
+/// Wrapped Node reference for later use in Component lifecycle methods.
+///
+/// # Example
+/// Focus an `<input>` element on mount.
+/// ```
+/// use stdweb::web::html_element::InputElement;
+/// use stdweb::web::IHtmlElement;
+///# use yew::*;
+///
+/// pub struct Input {
+///     node_ref: NodeRef,
+/// }
+///
+/// impl Component for Input {
+///     type Message = ();
+///     type Properties = ();
+///
+///     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+///         Input {
+///             node_ref: NodeRef::default(),
+///         }
+///     }
+///
+///     fn mounted(&mut self) -> ShouldRender {
+///         if let Some(input) = self.node_ref.try_into::<InputElement>() {
+///             input.focus();
+///         }
+///         false
+///     }
+///
+///     fn update(&mut self, _: Self::Message) -> ShouldRender {
+///         false
+///     }
+///
+///     fn view(&self) -> Html<Self> {
+///         html! {
+///             <input ref=self.node_ref.clone() type="text" />
+///         }
+///     }
+/// }
+#[derive(PartialEq, Debug, Default, Clone)]
+pub struct NodeRef(Rc<RefCell<Option<Node>>>);
+
+impl NodeRef {
+    /// Get the wrapped Node reference if it exists
+    pub fn get(&self) -> Option<Node> {
+        self.0.borrow().clone()
+    }
+
+    /// Try converting the node reference into another form
+    pub fn try_into<INTO: TryFrom<Node>>(&self) -> Option<INTO> {
+        self.get().and_then(|node| INTO::try_from(node).ok())
+    }
+
+    /// Place a Node in a reference for later use
+    pub(crate) fn set(&self, node: Option<Node>) {
+        *self.0.borrow_mut() = node;
     }
 }
 
@@ -281,6 +352,7 @@ pub trait Properties {
 }
 
 /// Builder for when a component has no properties
+#[derive(Debug)]
 pub struct EmptyBuilder;
 
 impl Properties for () {
@@ -336,6 +408,31 @@ where
             scope.clone().send_message(output);
         };
         closure.into()
+    }
+
+    #[cfg(all(target_arch = "wasm32", not(cargo_web)))]
+    /// This method processes a Future that returns a message and sends it back to the component's
+    /// loop.
+    ///
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and will leak.
+    pub fn send_future<F>(&self, future: F)
+    where
+        F: Future<Output = COMP::Message> + 'static,
+    {
+        use wasm_bindgen::JsValue;
+        use wasm_bindgen_futures::future_to_promise;
+
+        let mut scope = self.scope.clone();
+
+        let js_future = async {
+            let message: COMP::Message = future.await;
+            // Force movement of the cloned scope into the async block.
+            let scope_send = move || scope.send_message(message);
+            scope_send();
+            Ok(JsValue::NULL)
+        };
+        future_to_promise(js_future);
     }
 
     /// This method sends a message to this component immediately.

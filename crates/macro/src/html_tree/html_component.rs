@@ -11,11 +11,11 @@ use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{Ident, Path, PathArguments, PathSegment, Token, Type, TypePath};
+use syn::{Expr, Ident, Path, PathArguments, PathSegment, Token, Type, TypePath};
 
 pub struct HtmlComponent {
     ty: Type,
-    props: Option<Props>,
+    props: Props,
     children: Vec<HtmlTreeNested>,
 }
 
@@ -85,9 +85,9 @@ impl ToTokens for HtmlComponent {
         } = self;
         let vcomp_scope = Ident::new("__yew_vcomp_scope", Span::call_site());
 
-        let validate_props = if let Some(Props::List(ListProps(vec_props))) = props {
+        let validate_props = if let Props::List(ListProps { props, .. }) = props {
             let prop_ref = Ident::new("__yew_prop_ref", Span::call_site());
-            let check_props = vec_props.iter().map(|HtmlProp { label, .. }| {
+            let check_props = props.iter().map(|HtmlProp { label, .. }| {
                 quote! { #prop_ref.#label; }
             });
 
@@ -136,30 +136,27 @@ impl ToTokens for HtmlComponent {
             quote! {}
         };
 
-        let init_props = if let Some(props) = props {
-            match props {
-                Props::List(ListProps(vec_props)) => {
-                    let set_props = vec_props.iter().map(|HtmlProp { label, value }| {
-                        quote_spanned! { value.span()=>
-                            .#label(<::yew::virtual_dom::vcomp::VComp<_> as ::yew::virtual_dom::vcomp::Transformer<_, _, _>>::transform(#vcomp_scope.clone(), #value))
-                        }
-                    });
-
-                    quote! {
-                        <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder()
-                            #(#set_props)*
-                            #set_children
-                            .build()
+        let init_props = match props {
+            Props::List(ListProps { props, .. }) => {
+                let set_props = props.iter().map(|HtmlProp { label, value }| {
+                    quote_spanned! { value.span()=>
+                        .#label(<::yew::virtual_dom::vcomp::VComp<_> as ::yew::virtual_dom::vcomp::Transformer<_, _, _>>::transform(#vcomp_scope.clone(), #value))
                     }
+                });
+
+                quote! {
+                    <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder()
+                        #(#set_props)*
+                        #set_children
+                        .build()
                 }
-                Props::With(WithProps(props)) => quote! { #props },
             }
-        } else {
-            quote! {
+            Props::With(WithProps { props, .. }) => quote! { #props },
+            Props::None => quote! {
                 <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder()
                     #set_children
                     .build()
-            }
+            },
         };
 
         let validate_comp = quote_spanned! { ty.span()=>
@@ -171,6 +168,12 @@ impl ToTokens for HtmlComponent {
             }
         };
 
+        let node_ref = if let Some(node_ref) = props.node_ref() {
+            quote_spanned! { node_ref.span()=> #node_ref }
+        } else {
+            quote! { ::yew::html::NodeRef::default() }
+        };
+
         tokens.extend(quote! {{
             // Validation nevers executes at runtime
             if false {
@@ -179,7 +182,8 @@ impl ToTokens for HtmlComponent {
             }
 
             let #vcomp_scope: ::yew::virtual_dom::vcomp::ScopeHolder<_> = ::std::default::Default::default();
-            ::yew::virtual_dom::VChild::<#ty, _>::new(#init_props, #vcomp_scope)
+            let __yew_node_ref: ::yew::html::NodeRef = #node_ref;
+            ::yew::virtual_dom::VChild::<#ty, _>::new(#init_props, #vcomp_scope, __yew_node_ref)
         }});
     }
 }
@@ -244,7 +248,7 @@ impl HtmlComponent {
 struct HtmlComponentOpen {
     lt: Token![<],
     ty: Type,
-    props: Option<Props>,
+    props: Props,
     div: Option<Token![/]>,
     gt: Token![>],
 }
@@ -264,7 +268,7 @@ impl Parse for HtmlComponentOpen {
         // backwards compat
         let _ = input.parse::<Token![:]>();
         let HtmlPropSuffix { stream, div, gt } = input.parse()?;
-        let props: Option<Props> = parse(stream).ok();
+        let props = parse(stream)?;
 
         Ok(HtmlComponentOpen {
             lt,
@@ -327,6 +331,17 @@ enum PropType {
 enum Props {
     List(ListProps),
     With(WithProps),
+    None,
+}
+
+impl Props {
+    fn node_ref(&self) -> Option<&Expr> {
+        match self {
+            Props::List(ListProps { node_ref, .. }) => node_ref.as_ref(),
+            Props::With(WithProps { node_ref, .. }) => node_ref.as_ref(),
+            Props::None => None,
+        }
+    }
 }
 
 impl PeekValue<PropType> for Props {
@@ -344,16 +359,19 @@ impl PeekValue<PropType> for Props {
 
 impl Parse for Props {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let prop_type = Props::peek(input.cursor())
-            .ok_or_else(|| syn::Error::new(Span::call_site(), "ignore - no props found"))?;
-        match prop_type {
-            PropType::List => input.parse().map(Props::List),
-            PropType::With => input.parse().map(Props::With),
+        match Props::peek(input.cursor()) {
+            Some(PropType::List) => input.parse().map(Props::List),
+            Some(PropType::With) => input.parse().map(Props::With),
+            None => Ok(Props::None),
         }
     }
 }
 
-struct ListProps(Vec<HtmlProp>);
+struct ListProps {
+    props: Vec<HtmlProp>,
+    node_ref: Option<Expr>,
+}
+
 impl Parse for ListProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let mut props: Vec<HtmlProp> = Vec::new();
@@ -361,7 +379,12 @@ impl Parse for ListProps {
             props.push(input.parse::<HtmlProp>()?);
         }
 
+        let ref_position = props.iter().position(|p| p.label.to_string() == "ref");
+        let node_ref = ref_position.and_then(|i| Some(props.remove(i).value));
         for prop in &props {
+            if prop.label.to_string() == "ref" {
+                return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
+            }
             if prop.label.to_string() == "type" {
                 return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
             }
@@ -386,11 +409,15 @@ impl Parse for ListProps {
             }
         });
 
-        Ok(ListProps(props))
+        Ok(ListProps { props, node_ref })
     }
 }
 
-struct WithProps(Ident);
+struct WithProps {
+    props: Ident,
+    node_ref: Option<Expr>,
+}
+
 impl Parse for WithProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let with = input.parse::<Ident>()?;
@@ -399,6 +426,18 @@ impl Parse for WithProps {
         }
         let props = input.parse::<Ident>()?;
         let _ = input.parse::<Token![,]>();
-        Ok(WithProps(props))
+
+        // Check for the ref tag after `with`
+        let mut node_ref = None;
+        if let Some(ident) = input.cursor().ident() {
+            let prop = input.parse::<HtmlProp>()?;
+            if ident.0 == "ref" {
+                node_ref = Some(prop.value);
+            } else {
+                return Err(syn::Error::new_spanned(&prop.label, "unexpected token"));
+            }
+        }
+
+        Ok(WithProps { props, node_ref })
     }
 }

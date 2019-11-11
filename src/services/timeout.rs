@@ -3,6 +3,7 @@
 
 use super::{to_ms, Task};
 use crate::callback::Callback;
+use std::fmt;
 use std::time::Duration;
 use stdweb::Value;
 #[allow(unused_imports)]
@@ -12,8 +13,14 @@ use stdweb::{_js_impl, js};
 #[must_use]
 pub struct TimeoutTask(Option<Value>);
 
+impl fmt::Debug for TimeoutTask {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("TimeoutTask")
+    }
+}
+
 /// An service to set a timeout.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct TimeoutService {}
 
 impl TimeoutService {

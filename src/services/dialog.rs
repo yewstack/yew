@@ -6,7 +6,7 @@ use stdweb::Value;
 use stdweb::{_js_impl, js};
 
 /// A dialog service.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct DialogService {}
 
 impl DialogService {

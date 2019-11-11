@@ -3,6 +3,7 @@
 
 use crate::callback::Callback;
 use crate::services::Task;
+use std::fmt;
 use stdweb::unstable::TryInto;
 use stdweb::Value;
 #[allow(unused_imports)]
@@ -12,8 +13,14 @@ use stdweb::{_js_impl, js};
 #[must_use]
 pub struct RenderTask(Option<Value>);
 
+impl fmt::Debug for RenderTask {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("RenderTask")
+    }
+}
+
 /// A service to request animation frames.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct RenderService {}
 
 impl RenderService {

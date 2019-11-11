@@ -46,15 +46,12 @@ impl<COMP: Component> VDiff for VText<COMP> {
         sibling
     }
 
-    /// Renders virtual node over existent `TextNode`, but
-    /// only if value of text had changed.
-    /// Parameter `precursor` is necessary for `VTag` and `VList` which
-    /// has children and renders them.
+    /// Renders virtual node over existing `TextNode`, but only if value of text had changed.
     fn apply(
         &mut self,
         parent: &Element,
-        _: Option<&Node>,
-        opposite: Option<VNode<Self::Component>>,
+        previous_sibling: Option<&Node>,
+        ancestor: Option<VNode<Self::Component>>,
         _: &Scope<Self::Component>,
     ) -> Option<Node> {
         assert!(
@@ -62,7 +59,7 @@ impl<COMP: Component> VDiff for VText<COMP> {
             "reference is ignored so must not be set"
         );
         let reform = {
-            match opposite {
+            match ancestor {
                 // If element matched this type
                 Some(VNode::VText(mut vtext)) => {
                     self.reference = vtext.reference.take();
@@ -82,12 +79,18 @@ impl<COMP: Component> VDiff for VText<COMP> {
         };
         match reform {
             Reform::Keep => {}
-            Reform::Before(node) => {
+            Reform::Before(ancestor) => {
                 let element = document().create_text_node(&self.text);
-                if let Some(sibling) = node {
+                if let Some(ancestor) = ancestor {
                     parent
-                        .insert_before(&element, &sibling)
-                        .expect("can't insert text before sibling");
+                        .insert_before(&element, &ancestor)
+                        .expect("can't insert text before ancestor");
+                } else if let Some(next_sibling) =
+                    previous_sibling.and_then(|previous_sibling| previous_sibling.next_sibling())
+                {
+                    parent
+                        .insert_before(&element, &next_sibling)
+                        .expect("can't insert text before next_sibling");
                 } else {
                     parent.append_child(&element);
                 }

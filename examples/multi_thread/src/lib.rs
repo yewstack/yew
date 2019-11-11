@@ -9,10 +9,10 @@ use yew::worker::*;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
-    worker: Box<Bridge<native_worker::Worker>>,
-    job: Box<Bridge<job::Worker>>,
-    context: Box<Bridge<context::Worker>>,
-    context_2: Box<Bridge<context::Worker>>,
+    worker: Box<dyn Bridge<native_worker::Worker>>,
+    job: Box<dyn Bridge<job::Worker>>,
+    context: Box<dyn Bridge<context::Worker>>,
+    context_2: Box<dyn Bridge<context::Worker>>,
 }
 
 pub enum Msg {

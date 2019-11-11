@@ -10,7 +10,7 @@ use stdweb::web::{Element, INode, Node};
 /// Bind virtual element to a DOM reference.
 pub enum VNode<COMP: Component> {
     /// A bind between `VTag` and `Element`.
-    VTag(VTag<COMP>),
+    VTag(Box<VTag<COMP>>),
     /// A bind between `VText` and `TextNode`.
     VText(VText<COMP>),
     /// A bind between `VComp` and `Element`.
@@ -44,15 +44,15 @@ impl<COMP: Component> VDiff for VNode<COMP> {
     fn apply(
         &mut self,
         parent: &Element,
-        precursor: Option<&Node>,
+        previous_sibling: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
         env: &Scope<Self::Component>,
     ) -> Option<Node> {
         match *self {
-            VNode::VTag(ref mut vtag) => vtag.apply(parent, precursor, ancestor, env),
-            VNode::VText(ref mut vtext) => vtext.apply(parent, precursor, ancestor, env),
-            VNode::VComp(ref mut vcomp) => vcomp.apply(parent, precursor, ancestor, env),
-            VNode::VList(ref mut vlist) => vlist.apply(parent, precursor, ancestor, env),
+            VNode::VTag(ref mut vtag) => vtag.apply(parent, previous_sibling, ancestor, env),
+            VNode::VText(ref mut vtext) => vtext.apply(parent, previous_sibling, ancestor, env),
+            VNode::VComp(ref mut vcomp) => vcomp.apply(parent, previous_sibling, ancestor, env),
+            VNode::VList(ref mut vlist) => vlist.apply(parent, previous_sibling, ancestor, env),
             VNode::VRef(ref mut node) => {
                 let sibling = match ancestor {
                     Some(mut n) => n.detach(parent),
@@ -92,7 +92,7 @@ impl<COMP: Component> From<VList<COMP>> for VNode<COMP> {
 
 impl<COMP: Component> From<VTag<COMP>> for VNode<COMP> {
     fn from(vtag: VTag<COMP>) -> Self {
-        VNode::VTag(vtag)
+        VNode::VTag(Box::new(vtag))
     }
 }
 

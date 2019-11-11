@@ -17,6 +17,7 @@ use rmp_serde;
 /// let MsgPack(data) = dump;
 ///# }
 /// ```
+#[derive(Debug)]
 pub struct MsgPack<T>(pub T);
 
 binary_format!(MsgPack based on rmp_serde);

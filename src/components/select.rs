@@ -37,18 +37,20 @@ use crate::html::{ChangeData, Component, ComponentLink, Html, ShouldRender};
 use crate::macros::{html, Properties};
 
 /// `Select` component.
+#[derive(Debug)]
 pub struct Select<T> {
     props: Props<T>,
 }
 
 /// Internal message of the component.
+#[derive(Debug)]
 pub enum Msg {
     /// This message indicates the option with id selected.
     Selected(Option<usize>),
 }
 
 /// Properties of `Select` component.
-#[derive(PartialEq, Properties)]
+#[derive(PartialEq, Properties, Debug)]
 pub struct Props<T> {
     /// Initially selected value.
     pub selected: Option<T>,

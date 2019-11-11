@@ -4,10 +4,11 @@
 mod helpers;
 
 pass_helper! {
+    let parent_ref = NodeRef::default();
     html! {
         <div>
             <div data-key="abc"></div>
-            <div class="parent">
+            <div ref=parent_ref class="parent">
                 <span class="child", value="anything",></span>
                 <label for="first-name">{"First Name"}</label>
                 <input type="text" id="first-name" value="placeholder" />

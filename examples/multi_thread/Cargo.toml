@@ -4,6 +4,14 @@ version = "0.1.0"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 
+[[bin]]
+name = "main"
+path = "src/bin/main.rs"
+
+[[bin]]
+name = "native_worker"
+path = "src/bin/native_worker.rs"
+
 [dependencies]
 log = "0.4"
 web_logger = "0.1"
