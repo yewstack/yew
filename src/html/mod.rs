@@ -436,8 +436,8 @@ where
         future_to_promise(js_future);
     }
 
-    /// This method sends a message to this component to be processed immediately after the current
-    /// loop has finished.
+    /// This method sends a message to this component to be processed immediately after the
+    /// component has been updated and/or rendered.
     pub fn send_self(&mut self, msg: COMP::Message) {
         self.scope.send_message(msg);
     }
