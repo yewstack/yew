@@ -22,7 +22,7 @@ error: unsupported type
 11 |     html! {  b"str" };
    |              ^^^^^^
 
-error: int literal is too large
+error: integer literal is too large
   --> $DIR/html-node-fail.rs:12:14
    |
 12 |     html! {  1111111111111111111111111111111111111111111111111111111111111111111111111111 };
@@ -40,7 +40,7 @@ error: unsupported type
 14 |     html! {  <span>{ b"str" }</span> };
    |                      ^^^^^^
 
-error: int literal is too large
+error: integer literal is too large
   --> $DIR/html-node-fail.rs:15:22
    |
 15 |     html! {  <span>{ 1111111111111111111111111111111111111111111111111111111111111111111111111111 }</span> };
@@ -76,5 +76,6 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode<_>`
    = note: required by `std::convert::From::from`
 
-Some errors occurred: E0277, E0425.
+Some errors have detailed explanations: E0277, E0425.
 For more information about an error, try `rustc --explain E0277`.
+error: could not compile `yew-tests`.
