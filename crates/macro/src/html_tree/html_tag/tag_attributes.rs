@@ -16,6 +16,7 @@ pub struct TagAttributes {
     pub checked: Option<Expr>,
     pub disabled: Option<Expr>,
     pub selected: Option<Expr>,
+    pub node_ref: Option<Expr>,
     pub href: Option<Expr>,
 }
 
@@ -213,6 +214,7 @@ impl Parse for TagAttributes {
         let checked = TagAttributes::remove_attr(&mut attributes, "checked");
         let disabled = TagAttributes::remove_attr(&mut attributes, "disabled");
         let selected = TagAttributes::remove_attr(&mut attributes, "selected");
+        let node_ref = TagAttributes::remove_attr(&mut attributes, "ref");
         let href = TagAttributes::remove_attr(&mut attributes, "href");
 
         Ok(TagAttributes {
@@ -224,6 +226,7 @@ impl Parse for TagAttributes {
             checked,
             disabled,
             selected,
+            node_ref,
             href,
         })
     }

@@ -19,7 +19,7 @@ error[E0599]: no method named `build` found for type `t3::PropsBuilder<t3::Props
    |                       - method `build` not found for this
 ...
 34 |         Props::builder().build();
-   |                          ^^^^^
+   |                          ^^^^^ method not found in `t3::PropsBuilder<t3::PropsBuilderStep_missing_required_prop_value>`
 
 error[E0599]: no method named `b` found for type `t4::PropsBuilder<t4::PropsBuilderStep_missing_required_prop_a>` in the current scope
   --> $DIR/fail.rs:48:26
@@ -28,7 +28,8 @@ error[E0599]: no method named `b` found for type `t4::PropsBuilder<t4::PropsBuil
    |                       - method `b` not found for this
 ...
 48 |         Props::builder().b(1).a(2).build();
-   |                          ^ help: did you mean: `a`
+   |                          ^ help: there is a method with a similar name: `a`
 
-Some errors occurred: E0277, E0599.
+Some errors have detailed explanations: E0277, E0599.
 For more information about an error, try `rustc --explain E0277`.
+error: could not compile `yew-tests`.

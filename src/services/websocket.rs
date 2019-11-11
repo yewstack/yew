@@ -50,11 +50,16 @@ impl WebSocketService {
         url: &str,
         callback: Callback<OUT>,
         notification: Callback<WebSocketStatus>,
-    ) -> WebSocketTask
+    ) -> Result<WebSocketTask, &str>
     where
         OUT: From<Text> + From<Binary>,
     {
-        let ws = WebSocket::new(url).unwrap();
+        let ws = WebSocket::new(url);
+        if ws.is_err() {
+            return Err("Failed to created websocket with given URL");
+        }
+
+        let ws = ws.unwrap();
         ws.set_binary_type(SocketBinaryType::ArrayBuffer);
         let notify = notification.clone();
         ws.add_event_listener(move |_: SocketOpenEvent| {
@@ -80,7 +85,7 @@ impl WebSocketService {
                 callback.emit(out);
             }
         });
-        WebSocketTask { ws, notification }
+        Ok(WebSocketTask { ws, notification })
     }
 }
 
