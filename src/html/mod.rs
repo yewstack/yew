@@ -369,6 +369,7 @@ impl EmptyBuilder {
 }
 
 /// Link to component's scope for creating callbacks.
+#[derive(Clone)]
 pub struct ComponentLink<COMP: Component> {
     scope: Scope<COMP>,
 }
