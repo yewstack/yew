@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+echo "$(rustup default)" | grep -q "stable"
+is_stable=$?
 set -euxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 
-echo "$(rustup default)" | grep -q "stable"
-if [ "$?" == "0" ]; then
+if [ "$is_stable" == "0" ]; then
   # asmjs-unknown-emscripten cargo-web builds are broken on nightly
   cargo web test --features web_test --target asmjs-unknown-emscripten --use-system-emscripten
 fi
