@@ -373,7 +373,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
         parent: &Element,
         previous_sibling: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
-        env: &Scope<Self::Component>,
+        parent_scope: &Scope<Self::Component>,
     ) -> Option<Node> {
         assert!(
             self.reference.is_none(),
@@ -456,7 +456,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             }
 
             for mut listener in self.listeners.drain(..) {
-                let handle = listener.attach(&element, env.clone());
+                let handle = listener.attach(&element, parent_scope.clone());
                 self.captured.push(handle);
             }
 
@@ -469,7 +469,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                 match (self_children.next(), ancestor_children.next()) {
                     (Some(left), right) => {
                         previous_sibling =
-                            left.apply(&element, previous_sibling.as_ref(), right, &env);
+                            left.apply(&element, previous_sibling.as_ref(), right, &parent_scope);
                     }
                     (None, Some(ref mut right)) => {
                         right.detach(&element);
