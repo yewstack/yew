@@ -15,16 +15,6 @@ pub enum Format {
     Toml,
 }
 
-pub struct Model {
-    fetch_service: FetchService,
-    ws_service: WebSocketService,
-    link: ComponentLink<Model>,
-    fetching: bool,
-    data: Option<u32>,
-    ft: Option<FetchTask>,
-    ws: Option<WebSocketTask>,
-}
-
 pub enum WsAction {
     Connect,
     SendData(AsBinary),
@@ -65,6 +55,70 @@ pub struct WsResponse {
     value: u32,
 }
 
+pub struct Model {
+    fetch_service: FetchService,
+    ws_service: WebSocketService,
+    link: ComponentLink<Model>,
+    fetching: bool,
+    data: Option<u32>,
+    ft: Option<FetchTask>,
+    ws: Option<WebSocketTask>,
+}
+
+impl Model {
+    fn view_data(&self) -> Html {
+        if let Some(value) = self.data {
+            html! {
+                <p>{ value }</p>
+            }
+        } else {
+            html! {
+                <p>{ "Data hasn't fetched yet." }</p>
+            }
+        }
+    }
+
+    fn fetch_json(&mut self, binary: AsBinary) -> yew::services::fetch::FetchTask {
+        let callback = self.link.callback(
+            move |response: Response<Json<Result<DataFromFile, Error>>>| {
+                let (meta, Json(data)) = response.into_parts();
+                println!("META: {:?}, {:?}", meta, data);
+                if meta.status.is_success() {
+                    Msg::FetchReady(data)
+                } else {
+                    Msg::Ignore // FIXME: Handle this error accordingly.
+                }
+            },
+        );
+        let request = Request::get("/data.json").body(Nothing).unwrap();
+        if binary {
+            self.fetch_service.fetch_binary(request, callback)
+        } else {
+            self.fetch_service.fetch(request, callback)
+        }
+    }
+
+    pub fn fetch_toml(&mut self, binary: AsBinary) -> yew::services::fetch::FetchTask {
+        let callback = self.link.callback(
+            move |response: Response<Toml<Result<DataFromFile, Error>>>| {
+                let (meta, Toml(data)) = response.into_parts();
+                println!("META: {:?}, {:?}", meta, data);
+                if meta.status.is_success() {
+                    Msg::FetchReady(data)
+                } else {
+                    Msg::Ignore // FIXME: Handle this error accordingly.
+                }
+            },
+        );
+        let request = Request::get("/data.toml").body(Nothing).unwrap();
+        if binary {
+            self.fetch_service.fetch_binary(request, callback)
+        } else {
+            self.fetch_service.fetch(request, callback)
+        }
+    }
+}
+
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
@@ -86,44 +140,8 @@ impl Component for Model {
             Msg::FetchData(format, binary) => {
                 self.fetching = true;
                 let task = match format {
-                    Format::Json => {
-                        let callback = self.link.callback(
-                            move |response: Response<Json<Result<DataFromFile, Error>>>| {
-                                let (meta, Json(data)) = response.into_parts();
-                                println!("META: {:?}, {:?}", meta, data);
-                                if meta.status.is_success() {
-                                    Msg::FetchReady(data)
-                                } else {
-                                    Msg::Ignore // FIXME: Handle this error accordingly.
-                                }
-                            },
-                        );
-                        let request = Request::get("/data.json").body(Nothing).unwrap();
-                        if binary {
-                            self.fetch_service.fetch_binary(request, callback)
-                        } else {
-                            self.fetch_service.fetch(request, callback)
-                        }
-                    }
-                    Format::Toml => {
-                        let callback = self.link.callback(
-                            move |response: Response<Toml<Result<DataFromFile, Error>>>| {
-                                let (meta, Toml(data)) = response.into_parts();
-                                println!("META: {:?}, {:?}", meta, data);
-                                if meta.status.is_success() {
-                                    Msg::FetchReady(data)
-                                } else {
-                                    Msg::Ignore // FIXME: Handle this error accordingly.
-                                }
-                            },
-                        );
-                        let request = Request::get("/data.toml").body(Nothing).unwrap();
-                        if binary {
-                            self.fetch_service.fetch_binary(request, callback)
-                        } else {
-                            self.fetch_service.fetch(request, callback)
-                        }
-                    }
+                    Format::Json => self.fetch_json(binary),
+                    Format::Toml => self.fetch_toml(binary),
                 };
                 self.ft = Some(task);
             }
@@ -201,20 +219,6 @@ impl Component for Model {
                     </button>
                 </nav>
             </div>
-        }
-    }
-}
-
-impl Model {
-    fn view_data(&self) -> Html {
-        if let Some(value) = self.data {
-            html! {
-                <p>{ value }</p>
-            }
-        } else {
-            html! {
-                <p>{ "Data hasn't fetched yet." }</p>
-            }
         }
     }
 }
