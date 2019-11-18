@@ -412,7 +412,7 @@ where
         closure.into()
     }
 
-    #[cfg(all(target_arch = "wasm32", not(cargo_web)))]
+    #[cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))]
     /// This method processes a Future that returns a message and sends it back to the component's
     /// loop.
     ///
