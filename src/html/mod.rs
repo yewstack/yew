@@ -411,7 +411,7 @@ where
         closure.into()
     }
 
-    #[cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi"), not(cargo_web)))]
     /// This method processes a Future that returns a message and sends it back to the component's
     /// loop.
     ///
@@ -446,6 +446,14 @@ where
 impl<COMP: Component> fmt::Debug for ComponentLink<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("ComponentLink<_>")
+    }
+}
+
+impl<COMP: Component> Clone for ComponentLink<COMP> {
+    fn clone(&self) -> Self {
+        ComponentLink {
+            scope: self.scope.clone(),
+        }
     }
 }
 
