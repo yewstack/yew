@@ -458,6 +458,14 @@ impl<COMP: Component> fmt::Debug for ComponentLink<COMP> {
     }
 }
 
+impl<COMP: Component> Clone for ComponentLink<COMP> {
+    fn clone(&self) -> Self {
+        ComponentLink {
+            scope: self.scope.clone(),
+        }
+    }
+}
+
 /// A bridging type for checking `href` attribute value.
 #[derive(Debug)]
 pub struct Href {
