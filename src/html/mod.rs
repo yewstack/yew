@@ -411,7 +411,7 @@ where
         closure.into()
     }
 
-    #[cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi"), not(cargo_web)))]
     /// This method processes a Future that returns a message and sends it back to the component's
     /// loop.
     ///
@@ -440,6 +440,15 @@ where
     /// component has been updated and/or rendered.
     pub fn send_self(&mut self, msg: COMP::Message) {
         self.scope.send_message(msg);
+    }
+
+    /// Sends a batch of messages to the component to be processed immediately after
+    /// the component has been updated and/or rendered..
+    ///
+    /// All messages will first be processed by `update`, and if _any_ of them return `true`,
+    /// then re-render will occur.
+    pub fn send_self_batch(&mut self, msgs: Vec<COMP::Message>) {
+        self.scope.send_message_batch(msgs)
     }
 }
 
