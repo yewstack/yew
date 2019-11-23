@@ -46,13 +46,21 @@ impl<COMP: Component> VDiff for VNode<COMP> {
         parent: &Element,
         previous_sibling: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
-        env: &Scope<Self::Component>,
+        parent_scope: &Scope<Self::Component>,
     ) -> Option<Node> {
         match *self {
-            VNode::VTag(ref mut vtag) => vtag.apply(parent, previous_sibling, ancestor, env),
-            VNode::VText(ref mut vtext) => vtext.apply(parent, previous_sibling, ancestor, env),
-            VNode::VComp(ref mut vcomp) => vcomp.apply(parent, previous_sibling, ancestor, env),
-            VNode::VList(ref mut vlist) => vlist.apply(parent, previous_sibling, ancestor, env),
+            VNode::VTag(ref mut vtag) => {
+                vtag.apply(parent, previous_sibling, ancestor, parent_scope)
+            }
+            VNode::VText(ref mut vtext) => {
+                vtext.apply(parent, previous_sibling, ancestor, parent_scope)
+            }
+            VNode::VComp(ref mut vcomp) => {
+                vcomp.apply(parent, previous_sibling, ancestor, parent_scope)
+            }
+            VNode::VList(ref mut vlist) => {
+                vlist.apply(parent, previous_sibling, ancestor, parent_scope)
+            }
             VNode::VRef(ref mut node) => {
                 let sibling = match ancestor {
                     Some(mut n) => n.detach(parent),

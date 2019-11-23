@@ -4,7 +4,7 @@ use crate::html::{Component, Scope};
 use stdweb::web::{Element, Node};
 
 /// This struct represents a fragment of the Virtual DOM tree.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct VList<COMP: Component> {
     /// The list of children nodes. Which also could have their own children.
     pub children: Vec<VNode<COMP>>,
@@ -46,7 +46,7 @@ impl<COMP: Component> VDiff for VList<COMP> {
         parent: &Element,
         previous_sibling: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
-        env: &Scope<Self::Component>,
+        parent_scope: &Scope<Self::Component>,
     ) -> Option<Node> {
         // Reuse previous_sibling, because fragment reuse parent
         let mut previous_sibling = previous_sibling.cloned();
@@ -81,11 +81,16 @@ impl<COMP: Component> VDiff for VList<COMP> {
         loop {
             match (lefts.next(), rights.next()) {
                 (Some(left), Some(right)) => {
-                    previous_sibling =
-                        left.apply(parent, previous_sibling.as_ref(), Some(right), &env);
+                    previous_sibling = left.apply(
+                        parent,
+                        previous_sibling.as_ref(),
+                        Some(right),
+                        &parent_scope,
+                    );
                 }
                 (Some(left), None) => {
-                    previous_sibling = left.apply(parent, previous_sibling.as_ref(), None, &env);
+                    previous_sibling =
+                        left.apply(parent, previous_sibling.as_ref(), None, &parent_scope);
                 }
                 (None, Some(ref mut right)) => {
                     right.detach(parent);
