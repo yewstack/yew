@@ -16,8 +16,7 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     Properties(COMP::Properties),
 }
 
-/// A context which contains a bridge to send a messages to a loop.
-/// Mostly services uses it.
+/// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
     shared_state: Shared<ComponentState<COMP>>,
 }
