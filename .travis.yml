@@ -18,8 +18,8 @@ before_cache:
 
 rust:
   # - 1.39.0 # min supported (enable when 1.40.0 is released)
-  # - stable
-  # - beta
+  - stable
+  - beta
   - nightly
 
 matrix:
@@ -29,10 +29,9 @@ matrix:
 
 before_install:
   - docker run -dit --name emscripten -v /home/travis/:/home/travis/ trzeci/emscripten:1.38.46-upstream bash
+  - export "PATH=$TRAVIS_BUILD_DIR/ci/bin:$PATH"
 
 install:
-  - mkdir -p /home/travis/.local/bin
-  - cp ./ci/emcc /home/travis/.local/bin/emcc # ensure cargo-web knows that emscripten is installed
   - nvm install 9
   - rustup component add rustfmt
   - rustup component add clippy
