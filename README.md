@@ -157,7 +157,7 @@ impl Agent for Worker {
     type Input = Request;
     type Output = Response;
 
-    // Create an instance with a link to agent's environment.
+    // Create an instance with a link to the agent.
     fn create(link: AgentLink<Self>) -> Self {
         Worker { link }
     }
@@ -271,12 +271,9 @@ html! {
 }
 ```
 
-### Virtual DOM, independent loops, fine updates
+### Virtual DOM
 
-Yew uses its own **virtual-dom** implementation. It updates the browser's DOM
-with tiny patches when properties of elements have changed. Every component lives
-in its own independent loop interacting with the environment (`Scope`) through message passing
-and supports a fine control of rendering.
+Yew uses its own **virtual-dom** implementation. It updates the browser's DOM with tiny patches when properties of elements have changed. Every component can be interacted with using its (`Scope`) to pass messages and trigger updates.
 
 The `ShouldRender` returns the value which informs the loop when the component should be re-rendered:
 

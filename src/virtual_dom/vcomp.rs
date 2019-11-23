@@ -157,7 +157,7 @@ impl<COMP: Component> VComp<COMP> {
     }
 }
 
-/// Converts property and attach empty scope holder which will be activated later.
+/// Transforms properties and attaches a parent scope holder to callbacks for sending messages.
 pub trait Transformer<COMP: Component, FROM, TO> {
     /// Transforms one type to another.
     fn transform(scope_holder: ScopeHolder<COMP>, from: FROM) -> TO;
@@ -202,7 +202,7 @@ where
             if let Some(ref mut sender) = *scope.borrow_mut() {
                 sender.send_message(msg);
             } else {
-                panic!("unactivated callback, parent component have to activate it");
+                panic!("Parent component hasn't activated this callback yet");
             }
         };
         callback.into()
@@ -220,7 +220,7 @@ where
             if let Some(ref mut sender) = *scope.borrow_mut() {
                 sender.send_message(msg);
             } else {
-                panic!("unactivated callback, parent component have to activate it");
+                panic!("Parent component hasn't activated this callback yet");
             }
         };
         Some(callback.into())
@@ -228,7 +228,7 @@ where
 }
 
 impl<COMP: Component> Unmounted<COMP> {
-    /// mount a virtual component with a generator.
+    /// Mount a virtual component using a generator.
     fn mount<T: INode>(
         self,
         parent: &T,
@@ -244,7 +244,7 @@ impl<COMP: Component> Unmounted<COMP> {
         (self.generator)(GeneratorType::Mount(element, ancestor), env)
     }
 
-    /// Overwrite an existing virtual component with a generator.
+    /// Overwrite an existing virtual component using a generator.
     fn replace(self, type_id: TypeId, old: Mounted, env: Scope<COMP>) -> Mounted {
         (self.generator)(GeneratorType::Overwrite(type_id, old.scope), env)
     }
@@ -312,9 +312,7 @@ where
 
                 let mounted = match reform {
                     Reform::Keep(type_id, mounted) => {
-                        // Send properties update when component still be rendered.
-                        // But for the first initialization mount gets initial
-                        // properties directly without this channel.
+                        // Send properties update when the component is already rendered.
                         this.replace(type_id, mounted, env.clone())
                     }
                     Reform::Before(before) => {
