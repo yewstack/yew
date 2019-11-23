@@ -859,8 +859,8 @@ where
             return;
         }
         match self.update {
-            AgentUpdate::Create(env) => {
-                this.agent = Some(AGN::create(env));
+            AgentUpdate::Create(link) => {
+                this.agent = Some(AGN::create(link));
             }
             AgentUpdate::Message(msg) => {
                 this.agent

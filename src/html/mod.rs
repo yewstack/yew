@@ -330,7 +330,7 @@ impl NodeRef {
     }
 }
 
-/// Should be rendered relative to context and component environment.
+/// Trait for rendering virtual DOM elements
 pub trait Renderable<COMP: Component> {
     /// Called by rendering loop.
     fn render(&self) -> Html<COMP>;

@@ -162,7 +162,7 @@ pub trait VDiff {
     ///   find where to put the node.
     /// - `ancestor`: the node that this node will be replacing in the DOM.
     ///   This method will _always_ remove the `ancestor` from the `parent`.
-    /// - `env`: the `Env`.
+    /// - `parent_scope`: the parent `Scope` used for passing messages to the parent `Component`.
     ///
     /// ### Internal Behavior Notice:
     ///
@@ -177,6 +177,6 @@ pub trait VDiff {
         parent: &Element,
         previous_sibling: Option<&Node>,
         ancestor: Option<VNode<Self::Component>>,
-        scope: &Scope<Self::Component>,
+        parent_scope: &Scope<Self::Component>,
     ) -> Option<Node>;
 }

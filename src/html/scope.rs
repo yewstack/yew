@@ -6,7 +6,7 @@ use std::fmt;
 use std::rc::Rc;
 use stdweb::web::Element;
 
-/// Updates for a `Components` instance. Used by scope sender.
+/// Updates for a `Component` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {
     /// Wraps messages for a component.
     Message(COMP::Message),
@@ -16,8 +16,7 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     Properties(COMP::Properties),
 }
 
-/// A context which contains a bridge to send a messages to a loop.
-/// Mostly services uses it.
+/// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
     shared_state: Shared<ComponentState<COMP>>,
 }
@@ -60,7 +59,7 @@ impl<COMP: Component> Scope<COMP> {
         let mut scope = self.clone();
         let link = ComponentLink::connect(&scope);
         let ready_state = ReadyState {
-            env: self.clone(),
+            scope: self.clone(),
             element,
             node_ref,
             link,
@@ -136,7 +135,7 @@ impl<COMP: Component> fmt::Display for ComponentState<COMP> {
 }
 
 struct ReadyState<COMP: Component> {
-    env: Scope<COMP>,
+    scope: Scope<COMP>,
     element: Element,
     node_ref: NodeRef,
     props: COMP::Properties,
@@ -148,7 +147,7 @@ impl<COMP: Component> ReadyState<COMP> {
     fn create(self) -> CreatedState<COMP> {
         CreatedState {
             component: COMP::create(self.props, self.link),
-            env: self.env,
+            scope: self.scope,
             element: self.element,
             last_frame: self.ancestor,
             node_ref: self.node_ref,
@@ -157,7 +156,7 @@ impl<COMP: Component> ReadyState<COMP> {
 }
 
 struct CreatedState<COMP: Component> {
-    env: Scope<COMP>,
+    scope: Scope<COMP>,
     element: Element,
     component: COMP,
     last_frame: Option<VNode<COMP>>,
@@ -176,7 +175,7 @@ impl<COMP: Component> CreatedState<COMP> {
 
     fn update(mut self) -> Self {
         let mut next_frame = self.component.render();
-        let node = next_frame.apply(&self.element, None, self.last_frame, &self.env);
+        let node = next_frame.apply(&self.element, None, self.last_frame, &self.scope);
         self.node_ref.set(node);
         self.last_frame = Some(next_frame);
         self
