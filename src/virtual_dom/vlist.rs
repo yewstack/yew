@@ -4,10 +4,16 @@ use crate::html::{Component, Scope};
 use stdweb::web::{Element, Node};
 
 /// This struct represents a fragment of the Virtual DOM tree.
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct VList<COMP: Component> {
     /// The list of children nodes. Which also could have their own children.
     pub children: Vec<VNode<COMP>>,
+}
+
+impl<COMP: Component> PartialEq for VList<COMP> {
+    fn eq(&self, other: &Self) -> bool {
+        self.children == other.children
+    }
 }
 
 impl<COMP: Component> Default for VList<COMP> {
