@@ -7,8 +7,6 @@ branches:
 dist: trusty
 language: rust
 sudo: false
-services:
-  - docker
 addons:
   chrome: stable
 
@@ -26,10 +24,6 @@ matrix:
   allow_failures:
     - rust: nightly
   fast_finish: true
-
-before_install:
-  - docker run -dit --name emscripten -v /home/travis/:/home/travis/ trzeci/emscripten:1.38.46-upstream bash
-  - export "PATH=$TRAVIS_BUILD_DIR/ci/bin:$PATH"
 
 install:
   - nvm install 9
