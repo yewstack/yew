@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VNode};
+use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VList, VNode};
 use crate::html::{Component, NodeRef, Scope};
 use log::warn;
 use std::borrow::Cow;
@@ -31,8 +31,8 @@ pub struct VTag<COMP: Component> {
     pub listeners: Listeners<COMP>,
     /// List of attributes.
     pub attributes: Attributes,
-    /// The list of children nodes. Which also could have own children.
-    pub children: Vec<VNode<COMP>>,
+    /// List of children nodes
+    pub children: VList<COMP>,
     /// List of attached classes.
     pub classes: Classes,
     /// Contains a value of an
@@ -65,7 +65,7 @@ impl<COMP: Component> VTag<COMP> {
             attributes: Attributes::new(),
             listeners: Vec::new(),
             captured: Vec::new(),
-            children: Vec::new(),
+            children: VList::new(true),
             node_ref: NodeRef::default(),
             value: None,
             kind: None,
@@ -82,13 +82,13 @@ impl<COMP: Component> VTag<COMP> {
 
     /// Add `VNode` child.
     pub fn add_child(&mut self, child: VNode<COMP>) {
-        self.children.push(child);
+        self.children.add_child(child);
     }
 
     /// Add multiple `VNode` children.
     pub fn add_children(&mut self, children: Vec<VNode<COMP>>) {
         for child in children {
-            self.children.push(child);
+            self.add_child(child);
         }
     }
 
@@ -355,9 +355,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             .expect("tried to remove not rendered VTag from DOM");
 
         // recursively remove its children
-        self.children.drain(..).for_each(|mut child| {
-            child.detach(&node);
-        });
+        self.children.detach(&node);
 
         let sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
@@ -461,22 +459,12 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             }
 
             // Process children
-            // Start with an empty previous_sibling, because it put children to itself
-            let mut previous_sibling = None;
-            let mut self_children = self.children.iter_mut();
-            let mut ancestor_children = ancestor.into_iter().flat_map(|a| a.children);
-            loop {
-                match (self_children.next(), ancestor_children.next()) {
-                    (Some(left), right) => {
-                        previous_sibling =
-                            left.apply(&element, previous_sibling.as_ref(), right, &parent_scope);
-                    }
-                    (None, Some(ref mut right)) => {
-                        right.detach(&element);
-                    }
-                    (None, None) => break,
-                }
-            }
+            self.children.apply(
+                &element,
+                None,
+                ancestor.map(|a| a.children.into()),
+                parent_scope,
+            );
         }
         let node = self.reference.as_ref().map(|e| e.as_node().to_owned());
         self.node_ref.set(node.clone());

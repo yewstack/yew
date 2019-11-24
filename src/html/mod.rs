@@ -264,6 +264,7 @@ where
 {
     fn render(&self) -> Html<COMP> {
         VList {
+            no_siblings: true,
             children: self.iter().map(|c| c.into()).collect(),
         }
         .into()
