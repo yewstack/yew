@@ -148,7 +148,7 @@ impl FetchService {
     ///#     type Message = Msg;type Properties = ();
     ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
     ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-    ///#     fn view(&self) -> Html<Comp> {unimplemented!()}
+    ///#     fn view(&self) -> Html {unimplemented!()}
     ///# }
     ///# enum Msg {
     ///#     Noop,
@@ -187,7 +187,7 @@ impl FetchService {
     ///#     type Message = Msg;type Properties = ();
     ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
     ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-    ///#     fn view(&self) -> Html<Comp> {unimplemented!()}
+    ///#     fn view(&self) -> Html {unimplemented!()}
     ///# }
     ///# enum Msg {
     ///#     FetchResourceComplete(Data),
@@ -240,7 +240,7 @@ impl FetchService {
     ///#     type Properties = ();
     ///#     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {unimplemented!()}
     ///#     fn update(&mut self, msg: Self::Message) -> bool {unimplemented!()}
-    ///#     fn view(&self) -> Html<Comp> {unimplemented!()}
+    ///#     fn view(&self) -> Html {unimplemented!()}
     ///# }
     ///# pub enum Msg {}
     ///# fn dont_execute() {

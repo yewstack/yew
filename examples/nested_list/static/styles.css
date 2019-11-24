@@ -65,6 +65,7 @@ html, body {
   border-radius: 3px;
   margin-top: 10px;
   padding: 10px;
+  text-align: center;
 }
 
 .last-hovered {
@@ -74,4 +75,18 @@ html, body {
 .last-hovered-text {
   color: #666;
   margin-left: 5px;
+}
+
+.list-item-details .list-container {
+  margin-top: 0px;
+  padding: 15px;
+}
+
+.sublist {
+  display: inline-block;
+  background: #FFF;
+  border: 1px solid #666;
+  border-radius: 3px;
+  margin: 5px;
+  padding: 5px 20px;
 }

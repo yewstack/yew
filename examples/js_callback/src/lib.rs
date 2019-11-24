@@ -53,17 +53,17 @@ impl Component for Model {
         false
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
                 <textarea oninput=|input| Msg::Payload(input.value)
                     style="font-family: 'Monaco' monospace;"
                     value={ &self.payload }>
                 </textarea>
-                <button onclick=|_| Msg::Payload(get_payload())>
+                <button onclick=self.link.send_back(|_| Msg::Payload(get_payload()))>
                     { "Get the payload!" }
                 </button>
-                <button onclick=|_| Msg::AsyncPayload >
+                <button onclick=self.link.send_back(|_| Msg::AsyncPayload) >
                     { "Get the payload later!" }
                 </button>
                 <p style="font-family: 'Monaco', monospace;">

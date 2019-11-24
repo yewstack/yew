@@ -134,9 +134,10 @@ impl Component for Model {
                         WebSocketStatus::Opened => Msg::Ignore,
                         WebSocketStatus::Closed | WebSocketStatus::Error => WsAction::Lost.into(),
                     });
-                    let task =
-                        self.ws_service
-                            .connect("ws://localhost:9001/", callback, notification).unwrap();
+                    let task = self
+                        .ws_service
+                        .connect("ws://localhost:9001/", callback, notification)
+                        .unwrap();
                     self.ws = Some(task);
                 }
                 WsAction::SendData(binary) => {
@@ -168,22 +169,36 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
                 <nav class="menu">
-                    <button onclick=|_| Msg::FetchData(Format::Json, false)>{ "Fetch Data" }</button>
-                    <button onclick=|_| Msg::FetchData(Format::Json, true)>{ "Fetch Data [binary]" }</button>
-                    <button onclick=|_| Msg::FetchData(Format::Toml, false)>{ "Fetch Data [toml]" }</button>
+                    <button onclick=self.link.send_back(|_| Msg::FetchData(Format::Json, false))>
+                        { "Fetch Data" }
+                    </button>
+                    <button onclick=self.link.send_back(|_| Msg::FetchData(Format::Json, true))>
+                        { "Fetch Data [binary]" }
+                    </button>
+                    <button onclick=self.link.send_back(|_| Msg::FetchData(Format::Toml, false))>
+                        { "Fetch Data [toml]" }
+                    </button>
                     { self.view_data() }
                     <button disabled=self.ws.is_some()
-                            onclick=|_| WsAction::Connect.into()>{ "Connect To WebSocket" }</button>
+                            onclick=self.link.send_back(|_| WsAction::Connect.into())>
+                        { "Connect To WebSocket" }
+                    </button>
                     <button disabled=self.ws.is_none()
-                            onclick=|_| WsAction::SendData(false).into()>{ "Send To WebSocket" }</button>
+                            onclick=self.link.send_back(|_| WsAction::SendData(false).into())>
+                        { "Send To WebSocket" }
+                    </button>
                     <button disabled=self.ws.is_none()
-                            onclick=|_| WsAction::SendData(true).into()>{ "Send To WebSocket [binary]" }</button>
+                            onclick=self.link.send_back(|_| WsAction::SendData(true).into())>
+                        { "Send To WebSocket [binary]" }
+                    </button>
                     <button disabled=self.ws.is_none()
-                            onclick=|_| WsAction::Disconnect.into()>{ "Close WebSocket connection" }</button>
+                            onclick=self.link.send_back(|_| WsAction::Disconnect.into())>
+                        { "Close WebSocket connection" }
+                    </button>
                 </nav>
             </div>
         }
@@ -191,7 +206,7 @@ impl Component for Model {
 }
 
 impl Model {
-    fn view_data(&self) -> Html<Model> {
+    fn view_data(&self) -> Html {
         if let Some(value) = self.data {
             html! {
                 <p>{ value }</p>

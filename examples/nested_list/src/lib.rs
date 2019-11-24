@@ -1,41 +1,32 @@
-#![recursion_limit = "128"]
+#![recursion_limit = "256"]
 
+mod app;
 mod header;
 mod item;
 mod list;
 
-use header::ListHeader;
-use item::ListItem;
-use list::{List, Msg as ListMsg};
-use yew::prelude::*;
+pub use app::App;
+use std::fmt;
 
-pub struct Model;
+#[derive(Debug)]
+pub enum Hovered {
+    Header,
+    Item(String),
+    List,
+    None,
+}
 
-impl Component for Model {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model
-    }
-
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        true
-    }
-
-    fn view(&self) -> Html<Self> {
-        html! {
-            <div class="main">
-                <h1>{ "Nested List Demo" }</h1>
-                <List>
-                    <ListHeader text="Calling all Rusties!" on_hover=ListMsg::Hover />
-                    <ListItem name="Rustin" on_hover=ListMsg::Hover />
-                    <ListItem hide={true} name="Rustaroo" on_hover=ListMsg::Hover />
-                    <ListItem name="Rustifer" on_hover=ListMsg::Hover>
-                        <span>{"Hello!"}</span>
-                    </ListItem>
-                </List>
-            </div>
-        }
+impl fmt::Display for Hovered {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Hovered::Header => "Header",
+                Hovered::Item(name) => name,
+                Hovered::List => "List container",
+                Hovered::None => "Nothing",
+            }
+        )
     }
 }

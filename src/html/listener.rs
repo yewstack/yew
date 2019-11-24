@@ -14,42 +14,36 @@ macro_rules! impl_action {
             use stdweb::web::event::{IEvent, $type};
             use super::*;
 
-            /// A wrapper for a callback.
-            /// Listener extracted from here when attached.
-            #[allow(missing_debug_implementations)]
-            pub struct Wrapper<F>(Option<F>);
-
             /// And event type which keeps the returned type.
             pub type Event = $ret;
 
-            impl<F, MSG> From<F> for Wrapper<F>
-            where
-                MSG: 'static,
-                F: Fn($ret) -> MSG + 'static,
-            {
-                fn from(handler: F) -> Self {
-                    Wrapper(Some(handler))
+            /// A wrapper for a callback.
+            /// Listener extracted from here when attached.
+            #[derive(Clone, Debug)]
+            pub struct Wrapper {
+                callback: Callback<Event>,
+            }
+
+            impl Wrapper {
+                /// Create a wrapper for an event-typed callback
+                pub fn new(callback: Callback<Event>) -> Self {
+                    Wrapper { callback }
                 }
             }
 
-            impl<T, COMP> Listener<COMP> for Wrapper<T>
-            where
-                T: Fn($ret) -> COMP::Message + 'static,
-                COMP: Component,
-            {
+            impl Listener for Wrapper {
                 fn kind(&self) -> &'static str {
                     stringify!($action)
                 }
 
-                fn attach(&mut self, element: &Element, mut activator: Scope<COMP>)
+                fn attach(&self, element: &Element)
                     -> EventListenerHandle {
-                    let handler = self.0.take().expect("tried to attach listener twice");
                     let this = element.clone();
+                    let callback = self.callback.clone();
                     let listener = move |event: $type| {
                         event.stop_propagation();
                         let handy_event: $ret = $convert(&this, event);
-                        let msg = handler(handy_event);
-                        activator.send_message(msg);
+                        callback.emit(handy_event);
                     };
                     element.add_event_listener(listener)
                 }

@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-#[derive(Properties, PartialEq)]
+#[derive(Clone, Properties, PartialEq)]
 pub struct TestProperties {
     pub string: String,
     pub int: i32,
@@ -23,7 +23,7 @@ impl Component for TestComponent {
         unimplemented!()
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         unimplemented!()
     }
 }

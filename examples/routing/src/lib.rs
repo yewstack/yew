@@ -32,7 +32,7 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.send_back(|route: Route<()>| Msg::HandleRoute(route));
         let router = router::Router::bridge(callback);
         Model {
@@ -68,7 +68,7 @@ impl Component for Model {
         }
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
                 <nav class="menu">
@@ -83,8 +83,8 @@ impl Component for Model {
     }
 }
 
-impl Renderable<Model> for Child {
-    fn render(&self) -> Html<Model> {
+impl Renderable for Child {
+    fn render(&self) -> Html {
         match self {
             Child::A => html! {
                 <>

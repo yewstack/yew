@@ -65,7 +65,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         let flag = self.by_chunks;
         html! {
             <div>
@@ -80,7 +80,7 @@ impl Component for Model {
                 </div>
                 <div>
                     <label>{ "By chunks" }</label>
-                    <input type="checkbox" checked=flag onclick=|_| Msg::ToggleByChunks />
+                    <input type="checkbox" checked=flag onclick=self.link.send_back(|_| Msg::ToggleByChunks) />
                 </div>
                 <ul>
                     { for self.files.iter().map(|f| self.view_file(f)) }
@@ -91,7 +91,7 @@ impl Component for Model {
 }
 
 impl Model {
-    fn view_file(&self, data: &str) -> Html<Self> {
+    fn view_file(&self, data: &str) -> Html {
         html! {
             <li>{ data }</li>
         }

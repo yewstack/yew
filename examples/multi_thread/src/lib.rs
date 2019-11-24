@@ -9,6 +9,7 @@ use yew::worker::*;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
+    link: ComponentLink<Self>,
     worker: Box<dyn Bridge<native_worker::Worker>>,
     job: Box<dyn Bridge<job::Worker>>,
     context: Box<dyn Bridge<context::Worker>>,
@@ -26,7 +27,7 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.send_back(|_| Msg::DataReceived);
         let worker = native_worker::Worker::bridge(callback);
 
@@ -66,13 +67,13 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
                 <nav class="menu">
-                    <button onclick=|_| Msg::SendToWorker>{ "Send to Thread" }</button>
-                    <button onclick=|_| Msg::SendToJob>{ "Send to Job" }</button>
-                    <button onclick=|_| Msg::SendToContext>{ "Send to Context" }</button>
+                    <button onclick=self.link.send_back(|_| Msg::SendToWorker)>{ "Send to Thread" }</button>
+                    <button onclick=self.link.send_back(|_| Msg::SendToJob)>{ "Send to Job" }</button>
+                    <button onclick=self.link.send_back(|_| Msg::SendToContext)>{ "Send to Context" }</button>
                 </nav>
             </div>
         }

@@ -39,5 +39,3 @@ error: expected valid html element
    |
 10 |     html! { <>invalid</> };
    |               ^^^^^^^
-
-error: could not compile `yew-tests`.

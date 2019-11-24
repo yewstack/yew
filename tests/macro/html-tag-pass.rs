@@ -36,7 +36,7 @@ pass_helper! {
             </svg>
             <img class=("avatar", "hidden") src="http://pic.com" />
             <img class="avatar hidden", />
-            <button onclick=|e| panic!(e) />
+            <button onclick=Callback::from(|e| panic!(e)) />
             <a href="http://google.com" />
             <custom-tag-a>
                 <custom-tag-b />

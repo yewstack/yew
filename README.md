@@ -62,7 +62,9 @@ Yew implements strict application state management based on message passing and 
 ```rust
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
-struct Model { }
+struct Model {
+    link: ComponentLink<Self>,
+}
 
 enum Msg {
     DoIt,
@@ -74,8 +76,8 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model { }
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Model { link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -87,10 +89,11 @@ impl Component for Model {
         }
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
+        let onclick = self.link.send_back(|_| Msg::DoIt);
         html! {
             // Render your model here
-            <button onclick=|_| Msg::DoIt>{ "Click me!" }</button>
+            <button onclick=onclick>{ "Click me!" }</button>
         }
     }
 }
@@ -237,7 +240,7 @@ Properties are also pure Rust types with strict type-checking during the compila
 ```rust
 // my_button.rs
 
-#[derive(Properties, PartialEq)]
+#[derive(Clone, Properties, PartialEq)]
 pub struct Properties {
     pub hidden: bool,
     #[props(required)]
@@ -320,8 +323,8 @@ Use external crates and put values from them into the template:
 extern crate chrono;
 use chrono::prelude::*;
 
-impl Renderable<Model> for Model {
-    fn render(&self) -> Html<Self> {
+impl Renderable for Model {
+    fn render(&self) -> Html {
         html! {
             <p>{ Local::now() }</p>
         }
