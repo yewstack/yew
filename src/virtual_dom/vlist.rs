@@ -2,6 +2,7 @@
 use super::{VDiff, VNode, VText};
 use crate::html::{Component, Scope};
 use stdweb::web::{Element, Node};
+use std::ops::{Deref, DerefMut};
 
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Debug)]
@@ -10,6 +11,20 @@ pub struct VList<COMP: Component> {
     pub no_siblings: bool,
     /// The list of children nodes. Which also could have their own children.
     pub children: Vec<VNode<COMP>>,
+}
+
+impl<COMP: Component> Deref for VList<COMP> {
+    type Target = Vec<VNode<COMP>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.children
+    }
+}
+
+impl<COMP: Component> DerefMut for VList<COMP> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.children
+    }
 }
 
 impl<COMP: Component> PartialEq for VList<COMP> {
