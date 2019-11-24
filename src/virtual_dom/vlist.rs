@@ -1,8 +1,8 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
 use crate::html::{Component, Scope};
-use stdweb::web::{Element, Node};
 use std::ops::{Deref, DerefMut};
+use stdweb::web::{Element, Node};
 
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Debug)]
