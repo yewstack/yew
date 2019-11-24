@@ -65,7 +65,7 @@ impl<COMP: Component> VTag<COMP> {
             attributes: Attributes::new(),
             listeners: Vec::new(),
             captured: Vec::new(),
-            children: VList::new(),
+            children: VList::new(true),
             node_ref: NodeRef::default(),
             value: None,
             kind: None,
