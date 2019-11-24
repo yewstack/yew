@@ -40,7 +40,7 @@ impl ToTokens for HtmlIterable {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let expr = &self.0;
         let new_tokens = quote_spanned! {expr.span()=> {
-            let mut __yew_vlist = ::yew::virtual_dom::VList::new();
+            let mut __yew_vlist = ::yew::virtual_dom::VList::default();
             let __yew_nodes: &mut ::std::iter::Iterator<Item = _> = &mut(#expr);
             for __yew_node in __yew_nodes.into_iter() {
                 __yew_vlist.add_child(__yew_node.into());

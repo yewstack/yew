@@ -82,7 +82,7 @@ impl<COMP: Component> VDiff for VNode<COMP> {
 
 impl<COMP: Component> Default for VNode<COMP> {
     fn default() -> Self {
-        VNode::VList(VList::new())
+        VNode::VList(VList::default())
     }
 }
 
@@ -134,7 +134,7 @@ impl<'a, COMP: Component> From<&'a dyn Renderable<COMP>> for VNode<COMP> {
 
 impl<COMP: Component, A: Into<VNode<COMP>>> FromIterator<A> for VNode<COMP> {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
-        let vlist = iter.into_iter().fold(VList::new(), |mut acc, x| {
+        let vlist = iter.into_iter().fold(VList::default(), |mut acc, x| {
             acc.add_child(x.into());
             acc
         });

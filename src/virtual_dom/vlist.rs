@@ -1,25 +1,49 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
 use crate::html::{Component, Scope};
+use std::ops::{Deref, DerefMut};
 use stdweb::web::{Element, Node};
 
 /// This struct represents a fragment of the Virtual DOM tree.
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct VList<COMP: Component> {
+    /// Whether the fragment has siblings or not.
+    pub no_siblings: bool,
     /// The list of children nodes. Which also could have their own children.
     pub children: Vec<VNode<COMP>>,
 }
 
+impl<COMP: Component> Deref for VList<COMP> {
+    type Target = Vec<VNode<COMP>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.children
+    }
+}
+
+impl<COMP: Component> DerefMut for VList<COMP> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.children
+    }
+}
+
+impl<COMP: Component> PartialEq for VList<COMP> {
+    fn eq(&self, other: &Self) -> bool {
+        self.children == other.children
+    }
+}
+
 impl<COMP: Component> Default for VList<COMP> {
     fn default() -> Self {
-        VList::new()
+        VList::new(false)
     }
 }
 
 impl<COMP: Component> VList<COMP> {
     /// Creates a new empty `VList` instance.
-    pub fn new() -> Self {
+    pub fn new(no_siblings: bool) -> Self {
         VList {
+            no_siblings,
             children: Vec::new(),
         }
     }
@@ -66,7 +90,7 @@ impl<COMP: Component> VDiff for VList<COMP> {
             }
         };
 
-        if self.children.is_empty() {
+        if self.children.is_empty() && !self.no_siblings {
             // Fixes: https://github.com/yewstack/yew/issues/294
             // Without a placeholder the next element becomes first
             // and corrupts the order of rendering
