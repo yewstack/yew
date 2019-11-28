@@ -14,6 +14,14 @@ Yew was built before the standardization of async-await and has promoted the use
 
 An alternative approach is using futures which are can be leveraged through the [wasm-bindgen-futures](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/) crate which bridges Rust futures to JS Promises. An example project using futures and async-await can be found [here](https://github.com/yewstack/yew/tree/master/examples/futures).
 
+### Safety
+
+Rust helps developers write safer code. For example, in JavaScript, an uncaught error can cause serious problems in your application. Rust encourages proper error handling and you can even get stacktraces for your Rust code with the [`console_error_panic_hook`](https://github.com/rustwasm/console_error_panic_hook) crate. Also, Yew apps can leverage Rust's static typing to ensure that your `Component` receives the correct properties for creation \(otherwise your app won't compile!\).
+
+### JavaScript  
+
+Yew is built on top of great web tooling like `wasm-bindgen` and `stdweb` and will be supporting `web-sys` and `js-sys` in the near future. These crates enable WebAssembly code to call into JavaScript and vice-versa. For some examples, visit [here](https://github.com/yewstack/yew/tree/master/examples/js_callback) to see how to leverage `stdweb` to write JavaScript code in your Rust app and [here](https://github.com/yewstack/yew/tree/master/examples/npm_and_rest) for how to interact with an NPM module.
+
 ### HTML
 
 Yew includes a procedural macro for generating HTML. It closely resembles React's JSX with some exceptions _\(string literals and listener callbacks to name a few\)_. Here is a quick look at its usage:
