@@ -94,3 +94,11 @@ Function components don't exist yet, but in theory, pure components could be gen
 
 ### Keyed DOM nodes when they arrive
 
+### Compile speed optimizations using Cargo Workspaces
+
+Arguabley, the largest drawback to using Yew is the long time it takes to compile. Compile time seems to correlate with the quantity of code found within `html!` macro blocks. This tends to not be a significant problem for smaller projects, but for webapps that span multiple pages, it makes sense to break apart your code across multiple crates to minimize the amount of work the compiler has to do.
+
+You should try to make your main crate handle routing/page selection, move all commonly shared code to another crate, and then make a different crate for each page, where each page could be a different component, or just a big function that produces `Html<_>`. In the best case scenario, you go from rebuilding all of your code on each compile to rebuilding only the main crate, and one of your page crates. In the worst case, where you edit something in the "common" crate, you will be right back to where you started: compiling all code that depends on that commonly shared crate, which is probably everything else.
+
+If your main crate is too heavyweight, or you want to rapidly iterate on a deeply nested page \(eg. a page that renders on top of another page\), you can use an example crate to create a more simple implementation of the main page and render your work-in-progress component on top of that.
+
