@@ -34,6 +34,23 @@ html! {
 }
 ```
 
+### Tag structure
+
+Tags deviate from normal HTML slightly. Opening tags must either have a corresponding closing tag, or be terminated with a `/>`.
+
+This will prevent you from copying and pasting some vanilla HTML into your Yew project. 
+
+```rust
+html! {
+    // INVALID
+    <input id="my_input" >
+}
+html! {
+    // VALID
+    <input id="my_input" />
+}
+```
+
 ### Expressions
 
 You can insert expressions in your HTML using `{}` blocks, as long as they resolve to `Html<_>.`
@@ -81,7 +98,7 @@ html! {
 
 If these expressions resolve to types that implement `Display`,  they will be converted to strings and inserted into the DOM as a text node. 
 
-All display text must be enclosed by `{}` blocks.
+All display text must be enclosed by `{}` blocks because text is handled like an expression. This is the largest deviation from normal HTML syntax that Yew makes.
 
 ```rust
 let text = "lorem ipsum";
