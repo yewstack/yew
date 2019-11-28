@@ -8,7 +8,7 @@
   </h1>
 
   <p>
-    <strong>Rust / Wasm UI framework</strong>
+    <strong>Rust / Wasm client web app framework</strong>
   </p>
 
   <p>
@@ -18,7 +18,9 @@
   </p>
 
   <h4>
-    <a href="https://docs.rs/yew">Docs</a>
+    <a href="https://yew.rs">Website</a>
+    <span> | </span>
+    <a href="https://docs.rs/yew">API Docs</a>
     <span> | </span>
     <a href="#running-the-examples">Examples</a>
     <span> | </span>
