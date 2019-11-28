@@ -49,8 +49,6 @@ and uses a local scheduler attached to a thread for concurrent tasks.
 
 This framework is designed to be compiled into modern browsers' runtimes: wasm, asm.js, emscripten.
 
-To prepare the development environment use the installation instruction here: [wasm-and-rust](https://github.com/raphamorim/wasm-and-rust).
-
 ### Architecture inspired by Elm and Redux
 
 Yew implements strict application state management based on message passing and updates:
@@ -327,7 +325,7 @@ impl Renderable<Model> for Model {
 }
 ```
 
-> Some crates don't support the true wasm target (`wasm32-unknown-unknown`) yet.
+> Some crates don't support the `wasm32-unknown-unknown` target yet.
 
 ### Services
 
