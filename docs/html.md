@@ -1,5 +1,5 @@
 ---
-description: html! macro
+description: The procedural macro for generating HTML
 ---
 
 # html!
@@ -8,11 +8,13 @@ description: html! macro
 
 The `html!` macro allows you to write HTML in Rust, with a few extensions and modifications. It is comparable to the JSX syntax used prominently in React. 
 
-\(Note:`Html<COMP>` is an alias to `VNode<COMP>)`
+{% hint style="info" %}
+Note that`Html<COMP>`is an alias to`VNode<COMP>`
+{% endhint %}
 
 ### Fragments
 
-At the top-most level, the `html!` macro expects a single virtual dom node, which would preclude you from having something like:
+The `html!` macro always requires a single root node. The following example will produce the following compiler message: `error: only one root html element allowed`
 
 ```rust
 // INVALID
@@ -22,7 +24,7 @@ html! {
 }
 ```
 
-Fragments, which use `<></>` syntax, are used to denote a list of items as the top level of a `html!` macro.
+To work around this, Yew allows the use of fragments, which use `<></>` syntax, to denote a list of items as the top level of a `html!` macro.
 
 ```rust
 // VALID
@@ -34,69 +36,78 @@ html! {
 }
 ```
 
-### Tag structure
+### Tags
 
-Tags deviate from normal HTML slightly. Opening tags must either have a corresponding closing tag, or be terminated with a `/>`.
-
-This will prevent you from copying and pasting some vanilla HTML into your Yew project. 
+Tags are required to roughly follow the HTML standard syntax with some variations. For example, tags must either self-close...
 
 ```rust
 html! {
-    // INVALID
-    <input id="my_input" >
+    // INVALID (MISSING SELF-CLOSE)
+    <input id="my_input">
 }
+
 html! {
     // VALID
     <input id="my_input" />
 }
 ```
 
-### Expressions
-
-You can insert expressions in your HTML using `{}` blocks, as long as they resolve to `Html<_>.`
+Or open tags must have a corresponding close tag
 
 ```rust
-let show_link = true;
 html! {
-     <div>
-          {
-               if show_link {
-                    html! {
-                         <a href="https://example.com">{"Link"}</a>
-                    }
-               } else {
-                    html! {
-                         "No link today"
-                    }
-               }
-          }
-     </div>
+    // INVALID (MISSING CLOSE TAG)
+    <div id="my_div">
+}
+
+html! {
+    // VALID
+    <div id="my_div"></div>
 }
 ```
 
-It often makes sense to extract these expressions into functions or closures in order to keep the code from drifting rightward:
+### Expressions
+
+You can insert expressions in your HTML using `{}` blocks, as long as they resolve to `Html<_>`
+
+```rust
+html! {
+  <div>
+    {
+      if show_link {
+        html! {
+          <a href="https://example.com">{"Link"}</a>
+        }
+      } else {
+        html! {}
+      }
+    }
+  </div>
+}
+```
+
+It often makes sense to extract these expressions into functions or closures to optimize for readability:
 
 ```rust
 let show_link = true;
 let maybe_display_link = move || -> Html<SomeComponent> {
-     if show_link {
-          html! {
-               <a href="https://example.com">{"Link"}</a>
-          }
-     } else {
-          html! {
-               "No link today"
-          }
-     }
-}
+  if show_link {
+    html! {
+      <a href="https://example.com">{"Link"}</a>
+    }
+  } else {
+    html! {}
+  }
+};
+
 html! {
      <div>{maybe_display_link()}</div>
 }
 ```
 
-### Text
+### Text Literals
 
-If these expressions resolve to types that implement `Display`,  they will be converted to strings and inserted into the DOM as a text node. 
+If these expressions resolve to types that implement `Display`,  they will be converted to strings and inserted into the DOM as a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node. 
 
 All display text must be enclosed by `{}` blocks because text is handled like an expression. This is the largest deviation from normal HTML syntax that Yew makes.
 
@@ -118,17 +129,19 @@ Closures declared _within_ a `html!` macro are automatically converted to `Callb
 pub enum Msg {
     ButtonClicked
 }
+
 html!{
-    <button onclick=|_event: ClickEvent| Msg::ButtonClicked ></button>
+    <button onclick=|_| Msg::ButtonClicked>{ "Click Me!" }</button>
 }
 ```
 
-If the message you want your callback to return _wraps_ the argument in the closure in a tuple-variant, you can use the function tuple syntax instead, but only for `Component`s, and not for plain elements.
+If the message you want your callback to return _wraps_ the argument in the closure in a tuple-variant, you can use the function tuple syntax instead, but only for `Component`s, and not for plain elements \([Issue](https://github.com/yewstack/yew/issues/733)\)
 
 ```rust
 pub enum Msg {
     ButtonClicked(ClickEvent)
 }
+
 html! {
     <ButtonComponent callback=Msg::ButtonClicked />
 }
@@ -140,15 +153,12 @@ This extends to the case if the argument is the same as the message you want to 
 html! {
     <ButtonComponent callback=From::from></button>
 }
+
 // or
 html! {
     <ButtonComponent callback=std::convert::identity />
 }
 ```
-
-
-
-### 
 
 ### Components
 
