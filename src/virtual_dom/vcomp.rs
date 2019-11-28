@@ -140,7 +140,7 @@ impl Unmounted {
 
     /// Overwrite an existing virtual component using a generator.
     fn replace(self, old: Mounted) -> Mounted {
-        (self.generator)(GeneratorType::Overwrite(old.scope.into()))
+        (self.generator)(GeneratorType::Overwrite(old.scope))
     }
 }
 
