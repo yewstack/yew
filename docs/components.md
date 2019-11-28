@@ -6,7 +6,7 @@ description: Components and their lifecycle hooks
 
 ## What are Components?
 
-A component is an independent bundle of state that can update itself and render itself to the DOM. 
+Components are the building blocks of Yew and contain their own state and can update and render themselves to the DOM. 
 
 `Component` is probably the most prominent trait in Yew. It describes the lifecycle of a component attached to the DOM. What happens when it is created, how it updates, how it renders, and more, is described by this  trait.
 
@@ -32,15 +32,15 @@ html!{
 }
 ```
 
-## Component lifecycle hooks and associated types
-
-### Associated types
+## Associated Types
 
 The `Component` trait has two associated types: `Message` and `Properties`.
 
 `Message` is typically an enum, although it can be a struct, that represents a variety of messages that can be processed by the component. It is common practice to create a type called `Msg` or `ComponentNameMsg` in your component's module and use that as the message type in the component. It is common to shorten "message" to "msg".
 
 The `Properties` associated type is a struct that has implemented the `Properties` trait \(usually by deriving it\). This type is used when creating and updating a component. It is common practice to create an enum called `Props` or `ComponentNameProps` in your component's module and use that as the component's `Properties` type. It is common to shorten "properties" to "props". Since props are handed down from parent components, the root component of your application typically has a `Properties` type of `()`, because it has no state to inherit from its parent.
+
+## Component Lifecycle
 
 ### Create
 
