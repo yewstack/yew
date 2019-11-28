@@ -1,8 +1,10 @@
 # Table of contents
 
-* [Initial page](README.md)
-* [What Is Yew?](what-is-yew.md)
-* [Getting Started](getting-started.md)
+* [Introduction](README.md)
+* [Getting Started](getting-started/README.md)
+  * [Build Environment](getting-started/build-environment.md)
+  * [Starter Templates](getting-started/starter-templates.md)
+  * [Examples](getting-started/examples.md)
 * [html!](html.md)
 * [Components](components.md)
 * [Properties](properties.md)
