@@ -32,6 +32,10 @@ cargo web start
 * `wasm32-unknown-emscripten`
 * `asmjs-unknown-emscripten`
 
+{% hint style="info" %}
+For `*-emscripten` targets, `cargo-web` will automatically install the Emscripten SDK and target for you.
+{% endhint %}
+
 ### `wasm-pack`
 
 This tool was created by the Rust / Wasm Working Group and is the most actively developed tool for building WebAssembly applications. It supports building to a Node.JS package and has an accompanying Webpack plugin for easy integration with an existing JavaScript application. Find more information [here](https://rustwasm.github.io/docs/wasm-pack/introduction.html).
