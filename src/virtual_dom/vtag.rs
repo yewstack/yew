@@ -276,7 +276,9 @@ impl<COMP: Component> VTag<COMP> {
         }
     }
 
-    fn apply_diffs(&mut self, element: &Element, ancestor: &Option<Box<Self>>) {
+    fn apply_diffs(&mut self, ancestor: &Option<Box<Self>>) {
+        let element = self.reference.as_ref().expect("element expected");
+
         // Update parameters
         let changes = self.diff_classes(ancestor);
         for change in changes {
@@ -440,32 +442,31 @@ impl<COMP: Component> VDiff for VTag<COMP> {
             }
         }
 
+        self.apply_diffs(&ancestor);
+
+        // Every render it removes all listeners and attach it back later
+        // TODO Compare references of handler to do listeners update better
+        if let Some(ancestor) = ancestor.as_mut() {
+            for handle in ancestor.captured.drain(..) {
+                handle.remove();
+            }
+        }
+
         let element = self.reference.clone().expect("element expected");
 
-        {
-            self.apply_diffs(&element, &ancestor);
-
-            // Every render it removes all listeners and attach it back later
-            // TODO Compare references of handler to do listeners update better
-            if let Some(ancestor) = ancestor.as_mut() {
-                for handle in ancestor.captured.drain(..) {
-                    handle.remove();
-                }
-            }
-
-            for mut listener in self.listeners.drain(..) {
-                let handle = listener.attach(&element, parent_scope.clone());
-                self.captured.push(handle);
-            }
-
-            // Process children
-            self.children.apply(
-                &element,
-                None,
-                ancestor.map(|a| a.children.into()),
-                parent_scope,
-            );
+        for mut listener in self.listeners.drain(..) {
+            let handle = listener.attach(&element, parent_scope.clone());
+            self.captured.push(handle);
         }
+
+        // Process children
+        self.children.apply(
+            &element,
+            None,
+            ancestor.map(|a| a.children.into()),
+            parent_scope,
+        );
+
         let node = self.reference.as_ref().map(|e| e.as_node().to_owned());
         self.node_ref.set(node.clone());
         node
