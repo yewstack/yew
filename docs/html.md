@@ -36,9 +36,9 @@ html! {
 }
 ```
 
-### Tags
+### Elements
 
-Tags are required to roughly follow the HTML standard syntax with some variations. For example, tags must either self-close...
+Elements are required to roughly follow the standard HTML or SVG syntax with some variations. For example, element tags must either self-close...
 
 ```rust
 html! {
@@ -52,7 +52,7 @@ html! {
 }
 ```
 
-Or open tags must have a corresponding close tag
+Or open tags must have a corresponding close tag:
 
 ```rust
 html! {
@@ -105,9 +105,9 @@ html! {
 }
 ```
 
-### Text Literals
+### Literals
 
-If these expressions resolve to types that implement `Display`,  they will be converted to strings and inserted into the DOM as a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node. 
+If expressions resolve to types that implement `Display`,  they will be converted to strings and inserted into the DOM as a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node. 
 
 All display text must be enclosed by `{}` blocks because text is handled like an expression. This is the largest deviation from normal HTML syntax that Yew makes.
 
