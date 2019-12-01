@@ -476,11 +476,8 @@ impl VDiff for VTag {
         }
 
         // Process children
-        self.children.apply(
-            &element,
-            None,
-            ancestor.map(|a| a.children.into()),
-        );
+        self.children
+            .apply(&element, None, ancestor.map(|a| a.children.into()));
 
         let node = self.reference.as_ref().map(|e| e.as_node().to_owned());
         self.node_ref.set(node.clone());
