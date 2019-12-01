@@ -56,7 +56,7 @@ pub struct MyComponent {
     props: MyComponentProps,
     /// Utility object
     link: ComponentLink<Link>,
-    /// State that is created durring the lifecycle of the component
+    /// State that is created during the lifecycle of the component
     input_box_text: String,
     // ...
 }
