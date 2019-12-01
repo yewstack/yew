@@ -24,7 +24,8 @@ Add yew to your dependencies \(refer [here](https://docs.rs/yew) for the latest 
 
 {% code title="Cargo.toml" %}
 ```text
-[package]
+
+[package]
 name = "yew-app"
 version = "0.1.0"
 authors = ["Yew App Developer <name@example.com>"]
@@ -54,7 +55,7 @@ impl Component for App {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model { clicked: false }
+        App { clicked: false }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
