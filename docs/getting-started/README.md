@@ -24,7 +24,6 @@ Add yew to your dependencies \(refer [here](https://docs.rs/yew) for the latest 
 
 {% code title="Cargo.toml" %}
 ```text
-
 [package]
 name = "yew-app"
 version = "0.1.0"
@@ -73,7 +72,7 @@ impl Component for App {
         } else {
             "Click me!"
         };
-        
+
         html! {
             <button onclick=|_| Msg::Click>{ button_text }</button>
         }
@@ -88,7 +87,7 @@ fn main() {
 
 This template sets up your root `Component`, called `App` which shows a button which updates itself when you click it. `yew::start_app::<Model>()` starts your app and mounts it to the page's `<body>` tag.
 
-#### Run your App!
+### Run your App!
 
 Using [`cargo-web`](https://github.com/koute/cargo-web) is the quickest way to get up and running. If you haven't already, install the tool with `cargo install cargo-web` and then build and start a development server by running:
 
