@@ -94,7 +94,7 @@ impl Component for Model {
                 };
                 self.link.send_future(future);
                 self.link
-                    .send_self(SetMarkdownFetchState(FetchState::Fetching));
+                    .send_message(SetMarkdownFetchState(FetchState::Fetching));
                 false
             }
         }
