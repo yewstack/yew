@@ -6,9 +6,9 @@ description: Components and their lifecycle hooks
 
 ## What are Components?
 
-Components are the building blocks of Yew and contain their own state and can update and render themselves to the DOM. 
+Components are the building blocks of Yew and contain their own state and can update and render themselves to the DOM.
 
-`Component` is probably the most prominent trait in Yew. It describes the lifecycle of a component attached to the DOM. What happens when it is created, how it updates, how it renders, and more, is described by this  trait.
+`Component` is probably the most prominent trait in Yew. It describes the lifecycle of a component attached to the DOM. What happens when it is created, how it updates, how it renders, and more, is described by this trait.
 
 A struct that implements `Component` can be used in the `html!` macro in a variety of ways:
 
@@ -17,15 +17,15 @@ html!{
     <>
         // Alone (or with non-required props)
         <MyComponent />
-        
+
         // With children (if the props for MyComponent have the field - children: Children<MyComponent>)
         <MyComponent>
             <div> {"Arbitrary Content"} </div>
         </MyComponent>
-        
+
         // With Properties
         <MyComponentWithProps prop1 = "lorem" prop2 = "ipsum" />
-        
+
         // With the whole set of props provided at once
         <MyComponentWithProps with props />
     </>
@@ -46,9 +46,9 @@ The `Properties` associated type is a struct that has implemented the `Propertie
 
 When a component is created, it gets a copy of the component's properties, and a link, and is expected to produce an instance of the component's model - the model being the state that makes up the component.
 
-Properties come from the parent and should be used to initialize your component to a particular state, or be persisted in its entirety. The `ComponentLink<Self>` item is used to register callbacks or send messages to the component. It is useful to keep around for use in the `update()` method. 
+Properties come from the parent and should be used to initialize your component to a particular state, or be persisted in its entirety. The `ComponentLink<Self>` item is used to register callbacks or send messages to the component. It is useful to keep around for use in the `update()` method.
 
-It is common to keep all of the props, and the link as well for medium to large sized components. In these cases its recommended to structure the model you are implementing `Component` for like so:  
+It is common to keep all of the props, and the link as well for medium to large sized components. In these cases its recommended to structure the model you are implementing `Component` for like so:
 
 ```rust
 pub struct MyComponent {
