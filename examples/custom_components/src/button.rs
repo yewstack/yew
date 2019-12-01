@@ -46,7 +46,7 @@ impl Component for Button {
 
     fn view(&self) -> Html {
         html! {
-            <button onclick=self.link.send_back(|_| Msg::Clicked)>
+            <button onclick=self.link.callback(|_| Msg::Clicked)>
                 { &self.title }
             </button>
         }

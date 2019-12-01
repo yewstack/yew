@@ -384,9 +384,9 @@ where
         }
     }
 
-    /// This method sends batch of messages back to the component's loop when the
-    /// returned callback is called.
-    pub fn send_back_batch<F, IN>(&self, function: F) -> Callback<IN>
+    /// This method creates a `Callback` which will send a batch of messages to the linked
+    /// component's update method when invoked.
+    pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> Vec<COMP::Message> + 'static,
     {
@@ -398,8 +398,9 @@ where
         closure.into()
     }
 
-    /// This method sends messages back to the component's loop when the returned callback is called.
-    pub fn send_back<F, IN>(&self, function: F) -> Callback<IN>
+    /// This method creates a `Callback` which will send a message to the linked component's
+    /// update method when invoked.
+    pub fn callback<F, IN>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> COMP::Message + 'static,
     {

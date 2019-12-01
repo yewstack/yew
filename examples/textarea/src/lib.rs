@@ -41,10 +41,10 @@ impl Component for Model {
                 <div>
                     <textarea rows=5
                         value=&self.value
-                        oninput=self.link.send_back(|e: InputData| Msg::GotInput(e.value))
+                        oninput=self.link.callback(|e: InputData| Msg::GotInput(e.value))
                         placeholder="placeholder">
                     </textarea>
-                    <button onclick=self.link.send_back(|_| Msg::Clicked)>{ "change value" }</button>
+                    <button onclick=self.link.callback(|_| Msg::Clicked)>{ "change value" }</button>
                 </div>
                 <div>
                     {&self.value}

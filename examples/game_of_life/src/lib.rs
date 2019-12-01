@@ -157,7 +157,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.send_back(|_| Msg::Tick);
+        let callback = link.callback(|_| Msg::Tick);
         let mut interval = IntervalService::new();
         let handle = interval.spawn(Duration::from_millis(200), callback);
         Model {
@@ -221,11 +221,11 @@ impl Component for Model {
                             { for self.cellules.iter().enumerate().map(|c| self.view_cellule(c)) }
                         </div>
                         <div class="game-buttons">
-                            <button class="game-button" onclick=self.link.send_back(|_| Msg::Random)>{ "Random" }</button>
-                            <button class="game-button" onclick=self.link.send_back(|_| Msg::Step)>{ "Step" }</button>
-                            <button class="game-button" onclick=self.link.send_back(|_| Msg::Start)>{ "Start" }</button>
-                            <button class="game-button" onclick=self.link.send_back(|_| Msg::Stop)>{ "Stop" }</button>
-                            <button class="game-button" onclick=self.link.send_back(|_| Msg::Reset)>{ "Reset" }</button>
+                            <button class="game-button" onclick=self.link.callback(|_| Msg::Random)>{ "Random" }</button>
+                            <button class="game-button" onclick=self.link.callback(|_| Msg::Step)>{ "Step" }</button>
+                            <button class="game-button" onclick=self.link.callback(|_| Msg::Start)>{ "Start" }</button>
+                            <button class="game-button" onclick=self.link.callback(|_| Msg::Stop)>{ "Stop" }</button>
+                            <button class="game-button" onclick=self.link.callback(|_| Msg::Reset)>{ "Reset" }</button>
                         </div>
                     </section>
                 </section>
@@ -251,7 +251,7 @@ impl Model {
         };
         html! {
             <div class=("game-cellule", cellule_status)
-                onclick=self.link.send_back(move |_| Msg::ToggleCellule(idx))>
+                onclick=self.link.callback(move |_| Msg::ToggleCellule(idx))>
             </div>
         }
     }

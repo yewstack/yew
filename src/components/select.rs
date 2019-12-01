@@ -27,7 +27,7 @@
 //! fn view(link: ComponentLink<Model>) -> Html {
 //!     let scenes = vec![Scene::First, Scene::Second];
 //!     html! {
-//!         <Select<Scene> options=scenes onchange=link.send_back(|_| ()) />
+//!         <Select<Scene> options=scenes onchange=link.callback(|_| ()) />
 //!     }
 //! }
 //! ```
@@ -119,7 +119,7 @@ where
     T: ToString + PartialEq + Clone + 'static,
 {
     fn onchange(&self) -> Callback<ChangeData> {
-        self.link.send_back(|event| match event {
+        self.link.callback(|event| match event {
             ChangeData::Select(elem) => {
                 let value = elem.selected_index().map(|x| x as usize);
                 Msg::Selected(value)

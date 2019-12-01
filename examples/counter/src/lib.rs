@@ -52,13 +52,13 @@ impl Component for Model {
         html! {
             <div>
                 <nav class="menu">
-                    <button onclick=self.link.send_back(|_| Msg::Increment)>
+                    <button onclick=self.link.callback(|_| Msg::Increment)>
                         { "Increment" }
                     </button>
-                    <button onclick=self.link.send_back(|_| Msg::Decrement)>
+                    <button onclick=self.link.callback(|_| Msg::Decrement)>
                         { "Decrement" }
                     </button>
-                    <button onclick=self.link.send_back_batch(|_| vec![Msg::Increment, Msg::Increment])>
+                    <button onclick=self.link.batch_callback(|_| vec![Msg::Increment, Msg::Increment])>
                         { "Increment Twice" }
                     </button>
                 </nav>

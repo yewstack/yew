@@ -37,7 +37,7 @@ impl Component for ListHeader {
 
     fn view(&self) -> Html {
         html! {
-            <div class="list-header" onmouseover=self.link.send_back(|_| Msg::Hover)>
+            <div class="list-header" onmouseover=self.link.callback(|_| Msg::Hover)>
                 { &self.props.text }
             </div>
         }

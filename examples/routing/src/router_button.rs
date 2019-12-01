@@ -75,7 +75,7 @@ impl Component for RouterButton {
         html! {
             <button
                 class=self.props.classes.clone(),
-                onclick=self.link.send_back(|_| Msg::Clicked),
+                onclick=self.link.callback(|_| Msg::Clicked),
                 disabled=self.props.disabled,
             >
                 {&self.props.text}

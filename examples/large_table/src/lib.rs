@@ -46,7 +46,7 @@ impl Model {
     fn view_square(&self, row: u32, column: u32) -> Html {
         html! {
             <td class=square_class((column, row), self.selected)
-                onclick=self.link.send_back(move |_| Msg::Select(column, row))>
+                onclick=self.link.callback(move |_| Msg::Select(column, row))>
             </td>
         }
     }

@@ -23,7 +23,7 @@ impl Component for BModel {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.send_back(|route: Route<()>| Msg::HandleRoute(route));
+        let callback = link.callback(|route: Route<()>| Msg::HandleRoute(route));
         let mut router = Router::bridge(callback);
 
         router.send(Request::GetCurrentRoute);
@@ -113,8 +113,8 @@ impl Component for BModel {
             <div>
                 <div>
                     { self.display_number() }
-                    <button onclick=self.link.send_back(|_| Msg::Navigate(vec![Msg::Increment]))>{ "Increment" }</button>
-                    <button onclick=self.link.send_back(|_| Msg::Navigate(vec![Msg::Decrement]))>{ "Decrement" }</button>
+                    <button onclick=self.link.callback(|_| Msg::Navigate(vec![Msg::Increment]))>{ "Increment" }</button>
+                    <button onclick=self.link.callback(|_| Msg::Navigate(vec![Msg::Decrement]))>{ "Decrement" }</button>
                 </div>
 
                 { self.display_subpath_input() }
@@ -137,7 +137,7 @@ impl BModel {
         html! {
             <input placeholder="subpath"
                 value=sub_path.unwrap_or("".into())
-                oninput=self.link.send_back(|e: InputData| Msg::Navigate(vec![Msg::UpdateSubpath(e.value)])) />
+                oninput=self.link.callback(|e: InputData| Msg::Navigate(vec![Msg::UpdateSubpath(e.value)])) />
         }
     }
 }

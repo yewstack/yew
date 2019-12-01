@@ -34,7 +34,7 @@ impl Component for Model {
             <div>
                 <input
                     value=&self.name
-                    oninput=self.link.send_back(|e: InputData| Msg::UpdateName(e.value)) />
+                    oninput=self.link.callback(|e: InputData| Msg::UpdateName(e.value)) />
                 <p>{ self.name.chars().rev().collect::<String>() }</p>
             </div>
         }

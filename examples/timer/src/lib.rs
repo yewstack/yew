@@ -41,8 +41,8 @@ impl Component for Model {
             timeout: TimeoutService::new(),
             interval,
             console: ConsoleService::new(),
-            callback_tick: link.send_back(|_| Msg::Tick),
-            callback_done: link.send_back(|_| Msg::Done),
+            callback_tick: link.callback(|_| Msg::Tick),
+            callback_done: link.callback(|_| Msg::Done),
             job: None,
             messages: Vec::new(),
             _standalone: Box::new(handle),
@@ -107,11 +107,11 @@ impl Component for Model {
         html! {
             <div>
                 <button disabled=has_job
-                        onclick=self.link.send_back(|_| Msg::StartTimeout)>{ "Start Timeout" }</button>
+                        onclick=self.link.callback(|_| Msg::StartTimeout)>{ "Start Timeout" }</button>
                 <button disabled=has_job
-                        onclick=self.link.send_back(|_| Msg::StartInterval)>{ "Start Interval" }</button>
+                        onclick=self.link.callback(|_| Msg::StartInterval)>{ "Start Interval" }</button>
                 <button disabled=!has_job
-                        onclick=self.link.send_back(|_| Msg::Cancel)>{ "Cancel!" }</button>
+                        onclick=self.link.callback(|_| Msg::Cancel)>{ "Cancel!" }</button>
                 <div>
                     { for self.messages.iter().map(view_message) }
                 </div>

@@ -39,7 +39,7 @@ impl Component for Model {
             link: link.clone(),
             gravatar: GravatarService::new(),
             ccxt: CcxtService::new(),
-            callback: link.send_back(Msg::GravatarReady),
+            callback: link.callback(Msg::GravatarReady),
             profile: None,
             exchanges: Vec::new(),
             task: None,
@@ -75,8 +75,8 @@ impl Component for Model {
         };
         html! {
             <div>
-                <button onclick=self.link.send_back(|_| Msg::Exchanges)>{ "Get Exchanges" }</button>
-                <button onclick=self.link.send_back(|_| Msg::Gravatar)>{ "Get Gravatar" }</button>
+                <button onclick=self.link.callback(|_| Msg::Exchanges)>{ "Get Exchanges" }</button>
+                <button onclick=self.link.callback(|_| Msg::Gravatar)>{ "Get Gravatar" }</button>
                 <ul>
                     { for self.exchanges.iter().map(view_exchange) }
                 </ul>

@@ -87,7 +87,7 @@ impl Component for Model {
                 self.fetching = true;
                 let task = match format {
                     Format::Json => {
-                        let callback = self.link.send_back(
+                        let callback = self.link.callback(
                             move |response: Response<Json<Result<DataFromFile, Error>>>| {
                                 let (meta, Json(data)) = response.into_parts();
                                 println!("META: {:?}, {:?}", meta, data);
@@ -106,7 +106,7 @@ impl Component for Model {
                         }
                     }
                     Format::Toml => {
-                        let callback = self.link.send_back(
+                        let callback = self.link.callback(
                             move |response: Response<Toml<Result<DataFromFile, Error>>>| {
                                 let (meta, Toml(data)) = response.into_parts();
                                 println!("META: {:?}, {:?}", meta, data);
@@ -129,8 +129,8 @@ impl Component for Model {
             }
             Msg::WsAction(action) => match action {
                 WsAction::Connect => {
-                    let callback = self.link.send_back(|Json(data)| Msg::WsReady(data));
-                    let notification = self.link.send_back(|status| match status {
+                    let callback = self.link.callback(|Json(data)| Msg::WsReady(data));
+                    let notification = self.link.callback(|status| match status {
                         WebSocketStatus::Opened => Msg::Ignore,
                         WebSocketStatus::Closed | WebSocketStatus::Error => WsAction::Lost.into(),
                     });
@@ -173,30 +173,30 @@ impl Component for Model {
         html! {
             <div>
                 <nav class="menu">
-                    <button onclick=self.link.send_back(|_| Msg::FetchData(Format::Json, false))>
+                    <button onclick=self.link.callback(|_| Msg::FetchData(Format::Json, false))>
                         { "Fetch Data" }
                     </button>
-                    <button onclick=self.link.send_back(|_| Msg::FetchData(Format::Json, true))>
+                    <button onclick=self.link.callback(|_| Msg::FetchData(Format::Json, true))>
                         { "Fetch Data [binary]" }
                     </button>
-                    <button onclick=self.link.send_back(|_| Msg::FetchData(Format::Toml, false))>
+                    <button onclick=self.link.callback(|_| Msg::FetchData(Format::Toml, false))>
                         { "Fetch Data [toml]" }
                     </button>
                     { self.view_data() }
                     <button disabled=self.ws.is_some()
-                            onclick=self.link.send_back(|_| WsAction::Connect.into())>
+                            onclick=self.link.callback(|_| WsAction::Connect.into())>
                         { "Connect To WebSocket" }
                     </button>
                     <button disabled=self.ws.is_none()
-                            onclick=self.link.send_back(|_| WsAction::SendData(false).into())>
+                            onclick=self.link.callback(|_| WsAction::SendData(false).into())>
                         { "Send To WebSocket" }
                     </button>
                     <button disabled=self.ws.is_none()
-                            onclick=self.link.send_back(|_| WsAction::SendData(true).into())>
+                            onclick=self.link.callback(|_| WsAction::SendData(true).into())>
                         { "Send To WebSocket [binary]" }
                     </button>
                     <button disabled=self.ws.is_none()
-                            onclick=self.link.send_back(|_| WsAction::Disconnect.into())>
+                            onclick=self.link.callback(|_| WsAction::Disconnect.into())>
                         { "Close WebSocket connection" }
                     </button>
                 </nav>

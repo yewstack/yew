@@ -32,8 +32,8 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
-        let on_hover = &self.link.send_back(Msg::Hover);
-        let onmouseenter = &self.link.send_back(|_| Msg::Hover(Hovered::None));
+        let on_hover = &self.link.callback(Msg::Hover);
+        let onmouseenter = &self.link.callback(|_| Msg::Hover(Hovered::None));
         html! {
             <div class="main" onmouseenter=onmouseenter>
                 <h1>{ "Nested List Demo" }</h1>

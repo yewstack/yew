@@ -50,12 +50,12 @@ impl Component for Model {
         let counter = |x| {
             html! {
                 <Counter initial=x color=&self.color
-                    onclick=self.link.send_back(Msg::ChildClicked) />
+                    onclick=self.link.callback(Msg::ChildClicked) />
             }
         };
         html! {
             <div class="custom-components-example">
-                <button onclick=self.link.send_back(|_| Msg::Toggle)>{ "Toggle" }</button>
+                <button onclick=self.link.callback(|_| Msg::Toggle)>{ "Toggle" }</button>
                 { self.view_barrier() }
                 { for (1..1001).map(counter) }
             </div>
@@ -67,7 +67,7 @@ impl Model {
     fn view_barrier(&self) -> Html {
         if self.with_barrier {
             html! {
-                <Barrier limit=10 onsignal=self.link.send_back(|_| Msg::Repaint) />
+                <Barrier limit=10 onsignal=self.link.callback(|_| Msg::Repaint) />
             }
         } else {
             html! {

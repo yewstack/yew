@@ -48,10 +48,10 @@ impl Component for Model {
                 for file in files.into_iter() {
                     let task = {
                         if chunks {
-                            let callback = self.link.send_back(Msg::Chunk);
+                            let callback = self.link.callback(Msg::Chunk);
                             self.reader.read_file_by_chunks(file, callback, 10)
                         } else {
-                            let callback = self.link.send_back(Msg::Loaded);
+                            let callback = self.link.callback(Msg::Loaded);
                             self.reader.read_file(file, callback)
                         }
                     };
@@ -80,7 +80,7 @@ impl Component for Model {
                 </div>
                 <div>
                     <label>{ "By chunks" }</label>
-                    <input type="checkbox" checked=flag onclick=self.link.send_back(|_| Msg::ToggleByChunks) />
+                    <input type="checkbox" checked=flag onclick=self.link.callback(|_| Msg::ToggleByChunks) />
                 </div>
                 <ul>
                     { for self.files.iter().map(|f| self.view_file(f)) }

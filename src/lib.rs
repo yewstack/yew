@@ -39,7 +39,7 @@
 //!     fn view(&self) -> Html {
 //!         html! {
 //!             <div>
-//!                 <button onclick=self.link.send_back(|_| Msg::DoIt)>{ "+1" }</button>
+//!                 <button onclick=self.link.callback(|_| Msg::DoIt)>{ "+1" }</button>
 //!                 <p>{ self.value }</p>
 //!             </div>
 //!         }

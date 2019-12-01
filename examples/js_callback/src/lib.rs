@@ -43,7 +43,7 @@ impl Component for Model {
                 }
             }
             AsyncPayload => {
-                get_payload_later(self.link.send_back(Msg::Payload));
+                get_payload_later(self.link.callback(Msg::Payload));
                 false
             }
         }
@@ -60,10 +60,10 @@ impl Component for Model {
                     style="font-family: 'Monaco' monospace;"
                     value={ &self.payload }>
                 </textarea>
-                <button onclick=self.link.send_back(|_| Msg::Payload(get_payload()))>
+                <button onclick=self.link.callback(|_| Msg::Payload(get_payload()))>
                     { "Get the payload!" }
                 </button>
-                <button onclick=self.link.send_back(|_| Msg::AsyncPayload) >
+                <button onclick=self.link.callback(|_| Msg::AsyncPayload) >
                     { "Get the payload later!" }
                 </button>
                 <p style="font-family: 'Monaco', monospace;">

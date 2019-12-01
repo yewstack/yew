@@ -38,7 +38,7 @@
 //!
 //! html! {
 //!   <div>
-//!     <button onclick=self.link.send_back(|_| Msg::Submit)>
+//!     <button onclick=self.link.callback(|_| Msg::Submit)>
 //!       { "Submit" }
 //!     </button>
 //!     <>

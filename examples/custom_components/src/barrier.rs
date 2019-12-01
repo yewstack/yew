@@ -52,7 +52,7 @@ impl Component for Barrier {
     }
 
     fn view(&self) -> Html {
-        let onsignal = &self.link.send_back(|_| Msg::ChildClicked);
+        let onsignal = &self.link.callback(|_| Msg::ChildClicked);
         html! {
             <div class="barrier">
                 <p>{ format!("{} on {} clicked", self.counter, self.limit) }</p>

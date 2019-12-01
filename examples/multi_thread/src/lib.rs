@@ -28,16 +28,16 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.send_back(|_| Msg::DataReceived);
+        let callback = link.callback(|_| Msg::DataReceived);
         let worker = native_worker::Worker::bridge(callback);
 
-        let callback = link.send_back(|_| Msg::DataReceived);
+        let callback = link.callback(|_| Msg::DataReceived);
         let job = job::Worker::bridge(callback);
 
-        let callback = link.send_back(|_| Msg::DataReceived);
+        let callback = link.callback(|_| Msg::DataReceived);
         let context = context::Worker::bridge(callback);
 
-        let callback = link.send_back(|_| Msg::DataReceived);
+        let callback = link.callback(|_| Msg::DataReceived);
         let context_2 = context::Worker::bridge(callback);
 
         Model {
@@ -71,9 +71,9 @@ impl Component for Model {
         html! {
             <div>
                 <nav class="menu">
-                    <button onclick=self.link.send_back(|_| Msg::SendToWorker)>{ "Send to Thread" }</button>
-                    <button onclick=self.link.send_back(|_| Msg::SendToJob)>{ "Send to Job" }</button>
-                    <button onclick=self.link.send_back(|_| Msg::SendToContext)>{ "Send to Context" }</button>
+                    <button onclick=self.link.callback(|_| Msg::SendToWorker)>{ "Send to Thread" }</button>
+                    <button onclick=self.link.callback(|_| Msg::SendToJob)>{ "Send to Job" }</button>
+                    <button onclick=self.link.callback(|_| Msg::SendToContext)>{ "Send to Context" }</button>
                 </nav>
             </div>
         }

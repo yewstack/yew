@@ -134,7 +134,7 @@ impl Component for Model {
                             type="checkbox"
                             class="toggle-all"
                             checked=self.state.is_all_completed()
-                            onclick=self.link.send_back(|_| Msg::ToggleAll) />
+                            onclick=self.link.callback(|_| Msg::ToggleAll) />
                         <ul class="todo-list">
                             { for self.state.entries.iter().filter(|e| self.state.filter.fit(e)).enumerate().map(|e| self.view_entry(e)) }
                         </ul>
@@ -147,7 +147,7 @@ impl Component for Model {
                         <ul class="filters">
                             { for Filter::iter().map(|flt| self.view_filter(flt)) }
                         </ul>
-                        <button class="clear-completed" onclick=self.link.send_back(|_| Msg::ClearCompleted)>
+                        <button class="clear-completed" onclick=self.link.callback(|_| Msg::ClearCompleted)>
                             { format!("Clear completed ({})", self.state.total_completed()) }
                         </button>
                     </footer>
@@ -169,7 +169,7 @@ impl Model {
             <li>
                 <a class=if self.state.filter == flt { "selected" } else { "not-selected" }
                    href=&flt
-                   onclick=self.link.send_back(move |_| Msg::SetFilter(flt.clone()))>
+                   onclick=self.link.callback(move |_| Msg::SetFilter(flt.clone()))>
                     { filter }
                 </a>
             </li>
@@ -183,8 +183,8 @@ impl Model {
             <input class="new-todo"
                    placeholder="What needs to be done?"
                    value=&self.state.value
-                   oninput=self.link.send_back(|e: InputData| Msg::Update(e.value))
-                   onkeypress=self.link.send_back(|e: KeyPressEvent| {
+                   oninput=self.link.callback(|e: InputData| Msg::Update(e.value))
+                   onkeypress=self.link.callback(|e: KeyPressEvent| {
                        if e.key() == "Enter" { Msg::Add } else { Msg::Nope }
                    }) />
             /* Or multiline:
@@ -210,9 +210,9 @@ impl Model {
                         type="checkbox"
                         class="toggle"
                         checked=entry.completed
-                        onclick=self.link.send_back(move |_| Msg::Toggle(idx)) />
-                    <label ondoubleclick=self.link.send_back(move |_| Msg::ToggleEdit(idx))>{ &entry.description }</label>
-                    <button class="destroy" onclick=self.link.send_back(move |_| Msg::Remove(idx)) />
+                        onclick=self.link.callback(move |_| Msg::Toggle(idx)) />
+                    <label ondoubleclick=self.link.callback(move |_| Msg::ToggleEdit(idx))>{ &entry.description }</label>
+                    <button class="destroy" onclick=self.link.callback(move |_| Msg::Remove(idx)) />
                 </div>
                 { self.view_entry_edit_input((idx, &entry)) }
             </li>
@@ -225,9 +225,9 @@ impl Model {
                 <input class="edit"
                        type="text"
                        value=&entry.description
-                       oninput=self.link.send_back(|e: InputData| Msg::UpdateEdit(e.value))
-                       onblur=self.link.send_back(move |_| Msg::Edit(idx))
-                       onkeypress=self.link.send_back(move |e: KeyPressEvent| {
+                       oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
+                       onblur=self.link.callback(move |_| Msg::Edit(idx))
+                       onkeypress=self.link.callback(move |e: KeyPressEvent| {
                           if e.key() == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
                        }) />
             }

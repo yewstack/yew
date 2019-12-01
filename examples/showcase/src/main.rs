@@ -76,7 +76,7 @@ impl Component for Model {
                     <Select<Scene>
                         selected=self.scene.clone()
                         options=Scene::iter().collect::<Vec<_>>()
-                        onchange=self.link.send_back(Msg::SwitchTo) />
+                        onchange=self.link.callback(Msg::SwitchTo) />
                 </div>
                 <div id="right_pane">
                     { self.view_scene() }

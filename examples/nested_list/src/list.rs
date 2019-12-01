@@ -66,8 +66,8 @@ impl Component for List {
         html! {
             <div
                 class="list-container"
-                onmouseout=self.link.send_back(|_| Msg::Hover(Hovered::None))
-                onmouseover=self.link.send_back(|_| Msg::Hover(Hovered::List))
+                onmouseout=self.link.callback(|_| Msg::Hover(Hovered::None))
+                onmouseover=self.link.callback(|_| Msg::Hover(Hovered::List))
             >
                 <div class="list">
                     {self.view_header()}

@@ -153,8 +153,8 @@ impl Component for Model {
                     <div class="clients">
                         { for self.database.clients.iter().map(Renderable::render) }
                     </div>
-                    <button onclick=self.link.send_back(|_| Msg::SwitchTo(Scene::NewClientForm(Client::empty())))>{ "Add New" }</button>
-                    <button onclick=self.link.send_back(|_| Msg::SwitchTo(Scene::Settings))>{ "Settings" }</button>
+                    <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::NewClientForm(Client::empty())))>{ "Add New" }</button>
+                    <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::Settings))>{ "Settings" }</button>
                 </div>
             },
             Scene::NewClientForm(ref client) => html! {
@@ -165,14 +165,14 @@ impl Component for Model {
                         { client.view_description_textarea(&self.link) }
                     </div>
                     <button disabled=client.first_name.is_empty() || client.last_name.is_empty()
-                            onclick=self.link.send_back(|_| Msg::AddNew)>{ "Add New" }</button>
-                    <button onclick=self.link.send_back(|_| Msg::SwitchTo(Scene::ClientsList))>{ "Go Back" }</button>
+                            onclick=self.link.callback(|_| Msg::AddNew)>{ "Add New" }</button>
+                    <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::ClientsList))>{ "Go Back" }</button>
                 </div>
             },
             Scene::Settings => html! {
                 <div>
-                    <button onclick=self.link.send_back(|_| Msg::Clear)>{ "Clear Database" }</button>
-                    <button onclick=self.link.send_back(|_| Msg::SwitchTo(Scene::ClientsList))>{ "Go Back" }</button>
+                    <button onclick=self.link.callback(|_| Msg::Clear)>{ "Clear Database" }</button>
+                    <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::ClientsList))>{ "Go Back" }</button>
                 </div>
             },
         }
@@ -198,7 +198,7 @@ impl Client {
             <input class="new-client firstname"
                    placeholder="First name"
                    value=&self.first_name
-                   oninput=link.send_back(|e: InputData| Msg::UpdateFirstName(e.value)) />
+                   oninput=link.callback(|e: InputData| Msg::UpdateFirstName(e.value)) />
         }
     }
 
@@ -207,7 +207,7 @@ impl Client {
             <input class="new-client lastname"
                    placeholder="Last name"
                    value=&self.last_name
-                   oninput=link.send_back(|e: InputData| Msg::UpdateLastName(e.value)) />
+                   oninput=link.callback(|e: InputData| Msg::UpdateLastName(e.value)) />
         }
     }
     fn view_description_textarea(&self, link: &ComponentLink<Model>) -> Html {
@@ -215,7 +215,7 @@ impl Client {
             <textarea class=("new-client", "description")
                placeholder="Description"
                value=&self.description
-               oninput=link.send_back(|e: InputData| Msg::UpdateDescription(e.value)) />
+               oninput=link.callback(|e: InputData| Msg::UpdateDescription(e.value)) />
         }
     }
 }

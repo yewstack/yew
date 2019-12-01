@@ -37,7 +37,7 @@ impl Component for InputComponent {
             <input
                 type="text"
                 class="input-component"
-                onmouseover=self.link.send_back(|_| Msg::Hover) />
+                onmouseover=self.link.callback(|_| Msg::Hover) />
         }
     }
 }

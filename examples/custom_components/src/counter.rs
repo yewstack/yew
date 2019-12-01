@@ -72,7 +72,7 @@ impl Component for Counter {
         html! {
             <div class="counter">
                 <p>{ self.value }</p>
-                <button style=colorize onclick=self.link.send_back(|_| Msg::Increase)>
+                <button style=colorize onclick=self.link.callback(|_| Msg::Increase)>
                     { "Increase internal counter" }
                 </button>
             </div>

@@ -41,7 +41,7 @@ impl Component for ListItem {
     }
 
     fn view(&self) -> Html {
-        let onmouseover = self.link.send_back(|_| Msg::Hover);
+        let onmouseover = self.link.callback(|_| Msg::Hover);
         html! {
             <div class="list-item" onmouseover=onmouseover>
                 { &self.props.name }

@@ -68,8 +68,8 @@ impl Model {
     fn view_menu(&self) -> Html {
         html! {
             <>
-                <button onclick=self.link.send_back(|_| Msg::More)>{ "More" }</button>
-                <button onclick=self.link.send_back(|_| Msg::Less)>{ "Less" }</button>
+                <button onclick=self.link.callback(|_| Msg::More)>{ "More" }</button>
+                <button onclick=self.link.callback(|_| Msg::Less)>{ "Less" }</button>
             </>
         }
     }
