@@ -26,6 +26,8 @@
     <span> | </span>
     <a href="https://github.com/yewstack/yew/blob/master/CHANGELOG.md">Changelog</a>
     <span> | </span>
+    <a href="https://yew.rs/docs/roadmap">Roadmap</a>
+    <span> | </span>
     <a href="https://github.com/yewstack/yew/blob/master/CODE_OF_CONDUCT.md">Code of Conduct</a>
   </h4>
 </div>
