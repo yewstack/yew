@@ -6,9 +6,9 @@
 
 * It features a **component-based** framework which makes it easy to create interactive UIs. Developers who have experience with frameworks like [React](https://reactjs.org/) and [Elm](https://elm-lang.org/) should feel quite at home when using Yew.
 * It has **great performance** by minimizing DOM API calls by helping developers easily offload processing to background web workers. 
-* It even boasts **JavaScript interoperability**, allowing developers to leverage NPM packages and integrate with existing JavaScript applications.
+* It supports **JavaScript interoperability**, allowing developers to leverage NPM packages and integrate with existing JavaScript applications.
 
-### Join Us 
+### Join Us 😊 
 
 * You can report bugs and discuss features on the [GitHub issues page](https://github.com/yewstack/yew/issues)
 * Our [Gitter chatroom](https://gitter.im/yewframework/Lobby) is pretty active and is a great place to ask questions
