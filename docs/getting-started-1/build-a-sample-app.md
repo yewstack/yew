@@ -6,7 +6,7 @@ First create a new binary project:
 cargo new --bin yew-app && cd yew-app
 ```
 
-Add yew to your dependencies \(refer [here](https://docs.rs/yew) for the latest version\)
+Add `yew` to your dependencies \(refer [here](https://docs.rs/yew) for the latest version\)
 
 {% code title="Cargo.toml" %}
 ```text
@@ -21,7 +21,7 @@ yew = "0.10.0"
 ```
 {% endcode %}
 
-Copy this template into your `src/main.rs` file:
+Copy the following template into your `src/main.rs` file:
 
 {% code title="src/main.rs" %}
 ```rust
@@ -71,7 +71,7 @@ fn main() {
 ```
 {% endcode %}
 
-This template sets up your root `Component`, called `App` which shows a button which updates itself when you click it. `yew::start_app::<Model>()` starts your app and mounts it to the page's `<body>` tag.
+This template sets up your root `Component`, called `App` which shows a button which updates itself when you click it. Take special note of `yew::start_app::<Model>()` which starts your app and mounts it to the page's `<body>` tag.
 
 ### Run your App!
 
