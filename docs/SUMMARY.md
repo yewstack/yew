@@ -2,24 +2,27 @@
 
 * [Introduction](README.md)
 
-## Getting Started <a id="getting-started-1"></a>
+## Getting Started
 
-* [Installation](getting-started-1/getting-started.md)
-* [Build a Sample App](getting-started-1/build-a-sample-app.md)
-* [Build Environment](getting-started-1/build-environment.md)
-* [Starter Templates](getting-started-1/starter-templates.md)
-* [Examples](getting-started-1/examples.md)
+* [Installation](getting-started/getting-started.md)
+* [Build a Sample App](getting-started/build-a-sample-app.md)
+* [Build Environment](getting-started/build-environment.md)
+* [Starter Templates](getting-started/starter-templates.md)
+* [Examples](getting-started/examples.md)
 
-## Core Concepts <a id="learning-yew"></a>
+## Core Concepts <a id="concepts"></a>
 
-* [Using html!](learning-yew/html.md)
-* [Components](learning-yew/components/README.md)
-  * [Properties](learning-yew/components/properties.md)
-  * [Callbacks](learning-yew/components/callbacks.md)
-  * [Refs](learning-yew/components/refs.md)
-* [Agents](learning-yew/agents.md)
-* [Services](learning-yew/services.md)
-* [Router](learning-yew/router.md)
+* [Using html!](concepts/html/README.md)
+  * [Lists](concepts/html/lists.md)
+  * [Elements](concepts/html/elements.md)
+  * [Literals & Expressions](concepts/html/literals-and-expressions.md)
+* [Components](concepts/components/README.md)
+  * [Properties](concepts/components/properties.md)
+  * [Callbacks](concepts/components/callbacks.md)
+  * [Refs](concepts/components/refs.md)
+* [Agents](concepts/agents.md)
+* [Services](concepts/services.md)
+* [Router](concepts/router.md)
 
 ## Advanced Topics
 
