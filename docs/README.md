@@ -2,13 +2,13 @@
 
 ## What is Yew?
 
-**Yew** is a Rust framework for creating multi-threaded frontend web apps with WebAssembly.
+**Yew** is a [Rust](https://www.rust-lang.org/) framework for creating multi-threaded front-end web apps with [WebAssembly](https://webassembly.org/).
 
 #### Why Rust and WebAssembly?
 
-\*\*\*\*[**Rust**](https://www.rust-lang.org/) is blazing fast and super reliable with its rich type system and ownership model. It can have a tough learning curve but worth the effort. Rust has been voted the most loved programming language [multiple](https://insights.stackoverflow.com/survey/2018#technology-_-most-loved-dreaded-and-wanted-languages) [years](https://insights.stackoverflow.com/survey/2019#technology-_-most-loved-dreaded-and-wanted-languages) in a row in Stack Overflow Developer Surveys. 
+**Rust** is blazing fast and super reliable with its rich type system and ownership model. It can have a tough learning curve but worth the effort. Rust has been voted the most loved programming language [multiple](https://insights.stackoverflow.com/survey/2018#technology-_-most-loved-dreaded-and-wanted-languages) [years](https://insights.stackoverflow.com/survey/2019#technology-_-most-loved-dreaded-and-wanted-languages) in a row in Stack Overflow Developer Surveys. 
 
-\*\*\*\*[**WebAssembly**](https://webassembly.org/) _\(Wasm\)_ is a portable low-level language that Rust can compile into which aims to run at native speeds in the browser and is interoperable with JavaScript and supported in all major browsers. 
+**WebAssembly** _\(Wasm\)_ is a portable low-level language that Rust can compile into which aims to run at native speeds in the browser and is interoperable with JavaScript and supported in all major browsers. 
 
 ### Modern Web Framework
 
