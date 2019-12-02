@@ -20,7 +20,7 @@
 
 Click the link below to learn how to build your first Yew app and learn from community example projects
 
-{% page-ref page="getting-started/" %}
+{% page-ref page="getting-started-1/getting-started.md" %}
 
 ### \*\*\*\*
 
