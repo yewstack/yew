@@ -2,7 +2,7 @@
 description: ComponentLink and Callbacks.
 ---
 
-# ComponentLink and Callbacks
+# Callbacks
 
 The component link is the mechanism through which component logic will register logic that can send messages to its associated component's update mechanism.
 

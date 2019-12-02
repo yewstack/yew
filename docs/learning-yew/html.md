@@ -2,7 +2,7 @@
 description: The procedural macro for generating HTML
 ---
 
-# html!
+# Using html!
 
 ## HTML in Rust
 

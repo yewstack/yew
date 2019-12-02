@@ -1,18 +1,4 @@
----
-description: How to set up and build your app
----
-
-# Getting Started
-
-## Installation
-
-First, you'll need to install Rust. You can follow the official instructions [here](https://www.rust-lang.org/tools/install). Next, we'll be using `cargo-web` to create a sample app. You can install it by running:
-
-```bash
-cargo install cargo-web
-```
-
-## Quick Sample App
+# Build a Sample App
 
 First create a new binary project:
 
@@ -95,5 +81,5 @@ Using [`cargo-web`](https://github.com/koute/cargo-web) is the quickest way to g
 cargo web start
 ```
 
-`cargo-web` should automatically add the `wasm32-unknown-unknown` target for you and then will build your app and make your application available at [http://\[::1\]:8000](http://[::1]:8000) by default. Consult `cargo web start --help` for other options.
+`cargo-web` will automatically add the `wasm32-unknown-unknown` target for you and then will build your app and make your application available at [http://\[::1\]:8000](http://[::1]:8000) by default. Consult `cargo web start --help` for other options.
 

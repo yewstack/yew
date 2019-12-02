@@ -2,7 +2,7 @@
 
 ## Build Tools
 
-As shown in [Getting Started](./), using `cargo-web` is the quickest way to get up and running. Unfortunately `cargo-web` requires multiple compile passes and therefore is not as fast as other approaches. The most popular alternative is called `wasm-pack`. Check out the [Starter Templates](starter-templates.md) to get up and running quickly.
+As shown in [Getting Started](getting-started.md), using `cargo-web` is the quickest way to get up and running. Unfortunately `cargo-web` requires multiple compile passes and therefore is not as fast as other approaches. The most popular alternative is called `wasm-pack`. Check out the [Starter Templates](starter-templates.md) to get up and running quickly.
 
 ### `cargo-web`
 
