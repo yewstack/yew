@@ -2,46 +2,16 @@
 
 ## Build Tools
 
-As shown in [Getting Started](getting-started.md), using `cargo-web` is the quickest way to get up and running. Unfortunately `cargo-web` requires multiple compile passes and therefore is not as fast as other approaches. The most popular alternative is called `wasm-pack`. Check out the [Starter Templates](starter-templates.md) to get up and running quickly.
+You actually don't need extra build tools to release a Yew application but we recommend them. They make deployment and packaging much less of a headache by generating all of the wrapper JavaScript code necessary to run the `.wasm` file from you app in the browser. 
 
-### `cargo-web`
+You can check out the [Starter Templates](starter-templates.md) to get up and running quickly or read on to learn more about your options.
 
-Cargo web is a cargo subcommand for building client web apps. It makes building and deploying web applications. Read more [here](https://github.com/koute/cargo-web).
+## `wasm-pack`
 
-**Install**
-
-```bash
-cargo install cargo-web
-```
-
-#### Build
-
-```bash
-cargo web build
-```
-
-#### Run
-
-```bash
-cargo web start
-```
-
-#### Supported Targets
-
-* `wasm32-unknown-unknown`
-* `wasm32-unknown-emscripten`
-* `asmjs-unknown-emscripten`
+This tool was created by the Rust / Wasm Working Group and is the most actively developed tool for building WebAssembly applications. It supports packaging code into `npm` modules and has an accompanying [Webpack plugin](https://github.com/wasm-tool/wasm-pack-plugin) for easy integration with an existing JavaScript application. Find more information [here](https://rustwasm.github.io/docs/wasm-pack/introduction.html).
 
 {% hint style="info" %}
-For `*-emscripten` targets, `cargo-web` will automatically install the Emscripten SDK and target for you.
-{% endhint %}
-
-### `wasm-pack`
-
-This tool was created by the Rust / Wasm Working Group and is the most actively developed tool for building WebAssembly applications. It supports building to a Node.JS package and has an accompanying Webpack plugin for easy integration with an existing JavaScript application. Find more information [here](https://rustwasm.github.io/docs/wasm-pack/introduction.html).
-
-{% hint style="info" %}
-Note that your crate-type will need to be `cdylib`when using `wasm-pack`
+Note that the crate-type in your `Cargo.toml` will need to be `cdylib`when using `wasm-pack`
 {% endhint %}
 
 **Install**
@@ -77,4 +47,36 @@ python -m SimpleHTTPServer 8080
 #### Supported Targets
 
 * `wasm32-unknown-unknown`
+
+## `cargo-web`
+
+Cargo web is a cargo subcommand for building client web apps. It makes building and deploying web applications incredibly easy. It is also the only toolchain that supports Emscripten targets. Read more [here](https://github.com/koute/cargo-web).
+
+**Install**
+
+```bash
+cargo install cargo-web
+```
+
+#### Build
+
+```bash
+cargo web build
+```
+
+#### Run
+
+```bash
+cargo web start
+```
+
+#### Supported Targets
+
+* `wasm32-unknown-unknown`
+* `wasm32-unknown-emscripten`
+* `asmjs-unknown-emscripten`
+
+{% hint style="info" %}
+For `*-emscripten` targets, `cargo-web` will automatically install the Emscripten SDK and target for you.
+{% endhint %}
 
