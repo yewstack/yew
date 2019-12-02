@@ -11,7 +11,10 @@
 ### Join Us 😊 
 
 * You can report bugs and discuss features on the [GitHub issues page](https://github.com/yewstack/yew/issues)
+* We ❤️pull requests. Check out [good first issues](https://github.com/yewstack/yew/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) if you'd like to help out!
 * Our [Gitter chatroom](https://gitter.im/yewframework/Lobby) is pretty active and is a great place to ask questions
+
+![](https://img.shields.io/github/stars/yewstack/yew?color=009A5B&label=Github%20stars)
 
 ### Ready to dive in?
 
