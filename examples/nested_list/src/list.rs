@@ -1,7 +1,7 @@
 use crate::{header::Props as HeaderProps, ListHeader};
 use crate::{item::Props as ItemProps, ListItem};
 use std::fmt;
-use yew::html::ChildrenRenderer;
+use yew::html::{ChildrenRenderer, NodeRef};
 use yew::prelude::*;
 use yew::virtual_dom::vcomp::ScopeHolder;
 use yew::virtual_dom::{VChild, VComp, VNode};
@@ -155,8 +155,8 @@ where
 impl Into<VNode<List>> for ListVariant {
     fn into(self) -> VNode<List> {
         match self.props {
-            Variants::Header(props) => VComp::new::<ListHeader>(props, self.scope).into(),
-            Variants::Item(props) => VComp::new::<ListItem>(props, self.scope).into(),
+            Variants::Header(props) => VComp::new::<ListHeader>(props, self.scope, NodeRef::default()).into(),
+            Variants::Item(props) => VComp::new::<ListItem>(props, self.scope, NodeRef::default()).into(),
         }
     }
 }
