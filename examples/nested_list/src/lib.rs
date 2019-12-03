@@ -1,4 +1,4 @@
-#![recursion_limit = "256"]
+#![recursion_limit = "512"]
 
 mod app;
 mod header;
@@ -15,6 +15,11 @@ pub enum Hovered {
     List,
     None,
 }
+
+use yew::html::ComponentLink;
+use std::rc::Rc;
+use std::cell::RefCell;
+pub type WeakComponentLink<COMP> = Rc<RefCell<Option<ComponentLink<COMP>>>>;
 
 impl fmt::Display for Hovered {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

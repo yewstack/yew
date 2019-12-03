@@ -1,4 +1,4 @@
-use super::Hovered;
+use super::{Hovered};
 use yew::html::Children;
 use yew::prelude::*;
 

@@ -1,4 +1,5 @@
-use super::Hovered;
+use super::{Hovered, WeakComponentLink};
+use super::list::{List, Msg as ListMsg};
 use yew::prelude::*;
 
 pub struct ListHeader {
@@ -12,6 +13,8 @@ pub struct Props {
     pub on_hover: Callback<Hovered>,
     #[props(required)]
     pub text: String,
+    #[props(required)]
+    pub list_link: WeakComponentLink<List>,
 }
 
 pub enum Msg {
@@ -36,8 +39,11 @@ impl Component for ListHeader {
     }
 
     fn view(&self) -> Html {
+        let list_link = self.props.list_link.borrow().clone().unwrap();
+        let onclick = list_link.callback(|_| ListMsg::HeaderClick);
+        let onmouseover = self.link.callback(|_| Msg::Hover);
         html! {
-            <div class="list-header" onmouseover=self.link.callback(|_| Msg::Hover)>
+            <div class="list-header" onmouseover=onmouseover onclick=onclick>
                 { &self.props.text }
             </div>
         }

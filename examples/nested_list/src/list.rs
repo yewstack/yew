@@ -1,4 +1,4 @@
-use super::Hovered;
+use super::{Hovered, WeakComponentLink};
 use crate::{header::ListHeader, header::Props as HeaderProps};
 use crate::{item::ListItem, item::Props as ItemProps};
 use yew::html::{ChildrenRenderer, NodeRef};
@@ -34,15 +34,19 @@ pub struct Props {
     pub children: ChildrenRenderer<ListVariant>,
     #[props(required)]
     pub on_hover: Callback<Hovered>,
+    #[props(required)]
+    pub weak_link: WeakComponentLink<List>,
 }
 
 pub struct List {
     link: ComponentLink<Self>,
     props: Props,
+    inactive: bool,
 }
 
 pub enum Msg {
     Hover(Hovered),
+    HeaderClick,
 }
 
 impl Component for List {
@@ -50,26 +54,32 @@ impl Component for List {
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        List { link, props }
+        *props.weak_link.borrow_mut() = Some(link.clone());
+        List { link, props, inactive: false }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Hover(hovered) => {
                 self.props.on_hover.emit(hovered);
+                false
+            }
+            Msg::HeaderClick => {
+                self.inactive = !self.inactive;
+                true
             }
         }
-        false
     }
 
     fn view(&self) -> Html {
+        let inactive = if self.inactive { "inactive" } else { "" };
         html! {
             <div
                 class="list-container"
                 onmouseout=self.link.callback(|_| Msg::Hover(Hovered::None))
                 onmouseover=self.link.callback(|_| Msg::Hover(Hovered::List))
             >
-                <div class="list">
+                <div class=vec!["list", inactive]>
                     {self.view_header()}
                     <div class="items">
                         {self.view_items()}

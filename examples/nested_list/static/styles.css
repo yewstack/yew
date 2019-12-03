@@ -35,10 +35,15 @@ html, body {
   min-width: 30vw;
 }
 
+.list.inactive {
+  opacity: 0.5;
+}
+
 .list-header {
   background: #FEECAA;
   border-bottom: 1px solid #666;
   padding: 10px;
+  cursor: pointer;
 }
 
 .list-header:hover {
