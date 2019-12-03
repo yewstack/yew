@@ -194,3 +194,9 @@ pub trait VDiff {
         ancestor: Option<VNode>,
     ) -> Option<Node>;
 }
+
+/// Transform properties to the expected type.
+pub trait Transformer<FROM, TO> {
+    /// Transforms one type to another.
+    fn transform(from: FROM) -> TO;
+}

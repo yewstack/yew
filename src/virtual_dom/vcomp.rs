@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
-use super::{VDiff, VNode};
+use super::{Transformer, VDiff, VNode};
 use crate::html::{Component, ComponentUpdate, HiddenScope, NodeRef, Scope};
 use std::any::TypeId;
 use std::cell::RefCell;
@@ -233,12 +233,6 @@ impl VDiff for VComp {
             }
         }
     }
-}
-
-/// Transform properties to the expected type.
-pub trait Transformer<FROM, TO> {
-    /// Transforms one type to another.
-    fn transform(from: FROM) -> TO;
 }
 
 impl<T> Transformer<T, T> for VComp {
