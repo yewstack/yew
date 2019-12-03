@@ -72,7 +72,8 @@ impl Classes {
     ///
     /// Takes the logical union of both `Classes`.
     pub fn extend<T: Into<Classes>>(mut self, other: T) -> Self {
-        self.set.extend(other.into().set.into_iter().filter(|c| !c.is_empty()));
+        self.set
+            .extend(other.into().set.into_iter().filter(|c| !c.is_empty()));
         self
     }
 }
@@ -91,28 +92,44 @@ impl ToString for Classes {
 
 impl From<&str> for Classes {
     fn from(t: &str) -> Self {
-        let set = t.split_whitespace().map(String::from).filter(|c| !c.is_empty()).collect();
+        let set = t
+            .split_whitespace()
+            .map(String::from)
+            .filter(|c| !c.is_empty())
+            .collect();
         Self { set }
     }
 }
 
 impl From<String> for Classes {
     fn from(t: String) -> Self {
-        let set = t.split_whitespace().map(String::from).filter(|c| !c.is_empty()).collect();
+        let set = t
+            .split_whitespace()
+            .map(String::from)
+            .filter(|c| !c.is_empty())
+            .collect();
         Self { set }
     }
 }
 
 impl From<&String> for Classes {
     fn from(t: &String) -> Self {
-        let set = t.split_whitespace().map(String::from).filter(|c| !c.is_empty()).collect();
+        let set = t
+            .split_whitespace()
+            .map(String::from)
+            .filter(|c| !c.is_empty())
+            .collect();
         Self { set }
     }
 }
 
 impl<T: AsRef<str>> From<Vec<T>> for Classes {
     fn from(t: Vec<T>) -> Self {
-        let set = t.iter().map(|x| x.as_ref().to_string()).filter(|c| !c.is_empty()).collect();
+        let set = t
+            .iter()
+            .map(|x| x.as_ref().to_string())
+            .filter(|c| !c.is_empty())
+            .collect();
         Self { set }
     }
 }
