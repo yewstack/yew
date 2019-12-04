@@ -67,6 +67,11 @@ impl Classes {
         self.set.contains(class)
     }
 
+    /// Check the set is empty.
+    pub fn is_empty(&self) -> bool {
+        self.set.is_empty()
+    }
+
     /// Adds other classes to this set of classes; returning itself.
     ///
     /// Takes the logical union of both `Classes`.
@@ -79,13 +84,11 @@ impl Classes {
 
 impl ToString for Classes {
     fn to_string(&self) -> String {
-        let mut buf = String::new();
-        for class in &self.set {
-            buf.push_str(class);
-            buf.push(' ');
-        }
-        buf.pop();
-        buf
+        self.set
+            .iter()
+            .map(String::as_str)
+            .collect::<Vec<&str>>()
+            .join(" ")
     }
 }
 
