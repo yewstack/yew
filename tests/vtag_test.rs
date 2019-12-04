@@ -228,6 +228,33 @@ fn supports_multiple_classes_vec() {
     }
 }
 
+#[test]
+fn filter_empty_string_classes_vec() {
+    let mut classes = vec![""];
+    classes.push("class-2");
+    let a: VNode<Comp> = html! { <div class=vec![""]></div> };
+    let b: VNode<Comp> = html! { <div class=("")></div> };
+    let c: VNode<Comp> = html! { <div class=""></div> };
+
+    if let VNode::VTag(vtag) = a {
+        assert!(vtag.classes.is_empty());
+    } else {
+        panic!("vtag expected");
+    }
+
+    if let VNode::VTag(vtag) = b {
+        assert!(vtag.classes.is_empty());
+    } else {
+        panic!("vtag expected");
+    }
+
+    if let VNode::VTag(vtag) = c {
+        assert!(vtag.classes.is_empty());
+    } else {
+        panic!("vtag expected");
+    }
+}
+
 fn assert_vtag(node: &mut VNode<Comp>) -> &mut VTag<Comp> {
     if let VNode::VTag(vtag) = node {
         return vtag;
