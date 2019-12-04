@@ -18,6 +18,12 @@ impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
     }
 }
 
+impl<IN> Default for Callback<IN> {
+    fn default() -> Self {
+        Callback(Rc::new(|_| {}))
+    }
+}
+
 impl<IN> Clone for Callback<IN> {
     fn clone(&self) -> Self {
         Callback(self.0.clone())
