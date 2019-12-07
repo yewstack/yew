@@ -11,6 +11,7 @@
 //! use yew::prelude::*;
 //!
 //! struct Model {
+//!     link: ComponentLink<Self>,
 //!     value: i64,
 //! }
 //!
@@ -21,8 +22,9 @@
 //! impl Component for Model {
 //!     type Message = Msg;
 //!     type Properties = ();
-//!     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+//!     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
 //!         Self {
+//!             link,
 //!             value: 0,
 //!         }
 //!     }
@@ -37,7 +39,7 @@
 //!     fn view(&self) -> Html<Self> {
 //!         html! {
 //!             <div>
-//!                <button onclick=|_| Msg::DoIt>{ "+1" }</button>
+//!                 <button onclick=self.link.callback(|_| Msg::DoIt)>{ "+1" }</button>
 //!                 <p>{ self.value }</p>
 //!             </div>
 //!         }

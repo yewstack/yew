@@ -62,7 +62,9 @@ Yew implements strict application state management based on message passing and 
 ```rust
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
-struct Model { }
+struct Model {
+    link: ComponentLink<Self>,
+}
 
 enum Msg {
     DoIt,
@@ -74,8 +76,8 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model { }
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Model { link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -88,9 +90,10 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html<Self> {
+        let onclick = self.link.callback(|_| Msg::DoIt);
         html! {
             // Render your model here
-            <button onclick=|_| Msg::DoIt>{ "Click me!" }</button>
+            <button onclick=onclick>{ "Click me!" }</button>
         }
     }
 }
@@ -362,8 +365,8 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Fire => {
-                let send_msg = self.link.callback(|_| Msg::Timeout);
-                self.timeout.spawn(Duration::from_secs(5), send_msg);
+                let timeout = self.link.callback(|_| Msg::Timeout);
+                self.timeout.spawn(Duration::from_secs(5), timeout);
             }
             Msg::Timeout => {
                 self.console.log("Timeout!");
