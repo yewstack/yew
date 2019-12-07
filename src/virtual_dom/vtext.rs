@@ -1,38 +1,32 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use super::{Reform, VDiff, VNode};
-use crate::html::{Component, Scope};
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
-use std::marker::PhantomData;
 use stdweb::web::{document, Element, INode, Node, TextNode};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// representation.
-pub struct VText<COMP: Component> {
+pub struct VText {
     /// Contains a text of the node.
     pub text: String,
     /// A reference to the `TextNode`.
     pub reference: Option<TextNode>,
-    _comp: PhantomData<COMP>,
 }
 
-impl<COMP: Component> VText<COMP> {
+impl VText {
     /// Creates new virtual text node with a content.
     pub fn new(text: String) -> Self {
         VText {
             text,
             reference: None,
-            _comp: PhantomData,
         }
     }
 }
 
-impl<COMP: Component> VDiff for VText<COMP> {
-    type Component = COMP;
-
+impl VDiff for VText {
     /// Remove VText from parent.
     fn detach(&mut self, parent: &Element) -> Option<Node> {
         let node = self
@@ -51,8 +45,7 @@ impl<COMP: Component> VDiff for VText<COMP> {
         &mut self,
         parent: &Element,
         previous_sibling: Option<&Node>,
-        ancestor: Option<VNode<Self::Component>>,
-        _: &Scope<Self::Component>,
+        ancestor: Option<VNode>,
     ) -> Option<Node> {
         assert!(
             self.reference.is_none(),
@@ -101,14 +94,14 @@ impl<COMP: Component> VDiff for VText<COMP> {
     }
 }
 
-impl<COMP: Component> fmt::Debug for VText<COMP> {
+impl fmt::Debug for VText {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "VText {{ text: {} }}", self.text)
     }
 }
 
-impl<COMP: Component> PartialEq for VText<COMP> {
-    fn eq(&self, other: &VText<COMP>) -> bool {
+impl PartialEq for VText {
+    fn eq(&self, other: &VText) -> bool {
         self.text == other.text
     }
 }
