@@ -1,9 +1,8 @@
 use crate::{header::Props as HeaderProps, ListHeader};
 use crate::{item::Props as ItemProps, ListItem};
 use std::fmt;
-use yew::html::{ChildrenRenderer, NodeRef};
+use yew::html::{ChildrenRenderer, NodeRef, ScopeHolder};
 use yew::prelude::*;
-use yew::virtual_dom::vcomp::ScopeHolder;
 use yew::virtual_dom::{VChild, VComp, VNode};
 
 #[derive(Debug)]

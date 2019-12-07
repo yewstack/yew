@@ -16,6 +16,9 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     Properties(COMP::Properties),
 }
 
+/// A reference to the parent's scope which will be used later to send messages.
+pub type ScopeHolder<PARENT> = Rc<RefCell<Option<Scope<PARENT>>>>;
+
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
     shared_state: Shared<ComponentState<COMP>>,
