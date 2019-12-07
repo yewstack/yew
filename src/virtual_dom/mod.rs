@@ -9,6 +9,7 @@ pub mod vtext;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
 use std::fmt;
+use std::rc::Rc;
 use stdweb::web::{Element, EventListenerHandle, Node};
 
 pub use self::vcomp::{VChild, VComp};
@@ -33,7 +34,7 @@ impl fmt::Debug for dyn Listener {
 }
 
 /// A list of event listeners.
-type Listeners = Vec<Box<dyn Listener>>;
+type Listeners = Vec<Rc<dyn Listener>>;
 
 /// A map of attributes.
 type Attributes = HashMap<String, String>;

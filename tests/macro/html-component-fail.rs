@@ -2,7 +2,7 @@
 
 use yew::prelude::*;
 
-#[derive(Properties, PartialEq)]
+#[derive(Clone, Properties, PartialEq)]
 pub struct ChildProperties {
     pub string: String,
     #[props(required)]
@@ -27,7 +27,7 @@ impl Component for Child {
     }
 }
 
-#[derive(Properties)]
+#[derive(Clone, Properties)]
 pub struct ChildContainerProperties {
     pub children: ChildrenWithProps<Child>,
 }

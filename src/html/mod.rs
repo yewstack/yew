@@ -67,7 +67,7 @@ pub type Html = VNode;
 /// In this example, the `Wrapper` component is used to wrap other elements.
 /// ```
 ///# use yew::{Children, Html, Properties, Component, ComponentLink, html};
-///# #[derive(Properties)]
+///# #[derive(Clone, Properties)]
 ///# struct WrapperProps {
 ///#     children: Children,
 ///# }
@@ -95,7 +95,7 @@ pub type Html = VNode;
 /// children property can be used to render the wrapped elements.
 /// ```
 ///# use yew::{Children, Html, Properties, Renderable, Component, ComponentLink, html};
-/// #[derive(Properties)]
+/// #[derive(Clone, Properties)]
 /// struct WrapperProps {
 ///     children: Children,
 /// }
@@ -127,7 +127,7 @@ pub type Children = ChildrenRenderer<Html>;
 /// ```
 ///# use yew::{html, Component, Renderable, Html, ComponentLink, ChildrenWithProps, Properties};
 ///#
-///# #[derive(Properties)]
+///# #[derive(Clone, Properties)]
 ///# struct ListProps {
 ///#     children: ChildrenWithProps<ListItem>,
 ///# }
@@ -139,7 +139,7 @@ pub type Children = ChildrenRenderer<Html>;
 ///#     fn update(&mut self, msg: Self::Message) -> bool {unimplemented!()}
 ///#     fn view(&self) -> Html {unimplemented!()}
 ///# }
-///# #[derive(Properties)]
+///# #[derive(Clone, Properties)]
 ///# struct ListItemProps {
 ///#     value: String
 ///# }
@@ -169,7 +169,7 @@ pub type Children = ChildrenRenderer<Html>;
 /// ```
 ///# use yew::{html, Component, Html, ChildrenWithProps, ComponentLink, Properties};
 ///#
-/// #[derive(Properties)]
+/// #[derive(Clone, Properties)]
 /// struct ListProps {
 ///   children: ChildrenWithProps<ListItem>,
 /// }
@@ -191,7 +191,7 @@ pub type Children = ChildrenRenderer<Html>;
 ///     }
 /// }
 ///#
-///# #[derive(Properties)]
+///# #[derive(Clone, Properties)]
 ///# struct ListItemProps {
 ///#     value: String
 ///# }
@@ -208,30 +208,33 @@ pub type Children = ChildrenRenderer<Html>;
 pub type ChildrenWithProps<CHILD> = ChildrenRenderer<VChild<CHILD>>;
 
 /// A type used for rendering children html.
+#[derive(Clone)]
 pub struct ChildrenRenderer<T> {
-    len: usize,
-    boxed_render: Box<dyn Fn() -> Vec<T>>,
+    children: Vec<T>,
 }
 
-impl<T> ChildrenRenderer<T> {
+impl<T> ChildrenRenderer<T>
+where
+    T: Clone + Into<VNode>,
+{
     /// Create children
-    pub fn new(len: usize, boxed_render: Box<dyn Fn() -> Vec<T>>) -> Self {
-        Self { len, boxed_render }
+    pub fn new(children: Vec<T>) -> Self {
+        Self { children }
     }
 
     /// Children list is empty
     pub fn is_empty(&self) -> bool {
-        self.len == 0
+        self.children.is_empty()
     }
 
     /// Number of children elements
     pub fn len(&self) -> usize {
-        self.len
+        self.children.len()
     }
 
     /// Build children components and return `Vec`
     pub fn to_vec(&self) -> Vec<T> {
-        (&self.boxed_render)()
+        self.children.clone()
     }
 
     /// Render children components and return `Iterator`
@@ -242,13 +245,8 @@ impl<T> ChildrenRenderer<T> {
 
 impl<T> Default for ChildrenRenderer<T> {
     fn default() -> Self {
-        // False positive: https://github.com/rust-lang/rust-clippy/issues/4002
-        #[allow(clippy::redundant_closure)]
-        let boxed_render = Box::new(|| Vec::new());
-
         Self {
-            len: 0,
-            boxed_render,
+            children: Vec::new(),
         }
     }
 }
@@ -261,7 +259,7 @@ impl<T> fmt::Debug for ChildrenRenderer<T> {
 
 impl<T> Renderable for ChildrenRenderer<T>
 where
-    T: Into<VNode>,
+    T: Clone + Into<VNode>,
 {
     fn render(&self) -> Html {
         VList {
@@ -345,7 +343,7 @@ impl<COMP: Component> Renderable for COMP {
 }
 
 /// Trait for building properties for a component
-pub trait Properties {
+pub trait Properties: Clone {
     /// Builder that will be used to construct properties
     type Builder;
 

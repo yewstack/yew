@@ -109,8 +109,8 @@ error[E0609]: no field `unknown` on type `ChildProperties`
 error[E0599]: no method named `unknown` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
   --> $DIR/html-component-fail.rs:65:20
    |
-5  | #[derive(Properties, PartialEq)]
-   |                   - method `unknown` not found for this
+5  | #[derive(Clone, Properties, PartialEq)]
+   |                          - method `unknown` not found for this
 ...
 65 |     html! { <Child unknown="unknown" /> };
    |                    ^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
@@ -170,8 +170,8 @@ help: you can convert an `u32` to `i32` and panic if the converted value wouldn'
 error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
   --> $DIR/html-component-fail.rs:73:20
    |
-5  | #[derive(Properties, PartialEq)]
-   |                   - method `string` not found for this
+5  | #[derive(Clone, Properties, PartialEq)]
+   |                          - method `string` not found for this
 ...
 73 |     html! { <Child string="abc" /> };
    |                    ^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
@@ -179,8 +179,8 @@ error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<Ch
 error[E0599]: no method named `children` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
   --> $DIR/html-component-fail.rs:77:5
    |
-5  | #[derive(Properties, PartialEq)]
-   |                   - method `children` not found for this
+5  | #[derive(Clone, Properties, PartialEq)]
+   |                          - method `children` not found for this
 ...
 77 |     html! { <Child>{ "Not allowed" }</Child> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`

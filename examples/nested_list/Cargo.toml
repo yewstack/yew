@@ -5,4 +5,6 @@ authors = ["Justin Starry <justin.starry@icloud.com>"]
 edition = "2018"
 
 [dependencies]
+log = "0.4"
+web_logger = "0.2"
 yew = { path = "../.." }
