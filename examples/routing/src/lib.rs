@@ -33,7 +33,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
-        let callback = link.send_back(|route: Route<()>| Msg::HandleRoute(route));
+        let callback = link.callback(|route: Route<()>| Msg::HandleRoute(route));
         let router = router::Router::bridge(callback);
         Model {
             child: Child::Loading, // This should be quickly overwritten by the actual route.

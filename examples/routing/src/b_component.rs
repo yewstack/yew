@@ -22,7 +22,7 @@ impl Component for BModel {
     type Properties = ();
 
     fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
-        let callback = link.send_back(|route: Route<()>| Msg::HandleRoute(route));
+        let callback = link.callback(|route: Route<()>| Msg::HandleRoute(route));
         let mut router = Router::bridge(callback);
 
         router.send(Request::GetCurrentRoute);

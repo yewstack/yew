@@ -427,7 +427,7 @@ where
         use wasm_bindgen_futures::future_to_promise;
 
         let scope = self.scope.clone();
-        let js_future = async {
+        let js_future = async move {
             scope.send_message(future.await);
             Ok(JsValue::NULL)
         };

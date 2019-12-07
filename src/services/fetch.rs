@@ -160,7 +160,7 @@ impl FetchService {
     ///# let post_request: Request<Result<String, failure::Error>> = unimplemented!();
     /// let task = fetch_service.fetch(
     ///     post_request,
-    ///     link.send_back(|response: Response<Result<String, failure::Error>>| {
+    ///     link.callback(|response: Response<Result<String, failure::Error>>| {
     ///         if response.status().is_success() {
     ///             Msg::Noop
     ///         } else {
@@ -201,7 +201,7 @@ impl FetchService {
     ///# fn dont_execute() {
     ///# let mut link: ComponentLink<Comp> = unimplemented!();
     /// let get_request = Request::get("/thing").body(Nothing).unwrap();
-    /// let callback = link.send_back(|response: Response<Json<Result<Data, failure::Error>>>| {
+    /// let callback = link.callback(|response: Response<Json<Result<Data, failure::Error>>>| {
     ///     if let (meta, Json(Ok(body))) = response.into_parts() {
     ///         if meta.status.is_success() {
     ///             return Msg::FetchResourceComplete(body);
@@ -245,7 +245,7 @@ impl FetchService {
     ///# pub enum Msg {}
     ///# fn dont_execute() {
     ///# let mut link: ComponentLink<Comp> = unimplemented!();
-    ///# let callback = link.send_back(|response: Response<Result<String, failure::Error>>| unimplemented!());
+    ///# let callback = link.callback(|response: Response<Result<String, failure::Error>>| unimplemented!());
     /// let request = fetch::Request::get("/path/")
     ///     .body(Nothing)
     ///     .unwrap();

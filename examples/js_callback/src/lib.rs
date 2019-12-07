@@ -43,7 +43,7 @@ impl Component for Model {
                 }
             }
             AsyncPayload => {
-                get_payload_later(self.link.send_back(Msg::Payload));
+                get_payload_later(self.link.callback(Msg::Payload));
                 false
             }
         }

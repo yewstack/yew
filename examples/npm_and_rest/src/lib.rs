@@ -37,7 +37,7 @@ impl Component for Model {
         Model {
             gravatar: GravatarService::new(),
             ccxt: CcxtService::new(),
-            callback: link.send_back(Msg::GravatarReady),
+            callback: link.callback(Msg::GravatarReady),
             profile: None,
             exchanges: Vec::new(),
             task: None,
