@@ -37,7 +37,7 @@ impl Agent for Worker {
     fn create(link: AgentLink<Self>) -> Self {
         let mut interval = IntervalService::new();
         let duration = Duration::from_secs(3);
-        let callback = link.send_back(|_| Msg::Updating);
+        let callback = link.callback(|_| Msg::Updating);
         let task = interval.spawn(duration, callback);
         Worker {
             link,

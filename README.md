@@ -164,7 +164,7 @@ impl Agent for Worker {
         Worker { link }
     }
 
-    // Handle inner messages (of services of `send_back` callbacks)
+    // Handle inner messages (from callbacks)
     fn update(&mut self, msg: Self::Message) { /* ... */ }
 
     // Handle incoming messages from components of other agents.
@@ -195,7 +195,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.send_back(|_| Msg::ContextMsg);
+        let callback = link.callback(|_| Msg::ContextMsg);
         // `Worker::bridge` spawns an instance if no one is available
         let context = context::Worker::bridge(callback); // Connected! :tada:
         Model { context }
@@ -362,7 +362,7 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Fire => {
-                let send_msg = self.link.send_back(|_| Msg::Timeout);
+                let send_msg = self.link.callback(|_| Msg::Timeout);
                 self.timeout.spawn(Duration::from_secs(5), send_msg);
             }
             Msg::Timeout => {

@@ -786,21 +786,20 @@ impl<AGN: Agent> AgentLink<AGN> {
         }
     }
 
-    /// Send response to an actor.
+    /// Send response to an agent.
     pub fn response(&self, id: HandlerId, output: AGN::Output) {
         self.responder.response(id, output);
     }
 
-    /// This method sends messages back to the component's loop.
-    pub fn send_back<F, IN>(&self, function: F) -> Callback<IN>
+    /// Create a callback which will send a message to the agent when invoked.
+    pub fn callback<F, IN>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> AGN::Message + 'static,
     {
         let scope = self.scope.clone();
         let closure = move |input| {
             let output = function(input);
-            let msg = AgentUpdate::Message(output);
-            scope.clone().send(msg);
+            scope.send(AgentUpdate::Message(output));
         };
         closure.into()
     }

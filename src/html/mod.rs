@@ -385,9 +385,9 @@ where
         }
     }
 
-    /// This method sends batch of messages back to the component's loop when the
-    /// returned callback is called.
-    pub fn send_back_batch<F, IN>(&mut self, function: F) -> Callback<IN>
+    /// This method creates a `Callback` which will send a batch of messages back to the linked
+    /// component's update method when called.
+    pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> Vec<COMP::Message> + 'static,
     {
@@ -399,15 +399,16 @@ where
         closure.into()
     }
 
-    /// This method sends messages back to the component's loop when the returned callback is called.
-    pub fn send_back<F, IN>(&mut self, function: F) -> Callback<IN>
+    /// This method creates a `Callback` which will send a message to the linked component's
+    /// update method when invoked.
+    pub fn callback<F, IN>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> COMP::Message + 'static,
     {
         let scope = self.scope.clone();
         let closure = move |input| {
             let output = function(input);
-            scope.clone().send_message(output);
+            scope.send_message(output);
         };
         closure.into()
     }
@@ -425,13 +426,9 @@ where
         use wasm_bindgen::JsValue;
         use wasm_bindgen_futures::future_to_promise;
 
-        let mut scope = self.scope.clone();
-
-        let js_future = async {
-            let message: COMP::Message = future.await;
-            // Force movement of the cloned scope into the async block.
-            let scope_send = move || scope.send_message(message);
-            scope_send();
+        let scope = self.scope.clone();
+        let js_future = async move {
+            scope.send_message(future.await);
             Ok(JsValue::NULL)
         };
         future_to_promise(js_future);
@@ -439,7 +436,7 @@ where
 
     /// This method sends a message to this component to be processed immediately after the
     /// component has been updated and/or rendered.
-    pub fn send_self(&mut self, msg: COMP::Message) {
+    pub fn send_message(&mut self, msg: COMP::Message) {
         self.scope.send_message(msg);
     }
 
@@ -448,7 +445,7 @@ where
     ///
     /// All messages will first be processed by `update`, and if _any_ of them return `true`,
     /// then re-render will occur.
-    pub fn send_self_batch(&mut self, msgs: Vec<COMP::Message>) {
+    pub fn send_message_batch(&mut self, msgs: Vec<COMP::Message>) {
         self.scope.send_message_batch(msgs)
     }
 }

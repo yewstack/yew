@@ -87,7 +87,7 @@ impl Component for Model {
                 self.fetching = true;
                 let task = match format {
                     Format::Json => {
-                        let callback = self.link.send_back(
+                        let callback = self.link.callback(
                             move |response: Response<Json<Result<DataFromFile, Error>>>| {
                                 let (meta, Json(data)) = response.into_parts();
                                 println!("META: {:?}, {:?}", meta, data);
@@ -106,7 +106,7 @@ impl Component for Model {
                         }
                     }
                     Format::Toml => {
-                        let callback = self.link.send_back(
+                        let callback = self.link.callback(
                             move |response: Response<Toml<Result<DataFromFile, Error>>>| {
                                 let (meta, Toml(data)) = response.into_parts();
                                 println!("META: {:?}, {:?}", meta, data);
@@ -129,8 +129,8 @@ impl Component for Model {
             }
             Msg::WsAction(action) => match action {
                 WsAction::Connect => {
-                    let callback = self.link.send_back(|Json(data)| Msg::WsReady(data));
-                    let notification = self.link.send_back(|status| match status {
+                    let callback = self.link.callback(|Json(data)| Msg::WsReady(data));
+                    let notification = self.link.callback(|status| match status {
                         WebSocketStatus::Opened => Msg::Ignore,
                         WebSocketStatus::Closed | WebSocketStatus::Error => WsAction::Lost.into(),
                     });

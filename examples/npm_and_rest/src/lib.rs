@@ -33,11 +33,11 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
             gravatar: GravatarService::new(),
             ccxt: CcxtService::new(),
-            callback: link.send_back(Msg::GravatarReady),
+            callback: link.callback(Msg::GravatarReady),
             profile: None,
             exchanges: Vec::new(),
             task: None,
