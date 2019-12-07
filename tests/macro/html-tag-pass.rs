@@ -37,7 +37,6 @@ pass_helper! {
             </svg>
             <img class=("avatar", "hidden") src="http://pic.com" />
             <img class="avatar hidden", />
-            <button onclick=|e| panic!(e) />
             <button onclick=&onclick />
             <button onclick=onclick />
             <a href="http://google.com" />

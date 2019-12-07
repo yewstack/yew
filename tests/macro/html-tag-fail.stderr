@@ -102,28 +102,10 @@ error: only one `class` attribute allowed
 23 |     html! { <div class="first" class="second" /> };
    |                                ^^^^^
 
-error: there must be one closure argument
-  --> $DIR/html-tag-fail.rs:33:28
-   |
-33 |     html! { <input onclick=|| () /> };
-   |                            ^^
-
-error: there must be one closure argument
-  --> $DIR/html-tag-fail.rs:34:28
-   |
-34 |     html! { <input onclick=|a, b| () /> };
-   |                            ^^^^^^
-
-error: invalid closure argument
-  --> $DIR/html-tag-fail.rs:35:28
-   |
-35 |     html! { <input onclick=|a: String| () /> };
-   |                            ^^^^^^^^^^^
-
 error: only one `ref` attribute allowed
-  --> $DIR/html-tag-fail.rs:40:27
+  --> $DIR/html-tag-fail.rs:38:27
    |
-40 |     html! { <input ref=() ref=() /> };
+38 |     html! { <input ref=() ref=() /> };
    |                           ^^^
 
 error[E0308]: mismatched types
@@ -193,13 +175,22 @@ error[E0308]: mismatched types
    = note: expected type `yew::callback::Callback<stdweb::webapi::events::mouse::ClickEvent>`
               found type `{integer}`
 
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:33:20
+   |
+33 |     html! { <input onclick=Callback::from(|a: String| ()) /> };
+   |                    ^^^^^^^ expected struct `stdweb::webapi::events::mouse::ClickEvent`, found struct `std::string::String`
+   |
+   = note: expected type `yew::callback::Callback<stdweb::webapi::events::mouse::ClickEvent>`
+              found type `yew::callback::Callback<std::string::String>`
+
 error[E0599]: no method named `to_string` found for type `NotToString` in the current scope
-  --> $DIR/html-tag-fail.rs:37:27
+  --> $DIR/html-tag-fail.rs:35:27
    |
 3  | struct NotToString;
    | ------------------- method `to_string` not found for this
 ...
-37 |     html! { <input string=NotToString /> };
+35 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^ method not found in `NotToString`
    |
    = note: the method `to_string` exists but the following trait bounds were not satisfied:
@@ -209,9 +200,9 @@ error[E0599]: no method named `to_string` found for type `NotToString` in the cu
            candidate #1: `std::string::ToString`
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:39:24
+  --> $DIR/html-tag-fail.rs:37:24
    |
-39 |     html! { <input ref=() /> };
+37 |     html! { <input ref=() /> };
    |                        ^^ expected struct `yew::html::NodeRef`, found ()
    |
    = note: expected type `yew::html::NodeRef`
