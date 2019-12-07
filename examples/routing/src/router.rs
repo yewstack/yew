@@ -117,7 +117,7 @@ where
     type Output = Route<T>;
 
     fn create(link: AgentLink<Self>) -> Self {
-        let callback = link.send_back(|route_changed: (String, T)| {
+        let callback = link.callback(|route_changed: (String, T)| {
             Msg::BrowserNavigationRouteChanged(route_changed)
         });
         let mut route_service = RouteService::new();

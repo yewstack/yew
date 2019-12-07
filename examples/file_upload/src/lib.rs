@@ -48,10 +48,10 @@ impl Component for Model {
                 for file in files.into_iter() {
                     let task = {
                         if chunks {
-                            let callback = self.link.send_back(Msg::Chunk);
+                            let callback = self.link.callback(Msg::Chunk);
                             self.reader.read_file_by_chunks(file, callback, 10)
                         } else {
-                            let callback = self.link.send_back(Msg::Loaded);
+                            let callback = self.link.callback(Msg::Loaded);
                             self.reader.read_file(file, callback)
                         }
                     };

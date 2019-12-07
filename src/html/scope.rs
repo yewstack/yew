@@ -90,7 +90,7 @@ impl<COMP: Component> Scope<COMP> {
     }
 
     /// Schedules a task to send a message or new props to a component
-    pub(crate) fn update(&mut self, update: ComponentUpdate<COMP>) {
+    pub(crate) fn update(&self, update: ComponentUpdate<COMP>) {
         let update = UpdateComponent {
             shared_state: self.shared_state.clone(),
             update,
@@ -106,12 +106,12 @@ impl<COMP: Component> Scope<COMP> {
     }
 
     /// Send a message to the component
-    pub fn send_message(&mut self, msg: COMP::Message) {
+    pub fn send_message(&self, msg: COMP::Message) {
         self.update(ComponentUpdate::Message(msg));
     }
 
     /// Send a batch of messages to the component
-    pub fn send_message_batch(&mut self, messages: Vec<COMP::Message>) {
+    pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
         self.update(ComponentUpdate::MessageBatch(messages));
     }
 }
