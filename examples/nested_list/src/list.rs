@@ -1,21 +1,9 @@
 use crate::{header::Props as HeaderProps, ListHeader};
 use crate::{item::Props as ItemProps, ListItem};
-use std::fmt;
-use yew::html::{ChildrenRenderer, NodeRef, ScopeHolder};
+use crate::Hovered;
+use yew::html::{ChildrenRenderer, NodeRef};
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VComp, VNode};
-
-#[derive(Debug)]
-pub enum Hovered {
-    Header,
-    Item(String),
-    List,
-    None,
-}
-
-pub enum Msg {
-    Hover(Hovered),
-}
 
 pub enum Variants {
     Item(<ListItem as Component>::Properties),
@@ -36,59 +24,50 @@ impl From<HeaderProps> for Variants {
 
 pub struct ListVariant {
     props: Variants,
-    scope: ScopeHolder<List>,
 }
 
 #[derive(Properties)]
 pub struct Props {
     #[props(required)]
     pub children: ChildrenRenderer<ListVariant>,
+    #[props(required)]
+    pub on_hover: Callback<Hovered>,
 }
 
 pub struct List {
     props: Props,
-    hovered: Hovered,
 }
 
 impl Component for List {
-    type Message = Msg;
+    type Message = ();
     type Properties = Props;
 
     fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-        List {
-            props,
-            hovered: Hovered::None,
-        }
+        List { props }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::Hover(hovered) => self.hovered = hovered,
-        }
-        true
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+        false
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
+        let onmouseover = self.props.on_hover.reform(|_| Hovered::List);
+        let onmouseout = self.props.on_hover.reform(|_| Hovered::None);
         html! {
-            <div
-                class="list-container"
-                onmouseout=|_| Msg::Hover(Hovered::None)
-                onmouseover=|_| Msg::Hover(Hovered::List)
-            >
+            <div class="list-container" onmouseout=onmouseout onmouseover=onmouseover>
                 <div class="list">
                     {self.view_header()}
                     <div class="items">
                         {self.view_items()}
                     </div>
                 </div>
-                {self.view_last_hovered()}
             </div>
         }
     }
 }
 
 impl List {
-    fn view_header(&self) -> Html<Self> {
+    fn view_header(&self) -> Html {
         html! {{
             for self.props.children.iter().filter(|c| match c.props {
                 Variants::Header(_) => true,
@@ -97,7 +76,7 @@ impl List {
         }}
     }
 
-    fn view_items(&self) -> Html<Self> {
+    fn view_items(&self) -> Html {
         html! {{
             for self.props.children.iter().filter(|c| match &c.props {
                 Variants::Item(props) => !props.hide,
@@ -110,52 +89,25 @@ impl List {
             })
         }}
     }
-
-    fn view_last_hovered(&self) -> Html<Self> {
-        html! {
-            <div class="last-hovered">
-                { "Last hovered:"}
-                <span class="last-hovered-text">
-                    { &self.hovered }
-                </span>
-            </div>
-        }
-    }
 }
 
-impl fmt::Display for Hovered {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Hovered::Header => "Header",
-                Hovered::Item(name) => name,
-                Hovered::List => "List container",
-                Hovered::None => "Nothing",
-            }
-        )
-    }
-}
-
-impl<CHILD> From<VChild<CHILD, List>> for ListVariant
+impl<CHILD> From<VChild<CHILD>> for ListVariant
 where
     CHILD: Component,
     CHILD::Properties: Into<Variants>,
 {
-    fn from(vchild: VChild<CHILD, List>) -> Self {
+    fn from(vchild: VChild<CHILD>) -> Self {
         ListVariant {
             props: vchild.props.into(),
-            scope: vchild.scope,
         }
     }
 }
 
-impl Into<VNode<List>> for ListVariant {
-    fn into(self) -> VNode<List> {
+impl Into<VNode> for ListVariant {
+    fn into(self) -> VNode {
         match self.props {
-            Variants::Header(props) => VComp::new::<ListHeader>(props, self.scope, NodeRef::default()).into(),
-            Variants::Item(props) => VComp::new::<ListItem>(props, self.scope, NodeRef::default()).into(),
+            Variants::Header(props) => VComp::new::<ListHeader>(props, NodeRef::default()).into(),
+            Variants::Item(props) => VComp::new::<ListItem>(props, NodeRef::default()).into(),
         }
     }
 }
