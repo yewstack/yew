@@ -1,8 +1,8 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
-use super::{VDiff, VNode};
+use super::{Transformer, VDiff, VNode};
 use crate::callback::Callback;
-use crate::html::{Component, ComponentUpdate, HiddenScope, NodeRef, Scope};
+use crate::html::{Component, ComponentUpdate, HiddenScope, NodeRef, Scope, ScopeHolder};
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::fmt;
@@ -17,9 +17,6 @@ enum GeneratorType {
     Mount(Element, TextNode),
     Overwrite(HiddenScope),
 }
-
-/// A reference to the parent's scope which will be used later to send messages.
-pub type ScopeHolder<PARENT> = Rc<RefCell<Option<Scope<PARENT>>>>;
 
 /// A virtual component.
 pub struct VComp<PARENT: Component> {
@@ -131,12 +128,6 @@ impl<PARENT: Component> VComp<PARENT> {
     }
 }
 
-/// Transforms properties and attaches a parent scope holder to callbacks for sending messages.
-pub trait Transformer<PARENT: Component, FROM, TO> {
-    /// Transforms one type to another.
-    fn transform(scope_holder: ScopeHolder<PARENT>, from: FROM) -> TO;
-}
-
 impl<PARENT, T> Transformer<PARENT, T, T> for VComp<PARENT>
 where
     PARENT: Component,
@@ -189,15 +180,7 @@ where
     F: Fn(IN) -> PARENT::Message + 'static,
 {
     fn transform(scope: ScopeHolder<PARENT>, from: F) -> Option<Callback<IN>> {
-        let callback = move |arg| {
-            let msg = from(arg);
-            if let Some(ref mut sender) = *scope.borrow_mut() {
-                sender.send_message(msg);
-            } else {
-                panic!("Parent component hasn't activated this callback yet");
-            }
-        };
-        Some(callback.into())
+        Some(VComp::<PARENT>::transform(scope, from))
     }
 }
 
