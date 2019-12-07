@@ -155,7 +155,7 @@ impl FetchService {
     ///#     Error
     ///# }
     ///# fn dont_execute() {
-    ///# let mut link: ComponentLink<Comp> = unimplemented!();
+    ///# let link: ComponentLink<Comp> = unimplemented!();
     ///# let mut fetch_service: FetchService = FetchService::new();
     ///# let post_request: Request<Result<String, failure::Error>> = unimplemented!();
     /// let task = fetch_service.fetch(
@@ -199,7 +199,7 @@ impl FetchService {
     /// }
     ///
     ///# fn dont_execute() {
-    ///# let mut link: ComponentLink<Comp> = unimplemented!();
+    ///# let link: ComponentLink<Comp> = unimplemented!();
     /// let get_request = Request::get("/thing").body(Nothing).unwrap();
     /// let callback = link.callback(|response: Response<Json<Result<Data, failure::Error>>>| {
     ///     if let (meta, Json(Ok(body))) = response.into_parts() {
@@ -244,7 +244,7 @@ impl FetchService {
     ///# }
     ///# pub enum Msg {}
     ///# fn dont_execute() {
-    ///# let mut link: ComponentLink<Comp> = unimplemented!();
+    ///# let link: ComponentLink<Comp> = unimplemented!();
     ///# let callback = link.callback(|response: Response<Result<String, failure::Error>>| unimplemented!());
     /// let request = fetch::Request::get("/path/")
     ///     .body(Nothing)

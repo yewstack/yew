@@ -26,7 +26,7 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.callback(|_| Msg::DataReceived);
         let worker = native_worker::Worker::bridge(callback);
 

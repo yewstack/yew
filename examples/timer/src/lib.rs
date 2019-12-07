@@ -27,7 +27,7 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         // This callback doesn't send any message to a scope
         let callback = |_| {
             println!("Example of a standalone callback.");
