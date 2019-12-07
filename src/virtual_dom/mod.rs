@@ -16,26 +16,25 @@ pub use self::vlist::VList;
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
-use crate::html::{Component, Scope};
+use crate::html::{Component, Scope, ScopeHolder};
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
-pub trait Listener<COMP: Component> {
+pub trait Listener {
     /// Returns standard name of DOM's event.
     fn kind(&self) -> &'static str;
-    /// Attaches listener to the element and uses scope instance to send
-    /// prepared event back to the yew main loop.
-    fn attach(&mut self, element: &Element, scope: Scope<COMP>) -> EventListenerHandle;
+    /// Attaches a listener to the element.
+    fn attach(&self, element: &Element) -> EventListenerHandle;
 }
 
-impl<COMP: Component> fmt::Debug for dyn Listener<COMP> {
+impl fmt::Debug for dyn Listener {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Listener {{ kind: {} }}", self.kind())
     }
 }
 
 /// A list of event listeners.
-type Listeners<COMP> = Vec<Box<dyn Listener<COMP>>>;
+type Listeners = Vec<Box<dyn Listener>>;
 
 /// A map of attributes.
 type Attributes = HashMap<String, String>;
@@ -200,4 +199,10 @@ pub trait VDiff {
         ancestor: Option<VNode<Self::Component>>,
         parent_scope: &Scope<Self::Component>,
     ) -> Option<Node>;
+}
+
+/// Transforms properties and attaches a parent scope holder to callbacks for sending messages.
+pub trait Transformer<PARENT: Component, FROM, TO> {
+    /// Transforms one type to another.
+    fn transform(scope_holder: ScopeHolder<PARENT>, from: FROM) -> TO;
 }

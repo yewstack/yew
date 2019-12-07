@@ -140,7 +140,7 @@ impl ToTokens for HtmlComponent {
             Props::List(ListProps { props, .. }) => {
                 let set_props = props.iter().map(|HtmlProp { label, value }| {
                     quote_spanned! { value.span()=>
-                        .#label(<::yew::virtual_dom::vcomp::VComp<_> as ::yew::virtual_dom::vcomp::Transformer<_, _, _>>::transform(#vcomp_scope.clone(), #value))
+                        .#label(<::yew::virtual_dom::vcomp::VComp<_> as ::yew::virtual_dom::Transformer<_, _, _>>::transform(#vcomp_scope.clone(), #value))
                     }
                 });
 
@@ -181,7 +181,7 @@ impl ToTokens for HtmlComponent {
                 #validate_props
             }
 
-            let #vcomp_scope: ::yew::virtual_dom::vcomp::ScopeHolder<_> = ::std::default::Default::default();
+            let #vcomp_scope: ::yew::html::ScopeHolder<_> = ::std::default::Default::default();
             let __yew_node_ref: ::yew::html::NodeRef = #node_ref;
             ::yew::virtual_dom::VChild::<#ty, _>::new(#init_props, #vcomp_scope, __yew_node_ref)
         }});
