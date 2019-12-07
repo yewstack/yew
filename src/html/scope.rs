@@ -291,3 +291,32 @@ where
         });
     }
 }
+
+struct Hidden;
+
+pub(crate) struct HiddenScope {
+    type_id: TypeId,
+    scope: *mut Hidden,
+}
+
+impl<COMP: Component> From<Scope<COMP>> for HiddenScope {
+    fn from(scope: Scope<COMP>) -> Self {
+        HiddenScope {
+            type_id: TypeId::of::<COMP>(),
+            scope: Box::into_raw(Box::new(scope)) as *mut Hidden,
+        }
+    }
+}
+
+impl<COMP: Component> Into<Scope<COMP>> for HiddenScope {
+    fn into(self: HiddenScope) -> Scope<COMP> {
+        if self.type_id != TypeId::of::<COMP>() {
+            panic!("encountered unespected component type");
+        }
+
+        unsafe {
+            let raw: *mut Scope<COMP> = self.scope as *mut Scope<COMP>;
+            *Box::from_raw(raw)
+        }
+    }
+}
