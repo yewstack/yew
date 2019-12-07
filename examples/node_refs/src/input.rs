@@ -5,7 +5,7 @@ pub struct InputComponent {
     link: ComponentLink<Self>,
 }
 
-#[derive(Properties)]
+#[derive(Clone, Properties)]
 pub struct Props {
     #[props(required)]
     pub on_hover: Callback<()>,
@@ -32,7 +32,7 @@ impl Component for InputComponent {
         false
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <input
                 type="text"

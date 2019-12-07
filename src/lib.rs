@@ -36,7 +36,7 @@
 //!         true
 //!     }
 //!
-//!     fn view(&self) -> Html<Self> {
+//!     fn view(&self) -> Html {
 //!         html! {
 //!             <div>
 //!                 <button onclick=self.link.callback(|_| Msg::DoIt)>{ "+1" }</button>
