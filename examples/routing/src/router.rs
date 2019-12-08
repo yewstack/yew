@@ -137,13 +137,13 @@ where
                 let mut route = Route::current_route(&self.route_service);
                 route.state = state;
                 for sub in self.subscribers.iter() {
-                    self.link.response(*sub, route.clone());
+                    self.link.respond(*sub, route.clone());
                 }
             }
         }
     }
 
-    fn handle(&mut self, msg: Self::Input, who: HandlerId) {
+    fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
         info!("Request: {:?}", msg);
         match msg {
             Request::ChangeRoute(route) => {
@@ -154,7 +154,7 @@ where
                 let route = Route::current_route(&self.route_service);
                 // broadcast it to all listening components
                 for sub in self.subscribers.iter() {
-                    self.link.response(*sub, route.clone());
+                    self.link.respond(*sub, route.clone());
                 }
             }
             Request::ChangeRouteNoBroadcast(route) => {
@@ -163,14 +163,14 @@ where
             }
             Request::GetCurrentRoute => {
                 let route = Route::current_route(&self.route_service);
-                self.link.response(who, route.clone());
+                self.link.respond(who, route.clone());
             }
         }
     }
 
     fn connected(&mut self, id: HandlerId) {
         self.link
-            .response(id, Route::current_route(&self.route_service));
+            .respond(id, Route::current_route(&self.route_service));
         self.subscribers.insert(id);
     }
 

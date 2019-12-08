@@ -171,10 +171,10 @@ impl Agent for Worker {
     fn update(&mut self, msg: Self::Message) { /* ... */ }
 
     // Handle incoming messages from components of other agents.
-    fn handle(&mut self, msg: Self::Input, who: HandlerId) {
+    fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
         match msg {
             Request::Question(_) => {
-                self.link.response(who, Response::Answer("That's cool!".into()));
+                self.link.respond(who, Response::Answer("That's cool!".into()));
             },
         }
     }

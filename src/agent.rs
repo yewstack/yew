@@ -142,25 +142,25 @@ where
         let scope = AgentScope::<T>::new();
         let responder = WorkerResponder {};
         let link = AgentLink::connect(&scope, responder);
-        let upd = AgentUpdate::Create(link);
+        let upd = AgentLifecycleEvent::Create(link);
         scope.send(upd);
         let handler = move |data: Vec<u8>| {
             let msg = ToWorker::<T::Input>::unpack(&data);
             match msg {
                 ToWorker::Connected(id) => {
-                    let upd = AgentUpdate::Connected(id);
+                    let upd = AgentLifecycleEvent::Connected(id);
                     scope.send(upd);
                 }
                 ToWorker::ProcessInput(id, value) => {
-                    let upd = AgentUpdate::Input(value, id);
+                    let upd = AgentLifecycleEvent::Input(value, id);
                     scope.send(upd);
                 }
                 ToWorker::Disconnected(id) => {
-                    let upd = AgentUpdate::Disconnected(id);
+                    let upd = AgentLifecycleEvent::Disconnected(id);
                     scope.send(upd);
                 }
                 ToWorker::Destroy => {
-                    let upd = AgentUpdate::Destroy;
+                    let upd = AgentLifecycleEvent::Destroy;
                     scope.send(upd);
                     js! {
                         // Terminates web worker
@@ -288,10 +288,10 @@ impl Discoverer for Context {
         });
         if let Some((scope, responder)) = scope_to_init {
             let agent_link = AgentLink::connect(&scope, responder);
-            let upd = AgentUpdate::Create(agent_link);
+            let upd = AgentLifecycleEvent::Create(agent_link);
             scope.send(upd);
         }
-        let upd = AgentUpdate::Connected(bridge.id);
+        let upd = AgentLifecycleEvent::Connected(bridge.id);
         bridge.scope.send(upd);
         Box::new(bridge)
     }
@@ -304,7 +304,7 @@ struct SlabResponder<AGN: Agent> {
 }
 
 impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
-    fn response(&self, id: HandlerId, output: AGN::Output) {
+    fn respond(&self, id: HandlerId, output: AGN::Output) {
         locate_callback_and_respond::<AGN>(&self.slab, id, output);
     }
 }
@@ -330,7 +330,7 @@ struct ContextBridge<AGN: Agent> {
 
 impl<AGN: Agent> Bridge<AGN> for ContextBridge<AGN> {
     fn send(&mut self, msg: AGN::Input) {
-        let upd = AgentUpdate::Input(msg, self.id);
+        let upd = AgentLifecycleEvent::Input(msg, self.id);
         self.scope.send(upd);
     }
 }
@@ -346,11 +346,11 @@ impl<AGN: Agent> Drop for ContextBridge<AGN> {
                 }
             };
 
-            let upd = AgentUpdate::Disconnected(self.id);
+            let upd = AgentLifecycleEvent::Disconnected(self.id);
             self.scope.send(upd);
 
             if terminate_worker {
-                let upd = AgentUpdate::Destroy;
+                let upd = AgentLifecycleEvent::Destroy;
                 self.scope.send(upd);
                 pool.borrow_mut().remove::<LocalAgent<AGN>>();
             }
@@ -368,9 +368,9 @@ impl Discoverer for Job {
         let scope = AgentScope::<AGN>::new();
         let responder = CallbackResponder { callback };
         let agent_link = AgentLink::connect(&scope, responder);
-        let upd = AgentUpdate::Create(agent_link);
+        let upd = AgentLifecycleEvent::Create(agent_link);
         scope.send(upd);
-        let upd = AgentUpdate::Connected(SINGLETON_ID);
+        let upd = AgentLifecycleEvent::Connected(SINGLETON_ID);
         scope.send(upd);
         let bridge = JobBridge { scope };
         Box::new(bridge)
@@ -384,7 +384,7 @@ struct CallbackResponder<AGN: Agent> {
 }
 
 impl<AGN: Agent> Responder<AGN> for CallbackResponder<AGN> {
-    fn response(&self, id: HandlerId, output: AGN::Output) {
+    fn respond(&self, id: HandlerId, output: AGN::Output) {
         assert_eq!(id.raw_id(), SINGLETON_ID.raw_id());
         self.callback.emit(output);
     }
@@ -396,16 +396,16 @@ struct JobBridge<AGN: Agent> {
 
 impl<AGN: Agent> Bridge<AGN> for JobBridge<AGN> {
     fn send(&mut self, msg: AGN::Input) {
-        let upd = AgentUpdate::Input(msg, SINGLETON_ID);
+        let upd = AgentLifecycleEvent::Input(msg, SINGLETON_ID);
         self.scope.send(upd);
     }
 }
 
 impl<AGN: Agent> Drop for JobBridge<AGN> {
     fn drop(&mut self) {
-        let upd = AgentUpdate::Disconnected(SINGLETON_ID);
+        let upd = AgentLifecycleEvent::Disconnected(SINGLETON_ID);
         self.scope.send(upd);
-        let upd = AgentUpdate::Destroy;
+        let upd = AgentLifecycleEvent::Destroy;
         self.scope.send(upd);
     }
 }
@@ -692,7 +692,7 @@ pub trait Agent: Sized + 'static {
     fn connected(&mut self, _id: HandlerId) {}
 
     /// This method called on every incoming message.
-    fn handle(&mut self, msg: Self::Input, id: HandlerId);
+    fn handle_input(&mut self, msg: Self::Input, id: HandlerId);
 
     /// This method called on when a new bridge destroyed.
     fn disconnected(&mut self, _id: HandlerId) {}
@@ -733,7 +733,7 @@ impl<AGN: Agent> AgentScope<AGN> {
         AgentScope { shared_agent }
     }
     /// Schedule message for sending to agent
-    pub fn send(&self, update: AgentUpdate<AGN>) {
+    pub fn send(&self, update: AgentLifecycleEvent<AGN>) {
         let envelope = AgentEnvelope {
             shared_agent: self.shared_agent.clone(),
             update,
@@ -752,13 +752,13 @@ impl<AGN: Agent> Default for AgentScope<AGN> {
 /// Defines communication from Worker to Consumers
 pub trait Responder<AGN: Agent> {
     /// Implementation for communication channel from Worker to Consumers
-    fn response(&self, id: HandlerId, output: AGN::Output);
+    fn respond(&self, id: HandlerId, output: AGN::Output);
 }
 
 struct WorkerResponder {}
 
 impl<AGN: Agent> Responder<AGN> for WorkerResponder {
-    fn response(&self, id: HandlerId, output: AGN::Output) {
+    fn respond(&self, id: HandlerId, output: AGN::Output) {
         let msg = FromWorker::ProcessOutput(id, output);
         let data = msg.pack();
         js! {
@@ -787,8 +787,8 @@ impl<AGN: Agent> AgentLink<AGN> {
     }
 
     /// Send response to an agent.
-    pub fn response(&self, id: HandlerId, output: AGN::Output) {
-        self.responder.response(id, output);
+    pub fn respond(&self, id: HandlerId, output: AGN::Output) {
+        self.responder.respond(id, output);
     }
 
     /// Create a callback which will send a message to the agent when invoked.
@@ -799,7 +799,7 @@ impl<AGN: Agent> AgentLink<AGN> {
         let scope = self.scope.clone();
         let closure = move |input| {
             let output = function(input);
-            scope.send(AgentUpdate::Message(output));
+            scope.send(AgentLifecycleEvent::Message(output));
         };
         closure.into()
     }
@@ -828,7 +828,7 @@ impl<AGN> AgentRunnable<AGN> {
 
 /// Local Agent messages
 #[derive(Debug)]
-pub enum AgentUpdate<AGN: Agent> {
+pub enum AgentLifecycleEvent<AGN: Agent> {
     /// Request to create link
     Create(AgentLink<AGN>),
     /// Internal Agent message
@@ -845,7 +845,7 @@ pub enum AgentUpdate<AGN: Agent> {
 
 struct AgentEnvelope<AGN: Agent> {
     shared_agent: Shared<AgentRunnable<AGN>>,
-    update: AgentUpdate<AGN>,
+    update: AgentLifecycleEvent<AGN>,
 }
 
 impl<AGN> Runnable for AgentEnvelope<AGN>
@@ -858,34 +858,34 @@ where
             return;
         }
         match self.update {
-            AgentUpdate::Create(link) => {
+            AgentLifecycleEvent::Create(link) => {
                 this.agent = Some(AGN::create(link));
             }
-            AgentUpdate::Message(msg) => {
+            AgentLifecycleEvent::Message(msg) => {
                 this.agent
                     .as_mut()
                     .expect("agent was not created to process messages")
                     .update(msg);
             }
-            AgentUpdate::Connected(id) => {
+            AgentLifecycleEvent::Connected(id) => {
                 this.agent
                     .as_mut()
                     .expect("agent was not created to send a connected message")
                     .connected(id);
             }
-            AgentUpdate::Input(inp, id) => {
+            AgentLifecycleEvent::Input(inp, id) => {
                 this.agent
                     .as_mut()
                     .expect("agent was not created to process inputs")
-                    .handle(inp, id);
+                    .handle_input(inp, id);
             }
-            AgentUpdate::Disconnected(id) => {
+            AgentLifecycleEvent::Disconnected(id) => {
                 this.agent
                     .as_mut()
                     .expect("agent was not created to send a disconnected message")
                     .disconnected(id);
             }
-            AgentUpdate::Destroy => {
+            AgentLifecycleEvent::Destroy => {
                 let mut agent = this
                     .agent
                     .take()
