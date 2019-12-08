@@ -41,6 +41,7 @@ impl Component for Model {
         let context_2 = context::Worker::bridge(callback);
 
         Model {
+            link,
             worker,
             job,
             context,
