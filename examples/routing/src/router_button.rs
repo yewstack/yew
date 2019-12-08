@@ -9,6 +9,7 @@ use yew::agent::Dispatcher;
 
 /// Changes the route when clicked.
 pub struct RouterButton {
+    link: ComponentLink<Self>,
     router: Dispatcher<Router<()>>,
     props: Props,
 }
@@ -34,10 +35,14 @@ impl Component for RouterButton {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let router = Router::dispatcher();
 
-        RouterButton { router, props }
+        RouterButton {
+            link,
+            router,
+            props,
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -66,11 +71,11 @@ impl Component for RouterButton {
         true
     }
 
-    fn view(&self) -> Html<RouterButton> {
+    fn view(&self) -> Html<Self> {
         html! {
             <button
                 class=self.props.classes.clone(),
-                onclick=|_| Msg::Clicked,
+                onclick=self.link.callback(|_| Msg::Clicked),
                 disabled=self.props.disabled,
             >
                 {&self.props.text}

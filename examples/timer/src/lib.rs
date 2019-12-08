@@ -5,6 +5,7 @@ use yew::services::{ConsoleService, IntervalService, Task, TimeoutService};
 use yew::{html, Callback, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
+    link: ComponentLink<Self>,
     timeout: TimeoutService,
     interval: IntervalService,
     console: ConsoleService,
@@ -36,6 +37,7 @@ impl Component for Model {
         let handle = interval.spawn(Duration::from_secs(10), callback.into());
 
         Model {
+            link: link.clone(),
             timeout: TimeoutService::new(),
             interval,
             console: ConsoleService::new(),
@@ -104,9 +106,12 @@ impl Component for Model {
         let has_job = self.job.is_some();
         html! {
             <div>
-                <button disabled=has_job onclick=|_| Msg::StartTimeout>{ "Start Timeout" }</button>
-                <button disabled=has_job onclick=|_| Msg::StartInterval>{ "Start Interval" }</button>
-                <button disabled=!has_job onclick=|_| Msg::Cancel>{ "Cancel!" }</button>
+                <button disabled=has_job
+                        onclick=self.link.callback(|_| Msg::StartTimeout)>{ "Start Timeout" }</button>
+                <button disabled=has_job
+                        onclick=self.link.callback(|_| Msg::StartInterval)>{ "Start Interval" }</button>
+                <button disabled=!has_job
+                        onclick=self.link.callback(|_| Msg::Cancel)>{ "Cancel!" }</button>
                 <div>
                     { for self.messages.iter().map(view_message) }
                 </div>

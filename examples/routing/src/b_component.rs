@@ -1,9 +1,10 @@
 use crate::router::{Request, Route, Router};
 use log::info;
 use yew::agent::Bridged;
-use yew::{html, Bridge, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Bridge, Component, ComponentLink, Html, InputData, ShouldRender};
 
 pub struct BModel {
+    link: ComponentLink<Self>,
     number: Option<usize>,
     sub_path: Option<String>,
     router: Box<dyn Bridge<Router<()>>>,
@@ -28,6 +29,7 @@ impl Component for BModel {
         router.send(Request::GetCurrentRoute);
 
         BModel {
+            link,
             number: None,
             sub_path: None,
             router,
@@ -111,8 +113,8 @@ impl Component for BModel {
             <div>
                 <div>
                     { self.display_number() }
-                    <button onclick=|_| Msg::Navigate(vec![Msg::Increment])>{ "Increment" }</button>
-                    <button onclick=|_| Msg::Navigate(vec![Msg::Decrement])>{ "Decrement" }</button>
+                    <button onclick=self.link.callback(|_| Msg::Navigate(vec![Msg::Increment]))>{ "Increment" }</button>
+                    <button onclick=self.link.callback(|_| Msg::Navigate(vec![Msg::Decrement]))>{ "Decrement" }</button>
                 </div>
 
                 { self.display_subpath_input() }
@@ -130,12 +132,12 @@ impl BModel {
             format!("Number: None")
         }
     }
-    fn display_subpath_input(&self) -> Html<BModel> {
+    fn display_subpath_input(&self) -> Html<Self> {
         let sub_path = self.sub_path.clone();
         html! {
             <input placeholder="subpath"
                 value=sub_path.unwrap_or("".into())
-                oninput=|e| Msg::Navigate(vec![Msg::UpdateSubpath(e.value)]) />
+                oninput=self.link.callback(|e: InputData| Msg::Navigate(vec![Msg::UpdateSubpath(e.value)])) />
         }
     }
 }

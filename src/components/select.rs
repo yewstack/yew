@@ -9,12 +9,12 @@
 //!     First,
 //!     Second,
 //! }
-//!# struct Model;
+//!# struct Model { link: ComponentLink<Self> };
 //!# impl Component for Model {
 //!#     type Message = ();type Properties = ();
 //!#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
 //!#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-//!#     fn view(&self) -> Html<Model> {unimplemented!()}}
+//!#     fn view(&self) -> Html<Self> {unimplemented!()}}
 //! impl ToString for Scene {
 //!     fn to_string(&self) -> String {
 //!         match self {
@@ -24,10 +24,10 @@
 //!     }
 //! }
 //!
-//! fn view() -> Html<Model> {
+//! fn view(link: ComponentLink<Model>) -> Html<Model> {
 //!     let scenes = vec![Scene::First, Scene::Second];
 //!     html! {
-//!         <Select<Scene> options=scenes onchange=|_| () />
+//!         <Select<Scene> options=scenes onchange=link.callback(|_| ()) />
 //!     }
 //! }
 //! ```
@@ -38,8 +38,9 @@ use crate::macros::{html, Properties};
 
 /// `Select` component.
 #[derive(Debug)]
-pub struct Select<T> {
+pub struct Select<T: ToString + PartialEq + Clone + 'static> {
     props: Props<T>,
+    link: ComponentLink<Self>,
 }
 
 /// Internal message of the component.
@@ -50,8 +51,8 @@ pub enum Msg {
 }
 
 /// Properties of `Select` component.
-#[derive(PartialEq, Properties, Debug)]
-pub struct Props<T> {
+#[derive(PartialEq, Clone, Properties, Debug)]
+pub struct Props<T: Clone> {
     /// Initially selected value.
     pub selected: Option<T>,
     /// Disabled the component's selector.
@@ -70,8 +71,8 @@ where
     type Message = Msg;
     type Properties = Props<T>;
 
-    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Self { props }
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Self { props, link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -101,24 +102,31 @@ where
                 <option selected=flag>{ value.to_string() }</option>
             }
         };
+
         html! {
-            <select disabled=self.props.disabled
-                    onchange=|event| {
-                        match event {
-                            ChangeData::Select(elem) => {
-                                let value = elem.selected_index().map(|x| x as usize);
-                                Msg::Selected(value)
-                            }
-                            _ => {
-                                unreachable!();
-                            }
-                        }
-                    }>
+            <select disabled=self.props.disabled onchange=self.onchange()>
                 <option disabled=true selected=selected.is_none()>
                     { "↪" }
                 </option>
                 { for self.props.options.iter().map(view_option) }
             </select>
         }
+    }
+}
+
+impl<T> Select<T>
+where
+    T: ToString + PartialEq + Clone + 'static,
+{
+    fn onchange(&self) -> Callback<ChangeData> {
+        self.link.callback(|event| match event {
+            ChangeData::Select(elem) => {
+                let value = elem.selected_index().map(|x| x as usize);
+                Msg::Selected(value)
+            }
+            _ => {
+                unreachable!();
+            }
+        })
     }
 }
