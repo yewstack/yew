@@ -59,7 +59,7 @@ impl Agent for Worker {
         info!("Request: {:?}", msg);
         match msg {
             Request::GetDataFromServer => {
-                self.link.response(who, Response::DataFetched);
+                self.link.respond(who, Response::DataFetched);
             }
         }
     }

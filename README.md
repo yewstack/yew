@@ -174,7 +174,7 @@ impl Agent for Worker {
     fn handle(&mut self, msg: Self::Input, who: HandlerId) {
         match msg {
             Request::Question(_) => {
-                self.link.response(who, Response::Answer("That's cool!".into()));
+                self.link.respond(who, Response::Answer("That's cool!".into()));
             },
         }
     }

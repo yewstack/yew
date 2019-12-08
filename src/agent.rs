@@ -787,7 +787,7 @@ impl<AGN: Agent> AgentLink<AGN> {
     }
 
     /// Send response to an agent.
-    pub fn response(&self, id: HandlerId, output: AGN::Output) {
+    pub fn respond(&self, id: HandlerId, output: AGN::Output) {
         self.responder.respond(id, output);
     }
 
