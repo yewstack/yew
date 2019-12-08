@@ -398,3 +398,12 @@ fn it_checks_mixed_closing_tags() {
     let b = html! { <div> <div></div> </div> };
     assert_eq!(a, b);
 }
+
+#[test]
+fn it_checks_misleading_gt() {
+    html! { <div data-val=<u32 as Default>::default()></div> };
+    html! { <div data-val=Box::<u32>::default()></div> };
+
+    html! { <div><a data-val=<u32 as Default>::default() /> </div> };
+    html! { <div><a data-val=Box::<u32>::default() /></div> };
+}
