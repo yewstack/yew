@@ -304,7 +304,7 @@ struct SlabResponder<AGN: Agent> {
 }
 
 impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
-    fn response(&self, id: HandlerId, output: AGN::Output) {
+    fn respond(&self, id: HandlerId, output: AGN::Output) {
         locate_callback_and_respond::<AGN>(&self.slab, id, output);
     }
 }
@@ -384,7 +384,7 @@ struct CallbackResponder<AGN: Agent> {
 }
 
 impl<AGN: Agent> Responder<AGN> for CallbackResponder<AGN> {
-    fn response(&self, id: HandlerId, output: AGN::Output) {
+    fn respond(&self, id: HandlerId, output: AGN::Output) {
         assert_eq!(id.raw_id(), SINGLETON_ID.raw_id());
         self.callback.emit(output);
     }
@@ -752,13 +752,13 @@ impl<AGN: Agent> Default for AgentScope<AGN> {
 /// Defines communication from Worker to Consumers
 pub trait Responder<AGN: Agent> {
     /// Implementation for communication channel from Worker to Consumers
-    fn response(&self, id: HandlerId, output: AGN::Output);
+    fn respond(&self, id: HandlerId, output: AGN::Output);
 }
 
 struct WorkerResponder {}
 
 impl<AGN: Agent> Responder<AGN> for WorkerResponder {
-    fn response(&self, id: HandlerId, output: AGN::Output) {
+    fn respond(&self, id: HandlerId, output: AGN::Output) {
         let msg = FromWorker::ProcessOutput(id, output);
         let data = msg.pack();
         js! {
@@ -788,7 +788,7 @@ impl<AGN: Agent> AgentLink<AGN> {
 
     /// Send response to an agent.
     pub fn response(&self, id: HandlerId, output: AGN::Output) {
-        self.responder.response(id, output);
+        self.responder.respond(id, output);
     }
 
     /// Create a callback which will send a message to the agent when invoked.
