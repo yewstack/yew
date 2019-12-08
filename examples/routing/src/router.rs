@@ -143,7 +143,7 @@ where
         }
     }
 
-    fn handle(&mut self, msg: Self::Input, who: HandlerId) {
+    fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
         info!("Request: {:?}", msg);
         match msg {
             Request::ChangeRoute(route) => {

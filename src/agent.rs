@@ -692,7 +692,7 @@ pub trait Agent: Sized + 'static {
     fn connected(&mut self, _id: HandlerId) {}
 
     /// This method called on every incoming message.
-    fn handle(&mut self, msg: Self::Input, id: HandlerId);
+    fn handle_input(&mut self, msg: Self::Input, id: HandlerId);
 
     /// This method called on when a new bridge destroyed.
     fn disconnected(&mut self, _id: HandlerId) {}
@@ -877,7 +877,7 @@ where
                 this.agent
                     .as_mut()
                     .expect("agent was not created to process inputs")
-                    .handle(inp, id);
+                    .handle_input(inp, id);
             }
             AgentLifecycleEvent::Disconnected(id) => {
                 this.agent
