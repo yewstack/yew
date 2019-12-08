@@ -4,13 +4,13 @@ use counter::Model as Counter;
 use crm::Model as Crm;
 use custom_components::Model as CustomComponents;
 use dashboard::Model as Dashboard;
-use node_refs::Model as NodeRefs;
 use fragments::Model as Fragments;
 use game_of_life::Model as GameOfLife;
 use inner_html::Model as InnerHtml;
 use large_table::Model as LargeTable;
 use log::trace;
 use mount_point::Model as MountPoint;
+use node_refs::Model as NodeRefs;
 use npm_and_rest::Model as NpmAndRest;
 use routing::Model as Routing;
 use strum::IntoEnumIterator;
@@ -44,6 +44,7 @@ enum Scene {
 
 struct Model {
     scene: Option<Scene>,
+    link: ComponentLink<Self>,
 }
 
 enum Msg {
@@ -54,8 +55,8 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Self { scene: None }
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Self { scene: None, link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -75,7 +76,7 @@ impl Component for Model {
                     <Select<Scene>
                         selected=self.scene.clone()
                         options=Scene::iter().collect::<Vec<_>>()
-                        onchange=Msg::SwitchTo />
+                        onchange=self.link.callback(Msg::SwitchTo) />
                 </div>
                 <div id="right_pane">
                     { self.view_scene() }

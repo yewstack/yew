@@ -2,6 +2,7 @@ use yew::prelude::*;
 
 pub struct InputComponent {
     props: Props,
+    link: ComponentLink<Self>,
 }
 
 #[derive(Properties)]
@@ -18,8 +19,8 @@ impl Component for InputComponent {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-        InputComponent { props }
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        InputComponent { props, link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -33,7 +34,10 @@ impl Component for InputComponent {
 
     fn view(&self) -> Html<Self> {
         html! {
-            <input class="input-component" type="text" onmouseover=|_| Msg::Hover />
+            <input
+                type="text"
+                class="input-component"
+                onmouseover=self.link.callback(|_| Msg::Hover) />
         }
     }
 }

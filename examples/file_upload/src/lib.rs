@@ -80,7 +80,7 @@ impl Component for Model {
                 </div>
                 <div>
                     <label>{ "By chunks" }</label>
-                    <input type="checkbox" checked=flag onclick=|_| Msg::ToggleByChunks />
+                    <input type="checkbox" checked=flag onclick=self.link.callback(|_| Msg::ToggleByChunks) />
                 </div>
                 <ul>
                     { for self.files.iter().map(|f| self.view_file(f)) }
