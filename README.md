@@ -89,7 +89,7 @@ impl Component for Model {
         }
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         let onclick = self.link.callback(|_| Msg::DoIt);
         html! {
             // Render your model here
@@ -323,8 +323,8 @@ Use external crates and put values from them into the template:
 extern crate chrono;
 use chrono::prelude::*;
 
-impl Renderable<Model> for Model {
-    fn render(&self) -> Html<Self> {
+impl Renderable for Model {
+    fn render(&self) -> Html {
         html! {
             <p>{ Local::now() }</p>
         }

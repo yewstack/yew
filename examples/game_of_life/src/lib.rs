@@ -208,7 +208,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
                 <section class="game-container">
@@ -241,7 +241,7 @@ impl Component for Model {
 }
 
 impl Model {
-    fn view_cellule(&self, (idx, cellule): (usize, &Cellule)) -> Html<Self> {
+    fn view_cellule(&self, (idx, cellule): (usize, &Cellule)) -> Html {
         let cellule_status = {
             if cellule.life_state == LifeState::Alive {
                 "cellule-live"

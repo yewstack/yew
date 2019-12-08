@@ -187,47 +187,47 @@ error[E0599]: no method named `children` found for type `ChildPropertiesBuilder<
    |
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>: std::convert::From<yew::virtual_dom::vnode::VNode<_>>` is not satisfied
+error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
   --> $DIR/html-component-fail.rs:78:5
    |
 78 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode<_>>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
    |
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child, ChildContainer>>` for `yew::virtual_dom::vnode::VNode<_>`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>: std::convert::From<yew::virtual_dom::vnode::VNode<_>>` is not satisfied
+error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
   --> $DIR/html-component-fail.rs:79:5
    |
 79 |     html! { <ChildContainer><></></ChildContainer> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode<_>>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
    |
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child, ChildContainer>>` for `yew::virtual_dom::vnode::VNode<_>`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>: std::convert::From<yew::virtual_dom::vcomp::VChild<ChildContainer, _>>` is not satisfied
+error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vcomp::VChild<ChildContainer>>` is not satisfied
   --> $DIR/html-component-fail.rs:80:5
    |
 80 |     html! { <ChildContainer><ChildContainer /></ChildContainer> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vcomp::VChild<ChildContainer, _>>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vcomp::VChild<ChildContainer>>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
    |
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child, ChildContainer>>` for `yew::virtual_dom::vcomp::VChild<ChildContainer, _>`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vcomp::VChild<ChildContainer>`
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>: std::convert::From<yew::virtual_dom::vcomp::VChild<ChildContainer, _>>` is not satisfied
+error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vcomp::VChild<ChildContainer>>` is not satisfied
   --> $DIR/html-component-fail.rs:81:5
    |
 81 |     html! { <ChildContainer><ChildContainer /></ChildContainer> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vcomp::VChild<ChildContainer, _>>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vcomp::VChild<ChildContainer>>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
    |
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child, ChildContainer>>` for `yew::virtual_dom::vcomp::VChild<ChildContainer, _>`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vcomp::VChild<ChildContainer>`
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>: std::convert::From<yew::virtual_dom::vnode::VNode<_>>` is not satisfied
+error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
   --> $DIR/html-component-fail.rs:82:5
    |
 82 |     html! { <ChildContainer><Child int=1 /><other /></ChildContainer> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode<_>>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child, ChildContainer>`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
    |
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child, ChildContainer>>` for `yew::virtual_dom::vnode::VNode<_>`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)

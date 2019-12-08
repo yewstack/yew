@@ -67,7 +67,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         let view_exchange = |exchange| {
             html! {
                 <li>{ exchange }</li>

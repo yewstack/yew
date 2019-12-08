@@ -108,7 +108,7 @@ impl Component for BModel {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
                 <div>
@@ -132,7 +132,7 @@ impl BModel {
             format!("Number: None")
         }
     }
-    fn display_subpath_input(&self) -> Html<Self> {
+    fn display_subpath_input(&self) -> Html {
         let sub_path = self.sub_path.clone();
         html! {
             <input placeholder="subpath"

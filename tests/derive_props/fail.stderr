@@ -29,7 +29,3 @@ error[E0599]: no method named `b` found for type `t4::PropsBuilder<t4::PropsBuil
 ...
 48 |         Props::builder().b(1).a(2).build();
    |                          ^ help: there is a method with a similar name: `a`
-
-Some errors have detailed explanations: E0277, E0599.
-For more information about an error, try `rustc --explain E0277`.
-error: could not compile `yew-tests`.

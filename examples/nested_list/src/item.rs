@@ -1,4 +1,4 @@
-use crate::list::Hovered;
+use crate::Hovered;
 use yew::html::Children;
 use yew::prelude::*;
 
@@ -13,35 +13,26 @@ pub struct Props {
     pub on_hover: Callback<Hovered>,
     #[props(required)]
     pub name: String,
-    pub children: Children<ListItem>,
-}
-
-pub enum Msg {
-    Hover,
+    pub children: Children,
 }
 
 impl Component for ListItem {
-    type Message = Msg;
+    type Message = ();
     type Properties = Props;
 
     fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
         ListItem { props }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::Hover => {
-                self.props
-                    .on_hover
-                    .emit(Hovered::Item(self.props.name.clone()));
-            }
-        }
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
         false
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
+        let name = self.props.name.clone();
+        let onmouseover = self.props.on_hover.reform(move |_| Hovered::Item(name.clone()));
         html! {
-            <div class="list-item" onmouseover=|_| Msg::Hover>
+            <div class="list-item" onmouseover=onmouseover>
                 { &self.props.name }
                 { self.view_details() }
             </div>
@@ -50,7 +41,7 @@ impl Component for ListItem {
 }
 
 impl ListItem {
-    fn view_details(&self) -> Html<Self> {
+    fn view_details(&self) -> Html {
         if self.props.children.is_empty() {
             return html! {};
         }

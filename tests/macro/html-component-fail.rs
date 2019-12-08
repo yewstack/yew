@@ -22,14 +22,14 @@ impl Component for Child {
         unimplemented!()
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         unimplemented!()
     }
 }
 
 #[derive(Properties)]
 pub struct ChildContainerProperties {
-    pub children: ChildrenWithProps<Child, ChildContainer>,
+    pub children: ChildrenWithProps<Child>,
 }
 
 pub struct ChildContainer;
@@ -45,7 +45,7 @@ impl Component for ChildContainer {
         unimplemented!()
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         unimplemented!()
     }
 }

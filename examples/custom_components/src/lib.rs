@@ -46,7 +46,7 @@ impl Component for Model {
         }
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         let counter = |x| {
             html! {
                 <Counter initial=x color=&self.color
@@ -64,7 +64,7 @@ impl Component for Model {
 }
 
 impl Model {
-    fn view_barrier(&self) -> Html<Self> {
+    fn view_barrier(&self) -> Html {
         if self.with_barrier {
             html! {
                 <Barrier limit=10 onsignal=self.link.callback(|_| Msg::Repaint) />

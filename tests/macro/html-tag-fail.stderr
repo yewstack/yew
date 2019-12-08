@@ -52,13 +52,11 @@ error: only one root html element allowed
 14 |     html! { <img /></img> };
    |                    ^^^^^^
 
-error: unexpected end of input, expected token tree
-  --> $DIR/html-tag-fail.rs:15:5
+error: expected valid html element
+  --> $DIR/html-tag-fail.rs:15:18
    |
 15 |     html! { <div>Invalid</div> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+   |                  ^^^^^^^
 
 error: only one `attr` attribute allowed
   --> $DIR/html-tag-fail.rs:17:27

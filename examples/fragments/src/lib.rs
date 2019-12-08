@@ -34,7 +34,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <>
                 <nav class="menu">{ self.view_menu() }</nav>
@@ -54,7 +54,7 @@ impl Component for Model {
 }
 
 impl Model {
-    fn view_cols(&self) -> Html<Self> {
+    fn view_cols(&self) -> Html {
         let render = |idx| {
             html! {
                 <td>{ idx }</td>
@@ -65,7 +65,7 @@ impl Model {
         }
     }
 
-    fn view_menu(&self) -> Html<Self> {
+    fn view_menu(&self) -> Html {
         html! {
             <>
                 <button onclick=self.link.callback(|_| Msg::More)>{ "More" }</button>

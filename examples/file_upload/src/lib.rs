@@ -65,7 +65,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         let flag = self.by_chunks;
         html! {
             <div>
@@ -91,7 +91,7 @@ impl Component for Model {
 }
 
 impl Model {
-    fn view_file(&self, data: &str) -> Html<Self> {
+    fn view_file(&self, data: &str) -> Html {
         html! {
             <li>{ data }</li>
         }

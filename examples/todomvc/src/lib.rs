@@ -121,7 +121,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div class="todomvc-wrapper">
                 <section class="todoapp">
@@ -163,7 +163,7 @@ impl Component for Model {
 }
 
 impl Model {
-    fn view_filter(&self, filter: Filter) -> Html<Self> {
+    fn view_filter(&self, filter: Filter) -> Html {
         let flt = filter.clone();
         html! {
             <li>
@@ -176,7 +176,7 @@ impl Model {
         }
     }
 
-    fn view_input(&self) -> Html<Self> {
+    fn view_input(&self) -> Html {
         html! {
             // You can use standard Rust comments. One line:
             // <li></li>
@@ -195,7 +195,7 @@ impl Model {
         }
     }
 
-    fn view_entry(&self, (idx, entry): (usize, &Entry)) -> Html<Self> {
+    fn view_entry(&self, (idx, entry): (usize, &Entry)) -> Html {
         let mut class = "todo".to_string();
         if entry.editing {
             class.push_str(" editing");
@@ -219,7 +219,7 @@ impl Model {
         }
     }
 
-    fn view_entry_edit_input(&self, (idx, entry): (usize, &Entry)) -> Html<Self> {
+    fn view_entry_edit_input(&self, (idx, entry): (usize, &Entry)) -> Html {
         if entry.editing {
             html! {
                 <input class="edit"

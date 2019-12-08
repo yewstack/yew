@@ -33,17 +33,17 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <table>
-                { (0..99).map(|row| self.view_row(row)).collect::<Html<Self>>() }
+                { (0..99).map(|row| self.view_row(row)).collect::<Html>() }
             </table>
         }
     }
 }
 
 impl Model {
-    fn view_square(&self, row: u32, column: u32) -> Html<Self> {
+    fn view_square(&self, row: u32, column: u32) -> Html {
         html! {
             <td class=square_class((column, row), self.selected)
                 onclick=self.link.callback(move |_| Msg::Select(column, row))>
@@ -51,7 +51,7 @@ impl Model {
         }
     }
 
-    fn view_row(&self, row: u32) -> Html<Self> {
+    fn view_row(&self, row: u32) -> Html {
         html! {
             <tr>
                 {for (0..99).map(|column| {

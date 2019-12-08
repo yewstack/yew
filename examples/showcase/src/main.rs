@@ -68,7 +68,7 @@ impl Component for Model {
         }
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div id="fullscreen">
                 <div id="left_pane">
@@ -87,7 +87,7 @@ impl Component for Model {
 }
 
 impl Model {
-    fn view_scene(&self) -> Html<Self> {
+    fn view_scene(&self) -> Html {
         if let Some(scene) = self.scene.as_ref() {
             match scene {
                 Scene::Counter => html! { <Counter /> },

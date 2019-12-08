@@ -169,7 +169,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
                 <nav class="menu">
@@ -206,7 +206,7 @@ impl Component for Model {
 }
 
 impl Model {
-    fn view_data(&self) -> Html<Self> {
+    fn view_data(&self) -> Html {
         if let Some(value) = self.data {
             html! {
                 <p>{ value }</p>

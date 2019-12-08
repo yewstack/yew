@@ -55,14 +55,13 @@ impl<COMP: Component> Scope<COMP> {
     pub(crate) fn mount_in_place(
         self,
         element: Element,
-        ancestor: Option<VNode<COMP>>,
+        ancestor: Option<VNode>,
         node_ref: NodeRef,
         props: COMP::Properties,
     ) -> Scope<COMP> {
         let mut scope = self.clone();
         let link = ComponentLink::connect(&scope);
         let ready_state = ReadyState {
-            scope: self.clone(),
             element,
             node_ref,
             link,
@@ -138,19 +137,17 @@ impl<COMP: Component> fmt::Display for ComponentState<COMP> {
 }
 
 struct ReadyState<COMP: Component> {
-    scope: Scope<COMP>,
     element: Element,
     node_ref: NodeRef,
     props: COMP::Properties,
     link: ComponentLink<COMP>,
-    ancestor: Option<VNode<COMP>>,
+    ancestor: Option<VNode>,
 }
 
 impl<COMP: Component> ReadyState<COMP> {
     fn create(self) -> CreatedState<COMP> {
         CreatedState {
             component: COMP::create(self.props, self.link),
-            scope: self.scope,
             element: self.element,
             last_frame: self.ancestor,
             node_ref: self.node_ref,
@@ -159,10 +156,9 @@ impl<COMP: Component> ReadyState<COMP> {
 }
 
 struct CreatedState<COMP: Component> {
-    scope: Scope<COMP>,
     element: Element,
     component: COMP,
-    last_frame: Option<VNode<COMP>>,
+    last_frame: Option<VNode>,
     node_ref: NodeRef,
 }
 
@@ -177,10 +173,10 @@ impl<COMP: Component> CreatedState<COMP> {
     }
 
     fn update(mut self) -> Self {
-        let mut next_frame = self.component.render();
-        let node = next_frame.apply(&self.element, None, self.last_frame, &self.scope);
+        let mut vnode = self.component.render();
+        let node = vnode.apply(&self.element, None, self.last_frame);
         self.node_ref.set(node);
-        self.last_frame = Some(next_frame);
+        self.last_frame = Some(vnode);
         self
     }
 }

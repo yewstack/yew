@@ -2,14 +2,11 @@
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
 use pulldown_cmark::{Alignment, Event, Parser, Tag, OPTION_ENABLE_TABLES};
 use yew::virtual_dom::{VNode, VTag, VText};
-use yew::{html, Component, Html};
+use yew::{html, Html};
 
 /// Renders a string of Markdown to HTML with the default options (footnotes
 /// disabled, tables enabled).
-pub fn render_markdown<COMP>(src: &str) -> Html<COMP>
-where
-    COMP: Component,
-{
+pub fn render_markdown(src: &str) -> Html {
     let mut elems = vec![];
     let mut spine = vec![];
 
@@ -81,10 +78,7 @@ where
     }
 }
 
-fn make_tag<COMP>(t: Tag) -> VTag<COMP>
-where
-    COMP: Component,
-{
+fn make_tag(t: Tag) -> VTag {
     match t {
         Tag::Paragraph => VTag::new("p"),
         Tag::Rule => VTag::new("hr"),

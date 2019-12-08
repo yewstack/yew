@@ -100,7 +100,7 @@ impl Component for Model {
         }
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         match &self.markdown {
             FetchState::NotFetching => html! {
                 <button onclick=self.link.callback(|_| Msg::GetMarkdown)>
