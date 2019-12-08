@@ -146,7 +146,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         match self.scene {
             Scene::ClientsList => html! {
                 <div class="crm">
@@ -179,8 +179,8 @@ impl Component for Model {
     }
 }
 
-impl Renderable<Model> for Client {
-    fn render(&self) -> Html<Model> {
+impl Renderable for Client {
+    fn render(&self) -> Html {
         html! {
             <div class="client">
                 <p>{ format!("First Name: {}", self.first_name) }</p>
@@ -193,7 +193,7 @@ impl Renderable<Model> for Client {
 }
 
 impl Client {
-    fn view_first_name_input(&self, link: &ComponentLink<Model>) -> Html<Model> {
+    fn view_first_name_input(&self, link: &ComponentLink<Model>) -> Html {
         html! {
             <input class="new-client firstname"
                    placeholder="First name"
@@ -202,7 +202,7 @@ impl Client {
         }
     }
 
-    fn view_last_name_input(&self, link: &ComponentLink<Model>) -> Html<Model> {
+    fn view_last_name_input(&self, link: &ComponentLink<Model>) -> Html {
         html! {
             <input class="new-client lastname"
                    placeholder="Last name"
@@ -210,7 +210,7 @@ impl Client {
                    oninput=link.callback(|e: InputData| Msg::UpdateLastName(e.value)) />
         }
     }
-    fn view_description_textarea(&self, link: &ComponentLink<Model>) -> Html<Model> {
+    fn view_description_textarea(&self, link: &ComponentLink<Model>) -> Html {
         html! {
             <textarea class=("new-client", "description")
                placeholder="Description"

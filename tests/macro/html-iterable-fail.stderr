@@ -31,8 +31,8 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = help: the trait `std::fmt::Display` is not implemented for `()`
   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
-  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode<_>`
-  = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode<_>>` for `()`
+  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
+  = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-iterable-fail.rs:10:17
@@ -43,8 +43,8 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
-   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode<_>`
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode<_>>` for `()`
+   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-iterable-fail.rs:13:17
@@ -56,8 +56,5 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required because of the requirements on the impl of `std::fmt::Display` for `&()`
    = note: required because of the requirements on the impl of `std::string::ToString` for `&()`
-   = note: required because of the requirements on the impl of `std::convert::From<&()>` for `yew::virtual_dom::vnode::VNode<_>`
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode<_>>` for `&()`
-
-For more information about this error, try `rustc --explain E0277`.
-error: could not compile `yew-tests`.
+   = note: required because of the requirements on the impl of `std::convert::From<&()>` for `yew::virtual_dom::vnode::VNode`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `&()`

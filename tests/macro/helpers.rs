@@ -2,7 +2,7 @@
 macro_rules! pass_helper {
     ( @html ) => { html! {} };
     ( @html html! { $($view:tt)* }; $($tail:tt)* ) => {
-        let _: Html<TestComponent> = html! { $($view)* };
+        html! { $($view)* };
         pass_helper! { @ html $($tail)* }
     };
     ( @html $head:stmt; $($tail:tt)* ) => {
@@ -11,11 +11,12 @@ macro_rules! pass_helper {
     };
     ( $($content:tt)* ) => {
         mod test_component;
-        use test_component::TestComponent;
         use yew::prelude::*;
+        #[allow(unused)]
+        use test_component::TestComponent;
         struct SubComponent;
-        impl Renderable<TestComponent> for SubComponent {
-            fn render(&self) -> Html<TestComponent> {
+        impl Renderable for SubComponent {
+            fn render(&self) -> Html {
                 pass_helper! { @ html $($content)* }
             }
         }

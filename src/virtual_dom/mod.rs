@@ -16,7 +16,6 @@ pub use self::vlist::VList;
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
-use crate::html::{Component, Scope, ScopeHolder};
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
@@ -165,9 +164,6 @@ enum Reform {
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
 pub trait VDiff {
-    /// The component which this instance put into.
-    type Component: Component;
-
     /// Remove itself from parent and return the next sibling.
     fn detach(&mut self, parent: &Element) -> Option<Node>;
 
@@ -196,13 +192,12 @@ pub trait VDiff {
         &mut self,
         parent: &Element,
         previous_sibling: Option<&Node>,
-        ancestor: Option<VNode<Self::Component>>,
-        parent_scope: &Scope<Self::Component>,
+        ancestor: Option<VNode>,
     ) -> Option<Node>;
 }
 
-/// Transforms properties and attaches a parent scope holder to callbacks for sending messages.
-pub trait Transformer<PARENT: Component, FROM, TO> {
+/// Transform properties to the expected type.
+pub trait Transformer<FROM, TO> {
     /// Transforms one type to another.
-    fn transform(scope_holder: ScopeHolder<PARENT>, from: FROM) -> TO;
+    fn transform(from: FROM) -> TO;
 }

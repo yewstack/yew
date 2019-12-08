@@ -102,7 +102,6 @@ impl ToTokens for HtmlTag {
         } = &attributes;
 
         let vtag = Ident::new("__yew_vtag", tag_name.span());
-        let vtag_scope = Ident::new("__yew_vtag_scope", Span::call_site());
         let attr_pairs = attributes.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
             quote_spanned! {value.span() => (#label_str.to_owned(), (#value).to_string()) }
@@ -155,16 +154,15 @@ impl ToTokens for HtmlTag {
 
             quote_spanned! {name.span()=> {
                 ::yew::html::#name::Wrapper::new(
-                    <::yew::virtual_dom::vtag::VTag<_> as ::yew::virtual_dom::Transformer<_, _, _>>::transform(
-                        #vtag_scope.clone(), #callback
+                    <::yew::virtual_dom::vtag::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
+                        #callback
                     )
                 )
             }}
         });
 
         tokens.extend(quote! {{
-            let #vtag_scope: ::yew::html::ScopeHolder<_> = ::std::default::Default::default();
-            let mut #vtag = ::yew::virtual_dom::vtag::VTag::new_with_scope(#name, #vtag_scope.clone());
+            let mut #vtag = ::yew::virtual_dom::vtag::VTag::new(#name);
             #(#set_kind)*
             #(#set_value)*
             #(#add_href)*

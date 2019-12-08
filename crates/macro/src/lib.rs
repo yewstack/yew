@@ -32,7 +32,7 @@
 //! #         unimplemented!()
 //! #     }
 //! #
-//! #     fn view(&self) -> Html<Self> {
+//! #     fn view(&self) -> Html {
 //! #
 //! // ...
 //!

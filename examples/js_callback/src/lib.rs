@@ -53,7 +53,7 @@ impl Component for Model {
         false
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
                 <textarea oninput=|input| Msg::Payload(input.value)

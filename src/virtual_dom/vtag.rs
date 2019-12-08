@@ -3,8 +3,7 @@
 use super::{
     Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
 };
-use crate::callback::Callback;
-use crate::html::{Component, NodeRef, Scope, ScopeHolder};
+use crate::html::NodeRef;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
@@ -25,7 +24,7 @@ pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
-pub struct VTag<PARENT: Component> {
+pub struct VTag {
     /// A tag of the element.
     tag: Cow<'static, str>,
     /// A reference to the `Element`.
@@ -35,7 +34,7 @@ pub struct VTag<PARENT: Component> {
     /// List of attributes.
     pub attributes: Attributes,
     /// List of children nodes
-    pub children: VList<PARENT>,
+    pub children: VList,
     /// List of attached classes.
     pub classes: Classes,
     /// Contains a value of an
@@ -55,22 +54,11 @@ pub struct VTag<PARENT: Component> {
     pub node_ref: NodeRef,
     /// Keeps handler for attached listeners to have an opportunity to drop them later.
     captured: Vec<EventListenerHandle>,
-    /// Holds a reference to the parent component scope for callback activation.
-    scope_holder: ScopeHolder<PARENT>,
 }
 
-impl<PARENT: Component> VTag<PARENT> {
+impl VTag {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
-        Self::new_with_scope(tag, ScopeHolder::default())
-    }
-
-    /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM) and parent
-    /// scope holder for callback activation.
-    pub fn new_with_scope<S: Into<Cow<'static, str>>>(
-        tag: S,
-        scope_holder: ScopeHolder<PARENT>,
-    ) -> Self {
         VTag {
             tag: tag.into(),
             reference: None,
@@ -85,7 +73,6 @@ impl<PARENT: Component> VTag<PARENT> {
             // In HTML node `checked` attribute sets `defaultChecked` parameter,
             // but we use own field to control real `checked` parameter
             checked: false,
-            scope_holder,
         }
     }
 
@@ -95,12 +82,12 @@ impl<PARENT: Component> VTag<PARENT> {
     }
 
     /// Add `VNode` child.
-    pub fn add_child(&mut self, child: VNode<PARENT>) {
+    pub fn add_child(&mut self, child: VNode) {
         self.children.add_child(child);
     }
 
     /// Add multiple `VNode` children.
-    pub fn add_children(&mut self, children: Vec<VNode<PARENT>>) {
+    pub fn add_children(&mut self, children: Vec<VNode>) {
         for child in children {
             self.add_child(child);
         }
@@ -360,9 +347,7 @@ impl<PARENT: Component> VTag<PARENT> {
     }
 }
 
-impl<PARENT: Component> VDiff for VTag<PARENT> {
-    type Component = PARENT;
-
+impl VDiff for VTag {
     /// Remove VTag from parent.
     fn detach(&mut self, parent: &Element) -> Option<Node> {
         let node = self
@@ -386,8 +371,7 @@ impl<PARENT: Component> VDiff for VTag<PARENT> {
         &mut self,
         parent: &Element,
         previous_sibling: Option<&Node>,
-        ancestor: Option<VNode<Self::Component>>,
-        parent_scope: &Scope<Self::Component>,
+        ancestor: Option<VNode>,
     ) -> Option<Node> {
         assert!(
             self.reference.is_none(),
@@ -473,16 +457,9 @@ impl<PARENT: Component> VDiff for VTag<PARENT> {
             self.captured.push(handle);
         }
 
-        // Activate scope
-        *self.scope_holder.borrow_mut() = Some(parent_scope.clone());
-
         // Process children
-        self.children.apply(
-            &element,
-            None,
-            ancestor.map(|a| a.children.into()),
-            parent_scope,
-        );
+        self.children
+            .apply(&element, None, ancestor.map(|a| a.children.into()));
 
         let node = self.reference.as_ref().map(|e| e.as_node().to_owned());
         self.node_ref.set(node.clone());
@@ -490,7 +467,7 @@ impl<PARENT: Component> VDiff for VTag<PARENT> {
     }
 }
 
-impl<PARENT: Component> fmt::Debug for VTag<PARENT> {
+impl fmt::Debug for VTag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "VTag {{ tag: {} }}", self.tag)
     }
@@ -512,8 +489,8 @@ fn set_checked(input: &InputElement, value: bool) {
     js!( @(no_return) @{input}.checked = @{value}; );
 }
 
-impl<PARENT: Component> PartialEq for VTag<PARENT> {
-    fn eq(&self, other: &VTag<PARENT>) -> bool {
+impl PartialEq for VTag {
+    fn eq(&self, other: &VTag) -> bool {
         self.tag == other.tag
             && self.value == other.value
             && self.kind == other.kind
@@ -539,39 +516,17 @@ pub(crate) fn not<T>(option: &Option<T>) -> &Option<()> {
     }
 }
 
-impl<PARENT, T> Transformer<PARENT, T, T> for VTag<PARENT>
-where
-    PARENT: Component,
-{
-    fn transform(_: ScopeHolder<PARENT>, from: T) -> T {
+impl<T> Transformer<T, T> for VTag {
+    fn transform(from: T) -> T {
         from
     }
 }
 
-impl<'a, PARENT, T> Transformer<PARENT, &'a T, T> for VTag<PARENT>
+impl<'a, T> Transformer<&'a T, T> for VTag
 where
-    PARENT: Component,
     T: Clone,
 {
-    fn transform(_: ScopeHolder<PARENT>, from: &'a T) -> T {
+    fn transform(from: &'a T) -> T {
         from.clone()
-    }
-}
-
-impl<'a, PARENT, F, IN> Transformer<PARENT, F, Callback<IN>> for VTag<PARENT>
-where
-    PARENT: Component,
-    F: Fn(IN) -> PARENT::Message + 'static,
-{
-    fn transform(scope: ScopeHolder<PARENT>, from: F) -> Callback<IN> {
-        let callback = move |arg| {
-            let msg = from(arg);
-            if let Some(ref mut sender) = *scope.borrow_mut() {
-                sender.send_message(msg);
-            } else {
-                panic!("Parent component hasn't activated this callback yet");
-            }
-        };
-        callback.into()
     }
 }

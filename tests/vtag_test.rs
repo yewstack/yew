@@ -2,7 +2,6 @@
 use stdweb::web::{document, IElement};
 #[cfg(feature = "wasm_test")]
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-use yew::html::Scope;
 use yew::virtual_dom::vtag::{VTag, HTML_NAMESPACE, SVG_NAMESPACE};
 use yew::virtual_dom::{VDiff, VNode};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
@@ -24,7 +23,7 @@ impl Component for Comp {
         unimplemented!();
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         unimplemented!();
     }
 }
@@ -43,7 +42,7 @@ impl Component for CompInt {
         unimplemented!();
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         unimplemented!();
     }
 }
@@ -62,22 +61,22 @@ impl Component for CompBool {
         unimplemented!();
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         unimplemented!();
     }
 }
 
 #[test]
 fn it_compares_tags() {
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <div></div>
     };
 
-    let b: VNode<Comp> = html! {
+    let b = html! {
         <div></div>
     };
 
-    let c: VNode<Comp> = html! {
+    let c = html! {
         <p></p>
     };
 
@@ -87,15 +86,15 @@ fn it_compares_tags() {
 
 #[test]
 fn it_compares_text() {
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <div>{ "correct" }</div>
     };
 
-    let b: VNode<Comp> = html! {
+    let b = html! {
         <div>{ "correct" }</div>
     };
 
-    let c: VNode<Comp> = html! {
+    let c = html! {
         <div>{ "incorrect" }</div>
     };
 
@@ -105,15 +104,15 @@ fn it_compares_text() {
 
 #[test]
 fn it_compares_attributes() {
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <div a="test"></div>
     };
 
-    let b: VNode<Comp> = html! {
+    let b = html! {
         <div a="test"></div>
     };
 
-    let c: VNode<Comp> = html! {
+    let c = html! {
         <div a="fail"></div>
     };
 
@@ -123,19 +122,19 @@ fn it_compares_attributes() {
 
 #[test]
 fn it_compares_children() {
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <div>
             <p></p>
         </div>
     };
 
-    let b: VNode<Comp> = html! {
+    let b = html! {
         <div>
             <p></p>
         </div>
     };
 
-    let c: VNode<Comp> = html! {
+    let c = html! {
         <div>
             <span></span>
         </div>
@@ -147,19 +146,19 @@ fn it_compares_children() {
 
 #[test]
 fn it_compares_classes() {
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <div class="test"></div>
     };
 
-    let b: VNode<Comp> = html! {
+    let b = html! {
         <div class="test"></div>
     };
 
-    let c: VNode<Comp> = html! {
+    let c = html! {
         <div class="fail"></div>
     };
 
-    let d: VNode<Comp> = html! {
+    let d = html! {
         <div class=format!("fail")></div>
     };
 
@@ -170,17 +169,17 @@ fn it_compares_classes() {
 
 #[test]
 fn classes_from_local_variables() {
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <div class=("class-1", "class-2")></div>
     };
 
     let class_2 = "class-2";
-    let b: VNode<Comp> = html! {
+    let b = html! {
         <div class=("class-1", class_2)></div>
     };
 
     let class_2_fmt = format!("class-{}", 2);
-    let c: VNode<Comp> = html! {
+    let c = html! {
         <div class=("class-1", class_2_fmt)></div>
     };
 
@@ -190,11 +189,11 @@ fn classes_from_local_variables() {
 
 #[test]
 fn supports_multiple_classes_string() {
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <div class="class-1 class-2   class-3"></div>
     };
 
-    let b: VNode<Comp> = html! {
+    let b = html! {
         <div class="class-2 class-3 class-1"></div>
     };
 
@@ -214,7 +213,7 @@ fn supports_multiple_classes_string() {
 fn supports_multiple_classes_vec() {
     let mut classes = vec!["class-1"];
     classes.push("class-2");
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <div class=classes></div>
     };
 
@@ -232,9 +231,9 @@ fn supports_multiple_classes_vec() {
 fn filter_empty_string_classes_vec() {
     let mut classes = vec![""];
     classes.push("class-2");
-    let a: VNode<Comp> = html! { <div class=vec![""]></div> };
-    let b: VNode<Comp> = html! { <div class=("")></div> };
-    let c: VNode<Comp> = html! { <div class=""></div> };
+    let a = html! { <div class=vec![""]></div> };
+    let b = html! { <div class=("")></div> };
+    let c = html! { <div class=""></div> };
 
     if let VNode::VTag(vtag) = a {
         assert!(vtag.classes.is_empty());
@@ -255,14 +254,14 @@ fn filter_empty_string_classes_vec() {
     }
 }
 
-fn assert_vtag(node: &mut VNode<Comp>) -> &mut VTag<Comp> {
+fn assert_vtag(node: &mut VNode) -> &mut VTag {
     if let VNode::VTag(vtag) = node {
         return vtag;
     }
     panic!("should be vtag");
 }
 
-fn assert_namespace(vtag: &VTag<Comp>, namespace: &'static str) {
+fn assert_namespace(vtag: &VTag, namespace: &'static str) {
     assert_eq!(
         vtag.reference.as_ref().unwrap().namespace_uri().unwrap(),
         namespace
@@ -271,32 +270,31 @@ fn assert_namespace(vtag: &VTag<Comp>, namespace: &'static str) {
 
 #[test]
 fn supports_svg() {
-    let scope = Scope::new();
     let div_el = document().create_element("div").unwrap();
     let svg_el = document().create_element_ns(SVG_NAMESPACE, "svg").unwrap();
 
-    let mut g_node: VNode<Comp> = html! { <g></g> };
-    let path_node: VNode<Comp> = html! { <path></path> };
-    let mut svg_node: VNode<Comp> = html! { <svg>{path_node}</svg> };
+    let mut g_node = html! { <g></g> };
+    let path_node = html! { <path></path> };
+    let mut svg_node = html! { <svg>{path_node}</svg> };
 
     let svg_tag = assert_vtag(&mut svg_node);
-    svg_tag.apply(&div_el, None, None, &scope);
+    svg_tag.apply(&div_el, None, None);
     assert_namespace(svg_tag, SVG_NAMESPACE);
     let path_tag = assert_vtag(svg_tag.children.get_mut(0).unwrap());
     assert_namespace(path_tag, SVG_NAMESPACE);
 
     let g_tag = assert_vtag(&mut g_node);
-    g_tag.apply(&div_el, None, None, &scope);
+    g_tag.apply(&div_el, None, None);
     assert_namespace(g_tag, HTML_NAMESPACE);
     g_tag.reference = None;
 
-    g_tag.apply(&svg_el, None, None, &scope);
+    g_tag.apply(&svg_el, None, None);
     assert_namespace(g_tag, SVG_NAMESPACE);
 }
 
 #[test]
 fn keeps_order_of_classes() {
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <div class="class-1 class-2   class-3",></div>
     };
 
@@ -308,15 +306,15 @@ fn keeps_order_of_classes() {
 
 #[test]
 fn it_compares_values() {
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <input value="test"/>
     };
 
-    let b: VNode<Comp> = html! {
+    let b = html! {
         <input value="test"/>
     };
 
-    let c: VNode<Comp> = html! {
+    let c = html! {
         <input value="fail"/>
     };
 
@@ -326,15 +324,15 @@ fn it_compares_values() {
 
 #[test]
 fn it_compares_kinds() {
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <input type="text"/>
     };
 
-    let b: VNode<Comp> = html! {
+    let b = html! {
         <input type="text"/>
     };
 
-    let c: VNode<Comp> = html! {
+    let c = html! {
         <input type="hidden"/>
     };
 
@@ -344,15 +342,15 @@ fn it_compares_kinds() {
 
 #[test]
 fn it_compares_checked() {
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <input type="checkbox" checked=false />
     };
 
-    let b: VNode<Comp> = html! {
+    let b = html! {
         <input type="checkbox" checked=false />
     };
 
-    let c: VNode<Comp> = html! {
+    let c = html! {
         <input type="checkbox" checked=true />
     };
 
@@ -362,7 +360,7 @@ fn it_compares_checked() {
 
 #[test]
 fn it_allows_aria_attributes() {
-    let a: VNode<Comp> = html! {
+    let a = html! {
         <p aria-controls="it-works">
             <a class="btn btn-primary"
                data-toggle="collapse"
@@ -396,38 +394,16 @@ fn it_allows_aria_attributes() {
 
 #[test]
 fn it_checks_mixed_closing_tags() {
-    let a: VNode<Comp> = html! { <div> <div/>      </div> };
-    let b: VNode<Comp> = html! { <div> <div></div> </div> };
-    assert_eq!(a, b);
-
-    let a: VNode<Comp> = html! { <div> <div data-val={ 2 / 1 }/>  </div> };
-    let b: VNode<Comp> = html! { <div> <div data-val={ 2 }></div> </div> };
-    assert_eq!(a, b);
-
-    let a: VNode<Comp> = html! { <div> <div data-val={ 2 > 1 }/>  </div> };
-    let b: VNode<Comp> = html! { <div> <div data-val={ true }></div> </div> };
-    assert_eq!(a, b);
-
-    let a: VNode<CompInt> = html! { <div> <div onblur=|_| 2 / 1/>  </div> };
-    let b: VNode<CompInt> = html! { <div> <div onblur=|_| 2></div> </div> };
+    let a = html! { <div> <div/>      </div> };
+    let b = html! { <div> <div></div> </div> };
     assert_eq!(a, b);
 }
 
 #[test]
 fn it_checks_misleading_gt() {
-    let a: VNode<CompBool> = html! { <div> <div onblur=|_|   2 > 1   /> </div> };
-    let b: VNode<CompBool> = html! { <div> <div onblur=|_| { 2 > 1 } /> </div> };
-    let c: VNode<CompBool> = html! { <div> <div onblur=|_| ( 2 > 1 ) /> </div> };
-    let d: VNode<CompBool> = html! { <div> <div onblur=|_| true ></div> </div> };
-    assert_eq!(a, b);
-    assert_eq!(a, c);
-    assert_eq!(a, d);
+    html! { <div data-val=<u32 as Default>::default()></div> };
+    html! { <div data-val=Box::<u32>::default()></div> };
 
-    let a: VNode<CompBool> = html! { <div><div onblur=|_|  2 > 1 />      </div> };
-    let b: VNode<CompBool> = html! { <div><div onblur=|_| { true }></div></div> };
-    assert_eq!(a, b);
-
-    let a: VNode<CompInt> = html! { <div> <a onblur=|_| -> u32 { 0 } />  </div> };
-    let b: VNode<CompInt> = html! { <div> <a onblur=|_| 0></a> </div> };
-    assert_eq!(a, b);
+    html! { <div><a data-val=<u32 as Default>::default() /> </div> };
+    html! { <div><a data-val=Box::<u32>::default() /></div> };
 }

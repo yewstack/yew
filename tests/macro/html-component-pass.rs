@@ -27,7 +27,7 @@ impl Component for Child {
         unimplemented!()
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         unimplemented!()
     }
 }
@@ -36,7 +36,7 @@ impl Component for Child {
 pub struct ContainerProperties {
     #[props(required)]
     pub int: i32,
-    pub children: Children<Container>,
+    pub children: Children,
 }
 
 pub struct Container;
@@ -52,7 +52,7 @@ impl Component for Container {
         unimplemented!()
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         unimplemented!()
     }
 }
@@ -61,7 +61,7 @@ impl Component for Container {
 pub struct ChildContainerProperties {
     #[props(required)]
     pub int: i32,
-    pub children: ChildrenWithProps<Child, ChildContainer>,
+    pub children: ChildrenWithProps<Child>,
 }
 
 pub struct ChildContainer;
@@ -77,7 +77,7 @@ impl Component for ChildContainer {
         unimplemented!()
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         unimplemented!()
     }
 }
@@ -136,7 +136,8 @@ pass_helper! {
     html! {
         <>
             <Child int=1 />
-            <Child int=1 optional_callback=|_| () />
+            <Child int=1 optional_callback=Some(Callback::from(|_| ())) />
+            <Child int=1 optional_callback=None />
         </>
     };
 

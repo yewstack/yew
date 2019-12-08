@@ -71,7 +71,7 @@ impl Component for RouterButton {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <button
                 class=self.props.classes.clone(),
