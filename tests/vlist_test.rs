@@ -30,7 +30,7 @@ fn check_fragments() {
         <>
         </>
     };
-    let _ = html! {
+    html! {
         <div>
             { fragment }
         </div>

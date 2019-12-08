@@ -26,11 +26,11 @@ impl Component for Comp {
 
 #[test]
 fn text_as_root() {
-    let _ = html! {
+    html! {
         "Text Node As Root"
     };
 
-    let _ = html! {
+    html! {
         { "Text Node As Root" }
     };
 }

@@ -12,7 +12,7 @@ pub enum Msg {
     ChildClicked,
 }
 
-#[derive(Clone, PartialEq, Properties)]
+#[derive(PartialEq, Properties)]
 pub struct Props {
     pub limit: u32,
     #[props(required)]

@@ -4,9 +4,8 @@ use yew::prelude::*;
 
 mod t1 {
     use super::*;
-    #[derive(Clone)]
     struct Value;
-    #[derive(Clone, Properties)]
+    #[derive(Properties)]
     pub struct Props {
         // ERROR: optional params must implement default
         value: Value,
@@ -15,7 +14,7 @@ mod t1 {
 
 mod t2 {
     use super::*;
-    #[derive(Clone, Properties)]
+    #[derive(Properties)]
     pub struct Props {
         // ERROR: optional is not a tag
         #[props(optional)]
@@ -25,7 +24,7 @@ mod t2 {
 
 mod t3 {
     use super::*;
-    #[derive(Clone, Properties)]
+    #[derive(Properties)]
     pub struct Props {
         #[props(required)]
         value: String,
@@ -38,7 +37,7 @@ mod t3 {
 
 mod t4 {
     use super::*;
-    #[derive(Clone, Properties)]
+    #[derive(Properties)]
     pub struct Props {
         b: i32,
         #[props(required)]

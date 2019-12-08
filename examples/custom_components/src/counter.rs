@@ -24,7 +24,7 @@ pub enum Msg {
     Increase,
 }
 
-#[derive(Clone, PartialEq, Properties)]
+#[derive(PartialEq, Properties)]
 pub struct Props {
     pub initial: u32,
     pub color: Color,

@@ -13,7 +13,7 @@
 //!   link: ComponentLink<Self>,
 //! }
 //!
-//! #[derive(Clone, Properties)]
+//! #[derive(Properties)]
 //! struct Props {
 //!   #[props(required)]
 //!   prop: String,

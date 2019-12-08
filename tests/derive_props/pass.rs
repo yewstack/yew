@@ -5,8 +5,8 @@ use yew::prelude::*;
 mod t1 {
     use super::*;
 
-    #[derive(Clone, Properties)]
-    pub struct Props<T: Clone + Default> {
+    #[derive(Properties)]
+    pub struct Props<T: Default> {
         value: T,
     }
 
@@ -19,10 +19,9 @@ mod t1 {
 mod t2 {
     use super::*;
 
-    #[derive(Clone)]
     struct Value;
-    #[derive(Clone, Properties)]
-    pub struct Props<T: Clone> {
+    #[derive(Properties)]
+    pub struct Props<T> {
         #[props(required)]
         value: T,
     }
@@ -35,7 +34,7 @@ mod t2 {
 mod t3 {
     use super::*;
 
-    #[derive(Clone, Properties)]
+    #[derive(Properties)]
     pub struct Props {
         #[props(required)]
         b: i32,
@@ -51,10 +50,10 @@ mod t3 {
 mod t4 {
     use super::*;
 
-    #[derive(Clone, Properties)]
+    #[derive(Properties)]
     pub struct Props<T>
     where
-        T: Clone + Default,
+        T: Default,
     {
         value: T,
     }
@@ -68,8 +67,8 @@ mod t4 {
 mod t5 {
     use super::*;
 
-    #[derive(Clone, Properties)]
-    pub struct Props<'a, T: Clone + Default + 'a> {
+    #[derive(Properties)]
+    pub struct Props<'a, T: Default + 'a> {
         static_value: &'static str,
         #[props(required)]
         value: &'a T,

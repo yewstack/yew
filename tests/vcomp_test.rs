@@ -8,7 +8,7 @@ wasm_bindgen_test_configure!(run_in_browser);
 
 struct Comp;
 
-#[derive(Clone, PartialEq, Properties)]
+#[derive(PartialEq, Properties)]
 struct Props {
     field_1: u32,
     field_2: u32,

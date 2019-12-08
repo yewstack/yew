@@ -5,7 +5,7 @@ mod helpers;
 
 use yew::html::ChildrenRenderer;
 
-#[derive(Clone, Properties, Default, PartialEq)]
+#[derive(Properties, Default, PartialEq)]
 pub struct ChildProperties {
     pub string: String,
     #[props(required)]
@@ -32,7 +32,7 @@ impl Component for Child {
     }
 }
 
-#[derive(Clone, Properties, Default)]
+#[derive(Properties, Default)]
 pub struct ContainerProperties {
     #[props(required)]
     pub int: i32,
@@ -57,7 +57,7 @@ impl Component for Container {
     }
 }
 
-#[derive(Clone, Properties, Default)]
+#[derive(Properties, Default)]
 pub struct ChildContainerProperties {
     #[props(required)]
     pub int: i32,

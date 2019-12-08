@@ -240,7 +240,7 @@ Properties are also pure Rust types with strict type-checking during the compila
 ```rust
 // my_button.rs
 
-#[derive(Clone, Properties, PartialEq)]
+#[derive(Properties, PartialEq)]
 pub struct Properties {
     pub hidden: bool,
     #[props(required)]

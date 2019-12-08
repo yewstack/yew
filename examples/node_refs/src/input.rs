@@ -5,7 +5,7 @@ pub struct InputComponent {
     link: ComponentLink<Self>,
 }
 
-#[derive(Clone, Properties)]
+#[derive(Properties)]
 pub struct Props {
     #[props(required)]
     pub on_hover: Callback<()>,

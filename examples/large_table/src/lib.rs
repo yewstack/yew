@@ -36,7 +36,7 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <table>
-                { (0..99).map(|row| self.view_row(row)).collect::<Html<Self>>() }
+                { (0..99).map(|row| self.view_row(row)).collect::<Html>() }
             </table>
         }
     }

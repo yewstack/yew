@@ -67,7 +67,7 @@ pub type Html = VNode;
 /// In this example, the `Wrapper` component is used to wrap other elements.
 /// ```
 ///# use yew::{Children, Html, Properties, Component, ComponentLink, html};
-///# #[derive(Clone, Properties)]
+///# #[derive(Properties)]
 ///# struct WrapperProps {
 ///#     children: Children,
 ///# }
@@ -95,7 +95,7 @@ pub type Html = VNode;
 /// children property can be used to render the wrapped elements.
 /// ```
 ///# use yew::{Children, Html, Properties, Renderable, Component, ComponentLink, html};
-/// #[derive(Clone, Properties)]
+/// #[derive(Properties)]
 /// struct WrapperProps {
 ///     children: Children,
 /// }
@@ -127,7 +127,7 @@ pub type Children = ChildrenRenderer<Html>;
 /// ```
 ///# use yew::{html, Component, Renderable, Html, ComponentLink, ChildrenWithProps, Properties};
 ///#
-///# #[derive(Clone, Properties)]
+///# #[derive(Properties)]
 ///# struct ListProps {
 ///#     children: ChildrenWithProps<ListItem>,
 ///# }
@@ -139,7 +139,7 @@ pub type Children = ChildrenRenderer<Html>;
 ///#     fn update(&mut self, msg: Self::Message) -> bool {unimplemented!()}
 ///#     fn view(&self) -> Html {unimplemented!()}
 ///# }
-///# #[derive(Clone, Properties)]
+///# #[derive(Properties)]
 ///# struct ListItemProps {
 ///#     value: String
 ///# }
@@ -169,7 +169,7 @@ pub type Children = ChildrenRenderer<Html>;
 /// ```
 ///# use yew::{html, Component, Html, ChildrenWithProps, ComponentLink, Properties};
 ///#
-/// #[derive(Clone, Properties)]
+/// #[derive(Properties)]
 /// struct ListProps {
 ///   children: ChildrenWithProps<ListItem>,
 /// }
@@ -191,7 +191,7 @@ pub type Children = ChildrenRenderer<Html>;
 ///     }
 /// }
 ///#
-///# #[derive(Clone, Properties)]
+///# #[derive(Properties)]
 ///# struct ListItemProps {
 ///#     value: String
 ///# }
