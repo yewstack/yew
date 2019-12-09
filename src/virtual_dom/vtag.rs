@@ -66,7 +66,7 @@ impl VTag {
             attributes: Attributes::new(),
             listeners: Vec::new(),
             captured: Vec::new(),
-            children: VList::new(true),
+            children: VList::new_without_placeholder(),
             node_ref: NodeRef::default(),
             value: None,
             kind: None,
@@ -358,11 +358,11 @@ impl VDiff for VTag {
         // recursively remove its children
         self.children.detach(&node);
 
-        let sibling = node.next_sibling();
+        let next_sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VTag");
         }
-        sibling
+        next_sibling
     }
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an ancestor `VTag`
@@ -386,14 +386,12 @@ impl VDiff for VTag {
                         (Reform::Keep, Some(vtag))
                     } else {
                         // We have to create a new reference, remove ancestor.
-                        let node = vtag.detach(parent);
-                        (Reform::Before(node), None)
+                        (Reform::Before(vtag.detach(parent)), None)
                     }
                 }
                 Some(mut vnode) => {
                     // It is not a VTag variant we must remove the ancestor.
-                    let node = vnode.detach(parent);
-                    (Reform::Before(node), None)
+                    (Reform::Before(vnode.detach(parent)), None)
                 }
                 None => (Reform::Before(None), None),
             }
@@ -403,10 +401,10 @@ impl VDiff for VTag {
         //
         // This can use the previous reference or create a new one.
         // If we create a new one we must insert it in the correct
-        // place, which we use `before` or `precusor` for.
+        // place, which we use `next_sibling` or `previous_sibling` for.
         match reform {
             Reform::Keep => {}
-            Reform::Before(before) => {
+            Reform::Before(next_sibling) => {
                 let element = if self.tag == "svg"
                     || parent
                         .namespace_uri()
@@ -421,20 +419,16 @@ impl VDiff for VTag {
                         .expect("can't create element for vtag")
                 };
 
-                if let Some(sibling) = before {
+                if let Some(next_sibling) = next_sibling {
                     parent
-                        .insert_before(&element, &sibling)
-                        .expect("can't insert tag before sibling");
+                        .insert_before(&element, &next_sibling)
+                        .expect("can't insert tag before next sibling");
+                } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
+                    parent
+                        .insert_before(&element, &next_sibling)
+                        .expect("can't insert tag before next sibling");
                 } else {
-                    let previous_sibling =
-                        previous_sibling.and_then(|before| before.next_sibling());
-                    if let Some(previous_sibling) = previous_sibling {
-                        parent
-                            .insert_before(&element, &previous_sibling)
-                            .expect("can't insert tag before previous_sibling");
-                    } else {
-                        parent.append_child(&element);
-                    }
+                    parent.append_child(&element);
                 }
                 self.reference = Some(element);
             }

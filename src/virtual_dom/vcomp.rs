@@ -132,17 +132,16 @@ enum Reform {
 }
 
 impl VDiff for VComp {
-    /// Remove VComp from parent.
     fn detach(&mut self, parent: &Element) -> Option<Node> {
         match self.state.replace(MountState::Detached) {
             MountState::Mounted(this) => {
                 (this.destroyer)();
                 this.node_ref.get().and_then(|node| {
-                    let sibling = node.next_sibling();
+                    let next_sibling = node.next_sibling();
                     parent
                         .remove_child(&node)
                         .expect("can't remove the component");
-                    sibling
+                    next_sibling
                 })
             }
             _ => None,
@@ -167,14 +166,10 @@ impl VDiff for VComp {
                                 _ => Reform::Before(None),
                             }
                         } else {
-                            let node = vcomp.detach(parent);
-                            Reform::Before(node)
+                            Reform::Before(vcomp.detach(parent))
                         }
                     }
-                    Some(mut vnode) => {
-                        let node = vnode.detach(parent);
-                        Reform::Before(node)
-                    }
+                    Some(mut vnode) => Reform::Before(vnode.detach(parent)),
                     None => Reform::Before(None),
                 };
 
@@ -183,23 +178,21 @@ impl VDiff for VComp {
                         // Send properties update when the component is already rendered.
                         this.replace(mounted)
                     }
-                    Reform::Before(before) => {
+                    Reform::Before(next_sibling) => {
                         // Temporary node which will be replaced by a component's root node.
                         let dummy_node = document().create_text_node("");
-                        if let Some(sibling) = before {
+                        if let Some(next_sibling) = next_sibling {
                             parent
-                                .insert_before(&dummy_node, &sibling)
-                                .expect("can't insert dummy node for a component");
+                                .insert_before(&dummy_node, &next_sibling)
+                                .expect("can't insert dummy component node before next sibling");
+                        } else if let Some(next_sibling) =
+                            previous_sibling.and_then(|p| p.next_sibling())
+                        {
+                            parent
+                                .insert_before(&dummy_node, &next_sibling)
+                                .expect("can't insert dummy component node before next sibling");
                         } else {
-                            let previous_sibling =
-                                previous_sibling.and_then(|before| before.next_sibling());
-                            if let Some(previous_sibling) = previous_sibling {
-                                parent
-                                    .insert_before(&dummy_node, &previous_sibling)
-                                    .expect("can't insert dummy node before previous sibling");
-                            } else {
-                                parent.append_child(&dummy_node);
-                            }
+                            parent.append_child(&dummy_node);
                         }
                         this.mount(parent.to_owned(), dummy_node)
                     }
