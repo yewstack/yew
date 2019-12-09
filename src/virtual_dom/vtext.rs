@@ -33,11 +33,11 @@ impl VDiff for VText {
             .reference
             .take()
             .expect("tried to remove not rendered VText from DOM");
-        let sibling = node.next_sibling();
+        let next_sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VText");
         }
-        sibling
+        next_sibling
     }
 
     /// Renders virtual node over existing `TextNode`, but only if value of text had changed.
@@ -63,24 +63,19 @@ impl VDiff for VText {
                     }
                     Reform::Keep
                 }
-                Some(mut vnode) => {
-                    let node = vnode.detach(parent);
-                    Reform::Before(node)
-                }
+                Some(mut vnode) => Reform::Before(vnode.detach(parent)),
                 None => Reform::Before(None),
             }
         };
         match reform {
             Reform::Keep => {}
-            Reform::Before(ancestor) => {
+            Reform::Before(next_sibling) => {
                 let element = document().create_text_node(&self.text);
-                if let Some(ancestor) = ancestor {
+                if let Some(next_sibling) = next_sibling {
                     parent
-                        .insert_before(&element, &ancestor)
-                        .expect("can't insert text before ancestor");
-                } else if let Some(next_sibling) =
-                    previous_sibling.and_then(|previous_sibling| previous_sibling.next_sibling())
-                {
+                        .insert_before(&element, &next_sibling)
+                        .expect("can't insert text before the next sibling");
+                } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
                     parent
                         .insert_before(&element, &next_sibling)
                         .expect("can't insert text before next_sibling");
