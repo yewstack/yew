@@ -33,7 +33,7 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html<Self> {
-        // BEFORE: Callbacks were created implicitly created from this closure syntax
+        // BEFORE: Callbacks were created implicitly from this closure syntax
         html! {
             <button onclick=|_| Msg::Click>{ "Click me!" }</button>
         }
