@@ -6,10 +6,10 @@ use stdweb::web::{Element, Node};
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Debug, PartialEq, Default)]
 pub struct VList {
-    /// Whether the fragment has siblings or not.
-    pub no_siblings: bool,
-    /// The list of children nodes. Which also could have their own children.
+    /// The list of children nodes.
     pub children: Vec<VNode>,
+    /// Never use a placeholder element if set to true.
+    elide_placeholder: bool,
 }
 
 impl Deref for VList {
@@ -28,10 +28,23 @@ impl DerefMut for VList {
 
 impl VList {
     /// Creates a new empty `VList` instance.
-    pub fn new(no_siblings: bool) -> Self {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Creates a new `VList` instance with children.
+    pub fn new_with_children(children: Vec<VNode>) -> Self {
         VList {
-            no_siblings,
+            children,
+            elide_placeholder: false,
+        }
+    }
+
+    /// Creates a new empty `VList` instance which does not need a placeholder node.
+    pub(crate) fn new_without_placeholder() -> Self {
+        VList {
             children: Vec::new(),
+            elide_placeholder: true,
         }
     }
 
@@ -43,11 +56,11 @@ impl VList {
 
 impl VDiff for VList {
     fn detach(&mut self, parent: &Element) -> Option<Node> {
-        let mut last_sibling = None;
+        let mut next_sibling = None;
         for mut child in self.children.drain(..) {
-            last_sibling = child.detach(parent);
+            next_sibling = child.detach(parent);
         }
-        last_sibling
+        next_sibling
     }
 
     fn apply(
@@ -74,8 +87,7 @@ impl VDiff for VList {
             }
         };
 
-        if self.children.is_empty() && !self.no_siblings {
-            // Fixes: https://github.com/yewstack/yew/issues/294
+        if self.children.is_empty() && !self.elide_placeholder {
             // Without a placeholder the next element becomes first
             // and corrupts the order of rendering
             // We use empty text element to stake out a place

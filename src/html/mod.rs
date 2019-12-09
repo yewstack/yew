@@ -264,11 +264,7 @@ where
     T: Into<VNode>,
 {
     fn render(&self) -> Html {
-        VList {
-            no_siblings: true,
-            children: self.iter().map(|c| c.into()).collect(),
-        }
-        .into()
+        VList::new_with_children(self.iter().map(|c| c.into()).collect()).into()
     }
 }
 
