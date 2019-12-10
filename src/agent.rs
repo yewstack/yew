@@ -771,7 +771,7 @@ impl<AGN: Agent> Responder<AGN> for WorkerResponder {
 /// Link to agent's scope for creating callbacks.
 pub struct AgentLink<AGN: Agent> {
     scope: AgentScope<AGN>,
-    responder: Box<dyn Responder<AGN>>,
+    responder: Rc<dyn Responder<AGN>>,
 }
 
 impl<AGN: Agent> AgentLink<AGN> {
@@ -782,7 +782,7 @@ impl<AGN: Agent> AgentLink<AGN> {
     {
         AgentLink {
             scope: scope.clone(),
-            responder: Box::new(responder),
+            responder: Rc::new(responder),
         }
     }
 
@@ -808,6 +808,15 @@ impl<AGN: Agent> AgentLink<AGN> {
 impl<AGN: Agent> fmt::Debug for AgentLink<AGN> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("AgentLink<_>")
+    }
+}
+
+impl<AGN: Agent> Clone for AgentLink<AGN> {
+    fn clone(&self) -> Self {
+        AgentLink {
+            scope: self.scope.clone(),
+            responder: self.responder.clone(),
+        }
     }
 }
 
