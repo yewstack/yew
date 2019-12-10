@@ -21,7 +21,6 @@ inner_html = { path = "../inner_html" }
 large_table = { path = "../large_table" }
 mount_point = { path = "../mount_point" }
 npm_and_rest = { path = "../npm_and_rest" }
-routing = { path = "../routing" }
 textarea = { path = "../textarea" }
 timer = { path = "../timer" }
 todomvc = { path = "../todomvc" }
