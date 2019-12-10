@@ -17,7 +17,6 @@ members = [
   "multi_thread",
   "nested_list",
   "npm_and_rest",
-  "routing",
   "server",
   "showcase",
   "textarea",

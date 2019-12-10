@@ -12,7 +12,6 @@ use large_table::Model as LargeTable;
 use log::trace;
 use mount_point::Model as MountPoint;
 use npm_and_rest::Model as NpmAndRest;
-use routing::Model as Routing;
 use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter, EnumString};
 use textarea::Model as Textarea;
@@ -35,7 +34,6 @@ enum Scene {
     LargeTable,
     MountPoint,
     NpmAndRest,
-    Routing,
     Textarea,
     Timer,
     Todomvc,
@@ -100,7 +98,6 @@ impl Model {
                 Scene::LargeTable => html! { <LargeTable /> },
                 Scene::MountPoint => html! { <MountPoint /> },
                 Scene::NpmAndRest => html! { <NpmAndRest /> },
-                Scene::Routing => html! { <Routing /> },
                 Scene::Textarea => html! { <Textarea /> },
                 Scene::Timer => html! { <Timer /> },
                 Scene::Todomvc => html! { <Todomvc /> },
