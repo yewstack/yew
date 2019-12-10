@@ -1,6 +1,5 @@
 #[cfg(feature = "wasm_test")]
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-use yew::virtual_dom::VNode;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 #[cfg(feature = "wasm_test")]
@@ -20,18 +19,18 @@ impl Component for Comp {
         unimplemented!();
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         unimplemented!();
     }
 }
 
 #[test]
 fn check_fragments() {
-    let fragment: VNode<Comp> = html! {
+    let fragment = html! {
         <>
         </>
     };
-    let _: VNode<Comp> = html! {
+    html! {
         <div>
             { fragment }
         </div>

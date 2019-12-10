@@ -3,6 +3,3 @@ error[E0277]: the trait bound `std::string::String: yew::html::Component` is not
   |
 6 |     html! { <String /> };
   |              ^^^^^^ the trait `yew::html::Component` is not implemented for `std::string::String`
-
-For more information about this error, try `rustc --explain E0277`.
-error: could not compile `yew-tests`.

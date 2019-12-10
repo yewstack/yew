@@ -8,6 +8,7 @@ use stdweb::web::IHtmlElement;
 use yew::prelude::*;
 
 pub struct Model {
+    link: ComponentLink<Self>,
     refs: Vec<NodeRef>,
     focus_index: usize,
 }
@@ -20,8 +21,9 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
+            link,
             focus_index: 0,
             refs: vec![NodeRef::default(), NodeRef::default()],
         }
@@ -44,7 +46,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div class="main">
                 <h1>{ "Node Refs Demo" }</h1>
@@ -55,11 +57,17 @@ impl Component for Model {
                 </ul>
                 <div>
                     <label>{ "Using tag ref: " }</label>
-                    <input ref=self.refs[0].clone() class="input-element" type="text" onmouseover=|_| Msg::HoverIndex(0) />
+                    <input
+                        type="text"
+                        ref=self.refs[0].clone()
+                        class="input-element"
+                        onmouseover=self.link.callback(|_| Msg::HoverIndex(0)) />
                 </div>
                 <div>
                     <label>{ "Using component ref: " }</label>
-                    <InputComponent ref=self.refs[1].clone() on_hover=|_| Msg::HoverIndex(1) />
+                    <InputComponent
+                        ref=self.refs[1].clone()
+                        on_hover=self.link.callback(|_| Msg::HoverIndex(1)) />
                 </div>
             </div>
         }

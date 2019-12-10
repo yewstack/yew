@@ -83,7 +83,6 @@ impl ToTokens for HtmlComponent {
             props,
             children,
         } = self;
-        let vcomp_scope = Ident::new("__yew_vcomp_scope", Span::call_site());
 
         let validate_props = if let Props::List(ListProps { props, .. }) = props {
             let prop_ref = Ident::new("__yew_prop_ref", Span::call_site());
@@ -139,9 +138,11 @@ impl ToTokens for HtmlComponent {
         let init_props = match props {
             Props::List(ListProps { props, .. }) => {
                 let set_props = props.iter().map(|HtmlProp { label, value }| {
-                    quote_spanned! { value.span()=>
-                        .#label(<::yew::virtual_dom::vcomp::VComp<_> as ::yew::virtual_dom::vcomp::Transformer<_, _, _>>::transform(#vcomp_scope.clone(), #value))
-                    }
+                    quote_spanned! { value.span()=> .#label(
+                        <::yew::virtual_dom::vcomp::VComp as ::yew::virtual_dom::Transformer<_, _>>::transform(
+                            #value
+                        )
+                    )}
                 });
 
                 quote! {
@@ -181,9 +182,7 @@ impl ToTokens for HtmlComponent {
                 #validate_props
             }
 
-            let #vcomp_scope: ::yew::virtual_dom::vcomp::ScopeHolder<_> = ::std::default::Default::default();
-            let __yew_node_ref: ::yew::html::NodeRef = #node_ref;
-            ::yew::virtual_dom::VChild::<#ty, _>::new(#init_props, #vcomp_scope, __yew_node_ref)
+            ::yew::virtual_dom::VChild::<#ty>::new(#init_props, #node_ref)
         }});
     }
 }

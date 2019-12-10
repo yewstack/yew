@@ -1,8 +1,9 @@
 #![recursion_limit = "128"]
 
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, InputData, ShouldRender};
 
 pub struct Model {
+    link: ComponentLink<Self>,
     value: String,
 }
 
@@ -15,8 +16,11 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model { value: "".into() }
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Model {
+            link,
+            value: "".into(),
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -31,16 +35,16 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
                 <div>
                     <textarea rows=5
                         value=&self.value
-                        oninput=|e| Msg::GotInput(e.value)
+                        oninput=self.link.callback(|e: InputData| Msg::GotInput(e.value))
                         placeholder="placeholder">
                     </textarea>
-                    <button onclick=|_| Msg::Clicked>{ "change value" }</button>
+                    <button onclick=self.link.callback(|_| Msg::Clicked)>{ "change value" }</button>
                 </div>
                 <div>
                     {&self.value}

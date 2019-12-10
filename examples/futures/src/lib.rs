@@ -94,17 +94,19 @@ impl Component for Model {
                 };
                 self.link.send_future(future);
                 self.link
-                    .send_self(SetMarkdownFetchState(FetchState::Fetching));
+                    .send_message(SetMarkdownFetchState(FetchState::Fetching));
                 false
             }
         }
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         match &self.markdown {
-            FetchState::NotFetching => {
-                html! {<button onclick=|_| Msg::GetMarkdown>{"Get Markdown"}</button>}
-            }
+            FetchState::NotFetching => html! {
+                <button onclick=self.link.callback(|_| Msg::GetMarkdown)>
+                    {"Get Markdown"}
+                </button>
+            },
             FetchState::Fetching => html! {"Fetching"},
             FetchState::Success(data) => html! {&data},
             FetchState::Failed(err) => html! {&err},

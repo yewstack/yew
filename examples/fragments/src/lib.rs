@@ -3,6 +3,7 @@
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
+    link: ComponentLink<Self>,
     counter: usize,
 }
 
@@ -15,8 +16,8 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model { counter: 0 }
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Model { link, counter: 0 }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -33,7 +34,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <>
                 <nav class="menu">{ self.view_menu() }</nav>
@@ -53,7 +54,7 @@ impl Component for Model {
 }
 
 impl Model {
-    fn view_cols(&self) -> Html<Self> {
+    fn view_cols(&self) -> Html {
         let render = |idx| {
             html! {
                 <td>{ idx }</td>
@@ -64,11 +65,11 @@ impl Model {
         }
     }
 
-    fn view_menu(&self) -> Html<Self> {
+    fn view_menu(&self) -> Html {
         html! {
             <>
-                <button onclick=|_| Msg::More>{ "More" }</button>
-                <button onclick=|_| Msg::Less>{ "Less" }</button>
+                <button onclick=self.link.callback(|_| Msg::More)>{ "More" }</button>
+                <button onclick=self.link.callback(|_| Msg::Less)>{ "Less" }</button>
             </>
         }
     }

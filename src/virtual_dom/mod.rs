@@ -16,26 +16,24 @@ pub use self::vlist::VList;
 pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 pub use self::vtext::VText;
-use crate::html::{Component, Scope};
 
 /// `Listener` trait is an universal implementation of an event listener
 /// which helps to bind Rust-listener to JS-listener (DOM).
-pub trait Listener<COMP: Component> {
+pub trait Listener {
     /// Returns standard name of DOM's event.
     fn kind(&self) -> &'static str;
-    /// Attaches listener to the element and uses scope instance to send
-    /// prepared event back to the yew main loop.
-    fn attach(&mut self, element: &Element, scope: Scope<COMP>) -> EventListenerHandle;
+    /// Attaches a listener to the element.
+    fn attach(&self, element: &Element) -> EventListenerHandle;
 }
 
-impl<COMP: Component> fmt::Debug for dyn Listener<COMP> {
+impl fmt::Debug for dyn Listener {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Listener {{ kind: {} }}", self.kind())
     }
 }
 
 /// A list of event listeners.
-type Listeners<COMP> = Vec<Box<dyn Listener<COMP>>>;
+type Listeners = Vec<Box<dyn Listener>>;
 
 /// A map of attributes.
 type Attributes = HashMap<String, String>;
@@ -84,13 +82,11 @@ impl Classes {
 
 impl ToString for Classes {
     fn to_string(&self) -> String {
-        let mut buf = String::new();
-        for class in &self.set {
-            buf.push_str(class);
-            buf.push(' ');
-        }
-        buf.pop();
-        buf
+        self.set
+            .iter()
+            .map(String::as_str)
+            .collect::<Vec<&str>>()
+            .join(" ")
     }
 }
 
@@ -168,9 +164,6 @@ enum Reform {
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
 pub trait VDiff {
-    /// The component which this instance put into.
-    type Component: Component;
-
     /// Remove itself from parent and return the next sibling.
     fn detach(&mut self, parent: &Element) -> Option<Node>;
 
@@ -199,7 +192,12 @@ pub trait VDiff {
         &mut self,
         parent: &Element,
         previous_sibling: Option<&Node>,
-        ancestor: Option<VNode<Self::Component>>,
-        parent_scope: &Scope<Self::Component>,
+        ancestor: Option<VNode>,
     ) -> Option<Node>;
+}
+
+/// Transform properties to the expected type.
+pub trait Transformer<FROM, TO> {
+    /// Transforms one type to another.
+    fn transform(from: FROM) -> TO;
 }

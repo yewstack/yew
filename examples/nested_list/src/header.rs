@@ -1,4 +1,4 @@
-use crate::list::Hovered;
+use crate::Hovered;
 use yew::prelude::*;
 
 pub struct ListHeader {
@@ -13,30 +13,22 @@ pub struct Props {
     pub text: String,
 }
 
-pub enum Msg {
-    Hover,
-}
-
 impl Component for ListHeader {
-    type Message = Msg;
+    type Message = ();
     type Properties = Props;
 
     fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
         ListHeader { props }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::Hover => {
-                self.props.on_hover.emit(Hovered::Header);
-            }
-        }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
         false
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
+        let onmouseover = self.props.on_hover.reform(|_| Hovered::Header);
         html! {
-            <div class="list-header" onmouseover=|_| Msg::Hover>
+            <div class="list-header" onmouseover=onmouseover>
                 { &self.props.text }
             </div>
         }

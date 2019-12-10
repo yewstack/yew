@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-#[rustversion::attr(beta, cfg_attr(not(feature = "web_test"), test))]
+#[rustversion::attr(stable(1.39.0), cfg_attr(not(feature = "web_test"), test))]
 fn tests() {
     let t = trybuild::TestCases::new();
     t.pass("tests/derive_props/pass.rs");

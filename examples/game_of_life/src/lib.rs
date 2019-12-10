@@ -18,6 +18,7 @@ struct Cellule {
 }
 
 pub struct Model {
+    link: ComponentLink<Self>,
     active: bool,
     cellules: Vec<Cellule>,
     cellules_width: usize,
@@ -155,11 +156,12 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
-        let callback = link.send_back(|_| Msg::Tick);
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let callback = link.callback(|_| Msg::Tick);
         let mut interval = IntervalService::new();
         let handle = interval.spawn(Duration::from_millis(200), callback);
         Model {
+            link,
             active: false,
             cellules: vec![
                 Cellule {
@@ -206,7 +208,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
                 <section class="game-container">
@@ -216,14 +218,14 @@ impl Component for Model {
                     </header>
                     <section class="game-area">
                         <div class="game-of-life">
-                            { for self.cellules.iter().enumerate().map(view_cellule) }
+                            { for self.cellules.iter().enumerate().map(|c| self.view_cellule(c)) }
                         </div>
                         <div class="game-buttons">
-                            <button class="game-button" onclick=|_| Msg::Random>{ "Random" }</button>
-                            <button class="game-button" onclick=|_| Msg::Step>{ "Step" }</button>
-                            <button class="game-button" onclick=|_| Msg::Start>{ "Start" }</button>
-                            <button class="game-button" onclick=|_| Msg::Stop>{ "Stop" }</button>
-                            <button class="game-button" onclick=|_| Msg::Reset>{ "Reset" }</button>
+                            <button class="game-button" onclick=self.link.callback(|_| Msg::Random)>{ "Random" }</button>
+                            <button class="game-button" onclick=self.link.callback(|_| Msg::Step)>{ "Step" }</button>
+                            <button class="game-button" onclick=self.link.callback(|_| Msg::Start)>{ "Start" }</button>
+                            <button class="game-button" onclick=self.link.callback(|_| Msg::Stop)>{ "Stop" }</button>
+                            <button class="game-button" onclick=self.link.callback(|_| Msg::Reset)>{ "Reset" }</button>
                         </div>
                     </section>
                 </section>
@@ -238,16 +240,19 @@ impl Component for Model {
     }
 }
 
-fn view_cellule((idx, cellule): (usize, &Cellule)) -> Html<Model> {
-    let cellule_status = {
-        if cellule.life_state == LifeState::Alive {
-            "cellule-live"
-        } else {
-            "cellule-dead"
+impl Model {
+    fn view_cellule(&self, (idx, cellule): (usize, &Cellule)) -> Html {
+        let cellule_status = {
+            if cellule.life_state == LifeState::Alive {
+                "cellule-live"
+            } else {
+                "cellule-dead"
+            }
+        };
+        html! {
+            <div class=("game-cellule", cellule_status)
+                onclick=self.link.callback(move |_| Msg::ToggleCellule(idx))>
+            </div>
         }
-    };
-    html! {
-        <div class=("game-cellule", cellule_status) onclick=|_| Msg::ToggleCellule(idx)>
-        </div>
     }
 }

@@ -62,7 +62,9 @@ Yew implements strict application state management based on message passing and 
 ```rust
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
-struct Model { }
+struct Model {
+    link: ComponentLink<Self>,
+}
 
 enum Msg {
     DoIt,
@@ -74,8 +76,8 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model { }
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Model { link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -87,10 +89,11 @@ impl Component for Model {
         }
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
+        let onclick = self.link.callback(|_| Msg::DoIt);
         html! {
             // Render your model here
-            <button onclick=|_| Msg::DoIt>{ "Click me!" }</button>
+            <button onclick=onclick>{ "Click me!" }</button>
         }
     }
 }
@@ -164,14 +167,14 @@ impl Agent for Worker {
         Worker { link }
     }
 
-    // Handle inner messages (of services of `send_back` callbacks)
+    // Handle inner messages (from callbacks)
     fn update(&mut self, msg: Self::Message) { /* ... */ }
 
     // Handle incoming messages from components of other agents.
-    fn handle(&mut self, msg: Self::Input, who: HandlerId) {
+    fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
         match msg {
             Request::Question(_) => {
-                self.link.response(who, Response::Answer("That's cool!".into()));
+                self.link.respond(who, Response::Answer("That's cool!".into()));
             },
         }
     }
@@ -195,7 +198,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.send_back(|_| Msg::ContextMsg);
+        let callback = link.callback(|_| Msg::ContextMsg);
         // `Worker::bridge` spawns an instance if no one is available
         let context = context::Worker::bridge(callback); // Connected! :tada:
         Model { context }
@@ -320,8 +323,8 @@ Use external crates and put values from them into the template:
 extern crate chrono;
 use chrono::prelude::*;
 
-impl Renderable<Model> for Model {
-    fn render(&self) -> Html<Self> {
+impl Renderable for Model {
+    fn render(&self) -> Html {
         html! {
             <p>{ Local::now() }</p>
         }
@@ -362,8 +365,8 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Fire => {
-                let send_msg = self.link.send_back(|_| Msg::Timeout);
-                self.timeout.spawn(Duration::from_secs(5), send_msg);
+                let timeout = self.link.callback(|_| Msg::Timeout);
+                self.timeout.spawn(Duration::from_secs(5), timeout);
             }
             Msg::Timeout => {
                 self.console.log("Timeout!");

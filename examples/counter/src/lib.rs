@@ -5,6 +5,7 @@ use yew::services::ConsoleService;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
+    link: ComponentLink<Self>,
     console: ConsoleService,
     value: i64,
 }
@@ -19,8 +20,9 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
+            link,
             console: ConsoleService::new(),
             value: 0,
         }
@@ -46,13 +48,19 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
                 <nav class="menu">
-                    <button onclick=|_| Msg::Increment>{ "Increment" }</button>
-                    <button onclick=|_| Msg::Decrement>{ "Decrement" }</button>
-                    <button onclick=|_| Msg::Bulk(vec![Msg::Increment, Msg::Increment])>{ "Increment Twice" }</button>
+                    <button onclick=self.link.callback(|_| Msg::Increment)>
+                        { "Increment" }
+                    </button>
+                    <button onclick=self.link.callback(|_| Msg::Decrement)>
+                        { "Decrement" }
+                    </button>
+                    <button onclick=self.link.batch_callback(|_| vec![Msg::Increment, Msg::Increment])>
+                        { "Increment Twice" }
+                    </button>
                 </nav>
                 <p>{ self.value }</p>
                 <p>{ Date::new().to_string() }</p>

@@ -30,9 +30,7 @@ fn compile_fail() {
     html! { <a href=() /> };
 
     html! { <input onclick=1 /> };
-    html! { <input onclick=|| () /> };
-    html! { <input onclick=|a, b| () /> };
-    html! { <input onclick=|a: String| () /> };
+    html! { <input onclick=Callback::from(|a: String| ()) /> };
 
     html! { <input string=NotToString /> };
 

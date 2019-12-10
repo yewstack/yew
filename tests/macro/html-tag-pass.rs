@@ -4,6 +4,7 @@
 mod helpers;
 
 pass_helper! {
+    let onclick = Callback::from(|_: ClickEvent| ());
     let parent_ref = NodeRef::default();
     html! {
         <div>
@@ -36,7 +37,8 @@ pass_helper! {
             </svg>
             <img class=("avatar", "hidden") src="http://pic.com" />
             <img class="avatar hidden", />
-            <button onclick=|e| panic!(e) />
+            <button onclick=&onclick />
+            <button onclick=onclick />
             <a href="http://google.com" />
             <custom-tag-a>
                 <custom-tag-b />

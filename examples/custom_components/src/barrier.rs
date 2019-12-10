@@ -2,6 +2,7 @@ use crate::button::Button;
 use yew::prelude::*;
 
 pub struct Barrier {
+    link: ComponentLink<Self>,
     limit: u32,
     counter: u32,
     onsignal: Callback<()>,
@@ -22,8 +23,9 @@ impl Component for Barrier {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Barrier {
+            link,
             limit: props.limit,
             counter: 0,
             onsignal: props.onsignal,
@@ -49,15 +51,16 @@ impl Component for Barrier {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
+        let onsignal = &self.link.callback(|_| Msg::ChildClicked);
         html! {
             <div class="barrier">
                 <p>{ format!("{} on {} clicked", self.counter, self.limit) }</p>
-                <Button onsignal=|_| Msg::ChildClicked />
-                <Button onsignal=|_| Msg::ChildClicked />
-                <Button onsignal=|_| Msg::ChildClicked title="Middle" />
-                <Button onsignal=|_| Msg::ChildClicked />
-                <Button onsignal=|_| Msg::ChildClicked />
+                <Button onsignal=onsignal />
+                <Button onsignal=onsignal />
+                <Button onsignal=onsignal title="Middle" />
+                <Button onsignal=onsignal />
+                <Button onsignal=onsignal />
             </div>
         }
     }

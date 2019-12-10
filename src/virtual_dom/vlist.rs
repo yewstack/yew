@@ -1,76 +1,73 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
-use crate::html::{Component, Scope};
 use std::ops::{Deref, DerefMut};
 use stdweb::web::{Element, Node};
 
 /// This struct represents a fragment of the Virtual DOM tree.
-#[derive(Debug)]
-pub struct VList<COMP: Component> {
-    /// Whether the fragment has siblings or not.
-    pub no_siblings: bool,
-    /// The list of children nodes. Which also could have their own children.
-    pub children: Vec<VNode<COMP>>,
+#[derive(Debug, PartialEq, Default)]
+pub struct VList {
+    /// The list of children nodes.
+    pub children: Vec<VNode>,
+    /// Never use a placeholder element if set to true.
+    elide_placeholder: bool,
 }
 
-impl<COMP: Component> Deref for VList<COMP> {
-    type Target = Vec<VNode<COMP>>;
+impl Deref for VList {
+    type Target = Vec<VNode>;
 
     fn deref(&self) -> &Self::Target {
         &self.children
     }
 }
 
-impl<COMP: Component> DerefMut for VList<COMP> {
+impl DerefMut for VList {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.children
     }
 }
 
-impl<COMP: Component> PartialEq for VList<COMP> {
-    fn eq(&self, other: &Self) -> bool {
-        self.children == other.children
-    }
-}
-
-impl<COMP: Component> Default for VList<COMP> {
-    fn default() -> Self {
-        VList::new(false)
-    }
-}
-
-impl<COMP: Component> VList<COMP> {
+impl VList {
     /// Creates a new empty `VList` instance.
-    pub fn new(no_siblings: bool) -> Self {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Creates a new `VList` instance with children.
+    pub fn new_with_children(children: Vec<VNode>) -> Self {
         VList {
-            no_siblings,
+            children,
+            elide_placeholder: false,
+        }
+    }
+
+    /// Creates a new empty `VList` instance which does not need a placeholder node.
+    pub(crate) fn new_without_placeholder() -> Self {
+        VList {
             children: Vec::new(),
+            elide_placeholder: true,
         }
     }
 
     /// Add `VNode` child.
-    pub fn add_child(&mut self, child: VNode<COMP>) {
+    pub fn add_child(&mut self, child: VNode) {
         self.children.push(child);
     }
 }
 
-impl<COMP: Component> VDiff for VList<COMP> {
-    type Component = COMP;
-
+impl VDiff for VList {
     fn detach(&mut self, parent: &Element) -> Option<Node> {
-        let mut last_sibling = None;
+        let mut next_sibling = None;
         for mut child in self.children.drain(..) {
-            last_sibling = child.detach(parent);
+            next_sibling = child.detach(parent);
         }
-        last_sibling
+        next_sibling
     }
 
     fn apply(
         &mut self,
         parent: &Element,
         previous_sibling: Option<&Node>,
-        ancestor: Option<VNode<Self::Component>>,
-        parent_scope: &Scope<Self::Component>,
+        ancestor: Option<VNode>,
     ) -> Option<Node> {
         // Reuse previous_sibling, because fragment reuse parent
         let mut previous_sibling = previous_sibling.cloned();
@@ -90,8 +87,7 @@ impl<COMP: Component> VDiff for VList<COMP> {
             }
         };
 
-        if self.children.is_empty() && !self.no_siblings {
-            // Fixes: https://github.com/yewstack/yew/issues/294
+        if self.children.is_empty() && !self.elide_placeholder {
             // Without a placeholder the next element becomes first
             // and corrupts the order of rendering
             // We use empty text element to stake out a place
@@ -105,16 +101,10 @@ impl<COMP: Component> VDiff for VList<COMP> {
         loop {
             match (lefts.next(), rights.next()) {
                 (Some(left), Some(right)) => {
-                    previous_sibling = left.apply(
-                        parent,
-                        previous_sibling.as_ref(),
-                        Some(right),
-                        &parent_scope,
-                    );
+                    previous_sibling = left.apply(parent, previous_sibling.as_ref(), Some(right));
                 }
                 (Some(left), None) => {
-                    previous_sibling =
-                        left.apply(parent, previous_sibling.as_ref(), None, &parent_scope);
+                    previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
                 }
                 (None, Some(ref mut right)) => {
                     right.detach(parent);

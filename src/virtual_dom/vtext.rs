@@ -1,49 +1,43 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use super::{Reform, VDiff, VNode};
-use crate::html::{Component, Scope};
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
-use std::marker::PhantomData;
 use stdweb::web::{document, Element, INode, Node, TextNode};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// representation.
-pub struct VText<COMP: Component> {
+pub struct VText {
     /// Contains a text of the node.
     pub text: String,
     /// A reference to the `TextNode`.
     pub reference: Option<TextNode>,
-    _comp: PhantomData<COMP>,
 }
 
-impl<COMP: Component> VText<COMP> {
+impl VText {
     /// Creates new virtual text node with a content.
     pub fn new(text: String) -> Self {
         VText {
             text,
             reference: None,
-            _comp: PhantomData,
         }
     }
 }
 
-impl<COMP: Component> VDiff for VText<COMP> {
-    type Component = COMP;
-
+impl VDiff for VText {
     /// Remove VText from parent.
     fn detach(&mut self, parent: &Element) -> Option<Node> {
         let node = self
             .reference
             .take()
             .expect("tried to remove not rendered VText from DOM");
-        let sibling = node.next_sibling();
+        let next_sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VText");
         }
-        sibling
+        next_sibling
     }
 
     /// Renders virtual node over existing `TextNode`, but only if value of text had changed.
@@ -51,8 +45,7 @@ impl<COMP: Component> VDiff for VText<COMP> {
         &mut self,
         parent: &Element,
         previous_sibling: Option<&Node>,
-        ancestor: Option<VNode<Self::Component>>,
-        _: &Scope<Self::Component>,
+        ancestor: Option<VNode>,
     ) -> Option<Node> {
         assert!(
             self.reference.is_none(),
@@ -70,24 +63,19 @@ impl<COMP: Component> VDiff for VText<COMP> {
                     }
                     Reform::Keep
                 }
-                Some(mut vnode) => {
-                    let node = vnode.detach(parent);
-                    Reform::Before(node)
-                }
+                Some(mut vnode) => Reform::Before(vnode.detach(parent)),
                 None => Reform::Before(None),
             }
         };
         match reform {
             Reform::Keep => {}
-            Reform::Before(ancestor) => {
+            Reform::Before(next_sibling) => {
                 let element = document().create_text_node(&self.text);
-                if let Some(ancestor) = ancestor {
+                if let Some(next_sibling) = next_sibling {
                     parent
-                        .insert_before(&element, &ancestor)
-                        .expect("can't insert text before ancestor");
-                } else if let Some(next_sibling) =
-                    previous_sibling.and_then(|previous_sibling| previous_sibling.next_sibling())
-                {
+                        .insert_before(&element, &next_sibling)
+                        .expect("can't insert text before the next sibling");
+                } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
                     parent
                         .insert_before(&element, &next_sibling)
                         .expect("can't insert text before next_sibling");
@@ -101,14 +89,14 @@ impl<COMP: Component> VDiff for VText<COMP> {
     }
 }
 
-impl<COMP: Component> fmt::Debug for VText<COMP> {
+impl fmt::Debug for VText {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "VText {{ text: {} }}", self.text)
     }
 }
 
-impl<COMP: Component> PartialEq for VText<COMP> {
-    fn eq(&self, other: &VText<COMP>) -> bool {
+impl PartialEq for VText {
+    fn eq(&self, other: &VText) -> bool {
         self.text == other.text
     }
 }

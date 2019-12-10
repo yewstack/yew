@@ -14,6 +14,7 @@ impl Default for Color {
 }
 
 pub struct Counter {
+    link: ComponentLink<Self>,
     value: u32,
     color: Color,
     onclick: Callback<u32>,
@@ -35,8 +36,9 @@ impl Component for Counter {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Counter {
+            link,
             value: props.initial,
             color: props.color,
             onclick: props.onclick,
@@ -59,7 +61,7 @@ impl Component for Counter {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         let colorize = {
             match self.color {
                 Color::Red => "background: red;",
@@ -70,7 +72,9 @@ impl Component for Counter {
         html! {
             <div class="counter">
                 <p>{ self.value }</p>
-                <button style=colorize onclick=|_| Msg::Increase>{ "Increase internal counter" }</button>
+                <button style=colorize onclick=self.link.callback(|_| Msg::Increase)>
+                    { "Increase internal counter" }
+                </button>
             </div>
         }
     }

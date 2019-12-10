@@ -1,7 +1,6 @@
 #[cfg(feature = "wasm_test")]
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::macros::Properties;
-use yew::virtual_dom::VNode;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 #[cfg(feature = "wasm_test")]
@@ -27,26 +26,26 @@ impl Component for Comp {
         unimplemented!();
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         unimplemented!();
     }
 }
 
 #[test]
 fn set_properties_to_component() {
-    let _: VNode<Comp> = html! {
+    let _ = html! {
         <Comp />
     };
 
-    let _: VNode<Comp> = html! {
+    let _ = html! {
         <Comp field_1=1 />
     };
 
-    let _: VNode<Comp> = html! {
+    let _ = html! {
         <Comp field_2=2 />
     };
 
-    let _: VNode<Comp> = html! {
+    let _ = html! {
         <Comp field_1=1 field_2=2 />
     };
 
@@ -55,7 +54,7 @@ fn set_properties_to_component() {
         field_2: 1,
     };
 
-    let _: VNode<Comp> = html! {
+    let _ = html! {
         <Comp with props />
     };
 }

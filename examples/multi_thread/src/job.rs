@@ -37,7 +37,7 @@ impl Agent for Worker {
     fn create(link: AgentLink<Self>) -> Self {
         let mut interval = IntervalService::new();
         let duration = Duration::from_secs(3);
-        let callback = link.send_back(|_| Msg::Updating);
+        let callback = link.callback(|_| Msg::Updating);
         let task = interval.spawn(duration, callback);
         Worker {
             link,
@@ -55,11 +55,11 @@ impl Agent for Worker {
         }
     }
 
-    fn handle(&mut self, msg: Self::Input, who: HandlerId) {
+    fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
         info!("Request: {:?}", msg);
         match msg {
             Request::GetDataFromServer => {
-                self.link.response(who, Response::DataFetched);
+                self.link.respond(who, Response::DataFetched);
             }
         }
     }

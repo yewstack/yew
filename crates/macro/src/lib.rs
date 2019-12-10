@@ -9,7 +9,10 @@
 //! # #[macro_use] extern crate yew;
 //! use yew::prelude::*;
 //!
-//! # struct Component;
+//! struct Component {
+//!   link: ComponentLink<Self>,
+//! }
+//!
 //! #[derive(Properties)]
 //! struct Props {
 //!   #[props(required)]
@@ -29,13 +32,15 @@
 //! #         unimplemented!()
 //! #     }
 //! #
-//! #     fn view(&self) -> Html<Self> {
+//! #     fn view(&self) -> Html {
 //! #
 //! // ...
 //!
 //! html! {
 //!   <div>
-//!     <button onclick=|_| Msg::Submit>{ "Submit" }</button>
+//!     <button onclick=self.link.callback(|_| Msg::Submit)>
+//!       { "Submit" }
+//!     </button>
 //!     <>
 //!       <Component prop="first" />
 //!       <Component prop="second" />

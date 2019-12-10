@@ -1,6 +1,251 @@
 # Changelog
 
-## ✨ **0.10.1** *(TBD)*
+## ✨ **0.11** *(TBD)*
+
+### Transition Guide
+
+This release comes with a lot of breaking changes. We understand it's a hassle to update projects but the Yew team felt it was necessary to rip a few bandaids off now as we approach a 1.0 release in the (hopefully) near future. To ease the transition, here's a guide which outlines the main refactoring you will need to do for your project. (Note: all of the changes are reflected in the many example projects if you would like a proper reference example)
+
+#### 1. Callback syntax
+
+This is the main painful breaking change. It applies to both element listeners as well as `Component` callback properties. A good rule of thumb is that your components will now have to retain a `ComponentLink` to create callbacks on demand.
+
+Before:
+```rust
+struct Model;
+
+enum Msg {
+    Click,
+}
+
+impl Component for Model {
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        Model
+    }
+
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        match msg {
+            Msg::Click => true,
+        }
+    }
+
+    fn view(&self) -> Html<Self> {
+        // BEFORE: Callbacks were created implicitly from this closure syntax
+        html! {
+            <button onclick=|_| Msg::Click>{ "Click me!" }</button>
+        }
+    }
+}
+```
+
+After:
+```rust
+struct Model {
+  link: ComponentLink<Self>,
+}
+
+enum Msg {
+    Click,
+}
+
+impl Component for Model {
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Model { link }
+    }
+
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        match msg {
+            Msg::Click => true,
+        }
+    }
+
+    fn view(&self) -> Html {
+        // AFTER: Callbacks need to be explicitly created now
+        let onclick = self.link.callback(|_| Msg::Click);
+        html! {
+            <button onclick=onclick>{ "Click me!" }</button>
+        }
+    }
+}
+```
+
+If a closure has a parameter you will now need to specify the parameter's type.  A tip for finding the appropriate type is to search Yew's repo for the HTML attribute the closure is assigned to.
+
+For example, `onkeydown` of `<button>`:
+
+```
+let onkeydown_callback = self.link.callback(|e: KeyDownEvent| {
+    // ...
+});
+```
+
+and
+
+```
+html! {
+    <button
+        onkeydown=onkeydown_callback,
+        type="button">
+        { "button" }
+    </button>
+}
+```
+
+#### 2. Method Renames
+
+It should be safe to do a project-wide find/replace for the following:
+
+- `send_self(` -> `send_message(`
+- `send_back(` -> `callback(`
+- `response(` -> `respond(`
+- `AgentUpdate` -> `AgentLifecycleEvent`
+
+These renames will probably require some more care:
+
+- `fn handle(` -> `fn handle_input(` *(for Agent trait implementations)*
+
+#### 3. Drop Generic Types for `Html<Self>` -> `Html`
+
+:tada: We are pretty excited about this change! The generic type parameter
+was confusing and restrictive and is now a thing of the past!
+
+Before:
+```rust
+impl Component for Model {
+    // ...
+
+    fn view(&self) -> Html<Self> {
+        html! { /* ... */ }
+    }
+}
+```
+
+After:
+```rust
+impl Component for Model {
+    // ...
+
+    fn view(&self) -> Html {
+        html! { /* ... */ }
+    }
+}
+```
+
+- #### ⚡️ Features
+
+  - The `html!` macro now accepts a `Callback` for element listeners. [[@jstarry], [#777](https://github.com/yewstack/yew/pull/777)]
+
+  ```rust
+  struct Model {
+      onclick: Callback<ClickEvent>,
+  }
+
+  enum Msg {
+      Click,
+  }
+
+  impl Component for Model {
+      type Message = Msg;
+      type Properties = ();
+
+      fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+          Model {
+              onclick: link.callback(|_| Msg::Click),
+          }
+      }
+
+      fn update(&mut self, msg: Self::Message) -> ShouldRender {
+          match msg {
+              Msg::Click => true,
+          }
+      }
+
+      fn view(&self) -> Html {
+          html! {
+              <button onclick=&self.onclick>{ "Click me!" }</button>
+          }
+      }
+  }
+  ```
+
+  - Add `send_message_batch` method to `ComponentLink`. [[@hgzimmerman], [#748](https://github.com/yewstack/yew/pull/748)]
+  - Allow compilation to `wasi` target without `wasm_bindgen`. [[@dunnock], [#746](https://github.com/yewstack/yew/pull/746)]
+  - `ComponentLink` now implements `Clone` which enables `Future` usage without explicit Yew framework support. [[@hgzimmerman], [#749](https://github.com/yewstack/yew/pull/749)]
+
+  ```rust
+  use wasm_bindgen::JsValue;
+  use wasm_bindgen_futures::future_to_promise;
+
+  // future must implement `Future<Output = Component::Message> + 'static`
+  let link = self.link.clone();
+  let js_future = async move {
+      link.send_message(future.await);
+      Ok(JsValue::NULL)
+  };
+
+  future_to_promise(js_future);
+  ```
+
+- #### 🛠 Fixes
+
+  - Creating a `Callback` with `ComponentLink` is no longer restricted to mutable references, improving ergonomics. [[@jstarry], [#780](https://github.com/yewstack/yew/pull/780)]
+  - The `Callback` `reform` method no longer consumes self making it easier to "reverse map" a `Callback`. [[@jstarry], [#779](https://github.com/yewstack/yew/pull/779)]
+
+  ```rust
+  pub struct ListHeader {
+      props: Props,
+  }
+
+  #[derive(Properties)]
+  pub struct Props {
+      #[props(required)]
+      pub on_hover: Callback<Hovered>,
+      #[props(required)]
+      pub text: String,
+  }
+
+  impl Component for ListHeader {
+      type Message = ();
+      type Properties = Props;
+
+      fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+          ListHeader { props }
+      }
+
+      fn update(&mut self, _: Self::Message) -> ShouldRender {
+          false
+      }
+
+      fn view(&self) -> Html {
+          let onmouseover = self.props.on_hover.reform(|_| Hovered::Header);
+          html! {
+              <div class="list-header" onmouseover=onmouseover>
+                  { &self.props.text }
+              </div>
+          }
+      }
+  }
+  ```
+
+  - Reduced allocations in the `Classes` `to_string` method. [[@hgzimmerman], [#772](https://github.com/yewstack/yew/pull/772)]
+  - Empty string class names are now filtered out to prevent panics. [[@jstarry], [#770](https://github.com/yewstack/yew/pull/770)]
+
+- #### 🚨 Breaking changes
+
+  - Removed generic type parameter from `Html` and all virtual node types: `VNode`, `VComp`, `VTag`, `VList`, `VText`, etc. [[@jstarry], [#783](https://github.com/yewstack/yew/pull/783)]
+  - Removed support for macro magic closure syntax for element listeners. (See above for how to pass a `Callback` explicitly instead). [[@jstarry], [#782](https://github.com/yewstack/yew/pull/782)]
+  - Renamed `Agent` methods and event type for clarity. `handle` -> `handle_input`, `AgentUpdate` -> `AgentLifecycleEvent`, `response` -> `respond`. [[@philip-peterson], [#751](https://github.com/yewstack/yew/pull/751)]
+  - The `ComponentLink` `send_back` method has been renamed to `callback` for clarity. [[@jstarry], [#780](https://github.com/yewstack/yew/pull/780)]
+  - The `ComponentLink` `send_self` and `send_self_batch` methods have been renamed to `send_message` and `send_message_batch` for clarity. [[@jstarry], [#780](https://github.com/yewstack/yew/pull/780)]
+  - The `Agent` `send_back` method has been renamed to `callback` for clarity. [[@jstarry], [#780](https://github.com/yewstack/yew/pull/780)]
+  - The `VTag` `children` value type has changed from `Vec<VNode>` to `VList`. [[@jstarry], [#754](https://github.com/yewstack/yew/pull/754)]
+
 
 ## ✨ **0.10** *(2019-11-11)*
 
@@ -376,6 +621,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@jstarry]: https://github.com/jstarry
 [@kellytk]: https://github.com/kellytk
 [@lizhaoxian]: https://github.com/lizhaoxian
+[@philip-peterson]: https://github.com/philip-peterson
 [@serzhiio]: https://github.com/serzhiio
 [@stkevintan]: https://github.com/stkevintan
 [@tiziano88]: https://github.com/tiziano88

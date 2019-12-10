@@ -1,6 +1,7 @@
 use yew::prelude::*;
 
 pub struct Button {
+    link: ComponentLink<Self>,
     title: String,
     onsignal: Callback<()>,
 }
@@ -20,8 +21,9 @@ impl Component for Button {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Button {
+            link,
             title: props.title,
             onsignal: props.onsignal,
         }
@@ -42,9 +44,11 @@ impl Component for Button {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
-            <button onclick=|_| Msg::Clicked>{ &self.title }</button>
+            <button onclick=self.link.callback(|_| Msg::Clicked)>
+                { &self.title }
+            </button>
         }
     }
 }

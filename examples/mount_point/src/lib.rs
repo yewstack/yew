@@ -1,6 +1,7 @@
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, InputData, ShouldRender};
 
 pub struct Model {
+    link: ComponentLink<Self>,
     name: String,
 }
 
@@ -12,8 +13,9 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
+            link,
             name: "Reversed".to_owned(),
         }
     }
@@ -27,10 +29,12 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
-                <input value=&self.name oninput=|e| Msg::UpdateName(e.value) />
+                <input
+                    value=&self.name
+                    oninput=self.link.callback(|e: InputData| Msg::UpdateName(e.value)) />
                 <p>{ self.name.chars().rev().collect::<String>() }</p>
             </div>
         }

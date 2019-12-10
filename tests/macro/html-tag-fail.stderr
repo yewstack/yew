@@ -52,13 +52,11 @@ error: only one root html element allowed
 14 |     html! { <img /></img> };
    |                    ^^^^^^
 
-error: unexpected end of input, expected token tree
-  --> $DIR/html-tag-fail.rs:15:5
+error: expected valid html element
+  --> $DIR/html-tag-fail.rs:15:18
    |
 15 |     html! { <div>Invalid</div> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+   |                  ^^^^^^^
 
 error: only one `attr` attribute allowed
   --> $DIR/html-tag-fail.rs:17:27
@@ -102,34 +100,10 @@ error: only one `class` attribute allowed
 23 |     html! { <div class="first" class="second" /> };
    |                                ^^^^^
 
-error: `onclick` attribute value should be a closure
-  --> $DIR/html-tag-fail.rs:32:20
-   |
-32 |     html! { <input onclick=1 /> };
-   |                    ^^^^^^^
-
-error: there must be one closure argument
-  --> $DIR/html-tag-fail.rs:33:28
-   |
-33 |     html! { <input onclick=|| () /> };
-   |                            ^^
-
-error: there must be one closure argument
-  --> $DIR/html-tag-fail.rs:34:28
-   |
-34 |     html! { <input onclick=|a, b| () /> };
-   |                            ^^^^^^
-
-error: invalid closure argument
-  --> $DIR/html-tag-fail.rs:35:28
-   |
-35 |     html! { <input onclick=|a: String| () /> };
-   |                            ^^^^^^^^^^^
-
 error: only one `ref` attribute allowed
-  --> $DIR/html-tag-fail.rs:40:27
+  --> $DIR/html-tag-fail.rs:38:27
    |
-40 |     html! { <input ref=() ref=() /> };
+38 |     html! { <input ref=() ref=() /> };
    |                           ^^^
 
 error[E0308]: mismatched types
@@ -190,13 +164,31 @@ error[E0277]: the trait bound `yew::html::Href: std::convert::From<()>` is not s
              <yew::html::Href as std::convert::From<std::string::String>>
    = note: required because of the requirements on the impl of `std::convert::Into<yew::html::Href>` for `()`
 
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:32:20
+   |
+32 |     html! { <input onclick=1 /> };
+   |                    ^^^^^^^ expected struct `yew::callback::Callback`, found integer
+   |
+   = note: expected type `yew::callback::Callback<stdweb::webapi::events::mouse::ClickEvent>`
+              found type `{integer}`
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:33:20
+   |
+33 |     html! { <input onclick=Callback::from(|a: String| ()) /> };
+   |                    ^^^^^^^ expected struct `stdweb::webapi::events::mouse::ClickEvent`, found struct `std::string::String`
+   |
+   = note: expected type `yew::callback::Callback<stdweb::webapi::events::mouse::ClickEvent>`
+              found type `yew::callback::Callback<std::string::String>`
+
 error[E0599]: no method named `to_string` found for type `NotToString` in the current scope
-  --> $DIR/html-tag-fail.rs:37:27
+  --> $DIR/html-tag-fail.rs:35:27
    |
 3  | struct NotToString;
    | ------------------- method `to_string` not found for this
 ...
-37 |     html! { <input string=NotToString /> };
+35 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^ method not found in `NotToString`
    |
    = note: the method `to_string` exists but the following trait bounds were not satisfied:
@@ -206,9 +198,9 @@ error[E0599]: no method named `to_string` found for type `NotToString` in the cu
            candidate #1: `std::string::ToString`
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:39:24
+  --> $DIR/html-tag-fail.rs:37:24
    |
-39 |     html! { <input ref=() /> };
+37 |     html! { <input ref=() /> };
    |                        ^^ expected struct `yew::html::NodeRef`, found ()
    |
    = note: expected type `yew::html::NodeRef`

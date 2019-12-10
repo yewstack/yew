@@ -15,6 +15,7 @@ use ccxt::CcxtService;
 use gravatar::{GravatarService, Profile};
 
 pub struct Model {
+    link: ComponentLink<Self>,
     gravatar: GravatarService,
     ccxt: CcxtService,
     callback: Callback<Result<Profile, Error>>,
@@ -33,11 +34,12 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, mut link: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
+            link: link.clone(),
             gravatar: GravatarService::new(),
             ccxt: CcxtService::new(),
-            callback: link.send_back(Msg::GravatarReady),
+            callback: link.callback(Msg::GravatarReady),
             profile: None,
             exchanges: Vec::new(),
             task: None,
@@ -65,7 +67,7 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         let view_exchange = |exchange| {
             html! {
                 <li>{ exchange }</li>
@@ -73,8 +75,8 @@ impl Component for Model {
         };
         html! {
             <div>
-                <button onclick=|_| Msg::Exchanges>{ "Get Exchanges" }</button>
-                <button onclick=|_| Msg::Gravatar>{ "Get Gravatar" }</button>
+                <button onclick=self.link.callback(|_| Msg::Exchanges)>{ "Get Exchanges" }</button>
+                <button onclick=self.link.callback(|_| Msg::Gravatar)>{ "Get Gravatar" }</button>
                 <ul>
                     { for self.exchanges.iter().map(view_exchange) }
                 </ul>

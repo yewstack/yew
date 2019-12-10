@@ -148,6 +148,18 @@ impl ToTokens for HtmlTag {
                 #vtag.node_ref = #node_ref;
             }
         });
+        let listeners = listeners.iter().map(|listener| {
+            let name = &listener.label.name;
+            let callback = &listener.value;
+
+            quote_spanned! {name.span()=> {
+                ::yew::html::#name::Wrapper::new(
+                    <::yew::virtual_dom::vtag::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
+                        #callback
+                    )
+                )
+            }}
+        });
 
         tokens.extend(quote! {{
             let mut #vtag = ::yew::virtual_dom::vtag::VTag::new(#name);

@@ -1,7 +1,9 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{Attributes, Classes, Listener, Listeners, Patch, Reform, VDiff, VList, VNode};
-use crate::html::{Component, NodeRef, Scope};
+use super::{
+    Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
+};
+use crate::html::NodeRef;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
@@ -22,17 +24,17 @@ pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
-pub struct VTag<COMP: Component> {
+pub struct VTag {
     /// A tag of the element.
     tag: Cow<'static, str>,
     /// A reference to the `Element`.
     pub reference: Option<Element>,
     /// List of attached listeners.
-    pub listeners: Listeners<COMP>,
+    pub listeners: Listeners,
     /// List of attributes.
     pub attributes: Attributes,
     /// List of children nodes
-    pub children: VList<COMP>,
+    pub children: VList,
     /// List of attached classes.
     pub classes: Classes,
     /// Contains a value of an
@@ -50,12 +52,11 @@ pub struct VTag<COMP: Component> {
     pub checked: bool,
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
-    /// _Service field_. Keeps handler for attached listeners
-    /// to have an opportunity to drop them later.
+    /// Keeps handler for attached listeners to have an opportunity to drop them later.
     captured: Vec<EventListenerHandle>,
 }
 
-impl<COMP: Component> VTag<COMP> {
+impl VTag {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
         VTag {
@@ -65,7 +66,7 @@ impl<COMP: Component> VTag<COMP> {
             attributes: Attributes::new(),
             listeners: Vec::new(),
             captured: Vec::new(),
-            children: VList::new(true),
+            children: VList::new_without_placeholder(),
             node_ref: NodeRef::default(),
             value: None,
             kind: None,
@@ -81,12 +82,12 @@ impl<COMP: Component> VTag<COMP> {
     }
 
     /// Add `VNode` child.
-    pub fn add_child(&mut self, child: VNode<COMP>) {
+    pub fn add_child(&mut self, child: VNode) {
         self.children.add_child(child);
     }
 
     /// Add multiple `VNode` children.
-    pub fn add_children(&mut self, children: Vec<VNode<COMP>>) {
+    pub fn add_children(&mut self, children: Vec<VNode>) {
         for child in children {
             self.add_child(child);
         }
@@ -159,15 +160,15 @@ impl<COMP: Component> VTag<COMP> {
 
     /// Adds new listener to the node.
     /// It's boxed because we want to keep it in a single list.
-    /// Lates `Listener::attach` called to attach actual listener to a DOM node.
-    pub fn add_listener(&mut self, listener: Box<dyn Listener<COMP>>) {
+    /// Later `Listener::attach` will attach an actual listener to a DOM node.
+    pub fn add_listener(&mut self, listener: Box<dyn Listener>) {
         self.listeners.push(listener);
     }
 
     /// Adds new listeners to the node.
     /// They are boxed because we want to keep them in a single list.
-    /// Lates `Listener::attach` called to attach actual listener to a DOM node.
-    pub fn add_listeners(&mut self, listeners: Vec<Box<dyn Listener<COMP>>>) {
+    /// Later `Listener::attach` will attach an actual listener to a DOM node.
+    pub fn add_listeners(&mut self, listeners: Vec<Box<dyn Listener>>) {
         for listener in listeners {
             self.listeners.push(listener);
         }
@@ -346,9 +347,7 @@ impl<COMP: Component> VTag<COMP> {
     }
 }
 
-impl<COMP: Component> VDiff for VTag<COMP> {
-    type Component = COMP;
-
+impl VDiff for VTag {
     /// Remove VTag from parent.
     fn detach(&mut self, parent: &Element) -> Option<Node> {
         let node = self
@@ -359,11 +358,11 @@ impl<COMP: Component> VDiff for VTag<COMP> {
         // recursively remove its children
         self.children.detach(&node);
 
-        let sibling = node.next_sibling();
+        let next_sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VTag");
         }
-        sibling
+        next_sibling
     }
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an ancestor `VTag`
@@ -372,8 +371,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
         &mut self,
         parent: &Element,
         previous_sibling: Option<&Node>,
-        ancestor: Option<VNode<Self::Component>>,
-        parent_scope: &Scope<Self::Component>,
+        ancestor: Option<VNode>,
     ) -> Option<Node> {
         assert!(
             self.reference.is_none(),
@@ -388,14 +386,12 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                         (Reform::Keep, Some(vtag))
                     } else {
                         // We have to create a new reference, remove ancestor.
-                        let node = vtag.detach(parent);
-                        (Reform::Before(node), None)
+                        (Reform::Before(vtag.detach(parent)), None)
                     }
                 }
                 Some(mut vnode) => {
                     // It is not a VTag variant we must remove the ancestor.
-                    let node = vnode.detach(parent);
-                    (Reform::Before(node), None)
+                    (Reform::Before(vnode.detach(parent)), None)
                 }
                 None => (Reform::Before(None), None),
             }
@@ -405,10 +401,10 @@ impl<COMP: Component> VDiff for VTag<COMP> {
         //
         // This can use the previous reference or create a new one.
         // If we create a new one we must insert it in the correct
-        // place, which we use `before` or `precusor` for.
+        // place, which we use `next_sibling` or `previous_sibling` for.
         match reform {
             Reform::Keep => {}
-            Reform::Before(before) => {
+            Reform::Before(next_sibling) => {
                 let element = if self.tag == "svg"
                     || parent
                         .namespace_uri()
@@ -423,20 +419,16 @@ impl<COMP: Component> VDiff for VTag<COMP> {
                         .expect("can't create element for vtag")
                 };
 
-                if let Some(sibling) = before {
+                if let Some(next_sibling) = next_sibling {
                     parent
-                        .insert_before(&element, &sibling)
-                        .expect("can't insert tag before sibling");
+                        .insert_before(&element, &next_sibling)
+                        .expect("can't insert tag before next sibling");
+                } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
+                    parent
+                        .insert_before(&element, &next_sibling)
+                        .expect("can't insert tag before next sibling");
                 } else {
-                    let previous_sibling =
-                        previous_sibling.and_then(|before| before.next_sibling());
-                    if let Some(previous_sibling) = previous_sibling {
-                        parent
-                            .insert_before(&element, &previous_sibling)
-                            .expect("can't insert tag before previous_sibling");
-                    } else {
-                        parent.append_child(&element);
-                    }
+                    parent.append_child(&element);
                 }
                 self.reference = Some(element);
             }
@@ -454,18 +446,14 @@ impl<COMP: Component> VDiff for VTag<COMP> {
 
         let element = self.reference.clone().expect("element expected");
 
-        for mut listener in self.listeners.drain(..) {
-            let handle = listener.attach(&element, parent_scope.clone());
+        for listener in self.listeners.drain(..) {
+            let handle = listener.attach(&element);
             self.captured.push(handle);
         }
 
         // Process children
-        self.children.apply(
-            &element,
-            None,
-            ancestor.map(|a| a.children.into()),
-            parent_scope,
-        );
+        self.children
+            .apply(&element, None, ancestor.map(|a| a.children.into()));
 
         let node = self.reference.as_ref().map(|e| e.as_node().to_owned());
         self.node_ref.set(node.clone());
@@ -473,7 +461,7 @@ impl<COMP: Component> VDiff for VTag<COMP> {
     }
 }
 
-impl<COMP: Component> fmt::Debug for VTag<COMP> {
+impl fmt::Debug for VTag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "VTag {{ tag: {} }}", self.tag)
     }
@@ -495,8 +483,8 @@ fn set_checked(input: &InputElement, value: bool) {
     js!( @(no_return) @{input}.checked = @{value}; );
 }
 
-impl<COMP: Component> PartialEq for VTag<COMP> {
-    fn eq(&self, other: &VTag<COMP>) -> bool {
+impl PartialEq for VTag {
+    fn eq(&self, other: &VTag) -> bool {
         self.tag == other.tag
             && self.value == other.value
             && self.kind == other.kind
@@ -519,5 +507,20 @@ pub(crate) fn not<T>(option: &Option<T>) -> &Option<()> {
         &None
     } else {
         &Some(())
+    }
+}
+
+impl<T> Transformer<T, T> for VTag {
+    fn transform(from: T) -> T {
+        from
+    }
+}
+
+impl<'a, T> Transformer<&'a T, T> for VTag
+where
+    T: Clone,
+{
+    fn transform(from: &'a T) -> T {
+        from.clone()
     }
 }

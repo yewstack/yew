@@ -1,10 +1,11 @@
-#![recursion_limit = "128"]
+#![recursion_limit = "256"]
 
 use yew::html::Scope;
 /// This example demonstrates low-level usage of scopes.
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
+    link: ComponentLink<Self>,
     scope: Option<Scope<Model>>,
     selector: &'static str,
     title: String,
@@ -20,8 +21,9 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
+            link,
             scope: None,
             selector: "",
             title: "Nothing".into(),
@@ -67,14 +69,14 @@ impl Component for Model {
         true
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         html! {
             <div>
                 <h3>{ format!("{} received <{}>", self.selector, self.title) }</h3>
-                <button onclick=|_| Msg::SendToOpposite("One".into())>{ "One" }</button>
-                <button onclick=|_| Msg::SendToOpposite("Two".into())>{ "Two" }</button>
-                <button onclick=|_| Msg::SendToOpposite("Three".into())>{ "Three" }</button>
-                <button onclick=|_| Msg::SendToOpposite("Ping".into())>{ "Ping" }</button>
+                <button onclick=self.link.callback(|_| Msg::SendToOpposite("One".into()))>{ "One" }</button>
+                <button onclick=self.link.callback(|_| Msg::SendToOpposite("Two".into()))>{ "Two" }</button>
+                <button onclick=self.link.callback(|_| Msg::SendToOpposite("Three".into()))>{ "Three" }</button>
+                <button onclick=self.link.callback(|_| Msg::SendToOpposite("Ping".into()))>{ "Ping" }</button>
             </div>
         }
     }
