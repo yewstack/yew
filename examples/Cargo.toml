@@ -7,6 +7,7 @@ members = [
   "node_refs",
   "file_upload",
   "fragments",
+  "futures",
   "game_of_life",
   "inner_html",
   "js_callback",
