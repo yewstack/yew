@@ -75,6 +75,28 @@ impl Component for Model {
 }
 ```
 
+If a closure has a parameter you will now need to specify the parameter's type.  A tip for finding the appropriate type is to search Yew's repo for the HTML attribute the closure is assigned to.
+
+For example, `onkeydown` of `<button>`:
+
+```
+let onkeydown_callback = self.link.callback(|e: KeyDownEvent| {
+    // ...
+});
+```
+
+and
+
+```
+html! {
+    <button
+        onkeydown=onkeydown_callback,
+        type="button">
+        { "button" }
+    </button>
+}
+```
+
 #### 2. Method Renames
 
 It should be safe to do a project-wide find/replace for the following:
