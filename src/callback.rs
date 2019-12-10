@@ -41,6 +41,12 @@ impl<IN> Callback<IN> {
     pub fn emit(&self, value: IN) {
         (self.0)(value);
     }
+
+    /// Creates a no-op callback which can be used when it is not suitable to use an
+    /// `Option<Callback>`.
+    pub fn noop() -> Self {
+        Self::from(|_| {})
+    }
 }
 
 impl<IN: 'static> Callback<IN> {
