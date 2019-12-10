@@ -144,7 +144,7 @@ impl Component for Model {
           }
       }
 
-      fn view(&self) -> Html<Self> {
+      fn view(&self) -> Html {
           html! {
               <button onclick=&self.onclick>{ "Click me!" }</button>
           }
