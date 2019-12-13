@@ -72,6 +72,7 @@ pub enum Redirect {
 }
 
 /// Type to set referrer for fetch.
+#[derive(Debug)]
 pub enum Referrer {
     /// `no-referrer` value of referrer.
     NoReferrer,
@@ -95,7 +96,7 @@ impl Serialize for Referrer {
 }
 
 /// Type to set referrer policy for fetch.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "kebab-case")]
 pub enum ReferrerPolicy {
     /// `no-referrer` value of referrerPolicy.
