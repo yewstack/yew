@@ -80,6 +80,8 @@ pub mod macros {
 
 pub mod app;
 pub mod callback;
+#[cfg(feature = "web_sys")]
+pub mod compat;
 pub mod components;
 pub mod format;
 pub mod html;
