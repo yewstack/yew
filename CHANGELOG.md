@@ -97,6 +97,8 @@ html! {
 }
 ```
 
+Performance optimization note: If the callback is initialized in `create()` and persisted to the component's struct, potential reinitializations in `view()` can be avoided.
+
 #### 2. Method Renames
 
 It should be safe to do a project-wide find/replace for the following:
