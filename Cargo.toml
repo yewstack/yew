@@ -20,7 +20,7 @@ travis-ci = { repository = "yewstack/yew" }
 
 [dependencies]
 anymap = "0.12"
-bincode = "=1.0.1"
+bincode = { version = "~1.2.1", optional = true }
 failure = "0.1"
 http = "0.1"
 indexmap = "1.0.2"
@@ -58,7 +58,7 @@ doc_test = []
 web_test = []
 wasm_test = []
 services = []
-agent = []
+agent = ["bincode"]
 yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
