@@ -12,5 +12,5 @@ fi
 cargo test --features wasm_test --target wasm32-unknown-unknown
 cargo test --test macro_test
 cargo test --test derive_props_test
-cargo doc_test
+cargo doc_test --all-features
 (cd crates/macro && cargo doc_test)

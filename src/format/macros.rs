@@ -27,12 +27,15 @@ macro_rules! text_format {
 
 macro_rules! binary_format {
     ($type:ident based on $format:ident) => {
+        binary_format!($type, $format::to_vec, $format::from_slice);
+    };
+    ($type:ident, $into:path, $from:path) => {
         impl<'a, T> Into<$crate::format::Binary> for $type<&'a T>
         where
             T: ::serde::Serialize,
         {
             fn into(self) -> $crate::format::Binary {
-                $format::to_vec(&self.0).map_err(::failure::Error::from)
+                $into(&self.0).map_err(::failure::Error::from)
             }
         }
 
@@ -42,7 +45,7 @@ macro_rules! binary_format {
         {
             fn from(value: $crate::format::Binary) -> Self {
                 match value {
-                    Ok(data) => $type($format::from_slice(&data).map_err(::failure::Error::from)),
+                    Ok(data) => $type($from(&data).map_err(::failure::Error::from)),
                     Err(reason) => $type(Err(reason)),
                 }
             }
