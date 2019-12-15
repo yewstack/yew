@@ -34,7 +34,7 @@ serde_json = "1.0"
 serde_yaml = { version = "0.8.3", optional = true }
 slab = "0.4"
 stdweb = "0.4.20"
-toml = { version = "0.4", optional = true }
+toml = { version = "0.5", optional = true }
 yew-macro = { version = "0.10.1", path = "crates/macro" }
 
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]
