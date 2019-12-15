@@ -9,6 +9,8 @@ use failure::Error;
 #[macro_use]
 pub mod macros;
 
+#[cfg(feature = "bincode")]
+pub mod bincode;
 #[cfg(feature = "cbor")]
 pub mod cbor;
 pub mod json;
@@ -20,6 +22,8 @@ pub mod toml;
 #[cfg(feature = "yaml")]
 pub mod yaml;
 
+#[cfg(feature = "bincode")]
+pub use self::bincode::Bincode;
 #[cfg(feature = "cbor")]
 pub use self::cbor::Cbor;
 pub use self::json::Json;
