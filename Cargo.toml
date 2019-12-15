@@ -27,7 +27,7 @@ indexmap = "1.0.2"
 log = "0.4"
 proc-macro-hack = "0.5"
 proc-macro-nested = "0.1"
-rmp-serde = { version = "0.13.7", optional = true }
+rmp-serde = { version = "0.14.0", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_cbor = { version = "0.10.2", optional = true }
 serde_json = "1.0"
