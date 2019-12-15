@@ -11,32 +11,46 @@ use stdweb::{
     web::{EventListenerHandle, FileList, INode},
 };
 #[cfg(feature = "web_sys")]
-use web_sys::{HtmlSelectElement as SelectElement, FileList};
+use web_sys::{FileList, HtmlSelectElement as SelectElement};
 
 macro_rules! impl_action {
-    (|onaction: $action:ident, $event:ident : $type:ident| -> $ret:ty => $convert:expr) => {
+    (|onaction: $action:ident, stdweb_event: $stdweb_type:ident, web_sys_event: $web_sys_type:ident| -> $ret:ty => $convert:expr) => {
         paste::expr! {
-            impl_action!(|action: [<on $action>], name: [<on $action>], $event: $type| -> $ret => $convert);
+            impl_action!(|action: [<on $action>], name: [<on $action>], stdweb_event: $stdweb_type, web_sys_event: $web_sys_type| -> $ret => $convert);
         }
     };
-    (|onaction: $action:ident, name: $name:ident, $event:ident : $type:ident| -> $ret:ty => $convert:expr) => {
+    (|onaction: $action:ident, stdweb_event: $stdweb_type:ident, web_sys_event: $web_sys_type:ident| => $convert:expr) => {
         paste::expr! {
-            impl_action!(|action: [<on $action>], name: $name, $event: $type| -> $ret => $convert);
+            #[cfg(feature = "stdweb")]
+            impl_action!(|action: [<on $action>], name: [<on $action>], stdweb_event: $stdweb_type, web_sys_event: $web_sys_type| -> $stdweb_type => $convert);
+            #[cfg(feature = "web_sys")]
+            impl_action!(|action: [<on $action>], name: [<on $action>], stdweb_event: $stdweb_type, web_sys_event: $web_sys_type| -> $web_sys_type => $convert);
         }
     };
-    (|action: $action:ident, $event:ident : $type:ident| -> $ret:ty => $convert:expr) => {
-        impl_action!(|action: $action, name: $action, $event: $type| -> $ret => $convert);
+    (|onaction: $action:ident, name: $name:ident, stdweb_event: $stdweb_type:ident, web_sys_event: $web_sys_type:ident| => $convert:expr) => {
+        paste::expr! {
+            #[cfg(feature = "stdweb")]
+            impl_action!(|action: [<on $action>], name: $name, stdweb_event: $stdweb_type, web_sys_event: $web_sys_type| -> $stdweb_type => $convert);
+            #[cfg(feature = "web_sys")]
+            impl_action!(|action: [<on $action>], name: $name, stdweb_event: $stdweb_type, web_sys_event: $web_sys_type| -> $web_sys_type => $convert);
+        }
     };
-    (|action: $action:ident, name: $name:ident, $event:ident : $type:ident| -> $ret:ty => $convert:expr) => {
+    (|action: $action:ident, stdweb_event: $stdweb_type:ident, web_sys_event: $web_sys_type:ident| => $convert:expr) => {
+        #[cfg(feature = "stdweb")]
+        impl_action!(|action: $action, name: $action, stdweb_event: $stdweb_type, web_sys_event: $web_sys_type| -> $stdweb_type => $convert);
+        #[cfg(feature = "web_sys")]
+        impl_action!(|action: $action, name: $action, stdweb_event: $stdweb_type, web_sys_event: $web_sys_type| -> $web_sys_type => $convert);
+    };
+    (|action: $action:ident, name: $name:ident, stdweb_event: $stdweb_type:ident, web_sys_event: $web_sys_type:ident| -> $ret:ty => $convert:expr) => {
         /// An abstract implementation of a listener.
         pub mod $action {
             #[cfg(feature = "stdweb")]
-            use stdweb::web::{IEventTarget, Element, event::{IEvent, $type}};
+            use stdweb::web::{IEventTarget, Element, event::{IEvent, $stdweb_type}};
             #[cfg(feature = "web_sys")]
             use ::{
                 std::mem::ManuallyDrop,
                 wasm_bindgen::{closure::Closure, JsCast},
-                web_sys::{Element, EventTarget, $type},
+                web_sys::{Element, EventTarget, $web_sys_type},
             };
             use super::*;
 
@@ -62,16 +76,16 @@ macro_rules! impl_action {
                 }
 
                 #[cfg(feature = "web_sys")]
-                fn attach(&self, element: &Element) -> EventListenerHandle<$type> {
+                fn attach(&self, element: &Element) -> EventListenerHandle<$web_sys_type> {
                     let this = element.clone();
                     let callback = self.callback.clone();
-                    let listener = move |event: $type| {
+                    let listener = move |event: $web_sys_type| {
                         event.stop_propagation();
                         callback.emit($convert(&this, event));
                     };
 
                     let target = EventTarget::from(element.clone());
-                    let listener = Closure::wrap(Box::new(listener) as Box<dyn Fn($type)>);
+                    let listener = Closure::wrap(Box::new(listener) as Box<dyn Fn($web_sys_type)>);
                     target.add_event_listener_with_callback(stringify!($name), listener.as_ref().unchecked_ref());
 
                     return EventListenerHandle {
@@ -85,7 +99,7 @@ macro_rules! impl_action {
                 fn attach(&self, element: &Element) -> EventListenerHandle {
                     let this = element.clone();
                     let callback = self.callback.clone();
-                    let listener = move |event: $type| {
+                    let listener = move |event: $stdweb_type| {
                         event.stop_propagation();
                         callback.emit($convert(&this, event));
                     };
@@ -96,68 +110,45 @@ macro_rules! impl_action {
     };
 }
 
-#[cfg(feature = "stdweb")]
-mod internal {
-    use super::*;
-
-    impl_action!(|action: touchcancel, event: TouchCancel| -> TouchCancel => |_, event| { event });
-    impl_action!(|action: touchend, event: TouchEnd| -> TouchEnd => |_, event| { event });
-    impl_action!(|action: touchenter, event: TouchEnter| -> TouchEnter => |_, event| { event });
-    impl_action!(|action: touchmove, event: TouchMove| -> TouchMove => |_, event| { event });
-    impl_action!(|action: touchstart, event: TouchStart| -> TouchStart => |_, event| { event });
-}
-
-#[cfg(feature = "web_sys")]
-mod internal {
-    use super::*;
-
-    impl_action!(|action: touchcancel, event: TouchEvent| -> TouchEvent => |_, event| { event });
-    impl_action!(|action: touchend, event: TouchEvent| -> TouchEvent => |_, event| { event });
-    impl_action!(|action: touchenter, event: TouchEvent| -> TouchEvent => |_, event| { event });
-    impl_action!(|action: touchmove, event: TouchEvent| -> TouchEvent => |_, event| { event });
-    impl_action!(|action: touchstart, event: TouchEvent| -> TouchEvent => |_, event| { event });
-}
-
-pub use internal::*;
-
 // Inspired by: http://package.elm-lang.org/packages/elm-lang/html/2.0.0/Html-Events
-impl_action!(|onaction: click, event: ClickEvent| -> ClickEvent => |_, event| { event });
-impl_action!(|onaction: doubleclick, name: dblclick, event: DoubleClickEvent| -> DoubleClickEvent => |_, event| { event });
-impl_action!(|onaction: keypress, event: KeyPressEvent| -> KeyPressEvent => |_, event| { event });
-impl_action!(|onaction: keydown, event: KeyDownEvent| -> KeyDownEvent => |_, event| { event });
-impl_action!(|onaction: keyup, event: KeyUpEvent| -> KeyUpEvent => |_, event| { event });
-impl_action!(|onaction: mousemove, event: MouseMoveEvent| -> MouseMoveEvent => |_, event| { event });
-impl_action!(|onaction: mousedown, event: MouseDownEvent| -> MouseDownEvent => |_, event| { event });
-impl_action!(|onaction: mouseup, event: MouseUpEvent| -> MouseUpEvent => |_, event| { event });
-impl_action!(|onaction: mouseover, event: MouseOverEvent| -> MouseOverEvent => |_, event| { event });
-impl_action!(|onaction: mouseout, event: MouseOutEvent| -> MouseOutEvent => |_, event| { event });
-impl_action!(|onaction: mouseenter, event: MouseEnterEvent| -> MouseEnterEvent => |_, event| { event });
-impl_action!(|onaction: mouseleave, event: MouseLeaveEvent| -> MouseLeaveEvent => |_, event| { event });
-impl_action!(|onaction: mousewheel, event: MouseWheelEvent| -> MouseWheelEvent => |_, event| { event });
-impl_action!(|onaction: gotpointercapture, event: GotPointerCaptureEvent| -> GotPointerCaptureEvent => |_, event| { event });
-impl_action!(|onaction: lostpointercapture, event: LostPointerCaptureEvent| -> LostPointerCaptureEvent => |_, event| { event });
-impl_action!(|onaction: pointercancel, event: PointerCancelEvent| -> PointerCancelEvent => |_, event| { event });
-impl_action!(|onaction: pointerdown, event: PointerDownEvent| -> PointerDownEvent => |_, event| { event });
-impl_action!(|onaction: pointerenter, event: PointerEnterEvent| -> PointerEnterEvent => |_, event| { event });
-impl_action!(|onaction: pointerleave, event: PointerLeaveEvent| -> PointerLeaveEvent => |_, event| { event });
-impl_action!(|onaction: pointermove, event: PointerMoveEvent| -> PointerMoveEvent => |_, event| { event });
-impl_action!(|onaction: pointerout, event: PointerOutEvent| -> PointerOutEvent => |_, event| { event });
-impl_action!(|onaction: pointerover, event: PointerOverEvent| -> PointerOverEvent => |_, event| { event });
-impl_action!(|onaction: pointerup, event: PointerUpEvent| -> PointerUpEvent => |_, event| { event });
-impl_action!(|onaction: scroll, event: ScrollEvent| -> ScrollEvent => |_, event| { event });
-impl_action!(|onaction: blur, event: BlurEvent| -> BlurEvent => |_, event| { event });
-impl_action!(|onaction: focus, event: FocusEvent| -> FocusEvent => |_, event| { event });
-impl_action!(|onaction: submit, event: SubmitEvent| -> SubmitEvent => |_, event| { event });
-impl_action!(|onaction: dragstart, event: DragStartEvent| -> DragStartEvent => |_, event| { event });
-impl_action!(|onaction: drag, event: DragEvent| -> DragEvent => |_, event| { event });
-impl_action!(|onaction: dragend, event: DragEndEvent| -> DragEndEvent => |_, event| { event });
-impl_action!(|onaction: dragenter, event: DragEnterEvent| -> DragEnterEvent => |_, event| { event });
-impl_action!(|onaction: dragleave, event: DragLeaveEvent| -> DragLeaveEvent => |_, event| { event });
-impl_action!(|onaction: dragover, event: DragOverEvent| -> DragOverEvent => |_, event| { event });
-impl_action!(|onaction: dragexit, event: DragExitEvent| -> DragExitEvent => |_, event| { event });
-impl_action!(|onaction: drop, event: DragDropEvent| -> DragDropEvent => |_, event| { event });
-impl_action!(|onaction: contextmenu, event: ContextMenuEvent| -> ContextMenuEvent => |_, event| { event });
-impl_action!(|onaction: input, event: InputEvent| -> InputData => |this: &Element, _| {
+impl_action!(|onaction: click, stdweb_event: ClickEvent, web_sys_event: MouseEvent| => |_, event| { event });
+impl_action!(|onaction: doubleclick, name: dblclick, stdweb_event: DoubleClickEvent, web_sys_event: MouseEvent| => |_, event| { event });
+impl_action!(|onaction: keypress, stdweb_event: KeyPressEvent, web_sys_event: KeyboardEvent| => |_, event| { event });
+impl_action!(|onaction: keydown, stdweb_event: KeyDownEvent, web_sys_event: KeyboardEvent| => |_, event| { event });
+impl_action!(|onaction: keyup, stdweb_event: KeyUpEvent, web_sys_event: KeyboardEvent| => |_, event| { event });
+impl_action!(|onaction: mousemove, stdweb_event: MouseMoveEvent, web_sys_event: MouseEvent| => |_, event| { event });
+impl_action!(|onaction: mousedown, stdweb_event: MouseDownEvent, web_sys_event: MouseEvent| => |_, event| { event });
+impl_action!(|onaction: mouseup, stdweb_event: MouseUpEvent, web_sys_event: MouseEvent| => |_, event| { event });
+impl_action!(|onaction: mouseover, stdweb_event: MouseOverEvent, web_sys_event: MouseEvent| => |_, event| { event });
+impl_action!(|onaction: mouseout, stdweb_event: MouseOutEvent, web_sys_event: MouseEvent| => |_, event| { event });
+impl_action!(|onaction: mouseenter, stdweb_event: MouseEnterEvent, web_sys_event: MouseEvent| => |_, event| { event });
+impl_action!(|onaction: mouseleave, stdweb_event: MouseLeaveEvent, web_sys_event: MouseEvent| => |_, event| { event });
+#[cfg(feature = "stdweb")]
+impl_action!(|onaction: mousewheel, stdweb_event: MouseWheelEvent, web_sys_event: MouseEvent| => |_, event| { event });
+impl_action!(|onaction: gotpointercapture, stdweb_event: GotPointerCaptureEvent, web_sys_event: PointerEvent| => |_, event| { event });
+impl_action!(|onaction: lostpointercapture, stdweb_event: LostPointerCaptureEvent, web_sys_event: PointerEvent| => |_, event| { event });
+impl_action!(|onaction: pointercancel, stdweb_event: PointerCancelEvent, web_sys_event: PointerEvent| => |_, event| { event });
+impl_action!(|onaction: pointerdown, stdweb_event: PointerDownEvent, web_sys_event: PointerEvent| => |_, event| { event });
+impl_action!(|onaction: pointerenter, stdweb_event: PointerEnterEvent, web_sys_event: PointerEvent| => |_, event| { event });
+impl_action!(|onaction: pointerleave, stdweb_event: PointerLeaveEvent, web_sys_event: PointerEvent| => |_, event| { event });
+impl_action!(|onaction: pointermove, stdweb_event: PointerMoveEvent, web_sys_event: PointerEvent| => |_, event| { event });
+impl_action!(|onaction: pointerout, stdweb_event: PointerOutEvent, web_sys_event: PointerEvent| => |_, event| { event });
+impl_action!(|onaction: pointerover, stdweb_event: PointerOverEvent, web_sys_event: PointerEvent| => |_, event| { event });
+impl_action!(|onaction: pointerup, stdweb_event: PointerUpEvent, web_sys_event: PointerEvent| => |_, event| { event });
+impl_action!(|onaction: scroll, stdweb_event: ScrollEvent, web_sys_event: UiEvent| => |_, event| { event });
+impl_action!(|onaction: blur, stdweb_event: BlurEvent, web_sys_event: FocusEvent| => |_, event| { event });
+impl_action!(|onaction: focus, stdweb_event: FocusEvent, web_sys_event: FocusEvent| => |_, event| { event });
+impl_action!(|onaction: submit, stdweb_event: SubmitEvent, web_sys_event: Event| => |_, event| { event });
+impl_action!(|onaction: dragstart, stdweb_event: DragStartEvent, web_sys_event: DragEvent| => |_, event| { event });
+impl_action!(|onaction: drag, stdweb_event: DragEvent, web_sys_event: DragEvent| => |_, event| { event });
+impl_action!(|onaction: dragend, stdweb_event: DragEndEvent, web_sys_event: DragEvent| => |_, event| { event });
+impl_action!(|onaction: dragenter, stdweb_event: DragEnterEvent, web_sys_event: DragEvent| => |_, event| { event });
+impl_action!(|onaction: dragleave, stdweb_event: DragLeaveEvent, web_sys_event: DragEvent| => |_, event| { event });
+impl_action!(|onaction: dragover, stdweb_event: DragOverEvent, web_sys_event: DragEvent| => |_, event| { event });
+impl_action!(|onaction: dragexit, name: dragend, stdweb_event: DragExitEvent, web_sys_event: DragEvent| => |_, event| { event });
+impl_action!(|onaction: drop, stdweb_event: DragDropEvent, web_sys_event: DragEvent| => |_, event| { event });
+impl_action!(|onaction: contextmenu, stdweb_event: ContextMenuEvent, web_sys_event: MouseEvent| => |_, event| { event });
+impl_action!(|onaction: input, stdweb_event: InputEvent, web_sys_event: Event| -> InputData => |this: &Element, _| {
     use stdweb::web::html_element::{InputElement, TextAreaElement};
     use stdweb::unstable::TryInto;
     // Normally only InputElement or TextAreaElement can have an oninput event listener. In
@@ -171,7 +162,7 @@ impl_action!(|onaction: input, event: InputEvent| -> InputData => |this: &Elemen
         .expect("only an InputElement or TextAreaElement or an element with contenteditable=true can have an oninput event listener");
     InputData { value }
 });
-impl_action!(|onaction: change, event: ChangeEvent| -> ChangeData => |this: &Element, _| {
+impl_action!(|onaction: change, stdweb_event: ChangeEvent, web_sys_event: Event| -> ChangeData => |this: &Element, _| {
     use stdweb::web::{FileList, IElement};
     use stdweb::web::html_element::{InputElement, TextAreaElement, SelectElement};
     use stdweb::unstable::TryInto;
@@ -204,6 +195,11 @@ impl_action!(|onaction: change, event: ChangeEvent| -> ChangeData => |this: &Ele
         }
     }
 });
+impl_action!(|action: touchcancel, stdweb_event: TouchCancel, web_sys_event: TouchEvent| => |_, event| { event });
+impl_action!(|action: touchend, stdweb_event: TouchEnd, web_sys_event: TouchEvent| => |_, event| { event });
+impl_action!(|action: touchenter, stdweb_event: TouchEnter, web_sys_event: TouchEvent| => |_, event| { event });
+impl_action!(|action: touchmove, stdweb_event: TouchMove, web_sys_event: TouchEvent| => |_, event| { event });
+impl_action!(|action: touchstart, stdweb_event: TouchStart, web_sys_event: TouchEvent| => |_, event| { event });
 
 /// A type representing data from `oninput` event.
 #[derive(Debug)]
