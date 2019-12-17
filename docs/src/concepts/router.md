@@ -1,5 +1,5 @@
 ---
-description: Yew-Router crate
+description: [Yew-Router crate](https://docs.rs/yew-router/)
 ---
 
 # Router
@@ -10,7 +10,7 @@ Contains a String representing everything after the domain in the url and option
 
 ### RouteService
 
-Communicates with the browser to get and set Routes
+Communicates with the browser to get and set Routes.
 
 ### RouteAgent
 
@@ -22,7 +22,6 @@ The `Switch` trait is used to convert a `Route` to and from the implementer of t
 
 ### Router
 
-The Router component communicates with `RouteAgent` and will automatically resolve Routes it gets from the agent into switches, which it will expose via a `render` prop that allows specifying how the resulting switch gets converted to Html&lt;\_&gt;
+The Router component communicates with `RouteAgent` and will automatically resolve Routes it gets from the agent into switches, which it will expose via a `render` prop that allows specifying how the resulting switch gets converted to `Html<_>`.
 
 How to use the router.
-
