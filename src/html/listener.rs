@@ -3,7 +3,7 @@ use crate::callback::Callback;
 use crate::compat::EventListenerHandle;
 use crate::virtual_dom::Listener;
 #[cfg(feature = "stdweb")]
-use stdweb::html_element::SelectElement;
+use stdweb::web::html_element::SelectElement;
 #[cfg(feature = "stdweb")]
 #[allow(unused_imports)]
 use stdweb::{
@@ -15,12 +15,12 @@ use web_sys::{FileList, HtmlSelectElement as SelectElement};
 
 macro_rules! impl_action {
     (|onaction: $action:ident, stdweb_event: $stdweb_type:ident, web_sys_event: $web_sys_type:ident| -> $ret:ty => $convert:expr) => {
-        paste::expr! {
+        paste::item! {
             impl_action!(|action: [<on $action>], name: [<on $action>], stdweb_event: $stdweb_type, web_sys_event: $web_sys_type| -> $ret => $convert);
         }
     };
     (|onaction: $action:ident, stdweb_event: $stdweb_type:ident, web_sys_event: $web_sys_type:ident| => $convert:expr) => {
-        paste::expr! {
+        paste::item! {
             #[cfg(feature = "stdweb")]
             impl_action!(|action: [<on $action>], name: [<on $action>], stdweb_event: $stdweb_type, web_sys_event: $web_sys_type| -> $stdweb_type => $convert);
             #[cfg(feature = "web_sys")]
@@ -28,7 +28,7 @@ macro_rules! impl_action {
         }
     };
     (|onaction: $action:ident, name: $name:ident, stdweb_event: $stdweb_type:ident, web_sys_event: $web_sys_type:ident| => $convert:expr) => {
-        paste::expr! {
+        paste::item! {
             #[cfg(feature = "stdweb")]
             impl_action!(|action: [<on $action>], name: $name, stdweb_event: $stdweb_type, web_sys_event: $web_sys_type| -> $stdweb_type => $convert);
             #[cfg(feature = "web_sys")]
