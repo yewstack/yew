@@ -76,17 +76,23 @@ macro_rules! impl_action {
                 }
 
                 #[cfg(feature = "web_sys")]
-                fn attach(&self, element: &Element) -> EventListenerHandle<$web_sys_type> {
+                fn attach(&self, element: Element) -> EventListenerHandle {
                     let this = element.clone();
                     let callback = self.callback.clone();
-                    let listener = move |event: $web_sys_type| {
+                    let listener = move |event: web_sys::Event| {
                         event.stop_propagation();
+                        let event = event.dyn_into::<$web_sys_type>().expect("wrong event type");
                         callback.emit($convert(&this, event));
                     };
 
                     let target = EventTarget::from(element.clone());
-                    let listener = Closure::wrap(Box::new(listener) as Box<dyn Fn($web_sys_type)>);
-                    target.add_event_listener_with_callback(stringify!($name), listener.as_ref().unchecked_ref());
+                    let listener = Closure::wrap(Box::new(listener) as Box<dyn Fn(web_sys::Event)>);
+                    target
+                        .add_event_listener_with_callback(
+                            stringify!($name),
+                            listener.as_ref().unchecked_ref(),
+                        )
+                        .expect("failed to add event listener");
 
                     return EventListenerHandle {
                         target,

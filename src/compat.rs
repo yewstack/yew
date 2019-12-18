@@ -1,23 +1,23 @@
 //! Gathering of items for compatibility between web-sys/js-sys and stdweb.
 
-use ::{
-    std::mem::ManuallyDrop,
-    wasm_bindgen::{closure::Closure, JsCast},
-    web_sys::EventTarget,
-};
+use std::mem::ManuallyDrop;
+use wasm_bindgen::{closure::Closure, JsCast};
+use web_sys::{Event, EventTarget};
 
-pub struct EventListenerHandle<T> {
+pub struct EventListenerHandle {
     target: EventTarget,
     r#type: &'static str,
-    callback: ManuallyDrop<Closure<dyn Fn(T)>>,
+    callback: ManuallyDrop<Closure<dyn Fn(Event)>>,
 }
 
-impl<T> EventListenerHandle<T> {
+impl EventListenerHandle {
     pub fn remove(self) {
-        self.target.remove_event_listener_with_callback(
-            &self.r#type,
-            self.callback.as_ref().unchecked_ref(),
-        );
+        self.target
+            .remove_event_listener_with_callback(
+                &self.r#type,
+                self.callback.as_ref().unchecked_ref(),
+            )
+            .expect("failed to remove event listener");
         let _ = ManuallyDrop::into_inner(self.callback);
     }
 }
