@@ -1,3 +1,5 @@
+#[macro_use]
+mod macros;
 #[cfg_attr(feature = "stdweb", path = "stdweb.rs")]
 #[cfg_attr(feature = "web_sys", path = "web_sys.rs")]
 mod internal;

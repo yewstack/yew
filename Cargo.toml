@@ -26,7 +26,6 @@ http = "0.2"
 indexmap = "1.0.2"
 js-sys = { version = "0.3.32", optional = true }
 log = "0.4"
-paste = "0.1"
 proc-macro-hack = "0.5"
 proc-macro-nested = "0.1"
 rmp-serde = { version = "0.14.0", optional = true }
