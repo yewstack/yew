@@ -1,7 +1,6 @@
 //! This module contains types to support multi-threading in Yew.
 
 use crate::callback::Callback;
-#[cfg(feature = "web_sys")]
 use crate::scheduler::{scheduler, Runnable, Shared};
 use anymap::{self, AnyMap};
 use bincode;
