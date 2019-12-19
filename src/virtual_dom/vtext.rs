@@ -4,7 +4,10 @@ use super::{Reform, VDiff, VNode};
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
+#[cfg(feature = "stdweb")]
 use stdweb::web::{document, Element, INode, Node, TextNode};
+#[cfg(feature = "web_sys")]
+use web_sys::{Element, Node, Text as TextNode};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -71,22 +74,44 @@ impl VDiff for VText {
         match reform {
             Reform::Keep => {}
             Reform::Before(next_sibling) => {
-                let element = document().create_text_node(&self.text);
+                #[cfg(feature = "stdweb")]
+                let document = document();
+                #[cfg(feature = "web_sys")]
+                let document = web_sys::window().unwrap().document().unwrap();
+
+                let element = document.create_text_node(&self.text);
                 if let Some(next_sibling) = next_sibling {
-                    parent
-                        .insert_before(&element, &next_sibling)
-                        .expect("can't insert text before the next sibling");
+                    #[cfg(feature = "stdweb")]
+                    let result = parent.insert_before(&element, &next_sibling);
+                    #[cfg(feature = "web_sys")]
+                    let result = parent.insert_before(&element, Some(&next_sibling));
+                    result.expect("can't insert text before the next sibling");
                 } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
-                    parent
-                        .insert_before(&element, &next_sibling)
-                        .expect("can't insert text before next_sibling");
+                    #[cfg(feature = "stdweb")]
+                    let result = parent.insert_before(&element, &next_sibling);
+                    #[cfg(feature = "web_sys")]
+                    let result = parent.insert_before(&element, Some(&next_sibling));
+                    result.expect("can't insert text before next_sibling");
                 } else {
+                    #[cfg(feature = "stdweb")]
                     parent.append_child(&element);
+                    #[cfg(feature = "web_sys")]
+                    parent.append_child(&element).unwrap();
                 }
                 self.reference = Some(element);
             }
         }
-        self.reference.as_ref().map(|t| t.as_node().to_owned())
+        self.reference.as_ref().map(|t| {
+            #[cfg(feature = "stdweb")]
+            {
+                t.as_node().to_owned()
+            }
+            #[cfg(feature = "web_sys")]
+            {
+                use std::ops::Deref;
+                t.deref().to_owned()
+            }
+        })
     }
 }
 

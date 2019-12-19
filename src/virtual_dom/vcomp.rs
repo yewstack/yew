@@ -6,7 +6,10 @@ use std::any::TypeId;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
+#[cfg(feature = "stdweb")]
 use stdweb::web::{document, Element, INode, Node, TextNode};
+#[cfg(feature = "web_sys")]
+use web_sys::{Element, Node, Text as TextNode};
 
 /// The method generates an instance of a component.
 type Generator = dyn Fn(GeneratorType) -> Mounted;
@@ -198,19 +201,31 @@ impl VDiff for VComp {
                     }
                     Reform::Before(next_sibling) => {
                         // Temporary node which will be replaced by a component's root node.
-                        let dummy_node = document().create_text_node("");
+                        #[cfg(feature = "stdweb")]
+                        let document = document();
+                        #[cfg(feature = "web_sys")]
+                        let document = web_sys::window().unwrap().document().unwrap();
+
+                        let dummy_node = document.create_text_node("");
                         if let Some(next_sibling) = next_sibling {
-                            parent
-                                .insert_before(&dummy_node, &next_sibling)
-                                .expect("can't insert dummy component node before next sibling");
+                            #[cfg(feature = "stdweb")]
+                            let result = parent.insert_before(&dummy_node, &next_sibling);
+                            #[cfg(feature = "web_sys")]
+                            let result = parent.insert_before(&dummy_node, Some(&next_sibling));
+                            result.expect("can't insert dummy component node before next sibling");
                         } else if let Some(next_sibling) =
                             previous_sibling.and_then(|p| p.next_sibling())
                         {
-                            parent
-                                .insert_before(&dummy_node, &next_sibling)
-                                .expect("can't insert dummy component node before next sibling");
+                            #[cfg(feature = "stdweb")]
+                            let result = parent.insert_before(&dummy_node, &next_sibling);
+                            #[cfg(feature = "web_sys")]
+                            let result = parent.insert_before(&dummy_node, Some(&next_sibling));
+                            result.expect("can't insert dummy component node before next sibling");
                         } else {
+                            #[cfg(feature = "stdweb")]
                             parent.append_child(&dummy_node);
+                            #[cfg(feature = "web_sys")]
+                            parent.append_child(&dummy_node).unwrap();
                         }
                         this.mount(parent.to_owned(), dummy_node)
                     }

@@ -6,11 +6,16 @@ pub mod vnode;
 pub mod vtag;
 pub mod vtext;
 
+#[cfg(feature = "web_sys")]
+use crate::compat::EventListenerHandle;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
+#[cfg(feature = "stdweb")]
 use stdweb::web::{Element, EventListenerHandle, Node};
+#[cfg(feature = "web_sys")]
+use web_sys::{Element, Node};
 
 pub use self::vcomp::{VChild, VComp};
 pub use self::vlist::VList;

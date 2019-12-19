@@ -16,8 +16,10 @@ use std::any::TypeId;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
-use stdweb::unstable::TryFrom;
-use stdweb::web::Node;
+#[cfg(feature = "stdweb")]
+use stdweb::{unstable::TryFrom, web::Node};
+#[cfg(feature = "web_sys")]
+use web_sys::Node;
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -313,8 +315,15 @@ impl NodeRef {
     }
 
     /// Try converting the node reference into another form
+    #[cfg(feature = "stdweb")]
     pub fn try_into<INTO: TryFrom<Node>>(&self) -> Option<INTO> {
         self.get().and_then(|node| INTO::try_from(node).ok())
+    }
+
+    /// Try converting the node reference into another form
+    #[cfg(feature = "web_sys")]
+    pub fn try_into<INTO: From<Node>>(&self) -> Option<INTO> {
+        self.get().map(INTO::from)
     }
 
     /// Place a Node in a reference for later use
