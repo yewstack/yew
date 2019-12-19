@@ -1,6 +1,7 @@
 //! This module contains types to support multi-threading in Yew.
 
 use crate::callback::Callback;
+#[cfg(feature = "web_sys")]
 use crate::scheduler::{scheduler, Runnable, Shared};
 use anymap::{self, AnyMap};
 use bincode;
@@ -14,9 +15,17 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
+#[cfg(feature = "stdweb")]
 use stdweb::Value;
+#[cfg(feature = "stdweb")]
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
+#[cfg(feature = "web_sys")]
+use ::{
+    js_sys::Uint8Array,
+    wasm_bindgen::{closure::Closure, JsCast, JsValue as Value},
+    web_sys::{DedicatedWorkerGlobalScope, MessageEvent, Worker},
+};
 
 /// Serializable messages to worker
 #[derive(Serialize, Deserialize, Debug)]
@@ -162,15 +171,19 @@ where
                 ToWorker::Destroy => {
                     let upd = AgentLifecycleEvent::Destroy;
                     scope.send(upd);
+                    #[cfg(feature = "stdweb")]
                     js! {
                         // Terminates web worker
                         self.close();
                     };
+                    #[cfg(feature = "web_sys")]
+                    worker_self().close();
                 }
             }
         };
         let loaded: FromWorker<T::Output> = FromWorker::WorkerLoaded;
         let loaded = loaded.pack();
+        #[cfg(feature = "stdweb")]
         js! {
             var handler = @{handler};
             self.onmessage = function(event) {
@@ -178,6 +191,12 @@ where
             };
             self.postMessage(@{loaded});
         };
+        #[cfg(feature = "web_sys")]
+        {
+            let worker = worker_self();
+            worker.set_onmessage_closure(handler);
+            worker.post_message_vec(loaded);
+        }
     }
 }
 
@@ -433,6 +452,7 @@ impl Discoverer for Private {
         };
         // TODO Need somethig better...
         let name_of_resource = AGN::name_of_resource();
+        #[cfg(feature = "stdweb")]
         let worker = js! {
             var worker = new Worker(@{name_of_resource});
             var handler = @{handler};
@@ -440,6 +460,12 @@ impl Discoverer for Private {
                 handler(event.data);
             };
             return worker;
+        };
+        #[cfg(feature = "web_sys")]
+        let worker = {
+            let worker = Worker::new(name_of_resource).unwrap();
+            worker.set_onmessage_closure(handler);
+            Value::from(worker)
         };
         let bridge = PrivateBridge {
             worker,
@@ -468,11 +494,14 @@ impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
         // and send them to an agent when it will reported readiness.
         let msg = ToWorker::ProcessInput(SINGLETON_ID, msg).pack();
         let worker = &self.worker;
+        #[cfg(feature = "stdweb")]
         js! {
             var worker = @{worker};
             var bytes = @{msg};
             worker.postMessage(bytes);
         };
+        #[cfg(feature = "web_sys")]
+        worker.dyn_ref::<Worker>().unwrap().post_message_vec(msg);
     }
 }
 
@@ -547,7 +576,13 @@ impl Discoverer for Public {
                                         {
                                             for msg in msgs.drain(..) {
                                                 let worker = &worker;
+                                                #[cfg(feature = "stdweb")]
                                                 js! {@{worker}.postMessage(@{msg});};
+                                                #[cfg(feature = "web_sys")]
+                                                worker
+                                                    .dyn_ref::<Worker>()
+                                                    .unwrap()
+                                                    .post_message_vec(msg);
                                             }
                                         }
                                     });
@@ -559,6 +594,7 @@ impl Discoverer for Public {
                         }
                     };
                     let name_of_resource = AGN::name_of_resource();
+                    #[cfg(feature = "stdweb")]
                     let worker = js! {
                         var worker = new Worker(@{name_of_resource});
                         var handler = @{handler};
@@ -566,6 +602,15 @@ impl Discoverer for Public {
                             handler(event.data, worker);
                         };
                         return worker;
+                    };
+                    #[cfg(feature = "web_sys")]
+                    let worker = {
+                        let worker = Worker::new(name_of_resource).unwrap();
+                        let worker_clone = worker.clone();
+                        worker.set_onmessage_closure(move |data: Vec<u8>| {
+                            handler(data, Value::from(worker_clone.clone()));
+                        });
+                        Value::from(worker)
                     };
                     let launched = RemoteAgent::new(worker, slab);
                     entry.insert(launched).create_bridge(callback)
@@ -619,11 +664,14 @@ fn send_to_remote<AGN: Agent>(worker: &Value, msg: ToWorker<AGN::Input>) {
     // Use a queue to collect a messages if an instance is not ready
     // and send them to an agent when it will reported readiness.
     let msg = msg.pack();
+    #[cfg(feature = "stdweb")]
     js! {
         var worker = @{worker};
         var bytes = @{msg};
         worker.postMessage(bytes);
     };
+    #[cfg(feature = "web_sys")]
+    worker.dyn_ref::<Worker>().unwrap().post_message_vec(msg);
 }
 
 impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
@@ -761,10 +809,13 @@ impl<AGN: Agent> Responder<AGN> for WorkerResponder {
     fn respond(&self, id: HandlerId, output: AGN::Output) {
         let msg = FromWorker::ProcessOutput(id, output);
         let data = msg.pack();
+        #[cfg(feature = "stdweb")]
         js! {
             var data = @{data};
             self.postMessage(data);
         };
+        #[cfg(feature = "web_sys")]
+        worker_self().post_message_vec(data);
     }
 }
 
@@ -903,4 +954,43 @@ where
             }
         }
     }
+}
+
+#[cfg(feature = "web_sys")]
+fn worker_self() -> DedicatedWorkerGlobalScope {
+    js_sys::global().dyn_into().unwrap()
+}
+
+#[cfg(feature = "web_sys")]
+trait WorkerExt {
+    fn set_onmessage_closure(&self, handler: impl 'static + Fn(Vec<u8>));
+
+    fn post_message_vec(&self, data: Vec<u8>);
+}
+
+#[cfg(feature = "web_sys")]
+macro_rules! worker_ext_impl {
+    ($($type:ident),+) => {$(
+        impl WorkerExt for $type {
+            fn set_onmessage_closure(&self, handler: impl 'static + Fn(Vec<u8>)) {
+                let handler = move |message: MessageEvent| {
+                    let data = Uint8Array::new(&message.data()).to_vec();
+                    handler(data);
+                };
+                let closure = Closure::wrap(Box::new(handler) as Box<dyn Fn(MessageEvent)>);
+                self.set_onmessage(Some(closure.as_ref().unchecked_ref()));
+                closure.forget();
+            }
+
+            fn post_message_vec(&self, data: Vec<u8>) {
+                self.post_message(&Uint8Array::from(data.as_slice()))
+                    .unwrap();
+            }
+        }
+    )+};
+}
+
+#[cfg(feature = "web_sys")]
+worker_ext_impl! {
+    Worker, DedicatedWorkerGlobalScope
 }
