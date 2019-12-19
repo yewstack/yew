@@ -70,7 +70,7 @@ impl VDiff for VNode {
                     parent.append_child(node);
                     #[cfg(feature = "web_sys")]
                     parent.append_child(node).unwrap();
-        }
+                }
 
                 Some(node.to_owned())
             }
