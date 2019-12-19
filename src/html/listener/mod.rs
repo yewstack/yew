@@ -1,10 +1,14 @@
 #[macro_use]
 mod macros;
-#[cfg_attr(feature = "stdweb", path = "stdweb.rs")]
-#[cfg_attr(feature = "web_sys", path = "web_sys.rs")]
-mod internal;
+#[cfg(feature = "stdweb")]
+mod listener_stdweb;
+#[cfg(feature = "web_sys")]
+mod listener_web_sys;
 
-pub use internal::*;
+#[cfg(feature = "stdweb")]
+pub use listener_stdweb::*;
+#[cfg(feature = "web_sys")]
+pub use listener_web_sys::*;
 #[cfg(feature = "stdweb")]
 use stdweb::{
     js,
