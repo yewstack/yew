@@ -12,6 +12,7 @@ impl_action! {
     onmouseout(name: "mouseout", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
     onmouseenter(name: "mouseenter", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
     onmouseleave(name: "mouseleave", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
+    onmousewheel(name: "wheel", event: WheelEvent) -> web_sys::WheelEvent => |_, event| { event }
     ongotpointercapture(name: "gotpointercapture", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }
     onlostpointercapture(name: "lostpointercapture", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }
     onpointercancel(name: "pointercancel", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }

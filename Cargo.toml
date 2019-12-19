@@ -57,6 +57,7 @@ features = [
     "PointerEvent",
     "TouchEvent",
     "UiEvent",
+    "WheelEvent",
 ]
 
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]

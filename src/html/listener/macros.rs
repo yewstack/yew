@@ -6,9 +6,9 @@ macro_rules! impl_action {
     ($($action:ident(name: $name:literal, event: $type:ident) -> $ret:ty => $convert:expr)*) => {$(
         /// An abstract implementation of a listener.
         pub mod $action {
+            use crate::callback::Callback;
             #[allow(unused_imports)]
             use crate::html::listener::*;
-            use crate::callback::Callback;
             use crate::virtual_dom::Listener;
             #[cfg(feature = "stdweb")]
             use stdweb::web::{
@@ -62,22 +62,19 @@ macro_rules! impl_action {
                     let callback = self.callback.clone();
                     let listener = move |event: web_sys::Event| {
                         event.stop_propagation();
-                        let event = event.dyn_into::<WebSysType>().expect("wrong event type");
+                        let event: WebSysType = event.dyn_into().expect("wrong event type");
                         callback.emit($convert(&this, event));
                     };
 
                     let target = EventTarget::from(element.clone());
                     let listener = Closure::wrap(Box::new(listener) as Box<dyn Fn(web_sys::Event)>);
                     target
-                        .add_event_listener_with_callback(
-                            $name,
-                            listener.as_ref().unchecked_ref(),
-                        )
+                        .add_event_listener_with_callback($name, listener.as_ref().unchecked_ref())
                         .expect("failed to add event listener");
 
-                    return EventListenerHandle {
+                    EventListenerHandle {
                         target,
-                        r#type: stringify!($name),
+                        r#type: $name,
                         callback: ManuallyDrop::new(listener),
                     }
                 }
