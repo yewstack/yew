@@ -11,12 +11,13 @@ use web_sys::{Event, EventTarget};
 // and not be dropped, therefore the use of `ManuallyDrop` here.
 #[derive(Debug)]
 pub struct EventListenerHandle {
-    target: EventTarget,
-    r#type: &'static str,
-    callback: ManuallyDrop<Closure<dyn Fn(Event)>>,
+    pub(crate) target: EventTarget,
+    pub(crate) r#type: &'static str,
+    pub(crate) callback: ManuallyDrop<Closure<dyn Fn(Event)>>,
 }
 
 impl EventListenerHandle {
+    /// Cancel event.
     pub fn remove(self) {
         self.target
             .remove_event_listener_with_callback(
