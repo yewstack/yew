@@ -42,22 +42,22 @@ yew-macro = { version = "0.10.1", path = "crates/macro" }
 version = "0.3.32"
 optional = true
 features = [
-    "DragEvent",
-    "Element",
-    "Event",
-    "EventTarget",
-    "FileList",
-    "FocusEvent",
-    "HtmlInputElement",
-    "HtmlSelectElement",
-    "HtmlTextAreaElement",
-    "KeyboardEvent",
-    "MouseEvent",
-    "Node",
-    "PointerEvent",
-    "TouchEvent",
-    "UiEvent",
-    "WheelEvent",
+  "DragEvent",
+  "Element",
+  "Event",
+  "EventTarget",
+  "FileList",
+  "FocusEvent",
+  "HtmlInputElement",
+  "HtmlSelectElement",
+  "HtmlTextAreaElement",
+  "KeyboardEvent",
+  "MouseEvent",
+  "Node",
+  "PointerEvent",
+  "TouchEvent",
+  "UiEvent",
+  "WheelEvent",
 ]
 
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]
