@@ -1,3 +1,4 @@
+#![allow(clippy::needless_doctest_main)]
 //! # Yew Framework - API Documentation
 //!
 //! Yew is a framework for web-client apps created with
