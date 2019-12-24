@@ -45,7 +45,7 @@ wasm-bindgen-futures = "0.4.4"
 wasm-bindgen-test = "0.3.4"
 
 [target.'cfg(target_os = "emscripten")'.dependencies]
-ryu = "=1.0.0" # 1.0.1 breaks emscripten
+ryu = "1.0.2" # 1.0.1 breaks emscripten
 
 [dev-dependencies]
 serde_derive = "1"
