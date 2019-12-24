@@ -3,6 +3,7 @@ branches:
     - staging
     - trying
     - master
+    - web-sys
 
 dist: trusty
 language: rust
