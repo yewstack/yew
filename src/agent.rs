@@ -281,7 +281,7 @@ impl Discoverer for Context {
                     let responder = SlabResponder {
                         slab: launched.slab(),
                     };
-                    scope_to_init = Some((scope.clone(), responder));
+                    scope_to_init = Some((scope, responder));
                     entry.insert(launched).create_bridge(callback)
                 }
             }
