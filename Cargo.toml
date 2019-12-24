@@ -38,7 +38,7 @@ toml = { version = "0.5", optional = true }
 yew-macro = { version = "0.10.1", path = "crates/macro" }
 
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]
-wasm-bindgen = "0.2.55"
+wasm-bindgen = "0.2.56"
 wasm-bindgen-futures = "0.4.4"
 
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dev-dependencies]
