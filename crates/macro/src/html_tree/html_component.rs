@@ -126,6 +126,11 @@ impl ToTokens for HtmlComponent {
             quote! {
                 .children(::yew::html::ChildrenRenderer::new(
                     vec![#(#children.into(),)*]
+                        .into_iter()
+                        .map(|x: ::yew::utils::IntoVec<_>| return x.0)
+                        .flatten()
+                        .map(|x| return x.into())
+                        .collect::<::std::vec::Vec<_>>()
                 ))
             }
         } else {

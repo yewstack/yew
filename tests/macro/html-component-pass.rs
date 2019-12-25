@@ -2,6 +2,70 @@
 
 use yew::prelude::*;
 use yew::html::ChildrenRenderer;
+use yew::virtual_dom::{VChild, VComp, VNode};
+
+#[derive(Debug, Properties)]
+pub struct ParentProperties {
+    #[props(required)]
+    pub children: ChildrenRenderer<ParentVariant>,
+}
+
+pub struct Parent {
+    props: ParentProperties,
+    link:  ComponentLink<Self>,
+}
+
+impl Component for Parent {
+    type Message = ();
+    type Properties = ParentProperties;
+
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        return Parent { props, link };
+    }
+
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
+}
+
+pub enum ParentVariants {
+    Child(<Child as Component>::Properties),
+}
+
+impl From<ChildProperties> for ParentVariants {
+    fn from(props: ChildProperties) -> Self { ParentVariants::Child(props) }
+}
+
+pub struct ParentVariant {
+    props: ParentVariants,
+}
+
+impl<CHILD> From<VChild<CHILD>> for ParentVariant
+    where
+        CHILD: Component,
+        CHILD::Properties: Into<ParentVariants>,
+{
+    fn from(comp: VChild<CHILD>) -> Self {
+        return ParentVariant {
+            props: comp.props.into(),
+        };
+    }
+}
+
+impl Into<VNode> for ParentVariant {
+    fn into(self) -> VNode {
+        match self.props {
+            ParentVariants::Child(props) => {
+                VComp::new::<Child>(props, NodeRef::default()).into()
+            }
+        }
+    }
+}
+
 
 #[derive(Clone, Properties, Default, PartialEq)]
 pub struct ChildProperties {
@@ -177,6 +241,21 @@ fn compile_pass() {
             <ChildContainer int=1><Child int = 2 /></ChildContainer>
             <ChildContainer int=1><Child int = 2 /><Child int = 2 /></ChildContainer>
         </>
+    };
+
+    html! {
+        <Parent>
+            {
+                return html! {
+                    <Child int=1 />
+                };
+            }
+            {(0..2).map(|_| {
+                return html! {
+                    <Child int=1 />
+                }
+            }).collect::<Vec<VChild<Child>>>()}
+        </Parent>
     };
 }
 
