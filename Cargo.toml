@@ -50,7 +50,7 @@ ryu = "1.0.2" # 1.0.1 breaks emscripten
 [dev-dependencies]
 serde_derive = "1"
 trybuild = "1.0"
-rustversion = "0.1"
+rustversion = "1.0"
 
 [features]
 default = ["services", "agent"]
