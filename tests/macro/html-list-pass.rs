@@ -1,7 +1,6 @@
-#[macro_use]
-mod helpers;
+use yew::prelude::*;
 
-pass_helper! {
+fn compile_pass() {
     html! {};
     html! { <></> };
     html! {

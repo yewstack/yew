@@ -1,9 +1,7 @@
-#[macro_use]
-mod helpers;
-
+use yew::prelude::*;
 use std::iter;
 
-pass_helper! {
+fn compile_pass() {
     html! { for iter::empty::<Html>() };
     html! { for Vec::<Html>::new().into_iter() };
     html! { for (0..3).map(|num| { html! { <span>{num}</span> } }) };
