@@ -163,7 +163,7 @@ pub mod prelude {
         Renderable, ShouldRender,
     };
     pub use crate::macros::*;
-    pub use crate::utils::IntoVec;
+    pub use crate::utils::NodeSeq;
     pub use crate::virtual_dom::Classes;
 
     /// Prelude module for creating worker.

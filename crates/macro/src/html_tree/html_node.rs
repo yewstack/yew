@@ -70,7 +70,7 @@ impl ToTokens for Node {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let node_token = match &self {
             Node::Literal(lit) => quote! {#lit},
-            Node::Raw(stream) => quote_spanned! {stream.span()=>(|| {#stream})()},
+            Node::Raw(stream) => quote_spanned! {stream.span()=>{#stream}},
         };
 
         tokens.extend(node_token);

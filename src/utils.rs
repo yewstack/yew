@@ -3,6 +3,8 @@
 use failure::{err_msg, Error};
 use stdweb::web::document;
 
+use crate::virtual_dom::VNode;
+
 /// Returns `host` for the current document. Useful to connect to a server that server the app.
 pub fn host() -> Result<String, Error> {
     document()
@@ -13,16 +15,27 @@ pub fn host() -> Result<String, Error> {
 
 /// Specialty type necessary for helping flattening components returned from nested html macros.
 #[derive(Debug)]
-pub struct IntoVec<T>(pub Vec<T>);
+pub struct NodeSeq<T>(Vec<T>)
+where
+    T: Into<VNode>;
 
-impl<T> From<T> for IntoVec<T> {
+impl<T: Into<VNode>> From<T> for NodeSeq<T> {
     fn from(val: T) -> Self {
-        return IntoVec(vec![val]);
+        return NodeSeq(vec![val]);
     }
 }
 
-impl<T> From<Vec<T>> for IntoVec<T> {
+impl<T: Into<VNode>> From<Vec<T>> for NodeSeq<T> {
     fn from(val: Vec<T>) -> Self {
-        return IntoVec(val);
+        return NodeSeq(val);
+    }
+}
+
+impl<T: Into<VNode>> IntoIterator for NodeSeq<T> {
+    type Item = T;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }

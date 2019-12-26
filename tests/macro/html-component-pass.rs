@@ -34,10 +34,19 @@ impl Component for Parent {
 
 pub enum ParentVariants {
     Child(<Child as Component>::Properties),
+    ChildA(<ChildA as Component>::Properties),
 }
 
 impl From<ChildProperties> for ParentVariants {
-    fn from(props: ChildProperties) -> Self { ParentVariants::Child(props) }
+    fn from(props: ChildProperties) -> Self {
+        ParentVariants::Child(props)
+    }
+}
+
+impl From<ChildAProperties> for ParentVariants {
+    fn from(props: ChildAProperties) -> Self {
+        ParentVariants::ChildA(props)
+    }
 }
 
 pub struct ParentVariant {
@@ -45,9 +54,9 @@ pub struct ParentVariant {
 }
 
 impl<CHILD> From<VChild<CHILD>> for ParentVariant
-    where
-        CHILD: Component,
-        CHILD::Properties: Into<ParentVariants>,
+where
+    CHILD: Component,
+    CHILD::Properties: Into<ParentVariants>,
 {
     fn from(comp: VChild<CHILD>) -> Self {
         return ParentVariant {
@@ -59,13 +68,11 @@ impl<CHILD> From<VChild<CHILD>> for ParentVariant
 impl Into<VNode> for ParentVariant {
     fn into(self) -> VNode {
         match self.props {
-            ParentVariants::Child(props) => {
-                VComp::new::<Child>(props, NodeRef::default()).into()
-            }
+            ParentVariants::Child(props) => VComp::new::<Child>(props, NodeRef::default()).into(),
+            ParentVariants::ChildA(props) => VComp::new::<ChildA>(props, NodeRef::default()).into(),
         }
     }
 }
-
 
 #[derive(Clone, Properties, Default, PartialEq)]
 pub struct ChildProperties {
@@ -83,6 +90,33 @@ impl Component for Child {
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         Child
+    }
+
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
+}
+
+#[derive(Clone, Properties, Default, PartialEq)]
+pub struct ChildAProperties {
+    pub string: String,
+    #[props(required)]
+    pub int: i32,
+    pub vec: Vec<i32>,
+    pub optional_callback: Option<Callback<()>>,
+}
+
+pub struct ChildA;
+impl Component for ChildA {
+    type Message = ();
+    type Properties = ChildAProperties;
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        ChildA
     }
 
     fn update(&mut self, _: Self::Message) -> ShouldRender {
@@ -245,10 +279,11 @@ fn compile_pass() {
 
     html! {
         <Parent>
+            <ChildA int=1 />
             {
-                return html! {
+                html! {
                     <Child int=1 />
-                };
+                }
             }
             {(0..2).map(|_| {
                 return html! {
