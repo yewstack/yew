@@ -1,8 +1,6 @@
 #![recursion_limit = "256"]
 
-#[macro_use]
-mod helpers;
-
+use yew::prelude::*;
 use yew::html::ChildrenRenderer;
 
 #[derive(Properties, Default, PartialEq)]
@@ -87,7 +85,7 @@ mod scoped {
     pub use super::Container;
 }
 
-pass_helper! {
+fn compile_pass() {
     html! { <Child int=1 /> };
 
     // backwards compat
