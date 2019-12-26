@@ -19,8 +19,8 @@ before_cache:
 rust:
   # - 1.39.0 # min supported (enable when 1.40.0 is released)
   - stable
-  - beta
-  - nightly
+  # - beta
+  # - nightly
 
 matrix:
   allow_failures:
