@@ -1,9 +1,7 @@
 #![recursion_limit = "512"]
+use yew::prelude::*;
 
-#[macro_use]
-mod helpers;
-
-pass_helper! {
+fn compile_pass() {
     let onclick = Callback::from(|_: ClickEvent| ());
     let parent_ref = NodeRef::default();
     html! {
