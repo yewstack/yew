@@ -2,7 +2,10 @@
 //! a component in an isolated scope.
 
 use crate::html::{Component, NodeRef, Scope};
+#[cfg(feature = "stdweb")]
 use stdweb::web::{document, Element, INode, IParentNode};
+#[cfg(feature = "web_sys")]
+use web_sys::Element;
 
 /// An application instance.
 #[derive(Debug)]
@@ -42,8 +45,13 @@ where
 
     /// Alias to `mount("body", ...)`.
     pub fn mount_to_body(self) -> Scope<COMP> {
+        #[cfg(feature = "stdweb")]
+        let document = document();
+        #[cfg(feature = "web_sys")]
+        let document = web_sys::window().unwrap().document().unwrap();
+
         // Bootstrap the component for `Window` environment only (not for `Worker`)
-        let element = document()
+        let element = document
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
@@ -55,11 +63,16 @@ where
     /// need to manipulate the body element. For example, adding/removing app-wide
     /// CSS classes of the body element.
     pub fn mount_as_body(self) -> Scope<COMP> {
-        let html_element = document()
+        #[cfg(feature = "stdweb")]
+        let document = document();
+        #[cfg(feature = "web_sys")]
+        let document = web_sys::window().unwrap().document().unwrap();
+
+        let html_element = document
             .query_selector("html")
             .expect("can't get html node for rendering")
             .expect("can't unwrap html node");
-        let body_element = document()
+        let body_element = document
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
@@ -97,8 +110,13 @@ where
 
     /// Alias to `mount_with_props("body", ...)`.
     pub fn mount_to_body_with_props(self, props: COMP::Properties) -> Scope<COMP> {
+        #[cfg(feature = "stdweb")]
+        let document = document();
+        #[cfg(feature = "web_sys")]
+        let document = web_sys::window().unwrap().document().unwrap();
+
         // Bootstrap the component for `Window` environment only (not for `Worker`)
-        let element = document()
+        let element = document
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
@@ -110,11 +128,16 @@ where
     /// when you need to manipulate the body element. For example, adding/removing app-wide
     /// CSS classes of the body element.
     pub fn mount_as_body_with_props(self, props: COMP::Properties) -> Scope<COMP> {
-        let html_element = document()
+        #[cfg(feature = "stdweb")]
+        let document = document();
+        #[cfg(feature = "web_sys")]
+        let document = web_sys::window().unwrap().document().unwrap();
+
+        let html_element = document
             .query_selector("html")
             .expect("can't get html node for rendering")
             .expect("can't unwrap html node");
-        let body_element = document()
+        let body_element = document
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
