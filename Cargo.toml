@@ -42,6 +42,7 @@ yew-macro = { version = "0.10.1", path = "crates/macro" }
 version = "0.3.33"
 optional = true
 features = [
+  "console",
   "DedicatedWorkerGlobalScope",
   "Document",
   "DomTokenList",
@@ -55,6 +56,7 @@ features = [
   "HtmlSelectElement",
   "HtmlTextAreaElement",
   "KeyboardEvent",
+  "Location",
   "MessageEvent",
   "MouseEvent",
   "Node",

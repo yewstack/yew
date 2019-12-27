@@ -116,11 +116,13 @@ pub mod events {
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
+    #[cfg(feature = "stdweb")]
     stdweb::initialize();
 }
 
 /// Starts event loop.
 pub fn run_loop() {
+    #[cfg(feature = "stdweb")]
     stdweb::event_loop();
 }
 
