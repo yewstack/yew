@@ -16,8 +16,6 @@ macro_rules! impl_action {
                 Element, EventListenerHandle, IEventTarget,
             };
             #[cfg(feature = "web_sys")]
-            use crate::compat::EventListenerHandle;
-            #[cfg(feature = "web_sys")]
             use ::{
                 std::mem::ManuallyDrop,
                 wasm_bindgen::{closure::Closure, JsCast},
