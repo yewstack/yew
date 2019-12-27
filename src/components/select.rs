@@ -121,11 +121,7 @@ where
     fn onchange(&self) -> Callback<ChangeData> {
         self.link.callback(|event| match event {
             ChangeData::Select(elem) => {
-                let value = elem.selected_index();
-                #[cfg(feature = "stdweb")]
-                let value = value.map(|x| x as usize);
-                #[cfg(feature = "web_sys")]
-                let value = Some(value as usize);
+                let value = elem.selected_index().map(|x| x as usize);
                 Msg::Selected(value)
             }
             _ => {
