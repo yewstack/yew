@@ -80,8 +80,6 @@ pub mod macros {
 
 pub mod app;
 pub mod callback;
-#[cfg(feature = "web_sys")]
-pub mod compat;
 pub mod components;
 pub mod format;
 pub mod html;
@@ -98,7 +96,6 @@ pub mod services;
 pub mod events {
     pub use crate::html::{ChangeData, InputData};
 
-    #[cfg(feature = "stdweb")]
     pub use stdweb::web::event::{
         BlurEvent, ClickEvent, ContextMenuEvent, DoubleClickEvent, DragDropEvent, DragEndEvent,
         DragEnterEvent, DragEvent, DragExitEvent, DragLeaveEvent, DragOverEvent, DragStartEvent,
@@ -108,11 +105,6 @@ pub mod events {
         MouseUpEvent, MouseWheelEvent, PointerCancelEvent, PointerDownEvent, PointerEnterEvent,
         PointerLeaveEvent, PointerMoveEvent, PointerOutEvent, PointerOverEvent, PointerUpEvent,
         ScrollEvent, SubmitEvent, TouchCancel, TouchEnd, TouchEnter, TouchMove, TouchStart,
-    };
-    #[cfg(feature = "web_sys")]
-    pub use web_sys::{
-        DragEvent, Event, FocusEvent, KeyboardEvent, MouseEvent, PointerEvent, TouchEvent, UiEvent,
-        WheelEvent,
     };
 }
 
