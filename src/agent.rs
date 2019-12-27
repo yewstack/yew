@@ -22,7 +22,7 @@ use stdweb::{_js_impl, js};
 #[cfg(feature = "web_sys")]
 use ::{
     js_sys::Uint8Array,
-    wasm_bindgen::{closure::Closure, JsCast, JsValue as Value},
+    wasm_bindgen::{closure::Closure, JsCast},
     web_sys::{DedicatedWorkerGlobalScope, MessageEvent, Worker},
 };
 
@@ -464,7 +464,7 @@ impl Discoverer for Private {
         let worker = {
             let worker = Worker::new(name_of_resource).unwrap();
             worker.set_onmessage_closure(handler);
-            Value::from(worker)
+            worker
         };
         let bridge = PrivateBridge {
             worker,
@@ -476,7 +476,10 @@ impl Discoverer for Private {
 
 /// A connection manager for components interaction with workers.
 pub struct PrivateBridge<T: Agent> {
+    #[cfg(feature = "stdweb")]
     worker: Value,
+    #[cfg(feature = "web_sys")]
+    worker: Worker,
     _agent: PhantomData<T>,
 }
 
@@ -492,15 +495,17 @@ impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
         // Use a queue to collect a messages if an instance is not ready
         // and send them to an agent when it will reported readiness.
         let msg = ToWorker::ProcessInput(SINGLETON_ID, msg).pack();
-        let worker = &self.worker;
         #[cfg(feature = "stdweb")]
-        js! {
-            var worker = @{worker};
-            var bytes = @{msg};
-            worker.postMessage(bytes);
-        };
+        {
+            let worker = &self.worker;
+            js! {
+                var worker = @{worker};
+                var bytes = @{msg};
+                worker.postMessage(bytes);
+            };
+        }
         #[cfg(feature = "web_sys")]
-        worker.dyn_ref::<Worker>().unwrap().post_message_vec(msg);
+        self.worker.post_message_vec(msg);
     }
 }
 
@@ -511,12 +516,19 @@ impl<AGN: Agent> Drop for PrivateBridge<AGN> {
 }
 
 struct RemoteAgent<AGN: Agent> {
+    #[cfg(feature = "stdweb")]
     worker: Value,
+    #[cfg(feature = "web_sys")]
+    worker: Worker,
     slab: SharedOutputSlab<AGN>,
 }
 
 impl<AGN: Agent> RemoteAgent<AGN> {
-    pub fn new(worker: Value, slab: SharedOutputSlab<AGN>) -> Self {
+    pub fn new(
+        #[cfg(feature = "stdweb")] worker: Value,
+        #[cfg(feature = "web_sys")] worker: Worker,
+        slab: SharedOutputSlab<AGN>,
+    ) -> Self {
         RemoteAgent { worker, slab }
     }
 
@@ -561,7 +573,9 @@ impl Discoverer for Public {
                         Rc::new(RefCell::new(Slab::new()));
                     let handler = {
                         let slab = slab.clone();
-                        move |data: Vec<u8>, worker: Value| {
+                        move |data: Vec<u8>,
+                              #[cfg(feature = "stdweb")] worker: Value,
+                              #[cfg(feature = "web_sys")] worker: &Worker| {
                             let msg = FromWorker::<AGN::Output>::unpack(&data);
                             match msg {
                                 FromWorker::WorkerLoaded => {
@@ -574,14 +588,13 @@ impl Discoverer for Public {
                                             local.borrow_mut().get_mut(&TypeId::of::<AGN>())
                                         {
                                             for msg in msgs.drain(..) {
-                                                let worker = &worker;
                                                 #[cfg(feature = "stdweb")]
-                                                js! {@{worker}.postMessage(@{msg});};
+                                                {
+                                                    let worker = &worker;
+                                                    js! {@{worker}.postMessage(@{msg});};
+                                                }
                                                 #[cfg(feature = "web_sys")]
-                                                worker
-                                                    .dyn_ref::<Worker>()
-                                                    .unwrap()
-                                                    .post_message_vec(msg);
+                                                worker.post_message_vec(msg);
                                             }
                                         }
                                     });
@@ -607,9 +620,9 @@ impl Discoverer for Public {
                         let worker = Worker::new(name_of_resource).unwrap();
                         let worker_clone = worker.clone();
                         worker.set_onmessage_closure(move |data: Vec<u8>| {
-                            handler(data, Value::from(worker_clone.clone()));
+                            handler(data, &worker_clone);
                         });
-                        Value::from(worker)
+                        worker
                     };
                     let launched = RemoteAgent::new(worker, slab);
                     entry.insert(launched).create_bridge(callback)
@@ -624,7 +637,10 @@ impl Dispatchable for Public {}
 
 /// A connection manager for components interaction with workers.
 pub struct PublicBridge<AGN: Agent> {
+    #[cfg(feature = "stdweb")]
     worker: Value,
+    #[cfg(feature = "web_sys")]
+    worker: Worker,
     id: HandlerId,
     _agent: PhantomData<AGN>,
 }
@@ -658,7 +674,11 @@ impl<AGN: Agent> PublicBridge<AGN> {
     }
 }
 
-fn send_to_remote<AGN: Agent>(worker: &Value, msg: ToWorker<AGN::Input>) {
+fn send_to_remote<AGN: Agent>(
+    #[cfg(feature = "stdweb")] worker: &Value,
+    #[cfg(feature = "web_sys")] worker: &Worker,
+    msg: ToWorker<AGN::Input>,
+) {
     // TODO Important! Implement.
     // Use a queue to collect a messages if an instance is not ready
     // and send them to an agent when it will reported readiness.
@@ -670,7 +690,7 @@ fn send_to_remote<AGN: Agent>(worker: &Value, msg: ToWorker<AGN::Input>) {
         worker.postMessage(bytes);
     };
     #[cfg(feature = "web_sys")]
-    worker.dyn_ref::<Worker>().unwrap().post_message_vec(msg);
+    worker.post_message_vec(msg);
 }
 
 impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
