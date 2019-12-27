@@ -7,7 +7,7 @@ pub mod vtag;
 pub mod vtext;
 
 #[cfg(feature = "web_sys")]
-use crate::compat::EventListenerHandle;
+use crate::html::EventListenerHandle;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
 use std::fmt;

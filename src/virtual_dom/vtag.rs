@@ -4,7 +4,7 @@ use super::{
     Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
 };
 #[cfg(feature = "web_sys")]
-use crate::compat::EventListenerHandle;
+use crate::html::EventListenerHandle;
 use crate::html::NodeRef;
 use log::warn;
 use std::borrow::Cow;
