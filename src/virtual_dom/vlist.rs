@@ -4,7 +4,7 @@ use std::ops::{Deref, DerefMut};
 use stdweb::web::{Element, Node};
 
 /// This struct represents a fragment of the Virtual DOM tree.
-#[derive(Debug, PartialEq, Default)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct VList {
     /// The list of children nodes.
     pub children: Vec<VNode>,

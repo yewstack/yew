@@ -10,7 +10,7 @@ pub enum Msg {
     Clicked,
 }
 
-#[derive(PartialEq, Properties)]
+#[derive(Clone, PartialEq, Properties)]
 pub struct Props {
     pub title: String,
     #[props(required)]

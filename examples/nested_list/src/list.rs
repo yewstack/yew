@@ -1,10 +1,11 @@
-use crate::{header::Props as HeaderProps, ListHeader};
-use crate::{item::Props as ItemProps, ListItem};
-use crate::Hovered;
+use super::{Hovered, WeakComponentLink};
+use crate::{header::ListHeader, header::Props as HeaderProps};
+use crate::{item::ListItem, item::Props as ItemProps};
 use yew::html::{ChildrenRenderer, NodeRef};
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VComp, VNode};
 
+#[derive(Clone)]
 pub enum Variants {
     Item(<ListItem as Component>::Properties),
     Header(<ListHeader as Component>::Properties),
@@ -22,40 +23,58 @@ impl From<HeaderProps> for Variants {
     }
 }
 
+#[derive(Clone)]
 pub struct ListVariant {
     props: Variants,
 }
 
-#[derive(Properties)]
+#[derive(Clone, Properties)]
 pub struct Props {
     #[props(required)]
     pub children: ChildrenRenderer<ListVariant>,
     #[props(required)]
     pub on_hover: Callback<Hovered>,
+    #[props(required)]
+    pub weak_link: WeakComponentLink<List>,
 }
 
 pub struct List {
     props: Props,
+    inactive: bool,
+}
+
+pub enum Msg {
+    HeaderClick,
 }
 
 impl Component for List {
-    type Message = ();
+    type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-        List { props }
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        *props.weak_link.borrow_mut() = Some(link);
+        List {
+            props,
+            inactive: false,
+        }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        false
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        match msg {
+            Msg::HeaderClick => {
+                self.inactive = !self.inactive;
+                true
+            }
+        }
     }
 
     fn view(&self) -> Html {
+        let inactive = if self.inactive { "inactive" } else { "" };
         let onmouseover = self.props.on_hover.reform(|_| Hovered::List);
         let onmouseout = self.props.on_hover.reform(|_| Hovered::None);
         html! {
             <div class="list-container" onmouseout=onmouseout onmouseover=onmouseover>
-                <div class="list">
+                <div class=vec!["list", inactive]>
                     {self.view_header()}
                     <div class="items">
                         {self.view_items()}
