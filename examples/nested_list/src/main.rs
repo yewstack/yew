@@ -1,3 +1,4 @@
 fn main() {
-    yew::start_app::<nested_list::Model>();
+    web_logger::init();
+    yew::start_app::<nested_list::App>();
 }

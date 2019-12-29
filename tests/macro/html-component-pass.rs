@@ -3,7 +3,7 @@
 use yew::prelude::*;
 use yew::html::ChildrenRenderer;
 
-#[derive(Properties, Default, PartialEq)]
+#[derive(Clone, Properties, Default, PartialEq)]
 pub struct ChildProperties {
     pub string: String,
     #[props(required)]
@@ -30,7 +30,7 @@ impl Component for Child {
     }
 }
 
-#[derive(Properties, Default)]
+#[derive(Clone, Properties, Default)]
 pub struct ContainerProperties {
     #[props(required)]
     pub int: i32,
@@ -55,7 +55,7 @@ impl Component for Container {
     }
 }
 
-#[derive(Properties, Default)]
+#[derive(Clone, Properties, Default)]
 pub struct ChildContainerProperties {
     #[props(required)]
     pub int: i32,
@@ -165,12 +165,7 @@ fn compile_pass() {
             </scoped::Container>
 
             <Container int=1 children=ChildrenRenderer::new(
-                1,
-                ::std::boxed::Box::new(move || {
-                    || -> ::std::vec::Vec<_> {
-                        vec![html!{ "String" }]
-                    }
-                }()),
+                vec![html!{ "String" }]
             ) />
         </>
     };

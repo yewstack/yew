@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-#[derive(Properties, PartialEq)]
+#[derive(Clone, Properties, PartialEq)]
 pub struct TestProperties {
     pub string: String,
     pub int: i32,

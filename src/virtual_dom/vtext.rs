@@ -9,6 +9,7 @@ use stdweb::web::{document, Element, INode, Node, TextNode};
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// representation.
+#[derive(Clone)]
 pub struct VText {
     /// Contains a text of the node.
     pub text: String,

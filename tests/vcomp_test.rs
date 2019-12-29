@@ -8,7 +8,7 @@ wasm_bindgen_test_configure!(run_in_browser);
 
 struct Comp;
 
-#[derive(PartialEq, Properties)]
+#[derive(Clone, PartialEq, Properties)]
 struct Props {
     field_1: u32,
     field_2: u32,
@@ -33,19 +33,19 @@ impl Component for Comp {
 
 #[test]
 fn set_properties_to_component() {
-    let _ = html! {
+    html! {
         <Comp />
     };
 
-    let _ = html! {
+    html! {
         <Comp field_1=1 />
     };
 
-    let _ = html! {
+    html! {
         <Comp field_2=2 />
     };
 
-    let _ = html! {
+    html! {
         <Comp field_1=1 field_2=2 />
     };
 
@@ -54,7 +54,7 @@ fn set_properties_to_component() {
         field_2: 1,
     };
 
-    let _ = html! {
+    html! {
         <Comp with props />
     };
 }

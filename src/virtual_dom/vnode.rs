@@ -8,6 +8,7 @@ use std::iter::FromIterator;
 use stdweb::web::{Element, INode, Node};
 
 /// Bind virtual element to a DOM reference.
+#[derive(Clone)]
 pub enum VNode {
     /// A bind between `VTag` and `Element`.
     VTag(Box<VTag>),
