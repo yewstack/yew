@@ -26,7 +26,7 @@ impl PeekValue<()> for HtmlBlock {
 
 impl Parse for HtmlBlock {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let content;
+        let content: syn::parse::ParseBuffer<'_>;
         let brace = braced!(content in input);
         let content = if HtmlIterable::peek(content.cursor()).is_some() {
             BlockContent::Iterable(content.parse()?)
