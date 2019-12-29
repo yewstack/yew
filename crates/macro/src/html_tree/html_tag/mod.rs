@@ -3,7 +3,7 @@ mod tag_attributes;
 use super::HtmlDashedName as TagName;
 use super::HtmlProp as TagAttribute;
 use super::HtmlPropSuffix as TagSuffix;
-use super::HtmlTree;
+use super::HtmlTreeNested;
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::Span;
@@ -12,13 +12,13 @@ use syn::buffer::Cursor;
 use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
-use syn::{Ident, Token};
+use syn::{Ident, Index, Token};
 use tag_attributes::{ClassesForm, TagAttributes};
 
 pub struct HtmlTag {
     tag_name: TagName,
     attributes: TagAttributes,
-    children: Vec<HtmlTree>,
+    children: Vec<HtmlTreeNested>,
 }
 
 impl PeekValue<()> for HtmlTag {
@@ -51,7 +51,7 @@ impl Parse for HtmlTag {
             });
         }
 
-        let mut children: Vec<HtmlTree> = vec![];
+        let mut children: Vec<HtmlTreeNested> = vec![];
         loop {
             if input.is_empty() {
                 return Err(syn::Error::new_spanned(
@@ -161,6 +161,10 @@ impl ToTokens for HtmlTag {
             }}
         });
 
+        let i = (0..children.len())
+            .map(|x| Index::from(x))
+            .collect::<Vec<_>>();
+
         tokens.extend(quote! {{
             let mut #vtag = ::yew::virtual_dom::vtag::VTag::new(#name);
             #(#set_kind)*
@@ -173,7 +177,13 @@ impl ToTokens for HtmlTag {
             #(#set_node_ref)*
             #vtag.add_attributes(vec![#(#attr_pairs),*]);
             #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
-            #vtag.add_children(vec![#(#children),*]);
+            #vtag.add_children({
+                let mut v = ::std::vec::Vec::new();
+                let comps = (#(#children,)*);
+                #(::yew::utils::NodeSeq::from(comps.#i).into_iter()
+                    .for_each(|x| v.push(x.into()));)*
+                v
+            });
             ::yew::virtual_dom::VNode::from(#vtag)
         }});
     }

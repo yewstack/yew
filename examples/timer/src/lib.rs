@@ -100,7 +100,7 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
-        let view_message = |message| {
+        let view_message = |message: &&'static str| {
             html! { <p>{ message }</p> }
         };
         let has_job = self.job.is_some();
