@@ -21,11 +21,9 @@ pub struct HtmlComponent {
 
 impl PeekValue<()> for HtmlComponent {
     fn peek(cursor: Cursor) -> Option<()> {
-        let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '<').as_option()?;
-
-        HtmlComponent::peek_type(cursor)?;
-        Some(())
+        HtmlComponentOpen::peek(cursor)
+            .or_else(|| HtmlComponentClose::peek(cursor))
+            .map(|_| ())
     }
 }
 
@@ -59,8 +57,10 @@ impl Parse for HtmlComponent {
                     "this open tag has no corresponding close tag",
                 ));
             }
-            if HtmlComponentClose::peek(input.cursor()).is_some() {
-                break;
+            if let Some(typ) = HtmlComponentClose::peek(input.cursor()) {
+                if open.ty == typ {
+                    break;
+                }
             }
 
             children.push(input.parse()?);
@@ -192,7 +192,7 @@ impl HtmlComponent {
         Some(cursor)
     }
 
-    fn peek_type(mut cursor: Cursor) -> Option<Type> {
+    fn peek_type(mut cursor: Cursor) -> Option<(Type, Cursor)> {
         let mut colons_optional = true;
         let mut last_ident = None;
         let mut leading_colon = None;
@@ -228,13 +228,16 @@ impl HtmlComponent {
         type_str.is_ascii().as_option()?;
         type_str.bytes().next()?.is_ascii_uppercase().as_option()?;
 
-        Some(Type::Path(TypePath {
-            qself: None,
-            path: Path {
-                leading_colon,
-                segments,
-            },
-        }))
+        Some((
+            Type::Path(TypePath {
+                qself: None,
+                path: Path {
+                    leading_colon,
+                    segments,
+                },
+            }),
+            cursor,
+        ))
     }
 }
 
@@ -250,7 +253,8 @@ impl PeekValue<Type> for HtmlComponentOpen {
     fn peek(cursor: Cursor) -> Option<Type> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
-        HtmlComponent::peek_type(cursor)
+        let (typ, _) = HtmlComponent::peek_type(cursor)?;
+        return Some(typ);
     }
 }
 
@@ -295,7 +299,12 @@ impl PeekValue<Type> for HtmlComponentClose {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '/').as_option()?;
 
-        HtmlComponent::peek_type(cursor)
+        let (typ, cursor) = HtmlComponent::peek_type(cursor)?;
+
+        let (punct, _) = cursor.punct()?;
+        (punct.as_char() == '>').as_option()?;
+
+        return Some(typ);
     }
 }
 impl Parse for HtmlComponentClose {

@@ -74,11 +74,11 @@ error: too many refs set
 71 |     html! { <Child int=1 ref=() ref=() /> };
    |                                 ^^^
 
-error: expected type, found `/`
-  --> $DIR/html-component-fail.rs:74:14
+error: this close tag has no corresponding open tag
+  --> $DIR/html-component-fail.rs:74:13
    |
 74 |     html! { </Child> };
-   |              ^ expected type
+   |             ^^^^^^^^
 
 error: this open tag has no corresponding close tag
   --> $DIR/html-component-fail.rs:75:13
