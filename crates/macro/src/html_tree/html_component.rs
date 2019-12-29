@@ -132,9 +132,8 @@ impl ToTokens for HtmlComponent {
                     let comps = (#(#children,)*);
                     #(::yew::utils::NodeSeq::from(comps.#i).into_iter()
                         .for_each(|x| v.push(x.into()));)*
-                    }
                     v
-                ))
+                }))
             }
         } else {
             quote! {}

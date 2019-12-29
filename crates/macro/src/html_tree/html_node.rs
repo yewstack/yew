@@ -4,7 +4,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
-use syn::{Stmt, Block, Lit};
+use syn::{Block, Lit, Stmt};
 
 use proc_macro2::{Ident, Span};
 use syn::visit_mut::{self, VisitMut};

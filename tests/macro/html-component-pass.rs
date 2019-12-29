@@ -4,7 +4,7 @@ use yew::prelude::*;
 use yew::html::ChildrenRenderer;
 use yew::virtual_dom::{VChild, VComp, VNode};
 
-#[derive(Debug, Properties)]
+#[derive(Clone, Debug, Properties)]
 pub struct ParentProperties {
     #[props(required)]
     pub children: ChildrenRenderer<ParentVariant>,
@@ -32,6 +32,7 @@ impl Component for Parent {
     }
 }
 
+#[derive(Clone)]
 pub enum ParentVariants {
     Child(<Child as Component>::Properties),
     ChildA(<ChildA as Component>::Properties),
@@ -49,6 +50,7 @@ impl From<ChildAProperties> for ParentVariants {
     }
 }
 
+#[derive(Clone)]
 pub struct ParentVariant {
     props: ParentVariants,
 }
