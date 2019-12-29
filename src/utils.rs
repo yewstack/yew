@@ -21,13 +21,13 @@ where
 
 impl<T: Into<VNode>> From<T> for NodeSeq<T> {
     fn from(val: T) -> Self {
-        return NodeSeq(vec![val]);
+        NodeSeq(vec![val])
     }
 }
 
 impl<T: Into<VNode>> From<Vec<T>> for NodeSeq<T> {
     fn from(val: Vec<T>) -> Self {
-        return NodeSeq(val);
+        NodeSeq(val)
     }
 }
 
