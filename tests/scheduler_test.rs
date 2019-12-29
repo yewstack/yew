@@ -43,7 +43,7 @@ impl Runnable for IndirectionRunnable {
 
 #[test]
 fn ordering() {
-    let output: Rc<RefCell<Vec<i32>>> = Rc::new(RefCell::new(Vec::new()));
+    let output = Rc::new(RefCell::new(Vec::<i32>::new()));
     let sched = scheduler();
     sched.put_and_try_run(Box::new(IndirectionRunnable {
         output: output.clone(),
