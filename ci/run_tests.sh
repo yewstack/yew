@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 echo "$(rustup default)" | grep -q "stable"
 is_stable=$?
 set -euxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
@@ -12,5 +13,6 @@ fi
 cargo test --features wasm_test --target wasm32-unknown-unknown
 cargo test --test macro_test
 cargo test --test derive_props_test
+cargo test --test scheduler_test
 cargo doc_test --all-features
 (cd crates/macro && cargo doc_test)

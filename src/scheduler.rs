@@ -5,25 +5,29 @@ use std::collections::VecDeque;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-pub(crate) type Shared<T> = Rc<RefCell<T>>;
+/// Provides a mutable reference counted value
+pub type Shared<T> = Rc<RefCell<T>>;
 
 thread_local! {
     static SCHEDULER: Rc<Scheduler> =
         Rc::new(Scheduler::new());
 }
 
-pub(crate) fn scheduler() -> Rc<Scheduler> {
+/// Provides a task queue for the current thread.
+pub fn scheduler() -> Rc<Scheduler> {
     SCHEDULER.with(Rc::clone)
 }
 
 /// A routine which could be run.
-pub(crate) trait Runnable {
+#[allow(missing_debug_implementations)]
+pub trait Runnable {
     /// Runs a routine with a context instance.
     fn run(self: Box<Self>);
 }
 
 /// This is a global scheduler suitable to schedule and run any tasks.
-pub(crate) struct Scheduler {
+#[allow(missing_debug_implementations)]
+pub struct Scheduler {
     lock: Rc<AtomicBool>,
     sequence: Shared<VecDeque<Box<dyn Runnable>>>,
 }
@@ -47,7 +51,8 @@ impl Scheduler {
         }
     }
 
-    pub(crate) fn put_and_try_run(&self, runnable: Box<dyn Runnable>) {
+    /// Adds a task to the queue and runs it, if possible
+    pub fn put_and_try_run(&self, runnable: Box<dyn Runnable>) {
         self.sequence.borrow_mut().push_back(runnable);
         if self.lock.compare_and_swap(false, true, Ordering::Relaxed) {
             return;
