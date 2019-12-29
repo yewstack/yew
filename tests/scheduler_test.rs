@@ -1,7 +1,7 @@
-use std::rc::Rc;
 use std::boxed::Box;
 use std::cell::RefCell;
-use yew::scheduler::{scheduler, Scheduler, Runnable};
+use std::rc::Rc;
+use yew::scheduler::{scheduler, Runnable, Scheduler};
 
 #[allow(missing_debug_implementations)]
 struct ImmediateRunnable {
