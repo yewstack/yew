@@ -72,9 +72,14 @@ use proc_macro_hack::proc_macro_hack;
 #[proc_macro_hack(support_nested)]
 pub use yew_macro::html;
 
+#[doc(hidden)]
+#[proc_macro_hack(support_nested)]
+pub use yew_macro::html_nested;
+
 /// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
     pub use crate::html;
+    pub use crate::html_nested;
     pub use yew_macro::Properties;
 }
 
@@ -158,6 +163,7 @@ pub mod prelude {
         Renderable, ShouldRender,
     };
     pub use crate::macros::*;
+    pub use crate::utils::NodeSeq;
     pub use crate::virtual_dom::Classes;
 
     /// Prelude module for creating worker.

@@ -11,7 +11,7 @@ use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{Expr, Ident, Path, PathArguments, PathSegment, Token, Type, TypePath};
+use syn::{Expr, Ident, Index, Path, PathArguments, PathSegment, Token, Type, TypePath};
 
 pub struct HtmlComponent {
     ty: Type,
@@ -123,10 +123,17 @@ impl ToTokens for HtmlComponent {
         };
 
         let set_children = if !children.is_empty() {
+            let i = (0..children.len())
+                .map(|x| Index::from(x))
+                .collect::<Vec<_>>();
             quote! {
-                .children(::yew::html::ChildrenRenderer::new(
-                    vec![#(#children.into(),)*]
-                ))
+                .children(::yew::html::ChildrenRenderer::new({
+                    let mut v = Vec::new();
+                    let comps = (#(#children,)*);
+                    #(::yew::utils::NodeSeq::from(comps.#i).into_iter()
+                        .for_each(|x| v.push(x.into()));)*
+                    v
+                }))
             }
         } else {
             quote! {}
