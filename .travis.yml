@@ -15,8 +15,7 @@ before_cache:
   - ./ci/clear_cache.sh
 
 rust:
-  # - 1.39.0 # min supported (enable when 1.40.0 is released)
-  - stable
+  - 1.39.0 # min supported
   - beta
   - nightly
 
