@@ -162,6 +162,7 @@ error[E0308]: mismatched types
    |
 72 |     html! { <Child int=0u32 /> };
    |                        ^^^^ expected i32, found u32
+   |
 help: you can convert an `u32` to `i32` and panic if the converted value wouldn't fit
    |
 72 |     html! { <Child int=0u32.try_into().unwrap() /> };

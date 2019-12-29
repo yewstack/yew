@@ -2,7 +2,7 @@
 
 echo "$(rustup default)" | grep -q "stable"
 if [ "$?" != "0" ]; then
-  # only run checks on stable rust for stability
+  # only run checks on stable
   exit 0
 fi
 
