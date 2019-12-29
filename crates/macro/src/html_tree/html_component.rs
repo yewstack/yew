@@ -101,12 +101,16 @@ impl ToTokens for HtmlComponent {
 
             #[cfg(has_maybe_uninit)]
             let unallocated_prop_ref = quote! {
-                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe { ::std::mem::MaybeUninit::uninit().assume_init() };
+                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe {
+                    ::std::mem::MaybeUninit::uninit().assume_init()
+                };
             };
 
             #[cfg(not(has_maybe_uninit))]
             let unallocated_prop_ref = quote! {
-                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe { ::std::mem::uninitialized() };
+                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe {
+                    ::std::mem::uninitialized()
+                };
             };
 
             quote! {
@@ -154,12 +158,8 @@ impl ToTokens for HtmlComponent {
         };
 
         let validate_comp = quote_spanned! { ty.span()=>
-            trait __yew_validate_comp {
-                type C: ::yew::html::Component;
-            }
-            impl __yew_validate_comp for () {
-                type C = #ty;
-            }
+            trait __yew_validate_comp: ::yew::html::Component {}
+            impl __yew_validate_comp for #ty {}
         };
 
         let node_ref = if let Some(node_ref) = props.node_ref() {
@@ -169,7 +169,8 @@ impl ToTokens for HtmlComponent {
         };
 
         tokens.extend(quote! {{
-            // Validation nevers executes at runtime
+            // These validation checks show a nice error message to the user.
+            // They do not execute at runtime
             if false {
                 #validate_comp
                 #validate_props

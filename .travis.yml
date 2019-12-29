@@ -16,12 +16,12 @@ before_cache:
 
 rust:
   - 1.39.0 # min supported
+  - stable
   - beta
-  - nightly
 
 matrix:
   allow_failures:
-    - rust: nightly
+    - rust: beta
   fast_finish: true
 
 install:
