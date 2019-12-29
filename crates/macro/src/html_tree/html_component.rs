@@ -131,7 +131,7 @@ impl ToTokens for HtmlComponent {
                 .collect::<Vec<_>>();
             quote! {
                 .children(::yew::html::ChildrenRenderer::new({
-                    let mut v = Vec::new();
+                    let mut v = ::std::vec::Vec::new();
                     let comps = (#(#children,)*);
                     #(::yew::utils::NodeSeq::from(comps.#i).into_iter()
                         .for_each(|x| v.push(x.into()));)*

@@ -1,12 +1,12 @@
-use super::HtmlTree;
+use super::HtmlTreeNested;
 use crate::PeekValue;
 use boolinator::Boolinator;
 use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::Token;
+use syn::{Index, Token};
 
-pub struct HtmlList(pub Vec<HtmlTree>);
+pub struct HtmlList(pub Vec<HtmlTreeNested>);
 
 impl PeekValue<()> for HtmlList {
     fn peek(cursor: Cursor) -> Option<()> {
@@ -36,7 +36,7 @@ impl Parse for HtmlList {
             ));
         }
 
-        let mut children: Vec<HtmlTree> = vec![];
+        let mut children: Vec<HtmlTreeNested> = vec![];
         while HtmlListClose::peek(input.cursor()).is_none() {
             children.push(input.parse()?);
         }
@@ -49,10 +49,19 @@ impl Parse for HtmlList {
 
 impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let html_trees = &self.0;
+        let children = &self.0;
+        let i = (0..children.len())
+            .map(|x| Index::from(x))
+            .collect::<Vec<_>>();
         tokens.extend(quote! {
             ::yew::virtual_dom::VNode::VList(
-                ::yew::virtual_dom::vlist::VList::new_with_children(vec![#(#html_trees,)*])
+                ::yew::virtual_dom::vlist::VList::new_with_children({
+                    let mut v = ::std::vec::Vec::new();
+                    let comps = (#(#children,)*);
+                    #(::yew::utils::NodeSeq::from(comps.#i).into_iter()
+                        .for_each(|x| v.push(x.into()));)*
+                    v
+                })
             )
         });
     }
