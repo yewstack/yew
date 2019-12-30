@@ -1,6 +1,7 @@
 #[cfg(feature = "wasm_test")]
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::virtual_dom::{VNode, VList};
 
 #[cfg(feature = "wasm_test")]
 wasm_bindgen_test_configure!(run_in_browser);
@@ -30,9 +31,15 @@ fn check_fragments() {
         <>
         </>
     };
-    html! {
+    let div_with_fragment = html! {
         <div>
-            { fragment }
+            { fragment.clone() }
         </div>
     };
+
+    let expected_tree = VNode::VList(
+        VList::new_with_children(vec![])
+    );
+
+    assert_eq!(fragment, expected_tree);
 }

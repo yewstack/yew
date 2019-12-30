@@ -148,6 +148,7 @@ impl PartialEq for VNode {
         match (self, other) {
             (VNode::VTag(vtag_a), VNode::VTag(vtag_b)) => vtag_a == vtag_b,
             (VNode::VText(vtext_a), VNode::VText(vtext_b)) => vtext_a == vtext_b,
+            (VNode::VList(vlist_a), VNode::VList(vlist_b)) => *vlist_a == *vlist_b,
             _ => false, // TODO: Implement other variants
         }
     }

@@ -36,10 +36,7 @@ fn text_as_root() {
     };
 
     let expected_tree = VNode::VText(
-        VText {
-            text: "Text Node As Root".to_string(),
-            reference: None,
-        }
+        VText::new("Text Node As Root".to_string())
     );
 
     assert_eq!(no_braces, expected_tree);
