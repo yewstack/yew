@@ -1,6 +1,6 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{VChild, VComp, VDiff, VList, VTag, VText};
+use super::{VChild, VComp, VDiff, VList, VTag, VText, ToHtml};
 use crate::html::{Component, Renderable};
 use std::cmp::PartialEq;
 use std::fmt;

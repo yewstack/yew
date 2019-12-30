@@ -27,6 +27,14 @@ pub trait Listener {
     fn attach(&self, element: &Element) -> EventListenerHandle;
 }
 
+/// Represents that a node can be stringified to HTML.
+pub trait ToHtml {
+    /// Outputs an HTML string corresponding to the node. This output
+    /// is not necessarily deterministic due to the serialization of
+    /// structures (e.g. props) which do not have a particular ordering.
+    fn to_html(&self) -> String;
+}
+
 impl fmt::Debug for dyn Listener {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Listener {{ kind: {} }}", self.kind())

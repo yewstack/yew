@@ -2,6 +2,7 @@
 
 use super::{
     Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
+    ToHtml
 };
 use crate::html::NodeRef;
 use log::warn;
@@ -357,6 +358,12 @@ impl VTag {
                 tae.set_value(value);
             }
         }
+    }
+}
+
+impl ToHtml for VTag {
+    fn to_html(&self) -> String {
+        format!("<{}></{}>", self.tag, self.tag).to_string()
     }
 }
 
