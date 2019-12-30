@@ -6,6 +6,7 @@ use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 /// Provides a mutable reference counted value
+#[doc(hidden)]
 pub type Shared<T> = Rc<RefCell<T>>;
 
 thread_local! {
@@ -14,12 +15,14 @@ thread_local! {
 }
 
 /// Provides a task queue for the current thread.
+#[doc(hidden)]
 pub fn scheduler() -> Rc<Scheduler> {
     SCHEDULER.with(Rc::clone)
 }
 
 /// A routine which could be run.
 #[allow(missing_debug_implementations)]
+#[doc(hidden)]
 pub trait Runnable {
     /// Runs a routine with a context instance.
     fn run(self: Box<Self>);
@@ -27,6 +30,7 @@ pub trait Runnable {
 
 /// This is a global scheduler suitable to schedule and run any tasks.
 #[allow(missing_debug_implementations)]
+#[doc(hidden)]
 pub struct Scheduler {
     lock: Rc<AtomicBool>,
     sequence: Shared<VecDeque<Box<dyn Runnable>>>,
@@ -52,6 +56,7 @@ impl Scheduler {
     }
 
     /// Adds a task to the queue and runs it, if possible
+    #[doc(hidden)]
     pub fn put_and_try_run(&self, runnable: Box<dyn Runnable>) {
         self.sequence.borrow_mut().push_back(runnable);
         if self.lock.compare_and_swap(false, true, Ordering::Relaxed) {
