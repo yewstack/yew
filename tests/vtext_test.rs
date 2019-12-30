@@ -1,6 +1,7 @@
 #[cfg(feature = "wasm_test")]
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::virtual_dom::{VText, VNode};
 
 #[cfg(feature = "wasm_test")]
 wasm_bindgen_test_configure!(run_in_browser);
@@ -26,11 +27,21 @@ impl Component for Comp {
 
 #[test]
 fn text_as_root() {
-    html! {
+    let no_braces = html! {
         "Text Node As Root"
     };
 
-    html! {
+    let with_braces = html! {
         { "Text Node As Root" }
     };
+
+    let expected_tree = VNode::VText(
+        VText {
+            text: "Text Node As Root".to_string(),
+            reference: None,
+        }
+    );
+
+    assert_eq!(no_braces, expected_tree);
+    assert_eq!(with_braces, expected_tree);
 }
