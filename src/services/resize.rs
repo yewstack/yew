@@ -1,11 +1,17 @@
 //! This module contains the implementation of a service that listens for browser window resize events.
 use std::fmt;
-use stdweb::Value;
+#[cfg(feature = "std_web")]
 use stdweb::{
     js,
     web::{window, Window},
+    Value,
 };
 use yew::callback::Callback;
+#[cfg(feature = "web_sys")]
+use ::{
+    gloo::events::EventListener,
+    web_sys::{Event, Window},
+};
 
 /// A service that fires events when the browser window resizes.
 #[derive(Default, Debug)]
@@ -13,7 +19,10 @@ pub struct ResizeService {}
 
 /// A handle to the event listener for resize events.
 #[must_use]
-pub struct ResizeTask(Option<Value>);
+pub struct ResizeTask(
+    #[cfg(feature = "std_web")] Option<Value>,
+    #[cfg(feature = "web_sys")] EventListener,
+);
 
 impl fmt::Debug for ResizeTask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -33,10 +42,16 @@ pub struct WindowDimensions {
 impl WindowDimensions {
     /// Gets the dimensions of the browser window.
     pub fn get_dimensions(window: &Window) -> Self {
-        WindowDimensions {
-            width: window.inner_width(),
-            height: window.inner_height(),
-        }
+        let width = window.inner_width();
+        let height = window.inner_height();
+        #[cfg(feature = "web_sys")]
+        let (width, height) = {
+            (
+                width.unwrap().as_f64().unwrap() as _,
+                height.unwrap().as_f64().unwrap() as _,
+            )
+        };
+        WindowDimensions { width, height }
     }
 }
 
@@ -48,22 +63,29 @@ impl ResizeService {
 
     /// Register a callback that will be called when the browser window resizes.
     pub fn register(&mut self, callback: Callback<WindowDimensions>) -> ResizeTask {
-        let callback = move || {
+        let callback = move |#[cfg(feature = "web_sys")] _event: &Event| {
+            #[cfg(feature = "std_web")]
             let window = window();
+            #[cfg(feature = "web_sys")]
+            let window = web_sys::window().unwrap();
             let dimensions = WindowDimensions::get_dimensions(&window);
             callback.emit(dimensions);
         };
-        let handle = js! {
+        #[cfg(feature = "std_web")]
+        let handle = Some(js! {
             var callback = @{callback};
             var action = function() {
                 callback();
             };
             return window.addEventListener("resize", action);
-        };
-        ResizeTask(Some(handle))
+        });
+        #[cfg(feature = "web_sys")]
+        let handle = EventListener::new(&web_sys::window().unwrap(), "resize", callback);
+        ResizeTask(handle)
     }
 }
 
+#[cfg(feature = "std_web")]
 impl Drop for ResizeTask {
     fn drop(&mut self) {
         let handle = self.0.take().expect("Resize task already empty.");

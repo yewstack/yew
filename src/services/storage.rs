@@ -4,7 +4,10 @@
 use crate::format::Text;
 use failure::Fail;
 use std::fmt;
+#[cfg(feature = "std_web")]
 use stdweb::web::{window, Storage};
+#[cfg(feature = "web_sys")]
+use web_sys::Storage;
 
 /// Represents errors of a storage.
 #[derive(Debug, Fail)]
@@ -37,11 +40,17 @@ impl StorageService {
     /// Creates a new storage service instance with specified storage area.
     pub fn new(area: Area) -> Self {
         let storage = {
+            #[cfg(feature = "std_web")]
+            let window = window();
+            #[cfg(feature = "web_sys")]
+            let window = web_sys::window().unwrap();
             match area {
-                Area::Local => window().local_storage(),
-                Area::Session => window().session_storage(),
+                Area::Local => window.local_storage(),
+                Area::Session => window.session_storage(),
             }
         };
+        #[cfg(feature = "web_sys")]
+        let storage = storage.unwrap().unwrap();
         StorageService { storage }
     }
 
@@ -51,9 +60,11 @@ impl StorageService {
         T: Into<Text>,
     {
         if let Ok(data) = value.into() {
-            self.storage
-                .insert(key, &data)
-                .expect("can't insert value to a storage");
+            #[cfg(feature = "std_web")]
+            let result = self.storage.insert(key, &data);
+            #[cfg(feature = "web_sys")]
+            let result = self.storage.set_item(key, &data);
+            result.expect("can't insert value to a storage");
         }
     }
 
@@ -62,15 +73,19 @@ impl StorageService {
     where
         T: From<Text>,
     {
-        let data = self
-            .storage
-            .get(key)
-            .ok_or_else(|| StorageError::CantRestore.into());
+        #[cfg(feature = "std_web")]
+        let data = self.storage.get(key);
+        #[cfg(feature = "web_sys")]
+        let data = self.storage.get_item(key).unwrap();
+        let data = data.ok_or_else(|| StorageError::CantRestore.into());
         T::from(data)
     }
 
     /// Removes value from the storage.
     pub fn remove(&mut self, key: &str) {
+        #[cfg(feature = "std_web")]
         self.storage.remove(key);
+        #[cfg(feature = "web_sys")]
+        self.storage.remove_item(key).unwrap();
     }
 }

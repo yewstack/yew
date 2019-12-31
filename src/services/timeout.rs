@@ -3,15 +3,22 @@
 
 use super::{to_ms, Task};
 use crate::callback::Callback;
+#[cfg(feature = "web_sys")]
+use gloo::timers::callback::Timeout;
 use std::fmt;
 use std::time::Duration;
+#[cfg(feature = "std_web")]
 use stdweb::Value;
+#[cfg(feature = "std_web")]
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
 /// A handle to cancel a timeout task.
 #[must_use]
-pub struct TimeoutTask(Option<Value>);
+pub struct TimeoutTask(
+    #[cfg(feature = "std_web")] Option<Value>,
+    #[cfg(feature = "web_sys")] Option<Timeout>,
+);
 
 impl fmt::Debug for TimeoutTask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -35,6 +42,7 @@ impl TimeoutService {
             callback.emit(());
         };
         let ms = to_ms(duration);
+        #[cfg(feature = "std_web")]
         let handle = js! {
             var callback = @{callback};
             var action = function() {
@@ -47,6 +55,8 @@ impl TimeoutService {
                 callback: callback,
             };
         };
+        #[cfg(feature = "web_sys")]
+        let handle = Timeout::new(ms, callback);
         TimeoutTask(Some(handle))
     }
 }
@@ -57,11 +67,14 @@ impl Task for TimeoutTask {
     }
     fn cancel(&mut self) {
         let handle = self.0.take().expect("tried to cancel timeout twice");
+        #[cfg(feature = "std_web")]
         js! { @(no_return)
             var handle = @{handle};
             clearTimeout(handle.timeout_id);
             handle.callback.drop();
         }
+        #[cfg(feature = "web_sys")]
+        handle.cancel();
     }
 }
 
