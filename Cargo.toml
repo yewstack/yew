@@ -23,6 +23,7 @@ anymap = "0.12"
 bincode = { version = "~1.2.1", optional = true }
 failure = "0.1"
 http = "0.2"
+htmlescape = { version = "0.3.1", optional = true }
 indexmap = "1.0.2"
 log = "0.4"
 proc-macro-hack = "0.5"
@@ -57,6 +58,7 @@ doc_test = []
 web_test = []
 wasm_test = []
 services = []
+ssr = ["htmlescape"]
 agent = ["bincode"]
 yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]

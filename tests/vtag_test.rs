@@ -3,7 +3,7 @@ use stdweb::web::{document, IElement};
 #[cfg(feature = "wasm_test")]
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::virtual_dom::vtag::{VTag, HTML_NAMESPACE, SVG_NAMESPACE};
-use yew::virtual_dom::{VDiff, VNode, ToHtml};
+use yew::virtual_dom::{ToHtml, VDiff, VNode};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 #[cfg(feature = "wasm_test")]
@@ -408,7 +408,6 @@ fn it_checks_misleading_gt() {
     html! { <div><a data-val=Box::<u32>::default() /></div> };
 }
 
-
 #[test]
 fn it_stringifies_complex() {
     let p = html! {
@@ -420,7 +419,7 @@ fn it_stringifies_complex() {
     if let VNode::VTag(p) = p {
         let p_html = (*p).to_html();
 
-        assert_eq!(p_html, "<p aria-controls=\"it-works\">test</p>");
+        assert_eq!(p_html, "<p aria-controls=\"it&#x2D;works\">test</p>");
     } else {
         assert!(false);
     }

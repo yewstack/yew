@@ -9,7 +9,7 @@ if [ "$emscripten_supported" == "0" ]; then
   cargo web test --features web_test --target wasm32-unknown-emscripten
 fi
 
-cargo test --features wasm_test --target wasm32-unknown-unknown
+cargo test --features wasm_test --features ssr --target wasm32-unknown-unknown
 cargo test --test macro_test
 cargo test --test derive_props_test
 

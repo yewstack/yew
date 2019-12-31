@@ -1,10 +1,11 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
 use super::{
-    Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
-    ToHtml
+    Attributes, Classes, Listener, Listeners, Patch, Reform, ToHtml, Transformer, VDiff, VList,
+    VNode,
 };
 use crate::html::NodeRef;
+use htmlescape;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
@@ -363,7 +364,50 @@ impl VTag {
 
 impl ToHtml for VTag {
     fn to_html(&self) -> String {
-        format!("<{}></{}>", self.tag, self.tag).to_string()
+        let mut parts: Vec<String> = Vec::new();
+        let tag_name = htmlescape::encode_minimal(&self.tag).to_lowercase();
+        parts.push(format!("<{}", tag_name).to_string());
+
+        for (key_unclean, value) in &self.attributes {
+            let key = key_unclean.to_lowercase();
+            // checked, value (special if textarea), disabled, href?, selected,
+            // kind -> type if input, disallow ref, disallow LISTENER_SET, class
+
+            let mut is_valid = true;
+            for c in key.chars() {
+                let is_alnum = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
+                if !is_alnum && c != '-' && c != '_' && c != ':' {
+                    is_valid = false;
+                    warn!("Invalid attribute name: `{}`", &key);
+                    break;
+                }
+            }
+
+            let is_skipped = (tag_name == "textarea" && key == "value");
+
+            if is_valid && !is_skipped {
+                parts.push(
+                    format!(" {}=\"{}\"", key, htmlescape::encode_attribute(&value)).to_string(),
+                );
+            }
+        }
+
+        if self.checked {
+            parts.push(" checked=\"true\"".to_string())
+        }
+
+        if tag_name == "input" {
+            if let Some(kind) = &self.kind {
+                parts
+                    .push(format!(" type=\"{}\"", htmlescape::encode_attribute(&kind)).to_string());
+            }
+        }
+
+        parts.push(">".to_string());
+        // TODO parts.push(self.children.to_html());
+        // TODO handle textareas
+        parts.push(format!("</{}>", tag_name).to_string());
+        parts.join("")
     }
 }
 
