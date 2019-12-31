@@ -230,7 +230,7 @@ impl Task for ReaderTask {
         }
         #[cfg(feature = "web_sys")]
         {
-            self.file_reader.ready_state() == 1
+            self.file_reader.ready_state() == FileReader::LOADING
         }
     }
 

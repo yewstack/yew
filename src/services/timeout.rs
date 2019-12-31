@@ -66,6 +66,7 @@ impl Task for TimeoutTask {
         self.0.is_some()
     }
     fn cancel(&mut self) {
+        #[cfg_attr(feature = "web_sys", allow(unused_variables))]
         let handle = self.0.take().expect("tried to cancel timeout twice");
         #[cfg(feature = "std_web")]
         js! { @(no_return)
@@ -73,8 +74,6 @@ impl Task for TimeoutTask {
             clearTimeout(handle.timeout_id);
             handle.callback.drop();
         }
-        #[cfg(feature = "web_sys")]
-        handle.cancel();
     }
 }
 

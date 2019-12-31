@@ -9,6 +9,11 @@ use std::fmt;
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 #[cfg(feature = "web_sys")]
+pub use web_sys::{
+    RequestCache as Cache, RequestCredentials as Credentials, RequestMode as Mode,
+    RequestRedirect as Redirect,
+};
+#[cfg(feature = "web_sys")]
 use ::{
     js_sys::{Array, Uint8Array},
     std::{
@@ -20,9 +25,7 @@ use ::{
     },
     wasm_bindgen::{closure::Closure, JsValue},
     web_sys::{
-        AbortController, Headers, Request as WebRequest, RequestCache as Cache,
-        RequestCredentials as Credentials, RequestInit, RequestMode as Mode,
-        RequestRedirect as Redirect, Response as WebResponse,
+        AbortController, Headers, Request as WebRequest, RequestInit, Response as WebResponse,
     },
 };
 #[cfg(feature = "std_web")]
@@ -305,7 +308,9 @@ impl FetchService {
         OUT: From<Text>,
     {
         #[cfg(feature = "std_web")]
-        return fetch_impl::<IN, OUT, String, String>(false, request, None, callback);
+        {
+            fetch_impl::<IN, OUT, String, String>(false, request, None, callback)
+        }
         #[cfg(feature = "web_sys")]
         fetch_impl::<IN, OUT, String, String, _, _>(
             false,
@@ -358,7 +363,9 @@ impl FetchService {
         OUT: From<Text>,
     {
         #[cfg(feature = "std_web")]
-        return fetch_impl::<IN, OUT, String, String>(false, request, Some(options), callback);
+        {
+            fetch_impl::<IN, OUT, String, String>(false, request, Some(options), callback)
+        }
         #[cfg(feature = "web_sys")]
         fetch_impl::<IN, OUT, String, String, _, _>(
             false,
@@ -381,7 +388,9 @@ impl FetchService {
         OUT: From<Binary>,
     {
         #[cfg(feature = "std_web")]
-        return fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, None, callback);
+        {
+            fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, None, callback)
+        }
         #[cfg(feature = "web_sys")]
         fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer, _, _>(
             true,

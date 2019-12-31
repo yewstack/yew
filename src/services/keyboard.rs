@@ -112,7 +112,10 @@ impl KeyboardService {
 }
 
 #[cfg(feature = "std_web")]
-fn register_key_impl<T: IEventTarget, E: 'static + ConcreteEvent>(element: &T, callback: Callback<E>) -> KeyListenerHandle {
+fn register_key_impl<T: IEventTarget, E: 'static + ConcreteEvent>(
+    element: &T,
+    callback: Callback<E>,
+) -> KeyListenerHandle {
     let handle = element.add_event_listener(move |event: E| {
         callback.emit(event);
     });

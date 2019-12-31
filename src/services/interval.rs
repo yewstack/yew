@@ -3,6 +3,8 @@
 
 use super::{to_ms, Task};
 use crate::callback::Callback;
+#[cfg(feature = "web_sys")]
+use gloo::timers::callback::Interval;
 use std::fmt;
 use std::time::Duration;
 #[cfg(feature = "std_web")]
@@ -10,26 +12,14 @@ use stdweb::Value;
 #[cfg(feature = "std_web")]
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
-#[cfg(feature = "web_sys")]
-use ::{
-    std::convert::TryInto,
-    wasm_bindgen::{closure::Closure, JsCast},
-};
 
 /// A handle which helps to cancel interval. Uses
 /// [clearInterval](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearInterval).
 #[must_use]
 pub struct IntervalTask(
     #[cfg(feature = "std_web")] Option<Value>,
-    #[cfg(feature = "web_sys")] Option<IntervalTaskInner>,
+    #[cfg(feature = "web_sys")] Option<Interval>,
 );
-
-#[cfg(feature = "web_sys")]
-#[derive(Debug)]
-struct IntervalTaskInner {
-    interval_id: i32,
-    callback: Closure<dyn Fn()>,
-}
 
 impl fmt::Debug for IntervalTask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -70,19 +60,7 @@ impl IntervalService {
             IntervalTask(Some(handle))
         }
         #[cfg(feature = "web_sys")]
-        {
-            let action = Closure::wrap(Box::new(callback) as Box<dyn Fn()>);
-            IntervalTask(Some(IntervalTaskInner {
-                interval_id: web_sys::window()
-                    .unwrap()
-                    .set_interval_with_callback_and_timeout_and_arguments_0(
-                        action.as_ref().unchecked_ref(),
-                        ms.try_into().unwrap(),
-                    )
-                    .unwrap(),
-                callback: action,
-            }))
-        }
+        IntervalTask(Some(Interval::new(ms, callback)))
     }
 }
 
@@ -91,18 +69,13 @@ impl Task for IntervalTask {
         self.0.is_some()
     }
     fn cancel(&mut self) {
+        #[cfg_attr(feature = "web_sys", allow(unused_variables))]
         let handle = self.0.take().expect("tried to cancel interval twice");
         #[cfg(feature = "std_web")]
         js! { @(no_return)
             var handle = @{handle};
             clearInterval(handle.interval_id);
             handle.callback.drop();
-        }
-        #[cfg(feature = "web_sys")]
-        {
-            web_sys::window()
-                .unwrap()
-                .clear_interval_with_handle(handle.interval_id);
         }
     }
 }
