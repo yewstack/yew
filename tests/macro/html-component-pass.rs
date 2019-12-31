@@ -1,77 +1,82 @@
 #![recursion_limit = "256"]
 
+use std::marker::PhantomData;
 use yew::prelude::*;
 use yew::html::ChildrenRenderer;
 use yew::virtual_dom::{VChild, VComp, VNode};
 
-#[derive(Clone, Debug, Properties)]
-pub struct ParentProperties {
-    #[props(required)]
-    pub children: ChildrenRenderer<ParentVariant>,
+pub struct Generic<G> {
+    marker: PhantomData<G>,
 }
 
-pub struct Parent {
-    props: ParentProperties,
-    link:  ComponentLink<Self>,
-}
-
-impl Component for Parent {
+impl Component for Generic<String> {
     type Message = ();
-    type Properties = ParentProperties;
+    type Properties = ();
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        return Parent { props, link };
-    }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
+    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
+    fn view(&self) -> Html { unimplemented!() }
+}
 
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
+impl Component for Generic<Vec<String>> {
+    type Message = ();
+    type Properties = ();
 
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
+    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
+    fn view(&self) -> Html { unimplemented!() }
+}
+
+#[derive(Clone, Properties, Default)]
+pub struct ContainerProperties {
+    #[props(required)]
+    pub int: i32,
+    pub children: Children,
+}
+
+pub struct Container;
+impl Component for Container {
+    type Message = ();
+    type Properties = ContainerProperties;
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
+    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
+    fn view(&self) -> Html { unimplemented!() }
 }
 
 #[derive(Clone)]
-pub enum ParentVariants {
+pub enum ChildrenVariants {
     Child(<Child as Component>::Properties),
-    ChildA(<ChildA as Component>::Properties),
+    AltChild(<AltChild as Component>::Properties),
 }
 
-impl From<ChildProperties> for ParentVariants {
+impl From<ChildProperties> for ChildrenVariants {
     fn from(props: ChildProperties) -> Self {
-        ParentVariants::Child(props)
+        ChildrenVariants::Child(props)
     }
 }
 
-impl From<ChildAProperties> for ParentVariants {
-    fn from(props: ChildAProperties) -> Self {
-        ParentVariants::ChildA(props)
+impl From<()> for ChildrenVariants {
+    fn from(props: ()) -> Self {
+        ChildrenVariants::AltChild(props)
     }
 }
 
-#[derive(Clone)]
-pub struct ParentVariant {
-    props: ParentVariants,
-}
-
-impl<CHILD> From<VChild<CHILD>> for ParentVariant
+impl<CHILD> From<VChild<CHILD>> for ChildrenVariants
 where
     CHILD: Component,
-    CHILD::Properties: Into<ParentVariants>,
+    CHILD::Properties: Into<ChildrenVariants>,
 {
     fn from(comp: VChild<CHILD>) -> Self {
-        return ParentVariant {
-            props: comp.props.into(),
-        };
+        comp.props.into()
     }
 }
 
-impl Into<VNode> for ParentVariant {
+impl Into<VNode> for ChildrenVariants {
     fn into(self) -> VNode {
-        match self.props {
-            ParentVariants::Child(props) => VComp::new::<Child>(props, NodeRef::default()).into(),
-            ParentVariants::ChildA(props) => VComp::new::<ChildA>(props, NodeRef::default()).into(),
+        match self {
+            Self::Child(props) => VComp::new::<Child>(props, NodeRef::default()).into(),
+            Self::AltChild(props) => VComp::new::<AltChild>(props, NodeRef::default()).into(),
         }
     }
 }
@@ -90,76 +95,26 @@ impl Component for Child {
     type Message = ();
     type Properties = ChildProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Child
-    }
-
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
+    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
+    fn view(&self) -> Html { unimplemented!() }
 }
 
-#[derive(Clone, Properties, Default, PartialEq)]
-pub struct ChildAProperties {
-    pub string: String,
-    #[props(required)]
-    pub int: i32,
-    pub vec: Vec<i32>,
-    pub optional_callback: Option<Callback<()>>,
-}
-
-pub struct ChildA;
-impl Component for ChildA {
+pub struct AltChild;
+impl Component for AltChild {
     type Message = ();
-    type Properties = ChildAProperties;
+    type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        ChildA
-    }
-
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
-}
-
-#[derive(Clone, Properties, Default)]
-pub struct ContainerProperties {
-    #[props(required)]
-    pub int: i32,
-    pub children: Children,
-}
-
-pub struct Container;
-impl Component for Container {
-    type Message = ();
-    type Properties = ContainerProperties;
-
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Container
-    }
-
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
+    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
+    fn view(&self) -> Html { unimplemented!() }
 }
 
 #[derive(Clone, Properties, Default)]
 pub struct ChildContainerProperties {
     #[props(required)]
     pub int: i32,
-    pub children: ChildrenWithProps<Child>,
+    pub children: ChildrenRenderer<ChildrenVariants>,
 }
 
 pub struct ChildContainer;
@@ -167,17 +122,9 @@ impl Component for ChildContainer {
     type Message = ();
     type Properties = ChildContainerProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        ChildContainer
-    }
-
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
+    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
+    fn view(&self) -> Html { unimplemented!() }
 }
 
 mod scoped {
@@ -280,8 +227,8 @@ fn compile_pass() {
     };
 
     html! {
-        <Parent>
-            <ChildA int=1 />
+        <ChildContainer int=1>
+            <AltChild />
             {
                 html! {
                     <Child int=1 />
@@ -292,7 +239,16 @@ fn compile_pass() {
                     <Child int=1 />
                 }
             }).collect::<Vec<VChild<Child>>>()}
-        </Parent>
+        </ChildContainer>
+    };
+
+    html! {
+        <>
+            <Generic<String> />
+            <Generic<String> ></Generic<String>>
+            <Generic<Vec<String>> />
+            <Generic<Vec<String>>></ Generic<Vec<String>>>
+        </>
     };
 }
 
