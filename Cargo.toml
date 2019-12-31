@@ -25,7 +25,7 @@ failure = "0.1"
 gloo = { version = "0.2", optional = true }
 http = "0.2"
 indexmap = "1.0.2"
-js-sys = { version = "0.3.33", optional = true }
+js-sys = { version = "0.3", optional = true }
 log = "0.4"
 proc-macro-hack = "0.5"
 proc-macro-nested = "0.1"
@@ -40,7 +40,7 @@ toml = { version = "0.5", optional = true }
 yew-macro = { version = "0.10.1", path = "crates/macro" }
 
 [dependencies.web-sys]
-version = "0.3.33"
+version = "0.3"
 optional = true
 features = [
   "AbortController",

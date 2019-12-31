@@ -1,8 +1,6 @@
 //! This module contains useful utils to get information about the current document.
 
-use failure::err_msg;
-#[allow(unused_imports)]
-use failure::Error;
+use failure::{err_msg, Error};
 #[cfg(feature = "std_web")]
 use stdweb::web::document;
 
