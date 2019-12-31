@@ -11,7 +11,10 @@ use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{Expr, Ident, Index, Path, PathArguments, PathSegment, Token, Type, TypePath};
+use syn::{
+    AngleBracketedGenericArguments, Expr, GenericArgument, Ident, Index, Path, PathArguments,
+    PathSegment, Token, Type, TypePath,
+};
 
 pub struct HtmlComponent {
     ty: Type,
@@ -57,8 +60,8 @@ impl Parse for HtmlComponent {
                     "this open tag has no corresponding close tag",
                 ));
             }
-            if let Some(typ) = HtmlComponentClose::peek(input.cursor()) {
-                if open.ty == typ {
+            if let Some(ty) = HtmlComponentClose::peek(input.cursor()) {
+                if open.ty == ty {
                     break;
                 }
             }
@@ -199,6 +202,26 @@ impl HtmlComponent {
         Some(cursor)
     }
 
+    fn path_arguments(cursor: Cursor) -> Option<(PathArguments, Cursor)> {
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '<').as_option()?;
+
+        let (ty, cursor) = Self::peek_type(cursor)?;
+
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '>').as_option()?;
+
+        Some((
+            PathArguments::AngleBracketed(AngleBracketedGenericArguments {
+                colon2_token: None,
+                lt_token: Token![<](Span::call_site()),
+                args: vec![GenericArgument::Type(ty)].into_iter().collect(),
+                gt_token: Token![>](Span::call_site()),
+            }),
+            cursor,
+        ))
+    }
+
     fn peek_type(mut cursor: Cursor) -> Option<(Type, Cursor)> {
         let mut colons_optional = true;
         let mut last_ident = None;
@@ -219,10 +242,14 @@ impl HtmlComponent {
             if let Some((ident, c)) = post_colons_cursor.ident() {
                 cursor = c;
                 last_ident = Some(ident.clone());
-                segments.push(PathSegment {
-                    ident,
-                    arguments: PathArguments::None,
-                });
+                let arguments = if let Some((args, c)) = Self::path_arguments(cursor) {
+                    cursor = c;
+                    args
+                } else {
+                    PathArguments::None
+                };
+
+                segments.push(PathSegment { ident, arguments });
             } else {
                 break;
             }
