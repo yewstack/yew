@@ -5,7 +5,7 @@ use crate::html::{Component, Renderable};
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 use stdweb::web::{Element, INode, Node};
 #[cfg(feature = "web_sys")]
 use web_sys::{Element, Node};
@@ -60,13 +60,13 @@ impl VDiff for VNode {
                     None => None,
                 };
                 if let Some(sibling) = sibling {
-                    #[cfg(feature = "stdweb")]
+                    #[cfg(feature = "std_web")]
                     let result = parent.insert_before(node, &sibling);
                     #[cfg(feature = "web_sys")]
                     let result = parent.insert_before(node, Some(&sibling));
                     result.expect("can't insert element before sibling");
                 } else {
-                    #[cfg(feature = "stdweb")]
+                    #[cfg(feature = "std_web")]
                     parent.append_child(node);
                     #[cfg(feature = "web_sys")]
                     parent.append_child(node).unwrap();

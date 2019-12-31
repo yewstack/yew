@@ -1,7 +1,7 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
 use std::ops::{Deref, DerefMut};
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 use stdweb::web::{Element, Node};
 #[cfg(feature = "web_sys")]
 use web_sys::{Element, Node};

@@ -16,7 +16,7 @@ use std::any::TypeId;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 use stdweb::{unstable::TryFrom, web::Node};
 #[cfg(feature = "web_sys")]
 use web_sys::Node;
@@ -315,7 +315,7 @@ impl NodeRef {
     }
 
     /// Try converting the node reference into another form
-    #[cfg(feature = "stdweb")]
+    #[cfg(feature = "std_web")]
     pub fn try_into<INTO: TryFrom<Node>>(&self) -> Option<INTO> {
         self.get().and_then(|node| INTO::try_from(node).ok())
     }

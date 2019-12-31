@@ -11,10 +11,10 @@ use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::rc::Rc;
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 use stdweb::{
     unstable::TryFrom,
     web::{
@@ -321,14 +321,14 @@ impl VTag {
             let list = element.class_list();
             match change {
                 Patch::Add(class, _) | Patch::Replace(class, _) => {
-                    #[cfg(feature = "stdweb")]
+                    #[cfg(feature = "std_web")]
                     let result = list.add(class);
                     #[cfg(feature = "web_sys")]
                     let result = list.add(&Array::from(&class.into()));
                     result.expect("can't add a class");
                 }
                 Patch::Remove(class) => {
-                    #[cfg(feature = "stdweb")]
+                    #[cfg(feature = "std_web")]
                     let result = list.remove(class);
                     #[cfg(feature = "web_sys")]
                     let result = list.remove(&Array::from(&class.into()));
@@ -354,7 +354,7 @@ impl VTag {
         // and useful in templates. For example I interpret `checked`
         // attribute as `checked` parameter, not `defaultChecked` as browsers do
         if let Some(input) = {
-            #[cfg(feature = "stdweb")]
+            #[cfg(feature = "std_web")]
             {
                 InputElement::try_from(element.clone()).ok()
             }
@@ -366,7 +366,7 @@ impl VTag {
                     Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
                     Patch::Remove(_) => "",
                 };
-                #[cfg(feature = "stdweb")]
+                #[cfg(feature = "std_web")]
                 {
                     //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
                     //input.set_kind(&kind);
@@ -384,7 +384,7 @@ impl VTag {
                     Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
                     Patch::Remove(_) => "",
                 };
-                #[cfg(feature = "stdweb")]
+                #[cfg(feature = "std_web")]
                 input.set_raw_value(raw_value);
                 #[cfg(feature = "web_sys")]
                 input.set_value(raw_value);
@@ -394,7 +394,7 @@ impl VTag {
             // to prevent strange behaviour in the browser when the DOM changes
             set_checked(&input, self.checked);
         } else if let Some(tae) = {
-            #[cfg(feature = "stdweb")]
+            #[cfg(feature = "std_web")]
             {
                 TextAreaElement::try_from(element.clone()).ok()
             }
@@ -470,7 +470,7 @@ impl VDiff for VTag {
         match reform {
             Reform::Keep => {}
             Reform::Before(next_sibling) => {
-                #[cfg(feature = "stdweb")]
+                #[cfg(feature = "std_web")]
                 let document = document();
                 #[cfg(feature = "web_sys")]
                 let document = web_sys::window().unwrap().document().unwrap();
@@ -480,7 +480,7 @@ impl VDiff for VTag {
                         .namespace_uri()
                         .map_or(false, |ns| ns == SVG_NAMESPACE)
                 {
-                    #[cfg(feature = "stdweb")]
+                    #[cfg(feature = "std_web")]
                     let result = document.create_element_ns(SVG_NAMESPACE, &self.tag);
                     #[cfg(feature = "web_sys")]
                     let result = document.create_element_ns(Some(SVG_NAMESPACE), &self.tag);
@@ -492,19 +492,19 @@ impl VDiff for VTag {
                 };
 
                 if let Some(next_sibling) = next_sibling {
-                    #[cfg(feature = "stdweb")]
+                    #[cfg(feature = "std_web")]
                     let result = parent.insert_before(&element, &next_sibling);
                     #[cfg(feature = "web_sys")]
                     let result = parent.insert_before(&element, Some(&next_sibling));
                     result.expect("can't insert tag before next sibling");
                 } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
-                    #[cfg(feature = "stdweb")]
+                    #[cfg(feature = "std_web")]
                     let result = parent.insert_before(&element, &next_sibling);
                     #[cfg(feature = "web_sys")]
                     let result = parent.insert_before(&element, Some(&next_sibling));
                     result.expect("can't insert tag before next sibling");
                 } else {
-                    #[cfg(feature = "stdweb")]
+                    #[cfg(feature = "std_web")]
                     parent.append_child(&element);
                     #[cfg(feature = "web_sys")]
                     parent.append_child(&element).unwrap();
@@ -535,7 +535,7 @@ impl VDiff for VTag {
             .apply(&element, None, ancestor.map(|a| a.children.into()));
 
         let node = self.reference.as_ref().map(|e| {
-            #[cfg(feature = "stdweb")]
+            #[cfg(feature = "std_web")]
             {
                 e.as_node().to_owned()
             }
@@ -558,7 +558,7 @@ impl fmt::Debug for VTag {
 
 /// `stdweb` doesn't have methods to work with attributes now.
 /// this is [workaround](https://github.com/koute/stdweb/issues/16#issuecomment-325195854)
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 fn set_attribute(element: &Element, name: &str, value: &str) {
     js!( @(no_return) @{element}.setAttribute( @{name}, @{value} ); );
 }
@@ -570,7 +570,7 @@ fn set_attribute(element: &Element, name: &str, value: &str) {
 
 /// Removes attribute from a element by name.
 fn remove_attribute(element: &Element, name: &str) {
-    #[cfg(feature = "stdweb")]
+    #[cfg(feature = "std_web")]
     js!( @(no_return) @{element}.removeAttribute( @{name} ); );
     #[cfg(feature = "web_sys")]
     element.remove_attribute(name).unwrap();
@@ -578,7 +578,7 @@ fn remove_attribute(element: &Element, name: &str) {
 
 /// Set `checked` value for the `InputElement`.
 fn set_checked(input: &InputElement, value: bool) {
-    #[cfg(feature = "stdweb")]
+    #[cfg(feature = "std_web")]
     js!( @(no_return) @{input}.checked = @{value}; );
     #[cfg(feature = "web_sys")]
     input.set_checked(value);
