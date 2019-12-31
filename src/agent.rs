@@ -14,9 +14,9 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 use stdweb::Value;
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 #[cfg(feature = "web_sys")]
@@ -170,7 +170,7 @@ where
                 ToWorker::Destroy => {
                     let upd = AgentLifecycleEvent::Destroy;
                     scope.send(upd);
-                    #[cfg(feature = "stdweb")]
+                    #[cfg(feature = "std_web")]
                     js! {
                         // Terminates web worker
                         self.close();
@@ -182,7 +182,7 @@ where
         };
         let loaded: FromWorker<T::Output> = FromWorker::WorkerLoaded;
         let loaded = loaded.pack();
-        #[cfg(feature = "stdweb")]
+        #[cfg(feature = "std_web")]
         js! {
             var handler = @{handler};
             self.onmessage = function(event) {
@@ -451,7 +451,7 @@ impl Discoverer for Private {
         };
         // TODO Need somethig better...
         let name_of_resource = AGN::name_of_resource();
-        #[cfg(feature = "stdweb")]
+        #[cfg(feature = "std_web")]
         let worker = js! {
             var worker = new Worker(@{name_of_resource});
             var handler = @{handler};
@@ -476,7 +476,7 @@ impl Discoverer for Private {
 
 /// A connection manager for components interaction with workers.
 pub struct PrivateBridge<T: Agent> {
-    #[cfg(feature = "stdweb")]
+    #[cfg(feature = "std_web")]
     worker: Value,
     #[cfg(feature = "web_sys")]
     worker: Worker,
@@ -495,7 +495,7 @@ impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
         // Use a queue to collect a messages if an instance is not ready
         // and send them to an agent when it will reported readiness.
         let msg = ToWorker::ProcessInput(SINGLETON_ID, msg).pack();
-        #[cfg(feature = "stdweb")]
+        #[cfg(feature = "std_web")]
         {
             let worker = &self.worker;
             js! {
@@ -516,7 +516,7 @@ impl<AGN: Agent> Drop for PrivateBridge<AGN> {
 }
 
 struct RemoteAgent<AGN: Agent> {
-    #[cfg(feature = "stdweb")]
+    #[cfg(feature = "std_web")]
     worker: Value,
     #[cfg(feature = "web_sys")]
     worker: Worker,
@@ -525,7 +525,7 @@ struct RemoteAgent<AGN: Agent> {
 
 impl<AGN: Agent> RemoteAgent<AGN> {
     pub fn new(
-        #[cfg(feature = "stdweb")] worker: Value,
+        #[cfg(feature = "std_web")] worker: Value,
         #[cfg(feature = "web_sys")] worker: Worker,
         slab: SharedOutputSlab<AGN>,
     ) -> Self {
@@ -574,7 +574,7 @@ impl Discoverer for Public {
                     let handler = {
                         let slab = slab.clone();
                         move |data: Vec<u8>,
-                              #[cfg(feature = "stdweb")] worker: Value,
+                              #[cfg(feature = "std_web")] worker: Value,
                               #[cfg(feature = "web_sys")] worker: &Worker| {
                             let msg = FromWorker::<AGN::Output>::unpack(&data);
                             match msg {
@@ -588,7 +588,7 @@ impl Discoverer for Public {
                                             local.borrow_mut().get_mut(&TypeId::of::<AGN>())
                                         {
                                             for msg in msgs.drain(..) {
-                                                #[cfg(feature = "stdweb")]
+                                                #[cfg(feature = "std_web")]
                                                 {
                                                     let worker = &worker;
                                                     js! {@{worker}.postMessage(@{msg});};
@@ -606,7 +606,7 @@ impl Discoverer for Public {
                         }
                     };
                     let name_of_resource = AGN::name_of_resource();
-                    #[cfg(feature = "stdweb")]
+                    #[cfg(feature = "std_web")]
                     let worker = js! {
                         var worker = new Worker(@{name_of_resource});
                         var handler = @{handler};
@@ -637,7 +637,7 @@ impl Dispatchable for Public {}
 
 /// A connection manager for components interaction with workers.
 pub struct PublicBridge<AGN: Agent> {
-    #[cfg(feature = "stdweb")]
+    #[cfg(feature = "std_web")]
     worker: Value,
     #[cfg(feature = "web_sys")]
     worker: Worker,
@@ -675,7 +675,7 @@ impl<AGN: Agent> PublicBridge<AGN> {
 }
 
 fn send_to_remote<AGN: Agent>(
-    #[cfg(feature = "stdweb")] worker: &Value,
+    #[cfg(feature = "std_web")] worker: &Value,
     #[cfg(feature = "web_sys")] worker: &Worker,
     msg: ToWorker<AGN::Input>,
 ) {
@@ -683,7 +683,7 @@ fn send_to_remote<AGN: Agent>(
     // Use a queue to collect a messages if an instance is not ready
     // and send them to an agent when it will reported readiness.
     let msg = msg.pack();
-    #[cfg(feature = "stdweb")]
+    #[cfg(feature = "std_web")]
     js! {
         var worker = @{worker};
         var bytes = @{msg};
@@ -828,7 +828,7 @@ impl<AGN: Agent> Responder<AGN> for WorkerResponder {
     fn respond(&self, id: HandlerId, output: AGN::Output) {
         let msg = FromWorker::ProcessOutput(id, output);
         let data = msg.pack();
-        #[cfg(feature = "stdweb")]
+        #[cfg(feature = "std_web")]
         js! {
             var data = @{data};
             self.postMessage(data);
