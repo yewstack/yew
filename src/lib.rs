@@ -96,7 +96,7 @@ pub mod services;
 pub mod events {
     pub use crate::html::{ChangeData, InputData};
 
-    #[cfg(feature = "stdweb")]
+    #[cfg(feature = "std_web")]
     pub use stdweb::web::event::{
         BlurEvent, ClickEvent, ContextMenuEvent, DoubleClickEvent, DragDropEvent, DragEndEvent,
         DragEnterEvent, DragEvent, DragExitEvent, DragLeaveEvent, DragOverEvent, DragStartEvent,
@@ -116,13 +116,13 @@ pub mod events {
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
-    #[cfg(feature = "stdweb")]
+    #[cfg(feature = "std_web")]
     stdweb::initialize();
 }
 
 /// Starts event loop.
 pub fn run_loop() {
-    #[cfg(feature = "stdweb")]
+    #[cfg(feature = "std_web")]
     stdweb::event_loop();
 }
 

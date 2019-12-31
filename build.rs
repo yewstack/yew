@@ -1,9 +1,9 @@
 use std::env;
 
 pub fn main() {
-    if cfg!(all(feature = "web_sys", feature = "stdweb")) {
+    if cfg!(all(feature = "web_sys", feature = "std_web")) {
         panic!("don't use `web_sys` and `stdweb` simultaneously")
-    } else if cfg!(not(any(feature = "web_sys", feature = "stdweb"))) {
+    } else if cfg!(not(any(feature = "web_sys", feature = "std_web"))) {
         panic!("please select either `web_sys` or `stdweb`")
     }
 

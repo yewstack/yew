@@ -3,12 +3,12 @@
 use failure::err_msg;
 #[allow(unused_imports)]
 use failure::Error;
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 use stdweb::web::document;
 
 /// Returns `host` for the current document. Useful to connect to a server that server the app.
 pub fn host() -> Result<String, Error> {
-    #[cfg(feature = "stdweb")]
+    #[cfg(feature = "std_web")]
     {
         document()
             .location()

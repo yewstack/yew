@@ -1,7 +1,7 @@
 [target.'cfg(not(not(feature = "doc_test")))']
 target = 'wasm32-unknown-unknown'
 
-[target.'cfg(all(target_arch = "wasm32", not(cargo_web)))']
+[target.'cfg(target_arch = "wasm32")']
 runner = 'wasm-bindgen-test-runner'
 
 [alias]

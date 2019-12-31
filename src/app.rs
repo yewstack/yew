@@ -2,7 +2,7 @@
 //! a component in an isolated scope.
 
 use crate::html::{Component, NodeRef, Scope};
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 use stdweb::web::{document, Element, INode, IParentNode};
 #[cfg(feature = "web_sys")]
 use web_sys::Element;
@@ -45,7 +45,7 @@ where
 
     /// Alias to `mount("body", ...)`.
     pub fn mount_to_body(self) -> Scope<COMP> {
-        #[cfg(feature = "stdweb")]
+        #[cfg(feature = "std_web")]
         let document = document();
         #[cfg(feature = "web_sys")]
         let document = web_sys::window().unwrap().document().unwrap();
@@ -63,7 +63,7 @@ where
     /// need to manipulate the body element. For example, adding/removing app-wide
     /// CSS classes of the body element.
     pub fn mount_as_body(self) -> Scope<COMP> {
-        #[cfg(feature = "stdweb")]
+        #[cfg(feature = "std_web")]
         let document = document();
         #[cfg(feature = "web_sys")]
         let document = web_sys::window().unwrap().document().unwrap();
@@ -110,7 +110,7 @@ where
 
     /// Alias to `mount_with_props("body", ...)`.
     pub fn mount_to_body_with_props(self, props: COMP::Properties) -> Scope<COMP> {
-        #[cfg(feature = "stdweb")]
+        #[cfg(feature = "std_web")]
         let document = document();
         #[cfg(feature = "web_sys")]
         let document = web_sys::window().unwrap().document().unwrap();
@@ -128,7 +128,7 @@ where
     /// when you need to manipulate the body element. For example, adding/removing app-wide
     /// CSS classes of the body element.
     pub fn mount_as_body_with_props(self, props: COMP::Properties) -> Scope<COMP> {
-        #[cfg(feature = "stdweb")]
+        #[cfg(feature = "std_web")]
         let document = document();
         #[cfg(feature = "web_sys")]
         let document = web_sys::window().unwrap().document().unwrap();
