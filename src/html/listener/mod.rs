@@ -1,15 +1,15 @@
 #[macro_use]
 mod macros;
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 mod listener_stdweb;
 #[cfg(feature = "web_sys")]
 mod listener_web_sys;
 
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 pub use listener_stdweb::*;
 #[cfg(feature = "web_sys")]
 pub use listener_web_sys::*;
-#[cfg(feature = "stdweb")]
+#[cfg(feature = "std_web")]
 use stdweb::{
     js,
     unstable::TryInto,
@@ -61,7 +61,7 @@ fn oninput_handler(this: &Element) -> InputData {
     // practice though any element with `contenteditable=true` may generate such events,
     // therefore here we fall back to just returning the text content of the node.
     // See https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/input_event.
-    #[cfg(feature = "stdweb")]
+    #[cfg(feature = "std_web")]
     let (v1, v2) = (
         this.clone()
             .try_into()
@@ -86,7 +86,7 @@ fn oninput_handler(this: &Element) -> InputData {
 fn onchange_handler(this: &Element) -> ChangeData {
     match this.node_name().as_ref() {
         "INPUT" => {
-            #[cfg(feature = "stdweb")]
+            #[cfg(feature = "std_web")]
             let input: InputElement = this.clone().try_into().unwrap();
             #[cfg(feature = "web_sys")]
             let input: &InputElement = this.dyn_ref().unwrap();
@@ -95,27 +95,27 @@ fn onchange_handler(this: &Element) -> ChangeData {
                 .map(|value| value.eq_ignore_ascii_case("file"))
                 .unwrap_or(false);
             if is_file {
-                #[cfg(feature = "stdweb")]
+                #[cfg(feature = "std_web")]
                 let files: FileList = js!( return @{input}.files; ).try_into().unwrap();
                 #[cfg(feature = "web_sys")]
                 let files: FileList = input.files().unwrap();
                 ChangeData::Files(files)
             } else {
-                #[cfg(feature = "stdweb")]
+                #[cfg(feature = "std_web")]
                 return ChangeData::Value(input.raw_value());
                 #[cfg(feature = "web_sys")]
                 ChangeData::Value(input.value())
             }
         }
         "TEXTAREA" => {
-            #[cfg(feature = "stdweb")]
+            #[cfg(feature = "std_web")]
             let tae: TextAreaElement = this.clone().try_into().unwrap();
             #[cfg(feature = "web_sys")]
             let tae: &TextAreaElement = this.dyn_ref().unwrap();
             ChangeData::Value(tae.value())
         }
         "SELECT" => {
-            #[cfg(feature = "stdweb")]
+            #[cfg(feature = "std_web")]
             let se: SelectElement = this.clone().try_into().unwrap();
             #[cfg(feature = "web_sys")]
             let se = this.dyn_ref::<SelectElement>().unwrap().clone();
@@ -142,6 +142,19 @@ pub struct EventListenerHandle {
 
 #[cfg(feature = "web_sys")]
 impl EventListenerHandle {
+    /// Build new event listener handle.
+    pub fn new(
+        target: EventTarget,
+        r#type: &'static str,
+        callback: Closure<dyn Fn(Event)>,
+    ) -> Self {
+        EventListenerHandle {
+            target,
+            r#type,
+            callback: ManuallyDrop::new(callback),
+        }
+    }
+
     /// Cancel event.
     pub fn remove(self) {
         self.target

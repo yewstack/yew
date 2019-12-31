@@ -10,14 +10,13 @@ macro_rules! impl_action {
             #[allow(unused_imports)]
             use crate::html::listener::*;
             use crate::virtual_dom::Listener;
-            #[cfg(feature = "stdweb")]
+            #[cfg(feature = "std_web")]
             use stdweb::web::{
                 event::{$type, IEvent},
                 Element, EventListenerHandle, IEventTarget,
             };
             #[cfg(feature = "web_sys")]
             use ::{
-                std::mem::ManuallyDrop,
                 wasm_bindgen::{closure::Closure, JsCast},
                 web_sys::{$type as WebSysType, Element, EventTarget},
             };
@@ -43,7 +42,7 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                #[cfg(feature = "stdweb")]
+                #[cfg(feature = "std_web")]
                 fn attach(&self, element: &Element) -> EventListenerHandle {
                     let this = element.clone();
                     let callback = self.callback.clone();
@@ -70,11 +69,7 @@ macro_rules! impl_action {
                         .add_event_listener_with_callback($name, listener.as_ref().unchecked_ref())
                         .expect("failed to add event listener");
 
-                    EventListenerHandle {
-                        target,
-                        r#type: $name,
-                        callback: ManuallyDrop::new(listener),
-                    }
+                    EventListenerHandle::new(target, $name, listener)
                 }
             }
         }
