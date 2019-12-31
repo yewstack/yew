@@ -558,13 +558,10 @@ impl fmt::Debug for VTag {
 
 /// `stdweb` doesn't have methods to work with attributes now.
 /// this is [workaround](https://github.com/koute/stdweb/issues/16#issuecomment-325195854)
-#[cfg(feature = "std_web")]
 fn set_attribute(element: &Element, name: &str, value: &str) {
+    #[cfg(feature = "std_web")]
     js!( @(no_return) @{element}.setAttribute( @{name}, @{value} ); );
-}
-
-#[cfg(feature = "web_sys")]
-fn set_attribute(element: &Element, name: &str, value: &str) {
+    #[cfg(feature = "web_sys")]
     element.set_attribute(name, value).unwrap();
 }
 
