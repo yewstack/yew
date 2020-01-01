@@ -993,7 +993,7 @@ macro_rules! worker_ext_impl {
         impl WorkerExt for $type {
             fn set_onmessage_closure(&self, handler: impl 'static + Fn(Vec<u8>)) {
                 let handler = move |message: MessageEvent| {
-                    let data = Uint8Array::new(&message.data()).to_vec();
+                    let data = Uint8Array::from(message.data()).to_vec();
                     handler(data);
                 };
                 let closure = Closure::wrap(Box::new(handler) as Box<dyn Fn(MessageEvent)>);
