@@ -92,7 +92,7 @@ features = [
 wasm-bindgen = "0.2.56"
 wasm-bindgen-futures = "0.4.4"
 
-[target.'cfg(all(target_arch = "wasm32", not(target_os="wasi")))'.dev-dependencies]
+[target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dev-dependencies]
 wasm-bindgen-test = "0.3.4"
 
 [target.'cfg(target_os = "emscripten")'.dependencies]
