@@ -127,7 +127,7 @@ impl WebSocketService {
                 #[cfg(feature = "std_web")]
                 let bytes: Vec<u8> = bytes.into();
                 #[cfg(feature = "web_sys")]
-                let bytes = Uint8Array::from(bytes).to_vec();
+                let bytes = Uint8Array::new_with_byte_offset(&bytes, 0).to_vec();
                 let data = Ok(bytes);
                 let out = OUT::from(data);
                 callback.emit(out);

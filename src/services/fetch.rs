@@ -55,7 +55,7 @@ impl From<ArrayBuffer> for Vec<u8> {
 #[cfg(feature = "web_sys")]
 impl From<JsValue> for ArrayBuffer {
     fn from(from: JsValue) -> Self {
-        ArrayBuffer(Uint8Array::from(from))
+        ArrayBuffer(Uint8Array::new_with_byte_offset(&from, 0))
     }
 }
 

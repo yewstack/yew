@@ -90,7 +90,7 @@ impl ReaderService {
             }
             #[cfg(feature = "web_sys")]
             {
-                let array = Uint8Array::new(&reader.result().unwrap());
+                let array = Uint8Array::new_with_byte_offset(&reader.result().unwrap(), 0);
                 let data = FileData {
                     name: name.clone(),
                     content: array.to_vec(),
@@ -155,7 +155,7 @@ impl ReaderService {
                     let started = FileChunk::Started { name: name.clone() };
                     callback.emit(started);
                 } else {
-                    let array = Uint8Array::new(&result);
+                    let array = Uint8Array::new_with_byte_offset(&result, 0);
                     let chunk = FileChunk::DataChunk {
                         data: array.to_vec(),
                         progress: position as f32 / total_size as f32,
