@@ -57,7 +57,7 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <div>
-                <textarea oninput=self.link.callback(move |input| Msg::Payload(input.value))
+                <textarea oninput=self.link.callback(move |input: InputData| Msg::Payload(input.value))
                     style="font-family: 'Monaco' monospace;"
                     value={ &self.payload }>
                 </textarea>
