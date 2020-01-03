@@ -15,7 +15,7 @@ pub use web_sys::{
 };
 #[cfg(feature = "web_sys")]
 use ::{
-    js_sys::{Array, Uint8Array},
+    js_sys::{Array, Promise, Uint8Array},
     std::{
         rc::Rc,
         sync::{
@@ -175,6 +175,7 @@ struct Handle {
     active: Rc<AtomicBool>,
     callbacks: Receiver<Closure<dyn FnMut(JsValue)>>,
     abort_controller: Option<AbortController>,
+    promise: Promise,
 }
 
 /// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
@@ -593,15 +594,13 @@ where
             let headers_clone = headers.clone();
             let closure_then = move |data: JsValue| {
                 let data = from_conversion(data);
-                if active_clone.load(Ordering::SeqCst) {
-                    active_clone.store(false, Ordering::SeqCst);
+                if active_clone.compare_and_swap(true, false, Ordering::SeqCst) {
                     callback_clone(Some(data), status, headers_clone);
                 }
             };
             let closure_then = Closure::once(closure_then);
             let closure_catch = move |_| {
-                if active_outer_clone.load(Ordering::SeqCst) {
-                    active_outer_clone.store(false, Ordering::SeqCst);
+                if active_outer_clone.compare_and_swap(true, false, Ordering::SeqCst) {
                     callback_outer_clone(None, status, headers);
                 }
             };
@@ -613,8 +612,7 @@ where
         let closure_then = Closure::once(closure_then);
         let active_clone = Rc::clone(&active);
         let closure_catch = move |_| {
-            if active_clone.load(Ordering::SeqCst) {
-                active_clone.store(false, Ordering::SeqCst);
+            if active_clone.compare_and_swap(true, false, Ordering::SeqCst) {
                 callback(None, 408, Headers::new().unwrap());
             }
         };
@@ -624,19 +622,19 @@ where
         if let Some(abort_controller) = &abort_controller {
             init.signal(Some(&abort_controller.signal()));
         }
-        let handle = Handle {
-            active,
-            callbacks: receiver,
-            abort_controller,
-        };
-        web_sys::window()
+        let promise = web_sys::window()
             .unwrap()
             .fetch_with_request_and_init(&request, &init)
             .then(&closure_then)
             .catch(&closure_catch);
         sender.send(closure_then).unwrap();
         sender.send(closure_catch).unwrap();
-        handle
+        Handle {
+            active,
+            callbacks: receiver,
+            abort_controller,
+            promise,
+        }
     };
     FetchTask(Some(handle))
 }
@@ -686,7 +684,11 @@ impl Task for FetchTask {
         }
         #[cfg(feature = "web_sys")]
         {
+            thread_local! {
+                static CATCH: Closure<dyn FnMut(JsValue)> = Closure::wrap(Box::new(|_| ()) as Box<dyn FnMut(JsValue)>);
+            }
             handle.active.store(false, Ordering::SeqCst);
+            CATCH.with(|c| handle.promise.catch(&c));
             if let Some(abort_controller) = handle.abort_controller {
                 abort_controller.abort();
             }

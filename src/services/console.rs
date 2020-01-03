@@ -4,7 +4,7 @@
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 #[cfg(feature = "web_sys")]
-use web_sys::console;
+use ::{wasm_bindgen::JsValue, web_sys::console};
 
 /// A service to use methods of a
 /// [Console](https://developer.mozilla.org/en-US/docs/Web/API/Console).
@@ -23,7 +23,7 @@ impl ConsoleService {
         #[cfg(feature = "std_web")]
         js! { @(no_return) console.log(@{message}); }
         #[cfg(feature = "web_sys")]
-        console::log_1(&String::from(message).into());
+        console::log_1(&JsValue::from_str(message));
     }
 
     /// [console.warn](https://developer.mozilla.org/en-US/docs/Web/API/Console/warn)
@@ -32,7 +32,7 @@ impl ConsoleService {
         #[cfg(feature = "std_web")]
         js! { @(no_return) console.warn(@{message}); }
         #[cfg(feature = "web_sys")]
-        console::warn_1(&String::from(message).into());
+        console::warn_1(&JsValue::from_str(message));
     }
 
     /// [console.info](https://developer.mozilla.org/en-US/docs/Web/API/Console/info)
@@ -41,7 +41,7 @@ impl ConsoleService {
         #[cfg(feature = "std_web")]
         js! { @(no_return) console.info(@{message}); }
         #[cfg(feature = "web_sys")]
-        console::info_1(&String::from(message).into());
+        console::info_1(&JsValue::from_str(message));
     }
 
     /// [console.error](https://developer.mozilla.org/en-US/docs/Web/API/Console/error)
@@ -50,7 +50,7 @@ impl ConsoleService {
         #[cfg(feature = "std_web")]
         js! { @(no_return) console.error(@{message}); }
         #[cfg(feature = "web_sys")]
-        console::error_1(&String::from(message).into());
+        console::error_1(&JsValue::from_str(message));
     }
 
     /// [console.debug](https://developer.mozilla.org/en-US/docs/Web/API/Console/debug)
@@ -59,7 +59,7 @@ impl ConsoleService {
         #[cfg(feature = "std_web")]
         js! { @(no_return) console.debug(@{message}); }
         #[cfg(feature = "web_sys")]
-        console::debug_1(&String::from(message).into());
+        console::debug_1(&JsValue::from_str(message));
     }
 
     /// [console.count_named](https://developer.mozilla.org/en-US/docs/Web/API/Console/count_named)
