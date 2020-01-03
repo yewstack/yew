@@ -17,7 +17,7 @@ macro_rules! impl_action {
             };
             #[cfg(feature = "web_sys")]
             use ::{
-                wasm_bindgen::{closure::Closure, JsCast},
+                wasm_bindgen::JsValue,
                 web_sys::{$type as WebSysType, Element, EventTarget},
             };
 
@@ -42,34 +42,24 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                #[cfg(feature = "std_web")]
                 fn attach(&self, element: &Element) -> EventListenerHandle {
                     let this = element.clone();
                     let callback = self.callback.clone();
-                    let listener = move |event: $type| {
+                    let listener = move |
+                        #[cfg(feature = "std_web")] event: $type,
+                        #[cfg(feature = "web_sys")] event: &web_sys::Event
+                    | {
                         event.stop_propagation();
+                        #[cfg(feature = "web_sys")]
+                        let event: WebSysType = JsValue::from(event).into();
                         callback.emit($convert(&this, event));
                     };
-                    element.add_event_listener(listener)
-                }
-
-                #[cfg(feature = "web_sys")]
-                fn attach(&self, element: &Element) -> EventListenerHandle {
-                    let this = element.clone();
-                    let callback = self.callback.clone();
-                    let listener = move |event: web_sys::Event| {
-                        event.stop_propagation();
-                        let event: WebSysType = event.dyn_into().expect("wrong event type");
-                        callback.emit($convert(&this, event));
-                    };
-
-                    let target = EventTarget::from(element.clone());
-                    let listener = Closure::wrap(Box::new(listener) as Box<dyn Fn(web_sys::Event)>);
-                    target
-                        .add_event_listener_with_callback($name, listener.as_ref().unchecked_ref())
-                        .expect("failed to add event listener");
-
-                    EventListenerHandle::new(target, $name, listener)
+                    #[cfg(feature = "std_web")]
+                    {
+                        element.add_event_listener(listener)
+                    }
+                    #[cfg(feature = "web_sys")]
+                    EventListenerHandle::new(&EventTarget::from(element.clone()), $name, listener)
                 }
             }
         }

@@ -20,8 +20,9 @@ use stdweb::{
 };
 #[cfg(feature = "web_sys")]
 use ::{
-    std::mem::ManuallyDrop,
-    wasm_bindgen::{closure::Closure, JsCast},
+    gloo::events::EventListener,
+    std::borrow::Cow,
+    wasm_bindgen::JsCast,
     web_sys::{
         Element, Event, EventTarget, FileList, HtmlInputElement as InputElement,
         HtmlSelectElement as SelectElement, HtmlTextAreaElement as TextAreaElement,
@@ -134,35 +135,28 @@ fn onchange_handler(this: &Element) -> ChangeData {
 // and not be dropped, therefore the use of `ManuallyDrop` here.
 #[cfg(feature = "web_sys")]
 #[derive(Debug)]
-pub struct EventListenerHandle {
-    pub(crate) target: EventTarget,
-    pub(crate) r#type: &'static str,
-    pub(crate) callback: ManuallyDrop<Closure<dyn Fn(Event)>>,
-}
+pub struct EventListenerHandle(Option<EventListener>);
 
 #[cfg(feature = "web_sys")]
 impl EventListenerHandle {
-    /// Build new event listener handle.
-    pub fn new(
-        target: EventTarget,
-        r#type: &'static str,
-        callback: Closure<dyn Fn(Event)>,
-    ) -> Self {
-        EventListenerHandle {
-            target,
-            r#type,
-            callback: ManuallyDrop::new(callback),
-        }
+    fn new<S, F>(target: &EventTarget, event_type: S, callback: F) -> Self
+    where
+        S: Into<Cow<'static, str>>,
+        F: FnMut(&Event) + 'static,
+    {
+        EventListenerHandle(Some(EventListener::new(target, event_type, callback)))
     }
 
     /// Cancel event.
-    pub fn remove(self) {
-        self.target
-            .remove_event_listener_with_callback(
-                &self.r#type,
-                self.callback.as_ref().unchecked_ref(),
-            )
-            .expect("failed to remove event listener");
-        let _ = ManuallyDrop::into_inner(self.callback);
+    pub fn remove(mut self) {
+        self.0.take();
+    }
+}
+
+impl Drop for EventListenerHandle {
+    fn drop(&mut self) {
+        if let Some(event) = self.0.take() {
+            event.forget()
+        }
     }
 }
