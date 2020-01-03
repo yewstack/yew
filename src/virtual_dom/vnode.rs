@@ -60,16 +60,17 @@ impl VDiff for VNode {
                     None => None,
                 };
                 if let Some(sibling) = sibling {
-                    #[cfg(feature = "std_web")]
-                    let result = parent.insert_before(node, &sibling);
+                    let sibling = &sibling;
                     #[cfg(feature = "web_sys")]
-                    let result = parent.insert_before(node, Some(&sibling));
-                    result.expect("can't insert element before sibling");
+                    let sibling = Some(sibling);
+                    parent
+                        .insert_before(node, sibling)
+                        .expect("can't insert element before sibling");
                 } else {
-                    #[cfg(feature = "std_web")]
-                    parent.append_child(node);
+                    #[cfg_attr(feature = "std_web", allow(unused_variables))]
+                    let result = parent.append_child(node);
                     #[cfg(feature = "web_sys")]
-                    parent.append_child(node).unwrap();
+                    result.unwrap();
                 }
 
                 Some(node.to_owned())

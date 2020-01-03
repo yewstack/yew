@@ -208,24 +208,26 @@ impl VDiff for VComp {
 
                         let dummy_node = document.create_text_node("");
                         if let Some(next_sibling) = next_sibling {
-                            #[cfg(feature = "std_web")]
-                            let result = parent.insert_before(&dummy_node, &next_sibling);
+                            let next_sibling = &next_sibling;
                             #[cfg(feature = "web_sys")]
-                            let result = parent.insert_before(&dummy_node, Some(&next_sibling));
-                            result.expect("can't insert dummy component node before next sibling");
+                            let next_sibling = Some(next_sibling);
+                            parent
+                                .insert_before(&dummy_node, next_sibling)
+                                .expect("can't insert dummy component node before next sibling");
                         } else if let Some(next_sibling) =
                             previous_sibling.and_then(|p| p.next_sibling())
                         {
-                            #[cfg(feature = "std_web")]
-                            let result = parent.insert_before(&dummy_node, &next_sibling);
+                            let next_sibling = &next_sibling;
                             #[cfg(feature = "web_sys")]
-                            let result = parent.insert_before(&dummy_node, Some(&next_sibling));
-                            result.expect("can't insert dummy component node before next sibling");
+                            let next_sibling = Some(next_sibling);
+                            parent
+                                .insert_before(&dummy_node, next_sibling)
+                                .expect("can't insert dummy component node before next sibling");
                         } else {
-                            #[cfg(feature = "std_web")]
-                            parent.append_child(&dummy_node);
+                            #[cfg_attr(feature = "std_web", allow(unused_variables))]
+                            let result = parent.append_child(&dummy_node);
                             #[cfg(feature = "web_sys")]
-                            parent.append_child(&dummy_node).unwrap();
+                            result.unwrap();
                         }
                         this.mount(parent.to_owned(), dummy_node)
                     }

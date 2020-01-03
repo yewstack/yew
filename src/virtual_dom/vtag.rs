@@ -25,7 +25,7 @@ use stdweb::{
 };
 #[cfg(feature = "web_sys")]
 use ::{
-    js_sys::Array,
+    std::ops::Deref,
     wasm_bindgen::JsCast,
     web_sys::{
         Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, Node,
@@ -324,14 +324,14 @@ impl VTag {
                     #[cfg(feature = "std_web")]
                     let result = list.add(class);
                     #[cfg(feature = "web_sys")]
-                    let result = list.add(&Array::from(&class.into()));
+                    let result = list.add_1(class);
                     result.expect("can't add a class");
                 }
                 Patch::Remove(class) => {
                     #[cfg(feature = "std_web")]
                     let result = list.remove(class);
                     #[cfg(feature = "web_sys")]
-                    let result = list.remove(&Array::from(&class.into()));
+                    let result = list.remove_1(class);
                     result.expect("can't remove a class");
                 }
             }
@@ -480,11 +480,12 @@ impl VDiff for VTag {
                         .namespace_uri()
                         .map_or(false, |ns| ns == SVG_NAMESPACE)
                 {
-                    #[cfg(feature = "std_web")]
-                    let result = document.create_element_ns(SVG_NAMESPACE, &self.tag);
+                    let namespace = SVG_NAMESPACE;
                     #[cfg(feature = "web_sys")]
-                    let result = document.create_element_ns(Some(SVG_NAMESPACE), &self.tag);
-                    result.expect("can't create namespaced element for vtag")
+                    let namespace = Some(namespace);
+                    document
+                        .create_element_ns(namespace, &self.tag)
+                        .expect("can't create namespaced element for vtag")
                 } else {
                     document
                         .create_element(&self.tag)
@@ -492,22 +493,24 @@ impl VDiff for VTag {
                 };
 
                 if let Some(next_sibling) = next_sibling {
-                    #[cfg(feature = "std_web")]
-                    let result = parent.insert_before(&element, &next_sibling);
+                    let next_sibling = &next_sibling;
                     #[cfg(feature = "web_sys")]
-                    let result = parent.insert_before(&element, Some(&next_sibling));
-                    result.expect("can't insert tag before next sibling");
+                    let next_sibling = Some(next_sibling);
+                    parent
+                        .insert_before(&element, next_sibling)
+                        .expect("can't insert tag before next sibling");
                 } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
-                    #[cfg(feature = "std_web")]
-                    let result = parent.insert_before(&element, &next_sibling);
+                    let next_sibling = &next_sibling;
                     #[cfg(feature = "web_sys")]
-                    let result = parent.insert_before(&element, Some(&next_sibling));
-                    result.expect("can't insert tag before next sibling");
+                    let next_sibling = Some(next_sibling);
+                    parent
+                        .insert_before(&element, next_sibling)
+                        .expect("can't insert tag before next sibling");
                 } else {
-                    #[cfg(feature = "std_web")]
-                    parent.append_child(&element);
+                    #[cfg_attr(feature = "std_web", allow(unused_variables))]
+                    let result = parent.append_child(&element);
                     #[cfg(feature = "web_sys")]
-                    parent.append_child(&element).unwrap();
+                    result.unwrap();
                 }
                 self.reference = Some(element);
             }
@@ -536,14 +539,10 @@ impl VDiff for VTag {
 
         let node = self.reference.as_ref().map(|e| {
             #[cfg(feature = "std_web")]
-            {
-                e.as_node().to_owned()
-            }
+            let node = e.as_node();
             #[cfg(feature = "web_sys")]
-            {
-                use std::ops::Deref;
-                e.deref().to_owned()
-            }
+            let node = e.deref();
+            node.to_owned()
         });
         self.node_ref.set(node.clone());
         node

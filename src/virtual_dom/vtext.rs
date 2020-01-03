@@ -7,7 +7,10 @@ use std::fmt;
 #[cfg(feature = "std_web")]
 use stdweb::web::{document, Element, INode, Node, TextNode};
 #[cfg(feature = "web_sys")]
-use web_sys::{Element, Node, Text as TextNode};
+use ::{
+    std::ops::Deref,
+    web_sys::{Element, Node, Text as TextNode},
+};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -81,36 +84,34 @@ impl VDiff for VText {
 
                 let element = document.create_text_node(&self.text);
                 if let Some(next_sibling) = next_sibling {
-                    #[cfg(feature = "std_web")]
-                    let result = parent.insert_before(&element, &next_sibling);
+                    let next_sibling = &next_sibling;
                     #[cfg(feature = "web_sys")]
-                    let result = parent.insert_before(&element, Some(&next_sibling));
-                    result.expect("can't insert text before the next sibling");
+                    let next_sibling = Some(next_sibling);
+                    parent
+                        .insert_before(&element, next_sibling)
+                        .expect("can't insert text before the next sibling");
                 } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
-                    #[cfg(feature = "std_web")]
-                    let result = parent.insert_before(&element, &next_sibling);
+                    let next_sibling = &next_sibling;
                     #[cfg(feature = "web_sys")]
-                    let result = parent.insert_before(&element, Some(&next_sibling));
-                    result.expect("can't insert text before next_sibling");
+                    let next_sibling = Some(next_sibling);
+                    parent
+                        .insert_before(&element, next_sibling)
+                        .expect("can't insert text before next_sibling");
                 } else {
-                    #[cfg(feature = "std_web")]
-                    parent.append_child(&element);
+                    #[cfg_attr(feature = "std_web", allow(unused_variables))]
+                    let result = parent.append_child(&element);
                     #[cfg(feature = "web_sys")]
-                    parent.append_child(&element).unwrap();
+                    result.unwrap();
                 }
                 self.reference = Some(element);
             }
         }
         self.reference.as_ref().map(|t| {
             #[cfg(feature = "std_web")]
-            {
-                t.as_node().to_owned()
-            }
+            let node = t.as_node();
             #[cfg(feature = "web_sys")]
-            {
-                use std::ops::Deref;
-                t.deref().to_owned()
-            }
+            let node = t.deref();
+            node.to_owned()
         })
     }
 }
