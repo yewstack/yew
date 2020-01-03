@@ -91,10 +91,10 @@ impl ToTokens for HtmlTag {
         let TagAttributes {
             classes,
             attributes,
+            booleans,
             kind,
             value,
             checked,
-            disabled,
             selected,
             node_ref,
             href,
@@ -105,6 +105,14 @@ impl ToTokens for HtmlTag {
         let attr_pairs = attributes.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
             quote_spanned! {value.span() => (#label_str.to_owned(), (#value).to_string()) }
+        });
+        let set_booleans = booleans.iter().map(|TagAttribute {label, value}| {
+            let label_str = label.to_string();
+            quote_spanned! {value.span() =>
+                if #value {
+                    #vtag.add_attribute(&#label_str, &#label_str);
+                }
+            }
         });
         let set_kind = kind.iter().map(|kind| {
             quote_spanned! {kind.span()=> #vtag.set_kind(&(#kind)); }
@@ -120,13 +128,6 @@ impl ToTokens for HtmlTag {
         });
         let set_checked = checked.iter().map(|checked| {
             quote_spanned! {checked.span()=> #vtag.set_checked(#checked); }
-        });
-        let add_disabled = disabled.iter().map(|disabled| {
-            quote_spanned! {disabled.span()=>
-                if #disabled {
-                    #vtag.add_attribute("disabled", &"true");
-                }
-            }
         });
         let add_selected = selected.iter().map(|selected| {
             quote_spanned! {selected.span()=>
@@ -167,7 +168,7 @@ impl ToTokens for HtmlTag {
             #(#set_value)*
             #(#add_href)*
             #(#set_checked)*
-            #(#add_disabled)*
+            #(#set_booleans)*
             #(#add_selected)*
             #(#set_classes)*
             #(#set_node_ref)*
