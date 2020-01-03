@@ -1,7 +1,8 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
-use super::{Transformer, VDiff, VNode};
+use super::{ToHtml, Transformer, VDiff, VNode};
 use crate::html::{Component, ComponentUpdate, HiddenScope, NodeRef, Scope};
+use htmlescape;
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::fmt;
@@ -198,7 +199,10 @@ impl VDiff for VComp {
                     }
                     Reform::Before(next_sibling) => {
                         // Temporary node which will be replaced by a component's root node.
-                        let dummy_node = document().create_text_node("");
+                        let dummy_node = parent
+                            .owner_document()
+                            .unwrap("Parent node not attached to a document")
+                            .create_text_node("");
                         if let Some(next_sibling) = next_sibling {
                             parent
                                 .insert_before(&dummy_node, &next_sibling)
@@ -264,5 +268,16 @@ impl fmt::Debug for VComp {
 impl<COMP: Component> fmt::Debug for VChild<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("VChild<_>")
+    }
+}
+
+impl ToHtml for VComp {
+    fn to_html(&self) -> String {
+        // htmlescape
+
+        match *((*self.state).borrow()) {
+            MountState::Mounted(mounted) => mounted.to_string(),
+            _ => panic!("to_html() called on a component that is not mounted"),
+        }
     }
 }

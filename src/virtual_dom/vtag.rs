@@ -2,7 +2,7 @@
 
 use super::{
     Attributes, Classes, Listener, Listeners, Patch, Reform, ToHtml, Transformer, VDiff, VList,
-    VNode,
+    VNode, VText,
 };
 use crate::html::NodeRef;
 use htmlescape;
@@ -403,13 +403,17 @@ impl ToHtml for VTag {
             }
         }
 
-        parts.push(">".to_string());
-        let children_html = match tag_name {
-            "textarea" => VText::new(self.value).to_html(),
-            _ => ""
+        let children_html = match tag_name.as_ref() {
+            "textarea" => VText::new(self.value.clone().unwrap_or("".to_string())).to_html(),
+            _ => self.children.to_html(),
         };
-        // TODO parts.push(self.children.to_html());
-        // TODO handle textareas
+        if children_html == "" {
+            parts.push(" />".to_string());
+        } else {
+            parts.push(">".to_string());
+            parts.push(children_html);
+            parts.push(format!("</{}>", tag_name).to_string());
+        }
         parts.push(format!("</{}>", tag_name).to_string());
         parts.join("")
     }
@@ -478,11 +482,15 @@ impl VDiff for VTag {
                         .namespace_uri()
                         .map_or(false, |ns| ns == SVG_NAMESPACE)
                 {
-                    document()
+                    parent
+                        .owner_document()
+                        .unwrap("Parent node not attached to a document")
                         .create_element_ns(SVG_NAMESPACE, &self.tag)
                         .expect("can't create namespaced element for vtag")
                 } else {
-                    document()
+                    parent
+                        .owner_document()
+                        .unwrap("Parent node not attached to a document")
                         .create_element(&self.tag)
                         .expect("can't create element for vtag")
                 };

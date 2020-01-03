@@ -1,6 +1,6 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{VChild, VComp, VDiff, VList, VTag, VText};
+use super::{ToHtml, VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{Component, Renderable};
 use std::cmp::PartialEq;
 use std::fmt;
@@ -150,6 +150,18 @@ impl PartialEq for VNode {
             (VNode::VText(vtext_a), VNode::VText(vtext_b)) => vtext_a == vtext_b,
             (VNode::VList(vlist_a), VNode::VList(vlist_b)) => *vlist_a == *vlist_b,
             _ => false, // TODO: Implement other variants
+        }
+    }
+}
+
+impl ToHtml for VNode {
+    fn to_html(&self) -> String {
+        match self {
+            VNode::VTag(vtag) => vtag.to_html(),
+            VNode::VText(vtext) => vtext.to_html(),
+            VNode::VList(vlist) => vlist.to_html(),
+            VNode::VComp(vcomp) => vcomp.to_html(),
+            _ => "".to_string(), // TODO: Implement other variants
         }
     }
 }

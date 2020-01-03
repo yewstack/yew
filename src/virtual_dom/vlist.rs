@@ -1,5 +1,5 @@
 //! This module contains fragments implementation.
-use super::{VDiff, VNode, VText};
+use super::{ToHtml, VDiff, VNode, VText};
 use std::ops::{Deref, DerefMut};
 use stdweb::web::{Element, Node};
 
@@ -113,5 +113,12 @@ impl VDiff for VList {
             }
         }
         previous_sibling
+    }
+}
+
+impl ToHtml for VList {
+    fn to_html(&self) -> String {
+        let parts: Vec<String> = self.children.iter().map(|child| child.to_html()).collect();
+        parts.join("")
     }
 }

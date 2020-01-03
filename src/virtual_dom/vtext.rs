@@ -1,6 +1,7 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::{Reform, VDiff, VNode, ToHtml};
+use super::{Reform, ToHtml, VDiff, VNode};
+use htmlescape;
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
@@ -71,7 +72,10 @@ impl VDiff for VText {
         match reform {
             Reform::Keep => {}
             Reform::Before(next_sibling) => {
-                let element = document().create_text_node(&self.text);
+                let element = parent
+                    .owner_document()
+                    .unwrap("Parent node not attached to a document")
+                    .create_text_node(&self.text);
                 if let Some(next_sibling) = next_sibling {
                     parent
                         .insert_before(&element, &next_sibling)
@@ -92,6 +96,7 @@ impl VDiff for VText {
 
 impl ToHtml for VText {
     fn to_html(&self) -> String {
+        htmlescape::encode_minimal(&self.text)
     }
 }
 
