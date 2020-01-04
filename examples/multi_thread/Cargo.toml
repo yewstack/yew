@@ -14,7 +14,12 @@ path = "src/bin/native_worker.rs"
 
 [dependencies]
 log = "0.4"
-web_logger = "0.1"
+wasm-logger = { version = "0.2", optional = true }
+web_logger = { version = "0.2", optional = true }
 serde = "1.0"
 serde_derive = "1.0"
 yew = { path = "../.." }
+
+[features]
+std_web = ["web_logger", "yew/std_web"]
+web_sys = ["wasm-logger", "yew/web_sys"]

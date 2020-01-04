@@ -5,5 +5,10 @@ authors = ["Garrett Berg <vitiral@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-stdweb = "0.4.20"
+stdweb = { version = "0.4.20", optional = true }
+web-sys = { version = "0.3", optional = true, features = ["console", "Document", "Element", "Node", "Window"] }
 yew = { path = "../.." }
+
+[features]
+std_web = ["stdweb", "yew/std_web"]
+web_sys = ["web-sys", "yew/web_sys"]

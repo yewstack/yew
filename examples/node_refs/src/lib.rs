@@ -3,8 +3,10 @@
 mod input;
 
 use input::InputComponent;
-use stdweb::web::html_element::InputElement;
-use stdweb::web::IHtmlElement;
+#[cfg(feature = "std_web")]
+use stdweb::web::{html_element::InputElement, IHtmlElement};
+#[cfg(feature = "web_sys")]
+use web_sys::HtmlInputElement as InputElement;
 use yew::prelude::*;
 
 pub struct Model {
@@ -31,7 +33,10 @@ impl Component for Model {
 
     fn mounted(&mut self) -> ShouldRender {
         if let Some(input) = self.refs[self.focus_index].try_into::<InputElement>() {
-            input.focus();
+            #[cfg_attr(feature = "std_web", allow(unused_variables))]
+            let result = input.focus();
+            #[cfg(feature = "web_sys")]
+            result.unwrap();
         }
         false
     }
@@ -41,7 +46,10 @@ impl Component for Model {
             Msg::HoverIndex(index) => self.focus_index = index,
         }
         if let Some(input) = self.refs[self.focus_index].try_into::<InputElement>() {
-            input.focus();
+            #[cfg_attr(feature = "std_web", allow(unused_variables))]
+            let result = input.focus();
+            #[cfg(feature = "web_sys")]
+            result.unwrap();
         }
         true
     }

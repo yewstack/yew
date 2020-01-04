@@ -1,5 +1,8 @@
-#![recursion_limit = "128"]
+#![recursion_limit = "512"]
 
+#[cfg(feature = "web_sys")]
+use js_sys::Date;
+#[cfg(feature = "std_web")]
 use stdweb::web::Date;
 use yew::services::ConsoleService;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
@@ -63,7 +66,12 @@ impl Component for Model {
                     </button>
                 </nav>
                 <p>{ self.value }</p>
-                <p>{ Date::new().to_string() }</p>
+                <p>{
+                    #[cfg(feature = "std_web")]
+                    { Date::new().to_string() }
+                    #[cfg(feature = "web_sys")]
+                    Date::new_0().to_string().as_string().unwrap()
+                }</p>
             </div>
         }
     }

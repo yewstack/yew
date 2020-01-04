@@ -73,6 +73,12 @@ impl Component for Model {
                     <input type="file" multiple=true onchange=self.link.callback(move |value| {
                             let mut result = Vec::new();
                             if let ChangeData::Files(files) = value {
+                                #[cfg(feature = "web_sys")]
+                                let files = js_sys::try_iter(&files)
+                                    .unwrap()
+                                    .unwrap()
+                                    .into_iter()
+                                    .map(|v| File::from(v.unwrap()));
                                 result.extend(files);
                             }
                             Msg::Files(result, flag)

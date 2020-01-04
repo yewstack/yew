@@ -5,5 +5,10 @@ authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-stdweb = "0.4.20"
+js-sys = { version = "0.3", optional = true }
+stdweb = { version = "0.4.20", optional = true }
 yew = { path = "../.." }
+
+[features]
+std_web = ["stdweb", "yew/std_web"]
+web_sys = ["js-sys", "yew/web_sys"]

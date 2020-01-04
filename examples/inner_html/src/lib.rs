@@ -1,9 +1,12 @@
 #![recursion_limit = "512"]
+#[cfg(feature = "std_web")]
 #[macro_use]
 extern crate stdweb;
 
-use stdweb::unstable::TryFrom;
-use stdweb::web::Node;
+#[cfg(feature = "std_web")]
+use stdweb::{unstable::TryFrom, web::Node};
+#[cfg(feature = "web_sys")]
+use web_sys::{console, Node};
 use yew::virtual_dom::VNode;
 use yew::{Component, ComponentLink, Html, ShouldRender};
 
@@ -34,14 +37,30 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
+        #[cfg(feature = "std_web")]
         let js_svg = js! {
             var div = document.createElement("div");
             div.innerHTML = @{SVG.to_string()};
             console.log(div);
             return div;
         };
+        #[cfg(feature = "web_sys")]
+        let js_svg = {
+            let div = web_sys::window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .create_element("div")
+                .unwrap();
+            div.set_inner_html(SVG);
+            console::log_1(&div);
+            div
+        };
         eprintln!("js_svg: {:?}", js_svg);
+        #[cfg(feature = "std_web")]
         let node = Node::try_from(js_svg).expect("convert js_svg");
+        #[cfg(feature = "web_sys")]
+        let node = Node::from(js_svg);
         let vnode = VNode::VRef(node);
         eprintln!("svg: {:?}", vnode);
         vnode

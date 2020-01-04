@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 log = "0.4"
-web_logger = "0.1"
+web_logger = "0.2"
 strum = "0.13"
 strum_macros = "0.13"
 yew = { path = "../.." }
@@ -25,3 +25,41 @@ textarea = { path = "../textarea" }
 timer = { path = "../timer" }
 todomvc = { path = "../todomvc" }
 two_apps = { path = "../two_apps" }
+
+[features]
+std_web = [
+  "yew/std_web",
+  "counter/std_web",
+  "crm/std_web",
+  "custom_components/std_web",
+  "dashboard/std_web",
+  "node_refs/std_web",
+  "fragments/std_web",
+  "game_of_life/std_web",
+  "inner_html/std_web",
+  "large_table/std_web",
+  "mount_point/std_web",
+  "npm_and_rest/std_web",
+  "textarea/std_web",
+  "timer/std_web",
+  "todomvc/std_web",
+  "two_apps/std_web",
+]
+web_sys = [
+  "yew/web_sys",
+  "counter/web_sys",
+  "crm/web_sys",
+  "custom_components/web_sys",
+  "dashboard/web_sys",
+  "node_refs/web_sys",
+  "fragments/web_sys",
+  "game_of_life/web_sys",
+  "inner_html/web_sys",
+  "large_table/web_sys",
+  "mount_point/web_sys",
+  "npm_and_rest/web_sys",
+  "textarea/web_sys",
+  "timer/web_sys",
+  "todomvc/web_sys",
+  "two_apps/web_sys",
+]

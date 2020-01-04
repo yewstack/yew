@@ -1,8 +1,11 @@
 #![recursion_limit = "128"]
 #![deny(warnings)]
 
+#[cfg(feature = "std_web")]
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
+#[cfg(feature = "web_sys")]
+use wasm_bindgen::{closure::Closure, prelude::wasm_bindgen, JsValue};
 use yew::prelude::*;
 
 pub struct Model {
@@ -82,10 +85,18 @@ where
     String::from(string).replace(' ', "\u{00a0}")
 }
 
+#[cfg(feature = "std_web")]
 fn get_payload() -> String {
     (js! { return window.get_payload() }).into_string().unwrap()
 }
 
+#[cfg(feature = "web_sys")]
+#[wasm_bindgen]
+extern "C" {
+    fn get_payload() -> String;
+}
+
+#[cfg(feature = "std_web")]
 fn get_payload_later(payload_callback: Callback<String>) {
     let callback = move |payload: String| payload_callback.emit(payload);
     js! {
@@ -97,4 +108,17 @@ fn get_payload_later(payload_callback: Callback<String>) {
             callback.drop();
         });
     };
+}
+
+#[cfg(feature = "web_sys")]
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_name = "get_payload_later")]
+    fn get_payload_later_js(payload_callback: JsValue);
+}
+
+#[cfg(feature = "web_sys")]
+fn get_payload_later(payload_callback: Callback<String>) {
+    let callback = Closure::once_into_js(move |payload: String| payload_callback.emit(payload));
+    get_payload_later_js(callback);
 }

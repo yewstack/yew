@@ -1,5 +1,6 @@
 #![recursion_limit = "128"]
 
+#[cfg(feature = "std_web")]
 #[macro_use]
 extern crate stdweb;
 
