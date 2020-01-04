@@ -106,7 +106,7 @@ impl ToTokens for HtmlTag {
             let label_str = label.to_string();
             quote_spanned! {value.span() => (#label_str.to_owned(), (#value).to_string()) }
         });
-        let set_booleans = booleans.iter().map(|TagAttribute {label, value}| {
+        let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
             quote_spanned! {value.span() =>
                 if #value {

@@ -24,7 +24,7 @@ pub enum ClassesForm {
     Single(Expr),
 }
 
-lazy_static!{
+lazy_static! {
     static ref BOOLEAN_SET: HashSet<&'static str> = {
         HashSet::from_iter(
             vec![
@@ -65,7 +65,8 @@ lazy_static!{
                 "sortable",
                 "spellcheck",
                 "translate",
-            ].into_iter()
+            ]
+            .into_iter(),
         )
     };
 }
