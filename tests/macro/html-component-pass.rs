@@ -250,6 +250,18 @@ fn compile_pass() {
             <Generic<Vec<String>>></ Generic<Vec<String>>>
         </>
     };
+
+    html! {
+        <div>
+            {
+                if true {
+                    html! { <Container int=1 /> }
+                } else {
+                    html! {}
+                }
+            }
+        </div>
+    };
 }
 
 fn main() {}
