@@ -2,6 +2,7 @@
 
 use std::marker::PhantomData;
 use yew::prelude::*;
+use yew::virtual_dom::{VChild, VComp, VNode};
 
 #[derive(Clone, Properties, PartialEq)]
 pub struct ChildProperties {
@@ -18,6 +19,18 @@ impl Component for Child {
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
     fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
     fn view(&self) -> Html { unimplemented!() }
+}
+
+impl From<VChild<Child>> for ChildProperties {
+    fn from(comp: VChild<Child>) -> Self {
+        comp.props
+    }
+}
+
+impl Into<VNode> for ChildProperties {
+    fn into(self) -> VNode {
+        VComp::new::<Child>(self, NodeRef::default()).into()
+    }
 }
 
 #[derive(Clone, Properties)]

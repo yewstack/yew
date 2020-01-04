@@ -4,25 +4,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
-use syn::Expr;
 use syn::Lit;
-
-use proc_macro2::{Ident, Span};
-use syn::visit_mut::{self, VisitMut};
-use syn::Macro;
-
-struct HtmlInnerModifier;
-impl VisitMut for HtmlInnerModifier {
-    fn visit_macro_mut(&mut self, node: &mut Macro) {
-        if node.path.is_ident("html") {
-            let ident = &mut node.path.segments.last_mut().unwrap().ident;
-            *ident = Ident::new("html_nested", Span::call_site());
-        }
-
-        // Delegate to the default impl to visit any nested functions.
-        visit_mut::visit_macro_mut(self, node);
-    }
-}
 
 pub struct HtmlNode(Node);
 
@@ -36,9 +18,7 @@ impl Parse for HtmlNode {
             }
             Node::Literal(lit)
         } else {
-            let mut expr: Expr = input.parse()?;
-            HtmlInnerModifier.visit_expr_mut(&mut expr);
-            Node::Expression(expr)
+            Node::Raw(input.parse()?)
         };
 
         Ok(HtmlNode(node))
@@ -66,8 +46,12 @@ impl ToTokens for HtmlNode {
 impl ToTokens for Node {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let node_token = match &self {
-            Node::Literal(lit) => quote! {#lit},
-            Node::Expression(expr) => quote_spanned! {expr.span()=> {#expr} },
+            Node::Literal(lit) => quote! {
+                ::yew::virtual_dom::VNode::from(#lit)
+            },
+            Node::Raw(stream) => quote_spanned! {stream.span()=>
+                ::yew::virtual_dom::VNode::from({#stream})
+            },
         };
 
         tokens.extend(node_token);
@@ -76,5 +60,5 @@ impl ToTokens for Node {
 
 enum Node {
     Literal(Lit),
-    Expression(Expr),
+    Raw(TokenStream),
 }
