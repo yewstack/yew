@@ -21,9 +21,9 @@ use stdweb::Value;
 use stdweb::{_js_impl, js};
 #[cfg(feature = "web_sys")]
 use ::{
-    js_sys::Uint8Array,
-    wasm_bindgen::{closure::Closure, JsCast},
-    web_sys::{DedicatedWorkerGlobalScope, MessageEvent, Worker},
+    js_sys::{Reflect, Uint8Array},
+    wasm_bindgen::{closure::Closure, JsCast, JsValue},
+    web_sys::{DedicatedWorkerGlobalScope, MessageEvent, Worker, WorkerOptions},
 };
 
 /// Serializable messages to worker
@@ -462,7 +462,7 @@ impl Discoverer for Private {
         };
         #[cfg(feature = "web_sys")]
         let worker = {
-            let worker = Worker::new(name_of_resource).unwrap();
+            let worker = worker_new(name_of_resource, AGN::is_module());
             worker.set_onmessage_closure(handler);
             worker
         };
@@ -617,7 +617,7 @@ impl Discoverer for Public {
                     };
                     #[cfg(feature = "web_sys")]
                     let worker = {
-                        let worker = Worker::new(name_of_resource).unwrap();
+                        let worker = worker_new(name_of_resource, AGN::is_module());
                         let worker_clone = worker.clone();
                         worker.set_onmessage_closure(move |data: Vec<u8>| {
                             handler(data, &worker_clone);
@@ -771,6 +771,12 @@ pub trait Agent: Sized + 'static {
     /// have to live in a separate files.
     fn name_of_resource() -> &'static str {
         "main.js"
+    }
+
+    /// Signifies if resource is a module.
+    /// This has pending browser support.
+    fn is_module() -> bool {
+        false
     }
 }
 
@@ -976,8 +982,24 @@ where
 }
 
 #[cfg(feature = "web_sys")]
+fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
+    if is_module {
+        let options = WorkerOptions::new();
+        Reflect::set(
+            options.as_ref(),
+            &JsValue::from_str("type"),
+            &JsValue::from_str("module"),
+        )
+        .unwrap();
+        Worker::new_with_options(name_of_resource, &options).unwrap()
+    } else {
+        Worker::new(name_of_resource).unwrap()
+    }
+}
+
+#[cfg(feature = "web_sys")]
 fn worker_self() -> DedicatedWorkerGlobalScope {
-    js_sys::global().dyn_into().unwrap()
+    JsValue::from(js_sys::global()).into()
 }
 
 #[cfg(feature = "web_sys")]
