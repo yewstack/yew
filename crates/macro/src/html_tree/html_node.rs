@@ -4,22 +4,35 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
-use syn::Expr;
-use syn::Lit;
+use syn::{Expr, ExprIf, Lit};
 
-use proc_macro2::{Ident, Span};
+use proc_macro2::Ident;
 use syn::visit_mut::{self, VisitMut};
 use syn::Macro;
 
-struct HtmlInnerModifier;
-impl VisitMut for HtmlInnerModifier {
+struct HtmlInnerYin;
+impl VisitMut for HtmlInnerYin {
+    fn visit_expr_if_mut(&mut self, node: &mut ExprIf) {
+        if node.else_branch.is_some() {
+            HtmlInnerYang.visit_expr_if_mut(node);
+        } else {
+            visit_mut::visit_expr_if_mut(self, node);
+        }
+    }
+
     fn visit_macro_mut(&mut self, node: &mut Macro) {
         if node.path.is_ident("html") {
             let ident = &mut node.path.segments.last_mut().unwrap().ident;
-            *ident = Ident::new("html_nested", Span::call_site());
+            *ident = Ident::new("html_nested", ident.span());
         }
 
-        // Delegate to the default impl to visit any nested functions.
+        visit_mut::visit_macro_mut(self, node);
+    }
+}
+
+struct HtmlInnerYang;
+impl VisitMut for HtmlInnerYang {
+    fn visit_macro_mut(&mut self, node: &mut Macro) {
         visit_mut::visit_macro_mut(self, node);
     }
 }
@@ -37,7 +50,7 @@ impl Parse for HtmlNode {
             Node::Literal(lit)
         } else {
             let mut expr: Expr = input.parse()?;
-            HtmlInnerModifier.visit_expr_mut(&mut expr);
+            HtmlInnerYin.visit_expr_mut(&mut expr);
             Node::Expression(expr)
         };
 
