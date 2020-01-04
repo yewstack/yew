@@ -4,6 +4,8 @@ use crate::callback::Callback;
 use crate::scheduler::{scheduler, Runnable, Shared};
 use anymap::{self, AnyMap};
 use bincode;
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use log::warn;
 use serde::{Deserialize, Serialize};
 use slab::Slab;
@@ -14,17 +16,17 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-#[cfg(feature = "std_web")]
-use stdweb::Value;
-#[cfg(feature = "std_web")]
-#[allow(unused_imports)]
-use stdweb::{_js_impl, js};
-#[cfg(feature = "web_sys")]
-use ::{
-    js_sys::{Reflect, Uint8Array},
-    wasm_bindgen::{closure::Closure, JsCast, JsValue},
-    web_sys::{DedicatedWorkerGlobalScope, MessageEvent, Worker, WorkerOptions},
-};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::Value;
+        #[allow(unused_imports)]
+        use stdweb::{_js_impl, js};
+    } else if #[cfg(feature = "web_sys")] {
+        use js_sys::{Reflect, Uint8Array};
+        use wasm_bindgen::{closure::Closure, JsCast, JsValue};
+        use web_sys::{DedicatedWorkerGlobalScope, MessageEvent, Worker, WorkerOptions};
+    }
+}
 
 /// Serializable messages to worker
 #[derive(Serialize, Deserialize, Debug)]
@@ -170,31 +172,31 @@ where
                 ToWorker::Destroy => {
                     let upd = AgentLifecycleEvent::Destroy;
                     scope.send(upd);
-                    #[cfg(feature = "std_web")]
-                    js! {
-                        // Terminates web worker
-                        self.close();
-                    };
-                    #[cfg(feature = "web_sys")]
-                    worker_self().close();
+                    cfg_match! {
+                        feature = "std_web" => js! {
+                            // Terminates web worker
+                            self.close();
+                        },
+                        feature = "web_sys" => worker_self().close(),
+                    }
                 }
             }
         };
         let loaded: FromWorker<T::Output> = FromWorker::WorkerLoaded;
         let loaded = loaded.pack();
-        #[cfg(feature = "std_web")]
-        js! {
-            var handler = @{handler};
-            self.onmessage = function(event) {
-                handler(event.data);
-            };
-            self.postMessage(@{loaded});
-        };
-        #[cfg(feature = "web_sys")]
-        {
-            let worker = worker_self();
-            worker.set_onmessage_closure(handler);
-            worker.post_message_vec(loaded);
+        cfg_match! {
+            feature = "std_web" => js! {
+                    var handler = @{handler};
+                    self.onmessage = function(event) {
+                        handler(event.data);
+                    };
+                    self.postMessage(@{loaded});
+            },
+            feature = "web_sys" => ({
+                let worker = worker_self();
+                worker.set_onmessage_closure(handler);
+                worker.post_message_vec(loaded);
+            }),
         }
     }
 }
@@ -451,20 +453,20 @@ impl Discoverer for Private {
         };
         // TODO Need somethig better...
         let name_of_resource = AGN::name_of_resource();
-        #[cfg(feature = "std_web")]
-        let worker = js! {
-            var worker = new Worker(@{name_of_resource});
-            var handler = @{handler};
-            worker.onmessage = function(event) {
-                handler(event.data);
-            };
-            return worker;
-        };
-        #[cfg(feature = "web_sys")]
-        let worker = {
-            let worker = worker_new(name_of_resource, AGN::is_module());
-            worker.set_onmessage_closure(handler);
-            worker
+        let worker = cfg_match! {
+            feature = "std_web" => js! {
+                var worker = new Worker(@{name_of_resource});
+                var handler = @{handler};
+                worker.onmessage = function(event) {
+                    handler(event.data);
+                };
+                return worker;
+            },
+            feature = "web_sys" => ({
+                let worker = worker_new(name_of_resource, AGN::is_module());
+                worker.set_onmessage_closure(handler);
+                worker
+            }),
         };
         let bridge = PrivateBridge {
             worker,
@@ -495,17 +497,17 @@ impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
         // Use a queue to collect a messages if an instance is not ready
         // and send them to an agent when it will reported readiness.
         let msg = ToWorker::ProcessInput(SINGLETON_ID, msg).pack();
-        #[cfg(feature = "std_web")]
-        {
-            let worker = &self.worker;
-            js! {
-                var worker = @{worker};
-                var bytes = @{msg};
-                worker.postMessage(bytes);
-            };
+        cfg_match! {
+            feature = "std_web" => ({
+                let worker = &self.worker;
+                js! {
+                    var worker = @{worker};
+                    var bytes = @{msg};
+                    worker.postMessage(bytes);
+                };
+            }),
+            feature = "web_sys" => self.worker.post_message_vec(msg),
         }
-        #[cfg(feature = "web_sys")]
-        self.worker.post_message_vec(msg);
     }
 }
 
@@ -588,13 +590,13 @@ impl Discoverer for Public {
                                             local.borrow_mut().get_mut(&TypeId::of::<AGN>())
                                         {
                                             for msg in msgs.drain(..) {
-                                                #[cfg(feature = "std_web")]
-                                                {
-                                                    let worker = &worker;
-                                                    js! {@{worker}.postMessage(@{msg});};
+                                                cfg_match! {
+                                                    feature = "std_web" => ({
+                                                        let worker = &worker;
+                                                        js! {@{worker}.postMessage(@{msg});};
+                                                    }),
+                                                    feature = "web_sys" => worker.post_message_vec(msg),
                                                 }
-                                                #[cfg(feature = "web_sys")]
-                                                worker.post_message_vec(msg);
                                             }
                                         }
                                     });
@@ -606,23 +608,23 @@ impl Discoverer for Public {
                         }
                     };
                     let name_of_resource = AGN::name_of_resource();
-                    #[cfg(feature = "std_web")]
-                    let worker = js! {
-                        var worker = new Worker(@{name_of_resource});
-                        var handler = @{handler};
-                        worker.onmessage = function(event) {
-                            handler(event.data, worker);
-                        };
-                        return worker;
-                    };
-                    #[cfg(feature = "web_sys")]
-                    let worker = {
-                        let worker = worker_new(name_of_resource, AGN::is_module());
-                        let worker_clone = worker.clone();
-                        worker.set_onmessage_closure(move |data: Vec<u8>| {
-                            handler(data, &worker_clone);
-                        });
-                        worker
+                    let worker = cfg_match! {
+                        feature = "std_web" => js! {
+                            var worker = new Worker(@{name_of_resource});
+                            var handler = @{handler};
+                            worker.onmessage = function(event) {
+                                handler(event.data, worker);
+                            };
+                            return worker;
+                        },
+                        feature = "web_sys" => ({
+                            let worker = worker_new(name_of_resource, AGN::is_module());
+                            let worker_clone = worker.clone();
+                            worker.set_onmessage_closure(move |data: Vec<u8>| {
+                                handler(data, &worker_clone);
+                            });
+                            worker
+                        }),
                     };
                     let launched = RemoteAgent::new(worker, slab);
                     entry.insert(launched).create_bridge(callback)
@@ -683,14 +685,14 @@ fn send_to_remote<AGN: Agent>(
     // Use a queue to collect a messages if an instance is not ready
     // and send them to an agent when it will reported readiness.
     let msg = msg.pack();
-    #[cfg(feature = "std_web")]
-    js! {
-        var worker = @{worker};
-        var bytes = @{msg};
-        worker.postMessage(bytes);
-    };
-    #[cfg(feature = "web_sys")]
-    worker.post_message_vec(msg);
+    cfg_match! {
+        feature = "std_web" => js! {
+            var worker = @{worker};
+            var bytes = @{msg};
+            worker.postMessage(bytes);
+        },
+        feature = "web_sys" => worker.post_message_vec(msg),
+    }
 }
 
 impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
@@ -834,13 +836,13 @@ impl<AGN: Agent> Responder<AGN> for WorkerResponder {
     fn respond(&self, id: HandlerId, output: AGN::Output) {
         let msg = FromWorker::ProcessOutput(id, output);
         let data = msg.pack();
-        #[cfg(feature = "std_web")]
-        js! {
-            var data = @{data};
-            self.postMessage(data);
-        };
-        #[cfg(feature = "web_sys")]
-        worker_self().post_message_vec(data);
+        cfg_match! {
+            feature = "std_web" => js! {
+                var data = @{data};
+                self.postMessage(data);
+            },
+            feature = "web_sys" => worker_self().post_message_vec(data),
+        }
     }
 }
 
