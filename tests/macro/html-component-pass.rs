@@ -229,7 +229,16 @@ fn compile_pass() {
     html! {
         <ChildContainer int=1>
             <AltChild />
-            <Child int=1 />
+            {
+                html! {
+                    <Child int=1 />
+                }
+            }
+            {(0..2).map(|_| {
+                return html! {
+                    <Child int=1 />
+                }
+            }).collect::<Vec<VChild<Child>>>()}
         </ChildContainer>
     };
 
