@@ -21,6 +21,7 @@ travis-ci = { repository = "yewstack/yew" }
 [dependencies]
 anymap = "0.12"
 bincode = { version = "~1.2.1", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
 failure = "0.1"
 gloo = { version = "0.2", optional = true }
 http = "0.2"
@@ -60,6 +61,7 @@ features = [
   "FileReader",
   "FocusEvent",
   "Headers",
+  "HtmlElement",
   "HtmlInputElement",
   "HtmlSelectElement",
   "HtmlTextAreaElement",
@@ -86,9 +88,10 @@ features = [
   "WheelEvent",
   "Window",
   "Worker",
+  "WorkerOptions",
 ]
 
-[target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]
+[target.'cfg(all(not(target_os="wasi"), not(cargo_web)))'.dependencies]
 wasm-bindgen = "0.2.56"
 wasm-bindgen-futures = "0.4.4"
 
@@ -106,7 +109,7 @@ rustversion = "1.0"
 [features]
 default = ["services", "agent"]
 std_web = ["stdweb"]
-web_sys = ["gloo", "js-sys", "web-sys"]
+web_sys = ["console_error_panic_hook", "gloo", "js-sys", "web-sys"]
 doc_test = []
 web_test = []
 wasm_test = []

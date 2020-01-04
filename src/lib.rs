@@ -118,6 +118,8 @@ pub mod events {
 pub fn initialize() {
     #[cfg(feature = "std_web")]
     stdweb::initialize();
+    #[cfg(feature = "web_sys")]
+    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
 }
 
 /// Starts event loop.
