@@ -57,6 +57,7 @@ impl Classes {
     ///
     /// Prevents duplication of class names.
     pub fn push(&mut self, class: &str) {
+        let class = class.trim();
         if !class.is_empty() {
             self.set.insert(class.into());
         }
