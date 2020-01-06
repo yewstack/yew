@@ -22,8 +22,6 @@ Click the link below to learn how to build your first Yew app and learn from com
 
 {% page-ref page="getting-started/getting-started.md" %}
 
-### \*\*\*\*
-
 ### **Still not convinced?**
 
 This project is built on cutting edge technology and is great for developers who like to develop the foundational projects of tomorrow. Here are some reasons why we believe that frameworks like Yew are the future of web development.
@@ -48,3 +46,4 @@ We love to share ideas with other projects and believe we can all help each othe
 * [Percy](https://github.com/chinedufn/percy) - _"A modular toolkit for building isomorphic web apps with Rust + WebAssembly"_
 * [Seed](https://github.com/seed-rs/seed) - _"A Rust framework for creating web apps"_
 * [Smithy](https://github.com/rbalicki2/smithy) - _"A framework for building WebAssembly apps in Rust"_
+

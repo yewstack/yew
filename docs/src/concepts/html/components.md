@@ -4,8 +4,7 @@ description: Create complex layouts with component hierarchies
 
 # Components
 
-
-### Basic
+## Basic
 
 Any type that implements `Component` can be used in the `html!` macro:
 
@@ -24,7 +23,7 @@ html!{
 }
 ```
 
-### Nested
+## Nested
 
 Components can be passed children if they have a `children` field in their `Properties`.
 
@@ -62,8 +61,9 @@ impl Component for Container {
     }
 }
 ```
+{% endcode %}
 
-### Nested Children with Props
+## Nested Children with Props
 
 Nested component properties can be accessed and mutated if the containing component types its children. In the following example, the `List` component can wrap `ListItem` components. For a real world example of this pattern, check out the `yew-router` source code. For a more advanced example, check out the `nested-list` example in the main yew repository.
 
@@ -103,3 +103,5 @@ impl Component for List {
     }
 }
 ```
+{% endcode %}
+
