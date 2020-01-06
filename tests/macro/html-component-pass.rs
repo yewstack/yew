@@ -3,7 +3,7 @@
 use std::marker::PhantomData;
 use yew::prelude::*;
 use yew::html::ChildrenRenderer;
-use yew::virtual_dom::{VChild, VComp, VNode};
+use yew::virtual_dom::{VChild, VNode};
 
 pub struct Generic<G> {
     marker: PhantomData<G>,
@@ -46,37 +46,27 @@ impl Component for Container {
 
 #[derive(Clone)]
 pub enum ChildrenVariants {
-    Child(<Child as Component>::Properties),
-    AltChild(<AltChild as Component>::Properties),
+    Child(VChild<Child>),
+    AltChild(VChild<AltChild>),
 }
 
-impl From<ChildProperties> for ChildrenVariants {
-    fn from(props: ChildProperties) -> Self {
-        ChildrenVariants::Child(props)
+impl From<VChild<Child>> for ChildrenVariants {
+    fn from(comp: VChild<Child>) -> Self {
+        ChildrenVariants::Child(comp)
     }
 }
 
-impl From<()> for ChildrenVariants {
-    fn from(props: ()) -> Self {
-        ChildrenVariants::AltChild(props)
-    }
-}
-
-impl<CHILD> From<VChild<CHILD>> for ChildrenVariants
-where
-    CHILD: Component,
-    CHILD::Properties: Into<ChildrenVariants>,
-{
-    fn from(comp: VChild<CHILD>) -> Self {
-        comp.props.into()
+impl From<VChild<AltChild>> for ChildrenVariants {
+    fn from(comp: VChild<AltChild>) -> Self {
+        ChildrenVariants::AltChild(comp)
     }
 }
 
 impl Into<VNode> for ChildrenVariants {
     fn into(self) -> VNode {
         match self {
-            Self::Child(props) => VComp::new::<Child>(props, NodeRef::default()).into(),
-            Self::AltChild(props) => VComp::new::<AltChild>(props, NodeRef::default()).into(),
+            Self::Child(comp) => VNode::VComp(comp.into()),
+            Self::AltChild(comp) => VNode::VComp(comp.into()),
         }
     }
 }
@@ -235,11 +225,11 @@ fn compile_pass() {
                     <Child int=1 />
                 }
             }
-            {(0..2).map(|_| {
-                return html_nested! {
-                    <Child int=1 />
-                }
-            }).collect::<Vec<VChild<Child>>>()}
+            {
+                (0..2)
+                    .map(|i| { html_nested! { <Child int=i /> } })
+                    .collect::<Vec<_>>()
+            }
         </ChildContainer>
     };
 
