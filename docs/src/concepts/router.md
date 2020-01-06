@@ -1,5 +1,5 @@
 ---
-description: [Yew-Router crate](https://docs.rs/yew-router/)
+description: Yew-Router crate
 ---
 
 # Router
