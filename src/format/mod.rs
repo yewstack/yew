@@ -5,6 +5,7 @@
 //! use `Into` and `From` traits to get (convert) the data.
 
 use failure::Error;
+use failure::Fail;
 
 #[macro_use]
 pub mod macros;
@@ -13,6 +14,8 @@ pub mod macros;
 pub mod bincode;
 #[cfg(feature = "cbor")]
 pub mod cbor;
+#[cfg(feature = "cbor_packed")]
+pub mod cbor_packed;
 pub mod json;
 #[cfg(feature = "msgpack")]
 pub mod msgpack;
@@ -26,6 +29,8 @@ pub mod yaml;
 pub use self::bincode::Bincode;
 #[cfg(feature = "cbor")]
 pub use self::cbor::Cbor;
+#[cfg(feature = "cbor_packed")]
+pub use self::cbor_packed::CborPacked;
 pub use self::json::Json;
 #[cfg(feature = "msgpack")]
 pub use self::msgpack::MsgPack;
@@ -36,6 +41,9 @@ pub use self::toml::Toml;
 pub use self::yaml::Yaml;
 
 /// A representation of a value which can be stored and restored as a text.
+///
+/// Some formats are binary only and can't be serialized to or deserialized
+/// from Text.  Attempting to do so will return an Err(FormatError).
 pub type Text = Result<String, Error>;
 
 /// A representation of a value which can be stored and restored as a binary.
@@ -44,3 +52,16 @@ pub type Binary = Result<Vec<u8>, Error>;
 /// A helper which represents a specific format.
 #[doc(hidden)]
 pub type Format<T> = Result<T, Error>;
+
+/// Represents formatting errors.
+#[derive(Debug, Fail)]
+pub enum FormatError {
+    /// Received text for a binary format, e.g. someone sending text
+    /// on a WebSocket that is using a binary serialization format, like Cbor.
+    #[fail(display = "received text for a binary format")]
+    ReceivedTextForBinary,
+    /// Trying to encode a binary format as text", e.g., trying to
+    /// store a Cbor encoded value in a String.
+    #[fail(display = "trying to encode a binary format as Text")]
+    CantEncodeBinaryAsText,
+}

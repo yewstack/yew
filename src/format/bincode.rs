@@ -16,7 +16,9 @@ use bincode;
 /// let Bincode(data) = dump;
 ///# }
 /// ```
+/// This is a binary only format.
 #[derive(Debug)]
 pub struct Bincode<T>(pub T);
 
 binary_format!(Bincode, bincode::serialize, bincode::deserialize);
+text_format_is_an_error!(Bincode);

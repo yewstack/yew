@@ -62,6 +62,7 @@ agent = ["bincode"]
 yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
+cbor_packed = ["serde_cbor"]
 
 [workspace]
 members = [
