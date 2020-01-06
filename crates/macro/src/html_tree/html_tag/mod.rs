@@ -94,8 +94,6 @@ impl ToTokens for HtmlTag {
             booleans,
             kind,
             value,
-            checked,
-            selected,
             node_ref,
             href,
             listeners,
@@ -124,16 +122,6 @@ impl ToTokens for HtmlTag {
             quote_spanned! {href.span()=>
                 let __yew_href: ::yew::html::Href = (#href).into();
                 #vtag.add_attribute("href", &__yew_href);
-            }
-        });
-        let set_checked = checked.iter().map(|checked| {
-            quote_spanned! {checked.span()=> #vtag.set_checked(#checked); }
-        });
-        let add_selected = selected.iter().map(|selected| {
-            quote_spanned! {selected.span()=>
-                if #selected {
-                    #vtag.add_attribute("selected", &"selected");
-                }
             }
         });
         let set_classes = classes.iter().map(|classes_form| match classes_form {
@@ -167,9 +155,7 @@ impl ToTokens for HtmlTag {
             #(#set_kind)*
             #(#set_value)*
             #(#add_href)*
-            #(#set_checked)*
             #(#set_booleans)*
-            #(#add_selected)*
             #(#set_classes)*
             #(#set_node_ref)*
             #vtag.add_attributes(vec![#(#attr_pairs),*]);
