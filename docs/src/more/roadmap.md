@@ -4,6 +4,13 @@ description: The planned feature roadmap for the Yew framework
 
 # Roadmap
 
+## `v0.11.0`
+
+#### Planned Features
+
+* Easy generation of HTML fragments: [https://github.com/yewstack/yew/issues/743](https://github.com/yewstack/yew/issues/743)
+* Nested components v2: [https://github.com/yewstack/yew/pull/756](https://github.com/yewstack/yew/pull/756)
+
 ## `v1.0.0`
 
 #### Planned Features
