@@ -6,9 +6,9 @@ description: Out-of-band DOM access
 
 ## Refs
 
-The `ref` keyword can be used inside of any HTML element or component to get the dom `Element` that the item is attached to. This can be used to make changes to the DOM outside of the `view` hook. 
+The `ref` keyword can be used inside of any HTML element or component to get the DOM `Element` that the item is attached to. This can be used to make changes to the DOM outside of the `view` lifecycle method.
 
-This is useful for getting ahold of canvas elements, or telling divs to scroll to the bottom.
+This is useful for getting ahold of canvas elements, or scrolling to different sections of a page.
 
 The syntax is:
 
@@ -18,12 +18,9 @@ self.node_ref = NodeRef::default();
 
 // In view
 html! {
-    <div ref = self.node_ref.clone() ></div>
+    <div ref=&self.node_ref></div>
 }
 
 // In update
 let has_attributes = self.node_ref.try_into::<Element>().has_attributes();
 ```
-
-
-
