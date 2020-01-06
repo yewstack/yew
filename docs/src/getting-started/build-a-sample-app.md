@@ -17,7 +17,7 @@ authors = ["Yew App Developer <name@example.com>"]
 edition = "2018"
 
 [dependencies]
-yew = "0.10.0"
+yew = "0.11.0"
 ```
 {% endcode %}
 
@@ -25,10 +25,11 @@ Copy the following template into your `src/main.rs` file:
 
 {% code title="src/main.rs" %}
 ```rust
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Callback, Component, ComponentLink, Html, ShouldRender};
 
 struct App {
     clicked: bool,
+    onclick: Callback<()>,
 }
 
 enum Msg {
@@ -39,8 +40,11 @@ impl Component for App {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        App { clicked: false }
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        App {
+            clicked: false,
+            onclick: link.callback(|_| Msg::Click),
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -52,15 +56,11 @@ impl Component for App {
         }
     }
 
-    fn view(&self) -> Html<Self> {
-        let button_text = if self.clicked {
-            "Clicked!"
-        } else {
-            "Click me!"
-        };
+    fn view(&self) -> Html {
+        let button_text = if self.clicked { "Clicked!" } else { "Click me!" };
 
         html! {
-            <button onclick=|_| Msg::Click>{ button_text }</button>
+            <button onclick=&self.onclick>{ button_text }</button>
         }
     }
 }
@@ -71,7 +71,7 @@ fn main() {
 ```
 {% endcode %}
 
-This template sets up your root `Component`, called `App` which shows a button which updates itself when you click it. Take special note of `yew::start_app::<Model>()` which starts your app and mounts it to the page's `<body>` tag.
+This template sets up your root `Component`, called `App` which shows a button that updates itself when you click it. Take special note of `yew::start_app::<Model>()` inside `main()` which starts your app and mounts it to the page's `<body>` tag.
 
 ### Run your App!
 
@@ -81,5 +81,4 @@ Using [`cargo-web`](https://github.com/koute/cargo-web) is the quickest way to g
 cargo web start
 ```
 
-`cargo-web` will automatically add the `wasm32-unknown-unknown` target for you and then will build your app and make your application available at [http://\[::1\]:8000](http://[::1]:8000) by default. Consult `cargo web start --help` for other options.
-
+`cargo-web` will automatically add the `wasm32-unknown-unknown` target for you, build your app, and finally make it available at [http://\[::1\]:8000](http://[::1]:8000) by default. Consult `cargo web start --help` for other options.

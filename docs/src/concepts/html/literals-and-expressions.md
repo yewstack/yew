@@ -2,7 +2,7 @@
 
 ### Literals
 
-If expressions resolve to types that implement `Display`,  they will be converted to strings and inserted into the DOM as a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node. 
+If expressions resolve to types that implement `Display`,  they will be converted to strings and inserted into the DOM as a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node.
 
 All display text must be enclosed by `{}` blocks because text is handled like an expression. This is the largest deviation from normal HTML syntax that Yew makes.
 
@@ -19,7 +19,7 @@ html!{
 
 ### Expressions
 
-You can insert expressions in your HTML using `{}` blocks, as long as they resolve to `Html<_>`
+You can insert expressions in your HTML using `{}` blocks, as long as they resolve to `Html`
 
 ```rust
 html! {
@@ -41,7 +41,7 @@ It often makes sense to extract these expressions into functions or closures to 
 
 ```rust
 let show_link = true;
-let maybe_display_link = move || -> Html<MyComponent> {
+let maybe_display_link = move || -> Html {
   if show_link {
     html! {
       <a href="https://example.com">{"Link"}</a>
@@ -56,7 +56,6 @@ html! {
 }
 ```
 
-### 
+###
 
-### 
-
+###
