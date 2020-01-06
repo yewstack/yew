@@ -71,7 +71,7 @@ fn main() {
 ```
 {% endcode %}
 
-This template sets up your root `Component`, called `App` which shows a button that updates itself when you click it. Take special note of `yew::start_app::<Model>()` inside `main()` which starts your app and mounts it to the page's `<body>` tag.
+This template sets up your root `Component`, called `App` which shows a button that updates itself when you click it. Take special note of `yew::start_app::<Model>()` inside `main()` which starts your app and mounts it to the page's `<body>` tag. If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props(..)`.
 
 ### Run your App!
 
@@ -82,3 +82,4 @@ cargo web start
 ```
 
 `cargo-web` will automatically add the `wasm32-unknown-unknown` target for you, build your app, and finally make it available at [http://\[::1\]:8000](http://[::1]:8000) by default. Consult `cargo web start --help` for other options.
+
