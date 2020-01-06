@@ -12,7 +12,7 @@ use syn::buffer::Cursor;
 use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
-use syn::{Ident, Index, Token};
+use syn::{Ident, Token};
 use tag_attributes::{ClassesForm, TagAttributes};
 
 pub struct HtmlTag {
@@ -161,10 +161,6 @@ impl ToTokens for HtmlTag {
             }}
         });
 
-        let i = (0..children.len())
-            .map(|x| Index::from(x))
-            .collect::<Vec<_>>();
-
         tokens.extend(quote! {{
             let mut #vtag = ::yew::virtual_dom::vtag::VTag::new(#name);
             #(#set_kind)*
@@ -179,9 +175,7 @@ impl ToTokens for HtmlTag {
             #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
             #vtag.add_children({
                 let mut v = ::std::vec::Vec::new();
-                let comps = (#(#children,)*);
-                #(::yew::utils::NodeSeq::from(comps.#i).into_iter()
-                    .for_each(|x| v.push(x.into()));)*
+                #(v.extend(::yew::utils::NodeSeq::from(#children));)*
                 v
             });
             ::yew::virtual_dom::VNode::from(#vtag)

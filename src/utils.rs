@@ -1,9 +1,8 @@
 //! This module contains useful utils to get information about the current document.
 
 use failure::{err_msg, Error};
+use std::marker::PhantomData;
 use stdweb::web::document;
-
-use crate::virtual_dom::VNode;
 
 /// Returns `host` for the current document. Useful to connect to a server that server the app.
 pub fn host() -> Result<String, Error> {
@@ -15,24 +14,25 @@ pub fn host() -> Result<String, Error> {
 
 /// Specialty type necessary for helping flattening components returned from nested html macros.
 #[derive(Debug)]
-pub struct NodeSeq<T>(Vec<T>)
-where
-    T: Into<VNode>;
+pub struct NodeSeq<IN, OUT>(Vec<OUT>, PhantomData<IN>);
 
-impl<T: Into<VNode>> From<T> for NodeSeq<T> {
-    fn from(val: T) -> Self {
-        NodeSeq(vec![val])
+impl<IN: Into<OUT>, OUT> From<IN> for NodeSeq<IN, OUT> {
+    fn from(val: IN) -> Self {
+        Self(vec![val.into()], PhantomData::default())
     }
 }
 
-impl<T: Into<VNode>> From<Vec<T>> for NodeSeq<T> {
-    fn from(val: Vec<T>) -> Self {
-        NodeSeq(val)
+impl<IN: Into<OUT>, OUT> From<Vec<IN>> for NodeSeq<IN, OUT> {
+    fn from(val: Vec<IN>) -> Self {
+        Self(
+            val.into_iter().map(|x| x.into()).collect(),
+            PhantomData::default(),
+        )
     }
 }
 
-impl<T: Into<VNode>> IntoIterator for NodeSeq<T> {
-    type Item = T;
+impl<IN: Into<OUT>, OUT> IntoIterator for NodeSeq<IN, OUT> {
+    type Item = OUT;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {

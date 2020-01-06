@@ -4,7 +4,7 @@ use boolinator::Boolinator;
 use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::{Index, Token};
+use syn::Token;
 
 pub struct HtmlList(pub Vec<HtmlTreeNested>);
 
@@ -50,16 +50,11 @@ impl Parse for HtmlList {
 impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let children = &self.0;
-        let i = (0..children.len())
-            .map(|x| Index::from(x))
-            .collect::<Vec<_>>();
         tokens.extend(quote! {
             ::yew::virtual_dom::VNode::VList(
                 ::yew::virtual_dom::vlist::VList::new_with_children({
                     let mut v = ::std::vec::Vec::new();
-                    let comps = (#(#children,)*);
-                    #(::yew::utils::NodeSeq::from(comps.#i).into_iter()
-                        .for_each(|x| v.push(x.into()));)*
+                    #(v.extend(::yew::utils::NodeSeq::from(#children));)*
                     v
                 })
             )
