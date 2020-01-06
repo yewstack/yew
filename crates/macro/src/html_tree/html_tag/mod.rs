@@ -3,7 +3,7 @@ mod tag_attributes;
 use super::HtmlDashedName as TagName;
 use super::HtmlProp as TagAttribute;
 use super::HtmlPropSuffix as TagSuffix;
-use super::HtmlTreeNested;
+use super::HtmlTree;
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::Span;
@@ -18,7 +18,7 @@ use tag_attributes::{ClassesForm, TagAttributes};
 pub struct HtmlTag {
     tag_name: TagName,
     attributes: TagAttributes,
-    children: Vec<HtmlTreeNested>,
+    children: Vec<HtmlTree>,
 }
 
 impl PeekValue<()> for HtmlTag {
@@ -51,7 +51,7 @@ impl Parse for HtmlTag {
             });
         }
 
-        let mut children: Vec<HtmlTreeNested> = vec![];
+        let mut children: Vec<HtmlTree> = vec![];
         loop {
             if input.is_empty() {
                 return Err(syn::Error::new_spanned(

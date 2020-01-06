@@ -55,7 +55,7 @@ impl Component for Model {
 
 impl Model {
     fn view_cols(&self) -> Html {
-        let render = |idx: usize| {
+        let render = |idx| {
             html! {
                 <td>{ idx }</td>
             }

@@ -7,23 +7,6 @@ use syn::spanned::Spanned;
 use syn::Expr;
 use syn::Lit;
 
-use proc_macro2::{Ident, Span};
-use syn::visit_mut::{self, VisitMut};
-use syn::Macro;
-
-struct HtmlInnerModifier;
-impl VisitMut for HtmlInnerModifier {
-    fn visit_macro_mut(&mut self, node: &mut Macro) {
-        if node.path.is_ident("html") {
-            let ident = &mut node.path.segments.last_mut().unwrap().ident;
-            *ident = Ident::new("html_nested", Span::call_site());
-        }
-
-        // Delegate to the default impl to visit any nested functions.
-        visit_mut::visit_macro_mut(self, node);
-    }
-}
-
 pub struct HtmlNode(Node);
 
 impl Parse for HtmlNode {
@@ -36,9 +19,7 @@ impl Parse for HtmlNode {
             }
             Node::Literal(lit)
         } else {
-            let mut expr: Expr = input.parse()?;
-            HtmlInnerModifier.visit_expr_mut(&mut expr);
-            Node::Expression(expr)
+            Node::Expression(input.parse()?)
         };
 
         Ok(HtmlNode(node))

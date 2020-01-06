@@ -1,36 +1,26 @@
 error[E0277]: `()` doesn't implement `std::fmt::Display`
- --> $DIR/html-block-fail.rs:4:5
+ --> $DIR/html-block-fail.rs:6:15
   |
-4 | /     html! {
-5 | |         <>
-6 | |             { () }
-7 | |         </>
-8 | |     };
-  | |______^ `()` cannot be formatted with the default formatter
+6 |             { () }
+  |               ^^ `()` cannot be formatted with the default formatter
   |
   = help: the trait `std::fmt::Display` is not implemented for `()`
   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
-  = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
-  = note: required because of the requirements on the impl of `std::iter::IntoIterator` for `yew::utils::NodeSeq<(), yew::virtual_dom::vnode::VNode>`
-  = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+  = note: required by `std::convert::From::from`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-block-fail.rs:11:5
+  --> $DIR/html-block-fail.rs:12:16
    |
-11 | /     html! {
-12 | |         <div>{ not_tree() }</div>
-13 | |     };
-   | |______^ `()` cannot be formatted with the default formatter
+12 |         <div>{ not_tree() }</div>
+   |                ^^^^^^^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
    = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
-   = note: required because of the requirements on the impl of `std::iter::IntoIterator` for `yew::utils::NodeSeq<(), yew::virtual_dom::vnode::VNode>`
-   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+   = note: required by `std::convert::From::from`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-block-fail.rs:15:17

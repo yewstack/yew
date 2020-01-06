@@ -1,4 +1,4 @@
-use super::HtmlTreeNested;
+use super::HtmlTree;
 use crate::PeekValue;
 use boolinator::Boolinator;
 use quote::{quote, ToTokens};
@@ -6,7 +6,7 @@ use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::Token;
 
-pub struct HtmlList(pub Vec<HtmlTreeNested>);
+pub struct HtmlList(pub Vec<HtmlTree>);
 
 impl PeekValue<()> for HtmlList {
     fn peek(cursor: Cursor) -> Option<()> {
@@ -36,7 +36,7 @@ impl Parse for HtmlList {
             ));
         }
 
-        let mut children: Vec<HtmlTreeNested> = vec![];
+        let mut children: Vec<HtmlTree> = vec![];
         while HtmlListClose::peek(input.cursor()).is_none() {
             children.push(input.parse()?);
         }

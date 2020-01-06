@@ -79,7 +79,7 @@ fn compile_fail() {
     html! { <ChildContainer></ChildContainer> };
     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
     html! { <ChildContainer><></></ChildContainer> };
-    html! { <ChildContainer><Child int=1 /><other /></ChildContainer> };
+    html! { <ChildContainer><other /></ChildContainer> };
 
     html! { <Generic<String>></Generic> };
     html! { <Generic<String>></Generic<Vec<String>>> };

@@ -229,13 +229,14 @@ fn compile_pass() {
     html! {
         <ChildContainer int=1>
             <AltChild />
+            <Child int=1 />
             {
-                html! {
+                html_nested! {
                     <Child int=1 />
                 }
             }
             {(0..2).map(|_| {
-                return html! {
+                return html_nested! {
                     <Child int=1 />
                 }
             }).collect::<Vec<VChild<Child>>>()}
@@ -249,18 +250,6 @@ fn compile_pass() {
             <Generic<Vec<String>> />
             <Generic<Vec<String>>></ Generic<Vec<String>>>
         </>
-    };
-
-    html! {
-        <div>
-            {
-                if true {
-                    html! { <Container int=1 /> }
-                } else {
-                    html! {}
-                }
-            }
-        </div>
     };
 }
 
