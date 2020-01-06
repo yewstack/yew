@@ -116,10 +116,7 @@ impl VTag {
     /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
     /// call later.
     pub fn add_class(&mut self, class: &str) {
-        let class = class.trim();
-        if !class.is_empty() {
-            self.classes.push(class);
-        }
+        self.classes.push(class);
     }
 
     /// Adds multiple classes to this virtual node. Actually it will set by
@@ -127,10 +124,7 @@ impl VTag {
     /// call later.
     pub fn add_classes(&mut self, classes: Vec<&str>) {
         for class in classes {
-            let class = class.trim();
-            if !class.is_empty() {
-                self.classes.push(class);
-            }
+            self.classes.push(class);
         }
     }
 
