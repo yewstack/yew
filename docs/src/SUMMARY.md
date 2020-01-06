@@ -16,6 +16,7 @@
   * [Lists](concepts/html/lists.md)
   * [Elements](concepts/html/elements.md)
   * [Literals & Expressions](concepts/html/literals-and-expressions.md)
+  * [Components](concepts/html/components.md)
 * [Components](concepts/components/README.md)
   * [Properties](concepts/components/properties.md)
   * [Callbacks](concepts/components/callbacks.md)
@@ -35,4 +36,3 @@
 * [Testing](more/testing.md)
 * [External Libs](more/external-libs.md)
 * [web-sys](more/web-sys.md)
-

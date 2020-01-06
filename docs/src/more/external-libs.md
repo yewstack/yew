@@ -20,5 +20,4 @@ Yewtil is a collection of common utilities that help you write Yew programs. It 
 
 Libraries that the ecosystem needs, but doesn't have yet.
 
-Bootstrap/MaterialUi/arbitrary css framewrok component wrappers.
-
+Bootstrap/MaterialUi/arbitrary css framework component wrappers.

@@ -23,14 +23,14 @@ It often makes sense to derive `PartialEq` on your props if you can. This makes 
 Remember the component's `view` function signature:
 
 ```rust
-fn view(&self) -> Html<Self>
+fn view(&self) -> Html
 ```
 
-You take a reference of the component's state, and use that to create `Html<_>`. But properties are owned values. This means that in order to create them and pass them to child components, we need to get ownership of the references provided in the `view` function. This is done by implicitly cloning the references as they are passed to components in order to get owned values that constitute their props.
+You take a reference of the component's state, and use that to create `Html`. But properties are owned values. This means that in order to create them and pass them to child components, we need to get ownership of the references provided in the `view` function. This is done by implicitly cloning the references as they are passed to components in order to get owned values that constitute their props.
 
-This means that each component has its own distinct copy of state passed down from its parent, and that whenever you re-render a component, the props for all child components of the re-rendering component will have to be cloned. 
+This means that each component has its own distinct copy of state passed down from its parent, and that whenever you re-render a component, the props for all child components of the re-rendering component will have to be cloned.
 
-The implication of this is if you would otherwise be passing _huge_ amounts of data down as props \(Strings that are 10s of kilobytes in size\), you may want to consider turning your child component into a `Html<_>`-returning function that runs in the parent, as you aren't forced to clone your data. 
+The implication of this is if you would otherwise be passing _huge_ amounts of data down as props \(Strings that are 10s of kilobytes in size\), you may want to consider turning your child component into a `Html`-returning function that runs in the parent, as you aren't forced to clone your data.
 
 Alternatively, if you won't need to alter the large data that is passed as props, and only will display it, you can wrap it in an `Rc` so that only a ref-counted pointer is cloned,  instead of the data itself.
 
@@ -48,7 +48,7 @@ pub struct LinkColor {
 impl Default for LinkColor {
     fn default() -> Self {
         // The link color will be Blue unless otherwise specified.
-        LinkColor::Blue 
+        LinkColor::Blue
     }
 }
 
@@ -58,7 +58,7 @@ pub struct LinkProps {
     #[props(required)]
     href: String,
     /// If the link text is huge, this will make copying the string much cheaper.
-    /// This isn't usually recromended unless performance is a problem.
+    /// This isn't usually recommended unless performance is a problem.
     #[props(required)]
     text: Rc<String>,
     /// Color of the link.
@@ -67,4 +67,3 @@ pub struct LinkProps {
     size: Option<u32>
 }
 ```
-

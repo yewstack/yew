@@ -2,7 +2,7 @@
 
 ## Build Tools
 
-You actually don't need extra build tools to release a Yew application but we recommend them. They make deployment and packaging much less of a headache by generating all of the wrapper JavaScript code necessary to run the `.wasm` file from you app in the browser. 
+You actually don't need extra build tools to release a Yew application but we recommend them. They make deployment and packaging much less of a headache by generating all of the wrapper JavaScript code necessary to run the `.wasm` file from you app in the browser.
 
 You can check out the [Starter Templates](starter-templates.md) to get up and running quickly or read on to learn more about your options.
 
@@ -11,10 +11,10 @@ You can check out the [Starter Templates](starter-templates.md) to get up and ru
 This tool was created by the Rust / Wasm Working Group and is the most actively developed tool for building WebAssembly applications. It supports packaging code into `npm` modules and has an accompanying [Webpack plugin](https://github.com/wasm-tool/wasm-pack-plugin) for easy integration with an existing JavaScript application. Find more information [here](https://rustwasm.github.io/docs/wasm-pack/introduction.html).
 
 {% hint style="info" %}
-Note that the crate-type in your `Cargo.toml` will need to be `cdylib`when using `wasm-pack`
+Note that the crate-type in your `Cargo.toml` will need to be `cdylib` when using `wasm-pack`
 {% endhint %}
 
-**Install**
+#### Install
 
 ```bash
 cargo install wasm-pack
@@ -77,6 +77,5 @@ cargo web start
 * `asmjs-unknown-emscripten`
 
 {% hint style="info" %}
-For `*-emscripten` targets, `cargo-web` will automatically install the Emscripten SDK and target for you.
+For `*-emscripten` targets, you'll need to install the Emscripten SDK
 {% endhint %}
-

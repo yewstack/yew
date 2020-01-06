@@ -57,14 +57,14 @@ html! {
     <div>
         <div data-key="abc"></div>
         <div class="parent">
-            <span class="child", value="anything",></span>
-            <label for="first-name">{"First Name"}</label>
+            <span class="child" value="anything"></span>
+            <label for="first-name">{ "First Name" }</label>
             <input type="text" id="first-name" value="placeholder" />
             <input type="checkbox" checked=true />
             <textarea value="write a story" />
             <select name="status">
-                <option selected=true disabled=false value="">{"Selected"}</option>
-                <option selected=false disabled=true value="">{"Unselected"}</option>
+                <option selected=true disabled=false value="">{ "Selected" }</option>
+                <option selected=false disabled=true value="">{ "Unselected" }</option>
             </select>
         </div>
     </div>
@@ -180,9 +180,9 @@ impl Component for MyComponent {
         }
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         // Create a callback from a component link to handle it in a component
-        let click_callback = self.link.send_back(|_: ClickEvent| Msg::Click);
+        let click_callback = self.link.callback(|_: ClickEvent| Msg::Click);
         html! {
             <button onclick=click_callback>
                 { "Click me!" }
@@ -213,9 +213,9 @@ impl Component for MyComponent {
         false
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         // Create a callback from a worker to handle it in another context
-        let click_callback = self.worker.send_back(|_: ClickEvent| WorkerMsg::Process);
+        let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
         html! {
             <button onclick=click_callback>
                 { "Click me!" }
@@ -242,12 +242,12 @@ impl Component for MyComponent {
         false
     }
 
-    fn view(&self) -> Html<Self> {
+    fn view(&self) -> Html {
         // Create an ephemeral callback
         let click_callback = Callback::from(|| {
             ConsoleService::new().log("clicked!");
         });
-        
+
         html! {
             <button onclick=click_callback>
                 { "Click me!" }
@@ -258,20 +258,3 @@ impl Component for MyComponent {
 ```
 {% endtab %}
 {% endtabs %}
-
-### Listeners Continued...
-
-Closures declared _within_ a `html!` macro are automatically converted to `Callbacks`. These callbacks will return messages to the component. The Yew framework will likely discontinue this syntax in the future and do not recommend its usage.
-
-```rust
-pub enum Msg {
-    Click
-}
-
-html!{
-    <button onclick=|_| Msg::Click>{ "Click Me!" }</button>
-}
-```
-
-### 
-
