@@ -233,6 +233,38 @@ fn compile_pass() {
         </ChildContainer>
     };
 
+    let variants = || -> Vec<ChildrenVariants> {
+        vec![
+            ChildrenVariants::Child(VChild::new(ChildProperties::default(), NodeRef::default())),
+            ChildrenVariants::AltChild(VChild::new((), NodeRef::default())),
+        ]
+    };
+
+    html! {
+        <>
+            {
+                variants()
+                    .into_iter()
+                    .filter(|c| match c {
+                        ChildrenVariants::Child(_) => true,
+                        _ => false,
+                    })
+                    .collect::<VNode>()
+            }
+            <div>
+                {
+                    variants()
+                        .into_iter()
+                        .filter(|c| match c {
+                            ChildrenVariants::AltChild(_) => true,
+                            _ => false,
+                        })
+                        .collect::<VNode>()
+                }
+            </div>
+        </>
+    };
+
     html! {
         <>
             <Generic<String> />
