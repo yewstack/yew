@@ -13,6 +13,7 @@ pub struct TagAttributes {
     pub booleans: Vec<TagAttribute>,
     pub value: Option<Expr>,
     pub kind: Option<Expr>,
+    pub checked: Option<Expr>,
     pub node_ref: Option<Expr>,
     pub href: Option<Expr>,
 }
@@ -28,7 +29,6 @@ lazy_static! {
             vec![
                 "async",
                 "autofocus",
-                "checked",
                 "controls",
                 "default",
                 "defer",
@@ -187,6 +187,7 @@ impl Parse for TagAttributes {
             TagAttributes::remove_attr(&mut attributes, "class").map(TagAttributes::map_classes);
         let value = TagAttributes::remove_attr(&mut attributes, "value");
         let kind = TagAttributes::remove_attr(&mut attributes, "type");
+        let checked = TagAttributes::remove_attr(&mut attributes, "checked");
         let node_ref = TagAttributes::remove_attr(&mut attributes, "ref");
         let href = TagAttributes::remove_attr(&mut attributes, "href");
 
@@ -194,6 +195,7 @@ impl Parse for TagAttributes {
             attributes,
             classes,
             listeners,
+            checked,
             booleans,
             value,
             kind,
