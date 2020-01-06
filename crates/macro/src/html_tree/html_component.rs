@@ -127,9 +127,11 @@ impl ToTokens for HtmlComponent {
 
         let set_children = if !children.is_empty() {
             quote! {
-                .children(::yew::html::ChildrenRenderer::new(
-                    vec![#(#children.into(),)*]
-                ))
+                .children(::yew::html::ChildrenRenderer::new({
+                    let mut v = ::std::vec::Vec::new();
+                    #(v.extend(::yew::utils::NodeSeq::from(#children));)*
+                    v
+                }))
             }
         } else {
             quote! {}
