@@ -21,14 +21,11 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-yew = "0.10.0"
+yew = "0.11.0"
 wasm-bindgen = "0.2"
 ```
 {% endcode %}
 
-## Parcel 
+## Parcel
 
 * [Parcel Template](https://github.com/spielrs/yew-parcel-template) - Created by a community member and uses [Parcel](https://parceljs.org/)
-
-
-
