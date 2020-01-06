@@ -4,11 +4,11 @@ description: Set yourself up for success
 
 # Installation
 
-### Rust
+## Rust
 
-First, you'll need Rust. To install Rust and the `cargo` build tool, follow the ****[**official instructions**](https://www.rust-lang.org/tools/install)**.**
+First, you'll need Rust. To install Rust and the `cargo` build tool, follow the [official instructions](https://www.rust-lang.org/tools/install).
 
-### **Build Tools**
+## **Build Tools**
 
 [**`wasm-pack`**](https://rustwasm.github.io/docs/wasm-pack/) is a tool developed by the Rust / Wasm Working Group and is the **recommended** tool for building your application. Install using the official [**install instructions**](https://rustwasm.github.io/wasm-pack/installer/)**.**
 
@@ -17,3 +17,4 @@ First, you'll need Rust. To install Rust and the `cargo` build tool, follow the 
 ```bash
 cargo install cargo-web
 ```
+

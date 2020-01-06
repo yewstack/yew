@@ -10,7 +10,7 @@ Agents that run concurrently use [web-workers](https://developer.mozilla.org/en-
 
 ## Lifecycle
 
-
+&lt;TODO&gt;
 
 ## Types of Agents
 
@@ -34,7 +34,7 @@ Dispatchers are like bridges, but they can only send messages to agents.
 
 ## Overhead
 
-Agents communicate by serializing their messages using bincode\(???\). So there is a higher performance cost then just calling functions. Unless the cost of computation or the need to coordinate across arbitrary components will outweigh the cost of message passing, you should contain your logic to functions where possible.
+Agents communicate by serializing their messages using bincode\(???\). So there is a higher performance cost than just calling functions. Unless the cost of computation or the need to coordinate across arbitrary components will outweigh the cost of message passing, you should contain your logic to functions where possible.
 
 
 
