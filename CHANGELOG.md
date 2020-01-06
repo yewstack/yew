@@ -1,6 +1,8 @@
 # Changelog
 
-## ✨ **0.11** *(TBD)*
+## ✨ **0.11** *(2020-01-06)*
+
+This release aims to lay the groundwork for Yew component libraries and clean up the API for the ever elusive 1.0 release.
 
 ### Transition Guide
 
@@ -8,7 +10,7 @@ This release comes with a lot of breaking changes. We understand it's a hassle t
 
 #### 1. Callback syntax
 
-This is the main painful breaking change. It applies to both element listeners as well as `Component` callback properties. A good rule of thumb is that your components will now have to retain a `ComponentLink` to create callbacks on demand.
+This is the main painful breaking change. It applies to both element listeners as well as `Component` callback properties. A good rule of thumb is that your components will now have to retain a `ComponentLink` to create callbacks on demand or initialize callbacks in your component's `create()` method.
 
 Before:
 ```rust
@@ -80,7 +82,7 @@ If a closure has a parameter you will now need to specify the parameter's type. 
 For example, `onkeydown` of `<button>`:
 
 ```
-let onkeydown_callback = self.link.callback(|e: KeyDownEvent| {
+let onkeydown = self.link.callback(|e: KeyDownEvent| {
     // ...
 });
 ```
@@ -89,15 +91,11 @@ and
 
 ```
 html! {
-    <button
-        onkeydown=onkeydown_callback,
-        type="button">
+    <button onkeydown=onkeydown type="button">
         { "button" }
     </button>
 }
 ```
-
-Performance optimization note: If the callback is initialized in `create()` and persisted to the component's struct, potential reinitializations in `view()` can be avoided.
 
 #### 2. Method Renames
 
@@ -139,8 +137,18 @@ impl Component for Model {
 }
 ```
 
+#### 4. Properties must implement `Clone`
+
+In yew v0.8 we removed the requirement that component properties implement `Clone`
+and in this release we are adding the requirement again. This change is needed
+to improve the ergonomics of nested components. The only time properties will be
+cloned is when a wrapper component re-renders nested children components.
+
 - #### ⚡️ Features
 
+  - Added `html_nested!` macro to support nested iterable children access. [[@trivigy], [#843](https://github.com/yewstack/yew/pull/843)]
+  - Added `bincode` to the list of supported formats. [[@serzhiio], [#806](https://github.com/yewstack/yew/pull/806)]
+  - Added a `noop()` convenience method to `Callback` which creates a no-op callback. [[@mdtusz], [#793](https://github.com/yewstack/yew/pull/793)]
   - The `html!` macro now accepts a `Callback` for element listeners. [[@jstarry], [#777](https://github.com/yewstack/yew/pull/777)]
 
   ```rust
@@ -178,6 +186,7 @@ impl Component for Model {
 
   - Add `send_message_batch` method to `ComponentLink`. [[@hgzimmerman], [#748](https://github.com/yewstack/yew/pull/748)]
   - Allow compilation to `wasi` target without `wasm_bindgen`. [[@dunnock], [#746](https://github.com/yewstack/yew/pull/746)]
+  - `AgentLink` now implements `Clone` which enables `Future` usage without explicit Yew framework support. [[@izissise], [#802](https://github.com/yewstack/yew/pull/802)]
   - `ComponentLink` now implements `Clone` which enables `Future` usage without explicit Yew framework support. [[@hgzimmerman], [#749](https://github.com/yewstack/yew/pull/749)]
 
   ```rust
@@ -196,6 +205,21 @@ impl Component for Model {
 
 - #### 🛠 Fixes
 
+  - Fixed handling of boolean tag attributes. [[@mrh0057], [#840](https://github.com/yewstack/yew/pull/840)]
+  - Improved nested component ergonomics. [[@jstarry], [#780](https://github.com/yewstack/yew/pull/780)]
+
+  ```rust
+  fn view(&self) -> Html {
+      html! {
+          <Wrapper>
+              // This is now valid. (before #780, this would cause a lifetime
+              // compile error because children nodes were moved into a closure)
+              <Nested on_click=&self.nested_on_click />
+          </Wrapper>
+      }
+  }
+  ```
+
   - Creating a `Callback` with `ComponentLink` is no longer restricted to mutable references, improving ergonomics. [[@jstarry], [#780](https://github.com/yewstack/yew/pull/780)]
   - The `Callback` `reform` method no longer consumes self making it easier to "reverse map" a `Callback`. [[@jstarry], [#779](https://github.com/yewstack/yew/pull/779)]
 
@@ -204,7 +228,7 @@ impl Component for Model {
       props: Props,
   }
 
-  #[derive(Properties)]
+  #[derive(Properties, Clone)]
   pub struct Props {
       #[props(required)]
       pub on_hover: Callback<Hovered>,
@@ -240,8 +264,12 @@ impl Component for Model {
 
 - #### 🚨 Breaking changes
 
+  - Components with generic args now need to be closed with the full type path. (e.g. `html! { <Wrapper<String>></Wrapper<String>>}`) [[@jstarry], [#837](https://github.com/yewstack/yew/pull/837)]
+  - Changed `VTag` listener type from `Box<dyn Listener>` to `Rc<dyn Listener>`. [[@jstarry], [#786](https://github.com/yewstack/yew/pull/786)]
+  - `Properties` need to implement `Clone` again in order to improve nested component ergonomics. [[@jstarry], [#786](https://github.com/yewstack/yew/pull/786)]
+  - Removed `send_future` method from `ComponentLink` since it is no longer necessary for using Futures with Yew. [[@hgzimmerman], [#799](https://github.com/yewstack/yew/pull/799)]
   - Removed generic type parameter from `Html` and all virtual node types: `VNode`, `VComp`, `VTag`, `VList`, `VText`, etc. [[@jstarry], [#783](https://github.com/yewstack/yew/pull/783)]
-  - Removed support for macro magic closure syntax for element listeners. (See above for how to pass a `Callback` explicitly instead). [[@jstarry], [#782](https://github.com/yewstack/yew/pull/782)]
+  - Removed support for macro magic closure syntax for element listeners. (See transition guide for how to pass a `Callback` explicitly instead). [[@jstarry], [#782](https://github.com/yewstack/yew/pull/782)]
   - Renamed `Agent` methods and event type for clarity. `handle` -> `handle_input`, `AgentUpdate` -> `AgentLifecycleEvent`, `response` -> `respond`. [[@philip-peterson], [#751](https://github.com/yewstack/yew/pull/751)]
   - The `ComponentLink` `send_back` method has been renamed to `callback` for clarity. [[@jstarry], [#780](https://github.com/yewstack/yew/pull/780)]
   - The `ComponentLink` `send_self` and `send_self_batch` methods have been renamed to `send_message` and `send_message_batch` for clarity. [[@jstarry], [#780](https://github.com/yewstack/yew/pull/780)]
@@ -620,12 +648,16 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@dermetfan]: https://github.com/dermetfan
 [@dunnock]: https://github.com/dunnock
 [@hgzimmerman]: https://github.com/hgzimmerman
+[@izissise]: https://github.com/izissise
 [@jstarry]: https://github.com/jstarry
 [@kellytk]: https://github.com/kellytk
 [@lizhaoxian]: https://github.com/lizhaoxian
+[@mdtusz]: https://github.com/mdtusz
+[@mrh0057]: https://github.com/mrh0057
 [@philip-peterson]: https://github.com/philip-peterson
 [@serzhiio]: https://github.com/serzhiio
 [@stkevintan]: https://github.com/stkevintan
 [@tiziano88]: https://github.com/tiziano88
+[@trivigy]: https://github.com/trivigy
 [@totorigolo]: https://github.com/totorigolo
 [@Wodann]: https://github.com/Wodann
