@@ -4,7 +4,7 @@ version = "0.11.1"
 edition = "2018"
 authors = [
     "Denis Kolodin <deniskolodin@gmail.com>",
-    "Justin Starry <justin.starry@icloud.com>",
+    "Justin Starry <justin@yew.rs>",
 ]
 repository = "https://github.com/yewstack/yew"
 homepage = "https://github.com/yewstack/yew"
