@@ -2,7 +2,7 @@
 name = "yew-macro"
 version = "0.11.1"
 edition = "2018"
-authors = ["Justin Starry <justin.starry@icloud.com>"]
+authors = ["Justin Starry <justin@yew.rs>"]
 repository = "https://github.com/yewstack/yew"
 homepage = "https://github.com/yewstack/yew"
 documentation = "https://docs.rs/yew-macro/"
