@@ -38,7 +38,6 @@ serde_yaml = { version = "0.8.3", optional = true }
 slab = "0.4"
 stdweb = { version = "0.4.20", optional = true }
 toml = { version = "0.5", optional = true }
-wee_alloc = { version = "0.4.5", optional = true }
 yew-macro = { version = "0.10.1", path = "crates/macro" }
 
 [dependencies.web-sys]
@@ -93,6 +92,7 @@ features = [
 ]
 
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]
+wee_alloc1 = { package = "allocator", path = "crates/allocator", optional = true }
 wasm-bindgen = "0.2.56"
 wasm-bindgen-futures = "0.4.4"
 
@@ -108,9 +108,10 @@ trybuild = "1.0"
 rustversion = "1.0"
 
 [features]
-default = ["services", "agent"]
+default = ["services", "agent", "wee_alloc"]
 std_web = ["stdweb"]
-web_sys = ["console_error_panic_hook", "gloo", "js-sys", "web-sys", "wee_alloc"]
+web_sys = ["console_error_panic_hook", "gloo", "js-sys", "web-sys", "wee_alloc1/web_sys"]
+wee_alloc = ["wee_alloc1"]
 doc_test = []
 web_test = []
 wasm_test = []

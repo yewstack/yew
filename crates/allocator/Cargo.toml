@@ -1,0 +1,11 @@
+[package]
+name = "allocator"
+version = "0.1.0"
+authors = ["Justin Starry <justin.starry@icloud.com>"]
+edition = "2018"
+
+[target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]
+wee_alloc = { version = "0.4", optional = true }
+
+[features]
+web_sys = ["wee_alloc"]
