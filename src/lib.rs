@@ -96,6 +96,7 @@ pub mod services;
 pub mod events {
     pub use crate::html::{ChangeData, InputData};
 
+    #[cfg(feature = "std_web")]
     pub use stdweb::web::event::{
         BlurEvent, ClickEvent, ContextMenuEvent, DoubleClickEvent, DragDropEvent, DragEndEvent,
         DragEnterEvent, DragEvent, DragExitEvent, DragLeaveEvent, DragOverEvent, DragStartEvent,
@@ -106,15 +107,24 @@ pub mod events {
         PointerLeaveEvent, PointerMoveEvent, PointerOutEvent, PointerOverEvent, PointerUpEvent,
         ScrollEvent, SubmitEvent, TouchCancel, TouchEnd, TouchEnter, TouchMove, TouchStart,
     };
+    #[cfg(feature = "web_sys")]
+    pub use web_sys::{
+        DragEvent, Event, FocusEvent, KeyboardEvent, MouseEvent, PointerEvent, TouchEvent, UiEvent,
+        WheelEvent,
+    };
 }
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
+    #[cfg(feature = "std_web")]
     stdweb::initialize();
+    #[cfg(feature = "web_sys")]
+    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
 }
 
 /// Starts event loop.
 pub fn run_loop() {
+    #[cfg(feature = "std_web")]
     stdweb::event_loop();
 }
 
