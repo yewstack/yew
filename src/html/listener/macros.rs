@@ -13,10 +13,11 @@ macro_rules! impl_action {
             #[cfg(feature = "std_web")]
             use stdweb::web::{
                 event::{$type, IEvent},
-                Element, EventListenerHandle, IEventTarget,
+                Element, IEventTarget,
             };
             #[cfg(feature = "web_sys")]
             use ::{
+                gloo::events::EventListener,
                 wasm_bindgen::JsValue,
                 web_sys::{$type as WebSysType, Element, EventTarget},
             };
@@ -42,7 +43,7 @@ macro_rules! impl_action {
                     stringify!($action)
                 }
 
-                fn attach(&self, element: &Element) -> EventListenerHandle {
+                fn attach(&self, element: &Element) -> EventListener {
                     let this = element.clone();
                     let callback = self.callback.clone();
                     let listener = move |
@@ -56,10 +57,10 @@ macro_rules! impl_action {
                     };
                     #[cfg(feature = "std_web")]
                     {
-                        element.add_event_listener(listener)
+                        EventListener(Some(element.add_event_listener(listener)))
                     }
                     #[cfg(feature = "web_sys")]
-                    EventListenerHandle::new(&EventTarget::from(element.clone()), $name, listener)
+                    EventListener::new(&EventTarget::from(element.clone()), $name, listener)
                 }
             }
         }

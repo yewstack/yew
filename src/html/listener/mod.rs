@@ -15,17 +15,15 @@ use stdweb::{
     unstable::TryInto,
     web::{
         html_element::{InputElement, SelectElement, TextAreaElement},
-        Element, FileList, IElement, INode,
+        Element, EventListenerHandle, FileList, IElement, INode,
     },
 };
 #[cfg(feature = "web_sys")]
 use ::{
-    gloo::events::EventListener,
-    std::borrow::Cow,
     wasm_bindgen::JsCast,
     web_sys::{
-        Element, Event, EventTarget, FileList, HtmlInputElement as InputElement,
-        HtmlSelectElement as SelectElement, HtmlTextAreaElement as TextAreaElement,
+        Element, FileList, HtmlInputElement as InputElement, HtmlSelectElement as SelectElement,
+        HtmlTextAreaElement as TextAreaElement,
     },
 };
 
@@ -129,30 +127,15 @@ fn onchange_handler(this: &Element) -> ChangeData {
 }
 
 /// Handler to an event listener, only use is to cancel the event.
-#[cfg(feature = "web_sys")]
+#[cfg(feature = "std_web")]
 #[derive(Debug)]
-pub struct EventListenerHandle(Option<EventListener>);
+pub struct EventListener(Option<EventListenerHandle>);
 
-#[cfg(feature = "web_sys")]
-impl EventListenerHandle {
-    fn new<S, F>(target: &EventTarget, event_type: S, callback: F) -> Self
-    where
-        S: Into<Cow<'static, str>>,
-        F: FnMut(&Event) + 'static,
-    {
-        EventListenerHandle(Some(EventListener::new(target, event_type, callback)))
-    }
-
-    /// Cancel event.
-    pub fn remove(mut self) {
-        self.0.take();
-    }
-}
-
-impl Drop for EventListenerHandle {
+#[cfg(feature = "std_web")]
+impl Drop for EventListener {
     fn drop(&mut self) {
         if let Some(event) = self.0.take() {
-            event.forget()
+            event.remove()
         }
     }
 }
