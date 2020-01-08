@@ -178,7 +178,7 @@ where
                             self.close();
                         },
                         feature = "web_sys" => worker_self().close(),
-                    }
+                    };
                 }
             }
         };
@@ -197,7 +197,7 @@ where
                 worker.set_onmessage_closure(handler);
                 worker.post_message_vec(loaded);
             }),
-        }
+        };
     }
 }
 
@@ -692,7 +692,7 @@ fn send_to_remote<AGN: Agent>(
             worker.postMessage(bytes);
         },
         feature = "web_sys" => worker.post_message_vec(msg),
-    }
+    };
 }
 
 impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
@@ -842,7 +842,7 @@ impl<AGN: Agent> Responder<AGN> for WorkerResponder {
                 self.postMessage(data);
             },
             feature = "web_sys" => worker_self().post_message_vec(data),
-        }
+        };
     }
 }
 
