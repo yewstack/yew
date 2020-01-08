@@ -68,6 +68,8 @@
 extern crate self as yew;
 
 use proc_macro_hack::proc_macro_hack;
+#[cfg(feature = "wee_alloc")]
+use wee_alloc::WeeAlloc;
 /// This macro implements JSX-like templates.
 #[proc_macro_hack(support_nested)]
 pub use yew_macro::html;
@@ -113,6 +115,10 @@ pub mod events {
         WheelEvent,
     };
 }
+
+#[cfg(feature = "wee_alloc")]
+#[global_allocator]
+static _ALLOC: WeeAlloc<'_> = WeeAlloc::INIT;
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
