@@ -73,7 +73,7 @@ impl HandlerId {
         self.0
     }
     /// Indicates if a handler id corresponds to callback in the Agent runtime.
-    pub fn is_respondable(&self) -> bool {
+    pub fn is_respondable(self) -> bool {
         self.1
     }
 }
