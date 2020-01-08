@@ -1,8 +1,5 @@
-[target.'cfg(not(not(feature = "doc_test")))']
+[build]
 target = 'wasm32-unknown-unknown'
 
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))']
 runner = 'wasm-bindgen-test-runner'
-
-[alias]
-doc_test = "test --doc --features doc_test"
