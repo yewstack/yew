@@ -3,9 +3,11 @@
 use super::{
     Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
 };
-#[cfg(feature = "web_sys")]
-use crate::html::EventListenerHandle;
+#[cfg(feature = "std_web")]
+use crate::html::EventListener;
 use crate::html::NodeRef;
+#[cfg(feature = "web_sys")]
+use gloo::events::EventListener;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
@@ -20,7 +22,7 @@ use stdweb::{
     web::{
         document,
         html_element::{InputElement, TextAreaElement},
-        Element, EventListenerHandle, IElement, INode, Node,
+        Element, IElement, INode, Node,
     },
 };
 #[cfg(feature = "web_sys")]
@@ -70,7 +72,7 @@ pub struct VTag {
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
     /// Keeps handler for attached listeners to have an opportunity to drop them later.
-    captured: Vec<EventListenerHandle>,
+    captured: Vec<EventListener>,
 }
 
 impl Clone for VTag {
@@ -522,7 +524,7 @@ impl VDiff for VTag {
         // TODO Compare references of handler to do listeners update better
         if let Some(ancestor) = ancestor.as_mut() {
             for handle in ancestor.captured.drain(..) {
-                handle.remove();
+                drop(handle);
             }
         }
 
