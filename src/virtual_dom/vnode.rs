@@ -2,13 +2,17 @@
 
 use super::{VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{Component, Renderable};
+use cfg_if::cfg_if;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
-#[cfg(feature = "std_web")]
-use stdweb::web::{Element, INode, Node};
-#[cfg(feature = "web_sys")]
-use web_sys::{Element, Node};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::web::{Element, INode, Node};
+    } else if #[cfg(feature = "web_sys")] {
+        use web_sys::{Element, Node};
+    }
+}
 
 /// Bind virtual element to a DOM reference.
 #[derive(Clone)]
@@ -67,10 +71,15 @@ impl VDiff for VNode {
                         .insert_before(node, sibling)
                         .expect("can't insert element before sibling");
                 } else {
-                    #[cfg_attr(feature = "std_web", allow(unused_variables))]
-                    let result = parent.append_child(node);
-                    #[cfg(feature = "web_sys")]
-                    result.expect("can't append node to parent");
+                    #[cfg_attr(
+                        feature = "std_web",
+                        allow(clippy::let_unit_value, unused_variables)
+                    )]
+                    {
+                        let result = parent.append_child(node);
+                        #[cfg(feature = "web_sys")]
+                        result.expect("can't append node to parent");
+                    }
                 }
 
                 Some(node.to_owned())

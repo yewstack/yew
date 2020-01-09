@@ -21,6 +21,8 @@ travis-ci = { repository = "yewstack/yew" }
 [dependencies]
 anymap = "0.12"
 bincode = { version = "~1.2.1", optional = true }
+cfg-if = "0.1"
+cfg-match = "0.2"
 console_error_panic_hook = { version = "0.1", optional = true }
 failure = "0.1"
 gloo = { version = "0.2", optional = true }
@@ -88,6 +90,7 @@ features = [
   "WheelEvent",
   "Window",
   "Worker",
+  "WorkerGlobalScope",
   "WorkerOptions",
 ]
 

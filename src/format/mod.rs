@@ -9,35 +9,35 @@ use failure::Error;
 #[macro_use]
 pub mod macros;
 
-#[cfg(feature = "bincode")]
-pub mod bincode;
-#[cfg(feature = "cbor")]
-pub mod cbor;
-#[cfg(feature = "cbor_packed")]
-pub mod cbor_packed;
 pub mod json;
-#[cfg(feature = "msgpack")]
-pub mod msgpack;
 pub mod nothing;
-#[cfg(feature = "toml")]
-pub mod toml;
-#[cfg(feature = "yaml")]
-pub mod yaml;
 
-#[cfg(feature = "bincode")]
-pub use self::bincode::Bincode;
-#[cfg(feature = "cbor")]
-pub use self::cbor::Cbor;
-#[cfg(feature = "cbor_packed")]
-pub use self::cbor_packed::CborPacked;
+use cfg_if::cfg_if;
+
 pub use self::json::Json;
-#[cfg(feature = "msgpack")]
-pub use self::msgpack::MsgPack;
 pub use self::nothing::Nothing;
-#[cfg(feature = "toml")]
-pub use self::toml::Toml;
-#[cfg(feature = "yaml")]
-pub use self::yaml::Yaml;
+
+cfg_if! {
+    if #[cfg(feature = "bincode")] {
+        pub mod bincode;
+        pub use self::bincode::Bincode;
+    } else if #[cfg(feature = "cbor")] {
+        pub mod cbor;
+        pub use self::cbor::Cbor;
+    } else if #[cfg(feature = "cbor_packed")] {
+        pub mod cbor_packed;
+        pub use self::cbor_packed::CborPacked;
+    } else if #[cfg(feature = "msgpack")] {
+        pub mod msgpack;
+        pub use self::msgpack::MsgPack;
+    } else if #[cfg(feature = "toml")] {
+        pub mod toml;
+        pub use self::toml::Toml;
+    } else if #[cfg(feature = "yaml")] {
+        pub mod yaml;
+        pub use self::yaml::Yaml;
+    }
+}
 
 /// A representation of a value which can be stored and restored as a text.
 pub type Text = Result<String, Error>;

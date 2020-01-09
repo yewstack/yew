@@ -3,14 +3,18 @@
 use super::{Transformer, VDiff, VNode};
 use crate::html::{Component, ComponentUpdate, HiddenScope, NodeRef, Scope};
 use crate::utils::document;
+use cfg_if::cfg_if;
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
-#[cfg(feature = "std_web")]
-use stdweb::web::{Element, INode, Node, TextNode};
-#[cfg(feature = "web_sys")]
-use web_sys::{Element, Node, Text as TextNode};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::web::{Element, INode, Node, TextNode};
+    } else if #[cfg(feature = "web_sys")] {
+        use web_sys::{Element, Node, Text as TextNode};
+    }
+}
 
 /// The method generates an instance of a component.
 type Generator = dyn Fn(GeneratorType) -> Mounted;
@@ -219,10 +223,15 @@ impl VDiff for VComp {
                                 .insert_before(&dummy_node, next_sibling)
                                 .expect("can't insert dummy component node before next sibling");
                         } else {
-                            #[cfg_attr(feature = "std_web", allow(unused_variables))]
-                            let result = parent.append_child(&dummy_node);
-                            #[cfg(feature = "web_sys")]
-                            result.expect("can't append node to parent");
+                            #[cfg_attr(
+                                feature = "std_web",
+                                allow(clippy::let_unit_value, unused_variables)
+                            )]
+                            {
+                                let result = parent.append_child(&dummy_node);
+                                #[cfg(feature = "web_sys")]
+                                result.expect("can't append node to parent");
+                            }
                         }
                         this.mount(parent.to_owned(), dummy_node)
                     }
