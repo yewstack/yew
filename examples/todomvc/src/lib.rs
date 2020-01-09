@@ -53,7 +53,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let storage = StorageService::new(Area::Local);
+        let storage = StorageService::new(Area::Local).expect("storage was disabled by the user");
         let entries = {
             if let Json(Ok(restored_model)) = storage.restore(KEY) {
                 restored_model
