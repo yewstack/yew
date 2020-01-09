@@ -621,7 +621,7 @@ where
             if let Some(abort_controller) = &abort_controller {
                 init.signal(Some(&abort_controller.signal()));
             }
-            let promise = global!(global, global.fetch_with_request_and_init(&request, &init))
+            let promise = crate::global!(global, global.fetch_with_request_and_init(&request, &init))
                 .then(&closure_then)
                 .catch(&closure_catch);
             sender.send(closure_then).unwrap();
