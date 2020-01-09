@@ -12,5 +12,16 @@ fi
 cargo test --features wasm_test --target wasm32-unknown-unknown
 cargo test --test macro_test
 cargo test --test derive_props_test
-cargo doc_test --all-features
-(cd crates/macro && cargo doc_test)
+
+# Disable cargo config for doc tests because the default target prevents doc
+# tests from running
+set +e
+mv .cargo/config .cargo/config.tmp
+cargo test --doc --all-features
+doc_test_failed=$?
+(cd crates/macro && cargo test --doc)
+macro_doc_test_failed=$?
+mv .cargo/config.tmp .cargo/config
+if (($doc_test_failed)) || (($macro_doc_test_failed)); then
+  exit 1
+fi
