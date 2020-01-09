@@ -3,14 +3,21 @@
 
 use crate::callback::Callback;
 use crate::services::Task;
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use std::fmt;
-#[cfg(feature = "std_web")]
-#[allow(unused_imports)]
-use stdweb::{_js_impl, js};
-#[cfg(feature = "std_web")]
-use stdweb::{unstable::TryInto, Value};
-#[cfg(feature = "web_sys")]
-use wasm_bindgen::{closure::Closure, JsCast, JsValue};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        #[allow(unused_imports)]
+        use stdweb::{_js_impl, js};
+        use stdweb::unstable::TryInto;
+        use stdweb::Value;
+    } else if #[cfg(feature = "web_sys")] {
+        use crate::utils;
+        use wasm_bindgen::closure::Closure;
+        use wasm_bindgen::{JsCast, JsValue};
+    }
+}
 
 /// A handle to cancel a render task.
 #[must_use]
@@ -46,38 +53,37 @@ impl RenderService {
     pub fn request_animation_frame(&mut self, callback: Callback<f64>) -> RenderTask {
         let callback = move |#[cfg(feature = "std_web")] v,
                              #[cfg(feature = "web_sys")] v: JsValue| {
-            #[cfg(feature = "std_web")]
-            let time: f64 = match v {
-                Value::Number(n) => n.try_into().unwrap(),
-                _ => 0.0,
+            let time: f64 = cfg_match! {
+                feature = "std_web" => ({
+                    match v {
+                        Value::Number(n) => n.try_into().unwrap(),
+                        _ => 0.0,
+                    }
+                }),
+                feature = "web_sys" => v.as_f64().unwrap_or(0.),
             };
-            #[cfg(feature = "web_sys")]
-            let time = v.as_f64().unwrap_or(0.);
             callback.emit(time);
         };
-        #[cfg(feature = "std_web")]
-        let handle = js! {
-            var callback = @{callback};
-            var action = function(time) {
-                callback(time);
-                callback.drop();
-            };
-            return {
-                render_id: requestAnimationFrame(action),
-                callback: callback,
-            };
-        };
-        #[cfg(feature = "web_sys")]
-        let handle = {
-            let callback = Closure::wrap(Box::new(callback) as Box<dyn Fn(JsValue)>);
-            let render_id = web_sys::window()
-                .unwrap()
-                .request_animation_frame(callback.as_ref().unchecked_ref())
-                .unwrap();
-            RenderTaskInner {
-                render_id,
-                callback,
-            }
+        let handle = cfg_match! {
+            feature = "std_web" => js! {
+                var callback = @{callback};
+                var action = function(time) {
+                    callback(time);
+                    callback.drop();
+                };
+                return {
+                    render_id: requestAnimationFrame(action),
+                    callback: callback,
+                };
+            },
+            feature = "web_sys" => ({
+                let callback = Closure::wrap(Box::new(callback) as Box<dyn Fn(JsValue)>);
+                let render_id = utils::window().request_animation_frame(callback.as_ref().unchecked_ref()).unwrap();
+                RenderTaskInner {
+                    render_id,
+                    callback,
+                }
+            }),
         };
         RenderTask(Some(handle))
     }
@@ -89,17 +95,14 @@ impl Task for RenderTask {
     }
     fn cancel(&mut self) {
         let handle = self.0.take().expect("tried to cancel render twice");
-        #[cfg(feature = "std_web")]
-        js! { @(no_return)
-            var handle = @{handle};
-            cancelAnimationFrame(handle.render_id);
-            handle.callback.drop();
-        }
-        #[cfg(feature = "web_sys")]
-        web_sys::window()
-            .unwrap()
-            .cancel_animation_frame(handle.render_id)
-            .unwrap();
+        cfg_match! {
+            feature = "std_web" => js! { @(no_return)
+                var handle = @{handle};
+                cancelAnimationFrame(handle.render_id);
+                handle.callback.drop();
+            },
+            feature = "web_sys" => utils::window().cancel_animation_frame(handle.render_id).unwrap(),
+        };
     }
 }
 

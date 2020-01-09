@@ -3,15 +3,19 @@
 
 use super::{to_ms, Task};
 use crate::callback::Callback;
-#[cfg(feature = "web_sys")]
-use gloo::timers::callback::Interval;
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use std::fmt;
 use std::time::Duration;
-#[cfg(feature = "std_web")]
-use stdweb::Value;
-#[cfg(feature = "std_web")]
-#[allow(unused_imports)]
-use stdweb::{_js_impl, js};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::Value;
+        #[allow(unused_imports)]
+        use stdweb::{_js_impl, js};
+    } else if #[cfg(feature = "web_sys")] {
+        use gloo::timers::callback::Interval;
+    }
+}
 
 /// A handle which helps to cancel interval. Uses
 /// [clearInterval](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearInterval).
@@ -44,9 +48,8 @@ impl IntervalService {
             callback.emit(());
         };
         let ms = to_ms(duration);
-        #[cfg(feature = "std_web")]
-        {
-            let handle = js! {
+        let handle = cfg_match! {
+            feature = "std_web" => js! {
                 var callback = @{callback};
                 var action = function() {
                     callback();
@@ -56,11 +59,10 @@ impl IntervalService {
                     interval_id: setInterval(action, delay),
                     callback: callback,
                 };
-            };
-            IntervalTask(Some(handle))
-        }
-        #[cfg(feature = "web_sys")]
-        IntervalTask(Some(Interval::new(ms, callback)))
+            },
+            feature = "web_sys" => Interval::new(ms, callback),
+        };
+        IntervalTask(Some(handle))
     }
 }
 

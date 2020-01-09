@@ -3,42 +3,35 @@
 use super::Task;
 use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use failure::Fail;
 use std::fmt;
-#[cfg(feature = "std_web")]
-#[allow(unused_imports)]
-use stdweb::{_js_impl, js};
-#[cfg(feature = "web_sys")]
-pub use web_sys::{
-    RequestCache as Cache, RequestCredentials as Credentials, RequestMode as Mode,
-    RequestRedirect as Redirect,
-};
-#[cfg(feature = "web_sys")]
-use ::{
-    js_sys::{Array, Promise, Uint8Array},
-    std::{
-        rc::Rc,
-        sync::{
-            atomic::{AtomicBool, Ordering},
-            mpsc::{self, Receiver},
-        },
-    },
-    wasm_bindgen::{closure::Closure, JsValue},
-    web_sys::{
-        AbortController, Headers, Request as WebRequest, RequestInit, Response as WebResponse,
-    },
-};
-#[cfg(feature = "std_web")]
-use ::{
-    serde::Serialize,
-    std::collections::HashMap,
-    stdweb::{
-        serde::Serde,
-        unstable::{TryFrom, TryInto},
-        web::ArrayBuffer,
-        JsSerialize, Value,
-    },
-};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use serde::Serialize;
+        use std::collections::HashMap;
+        use stdweb::serde::Serde;
+        use stdweb::unstable::{TryFrom, TryInto};
+        use stdweb::web::ArrayBuffer;
+        use stdweb::{JsSerialize, Value};
+        #[allow(unused_imports)]
+        use stdweb::{_js_impl, js};
+    } else if #[cfg(feature = "web_sys")] {
+        use js_sys::{Array, Promise, Uint8Array};
+        use std::rc::Rc;
+        use std::sync::atomic::{AtomicBool, Ordering};
+        use std::sync::mpsc::{self, Receiver};
+        use wasm_bindgen::{closure::Closure, JsValue};
+        use web_sys::{
+            AbortController, Headers, Request as WebRequest, RequestInit, Response as WebResponse,
+        };
+        pub use web_sys::{
+            RequestCache as Cache, RequestCredentials as Credentials, RequestMode as Mode,
+            RequestRedirect as Redirect,
+        };
+    }
+}
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
@@ -308,19 +301,19 @@ impl FetchService {
         IN: Into<Text>,
         OUT: From<Text>,
     {
-        #[cfg(feature = "std_web")]
-        {
-            fetch_impl::<IN, OUT, String, String>(false, request, None, callback)
+        cfg_match! {
+            feature = "std_web" => fetch_impl::<IN, OUT, String, String>(false, request, None, callback),
+            feature = "web_sys" => ({
+                fetch_impl::<IN, OUT, String, String, _, _>(
+                    false,
+                    request,
+                    None,
+                    callback,
+                    Into::into,
+                    |v| v.as_string().unwrap(),
+                )
+            }),
         }
-        #[cfg(feature = "web_sys")]
-        fetch_impl::<IN, OUT, String, String, _, _>(
-            false,
-            request,
-            None,
-            callback,
-            Into::into,
-            |v| v.as_string().unwrap(),
-        )
     }
 
     /// `fetch` with provided `FetchOptions` object.
@@ -363,19 +356,19 @@ impl FetchService {
         IN: Into<Text>,
         OUT: From<Text>,
     {
-        #[cfg(feature = "std_web")]
-        {
-            fetch_impl::<IN, OUT, String, String>(false, request, Some(options), callback)
+        cfg_match! {
+            feature = "std_web" => fetch_impl::<IN, OUT, String, String>(false, request, Some(options), callback),
+            feature = "web_sys" => ({
+                fetch_impl::<IN, OUT, String, String, _, _>(
+                    false,
+                    request,
+                    Some(options),
+                    callback,
+                    Into::into,
+                    |v| v.as_string().unwrap(),
+                )
+            }),
         }
-        #[cfg(feature = "web_sys")]
-        fetch_impl::<IN, OUT, String, String, _, _>(
-            false,
-            request,
-            Some(options),
-            callback,
-            Into::into,
-            |v| v.as_string().unwrap(),
-        )
     }
 
     /// Fetch the data in binary format.
@@ -388,19 +381,19 @@ impl FetchService {
         IN: Into<Binary>,
         OUT: From<Binary>,
     {
-        #[cfg(feature = "std_web")]
-        {
-            fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, None, callback)
+        cfg_match! {
+            feature = "std_web" => fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, None, callback),
+            feature = "web_sys" => ({
+                fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer, _, _>(
+                    true,
+                    request,
+                    None,
+                    callback,
+                    |v| Uint8Array::from(v.as_slice()).into(),
+                    From::from,
+                )
+            }),
         }
-        #[cfg(feature = "web_sys")]
-        fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer, _, _>(
-            true,
-            request,
-            None,
-            callback,
-            |v| Uint8Array::from(v.as_slice()).into(),
-            From::from,
-        )
     }
 
     /// Fetch the data in binary format.
@@ -414,17 +407,19 @@ impl FetchService {
         IN: Into<Binary>,
         OUT: From<Binary>,
     {
-        #[cfg(feature = "std_web")]
-        return fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, Some(options), callback);
-        #[cfg(feature = "web_sys")]
-        fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer, _, _>(
-            true,
-            request,
-            Some(options),
-            callback,
-            |v| Uint8Array::from(v.as_slice()).into(),
-            From::from,
-        )
+        cfg_match! {
+            feature = "std_web" => fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer>(true, request, Some(options), callback),
+            feature = "web_sys" => ({
+                fetch_impl::<IN, OUT, Vec<u8>, ArrayBuffer, _, _>(
+                    true,
+                    request,
+                    Some(options),
+                    callback,
+                    |v| Uint8Array::from(v.as_slice()).into(),
+                    From::from,
+                )
+            }),
+        }
     }
 }
 
@@ -460,15 +455,15 @@ where
                 .unwrap_or_else(|_| panic!("Unparsable request header {}: {:?}", k.as_str(), v)),
         )
     });
-    #[cfg(feature = "std_web")]
-    let header_map: HashMap<&str, &str> = header_map.collect();
-    #[cfg(feature = "web_sys")]
-    let header_map = {
-        let headers = Headers::new().unwrap();
-        for (k, v) in header_map {
-            headers.append(k, v).unwrap();
-        }
-        headers
+    let header_map = cfg_match! {
+        feature = "std_web" => header_map.collect::<HashMap<&str, &str>>(),
+        feature = "web_sys" => ({
+            let headers = Headers::new().unwrap();
+            for (k, v) in header_map {
+                headers.append(k, v).unwrap();
+            }
+            headers
+        }),
     };
     // Formats URI.
     let uri = format!("{}", parts.uri);
@@ -485,17 +480,22 @@ where
                          #[cfg(feature = "web_sys")] headers: Headers,
                          #[cfg(feature = "std_web")] data: X| {
         let mut response_builder = Response::builder().status(status);
-        #[cfg(feature = "web_sys")]
-        let headers = js_sys::try_iter(&headers)
-            .unwrap()
-            .unwrap()
-            .map(Result::unwrap)
-            .map(|entry| {
-                let entry = Array::from(&entry);
-                let key = entry.get(0);
-                let value = entry.get(1);
-                (key.as_string().unwrap(), value.as_string().unwrap())
-            });
+        // convert `headers` to `Iterator<Item = (String, String)>`
+        let headers = cfg_match! {
+            feature = "std_web" => headers.into_iter(),
+            feature = "web_sys" => ({
+                js_sys::try_iter(&headers)
+                    .unwrap()
+                    .unwrap()
+                    .map(Result::unwrap)
+                    .map(|entry| {
+                        let entry = Array::from(&entry);
+                        let key = entry.get(0);
+                        let value = entry.get(1);
+                        (key.as_string().unwrap(), value.as_string().unwrap())
+                    })
+            }),
+        };
         for (key, value) in headers {
             response_builder = response_builder.header(key.as_str(), value.as_str());
         }
@@ -513,128 +513,126 @@ where
         callback.emit(response);
     };
 
-    #[cfg(feature = "std_web")]
     #[allow(clippy::too_many_arguments)]
-    let handle = js! {
-        var body = @{body};
-        if (@{binary} && body != null) {
-            body = Uint8Array.from(body);
-        }
-        var data = {
-            method: @{method},
-            body: body,
-            headers: @{header_map},
-        };
-        var request = new Request(@{uri}, data);
-        var callback = @{callback};
-        var abortController = AbortController ? new AbortController() : null;
-        var handle = {
-            active: true,
-            callback,
-            abortController,
-        };
-        var init = @{Serde(options)} || {};
-        if (abortController && !("signal" in init)) {
-            init.signal = abortController.signal;
-        }
-        fetch(request, init).then(function(response) {
-            var promise = (@{binary}) ? response.arrayBuffer() : response.text();
-            var status = response.status;
-            var headers = {};
-            response.headers.forEach(function(value, key) {
-                headers[key] = value;
-            });
-            promise.then(function(data) {
+    let handle = cfg_match! {
+        feature = "std_web" => js! {
+            var body = @{body};
+            if (@{binary} && body != null) {
+                body = Uint8Array.from(body);
+            }
+            var data = {
+                method: @{method},
+                body: body,
+                headers: @{header_map},
+            };
+            var request = new Request(@{uri}, data);
+            var callback = @{callback};
+            var abortController = AbortController ? new AbortController() : null;
+            var handle = {
+                active: true,
+                callback,
+                abortController,
+            };
+            var init = @{Serde(options)} || {};
+            if (abortController && !("signal" in init)) {
+                init.signal = abortController.signal;
+            }
+            fetch(request, init).then(function(response) {
+                var promise = (@{binary}) ? response.arrayBuffer() : response.text();
+                var status = response.status;
+                var headers = {};
+                response.headers.forEach(function(value, key) {
+                    headers[key] = value;
+                });
+                promise.then(function(data) {
+                    if (handle.active == true) {
+                        handle.active = false;
+                        callback(true, status, headers, data);
+                        callback.drop();
+                    }
+                }).catch(function(err) {
+                    if (handle.active == true) {
+                        handle.active = false;
+                        callback(false, status, headers, data);
+                        callback.drop();
+                    }
+                });
+            }).catch(function(e) {
                 if (handle.active == true) {
+                    var data = (@{binary}) ? new ArrayBuffer() : "";
                     handle.active = false;
-                    callback(true, status, headers, data);
+                    callback(false, 408, {}, data);
                     callback.drop();
                 }
-            }).catch(function(err) {
-                if (handle.active == true) {
-                    handle.active = false;
-                    callback(false, status, headers, data);
-                    callback.drop();
-                }
             });
-        }).catch(function(e) {
-            if (handle.active == true) {
-                var data = (@{binary}) ? new ArrayBuffer() : "";
-                handle.active = false;
-                callback(false, 408, {}, data);
-                callback.drop();
-            }
-        });
-        return handle;
-    };
-    #[cfg(feature = "web_sys")]
-    let handle = {
-        let mut data = RequestInit::new();
-        data.method(method);
-        data.body(body.map(into_conversion).as_ref());
-        data.headers(&header_map);
-        let request = WebRequest::new_with_str_and_init(&uri, &data).unwrap();
-        let active = Rc::new(AtomicBool::new(true));
-        let (sender, receiver) = mpsc::channel();
-        let active_outer_clone = Rc::clone(&active);
-        let callback_outer_clone = callback.clone();
-        let sender_clone = sender.clone();
-        let closure_then = move |response: JsValue| {
-            let response = WebResponse::from(response);
-            let promise = if binary {
-                response.array_buffer()
-            } else {
-                response.text()
-            }
-            .unwrap();
-            let status = response.status();
-            let headers = response.headers();
-            let active_clone = Rc::clone(&active_outer_clone);
-            let callback_clone = callback_outer_clone.clone();
-            let headers_clone = headers.clone();
-            let closure_then = move |data: JsValue| {
-                let data = from_conversion(data);
-                if active_clone.compare_and_swap(true, false, Ordering::SeqCst) {
-                    callback_clone(Some(data), status, headers_clone);
+            return handle;
+        },
+        feature = "web_sys" => ({
+            let mut data = RequestInit::new();
+            data.method(method);
+            data.body(body.map(into_conversion).as_ref());
+            data.headers(&header_map);
+            let request = WebRequest::new_with_str_and_init(&uri, &data).unwrap();
+            let active = Rc::new(AtomicBool::new(true));
+            let (sender, receiver) = mpsc::channel();
+            let active_outer_clone = Rc::clone(&active);
+            let callback_outer_clone = callback.clone();
+            let sender_clone = sender.clone();
+            let closure_then = move |response: JsValue| {
+                let response = WebResponse::from(response);
+                let promise = if binary {
+                    response.array_buffer()
+                } else {
+                    response.text()
                 }
+                .unwrap();
+                let status = response.status();
+                let headers = response.headers();
+                let active_clone = Rc::clone(&active_outer_clone);
+                let callback_clone = callback_outer_clone.clone();
+                let headers_clone = headers.clone();
+                let closure_then = move |data: JsValue| {
+                    let data = from_conversion(data);
+                    if active_clone.compare_and_swap(true, false, Ordering::SeqCst) {
+                        callback_clone(Some(data), status, headers_clone);
+                    }
+                };
+                let closure_then = Closure::once(closure_then);
+                let closure_catch = move |_| {
+                    if active_outer_clone.compare_and_swap(true, false, Ordering::SeqCst) {
+                        callback_outer_clone(None, status, headers);
+                    }
+                };
+                let closure_catch = Closure::once(closure_catch);
+                promise.then(&closure_then).catch(&closure_catch);
+                sender_clone.send(closure_then).unwrap();
+                sender_clone.send(closure_catch).unwrap();
             };
             let closure_then = Closure::once(closure_then);
+            let active_clone = Rc::clone(&active);
             let closure_catch = move |_| {
-                if active_outer_clone.compare_and_swap(true, false, Ordering::SeqCst) {
-                    callback_outer_clone(None, status, headers);
+                if active_clone.compare_and_swap(true, false, Ordering::SeqCst) {
+                    callback(None, 408, Headers::new().unwrap());
                 }
             };
-            let closure_catch = Closure::once(closure_catch);
-            promise.then(&closure_then).catch(&closure_catch);
-            sender_clone.send(closure_then).unwrap();
-            sender_clone.send(closure_catch).unwrap();
-        };
-        let closure_then = Closure::once(closure_then);
-        let active_clone = Rc::clone(&active);
-        let closure_catch = move |_| {
-            if active_clone.compare_and_swap(true, false, Ordering::SeqCst) {
-                callback(None, 408, Headers::new().unwrap());
+            let closure_catch = Closure::wrap(Box::new(closure_catch) as Box<dyn FnMut(JsValue)>);
+            let abort_controller = AbortController::new().ok();
+            let mut init = options.map_or_else(RequestInit::new, Into::into);
+            if let Some(abort_controller) = &abort_controller {
+                init.signal(Some(&abort_controller.signal()));
             }
-        };
-        let closure_catch = Closure::wrap(Box::new(closure_catch) as Box<dyn FnMut(JsValue)>);
-        let abort_controller = AbortController::new().ok();
-        let mut init = options.map_or_else(RequestInit::new, Into::into);
-        if let Some(abort_controller) = &abort_controller {
-            init.signal(Some(&abort_controller.signal()));
-        }
-        let promise = web_sys::window()
-            .unwrap()
-            .fetch_with_request_and_init(&request, &init)
-            .then(&closure_then)
-            .catch(&closure_catch);
-        sender.send(closure_then).unwrap();
-        sender.send(closure_catch).unwrap();
-        Handle {
-            active,
-            callbacks: receiver,
-            abort_controller,
-            promise,
-        }
+            let promise = global!(global, global.fetch_with_request_and_init(&request, &init))
+                .then(&closure_then)
+                .catch(&closure_catch);
+            sender.send(closure_then).unwrap();
+            sender.send(closure_catch).unwrap();
+            Handle {
+                active,
+                callbacks: receiver,
+                abort_controller,
+                promise,
+            }
+        }),
     };
     FetchTask(Some(handle))
 }
@@ -642,24 +640,24 @@ where
 impl Task for FetchTask {
     fn is_active(&self) -> bool {
         if let Some(ref task) = self.0 {
-            #[cfg(feature = "std_web")]
-            {
-                let result = js! {
-                    var the_task = @{task};
-                    return the_task.active &&
-                            (!the_task.abortController || !the_task.abortController.signal.aborted);
-                };
-                result.try_into().unwrap_or(false)
-            }
-            #[cfg(feature = "web_sys")]
-            {
-                task.active.load(Ordering::SeqCst)
-                    && task
-                        .abort_controller
-                        .as_ref()
-                        .map(|abort_controller| abort_controller.signal().aborted())
-                        .filter(|value| *value)
-                        .is_none()
+            cfg_match! {
+                feature = "std_web" => ({
+                    let result = js! {
+                        var the_task = @{task};
+                        return the_task.active &&
+                                (!the_task.abortController || !the_task.abortController.signal.aborted);
+                    };
+                    result.try_into().unwrap_or(false)
+                }),
+                feature = "web_sys" => ({
+                    task.active.load(Ordering::SeqCst)
+                        && task
+                            .abort_controller
+                            .as_ref()
+                            .map(|abort_controller| abort_controller.signal().aborted())
+                            .filter(|value| *value)
+                            .is_none()
+                }),
             }
         } else {
             false
@@ -673,27 +671,29 @@ impl Task for FetchTask {
             .0
             .take()
             .expect("tried to cancel request fetching twice");
-        #[cfg(feature = "std_web")]
-        js! {  @(no_return)
-            var handle = @{handle};
-            handle.active = false;
-            handle.callback.drop();
-            if (handle.abortController) {
-                handle.abortController.abort();
-            }
-        }
-        #[cfg(feature = "web_sys")]
-        {
-            thread_local! {
-                static CATCH: Closure<dyn FnMut(JsValue)> = Closure::wrap(Box::new(|_| ()) as Box<dyn FnMut(JsValue)>);
-            }
-            handle.active.store(false, Ordering::SeqCst);
-            CATCH.with(|c| handle.promise.catch(&c));
-            if let Some(abort_controller) = handle.abort_controller {
-                abort_controller.abort();
-            }
-            handle.callbacks.try_iter().for_each(drop);
-        }
+        cfg_match! {
+            feature = "std_web" => ({
+                js! {  @(no_return)
+                    var handle = @{handle};
+                    handle.active = false;
+                    handle.callback.drop();
+                    if (handle.abortController) {
+                        handle.abortController.abort();
+                    }
+                };
+            }),
+            feature = "web_sys" => ({
+                thread_local! {
+                    static CATCH: Closure<dyn FnMut(JsValue)> = Closure::wrap(Box::new(|_| ()) as Box<dyn FnMut(JsValue)>);
+                }
+                handle.active.store(false, Ordering::SeqCst);
+                CATCH.with(|c| handle.promise.catch(&c));
+                if let Some(abort_controller) = handle.abort_controller {
+                    abort_controller.abort();
+                }
+                handle.callbacks.try_iter().for_each(drop);
+            }),
+        };
     }
 }
 

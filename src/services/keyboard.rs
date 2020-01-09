@@ -1,17 +1,19 @@
 //! Service to register key press event listeners on elements.
+
 use crate::callback::Callback;
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use std::fmt;
-#[cfg(feature = "std_web")]
-use stdweb::web::{
-    event::{ConcreteEvent, KeyDownEvent, KeyPressEvent, KeyUpEvent},
-    EventListenerHandle, IEventTarget,
-};
-#[cfg(feature = "web_sys")]
-use ::{
-    gloo::events::EventListener,
-    wasm_bindgen::JsCast,
-    web_sys::{Event, EventTarget, KeyboardEvent},
-};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::web::event::{ConcreteEvent, KeyDownEvent, KeyPressEvent, KeyUpEvent};
+        use stdweb::web::{EventListenerHandle, IEventTarget};
+    } else if #[cfg(feature = "web_sys")] {
+        use gloo::events::EventListener;
+        use wasm_bindgen::JsCast;
+        use web_sys::{Event, EventTarget, KeyboardEvent};
+    }
+}
 
 /// Service for registering callbacks on elements to get keystrokes from the user.
 ///
@@ -56,12 +58,10 @@ impl KeyboardService {
         #[cfg(feature = "std_web")] callback: Callback<KeyPressEvent>,
         #[cfg(feature = "web_sys")] callback: Callback<KeyboardEvent>,
     ) -> KeyListenerHandle {
-        #[cfg(feature = "std_web")]
-        {
-            register_key_impl(element, callback)
+        cfg_match! {
+            feature = "std_web" => register_key_impl(element, callback),
+            feature = "web_sys" => register_key_impl(element, callback, "keypress"),
         }
-        #[cfg(feature = "web_sys")]
-        register_key_impl(element, callback, "keypress")
     }
 
     /// Registers a callback that listens to KeyDownEvents on a provided element.
@@ -81,10 +81,10 @@ impl KeyboardService {
         #[cfg(feature = "std_web")] callback: Callback<KeyDownEvent>,
         #[cfg(feature = "web_sys")] callback: Callback<KeyboardEvent>,
     ) -> KeyListenerHandle {
-        #[cfg(feature = "std_web")]
-        return register_key_impl(element, callback);
-        #[cfg(feature = "web_sys")]
-        register_key_impl(element, callback, "keydown")
+        cfg_match! {
+            feature = "std_web" => register_key_impl(element, callback),
+            feature = "web_sys" => register_key_impl(element, callback, "keydown"),
+        }
     }
 
     /// Registers a callback that listens to KeyUpEvents on a provided element.
@@ -104,10 +104,10 @@ impl KeyboardService {
         #[cfg(feature = "std_web")] callback: Callback<KeyUpEvent>,
         #[cfg(feature = "web_sys")] callback: Callback<KeyboardEvent>,
     ) -> KeyListenerHandle {
-        #[cfg(feature = "std_web")]
-        return register_key_impl(element, callback);
-        #[cfg(feature = "web_sys")]
-        register_key_impl(element, callback, "keyup")
+        cfg_match! {
+            feature = "std_web" => register_key_impl(element, callback),
+            feature = "web_sys" => register_key_impl(element, callback, "keyup"),
+        }
     }
 }
 

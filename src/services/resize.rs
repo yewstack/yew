@@ -1,17 +1,18 @@
 //! This module contains the implementation of a service that listens for browser window resize events.
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use std::fmt;
-#[cfg(feature = "std_web")]
-use stdweb::{
-    js,
-    web::{window, Window},
-    Value,
-};
 use yew::callback::Callback;
-#[cfg(feature = "web_sys")]
-use ::{
-    gloo::events::EventListener,
-    web_sys::{Event, Window},
-};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::js;
+        use stdweb::web::{window, Window};
+        use stdweb::Value;
+    } else if #[cfg(feature = "web_sys")] {
+        use gloo::events::EventListener;
+        use web_sys::{Event, Window};
+    }
+}
 
 /// A service that fires events when the browser window resizes.
 #[derive(Default, Debug)]
@@ -64,23 +65,25 @@ impl ResizeService {
     /// Register a callback that will be called when the browser window resizes.
     pub fn register(&mut self, callback: Callback<WindowDimensions>) -> ResizeTask {
         let callback = move |#[cfg(feature = "web_sys")] _event: &Event| {
-            #[cfg(feature = "std_web")]
-            let window = window();
-            #[cfg(feature = "web_sys")]
-            let window = web_sys::window().unwrap();
+            let window = cfg_match! {
+                feature = "std_web" => window(),
+                feature = "web_sys" => web_sys::window().unwrap(),
+            };
             let dimensions = WindowDimensions::get_dimensions(&window);
             callback.emit(dimensions);
         };
-        #[cfg(feature = "std_web")]
-        let handle = Some(js! {
-            var callback = @{callback};
-            var action = function() {
-                callback();
-            };
-            return window.addEventListener("resize", action);
-        });
-        #[cfg(feature = "web_sys")]
-        let handle = EventListener::new(&web_sys::window().unwrap(), "resize", callback);
+        let handle = cfg_match! {
+            feature = "std_web" => ({
+                Some(js! {
+                    var callback = @{callback};
+                    var action = function() {
+                        callback();
+                    };
+                    return window.addEventListener("resize", action);
+                })
+            }),
+            feature = "web_sys" => EventListener::new(&web_sys::window().unwrap(), "resize", callback),
+        };
         ResizeTask(handle)
     }
 }

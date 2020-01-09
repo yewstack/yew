@@ -2,12 +2,21 @@
 //! use local and session storage of a browser.
 
 use crate::format::Text;
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use failure::Fail;
 use std::fmt;
-#[cfg(feature = "std_web")]
-use stdweb::web::{window, Storage};
-#[cfg(feature = "web_sys")]
-use ::{wasm_bindgen::JsValue, web_sys::Storage};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        #[allow(unused_imports)]
+        use stdweb::{_js_impl, js};
+        use stdweb::unstable::TryFrom;
+        use stdweb::web::{Storage};
+    } else if #[cfg(feature = "web_sys")] {
+        use crate::utils;
+        use web_sys::Storage;
+    }
+}
 
 /// Represents errors of a storage.
 #[derive(Debug, Fail)]
@@ -38,22 +47,36 @@ impl fmt::Debug for StorageService {
 
 impl StorageService {
     /// Creates a new storage service instance with specified storage area.
-    pub fn new(area: Area) -> Self {
-        let storage = {
-            #[cfg(feature = "std_web")]
-            let window = window();
-            #[cfg(feature = "web_sys")]
-            let window = web_sys::window().unwrap();
-            match area {
-                Area::Local => window.local_storage(),
-                Area::Session => window.session_storage(),
-            }
+    pub fn new(area: Area) -> Result<Self, &'static str> {
+        let storage = cfg_match! {
+            feature = "std_web" => ({
+                let storage_name = match area {
+                    Area::Local => "localStorage",
+                    Area::Session => "sessionStorage",
+                };
+                let storage = js! {
+                    try {
+                        return window[@{storage_name}];
+                    } catch(error) {
+                        return error;
+                    }
+                };
+                Storage::try_from(js!( return @{storage.as_ref()}; ))
+            }),
+            feature = "web_sys" => ({
+                let storage = {
+                    match area {
+                        Area::Local => utils::window().local_storage(),
+                        Area::Session => utils::window().session_storage(),
+                    }
+                };
+                storage.map(Option::unwrap)
+            }),
         };
-        #[cfg(feature = "web_sys")]
-        let storage = storage
-            .and_then(|storage| storage.ok_or(JsValue::NULL))
-            .expect("failed to aquire storage");
-        StorageService { storage }
+
+        storage
+            .map(|storage| StorageService { storage })
+            .map_err(|_| "couldn't aquire storage")
     }
 
     /// Stores value to the storage.
@@ -62,10 +85,10 @@ impl StorageService {
         T: Into<Text>,
     {
         if let Ok(data) = value.into() {
-            #[cfg(feature = "std_web")]
-            let result = self.storage.insert(key, &data);
-            #[cfg(feature = "web_sys")]
-            let result = self.storage.set_item(key, &data);
+            let result = cfg_match! {
+                feature = "std_web" => self.storage.insert(key, &data),
+                feature = "web_sys" => self.storage.set_item(key, &data),
+            };
             result.expect("can't insert value to a storage");
         }
     }
@@ -75,19 +98,19 @@ impl StorageService {
     where
         T: From<Text>,
     {
-        #[cfg(feature = "std_web")]
-        let data = self.storage.get(key);
-        #[cfg(feature = "web_sys")]
-        let data = self.storage.get_item(key).unwrap();
+        let data = cfg_match! {
+            feature = "std_web" => self.storage.get(key),
+            feature = "web_sys" => self.storage.get_item(key).unwrap(),
+        };
         let data = data.ok_or_else(|| StorageError::CantRestore.into());
         T::from(data)
     }
 
     /// Removes value from the storage.
     pub fn remove(&mut self, key: &str) {
-        #[cfg(feature = "std_web")]
-        self.storage.remove(key);
-        #[cfg(feature = "web_sys")]
-        self.storage.remove_item(key).unwrap();
+        cfg_match! {
+            feature = "std_web" => self.storage.remove(key),
+            feature = "web_sys" => self.storage.remove_item(key).unwrap(),
+        };
     }
 }
