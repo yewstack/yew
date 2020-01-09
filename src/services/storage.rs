@@ -7,7 +7,7 @@ use std::fmt;
 #[cfg(feature = "std_web")]
 use stdweb::web::{window, Storage};
 #[cfg(feature = "web_sys")]
-use web_sys::Storage;
+use ::{wasm_bindgen::JsValue, web_sys::Storage};
 
 /// Represents errors of a storage.
 #[derive(Debug, Fail)]
@@ -50,7 +50,9 @@ impl StorageService {
             }
         };
         #[cfg(feature = "web_sys")]
-        let storage = storage.unwrap().unwrap();
+        let storage = storage
+            .and_then(|storage| storage.ok_or(JsValue::NULL))
+            .expect("failed to aquire storage");
         StorageService { storage }
     }
 

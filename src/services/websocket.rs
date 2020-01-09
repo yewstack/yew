@@ -74,7 +74,7 @@ impl WebSocketService {
             return Err("Failed to created websocket with given URL");
         }
 
-        let ws = ws.unwrap();
+        let ws = ws.expect("failed to build websocket");
         #[cfg(feature = "std_web")]
         ws.set_binary_type(SocketBinaryType::ArrayBuffer);
         #[cfg(feature = "web_sys")]
