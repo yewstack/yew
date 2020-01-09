@@ -6,6 +6,7 @@ use super::{
 #[cfg(feature = "std_web")]
 use crate::html::EventListener;
 use crate::html::NodeRef;
+use crate::utils::document;
 #[cfg(feature = "web_sys")]
 use gloo::events::EventListener;
 use log::warn;
@@ -20,7 +21,6 @@ use stdweb::{_js_impl, js};
 use stdweb::{
     unstable::TryFrom,
     web::{
-        document,
         html_element::{InputElement, TextAreaElement},
         Element, IElement, INode, Node,
     },
@@ -472,11 +472,6 @@ impl VDiff for VTag {
         match reform {
             Reform::Keep => {}
             Reform::Before(next_sibling) => {
-                #[cfg(feature = "std_web")]
-                let document = document();
-                #[cfg(feature = "web_sys")]
-                let document = web_sys::window().unwrap().document().unwrap();
-
                 let element = if self.tag == "svg"
                     || parent
                         .namespace_uri()
@@ -485,11 +480,11 @@ impl VDiff for VTag {
                     let namespace = SVG_NAMESPACE;
                     #[cfg(feature = "web_sys")]
                     let namespace = Some(namespace);
-                    document
+                    document()
                         .create_element_ns(namespace, &self.tag)
                         .expect("can't create namespaced element for vtag")
                 } else {
-                    document
+                    document()
                         .create_element(&self.tag)
                         .expect("can't create element for vtag")
                 };
@@ -512,7 +507,7 @@ impl VDiff for VTag {
                     #[cfg_attr(feature = "std_web", allow(unused_variables))]
                     let result = parent.append_child(&element);
                     #[cfg(feature = "web_sys")]
-                    result.unwrap();
+                    result.expect("can't append node to parent");
                 }
                 self.reference = Some(element);
             }
@@ -523,9 +518,7 @@ impl VDiff for VTag {
         // Every render it removes all listeners and attach it back later
         // TODO Compare references of handler to do listeners update better
         if let Some(ancestor) = ancestor.as_mut() {
-            for handle in ancestor.captured.drain(..) {
-                drop(handle);
-            }
+            ancestor.captured.clear();
         }
 
         let element = self.reference.clone().expect("element expected");
@@ -563,7 +556,9 @@ fn set_attribute(element: &Element, name: &str, value: &str) {
     #[cfg(feature = "std_web")]
     js!( @(no_return) @{element}.setAttribute( @{name}, @{value} ); );
     #[cfg(feature = "web_sys")]
-    element.set_attribute(name, value).unwrap();
+    element
+        .set_attribute(name, value)
+        .expect("can't set attribute on element");
 }
 
 /// Removes attribute from a element by name.
@@ -571,7 +566,9 @@ fn remove_attribute(element: &Element, name: &str) {
     #[cfg(feature = "std_web")]
     js!( @(no_return) @{element}.removeAttribute( @{name} ); );
     #[cfg(feature = "web_sys")]
-    element.remove_attribute(name).unwrap();
+    element
+        .remove_attribute(name)
+        .expect("can't remove attribute on element");
 }
 
 /// Set `checked` value for the `InputElement`.

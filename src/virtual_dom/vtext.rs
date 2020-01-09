@@ -1,11 +1,12 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use super::{Reform, VDiff, VNode};
+use crate::utils::document;
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
 #[cfg(feature = "std_web")]
-use stdweb::web::{document, Element, INode, Node, TextNode};
+use stdweb::web::{Element, INode, Node, TextNode};
 #[cfg(feature = "web_sys")]
 use ::{
     std::ops::Deref,
@@ -77,12 +78,7 @@ impl VDiff for VText {
         match reform {
             Reform::Keep => {}
             Reform::Before(next_sibling) => {
-                #[cfg(feature = "std_web")]
-                let document = document();
-                #[cfg(feature = "web_sys")]
-                let document = web_sys::window().unwrap().document().unwrap();
-
-                let element = document.create_text_node(&self.text);
+                let element = document().create_text_node(&self.text);
                 if let Some(next_sibling) = next_sibling {
                     let next_sibling = &next_sibling;
                     #[cfg(feature = "web_sys")]
@@ -101,7 +97,7 @@ impl VDiff for VText {
                     #[cfg_attr(feature = "std_web", allow(unused_variables))]
                     let result = parent.append_child(&element);
                     #[cfg(feature = "web_sys")]
-                    result.unwrap();
+                    result.expect("can't append node to parent");
                 }
                 self.reference = Some(element);
             }

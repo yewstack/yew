@@ -2,12 +2,13 @@
 
 use super::{Transformer, VDiff, VNode};
 use crate::html::{Component, ComponentUpdate, HiddenScope, NodeRef, Scope};
+use crate::utils::document;
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 #[cfg(feature = "std_web")]
-use stdweb::web::{document, Element, INode, Node, TextNode};
+use stdweb::web::{Element, INode, Node, TextNode};
 #[cfg(feature = "web_sys")]
 use web_sys::{Element, Node, Text as TextNode};
 
@@ -200,13 +201,7 @@ impl VDiff for VComp {
                         this.replace(mounted)
                     }
                     Reform::Before(next_sibling) => {
-                        // Temporary node which will be replaced by a component's root node.
-                        #[cfg(feature = "std_web")]
-                        let document = document();
-                        #[cfg(feature = "web_sys")]
-                        let document = web_sys::window().unwrap().document().unwrap();
-
-                        let dummy_node = document.create_text_node("");
+                        let dummy_node = document().create_text_node("");
                         if let Some(next_sibling) = next_sibling {
                             let next_sibling = &next_sibling;
                             #[cfg(feature = "web_sys")]
@@ -227,7 +222,7 @@ impl VDiff for VComp {
                             #[cfg_attr(feature = "std_web", allow(unused_variables))]
                             let result = parent.append_child(&dummy_node);
                             #[cfg(feature = "web_sys")]
-                            result.unwrap();
+                            result.expect("can't append node to parent");
                         }
                         this.mount(parent.to_owned(), dummy_node)
                     }

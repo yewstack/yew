@@ -70,7 +70,7 @@ impl VDiff for VNode {
                     #[cfg_attr(feature = "std_web", allow(unused_variables))]
                     let result = parent.append_child(node);
                     #[cfg(feature = "web_sys")]
-                    result.unwrap();
+                    result.expect("can't append node to parent");
                 }
 
                 Some(node.to_owned())
