@@ -17,7 +17,9 @@ use rmp_serde;
 /// let MsgPack(data) = dump;
 ///# }
 /// ```
+/// This is a binary only protocol.
 #[derive(Debug)]
 pub struct MsgPack<T>(pub T);
 
 binary_format!(MsgPack based on rmp_serde);
+text_format_is_an_error!(MsgPack);

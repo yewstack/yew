@@ -26,3 +26,4 @@ binary_format!(
     serde_cbor::ser::to_vec_packed,
     serde_cbor::from_slice
 );
+text_format_is_an_error!(CborPacked);
