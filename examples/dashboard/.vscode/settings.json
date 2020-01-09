@@ -1,0 +1,6 @@
+{
+    "rust.target": "wasm32-unknown-unknown",
+    "rust.clippy_preference": "off",
+    "rust.all_features": false,
+    "rust.features": ["web_sys"]
+}

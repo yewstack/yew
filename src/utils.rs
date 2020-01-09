@@ -1,6 +1,6 @@
 //! This module contains useful utils to get information about the current document.
 
-use failure::{err_msg, Error};
+use anyhow::{anyhow, Error};
 use std::marker::PhantomData;
 use stdweb::web::document;
 
@@ -8,7 +8,7 @@ use stdweb::web::document;
 pub fn host() -> Result<String, Error> {
     document()
         .location()
-        .ok_or_else(|| err_msg("can't get location"))
+        .ok_or_else(|| anyhow!("can't get location"))
         .and_then(|l| l.host().map_err(Error::from))
 }
 

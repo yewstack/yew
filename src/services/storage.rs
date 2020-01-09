@@ -2,14 +2,14 @@
 //! use local and session storage of a browser.
 
 use crate::format::Text;
-use failure::Fail;
 use std::fmt;
 use stdweb::web::{window, Storage};
+use thiserror::Error;
 
 /// Represents errors of a storage.
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 enum StorageError {
-    #[fail(display = "restore error")]
+    #[error("restore error")]
     CantRestore,
 }
 

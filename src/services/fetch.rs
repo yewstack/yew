@@ -3,7 +3,7 @@
 use super::Task;
 use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
-use failure::Fail;
+use thiserror::Error;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt;
@@ -90,9 +90,9 @@ pub struct FetchOptions {
 }
 
 /// Represents errors of a fetch service.
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 enum FetchError {
-    #[fail(display = "failed response")]
+    #[error("failed response")]
     FailedResponse,
 }
 

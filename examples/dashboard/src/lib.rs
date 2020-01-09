@@ -1,6 +1,6 @@
 #![recursion_limit = "256"]
 
-use failure::Error;
+use anyhow::Error;
 use serde_derive::{Deserialize, Serialize};
 use yew::format::{Json, Nothing, Toml};
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
