@@ -1,10 +1,17 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use super::{Reform, VDiff, VNode};
+use crate::utils::document;
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
-use stdweb::web::{document, Element, INode, Node, TextNode};
+#[cfg(feature = "std_web")]
+use stdweb::web::{Element, INode, Node, TextNode};
+#[cfg(feature = "web_sys")]
+use ::{
+    std::ops::Deref,
+    web_sys::{Element, Node, Text as TextNode},
+};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -73,20 +80,35 @@ impl VDiff for VText {
             Reform::Before(next_sibling) => {
                 let element = document().create_text_node(&self.text);
                 if let Some(next_sibling) = next_sibling {
+                    let next_sibling = &next_sibling;
+                    #[cfg(feature = "web_sys")]
+                    let next_sibling = Some(next_sibling);
                     parent
-                        .insert_before(&element, &next_sibling)
+                        .insert_before(&element, next_sibling)
                         .expect("can't insert text before the next sibling");
                 } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
+                    let next_sibling = &next_sibling;
+                    #[cfg(feature = "web_sys")]
+                    let next_sibling = Some(next_sibling);
                     parent
-                        .insert_before(&element, &next_sibling)
+                        .insert_before(&element, next_sibling)
                         .expect("can't insert text before next_sibling");
                 } else {
-                    parent.append_child(&element);
+                    #[cfg_attr(feature = "std_web", allow(unused_variables))]
+                    let result = parent.append_child(&element);
+                    #[cfg(feature = "web_sys")]
+                    result.expect("can't append node to parent");
                 }
                 self.reference = Some(element);
             }
         }
-        self.reference.as_ref().map(|t| t.as_node().to_owned())
+        self.reference.as_ref().map(|t| {
+            #[cfg(feature = "std_web")]
+            let node = t.as_node();
+            #[cfg(feature = "web_sys")]
+            let node = t.deref();
+            node.to_owned()
+        })
     }
 }
 

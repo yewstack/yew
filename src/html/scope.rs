@@ -4,7 +4,10 @@ use crate::virtual_dom::{VDiff, VNode};
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
+#[cfg(feature = "std_web")]
 use stdweb::web::Element;
+#[cfg(feature = "web_sys")]
+use web_sys::Element;
 
 /// Updates for a `Component` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {

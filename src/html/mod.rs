@@ -16,8 +16,10 @@ use std::any::TypeId;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
-use stdweb::unstable::TryFrom;
-use stdweb::web::Node;
+#[cfg(feature = "std_web")]
+use stdweb::{unstable::TryFrom, web::Node};
+#[cfg(feature = "web_sys")]
+use ::{wasm_bindgen::JsValue, web_sys::Node};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -268,8 +270,10 @@ where
 /// # Example
 /// Focus an `<input>` element on mount.
 /// ```
-/// use stdweb::web::html_element::InputElement;
-/// use stdweb::web::IHtmlElement;
+/// #[cfg(feature = "std_web")]
+/// use stdweb::web::{html_element::InputElement, IHtmlElement};
+/// #[cfg(feature = "web_sys")]
+/// use web_sys::HtmlInputElement as InputElement;
 ///# use yew::*;
 ///
 /// pub struct Input {
@@ -313,8 +317,19 @@ impl NodeRef {
     }
 
     /// Try converting the node reference into another form
-    pub fn try_into<INTO: TryFrom<Node>>(&self) -> Option<INTO> {
-        self.get().and_then(|node| INTO::try_from(node).ok())
+    pub fn try_into<
+        #[cfg(feature = "std_web")] INTO: TryFrom<Node>,
+        #[cfg(feature = "web_sys")] INTO: AsRef<Node> + From<JsValue>,
+    >(
+        &self,
+    ) -> Option<INTO> {
+        let node = self.get();
+        #[cfg(feature = "std_web")]
+        {
+            node.and_then(|node| INTO::try_from(node).ok())
+        }
+        #[cfg(feature = "web_sys")]
+        node.map(Into::into).map(INTO::from)
     }
 
     /// Place a Node in a reference for later use

@@ -3,18 +3,36 @@
 use super::{
     Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
 };
+#[cfg(feature = "std_web")]
+use crate::html::EventListener;
 use crate::html::NodeRef;
+use crate::utils::document;
+#[cfg(feature = "web_sys")]
+use gloo::events::EventListener;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::rc::Rc;
-use stdweb::unstable::TryFrom;
-use stdweb::web::html_element::InputElement;
-use stdweb::web::html_element::TextAreaElement;
-use stdweb::web::{document, Element, EventListenerHandle, IElement, INode, Node};
+#[cfg(feature = "std_web")]
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
+#[cfg(feature = "std_web")]
+use stdweb::{
+    unstable::TryFrom,
+    web::{
+        html_element::{InputElement, TextAreaElement},
+        Element, IElement, INode, Node,
+    },
+};
+#[cfg(feature = "web_sys")]
+use ::{
+    std::ops::Deref,
+    wasm_bindgen::JsCast,
+    web_sys::{
+        Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, Node,
+    },
+};
 
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
@@ -54,7 +72,7 @@ pub struct VTag {
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
     /// Keeps handler for attached listeners to have an opportunity to drop them later.
-    captured: Vec<EventListenerHandle>,
+    captured: Vec<EventListener>,
 }
 
 impl Clone for VTag {
@@ -305,10 +323,18 @@ impl VTag {
             let list = element.class_list();
             match change {
                 Patch::Add(class, _) | Patch::Replace(class, _) => {
-                    list.add(class).expect("can't add a class");
+                    #[cfg(feature = "std_web")]
+                    let result = list.add(class);
+                    #[cfg(feature = "web_sys")]
+                    let result = list.add_1(class);
+                    result.expect("can't add a class");
                 }
                 Patch::Remove(class) => {
-                    list.remove(class).expect("can't remove a class");
+                    #[cfg(feature = "std_web")]
+                    let result = list.remove(class);
+                    #[cfg(feature = "web_sys")]
+                    let result = list.remove_1(class);
+                    result.expect("can't remove a class");
                 }
             }
         }
@@ -329,18 +355,30 @@ impl VTag {
         // I override behavior of attributes to make it more clear
         // and useful in templates. For example I interpret `checked`
         // attribute as `checked` parameter, not `defaultChecked` as browsers do
-        if let Ok(input) = InputElement::try_from(element.clone()) {
+        if let Some(input) = {
+            #[cfg(feature = "std_web")]
+            {
+                InputElement::try_from(element.clone()).ok()
+            }
+            #[cfg(feature = "web_sys")]
+            element.dyn_ref::<InputElement>()
+        } {
             if let Some(change) = self.diff_kind(ancestor) {
                 let kind = match change {
                     Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
                     Patch::Remove(_) => "",
                 };
-                //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
-                //input.set_kind(&kind);
-                let input = &input;
-                js! { @(no_return)
-                    @{input}.type = @{kind};
+                #[cfg(feature = "std_web")]
+                {
+                    //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
+                    //input.set_kind(&kind);
+                    let input = &input;
+                    js! { @(no_return)
+                        @{input}.type = @{kind};
+                    }
                 }
+                #[cfg(feature = "web_sys")]
+                input.set_type(kind);
             }
 
             if let Some(change) = self.diff_value(ancestor) {
@@ -348,13 +386,23 @@ impl VTag {
                     Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
                     Patch::Remove(_) => "",
                 };
+                #[cfg(feature = "std_web")]
                 input.set_raw_value(raw_value);
+                #[cfg(feature = "web_sys")]
+                input.set_value(raw_value);
             }
 
             // IMPORTANT! This parameter has to be set every time
             // to prevent strange behaviour in the browser when the DOM changes
             set_checked(&input, self.checked);
-        } else if let Ok(tae) = TextAreaElement::try_from(element.clone()) {
+        } else if let Some(tae) = {
+            #[cfg(feature = "std_web")]
+            {
+                TextAreaElement::try_from(element.clone()).ok()
+            }
+            #[cfg(feature = "web_sys")]
+            element.dyn_ref::<TextAreaElement>()
+        } {
             if let Some(change) = self.diff_value(ancestor) {
                 let value = match change {
                     Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
@@ -429,8 +477,11 @@ impl VDiff for VTag {
                         .namespace_uri()
                         .map_or(false, |ns| ns == SVG_NAMESPACE)
                 {
+                    let namespace = SVG_NAMESPACE;
+                    #[cfg(feature = "web_sys")]
+                    let namespace = Some(namespace);
                     document()
-                        .create_element_ns(SVG_NAMESPACE, &self.tag)
+                        .create_element_ns(namespace, &self.tag)
                         .expect("can't create namespaced element for vtag")
                 } else {
                     document()
@@ -439,15 +490,24 @@ impl VDiff for VTag {
                 };
 
                 if let Some(next_sibling) = next_sibling {
+                    let next_sibling = &next_sibling;
+                    #[cfg(feature = "web_sys")]
+                    let next_sibling = Some(next_sibling);
                     parent
-                        .insert_before(&element, &next_sibling)
+                        .insert_before(&element, next_sibling)
                         .expect("can't insert tag before next sibling");
                 } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
+                    let next_sibling = &next_sibling;
+                    #[cfg(feature = "web_sys")]
+                    let next_sibling = Some(next_sibling);
                     parent
-                        .insert_before(&element, &next_sibling)
+                        .insert_before(&element, next_sibling)
                         .expect("can't insert tag before next sibling");
                 } else {
-                    parent.append_child(&element);
+                    #[cfg_attr(feature = "std_web", allow(unused_variables))]
+                    let result = parent.append_child(&element);
+                    #[cfg(feature = "web_sys")]
+                    result.expect("can't append node to parent");
                 }
                 self.reference = Some(element);
             }
@@ -458,9 +518,7 @@ impl VDiff for VTag {
         // Every render it removes all listeners and attach it back later
         // TODO Compare references of handler to do listeners update better
         if let Some(ancestor) = ancestor.as_mut() {
-            for handle in ancestor.captured.drain(..) {
-                handle.remove();
-            }
+            ancestor.captured.clear();
         }
 
         let element = self.reference.clone().expect("element expected");
@@ -474,7 +532,13 @@ impl VDiff for VTag {
         self.children
             .apply(&element, None, ancestor.map(|a| a.children.into()));
 
-        let node = self.reference.as_ref().map(|e| e.as_node().to_owned());
+        let node = self.reference.as_ref().map(|e| {
+            #[cfg(feature = "std_web")]
+            let node = e.as_node();
+            #[cfg(feature = "web_sys")]
+            let node = e.deref();
+            node.to_owned()
+        });
         self.node_ref.set(node.clone());
         node
     }
@@ -489,17 +553,30 @@ impl fmt::Debug for VTag {
 /// `stdweb` doesn't have methods to work with attributes now.
 /// this is [workaround](https://github.com/koute/stdweb/issues/16#issuecomment-325195854)
 fn set_attribute(element: &Element, name: &str, value: &str) {
+    #[cfg(feature = "std_web")]
     js!( @(no_return) @{element}.setAttribute( @{name}, @{value} ); );
+    #[cfg(feature = "web_sys")]
+    element
+        .set_attribute(name, value)
+        .expect("can't set attribute on element");
 }
 
 /// Removes attribute from a element by name.
 fn remove_attribute(element: &Element, name: &str) {
+    #[cfg(feature = "std_web")]
     js!( @(no_return) @{element}.removeAttribute( @{name} ); );
+    #[cfg(feature = "web_sys")]
+    element
+        .remove_attribute(name)
+        .expect("can't remove attribute on element");
 }
 
 /// Set `checked` value for the `InputElement`.
 fn set_checked(input: &InputElement, value: bool) {
+    #[cfg(feature = "std_web")]
     js!( @(no_return) @{input}.checked = @{value}; );
+    #[cfg(feature = "web_sys")]
+    input.set_checked(value);
 }
 
 impl PartialEq for VTag {

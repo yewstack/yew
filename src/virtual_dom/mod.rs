@@ -6,11 +6,18 @@ pub mod vnode;
 pub mod vtag;
 pub mod vtext;
 
+#[cfg(feature = "std_web")]
+use crate::html::EventListener;
+#[cfg(feature = "web_sys")]
+use gloo::events::EventListener;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
-use stdweb::web::{Element, EventListenerHandle, Node};
+#[cfg(feature = "std_web")]
+use stdweb::web::{Element, Node};
+#[cfg(feature = "web_sys")]
+use web_sys::{Element, Node};
 
 pub use self::vcomp::{VChild, VComp};
 pub use self::vlist::VList;
@@ -24,7 +31,7 @@ pub trait Listener {
     /// Returns standard name of DOM's event.
     fn kind(&self) -> &'static str;
     /// Attaches a listener to the element.
-    fn attach(&self, element: &Element) -> EventListenerHandle;
+    fn attach(&self, element: &Element) -> EventListener;
 }
 
 impl fmt::Debug for dyn Listener {
