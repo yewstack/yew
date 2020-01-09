@@ -172,11 +172,9 @@ where
                 ToWorker::Destroy => {
                     let upd = AgentLifecycleEvent::Destroy;
                     scope.send(upd);
+                    // Terminates web worker
                     cfg_match! {
-                        feature = "std_web" => js! {
-                            // Terminates web worker
-                            self.close();
-                        },
+                        feature = "std_web" => js! { self.close(); },
                         feature = "web_sys" => worker_self().close(),
                     };
                 }
@@ -993,9 +991,9 @@ fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
             &JsValue::from_str("module"),
         )
         .unwrap();
-        Worker::new_with_options(name_of_resource, &options).unwrap()
+        Worker::new_with_options(name_of_resource, &options).expect("failed to spawn worker")
     } else {
-        Worker::new(name_of_resource).unwrap()
+        Worker::new(name_of_resource).expect("failed to spawn worker")
     }
 }
 
@@ -1027,7 +1025,7 @@ macro_rules! worker_ext_impl {
 
             fn post_message_vec(&self, data: Vec<u8>) {
                 self.post_message(&Uint8Array::from(data.as_slice()))
-                    .unwrap();
+                    .expect("failed to post message");
             }
         }
     )+};
