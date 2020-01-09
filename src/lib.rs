@@ -92,15 +92,10 @@ pub mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
 
-use cfg_if::cfg_if;
-
-cfg_if! {
-    if #[cfg(feature = "agent")] {
-        pub mod agent;
-    } else if #[cfg(feature = "services")] {
-        pub mod services;
-    }
-}
+#[cfg(feature = "agent")]
+pub mod agent;
+#[cfg(feature = "services")]
+pub mod services;
 
 /// The module that contains all events available in the framework.
 pub mod events {

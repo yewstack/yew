@@ -4,6 +4,7 @@
 //! All types here are lazy and it's necessary to
 //! use `Into` and `From` traits to get (convert) the data.
 
+use cfg_if::cfg_if;
 use failure::Error;
 
 #[macro_use]
@@ -11,8 +12,6 @@ pub mod macros;
 
 pub mod json;
 pub mod nothing;
-
-use cfg_if::cfg_if;
 
 pub use self::json::Json;
 pub use self::nothing::Nothing;
