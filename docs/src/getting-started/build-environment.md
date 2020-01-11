@@ -41,7 +41,7 @@ rollup ./main.js --format iife --file ./pkg/bundle.js
 Feel free to use your preferred server. Here we use a simple python server to serve to [http://\[::1\]:8000](http://[::1]:8000).
 
 ```bash
-python -m SimpleHTTPServer 8080
+python -m SimpleHTTPServer 8000
 ```
 
 #### Supported Targets
