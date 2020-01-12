@@ -38,7 +38,7 @@ impl GravatarService {
             if meta.status.is_success() {
                 callback.emit(data)
             } else {
-                // format_err! is a macro in crate `failure`
+                // anyhow! is a macro in crate `anyhow`
                 callback.emit(Err(anyhow!(
                     "{}: error getting profile https://gravatar.com/",
                     meta.status
