@@ -37,8 +37,7 @@ pub struct WebSocketTask {
     ws: WebSocket,
     notification: Callback<WebSocketStatus>,
     #[cfg(feature = "web_sys")]
-    #[allow(dead_code)]
-    listeners: [EventListener; 4],
+    listeners: Option<[EventListener; 4]>,
 }
 
 impl fmt::Debug for WebSocketTask {
@@ -101,24 +100,24 @@ impl WebSocketService {
                   #[cfg(feature = "web_sys")] event: &Event| {
                 #[cfg(feature = "web_sys")]
                 let data = event.dyn_ref::<MessageEvent>().unwrap().data();
-                #[cfg(feature = "std_web")]
-                let text = event.data().into_text();
-                #[cfg(feature = "web_sys")]
-                let text = data.as_string();
-                #[cfg(feature = "std_web")]
-                let bytes = event.data().into_array_buffer();
-                #[cfg(feature = "web_sys")]
-                let bytes = Some(data);
+                let text = cfg_match! {
+                    feature = "std_web" => event.data().into_text(),
+                    feature = "web_sys" => data.as_string(),
+                };
+                let bytes = cfg_match! {
+                    feature = "std_web" => event.data().into_array_buffer(),
+                    feature = "web_sys" => Some(data),
+                };
 
                 if let Some(text) = text {
                     let data = Ok(text);
                     let out = OUT::from(data);
                     callback.emit(out);
                 } else if let Some(bytes) = bytes {
-                    #[cfg(feature = "std_web")]
-                    let bytes: Vec<u8> = bytes.into();
-                    #[cfg(feature = "web_sys")]
-                    let bytes = Uint8Array::new_with_byte_offset(&bytes, 0).to_vec();
+                    let bytes: Vec<u8> = cfg_match! {
+                        feature = "std_web" => bytes.into(),
+                        feature = "web_sys" => Uint8Array::new_with_byte_offset(&bytes, 0).to_vec(),
+                    };
                     let data = Ok(bytes);
                     let out = OUT::from(data);
                     callback.emit(out);
@@ -134,12 +133,12 @@ impl WebSocketService {
                     ws.add_event_listener(listener_message);
                 }),
                 feature = "web_sys" => ({
-                    [
+                    Some([
                         EventListener::new(&ws, "open", listener_open),
                         EventListener::new(&ws, "close", listener_close),
                         EventListener::new(&ws, "error", listener_error),
                         EventListener::new(&ws, "message", listener_message),
-                    ]
+                    ])
                 }),
             };
             Ok(WebSocketTask {
@@ -201,7 +200,10 @@ impl Task for WebSocketTask {
     fn cancel(&mut self) {
         cfg_match! {
             feature = "std_web" => self.ws.close(),
-            feature = "web_sys" => self.ws.close().unwrap(),
+            feature = "web_sys" => ({
+                self.ws.close().unwrap();
+                drop(self.listeners.take().expect("tried to cancel websocket twice"));
+            }),
         };
     }
 }
