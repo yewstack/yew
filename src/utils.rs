@@ -76,6 +76,7 @@ impl<IN: Into<OUT>, OUT> IntoIterator for NodeSeq<IN, OUT> {
     }
 }
 
+/// Get global `self` and provide way to pass expression to run on it because there is no common abstraction.
 #[cfg(feature = "web_sys")]
 #[macro_export]
 macro_rules! global {
