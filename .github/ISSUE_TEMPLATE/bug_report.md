@@ -26,6 +26,7 @@ If applicable, add screenshots to help explain your problem.
 **Environment:**
  - Yew version [e.g. v0.10, `master`]
  - Rust version [e.g. 1.40.0]
+ - Target if relevant [e.g. `wasm32-unknown-emscripten`]
  - `stdweb` / `web-sys` version [e.g. web-sys v0.3.33]
  - OS: [e.g. macos]
  - Browser [e.g. chrome, safari]

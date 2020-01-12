@@ -1,6 +1,7 @@
 #![recursion_limit = "128"]
 #![deny(warnings)]
 
+#[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 use yew::prelude::*;
 
@@ -56,7 +57,7 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <div>
-                <textarea oninput=|input| Msg::Payload(input.value)
+                <textarea oninput=self.link.callback(move |input: InputData| Msg::Payload(input.value))
                     style="font-family: 'Monaco' monospace;"
                     value={ &self.payload }>
                 </textarea>

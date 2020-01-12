@@ -10,11 +10,10 @@ pub struct TagAttributes {
     pub attributes: Vec<TagAttribute>,
     pub listeners: Vec<TagAttribute>,
     pub classes: Option<ClassesForm>,
+    pub booleans: Vec<TagAttribute>,
     pub value: Option<Expr>,
     pub kind: Option<Expr>,
     pub checked: Option<Expr>,
-    pub disabled: Option<Expr>,
-    pub selected: Option<Expr>,
     pub node_ref: Option<Expr>,
     pub href: Option<Expr>,
 }
@@ -22,6 +21,32 @@ pub struct TagAttributes {
 pub enum ClassesForm {
     Tuple(Vec<Expr>),
     Single(Expr),
+}
+
+lazy_static! {
+    static ref BOOLEAN_SET: HashSet<&'static str> = {
+        HashSet::from_iter(
+            vec![
+                "async",
+                "autofocus",
+                "controls",
+                "default",
+                "defer",
+                "disabled",
+                "hidden",
+                "ismap",
+                "loop",
+                "multiple",
+                "muted",
+                "novalidate",
+                "open",
+                "readonly",
+                "required",
+                "selected",
+            ]
+            .into_iter(),
+        )
+    };
 }
 
 lazy_static! {
@@ -92,6 +117,20 @@ impl TagAttributes {
         drained
     }
 
+    fn drain_boolean(attrs: &mut Vec<TagAttribute>) -> Vec<TagAttribute> {
+        let mut i = 0;
+        let mut drained = Vec::new();
+        while i < attrs.len() {
+            let name_str = attrs[i].label.to_string();
+            if BOOLEAN_SET.contains(&name_str.as_str()) {
+                drained.push(attrs.remove(i));
+            } else {
+                i += 1;
+            }
+        }
+        drained
+    }
+
     fn remove_attr(attrs: &mut Vec<TagAttribute>, name: &str) -> Option<Expr> {
         let mut i = 0;
         while i < attrs.len() {
@@ -142,14 +181,13 @@ impl Parse for TagAttributes {
             }
             i += 1;
         }
+        let booleans = TagAttributes::drain_boolean(&mut attributes);
 
         let classes =
             TagAttributes::remove_attr(&mut attributes, "class").map(TagAttributes::map_classes);
         let value = TagAttributes::remove_attr(&mut attributes, "value");
         let kind = TagAttributes::remove_attr(&mut attributes, "type");
         let checked = TagAttributes::remove_attr(&mut attributes, "checked");
-        let disabled = TagAttributes::remove_attr(&mut attributes, "disabled");
-        let selected = TagAttributes::remove_attr(&mut attributes, "selected");
         let node_ref = TagAttributes::remove_attr(&mut attributes, "ref");
         let href = TagAttributes::remove_attr(&mut attributes, "href");
 
@@ -157,11 +195,10 @@ impl Parse for TagAttributes {
             attributes,
             classes,
             listeners,
+            checked,
+            booleans,
             value,
             kind,
-            checked,
-            disabled,
-            selected,
             node_ref,
             href,
         })

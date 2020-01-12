@@ -120,7 +120,7 @@ fn make_tag(t: Tag) -> VTag {
             el.add_class("table");
             el
         }
-        Tag::TableHead => VTag::new("tr"),
+        Tag::TableHead => VTag::new("th"),
         Tag::TableRow => VTag::new("tr"),
         Tag::TableCell => VTag::new("td"),
         Tag::Emphasis => {
