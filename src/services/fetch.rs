@@ -3,7 +3,6 @@
 use super::Task;
 use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
-use thiserror::Error;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt;
@@ -13,6 +12,7 @@ use stdweb::web::ArrayBuffer;
 use stdweb::{JsSerialize, Value};
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
+use thiserror::Error;
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
