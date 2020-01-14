@@ -134,11 +134,11 @@ impl_action! {
             }
         }
     }
-    touchcancel(event: TouchCancel) -> TouchCancel => |_, event| { event }
-    touchend(event: TouchEnd) -> TouchEnd => |_, event| { event }
-    touchenter(event: TouchEnter) -> TouchEnter => |_, event| { event }
-    touchmove(event: TouchMove) -> TouchMove => |_, event| { event }
-    touchstart(event: TouchStart) -> TouchStart => |_, event| { event }
+    ontouchcancel(event: TouchCancel) -> TouchCancel => |_, event| { event }
+    ontouchend(event: TouchEnd) -> TouchEnd => |_, event| { event }
+    ontouchenter(event: TouchEnter) -> TouchEnter => |_, event| { event }
+    ontouchmove(event: TouchMove) -> TouchMove => |_, event| { event }
+    ontouchstart(event: TouchStart) -> TouchStart => |_, event| { event }
 }
 
 /// A type representing data from `oninput` event.
