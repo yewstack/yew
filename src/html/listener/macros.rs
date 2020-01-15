@@ -6,21 +6,22 @@ macro_rules! impl_action {
     ($($action:ident(name: $name:literal, event: $type:ident) -> $ret:ty => $convert:expr)*) => {$(
         /// An abstract implementation of a listener.
         pub mod $action {
+            use cfg_if::cfg_if;
+            use cfg_match::cfg_match;
             use crate::callback::Callback;
             #[allow(unused_imports)]
             use crate::html::listener::*;
             use crate::virtual_dom::Listener;
-            #[cfg(feature = "std_web")]
-            use stdweb::web::{
-                event::{$type, IEvent},
-                Element, IEventTarget,
-            };
-            #[cfg(feature = "web_sys")]
-            use ::{
-                gloo::events::EventListener,
-                wasm_bindgen::JsValue,
-                web_sys::{$type as WebSysType, Element, EventTarget},
-            };
+            cfg_if! {
+                if #[cfg(feature = "std_web")] {
+                    use stdweb::web::event::{$type, IEvent};
+                    use stdweb::web::{Element, IEventTarget};
+                } else if #[cfg(feature = "web_sys")] {
+                    use gloo::events::EventListener;
+                    use wasm_bindgen::JsValue;
+                    use web_sys::{$type as WebSysType, Element, EventTarget};
+                }
+            }
 
             /// A wrapper for a callback which attaches event listeners to elements.
             #[derive(Clone, Debug)]
@@ -55,12 +56,10 @@ macro_rules! impl_action {
                         let event: WebSysType = JsValue::from(event).into();
                         callback.emit($convert(&this, event));
                     };
-                    #[cfg(feature = "std_web")]
-                    {
-                        EventListener(Some(element.add_event_listener(listener)))
+                    cfg_match! {
+                        feature = "std_web" => EventListener(Some(element.add_event_listener(listener))),
+                        feature = "web_sys" => EventListener::new(&EventTarget::from(element.clone()), $name, listener),
                     }
-                    #[cfg(feature = "web_sys")]
-                    EventListener::new(&EventTarget::from(element.clone()), $name, listener)
                 }
             }
         }

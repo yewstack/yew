@@ -1,18 +1,31 @@
 //! This module contains useful utils to get information about the current document.
 
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use failure::{err_msg, Error};
 use std::marker::PhantomData;
-
-#[cfg(feature = "std_web")]
-/// Returns current document.
-pub fn document() -> stdweb::web::Document {
-    stdweb::web::document()
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::web::{Document, Window};
+    } else if #[cfg(feature = "web_sys")] {
+        use web_sys::{Document, Window};
+    }
 }
 
-#[cfg(feature = "web_sys")]
+/// Returns current window.
+pub fn window() -> Window {
+    cfg_match! {
+        feature = "std_web" => stdweb::web::window(),
+        feature = "web_sys" => web_sys::window().expect("no window available"),
+    }
+}
+
 /// Returns current document.
-pub fn document() -> web_sys::Document {
-    web_sys::window().unwrap().document().unwrap()
+pub fn document() -> Document {
+    cfg_match! {
+        feature = "std_web" => stdweb::web::document(),
+        feature = "web_sys" => window().document().unwrap(),
+    }
 }
 
 /// Returns `host` for the current document. Useful to connect to a server that server the app.

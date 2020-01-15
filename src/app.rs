@@ -3,10 +3,14 @@
 
 use crate::html::{Component, NodeRef, Scope};
 use crate::utils::document;
-#[cfg(feature = "std_web")]
-use stdweb::web::{Element, INode, IParentNode};
-#[cfg(feature = "web_sys")]
-use web_sys::Element;
+use cfg_if::cfg_if;
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::web::{Element, INode, IParentNode};
+    } else if #[cfg(feature = "web_sys")] {
+        use web_sys::Element;
+    }
+}
 
 /// An application instance.
 #[derive(Debug)]

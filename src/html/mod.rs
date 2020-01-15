@@ -12,14 +12,21 @@ pub use scope::{Scope, ScopeHolder};
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VList, VNode};
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
-#[cfg(feature = "std_web")]
-use stdweb::{unstable::TryFrom, web::Node};
-#[cfg(feature = "web_sys")]
-use ::{wasm_bindgen::JsValue, web_sys::Node};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::unstable::TryFrom;
+        use stdweb::web::Node;
+    } else if #[cfg(feature = "web_sys")] {
+        use wasm_bindgen::JsValue;
+        use web_sys::Node;
+    }
+}
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
@@ -324,12 +331,10 @@ impl NodeRef {
         &self,
     ) -> Option<INTO> {
         let node = self.get();
-        #[cfg(feature = "std_web")]
-        {
-            node.and_then(|node| INTO::try_from(node).ok())
+        cfg_match! {
+            feature = "std_web" => node.and_then(|node| INTO::try_from(node).ok()),
+            feature = "web_sys" => node.map(Into::into).map(INTO::from),
         }
-        #[cfg(feature = "web_sys")]
-        node.map(Into::into).map(INTO::from)
     }
 
     /// Place a Node in a reference for later use

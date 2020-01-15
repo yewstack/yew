@@ -2,16 +2,19 @@
 
 use super::{Reform, VDiff, VNode};
 use crate::utils::document;
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
-#[cfg(feature = "std_web")]
-use stdweb::web::{Element, INode, Node, TextNode};
-#[cfg(feature = "web_sys")]
-use ::{
-    std::ops::Deref,
-    web_sys::{Element, Node, Text as TextNode},
-};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::web::{Element, INode, Node, TextNode};
+    } else if #[cfg(feature = "web_sys")] {
+        use std::ops::Deref;
+        use web_sys::{Element, Node, Text as TextNode};
+    }
+}
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -94,19 +97,24 @@ impl VDiff for VText {
                         .insert_before(&element, next_sibling)
                         .expect("can't insert text before next_sibling");
                 } else {
-                    #[cfg_attr(feature = "std_web", allow(unused_variables))]
-                    let result = parent.append_child(&element);
-                    #[cfg(feature = "web_sys")]
-                    result.expect("can't append node to parent");
+                    #[cfg_attr(
+                        feature = "std_web",
+                        allow(clippy::let_unit_value, unused_variables)
+                    )]
+                    {
+                        let result = parent.append_child(&element);
+                        #[cfg(feature = "web_sys")]
+                        result.expect("can't append node to parent");
+                    }
                 }
                 self.reference = Some(element);
             }
         }
         self.reference.as_ref().map(|t| {
-            #[cfg(feature = "std_web")]
-            let node = t.as_node();
-            #[cfg(feature = "web_sys")]
-            let node = t.deref();
+            let node = cfg_match! {
+                feature = "std_web" => t.as_node(),
+                feature = "web_sys" => t.deref(),
+            };
             node.to_owned()
         })
     }

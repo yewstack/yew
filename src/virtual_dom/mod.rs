@@ -6,18 +6,20 @@ pub mod vnode;
 pub mod vtag;
 pub mod vtext;
 
-#[cfg(feature = "std_web")]
-use crate::html::EventListener;
-#[cfg(feature = "web_sys")]
-use gloo::events::EventListener;
+use cfg_if::cfg_if;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
-#[cfg(feature = "std_web")]
-use stdweb::web::{Element, Node};
-#[cfg(feature = "web_sys")]
-use web_sys::{Element, Node};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use crate::html::EventListener;
+        use stdweb::web::{Element, Node};
+    } else if #[cfg(feature = "web_sys")] {
+        use gloo::events::EventListener;
+        use web_sys::{Element, Node};
+    }
+}
 
 pub use self::vcomp::{VChild, VComp};
 pub use self::vlist::VList;
