@@ -404,6 +404,10 @@ impl ToHtml for VTag {
         }
 
         parts.push(">".to_string());
+        let children_html = match tag_name {
+            "textarea" => VText::new(self.value).to_html(),
+            _ => ""
+        };
         // TODO parts.push(self.children.to_html());
         // TODO handle textareas
         parts.push(format!("</{}>", tag_name).to_string());
