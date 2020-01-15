@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::{Reform, VDiff, VNode};
+use super::{Reform, VDiff, VNode, ToHtml};
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
@@ -87,6 +87,11 @@ impl VDiff for VText {
             }
         }
         self.reference.as_ref().map(|t| t.as_node().to_owned())
+    }
+}
+
+impl ToHtml for VText {
+    fn to_html(&self) -> String {
     }
 }
 
