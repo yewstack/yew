@@ -82,11 +82,13 @@ impl Task for IntervalTask {
     }
 }
 
-#[cfg(feature = "std_web")]
 impl Drop for IntervalTask {
     fn drop(&mut self) {
-        if self.is_active() {
-            self.cancel();
+        #[cfg(feature = "std_web")]
+        {
+            if self.is_active() {
+                self.cancel();
+            }
         }
     }
 }
