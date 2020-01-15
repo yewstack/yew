@@ -38,9 +38,9 @@ impl_action! {
     oncontextmenu(event: ContextMenuEvent) -> ContextMenuEvent => |_, event| { event }
     oninput(event: InputEvent) -> InputData => |this: &Element, _| { oninput_handler(this) }
     onchange(event: ChangeEvent) -> ChangeData => |this: &Element, _| { onchange_handler(this) }
-    touchcancel(event: TouchCancel) -> TouchCancel => |_, event| { event }
-    touchend(event: TouchEnd) -> TouchEnd => |_, event| { event }
-    touchenter(event: TouchEnter) -> TouchEnter => |_, event| { event }
-    touchmove(event: TouchMove) -> TouchMove => |_, event| { event }
-    touchstart(event: TouchStart) -> TouchStart => |_, event| { event }
+    ontouchcancel(event: TouchCancel) -> TouchCancel => |_, event| { event }
+    ontouchend(event: TouchEnd) -> TouchEnd => |_, event| { event }
+    ontouchenter(event: TouchEnter) -> TouchEnter => |_, event| { event }
+    ontouchmove(event: TouchMove) -> TouchMove => |_, event| { event }
+    ontouchstart(event: TouchStart) -> TouchStart => |_, event| { event }
 }

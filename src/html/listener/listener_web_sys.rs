@@ -38,9 +38,9 @@ impl_action! {
     oncontextmenu(name: "contextmenu", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
     oninput(name: "input", event: Event) -> InputData => |this: &Element, _| { oninput_handler(this) }
     onchange(name: "change", event: Event) -> ChangeData => |this: &Element, _| { onchange_handler(this) }
-    touchcancel(name: "touchcancel", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
-    touchend(name: "touchend", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
-    touchenter(name: "touchenter", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
-    touchmove(name: "touchmove", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
-    touchstart(name: "touchstart", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
+    ontouchcancel(name: "touchcancel", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
+    ontouchend(name: "touchend", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
+    ontouchenter(name: "touchenter", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
+    ontouchmove(name: "touchmove", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
+    ontouchstart(name: "touchstart", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
 }
