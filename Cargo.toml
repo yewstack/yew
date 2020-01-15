@@ -90,7 +90,6 @@ features = [
   "WheelEvent",
   "Window",
   "Worker",
-  "WorkerGlobalScope",
   "WorkerOptions",
 ]
 
