@@ -1,4 +1,4 @@
-use failure::{format_err, Error};
+use anyhow::{anyhow, Error};
 use serde_derive::Deserialize;
 use yew::callback::Callback;
 use yew::format::{Json, Nothing};
@@ -38,8 +38,7 @@ impl GravatarService {
             if meta.status.is_success() {
                 callback.emit(data)
             } else {
-                // format_err! is a macro in crate `failure`
-                callback.emit(Err(format_err!(
+                callback.emit(Err(anyhow!(
                     "{}: error getting profile https://gravatar.com/",
                     meta.status
                 )))
