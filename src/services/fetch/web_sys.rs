@@ -4,6 +4,7 @@ use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
 use crate::services::Task;
 use failure::Fail;
+use js_sys::Reflect;
 use js_sys::{Array, Promise, Uint8Array};
 use std::fmt;
 use std::rc::Rc;
@@ -15,7 +16,7 @@ use web_sys::{
 };
 pub use web_sys::{
     RequestCache as Cache, RequestCredentials as Credentials, RequestMode as Mode,
-    RequestRedirect as Redirect,
+    RequestRedirect as Redirect, Window, WorkerGlobalScope,
 };
 
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
@@ -441,9 +442,15 @@ where
     if let Some(abort_controller) = &abort_controller {
         init.signal(Some(&abort_controller.signal()));
     }
-    let promise = crate::global!(global, global.fetch_with_request_and_init(&request, &init))
-        .then(&closure_then)
-        .catch(&closure_catch);
+    let global: JsValue = js_sys::global().into();
+    let promise = if Reflect::has(&global, &String::from("Window").into()).unwrap() {
+        Window::from(global).fetch_with_request_and_init(&request, &init)
+    } else if Reflect::has(&global, &String::from("WorkerGlobalScope").into()).unwrap() {
+        WorkerGlobalScope::from(global).fetch_with_request_and_init(&request, &init)
+    } else {
+        panic!("failed to get global context")
+    };
+    let promise = promise.then(&closure_then).catch(&closure_catch);
     sender.send(closure_then).unwrap();
     sender.send(closure_catch).unwrap();
 
