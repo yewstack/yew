@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-echo "$(rustup default)" | grep -q "stable"
-is_stable=$?
+echo "$(rustup default)" | grep -q "1.39.0"
+emscripten_supported=$?
 set -euxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 
 # Showcase includes all other examples
@@ -8,8 +8,8 @@ cd examples/showcase
 
 # TODO Can't build some demos with release, need fix
 
-if [ "$is_stable" == "0" ]; then
-  # TODO - Emscripten builds are broken on beta/nightly
+if [ "$emscripten_supported" == "0" ]; then
+  # TODO - Emscripten builds are broken on rustc > 1.39.0
   cargo web build --target asmjs-unknown-emscripten
   cargo web build --target wasm32-unknown-emscripten
 fi

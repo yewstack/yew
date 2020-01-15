@@ -6,7 +6,7 @@ pub struct ListItem {
     props: Props,
 }
 
-#[derive(Properties)]
+#[derive(Clone, Properties)]
 pub struct Props {
     pub hide: bool,
     #[props(required)]
@@ -30,7 +30,10 @@ impl Component for ListItem {
 
     fn view(&self) -> Html {
         let name = self.props.name.clone();
-        let onmouseover = self.props.on_hover.reform(move |_| Hovered::Item(name.clone()));
+        let onmouseover = self
+            .props
+            .on_hover
+            .reform(move |_| Hovered::Item(name.clone()));
         html! {
             <div class="list-item" onmouseover=onmouseover>
                 { &self.props.name }

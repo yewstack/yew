@@ -26,4 +26,4 @@ features = [
 ]
 
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
-wasm-bindgen = "0.2.51"
+wasm-bindgen = "0.2.58"

@@ -52,3 +52,19 @@ macro_rules! binary_format {
         }
     };
 }
+
+macro_rules! text_format_is_an_error {
+    ($type:ident) => {
+        use $crate::format::FormatError;
+
+        fn to_string<T>(_value: T) -> Result<String, failure::Error> {
+            Err(FormatError::CantEncodeBinaryAsText.into())
+        }
+
+        fn from_str<T>(_s: &str) -> Result<T, failure::Error> {
+            Err(FormatError::ReceivedTextForBinary.into())
+        }
+
+        text_format!($type based on self);
+    }
+}

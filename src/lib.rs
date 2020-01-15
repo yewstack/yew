@@ -1,3 +1,4 @@
+#![allow(clippy::needless_doctest_main)]
 //! # Yew Framework - API Documentation
 //!
 //! Yew is a framework for web-client apps created with
@@ -71,9 +72,14 @@ use proc_macro_hack::proc_macro_hack;
 #[proc_macro_hack(support_nested)]
 pub use yew_macro::html;
 
+#[doc(hidden)]
+#[proc_macro_hack(support_nested)]
+pub use yew_macro::html_nested;
+
 /// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
     pub use crate::html;
+    pub use crate::html_nested;
     pub use yew_macro::Properties;
 }
 

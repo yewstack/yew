@@ -16,7 +16,9 @@ use serde_cbor;
 /// let Cbor(data) = dump;
 ///# }
 /// ```
+/// This is a binary only format.
 #[derive(Debug)]
 pub struct Cbor<T>(pub T);
 
 binary_format!(Cbor based on serde_cbor);
+text_format_is_an_error!(Cbor);

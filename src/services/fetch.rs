@@ -335,10 +335,9 @@ where
     // Notice that the callback signature must match the call from the javascript
     // side. There is no static check at this point.
     let callback = move |success: bool, status: u16, headers: HashMap<String, String>, data: X| {
-        let mut response_builder = Response::builder();
-        response_builder.status(status);
-        for (key, values) in &headers {
-            response_builder.header(key.as_str(), values.as_str());
+        let mut response_builder = Response::builder().status(status);
+        for (key, values) in headers {
+            response_builder = response_builder.header(key.as_str(), values.as_str());
         }
 
         // Deserialize and wrap response data into a Text object.

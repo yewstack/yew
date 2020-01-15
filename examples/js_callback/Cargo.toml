@@ -9,4 +9,4 @@ yew = { path = "../.." }
 stdweb = "^0.4.20"
 
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
-wasm-bindgen = "0.2.55"
+wasm-bindgen = "0.2.58"

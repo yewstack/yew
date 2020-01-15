@@ -13,7 +13,7 @@
 //!   link: ComponentLink<Self>,
 //! }
 //!
-//! #[derive(Properties)]
+//! #[derive(Clone, Properties)]
 //! struct Props {
 //!   #[props(required)]
 //!   prop: String,
@@ -63,7 +63,7 @@ mod derive_props;
 mod html_tree;
 
 use derive_props::DerivePropsInput;
-use html_tree::HtmlRoot;
+use html_tree::{HtmlRoot, HtmlRootNested};
 use proc_macro::TokenStream;
 use proc_macro_hack::proc_macro_hack;
 use quote::{quote, ToTokens};
@@ -92,6 +92,12 @@ fn non_capitalized_ascii(string: &str) -> bool {
 pub fn derive_props(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DerivePropsInput);
     TokenStream::from(input.into_token_stream())
+}
+
+#[proc_macro_hack]
+pub fn html_nested(input: TokenStream) -> TokenStream {
+    let root = parse_macro_input!(input as HtmlRootNested);
+    TokenStream::from(quote! {#root})
 }
 
 #[proc_macro_hack]

@@ -73,7 +73,7 @@ impl HandlerId {
         self.0
     }
     /// Indicates if a handler id corresponds to callback in the Agent runtime.
-    pub fn is_respondable(&self) -> bool {
+    pub fn is_respondable(self) -> bool {
         self.1
     }
 }
@@ -281,7 +281,7 @@ impl Discoverer for Context {
                     let responder = SlabResponder {
                         slab: launched.slab(),
                     };
-                    scope_to_init = Some((scope.clone(), responder));
+                    scope_to_init = Some((scope, responder));
                     entry.insert(launched).create_bridge(callback)
                 }
             }

@@ -70,13 +70,13 @@ impl Component for Model {
         html! {
             <div>
                 <div>
-                    <input type="file" multiple=true onchange=|value| {
+                    <input type="file" multiple=true onchange=self.link.callback(move |value| {
                             let mut result = Vec::new();
                             if let ChangeData::Files(files) = value {
                                 result.extend(files);
                             }
                             Msg::Files(result, flag)
-                        }/>
+                        })/>
                 </div>
                 <div>
                     <label>{ "By chunks" }</label>

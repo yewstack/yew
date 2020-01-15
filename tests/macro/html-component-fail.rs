@@ -1,8 +1,9 @@
 #![recursion_limit = "128"]
 
+use std::marker::PhantomData;
 use yew::prelude::*;
 
-#[derive(Properties, PartialEq)]
+#[derive(Clone, Properties, PartialEq)]
 pub struct ChildProperties {
     pub string: String,
     #[props(required)]
@@ -14,21 +15,14 @@ impl Component for Child {
     type Message = ();
     type Properties = ChildProperties;
 
-    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Child
-    }
-
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
+    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
+    fn view(&self) -> Html { unimplemented!() }
 }
 
-#[derive(Properties)]
+#[derive(Clone, Properties)]
 pub struct ChildContainerProperties {
+    #[props(required)]
     pub children: ChildrenWithProps<Child>,
 }
 
@@ -37,17 +31,22 @@ impl Component for ChildContainer {
     type Message = ();
     type Properties = ChildContainerProperties;
 
-    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-        ChildContainer
-    }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
+    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
+    fn view(&self) -> Html { unimplemented!() }
+}
 
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
+pub struct Generic<G> {
+    marker: PhantomData<G>,
+}
 
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
+impl Component for Generic<String> {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
+    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
+    fn view(&self) -> Html { unimplemented!() }
 }
 
 fn compile_fail() {
@@ -75,11 +74,15 @@ fn compile_fail() {
     html! { <Child><Child></Child> };
     html! { <Child></Child><Child></Child> };
     html! { <Child>{ "Not allowed" }</Child> };
+
+    html! { <ChildContainer /> };
+    html! { <ChildContainer></ChildContainer> };
     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
     html! { <ChildContainer><></></ChildContainer> };
-    html! { <ChildContainer><ChildContainer /></ChildContainer> };
-    html! { <ChildContainer><ChildContainer /></ChildContainer> };
-    html! { <ChildContainer><Child int=1 /><other /></ChildContainer> };
+    html! { <ChildContainer><other /></ChildContainer> };
+
+    html! { <Generic<String>></Generic> };
+    html! { <Generic<String>></Generic<Vec<String>>> };
 }
 
 fn main() {}

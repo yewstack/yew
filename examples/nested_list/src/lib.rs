@@ -1,19 +1,16 @@
-#![recursion_limit = "128"]
+#![recursion_limit = "512"]
 
+mod app;
 mod header;
 mod item;
 mod list;
 
-use header::ListHeader;
-use item::ListItem;
-use list::List;
-use yew::prelude::*;
+pub use app::App;
+use std::cell::RefCell;
 use std::fmt;
-
-pub struct Model {
-    link: ComponentLink<Self>,
-    hovered: Hovered,
-}
+use std::rc::Rc;
+use yew::html::ComponentLink;
+pub type WeakComponentLink<COMP> = Rc<RefCell<Option<ComponentLink<COMP>>>>;
 
 #[derive(Debug)]
 pub enum Hovered {
@@ -21,60 +18,6 @@ pub enum Hovered {
     Item(String),
     List,
     None,
-}
-
-pub enum Msg {
-    Hover(Hovered),
-}
-
-impl Component for Model {
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Model { link,
-            hovered: Hovered::None,
-         }
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::Hover(hovered) => self.hovered = hovered,
-        }
-        true
-    }
-
-    fn view(&self) -> Html {
-        let on_hover = self.link.callback(Msg::Hover);
-
-        html! {
-            <div class="main">
-                <h1>{ "Nested List Demo" }</h1>
-                <List on_hover=on_hover.clone()>
-                    <ListHeader text="Calling all Rusties!" on_hover=on_hover.clone() />
-                    <ListItem name="Rustin" on_hover=on_hover.clone() />
-                    <ListItem hide={true} name="Rustaroo" on_hover=on_hover.clone() />
-                    <ListItem name="Rustifer" on_hover=on_hover.clone()>
-                        <span>{"Hello!"}</span>
-                    </ListItem>
-                </List>
-                {self.view_last_hovered()}
-            </div>
-        }
-    }
-}
-
-impl Model {
-    fn view_last_hovered(&self) -> Html {
-        html! {
-            <div class="last-hovered">
-                { "Last hovered:"}
-                <span class="last-hovered-text">
-                    { &self.hovered }
-                </span>
-            </div>
-        }
-    }
 }
 
 impl fmt::Display for Hovered {

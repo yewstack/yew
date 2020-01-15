@@ -59,7 +59,7 @@ impl<COMP: Component> Scope<COMP> {
         node_ref: NodeRef,
         props: COMP::Properties,
     ) -> Scope<COMP> {
-        let mut scope = self.clone();
+        let mut scope = self;
         let link = ComponentLink::connect(&scope);
         let ready_state = ReadyState {
             element,

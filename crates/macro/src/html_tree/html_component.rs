@@ -11,7 +11,10 @@ use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{Expr, Ident, Path, PathArguments, PathSegment, Token, Type, TypePath};
+use syn::{
+    AngleBracketedGenericArguments, Expr, GenericArgument, Ident, Path, PathArguments, PathSegment,
+    Token, Type, TypePath,
+};
 
 pub struct HtmlComponent {
     ty: Type,
@@ -21,11 +24,9 @@ pub struct HtmlComponent {
 
 impl PeekValue<()> for HtmlComponent {
     fn peek(cursor: Cursor) -> Option<()> {
-        let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '<').as_option()?;
-
-        HtmlComponent::peek_type(cursor)?;
-        Some(())
+        HtmlComponentOpen::peek(cursor)
+            .or_else(|| HtmlComponentClose::peek(cursor))
+            .map(|_| ())
     }
 }
 
@@ -59,8 +60,10 @@ impl Parse for HtmlComponent {
                     "this open tag has no corresponding close tag",
                 ));
             }
-            if HtmlComponentClose::peek(input.cursor()).is_some() {
-                break;
+            if let Some(ty) = HtmlComponentClose::peek(input.cursor()) {
+                if open.ty == ty {
+                    break;
+                }
             }
 
             children.push(input.parse()?);
@@ -101,12 +104,16 @@ impl ToTokens for HtmlComponent {
 
             #[cfg(has_maybe_uninit)]
             let unallocated_prop_ref = quote! {
-                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe { ::std::mem::MaybeUninit::uninit().assume_init() };
+                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe {
+                    ::std::mem::MaybeUninit::uninit().assume_init()
+                };
             };
 
             #[cfg(not(has_maybe_uninit))]
             let unallocated_prop_ref = quote! {
-                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe { ::std::mem::uninitialized() };
+                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe {
+                    ::std::mem::uninitialized()
+                };
             };
 
             quote! {
@@ -119,17 +126,12 @@ impl ToTokens for HtmlComponent {
         };
 
         let set_children = if !children.is_empty() {
-            let children_len = children.len();
             quote! {
-                .children(::yew::html::ChildrenRenderer::new(
-                    #children_len,
-                    ::std::boxed::Box::new(move || {
-                        #[allow(unused_must_use)]
-                        || -> ::std::vec::Vec<_> {
-                            vec![#(#children.into(),)*]
-                        }
-                    }()),
-                ))
+                .children(::yew::html::ChildrenRenderer::new({
+                    let mut v = ::std::vec::Vec::new();
+                    #(v.extend(::yew::utils::NodeSeq::from(#children));)*
+                    v
+                }))
             }
         } else {
             quote! {}
@@ -161,12 +163,8 @@ impl ToTokens for HtmlComponent {
         };
 
         let validate_comp = quote_spanned! { ty.span()=>
-            trait __yew_validate_comp {
-                type C: ::yew::html::Component;
-            }
-            impl __yew_validate_comp for () {
-                type C = #ty;
-            }
+            trait __yew_validate_comp: ::yew::html::Component {}
+            impl __yew_validate_comp for #ty {}
         };
 
         let node_ref = if let Some(node_ref) = props.node_ref() {
@@ -176,7 +174,8 @@ impl ToTokens for HtmlComponent {
         };
 
         tokens.extend(quote! {{
-            // Validation nevers executes at runtime
+            // These validation checks show a nice error message to the user.
+            // They do not execute at runtime
             if false {
                 #validate_comp
                 #validate_props
@@ -198,7 +197,27 @@ impl HtmlComponent {
         Some(cursor)
     }
 
-    fn peek_type(mut cursor: Cursor) -> Option<Type> {
+    fn path_arguments(cursor: Cursor) -> Option<(PathArguments, Cursor)> {
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '<').as_option()?;
+
+        let (ty, cursor) = Self::peek_type(cursor)?;
+
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '>').as_option()?;
+
+        Some((
+            PathArguments::AngleBracketed(AngleBracketedGenericArguments {
+                colon2_token: None,
+                lt_token: Token![<](Span::call_site()),
+                args: vec![GenericArgument::Type(ty)].into_iter().collect(),
+                gt_token: Token![>](Span::call_site()),
+            }),
+            cursor,
+        ))
+    }
+
+    fn peek_type(mut cursor: Cursor) -> Option<(Type, Cursor)> {
         let mut colons_optional = true;
         let mut last_ident = None;
         let mut leading_colon = None;
@@ -218,10 +237,14 @@ impl HtmlComponent {
             if let Some((ident, c)) = post_colons_cursor.ident() {
                 cursor = c;
                 last_ident = Some(ident.clone());
-                segments.push(PathSegment {
-                    ident,
-                    arguments: PathArguments::None,
-                });
+                let arguments = if let Some((args, c)) = Self::path_arguments(cursor) {
+                    cursor = c;
+                    args
+                } else {
+                    PathArguments::None
+                };
+
+                segments.push(PathSegment { ident, arguments });
             } else {
                 break;
             }
@@ -234,13 +257,16 @@ impl HtmlComponent {
         type_str.is_ascii().as_option()?;
         type_str.bytes().next()?.is_ascii_uppercase().as_option()?;
 
-        Some(Type::Path(TypePath {
-            qself: None,
-            path: Path {
-                leading_colon,
-                segments,
-            },
-        }))
+        Some((
+            Type::Path(TypePath {
+                qself: None,
+                path: Path {
+                    leading_colon,
+                    segments,
+                },
+            }),
+            cursor,
+        ))
     }
 }
 
@@ -256,7 +282,8 @@ impl PeekValue<Type> for HtmlComponentOpen {
     fn peek(cursor: Cursor) -> Option<Type> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
-        HtmlComponent::peek_type(cursor)
+        let (typ, _) = HtmlComponent::peek_type(cursor)?;
+        return Some(typ);
     }
 }
 
@@ -301,7 +328,12 @@ impl PeekValue<Type> for HtmlComponentClose {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '/').as_option()?;
 
-        HtmlComponent::peek_type(cursor)
+        let (typ, cursor) = HtmlComponent::peek_type(cursor)?;
+
+        let (punct, _) = cursor.punct()?;
+        (punct.as_char() == '>').as_option()?;
+
+        return Some(typ);
     }
 }
 impl Parse for HtmlComponentClose {
