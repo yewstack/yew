@@ -3,16 +3,27 @@
 
 use super::{to_ms, Task};
 use crate::callback::Callback;
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use std::fmt;
 use std::time::Duration;
-use stdweb::Value;
-#[allow(unused_imports)]
-use stdweb::{_js_impl, js};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::Value;
+        #[allow(unused_imports)]
+        use stdweb::{_js_impl, js};
+    } else if #[cfg(feature = "web_sys")] {
+        use gloo::timers::callback::Interval;
+    }
+}
 
 /// A handle which helps to cancel interval. Uses
 /// [clearInterval](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearInterval).
 #[must_use]
-pub struct IntervalTask(Option<Value>);
+pub struct IntervalTask(
+    #[cfg(feature = "std_web")] Option<Value>,
+    #[cfg(feature = "web_sys")] Option<Interval>,
+);
 
 impl fmt::Debug for IntervalTask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -37,16 +48,19 @@ impl IntervalService {
             callback.emit(());
         };
         let ms = to_ms(duration);
-        let handle = js! {
-            var callback = @{callback};
-            var action = function() {
-                callback();
-            };
-            var delay = @{ms};
-            return {
-                interval_id: setInterval(action, delay),
-                callback: callback,
-            };
+        let handle = cfg_match! {
+            feature = "std_web" => js! {
+                var callback = @{callback};
+                var action = function() {
+                    callback();
+                };
+                var delay = @{ms};
+                return {
+                    interval_id: setInterval(action, delay),
+                    callback: callback,
+                };
+            },
+            feature = "web_sys" => Interval::new(ms, callback),
         };
         IntervalTask(Some(handle))
     }
@@ -57,7 +71,9 @@ impl Task for IntervalTask {
         self.0.is_some()
     }
     fn cancel(&mut self) {
+        #[cfg_attr(feature = "web_sys", allow(unused_variables))]
         let handle = self.0.take().expect("tried to cancel interval twice");
+        #[cfg(feature = "std_web")]
         js! { @(no_return)
             var handle = @{handle};
             clearInterval(handle.interval_id);
@@ -68,8 +84,11 @@ impl Task for IntervalTask {
 
 impl Drop for IntervalTask {
     fn drop(&mut self) {
-        if self.is_active() {
-            self.cancel();
+        #[cfg(feature = "std_web")]
+        {
+            if self.is_active() {
+                self.cancel();
+            }
         }
     }
 }

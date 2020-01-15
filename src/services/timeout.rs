@@ -3,15 +3,26 @@
 
 use super::{to_ms, Task};
 use crate::callback::Callback;
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use std::fmt;
 use std::time::Duration;
-use stdweb::Value;
-#[allow(unused_imports)]
-use stdweb::{_js_impl, js};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::Value;
+        #[allow(unused_imports)]
+        use stdweb::{_js_impl, js};
+    } else if #[cfg(feature = "web_sys")] {
+        use gloo::timers::callback::Timeout;
+    }
+}
 
 /// A handle to cancel a timeout task.
 #[must_use]
-pub struct TimeoutTask(Option<Value>);
+pub struct TimeoutTask(
+    #[cfg(feature = "std_web")] Option<Value>,
+    #[cfg(feature = "web_sys")] Option<Timeout>,
+);
 
 impl fmt::Debug for TimeoutTask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -35,17 +46,20 @@ impl TimeoutService {
             callback.emit(());
         };
         let ms = to_ms(duration);
-        let handle = js! {
-            var callback = @{callback};
-            var action = function() {
-                callback();
-                callback.drop();
-            };
-            var delay = @{ms};
-            return {
-                timeout_id: setTimeout(action, delay),
-                callback: callback,
-            };
+        let handle = cfg_match! {
+            feature = "std_web" => js! {
+                var callback = @{callback};
+                var action = function() {
+                    callback();
+                    callback.drop();
+                };
+                var delay = @{ms};
+                return {
+                    timeout_id: setTimeout(action, delay),
+                    callback: callback,
+                };
+            },
+            feature = "web_sys" => Timeout::new(ms, callback),
         };
         TimeoutTask(Some(handle))
     }
@@ -56,7 +70,9 @@ impl Task for TimeoutTask {
         self.0.is_some()
     }
     fn cancel(&mut self) {
+        #[cfg_attr(feature = "web_sys", allow(unused_variables))]
         let handle = self.0.take().expect("tried to cancel timeout twice");
+        #[cfg(feature = "std_web")]
         js! { @(no_return)
             var handle = @{handle};
             clearTimeout(handle.timeout_id);
