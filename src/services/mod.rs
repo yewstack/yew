@@ -5,7 +5,6 @@
 
 pub mod console;
 pub mod dialog;
-#[cfg(feature = "std_web")]
 pub mod fetch;
 pub mod interval;
 pub mod keyboard;
@@ -19,7 +18,6 @@ pub mod websocket;
 
 pub use self::console::ConsoleService;
 pub use self::dialog::DialogService;
-#[cfg(feature = "std_web")]
 pub use self::fetch::FetchService;
 pub use self::interval::IntervalService;
 #[cfg(feature = "std_web")]
