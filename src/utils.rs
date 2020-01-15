@@ -75,26 +75,3 @@ impl<IN: Into<OUT>, OUT> IntoIterator for NodeSeq<IN, OUT> {
         self.0.into_iter()
     }
 }
-
-/// Get global `self` and provide way to pass expression to run on it because there is no common abstraction.
-#[cfg(feature = "web_sys")]
-#[macro_export]
-macro_rules! global {
-    ($global:ident, $fun:expr) => {{
-        use js_sys::Reflect;
-        use wasm_bindgen::JsValue;
-        use web_sys::{Window, WorkerGlobalScope};
-
-        let global: JsValue = js_sys::global().into();
-
-        if Reflect::has(&global, &String::from("Window").into()).unwrap() {
-            let $global: Window = global.into();
-            $fun
-        } else if Reflect::has(&global, &String::from("WorkerGlobalScope").into()).unwrap() {
-            let $global: WorkerGlobalScope = global.into();
-            $fun
-        } else {
-            panic!("failed to get global context")
-        }
-    }};
-}
