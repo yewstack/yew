@@ -94,6 +94,7 @@ pub struct ChildProperties {
     pub string: String,
     #[props(required)]
     pub int: i32,
+    pub opt_str: Option<String>,
     pub vec: Vec<i32>,
     pub optional_callback: Option<Callback<()>>,
 }
@@ -193,6 +194,11 @@ fn compile_pass() {
             <Child int={1+1} />
             <Child int=1 vec={vec![1]} />
             <Child string={String::from("child")} int=1 />
+
+            <Child opt_str="child" int=1 />
+            <Child opt_str=String::from("child") int=1 />
+            <Child opt_str=Some("child") int=1 />
+            <Child opt_str=Some(String::from("child")) int=1 />
 
             // backwards compat
             <Child: string="child", int=3, />
