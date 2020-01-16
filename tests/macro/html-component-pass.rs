@@ -1,8 +1,8 @@
 #![recursion_limit = "256"]
 
 use std::marker::PhantomData;
-use yew::prelude::*;
 use yew::html::ChildrenRenderer;
+use yew::prelude::*;
 use yew::virtual_dom::{VChild, VNode};
 
 pub struct Generic<G> {
@@ -13,18 +13,30 @@ impl Component for Generic<String> {
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-    fn view(&self) -> Html { unimplemented!() }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
 }
 
 impl Component for Generic<Vec<String>> {
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-    fn view(&self) -> Html { unimplemented!() }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
 }
 
 #[derive(Clone, Properties, Default)]
@@ -39,9 +51,15 @@ impl Component for Container {
     type Message = ();
     type Properties = ContainerProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-    fn view(&self) -> Html { unimplemented!() }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
 }
 
 #[derive(Clone)]
@@ -85,9 +103,15 @@ impl Component for Child {
     type Message = ();
     type Properties = ChildProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-    fn view(&self) -> Html { unimplemented!() }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
 }
 
 pub struct AltChild;
@@ -95,9 +119,15 @@ impl Component for AltChild {
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-    fn view(&self) -> Html { unimplemented!() }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
 }
 
 #[derive(Clone, Properties, Default)]
@@ -112,9 +142,15 @@ impl Component for ChildContainer {
     type Message = ();
     type Properties = ChildContainerProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-    fn view(&self) -> Html { unimplemented!() }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
 }
 
 mod scoped {
@@ -172,6 +208,7 @@ fn compile_pass() {
         <>
             <Child int=1 />
             <Child int=1 optional_callback=Some(Callback::from(|_| ())) />
+            <Child int=1 optional_callback=Callback::from(|_| ()) />
             <Child int=1 optional_callback=None />
         </>
     };

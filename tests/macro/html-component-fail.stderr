@@ -135,10 +135,10 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    |
    = help: the following implementations were found:
              <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, T>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, std::option::Option<T>>>
              <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::option::Option<std::string::String>>>
              <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::string::String>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<T, T>>
-           and 2 others
+           and 3 others
    = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<{integer}, std::string::String>` is not satisfied
@@ -149,10 +149,10 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    |
    = help: the following implementations were found:
              <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, T>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, std::option::Option<T>>>
              <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::option::Option<std::string::String>>>
              <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::string::String>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<T, T>>
-           and 2 others
+           and 3 others
    = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<{integer}, std::string::String>` is not satisfied
@@ -163,10 +163,10 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    |
    = help: the following implementations were found:
              <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, T>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, std::option::Option<T>>>
              <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::option::Option<std::string::String>>>
              <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::string::String>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<T, T>>
-           and 2 others
+           and 3 others
    = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0308]: mismatched types
@@ -186,10 +186,10 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    |
    = help: the following implementations were found:
              <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, T>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, std::option::Option<T>>>
              <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::option::Option<std::string::String>>>
              <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::string::String>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<T, T>>
-           and 2 others
+           and 3 others
    = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope

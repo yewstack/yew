@@ -255,6 +255,15 @@ impl<T> Transformer<T, Option<T>> for VComp {
     }
 }
 
+impl<'a, T> Transformer<&'a T, Option<T>> for VComp
+where
+    T: Clone,
+{
+    fn transform(from: &T) -> Option<T> {
+        Some(from.clone())
+    }
+}
+
 impl<'a> Transformer<&'a str, Option<String>> for VComp {
     fn transform(from: &'a str) -> Option<String> {
         Some(from.to_owned())
