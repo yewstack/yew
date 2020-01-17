@@ -91,14 +91,32 @@ mod t6 {
     #[derive(Properties, Clone)]
     pub struct Props<T: FromStr + Clone>
     where
-    <T as FromStr>::Err: Clone,
+        <T as FromStr>::Err: Clone,
     {
         #[props(required)]
         value: Result<T, <T as FromStr>::Err>,
     }
 
     fn required_prop_generics_with_where_clause_should_work() {
-        Props::<String>::builder().value(Ok(String::from(""))).build();
+        Props::<String>::builder()
+            .value(Ok(String::from("")))
+            .build();
+    }
+}
+
+mod t7 {
+    use super::*;
+
+    #[derive(Clone, Properties)]
+    pub struct Props {
+        #[props(default = "123 + 456")]
+        value: i32,
+    }
+
+    fn required_prop_generics_should_work() {
+        let props = Props::builder().build();
+        assert_eq!(props.value, 579);
+        Props::builder().value(456).build();
     }
 }
 

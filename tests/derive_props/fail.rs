@@ -50,4 +50,34 @@ mod t4 {
     }
 }
 
+mod t5 {
+    use super::*;
+    #[derive(Clone, Properties)]
+    pub struct Props {
+        // ERROR: default must be given a value
+        #[props(default)]
+        value: String,
+    }
+}
+
+mod t6 {
+    use super::*;
+    #[derive(Clone, Properties)]
+    pub struct Props {
+        // ERROR: the value must be a string
+        #[props(default = 123)]
+        value: i32,
+    }
+}
+
+mod t7 {
+    use super::*;
+    #[derive(Clone, Properties)]
+    pub struct Props {
+        // ERROR: the value must be parsed as a String
+        #[props(default = "123")]
+        value: String,
+    }
+}
+
 fn main() {}
