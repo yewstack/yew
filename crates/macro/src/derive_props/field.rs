@@ -1,16 +1,18 @@
 use super::generics::GenericArguments;
 use proc_macro2::{Ident, Span};
-use quote::quote;
+use quote::{quote, quote_spanned};
 use std::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::TryFrom;
 use syn::parse::Result;
 use syn::spanned::Spanned;
-use syn::{Error, Expr, Field, Lit, Meta, MetaList, MetaNameValue, NestedMeta, Type, Visibility};
+use syn::{
+    Error, ExprPath, Field, Lit, Meta, MetaList, MetaNameValue, NestedMeta, Type, Visibility,
+};
 
 #[derive(PartialEq, Eq)]
 enum PropAttr {
     Required { wrapped_name: Ident },
-    Default { default_value: Expr },
+    Default { default: ExprPath },
     None,
 }
 
@@ -81,10 +83,11 @@ impl PropField {
                     #wrapped_name: ::std::option::Option::None,
                 }
             }
-            PropAttr::Default { default_value } => {
+            PropAttr::Default { default } => {
                 let name = &self.name;
-                quote! {
-                    #name: #default_value,
+                let span = default.span();
+                quote_spanned! {span=>
+                    #name: #default(),
                 }
             }
             PropAttr::None => {
@@ -167,8 +170,8 @@ impl PropField {
                 }
 
                 if let Lit::Str(lit_str) = lit {
-                    let default_value = lit_str.parse()?;
-                    Ok(PropAttr::Default { default_value })
+                    let default = lit_str.parse()?;
+                    Ok(PropAttr::Default { default })
                 } else {
                     Err(expected_attr)
                 }
