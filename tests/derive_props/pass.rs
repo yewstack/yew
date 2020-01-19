@@ -107,20 +107,26 @@ mod t6 {
 mod t7 {
     use super::*;
 
+    #[derive(Clone, Debug, Eq, PartialEq)]
+    pub enum Foo {
+        One,
+        Two,
+    }
+
     #[derive(Clone, Properties)]
     pub struct Props {
         #[props(default = "default_value")]
-        value: i32,
+        value: Foo,
     }
 
-    fn default_value() -> i32 {
-        123 + 456
+    fn default_value() -> Foo {
+        Foo::One
     }
 
     fn default_value_should_work() {
         let props = Props::builder().build();
-        assert_eq!(props.value, 579);
-        Props::builder().value(456).build();
+        assert_eq!(props.value, Foo::One);
+        Props::builder().value(Foo::Two).build();
     }
 }
 

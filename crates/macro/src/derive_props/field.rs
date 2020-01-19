@@ -85,9 +85,18 @@ impl PropField {
             }
             PropAttr::Default { default } => {
                 let name = &self.name;
+                let ty = &self.ty;
                 let span = default.span();
+                // Hacks to avoid misleading error message.
                 quote_spanned! {span=>
-                    #name: #default(),
+                    #name: {
+                        let none: Option<#ty> = None;
+                        match true {
+                            false => none,
+                            true => Some(#default())
+                        }
+                        .unwrap()
+                    },
                 }
             }
             PropAttr::None => {
