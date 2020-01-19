@@ -11,6 +11,18 @@ use stdweb::web::{FileReader, FileReaderReadyState, FileReaderResult, IEventTarg
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 
+fn new_file_reader() -> Result<FileReader, &'static str> {
+    let file_reader = js! {
+        try {
+            return new FileReader;
+        } catch(error) {
+            return error;
+        }
+    };
+    FileReader::try_from(js!( return @{file_reader.as_ref()}; ))
+        .map_err(|_| "couldn't aquire file reader")
+}
+
 impl ReaderService {
     /// Creates a new service instance connected to `App` by provided `sender`.
     pub fn new() -> Self {
@@ -23,15 +35,7 @@ impl ReaderService {
         file: File,
         callback: Callback<FileData>,
     ) -> Result<ReaderTask, &str> {
-        let file_reader = js! {
-            try {
-                return new FileReader;
-            } catch(error) {
-                return error;
-            }
-        };
-        let file_reader = FileReader::try_from(js!( return @{file_reader.as_ref()}; ))
-            .map_err(|_| "couldn't aquire file reader")?;
+        let file_reader = new_file_reader()?;
         let reader = file_reader.clone();
         let name = file.name();
         file_reader.add_event_listener(move |_event: LoadEndEvent| match reader.result() {
@@ -58,8 +62,8 @@ impl ReaderService {
         file: File,
         callback: Callback<FileChunk>,
         chunk_size: usize,
-    ) -> ReaderTask {
-        let file_reader = FileReader::new();
+    ) -> Result<ReaderTask, &str> {
+        let file_reader = new_file_reader()?;
         let name = file.name();
         let mut position = 0;
         let total_size = file.len() as usize;
@@ -106,7 +110,7 @@ impl ReaderService {
         .try_into()
         .unwrap();
         file_reader.read_as_text(&blob).unwrap();
-        ReaderTask { file_reader }
+        Ok(ReaderTask { file_reader })
     }
 }
 

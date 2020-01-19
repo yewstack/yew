@@ -48,28 +48,26 @@ impl ReaderService {
         file: File,
         callback: Callback<FileChunk>,
         chunk_size: usize,
-    ) -> ReaderTask {
-        let file_reader = FileReader::new().unwrap();
+    ) -> Result<ReaderTask, &str> {
+        let file_reader = FileReader::new().map_err(|_| "couldn't aquire file reader")?;
         let name = file.name();
         let mut position = 0;
         let total_size = file.size() as usize;
         let reader = file_reader.clone();
         let callback = move |_event: &Event| {
-            let result = reader
-                .result()
-                .expect("`FileReader` hasn't finished loading");
-
-            if result.is_string() {
-                let started = FileChunk::Started { name: name.clone() };
-                callback.emit(started);
-            } else {
-                let array = Uint8Array::new_with_byte_offset(&result, 0);
-                let chunk = FileChunk::DataChunk {
-                    data: array.to_vec(),
-                    progress: position as f32 / total_size as f32,
+            if let Ok(result) = reader.result() {
+                if result.is_string() {
+                    let started = FileChunk::Started { name: name.clone() };
+                    callback.emit(started);
+                } else {
+                    let array = Uint8Array::new_with_byte_offset(&result, 0);
+                    let chunk = FileChunk::DataChunk {
+                        data: array.to_vec(),
+                        progress: position as f32 / total_size as f32,
+                    };
+                    callback.emit(chunk);
                 };
-                callback.emit(chunk);
-            };
+            }
             // Read the next chunk
             if position < total_size {
                 let from = position;
@@ -85,10 +83,10 @@ impl ReaderService {
         let listener = Some(EventListener::new(&file_reader, "loadend", callback));
         let blob = Blob::new().unwrap();
         file_reader.read_as_text(&blob).unwrap();
-        ReaderTask {
+        Ok(ReaderTask {
             file_reader,
             listener,
-        }
+        })
     }
 }
 
