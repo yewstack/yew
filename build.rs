@@ -22,6 +22,9 @@ pub fn main() {
         println!("cargo:rustc-cfg=feature=\"wasm_bindgen_test\"");
     } else if cfg!(all(feature = "web_sys", not(feature = "doc_test"))) {
         let target = env::var("TARGET").unwrap_or_default();
-        panic!("Selected target `{}` is not compatible with web-sys", target);
+        panic!(
+            "Selected target `{}` is not compatible with web-sys",
+            target
+        );
     }
 }

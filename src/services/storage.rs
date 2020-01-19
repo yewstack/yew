@@ -4,8 +4,8 @@
 use crate::format::Text;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
-use failure::Fail;
 use std::fmt;
+use thiserror::Error;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         #[allow(unused_imports)]
@@ -19,9 +19,9 @@ cfg_if! {
 }
 
 /// Represents errors of a storage.
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 enum StorageError {
-    #[fail(display = "restore error")]
+    #[error("restore error")]
     CantRestore,
 }
 
