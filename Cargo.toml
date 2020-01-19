@@ -96,6 +96,10 @@ features = [
 ]
 
 # Changes here must be reflected in `build.rs`
+[target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]
+wasm-bindgen = "0.2.58"
+
+# Changes here must be reflected in `build.rs`
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dev-dependencies]
 wasm-bindgen-test = "0.3.4"
 
@@ -104,15 +108,12 @@ ryu = "1.0.2" # 1.0.1 breaks emscripten
 
 [dev-dependencies]
 serde_derive = "1"
-trybuild = "1.0"
-rustversion = "1.0"
 
 [features]
-default = ["services", "agent"]
+default = []
 std_web = ["stdweb"]
 web_sys = ["console_error_panic_hook", "gloo", "js-sys", "web-sys", "wasm-bindgen"]
 doc_test = []
-web_test = []
 wasm_test = []
 services = []
 agent = ["bincode"]

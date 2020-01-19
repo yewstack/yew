@@ -18,9 +18,7 @@ pub fn main() {
 
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
     let using_wasm_bindgen = target_arch == "wasm32" && !using_cargo_web && !using_wasi;
-    if using_wasm_bindgen {
-        println!("cargo:rustc-cfg=feature=\"wasm_bindgen_test\"");
-    } else if cfg!(all(feature = "web_sys", not(feature = "doc_test"))) {
+    if !using_wasm_bindgen && cfg!(all(feature = "web_sys", not(feature = "doc_test"))) {
         let target = env::var("TARGET").unwrap_or_default();
         panic!(
             "Selected target `{}` is not compatible with web-sys",

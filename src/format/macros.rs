@@ -53,6 +53,7 @@ macro_rules! binary_format {
     };
 }
 
+#[cfg(any(feature = "bincode", feature = "cbor", feature = "msgpack"))]
 macro_rules! text_format_is_an_error {
     ($type:ident) => {
         use $crate::format::FormatError;

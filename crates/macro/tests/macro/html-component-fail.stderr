@@ -188,6 +188,10 @@ error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<Ch
 ...
 72 |     html! { <Child string="abc" /> };
    |                    ^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `string`, perhaps you need to implement it:
+           candidate #1: `proc_macro::bridge::server::Literal`
 
 error[E0599]: no method named `children` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
   --> $DIR/html-component-fail.rs:76:5
@@ -209,6 +213,9 @@ error[E0599]: no method named `build` found for type `ChildContainerPropertiesBu
 78 |     html! { <ChildContainer /> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
    |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `build`, perhaps you need to implement it:
+           candidate #1: `proc_macro::bridge::server::TokenStreamBuilder`
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0599]: no method named `build` found for type `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
@@ -220,6 +227,9 @@ error[E0599]: no method named `build` found for type `ChildContainerPropertiesBu
 79 |     html! { <ChildContainer></ChildContainer> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
    |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `build`, perhaps you need to implement it:
+           candidate #1: `proc_macro::bridge::server::TokenStreamBuilder`
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<&str>` is not satisfied
