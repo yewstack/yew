@@ -42,14 +42,14 @@ error[E0599]: no method named `b` found for type `t4::PropsBuilder<t4::PropsBuil
 49 |         Props::builder().b(1).a(2).build();
    |                          ^ help: there is a method with a similar name: `a`
 
-error[E0308]: mismatched types
+error[E0308]: if and else have incompatible types
   --> $DIR/fail.rs:78:27
    |
 78 |         #[props(default = "123")]
    |                           ^^^^^
    |                           |
    |                           expected struct `std::string::String`, found integer
-   |                           help: try using a conversion method: `"123".to_string()`
+   |                           expected because of this
    |
-   = note: expected type `std::string::String`
-              found type `{integer}`
+   = note: expected type `std::option::Option<std::string::String>`
+              found type `std::option::Option<{integer}>`

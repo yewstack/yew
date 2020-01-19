@@ -1,6 +1,6 @@
 use super::generics::GenericArguments;
 use proc_macro2::{Ident, Span};
-use quote::quote;
+use quote::{quote, quote_spanned};
 use std::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::TryFrom;
 use syn::parse::Result;
@@ -83,8 +83,13 @@ impl PropField {
             }
             PropAttr::Default { default_value } => {
                 let name = &self.name;
-                quote! {
-                    #name: #default_value,
+                let ty = &self.ty;
+                let span = default_value.span();
+                quote_spanned! {span=>
+                    #name: {
+                        let none: Option<#ty> = None;
+                        if false { none } else { Some(#default_value) }.unwrap()
+                    },
                 }
             }
             PropAttr::None => {
