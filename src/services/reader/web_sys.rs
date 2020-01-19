@@ -1,45 +1,13 @@
 //! `web-sys` implementation for the reader service.
 
+use super::*;
 use crate::callback::Callback;
 use crate::services::Task;
+pub use ::web_sys::{Blob, File};
+use ::web_sys::{Event, FileReader};
 use gloo::events::EventListener;
 use js_sys::Uint8Array;
 use std::cmp;
-use std::fmt;
-pub use web_sys::{Blob, File};
-use web_sys::{Event, FileReader};
-
-/// Struct that represents data of a file.
-#[derive(Clone, Debug)]
-pub struct FileData {
-    /// Name of loaded file.
-    pub name: String,
-    /// Content of loaded file.
-    pub content: Vec<u8>,
-}
-
-/// Struct that represents a chunk of a file.
-#[derive(Clone, Debug)]
-pub enum FileChunk {
-    /// Reading of chunks started. Equals **0%** progress.
-    Started {
-        /// Name of loaded file.
-        name: String,
-    },
-    /// The next data chunk that read. Also provides a progress value.
-    DataChunk {
-        /// The chunk of binary data.
-        data: Vec<u8>,
-        /// The progress value in interval: `0 < progress <= 1`.
-        progress: f32,
-    },
-    /// Reading of chunks finished. Equals **100%** progress.
-    Finished,
-}
-
-/// A reader service attached to a user context.
-#[derive(Default, Debug)]
-pub struct ReaderService {}
 
 impl ReaderService {
     /// Creates a new service instance connected to `App` by provided `sender`.
@@ -48,29 +16,30 @@ impl ReaderService {
     }
 
     /// Reads all bytes from a file and returns them with a callback.
-    pub fn read_file(&mut self, file: File, callback: Callback<FileData>) -> ReaderTask {
-        let file_reader = FileReader::new().unwrap();
+    pub fn read_file(
+        &mut self,
+        file: File,
+        callback: Callback<FileData>,
+    ) -> Result<ReaderTask, &str> {
+        let file_reader = FileReader::new().map_err(|_| "couldn't aquire file reader")?;
         let reader = file_reader.clone();
         let name = file.name();
         let callback = move |_event: &Event| {
-            let array = Uint8Array::new_with_byte_offset(
-                &reader
-                    .result()
-                    .expect("`FileReader` hasn't finished loading"),
-                0,
-            );
-            let data = FileData {
-                name: name.clone(),
-                content: array.to_vec(),
-            };
-            callback.emit(data);
+            if let Ok(result) = reader.result() {
+                let array = Uint8Array::new_with_byte_offset(&result, 0);
+                let data = FileData {
+                    name: name.clone(),
+                    content: array.to_vec(),
+                };
+                callback.emit(data);
+            }
         };
-        let listener = Some(EventListener::new(&file_reader, "loadend", callback));
+        let listener = Some(EventListener::once(&file_reader, "loadend", callback));
         file_reader.read_as_array_buffer(&file).unwrap();
-        ReaderTask {
+        Ok(ReaderTask {
             file_reader,
             listener,
-        }
+        })
     }
 
     /// Reads data chunks from a file and returns them with a callback.
@@ -130,31 +99,19 @@ pub struct ReaderTask {
     listener: Option<EventListener>,
 }
 
-impl fmt::Debug for ReaderTask {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("ReaderTask")
-    }
-}
-
 impl Task for ReaderTask {
     fn is_active(&self) -> bool {
         self.file_reader.ready_state() == FileReader::LOADING
     }
 
     fn cancel(&mut self) {
-        self.file_reader.abort();
+        if self.is_active() {
+            self.file_reader.abort();
+        }
         drop(
             self.listener
                 .take()
                 .expect("tried to cancel websocket twice"),
         )
-    }
-}
-
-impl Drop for ReaderTask {
-    fn drop(&mut self) {
-        if self.is_active() {
-            self.cancel();
-        }
     }
 }
