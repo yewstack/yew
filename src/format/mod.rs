@@ -14,8 +14,6 @@ pub mod macros;
 pub mod bincode;
 #[cfg(feature = "cbor")]
 pub mod cbor;
-#[cfg(feature = "cbor_packed")]
-pub mod cbor_packed;
 pub mod json;
 #[cfg(feature = "msgpack")]
 pub mod msgpack;
@@ -29,8 +27,6 @@ pub mod yaml;
 pub use self::bincode::Bincode;
 #[cfg(feature = "cbor")]
 pub use self::cbor::Cbor;
-#[cfg(feature = "cbor_packed")]
-pub use self::cbor_packed::CborPacked;
 pub use self::json::Json;
 #[cfg(feature = "msgpack")]
 pub use self::msgpack::MsgPack;
