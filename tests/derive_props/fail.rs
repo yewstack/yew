@@ -50,4 +50,72 @@ mod t4 {
     }
 }
 
+mod t5 {
+    use super::*;
+    #[derive(Clone, Properties)]
+    pub struct Props {
+        // ERROR: default must be given a value
+        #[props(default)]
+        value: String,
+    }
+}
+
+mod t6 {
+    use super::*;
+    #[derive(Clone, Properties)]
+    pub struct Props {
+        // ERROR: 123 is not a path or an identifier
+        #[props(default = 123)]
+        value: i32,
+    }
+}
+
+mod t7 {
+    use super::*;
+    #[derive(Clone, Properties)]
+    pub struct Props {
+        // ERROR: the value must be parsed into a path to a function
+        #[props(default = "123")]
+        value: String,
+    }
+}
+
+mod t8 {
+    use super::*;
+    #[derive(Clone, Properties)]
+    pub struct Props {
+        // ERROR: cannot find function foo in this scope
+        #[props(default = "foo")]
+        value: String,
+    }
+}
+
+mod t9 {
+    use super::*;
+    #[derive(Clone, Properties)]
+    pub struct Props {
+        // ERROR: the function must take no arguments
+        #[props(default = "foo")]
+        value: String,
+    }
+
+    fn foo(bar: i32) -> String {
+        unimplemented!()
+    }
+}
+
+mod t10 {
+    use super::*;
+    #[derive(Clone, Properties)]
+    pub struct Props {
+        // ERROR: the function returns incompatible types
+        #[props(default = "foo")]
+        value: String,
+    }
+
+    fn foo() -> i32 {
+        unimplemented!()
+    }
+}
+
 fn main() {}

@@ -1,8 +1,39 @@
-error: expected `props(required)`
+error: expected `props(required)` or `#[props(default="...")]`
   --> $DIR/fail.rs:21:11
    |
 21 |         #[props(optional)]
    |           ^^^^^
+
+error: expected `props(required)` or `#[props(default="...")]`
+  --> $DIR/fail.rs:58:11
+   |
+58 |         #[props(default)]
+   |           ^^^^^
+
+error: expected `props(required)` or `#[props(default="...")]`
+  --> $DIR/fail.rs:68:11
+   |
+68 |         #[props(default = 123)]
+   |           ^^^^^
+
+error: expected identifier
+  --> $DIR/fail.rs:78:27
+   |
+78 |         #[props(default = "123")]
+   |                           ^^^^^
+
+error[E0425]: cannot find function `foo` in this scope
+  --> $DIR/fail.rs:88:27
+   |
+88 |         #[props(default = "foo")]
+   |                           ^^^^^ not found in this scope
+   |
+help: possible candidates are found in other modules, you can import them into scope
+   |
+84 |     use crate::t10::foo;
+   |
+84 |     use crate::t9::foo;
+   |
 
 error[E0277]: the trait bound `t1::Value: std::default::Default` is not satisfied
  --> $DIR/fail.rs:9:21
@@ -29,3 +60,25 @@ error[E0599]: no method named `b` found for type `t4::PropsBuilder<t4::PropsBuil
 ...
 49 |         Props::builder().b(1).a(2).build();
    |                          ^ help: there is a method with a similar name: `a`
+
+error[E0061]: this function takes 1 parameter but 0 parameters were supplied
+   --> $DIR/fail.rs:98:27
+    |
+98  |         #[props(default = "foo")]
+    |                           ^^^^^ expected 1 parameter
+...
+102 |     fn foo(bar: i32) -> String {
+    |     -------------------------- defined here
+
+error[E0308]: match arms have incompatible types
+   --> $DIR/fail.rs:112:27
+    |
+112 |         #[props(default = "foo")]
+    |                           ^^^^^
+    |                           |
+    |                           expected struct `std::string::String`, found i32
+    |                           `match` arms have incompatible types
+    |                           this is found to be of type `std::string::String`
+    |
+    = note: expected type `std::string::String`
+               found type `i32`
