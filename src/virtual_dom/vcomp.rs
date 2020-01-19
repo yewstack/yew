@@ -249,6 +249,33 @@ impl<'a> Transformer<&'a str, String> for VComp {
     }
 }
 
+impl<T> Transformer<T, Option<T>> for VComp {
+    fn transform(from: T) -> Option<T> {
+        Some(from)
+    }
+}
+
+impl<'a, T> Transformer<&'a T, Option<T>> for VComp
+where
+    T: Clone,
+{
+    fn transform(from: &T) -> Option<T> {
+        Some(from.clone())
+    }
+}
+
+impl<'a> Transformer<&'a str, Option<String>> for VComp {
+    fn transform(from: &'a str) -> Option<String> {
+        Some(from.to_owned())
+    }
+}
+
+impl<'a> Transformer<Option<&'a str>, Option<String>> for VComp {
+    fn transform(from: Option<&'a str>) -> Option<String> {
+        from.map(|s| s.to_owned())
+    }
+}
+
 impl PartialEq for VComp {
     fn eq(&self, other: &VComp) -> bool {
         self.type_id == other.type_id

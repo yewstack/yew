@@ -127,38 +127,47 @@ error[E0599]: no method named `unknown` found for type `ChildPropertiesBuilder<C
 64 |     html! { <Child unknown="unknown" /> };
    |                    ^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
-error[E0308]: mismatched types
+error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<(), std::string::String>` is not satisfied
   --> $DIR/html-component-fail.rs:66:33
    |
 66 |     html! { <Child int=1 string={} /> };
-   |                                 ^^ expected struct `std::string::String`, found ()
+   |                                 ^^ the trait `yew::virtual_dom::Transformer<(), std::string::String>` is not implemented for `yew::virtual_dom::vcomp::VComp`
    |
-   = note: expected type `std::string::String`
-              found type `()`
+   = help: the following implementations were found:
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, T>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, std::option::Option<T>>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::option::Option<std::string::String>>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::string::String>>
+           and 3 others
+   = note: required by `yew::virtual_dom::Transformer::transform`
 
-error[E0308]: mismatched types
+error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<{integer}, std::string::String>` is not satisfied
   --> $DIR/html-component-fail.rs:67:33
    |
 67 |     html! { <Child int=1 string=3 /> };
-   |                                 ^
-   |                                 |
-   |                                 expected struct `std::string::String`, found integer
-   |                                 help: try using a conversion method: `3.to_string()`
+   |                                 ^ the trait `yew::virtual_dom::Transformer<{integer}, std::string::String>` is not implemented for `yew::virtual_dom::vcomp::VComp`
    |
-   = note: expected type `std::string::String`
-              found type `{integer}`
+   = help: the following implementations were found:
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, T>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, std::option::Option<T>>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::option::Option<std::string::String>>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::string::String>>
+           and 3 others
+   = note: required by `yew::virtual_dom::Transformer::transform`
 
-error[E0308]: mismatched types
+error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<{integer}, std::string::String>` is not satisfied
   --> $DIR/html-component-fail.rs:68:33
    |
 68 |     html! { <Child int=1 string={3} /> };
-   |                                 ^^^
-   |                                 |
-   |                                 expected struct `std::string::String`, found integer
-   |                                 help: try using a conversion method: `{3}.to_string()`
+   |                                 ^^^ the trait `yew::virtual_dom::Transformer<{integer}, std::string::String>` is not implemented for `yew::virtual_dom::vcomp::VComp`
    |
-   = note: expected type `std::string::String`
-              found type `{integer}`
+   = help: the following implementations were found:
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, T>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, std::option::Option<T>>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::option::Option<std::string::String>>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::string::String>>
+           and 3 others
+   = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0308]: mismatched types
   --> $DIR/html-component-fail.rs:69:30
@@ -169,16 +178,19 @@ error[E0308]: mismatched types
    = note: expected type `yew::html::NodeRef`
               found type `()`
 
-error[E0308]: mismatched types
+error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<u32, i32>` is not satisfied
   --> $DIR/html-component-fail.rs:71:24
    |
 71 |     html! { <Child int=0u32 /> };
-   |                        ^^^^ expected i32, found u32
+   |                        ^^^^ the trait `yew::virtual_dom::Transformer<u32, i32>` is not implemented for `yew::virtual_dom::vcomp::VComp`
    |
-help: you can convert an `u32` to `i32` and panic if the converted value wouldn't fit
-   |
-71 |     html! { <Child int=0u32.try_into().unwrap() /> };
-   |                        ^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: the following implementations were found:
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, T>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, std::option::Option<T>>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::option::Option<std::string::String>>>
+             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::string::String>>
+           and 3 others
+   = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
   --> $DIR/html-component-fail.rs:72:20
