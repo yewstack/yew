@@ -49,10 +49,10 @@ impl Component for Model {
                     let task = {
                         if chunks {
                             let callback = self.link.callback(Msg::Chunk);
-                            self.reader.read_file_by_chunks(file, callback, 10)
+                            self.reader.read_file_by_chunks(file, callback, 10).unwrap()
                         } else {
                             let callback = self.link.callback(Msg::Loaded);
-                            self.reader.read_file(file, callback)
+                            self.reader.read_file(file, callback).unwrap()
                         }
                     };
                     self.tasks.push(task);
