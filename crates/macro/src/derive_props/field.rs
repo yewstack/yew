@@ -90,12 +90,14 @@ impl PropField {
                 // Hacks to avoid misleading error message.
                 quote_spanned! {span=>
                     #name: {
-                        let none: Option<#ty> = None;
                         match true {
-                            false => none,
-                            true => Some(#default())
+                            #[allow(unreachable_code)]
+                            false => {
+                                let __unreachable: #ty = ::std::unreachable!();
+                                __unreachable
+                            },
+                            true => #default()
                         }
-                        .unwrap()
                     },
                 }
             }
