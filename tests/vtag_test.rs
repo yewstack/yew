@@ -1,4 +1,6 @@
 #![recursion_limit = "128"]
+
+#[cfg(feature = "std_web")]
 use stdweb::web::{document, IElement};
 #[cfg(feature = "wasm_test")]
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -270,8 +272,16 @@ fn assert_namespace(vtag: &VTag, namespace: &'static str) {
 
 #[test]
 fn supports_svg() {
-    let div_el = document().create_element("div").unwrap();
-    let svg_el = document().create_element_ns(SVG_NAMESPACE, "svg").unwrap();
+    #[cfg(feature = "std_web")]
+    let document = document();
+    #[cfg(feature = "web_sys")]
+    let document = web_sys::window().unwrap().document().unwrap();
+
+    let div_el = document.create_element("div").unwrap();
+    let namespace = SVG_NAMESPACE;
+    #[cfg(feature = "web_sys")]
+    let namespace = Some(namespace);
+    let svg_el = document.create_element_ns(namespace, "svg").unwrap();
 
     let mut g_node = html! { <g></g> };
     let path_node = html! { <path></path> };
