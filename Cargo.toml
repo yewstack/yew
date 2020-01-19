@@ -51,6 +51,8 @@ ryu = "1.0.2" # 1.0.1 breaks emscripten
 serde_derive = "1"
 trybuild = "1.0"
 rustversion = "1.0"
+rmp-serde = "0.14.0"
+bincode = "~1.2.1"
 
 [features]
 default = ["services", "agent"]
