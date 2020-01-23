@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::fmt;
 use stdweb::serde::Serde;
 use stdweb::unstable::{TryFrom, TryInto};
+use stdweb::web::error::Error;
 use stdweb::web::ArrayBuffer;
 use stdweb::{JsSerialize, Value};
 #[allow(unused_imports)]
@@ -218,7 +219,7 @@ impl FetchService {
         &mut self,
         request: Request<IN>,
         callback: Callback<Response<OUT>>,
-    ) -> FetchTask
+    ) -> Result<FetchTask, &str>
     where
         IN: Into<Text>,
         OUT: From<Text>,
@@ -261,7 +262,7 @@ impl FetchService {
         request: Request<IN>,
         options: FetchOptions,
         callback: Callback<Response<OUT>>,
-    ) -> FetchTask
+    ) -> Result<FetchTask, &str>
     where
         IN: Into<Text>,
         OUT: From<Text>,
@@ -274,7 +275,7 @@ impl FetchService {
         &mut self,
         request: Request<IN>,
         callback: Callback<Response<OUT>>,
-    ) -> FetchTask
+    ) -> Result<FetchTask, &str>
     where
         IN: Into<Binary>,
         OUT: From<Binary>,
@@ -288,7 +289,7 @@ impl FetchService {
         request: Request<IN>,
         options: FetchOptions,
         callback: Callback<Response<OUT>>,
-    ) -> FetchTask
+    ) -> Result<FetchTask, &str>
     where
         IN: Into<Binary>,
         OUT: From<Binary>,
@@ -302,7 +303,7 @@ fn fetch_impl<IN, OUT: 'static, T, X>(
     request: Request<IN>,
     options: Option<FetchOptions>,
     callback: Callback<Response<OUT>>,
-) -> FetchTask
+) -> Result<FetchTask, &'static str>
 where
     IN: Into<Format<T>>,
     OUT: From<Format<T>>,
@@ -312,22 +313,30 @@ where
     // Consume request as parts and body.
     let (parts, body) = request.into_parts();
 
-    // Map headers into a Js serializable HashMap.
-    let header_map: HashMap<&str, &str> = parts
+    // Map headers into a Js `Header` to make sure it's supported.
+    let header_list = parts
         .headers
         .iter()
         .map(|(k, v)| {
-            (
+            Ok((
                 k.as_str(),
-                v.to_str().unwrap_or_else(|_| {
-                    panic!("Unparsable request header {}: {:?}", k.as_str(), v)
-                }),
-            )
+                v.to_str().map_err(|_| "Unparsable request header")?,
+            ))
         })
-        .collect();
+        .collect::<Result<HashMap<_, _>, _>>()?;
+    let header_map = js! {
+        try {
+            return new Headers(@{header_list});
+        } catch(error) {
+            return error;
+        }
+    };
+    if let Ok(_) = Error::try_from(js!( return @{header_map.as_ref()}; )) {
+        return Err("couldn't build headers");
+    }
 
     // Formats URI.
-    let uri = format!("{}", parts.uri);
+    let uri = parts.uri.to_string();
     let method = parts.method.as_str();
     let body = body.into().ok();
 
@@ -404,7 +413,7 @@ where
         });
         return handle;
     };
-    FetchTask(Some(handle))
+    Ok(FetchTask(Some(handle)))
 }
 
 impl Task for FetchTask {

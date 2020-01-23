@@ -7,6 +7,7 @@ use failure::Fail;
 use js_sys::Reflect;
 use js_sys::{Array, Promise, Uint8Array};
 use std::fmt;
+use std::iter::FromIterator;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Receiver};
@@ -71,6 +72,20 @@ impl Into<RequestInit> for FetchOptions {
 
         init
     }
+}
+
+// convert `headers` to `Iterator<Item = (String, String)>`
+fn header_iter(headers: Headers) -> impl Iterator<Item = (String, String)> {
+    js_sys::try_iter(&headers)
+        .unwrap()
+        .unwrap()
+        .map(Result::unwrap)
+        .map(|entry| {
+            let entry = Array::from(&entry);
+            let key = entry.get(0);
+            let value = entry.get(1);
+            (key.as_string().unwrap(), value.as_string().unwrap())
+        })
 }
 
 /// Represents errors of a fetch service.
@@ -210,7 +225,7 @@ impl FetchService {
         &mut self,
         request: Request<IN>,
         callback: Callback<Response<OUT>>,
-    ) -> FetchTask
+    ) -> Result<FetchTask, &str>
     where
         IN: Into<Text>,
         OUT: From<Text>,
@@ -260,7 +275,7 @@ impl FetchService {
         request: Request<IN>,
         options: FetchOptions,
         callback: Callback<Response<OUT>>,
-    ) -> FetchTask
+    ) -> Result<FetchTask, &str>
     where
         IN: Into<Text>,
         OUT: From<Text>,
@@ -280,7 +295,7 @@ impl FetchService {
         &mut self,
         request: Request<IN>,
         callback: Callback<Response<OUT>>,
-    ) -> FetchTask
+    ) -> Result<FetchTask, &str>
     where
         IN: Into<Binary>,
         OUT: From<Binary>,
@@ -301,7 +316,7 @@ impl FetchService {
         request: Request<IN>,
         options: FetchOptions,
         callback: Callback<Response<OUT>>,
-    ) -> FetchTask
+    ) -> Result<FetchTask, &str>
     where
         IN: Into<Binary>,
         OUT: From<Binary>,
@@ -317,41 +332,37 @@ impl FetchService {
     }
 }
 
-fn fetch_impl<
-    IN,
-    OUT: 'static,
-    T,
-    X: Into<T>,
-    IC: Fn(T) -> JsValue,
-    FC: 'static + Fn(JsValue) -> X,
->(
+fn fetch_impl<IN, OUT: 'static, T, X, IC: Fn(T) -> JsValue, FC: 'static + Fn(JsValue) -> X>(
     binary: bool,
     request: Request<IN>,
     options: Option<FetchOptions>,
     callback: Callback<Response<OUT>>,
     into_conversion: IC,
     from_conversion: FC,
-) -> FetchTask
+) -> Result<FetchTask, &'static str>
 where
     IN: Into<Format<T>>,
     OUT: From<Format<T>>,
+    X: Into<T>,
 {
     // Consume request as parts and body.
     let (parts, body) = request.into_parts();
 
-    // Map headers into a Js serializable HashMap.
-    let header_map = Headers::new().unwrap();
-    for (k, v) in parts.headers.iter().map(|(k, v)| {
-        (
-            k.as_str(),
-            v.to_str()
-                .unwrap_or_else(|_| panic!("Unparsable request header {}: {:?}", k.as_str(), v)),
-        )
-    }) {
-        header_map.append(k, v).unwrap();
-    }
+    // Map headers into a Js `Header` type.
+    let header_list = parts
+        .headers
+        .iter()
+        .map(|(k, v)| {
+            Ok(Array::from_iter(&[
+                JsValue::from_str(k.as_str()),
+                JsValue::from_str(v.to_str().map_err(|_| "Unparsable request header")?),
+            ]))
+        })
+        .collect::<Result<Array, _>>()?;
+    let header_map = Headers::new_with_str_sequence_sequence(&header_list)
+        .map_err(|_| "couldn't build headers")?;
     // Formats URI.
-    let uri = format!("{}", parts.uri);
+    let uri = parts.uri.to_string();
     let method = parts.method.as_str();
     let body = body.into().ok();
 
@@ -360,22 +371,11 @@ where
     // side. There is no static check at this point.
     let callback = move |data: Option<X>, status: u16, headers: Headers| {
         let mut response_builder = Response::builder().status(status);
-        // convert `headers` to `Iterator<Item = (String, String)>`
-        let headers = js_sys::try_iter(&headers)
-            .unwrap()
-            .unwrap()
-            .map(Result::unwrap)
-            .map(|entry| {
-                let entry = Array::from(&entry);
-                let key = entry.get(0);
-                let value = entry.get(1);
-                (key.as_string().unwrap(), value.as_string().unwrap())
-            });
-        for (key, value) in headers {
+        for (key, value) in header_iter(headers) {
             response_builder = response_builder.header(key.as_str(), value.as_str());
         }
 
-        // Deserialize and wrap response data into a Text object.
+        // Deserialize and wrap response data into a Text or Array object.
         let data = if let Some(data) = data {
             Ok(data.into())
         } else {
@@ -454,12 +454,12 @@ where
     sender.send(closure_then).unwrap();
     sender.send(closure_catch).unwrap();
 
-    FetchTask(Some(Handle {
+    Ok(FetchTask(Some(Handle {
         active,
         callbacks: receiver,
         abort_controller,
         promise,
-    }))
+    })))
 }
 
 impl Task for FetchTask {
