@@ -3,7 +3,7 @@
 use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
 use crate::services::Task;
-use failure::Fail;
+use thiserror::Error;
 use futures::future::{FutureExt, TryFutureExt};
 use js_sys::Reflect;
 use js_sys::{Array, Uint8Array};
@@ -90,9 +90,9 @@ fn header_iter(headers: Headers) -> impl Iterator<Item = (String, String)> {
 }
 
 /// Represents errors of a fetch service.
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 enum FetchError {
-    #[fail(display = "failed response")]
+    #[error("failed response")]
     FailedResponse,
 }
 
@@ -163,10 +163,10 @@ impl FetchService {
     ///# fn dont_execute() {
     ///# let link: ComponentLink<Comp> = unimplemented!();
     ///# let mut fetch_service: FetchService = FetchService::new();
-    ///# let post_request: Request<Result<String, failure::Error>> = unimplemented!();
+    ///# let post_request: Request<Result<String, anyhow::Error>> = unimplemented!();
     /// let task = fetch_service.fetch(
     ///     post_request,
-    ///     link.callback(|response: Response<Result<String, failure::Error>>| {
+    ///     link.callback(|response: Response<Result<String, anyhow::Error>>| {
     ///         if response.status().is_success() {
     ///             Msg::Noop
     ///         } else {
@@ -207,7 +207,7 @@ impl FetchService {
     ///# fn dont_execute() {
     ///# let link: ComponentLink<Comp> = unimplemented!();
     /// let get_request = Request::get("/thing").body(Nothing).unwrap();
-    /// let callback = link.callback(|response: Response<Json<Result<Data, failure::Error>>>| {
+    /// let callback = link.callback(|response: Response<Json<Result<Data, anyhow::Error>>>| {
     ///     if let (meta, Json(Ok(body))) = response.into_parts() {
     ///         if meta.status.is_success() {
     ///             return Msg::FetchResourceComplete(body);
@@ -258,7 +258,7 @@ impl FetchService {
     ///# pub enum Msg {}
     ///# fn dont_execute() {
     ///# let link: ComponentLink<Comp> = unimplemented!();
-    ///# let callback = link.callback(|response: Response<Result<String, failure::Error>>| unimplemented!());
+    ///# let callback = link.callback(|response: Response<Result<String, anyhow::Error>>| unimplemented!());
     /// let request = fetch::Request::get("/path/")
     ///     .body(Nothing)
     ///     .unwrap();
