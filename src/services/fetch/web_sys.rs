@@ -4,14 +4,15 @@ use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
 use crate::services::Task;
 use failure::Fail;
+use futures::future::{FutureExt, TryFutureExt};
 use js_sys::Reflect;
-use js_sys::{Array, Promise, Uint8Array};
+use js_sys::{Array, Uint8Array};
 use std::fmt;
 use std::iter::FromIterator;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{self, Receiver};
-use wasm_bindgen::{closure::Closure, JsValue};
+use wasm_bindgen::JsValue;
+use wasm_bindgen_futures::{spawn_local, JsFuture};
 use web_sys::{
     AbortController, Headers, Request as WebRequest, RequestInit, Response as WebResponse,
 };
@@ -98,9 +99,7 @@ enum FetchError {
 #[derive(Debug)]
 struct Handle {
     active: Rc<AtomicBool>,
-    callbacks: Receiver<Closure<dyn FnMut(JsValue)>>,
     abort_controller: Option<AbortController>,
-    promise: Promise,
 }
 
 /// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
@@ -392,51 +391,10 @@ where
     data.headers(&header_map);
     let request = WebRequest::new_with_str_and_init(&uri, &data).unwrap();
     let active = Rc::new(AtomicBool::new(true));
-    let (sender, receiver) = mpsc::channel();
-    let active_outer_clone = Rc::clone(&active);
-    let callback_outer_clone = callback.clone();
-    let sender_clone = sender.clone();
-    let closure_then = move |response: JsValue| {
-        let response = WebResponse::from(response);
-        let promise = if binary {
-            response.array_buffer()
-        } else {
-            response.text()
-        }
-        .unwrap();
-        let status = response.status();
-        let headers = response.headers();
-        let active_clone = Rc::clone(&active_outer_clone);
-        let callback_clone = callback_outer_clone.clone();
-        let headers_clone = headers.clone();
-        let closure_then = move |data: JsValue| {
-            let data = from_conversion(data);
-            if active_clone.compare_and_swap(true, false, Ordering::SeqCst) {
-                callback_clone(Some(data), status, headers_clone);
-            }
-        };
-        let closure_then = Closure::once(closure_then);
-        let closure_catch = move |_| {
-            if active_outer_clone.compare_and_swap(true, false, Ordering::SeqCst) {
-                callback_outer_clone(None, status, headers);
-            }
-        };
-        let closure_catch = Closure::once(closure_catch);
-        #[allow(unused_must_use)]
-        {
-            promise.then(&closure_then).catch(&closure_catch);
-        }
-        sender_clone.send(closure_then).unwrap();
-        sender_clone.send(closure_catch).unwrap();
-    };
-    let closure_then = Closure::once(closure_then);
-    let active_clone = Rc::clone(&active);
-    let closure_catch = move |_| {
-        if active_clone.compare_and_swap(true, false, Ordering::SeqCst) {
-            callback(None, 408, Headers::new().unwrap());
-        }
-    };
-    let closure_catch = Closure::wrap(Box::new(closure_catch) as Box<dyn FnMut(JsValue)>);
+    let active_ok = Rc::clone(&active);
+    let active_err = Rc::clone(&active);
+    let callback_ok = callback.clone();
+    let callback_err = callback.clone();
     let abort_controller = AbortController::new().ok();
     let mut init = options.map_or_else(RequestInit::new, Into::into);
     if let Some(abort_controller) = &abort_controller {
@@ -450,15 +408,46 @@ where
     } else {
         panic!("failed to get global context")
     };
-    let promise = promise.then(&closure_then).catch(&closure_catch);
-    sender.send(closure_then).unwrap();
-    sender.send(closure_catch).unwrap();
+    let future = JsFuture::from(promise)
+        .map_ok(move |response: JsValue| {
+            let response = WebResponse::from(response);
+            let promise = if binary {
+                response.array_buffer()
+            } else {
+                response.text()
+            }
+            .unwrap();
+            let status = response.status();
+            let headers_ok = response.headers();
+            let headers_err = headers_ok.clone();
+            let active_err = Rc::clone(&active_ok);
+            let callback_err = callback_ok.clone();
+            let future = JsFuture::from(promise)
+                .map_ok(move |data: JsValue| {
+                    let data = from_conversion(data);
+                    if active_ok.compare_and_swap(true, false, Ordering::SeqCst) {
+                        callback_ok(Some(data), status, headers_ok);
+                    }
+                })
+                .map_err(move |_| {
+                    if active_err.compare_and_swap(true, false, Ordering::SeqCst) {
+                        callback_err(None, status, headers_err);
+                    }
+                })
+                .then(|_| async {});
+            spawn_local(future);
+        })
+        .map_err(move |_| {
+            if active_err.compare_and_swap(true, false, Ordering::SeqCst) {
+                callback_err(None, 408, Headers::new().unwrap());
+            }
+        })
+        .then(|_| async {});
+    spawn_local(future);
 
     Ok(FetchTask(Some(Handle {
         active,
-        callbacks: receiver,
         abort_controller,
-        promise,
     })))
 }
 
@@ -485,18 +474,10 @@ impl Task for FetchTask {
             .take()
             .expect("tried to cancel request fetching twice");
 
-        thread_local! {
-            static CATCH: Closure<dyn FnMut(JsValue)> = Closure::wrap(Box::new(|_| ()) as Box<dyn FnMut(JsValue)>);
-        }
         handle.active.store(false, Ordering::SeqCst);
-        #[allow(unused_must_use)]
-        {
-            CATCH.with(|c| handle.promise.catch(&c));
-        }
         if let Some(abort_controller) = handle.abort_controller {
             abort_controller.abort();
         }
-        handle.callbacks.try_iter().for_each(drop);
     }
 }
 
