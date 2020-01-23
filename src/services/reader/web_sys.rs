@@ -46,7 +46,7 @@ impl ReaderService {
     pub fn read_file_by_chunks(
         &mut self,
         file: File,
-        callback: Callback<FileChunk>,
+        callback: Callback<Option<FileChunk>>,
         chunk_size: usize,
     ) -> Result<ReaderTask, &str> {
         let file_reader = FileReader::new().map_err(|_| "couldn't aquire file reader")?;
@@ -58,26 +58,28 @@ impl ReaderService {
             if let Ok(result) = reader.result() {
                 if result.is_string() {
                     let started = FileChunk::Started { name: name.clone() };
-                    callback.emit(started);
+                    callback.emit(Some(started));
                 } else {
                     let array = Uint8Array::new_with_byte_offset(&result, 0);
                     let chunk = FileChunk::DataChunk {
                         data: array.to_vec(),
                         progress: position as f32 / total_size as f32,
                     };
-                    callback.emit(chunk);
+                    callback.emit(Some(chunk));
                 };
-            }
-            // Read the next chunk
-            if position < total_size {
-                let from = position;
-                let to = cmp::min(position + chunk_size, total_size);
-                position = to;
-                let blob = file.slice_with_i32_and_i32(from as _, to as _).unwrap();
-                reader.read_as_array_buffer(&blob).unwrap();
+                // Read the next chunk
+                if position < total_size {
+                    let from = position;
+                    let to = cmp::min(position + chunk_size, total_size);
+                    position = to;
+                    let blob = file.slice_with_i32_and_i32(from as _, to as _).unwrap();
+                    reader.read_as_array_buffer(&blob).unwrap();
+                } else {
+                    let finished = FileChunk::Finished;
+                    callback.emit(Some(finished));
+                }
             } else {
-                let finished = FileChunk::Finished;
-                callback.emit(finished);
+                callback.emit(None);
             }
         };
         let listener = Some(EventListener::new(&file_reader, "loadend", callback));
@@ -106,10 +108,6 @@ impl Task for ReaderTask {
         if self.is_active() {
             self.file_reader.abort();
         }
-        drop(
-            self.listener
-                .take()
-                .expect("tried to cancel websocket twice"),
-        )
+        drop(self.listener.take().expect("tried to cancel reader twice"))
     }
 }

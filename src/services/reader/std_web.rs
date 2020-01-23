@@ -60,7 +60,7 @@ impl ReaderService {
     pub fn read_file_by_chunks(
         &mut self,
         file: File,
-        callback: Callback<FileChunk>,
+        callback: Callback<Option<FileChunk>>,
         chunk_size: usize,
     ) -> Result<ReaderTask, &str> {
         let file_reader = new_file_reader()?;
@@ -69,39 +69,43 @@ impl ReaderService {
         let total_size = file.len() as usize;
         let reader = file_reader.clone();
         file_reader.add_event_listener(move |_event: LoadEndEvent| {
-            match reader.result() {
-                // This branch is used to start reading
-                Some(FileReaderResult::String(_)) => {
-                    let started = FileChunk::Started { name: name.clone() };
-                    callback.emit(started);
+            if let Some(result) = reader.result() {
+                match result {
+                    // This branch is used to start reading
+                    FileReaderResult::String(_) => {
+                        let started = FileChunk::Started { name: name.clone() };
+                        callback.emit(Some(started));
+                    }
+                    // This branch is used to send a chunk value
+                    FileReaderResult::ArrayBuffer(buffer) => {
+                        let array: TypedArray<u8> = buffer.into();
+                        let chunk = FileChunk::DataChunk {
+                            data: array.to_vec(),
+                            progress: position as f32 / total_size as f32,
+                        };
+                        callback.emit(Some(chunk));
+                    }
                 }
-                // This branch is used to send a chunk value
-                Some(FileReaderResult::ArrayBuffer(buffer)) => {
-                    let array: TypedArray<u8> = buffer.into();
-                    let chunk = FileChunk::DataChunk {
-                        data: array.to_vec(),
-                        progress: position as f32 / total_size as f32,
-                    };
-                    callback.emit(chunk);
+
+                // Read the next chunk
+                if position < total_size {
+                    let file = &file;
+                    let from = position;
+                    let to = cmp::min(position + chunk_size, total_size);
+                    position = to;
+                    // TODO Implement `slice` method in `stdweb`
+                    let blob: Blob = (js! {
+                        return @{file}.slice(@{from as u32}, @{to as u32});
+                    })
+                    .try_into()
+                    .unwrap();
+                    reader.read_as_array_buffer(&blob).unwrap();
+                } else {
+                    let finished = FileChunk::Finished;
+                    callback.emit(Some(finished));
                 }
-                None => {}
-            }
-            // Read the next chunk
-            if position < total_size {
-                let file = &file;
-                let from = position;
-                let to = cmp::min(position + chunk_size, total_size);
-                position = to;
-                // TODO Implement `slice` method in `stdweb`
-                let blob: Blob = (js! {
-                    return @{file}.slice(@{from as u32}, @{to as u32});
-                })
-                .try_into()
-                .unwrap();
-                reader.read_as_array_buffer(&blob).unwrap();
             } else {
-                let finished = FileChunk::Finished;
-                callback.emit(finished);
+                callback.emit(None);
             }
         });
         let blob: Blob = (js! {
