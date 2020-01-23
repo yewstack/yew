@@ -46,6 +46,6 @@ impl GravatarService {
             }
         };
         let request = Request::get(url.as_str()).body(Nothing).unwrap();
-        self.web.fetch(request, handler.into())
+        self.web.fetch(request, handler.into()).unwrap()
     }
 }
