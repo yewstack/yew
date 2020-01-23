@@ -92,9 +92,9 @@ impl Model {
         );
         let request = Request::get("/data.json").body(Nothing).unwrap();
         if binary {
-            self.fetch_service.fetch_binary(request, callback)
+            self.fetch_service.fetch_binary(request, callback).unwrap()
         } else {
-            self.fetch_service.fetch(request, callback)
+            self.fetch_service.fetch(request, callback).unwrap()
         }
     }
 
@@ -112,9 +112,9 @@ impl Model {
         );
         let request = Request::get("/data.toml").body(Nothing).unwrap();
         if binary {
-            self.fetch_service.fetch_binary(request, callback)
+            self.fetch_service.fetch_binary(request, callback).unwrap()
         } else {
-            self.fetch_service.fetch(request, callback)
+            self.fetch_service.fetch(request, callback).unwrap()
         }
     }
 }
