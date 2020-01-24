@@ -198,7 +198,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.callback(|_| Msg::ContextMsg);
+        let callback = link.callback(|message| Msg::ContextMsg(message));
         // `Worker::bridge` spawns an instance if no one is available
         let context = context::Worker::bridge(callback); // Connected! :tada:
         Model { context }
