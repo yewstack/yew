@@ -51,6 +51,10 @@ error[E0599]: no method named `build` found for type `t3::PropsBuilder<t3::Props
 ...
 35 |         Props::builder().build();
    |                          ^^^^^ method not found in `t3::PropsBuilder<t3::PropsBuilderStep_missing_required_prop_value>`
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `build`, perhaps you need to implement it:
+           candidate #1: `proc_macro::bridge::server::TokenStreamBuilder`
 
 error[E0599]: no method named `b` found for type `t4::PropsBuilder<t4::PropsBuilderStep_missing_required_prop_a>` in the current scope
   --> $DIR/fail.rs:49:26
