@@ -3,17 +3,17 @@
 use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
 use crate::services::Task;
-use anyhow::anyhow;
+use anyhow::{anyhow, Error};
 use http::request::Parts;
-use js_sys::{Array, Promise, Reflect, Uint8Array};
+use js_sys::{Array, Promise, Uint8Array};
 use std::cell::RefCell;
 use std::fmt;
 use std::iter::FromIterator;
 use std::marker::PhantomData;
 use std::rc::Rc;
 use thiserror::Error as ThisError;
-use anyhow::Error;
-use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::{spawn_local, JsFuture};
 use web_sys::{
     AbortController, DomException, Headers, Request as WebRequest, RequestInit,
@@ -105,7 +105,7 @@ fn header_iter(headers: Headers) -> impl Iterator<Item = (String, String)> {
 }
 
 /// Represents errors of a fetch service.
-#[derive(Debug, Error)]
+#[derive(Debug, ThisError)]
 enum FetchError {
     #[error("canceled")]
     Canceled,
@@ -186,10 +186,10 @@ impl FetchService {
     ///# fn dont_execute() {
     ///# let link: ComponentLink<Comp> = unimplemented!();
     ///# let mut fetch_service: FetchService = FetchService::new();
-    ///# let post_request: Request<Result<String, anyhow::Error>> = unimplemented!();
+    ///# let post_request: Request<Result<String, Error>> = unimplemented!();
     /// let task = fetch_service.fetch(
     ///     post_request,
-    ///     link.callback(|response: Response<Result<String, anyhow::Error>>| {
+    ///     link.callback(|response: Response<Result<String, Error>>| {
     ///         if response.status().is_success() {
     ///             Msg::Noop
     ///         } else {
@@ -230,7 +230,7 @@ impl FetchService {
     ///# fn dont_execute() {
     ///# let link: ComponentLink<Comp> = unimplemented!();
     /// let get_request = Request::get("/thing").body(Nothing).unwrap();
-    /// let callback = link.callback(|response: Response<Json<Result<Data, anyhow::Error>>>| {
+    /// let callback = link.callback(|response: Response<Json<Result<Data, Error>>>| {
     ///     if let (meta, Json(Ok(body))) = response.into_parts() {
     ///         if meta.status.is_success() {
     ///             return Msg::FetchResourceComplete(body);
@@ -247,7 +247,7 @@ impl FetchService {
         &mut self,
         request: Request<IN>,
         callback: Callback<Response<OUT>>,
-    ) -> Result<FetchTask, anyhow::Error>
+    ) -> Result<FetchTask, Error>
     where
         IN: Into<Text>,
         OUT: From<Text>,
@@ -274,7 +274,7 @@ impl FetchService {
     ///# pub enum Msg {}
     ///# fn dont_execute() {
     ///# let link: ComponentLink<Comp> = unimplemented!();
-    ///# let callback = link.callback(|response: Response<Result<String, anyhow::Error>>| unimplemented!());
+    ///# let callback = link.callback(|response: Response<Result<String, Error>>| unimplemented!());
     /// let request = fetch::Request::get("/path/")
     ///     .body(Nothing)
     ///     .unwrap();
@@ -290,7 +290,7 @@ impl FetchService {
         request: Request<IN>,
         options: FetchOptions,
         callback: Callback<Response<OUT>>,
-    ) -> Result<FetchTask, anyhow::Error>
+    ) -> Result<FetchTask, Error>
     where
         IN: Into<Text>,
         OUT: From<Text>,
@@ -303,7 +303,7 @@ impl FetchService {
         &mut self,
         request: Request<IN>,
         callback: Callback<Response<OUT>>,
-    ) -> Result<FetchTask, anyhow::Error>
+    ) -> Result<FetchTask, Error>
     where
         IN: Into<Binary>,
         OUT: From<Binary>,
@@ -317,7 +317,7 @@ impl FetchService {
         request: Request<IN>,
         options: FetchOptions,
         callback: Callback<Response<OUT>>,
-    ) -> Result<FetchTask, anyhow::Error>
+    ) -> Result<FetchTask, Error>
     where
         IN: Into<Binary>,
         OUT: From<Binary>,
@@ -331,7 +331,7 @@ fn fetch_impl<IN, OUT: 'static, DATA: 'static>(
     request: Request<IN>,
     options: Option<FetchOptions>,
     callback: Callback<Response<OUT>>,
-) -> Result<FetchTask, anyhow::Error>
+) -> Result<FetchTask, Error>
 where
     DATA: JsInterop,
     IN: Into<Format<DATA>>,
@@ -353,18 +353,7 @@ where
     }
 
     // Start fetch
-    let global: JsValue = js_sys::global().into();
-    let promise = if Reflect::has(&global, &String::from("Window").into())
-        .map_err(|_| anyhow!("failed to reflect"))?
-    {
-        Window::from(global).fetch_with_request_and_init(&request, &init)
-    } else if Reflect::has(&global, &String::from("WorkerGlobalScope").into())
-        .map_err(|_| anyhow!("failed to reflect"))?
-    {
-        WorkerGlobalScope::from(global).fetch_with_request_and_init(&request, &init)
-    } else {
-        return Err(anyhow!("failed to get global context"));
-    };
+    let promise = GLOBAL.with(|global| global.fetch_with_request_and_init(&request, &init));
 
     // Spawn future to resolve fetch
     let active = Rc::new(RefCell::new(true));
@@ -394,7 +383,7 @@ where
     OUT: From<Format<DATA>>,
 {
     fn new(binary: bool, callback: Callback<Response<OUT>>, active: Rc<RefCell<bool>>) -> Self {
-        DataFetcher {
+        Self {
             binary,
             callback,
             active,
@@ -411,10 +400,7 @@ where
         self.callback(data, status, headers);
     }
 
-    async fn fetch_data_impl(
-        &self,
-        promise: Promise,
-    ) -> Result<(DATA, WebResponse), anyhow::Error> {
+    async fn fetch_data_impl(&self, promise: Promise) -> Result<(DATA, WebResponse), Error> {
         let response = self.get_response(promise).await?;
         let data = self.get_data(&response).await?;
         Ok((data, response))
@@ -423,7 +409,7 @@ where
     // Prepare the response callback.
     // Notice that the callback signature must match the call from the javascript
     // side. There is no static check at this point.
-    fn callback(&self, data: Result<DATA, anyhow::Error>, status: u16, headers: Option<Headers>) {
+    fn callback(&self, data: Result<DATA, Error>, status: u16, headers: Option<Headers>) {
         let mut response_builder = Response::builder().status(status);
         if let Some(headers) = headers {
             for (key, value) in header_iter(headers) {
@@ -475,7 +461,7 @@ where
     }
 }
 
-fn build_request(parts: Parts, body: &JsValue) -> Result<WebRequest, anyhow::Error> {
+fn build_request(parts: Parts, body: &JsValue) -> Result<WebRequest, Error> {
     // Map headers into a Js `Header` type.
     let header_list = parts
         .headers
@@ -489,7 +475,7 @@ fn build_request(parts: Parts, body: &JsValue) -> Result<WebRequest, anyhow::Err
                 ),
             ]))
         })
-        .collect::<Result<Array, anyhow::Error>>()?;
+        .collect::<Result<Array, Error>>()?;
 
     let header_map = Headers::new_with_str_sequence_sequence(&header_list)
         .map_err(|_| anyhow!("couldn't build headers"))?;
@@ -535,6 +521,49 @@ impl Drop for FetchTask {
     }
 }
 
+thread_local! {
+    static GLOBAL: WindowOrWorker = WindowOrWorker::new();
+}
+
+enum WindowOrWorker {
+    Window(Window),
+    Worker(WorkerGlobalScope),
+}
+
+impl WindowOrWorker {
+    fn new() -> Self {
+        #[wasm_bindgen]
+        extern "C" {
+            type Global;
+
+            #[wasm_bindgen(method, getter, js_name = Window)]
+            fn window(this: &Global) -> JsValue;
+
+            #[wasm_bindgen(method, getter, js_name = WorkerGlobalScope)]
+            fn worker(this: &Global) -> JsValue;
+        }
+
+        let global: Global = js_sys::global().unchecked_into();
+
+        if !global.window().is_undefined() {
+            Self::Window(global.unchecked_into())
+        } else if !global.worker().is_undefined() {
+            Self::Worker(global.unchecked_into())
+        } else {
+            panic!("Only supported in a browser or web worker");
+        }
+    }
+}
+
+impl WindowOrWorker {
+    fn fetch_with_request_and_init(&self, input: &WebRequest, init: &RequestInit) -> Promise {
+        match self {
+            Self::Window(window) => window.fetch_with_request_and_init(input, init),
+            Self::Worker(worker) => worker.fetch_with_request_and_init(input, init),
+        }
+    }
+}
+
 #[cfg(test)]
 #[cfg(feature = "wasm_test")]
 mod tests {
@@ -560,7 +589,7 @@ mod tests {
             .body(Nothing)
             .unwrap();
         let options = FetchOptions::default();
-        let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
+        let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, Error>>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
         let _task = FetchService::new()
             .fetch_with_options(request, options, callback)
