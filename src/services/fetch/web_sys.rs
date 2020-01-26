@@ -11,7 +11,8 @@ use std::fmt;
 use std::iter::FromIterator;
 use std::marker::PhantomData;
 use std::rc::Rc;
-use thiserror::Error;
+use thiserror::Error as ThisError;
+use anyhow::Error;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::{spawn_local, JsFuture};
 use web_sys::{
