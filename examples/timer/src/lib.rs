@@ -76,9 +76,7 @@ impl Component for Model {
                 self.console.log("Interval started!");
             }
             Msg::Cancel => {
-                if let Some(mut task) = self.job.take() {
-                    task.cancel();
-                }
+                self.job.take();
                 self.messages.push("Canceled!");
                 self.console.warn("Canceled!");
                 self.console.assert(self.job.is_none(), "Job still exists!");

@@ -33,8 +33,6 @@ use std::time::Duration;
 pub trait Task: Drop {
     /// Returns `true` if task is active.
     fn is_active(&self) -> bool;
-    /// Cancel current service's routine.
-    fn cancel(&mut self);
 }
 
 #[doc(hidden)]

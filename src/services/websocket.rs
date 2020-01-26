@@ -119,15 +119,12 @@ impl Task for WebSocketTask {
     fn is_active(&self) -> bool {
         self.ws.ready_state() == SocketReadyState::Open
     }
-    fn cancel(&mut self) {
-        self.ws.close();
-    }
 }
 
 impl Drop for WebSocketTask {
     fn drop(&mut self) {
         if self.is_active() {
-            self.cancel();
+            self.ws.close();
         }
     }
 }
