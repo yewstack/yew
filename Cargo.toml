@@ -57,6 +57,7 @@ features = [
   "console",
   "DedicatedWorkerGlobalScope",
   "Document",
+  "DomException",
   "DomTokenList",
   "DragEvent",
   "Element",
