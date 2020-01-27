@@ -5,6 +5,7 @@ use crate::callback::Callback;
 use crate::services::Task;
 pub use ::web_sys::{Blob, File};
 use ::web_sys::{Event, FileReader};
+use anyhow::{anyhow, Result};
 use gloo::events::EventListener;
 use js_sys::Uint8Array;
 use std::cmp;
@@ -16,19 +17,15 @@ impl ReaderService {
     }
 
     /// Reads all bytes from a file and returns them with a callback.
-    pub fn read_file(
-        &mut self,
-        file: File,
-        callback: Callback<FileData>,
-    ) -> Result<ReaderTask, &str> {
-        let file_reader = FileReader::new().map_err(|_| "couldn't aquire file reader")?;
+    pub fn read_file(&mut self, file: File, callback: Callback<FileData>) -> Result<ReaderTask> {
+        let file_reader = FileReader::new().map_err(|_| anyhow!("couldn't aquire file reader"))?;
         let reader = file_reader.clone();
         let name = file.name();
         let callback = move |_event: &Event| {
             if let Ok(result) = reader.result() {
-                let array = Uint8Array::new_with_byte_offset(&result, 0);
+                let array = Uint8Array::new(&result);
                 let data = FileData {
-                    name: name.clone(),
+                    name: name,
                     content: array.to_vec(),
                 };
                 callback.emit(data);
@@ -48,8 +45,8 @@ impl ReaderService {
         file: File,
         callback: Callback<Option<FileChunk>>,
         chunk_size: usize,
-    ) -> Result<ReaderTask, &str> {
-        let file_reader = FileReader::new().map_err(|_| "couldn't aquire file reader")?;
+    ) -> Result<ReaderTask> {
+        let file_reader = FileReader::new().map_err(|_| anyhow!("couldn't aquire file reader"))?;
         let name = file.name();
         let mut position = 0;
         let total_size = file.size() as usize;
@@ -73,7 +70,9 @@ impl ReaderService {
                     let to = cmp::min(position + chunk_size, total_size);
                     position = to;
                     let blob = file.slice_with_i32_and_i32(from as _, to as _).unwrap();
-                    reader.read_as_array_buffer(&blob).unwrap();
+                    if let Err(..) = reader.read_as_array_buffer(&blob) {
+                        callback.emit(None);
+                    }
                 } else {
                     let finished = FileChunk::Finished;
                     callback.emit(Some(finished));
@@ -83,7 +82,7 @@ impl ReaderService {
             }
         };
         let listener = Some(EventListener::new(&file_reader, "loadend", callback));
-        let blob = Blob::new().unwrap();
+        let blob = Blob::new().map_err(|_| anyhow!("Blob constructor is not supported"))?;
         file_reader.read_as_text(&blob).unwrap();
         Ok(ReaderTask {
             file_reader,
@@ -108,6 +107,6 @@ impl Task for ReaderTask {
         if self.is_active() {
             self.file_reader.abort();
         }
-        drop(self.listener.take().expect("tried to cancel reader twice"))
+        self.listener.take();
     }
 }
