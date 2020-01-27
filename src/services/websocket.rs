@@ -54,6 +54,58 @@ impl WebSocketService {
     where
         OUT: From<Text> + From<Binary>,
     {
+        let ws = self.connect_common(url, &notification)?;
+        ws.add_event_listener(move |event: SocketMessageEvent| {
+            process_both(&event, &callback);
+        });
+        Ok(WebSocketTask { ws, notification })
+    }
+
+    /// Connects to a server by a websocket connection, like connect,
+    /// but only processes binary frames. Text frames are silently
+    /// ignored. Needs two functions to generate data and notification
+    /// messages.
+    pub fn connect_binary<OUT: 'static>(
+        &mut self,
+        url: &str,
+        callback: Callback<OUT>,
+        notification: Callback<WebSocketStatus>,
+    ) -> Result<WebSocketTask, &str>
+    where
+        OUT: From<Binary>,
+    {
+        let ws = self.connect_common(url, &notification)?;
+        ws.add_event_listener(move |event: SocketMessageEvent| {
+            did_process_binary(&event, &callback);
+        });
+        Ok(WebSocketTask { ws, notification })
+    }
+
+    /// Connects to a server by a websocket connection, like connect,
+    /// but only processes text frames. Binary frames are silently
+    /// ignored. Needs two functions to generate data and notification
+    /// messages.
+    pub fn connect_text<OUT: 'static>(
+        &mut self,
+        url: &str,
+        callback: Callback<OUT>,
+        notification: Callback<WebSocketStatus>,
+    ) -> Result<WebSocketTask, &str>
+    where
+        OUT: From<Text>,
+    {
+        let ws = self.connect_common(url, &notification)?;
+        ws.add_event_listener(move |event: SocketMessageEvent| {
+            process_text(&event, &callback);
+        });
+        Ok(WebSocketTask { ws, notification })
+    }
+
+    fn connect_common(
+        &mut self,
+        url: &str,
+        notification: &Callback<WebSocketStatus>,
+    ) -> Result<WebSocket, &str> {
         let ws = WebSocket::new(url);
         if ws.is_err() {
             return Err("Failed to created websocket with given URL");
@@ -73,19 +125,43 @@ impl WebSocketService {
         ws.add_event_listener(move |_: SocketErrorEvent| {
             notify.emit(WebSocketStatus::Error);
         });
-        ws.add_event_listener(move |event: SocketMessageEvent| {
-            if let Some(bytes) = event.data().into_array_buffer() {
-                let bytes: Vec<u8> = bytes.into();
-                let data = Ok(bytes);
-                let out = OUT::from(data);
-                callback.emit(out);
-            } else if let Some(text) = event.data().into_text() {
-                let data = Ok(text);
-                let out = OUT::from(data);
-                callback.emit(out);
-            }
-        });
-        Ok(WebSocketTask { ws, notification })
+        Ok(ws)
+    }
+}
+
+fn did_process_binary<OUT: 'static>(event: &SocketMessageEvent, callback: &Callback<OUT>) -> bool
+where
+    OUT: From<Binary>,
+{
+    match event.data().into_array_buffer() {
+        None => false,
+        Some(bytes) => {
+            let bytes: Vec<u8> = bytes.into();
+            let data = Ok(bytes);
+            let out = OUT::from(data);
+            callback.emit(out);
+            true
+        }
+    }
+}
+
+fn process_text<OUT: 'static>(event: &SocketMessageEvent, callback: &Callback<OUT>)
+where
+    OUT: From<Text>,
+{
+    if let Some(text) = event.data().into_text() {
+        let data = Ok(text);
+        let out = OUT::from(data);
+        callback.emit(out);
+    }
+}
+
+fn process_both<OUT: 'static>(event: &SocketMessageEvent, callback: &Callback<OUT>)
+where
+    OUT: From<Text> + From<Binary>,
+{
+    if !did_process_binary(event, callback) {
+        process_text(event, callback);
     }
 }
 
