@@ -6,4 +6,4 @@ edition = "2018"
 
 [dependencies]
 js-sys = "0.3"
-yew = { path = "../../..", features = ["web_sys"] }
+yew = { path = "../../..", features = ["services", "web_sys"] }

@@ -4,7 +4,7 @@
 pub mod ccxt;
 pub mod gravatar;
 
-use failure::Error;
+use anyhow::Error;
 use yew::services::fetch::FetchTask;
 use yew::{html, Callback, Component, ComponentLink, Html, ShouldRender};
 

@@ -6,4 +6,4 @@ edition = "2018"
 
 [dependencies]
 stdweb = "0.4.20"
-yew = { path = "../../..", features = ["std_web"] }
+yew = { path = "../../..", features = ["services", "std_web"] }
