@@ -537,7 +537,7 @@ if you tell the `cargo-web` to build for them using the `--target` parameter.
 
 ### Code Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](CODE_OF_CONDUCT.md)].
+This project exists thanks to all the people who contribute.
 <a href="https://github.com/yewstack/yew/graphs/contributors"><img src="https://opencollective.com/yew/contributors.svg?width=890&button=false" /></a>
 
 ### Financial Contributors
