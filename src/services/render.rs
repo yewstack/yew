@@ -57,20 +57,17 @@ impl Task for RenderTask {
     fn is_active(&self) -> bool {
         self.0.is_some()
     }
-    fn cancel(&mut self) {
-        let handle = self.0.take().expect("tried to cancel render twice");
-        js! { @(no_return)
-            var handle = @{handle};
-            cancelAnimationFrame(handle.render_id);
-            handle.callback.drop();
-        }
-    }
 }
 
 impl Drop for RenderTask {
     fn drop(&mut self) {
         if self.is_active() {
-            self.cancel();
+            let handle = self.0.take().unwrap();
+            js! { @(no_return)
+                var handle = @{handle};
+                cancelAnimationFrame(handle.render_id);
+                handle.callback.drop();
+            }
         }
     }
 }

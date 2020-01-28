@@ -56,20 +56,17 @@ impl Task for IntervalTask {
     fn is_active(&self) -> bool {
         self.0.is_some()
     }
-    fn cancel(&mut self) {
-        let handle = self.0.take().expect("tried to cancel interval twice");
-        js! { @(no_return)
-            var handle = @{handle};
-            clearInterval(handle.interval_id);
-            handle.callback.drop();
-        }
-    }
 }
 
 impl Drop for IntervalTask {
     fn drop(&mut self) {
         if self.is_active() {
-            self.cancel();
+            let handle = self.0.take().unwrap();
+            js! { @(no_return)
+                var handle = @{handle};
+                clearInterval(handle.interval_id);
+                handle.callback.drop();
+            }
         }
     }
 }

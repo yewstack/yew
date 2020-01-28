@@ -55,20 +55,17 @@ impl Task for TimeoutTask {
     fn is_active(&self) -> bool {
         self.0.is_some()
     }
-    fn cancel(&mut self) {
-        let handle = self.0.take().expect("tried to cancel timeout twice");
-        js! { @(no_return)
-            var handle = @{handle};
-            clearTimeout(handle.timeout_id);
-            handle.callback.drop();
-        }
-    }
 }
 
 impl Drop for TimeoutTask {
     fn drop(&mut self) {
         if self.is_active() {
-            self.cancel();
+            let handle = self.0.take().unwrap();
+            js! { @(no_return)
+                var handle = @{handle};
+                clearTimeout(handle.timeout_id);
+                handle.callback.drop();
+            }
         }
     }
 }
