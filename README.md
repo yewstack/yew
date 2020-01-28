@@ -477,10 +477,10 @@ cargo build --target wasm32-unknown-unknown
 ```
 
 ### Running Tests
-For the tests to work one have to ensure that `wasm-bindgen-cli` is installed. 
+For the tests to work one have to ensure that `wasm-bindgen-cli` is installed.
 [Instructions](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/usage.html#install-the-test-runner)
 
-Additionally a webdriver must be installed locally and configured to be on the 
+Additionally a webdriver must be installed locally and configured to be on the
 `PATH`. Currently supports `geckodriver`, `chromedriver`, and `safaridriver`,
 although more driver support may be added! You can download these at:
 
@@ -537,7 +537,7 @@ if you tell the `cargo-web` to build for them using the `--target` parameter.
 
 ### Code Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+This project exists thanks to all the people who contribute.
 <a href="https://github.com/yewstack/yew/graphs/contributors"><img src="https://opencollective.com/yew/contributors.svg?width=890&button=false" /></a>
 
 ### Financial Contributors
