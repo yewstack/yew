@@ -420,29 +420,23 @@ impl Task for FetchTask {
             false
         }
     }
-    fn cancel(&mut self) {
-        // Fetch API doesn't support request cancelling in all browsers
-        // and we should use this workaround with a flag.
-        // In that case, request not canceled, but callback won't be called.
-        let handle = self
-            .0
-            .take()
-            .expect("tried to cancel request fetching twice");
-        js! {  @(no_return)
-            var handle = @{handle};
-            handle.active = false;
-            handle.callback.drop();
-            if (handle.abortController) {
-                handle.abortController.abort();
-            }
-        }
-    }
 }
 
 impl Drop for FetchTask {
     fn drop(&mut self) {
         if self.is_active() {
-            self.cancel();
+            // Fetch API doesn't support request cancelling in all browsers
+            // and we should use this workaround with a flag.
+            // In that case, request not canceled, but callback won't be called.
+            let handle = self.0.take().unwrap();
+            js! {  @(no_return)
+                var handle = @{handle};
+                handle.active = false;
+                handle.callback.drop();
+                if (handle.abortController) {
+                    handle.abortController.abort();
+                }
+            }
         }
     }
 }
