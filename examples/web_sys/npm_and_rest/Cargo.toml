@@ -1,0 +1,14 @@
+[package]
+name = "npm_and_rest_web_sys"
+version = "0.1.0"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1"
+js-sys = "0.3"
+serde = "1"
+serde_derive = "1"
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = ["console"] }
+yew = { path = "../../..", features = ["web_sys"] }

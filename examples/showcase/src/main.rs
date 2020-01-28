@@ -1,5 +1,25 @@
 #![recursion_limit = "128"]
 
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use counter_std_web as counter;
+        use inner_html_std_web as inner_html;
+        use mount_point_std_web as mount_point;
+        use node_refs_std_web as node_refs;
+        use npm_and_rest_std_web as npm_and_rest;
+        use todomvc_std_web as todomvc;
+        use two_apps_std_web as two_apps;
+    } else if #[cfg(feature = "web_sys")] {
+        use counter_web_sys as counter;
+        use inner_html_web_sys as inner_html;
+        use mount_point_web_sys as mount_point;
+        use node_refs_web_sys as node_refs;
+        use npm_and_rest_web_sys as npm_and_rest;
+        use todomvc_web_sys as todomvc;
+        use two_apps_web_sys as two_apps;
+    }
+}
+
 use counter::Model as Counter;
 use crm::Model as Crm;
 use custom_components::Model as CustomComponents;

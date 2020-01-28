@@ -1,5 +1,4 @@
 #![recursion_limit = "128"]
-
 #[cfg(feature = "std_web")]
 use stdweb::web::{document, IElement};
 #[cfg(feature = "wasm_test")]

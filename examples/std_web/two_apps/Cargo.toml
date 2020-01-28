@@ -1,0 +1,9 @@
+[package]
+name = "two_apps_std_web"
+version = "0.1.0"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+stdweb = "0.4.20"
+yew = { path = "../../..", features = ["std_web"] }
