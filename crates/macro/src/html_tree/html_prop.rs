@@ -16,7 +16,7 @@ impl PeekValue<()> for HtmlProp {
     fn peek(cursor: Cursor) -> Option<()> {
         let (_, cursor) = HtmlPropLabel::peek(cursor)?;
         let (punct, _) = cursor.punct()?;
-        return (punct.as_char() == '=').as_option();
+        (punct.as_char() == '=').as_option()
     }
 }
 

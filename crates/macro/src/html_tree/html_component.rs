@@ -88,38 +88,21 @@ impl ToTokens for HtmlComponent {
         } = self;
 
         let validate_props = if let Props::List(ListProps { props, .. }) = props {
-            let prop_ref = Ident::new("__yew_prop_ref", Span::call_site());
             let check_props = props.iter().map(|HtmlProp { label, .. }| {
-                quote! { #prop_ref.#label; }
+                quote! { props.#label; }
             });
 
             let check_children = if !children.is_empty() {
-                quote! { #prop_ref.children; }
+                quote! { props.children; }
             } else {
                 quote! {}
             };
 
-            // This is a hack to avoid allocating memory but still have a reference to a props
-            // struct so that attributes can be checked against it
-
-            #[cfg(has_maybe_uninit)]
-            let unallocated_prop_ref = quote! {
-                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe {
-                    ::std::mem::MaybeUninit::uninit().assume_init()
-                };
-            };
-
-            #[cfg(not(has_maybe_uninit))]
-            let unallocated_prop_ref = quote! {
-                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe {
-                    ::std::mem::uninitialized()
-                };
-            };
-
             quote! {
-                #unallocated_prop_ref
-                #check_children
-                #(#check_props)*
+                let _ = |props: <#ty as ::yew::html::Component>::Properties| {
+                    #check_children
+                    #(#check_props)*
+                };
             }
         } else {
             quote! {}
@@ -283,7 +266,7 @@ impl PeekValue<Type> for HtmlComponentOpen {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
         let (typ, _) = HtmlComponent::peek_type(cursor)?;
-        return Some(typ);
+        Some(typ)
     }
 }
 
@@ -333,7 +316,7 @@ impl PeekValue<Type> for HtmlComponentClose {
         let (punct, _) = cursor.punct()?;
         (punct.as_char() == '>').as_option()?;
 
-        return Some(typ);
+        Some(typ)
     }
 }
 impl Parse for HtmlComponentClose {
@@ -378,7 +361,7 @@ impl Props {
 impl PeekValue<PropType> for Props {
     fn peek(cursor: Cursor) -> Option<PropType> {
         let (ident, _) = cursor.ident()?;
-        let prop_type = if ident.to_string() == "with" {
+        let prop_type = if ident == "with" {
             PropType::With
         } else {
             PropType::List
@@ -411,7 +394,7 @@ impl Parse for ListProps {
         }
 
         let ref_position = props.iter().position(|p| p.label.to_string() == "ref");
-        let node_ref = ref_position.and_then(|i| Some(props.remove(i).value));
+        let node_ref = ref_position.map(|i| props.remove(i).value);
         for prop in &props {
             if prop.label.to_string() == "ref" {
                 return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
@@ -452,7 +435,7 @@ struct WithProps {
 impl Parse for WithProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let with = input.parse::<Ident>()?;
-        if with.to_string() != "with" {
+        if with != "with" {
             return Err(input.error("expected to find `with` token"));
         }
         let props = input.parse::<Ident>()?;
