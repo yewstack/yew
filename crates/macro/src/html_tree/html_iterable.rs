@@ -12,7 +12,7 @@ pub struct HtmlIterable(Expr);
 impl PeekValue<()> for HtmlIterable {
     fn peek(cursor: Cursor) -> Option<()> {
         let (ident, _) = cursor.ident()?;
-        (ident.to_string() == "for").as_option()
+        (ident == "for").as_option()
     }
 }
 

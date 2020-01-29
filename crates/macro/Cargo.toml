@@ -29,7 +29,6 @@ syn = { version = "1.0", features = ["full", "extra-traits"] }
 yew = { path = "../.." }
 
 [build-dependencies]
-autocfg = "1.0.0"
 
 [features]
 doc_test = []
