@@ -32,7 +32,6 @@ trybuild = "1.0"
 yew = { path = "../..", features = ["std_web"] }
 
 [build-dependencies]
-autocfg = "1.0.0"
 
 [features]
 doc_test = []
