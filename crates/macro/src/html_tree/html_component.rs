@@ -88,38 +88,21 @@ impl ToTokens for HtmlComponent {
         } = self;
 
         let validate_props = if let Props::List(ListProps { props, .. }) = props {
-            let prop_ref = Ident::new("__yew_prop_ref", Span::call_site());
             let check_props = props.iter().map(|HtmlProp { label, .. }| {
-                quote! { #prop_ref.#label; }
+                quote! { props.#label; }
             });
 
             let check_children = if !children.is_empty() {
-                quote! { #prop_ref.children; }
+                quote! { props.children; }
             } else {
                 quote! {}
             };
 
-            // This is a hack to avoid allocating memory but still have a reference to a props
-            // struct so that attributes can be checked against it
-
-            #[cfg(has_maybe_uninit)]
-            let unallocated_prop_ref = quote! {
-                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe {
-                    ::std::mem::MaybeUninit::uninit().assume_init()
-                };
-            };
-
-            #[cfg(not(has_maybe_uninit))]
-            let unallocated_prop_ref = quote! {
-                let #prop_ref: <#ty as ::yew::html::Component>::Properties = unsafe {
-                    ::std::mem::uninitialized()
-                };
-            };
-
             quote! {
-                #unallocated_prop_ref
-                #check_children
-                #(#check_props)*
+                let _ = |props: <#ty as ::yew::html::Component>::Properties| {
+                    #check_children
+                    #(#check_props)*
+                };
             }
         } else {
             quote! {}
