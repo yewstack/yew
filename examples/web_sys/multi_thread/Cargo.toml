@@ -17,4 +17,4 @@ log = "0.4"
 wasm-logger = "0.2"
 serde = "1.0"
 serde_derive = "1.0"
-yew = { path = "../../..", features = ["web_sys"]}
+yew = { path = "../../..", features = ["agent", "services", "web_sys"]}

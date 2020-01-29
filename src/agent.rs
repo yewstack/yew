@@ -22,9 +22,10 @@ cfg_if! {
         #[allow(unused_imports)]
         use stdweb::{_js_impl, js};
     } else if #[cfg(feature = "web_sys")] {
-        use js_sys::{Reflect, Uint8Array};
+        use crate::utils;
+        use js_sys::{Array, Reflect, Uint8Array};
         use wasm_bindgen::{closure::Closure, JsCast, JsValue};
-        use web_sys::{DedicatedWorkerGlobalScope, MessageEvent, Worker, WorkerOptions};
+        use web_sys::{Blob, BlobPropertyBag, DedicatedWorkerGlobalScope, MessageEvent, Url, Worker, WorkerOptions};
     }
 }
 
@@ -983,6 +984,23 @@ where
 
 #[cfg(feature = "web_sys")]
 fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
+    let href = utils::document().location().unwrap().href().unwrap();
+
+    let array = Array::new();
+    array.push(
+        &format!(
+            "importScripts(\"{}{}\");onmessage=e=>{{wasm_bindgen(e.data)}}",
+            href, name_of_resource,
+        )
+        .into(),
+    );
+    let blob = Blob::new_with_str_sequence_and_options(
+        &array,
+        BlobPropertyBag::new().type_("application/javascript"),
+    )
+    .unwrap();
+    let url = Url::create_object_url_with_blob(&blob).unwrap();
+
     if is_module {
         let options = WorkerOptions::new();
         Reflect::set(
@@ -991,9 +1009,9 @@ fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
             &JsValue::from_str("module"),
         )
         .unwrap();
-        Worker::new_with_options(name_of_resource, &options).expect("failed to spawn worker")
+        Worker::new_with_options(&url, &options).expect("failed to spawn worker")
     } else {
-        Worker::new(name_of_resource).expect("failed to spawn worker")
+        Worker::new(&url).expect("failed to spawn worker")
     }
 }
 
