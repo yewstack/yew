@@ -24,4 +24,5 @@ members = [
   "todomvc",
   "two_apps",
   "pub_sub",
+  "webgl"
 ]

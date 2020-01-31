@@ -1,0 +1,10 @@
+[package]
+name = "webgl"
+version = "0.1.0"
+authors = ["Miklós Tusz <mdtusz@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+stdweb = "0.4.20"
+yew = { path = "../.." }
+webgl_stdweb = "0.3.0"
