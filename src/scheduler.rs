@@ -3,7 +3,6 @@
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::rc::Rc;
-use std::sync::atomic::{AtomicBool, Ordering};
 
 pub(crate) type Shared<T> = Rc<RefCell<T>>;
 
@@ -23,44 +22,57 @@ pub(crate) trait Runnable {
 }
 
 /// This is a global scheduler suitable to schedule and run any tasks.
+#[derive(Clone)]
 pub(crate) struct Scheduler {
-    lock: Rc<AtomicBool>,
-    sequence: Shared<VecDeque<Box<dyn Runnable>>>,
-}
-
-impl Clone for Scheduler {
-    fn clone(&self) -> Self {
-        Scheduler {
-            lock: self.lock.clone(),
-            sequence: self.sequence.clone(),
-        }
-    }
+    lock: Rc<RefCell<()>>,
+    main: Shared<VecDeque<Box<dyn Runnable>>>,
+    create_component: Shared<VecDeque<Box<dyn Runnable>>>,
+    mount_component: Shared<Vec<Box<dyn Runnable>>>,
 }
 
 impl Scheduler {
-    /// Creates a new scheduler with a context.
     fn new() -> Self {
-        let sequence = VecDeque::new();
         Scheduler {
-            lock: Rc::new(AtomicBool::new(false)),
-            sequence: Rc::new(RefCell::new(sequence)),
+            lock: Rc::new(RefCell::new(())),
+            main: Rc::new(RefCell::new(VecDeque::new())),
+            create_component: Rc::new(RefCell::new(VecDeque::new())),
+            mount_component: Rc::new(RefCell::new(Vec::new())),
         }
     }
 
-    pub(crate) fn put_and_try_run(&self, runnable: Box<dyn Runnable>) {
-        self.sequence.borrow_mut().push_back(runnable);
-        if self.lock.compare_and_swap(false, true, Ordering::Relaxed) {
+    pub(crate) fn push(&self, runnable: Box<dyn Runnable>) {
+        self.main.borrow_mut().push_back(runnable);
+        self.start();
+    }
+
+    pub(crate) fn push_create(&self, runnable: Box<dyn Runnable>) {
+        self.create_component.borrow_mut().push_back(runnable);
+        self.start();
+    }
+
+    pub(crate) fn push_mount(&self, runnable: Box<dyn Runnable>) {
+        self.mount_component.borrow_mut().push(runnable);
+        self.start();
+    }
+
+    pub(crate) fn start(&self) {
+        let lock = self.lock.try_borrow_mut();
+        if lock.is_err() {
             return;
         }
 
         loop {
-            let do_next = self.sequence.borrow_mut().pop_front();
+            let do_next = self
+                .create_component
+                .borrow_mut()
+                .pop_front()
+                .or_else(|| self.mount_component.borrow_mut().pop())
+                .or_else(|| self.main.borrow_mut().pop_front());
             if let Some(runnable) = do_next {
                 runnable.run();
             } else {
                 break;
             }
         }
-        self.lock.store(false, Ordering::Relaxed);
     }
 }
