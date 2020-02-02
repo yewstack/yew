@@ -210,6 +210,12 @@ pub struct ChildrenRenderer<T> {
     children: Vec<T>,
 }
 
+impl<T: PartialEq> PartialEq for ChildrenRenderer<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.children == other.children
+    }
+}
+
 impl<T> ChildrenRenderer<T>
 where
     T: Clone + Into<VNode>,
