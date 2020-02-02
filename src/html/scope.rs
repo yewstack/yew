@@ -77,15 +77,15 @@ impl<COMP: Component> Scope<COMP> {
     /// Schedules a task to call the mounted method on a component and optionally re-render
     pub(crate) fn mounted(&mut self) {
         let shared_state = self.shared_state.clone();
-        let mounted = Box::new(MountedComponent { shared_state });
-        scheduler().put_and_try_run(mounted, false);
+        let mounted = MountedComponent { shared_state };
+        scheduler().push_mount(Box::new(mounted));
     }
 
     /// Schedules a task to create and render a component and then mount it to the DOM
     pub(crate) fn create(&mut self) {
         let shared_state = self.shared_state.clone();
         let create = CreateComponent { shared_state };
-        scheduler().put_and_try_run(Box::new(create), true);
+        scheduler().push_create(Box::new(create));
     }
 
     /// Schedules a task to send a message or new props to a component
@@ -94,14 +94,14 @@ impl<COMP: Component> Scope<COMP> {
             shared_state: self.shared_state.clone(),
             update,
         };
-        scheduler().put_and_try_run(Box::new(update), false);
+        scheduler().push(Box::new(update));
     }
 
     /// Schedules a task to destroy a component
     pub(crate) fn destroy(&mut self) {
         let shared_state = self.shared_state.clone();
         let destroy = DestroyComponent { shared_state };
-        scheduler().put_and_try_run(Box::new(destroy), false);
+        scheduler().push(Box::new(destroy));
     }
 
     /// Send a message to the component
@@ -173,10 +173,17 @@ impl<COMP: Component> CreatedState<COMP> {
     }
 
     fn update(mut self) -> Self {
-        let mut vnode = self.component.render();
-        let node = vnode.apply(&self.element, None, self.last_frame);
-        self.node_ref.set(node);
-        self.last_frame = Some(vnode);
+        let mut root = self.component.render();
+        if let Some(node) = root.apply(&self.element, None, self.last_frame) {
+            self.node_ref.set(Some(node));
+        } else if let VNode::VComp(child) = &root {
+            // If the root VNode is a VComp, we won't have access to the rendered DOM node
+            // because components render asynchronously. In order to bubble up the DOM node
+            // from the VComp, we need to link the currently rendering component with its
+            // root child component.
+            self.node_ref.link(child.node_ref.clone());
+        }
+        self.last_frame = Some(root);
         self
     }
 }
