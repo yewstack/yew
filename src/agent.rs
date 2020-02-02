@@ -813,7 +813,7 @@ impl<AGN: Agent> AgentScope<AGN> {
             update,
         };
         let runnable: Box<dyn Runnable> = Box::new(envelope);
-        scheduler().put_and_try_run(runnable);
+        scheduler().push(runnable);
     }
 }
 

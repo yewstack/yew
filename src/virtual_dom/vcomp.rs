@@ -26,18 +26,11 @@ enum GeneratorType {
 }
 
 /// A virtual component.
+#[derive(Clone)]
 pub struct VComp {
     type_id: TypeId,
     state: Rc<RefCell<MountState>>,
-}
-
-impl Clone for VComp {
-    fn clone(&self) -> Self {
-        VComp {
-            type_id: self.type_id,
-            state: self.state.clone(),
-        }
-    }
+    pub(crate) node_ref: NodeRef,
 }
 
 /// A virtual child component.
@@ -100,6 +93,7 @@ impl VComp {
     where
         COMP: Component,
     {
+        let node_ref_clone = node_ref.clone();
         let generator = move |generator_type: GeneratorType| -> Mounted {
             match generator_type {
                 GeneratorType::Mount(element, dummy_node) => {
@@ -108,12 +102,12 @@ impl VComp {
                     let mut scope = scope.mount_in_place(
                         element,
                         Some(VNode::VRef(dummy_node.into())),
-                        node_ref.clone(),
+                        node_ref_clone.clone(),
                         props.clone(),
                     );
 
                     Mounted {
-                        node_ref: node_ref.clone(),
+                        node_ref: node_ref_clone.clone(),
                         scope: scope.clone().into(),
                         destroyer: Box::new(move || scope.destroy()),
                     }
@@ -123,7 +117,7 @@ impl VComp {
                     scope.update(ComponentUpdate::Properties(props.clone()));
 
                     Mounted {
-                        node_ref: node_ref.clone(),
+                        node_ref: node_ref_clone.clone(),
                         scope: scope.clone().into(),
                         destroyer: Box::new(move || scope.destroy()),
                     }
@@ -136,6 +130,7 @@ impl VComp {
             state: Rc::new(RefCell::new(MountState::Unmounted(Unmounted {
                 generator: Box::new(generator),
             }))),
+            node_ref,
         }
     }
 }
@@ -236,16 +231,13 @@ impl VDiff for VComp {
                         this.mount(parent.to_owned(), dummy_node)
                     }
                 };
-
-                let node = mounted.node_ref.get();
                 self.state.replace(MountState::Mounted(mounted));
-                node
             }
             state => {
                 self.state.replace(state);
-                None
             }
         }
+        None
     }
 }
 

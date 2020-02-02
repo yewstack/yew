@@ -315,12 +315,19 @@ where
 ///     }
 /// }
 #[derive(PartialEq, Debug, Default, Clone)]
-pub struct NodeRef(Rc<RefCell<Option<Node>>>);
+pub struct NodeRef(Rc<RefCell<NodeRefInner>>);
+
+#[derive(PartialEq, Debug, Default, Clone)]
+struct NodeRefInner {
+    node: Option<Node>,
+    link: Option<NodeRef>,
+}
 
 impl NodeRef {
     /// Get the wrapped Node reference if it exists
     pub fn get(&self) -> Option<Node> {
-        self.0.borrow().clone()
+        let inner = self.0.borrow();
+        inner.node.clone().or_else(|| inner.link.as_ref()?.get())
     }
 
     /// Try converting the node reference into another form
@@ -339,7 +346,12 @@ impl NodeRef {
 
     /// Place a Node in a reference for later use
     pub(crate) fn set(&self, node: Option<Node>) {
-        *self.0.borrow_mut() = node;
+        self.0.borrow_mut().node = node;
+    }
+
+    /// Link a downstream `NodeRef`
+    pub(crate) fn link(&self, node_ref: Self) {
+        self.0.borrow_mut().link = Some(node_ref);
     }
 }
 
