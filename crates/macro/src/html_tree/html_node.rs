@@ -17,9 +17,9 @@ impl Parse for HtmlNode {
                 Lit::Str(_) | Lit::Char(_) | Lit::Int(_) | Lit::Float(_) | Lit::Bool(_) => {}
                 _ => return Err(syn::Error::new(lit.span(), "unsupported type")),
             }
-            Node::Literal(lit)
+            Node::Literal(Box::new(lit))
         } else {
-            Node::Expression(input.parse()?)
+            Node::Expression(Box::new(input.parse()?))
         };
 
         Ok(HtmlNode(node))
@@ -56,6 +56,6 @@ impl ToTokens for Node {
 }
 
 enum Node {
-    Literal(Lit),
-    Expression(Expr),
+    Literal(Box<Lit>),
+    Expression(Box<Expr>),
 }

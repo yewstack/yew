@@ -14,8 +14,8 @@ pub struct HtmlBlock {
 }
 
 enum BlockContent {
-    Node(HtmlNode),
-    Iterable(HtmlIterable),
+    Node(Box<HtmlNode>),
+    Iterable(Box<HtmlIterable>),
 }
 
 impl PeekValue<()> for HtmlBlock {
@@ -29,9 +29,9 @@ impl Parse for HtmlBlock {
         let content;
         let brace = braced!(content in input);
         let content = if HtmlIterable::peek(content.cursor()).is_some() {
-            BlockContent::Iterable(content.parse()?)
+            BlockContent::Iterable(Box::new(content.parse()?))
         } else {
-            BlockContent::Node(content.parse()?)
+            BlockContent::Node(Box::new(content.parse()?))
         };
 
         Ok(HtmlBlock { brace, content })

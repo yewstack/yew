@@ -5,7 +5,6 @@ use serde_derive::{Deserialize, Serialize};
 use yew::format::{Json, Nothing, Toml};
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
-use yew::services::Task;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 type AsBinary = bool;

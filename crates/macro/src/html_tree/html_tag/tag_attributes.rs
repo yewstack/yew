@@ -20,7 +20,7 @@ pub struct TagAttributes {
 
 pub enum ClassesForm {
     Tuple(Vec<Expr>),
-    Single(Expr),
+    Single(Box<Expr>),
 }
 
 lazy_static! {
@@ -146,7 +146,7 @@ impl TagAttributes {
     fn map_classes(class_expr: Expr) -> ClassesForm {
         match class_expr {
             Expr::Tuple(ExprTuple { elems, .. }) => ClassesForm::Tuple(elems.into_iter().collect()),
-            expr => ClassesForm::Single(expr),
+            expr => ClassesForm::Single(Box::new(expr)),
         }
     }
 }
