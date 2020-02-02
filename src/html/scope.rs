@@ -78,14 +78,14 @@ impl<COMP: Component> Scope<COMP> {
     pub(crate) fn mounted(&mut self) {
         let shared_state = self.shared_state.clone();
         let mounted = Box::new(MountedComponent { shared_state });
-        scheduler().put_and_try_run(mounted);
+        scheduler().put_and_try_run(mounted, false);
     }
 
     /// Schedules a task to create and render a component and then mount it to the DOM
     pub(crate) fn create(&mut self) {
         let shared_state = self.shared_state.clone();
         let create = CreateComponent { shared_state };
-        scheduler().put_and_try_run(Box::new(create));
+        scheduler().put_and_try_run(Box::new(create), true);
     }
 
     /// Schedules a task to send a message or new props to a component
@@ -94,14 +94,14 @@ impl<COMP: Component> Scope<COMP> {
             shared_state: self.shared_state.clone(),
             update,
         };
-        scheduler().put_and_try_run(Box::new(update));
+        scheduler().put_and_try_run(Box::new(update), false);
     }
 
     /// Schedules a task to destroy a component
     pub(crate) fn destroy(&mut self) {
         let shared_state = self.shared_state.clone();
         let destroy = DestroyComponent { shared_state };
-        scheduler().put_and_try_run(Box::new(destroy));
+        scheduler().put_and_try_run(Box::new(destroy), false);
     }
 
     /// Send a message to the component

@@ -47,8 +47,13 @@ impl Scheduler {
         }
     }
 
-    pub(crate) fn put_and_try_run(&self, runnable: Box<dyn Runnable>) {
-        self.sequence.borrow_mut().push_back(runnable);
+    pub(crate) fn put_and_try_run(&self, runnable: Box<dyn Runnable>, push_front: bool)  {
+        if push_front {
+            self.sequence.borrow_mut().push_front(runnable);
+        } else {
+            self.sequence.borrow_mut().push_back(runnable);
+        }
+
         if self.lock.compare_and_swap(false, true, Ordering::Relaxed) {
             return;
         }
