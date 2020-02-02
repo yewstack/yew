@@ -31,12 +31,12 @@ pub enum HtmlType {
 }
 
 pub enum HtmlTree {
-    Block(HtmlBlock),
-    Component(HtmlComponent),
-    Iterable(HtmlIterable),
-    List(HtmlList),
-    Tag(HtmlTag),
-    Node(HtmlNode),
+    Block(Box<HtmlBlock>),
+    Component(Box<HtmlComponent>),
+    Iterable(Box<HtmlIterable>),
+    List(Box<HtmlList>),
+    Tag(Box<HtmlTag>),
+    Node(Box<HtmlNode>),
     Empty,
 }
 
@@ -46,9 +46,9 @@ impl Parse for HtmlRoot {
         let html_root = if HtmlTree::peek(input.cursor()).is_some() {
             HtmlRoot(input.parse()?)
         } else if HtmlIterable::peek(input.cursor()).is_some() {
-            HtmlRoot(HtmlTree::Iterable(input.parse()?))
+            HtmlRoot(HtmlTree::Iterable(Box::new(input.parse()?)))
         } else {
-            HtmlRoot(HtmlTree::Node(input.parse()?))
+            HtmlRoot(HtmlTree::Node(Box::new(input.parse()?)))
         };
 
         if !input.is_empty() {
@@ -76,10 +76,10 @@ impl Parse for HtmlTree {
             .ok_or_else(|| input.error("expected valid html element"))?;
         let html_tree = match html_type {
             HtmlType::Empty => HtmlTree::Empty,
-            HtmlType::Component => HtmlTree::Component(input.parse()?),
-            HtmlType::Tag => HtmlTree::Tag(input.parse()?),
-            HtmlType::Block => HtmlTree::Block(input.parse()?),
-            HtmlType::List => HtmlTree::List(input.parse()?),
+            HtmlType::Component => HtmlTree::Component(Box::new(input.parse()?)),
+            HtmlType::Tag => HtmlTree::Tag(Box::new(input.parse()?)),
+            HtmlType::Block => HtmlTree::Block(Box::new(input.parse()?)),
+            HtmlType::List => HtmlTree::List(Box::new(input.parse()?)),
         };
         Ok(html_tree)
     }
