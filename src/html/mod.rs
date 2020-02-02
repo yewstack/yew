@@ -287,7 +287,7 @@ where
 ///     }
 ///
 ///     fn mounted(&mut self) -> ShouldRender {
-///         if let Some(input) = self.node_ref.try_into::<InputElement>() {
+///         if let Some(input) = self.node_ref.cast::<InputElement>() {
 ///             input.focus();
 ///         }
 ///         false
@@ -313,7 +313,7 @@ impl NodeRef {
     }
 
     /// Try converting the node reference into another form
-    pub fn try_into<INTO: TryFrom<Node>>(&self) -> Option<INTO> {
+    pub fn cast<INTO: TryFrom<Node>>(&self) -> Option<INTO> {
         self.get().and_then(|node| INTO::try_from(node).ok())
     }
 
