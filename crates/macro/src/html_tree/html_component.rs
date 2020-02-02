@@ -87,8 +87,8 @@ impl ToTokens for HtmlComponent {
             children,
         } = self;
 
-        let validate_props = if let Props::List(ListProps { props, .. }) = props {
-            let check_props = props.iter().map(|HtmlProp { label, .. }| {
+        let validate_props = if let Props::List(list_props) = props {
+            let check_props = list_props.props.iter().map(|HtmlProp { label, .. }| {
                 quote! { props.#label; }
             });
 
@@ -121,8 +121,8 @@ impl ToTokens for HtmlComponent {
         };
 
         let init_props = match props {
-            Props::List(ListProps { props, .. }) => {
-                let set_props = props.iter().map(|HtmlProp { label, value }| {
+            Props::List(list_props) => {
+                let set_props = list_props.props.iter().map(|HtmlProp { label, value }| {
                     quote_spanned! { value.span()=> .#label(
                         <::yew::virtual_dom::vcomp::VComp as ::yew::virtual_dom::Transformer<_, _>>::transform(
                             #value
@@ -137,7 +137,10 @@ impl ToTokens for HtmlComponent {
                         .build()
                 }
             }
-            Props::With(WithProps { props, .. }) => quote! { #props },
+            Props::With(with_props) => {
+                let props = &with_props.props;
+                quote! { #props }
+            }
             Props::None => quote! {
                 <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder()
                     #set_children
@@ -343,16 +346,16 @@ enum PropType {
 }
 
 enum Props {
-    List(ListProps),
-    With(WithProps),
+    List(Box<ListProps>),
+    With(Box<WithProps>),
     None,
 }
 
 impl Props {
     fn node_ref(&self) -> Option<&Expr> {
         match self {
-            Props::List(ListProps { node_ref, .. }) => node_ref.as_ref(),
-            Props::With(WithProps { node_ref, .. }) => node_ref.as_ref(),
+            Props::List(list_props) => list_props.node_ref.as_ref(),
+            Props::With(with_props) => with_props.node_ref.as_ref(),
             Props::None => None,
         }
     }
@@ -374,8 +377,8 @@ impl PeekValue<PropType> for Props {
 impl Parse for Props {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         match Props::peek(input.cursor()) {
-            Some(PropType::List) => input.parse().map(Props::List),
-            Some(PropType::With) => input.parse().map(Props::With),
+            Some(PropType::List) => input.parse().map(|l| Props::List(Box::new(l))),
+            Some(PropType::With) => input.parse().map(|w| Props::With(Box::new(w))),
             None => Ok(Props::None),
         }
     }
