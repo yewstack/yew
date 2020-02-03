@@ -54,11 +54,9 @@ impl ResizeService {
             callback.emit(dimensions);
         };
         let handle = js! {
-            var callback = @{callback};
-            var action = function() {
-                callback();
-            };
-            return window.addEventListener("resize", action);
+            var handle = @{callback};
+            window.addEventListener("resize", handle);
+            return handle;
         };
         ResizeTask(Some(handle))
     }
@@ -70,7 +68,7 @@ impl Drop for ResizeTask {
         js! {
             @(no_return)
             var handle = @{handle};
-            handle.callback.drop();
+            window.removeEventListener("resize", handle);
         }
     }
 }
