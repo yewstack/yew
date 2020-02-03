@@ -24,7 +24,10 @@ impl Parse for HtmlProp {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let label = input.parse::<HtmlPropLabel>()?;
         input.parse::<Token![=]>()?;
-        let value = input.parse::<Expr>()?;
+        let value: Expr = match input.parse::<Expr>().ok() {
+                Some(expr) => expr,
+                None => label.clone().into(),
+        };
         // backwards compat
         let _ = input.parse::<Token![,]>();
         Ok(HtmlProp { label, value })

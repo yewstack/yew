@@ -7,9 +7,9 @@ use std::fmt;
 use syn::buffer::Cursor;
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::Token;
+use syn::{parse_quote, Expr, Token};
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct HtmlDashedName {
     pub name: Ident,
     pub extended: Vec<(Token![-], Ident)>,
@@ -31,6 +31,13 @@ impl fmt::Display for HtmlDashedName {
             write!(f, "-{}", ident)?;
         }
         Ok(())
+    }
+}
+
+impl Into<Expr> for HtmlDashedName {
+    fn into(self) -> Expr {
+        let name = self.name;
+        parse_quote!(#name)
     }
 }
 
