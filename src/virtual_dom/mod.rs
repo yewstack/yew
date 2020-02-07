@@ -9,9 +9,9 @@ pub mod vtext;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
 use std::fmt;
+use std::iter::FusedIterator;
 use std::rc::Rc;
 use stdweb::web::{Element, EventListenerHandle, Node};
-use std::iter::FusedIterator;
 
 pub use self::vcomp::{VChild, VComp};
 pub use self::vlist::VList;
@@ -54,9 +54,10 @@ type Attributes = HashMap<String, String>;
 /// - or else remove the ancestor value and check for the next ancestor position
 #[derive(Debug)]
 struct OrderedSetPatchIterator<I, A, B>
-    where I: std::cmp::PartialEq,
-          A: Iterator<Item = I> + FusedIterator,
-          B: Iterator<Item = I> + FusedIterator
+where
+    I: std::cmp::PartialEq,
+    A: Iterator<Item = I> + FusedIterator,
+    B: Iterator<Item = I> + FusedIterator,
 {
     /// an iterator to the desired ordered set
     desired_iter: A,
@@ -67,30 +68,31 @@ struct OrderedSetPatchIterator<I, A, B>
 }
 
 impl<I, A, B> OrderedSetPatchIterator<I, A, B>
-    where I: std::cmp::PartialEq,
-          A: Iterator<Item = I> + FusedIterator,
-          B: Iterator<Item = I> + FusedIterator
+where
+    I: std::cmp::PartialEq,
+    A: Iterator<Item = I> + FusedIterator,
+    B: Iterator<Item = I> + FusedIterator,
 {
     fn new(desired_iter: A, ancestor_iter: B) -> Self {
         OrderedSetPatchIterator {
             desired_iter,
             ancestor_iter,
-            desired: None
+            desired: None,
         }
     }
 }
 
 impl<I, A, B> Iterator for OrderedSetPatchIterator<I, A, B>
-    where I: std::cmp::PartialEq,
-          A: Iterator<Item = I> + FusedIterator,
-          B: Iterator<Item = I> + FusedIterator
+where
+    I: std::cmp::PartialEq,
+    A: Iterator<Item = I> + FusedIterator,
+    B: Iterator<Item = I> + FusedIterator,
 {
     type Item = Patch<I, ()>;
 
     fn next(&mut self) -> Option<Self::Item> {
         // take remembered value or advance iterator
-        let mut desired = self.desired.take()
-                            .or_else(|| self.desired_iter.next());
+        let mut desired = self.desired.take().or_else(|| self.desired_iter.next());
 
         loop {
             let previous = self.ancestor_iter.next();
@@ -109,7 +111,7 @@ impl<I, A, B> Iterator for OrderedSetPatchIterator<I, A, B>
                     self.desired = desired;
                     Some(Patch::Remove(right))
                 }
-            }
+            };
         }
     }
 }

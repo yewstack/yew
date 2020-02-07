@@ -1,7 +1,8 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
 use super::{
-    Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode, OrderedSetPatchIterator,
+    Attributes, Classes, Listener, Listeners, OrderedSetPatchIterator, Patch, Reform, Transformer,
+    VDiff, VList, VNode,
 };
 use crate::html::NodeRef;
 use log::warn;
@@ -203,7 +204,11 @@ impl VTag {
     ) -> impl Iterator<Item = Patch<&'a str, ()>> + 'a {
         // TODO: remove both usages of fuse() when indexmap::set::IndexSet implements FusedIterator
         let desired_classes = self.classes.set.iter().map(String::as_str).fuse();
-        let ancestor_classes = ancestor.iter().flat_map(|ancestor| ancestor.classes.set.iter()).map(String::as_str).fuse();
+        let ancestor_classes = ancestor
+            .iter()
+            .flat_map(|ancestor| ancestor.classes.set.iter())
+            .map(String::as_str)
+            .fuse();
 
         OrderedSetPatchIterator::new(desired_classes, ancestor_classes)
     }
@@ -298,7 +303,9 @@ impl VTag {
         for change in changes {
             match change {
                 Patch::Add(key, value) | Patch::Replace(key, value) => {
-                    element.set_attribute(&key, &value).expect("invalid attribute key");
+                    element
+                        .set_attribute(&key, &value)
+                        .expect("invalid attribute key");
                 }
                 Patch::Remove(key) => {
                     element.remove_attribute(&key);
@@ -915,52 +922,96 @@ mod tests {
         html! { <div><a data-val=<u32 as Default>::default() /> </div> };
         html! { <div><a data-val=Box::<u32>::default() /></div> };
     }
-    
+
     #[test]
     fn swap_order_of_classes() {
         let parent = document().create_element("div").unwrap();
         document().body().unwrap().append_child(&parent);
-        
+
         let mut elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
         elem.apply(&parent, None, None);
-        
-        let vtag = if let VNode::VTag(vtag) = elem { vtag } else { panic!("should be vtag") };
-        
+
+        let vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+
         let expected = "class-1 class-2 class-3";
         assert_eq!(vtag.classes.to_string(), expected);
-        assert_eq!(vtag.reference.as_ref().unwrap().get_attribute("class").unwrap(), expected);
+        assert_eq!(
+            vtag.reference
+                .as_ref()
+                .unwrap()
+                .get_attribute("class")
+                .unwrap(),
+            expected
+        );
 
         let ancestor = vtag;
         let elem = html! { <div class=("class-3", "class-2", "class-1")></div> };
-        let mut vtag = if let VNode::VTag(vtag) = elem { vtag } else { panic!("should be vtag") };
+        let mut vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
         vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
-        
+
         let expected = "class-3 class-2 class-1";
         assert_eq!(vtag.classes.to_string(), expected);
-        assert_eq!(vtag.reference.as_ref().unwrap().get_attribute("class").unwrap(), expected);
+        assert_eq!(
+            vtag.reference
+                .as_ref()
+                .unwrap()
+                .get_attribute("class")
+                .unwrap(),
+            expected
+        );
     }
-    
+
     #[test]
     fn add_class_to_the_middle() {
         let parent = document().create_element("div").unwrap();
         document().body().unwrap().append_child(&parent);
-        
+
         let mut elem = html! { <div class=("class-1", "class-3")></div> };
         elem.apply(&parent, None, None);
-        
-        let vtag = if let VNode::VTag(vtag) = elem { vtag } else { panic!("should be vtag") };
-        
+
+        let vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+
         let expected = "class-1 class-3";
         assert_eq!(vtag.classes.to_string(), expected);
-        assert_eq!(vtag.reference.as_ref().unwrap().get_attribute("class").unwrap(), expected);
+        assert_eq!(
+            vtag.reference
+                .as_ref()
+                .unwrap()
+                .get_attribute("class")
+                .unwrap(),
+            expected
+        );
 
         let ancestor = vtag;
         let elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
-        let mut vtag = if let VNode::VTag(vtag) = elem { vtag } else { panic!("should be vtag") };
+        let mut vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
         vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
-        
+
         let expected = "class-1 class-2 class-3";
         assert_eq!(vtag.classes.to_string(), expected);
-        assert_eq!(vtag.reference.as_ref().unwrap().get_attribute("class").unwrap(), expected);
+        assert_eq!(
+            vtag.reference
+                .as_ref()
+                .unwrap()
+                .get_attribute("class")
+                .unwrap(),
+            expected
+        );
     }
 }
