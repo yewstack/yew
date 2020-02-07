@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
 use super::{
-    Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
+    Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode, OrderedSetPatchIterator,
 };
 use crate::html::NodeRef;
 use log::warn;
@@ -190,35 +190,22 @@ impl VTag {
     /// Compute differences between the ancestor and determine patch changes.
     ///
     /// If there is an ancestor:
-    /// - add the classes that are in self but NOT in ancestor.
-    /// - remove the classes that are in ancestor but NOT in self.
-    /// - items that are the same stay the same.
+    ///   returns sequence of removals and additions of classes,
+    ///   such that the class_list reflects the new classes with the defined order
+    ///   e.g. given the ancestor classes set is ("class-1", "class-2") and the
+    ///        self classes are ("class-2", "class-1"), then
+    ///        "class-1" will be removed, and then added
     ///
     /// Otherwise just add everything.
     fn diff_classes<'a>(
         &'a self,
         ancestor: &'a Option<Box<Self>>,
     ) -> impl Iterator<Item = Patch<&'a str, ()>> + 'a {
-        let to_add = {
-            let all_or_nothing = not(ancestor)
-                .iter()
-                .flat_map(move |_| self.classes.set.iter())
-                .map(|class| Patch::Add(&**class, ()));
+        // TODO: remove both usages of fuse() when indexmap::set::IndexSet implements FusedIterator
+        let desired_classes = self.classes.set.iter().map(String::as_str).fuse();
+        let ancestor_classes = ancestor.iter().flat_map(|ancestor| ancestor.classes.set.iter()).map(String::as_str).fuse();
 
-            let ancestor_difference = ancestor
-                .iter()
-                .flat_map(move |ancestor| self.classes.set.difference(&ancestor.classes.set))
-                .map(|class| Patch::Add(&**class, ()));
-
-            all_or_nothing.chain(ancestor_difference)
-        };
-
-        let to_remove = ancestor
-            .iter()
-            .flat_map(move |ancestor| ancestor.classes.set.difference(&self.classes.set))
-            .map(|class| Patch::Remove(&**class));
-
-        to_add.chain(to_remove)
+        OrderedSetPatchIterator::new(desired_classes, ancestor_classes)
     }
 
     /// Similar to diff_classes except for attributes.
@@ -311,10 +298,10 @@ impl VTag {
         for change in changes {
             match change {
                 Patch::Add(key, value) | Patch::Replace(key, value) => {
-                    set_attribute(element, &key, &value);
+                    element.set_attribute(&key, &value).expect("invalid attribute key");
                 }
                 Patch::Remove(key) => {
-                    remove_attribute(element, &key);
+                    element.remove_attribute(&key);
                 }
             }
         }
@@ -480,17 +467,6 @@ impl fmt::Debug for VTag {
     }
 }
 
-/// `stdweb` doesn't have methods to work with attributes now.
-/// this is [workaround](https://github.com/koute/stdweb/issues/16#issuecomment-325195854)
-fn set_attribute(element: &Element, name: &str, value: &str) {
-    js!( @(no_return) @{element}.setAttribute( @{name}, @{value} ); );
-}
-
-/// Removes attribute from a element by name.
-fn remove_attribute(element: &Element, name: &str) {
-    js!( @(no_return) @{element}.removeAttribute( @{name} ); );
-}
-
 /// Set `checked` value for the `InputElement`.
 fn set_checked(input: &InputElement, value: bool) {
     js!( @(no_return) @{input}.checked = @{value}; );
@@ -512,14 +488,6 @@ impl PartialEq for VTag {
             && self.classes.set.len() == other.classes.set.len()
             && self.classes.set.iter().eq(other.classes.set.iter())
             && self.children == other.children
-    }
-}
-
-pub(crate) fn not<T>(option: &Option<T>) -> &Option<()> {
-    if option.is_some() {
-        &None
-    } else {
-        &Some(())
     }
 }
 
@@ -946,5 +914,53 @@ mod tests {
 
         html! { <div><a data-val=<u32 as Default>::default() /> </div> };
         html! { <div><a data-val=Box::<u32>::default() /></div> };
+    }
+    
+    #[test]
+    fn swap_order_of_classes() {
+        let parent = document().create_element("div").unwrap();
+        document().body().unwrap().append_child(&parent);
+        
+        let mut elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
+        elem.apply(&parent, None, None);
+        
+        let vtag = if let VNode::VTag(vtag) = elem { vtag } else { panic!("should be vtag") };
+        
+        let expected = "class-1 class-2 class-3";
+        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(vtag.reference.as_ref().unwrap().get_attribute("class").unwrap(), expected);
+
+        let ancestor = vtag;
+        let elem = html! { <div class=("class-3", "class-2", "class-1")></div> };
+        let mut vtag = if let VNode::VTag(vtag) = elem { vtag } else { panic!("should be vtag") };
+        vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
+        
+        let expected = "class-3 class-2 class-1";
+        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(vtag.reference.as_ref().unwrap().get_attribute("class").unwrap(), expected);
+    }
+    
+    #[test]
+    fn add_class_to_the_middle() {
+        let parent = document().create_element("div").unwrap();
+        document().body().unwrap().append_child(&parent);
+        
+        let mut elem = html! { <div class=("class-1", "class-3")></div> };
+        elem.apply(&parent, None, None);
+        
+        let vtag = if let VNode::VTag(vtag) = elem { vtag } else { panic!("should be vtag") };
+        
+        let expected = "class-1 class-3";
+        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(vtag.reference.as_ref().unwrap().get_attribute("class").unwrap(), expected);
+
+        let ancestor = vtag;
+        let elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
+        let mut vtag = if let VNode::VTag(vtag) = elem { vtag } else { panic!("should be vtag") };
+        vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
+        
+        let expected = "class-1 class-2 class-3";
+        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(vtag.reference.as_ref().unwrap().get_attribute("class").unwrap(), expected);
     }
 }
