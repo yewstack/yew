@@ -1,8 +1,7 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
 use super::{
-    Attributes, Classes, Listener, Listeners, OrderedSetPatchIterator, Patch, Reform, Transformer,
-    VDiff, VList, VNode,
+    Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
 };
 use crate::html::NodeRef;
 use log::warn;
@@ -114,14 +113,14 @@ impl VTag {
     }
 
     /// Adds a single class to this virtual node. Actually it will set by
-    /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
+    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
     /// call later.
     pub fn add_class(&mut self, class: &str) {
         self.classes.push(class);
     }
 
     /// Adds multiple classes to this virtual node. Actually it will set by
-    /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
+    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
     /// call later.
     pub fn add_classes(&mut self, classes: Vec<&str>) {
         for class in classes {
@@ -130,7 +129,7 @@ impl VTag {
     }
 
     /// Add classes to this virtual node. Actually it will set by
-    /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
+    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
     /// call later.
     pub fn set_classes(&mut self, classes: impl Into<Classes>) {
         self.classes = classes.into();
@@ -188,29 +187,20 @@ impl VTag {
         }
     }
 
-    /// Compute differences between the ancestor and determine patch changes.
+    /// If there is no ancestor or the classes, or the order, differs from the ancestor:
+    /// - Returns the classes of self separated by spaces.
     ///
-    /// If there is an ancestor:
-    ///   returns sequence of removals and additions of classes,
-    ///   such that the class_list reflects the new classes with the defined order
-    ///   e.g. given the ancestor classes set is ("class-1", "class-2") and the
-    ///        self classes are ("class-2", "class-1"), then
-    ///        "class-1" will be removed, and then added
-    ///
-    /// Otherwise just add everything.
-    fn diff_classes<'a>(
-        &'a self,
-        ancestor: &'a Option<Box<Self>>,
-    ) -> impl Iterator<Item = Patch<&'a str, ()>> + 'a {
-        // TODO: remove both usages of fuse() when indexmap::set::IndexSet implements FusedIterator
-        let desired_classes = self.classes.set.iter().map(String::as_str).fuse();
-        let ancestor_classes = ancestor
-            .iter()
-            .flat_map(|ancestor| ancestor.classes.set.iter())
-            .map(String::as_str)
-            .fuse();
-
-        OrderedSetPatchIterator::new(desired_classes, ancestor_classes)
+    /// Otherwise None is returned.
+    fn diff_classes<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<String> {
+        if ancestor
+            .as_ref()
+            .map(|ancestor| self.classes.ne(&ancestor.classes))
+            .unwrap_or(true)
+        {
+            Some(self.classes.to_string())
+        } else {
+            None
+        }
     }
 
     /// Similar to diff_classes except for attributes.
@@ -286,17 +276,11 @@ impl VTag {
         let element = self.reference.as_ref().expect("element expected");
 
         // Update parameters
-        let changes = self.diff_classes(ancestor);
-        for change in changes {
-            let list = element.class_list();
-            match change {
-                Patch::Add(class, _) | Patch::Replace(class, _) => {
-                    list.add(class).expect("can't add a class");
-                }
-                Patch::Remove(class) => {
-                    list.remove(class).expect("can't remove a class");
-                }
-            }
+        let class_str = self.diff_classes(ancestor);
+        if let Some(class_str) = class_str {
+            element
+                .set_attribute("class", &class_str)
+                .expect("could not set class");
         }
 
         let changes = self.diff_attributes(ancestor);
@@ -492,8 +476,7 @@ impl PartialEq for VTag {
                 .map(|l| l.kind())
                 .eq(other.listeners.iter().map(|l| l.kind()))
             && self.attributes == other.attributes
-            && self.classes.set.len() == other.classes.set.len()
-            && self.classes.set.iter().eq(other.classes.set.iter())
+            && self.classes.eq(&other.classes)
             && self.children == other.children
     }
 }

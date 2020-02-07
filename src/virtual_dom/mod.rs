@@ -9,7 +9,6 @@ pub mod vtext;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
 use std::fmt;
-use std::iter::FusedIterator;
 use std::rc::Rc;
 use stdweb::web::{Element, EventListenerHandle, Node};
 
@@ -40,84 +39,8 @@ type Listeners = Vec<Rc<dyn Listener>>;
 /// A map of attributes.
 type Attributes = HashMap<String, String>;
 
-/// An iterator, which will iterate over all patches needed
-/// to be applied to ancestor_iter to archive
-/// the values and order of desired_iter
-///
-/// The ordered set which will be patched only allows for:
-/// - add: adds a value (if not present) at the end of the set
-/// - remove: removes the value from the set (if present)
-///
-/// The solution is to iterate over the desired set and for each value do the following:
-/// - if there is no ancestor value left, add the desired value
-/// - if there is the same ancestor value at the same position, do nothing
-/// - or else remove the ancestor value and check for the next ancestor position
-#[derive(Debug)]
-struct OrderedSetPatchIterator<I, A, B>
-where
-    I: std::cmp::PartialEq,
-    A: Iterator<Item = I> + FusedIterator,
-    B: Iterator<Item = I> + FusedIterator,
-{
-    /// an iterator to the desired ordered set
-    desired_iter: A,
-    /// an iterator to the ancestor ordered set
-    ancestor_iter: B,
-    /// this contains the peeked value of the desired_iter iterator
-    desired: Option<I>,
-}
-
-impl<I, A, B> OrderedSetPatchIterator<I, A, B>
-where
-    I: std::cmp::PartialEq,
-    A: Iterator<Item = I> + FusedIterator,
-    B: Iterator<Item = I> + FusedIterator,
-{
-    fn new(desired_iter: A, ancestor_iter: B) -> Self {
-        OrderedSetPatchIterator {
-            desired_iter,
-            ancestor_iter,
-            desired: None,
-        }
-    }
-}
-
-impl<I, A, B> Iterator for OrderedSetPatchIterator<I, A, B>
-where
-    I: std::cmp::PartialEq,
-    A: Iterator<Item = I> + FusedIterator,
-    B: Iterator<Item = I> + FusedIterator,
-{
-    type Item = Patch<I, ()>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        // take remembered value or advance iterator
-        let mut desired = self.desired.take().or_else(|| self.desired_iter.next());
-
-        loop {
-            let previous = self.ancestor_iter.next();
-
-            return match (desired, previous) {
-                (None, None) => None,
-                (Some(left), None) => Some(Patch::Add(left, ())),
-                (Some(left), Some(right)) if left == right => {
-                    // values equals for the current position
-                    // advance both iterators
-                    desired = self.desired_iter.next();
-                    continue;
-                }
-                (desired, Some(right)) => {
-                    // remember desired value
-                    self.desired = desired;
-                    Some(Patch::Remove(right))
-                }
-            };
-        }
-    }
-}
-
 /// A set of classes.
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default)]
 pub struct Classes {
     set: IndexSet<String>,
 }
@@ -213,8 +136,13 @@ impl<T: AsRef<str>> From<Vec<T>> for Classes {
     }
 }
 
+impl PartialEq for Classes {
+    fn eq(&self, other: &Self) -> bool {
+        self.set.len() == other.set.len() && self.set.iter().eq(other.set.iter())
+    }
+}
+
 /// Patch for DOM node modification.
-#[derive(Debug)]
 enum Patch<ID, T> {
     Add(ID, T),
     Replace(ID, T),
