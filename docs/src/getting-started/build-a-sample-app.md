@@ -73,7 +73,7 @@ fn main() {
 
 This template sets up your root `Component`, called `App` which shows a button that updates itself when you click it. Take special note of `yew::start_app::<App>()` inside `main()` which starts your app and mounts it to the page's `<body>` tag. If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props(..)`.
 
-### Run your App!
+## Run your App!
 
 Using [`cargo-web`](https://github.com/koute/cargo-web) is the quickest way to get up and running. If you haven't already, install the tool with `cargo install cargo-web` and then build and start a development server by running:
 
