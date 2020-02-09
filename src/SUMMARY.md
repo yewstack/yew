@@ -22,7 +22,8 @@
   * [Callbacks](concepts/components/callbacks.md)
   * [Refs](concepts/components/refs.md)
 * [Agents](concepts/agents.md)
-* [Services](concepts/services.md)
+* [Services](concepts/services/README.md)
+  * [Format](concepts/services/format.md)
 * [Router](concepts/router.md)
 
 ## Advanced Topics
