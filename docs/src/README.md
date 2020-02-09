@@ -5,7 +5,7 @@
 **Yew** is a modern [Rust](https://www.rust-lang.org/) framework for creating multi-threaded front-end web apps with [WebAssembly](https://webassembly.org/).
 
 * It features a **component-based** framework which makes it easy to create interactive UIs. Developers who have experience with frameworks like [React](https://reactjs.org/) and [Elm](https://elm-lang.org/) should feel quite at home when using Yew.
-* It has **great performance** by minimizing DOM API calls and by helping developers easily offload processing to background web workers.
+* It has **great performance** by minimizing DOM API calls by helping developers easily offload processing to background web workers.
 * It supports **JavaScript interoperability**, allowing developers to leverage NPM packages and integrate with existing JavaScript applications.
 
 ### Join Us 😊
