@@ -10,7 +10,9 @@ Agents that run concurrently use [web-workers](https://developer.mozilla.org/en-
 
 ## Lifecycle
 
-&lt;TODO&gt;
+{% hint style="info" %}
+`Contribute to our docs:` [Add a diagram of the Agent lifecycle](https://github.com/yewstack/docs/issues/23)
+{% endhint %}
 
 ## Types of Agents
 
