@@ -4,7 +4,7 @@ description: Both HTML and SVG elements are supported
 
 # Elements
 
-### Tag Structure
+## Tag Structure
 
 Element tags must either self-close `<... />` or have a corresponding close tag for each open tag
 
@@ -46,7 +46,7 @@ html! {
 For convenience, elements which _usually_ require a closing tag are **allowed** to self-close. For example, writing `html! { <div class="placeholder" /> }` is valid.
 {% endhint %}
 
-### Children
+## Children
 
 Create complex nested HTML and SVG layouts with ease:
 
@@ -95,7 +95,7 @@ html! {
 {% endtab %}
 {% endtabs %}
 
-### Classes
+## Classes
 
 There are a number of convenient options for specifying classes for an element:
 
@@ -149,7 +149,7 @@ html! {
 {% endtab %}
 {% endtabs %}
 
-### Listeners
+## Listeners
 
 Listener attributes need to be passed a `Callback` which is a wrapper around a closure. How you create your callback depends on how you wish your app to react to a listener event:
 
@@ -258,3 +258,4 @@ impl Component for MyComponent {
 ```
 {% endtab %}
 {% endtabs %}
+

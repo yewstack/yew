@@ -8,6 +8,12 @@ description: Components and their lifecycle hooks
 
 Components are the building blocks of Yew. They manage their own state and can render themselves to the DOM. Components are created by implementing the `Component` trait which describes the lifecycle of a component.
 
+## Lifecycle
+
+{% hint style="info" %}
+`Contribute to our docs:` [Add a diagram of the component lifecycle](https://github.com/yewstack/docs/issues/22)
+{% endhint %}
+
 ## Lifecycle Methods
 
 ### Create
@@ -53,7 +59,7 @@ impl Component for MyComponent {
 
 For usage details, check out the `html` guide:
 
-{% page-ref page="../html/README.md" %}
+{% page-ref page="../html/" %}
 
 ### Mounted
 
@@ -164,3 +170,4 @@ enum Msg {
 ```
 
 `Properties` represents the information passed to a component from its parent. This type must implements the `Properties` trait \(usually by deriving it\) and can specify whether certain properties are required or optional. This type is used when creating and updating a component. It is common practice to create a struct called `Props` in your component's module and use that as the component's `Properties` type. It is common to shorten "properties" to "props". Since props are handed down from parent components, the root component of your application typically has a `Properties` type of `()`. If you wish to specify properties for your root component, use the `App::mount_with_props` method.
+

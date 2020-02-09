@@ -32,7 +32,7 @@ This means that each component has its own distinct copy of state passed down fr
 
 The implication of this is if you would otherwise be passing _huge_ amounts of data down as props \(Strings that are 10s of kilobytes in size\), you may want to consider turning your child component into a `Html`-returning function that runs in the parent, as you aren't forced to clone your data.
 
-Alternatively, if you won't need to alter the large data that is passed as props, and only will display it, you can wrap it in an `Rc` so that only a ref-counted pointer is cloned,  instead of the data itself.
+Alternatively, if you won't need to alter the large data that is passed as props, and only will display it, you can wrap it in an `Rc` so that only a ref-counted pointer is cloned, instead of the data itself.
 
 ## Example
 
@@ -67,3 +67,4 @@ pub struct LinkProps {
     size: Option<u32>
 }
 ```
+

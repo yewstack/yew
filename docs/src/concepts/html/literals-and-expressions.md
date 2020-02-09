@@ -1,8 +1,8 @@
 # Literals & Expressions
 
-### Literals
+## Literals
 
-If expressions resolve to types that implement `Display`,  they will be converted to strings and inserted into the DOM as a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node.
+If expressions resolve to types that implement `Display`, they will be converted to strings and inserted into the DOM as a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node.
 
 All display text must be enclosed by `{}` blocks because text is handled like an expression. This is the largest deviation from normal HTML syntax that Yew makes.
 
@@ -17,7 +17,7 @@ html!{
 }
 ```
 
-### Expressions
+## Expressions
 
 You can insert expressions in your HTML using `{}` blocks, as long as they resolve to `Html`
 
@@ -56,6 +56,3 @@ html! {
 }
 ```
 
-###
-
-###

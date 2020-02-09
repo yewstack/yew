@@ -1,6 +1,6 @@
 # Lists
 
-### Fragments
+## Fragments
 
 The `html!` macro always requires a single root node. In order to get around this restriction, it's valid to wrap content in empty tags:
 
@@ -28,7 +28,7 @@ html! {
 {% endtab %}
 {% endtabs %}
 
-### Iterators
+## Iterators
 
 Yew supports two different syntaxes for building html from an iterator:
 
@@ -53,3 +53,4 @@ html! {
 ```
 {% endtab %}
 {% endtabs %}
+
