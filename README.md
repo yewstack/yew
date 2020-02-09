@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="https://github.com/yewstack/yew/blob/master/.static/yew.svg" width="150" />
+  <img src="https://static.yew.rs/logo.svg" width="150" />
 
   <h1>
     Yew &nbsp;
@@ -18,7 +18,7 @@
   </p>
 
   <h4>
-    <a href="https://yew.rs">Website</a>
+    <a href="https://yew.rs/docs">Docs</a>
     <span> | </span>
     <a href="https://docs.rs/yew">API Docs</a>
     <span> | </span>
