@@ -23,6 +23,8 @@
     <span> | </span>
     <a href="https://yew.rs/docs/roadmap">Roadmap</a>
     <span> | </span>
+    <a href="https://gitter.im/yewframework/%E4%B8%AD%E6%96%87">中文的聊天室</a>
+    <span> | </span>
     <a href="https://yew.rs/docs/v/zh_cn/">简体中文文档</a>
   </h4>
 </div>
