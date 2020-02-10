@@ -425,7 +425,7 @@ where
 
     /// This method sends a message to this component to be processed immediately after the
     /// component has been updated and/or rendered.
-    pub fn send_message(&mut self, msg: COMP::Message) {
+    pub fn send_message(&self, msg: COMP::Message) {
         self.scope.send_message(msg);
     }
 
@@ -434,7 +434,7 @@ where
     ///
     /// All messages will first be processed by `update`, and if _any_ of them return `true`,
     /// then re-render will occur.
-    pub fn send_message_batch(&mut self, msgs: Vec<COMP::Message>) {
+    pub fn send_message_batch(&self, msgs: Vec<COMP::Message>) {
         self.scope.send_message_batch(msgs)
     }
 }
