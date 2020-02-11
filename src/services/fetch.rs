@@ -684,4 +684,24 @@ mod tests {
         // body is empty because the response is opaque for manual redirects
         assert_eq!(resp.body().as_ref().unwrap(), &String::from(""));
     }
+
+    #[test]
+    async fn fetch_integrity() {
+        let request = Request::get("https://httpbin.org/base64/WWV3IFNSSSBUZXN0")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions {
+            integrity: Some(
+                "sha384-4xsxy1bN3ru9z4rMCqjTPrPYnN91zxlpAvHO4/fDu9kIxWsxmnbA7F/qFbuTuQDJ"
+                    .to_string(),
+            ),
+            ..FetchOptions::default()
+        };
+        let cb_future = CallbackFuture::<Response<Result<String, anyhow::Error>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert_eq!(resp.body().as_ref().unwrap(), &String::from("Yew SRI Test"));
+    }
 }
