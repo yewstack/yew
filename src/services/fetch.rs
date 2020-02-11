@@ -531,6 +531,11 @@ mod tests {
         url: String,
     }
 
+    #[derive(Deserialize, Debug)]
+    struct HttpBinHeaders {
+        headers: HashMap<String, String>,
+    }
+
     #[test]
     async fn fetch_referrer_default() {
         let request = Request::get("https://httpbin.org/get")
@@ -725,5 +730,53 @@ mod tests {
         let _task = FetchService::new().fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert!(resp.body().is_err());
+    }
+
+    #[test]
+    async fn fetch_referrer_policy_no_referrer() {
+        let request = Request::get("https://httpbin.org/headers")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions {
+            referrer_policy: Some(ReferrerPolicy::NoReferrer),
+            ..FetchOptions::default()
+        };
+        let cb_future =
+            CallbackFuture::<Response<Json<Result<HttpBinHeaders, anyhow::Error>>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        if let Json(Ok(httpbin_headers)) = resp.body() {
+            assert_eq!(httpbin_headers.headers.get("Referer"), None);
+        } else {
+            assert!(false, "unexpected resp: {:#?}", resp);
+        }
+    }
+
+    #[test]
+    async fn fetch_referrer_policy_origin() {
+        let request = Request::get("https://httpbin.org/headers")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions {
+            referrer_policy: Some(ReferrerPolicy::Origin),
+            ..FetchOptions::default()
+        };
+        let cb_future =
+            CallbackFuture::<Response<Json<Result<HttpBinHeaders, anyhow::Error>>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        if let Json(Ok(httpbin_headers)) = resp.body() {
+            assert!(httpbin_headers
+                .headers
+                .get("Referer")
+                .unwrap()
+                .starts_with(&stdweb::web::window().location().unwrap().origin().unwrap()));
+        } else {
+            assert!(false, "unexpected resp: {:#?}", resp);
+        }
     }
 }
