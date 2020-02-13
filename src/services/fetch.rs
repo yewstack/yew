@@ -71,9 +71,58 @@ pub enum Redirect {
     Manual,
 }
 
+/// Type to set referrer for fetch.
+#[derive(Debug)]
+pub enum Referrer {
+    /// `<same-origin URL>` value of referrer.
+    SameOriginUrl(String),
+    /// `about:client` value of referrer.
+    AboutClient,
+    /// `<empty string>` value of referrer.
+    Empty,
+}
+
+impl Serialize for Referrer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match *self {
+            Referrer::SameOriginUrl(ref s) => serializer.serialize_str(s),
+            Referrer::AboutClient => {
+                serializer.serialize_unit_variant("Referrer", 0, "about:client")
+            }
+            Referrer::Empty => serializer.serialize_unit_variant("Referrer", 1, ""),
+        }
+    }
+}
+
+/// Type to set referrer policy for fetch.
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReferrerPolicy {
+    /// `no-referrer` value of referrerPolicy.
+    NoReferrer,
+    /// `no-referrer-when-downgrade` value of referrerPolicy.
+    NoReferrerWhenDowngrade,
+    /// `same-origin` value of referrerPolicy.
+    SameOrigin,
+    /// `origin` value of referrerPolicy.
+    Origin,
+    /// `strict-origin` value of referrerPolicy.
+    StrictOrigin,
+    /// `origin-when-cross-origin` value of referrerPolicy.
+    OriginWhenCrossOrigin,
+    /// `strict-origin-when-cross-origin` value of referrerPolicy.
+    StrictOriginWhenCrossOrigin,
+    /// `unsafe-url` value of referrerPolicy.
+    UnsafeUrl,
+}
+
 /// Init options for `fetch()` function call.
 /// https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
 #[derive(Serialize, Default, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct FetchOptions {
     /// Cache of a fetch request.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -87,6 +136,15 @@ pub struct FetchOptions {
     /// Request mode of a fetch request.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mode: Option<Mode>,
+    /// Referrer of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub referrer: Option<Referrer>,
+    /// Referrer policy of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub referrer_policy: Option<ReferrerPolicy>,
+    /// Integrity of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub integrity: Option<String>,
 }
 
 /// Represents errors of a fetch service.
@@ -335,7 +393,12 @@ where
     // Notice that the callback signature must match the call from the javascript
     // side. There is no static check at this point.
     let callback = move |success: bool, status: u16, headers: HashMap<String, String>, data: X| {
-        let mut response_builder = Response::builder().status(status);
+        let mut response_builder = Response::builder();
+
+        if let Ok(status) = StatusCode::from_u16(status) {
+            response_builder = response_builder.status(status);
+        }
+
         for (key, values) in headers {
             response_builder = response_builder.header(key.as_str(), values.as_str());
         }
@@ -357,12 +420,6 @@ where
         if (@{binary} && body != null) {
             body = Uint8Array.from(body);
         }
-        var data = {
-            method: @{method},
-            body: body,
-            headers: @{header_map},
-        };
-        var request = new Request(@{uri}, data);
         var callback = @{callback};
         var abortController = AbortController ? new AbortController() : null;
         var handle = {
@@ -370,11 +427,19 @@ where
             callback,
             abortController,
         };
-        var init = @{Serde(options)} || {};
+        var init = {
+            method: @{method},
+            body: body,
+            headers: @{header_map},
+        };
+        var opts = @{Serde(options)} || {};
+        for (var attrname in opts) {
+            init[attrname] = opts[attrname];
+        }
         if (abortController && !("signal" in init)) {
             init.signal = abortController.signal;
         }
-        fetch(request, init).then(function(response) {
+        fetch(@{uri}, init).then(function(response) {
             var promise = (@{binary}) ? response.arrayBuffer() : response.text();
             var status = response.status;
             var headers = {};
@@ -437,6 +502,275 @@ impl Drop for FetchTask {
                     handle.abortController.abort();
                 }
             }
+        }
+    }
+}
+
+#[cfg(test)]
+#[cfg(feature = "wasm_test")]
+mod tests {
+    use super::*;
+    use crate::callback::test_util::CallbackFuture;
+    use crate::format::{Json, Nothing};
+    use serde::Deserialize;
+    use ssri::Integrity;
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[derive(Deserialize, Debug)]
+    struct HttpBin {
+        headers: HashMap<String, String>,
+        origin: String,
+        url: String,
+    }
+
+    #[derive(Deserialize, Debug)]
+    struct HttpBinHeaders {
+        headers: HashMap<String, String>,
+    }
+
+    #[test]
+    async fn fetch_referrer_default() {
+        let request = Request::get("https://httpbin.org/get")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions::default();
+        let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        if let Json(Ok(http_bin)) = resp.body() {
+            assert!(http_bin.headers.get("Referer").is_some());
+        } else {
+            assert!(false, "unexpected resp: {:#?}", resp);
+        }
+    }
+
+    #[test]
+    async fn fetch_referrer_same_origin_url() {
+        let request = Request::get("https://httpbin.org/get")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions {
+            referrer: Some(Referrer::SameOriginUrl(String::from("same-origin"))),
+            ..FetchOptions::default()
+        };
+        let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        if let Json(Ok(http_bin)) = resp.body() {
+            let referrer = http_bin.headers.get("Referer").expect("no referer set");
+            assert!(referrer.ends_with("/same-origin"));
+        } else {
+            assert!(false, "unexpected resp: {:#?}", resp);
+        }
+    }
+
+    #[test]
+    async fn fetch_referrer_about_client() {
+        let request = Request::get("https://httpbin.org/get")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions {
+            referrer: Some(Referrer::AboutClient),
+            ..FetchOptions::default()
+        };
+        let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        if let Json(Ok(http_bin)) = resp.body() {
+            assert!(http_bin.headers.get("Referer").is_some());
+        } else {
+            assert!(false, "unexpected resp: {:#?}", resp);
+        }
+    }
+
+    #[test]
+    async fn fetch_referrer_empty() {
+        let request = Request::get("https://httpbin.org/get")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions {
+            referrer: Some(Referrer::Empty),
+            ..FetchOptions::default()
+        };
+        let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        if let Json(Ok(http_bin)) = resp.body() {
+            assert!(http_bin.headers.get("Referer").is_none());
+        } else {
+            assert!(false, "unexpected resp: {:#?}", resp);
+        }
+    }
+
+    #[test]
+    async fn fetch_redirect_default() {
+        let request = Request::get("https://httpbin.org/relative-redirect/1")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions::default();
+        let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        if let Json(Ok(http_bin)) = resp.body() {
+            assert_eq!(http_bin.url, String::from("https://httpbin.org/get"));
+        } else {
+            assert!(false, "unexpected resp: {:#?}", resp);
+        }
+    }
+
+    #[test]
+    async fn fetch_redirect_follow() {
+        let request = Request::get("https://httpbin.org/relative-redirect/1")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions {
+            redirect: Some(Redirect::Follow),
+            ..FetchOptions::default()
+        };
+        let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        if let Json(Ok(http_bin)) = resp.body() {
+            assert_eq!(http_bin.url, String::from("https://httpbin.org/get"));
+        } else {
+            assert!(false, "unexpected resp: {:#?}", resp);
+        }
+    }
+
+    #[test]
+    async fn fetch_redirect_error() {
+        let request = Request::get("https://httpbin.org/relative-redirect/1")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions {
+            redirect: Some(Redirect::Error),
+            ..FetchOptions::default()
+        };
+        let cb_future = CallbackFuture::<Response<Result<String, anyhow::Error>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::REQUEST_TIMEOUT);
+    }
+
+    #[test]
+    async fn fetch_redirect_manual() {
+        let request = Request::get("https://httpbin.org/relative-redirect/1")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions {
+            redirect: Some(Redirect::Manual),
+            ..FetchOptions::default()
+        };
+        let cb_future = CallbackFuture::<Response<Result<String, anyhow::Error>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        // body is empty because the response is opaque for manual redirects
+        assert_eq!(resp.body().as_ref().unwrap(), &String::from(""));
+    }
+
+    #[test]
+    async fn fetch_integrity() {
+        let resource = "Yew SRI Test";
+        let request = Request::get(format!(
+            "https://httpbin.org/base64/{}",
+            base64::encode_config(resource, base64::URL_SAFE)
+        ))
+        .body(Nothing)
+        .unwrap();
+        let options = FetchOptions {
+            integrity: Some(Integrity::from(resource).to_string()),
+            ..FetchOptions::default()
+        };
+        let cb_future = CallbackFuture::<Response<Result<String, anyhow::Error>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert_eq!(resp.body().as_ref().unwrap(), resource);
+    }
+
+    #[test]
+    async fn fetch_integrity_fail() {
+        let resource = "Yew SRI Test";
+        let request = Request::get(format!(
+            "https://httpbin.org/base64/{}",
+            base64::encode_config(resource, base64::URL_SAFE)
+        ))
+        .body(Nothing)
+        .unwrap();
+        let options = FetchOptions {
+            integrity: Some(Integrity::from("Yew SRI Test fail").to_string()),
+            ..FetchOptions::default()
+        };
+        let cb_future = CallbackFuture::<Response<Result<String, anyhow::Error>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert!(resp.body().is_err());
+    }
+
+    #[test]
+    async fn fetch_referrer_policy_no_referrer() {
+        let request = Request::get("https://httpbin.org/headers")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions {
+            referrer_policy: Some(ReferrerPolicy::NoReferrer),
+            ..FetchOptions::default()
+        };
+        let cb_future =
+            CallbackFuture::<Response<Json<Result<HttpBinHeaders, anyhow::Error>>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        if let Json(Ok(httpbin_headers)) = resp.body() {
+            assert_eq!(httpbin_headers.headers.get("Referer"), None);
+        } else {
+            assert!(false, "unexpected resp: {:#?}", resp);
+        }
+    }
+
+    #[test]
+    async fn fetch_referrer_policy_origin() {
+        let request = Request::get("https://httpbin.org/headers")
+            .body(Nothing)
+            .unwrap();
+        let options = FetchOptions {
+            referrer_policy: Some(ReferrerPolicy::Origin),
+            ..FetchOptions::default()
+        };
+        let cb_future =
+            CallbackFuture::<Response<Json<Result<HttpBinHeaders, anyhow::Error>>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let resp = cb_future.await;
+        assert_eq!(resp.status(), StatusCode::OK);
+        if let Json(Ok(httpbin_headers)) = resp.body() {
+            assert!(httpbin_headers
+                .headers
+                .get("Referer")
+                .unwrap()
+                .starts_with(&stdweb::web::window().location().unwrap().origin().unwrap()));
+        } else {
+            assert!(false, "unexpected resp: {:#?}", resp);
         }
     }
 }
