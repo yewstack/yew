@@ -23,4 +23,5 @@ members = [
   "timer",
   "todomvc",
   "two_apps",
+  "pub_sub",
 ]
