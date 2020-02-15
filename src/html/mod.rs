@@ -50,7 +50,7 @@ pub trait Component: Sized + 'static {
     /// Called by rendering loop.
     fn view(&self) -> Html;
     /// Called for finalization on the final point of the component's lifetime.
-    fn destroy(&mut self) {} // TODO Replace with `Drop`
+    fn destroy(&mut self) {} // TODO(#941): Replace with `Drop`
 }
 
 /// A type which expected as a result of `view` function implementation.

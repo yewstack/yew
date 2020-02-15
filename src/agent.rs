@@ -272,7 +272,7 @@ impl Discoverer for Context {
         let bridge = LOCAL_AGENTS_POOL.with(|pool| {
             match pool.borrow_mut().entry::<LocalAgent<AGN>>() {
                 anymap::Entry::Occupied(mut entry) => {
-                    // TODO Insert callback!
+                    // TODO(#940): Insert callback!
                     entry.get_mut().create_bridge(callback)
                 }
                 anymap::Entry::Vacant(entry) => {
@@ -423,7 +423,7 @@ impl Discoverer for Private {
             let msg = FromWorker::<AGN::Output>::unpack(&data);
             match msg {
                 FromWorker::WorkerLoaded => {
-                    // TODO Send `Connected` message
+                    // TODO(#948): Send `Connected` message
                 }
                 FromWorker::ProcessOutput(id, output) => {
                     assert_eq!(id.raw_id(), SINGLETON_ID.raw_id());
@@ -431,7 +431,7 @@ impl Discoverer for Private {
                 }
             }
         };
-        // TODO Need somethig better...
+        // TODO(#947): Need somethig better...
         let name_of_resource = AGN::name_of_resource();
         let worker = js! {
             var worker = new Worker(@{name_of_resource});
@@ -463,7 +463,7 @@ impl<AGN: Agent> fmt::Debug for PrivateBridge<AGN> {
 
 impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
     fn send(&mut self, msg: AGN::Input) {
-        // TODO Important! Implement.
+        // TODO(#937): Important! Implement.
         // Use a queue to collect a messages if an instance is not ready
         // and send them to an agent when it will reported readiness.
         let msg = ToWorker::ProcessInput(SINGLETON_ID, msg).pack();
@@ -478,7 +478,7 @@ impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
 
 impl<AGN: Agent> Drop for PrivateBridge<AGN> {
     fn drop(&mut self) {
-        // TODO Send `Destroy` message.
+        // TODO(#946): Send `Destroy` message.
     }
 }
 
@@ -525,7 +525,7 @@ impl Discoverer for Public {
         let bridge = REMOTE_AGENTS_POOL.with(|pool| {
             match pool.borrow_mut().entry::<RemoteAgent<AGN>>() {
                 anymap::Entry::Occupied(mut entry) => {
-                    // TODO Insert callback!
+                    // TODO(#945): Insert callback!
                     entry.get_mut().create_bridge(callback)
                 }
                 anymap::Entry::Vacant(entry) => {
@@ -537,7 +537,7 @@ impl Discoverer for Public {
                             let msg = FromWorker::<AGN::Output>::unpack(&data);
                             match msg {
                                 FromWorker::WorkerLoaded => {
-                                    // TODO Send `Connected` message
+                                    // TODO(#944): Send `Connected` message
                                     let _ = REMOTE_AGENTS_LOADED.with(|local| {
                                         local.borrow_mut().insert(TypeId::of::<AGN>())
                                     });
@@ -615,7 +615,7 @@ impl<AGN: Agent> PublicBridge<AGN> {
 }
 
 fn send_to_remote<AGN: Agent>(worker: &Value, msg: ToWorker<AGN::Input>) {
-    // TODO Important! Implement.
+    // TODO(#937): Important! Implement.
     // Use a queue to collect a messages if an instance is not ready
     // and send them to an agent when it will reported readiness.
     let msg = msg.pack();
@@ -822,7 +822,7 @@ impl<AGN: Agent> Clone for AgentLink<AGN> {
 
 struct AgentRunnable<AGN> {
     agent: Option<AGN>,
-    // TODO Use agent field to control create message this flag
+    // TODO(#939): Use agent field to control create message this flag
     destroyed: bool,
 }
 
