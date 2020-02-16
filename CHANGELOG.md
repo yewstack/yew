@@ -676,6 +676,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@dunnock]: https://github.com/dunnock
 [@hgzimmerman]: https://github.com/hgzimmerman
 [@izissise]: https://github.com/izissise
+[@jplatte]: https://github.com/jplatte
 [@jstarry]: https://github.com/jstarry
 [@kakoc]: https://github.com/kakoc
 [@kellytk]: https://github.com/kellytk
