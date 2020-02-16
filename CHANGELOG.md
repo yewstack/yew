@@ -1,5 +1,29 @@
 # Changelog
 
+## ✨ **0.12** *(2020-02-16)*
+
+- #### ⚡️ Features
+
+  - Improved ergonomics for `html! { for .. }`. [[@jstarry], [#875](https://github.com/yewstack/yew/pull/875)]
+  - Added `#[props(default = "fn_path")]` for specifying a default property value. [[@AlephAlpha], [#881](https://github.com/yewstack/yew/pull/881)]
+  - Exposed the macros for creating format types. [[@ctm], [#883](https://github.com/yewstack/yew/pull/883)]
+  - Added support for binary-only and text-only formats in `WebSocketService`. [[@ctm], [#851](https://github.com/yewstack/yew/pull/851)]
+  - Implemented `PartialEq` for `ChildrenRenderer` to allow `children` comparison. [[@jstarry], [#916](https://github.com/yewstack/yew/pull/916)]
+  - Reduced restrictions on `ComponentLink` methods to improve `Future` support. [[@jplatte], [#931](https://github.com/yewstack/yew/pull/931)]
+  - Added `referrer`, `referrer_policy` and `integrity` to `FetchOptions`. [[@leo-lb], [#931](https://github.com/yewstack/yew/pull/931)]
+ 
+- #### 🛠 Fixes
+
+  - Fixed touch event listeners. [[@AlephAlpha], [#872](https://github.com/yewstack/yew/pull/872)]
+  - Fixed bad behavior when setting a `ref` on a `Component`. [[@jstarry], [#913](https://github.com/yewstack/yew/pull/913)]
+  - Fixed ResizeTask cancellation. [[@jstarry], [#915](https://github.com/yewstack/yew/pull/915)]
+
+- #### 🚨 Breaking changes
+
+  - Switched from using `failure` to `anyhow` and `thiserror` for Yew errors. [[@daxpedda], [#863](https://github.com/yewstack/yew/pull/863)]
+  - Removed `cancel` method from `Task` trait in favor of relying on [`Drop`](https://doc.rust-lang.org/book/ch15-03-drop.html). [[@kakoc], [#899](https://github.com/yewstack/yew/pull/899)]
+  - Renamed `NodeRef.try_into` to `NodeRef.cast` to avoid trait conflicts. [[@jstarry], [#917](https://github.com/yewstack/yew/pull/917)]
+
 ## ✨ **0.11** *(2020-01-06)*
 
 This release aims to lay the groundwork for Yew component libraries and clean up the API for the ever elusive 1.0 release.
@@ -638,11 +662,14 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 ## ✨ **0.1** *(2017-12-31)*
 
 [Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
+[@AlephAlpha]: https://github.com/AlephAlpha
 [@astraw]: https://github.com/astraw
 [@boydjohnson]: https://github.com/boydjohnson
 [@carlosdp]: https://github.com/carlosdp
 [@charvp]: https://github.com/charvp
 [@ctaggart]: https://github.com/ctaggart
+[@ctm]: https://github.com/ctm
+[@daxpedda]: https://github.com/daxpedda
 [@davidkna]: https://github.com/davidkna
 [@DenisKolodin]: https://github.com/DenisKolodin
 [@dermetfan]: https://github.com/dermetfan
@@ -650,7 +677,9 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@hgzimmerman]: https://github.com/hgzimmerman
 [@izissise]: https://github.com/izissise
 [@jstarry]: https://github.com/jstarry
+[@kakoc]: https://github.com/kakoc
 [@kellytk]: https://github.com/kellytk
+[@leo-lb]: https://github.com/leo-lb
 [@lizhaoxian]: https://github.com/lizhaoxian
 [@mdtusz]: https://github.com/mdtusz
 [@mrh0057]: https://github.com/mrh0057
