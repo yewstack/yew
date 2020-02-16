@@ -17,7 +17,7 @@
   <h4>
     <a href="https://yew.rs/docs">Documentation</a>
     <span> | </span>
-    <a href="https://github.com/yewstack/yew/tree/v0.11.0/examples">Examples</a>
+    <a href="https://github.com/yewstack/yew/tree/v0.12.0/examples">Examples</a>
     <span> | </span>
     <a href="https://github.com/yewstack/yew/blob/master/CHANGELOG.md">Changelog</a>
     <span> | </span>
