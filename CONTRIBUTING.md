@@ -5,7 +5,7 @@
 #### Add the wasm target
 
 ```bash
-rustup add target wasm32-unknown-unknown
+rustup target add wasm32-unknown-unknown
 ```
 
 #### Install [cargo-web]
@@ -40,4 +40,9 @@ although more driver support may be added! You can download these at:
 
 ```bash
 ./ci/run_tests.sh
+```
+or
+
+```bash
+cargo test --target wasm32-unknown-unknown --features wasm_test
 ```
