@@ -59,6 +59,8 @@ fn compile_fail() {
     html! { <Child ref=() with props /> };
     html! { <Child with blah /> };
     html! { <Child with props () /> };
+    html! { <Child value=1 with props /> };
+    html! { <Child with props value=1 /> };
     html! { <Child type=0 /> };
     html! { <Child invalid-prop-name=0 /> };
     html! { <Child unknown="unknown" /> };
