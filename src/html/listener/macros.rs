@@ -59,7 +59,7 @@ macro_rules! impl_action {
                     cfg_match! {
                         feature = "std_web" => EventListener(Some(element.add_event_listener(listener))),
                         feature = "web_sys" => ({
-                            // We should only set passive event listeners for `touchstart` and `touchmove`. 
+                            // We should only set passive event listeners for `touchstart` and `touchmove`.
                             // See here: https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#Improving_scrolling_performance_with_passive_listeners
                             if $name == "touchstart" || $name == "touchmove" {
                                 EventListener::new(&EventTarget::from(element.clone()), $name, listener)
