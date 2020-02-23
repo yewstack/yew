@@ -451,7 +451,10 @@ impl Parse for WithProps {
             if ident.0 == "ref" {
                 node_ref = Some(prop.value);
             } else {
-                return Err(syn::Error::new_spanned(&prop.label, "Using special syntax [with props] along with named prop is not allowed"));
+                return Err(syn::Error::new_spanned(
+                    &prop.label,
+                    "Using special syntax [with props] along with named prop is not allowed",
+                ));
             }
         }
 
