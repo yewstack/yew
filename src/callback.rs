@@ -137,4 +137,11 @@ pub(crate) mod test_util {
             }
         }
     }
+
+    #[test]
+    fn it_has_default() {
+        let callback = Callback::default();
+
+        callback.emit("nothing");
+    }
 }
