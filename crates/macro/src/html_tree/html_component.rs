@@ -359,6 +359,16 @@ impl Props {
             Props::None => None,
         }
     }
+    fn expect_with_props(input: ParseStream) -> ParseResult<bool> {
+        let token = input.parse::<Ident>()?;
+        Ok(token == "with")
+    }
+    fn collision_error(prop: &HtmlProp) -> syn::Error {
+        syn::Error::new_spanned(
+            &prop.label,
+            "Using special syntax [with props] along with named prop is not allowed",
+        )
+    }
 }
 
 impl PeekValue<PropType> for Props {
@@ -384,13 +394,6 @@ impl Parse for Props {
     }
 }
 
-fn expect_with_props(input: ParseStream, allow: bool) -> bool {
-    match input.parse::<Ident>() {
-        Ok(with) => (with == "with") == allow,
-        Err(_) => false,
-    }
-}
-
 struct ListProps {
     props: Vec<HtmlProp>,
     node_ref: Option<Expr>,
@@ -402,11 +405,8 @@ impl Parse for ListProps {
 
         while HtmlProp::peek(input.cursor()).is_some() {
             if let Ok(prop) = input.parse::<HtmlProp>() {
-                if expect_with_props(input, true) {
-                    return Err(syn::Error::new_spanned(
-                        &prop.label,
-                        "Using special syntax [with props] along with named prop is not allowed",
-                    ));
+                if Props::expect_with_props(input).unwrap() {
+                    return Err(Props::collision_error(&prop));
                 }
                 props.push(prop);
             }
@@ -453,7 +453,7 @@ struct WithProps {
 
 impl Parse for WithProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        if expect_with_props(input, false) {
+        if !Props::expect_with_props(input).unwrap() {
             return Err(input.error("expected to find `with` token"));
         }
         let props = input.parse::<Ident>()?;
@@ -466,10 +466,7 @@ impl Parse for WithProps {
             if ident.0 == "ref" {
                 node_ref = Some(prop.value);
             } else {
-                return Err(syn::Error::new_spanned(
-                    &prop.label,
-                    "Using special syntax [with props] along with named prop is not allowed",
-                ));
+                return Err(Props::collision_error(&prop));
             }
         }
 
