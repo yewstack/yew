@@ -392,8 +392,17 @@ struct ListProps {
 impl Parse for ListProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let mut props: Vec<HtmlProp> = Vec::new();
+
         while HtmlProp::peek(input.cursor()).is_some() {
-            props.push(input.parse::<HtmlProp>()?);
+            let prop = input.parse::<HtmlProp>();
+            let with = input.parse::<Ident>()?;
+            if with == "with" {
+                return Err(input.error("expected to find `with` token"));
+            }
+
+            if let Ok(value) = prop {             
+                props.push(value);
+            }
         }
 
         let ref_position = props.iter().position(|p| p.label.to_string() == "ref");
