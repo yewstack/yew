@@ -387,9 +387,8 @@ impl Parse for Props {
 fn expect_with_props(input: ParseStream, allow: bool) -> bool {
     match input.parse::<Ident>() {
         Ok(with) => (with == "with") == allow,
-        Err(_) => false
+        Err(_) => false,
     }
- 
 }
 
 struct ListProps {
@@ -402,13 +401,15 @@ impl Parse for ListProps {
         let mut props: Vec<HtmlProp> = Vec::new();
 
         while HtmlProp::peek(input.cursor()).is_some() {
-            props.push(input.parse::<HtmlProp>()?);
-
-            if expect_with_props(input, true) {
-                return Err(input.error("Using special syntax [with props] along with named prop is not allowed"));
+            if let Ok(prop) = input.parse::<HtmlProp>() {
+                if expect_with_props(input, true) {
+                    return Err(syn::Error::new_spanned(
+                        &prop.label,
+                        "Using special syntax [with props] along with named prop is not allowed",
+                    ));
+                }
+                props.push(prop);
             }
-            
-         
         }
 
         let ref_position = props.iter().position(|p| p.label.to_string() == "ref");
@@ -453,10 +454,6 @@ struct WithProps {
 impl Parse for WithProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         if expect_with_props(input, false) {
-            return Err(input.error("expected to find `with` token"));
-        }
-        let with = input.parse::<Ident>()?;
-        if with != "with" {
             return Err(input.error("expected to find `with` token"));
         }
         let props = input.parse::<Ident>()?;
