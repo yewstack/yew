@@ -65,6 +65,12 @@ impl<IN: 'static> Callback<IN> {
     }
 }
 
+impl<IN: 'static> Callback<IN> {
+    fn default() -> Self {
+        Self::noop()
+    }
+}
+
 #[cfg(test)]
 pub(crate) mod test_util {
     use super::*;
