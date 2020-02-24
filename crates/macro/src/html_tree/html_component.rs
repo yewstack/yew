@@ -359,16 +359,6 @@ impl Props {
             Props::None => None,
         }
     }
-    fn expect_with_props(input: ParseStream) -> ParseResult<bool> {
-        let token = input.parse::<Ident>()?;
-        Ok(token == "with")
-    }
-    fn collision_error(prop: &HtmlProp) -> syn::Error {
-        syn::Error::new_spanned(
-            &prop.label,
-            "Using special syntax [with props] along with named prop is not allowed",
-        )
-    }
 }
 
 impl PeekValue<PropType> for Props {
@@ -403,12 +393,15 @@ impl Parse for ListProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let mut props: Vec<HtmlProp> = Vec::new();
 
-        while HtmlProp::peek(input.cursor()).is_some() {
-            if let Ok(prop) = input.parse::<HtmlProp>() {
-                if Props::expect_with_props(input).unwrap() {
-                    return Err(Props::collision_error(&prop));
+        loop {
+            match HtmlProp::peek(input.cursor()) {
+                Some(()) => props.push(input.parse::<HtmlProp>()?),
+                None => {
+                    if input.cursor().token_stream().to_string().contains("with") {
+                        return Err(input.error("Using special syntax [with props] along with named prop is not allowed"));
+                    };
+                    break;
                 }
-                props.push(prop);
             }
         }
 
@@ -453,7 +446,8 @@ struct WithProps {
 
 impl Parse for WithProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        if !Props::expect_with_props(input).unwrap() {
+        let token = input.parse::<Ident>()?;
+        if token != "with" {
             return Err(input.error("expected to find `with` token"));
         }
         let props = input.parse::<Ident>()?;
@@ -466,7 +460,10 @@ impl Parse for WithProps {
             if ident.0 == "ref" {
                 node_ref = Some(prop.value);
             } else {
-                return Err(Props::collision_error(&prop));
+                return Err(syn::Error::new_spanned(
+                    &prop.label,
+                    "Using special syntax [with props] along with named prop is not allowed",
+                ));
             }
         }
 
