@@ -359,6 +359,9 @@ impl Props {
             Props::None => None,
         }
     }
+    fn collision_message() -> &'static str {
+        "Using special syntax `with props` along with named prop is not allowed 1"
+    }
 }
 
 impl PeekValue<PropType> for Props {
@@ -393,17 +396,13 @@ impl Parse for ListProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let mut props: Vec<HtmlProp> = Vec::new();
 
-        loop {
-            match HtmlProp::peek(input.cursor()) {
-                Some(()) => props.push(input.parse::<HtmlProp>()?),
-                None => {
-                    if input.cursor().token_stream().to_string().contains("with") {
-                        return Err(input.error("Using special syntax [with props] along with named prop is not allowed"));
-                    };
-                    break;
-                }
-            }
+        while HtmlProp::peek(input.cursor()).is_some() {
+            props.push(input.parse::<HtmlProp>()?);
         }
+   
+        if input.cursor().token_stream().to_string().contains("with") {
+            return Err(input.error(Props::collision_message()));
+        };
 
         let ref_position = props.iter().position(|p| p.label.to_string() == "ref");
         let node_ref = ref_position.map(|i| props.remove(i).value);
@@ -462,7 +461,7 @@ impl Parse for WithProps {
             } else {
                 return Err(syn::Error::new_spanned(
                     &prop.label,
-                    "Using special syntax [with props] along with named prop is not allowed",
+                    Props::collision_message(),
                 ));
             }
         }
