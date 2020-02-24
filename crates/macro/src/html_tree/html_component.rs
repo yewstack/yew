@@ -360,7 +360,7 @@ impl Props {
         }
     }
     fn collision_message() -> &'static str {
-        "Using special syntax `with props` along with named prop is not allowed 1"
+        "Using special syntax `with props` along with named prop is not allowed"
     }
 }
 
