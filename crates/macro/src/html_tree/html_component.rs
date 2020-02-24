@@ -399,7 +399,6 @@ impl Parse for ListProps {
         while HtmlProp::peek(input.cursor()).is_some() {
             props.push(input.parse::<HtmlProp>()?);
         }
-   
         if input.cursor().token_stream().to_string().contains("with") {
             return Err(input.error(Props::collision_message()));
         };
@@ -445,8 +444,8 @@ struct WithProps {
 
 impl Parse for WithProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let token = input.parse::<Ident>()?;
-        if token != "with" {
+        let with = input.parse::<Ident>()?;
+        if with != "with" {
             return Err(input.error("expected to find `with` token"));
         }
         let props = input.parse::<Ident>()?;
