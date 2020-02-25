@@ -9,6 +9,7 @@ members = [
   "large_table",
   "minimal",
   "nested_list",
+  "pub_sub",
   "server",
   "showcase",
   "textarea",
