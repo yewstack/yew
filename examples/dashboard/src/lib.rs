@@ -167,7 +167,7 @@ impl Component for Model {
                     }
                 }
                 WsAction::Disconnect => {
-                    self.ws.take().unwrap().cancel();
+                    self.ws.take();
                 }
                 WsAction::Lost => {
                     self.ws = None;

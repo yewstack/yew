@@ -52,6 +52,8 @@ impl fmt::Debug for ReaderTask {
 
 impl Drop for ReaderTask {
     fn drop(&mut self) {
-        self.cancel();
+        if self.is_active() {
+            self.file_reader.abort();
+        }
     }
 }

@@ -37,9 +37,25 @@ pub struct WebSocketTask {
     ws: WebSocket,
     notification: Callback<WebSocketStatus>,
     #[cfg(feature = "web_sys")]
-    listeners: Option<[EventListener; 3]>,
-    #[cfg(feature = "web_sys")]
-    listener: Option<EventListener>,
+    #[allow(dead_code)]
+    listeners: [EventListener; 4],
+}
+
+#[cfg(feature = "web_sys")]
+impl WebSocketTask {
+    fn new(
+        ws: WebSocket,
+        notification: Callback<WebSocketStatus>,
+        listener_0: EventListener,
+        listeners: [EventListener; 3],
+    ) -> Result<WebSocketTask, &'static str> {
+        let [listener_1, listener_2, listener_3] = listeners;
+        Ok(WebSocketTask {
+            ws,
+            notification,
+            listeners: [listener_0, listener_1, listener_2, listener_3],
+        })
+    }
 }
 
 impl fmt::Debug for WebSocketTask {
@@ -71,7 +87,7 @@ impl WebSocketService {
     {
         cfg_match! {
             feature = "std_web" => ({
-                let ws = self.connect_common(url, &notification)?;
+                let ws = self.connect_common(url, &notification)?.0;
                 ws.add_event_listener(move |event: SocketMessageEvent| {
                     process_both(&event, &callback);
                 });
@@ -79,16 +95,11 @@ impl WebSocketService {
             }),
             feature = "web_sys" => ({
                 let ConnectCommon(ws, listeners) = self.connect_common(url, &notification)?;
-                let listener = Some(EventListener::new(&ws, "message", move |event: &Event| {
+                let listener = EventListener::new(&ws, "message", move |event: &Event| {
                     let event = event.dyn_ref::<MessageEvent>().unwrap();
                     process_both(&event, &callback);
-                }));
-                Ok(WebSocketTask {
-                    ws,
-                    notification,
-                    listeners,
-                    listener,
-                })
+                });
+                WebSocketTask::new(ws, notification, listener, listeners)
             }),
         }
     }
@@ -108,7 +119,7 @@ impl WebSocketService {
     {
         cfg_match! {
             feature = "std_web" => ({
-                let ws = self.connect_common(url, &notification)?;
+                let ws = self.connect_common(url, &notification)?.0;
                 ws.add_event_listener(move |event: SocketMessageEvent| {
                     did_process_binary(&event, &callback);
                 });
@@ -116,16 +127,11 @@ impl WebSocketService {
             }),
             feature = "web_sys" => ({
                 let ConnectCommon(ws, listeners) = self.connect_common(url, &notification)?;
-                let listener = Some(EventListener::new(&ws, "message", move |event: &Event| {
+                let listener = EventListener::new(&ws, "message", move |event: &Event| {
                     let event = event.dyn_ref::<MessageEvent>().unwrap();
                     did_process_binary(&event, &callback);
-                }));
-                Ok(WebSocketTask {
-                    ws,
-                    notification,
-                    listeners,
-                    listener,
-                })
+                });
+                WebSocketTask::new(ws, notification, listener, listeners)
             }),
         }
     }
@@ -145,7 +151,7 @@ impl WebSocketService {
     {
         cfg_match! {
             feature = "std_web" => ({
-                let ws = self.connect_common(url, &notification)?;
+                let ws = self.connect_common(url, &notification)?.0;
                 ws.add_event_listener(move |event: SocketMessageEvent| {
                     process_text(&event, &callback);
                 });
@@ -153,16 +159,11 @@ impl WebSocketService {
             }),
             feature = "web_sys" => ({
                 let ConnectCommon(ws, listeners) = self.connect_common(url, &notification)?;
-                let listener = Some(EventListener::new(&ws, "message", move |event: &Event| {
+                let listener = EventListener::new(&ws, "message", move |event: &Event| {
                     let event = event.dyn_ref::<MessageEvent>().unwrap();
                     process_text(&event, &callback);
-                }));
-                Ok(WebSocketTask {
-                    ws,
-                    notification,
-                    listeners,
-                    listener,
-                })
+                });
+                WebSocketTask::new(ws, notification, listener, listeners)
             }),
         }
     }
@@ -208,13 +209,11 @@ impl WebSocketService {
                     ws.add_event_listener(listener_close);
                     ws.add_event_listener(listener_error);
                 }),
-                feature = "web_sys" => ({
-                    Some([
-                        EventListener::new(&ws, "open", listener_open),
-                        EventListener::new(&ws, "close", listener_close),
-                        EventListener::new(&ws, "error", listener_error),
-                    ])
-                }),
+                feature = "web_sys" => [
+                    EventListener::new(&ws, "open", listener_open),
+                    EventListener::new(&ws, "close", listener_close),
+                    EventListener::new(&ws, "error", listener_error),
+                ],
             };
             Ok(ConnectCommon(
                 ws,
@@ -225,10 +224,7 @@ impl WebSocketService {
     }
 }
 
-struct ConnectCommon(
-    WebSocket,
-    #[cfg(feature = "web_sys")] Option<[EventListener; 3]>,
-);
+struct ConnectCommon(WebSocket, #[cfg(feature = "web_sys")] [EventListener; 3]);
 
 fn did_process_binary<OUT: 'static>(
     #[cfg(feature = "std_web")] event: &SocketMessageEvent,
@@ -335,15 +331,15 @@ impl Task for WebSocketTask {
             feature = "web_sys" => self.ws.ready_state() == WebSocket::OPEN,
         }
     }
-    fn cancel(&mut self) {
-        self.ws.close().ok();
-    }
 }
 
 impl Drop for WebSocketTask {
     fn drop(&mut self) {
         if self.is_active() {
-            self.cancel();
+            cfg_match! {
+                feature = "std_web" => self.ws.close(),
+                feature = "web_sys" => self.ws.close().ok(),
+            };
         }
     }
 }
