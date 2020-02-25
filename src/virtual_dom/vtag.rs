@@ -480,7 +480,7 @@ impl VDiff for VTag {
         self.apply_diffs(&ancestor);
 
         // Every render it removes all listeners and attach it back later
-        // TODO Compare references of handler to do listeners update better
+        // TODO(#943): Compare references of handler to do listeners update better
         if let Some(ancestor) = ancestor.as_mut() {
             ancestor.captured.clear();
         }
