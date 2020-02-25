@@ -304,7 +304,7 @@ where
 ///     }
 ///
 ///     fn mounted(&mut self) -> ShouldRender {
-///         if let Some(input) = self.node_ref.try_into::<InputElement>() {
+///         if let Some(input) = self.node_ref.cast::<InputElement>() {
 ///             input.focus();
 ///         }
 ///         false
@@ -337,7 +337,7 @@ impl NodeRef {
     }
 
     /// Try converting the node reference into another form
-    pub fn try_into<
+    pub fn cast<
         #[cfg(feature = "std_web")] INTO: TryFrom<Node>,
         #[cfg(feature = "web_sys")] INTO: AsRef<Node> + From<JsValue>,
     >(
