@@ -14,6 +14,7 @@ members = [
   "showcase",
   "textarea",
   "timer",
+  "webgl",
   "std_web/counter",
   "std_web/file_upload",
   "std_web/inner_html",

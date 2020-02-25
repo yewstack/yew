@@ -47,7 +47,7 @@ error[E0599]: no method named `build` found for type `t3::PropsBuilder<t3::Props
   --> $DIR/fail.rs:35:26
    |
 28 |     #[derive(Clone, Properties)]
-   |                              - method `build` not found for this
+   |                     ---------- method `build` not found for this
 ...
 35 |         Props::builder().build();
    |                          ^^^^^ method not found in `t3::PropsBuilder<t3::PropsBuilderStep_missing_required_prop_value>`
@@ -60,7 +60,7 @@ error[E0599]: no method named `b` found for type `t4::PropsBuilder<t4::PropsBuil
   --> $DIR/fail.rs:49:26
    |
 41 |     #[derive(Clone, Properties)]
-   |                              - method `b` not found for this
+   |                     ---------- method `b` not found for this
 ...
 49 |         Props::builder().b(1).a(2).build();
    |                          ^ help: there is a method with a similar name: `a`
@@ -80,9 +80,7 @@ error[E0308]: match arms have incompatible types
 112 |         #[props(default = "foo")]
     |                           ^^^^^
     |                           |
-    |                           expected struct `std::string::String`, found i32
+    |                           expected struct `std::string::String`, found `i32`
     |                           `match` arms have incompatible types
     |                           this is found to be of type `std::string::String`
-    |
-    = note: expected type `std::string::String`
-               found type `i32`
+    |                           help: try using a conversion method: `"foo".to_string()`
