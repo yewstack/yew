@@ -119,7 +119,10 @@ fn register_key_impl<T: IEventTarget, E: 'static + ConcreteEvent>(
     let handle = element.add_event_listener(move |event: E| {
         callback.emit(event);
     });
-    KeyListenerHandle(Some(handle))
+    cfg_match! {
+        feature = "std_web" => KeyListenerHandle(Some(handle)),
+        feature = "web_sys" => KeyListenerHandle(handle),
+    }
 }
 
 #[cfg(feature = "web_sys")]

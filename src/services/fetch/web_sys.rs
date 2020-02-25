@@ -125,9 +125,9 @@ struct Handle {
     abort_controller: Option<AbortController>,
 }
 
-/// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
+/// A handle to control sent requests.
 #[must_use]
-pub struct FetchTask(Option<Handle>);
+pub struct FetchTask(Handle);
 
 impl fmt::Debug for FetchTask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -360,10 +360,10 @@ where
     let data_fetcher = DataFetcher::new(binary, callback, active.clone());
     spawn_local(DataFetcher::fetch_data(data_fetcher, promise));
 
-    Ok(FetchTask(Some(Handle {
+    Ok(FetchTask(Handle {
         active,
         abort_controller,
-    })))
+    }))
 }
 
 struct DataFetcher<OUT: 'static, DATA>
@@ -490,33 +490,20 @@ fn build_request(parts: Parts, body: &JsValue) -> Result<WebRequest, Error> {
 
 impl Task for FetchTask {
     fn is_active(&self) -> bool {
-        if let Some(handle) = &self.0 {
-            *handle.active.borrow()
-        } else {
-            false
-        }
-    }
-
-    fn cancel(&mut self) {
-        // Fetch API doesn't support request cancelling in all browsers
-        // and we should use this workaround with a flag.
-        // In that case, request not canceled, but callback won't be called.
-        let handle = self
-            .0
-            .take()
-            .expect("tried to cancel request fetching twice");
-
-        *handle.active.borrow_mut() = false;
-        if let Some(abort_controller) = handle.abort_controller {
-            abort_controller.abort();
-        }
+        *self.0.active.borrow()
     }
 }
 
 impl Drop for FetchTask {
     fn drop(&mut self) {
         if self.is_active() {
-            self.cancel();
+            // Fetch API doesn't support request cancelling in all browsers
+            // and we should use this workaround with a flag.
+            // In that case, request not canceled, but callback won't be called.
+            *self.0.active.borrow_mut() = false;
+            if let Some(abort_controller) = &self.0.abort_controller {
+                abort_controller.abort();
+            }
         }
     }
 }

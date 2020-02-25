@@ -331,7 +331,7 @@ where
             return error;
         }
     };
-    if let Ok(_) = Error::try_from(js!( return @{header_map.as_ref()}; )) {
+    if Error::try_from(js!( return @{header_map.as_ref()}; )).is_ok() {
         return Err("couldn't build headers");
     }
 
@@ -429,29 +429,26 @@ impl Task for FetchTask {
             false
         }
     }
-    fn cancel(&mut self) {
-        // Fetch API doesn't support request cancelling in all browsers
-        // and we should use this workaround with a flag.
-        // In that case, request not canceled, but callback won't be called.
-        let handle = self
-            .0
-            .take()
-            .expect("tried to cancel request fetching twice");
-        js! {  @(no_return)
-            var handle = @{handle};
-            handle.active = false;
-            handle.callback.drop();
-            if (handle.abortController) {
-                handle.abortController.abort();
-            }
-        }
-    }
 }
 
 impl Drop for FetchTask {
     fn drop(&mut self) {
         if self.is_active() {
-            self.cancel();
+            // Fetch API doesn't support request cancelling in all browsers
+            // and we should use this workaround with a flag.
+            // In that case, request not canceled, but callback won't be called.
+            let handle = self
+                .0
+                .take()
+                .expect("tried to cancel request fetching twice");
+            js! {  @(no_return)
+                var handle = @{handle};
+                handle.active = false;
+                handle.callback.drop();
+                if (handle.abortController) {
+                    handle.abortController.abort();
+                }
+            }
         }
     }
 }

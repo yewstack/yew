@@ -31,7 +31,7 @@ impl ReaderService {
                 callback.emit(data);
             }
         };
-        let listener = Some(EventListener::once(&file_reader, "loadend", callback));
+        let listener = EventListener::once(&file_reader, "loadend", callback);
         file_reader.read_as_array_buffer(&file).unwrap();
         Ok(ReaderTask {
             file_reader,
@@ -81,7 +81,7 @@ impl ReaderService {
                 callback.emit(None);
             }
         };
-        let listener = Some(EventListener::new(&file_reader, "loadend", callback));
+        let listener = EventListener::new(&file_reader, "loadend", callback);
         let blob = Blob::new().map_err(|_| anyhow!("Blob constructor is not supported"))?;
         file_reader.read_as_text(&blob).unwrap();
         Ok(ReaderTask {
@@ -94,19 +94,13 @@ impl ReaderService {
 /// A handle to control reading.
 #[must_use]
 pub struct ReaderTask {
-    file_reader: FileReader,
-    listener: Option<EventListener>,
+    pub(super) file_reader: FileReader,
+    #[allow(dead_code)]
+    listener: EventListener,
 }
 
 impl Task for ReaderTask {
     fn is_active(&self) -> bool {
         self.file_reader.ready_state() == FileReader::LOADING
-    }
-
-    fn cancel(&mut self) {
-        if self.is_active() {
-            self.file_reader.abort();
-        }
-        self.listener.take();
     }
 }

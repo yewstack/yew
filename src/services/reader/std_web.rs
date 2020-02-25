@@ -121,17 +121,11 @@ impl ReaderService {
 /// A handle to control reading.
 #[must_use]
 pub struct ReaderTask {
-    file_reader: FileReader,
+    pub(super) file_reader: FileReader,
 }
 
 impl Task for ReaderTask {
     fn is_active(&self) -> bool {
         self.file_reader.ready_state() == FileReaderReadyState::Loading
-    }
-
-    fn cancel(&mut self) {
-        if self.is_active() {
-            self.file_reader.abort();
-        }
     }
 }
