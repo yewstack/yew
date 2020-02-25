@@ -49,7 +49,7 @@ type Listeners = Vec<Rc<dyn Listener>>;
 type Attributes = HashMap<String, String>;
 
 /// A set of classes.
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default)]
 pub struct Classes {
     set: IndexSet<String>,
 }
@@ -142,6 +142,12 @@ impl<T: AsRef<str>> From<Vec<T>> for Classes {
             .filter(|c| !c.is_empty())
             .collect();
         Self { set }
+    }
+}
+
+impl PartialEq for Classes {
+    fn eq(&self, other: &Self) -> bool {
+        self.set.len() == other.set.len() && self.set.iter().eq(other.set.iter())
     }
 }
 

@@ -127,14 +127,14 @@ impl VTag {
     }
 
     /// Adds a single class to this virtual node. Actually it will set by
-    /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
+    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
     /// call later.
     pub fn add_class(&mut self, class: &str) {
         self.classes.push(class);
     }
 
     /// Adds multiple classes to this virtual node. Actually it will set by
-    /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
+    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
     /// call later.
     pub fn add_classes(&mut self, classes: Vec<&str>) {
         for class in classes {
@@ -143,7 +143,7 @@ impl VTag {
     }
 
     /// Add classes to this virtual node. Actually it will set by
-    /// [Element.classList.add](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList)
+    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
     /// call later.
     pub fn set_classes(&mut self, classes: impl Into<Classes>) {
         self.classes = classes.into();
@@ -201,38 +201,20 @@ impl VTag {
         }
     }
 
-    /// Compute differences between the ancestor and determine patch changes.
+    /// If there is no ancestor or the classes, or the order, differs from the ancestor:
+    /// - Returns the classes of self separated by spaces.
     ///
-    /// If there is an ancestor:
-    /// - add the classes that are in self but NOT in ancestor.
-    /// - remove the classes that are in ancestor but NOT in self.
-    /// - items that are the same stay the same.
-    ///
-    /// Otherwise just add everything.
-    fn diff_classes<'a>(
-        &'a self,
-        ancestor: &'a Option<Box<Self>>,
-    ) -> impl Iterator<Item = Patch<&'a str, ()>> + 'a {
-        let to_add = {
-            let all_or_nothing = not(ancestor)
-                .iter()
-                .flat_map(move |_| self.classes.set.iter())
-                .map(|class| Patch::Add(&**class, ()));
-
-            let ancestor_difference = ancestor
-                .iter()
-                .flat_map(move |ancestor| self.classes.set.difference(&ancestor.classes.set))
-                .map(|class| Patch::Add(&**class, ()));
-
-            all_or_nothing.chain(ancestor_difference)
-        };
-
-        let to_remove = ancestor
-            .iter()
-            .flat_map(move |ancestor| ancestor.classes.set.difference(&self.classes.set))
-            .map(|class| Patch::Remove(&**class));
-
-        to_add.chain(to_remove)
+    /// Otherwise None is returned.
+    fn diff_classes<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<String> {
+        if ancestor
+            .as_ref()
+            .map(|ancestor| self.classes.ne(&ancestor.classes))
+            .unwrap_or(true)
+        {
+            Some(self.classes.to_string())
+        } else {
+            None
+        }
     }
 
     /// Similar to diff_classes except for attributes.
@@ -308,35 +290,26 @@ impl VTag {
         let element = self.reference.as_ref().expect("element expected");
 
         // Update parameters
-        let changes = self.diff_classes(ancestor);
-        for change in changes {
-            let list = element.class_list();
-            match change {
-                Patch::Add(class, _) | Patch::Replace(class, _) => {
-                    let result = cfg_match! {
-                        feature = "std_web" => list.add(class),
-                        feature = "web_sys" => list.add_1(class),
-                    };
-                    result.expect("can't add a class");
-                }
-                Patch::Remove(class) => {
-                    let result = cfg_match! {
-                        feature = "std_web" => list.remove(class),
-                        feature = "web_sys" => list.remove_1(class),
-                    };
-                    result.expect("can't remove a class");
-                }
-            }
+        let class_str = self.diff_classes(ancestor);
+        if let Some(class_str) = class_str {
+            element
+                .set_attribute("class", &class_str)
+                .expect("could not set class");
         }
 
         let changes = self.diff_attributes(ancestor);
         for change in changes {
             match change {
                 Patch::Add(key, value) | Patch::Replace(key, value) => {
-                    set_attribute(element, &key, &value);
+                    element
+                        .set_attribute(&key, &value)
+                        .expect("invalid attribute key");
                 }
                 Patch::Remove(key) => {
-                    remove_attribute(element, &key);
+                    cfg_match! {
+                        feature = "std_web" => element.remove_attribute(&key),
+                        feature = "web_sys" => element.remove_attribute(&key).expect("could not remove class"),
+                    };
                 }
             }
         }
@@ -541,31 +514,6 @@ impl fmt::Debug for VTag {
     }
 }
 
-/// `stdweb` doesn't have methods to work with attributes now.
-/// this is [workaround](https://github.com/koute/stdweb/issues/16#issuecomment-325195854)
-fn set_attribute(element: &Element, name: &str, value: &str) {
-    cfg_match! {
-        feature = "std_web" => js!( @(no_return) @{element}.setAttribute( @{name}, @{value} ); ),
-        feature = "web_sys" => ({
-            element
-                .set_attribute(name, value)
-                .expect("can't set attribute on element");
-        }),
-    };
-}
-
-/// Removes attribute from a element by name.
-fn remove_attribute(element: &Element, name: &str) {
-    cfg_match! {
-        feature = "std_web" => js!( @(no_return) @{element}.removeAttribute( @{name} ); ),
-        feature = "web_sys" => ({
-            element
-                .remove_attribute(name)
-                .expect("can't remove attribute on element");
-        }),
-    };
-}
-
 /// Set `checked` value for the `InputElement`.
 fn set_checked(input: &InputElement, value: bool) {
     cfg_match! {
@@ -587,17 +535,8 @@ impl PartialEq for VTag {
                 .map(|l| l.kind())
                 .eq(other.listeners.iter().map(|l| l.kind()))
             && self.attributes == other.attributes
-            && self.classes.set.len() == other.classes.set.len()
-            && self.classes.set.iter().eq(other.classes.set.iter())
+            && self.classes.eq(&other.classes)
             && self.children == other.children
-    }
-}
-
-pub(crate) fn not<T>(option: &Option<T>) -> &Option<()> {
-    if option.is_some() {
-        &None
-    } else {
-        &Some(())
     }
 }
 
@@ -1033,5 +972,97 @@ mod tests {
 
         html! { <div><a data-val=<u32 as Default>::default() /> </div> };
         html! { <div><a data-val=Box::<u32>::default() /></div> };
+    }
+
+    #[test]
+    fn swap_order_of_classes() {
+        let parent = document().create_element("div").unwrap();
+        document().body().unwrap().append_child(&parent);
+
+        let mut elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
+        elem.apply(&parent, None, None);
+
+        let vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+
+        let expected = "class-1 class-2 class-3";
+        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(
+            vtag.reference
+                .as_ref()
+                .unwrap()
+                .get_attribute("class")
+                .unwrap(),
+            expected
+        );
+
+        let ancestor = vtag;
+        let elem = html! { <div class=("class-3", "class-2", "class-1")></div> };
+        let mut vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+        vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
+
+        let expected = "class-3 class-2 class-1";
+        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(
+            vtag.reference
+                .as_ref()
+                .unwrap()
+                .get_attribute("class")
+                .unwrap(),
+            expected
+        );
+    }
+
+    #[test]
+    fn add_class_to_the_middle() {
+        let parent = document().create_element("div").unwrap();
+        document().body().unwrap().append_child(&parent);
+
+        let mut elem = html! { <div class=("class-1", "class-3")></div> };
+        elem.apply(&parent, None, None);
+
+        let vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+
+        let expected = "class-1 class-3";
+        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(
+            vtag.reference
+                .as_ref()
+                .unwrap()
+                .get_attribute("class")
+                .unwrap(),
+            expected
+        );
+
+        let ancestor = vtag;
+        let elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
+        let mut vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+        vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
+
+        let expected = "class-1 class-2 class-3";
+        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(
+            vtag.reference
+                .as_ref()
+                .unwrap()
+                .get_attribute("class")
+                .unwrap(),
+            expected
+        );
     }
 }
