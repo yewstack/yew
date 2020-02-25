@@ -75,11 +75,9 @@ impl ResizeService {
         let handle = cfg_match! {
             feature = "std_web" => ({
                 Some(js! {
-                    var callback = @{callback};
-                    var action = function() {
-                        callback();
-                    };
-                    return window.addEventListener("resize", action);
+                    var handle = @{callback};
+                    window.addEventListener("resize", handle);
+                    return handle;
                 })
             }),
             feature = "web_sys" => EventListener::new(&web_sys::window().unwrap(), "resize", callback),
@@ -95,7 +93,7 @@ impl Drop for ResizeTask {
         js! {
             @(no_return)
             var handle = @{handle};
-            handle.callback.drop();
+            window.removeEventListener("resize", handle);
         }
     }
 }
