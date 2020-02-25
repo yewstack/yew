@@ -1,5 +1,6 @@
 //! `web-sys` implementation for the fetch service.
 
+use super::Referrer;
 use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
 use crate::services::Task;
@@ -16,7 +17,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::{spawn_local, JsFuture};
 use web_sys::{
-    AbortController, DomException, Headers, Request as WebRequest, RequestInit,
+    AbortController, DomException, Headers, ReferrerPolicy, Request as WebRequest, RequestInit,
     Response as WebResponse,
 };
 
@@ -64,6 +65,12 @@ pub struct FetchOptions {
     pub redirect: Option<Redirect>,
     /// Request mode of a fetch request.
     pub mode: Option<Mode>,
+    /// Referrer of a fetch request.
+    pub referrer: Option<Referrer>,
+    /// Referrer policy of a fetch request.
+    pub referrer_policy: Option<ReferrerPolicy>,
+    /// Integrity of a fetch request.
+    pub integrity: Option<String>,
 }
 
 impl Into<RequestInit> for FetchOptions {
@@ -84,6 +91,22 @@ impl Into<RequestInit> for FetchOptions {
 
         if let Some(mode) = self.mode {
             init.mode(mode);
+        }
+
+        if let Some(referrer) = self.referrer {
+            match referrer {
+                Referrer::SameOriginUrl(referrer) => init.referrer(&referrer),
+                Referrer::AboutClient => init.referrer("about:client"),
+                Referrer::Empty => init.referrer(""),
+            };
+        }
+
+        if let Some(referrer_policy) = self.referrer_policy {
+            init.referrer_policy(referrer_policy);
+        }
+
+        if let Some(integrity) = self.integrity {
+            init.integrity(&integrity);
         }
 
         init

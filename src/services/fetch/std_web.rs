@@ -1,5 +1,6 @@
 //! `stdweb` implementation for the fetch service.
 
+use super::Referrer;
 use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
 use crate::services::Task;
@@ -72,9 +73,47 @@ pub enum Redirect {
     Manual,
 }
 
+impl Serialize for Referrer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match *self {
+            Referrer::SameOriginUrl(ref s) => serializer.serialize_str(s),
+            Referrer::AboutClient => {
+                serializer.serialize_unit_variant("Referrer", 0, "about:client")
+            }
+            Referrer::Empty => serializer.serialize_unit_variant("Referrer", 1, ""),
+        }
+    }
+}
+
+/// Type to set referrer policy for fetch.
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReferrerPolicy {
+    /// `no-referrer` value of referrerPolicy.
+    NoReferrer,
+    /// `no-referrer-when-downgrade` value of referrerPolicy.
+    NoReferrerWhenDowngrade,
+    /// `same-origin` value of referrerPolicy.
+    SameOrigin,
+    /// `origin` value of referrerPolicy.
+    Origin,
+    /// `strict-origin` value of referrerPolicy.
+    StrictOrigin,
+    /// `origin-when-cross-origin` value of referrerPolicy.
+    OriginWhenCrossOrigin,
+    /// `strict-origin-when-cross-origin` value of referrerPolicy.
+    StrictOriginWhenCrossOrigin,
+    /// `unsafe-url` value of referrerPolicy.
+    UnsafeUrl,
+}
+
 /// Init options for `fetch()` function call.
 /// https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
 #[derive(Serialize, Default, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct FetchOptions {
     /// Cache of a fetch request.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -88,6 +127,15 @@ pub struct FetchOptions {
     /// Request mode of a fetch request.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mode: Option<Mode>,
+    /// Referrer of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub referrer: Option<Referrer>,
+    /// Referrer policy of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub referrer_policy: Option<ReferrerPolicy>,
+    /// Integrity of a fetch request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub integrity: Option<String>,
 }
 
 /// Represents errors of a fetch service.
@@ -344,7 +392,12 @@ where
     // Notice that the callback signature must match the call from the javascript
     // side. There is no static check at this point.
     let callback = move |success: bool, status: u16, headers: HashMap<String, String>, data: X| {
-        let mut response_builder = Response::builder().status(status);
+        let mut response_builder = Response::builder();
+
+        if let Ok(status) = StatusCode::from_u16(status) {
+            response_builder = response_builder.status(status);
+        }
+
         for (key, values) in headers {
             response_builder = response_builder.header(key.as_str(), values.as_str());
         }
@@ -366,12 +419,6 @@ where
         if (@{binary} && body != null) {
             body = Uint8Array.from(body);
         }
-        var data = {
-            method: @{method},
-            body: body,
-            headers: @{header_map},
-        };
-        var request = new Request(@{uri}, data);
         var callback = @{callback};
         var abortController = AbortController ? new AbortController() : null;
         var handle = {
@@ -379,11 +426,19 @@ where
             callback,
             abortController,
         };
-        var init = @{Serde(options)} || {};
+        var init = {
+            method: @{method},
+            body: body,
+            headers: @{header_map},
+        };
+        var opts = @{Serde(options)} || {};
+        for (var attrname in opts) {
+            init[attrname] = opts[attrname];
+        }
         if (abortController && !("signal" in init)) {
             init.signal = abortController.signal;
         }
-        fetch(request, init).then(function(response) {
+        fetch(@{uri}, init).then(function(response) {
             var promise = (@{binary}) ? response.arrayBuffer() : response.text();
             var status = response.status;
             var headers = {};
