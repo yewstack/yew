@@ -30,6 +30,11 @@ cargo build --target wasm32-unknown-unknown
 For the tests to work one have to ensure that `wasm-bindgen-cli` is installed.
 [Instructions](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/usage.html#install-the-test-runner)
 
+When you add the tests, please make sure you have updated `stderr` appropriate file, which you can find in [here](https://github.com/yewstack/yew/tree/master/tests/macro).
+To generate new `stderr` file you should run `./ci/run_tests.sh` and follow instructions.
+You can be asked to set env variable `TRYBUILD=overwrite` to automatically overwrite old `stder` file.
+Once you have done with it, your PR can be accepted.
+
 Additionally a webdriver must be installed locally and configured to be on the
 `PATH`. Currently supports `geckodriver`, `chromedriver`, and `safaridriver`,
 although more driver support may be added! You can download these at:
