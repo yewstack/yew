@@ -59,7 +59,7 @@ pub trait Component: Sized + 'static {
     /// Called by rendering loop.
     fn view(&self) -> Html;
     /// Called for finalization on the final point of the component's lifetime.
-    fn destroy(&mut self) {} // TODO Replace with `Drop`
+    fn destroy(&mut self) {} // TODO(#941): Replace with `Drop`
 }
 
 /// A type which expected as a result of `view` function implementation.
@@ -219,6 +219,12 @@ pub struct ChildrenRenderer<T> {
     children: Vec<T>,
 }
 
+impl<T: PartialEq> PartialEq for ChildrenRenderer<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.children == other.children
+    }
+}
+
 impl<T> ChildrenRenderer<T>
 where
     T: Clone + Into<VNode>,
@@ -298,7 +304,7 @@ where
 ///     }
 ///
 ///     fn mounted(&mut self) -> ShouldRender {
-///         if let Some(input) = self.node_ref.try_into::<InputElement>() {
+///         if let Some(input) = self.node_ref.cast::<InputElement>() {
 ///             input.focus();
 ///         }
 ///         false
@@ -331,7 +337,7 @@ impl NodeRef {
     }
 
     /// Try converting the node reference into another form
-    pub fn try_into<
+    pub fn cast<
         #[cfg(feature = "std_web")] INTO: TryFrom<Node>,
         #[cfg(feature = "web_sys")] INTO: AsRef<Node> + From<JsValue>,
     >(
@@ -439,7 +445,7 @@ where
 
     /// This method sends a message to this component to be processed immediately after the
     /// component has been updated and/or rendered.
-    pub fn send_message(&mut self, msg: COMP::Message) {
+    pub fn send_message(&self, msg: COMP::Message) {
         self.scope.send_message(msg);
     }
 
@@ -448,7 +454,7 @@ where
     ///
     /// All messages will first be processed by `update`, and if _any_ of them return `true`,
     /// then re-render will occur.
-    pub fn send_message_batch(&mut self, msgs: Vec<COMP::Message>) {
+    pub fn send_message_batch(&self, msgs: Vec<COMP::Message>) {
         self.scope.send_message_batch(msgs)
     }
 }

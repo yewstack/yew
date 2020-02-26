@@ -21,8 +21,8 @@ cfg_if! {
 /// [clearInterval](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearInterval).
 #[must_use]
 pub struct IntervalTask(
-    #[cfg(feature = "std_web")] Option<Value>,
-    #[cfg(feature = "web_sys")] Option<Interval>,
+    #[cfg(feature = "std_web")] Value,
+    #[cfg(feature = "web_sys")] Interval,
 );
 
 impl fmt::Debug for IntervalTask {
@@ -62,23 +62,13 @@ impl IntervalService {
             },
             feature = "web_sys" => Interval::new(ms, callback),
         };
-        IntervalTask(Some(handle))
+        IntervalTask(handle)
     }
 }
 
 impl Task for IntervalTask {
     fn is_active(&self) -> bool {
-        self.0.is_some()
-    }
-    fn cancel(&mut self) {
-        #[cfg_attr(feature = "web_sys", allow(unused_variables))]
-        let handle = self.0.take().expect("tried to cancel interval twice");
-        #[cfg(feature = "std_web")]
-        js! { @(no_return)
-            var handle = @{handle};
-            clearInterval(handle.interval_id);
-            handle.callback.drop();
-        }
+        true
     }
 }
 
@@ -87,7 +77,12 @@ impl Drop for IntervalTask {
         #[cfg(feature = "std_web")]
         {
             if self.is_active() {
-                self.cancel();
+                let handle = &self.0;
+                js! { @(no_return)
+                    var handle = @{handle};
+                    clearInterval(handle.interval_id);
+                    handle.callback.drop();
+                }
             }
         }
     }

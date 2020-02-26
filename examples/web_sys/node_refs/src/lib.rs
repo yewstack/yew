@@ -29,7 +29,7 @@ impl Component for Model {
     }
 
     fn mounted(&mut self) -> ShouldRender {
-        if let Some(input) = self.refs[self.focus_index].try_into::<InputElement>() {
+        if let Some(input) = self.refs[self.focus_index].cast::<InputElement>() {
             input.focus().unwrap();
         }
         false
@@ -39,7 +39,7 @@ impl Component for Model {
         match msg {
             Msg::HoverIndex(index) => self.focus_index = index,
         }
-        if let Some(input) = self.refs[self.focus_index].try_into::<InputElement>() {
+        if let Some(input) = self.refs[self.focus_index].cast::<InputElement>() {
             input.focus().unwrap();
         }
         true

@@ -1,5 +1,6 @@
 //! `web-sys` implementation for the fetch service.
 
+use super::Referrer;
 use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
 use crate::services::Task;
@@ -16,7 +17,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::{spawn_local, JsFuture};
 use web_sys::{
-    AbortController, DomException, Headers, Request as WebRequest, RequestInit,
+    AbortController, DomException, Headers, ReferrerPolicy, Request as WebRequest, RequestInit,
     Response as WebResponse,
 };
 
@@ -64,6 +65,12 @@ pub struct FetchOptions {
     pub redirect: Option<Redirect>,
     /// Request mode of a fetch request.
     pub mode: Option<Mode>,
+    /// Referrer of a fetch request.
+    pub referrer: Option<Referrer>,
+    /// Referrer policy of a fetch request.
+    pub referrer_policy: Option<ReferrerPolicy>,
+    /// Integrity of a fetch request.
+    pub integrity: Option<String>,
 }
 
 impl Into<RequestInit> for FetchOptions {
@@ -84,6 +91,22 @@ impl Into<RequestInit> for FetchOptions {
 
         if let Some(mode) = self.mode {
             init.mode(mode);
+        }
+
+        if let Some(referrer) = self.referrer {
+            match referrer {
+                Referrer::SameOriginUrl(referrer) => init.referrer(&referrer),
+                Referrer::AboutClient => init.referrer("about:client"),
+                Referrer::Empty => init.referrer(""),
+            };
+        }
+
+        if let Some(referrer_policy) = self.referrer_policy {
+            init.referrer_policy(referrer_policy);
+        }
+
+        if let Some(integrity) = self.integrity {
+            init.integrity(&integrity);
         }
 
         init
@@ -125,9 +148,9 @@ struct Handle {
     abort_controller: Option<AbortController>,
 }
 
-/// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
+/// A handle to control sent requests.
 #[must_use]
-pub struct FetchTask(Option<Handle>);
+pub struct FetchTask(Handle);
 
 impl fmt::Debug for FetchTask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -360,10 +383,10 @@ where
     let data_fetcher = DataFetcher::new(binary, callback, active.clone());
     spawn_local(DataFetcher::fetch_data(data_fetcher, promise));
 
-    Ok(FetchTask(Some(Handle {
+    Ok(FetchTask(Handle {
         active,
         abort_controller,
-    })))
+    }))
 }
 
 struct DataFetcher<OUT: 'static, DATA>
@@ -490,33 +513,20 @@ fn build_request(parts: Parts, body: &JsValue) -> Result<WebRequest, Error> {
 
 impl Task for FetchTask {
     fn is_active(&self) -> bool {
-        if let Some(handle) = &self.0 {
-            *handle.active.borrow()
-        } else {
-            false
-        }
-    }
-
-    fn cancel(&mut self) {
-        // Fetch API doesn't support request cancelling in all browsers
-        // and we should use this workaround with a flag.
-        // In that case, request not canceled, but callback won't be called.
-        let handle = self
-            .0
-            .take()
-            .expect("tried to cancel request fetching twice");
-
-        *handle.active.borrow_mut() = false;
-        if let Some(abort_controller) = handle.abort_controller {
-            abort_controller.abort();
-        }
+        *self.0.active.borrow()
     }
 }
 
 impl Drop for FetchTask {
     fn drop(&mut self) {
         if self.is_active() {
-            self.cancel();
+            // Fetch API doesn't support request cancelling in all browsers
+            // and we should use this workaround with a flag.
+            // In that case, request not canceled, but callback won't be called.
+            *self.0.active.borrow_mut() = false;
+            if let Some(abort_controller) = &self.0.abort_controller {
+                abort_controller.abort();
+            }
         }
     }
 }

@@ -21,7 +21,7 @@ pub struct ResizeService {}
 /// A handle to the event listener for resize events.
 #[must_use]
 pub struct ResizeTask(
-    #[cfg(feature = "std_web")] Option<Value>,
+    #[cfg(feature = "std_web")] Value,
     #[cfg(feature = "web_sys")] EventListener,
 );
 
@@ -73,15 +73,11 @@ impl ResizeService {
             callback.emit(dimensions);
         };
         let handle = cfg_match! {
-            feature = "std_web" => ({
-                Some(js! {
-                    var callback = @{callback};
-                    var action = function() {
-                        callback();
-                    };
-                    return window.addEventListener("resize", action);
-                })
-            }),
+            feature = "std_web" => js! {
+                var handle = @{callback};
+                window.addEventListener("resize", handle);
+                return handle;
+            },
             feature = "web_sys" => EventListener::new(&web_sys::window().unwrap(), "resize", callback),
         };
         ResizeTask(handle)
@@ -91,11 +87,11 @@ impl ResizeService {
 #[cfg(feature = "std_web")]
 impl Drop for ResizeTask {
     fn drop(&mut self) {
-        let handle = self.0.take().expect("Resize task already empty.");
+        let handle = &self.0;
         js! {
             @(no_return)
             var handle = @{handle};
-            handle.callback.drop();
+            window.removeEventListener("resize", handle);
         }
     }
 }

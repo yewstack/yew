@@ -69,22 +69,20 @@ impl Task for TimeoutTask {
     fn is_active(&self) -> bool {
         self.0.is_some()
     }
-    fn cancel(&mut self) {
-        #[cfg_attr(feature = "web_sys", allow(unused_variables))]
-        let handle = self.0.take().expect("tried to cancel timeout twice");
-        #[cfg(feature = "std_web")]
-        js! { @(no_return)
-            var handle = @{handle};
-            clearTimeout(handle.timeout_id);
-            handle.callback.drop();
-        }
-    }
 }
 
 impl Drop for TimeoutTask {
     fn drop(&mut self) {
-        if self.is_active() {
-            self.cancel();
+        #[cfg(feature = "std_web")]
+        {
+            if self.is_active() {
+                let handle = &self.0;
+                js! { @(no_return)
+                    var handle = @{handle};
+                    clearTimeout(handle.timeout_id);
+                    handle.callback.drop();
+                }
+            }
         }
     }
 }

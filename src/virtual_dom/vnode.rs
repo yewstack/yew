@@ -164,9 +164,13 @@ impl fmt::Debug for VNode {
 impl PartialEq for VNode {
     fn eq(&self, other: &VNode) -> bool {
         match (self, other) {
-            (VNode::VTag(vtag_a), VNode::VTag(vtag_b)) => vtag_a == vtag_b,
-            (VNode::VText(vtext_a), VNode::VText(vtext_b)) => vtext_a == vtext_b,
-            _ => false, // TODO: Implement other variants
+            (VNode::VTag(a), VNode::VTag(b)) => a == b,
+            (VNode::VText(a), VNode::VText(b)) => a == b,
+            (VNode::VList(a), VNode::VList(b)) => a == b,
+            (VNode::VRef(a), VNode::VRef(b)) => a == b,
+            // Need to improve PartialEq for VComp before enabling
+            (VNode::VComp(_), VNode::VComp(_)) => false,
+            _ => false,
         }
     }
 }

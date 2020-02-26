@@ -22,8 +22,8 @@ cfg_if! {
 /// A handle to cancel a render task.
 #[must_use]
 pub struct RenderTask(
-    #[cfg(feature = "std_web")] Option<Value>,
-    #[cfg(feature = "web_sys")] Option<RenderTaskInner>,
+    #[cfg(feature = "std_web")] Value,
+    #[cfg(feature = "web_sys")] RenderTaskInner,
 );
 
 #[cfg(feature = "web_sys")]
@@ -85,31 +85,30 @@ impl RenderService {
                 }
             }),
         };
-        RenderTask(Some(handle))
+        RenderTask(handle)
     }
 }
 
 impl Task for RenderTask {
     fn is_active(&self) -> bool {
-        self.0.is_some()
-    }
-    fn cancel(&mut self) {
-        let handle = self.0.take().expect("tried to cancel render twice");
-        cfg_match! {
-            feature = "std_web" => js! { @(no_return)
-                var handle = @{handle};
-                cancelAnimationFrame(handle.render_id);
-                handle.callback.drop();
-            },
-            feature = "web_sys" => utils::window().cancel_animation_frame(handle.render_id).unwrap(),
-        };
+        true
     }
 }
 
 impl Drop for RenderTask {
     fn drop(&mut self) {
         if self.is_active() {
-            self.cancel();
+            cfg_match! {
+                feature = "std_web" => ({
+                    let handle = &self.0;
+                    js! { @(no_return)
+                        var handle = @{handle};
+                        cancelAnimationFrame(handle.render_id);
+                        handle.callback.drop();
+                    }
+                }),
+                feature = "web_sys" => utils::window().cancel_animation_frame(self.0.render_id).unwrap(),
+            }
         }
     }
 }

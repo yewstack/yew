@@ -110,28 +110,19 @@ error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:25:28
    |
 25 |     html! { <input checked=1 /> };
-   |                            ^ expected bool, found integer
-   |
-   = note: expected type `bool`
-              found type `{integer}`
+   |                            ^ expected `bool`, found integer
 
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:26:29
    |
 26 |     html! { <input disabled=1 /> };
-   |                             ^ expected bool, found integer
-   |
-   = note: expected type `bool`
-              found type `{integer}`
+   |                             ^ expected `bool`, found integer
 
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:27:30
    |
 27 |     html! { <option selected=1 /> };
-   |                              ^ expected bool, found integer
-   |
-   = note: expected type `bool`
-              found type `{integer}`
+   |                              ^ expected `bool`, found integer
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-tag-fail.rs:28:25
@@ -170,8 +161,8 @@ error[E0308]: mismatched types
 32 |     html! { <input onclick=1 /> };
    |                    ^^^^^^^ expected struct `yew::callback::Callback`, found integer
    |
-   = note: expected type `yew::callback::Callback<stdweb::webapi::events::mouse::ClickEvent>`
-              found type `{integer}`
+   = note: expected struct `yew::callback::Callback<stdweb::webapi::events::mouse::ClickEvent>`
+                found type `{integer}`
 
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:33:20
@@ -179,8 +170,8 @@ error[E0308]: mismatched types
 33 |     html! { <input onclick=Callback::from(|a: String| ()) /> };
    |                    ^^^^^^^ expected struct `stdweb::webapi::events::mouse::ClickEvent`, found struct `std::string::String`
    |
-   = note: expected type `yew::callback::Callback<stdweb::webapi::events::mouse::ClickEvent>`
-              found type `yew::callback::Callback<std::string::String>`
+   = note: expected struct `yew::callback::Callback<stdweb::webapi::events::mouse::ClickEvent>`
+              found struct `yew::callback::Callback<std::string::String>`
 
 error[E0599]: no method named `to_string` found for type `NotToString` in the current scope
   --> $DIR/html-tag-fail.rs:35:27
@@ -201,7 +192,4 @@ error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:37:24
    |
 37 |     html! { <input ref=() /> };
-   |                        ^^ expected struct `yew::html::NodeRef`, found ()
-   |
-   = note: expected type `yew::html::NodeRef`
-              found type `()`
+   |                        ^^ expected struct `yew::html::NodeRef`, found `()`

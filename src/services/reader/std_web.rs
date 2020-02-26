@@ -93,7 +93,7 @@ impl ReaderService {
                     let from = position;
                     let to = cmp::min(position + chunk_size, total_size);
                     position = to;
-                    // TODO Implement `slice` method in `stdweb`
+                    // TODO(#942): Implement `slice` method in `stdweb`
                     let blob: Blob = (js! {
                         return @{file}.slice(@{from as u32}, @{to as u32});
                     })
@@ -121,17 +121,11 @@ impl ReaderService {
 /// A handle to control reading.
 #[must_use]
 pub struct ReaderTask {
-    file_reader: FileReader,
+    pub(super) file_reader: FileReader,
 }
 
 impl Task for ReaderTask {
     fn is_active(&self) -> bool {
         self.file_reader.ready_state() == FileReaderReadyState::Loading
-    }
-
-    fn cancel(&mut self) {
-        if self.is_active() {
-            self.file_reader.abort();
-        }
     }
 }

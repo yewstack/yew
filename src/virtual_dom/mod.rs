@@ -49,7 +49,7 @@ type Listeners = Vec<Rc<dyn Listener>>;
 type Attributes = HashMap<String, String>;
 
 /// A set of classes.
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default)]
 pub struct Classes {
     set: IndexSet<String>,
 }
@@ -145,6 +145,12 @@ impl<T: AsRef<str>> From<Vec<T>> for Classes {
     }
 }
 
+impl PartialEq for Classes {
+    fn eq(&self, other: &Self) -> bool {
+        self.set.len() == other.set.len() && self.set.iter().eq(other.set.iter())
+    }
+}
+
 /// Patch for DOM node modification.
 enum Patch<ID, T> {
     Add(ID, T),
@@ -169,7 +175,7 @@ enum Reform {
     Before(Option<Node>),
 }
 
-// TODO What about to implement `VDiff` for `Element`?
+// TODO(#938): What about to implement `VDiff` for `Element`?
 // In makes possible to include ANY element into the tree.
 // `Ace` editor embedding for example?
 
