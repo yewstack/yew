@@ -4,7 +4,7 @@ description: Yew's official router
 
 # Router
 
-[https://crates.io/yew-router](https://crates.io/yew-router)
+[https://crates.io/crates/yew-router](https://crates.io/crates/yew-router)
 
 Routers in Single Page Applications \(SPA\) handle displaying different pages depending on what the URL is. Instead of the default behavior of requesting a different remote resource when a link is clicked, the router instead sets the URL locally to point to a valid route in your application. The router then detects this change and then decides what to render.
 
