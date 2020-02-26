@@ -396,12 +396,21 @@ impl Parse for ListProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let mut props: Vec<HtmlProp> = Vec::new();
 
-        while HtmlProp::peek(input.cursor()).is_some() {
-            props.push(input.parse::<HtmlProp>()?);
+        loop {
+            let token = input.cursor();
+
+            if let Some(ident) = token.ident() {
+                if ident.0 == "with" {
+                    return Err(input.error(Props::collision_message()));
+                }
+            }
+
+            if HtmlProp::peek(token).is_some() {
+                props.push(input.parse::<HtmlProp>()?);
+            } else {
+                break;
+            }
         }
-        if input.cursor().token_stream().to_string().contains("with") {
-            return Err(input.error(Props::collision_message()));
-        };
 
         let ref_position = props.iter().position(|p| p.label.to_string() == "ref");
         let node_ref = ref_position.map(|i| props.remove(i).value);
