@@ -464,7 +464,7 @@ impl Parse for WithProps {
                     if flag >= 2 {
                         return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
                     }
-                    if !node_ref.is_some() {
+                    if node_ref.is_none() {
                         node_ref = Some(prop.value);
                     }
                 } else {
