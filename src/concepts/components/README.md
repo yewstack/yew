@@ -57,7 +57,7 @@ impl Component for MyComponent {
 }
 ```
 
-For usage details, check out the `html` guide:
+For usage details, check out the `html!` guide:
 
 {% page-ref page="../html/" %}
 

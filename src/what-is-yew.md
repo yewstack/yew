@@ -6,7 +6,7 @@ description: A high level overview of the framework.
 
 ## What is Yew?
 
-Yew is a frontend web framework, similar to React or Elm, that allows you to build websites with complex logic that runs in a web browser. Apps that use Yew are written in Rust, which compiles to Web Assembly \(**WASM**\), or plain JavaScript, in order to run in the browser. 
+Yew is a frontend web framework, similar to React or Elm, that allows you to build websites with complex logic that runs in a web browser. Apps that use Yew are written in Rust, which compiles to Web Assembly \(**WASM**\), or plain JavaScript, in order to run in the browser.
 
 ### Value Proposition
 
@@ -25,13 +25,10 @@ Yew is comprised of a few distinct parts that are used to create a working appli
 
 #### Dependencies
 
-Yew is built on top of `StdWeb`, a library that provides bindings between Rust and the Browser. Some features rely on another library called `web-sys`, which is auto-generated from web browser specification documents, and makes use of `wasm_bindgen`. 
+Yew is built on top of `StdWeb`, a library that provides bindings between Rust and the Browser. Some features rely on another library called `web-sys`, which is auto-generated from web browser specification documents, and makes use of `wasm_bindgen`.
 
 #### Build environments
 
-If your app is architected to only use StdWeb-based features, you can use the `cargo-web` build tool to build, test, and run your application. If you want to make use of advanced features, or just prefer the ecosystem, you can use various existing JS bundlers and their wasm\_bindgen based plugins to build your app. These include building using `wasm-pack` and bundling it yourself using `rollup`, or using `Webpack` or `Parcel` to manage your development and deployment tasks.
+If your app is architected to only use StdWeb-based features, you can use the `cargo-web` build tool to build, test, and run your application. If you want to make use of advanced features, or just prefer the ecosystem, you can use various existing JS bundlers and their `wasm_bindgen` based plugins to build your app. These include building using `wasm-pack` and bundling it yourself using `rollup`, or using `Webpack` or `Parcel` to manage your development and deployment tasks.
 
-`cargo-web` supports compiling to JS via `Emscripten` or compiling to WASM using `rustc`, while using wasm\_bindgen based approaches only support compiling to WASM.
-
-
-
+`cargo-web` supports compiling to JS via `Emscripten` or compiling to WASM using `rustc`, while using `wasm_bindgen` based approaches only support compiling to WASM.
