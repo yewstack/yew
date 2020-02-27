@@ -27,7 +27,9 @@ cargo build --target wasm32-unknown-unknown
 ```
 
 #### Test
-For the tests to work one have to ensure that `wasm-bindgen-cli` is installed.
+
+##### Web Tests
+First, ensure that `wasm-bindgen-cli` is installed.
 [Instructions](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/usage.html#install-the-test-runner)
 
 Additionally a webdriver must be installed locally and configured to be on the
@@ -37,6 +39,13 @@ although more driver support may be added! You can download these at:
 * geckodriver - https://github.com/mozilla/geckodriver/releases
 * chromedriver - http://chromedriver.chromium.org/downloads
 * safaridriver - should be preinstalled on OSX
+
+##### Macro Tests
+When adding or updating tests, please make sure you have updated the appropriate `stderr` file, which you can find [here](https://github.com/yewstack/yew/tree/master/tests/macro) for the `html!` macro. These files ensure that macro compilation errors are correct and easy to understand.
+
+To update or generate a new `stderr` file you can run `TRYBUILD=overwrite cargo test --test macro_test` or `TRYBUILD=overwrite cargo test --test derive_props_test`.
+
+##### Running Tests
 
 ```bash
 ./ci/run_tests.sh
