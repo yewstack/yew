@@ -399,7 +399,6 @@ impl Parse for ListProps {
             props.push(input.parse::<HtmlProp>()?);
         }
         if let Some(ident) = input.cursor().ident() {
-            println!("IDENT {:?}", ident.0);
             if ident.0 == "with" {
                 return Err(input.error(Props::collision_message()));
             }
@@ -408,7 +407,6 @@ impl Parse for ListProps {
         let ref_position = props.iter().position(|p| p.label.to_string() == "ref");
         let node_ref = ref_position.map(|i| props.remove(i).value);
         for prop in &props {
-            println!("PROP {}", prop.label.to_string());
             if prop.label.to_string() == "ref" {
                 return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
             }
@@ -477,8 +475,6 @@ impl Parse for WithProps {
                     ));
                 }
             }
-
-
         }
 
         Ok(WithProps { props, node_ref })
