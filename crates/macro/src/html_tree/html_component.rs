@@ -452,23 +452,43 @@ impl Parse for WithProps {
             return Err(input.error("expected to find `with` token"));
         }
         let props = input.parse::<Ident>()?;
+        println!("IDENT {}", props);
+
         let _ = input.parse::<Token![,]>();
 
         // Check for the ref tag after `with`
         let mut node_ref = None;
         if let Some(ident) = input.cursor().ident() {
-            let prop = input.parse::<HtmlProp>()?;
-            if ident.0 == "ref" {
-                node_ref = Some(prop.value);
-            } else {
-                return Err(syn::Error::new_spanned(
-                    &prop.label,
-                    Props::collision_message(),
-                ));
+           if ident.0 == "ref" {
+               // node_ref = Some(prop.value);
+           }
+            let mut arr: Vec<HtmlProp> = Vec::new();
+
+            while HtmlProp::peek(input.cursor()).is_some() {
+                arr.push(input.parse::<HtmlProp>()?);
             }
+            let ref_position = arr.iter().position(|p| p.label.to_string() == "ref");
+            node_ref = ref_position.map(|i| arr.remove(i).value);
+
+            for prop in &arr {
+                println!("PROP {}", prop.label.to_string());
+                if prop.label.to_string() == "ref" {
+                    return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
+                }
+            }
+            println!("ARR {:?}", ref_position);
+
+            // let prop = input.parse::<HtmlProp>()?;
+            // if ident.0 == "ref" {
+            //     node_ref = Some(prop.value);
+            // } else {
+            //     return Err(syn::Error::new_spanned(
+            //         &prop.label,
+            //         Props::collision_message(),
+            //     ));
+            // }
         }
 
         Ok(WithProps { props, node_ref })
     }
 }
-
