@@ -73,6 +73,12 @@ fn compile_fail() {
     html! { <Child props /> };
     html! { <Child with props > };
     html! { <Child with props ref=() ref=() /> };
+    html! { <Child with props ref=() ref=() value=1 /> };
+    html! { <Child with props ref=() value=1 ref=() /> };
+    html! { <Child with props value=1 ref=()  ref=() /> };
+    html! { <Child value=1 with props  ref=()  ref=() /> };
+    html! { <Child value=1 ref=() with props ref=() /> };
+    html! { <Child ref=() ref=() value=1  with props  /> };
     html! { <Child ref=() with props /> };
     html! { <Child with blah /> };
     html! { <Child with props () /> };
