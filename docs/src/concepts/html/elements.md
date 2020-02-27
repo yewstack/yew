@@ -132,7 +132,7 @@ html! {
 ```
 {% endtab %}
 
-{% tab title="List" %}
+{% tab title="Tuple" %}
 ```rust
 html! {
   <div class=("class-1", "class-2")></div>
