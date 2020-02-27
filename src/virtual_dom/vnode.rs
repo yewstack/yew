@@ -26,7 +26,7 @@ impl VDiff for VNode {
     /// Remove VNode from parent.
     fn detach(&mut self, parent: &Element) -> Option<Node> {
         match *self {
-            VNode::VTag(ref mut vtag) => vtag.detach(parent),
+            VNode::VTag(ref mut _vtag) => None,
             VNode::VText(ref mut vtext) => vtext.detach(parent),
             VNode::VComp(ref mut vcomp) => vcomp.detach(parent),
             VNode::VList(ref mut vlist) => vlist.detach(parent),
