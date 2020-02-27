@@ -37,15 +37,9 @@ impl Component for ChildContainer {
     type Message = ();
     type Properties = ChildContainerProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        unimplemented!()
-    }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
+    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
+    fn view(&self) -> Html { unimplemented!() }
 }
 
 pub struct Generic<G> {
