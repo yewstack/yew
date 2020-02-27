@@ -15,9 +15,15 @@ impl Component for Child {
     type Message = ();
     type Properties = ChildProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-    fn view(&self) -> Html { unimplemented!() }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
 }
 
 #[derive(Clone, Properties)]
@@ -31,9 +37,15 @@ impl Component for ChildContainer {
     type Message = ();
     type Properties = ChildContainerProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-    fn view(&self) -> Html { unimplemented!() }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
 }
 
 pub struct Generic<G> {
@@ -44,9 +56,15 @@ impl Component for Generic<String> {
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-    fn view(&self) -> Html { unimplemented!() }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
 }
 
 fn compile_fail() {
@@ -56,6 +74,12 @@ fn compile_fail() {
     html! { <Child props /> };
     html! { <Child with props > };
     html! { <Child with props ref=() ref=() /> };
+    html! { <Child with props ref=() ref=() value=1 /> };
+    html! { <Child with props ref=() value=1 ref=() /> };
+    html! { <Child with props value=1 ref=()  ref=() /> };
+    html! { <Child value=1 with props  ref=()  ref=() /> };
+    html! { <Child value=1 ref=() with props ref=() /> };
+    html! { <Child ref=() ref=() value=1  with props  /> };
     html! { <Child ref=() with props /> };
     html! { <Child with blah /> };
     html! { <Child with props () /> };
