@@ -395,7 +395,6 @@ struct ListProps {
 impl Parse for ListProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let mut props: Vec<HtmlProp> = Vec::new();
-
         while HtmlProp::peek(input.cursor()).is_some() {           
             props.push(input.parse::<HtmlProp>()?);
         }
