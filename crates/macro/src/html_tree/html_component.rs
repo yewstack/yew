@@ -456,13 +456,12 @@ impl Parse for WithProps {
         // Check for the ref tag after `with`
         let mut node_ref = None;
         if input.cursor().ident().is_some() {
-
             let mut flag = 0;
             while HtmlProp::peek(input.cursor()).is_some() {
                 let prop = input.parse::<HtmlProp>()?;
                 if prop.label.to_string() == "ref" {
                     flag += 1;
-                    if flag >=2 {
+                    if flag >= 2 {
                         return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
                     }
                     if !node_ref.is_some() {
