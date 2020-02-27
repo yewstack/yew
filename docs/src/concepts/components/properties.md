@@ -8,7 +8,7 @@ As stated in the Components page, Properties are used to communicate from a pare
 
 ## Derive macro
 
-Don't try to implement `Properties` yourself, instead derive it by using `#[derive(Properties)]` instead.
+Don't try to implement `Properties` yourself, derive it by using `#[derive(Properties)]` instead.
 
 ### Required attribute
 
