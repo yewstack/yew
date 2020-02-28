@@ -407,7 +407,7 @@ impl ListProps {
         ListProps { props, node_ref }
     }
 
-    fn apply_edge_cases(props: &Vec<HtmlProp>) -> Result<(), syn::Error> {
+    fn apply_edge_cases(props: &Vec<HtmlProp>, cases: &[&str]) -> Result<(), syn::Error> {
         let mut map: HashMap<&str, Box<dyn Fn(&HtmlProp) -> Result<_, syn::Error>>> =
             HashMap::new();
 
@@ -442,7 +442,7 @@ impl ListProps {
         let errors = props.iter().fold(vec![], |acc, prop: &HtmlProp| {
             [
                 acc,
-                ["ref", "type", "unexpected"]
+                cases
                     .iter()
                     .map(|elem| match map.get(elem) {
                         Some(handler) => handler(prop),
@@ -478,7 +478,7 @@ impl Parse for ListProps {
             node_ref,
         } = ListProps::remove_refs(props);
 
-        ListProps::apply_edge_cases(&props)?;
+        ListProps::apply_edge_cases(&props, &["ref"])?;
 
         // alphabetize
         props.sort_by(|a, b| {
