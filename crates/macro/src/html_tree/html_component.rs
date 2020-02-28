@@ -454,7 +454,6 @@ impl ListProps {
             .concat()
         });
 
-
         for error in errors {
             return error;
         }
