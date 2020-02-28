@@ -408,49 +408,57 @@ impl ListProps {
     }
 
     fn apply_edge_cases(props: &Vec<HtmlProp>) -> Result<(), syn::Error> {
-        let mut map: HashMap<&str, Box<dyn Fn(HtmlProp) -> Result<(), syn::Error>>> = HashMap::new();
-       // Result<Box<dyn DataLinkReceiver>, GetInterfaceError> 
-        let ref_handler = |prop: HtmlProp| {
-            if prop.label.to_string() == "ref" {
-                 Err(syn::Error::new_spanned(&prop.label, "too many refs set"))
-            }
-            Ok(())
-        };       
+        let mut map: HashMap<&str, Box<dyn Fn(&HtmlProp) -> Result<_, syn::Error>>> =
+            HashMap::new();
 
-        let type_handler = |prop: HtmlProp| {
-            if prop.label.to_string() == "type" {
-                 Err(syn::Error::new_spanned(&prop.label, "expected identifier"))
+        let ref_handler = |prop: &HtmlProp| -> Result<_, syn::Error> {
+            if prop.label.to_string() == "ref" {
+                Err(syn::Error::new_spanned(&prop.label, "too many refs set"))
+            } else {
+                Ok(())
             }
-            Ok(())
         };
-      
-        let unexpected_handler = |prop: HtmlProp| {
-            if !prop.label.extended.is_empty() {
-                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
+
+        let type_handler = |prop: &HtmlProp| -> Result<_, syn::Error> {
+            if prop.label.to_string() == "type" {
+                Err(syn::Error::new_spanned(&prop.label, "expected identifier"))
+            } else {
+                Ok(())
             }
-            Ok(())
+        };
+
+        let unexpected_handler = |prop: &HtmlProp| -> Result<_, syn::Error> {
+            if !prop.label.extended.is_empty() {
+                Err(syn::Error::new_spanned(&prop.label, "expected identifier"))
+            } else {
+                Ok(())
+            }
         };
 
         map.insert("ref", Box::new(ref_handler));
         map.insert("type", Box::new(type_handler));
-        map.insert("unexpected",Box::new(unexpected_handler));
+        map.insert("unexpected", Box::new(unexpected_handler));
 
-        props.iter().for_each(|prop|{
+        let errors = props.iter().fold(vec![], |acc, prop: &HtmlProp| {
+            [
+                acc,
+                ["ref", "type", "unexpected"]
+                    .iter()
+                    .map(|elem| match map.get(elem) {
+                        Some(handler) => handler(prop),
+                        None => Err(syn::Error::new_spanned(&prop.label, "something went wrong")),
+                    })
+                    .filter(Result::is_err)
+                    .collect::<Vec<Result<_, syn::Error>>>(),
+            ]
+            .concat()
+        });
 
-        })
 
-
-        for prop in props {
-            if prop.label.to_string() == "ref" {
-                return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
-            }
-            if prop.label.to_string() == "type" {
-                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
-            }
-            if !prop.label.extended.is_empty() {
-                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
-            }
+        for error in errors {
+            return error;
         }
+
         Ok(())
     }
 }
@@ -470,17 +478,7 @@ impl Parse for ListProps {
             node_ref,
         } = ListProps::remove_refs(props);
 
-        for prop in &props {
-            if prop.label.to_string() == "ref" {
-                return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
-            }
-            if prop.label.to_string() == "type" {
-                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
-            }
-            if !prop.label.extended.is_empty() {
-                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
-            }
-        }
+        ListProps::apply_edge_cases(&props)?;
 
         // alphabetize
         props.sort_by(|a, b| {
@@ -520,10 +518,13 @@ impl Parse for WithProps {
         // Check for the ref tag after `with`
         let mut node_ref = None;
         if input.cursor().ident().is_some() {
-            let list_props = ListProps::remove_refs(ListProps::collect_props(input)?);
-            node_ref = list_props.node_ref;
+            let ListProps {
+                props: list_props,
+                node_ref: reference,
+            } = ListProps::remove_refs(ListProps::collect_props(input)?);
+            node_ref = reference;
 
-            for prop in &list_props.props {
+            for prop in &list_props {
                 if prop.label.to_string() == "ref" {
                     return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
                 } else {
