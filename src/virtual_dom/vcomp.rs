@@ -5,8 +5,8 @@ use crate::html::{Component, ComponentUpdate, HiddenScope, NodeRef, Scope};
 use crate::utils::document;
 use cfg_if::cfg_if;
 use std::any::TypeId;
-use std::cell::RefCell;
 use std::fmt;
+use std::mem::swap;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -29,7 +29,7 @@ enum GeneratorType {
 #[derive(Clone)]
 pub struct VComp {
     type_id: TypeId,
-    state: Rc<RefCell<MountState>>,
+    state: MountState,
     pub(crate) node_ref: NodeRef,
 }
 
@@ -69,6 +69,7 @@ where
     }
 }
 
+#[derive(Clone)]
 enum MountState {
     Unmounted(Unmounted),
     Mounted(Mounted),
@@ -77,14 +78,21 @@ enum MountState {
     Overwritten,
 }
 
+#[derive(Clone)]
 struct Unmounted {
-    generator: Box<Generator>,
+    generator: Rc<Generator>,
 }
 
 struct Mounted {
     node_ref: NodeRef,
     scope: HiddenScope,
     destroyer: Box<dyn FnOnce()>,
+}
+
+impl Clone for Mounted {
+    fn clone(&self) -> Self {
+        panic!("Mounted components are not allowed to be cloned!")
+    }
 }
 
 impl VComp {
@@ -127,9 +135,9 @@ impl VComp {
 
         VComp {
             type_id: TypeId::of::<COMP>(),
-            state: Rc::new(RefCell::new(MountState::Unmounted(Unmounted {
-                generator: Box::new(generator),
-            }))),
+            state: MountState::Unmounted(Unmounted {
+                generator: Rc::new(generator),
+            }),
             node_ref,
         }
     }
@@ -154,7 +162,9 @@ enum Reform {
 
 impl VDiff for VComp {
     fn detach(&mut self, parent: &Element) -> Option<Node> {
-        match self.state.replace(MountState::Detached) {
+        let mut replace_state = MountState::Detached;
+        swap(&mut replace_state, &mut self.state);
+        match replace_state {
             MountState::Mounted(this) => {
                 (this.destroyer)();
                 this.node_ref.get().and_then(|node| {
@@ -175,67 +185,67 @@ impl VDiff for VComp {
         previous_sibling: Option<&Node>,
         ancestor: Option<VNode>,
     ) -> Option<Node> {
-        match self.state.replace(MountState::Mounting) {
-            MountState::Unmounted(this) => {
-                let reform = match ancestor {
-                    Some(VNode::VComp(mut vcomp)) => {
-                        // If the ancestor is a Component of the same type, don't replace, keep the
-                        // old Component but update the properties.
-                        if self.type_id == vcomp.type_id {
-                            match vcomp.state.replace(MountState::Overwritten) {
-                                MountState::Mounted(mounted) => Reform::Keep(mounted),
-                                _ => Reform::Before(None),
-                            }
-                        } else {
-                            Reform::Before(vcomp.detach(parent))
+        let mut replace_state = MountState::Mounting;
+        swap(&mut replace_state, &mut self.state);
+        if let MountState::Unmounted(this) = replace_state {
+            let reform = match ancestor {
+                Some(VNode::VComp(mut vcomp)) => {
+                    // If the ancestor is a Component of the same type, don't replace, keep the
+                    // old Component but update the properties.
+                    if self.type_id == vcomp.type_id {
+                        let mut replace_state = MountState::Overwritten;
+                        swap(&mut replace_state, &mut vcomp.state);
+                        match replace_state {
+                            MountState::Mounted(mounted) => Reform::Keep(mounted),
+                            _ => Reform::Before(None),
                         }
+                    } else {
+                        Reform::Before(vcomp.detach(parent))
                     }
-                    Some(mut vnode) => Reform::Before(vnode.detach(parent)),
-                    None => Reform::Before(None),
-                };
+                }
+                Some(mut vnode) => Reform::Before(vnode.detach(parent)),
+                None => Reform::Before(None),
+            };
 
-                let mounted = match reform {
-                    Reform::Keep(mounted) => {
-                        // Send properties update when the component is already rendered.
-                        this.replace(mounted)
-                    }
-                    Reform::Before(next_sibling) => {
-                        let dummy_node = document().create_text_node("");
-                        if let Some(next_sibling) = next_sibling {
-                            let next_sibling = &next_sibling;
-                            #[cfg(feature = "web_sys")]
-                            let next_sibling = Some(next_sibling);
-                            parent
-                                .insert_before(&dummy_node, next_sibling)
-                                .expect("can't insert dummy component node before next sibling");
-                        } else if let Some(next_sibling) =
-                            previous_sibling.and_then(|p| p.next_sibling())
+            let mounted = match reform {
+                Reform::Keep(mounted) => {
+                    // Send properties update when the component is already rendered.
+                    this.replace(mounted)
+                }
+                Reform::Before(next_sibling) => {
+                    let dummy_node = document().create_text_node("");
+                    if let Some(next_sibling) = next_sibling {
+                        let next_sibling = &next_sibling;
+                        #[cfg(feature = "web_sys")]
+                        let next_sibling = Some(next_sibling);
+                        parent
+                            .insert_before(&dummy_node, next_sibling)
+                            .expect("can't insert dummy component node before next sibling");
+                    } else if let Some(next_sibling) =
+                        previous_sibling.and_then(|p| p.next_sibling())
+                    {
+                        let next_sibling = &next_sibling;
+                        #[cfg(feature = "web_sys")]
+                        let next_sibling = Some(next_sibling);
+                        parent
+                            .insert_before(&dummy_node, next_sibling)
+                            .expect("can't insert dummy component node before next sibling");
+                    } else {
+                        #[cfg_attr(
+                            feature = "std_web",
+                            allow(clippy::let_unit_value, unused_variables)
+                        )]
                         {
-                            let next_sibling = &next_sibling;
+                            let result = parent.append_child(&dummy_node);
                             #[cfg(feature = "web_sys")]
-                            let next_sibling = Some(next_sibling);
-                            parent
-                                .insert_before(&dummy_node, next_sibling)
-                                .expect("can't insert dummy component node before next sibling");
-                        } else {
-                            #[cfg_attr(
-                                feature = "std_web",
-                                allow(clippy::let_unit_value, unused_variables)
-                            )]
-                            {
-                                let result = parent.append_child(&dummy_node);
-                                #[cfg(feature = "web_sys")]
-                                result.expect("can't append node to parent");
-                            }
+                            result.expect("can't append node to parent");
                         }
-                        this.mount(parent.to_owned(), dummy_node)
                     }
-                };
-                self.state.replace(MountState::Mounted(mounted));
-            }
-            state => {
-                self.state.replace(state);
-            }
+                    this.mount(parent.to_owned(), dummy_node)
+                }
+            };
+
+            self.state = MountState::Mounted(mounted);
         }
         None
     }
