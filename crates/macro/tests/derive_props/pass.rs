@@ -24,6 +24,7 @@ mod t2 {
     struct Value;
     #[derive(Clone, Properties)]
     pub struct Props<T: Clone> {
+        #[props(required)]
         value: T,
     }
 

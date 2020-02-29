@@ -1,12 +1,26 @@
 #![allow(clippy::needless_doctest_main)]
+#![doc(html_logo_url = "https://static.yew.rs/logo.svg")]
+
 //! # Yew Framework - API Documentation
 //!
-//! Yew is a framework for web-client apps created with
-//! a modern Rust-to-Wasm compilation feature.
-//! This framework was highly inspired by
-//! [Elm](http://elm-lang.org/) and [React](https://reactjs.org/).
+//! Yew is a modern Rust framework for creating multi-threaded front-end web apps with WebAssembly
 //!
-//! Minimal example:
+//! - Features a macro for declaring interactive HTML with Rust expressions. Developers who have experience using JSX in React should feel quite at home when using Yew.
+//! - Achieves high performance by minimizing DOM API calls for each page render and by making it easy to offload processing to background web workers.
+//! - Supports JavaScript interoperability, allowing developers to leverage NPM packages and integrate with existing JavaScript applications.
+//!
+//! ### Supported Targets
+//! - `wasm32-unknown-unknown`
+//! - `wasm32-unknown-emscripten` - (`feature = "std_web"` is required)
+//! - `asmjs-unknown-emscripten` - (`feature = "std_web"` is required)
+//!
+//! ### Important Notes
+//! - Yew is not (yet) production ready but is great for side projects and internal tools
+//! - Yew supports both `web-sys` and `stdweb`, developers *must* choose one or the other using the features `"web_sys"` and `"std_web"`.
+//! - Building with `cargo-web` is not supported for `web-sys`
+//! - Docs.rs docs are built by default with the `"web_sys"` feature, for `"std_web"` docs, visit [`yew-stdweb`](https://docs.rs/yew-stdweb)
+//!
+//! ## Example
 //!
 //! ```rust
 //! use yew::prelude::*;
@@ -17,7 +31,7 @@
 //! }
 //!
 //! enum Msg {
-//!     DoIt,
+//!     AddOne,
 //! }
 //!
 //! impl Component for Model {
@@ -32,7 +46,7 @@
 //!
 //!     fn update(&mut self, msg: Self::Message) -> ShouldRender {
 //!         match msg {
-//!             Msg::DoIt => self.value = self.value + 1
+//!             Msg::AddOne => self.value += 1
 //!         }
 //!         true
 //!     }
@@ -40,17 +54,17 @@
 //!     fn view(&self) -> Html {
 //!         html! {
 //!             <div>
-//!                 <button onclick=self.link.callback(|_| Msg::DoIt)>{ "+1" }</button>
+//!                 <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
 //!                 <p>{ self.value }</p>
 //!             </div>
 //!         }
 //!     }
 //! }
+//!
 //!# fn dont_execute() {
 //! fn main() {
 //!     yew::initialize();
 //!     App::<Model>::new().mount_to_body();
-//!     yew::run_loop();
 //! }
 //!# }
 //! ```
