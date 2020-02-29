@@ -977,7 +977,11 @@ mod tests {
     #[test]
     fn swap_order_of_classes() {
         let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
         document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
         elem.apply(&parent, None, None);
@@ -1023,7 +1027,11 @@ mod tests {
     #[test]
     fn add_class_to_the_middle() {
         let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
         document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-3")></div> };
         elem.apply(&parent, None, None);
