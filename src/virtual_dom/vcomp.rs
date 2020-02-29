@@ -187,69 +187,66 @@ impl VDiff for VComp {
     ) -> Option<Node> {
         let mut replace_state = MountState::Mounting;
         swap(&mut replace_state, &mut self.state);
-        match replace_state {
-            MountState::Unmounted(this) => {
-                let reform = match ancestor {
-                    Some(VNode::VComp(mut vcomp)) => {
-                        // If the ancestor is a Component of the same type, don't replace, keep the
-                        // old Component but update the properties.
-                        if self.type_id == vcomp.type_id {
-                            let mut replace_state = MountState::Overwritten;
-                            swap(&mut replace_state, &mut vcomp.state);
-                            match replace_state {
-                                MountState::Mounted(mounted) => Reform::Keep(mounted),
-                                _ => Reform::Before(None),
-                            }
-                        } else {
-                            Reform::Before(vcomp.detach(parent))
+        if let MountState::Unmounted(this) = replace_state {
+            let reform = match ancestor {
+                Some(VNode::VComp(mut vcomp)) => {
+                    // If the ancestor is a Component of the same type, don't replace, keep the
+                    // old Component but update the properties.
+                    if self.type_id == vcomp.type_id {
+                        let mut replace_state = MountState::Overwritten;
+                        swap(&mut replace_state, &mut vcomp.state);
+                        match replace_state {
+                            MountState::Mounted(mounted) => Reform::Keep(mounted),
+                            _ => Reform::Before(None),
                         }
+                    } else {
+                        Reform::Before(vcomp.detach(parent))
                     }
-                    Some(mut vnode) => Reform::Before(vnode.detach(parent)),
-                    None => Reform::Before(None),
-                };
+                }
+                Some(mut vnode) => Reform::Before(vnode.detach(parent)),
+                None => Reform::Before(None),
+            };
 
-                let mounted = match reform {
-                    Reform::Keep(mounted) => {
-                        // Send properties update when the component is already rendered.
-                        this.replace(mounted)
-                    }
-                    Reform::Before(next_sibling) => {
-                        let dummy_node = document().create_text_node("");
-                        if let Some(next_sibling) = next_sibling {
-                            let next_sibling = &next_sibling;
-                            #[cfg(feature = "web_sys")]
-                            let next_sibling = Some(next_sibling);
-                            parent
-                                .insert_before(&dummy_node, next_sibling)
-                                .expect("can't insert dummy component node before next sibling");
-                        } else if let Some(next_sibling) =
-                            previous_sibling.and_then(|p| p.next_sibling())
+            let mounted = match reform {
+                Reform::Keep(mounted) => {
+                    // Send properties update when the component is already rendered.
+                    this.replace(mounted)
+                }
+                Reform::Before(next_sibling) => {
+                    let dummy_node = document().create_text_node("");
+                    if let Some(next_sibling) = next_sibling {
+                        let next_sibling = &next_sibling;
+                        #[cfg(feature = "web_sys")]
+                        let next_sibling = Some(next_sibling);
+                        parent
+                            .insert_before(&dummy_node, next_sibling)
+                            .expect("can't insert dummy component node before next sibling");
+                    } else if let Some(next_sibling) =
+                        previous_sibling.and_then(|p| p.next_sibling())
+                    {
+                        let next_sibling = &next_sibling;
+                        #[cfg(feature = "web_sys")]
+                        let next_sibling = Some(next_sibling);
+                        parent
+                            .insert_before(&dummy_node, next_sibling)
+                            .expect("can't insert dummy component node before next sibling");
+                    } else {
+                        #[cfg_attr(
+                            feature = "std_web",
+                            allow(clippy::let_unit_value, unused_variables)
+                        )]
                         {
-                            let next_sibling = &next_sibling;
+                            let result = parent.append_child(&dummy_node);
                             #[cfg(feature = "web_sys")]
-                            let next_sibling = Some(next_sibling);
-                            parent
-                                .insert_before(&dummy_node, next_sibling)
-                                .expect("can't insert dummy component node before next sibling");
-                        } else {
-                            #[cfg_attr(
-                                feature = "std_web",
-                                allow(clippy::let_unit_value, unused_variables)
-                            )]
-                            {
-                                let result = parent.append_child(&dummy_node);
-                                #[cfg(feature = "web_sys")]
-                                result.expect("can't append node to parent");
-                            }
+                            result.expect("can't append node to parent");
                         }
-                        this.mount(parent.to_owned(), dummy_node)
                     }
-                };
+                    this.mount(parent.to_owned(), dummy_node)
+                }
+            };
 
-                self.state = MountState::Mounted(mounted);
-            }
-            _ => {}
-        };
+            self.state = MountState::Mounted(mounted);
+        }
         None
     }
 }
