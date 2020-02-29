@@ -8,32 +8,58 @@ use anyhow::Error;
 use thiserror::Error as ThisError;
 
 #[macro_use]
-pub mod macros;
+mod macros;
 
 #[cfg(feature = "bincode")]
+#[doc(hidden)]
 pub mod bincode;
+
 #[cfg(feature = "cbor")]
+#[doc(hidden)]
 pub mod cbor;
+
+#[doc(hidden)]
 pub mod json;
+
+#[doc(hidden)]
 #[cfg(feature = "msgpack")]
 pub mod msgpack;
+
+#[doc(hidden)]
 pub mod nothing;
+
 #[cfg(feature = "toml")]
+#[doc(hidden)]
 pub mod toml;
+
 #[cfg(feature = "yaml")]
+#[doc(hidden)]
 pub mod yaml;
 
 #[cfg(feature = "bincode")]
+#[doc(inline)]
 pub use self::bincode::Bincode;
+
 #[cfg(feature = "cbor")]
+#[doc(inline)]
 pub use self::cbor::Cbor;
+
+#[doc(inline)]
 pub use self::json::Json;
+
 #[cfg(feature = "msgpack")]
+#[doc(inline)]
 pub use self::msgpack::MsgPack;
+
+#[doc(inline)]
 pub use self::nothing::Nothing;
+
 #[cfg(feature = "toml")]
+#[doc(inline)]
 pub use self::toml::Toml;
+
 #[cfg(feature = "yaml")]
+#[doc(inline)]
 pub use self::yaml::Yaml;
 
 /// A representation of a value which can be stored and restored as a text.
