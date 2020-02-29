@@ -119,7 +119,7 @@ mod t7 {
         value: Foo,
     }
 
-    fn default_value_should_work() {
+    fn prop_or_value_should_work() {
         let props = Props::builder().build();
         assert_eq!(props.value, Foo::One);
         Props::builder().value(Foo::Two).build();
@@ -135,7 +135,7 @@ mod t8 {
         value: i32,
     }
 
-    fn default_value_should_work() {
+    fn prop_or_else_closure_should_work() {
         let props = Props::builder().build();
         assert_eq!(props.value, 123);
         Props::builder().value(123).build();
@@ -162,7 +162,7 @@ mod t9 {
         "123".parse()
     }
 
-    fn default_value_with_generics_should_work() {
+    fn prop_or_else_function_with_generics_should_work() {
         let props = Props::<i32>::builder().build();
         assert_eq!(props.value, Ok(123));
         Props::<i32>::builder().value(Ok(456)).build();
