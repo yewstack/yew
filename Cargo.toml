@@ -133,6 +133,9 @@ yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
 
+[package.metadata.docs.rs]
+features = ["web_sys", "agent", "services", "yaml", "cbor", "toml", "msgpack", "doc_test"]
+
 [workspace]
 members = [
   "crates/macro",
