@@ -1,9 +1,14 @@
 //! This module contains the implementation of reactive virtual dom concept.
 
+#[doc(hidden)]
 pub mod vcomp;
+#[doc(hidden)]
 pub mod vlist;
+#[doc(hidden)]
 pub mod vnode;
+#[doc(hidden)]
 pub mod vtag;
+#[doc(hidden)]
 pub mod vtext;
 
 use cfg_if::cfg_if;
@@ -21,10 +26,15 @@ cfg_if! {
     }
 }
 
+#[doc(inline)]
 pub use self::vcomp::{VChild, VComp};
+#[doc(inline)]
 pub use self::vlist::VList;
+#[doc(inline)]
 pub use self::vnode::VNode;
+#[doc(inline)]
 pub use self::vtag::VTag;
+#[doc(inline)]
 pub use self::vtext::VText;
 
 /// `Listener` trait is an universal implementation of an event listener
@@ -180,7 +190,7 @@ enum Reform {
 // `Ace` editor embedding for example?
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
-pub trait VDiff {
+pub(crate) trait VDiff {
     /// Remove itself from parent and return the next sibling.
     fn detach(&mut self, parent: &Element) -> Option<Node>;
 
