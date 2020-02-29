@@ -5,8 +5,8 @@ use crate::html::{Component, ComponentUpdate, HiddenScope, NodeRef, Scope};
 use crate::utils::document;
 use cfg_if::cfg_if;
 use std::any::TypeId;
-use std::cell::RefCell;
 use std::fmt;
+use std::mem::swap;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -29,7 +29,7 @@ enum GeneratorType {
 #[derive(Clone)]
 pub struct VComp {
     type_id: TypeId,
-    state: Rc<RefCell<MountState>>,
+    state: MountState,
     pub(crate) node_ref: NodeRef,
 }
 
@@ -69,6 +69,7 @@ where
     }
 }
 
+#[derive(Clone)]
 enum MountState {
     Unmounted(Unmounted),
     Mounted(Mounted),
@@ -77,14 +78,21 @@ enum MountState {
     Overwritten,
 }
 
+#[derive(Clone)]
 struct Unmounted {
-    generator: Box<Generator>,
+    generator: Rc<Generator>,
 }
 
 struct Mounted {
     node_ref: NodeRef,
     scope: HiddenScope,
     destroyer: Box<dyn FnOnce()>,
+}
+
+impl Clone for Mounted {
+    fn clone(&self) -> Self {
+        panic!("Mounted components are not allowed to be cloned!")
+    }
 }
 
 impl VComp {
@@ -127,9 +135,9 @@ impl VComp {
 
         VComp {
             type_id: TypeId::of::<COMP>(),
-            state: Rc::new(RefCell::new(MountState::Unmounted(Unmounted {
-                generator: Box::new(generator),
-            }))),
+            state: MountState::Unmounted(Unmounted {
+                generator: Rc::new(generator),
+            }),
             node_ref,
         }
     }
@@ -154,7 +162,9 @@ enum Reform {
 
 impl VDiff for VComp {
     fn detach(&mut self, parent: &Element) -> Option<Node> {
-        match self.state.replace(MountState::Detached) {
+        let mut replace_state = MountState::Detached;
+        swap(&mut replace_state, &mut self.state);
+        match replace_state {
             MountState::Mounted(this) => {
                 (this.destroyer)();
                 this.node_ref.get().and_then(|node| {
@@ -175,14 +185,18 @@ impl VDiff for VComp {
         previous_sibling: Option<&Node>,
         ancestor: Option<VNode>,
     ) -> Option<Node> {
-        match self.state.replace(MountState::Mounting) {
+        let mut replace_state = MountState::Mounting;
+        swap(&mut replace_state, &mut self.state);
+        match replace_state {
             MountState::Unmounted(this) => {
                 let reform = match ancestor {
                     Some(VNode::VComp(mut vcomp)) => {
                         // If the ancestor is a Component of the same type, don't replace, keep the
                         // old Component but update the properties.
                         if self.type_id == vcomp.type_id {
-                            match vcomp.state.replace(MountState::Overwritten) {
+                            let mut replace_state = MountState::Overwritten;
+                            swap(&mut replace_state, &mut vcomp.state);
+                            match replace_state {
                                 MountState::Mounted(mounted) => Reform::Keep(mounted),
                                 _ => Reform::Before(None),
                             }
@@ -231,12 +245,11 @@ impl VDiff for VComp {
                         this.mount(parent.to_owned(), dummy_node)
                     }
                 };
-                self.state.replace(MountState::Mounted(mounted));
+
+                self.state = MountState::Mounted(mounted);
             }
-            state => {
-                self.state.replace(state);
-            }
-        }
+            _ => {}
+        };
         None
     }
 }
