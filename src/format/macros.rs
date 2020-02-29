@@ -1,7 +1,6 @@
 //! Contains three macros for wrapping serde format.  Collectively they
 //! allow you to define your own text and binary wrappers.
 
-#[macro_export]
 /// This macro is used for a format that can be encoded as Text.  It
 /// is used in conjunction with a type definition for a tuple struct
 /// with one (publically accessible) element of a generic type.  Since
@@ -18,6 +17,7 @@
 /// text_format!(Json based on serde_json);
 /// binary_format!(Json based on serde_json);
 /// ```
+#[macro_export]
 macro_rules! text_format {
     ($type:ident based on $format:ident) => {
         impl<'a, T> Into<$crate::format::Text> for $type<&'a T>
@@ -43,7 +43,6 @@ macro_rules! text_format {
     };
 }
 
-#[macro_export]
 /// This macro is used for a format that can be encoded as Binary.  It
 /// is used in conjunction with a type definition for a tuple struct
 /// with one (publicly accessible) element of a generic type.  Not
@@ -103,6 +102,7 @@ macro_rules! text_format {
 ///   text_format_is_an_error!(Bincode);
 /// # }
 /// ```
+#[macro_export]
 macro_rules! binary_format {
     ($type:ident based on $format:ident) => {
         binary_format!($type, $format::to_vec, $format::from_slice);
@@ -131,7 +131,6 @@ macro_rules! binary_format {
     };
 }
 
-#[macro_export]
 /// This macro is used for a format that can be encoded as Binary but
 /// can't be encoded as Text.  It is used in conjunction with a type
 /// definition for a tuple struct with one (publically accessible)
@@ -150,7 +149,8 @@ macro_rules! binary_format {
 ///   text_format_is_an_error!(MsgPack);
 /// # }
 /// ```
-
+#[macro_export]
+#[cfg(any(feature = "bincode", feature = "cbor", feature = "msgpack"))]
 macro_rules! text_format_is_an_error {
     ($type:ident) => {
         use $crate::{format::FormatError, text_format};

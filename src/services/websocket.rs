@@ -4,10 +4,21 @@
 use super::Task;
 use crate::callback::Callback;
 use crate::format::{Binary, Text};
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use std::fmt;
-use stdweb::traits::IMessageEvent;
-use stdweb::web::event::{SocketCloseEvent, SocketErrorEvent, SocketMessageEvent, SocketOpenEvent};
-use stdweb::web::{IEventTarget, SocketBinaryType, SocketReadyState, WebSocket};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::traits::IMessageEvent;
+        use stdweb::web::event::{SocketCloseEvent, SocketErrorEvent, SocketMessageEvent, SocketOpenEvent};
+        use stdweb::web::{IEventTarget, SocketBinaryType, SocketReadyState, WebSocket};
+    } else if #[cfg(feature = "web_sys")] {
+        use gloo::events::EventListener;
+        use js_sys::Uint8Array;
+        use wasm_bindgen::JsCast;
+        use web_sys::{BinaryType, Event, MessageEvent, WebSocket};
+    }
+}
 
 /// A status of a websocket connection. Used for status notification.
 #[derive(Debug)]
@@ -25,6 +36,26 @@ pub enum WebSocketStatus {
 pub struct WebSocketTask {
     ws: WebSocket,
     notification: Callback<WebSocketStatus>,
+    #[cfg(feature = "web_sys")]
+    #[allow(dead_code)]
+    listeners: [EventListener; 4],
+}
+
+#[cfg(feature = "web_sys")]
+impl WebSocketTask {
+    fn new(
+        ws: WebSocket,
+        notification: Callback<WebSocketStatus>,
+        listener_0: EventListener,
+        listeners: [EventListener; 3],
+    ) -> Result<WebSocketTask, &'static str> {
+        let [listener_1, listener_2, listener_3] = listeners;
+        Ok(WebSocketTask {
+            ws,
+            notification,
+            listeners: [listener_0, listener_1, listener_2, listener_3],
+        })
+    }
 }
 
 impl fmt::Debug for WebSocketTask {
@@ -54,11 +85,23 @@ impl WebSocketService {
     where
         OUT: From<Text> + From<Binary>,
     {
-        let ws = self.connect_common(url, &notification)?;
-        ws.add_event_listener(move |event: SocketMessageEvent| {
-            process_both(&event, &callback);
-        });
-        Ok(WebSocketTask { ws, notification })
+        cfg_match! {
+            feature = "std_web" => ({
+                let ws = self.connect_common(url, &notification)?.0;
+                ws.add_event_listener(move |event: SocketMessageEvent| {
+                    process_both(&event, &callback);
+                });
+                Ok(WebSocketTask { ws, notification })
+            }),
+            feature = "web_sys" => ({
+                let ConnectCommon(ws, listeners) = self.connect_common(url, &notification)?;
+                let listener = EventListener::new(&ws, "message", move |event: &Event| {
+                    let event = event.dyn_ref::<MessageEvent>().unwrap();
+                    process_both(&event, &callback);
+                });
+                WebSocketTask::new(ws, notification, listener, listeners)
+            }),
+        }
     }
 
     /// Connects to a server by a websocket connection, like connect,
@@ -74,11 +117,23 @@ impl WebSocketService {
     where
         OUT: From<Binary>,
     {
-        let ws = self.connect_common(url, &notification)?;
-        ws.add_event_listener(move |event: SocketMessageEvent| {
-            did_process_binary(&event, &callback);
-        });
-        Ok(WebSocketTask { ws, notification })
+        cfg_match! {
+            feature = "std_web" => ({
+                let ws = self.connect_common(url, &notification)?.0;
+                ws.add_event_listener(move |event: SocketMessageEvent| {
+                    did_process_binary(&event, &callback);
+                });
+                Ok(WebSocketTask { ws, notification })
+            }),
+            feature = "web_sys" => ({
+                let ConnectCommon(ws, listeners) = self.connect_common(url, &notification)?;
+                let listener = EventListener::new(&ws, "message", move |event: &Event| {
+                    let event = event.dyn_ref::<MessageEvent>().unwrap();
+                    did_process_binary(&event, &callback);
+                });
+                WebSocketTask::new(ws, notification, listener, listeners)
+            }),
+        }
     }
 
     /// Connects to a server by a websocket connection, like connect,
@@ -94,49 +149,103 @@ impl WebSocketService {
     where
         OUT: From<Text>,
     {
-        let ws = self.connect_common(url, &notification)?;
-        ws.add_event_listener(move |event: SocketMessageEvent| {
-            process_text(&event, &callback);
-        });
-        Ok(WebSocketTask { ws, notification })
+        cfg_match! {
+            feature = "std_web" => ({
+                let ws = self.connect_common(url, &notification)?.0;
+                ws.add_event_listener(move |event: SocketMessageEvent| {
+                    process_text(&event, &callback);
+                });
+                Ok(WebSocketTask { ws, notification })
+            }),
+            feature = "web_sys" => ({
+                let ConnectCommon(ws, listeners) = self.connect_common(url, &notification)?;
+                let listener = EventListener::new(&ws, "message", move |event: &Event| {
+                    let event = event.dyn_ref::<MessageEvent>().unwrap();
+                    process_text(&event, &callback);
+                });
+                WebSocketTask::new(ws, notification, listener, listeners)
+            }),
+        }
     }
 
     fn connect_common(
         &mut self,
         url: &str,
         notification: &Callback<WebSocketStatus>,
-    ) -> Result<WebSocket, &str> {
+    ) -> Result<ConnectCommon, &str> {
         let ws = WebSocket::new(url);
         if ws.is_err() {
             return Err("Failed to created websocket with given URL");
         }
 
-        let ws = ws.unwrap();
-        ws.set_binary_type(SocketBinaryType::ArrayBuffer);
+        let ws = ws.map_err(|_| "failed to build websocket")?;
+        cfg_match! {
+            feature = "std_web" => ws.set_binary_type(SocketBinaryType::ArrayBuffer),
+            feature = "web_sys" => ws.set_binary_type(BinaryType::Arraybuffer),
+        };
         let notify = notification.clone();
-        ws.add_event_listener(move |_: SocketOpenEvent| {
-            notify.emit(WebSocketStatus::Opened);
-        });
+        let listener_open =
+            move |#[cfg(feature = "std_web")] _: SocketOpenEvent,
+                  #[cfg(feature = "web_sys")] _: &Event| {
+                notify.emit(WebSocketStatus::Opened);
+            };
         let notify = notification.clone();
-        ws.add_event_listener(move |_: SocketCloseEvent| {
-            notify.emit(WebSocketStatus::Closed);
-        });
+        let listener_close =
+            move |#[cfg(feature = "std_web")] _: SocketCloseEvent,
+                  #[cfg(feature = "web_sys")] _: &Event| {
+                notify.emit(WebSocketStatus::Closed);
+            };
         let notify = notification.clone();
-        ws.add_event_listener(move |_: SocketErrorEvent| {
-            notify.emit(WebSocketStatus::Error);
-        });
-        Ok(ws)
+        let listener_error =
+            move |#[cfg(feature = "std_web")] _: SocketErrorEvent,
+                  #[cfg(feature = "web_sys")] _: &Event| {
+                notify.emit(WebSocketStatus::Error);
+            };
+        #[cfg_attr(feature = "std_web", allow(clippy::let_unit_value, unused_variables))]
+        {
+            let listeners = cfg_match! {
+                feature = "std_web" => ({
+                    ws.add_event_listener(listener_open);
+                    ws.add_event_listener(listener_close);
+                    ws.add_event_listener(listener_error);
+                }),
+                feature = "web_sys" => [
+                    EventListener::new(&ws, "open", listener_open),
+                    EventListener::new(&ws, "close", listener_close),
+                    EventListener::new(&ws, "error", listener_error),
+                ],
+            };
+            Ok(ConnectCommon(
+                ws,
+                #[cfg(feature = "web_sys")]
+                listeners,
+            ))
+        }
     }
 }
 
-fn did_process_binary<OUT: 'static>(event: &SocketMessageEvent, callback: &Callback<OUT>) -> bool
+struct ConnectCommon(WebSocket, #[cfg(feature = "web_sys")] [EventListener; 3]);
+
+fn did_process_binary<OUT: 'static>(
+    #[cfg(feature = "std_web")] event: &SocketMessageEvent,
+    #[cfg(feature = "web_sys")] event: &MessageEvent,
+    callback: &Callback<OUT>,
+) -> bool
 where
     OUT: From<Binary>,
 {
-    match event.data().into_array_buffer() {
+    let bytes = cfg_match! {
+        feature = "std_web" => event.data().into_array_buffer(),
+        feature = "web_sys" => Some(event.data()),
+    };
+
+    match bytes {
         None => false,
         Some(bytes) => {
-            let bytes: Vec<u8> = bytes.into();
+            let bytes: Vec<u8> = cfg_match! {
+                feature = "std_web" => bytes.into(),
+                feature = "web_sys" => Uint8Array::new(&bytes).to_vec(),
+            };
             let data = Ok(bytes);
             let out = OUT::from(data);
             callback.emit(out);
@@ -145,19 +254,30 @@ where
     }
 }
 
-fn process_text<OUT: 'static>(event: &SocketMessageEvent, callback: &Callback<OUT>)
-where
+fn process_text<OUT: 'static>(
+    #[cfg(feature = "std_web")] event: &SocketMessageEvent,
+    #[cfg(feature = "web_sys")] event: &MessageEvent,
+    callback: &Callback<OUT>,
+) where
     OUT: From<Text>,
 {
-    if let Some(text) = event.data().into_text() {
+    let text = cfg_match! {
+        feature = "std_web" => event.data().into_text(),
+        feature = "web_sys" => event.data().as_string(),
+    };
+
+    if let Some(text) = text {
         let data = Ok(text);
         let out = OUT::from(data);
         callback.emit(out);
     }
 }
 
-fn process_both<OUT: 'static>(event: &SocketMessageEvent, callback: &Callback<OUT>)
-where
+fn process_both<OUT: 'static>(
+    #[cfg(feature = "std_web")] event: &SocketMessageEvent,
+    #[cfg(feature = "web_sys")] event: &MessageEvent,
+    callback: &Callback<OUT>,
+) where
     OUT: From<Text> + From<Binary>,
 {
     if !did_process_binary(event, callback) {
@@ -172,7 +292,12 @@ impl WebSocketTask {
         IN: Into<Text>,
     {
         if let Ok(body) = data.into() {
-            if self.ws.send_text(&body).is_err() {
+            let result = cfg_match! {
+                feature = "std_web" => self.ws.send_text(&body),
+                feature = "web_sys" => self.ws.send_with_str(&body),
+            };
+
+            if result.is_err() {
                 self.notification.emit(WebSocketStatus::Error);
             }
         }
@@ -184,7 +309,15 @@ impl WebSocketTask {
         IN: Into<Binary>,
     {
         if let Ok(body) = data.into() {
-            if self.ws.send_bytes(&body).is_err() {
+            let result = cfg_match! {
+                feature = "std_web" => self.ws.send_bytes(&body),
+                feature = "web_sys" => ({
+                    let mut body = body;
+                    self.ws.send_with_u8_array(&mut body)
+                }),
+            };
+
+            if result.is_err() {
                 self.notification.emit(WebSocketStatus::Error);
             }
         }
@@ -193,14 +326,20 @@ impl WebSocketTask {
 
 impl Task for WebSocketTask {
     fn is_active(&self) -> bool {
-        self.ws.ready_state() == SocketReadyState::Open
+        cfg_match! {
+            feature = "std_web" => self.ws.ready_state() == SocketReadyState::Open,
+            feature = "web_sys" => self.ws.ready_state() == WebSocket::OPEN,
+        }
     }
 }
 
 impl Drop for WebSocketTask {
     fn drop(&mut self) {
         if self.is_active() {
-            self.ws.close();
+            cfg_match! {
+                feature = "std_web" => self.ws.close(),
+                feature = "web_sys" => self.ws.close().ok(),
+            };
         }
     }
 }

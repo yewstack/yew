@@ -99,27 +99,44 @@ pub mod services;
 
 /// The module that contains all events available in the framework.
 pub mod events {
+    use cfg_if::cfg_if;
+
     pub use crate::html::{ChangeData, InputData};
 
-    pub use stdweb::web::event::{
-        BlurEvent, ClickEvent, ContextMenuEvent, DoubleClickEvent, DragDropEvent, DragEndEvent,
-        DragEnterEvent, DragEvent, DragExitEvent, DragLeaveEvent, DragOverEvent, DragStartEvent,
-        FocusEvent, GotPointerCaptureEvent, IKeyboardEvent, IMouseEvent, IPointerEvent,
-        KeyDownEvent, KeyPressEvent, KeyUpEvent, LostPointerCaptureEvent, MouseDownEvent,
-        MouseEnterEvent, MouseLeaveEvent, MouseMoveEvent, MouseOutEvent, MouseOverEvent,
-        MouseUpEvent, MouseWheelEvent, PointerCancelEvent, PointerDownEvent, PointerEnterEvent,
-        PointerLeaveEvent, PointerMoveEvent, PointerOutEvent, PointerOverEvent, PointerUpEvent,
-        ScrollEvent, SubmitEvent, TouchCancel, TouchEnd, TouchEnter, TouchMove, TouchStart,
-    };
+    cfg_if! {
+        if #[cfg(feature = "std_web")] {
+            pub use stdweb::web::event::{
+                BlurEvent, ClickEvent, ContextMenuEvent, DoubleClickEvent, DragDropEvent, DragEndEvent,
+                DragEnterEvent, DragEvent, DragExitEvent, DragLeaveEvent, DragOverEvent, DragStartEvent,
+                FocusEvent, GotPointerCaptureEvent, IKeyboardEvent, IMouseEvent, IPointerEvent,
+                KeyDownEvent, KeyPressEvent, KeyUpEvent, LostPointerCaptureEvent, MouseDownEvent,
+                MouseEnterEvent, MouseLeaveEvent, MouseMoveEvent, MouseOutEvent, MouseOverEvent,
+                MouseUpEvent, MouseWheelEvent, PointerCancelEvent, PointerDownEvent, PointerEnterEvent,
+                PointerLeaveEvent, PointerMoveEvent, PointerOutEvent, PointerOverEvent, PointerUpEvent,
+                ScrollEvent, SubmitEvent, TouchCancel, TouchEnd, TouchEnter, TouchMove, TouchStart,
+            };
+        } else if #[cfg(feature = "web_sys")] {
+            pub use web_sys::{
+                DragEvent, Event, FocusEvent, KeyboardEvent, MouseEvent, PointerEvent, TouchEvent, UiEvent,
+                WheelEvent,
+            };
+        }
+    }
 }
+
+use cfg_match::cfg_match;
 
 /// Initializes yew framework. It should be called first.
 pub fn initialize() {
-    stdweb::initialize();
+    cfg_match! {
+        feature = "std_web" => stdweb::initialize(),
+        feature = "web_sys" => std::panic::set_hook(Box::new(console_error_panic_hook::hook)),
+    };
 }
 
 /// Starts event loop.
 pub fn run_loop() {
+    #[cfg(feature = "std_web")]
     stdweb::event_loop();
 }
 

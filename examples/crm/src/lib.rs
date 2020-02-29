@@ -64,7 +64,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let storage = StorageService::new(Area::Local);
+        let storage = StorageService::new(Area::Local).expect("storage was disabled by the user");
         let Json(database) = storage.restore(KEY);
         let database = database.unwrap_or_else(|_| Database {
             clients: Vec::new(),

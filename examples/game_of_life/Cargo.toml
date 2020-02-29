@@ -7,7 +7,11 @@ authors = ["Diego Cardoso <dige0card0s0@hotmail.com>",
 edition = "2018"
 
 [dependencies]
-rand = { version = "0.6.5", features = ["stdweb"] }
+rand = "0.6.5"
 log = "0.4"
-web_logger = "0.1"
+web_logger = "0.2"
 yew = { path = "../.." }
+
+[features]
+std_web = ["rand/stdweb", "yew/std_web"]
+web_sys = ["rand/wasm-bindgen", "yew/web_sys"]

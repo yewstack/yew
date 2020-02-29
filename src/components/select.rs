@@ -35,6 +35,7 @@
 use crate::callback::Callback;
 use crate::html::{ChangeData, Component, ComponentLink, Html, ShouldRender};
 use crate::macros::{html, Properties};
+use cfg_match::cfg_match;
 
 /// `Select` component.
 #[derive(Debug)]
@@ -121,7 +122,11 @@ where
     fn onchange(&self) -> Callback<ChangeData> {
         self.link.callback(|event| match event {
             ChangeData::Select(elem) => {
-                let value = elem.selected_index().map(|x| x as usize);
+                let value = elem.selected_index();
+                let value = cfg_match! {
+                    feature = "std_web" => value.map(|x| x as usize),
+                    feature = "web_sys" => Some(value as usize),
+                };
                 Msg::Selected(value)
             }
             _ => {

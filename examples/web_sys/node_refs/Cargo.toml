@@ -1,0 +1,9 @@
+[package]
+name = "node_refs_web_sys"
+version = "0.1.0"
+authors = ["Justin Starry <justin.starry@icloud.com>"]
+edition = "2018"
+
+[dependencies]
+yew = { path = "../../..", features = ["web_sys"] }
+web-sys = { version = "0.3", features = ["HtmlElement", "HtmlInputElement", "Node"] }

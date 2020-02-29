@@ -10,12 +10,12 @@ cd examples/showcase
 
 if [ "$emscripten_supported" == "0" ]; then
   # TODO - Emscripten builds are broken on rustc > 1.39.0
-  cargo web build --target asmjs-unknown-emscripten
-  cargo web build --target wasm32-unknown-emscripten
+  cargo web build --target asmjs-unknown-emscripten --features std_web
+  cargo web build --target wasm32-unknown-emscripten --features std_web
 fi
 
-# TODO showcase doesn't support wasm-bindgen yet
-cargo web build --target wasm32-unknown-unknown
+cargo web build --target wasm32-unknown-unknown --features std_web
+cargo build --target wasm32-unknown-unknown --features web_sys
 
 # Reset cwd
 cd ../..
