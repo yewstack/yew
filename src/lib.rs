@@ -88,7 +88,7 @@ pub mod callback;
 pub mod components;
 pub mod format;
 pub mod html;
-pub mod scheduler;
+mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
 

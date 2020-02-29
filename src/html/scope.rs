@@ -23,9 +23,6 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     Properties(COMP::Properties),
 }
 
-/// A reference to the parent's scope which will be used later to send messages.
-pub type ScopeHolder<PARENT> = Rc<RefCell<Option<Scope<PARENT>>>>;
-
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
     shared_state: Shared<ComponentState<COMP>>,
@@ -67,11 +64,10 @@ impl<COMP: Component> Scope<COMP> {
         props: COMP::Properties,
     ) -> Scope<COMP> {
         let mut scope = self;
-        let link = ComponentLink::connect(&scope);
         let ready_state = ReadyState {
             element,
             node_ref,
-            link,
+            scope: scope.clone(),
             props,
             ancestor,
         };
@@ -120,6 +116,34 @@ impl<COMP: Component> Scope<COMP> {
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
         self.update(ComponentUpdate::MessageBatch(messages));
     }
+
+    /// This method creates a `Callback` which will send a message to the linked component's
+    /// update method when invoked.
+    pub fn callback<F, IN>(&self, function: F) -> Callback<IN>
+    where
+        F: Fn(IN) -> COMP::Message + 'static,
+    {
+        let scope = self.clone();
+        let closure = move |input| {
+            let output = function(input);
+            scope.send_message(output);
+        };
+        closure.into()
+    }
+
+    /// This method creates a `Callback` which will send a batch of messages back to the linked
+    /// component's update method when called.
+    pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
+    where
+        F: Fn(IN) -> Vec<COMP::Message> + 'static,
+    {
+        let scope = self.clone();
+        let closure = move |input| {
+            let messages = function(input);
+            scope.send_message_batch(messages);
+        };
+        closure.into()
+    }
 }
 
 enum ComponentState<COMP: Component> {
@@ -147,14 +171,14 @@ struct ReadyState<COMP: Component> {
     element: Element,
     node_ref: NodeRef,
     props: COMP::Properties,
-    link: ComponentLink<COMP>,
+    scope: Scope<COMP>,
     ancestor: Option<VNode>,
 }
 
 impl<COMP: Component> ReadyState<COMP> {
     fn create(self) -> CreatedState<COMP> {
         CreatedState {
-            component: COMP::create(self.props, self.link),
+            component: COMP::create(self.props, self.scope),
             element: self.element,
             last_frame: self.ancestor,
             node_ref: self.node_ref,

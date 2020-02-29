@@ -7,8 +7,8 @@ mod listener;
 mod scope;
 
 pub use listener::*;
+pub use scope::Scope;
 pub(crate) use scope::{ComponentUpdate, HiddenScope};
-pub use scope::{Scope, ScopeHolder};
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VList, VNode};
@@ -288,7 +288,7 @@ where
 /// use stdweb::web::{html_element::InputElement, IHtmlElement};
 /// #[cfg(feature = "web_sys")]
 /// use web_sys::HtmlInputElement as InputElement;
-///# use yew::*;
+///# use yew::prelude::*;
 ///
 /// pub struct Input {
 ///     node_ref: NodeRef,
@@ -385,6 +385,7 @@ pub trait Properties: Clone {
 
 /// Builder for when a component has no properties
 #[derive(Debug)]
+#[doc(hidden)]
 pub struct EmptyBuilder;
 
 impl Properties for () {
@@ -401,78 +402,7 @@ impl EmptyBuilder {
 }
 
 /// Link to component's scope for creating callbacks.
-pub struct ComponentLink<COMP: Component> {
-    scope: Scope<COMP>,
-}
-
-impl<COMP> ComponentLink<COMP>
-where
-    COMP: Component,
-{
-    /// Create link for a scope.
-    fn connect(scope: &Scope<COMP>) -> Self {
-        ComponentLink {
-            scope: scope.clone(),
-        }
-    }
-
-    /// This method creates a `Callback` which will send a batch of messages back to the linked
-    /// component's update method when called.
-    pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
-    where
-        F: Fn(IN) -> Vec<COMP::Message> + 'static,
-    {
-        let scope = self.scope.clone();
-        let closure = move |input| {
-            let messages = function(input);
-            scope.send_message_batch(messages);
-        };
-        closure.into()
-    }
-
-    /// This method creates a `Callback` which will send a message to the linked component's
-    /// update method when invoked.
-    pub fn callback<F, IN>(&self, function: F) -> Callback<IN>
-    where
-        F: Fn(IN) -> COMP::Message + 'static,
-    {
-        let scope = self.scope.clone();
-        let closure = move |input| {
-            let output = function(input);
-            scope.send_message(output);
-        };
-        closure.into()
-    }
-
-    /// This method sends a message to this component to be processed immediately after the
-    /// component has been updated and/or rendered.
-    pub fn send_message(&self, msg: COMP::Message) {
-        self.scope.send_message(msg);
-    }
-
-    /// Sends a batch of messages to the component to be processed immediately after
-    /// the component has been updated and/or rendered..
-    ///
-    /// All messages will first be processed by `update`, and if _any_ of them return `true`,
-    /// then re-render will occur.
-    pub fn send_message_batch(&self, msgs: Vec<COMP::Message>) {
-        self.scope.send_message_batch(msgs)
-    }
-}
-
-impl<COMP: Component> fmt::Debug for ComponentLink<COMP> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("ComponentLink<_>")
-    }
-}
-
-impl<COMP: Component> Clone for ComponentLink<COMP> {
-    fn clone(&self) -> Self {
-        ComponentLink {
-            scope: self.scope.clone(),
-        }
-    }
-}
+pub type ComponentLink<COMP> = Scope<COMP>;
 
 /// A bridging type for checking `href` attribute value.
 #[derive(Debug)]
