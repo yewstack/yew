@@ -102,7 +102,7 @@ impl PropField {
                     #name: {
                         match true {
                             false => ::std::unreachable!(),
-                            true => #func(),
+                            true => (#func)(),
                         }
                     },
                 }

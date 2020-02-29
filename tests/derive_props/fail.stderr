@@ -10,7 +10,7 @@ error: cannot find attribute `props` in this scope
 22 |         #[props(default)]
    |           ^^^^^
 
-error[E0425]: cannot find function `foo` in this scope
+error[E0425]: cannot find value `foo` in this scope
   --> $DIR/fail.rs:87:24
    |
 87 |         #[prop_or_else(foo)]

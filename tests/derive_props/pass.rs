@@ -131,7 +131,7 @@ mod t8 {
 
     #[derive(Clone, Properties)]
     pub struct Props {
-        #[prop_or_else((|| 123))]
+        #[prop_or_else(|| 123)]
         value: i32,
     }
 
