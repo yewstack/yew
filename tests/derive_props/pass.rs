@@ -7,6 +7,7 @@ mod t1 {
 
     #[derive(Clone, Properties)]
     pub struct Props<T: Clone + Default> {
+        #[prop_or_default]
         value: T,
     }
 
@@ -23,7 +24,6 @@ mod t2 {
     struct Value;
     #[derive(Clone, Properties)]
     pub struct Props<T: Clone> {
-        #[props(required)]
         value: T,
     }
 
@@ -37,8 +37,8 @@ mod t3 {
 
     #[derive(Clone, Properties)]
     pub struct Props {
-        #[props(required)]
         b: i32,
+        #[prop_or_default]
         a: i32,
     }
 
@@ -56,6 +56,7 @@ mod t4 {
     where
         T: Clone + Default,
     {
+        #[prop_or_default]
         value: T,
     }
 
@@ -70,8 +71,8 @@ mod t5 {
 
     #[derive(Clone, Properties)]
     pub struct Props<'a, T: Clone + Default + 'a> {
+        #[prop_or_default]
         static_value: &'static str,
-        #[props(required)]
         value: &'a T,
     }
 
@@ -93,7 +94,6 @@ mod t6 {
     where
         <T as FromStr>::Err: Clone,
     {
-        #[props(required)]
         value: Result<T, <T as FromStr>::Err>,
     }
 
@@ -115,12 +115,8 @@ mod t7 {
 
     #[derive(Clone, Properties)]
     pub struct Props {
-        #[props(default = "default_value")]
+        #[prop_or(Foo::One)]
         value: Foo,
-    }
-
-    fn default_value() -> Foo {
-        Foo::One
     }
 
     fn default_value_should_work() {
@@ -132,6 +128,22 @@ mod t7 {
 
 mod t8 {
     use super::*;
+
+    #[derive(Clone, Properties)]
+    pub struct Props {
+        #[prop_or_else((|| 123))]
+        value: i32,
+    }
+
+    fn default_value_should_work() {
+        let props = Props::builder().build();
+        assert_eq!(props.value, 123);
+        Props::builder().value(123).build();
+    }
+}
+
+mod t9 {
+    use super::*;
     use std::str::FromStr;
 
     #[derive(Clone, Properties)]
@@ -139,7 +151,7 @@ mod t8 {
     where
         <T as FromStr>::Err: Clone,
     {
-        #[props(default = "default_value")]
+        #[prop_or_else(default_value)]
         value: Result<T, <T as FromStr>::Err>,
     }
 

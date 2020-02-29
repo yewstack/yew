@@ -8,11 +8,8 @@ pub struct ListHeader {
 
 #[derive(Clone, Properties)]
 pub struct Props {
-    #[props(required)]
     pub on_hover: Callback<Hovered>,
-    #[props(required)]
     pub text: String,
-    #[props(required)]
     pub list_link: WeakComponentLink<List>,
 }
 

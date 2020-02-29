@@ -168,7 +168,7 @@ pub type Children = ChildrenRenderer<Html>;
 ///#
 /// #[derive(Clone, Properties)]
 /// struct ListProps {
-///   children: ChildrenWithProps<ListItem>,
+///     children: ChildrenWithProps<ListItem>,
 /// }
 ///
 ///# struct List {props: ListProps};
@@ -190,6 +190,7 @@ pub type Children = ChildrenRenderer<Html>;
 ///#
 ///# #[derive(Clone, Properties)]
 ///# struct ListItemProps {
+///#     #[prop_or_default]
 ///#     value: String
 ///# }
 ///#
