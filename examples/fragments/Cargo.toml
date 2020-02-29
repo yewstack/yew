@@ -6,3 +6,7 @@ edition = "2018"
 
 [dependencies]
 yew = { path = "../.." }
+
+[features]
+std_web = ["yew/std_web"]
+web_sys = ["yew/web_sys"]

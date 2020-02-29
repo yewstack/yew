@@ -25,8 +25,11 @@ proc-macro2 = "1.0"
 quote = "1.0"
 syn = { version = "1.0", features = ["full", "extra-traits"] }
 
+# testing
 [dev-dependencies]
-yew = { path = "../.." }
+rustversion = "1.0"
+trybuild = "1.0"
+yew = { path = "../..", features = ["std_web"] }
 
 [build-dependencies]
 

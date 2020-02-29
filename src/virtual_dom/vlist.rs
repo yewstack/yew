@@ -1,7 +1,14 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
+use cfg_if::cfg_if;
 use std::ops::{Deref, DerefMut};
-use stdweb::web::{Element, Node};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::web::{Element, Node};
+    } else if #[cfg(feature = "web_sys")] {
+        use web_sys::{Element, Node};
+    }
+}
 
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Clone, Debug, PartialEq, Default)]
