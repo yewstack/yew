@@ -7,7 +7,7 @@ mod listener;
 mod scope;
 
 pub use listener::*;
-pub(crate) use scope::{ComponentUpdate, HiddenScope, Scope, ScopeHolder};
+pub(crate) use scope::{ComponentUpdate, HiddenScope, Scope};
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VList, VNode};
