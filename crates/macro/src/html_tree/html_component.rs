@@ -363,14 +363,52 @@ impl Props {
     fn collision_message() -> &'static str {
         "Using special syntax `with props` along with named prop is not allowed. This rule does not apply to special `ref` prop"
     }
+
+    fn collect_props(input: ParseStream) -> ParseResult<Vec<HtmlProp>> {
+        let mut props: Vec<HtmlProp> = Vec::new();
+        while HtmlProp::peek(input.cursor()).is_some() {
+            props.push(input.parse::<HtmlProp>()?);
+        }
+        Ok(props)
+    }
+
+    fn remove_refs(mut props: Vec<HtmlProp>) -> ListProps {
+        let ref_position = props.iter().position(|p| p.label.to_string() == "ref");
+        let node_ref = ref_position.map(|i| props.remove(i).value);
+        ListProps { props, node_ref }
+    }
+
+    fn handle_errors(props: &Vec<HtmlProp>) -> ParseResult<()> {
+        for prop in props {
+            if prop.label.to_string() == "ref" {
+                return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
+            }
+            if prop.label.to_string() == "type" {
+                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
+            }
+            if !prop.label.extended.is_empty() {
+                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
+            }
+        }
+        Ok(())
+    }
 }
 
 impl PeekValue<PropType> for Props {
     fn peek(cursor: Cursor) -> Option<PropType> {
         let (ident, _) = cursor.ident()?;
+        println!("PEEK {}", ident);
+        if ident == "ref" {
+            ()
+        }
+
         let prop_type = if ident == "with" {
+            println!("WITH PROPS {}", ident);
+
             PropType::With
         } else {
+            println!("LIST PROPS {}", ident);
+
             PropType::List
         };
 
@@ -392,92 +430,24 @@ struct ListProps {
     props: Vec<HtmlProp>,
     node_ref: Option<Expr>,
 }
-impl ListProps {
-    fn collect_props(input: ParseStream) -> ParseResult<Vec<HtmlProp>> {
-        let mut props: Vec<HtmlProp> = Vec::new();
-        while HtmlProp::peek(input.cursor()).is_some() {
-            props.push(input.parse::<HtmlProp>()?);
-        }
-        Ok(props)
-    }
-
-    fn remove_refs(mut props: Vec<HtmlProp>) -> ListProps {
-        let ref_position = props.iter().position(|p| p.label.to_string() == "ref");
-        let node_ref = ref_position.map(|i| props.remove(i).value);
-        ListProps { props, node_ref }
-    }
-
-    fn apply_edge_cases(props: &Vec<HtmlProp>, cases: &[&str]) -> Result<(), syn::Error> {
-        let mut map: HashMap<&str, Box<dyn Fn(&HtmlProp) -> Result<_, syn::Error>>> =
-            HashMap::new();
-
-        let ref_handler = |prop: &HtmlProp| -> Result<_, syn::Error> {
-            if prop.label.to_string() == "ref" {
-                Err(syn::Error::new_spanned(&prop.label, "too many refs set"))
-            } else {
-                Ok(())
-            }
-        };
-
-        let type_handler = |prop: &HtmlProp| -> Result<_, syn::Error> {
-            if prop.label.to_string() == "type" {
-                Err(syn::Error::new_spanned(&prop.label, "expected identifier"))
-            } else {
-                Ok(())
-            }
-        };
-
-        let unexpected_handler = |prop: &HtmlProp| -> Result<_, syn::Error> {
-            if !prop.label.extended.is_empty() {
-                Err(syn::Error::new_spanned(&prop.label, "expected identifier"))
-            } else {
-                Ok(())
-            }
-        };
-
-        map.insert("ref", Box::new(ref_handler));
-        map.insert("type", Box::new(type_handler));
-        map.insert("unexpected", Box::new(unexpected_handler));
-
-        let errors = props.iter().fold(vec![], |acc, prop: &HtmlProp| {
-            [
-                acc,
-                cases
-                    .iter()
-                    .map(|elem| match map.get(elem) {
-                        Some(handler) => handler(prop),
-                        None => Err(syn::Error::new_spanned(&prop.label, "something went wrong")),
-                    })
-                    .filter(Result::is_err)
-                    .collect::<Vec<Result<_, syn::Error>>>(),
-            ]
-            .concat()
-        });
-
-        for error in errors {
-            return error;
-        }
-
-        Ok(())
-    }
-}
 
 impl Parse for ListProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let props = ListProps::collect_props(input)?;
+        let props = Props::collect_props(input)?;
 
         if let Some(ident) = input.cursor().ident() {
             if ident.0 == "with" {
-                return Err(input.error(Props::collision_message()));
+                println!("PROPS {}", props[0].label.to_string());
+                return Err(input.error(ident.0));
             }
         }
 
         let ListProps {
             mut props,
             node_ref,
-        } = ListProps::remove_refs(props);
+        } = Props::remove_refs(props);
 
-        ListProps::apply_edge_cases(&props, &["ref"])?;
+        Props::handle_errors(&props)?;
 
         // alphabetize
         props.sort_by(|a, b| {
@@ -520,7 +490,7 @@ impl Parse for WithProps {
             let ListProps {
                 props: list_props,
                 node_ref: reference,
-            } = ListProps::remove_refs(ListProps::collect_props(input)?);
+            } = Props::remove_refs(Props::collect_props(input)?);
             node_ref = reference;
 
             for prop in &list_props {
