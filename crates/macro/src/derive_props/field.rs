@@ -87,24 +87,14 @@ impl PropField {
                 let name = &self.name;
                 let span = value.span();
                 quote_spanned! {span=>
-                    #name: {
-                        match true {
-                            false => ::std::unreachable!(),
-                            true => #value,
-                        }
-                    },
+                    #name: #value,
                 }
             }
             PropAttr::PropOrElse(func) => {
                 let name = &self.name;
                 let span = func.span();
                 quote_spanned! {span=>
-                    #name: {
-                        match true {
-                            false => ::std::unreachable!(),
-                            true => (#func)(),
-                        }
-                    },
+                    #name: (#func)(),
                 }
             }
             PropAttr::PropOrDefault => {
