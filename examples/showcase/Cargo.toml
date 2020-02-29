@@ -5,23 +5,69 @@ authors = ["Denis Kolodin <deniskolodin@gmail.com>", "Limira"]
 edition = "2018"
 
 [dependencies]
+cfg-if = "0.1"
 log = "0.4"
-web_logger = "0.1"
+web_logger = "0.2"
 strum = "0.13"
 strum_macros = "0.13"
 yew = { path = "../.." }
-counter = { path = "../counter" }
+counter_std_web = { path = "../std_web/counter", optional = true }
+counter_web_sys = { path = "../web_sys/counter", optional = true }
 crm = { path = "../crm" }
 custom_components = { path = "../custom_components" }
 dashboard = { path = "../dashboard" }
-node_refs = { path = "../node_refs" }
+node_refs_std_web = { path = "../std_web/node_refs", optional = true }
+node_refs_web_sys = { path = "../web_sys/node_refs", optional = true }
 fragments = { path = "../fragments" }
 game_of_life = { path = "../game_of_life" }
-inner_html = { path = "../inner_html" }
+inner_html_std_web = { path = "../std_web/inner_html", optional = true }
+inner_html_web_sys = { path = "../web_sys/inner_html", optional = true }
 large_table = { path = "../large_table" }
-mount_point = { path = "../mount_point" }
-npm_and_rest = { path = "../npm_and_rest" }
+mount_point_std_web = { path = "../std_web/mount_point", optional = true }
+mount_point_web_sys = { path = "../web_sys/mount_point", optional = true }
+npm_and_rest_std_web = { path = "../std_web/npm_and_rest", optional = true }
+npm_and_rest_web_sys = { path = "../web_sys/npm_and_rest", optional = true }
 textarea = { path = "../textarea" }
 timer = { path = "../timer" }
-todomvc = { path = "../todomvc" }
-two_apps = { path = "../two_apps" }
+todomvc_std_web = { path = "../std_web/todomvc", optional = true }
+todomvc_web_sys = { path = "../web_sys/todomvc", optional = true }
+two_apps_std_web = { path = "../std_web/two_apps", optional = true }
+two_apps_web_sys = { path = "../web_sys/two_apps", optional = true }
+
+[features]
+std_web = [
+  "yew/std_web",
+  "counter_std_web",
+  "crm/std_web",
+  "custom_components/std_web",
+  "dashboard/std_web",
+  "node_refs_std_web",
+  "fragments/std_web",
+  "game_of_life/std_web",
+  "inner_html_std_web",
+  "large_table/std_web",
+  "mount_point_std_web",
+  "npm_and_rest_std_web",
+  "textarea/std_web",
+  "timer/std_web",
+  "todomvc_std_web",
+  "two_apps_std_web",
+]
+web_sys = [
+  "yew/web_sys",
+  "counter_web_sys",
+  "crm/web_sys",
+  "custom_components/web_sys",
+  "dashboard/web_sys",
+  "node_refs_web_sys",
+  "fragments/web_sys",
+  "game_of_life/web_sys",
+  "inner_html_web_sys",
+  "large_table/web_sys",
+  "mount_point_web_sys",
+  "npm_and_rest_web_sys",
+  "textarea/web_sys",
+  "timer/web_sys",
+  "todomvc_web_sys",
+  "two_apps_web_sys",
+]

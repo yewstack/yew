@@ -136,7 +136,7 @@ impl Component for Model {
     }
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(start)]
 pub fn run_app() {
     yew::start_app::<Model>();
 }
