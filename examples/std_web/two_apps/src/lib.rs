@@ -1,18 +1,16 @@
 #![recursion_limit = "256"]
 
-use yew::html::Scope;
-/// This example demonstrates low-level usage of scopes.
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     link: ComponentLink<Self>,
-    scope: Option<Scope<Model>>,
+    opposite: Option<ComponentLink<Model>>,
     selector: &'static str,
     title: String,
 }
 
 pub enum Msg {
-    SetScope(Scope<Model>),
+    SetOpposite(ComponentLink<Model>),
     SendToOpposite(String),
     SetTitle(String),
 }
@@ -24,7 +22,7 @@ impl Component for Model {
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
             link,
-            scope: None,
+            opposite: None,
             selector: "",
             title: "Nothing".into(),
         }
@@ -32,37 +30,27 @@ impl Component for Model {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::SetScope(scope) => {
-                self.scope = Some(scope);
+            Msg::SetOpposite(opposite) => {
+                self.opposite = Some(opposite);
             }
             Msg::SendToOpposite(title) => {
-                self.scope
+                self.opposite
                     .as_mut()
                     .unwrap()
                     .send_message(Msg::SetTitle(title));
             }
             Msg::SetTitle(title) => {
-                match title.as_ref() {
-                    "Ping" => {
-                        self.scope
-                            .as_mut()
-                            .unwrap()
-                            .send_message(Msg::SetTitle("Pong".into()));
-                    }
-                    "Pong" => {
-                        self.scope
-                            .as_mut()
-                            .unwrap()
-                            .send_message(Msg::SetTitle("Pong Done".into()));
-                    }
-                    "Pong Done" => {
-                        self.scope
-                            .as_mut()
-                            .unwrap()
-                            .send_message(Msg::SetTitle("Ping Done".into()));
-                    }
-                    _ => {}
+                let send_msg = match title.as_ref() {
+                    "Ping" => Some(Msg::SetTitle("Pong".into())),
+                    "Pong" => Some(Msg::SetTitle("Pong Done".into())),
+                    "Pong Done" => Some(Msg::SetTitle("Ping Done".into())),
+                    _ => None,
+                };
+
+                if let Some(send_msg) = send_msg {
+                    self.opposite.as_mut().unwrap().send_message(send_msg);
                 }
+
                 self.title = title;
             }
         }
