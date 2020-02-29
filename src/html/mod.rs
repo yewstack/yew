@@ -7,8 +7,7 @@ mod listener;
 mod scope;
 
 pub use listener::*;
-pub(crate) use scope::{ComponentUpdate, HiddenScope};
-pub use scope::{Scope, ScopeHolder};
+pub(crate) use scope::{ComponentUpdate, HiddenScope, Scope, ScopeHolder};
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VList, VNode};
@@ -287,7 +286,7 @@ where
 /// use stdweb::web::{html_element::InputElement, IHtmlElement};
 /// #[cfg(feature = "web_sys")]
 /// use web_sys::HtmlInputElement as InputElement;
-///# use yew::*;
+///# use yew::prelude::*;
 ///
 /// pub struct Input {
 ///     node_ref: NodeRef,
@@ -384,6 +383,7 @@ pub trait Properties: Clone {
 
 /// Builder for when a component has no properties
 #[derive(Debug)]
+#[doc(hidden)]
 pub struct EmptyBuilder;
 
 impl Properties for () {

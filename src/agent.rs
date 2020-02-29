@@ -31,7 +31,7 @@ cfg_if! {
 
 /// Serializable messages to worker
 #[derive(Serialize, Deserialize, Debug)]
-pub enum ToWorker<T> {
+enum ToWorker<T> {
     /// Client is connected
     Connected(HandlerId),
     /// Incoming message to Worker
@@ -44,7 +44,7 @@ pub enum ToWorker<T> {
 
 /// Serializable messages sent by worker to consumer
 #[derive(Serialize, Deserialize, Debug)]
-pub enum FromWorker<T> {
+enum FromWorker<T> {
     /// Worker sends this message when `wasm` bundle has loaded.
     WorkerLoaded,
     /// Outgoing message to consumer

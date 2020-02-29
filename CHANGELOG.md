@@ -312,7 +312,7 @@ cloned is when a wrapper component re-renders nested children components.
   ```rust
   use stdweb::web::html_element::InputElement;
   use stdweb::web::IHtmlElement;
-  use yew::*;
+  use yew::prelude::*;
 
   pub struct Input {
       node_ref: NodeRef,
