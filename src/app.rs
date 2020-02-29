@@ -97,7 +97,11 @@ where
     /// similarly to the `program` function in Elm. You should provide an initial model, `update`
     /// function which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub fn mount_with_props(self, element: Element, props: COMP::Properties) -> ComponentLink<COMP> {
+    pub fn mount_with_props(
+        self,
+        element: Element,
+        props: COMP::Properties,
+    ) -> ComponentLink<COMP> {
         clear_element(&element);
         self.scope
             .mount_in_place(element, None, NodeRef::default(), props)
