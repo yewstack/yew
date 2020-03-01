@@ -161,7 +161,7 @@ enum Reform {
 }
 
 impl VDiff for VComp {
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
+    fn detach(&mut self, _parent: &Element) -> Option<Node> {
         let mut replace_state = MountState::Detached;
         swap(&mut replace_state, &mut self.state);
         match replace_state {
