@@ -36,6 +36,9 @@ Lastly, take note that API docs on https://docs.rs/yew will be using the `"web_s
 
   - Changed `Properties` macro behavior. Check out the proposal issue [#928](https://github.com/yewstack/yew/issues/928) for more details! [[@AlephAlpha], [#975](https://github.com/yewstack/yew/pull/975)]
   - Cleaned up exported apis and doc visibility. [[@jstarry], [#977](https://github.com/yewstack/yew/pull/977)]
+  - `ReaderService` methods now return a `Result` instead of panicking.  [[@daxpedda], [#868](https://github.com/yewstack/yew/pull/868)]
+  - `FetchService` methods now return a `Result` instead of panicking.  [[@daxpedda], [#867](https://github.com/yewstack/yew/pull/867)]
+  - `StorageService` methods now return a `Result` instead of panicking.  [[@daxpedda], [#827](https://github.com/yewstack/yew/pull/827)]
 
 ## ✨ **0.12** *(2020-02-16)*
 
