@@ -454,7 +454,9 @@ where
     }
 
     async fn get_response(&self, fetch_promise: Promise) -> Result<WebResponse, FetchError> {
-        let response = JsFuture::from(fetch_promise).await.map_err(|_| FetchError::FetchFailed)?;
+        let response = JsFuture::from(fetch_promise)
+            .await
+            .map_err(|_| FetchError::FetchFailed)?;
         if *self.active.borrow() {
             Ok(WebResponse::from(response))
         } else {
