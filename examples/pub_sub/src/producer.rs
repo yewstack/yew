@@ -28,7 +28,7 @@ impl Component for Producer {
         match msg {
             Msg::Clicked => {
                 self.event_bus
-                    .send(Request::EventBusMsg(format!("Message receieved")));
+                    .send(Request::EventBusMsg(format!("Message received")));
                 false
             }
         }
