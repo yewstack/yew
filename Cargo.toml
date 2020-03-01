@@ -122,7 +122,7 @@ rmp-serde = "0.14.0"
 bincode = "~1.2.1"
 
 [features]
-default = []
+default = ["services", "agent"]
 std_web = ["stdweb"]
 web_sys = ["console_error_panic_hook", "futures", "gloo", "js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 doc_test = []
