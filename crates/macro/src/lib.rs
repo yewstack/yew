@@ -15,8 +15,7 @@
 //!
 //! #[derive(Clone, Properties)]
 //! struct Props {
-//!   #[props(required)]
-//!   prop: String,
+//!     prop: String,
 //! };
 //!
 //! # enum Msg { Submit }
@@ -88,7 +87,7 @@ fn non_capitalized_ascii(string: &str) -> bool {
     }
 }
 
-#[proc_macro_derive(Properties, attributes(props))]
+#[proc_macro_derive(Properties, attributes(prop_or, prop_or_else, prop_or_default))]
 pub fn derive_props(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DerivePropsInput);
     TokenStream::from(input.into_token_stream())

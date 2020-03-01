@@ -8,11 +8,11 @@ pub struct ListItem {
 
 #[derive(Clone, Properties)]
 pub struct Props {
+    #[prop_or_default]
     pub hide: bool,
-    #[props(required)]
     pub on_hover: Callback<Hovered>,
-    #[props(required)]
     pub name: String,
+    #[prop_or_default]
     pub children: Children,
 }
 

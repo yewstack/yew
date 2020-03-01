@@ -41,8 +41,8 @@ impl Component for Generic<Vec<String>> {
 
 #[derive(Clone, Properties, Default)]
 pub struct ContainerProperties {
-    #[props(required)]
     pub int: i32,
+    #[prop_or_default]
     pub children: Children,
 }
 
@@ -91,11 +91,14 @@ impl Into<VNode> for ChildrenVariants {
 
 #[derive(Clone, Properties, Default, PartialEq)]
 pub struct ChildProperties {
+    #[prop_or_default]
     pub string: String,
-    #[props(required)]
     pub int: i32,
+    #[prop_or_default]
     pub opt_str: Option<String>,
+    #[prop_or_default]
     pub vec: Vec<i32>,
+    #[prop_or_default]
     pub optional_callback: Option<Callback<()>>,
 }
 
@@ -133,8 +136,8 @@ impl Component for AltChild {
 
 #[derive(Clone, Properties, Default)]
 pub struct ChildContainerProperties {
-    #[props(required)]
     pub int: i32,
+    #[prop_or_default]
     pub children: ChildrenRenderer<ChildrenVariants>,
 }
 

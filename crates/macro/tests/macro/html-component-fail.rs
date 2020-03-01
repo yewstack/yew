@@ -5,8 +5,8 @@ use yew::prelude::*;
 
 #[derive(Clone, Properties, PartialEq)]
 pub struct ChildProperties {
+    #[prop_or_default]
     pub string: String,
-    #[props(required)]
     pub int: i32,
 }
 
@@ -15,14 +15,19 @@ impl Component for Child {
     type Message = ();
     type Properties = ChildProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-    fn view(&self) -> Html { unimplemented!() }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
 }
 
 #[derive(Clone, Properties)]
 pub struct ChildContainerProperties {
-    #[props(required)]
     pub children: ChildrenWithProps<Child>,
 }
 
@@ -31,9 +36,15 @@ impl Component for ChildContainer {
     type Message = ();
     type Properties = ChildContainerProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-    fn view(&self) -> Html { unimplemented!() }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
 }
 
 pub struct Generic<G> {
@@ -44,9 +55,15 @@ impl Component for Generic<String> {
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-    fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-    fn view(&self) -> Html { unimplemented!() }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
 }
 
 fn compile_fail() {

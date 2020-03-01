@@ -9,6 +9,7 @@ mod t1 {
     #[derive(Clone, Properties)]
     pub struct Props {
         // ERROR: optional params must implement default
+        #[prop_or_default]
         value: Value,
     }
 }
@@ -17,8 +18,8 @@ mod t2 {
     use super::*;
     #[derive(Clone, Properties)]
     pub struct Props {
-        // ERROR: optional is not a tag
-        #[props(optional)]
+        // ERROR: old syntax no longer supported
+        #[props(default)]
         value: String,
     }
 }
@@ -27,7 +28,6 @@ mod t3 {
     use super::*;
     #[derive(Clone, Properties)]
     pub struct Props {
-        #[props(required)]
         value: String,
     }
 
@@ -41,7 +41,6 @@ mod t4 {
     #[derive(Clone, Properties)]
     pub struct Props {
         b: i32,
-        #[props(required)]
         a: i32,
     }
 
@@ -54,8 +53,8 @@ mod t5 {
     use super::*;
     #[derive(Clone, Properties)]
     pub struct Props {
-        // ERROR: default must be given a value
-        #[props(default)]
+        // ERROR: prop_or must be given a value
+        #[prop_or()]
         value: String,
     }
 }
@@ -64,9 +63,9 @@ mod t6 {
     use super::*;
     #[derive(Clone, Properties)]
     pub struct Props {
-        // ERROR: 123 is not a path or an identifier
-        #[props(default = 123)]
-        value: i32,
+        // ERROR: 123 is not a String
+        #[prop_or(123)]
+        value: String,
     }
 }
 
@@ -74,9 +73,9 @@ mod t7 {
     use super::*;
     #[derive(Clone, Properties)]
     pub struct Props {
-        // ERROR: the value must be parsed into a path to a function
-        #[props(default = "123")]
-        value: String,
+        // ERROR: 123 is not a function
+        #[prop_or_else(123)]
+        value: i32,
     }
 }
 
@@ -85,7 +84,7 @@ mod t8 {
     #[derive(Clone, Properties)]
     pub struct Props {
         // ERROR: cannot find function foo in this scope
-        #[props(default = "foo")]
+        #[prop_or_else(foo)]
         value: String,
     }
 }
@@ -95,7 +94,7 @@ mod t9 {
     #[derive(Clone, Properties)]
     pub struct Props {
         // ERROR: the function must take no arguments
-        #[props(default = "foo")]
+        #[prop_or_else(foo)]
         value: String,
     }
 
@@ -109,7 +108,7 @@ mod t10 {
     #[derive(Clone, Properties)]
     pub struct Props {
         // ERROR: the function returns incompatible types
-        #[props(default = "foo")]
+        #[prop_or_else(foo)]
         value: String,
     }
 

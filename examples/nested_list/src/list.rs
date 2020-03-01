@@ -30,11 +30,8 @@ pub struct ListVariant {
 
 #[derive(Clone, Properties)]
 pub struct Props {
-    #[props(required)]
     pub children: ChildrenRenderer<ListVariant>,
-    #[props(required)]
     pub on_hover: Callback<Hovered>,
-    #[props(required)]
     pub weak_link: WeakComponentLink<List>,
 }
 
