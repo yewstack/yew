@@ -25,11 +25,15 @@ pub enum Referrer {
 #[cfg(feature = "wasm_test")]
 mod tests {
     use super::*;
-    use crate::callback::test_util::CallbackFuture;
+    use crate::callback::{Callback, test_util::CallbackFuture};
     use crate::format::{Json, Nothing};
+    use crate::utils;
     use serde::Deserialize;
     use ssri::Integrity;
+    use std::collections::HashMap;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    #[cfg(feature = "web_sys")]
+    use ::web_sys::ReferrerPolicy;
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -283,7 +287,7 @@ mod tests {
                 .headers
                 .get("Referer")
                 .unwrap()
-                .starts_with(&stdweb::web::window().location().unwrap().origin().unwrap()));
+                .starts_with(&utils::origin().unwrap()));
         } else {
             assert!(false, "unexpected resp: {:#?}", resp);
         }
