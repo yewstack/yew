@@ -1,136 +1,136 @@
 error: this open tag has no corresponding close tag
-  --> $DIR/html-component-fail.rs:53:13
+  --> $DIR/html-component-fail.rs:70:13
    |
-53 |     html! { <Child> };
+70 |     html! { <Child> };
    |             ^^^^^^^
 
 error: expected identifier
-  --> $DIR/html-component-fail.rs:54:22
+  --> $DIR/html-component-fail.rs:71:22
    |
-54 |     html! { <Child:: /> };
+71 |     html! { <Child:: /> };
    |                      ^
 
 error: unexpected end of input, expected identifier
-  --> $DIR/html-component-fail.rs:55:5
+  --> $DIR/html-component-fail.rs:72:5
    |
-55 |     html! { <Child with /> };
+72 |     html! { <Child with /> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error: unexpected token
-  --> $DIR/html-component-fail.rs:56:20
+  --> $DIR/html-component-fail.rs:73:20
    |
-56 |     html! { <Child props /> };
+73 |     html! { <Child props /> };
    |                    ^^^^^
 
 error: this open tag has no corresponding close tag
-  --> $DIR/html-component-fail.rs:57:13
+  --> $DIR/html-component-fail.rs:74:13
    |
-57 |     html! { <Child with props > };
+74 |     html! { <Child with props > };
    |             ^^^^^^^^^^^^^^^^^^^
 
 error: unexpected token
-  --> $DIR/html-component-fail.rs:58:38
+  --> $DIR/html-component-fail.rs:75:38
    |
-58 |     html! { <Child with props ref=() ref=() /> };
+75 |     html! { <Child with props ref=() ref=() /> };
    |                                      ^^^
 
 error: unexpected token
-  --> $DIR/html-component-fail.rs:59:27
+  --> $DIR/html-component-fail.rs:76:27
    |
-59 |     html! { <Child ref=() with props /> };
+76 |     html! { <Child ref=() with props /> };
    |                           ^^^^
 
 error: unexpected token
-  --> $DIR/html-component-fail.rs:61:31
+  --> $DIR/html-component-fail.rs:78:31
    |
-61 |     html! { <Child with props () /> };
+78 |     html! { <Child with props () /> };
    |                               ^^
 
 error: expected identifier
-  --> $DIR/html-component-fail.rs:62:20
+  --> $DIR/html-component-fail.rs:79:20
    |
-62 |     html! { <Child type=0 /> };
+79 |     html! { <Child type=0 /> };
    |                    ^^^^
 
 error: expected identifier
-  --> $DIR/html-component-fail.rs:63:20
+  --> $DIR/html-component-fail.rs:80:20
    |
-63 |     html! { <Child invalid-prop-name=0 /> };
+80 |     html! { <Child invalid-prop-name=0 /> };
    |                    ^^^^^^^^^^^^^^^^^
 
 error: unexpected end of input, expected expression
-  --> $DIR/html-component-fail.rs:65:5
+  --> $DIR/html-component-fail.rs:82:5
    |
-65 |     html! { <Child string= /> };
+82 |     html! { <Child string= /> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error: too many refs set
-  --> $DIR/html-component-fail.rs:70:33
+  --> $DIR/html-component-fail.rs:87:33
    |
-70 |     html! { <Child int=1 ref=() ref=() /> };
+87 |     html! { <Child int=1 ref=() ref=() /> };
    |                                 ^^^
 
 error: this close tag has no corresponding open tag
-  --> $DIR/html-component-fail.rs:73:13
+  --> $DIR/html-component-fail.rs:90:13
    |
-73 |     html! { </Child> };
+90 |     html! { </Child> };
    |             ^^^^^^^^
 
 error: this open tag has no corresponding close tag
-  --> $DIR/html-component-fail.rs:74:13
+  --> $DIR/html-component-fail.rs:91:13
    |
-74 |     html! { <Child><Child></Child> };
+91 |     html! { <Child><Child></Child> };
    |             ^^^^^^^
 
 error: only one root html element allowed
-  --> $DIR/html-component-fail.rs:75:28
+  --> $DIR/html-component-fail.rs:92:28
    |
-75 |     html! { <Child></Child><Child></Child> };
+92 |     html! { <Child></Child><Child></Child> };
    |                            ^^^^^^^^^^^^^^^
 
 error: this close tag has no corresponding open tag
-  --> $DIR/html-component-fail.rs:84:30
-   |
-84 |     html! { <Generic<String>></Generic> };
-   |                              ^^^^^^^^^^
+   --> $DIR/html-component-fail.rs:101:30
+    |
+101 |     html! { <Generic<String>></Generic> };
+    |                              ^^^^^^^^^^
 
 error: this close tag has no corresponding open tag
-  --> $DIR/html-component-fail.rs:85:30
-   |
-85 |     html! { <Generic<String>></Generic<Vec<String>>> };
-   |                              ^^^^^^^^^^^^^^^^^^^^^^^
+   --> $DIR/html-component-fail.rs:102:30
+    |
+102 |     html! { <Generic<String>></Generic<Vec<String>>> };
+    |                              ^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0425]: cannot find value `blah` in this scope
-  --> $DIR/html-component-fail.rs:60:25
+  --> $DIR/html-component-fail.rs:77:25
    |
-60 |     html! { <Child with blah /> };
+77 |     html! { <Child with blah /> };
    |                         ^^^^ not found in this scope
 
 error[E0609]: no field `unknown` on type `ChildProperties`
-  --> $DIR/html-component-fail.rs:64:20
+  --> $DIR/html-component-fail.rs:81:20
    |
-64 |     html! { <Child unknown="unknown" /> };
+81 |     html! { <Child unknown="unknown" /> };
    |                    ^^^^^^^ unknown field
    |
    = note: available fields are: `string`, `int`
 
 error[E0599]: no method named `unknown` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/html-component-fail.rs:64:20
+  --> $DIR/html-component-fail.rs:81:20
    |
 6  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `unknown` not found for this
 ...
-64 |     html! { <Child unknown="unknown" /> };
+81 |     html! { <Child unknown="unknown" /> };
    |                    ^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<(), std::string::String>` is not satisfied
-  --> $DIR/html-component-fail.rs:66:33
+  --> $DIR/html-component-fail.rs:83:33
    |
-66 |     html! { <Child int=1 string={} /> };
+83 |     html! { <Child int=1 string={} /> };
    |                                 ^^ the trait `yew::virtual_dom::Transformer<(), std::string::String>` is not implemented for `yew::virtual_dom::vcomp::VComp`
    |
    = help: the following implementations were found:
@@ -142,9 +142,9 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<{integer}, std::string::String>` is not satisfied
-  --> $DIR/html-component-fail.rs:67:33
+  --> $DIR/html-component-fail.rs:84:33
    |
-67 |     html! { <Child int=1 string=3 /> };
+84 |     html! { <Child int=1 string=3 /> };
    |                                 ^ the trait `yew::virtual_dom::Transformer<{integer}, std::string::String>` is not implemented for `yew::virtual_dom::vcomp::VComp`
    |
    = help: the following implementations were found:
@@ -156,9 +156,9 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<{integer}, std::string::String>` is not satisfied
-  --> $DIR/html-component-fail.rs:68:33
+  --> $DIR/html-component-fail.rs:85:33
    |
-68 |     html! { <Child int=1 string={3} /> };
+85 |     html! { <Child int=1 string={3} /> };
    |                                 ^^^ the trait `yew::virtual_dom::Transformer<{integer}, std::string::String>` is not implemented for `yew::virtual_dom::vcomp::VComp`
    |
    = help: the following implementations were found:
@@ -170,15 +170,15 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0308]: mismatched types
-  --> $DIR/html-component-fail.rs:69:30
+  --> $DIR/html-component-fail.rs:86:30
    |
-69 |     html! { <Child int=1 ref=() /> };
+86 |     html! { <Child int=1 ref=() /> };
    |                              ^^ expected struct `yew::html::NodeRef`, found `()`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<u32, i32>` is not satisfied
-  --> $DIR/html-component-fail.rs:71:24
+  --> $DIR/html-component-fail.rs:88:24
    |
-71 |     html! { <Child int=0u32 /> };
+88 |     html! { <Child int=0u32 /> };
    |                        ^^^^ the trait `yew::virtual_dom::Transformer<u32, i32>` is not implemented for `yew::virtual_dom::vcomp::VComp`
    |
    = help: the following implementations were found:
@@ -190,12 +190,12 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/html-component-fail.rs:72:20
+  --> $DIR/html-component-fail.rs:89:20
    |
 6  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `string` not found for this
 ...
-72 |     html! { <Child string="abc" /> };
+89 |     html! { <Child string="abc" /> };
    |                    ^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
    |
    = help: items from traits can only be used if the trait is implemented and in scope
@@ -203,23 +203,23 @@ error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<Ch
            candidate #1: `proc_macro::bridge::server::Literal`
 
 error[E0599]: no method named `children` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/html-component-fail.rs:76:5
+  --> $DIR/html-component-fail.rs:93:5
    |
 6  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `children` not found for this
 ...
-76 |     html! { <Child>{ "Not allowed" }</Child> };
+93 |     html! { <Child>{ "Not allowed" }</Child> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
    |
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0599]: no method named `build` found for type `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
-  --> $DIR/html-component-fail.rs:78:5
+  --> $DIR/html-component-fail.rs:95:5
    |
-23 | #[derive(Clone, Properties)]
+29 | #[derive(Clone, Properties)]
    |                 ---------- method `build` not found for this
 ...
-78 |     html! { <ChildContainer /> };
+95 |     html! { <ChildContainer /> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
    |
    = help: items from traits can only be used if the trait is implemented and in scope
@@ -228,12 +228,12 @@ error[E0599]: no method named `build` found for type `ChildContainerPropertiesBu
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0599]: no method named `build` found for type `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
-  --> $DIR/html-component-fail.rs:79:5
+  --> $DIR/html-component-fail.rs:96:5
    |
-23 | #[derive(Clone, Properties)]
+29 | #[derive(Clone, Properties)]
    |                 ---------- method `build` not found for this
 ...
-79 |     html! { <ChildContainer></ChildContainer> };
+96 |     html! { <ChildContainer></ChildContainer> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
    |
    = help: items from traits can only be used if the trait is implemented and in scope
@@ -242,9 +242,9 @@ error[E0599]: no method named `build` found for type `ChildContainerPropertiesBu
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<&str>` is not satisfied
-  --> $DIR/html-component-fail.rs:80:5
+  --> $DIR/html-component-fail.rs:97:5
    |
-80 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
+97 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<&str>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
    |
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `&str`
@@ -252,9 +252,9 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::conv
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
-  --> $DIR/html-component-fail.rs:81:5
+  --> $DIR/html-component-fail.rs:98:5
    |
-81 |     html! { <ChildContainer><></></ChildContainer> };
+98 |     html! { <ChildContainer><></></ChildContainer> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
    |
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
@@ -262,9 +262,9 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::conv
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
-  --> $DIR/html-component-fail.rs:82:5
+  --> $DIR/html-component-fail.rs:99:5
    |
-82 |     html! { <ChildContainer><other /></ChildContainer> };
+99 |     html! { <ChildContainer><other /></ChildContainer> };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
    |
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`

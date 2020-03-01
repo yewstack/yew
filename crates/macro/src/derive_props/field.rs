@@ -5,15 +5,15 @@ use std::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::TryFrom;
 use syn::parse::Result;
 use syn::spanned::Spanned;
-use syn::{
-    Error, ExprPath, Field, Lit, Meta, MetaList, MetaNameValue, NestedMeta, Type, Visibility,
-};
+use syn::{Error, Expr, Field, Type, Visibility};
 
+#[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]
 enum PropAttr {
     Required { wrapped_name: Ident },
-    Default { default: ExprPath },
-    None,
+    PropOr(Expr),
+    PropOrElse(Expr),
+    PropOrDefault,
 }
 
 #[derive(Eq)]
@@ -83,25 +83,21 @@ impl PropField {
                     #wrapped_name: ::std::option::Option::None,
                 }
             }
-            PropAttr::Default { default } => {
+            PropAttr::PropOr(value) => {
                 let name = &self.name;
-                let ty = &self.ty;
-                let span = default.span();
-                // Hacks to avoid misleading error message.
+                let span = value.span();
                 quote_spanned! {span=>
-                    #name: {
-                        match true {
-                            #[allow(unreachable_code)]
-                            false => {
-                                let __unreachable: #ty = ::std::unreachable!();
-                                __unreachable
-                            },
-                            true => #default()
-                        }
-                    },
+                    #name: #value,
                 }
             }
-            PropAttr::None => {
+            PropAttr::PropOrElse(func) => {
+                let name = &self.name;
+                let span = func.span();
+                quote_spanned! {span=>
+                    #name: (#func)(),
+                }
+            }
+            PropAttr::PropOrDefault => {
                 let name = &self.name;
                 quote! {
                     #name: ::std::default::Default::default(),
@@ -143,67 +139,28 @@ impl PropField {
         }
     }
 
-    // Detect `#[props(required)]` or `#[props(default="...")]` attribute
-    fn attribute(named_field: &syn::Field) -> Result<PropAttr> {
-        let meta_list = if let Some(meta_list) = Self::find_props_meta_list(named_field) {
-            meta_list
-        } else {
-            return Ok(PropAttr::None);
-        };
+    // Detect Properties 2.0 attributes
+    fn attribute(named_field: &Field) -> Result<PropAttr> {
+        let attr = named_field.attrs.iter().find(|attr| {
+            attr.path.is_ident("prop_or")
+                || attr.path.is_ident("prop_or_else")
+                || attr.path.is_ident("prop_or_default")
+        });
 
-        let expected_attr = syn::Error::new(
-            meta_list.span(),
-            "expected `props(required)` or `#[props(default=\"...\")]`",
-        );
-        let first_nested = if let Some(first_nested) = meta_list.nested.first() {
-            first_nested
-        } else {
-            return Err(expected_attr);
-        };
-        match first_nested {
-            NestedMeta::Meta(Meta::Path(word_path)) => {
-                if !word_path.is_ident("required") {
-                    return Err(expected_attr);
-                }
-
-                if let Some(ident) = &named_field.ident {
-                    let wrapped_name = Ident::new(&format!("{}_wrapper", ident), Span::call_site());
-                    Ok(PropAttr::Required { wrapped_name })
-                } else {
-                    unreachable!()
-                }
+        if let Some(attr) = attr {
+            if attr.path.is_ident("prop_or") {
+                Ok(PropAttr::PropOr(attr.parse_args()?))
+            } else if attr.path.is_ident("prop_or_else") {
+                Ok(PropAttr::PropOrElse(attr.parse_args()?))
+            } else if attr.path.is_ident("prop_or_default") {
+                Ok(PropAttr::PropOrDefault)
+            } else {
+                unreachable!()
             }
-            NestedMeta::Meta(Meta::NameValue(name_value)) => {
-                let MetaNameValue { path, lit, .. } = name_value;
-
-                if !path.is_ident("default") {
-                    return Err(expected_attr);
-                }
-
-                if let Lit::Str(lit_str) = lit {
-                    let default = lit_str.parse()?;
-                    Ok(PropAttr::Default { default })
-                } else {
-                    Err(expected_attr)
-                }
-            }
-            _ => Err(expected_attr),
-        }
-    }
-
-    fn find_props_meta_list(field: &syn::Field) -> Option<MetaList> {
-        let meta_list = field
-            .attrs
-            .iter()
-            .find_map(|attr| match attr.parse_meta().ok()? {
-                Meta::List(meta_list) => Some(meta_list),
-                _ => None,
-            })?;
-
-        if meta_list.path.is_ident("props") {
-            Some(meta_list)
         } else {
-            None
+            let ident = named_field.ident.as_ref().unwrap();
+            let wrapped_name = Ident::new(&format!("{}_wrapper", ident), Span::call_site());
+            Ok(PropAttr::Required { wrapped_name })
         }
     }
 }

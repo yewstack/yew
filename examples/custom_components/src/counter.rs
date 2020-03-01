@@ -7,12 +7,6 @@ pub enum Color {
     Blue,
 }
 
-impl Default for Color {
-    fn default() -> Self {
-        Color::Green
-    }
-}
-
 pub struct Counter {
     link: ComponentLink<Self>,
     value: u32,
@@ -26,9 +20,10 @@ pub enum Msg {
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
+    #[prop_or_default]
     pub initial: u32,
+    #[prop_or(Color::Green)]
     pub color: Color,
-    #[props(required)]
     pub onclick: Callback<u32>,
 }
 
