@@ -33,14 +33,19 @@
 //! ```
 
 use crate::callback::Callback;
-use crate::html::{ChangeData, Component, ComponentLink, Html, ShouldRender};
+use crate::html::{ChangeData, Component, ComponentLink, Html, NodeRef, ShouldRender};
 use crate::macros::{html, Properties};
+use crate::services::ConsoleService;
 use cfg_match::cfg_match;
+use std::fmt::Debug;
+use stdweb::web::html_element::SelectElement;
 
 /// `Select` component.
 #[derive(Debug)]
-pub struct Select<T: ToString + PartialEq + Clone + 'static> {
+pub struct Select<T: ToString + PartialEq + Clone + Debug + 'static> {
     props: Props<T>,
+    console: ConsoleService,
+    select_ref: NodeRef,
     link: ComponentLink<Self>,
 }
 
@@ -53,7 +58,7 @@ pub enum Msg {
 
 /// Properties of `Select` component.
 #[derive(PartialEq, Clone, Properties, Debug)]
-pub struct Props<T: Clone> {
+pub struct Props<T: Clone + Debug> {
     /// Initially selected value.
     #[prop_or_default]
     pub selected: Option<T>,
@@ -69,16 +74,22 @@ pub struct Props<T: Clone> {
 
 impl<T> Component for Select<T>
 where
-    T: ToString + PartialEq + Clone + 'static,
+    T: ToString + PartialEq + Clone + Debug + 'static,
 {
     type Message = Msg;
     type Properties = Props<T>;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { props, link }
+        Self {
+            props,
+            link,
+            select_ref: NodeRef::default(),
+            console: ConsoleService::new(),
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        self.console.log("update");
         match msg {
             Msg::Selected(value) => {
                 if let Some(idx) = value {
@@ -93,6 +104,24 @@ where
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.console.log("change");
+        if self.props.selected != props.selected {
+            self.console.log(
+                format!(
+                    "selected changed: {:?} -> {:?}",
+                    self.props.selected, props.selected
+                )
+                .as_str(),
+            );
+            if let Some(select) = self.select_ref.cast::<SelectElement>() {
+                let val = props
+                    .selected
+                    .as_ref()
+                    .map(|v| v.to_string())
+                    .unwrap_or("".into());
+                select.set_raw_value(&val);
+            }
+        }
         self.props = props;
         true
     }
@@ -102,13 +131,13 @@ where
         let view_option = |value: &T| {
             let flag = selected == Some(value);
             html! {
-                <option selected=flag>{ value.to_string() }</option>
+                <option value=value.to_string() selected=flag>{ value.to_string() }</option>
             }
         };
 
         html! {
-            <select disabled=self.props.disabled onchange=self.onchange()>
-                <option disabled=true selected=selected.is_none()>
+            <select ref=self.select_ref.clone() disabled=self.props.disabled onchange=self.onchange()>
+                <option value="" disabled=true selected=selected.is_none()>
                     { "↪" }
                 </option>
                 { for self.props.options.iter().map(view_option) }
@@ -119,7 +148,7 @@ where
 
 impl<T> Select<T>
 where
-    T: ToString + PartialEq + Clone + 'static,
+    T: ToString + PartialEq + Clone + Debug + 'static,
 {
     fn onchange(&self) -> Callback<ChangeData> {
         self.link.callback(|event| match event {
