@@ -17,7 +17,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::{spawn_local, JsFuture};
 use web_sys::{
-    AbortController, DomException, Headers, ReferrerPolicy, Request as WebRequest, RequestInit,
+    AbortController, Headers, ReferrerPolicy, Request as WebRequest, RequestInit,
     Response as WebResponse,
 };
 
@@ -138,8 +138,6 @@ enum FetchError {
     InvalidResponse,
     #[error("unexpected error, please report")]
     InternalError,
-    #[error("network failure")]
-    NetworkFailure,
 }
 
 #[derive(Debug)]
@@ -195,6 +193,7 @@ impl FetchService {
     ///# use yew::{Component, ComponentLink, Html, Renderable};
     ///# use yew::services::FetchService;
     ///# use yew::services::fetch::{Response, Request};
+    ///# use anyhow::Error;
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
@@ -234,6 +233,7 @@ impl FetchService {
     ///# use yew::services::fetch::Response;
     ///# use yew::{Component, ComponentLink, Renderable, Html};
     ///# use serde_derive::Deserialize;
+    ///# use anyhow::Error;
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
@@ -286,6 +286,7 @@ impl FetchService {
     ///# use yew::{Renderable, Html, Component, ComponentLink};
     ///# use yew::services::FetchService;
     ///# use http::Response;
+    ///# use anyhow::Error;
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;
@@ -433,7 +434,11 @@ where
     // Notice that the callback signature must match the call from the javascript
     // side. There is no static check at this point.
     fn callback(&self, data: Result<DATA, Error>, status: u16, headers: Option<Headers>) {
-        let mut response_builder = Response::builder().status(status);
+        let mut response_builder = Response::builder();
+        if let Ok(status) = StatusCode::from_u16(status) {
+            response_builder = response_builder.status(status);
+        }
+
         if let Some(headers) = headers {
             for (key, value) in header_iter(headers) {
                 response_builder = response_builder.header(key.as_str(), value.as_str());
@@ -449,15 +454,9 @@ where
     }
 
     async fn get_response(&self, fetch_promise: Promise) -> Result<WebResponse, FetchError> {
-        let response = JsFuture::from(fetch_promise).await.map_err(|err| {
-            let dom_exception = DomException::from(err);
-            match dom_exception.code() {
-                DomException::ABORT_ERR => FetchError::Canceled,
-                DomException::NETWORK_ERR => FetchError::NetworkFailure,
-                _ => FetchError::FetchFailed,
-            }
-        })?;
-
+        let response = JsFuture::from(fetch_promise)
+            .await
+            .map_err(|_| FetchError::FetchFailed)?;
         if *self.active.borrow() {
             Ok(WebResponse::from(response))
         } else {
@@ -570,46 +569,6 @@ impl WindowOrWorker {
         match self {
             Self::Window(window) => window.fetch_with_request_and_init(input, init),
             Self::Worker(worker) => worker.fetch_with_request_and_init(input, init),
-        }
-    }
-}
-
-#[cfg(test)]
-#[cfg(feature = "wasm_test")]
-mod tests {
-    use super::*;
-    use crate::callback::test_util::CallbackFuture;
-    use crate::format::{Json, Nothing};
-    use serde::Deserialize;
-    use std::collections::HashMap;
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    #[derive(Deserialize, Debug)]
-    struct HttpBin {
-        headers: HashMap<String, String>,
-        origin: String,
-        url: String,
-    }
-
-    #[test]
-    async fn fetch_redirect_default() {
-        let request = Request::get("https://httpbin.org/relative-redirect/1")
-            .body(Nothing)
-            .unwrap();
-        let options = FetchOptions::default();
-        let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, Error>>>>::default();
-        let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new()
-            .fetch_with_options(request, options, callback)
-            .expect("failed to fetch");
-        let resp = cb_future.await;
-        assert_eq!(resp.status(), StatusCode::OK);
-        if let Json(Ok(http_bin)) = resp.body() {
-            assert_eq!(http_bin.url, String::from("https://httpbin.org/get"));
-        } else {
-            assert!(false, "unexpected resp: {:#?}", resp);
         }
     }
 }
