@@ -1,5 +1,42 @@
 # Changelog
 
+## ✨ **0.13** *(2020-03-01)*
+
+`web-sys` support has arrived! [@daxpedda] spear-headed the effort and courageously integrated `web-sys` while maintaining support for `stdweb` through no small amount of `cfg` macro usage. We chose to continue support for apps built with `stdweb` because the dev experience is still quite a bit better _(Unfortunately `cargo-web` is incompatible with `web-sys`)_. However, the Yew team recognizes that the future of `cargo-web` of `stdweb` are uncertain. For this reason, we recommend devs start making the switch over to `web-sys` and `wasm-bindgen`. We will likely invest in improving the dev experience with these tools so that switching over is eventually a no-brainer. Please reach out with ideas and feedback for this migration through Github issues and in our Gitter chatroom!
+
+After upgrading to v0.13, devs will now have to opt in to either `stdweb` or `web-sys` by using either the `"web_sys"` or `"std_web"` on the `yew` crate in their `Cargo.toml`.
+
+```toml
+# Choose `stdweb`
+yew = { version = "0.13", features = ["std_web"] }
+
+# Choose `web-sys`
+yew = { version = "0.13", features = ["web_sys"] }
+```
+
+Lastly, take note that API docs on https://docs.rs/yew will be using the `"web_sys"` feature. For `"std_web"` docs, please visit https://docs.rs/yew-stdweb.
+
+#### Changelog
+
+- #### ⚡️ Features
+
+  - Added support for building apps with `web-sys`. [[@daxpedda], [#961](https://github.com/yewstack/yew/pull/961)]
+  - Properties 2.0 [[@AlephAlpha], [#975](https://github.com/yewstack/yew/pull/975)]
+
+    Component properties are now assumed to be required unless otherwise annotated with a default value. Check out the proposal issue [#928](https://github.com/yewstack/yew/issues/928) for more details!
+
+- #### 🛠 Fixes
+
+  - Fixed `Component` children re-rendering bug. [[@jstarry], [#980](https://github.com/yewstack/yew/pull/980)]
+  - Fixed panic when interacting with agents after receiving an agent message. [[@jstarry], [#981](https://github.com/yewstack/yew/pull/981)]
+  - Fixed panic when a component with a root `VRef` node is detached. [[@jstarry], [#983](https://github.com/yewstack/yew/pull/983)]
+  - Fixed annoying warning when a component with a root `VTag` node is detached. [[@jstarry], [#983](https://github.com/yewstack/yew/pull/983)]
+
+- #### 🚨 Breaking changes
+
+  - Changed `Properties` macro behavior. Check out the proposal issue [#928](https://github.com/yewstack/yew/issues/928) for more details! [[@AlephAlpha], [#975](https://github.com/yewstack/yew/pull/975)]
+  - Cleaned up exported apis and doc visibility. [[@jstarry], [#977](https://github.com/yewstack/yew/pull/977)]
+
 ## ✨ **0.12** *(2020-02-16)*
 
 - #### ⚡️ Features
