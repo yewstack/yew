@@ -3,6 +3,7 @@
 use super::{VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{Component, Renderable};
 use cfg_if::cfg_if;
+use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
@@ -39,9 +40,9 @@ impl VDiff for VNode {
             VNode::VList(ref mut vlist) => vlist.detach(parent),
             VNode::VRef(ref node) => {
                 let sibling = node.next_sibling();
-                parent
-                    .remove_child(node)
-                    .expect("can't remove node by VRef");
+                if parent.remove_child(node).is_err() {
+                    warn!("Node not found to remove VRef");
+                }
                 sibling
             }
         }
