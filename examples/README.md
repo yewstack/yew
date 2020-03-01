@@ -5,13 +5,13 @@
 To start an example, enter its directory and start it with [cargo-web]:
 
 ```bash
-cargo web start
+cargo web start --features std_web
 ```
 
-To run an optimised build instead of a debug build use:
+To run an optimized build instead of a debug build use:
 
 ```bash
-cargo web start --release
+cargo web start --release --features std_web
 ```
 
 The `wasm32-unknown-unknown` target will be used by default, which is Rust's native WebAssembly target. The Emscripten-based `wasm32-unknown-emscripten` and `asmjs-unknown-emscripten` targets are also supported if you tell the `cargo-web` to build for them using the `--target` parameter.
