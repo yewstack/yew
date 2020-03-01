@@ -193,6 +193,7 @@ impl FetchService {
     ///# use yew::{Component, ComponentLink, Html, Renderable};
     ///# use yew::services::FetchService;
     ///# use yew::services::fetch::{Response, Request};
+    ///# use anyhow::Error;
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
@@ -232,6 +233,7 @@ impl FetchService {
     ///# use yew::services::fetch::Response;
     ///# use yew::{Component, ComponentLink, Renderable, Html};
     ///# use serde_derive::Deserialize;
+    ///# use anyhow::Error;
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
@@ -284,6 +286,7 @@ impl FetchService {
     ///# use yew::{Renderable, Html, Component, ComponentLink};
     ///# use yew::services::FetchService;
     ///# use http::Response;
+    ///# use anyhow::Error;
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;
