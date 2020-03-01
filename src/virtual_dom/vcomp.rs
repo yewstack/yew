@@ -167,13 +167,7 @@ impl VDiff for VComp {
         match replace_state {
             MountState::Mounted(this) => {
                 (this.destroyer)();
-                this.node_ref.get().and_then(|node| {
-                    let next_sibling = node.next_sibling();
-                    parent
-                        .remove_child(&node)
-                        .expect("can't remove the component");
-                    next_sibling
-                })
+                this.node_ref.get().and_then(|node| node.next_sibling())
             }
             _ => None,
         }
