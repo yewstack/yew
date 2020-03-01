@@ -161,19 +161,13 @@ enum Reform {
 }
 
 impl VDiff for VComp {
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
+    fn detach(&mut self, _parent: &Element) -> Option<Node> {
         let mut replace_state = MountState::Detached;
         swap(&mut replace_state, &mut self.state);
         match replace_state {
             MountState::Mounted(this) => {
                 (this.destroyer)();
-                this.node_ref.get().and_then(|node| {
-                    let next_sibling = node.next_sibling();
-                    parent
-                        .remove_child(&node)
-                        .expect("can't remove the component");
-                    next_sibling
-                })
+                this.node_ref.get().and_then(|node| node.next_sibling())
             }
             _ => None,
         }
