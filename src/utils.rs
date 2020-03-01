@@ -28,7 +28,7 @@ pub fn document() -> Document {
     }
 }
 
-/// Returns `host` for the current document. Useful to connect to a server that server the app.
+/// Returns `host` for the current document. Useful to connect to a server that serves the app.
 pub fn host() -> Result<String, Error> {
     let location = document()
         .location()
@@ -45,6 +45,26 @@ pub fn host() -> Result<String, Error> {
     })?;
 
     Ok(host)
+}
+
+/// Returns `origin` for the current window.
+pub fn origin() -> Result<String, Error> {
+    let location = window().location();
+
+    #[cfg(feature = "std_web")]
+    let location = location.ok_or_else(|| anyhow!("can't get location"))?;
+
+    #[cfg(feature = "std_web")]
+    let origin = location.origin().map_err(Error::from)?;
+
+    #[cfg(feature = "web_sys")]
+    let origin = location.origin().map_err(|e| {
+        anyhow!(e
+            .as_string()
+            .unwrap_or_else(|| String::from("error not recoverable")),)
+    })?;
+
+    Ok(origin)
 }
 
 /// Specialty type necessary for helping flattening components returned from nested html macros.
