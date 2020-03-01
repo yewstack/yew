@@ -364,7 +364,7 @@ impl Props {
         "Using special syntax `with props` along with named prop is not allowed. This rule does not apply to special `ref` prop"
     }
 
-    fn collect_props(input: ParseStream<'_>) -> ParseResult<Vec<HtmlProp>> {
+    fn collect_props(input: ParseStream) -> ParseResult<Vec<HtmlProp>> {
         let mut props: Vec<HtmlProp> = Vec::new();
         while HtmlProp::peek(input.cursor()).is_some() {
             props.push(input.parse::<HtmlProp>()?);
@@ -378,20 +378,34 @@ impl Props {
         ListProps { props, node_ref }
     }
 
-    fn return_type(input: ParseStream) -> Option<PropType> {
-        loop {
-            if let Some((token, _)) = input.cursor().ident() {
-                input.parse::<HtmlProp>();
-                println!("Token {}", token);
-                // it will skip all `ref's`
-                if token != "with" && token != "ref" {
-                    return Some(PropType::List);
-                }
-                if token == "with" {
-                    return Some(PropType::With);
-                }
+    fn return_type(input: ParseStream) -> ParseResult<Option<PropType>> {
+        let stream = input.fork();
+        let mut is_with = false;
+        let mut ref_counter = 0;
+        let mut other_props = vec![];
+
+        while let Some((token, _)) = stream.cursor().ident() {
+            let _ = stream.parse::<HtmlProp>();
+            if token != "with" && token != "ref" {
+                other_props.push(token.clone());
+                //  return Some(PropType::List);
+            }
+            if token == "with" {
+                is_with = true;
+                // return Some(PropType::With);
+            }
+            if token == "ref" {
+                ref_counter = ref_counter + 1;
             }
         }
+
+
+
+        println!(
+            "IS_WITH::{}, REF_COUNTER::{}, OTHER_PROPS::{:?}",
+            is_with, ref_counter, other_props
+        );
+        Ok(Some(PropType::List))
     }
 
     fn main_parser(input: ParseStream) -> ParseResult<Vec<HtmlProp>> {
@@ -445,21 +459,20 @@ impl Props {
     }
 
     fn get_type(input: ParseStream) -> ParseResult<Option<PropType>> {
-       // let mut qwerty = Props::main_parser(input.clone()); //Props::peek(input.cursor());
-        let props_type = Props::return_type(&input.fork()); //Props::peek(input.cursor());
-        match props_type {
-            Some(PropType::With)=>println!("with"),
-            Some(PropType::List)=>println!("list"),
-            None=>println!("none"),
+        // let mut qwerty = Props::main_parser(input.clone()); //Props::peek(input.cursor());
+        let props_type = match Props::return_type(input) {
+            Ok(value) => value,
+            Err(e) => None
+        };
 
+
+        match props_type {
+            Some(PropType::With) => println!("props_type::with"),
+            Some(PropType::List) => println!("props_type::list"),
+            None => println!("none"),
         }
         let props = Props::collect_props(input)?;
-        println!("STREAM {}", input.cursor().token_stream());
-        // if !props.is_empty(){
-        //     if props[0].label.to_string() == "ref" {
-
-        //     }
-        // }
+        //   println!("STREAM {}", props[0].label.to_string());
 
         Props::handle_errors(&props, &props_type)?;
 
@@ -468,6 +481,7 @@ impl Props {
 
     fn handle_errors(props: &Vec<HtmlProp>, prop_type: &Option<PropType>) -> ParseResult<()> {
         let mut ref_indicator: u8 = 0;
+        println!("PROPS {}", props.len());
         for prop in props {
             if prop.label.to_string() == "ref" {
                 ref_indicator = ref_indicator + 1;
@@ -502,11 +516,8 @@ impl PeekValue<PropType> for Props {
         let (ident, _) = cursor.ident()?;
 
         let prop_type = if ident == "with" {
-            println!("IDENT {}", ident);
-
             PropType::With
         } else {
-            println!("LIST");
             PropType::List
         };
 
@@ -531,7 +542,6 @@ struct ListProps {
 
 impl Parse for ListProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        println!("LIST");
         match Props::peek(input.cursor()) {
             Some(PropType::With) => return Err(input.error(Props::collision_message())),
             _ => (),
@@ -569,8 +579,6 @@ struct WithProps {
 
 impl Parse for WithProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        println!("WITH");
-
         let with = input.parse::<Ident>()?;
         if with != "with" {
             return Err(input.error("expected to find `with` token"));
@@ -581,29 +589,23 @@ impl Parse for WithProps {
 
         // Check for the ref tag after `with`
         let mut node_ref = None;
-        println!("IS 1 SOME {}", input.cursor().token_stream());
+        println!(
+            "WITH PROPS STREAM::{}, is_some {}",
+            input.cursor().token_stream(),
+            input.cursor().ident().is_some()
+        );
 
         if input.cursor().ident().is_some() {
-            println!("IS SOME");
             let ListProps {
-                props: list_props,
                 node_ref: reference,
+                ..
             } = Props::remove_refs(Props::collect_props(input)?);
             node_ref = reference;
+            println!("IS SOME {}", input.cursor().ident().is_some());
 
-            // for prop in &list_props {
-            //     if prop.label.to_string() == "ref" {
-            //         return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
-            //     } else {
-            //         return Err(syn::Error::new_spanned(
-            //             &prop.label,
-            //             Props::collision_message(),
-            //         ));
-            //     }
-            // }
             if let Some(ident) = input.cursor().ident() {
                 let prop = input.parse::<HtmlProp>()?;
-                println!("IDENT !!! {}", ident.0);
+                println!("WITJ IF SOME IDENT {}", ident.0);
                 if ident.0 == "ref" {
                     node_ref = Some(prop.value);
                 } else {
