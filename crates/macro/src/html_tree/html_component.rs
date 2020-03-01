@@ -378,136 +378,62 @@ impl Props {
         ListProps { props, node_ref }
     }
 
-    fn return_type(input: ParseStream) -> ParseResult<Option<PropType>> {
+    fn return_type(input: ParseStream) -> ParseResult<PropType> {
         let stream = input.fork();
         let mut is_with = false;
         let mut ref_counter = 0;
-        let mut other_props = vec![];
+        let mut props_counter = 0;
 
         while let Some((token, _)) = stream.cursor().ident() {
-            let _ = stream.parse::<HtmlProp>();
-            if token != "with" && token != "ref" {
-                other_props.push(token.clone());
-                //  return Some(PropType::List);
-            }
+            let prop_value = stream.parse::<HtmlProp>();
             if token == "with" {
                 is_with = true;
-                // return Some(PropType::With);
             }
-            if token == "ref" {
-                ref_counter = ref_counter + 1;
+            if is_with && (props_counter - ref_counter) > 0 {
+                return Err(syn::Error::new_spanned(&token, Props::collision_message()));
+            }
+            if let Ok(prop) = prop_value {
+                if prop.label.to_string() == "ref" {
+                    ref_counter = ref_counter + 1;
+                    if ref_counter > 1 {
+                        return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
+                    }
+                } else {
+                    if is_with {
+                        return Err(syn::Error::new_spanned(&token, Props::collision_message()));
+                    }
+                }
+                if prop.label.to_string() == "type" {
+                    return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
+                }
+                if !prop.label.extended.is_empty() {
+                    return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
+                }
+                props_counter = props_counter + 1;
             }
         }
-
-
-
-        println!(
-            "IS_WITH::{}, REF_COUNTER::{}, OTHER_PROPS::{:?}",
-            is_with, ref_counter, other_props
-        );
-        Ok(Some(PropType::List))
-    }
-
-    fn main_parser(input: ParseStream) -> ParseResult<Vec<HtmlProp>> {
-        let mut props: Vec<HtmlProp> = Vec::new();
-        let mut with_exist = false;
-        let mut ref_counter = 0;
-
-        loop {
-            println!("STREAM {}", input.cursor().token_stream());
-            if let Some((with, _)) = input.cursor().ident() {
-                println!("START IDENT {}", with);
-            }
-            let prop = input.parse::<HtmlProp>();
-            if let Some((with, _)) = input.cursor().ident() {
-                if !with_exist && with == "with" {
-                    with_exist = true
-                }
-            }
-            match prop {
-                Ok(v) => {
-                    if v.label.to_string() == "ref" {
-                        ref_counter = ref_counter + 1;
-
-                        if ref_counter > 1 {
-                            break;
-                            //  return Err(syn::Error::new_spanned(&v.label, "too many refs set"));
-                        }
-                    }
-
-                    println!("PUSH VALUE {}", v.label.to_string());
-                    props.push(v);
-                    println!("PUSH VALUE {}", props.len());
-                }
-                Err(e) => {
-                    println!("ERROR {}", input.cursor().token_stream());
-                    if let Some(value) = input.cursor().ident() {
-                        println!("ERROR IDENT{}", value.0);
-                    }
-                    break;
-                }
-            }
+        if is_with {
+            Ok(PropType::With)
+        } else {
+            Ok(PropType::List)
         }
-        println!(
-            "LENGTH {}, {}, counter:: {}",
-            props.len(),
-            with_exist,
-            ref_counter
-        );
-
-        Ok(props)
     }
 
     fn get_type(input: ParseStream) -> ParseResult<Option<PropType>> {
-        // let mut qwerty = Props::main_parser(input.clone()); //Props::peek(input.cursor());
         let props_type = match Props::return_type(input) {
-            Ok(value) => value,
-            Err(e) => None
+            Ok(props) => Some(props),
+            Err(_) => None,
         };
-
 
         match props_type {
             Some(PropType::With) => println!("props_type::with"),
             Some(PropType::List) => println!("props_type::list"),
             None => println!("none"),
         }
-        let props = Props::collect_props(input)?;
-        //   println!("STREAM {}", props[0].label.to_string());
+        let _ = Props::collect_props(input)?;
 
-        Props::handle_errors(&props, &props_type)?;
-
+        println!("RETURN TYPE");
         Ok(props_type)
-    }
-
-    fn handle_errors(props: &Vec<HtmlProp>, prop_type: &Option<PropType>) -> ParseResult<()> {
-        let mut ref_indicator: u8 = 0;
-        println!("PROPS {}", props.len());
-        for prop in props {
-            if prop.label.to_string() == "ref" {
-                ref_indicator = ref_indicator + 1;
-                if ref_indicator > 1 {
-                    return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
-                }
-            }
-            match prop_type {
-                Some(PropType::List) => {
-                    if prop.label.to_string() == "type" {
-                        return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
-                    }
-                    if !prop.label.extended.is_empty() {
-                        return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
-                    }
-                }
-                Some(PropType::With) => {
-                    if ref_indicator == 0 {
-                        return Err(syn::Error::new_spanned(&prop.label, ref_indicator));
-                    }
-                }
-                None => (),
-            }
-        }
-
-        Ok(())
     }
 }
 
@@ -529,7 +455,16 @@ impl Parse for Props {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         match Props::get_type(input)? {
             Some(PropType::List) => input.parse().map(|l| Props::List(Box::new(l))),
-            Some(PropType::With) => input.parse().map(|w| Props::With(Box::new(w))),
+            Some(PropType::With) => {
+                let result = input.parse().map(|w| Props::With(Box::new(w)));
+                match result {
+                    Ok(v) => Ok(v),
+                    Err(e) => {
+                        println!("MY ERROR");
+                        return Err(input.error("MY"));
+                    }
+                }
+            }
             None => Ok(Props::None),
         }
     }
@@ -542,11 +477,6 @@ struct ListProps {
 
 impl Parse for ListProps {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        match Props::peek(input.cursor()) {
-            Some(PropType::With) => return Err(input.error(Props::collision_message())),
-            _ => (),
-        };
-
         let ListProps {
             mut props,
             node_ref,
@@ -589,11 +519,6 @@ impl Parse for WithProps {
 
         // Check for the ref tag after `with`
         let mut node_ref = None;
-        println!(
-            "WITH PROPS STREAM::{}, is_some {}",
-            input.cursor().token_stream(),
-            input.cursor().ident().is_some()
-        );
 
         if input.cursor().ident().is_some() {
             let ListProps {
@@ -601,15 +526,11 @@ impl Parse for WithProps {
                 ..
             } = Props::remove_refs(Props::collect_props(input)?);
             node_ref = reference;
-            println!("IS SOME {}", input.cursor().ident().is_some());
 
             if let Some(ident) = input.cursor().ident() {
                 let prop = input.parse::<HtmlProp>()?;
-                println!("WITJ IF SOME IDENT {}", ident.0);
                 if ident.0 == "ref" {
                     node_ref = Some(prop.value);
-                } else {
-                    return Err(syn::Error::new_spanned(&prop.label, "unexpected token"));
                 }
             }
         }
