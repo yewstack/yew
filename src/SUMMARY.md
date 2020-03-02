@@ -4,11 +4,14 @@
 
 ## Getting Started
 
-* [Installation](getting-started/getting-started.md)
-* [Build a Sample App](getting-started/build-a-sample-app.md)
-* [Build Environment](getting-started/build-environment.md)
+* [Project Setup](getting-started/project-setup/README.md)
+  * [Using wasm-pack](getting-started/project-setup/using-wasm-pack.md)
+  * [Using wasm-bindgen](getting-started/project-setup/using-wasm-bindgen.md)
+  * [Using cargo-web](getting-started/project-setup/using-cargo-web.md)
 * [Starter Templates](getting-started/starter-templates.md)
-* [Examples](getting-started/examples.md)
+* [Build a Sample App](getting-started/build-a-sample-app.md)
+* [Choose web-sys or stdweb](getting-started/choose-web-library.md)
+* [Learn through examples](getting-started/examples.md)
 
 ## Core Concepts <a id="concepts"></a>
 
@@ -37,5 +40,4 @@
 * [Roadmap](more/roadmap.md)
 * [Testing](more/testing.md)
 * [External Libs](more/external-libs.md)
-* [web-sys / stdweb](more/web-sys.md)
 
