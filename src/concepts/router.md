@@ -44,4 +44,3 @@ For structs and enums with named fields, you must specify the field's name withi
 
 The Switch trait works with capture groups that are more structured than just Strings. You can specify any type that implements `Switch`. So you can specify that the capture group is a `usize`, and if the captured section of the URL can't be converted to it, then the variant won't match.
 
-
