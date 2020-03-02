@@ -21,7 +21,7 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-yew = "0.11.0"
+yew = { version = "0.13.0", features = ["web_sys" OR "std_web"] }
 wasm-bindgen = "0.2"
 ```
 {% endcode %}
