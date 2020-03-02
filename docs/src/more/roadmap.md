@@ -9,12 +9,13 @@ description: The planned feature roadmap for the Yew framework
 #### Planned Features
 
 * Keyed list items [https://github.com/yewstack/yew/issues/479](https://github.com/yewstack/yew/issues/479)
-* Migrate from `stdweb` to `web-sys` & `js-sys` [https://github.com/yewstack/yew/issues/558](https://github.com/yewstack/yew/issues/558)
 * Routing: [https://github.com/yewstack/yew\_router](https://github.com/yewstack/yew_router)
 
-**Performance**
+#### Production Readiness
 
-* Add benchmark tooling [https://github.com/yewstack/yew/issues/5](https://github.com/yewstack/yew/issues/5)
+* Browser compatibility
+* Improve Yew framework test coverage
+* Add performance benchmarks [https://github.com/yewstack/yew/issues/5](https://github.com/yewstack/yew/issues/5)
 
 #### Guides
 
