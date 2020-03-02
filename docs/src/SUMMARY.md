@@ -37,4 +37,5 @@
 * [Roadmap](more/roadmap.md)
 * [Testing](more/testing.md)
 * [External Libs](more/external-libs.md)
-* [web-sys](more/web-sys.md)
+* [web-sys / stdweb](more/web-sys.md)
+
