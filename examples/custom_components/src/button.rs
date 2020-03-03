@@ -12,8 +12,8 @@ pub enum Msg {
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
+    #[prop_or_default]
     pub title: String,
-    #[props(required)]
     pub onsignal: Callback<()>,
 }
 

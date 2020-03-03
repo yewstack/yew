@@ -2,10 +2,18 @@
 
 use super::{VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{Component, Renderable};
+use cfg_if::cfg_if;
+use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
-use stdweb::web::{Element, INode, Node};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::web::{Element, INode, Node};
+    } else if #[cfg(feature = "web_sys")] {
+        use web_sys::{Element, Node};
+    }
+}
 
 /// Bind virtual element to a DOM reference.
 #[derive(Clone)]
@@ -32,9 +40,9 @@ impl VDiff for VNode {
             VNode::VList(ref mut vlist) => vlist.detach(parent),
             VNode::VRef(ref node) => {
                 let sibling = node.next_sibling();
-                parent
-                    .remove_child(node)
-                    .expect("can't remove node by VRef");
+                if parent.remove_child(node).is_err() {
+                    warn!("Node not found to remove VRef");
+                }
                 sibling
             }
         }
@@ -57,11 +65,22 @@ impl VDiff for VNode {
                     None => None,
                 };
                 if let Some(sibling) = sibling {
+                    let sibling = &sibling;
+                    #[cfg(feature = "web_sys")]
+                    let sibling = Some(sibling);
                     parent
-                        .insert_before(node, &sibling)
+                        .insert_before(node, sibling)
                         .expect("can't insert element before sibling");
                 } else {
-                    parent.append_child(node);
+                    #[cfg_attr(
+                        feature = "std_web",
+                        allow(clippy::let_unit_value, unused_variables)
+                    )]
+                    {
+                        let result = parent.append_child(node);
+                        #[cfg(feature = "web_sys")]
+                        result.expect("can't append node to parent");
+                    }
                 }
 
                 Some(node.to_owned())

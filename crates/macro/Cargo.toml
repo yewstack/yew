@@ -1,6 +1,6 @@
 [package]
 name = "yew-macro"
-version = "0.12.0"
+version = "0.13.0"
 edition = "2018"
 authors = ["Justin Starry <justin@yew.rs>"]
 repository = "https://github.com/yewstack/yew"
@@ -25,8 +25,11 @@ proc-macro2 = "1.0"
 quote = "1.0"
 syn = { version = "1.0", features = ["full", "extra-traits"] }
 
+# testing
 [dev-dependencies]
-yew = { path = "../.." }
+rustversion = "1.0"
+trybuild = "1.0"
+yew = { path = "../..", features = ["std_web"] }
 
 [build-dependencies]
 

@@ -1,11 +1,11 @@
 #![recursion_limit = "128"]
 
 mod event_bus;
-mod subscriber;
 mod producer;
+mod subscriber;
 
-use subscriber::Subsciber;
 use producer::Producer;
+use subscriber::Subsciber;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {}

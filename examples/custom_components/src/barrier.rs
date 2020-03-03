@@ -14,8 +14,8 @@ pub enum Msg {
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
+    #[prop_or_default]
     pub limit: u32,
-    #[props(required)]
     pub onsignal: Callback<()>,
 }
 

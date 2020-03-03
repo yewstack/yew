@@ -35,6 +35,7 @@
 use crate::callback::Callback;
 use crate::html::{ChangeData, Component, ComponentLink, Html, ShouldRender};
 use crate::macros::{html, Properties};
+use cfg_match::cfg_match;
 
 /// `Select` component.
 #[derive(Debug)]
@@ -54,13 +55,15 @@ pub enum Msg {
 #[derive(PartialEq, Clone, Properties, Debug)]
 pub struct Props<T: Clone> {
     /// Initially selected value.
+    #[prop_or_default]
     pub selected: Option<T>,
     /// Disabled the component's selector.
+    #[prop_or_default]
     pub disabled: bool,
     /// Options are available to choose.
+    #[prop_or_default]
     pub options: Vec<T>,
     /// Callback to handle changes.
-    #[props(required)]
     pub onchange: Callback<T>,
 }
 
@@ -121,7 +124,11 @@ where
     fn onchange(&self) -> Callback<ChangeData> {
         self.link.callback(|event| match event {
             ChangeData::Select(elem) => {
-                let value = elem.selected_index().map(|x| x as usize);
+                let value = elem.selected_index();
+                let value = cfg_match! {
+                    feature = "std_web" => value.map(|x| x as usize),
+                    feature = "web_sys" => Some(value as usize),
+                };
                 Msg::Selected(value)
             }
             _ => {

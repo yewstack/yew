@@ -1,21 +1,40 @@
 //! This module contains the implementation of reactive virtual dom concept.
 
+#[doc(hidden)]
 pub mod vcomp;
+#[doc(hidden)]
 pub mod vlist;
+#[doc(hidden)]
 pub mod vnode;
+#[doc(hidden)]
 pub mod vtag;
+#[doc(hidden)]
 pub mod vtext;
 
+use cfg_if::cfg_if;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
-use stdweb::web::{Element, EventListenerHandle, Node};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use crate::html::EventListener;
+        use stdweb::web::{Element, Node};
+    } else if #[cfg(feature = "web_sys")] {
+        use gloo::events::EventListener;
+        use web_sys::{Element, Node};
+    }
+}
 
+#[doc(inline)]
 pub use self::vcomp::{VChild, VComp};
+#[doc(inline)]
 pub use self::vlist::VList;
+#[doc(inline)]
 pub use self::vnode::VNode;
+#[doc(inline)]
 pub use self::vtag::VTag;
+#[doc(inline)]
 pub use self::vtext::VText;
 
 /// `Listener` trait is an universal implementation of an event listener
@@ -24,7 +43,7 @@ pub trait Listener {
     /// Returns standard name of DOM's event.
     fn kind(&self) -> &'static str;
     /// Attaches a listener to the element.
-    fn attach(&self, element: &Element) -> EventListenerHandle;
+    fn attach(&self, element: &Element) -> EventListener;
 }
 
 impl fmt::Debug for dyn Listener {
@@ -171,7 +190,7 @@ enum Reform {
 // `Ace` editor embedding for example?
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
-pub trait VDiff {
+pub(crate) trait VDiff {
     /// Remove itself from parent and return the next sibling.
     fn detach(&mut self, parent: &Element) -> Option<Node>;
 

@@ -15,15 +15,24 @@ pub mod storage;
 pub mod timeout;
 pub mod websocket;
 
+#[doc(inline)]
 pub use self::console::ConsoleService;
+#[doc(inline)]
 pub use self::dialog::DialogService;
 pub use self::fetch::FetchService;
+#[doc(inline)]
 pub use self::interval::IntervalService;
+#[doc(inline)]
 pub use self::reader::ReaderService;
+#[doc(inline)]
 pub use self::render::RenderService;
+#[doc(inline)]
 pub use self::resize::ResizeService;
+#[doc(inline)]
 pub use self::storage::StorageService;
+#[doc(inline)]
 pub use self::timeout::TimeoutService;
+#[doc(inline)]
 pub use self::websocket::WebSocketService;
 
 use std::time::Duration;

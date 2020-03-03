@@ -1,15 +1,70 @@
 //! This module contains useful utils to get information about the current document.
 
 use anyhow::{anyhow, Error};
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use std::marker::PhantomData;
-use stdweb::web::document;
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::web::{Document, Window};
+    } else if #[cfg(feature = "web_sys")] {
+        use web_sys::{Document, Window};
+    }
+}
 
-/// Returns `host` for the current document. Useful to connect to a server that server the app.
+/// Returns current window.
+pub fn window() -> Window {
+    cfg_match! {
+        feature = "std_web" => stdweb::web::window(),
+        feature = "web_sys" => web_sys::window().expect("no window available"),
+    }
+}
+
+/// Returns current document.
+pub fn document() -> Document {
+    cfg_match! {
+        feature = "std_web" => stdweb::web::document(),
+        feature = "web_sys" => window().document().unwrap(),
+    }
+}
+
+/// Returns `host` for the current document. Useful to connect to a server that serves the app.
 pub fn host() -> Result<String, Error> {
-    document()
+    let location = document()
         .location()
-        .ok_or_else(|| anyhow!("can't get location"))
-        .and_then(|l| l.host().map_err(Error::from))
+        .ok_or_else(|| anyhow!("can't get location"))?;
+
+    #[cfg(feature = "std_web")]
+    let host = location.host().map_err(Error::from)?;
+
+    #[cfg(feature = "web_sys")]
+    let host = location.host().map_err(|e| {
+        anyhow!(e
+            .as_string()
+            .unwrap_or_else(|| String::from("error not recoverable")),)
+    })?;
+
+    Ok(host)
+}
+
+/// Returns `origin` for the current window.
+pub fn origin() -> Result<String, Error> {
+    let location = window().location();
+
+    #[cfg(feature = "std_web")]
+    let location = location.ok_or_else(|| anyhow!("can't get location"))?;
+
+    #[cfg(feature = "std_web")]
+    let origin = location.origin().map_err(Error::from)?;
+
+    #[cfg(feature = "web_sys")]
+    let origin = location.origin().map_err(|e| {
+        anyhow!(e
+            .as_string()
+            .unwrap_or_else(|| String::from("error not recoverable")),)
+    })?;
+
+    Ok(origin)
 }
 
 /// Specialty type necessary for helping flattening components returned from nested html macros.

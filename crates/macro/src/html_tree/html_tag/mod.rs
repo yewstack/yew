@@ -147,7 +147,7 @@ impl ToTokens for HtmlTag {
 
             quote_spanned! {name.span()=> {
                 ::yew::html::#name::Wrapper::new(
-                    <::yew::virtual_dom::vtag::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
+                    <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
                         #callback
                     )
                 )
@@ -155,7 +155,7 @@ impl ToTokens for HtmlTag {
         });
 
         tokens.extend(quote! {{
-            let mut #vtag = ::yew::virtual_dom::vtag::VTag::new(#name);
+            let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
             #(#set_kind)*
             #(#set_value)*
             #(#add_href)*

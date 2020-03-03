@@ -4,6 +4,8 @@ use crate::callback::Callback;
 use crate::scheduler::{scheduler, Runnable, Shared};
 use anymap::{self, AnyMap};
 use bincode;
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use log::warn;
 use serde::{Deserialize, Serialize};
 use slab::Slab;
@@ -14,13 +16,22 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-use stdweb::Value;
-#[allow(unused_imports)]
-use stdweb::{_js_impl, js};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::Value;
+        #[allow(unused_imports)]
+        use stdweb::{_js_impl, js};
+    } else if #[cfg(feature = "web_sys")] {
+        use crate::utils;
+        use js_sys::{Array, Reflect, Uint8Array};
+        use wasm_bindgen::{closure::Closure, JsCast, JsValue};
+        use web_sys::{Blob, BlobPropertyBag, DedicatedWorkerGlobalScope, MessageEvent, Url, Worker, WorkerOptions};
+    }
+}
 
 /// Serializable messages to worker
 #[derive(Serialize, Deserialize, Debug)]
-pub enum ToWorker<T> {
+enum ToWorker<T> {
     /// Client is connected
     Connected(HandlerId),
     /// Incoming message to Worker
@@ -33,7 +44,7 @@ pub enum ToWorker<T> {
 
 /// Serializable messages sent by worker to consumer
 #[derive(Serialize, Deserialize, Debug)]
-pub enum FromWorker<T> {
+enum FromWorker<T> {
     /// Worker sends this message when `wasm` bundle has loaded.
     WorkerLoaded,
     /// Outgoing message to consumer
@@ -162,21 +173,29 @@ where
                 ToWorker::Destroy => {
                     let upd = AgentLifecycleEvent::Destroy;
                     scope.send(upd);
-                    js! {
-                        // Terminates web worker
-                        self.close();
+                    // Terminates web worker
+                    cfg_match! {
+                        feature = "std_web" => js! { self.close(); },
+                        feature = "web_sys" => worker_self().close(),
                     };
                 }
             }
         };
         let loaded: FromWorker<T::Output> = FromWorker::WorkerLoaded;
         let loaded = loaded.pack();
-        js! {
-            var handler = @{handler};
-            self.onmessage = function(event) {
-                handler(event.data);
-            };
-            self.postMessage(@{loaded});
+        cfg_match! {
+            feature = "std_web" => js! {
+                    var handler = @{handler};
+                    self.onmessage = function(event) {
+                        handler(event.data);
+                    };
+                    self.postMessage(@{loaded});
+            },
+            feature = "web_sys" => ({
+                let worker = worker_self();
+                worker.set_onmessage_closure(handler);
+                worker.post_message_vec(loaded);
+            }),
         };
     }
 }
@@ -243,7 +262,8 @@ impl<AGN: Agent> LocalAgent<AGN> {
 
     fn create_bridge(&mut self, callback: Option<Callback<AGN::Output>>) -> ContextBridge<AGN> {
         let respondable = callback.is_some();
-        let id: usize = self.slab.borrow_mut().insert(callback);
+        let mut slab = self.slab.borrow_mut();
+        let id: usize = slab.insert(callback);
         let id = HandlerId::new(id, respondable);
         ContextBridge {
             scope: self.scope.clone(),
@@ -270,7 +290,8 @@ impl Discoverer for Context {
     fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let mut scope_to_init = None;
         let bridge = LOCAL_AGENTS_POOL.with(|pool| {
-            match pool.borrow_mut().entry::<LocalAgent<AGN>>() {
+            let mut pool = pool.borrow_mut();
+            match pool.entry::<LocalAgent<AGN>>() {
                 anymap::Entry::Occupied(mut entry) => {
                     // TODO(#940): Insert callback!
                     entry.get_mut().create_bridge(callback)
@@ -316,10 +337,19 @@ fn locate_callback_and_respond<AGN: Agent>(
     id: HandlerId,
     output: AGN::Output,
 ) {
-    match slab.borrow().get(id.raw_id()).cloned() {
-        Some(Some(callback)) => callback.emit(output),
-        Some(None) => warn!("The Id of the handler: {}, while present in the slab, is not associated with a callback.", id.raw_id()),
-        None => warn!("Id of handler does not exist in the slab: {}.", id.raw_id()),
+    let callback = {
+        let slab = slab.borrow();
+        match slab.get(id.raw_id()).cloned() {
+            Some(callback) => callback,
+            None => {
+                warn!("Id of handler does not exist in the slab: {}.", id.raw_id());
+                return;
+            }
+        }
+    };
+    match callback {
+        Some(callback) => callback.emit(output),
+        None => warn!("The Id of the handler: {}, while present in the slab, is not associated with a callback.", id.raw_id()),
     }
 }
 
@@ -337,24 +367,30 @@ impl<AGN: Agent> Bridge<AGN> for ContextBridge<AGN> {
 
 impl<AGN: Agent> Drop for ContextBridge<AGN> {
     fn drop(&mut self) {
-        LOCAL_AGENTS_POOL.with(|pool| {
+        let terminate_worker = LOCAL_AGENTS_POOL.with(|pool| {
+            let mut pool = pool.borrow_mut();
             let terminate_worker = {
-                if let Some(launched) = pool.borrow_mut().get_mut::<LocalAgent<AGN>>() {
+                if let Some(launched) = pool.get_mut::<LocalAgent<AGN>>() {
                     launched.remove_bridge(self)
                 } else {
                     false
                 }
             };
 
-            let upd = AgentLifecycleEvent::Disconnected(self.id);
-            self.scope.send(upd);
-
             if terminate_worker {
-                let upd = AgentLifecycleEvent::Destroy;
-                self.scope.send(upd);
-                pool.borrow_mut().remove::<LocalAgent<AGN>>();
+                pool.remove::<LocalAgent<AGN>>();
             }
+
+            terminate_worker
         });
+
+        let upd = AgentLifecycleEvent::Disconnected(self.id);
+        self.scope.send(upd);
+
+        if terminate_worker {
+            let upd = AgentLifecycleEvent::Destroy;
+            self.scope.send(upd);
+        }
     }
 }
 
@@ -433,13 +469,20 @@ impl Discoverer for Private {
         };
         // TODO(#947): Need somethig better...
         let name_of_resource = AGN::name_of_resource();
-        let worker = js! {
-            var worker = new Worker(@{name_of_resource});
-            var handler = @{handler};
-            worker.onmessage = function(event) {
-                handler(event.data);
-            };
-            return worker;
+        let worker = cfg_match! {
+            feature = "std_web" => js! {
+                var worker = new Worker(@{name_of_resource});
+                var handler = @{handler};
+                worker.onmessage = function(event) {
+                    handler(event.data);
+                };
+                return worker;
+            },
+            feature = "web_sys" => ({
+                let worker = worker_new(name_of_resource, AGN::is_module());
+                worker.set_onmessage_closure(handler);
+                worker
+            }),
         };
         let bridge = PrivateBridge {
             worker,
@@ -451,7 +494,10 @@ impl Discoverer for Private {
 
 /// A connection manager for components interaction with workers.
 pub struct PrivateBridge<T: Agent> {
+    #[cfg(feature = "std_web")]
     worker: Value,
+    #[cfg(feature = "web_sys")]
+    worker: Worker,
     _agent: PhantomData<T>,
 }
 
@@ -467,12 +513,17 @@ impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
         // Use a queue to collect a messages if an instance is not ready
         // and send them to an agent when it will reported readiness.
         let msg = ToWorker::ProcessInput(SINGLETON_ID, msg).pack();
-        let worker = &self.worker;
-        js! {
-            var worker = @{worker};
-            var bytes = @{msg};
-            worker.postMessage(bytes);
-        };
+        cfg_match! {
+            feature = "std_web" => ({
+                let worker = &self.worker;
+                js! {
+                    var worker = @{worker};
+                    var bytes = @{msg};
+                    worker.postMessage(bytes);
+                };
+            }),
+            feature = "web_sys" => self.worker.post_message_vec(msg),
+        }
     }
 }
 
@@ -483,18 +534,26 @@ impl<AGN: Agent> Drop for PrivateBridge<AGN> {
 }
 
 struct RemoteAgent<AGN: Agent> {
+    #[cfg(feature = "std_web")]
     worker: Value,
+    #[cfg(feature = "web_sys")]
+    worker: Worker,
     slab: SharedOutputSlab<AGN>,
 }
 
 impl<AGN: Agent> RemoteAgent<AGN> {
-    pub fn new(worker: Value, slab: SharedOutputSlab<AGN>) -> Self {
+    pub fn new(
+        #[cfg(feature = "std_web")] worker: Value,
+        #[cfg(feature = "web_sys")] worker: Worker,
+        slab: SharedOutputSlab<AGN>,
+    ) -> Self {
         RemoteAgent { worker, slab }
     }
 
     fn create_bridge(&mut self, callback: Option<Callback<AGN::Output>>) -> PublicBridge<AGN> {
         let respondable = callback.is_some();
-        let id: usize = self.slab.borrow_mut().insert(callback);
+        let mut slab = self.slab.borrow_mut();
+        let id: usize = slab.insert(callback);
         let id = HandlerId::new(id, respondable);
         PublicBridge {
             worker: self.worker.clone(),
@@ -523,7 +582,8 @@ pub struct Public;
 impl Discoverer for Public {
     fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let bridge = REMOTE_AGENTS_POOL.with(|pool| {
-            match pool.borrow_mut().entry::<RemoteAgent<AGN>>() {
+            let mut pool = pool.borrow_mut();
+            match pool.entry::<RemoteAgent<AGN>>() {
                 anymap::Entry::Occupied(mut entry) => {
                     // TODO(#945): Insert callback!
                     entry.get_mut().create_bridge(callback)
@@ -533,21 +593,28 @@ impl Discoverer for Public {
                         Rc::new(RefCell::new(Slab::new()));
                     let handler = {
                         let slab = slab.clone();
-                        move |data: Vec<u8>, worker: Value| {
+                        move |data: Vec<u8>,
+                              #[cfg(feature = "std_web")] worker: Value,
+                              #[cfg(feature = "web_sys")] worker: &Worker| {
                             let msg = FromWorker::<AGN::Output>::unpack(&data);
                             match msg {
                                 FromWorker::WorkerLoaded => {
                                     // TODO(#944): Send `Connected` message
-                                    let _ = REMOTE_AGENTS_LOADED.with(|local| {
-                                        local.borrow_mut().insert(TypeId::of::<AGN>())
+                                    REMOTE_AGENTS_LOADED.with(|loaded| {
+                                        let _ = loaded.borrow_mut().insert(TypeId::of::<AGN>());
                                     });
-                                    REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|local| {
-                                        if let Some(msgs) =
-                                            local.borrow_mut().get_mut(&TypeId::of::<AGN>())
-                                        {
+
+                                    REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|queue| {
+                                        let mut queue = queue.borrow_mut();
+                                        if let Some(msgs) = queue.get_mut(&TypeId::of::<AGN>()) {
                                             for msg in msgs.drain(..) {
-                                                let worker = &worker;
-                                                js! {@{worker}.postMessage(@{msg});};
+                                                cfg_match! {
+                                                    feature = "std_web" => ({
+                                                        let worker = &worker;
+                                                        js! {@{worker}.postMessage(@{msg});};
+                                                    }),
+                                                    feature = "web_sys" => worker.post_message_vec(msg),
+                                                }
                                             }
                                         }
                                     });
@@ -559,13 +626,23 @@ impl Discoverer for Public {
                         }
                     };
                     let name_of_resource = AGN::name_of_resource();
-                    let worker = js! {
-                        var worker = new Worker(@{name_of_resource});
-                        var handler = @{handler};
-                        worker.onmessage = function(event) {
-                            handler(event.data, worker);
-                        };
-                        return worker;
+                    let worker = cfg_match! {
+                        feature = "std_web" => js! {
+                            var worker = new Worker(@{name_of_resource});
+                            var handler = @{handler};
+                            worker.onmessage = function(event) {
+                                handler(event.data, worker);
+                            };
+                            return worker;
+                        },
+                        feature = "web_sys" => ({
+                            let worker = worker_new(name_of_resource, AGN::is_module());
+                            let worker_clone = worker.clone();
+                            worker.set_onmessage_closure(move |data: Vec<u8>| {
+                                handler(data, &worker_clone);
+                            });
+                            worker
+                        }),
                     };
                     let launched = RemoteAgent::new(worker, slab);
                     entry.insert(launched).create_bridge(callback)
@@ -580,7 +657,10 @@ impl Dispatchable for Public {}
 
 /// A connection manager for components interaction with workers.
 pub struct PublicBridge<AGN: Agent> {
+    #[cfg(feature = "std_web")]
     worker: Value,
+    #[cfg(feature = "web_sys")]
+    worker: Worker,
     id: HandlerId,
     _agent: PhantomData<AGN>,
 }
@@ -593,18 +673,15 @@ impl<AGN: Agent> fmt::Debug for PublicBridge<AGN> {
 
 impl<AGN: Agent> PublicBridge<AGN> {
     fn worker_is_loaded(&self) -> bool {
-        REMOTE_AGENTS_LOADED.with(|local| local.borrow().contains(&TypeId::of::<AGN>()))
+        REMOTE_AGENTS_LOADED.with(|loaded| loaded.borrow().contains(&TypeId::of::<AGN>()))
     }
 
     fn msg_to_queue(&self, msg: Vec<u8>) {
-        REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|local| {
-            match local.borrow_mut().entry(TypeId::of::<AGN>()) {
+        REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|queue| {
+            let mut queue = queue.borrow_mut();
+            match queue.entry(TypeId::of::<AGN>()) {
                 hash_map::Entry::Vacant(record) => {
-                    record.insert({
-                        let mut v = Vec::new();
-                        v.push(msg);
-                        v
-                    });
+                    record.insert(vec![msg]);
                 }
                 hash_map::Entry::Occupied(ref mut record) => {
                     record.get_mut().push(msg);
@@ -614,15 +691,22 @@ impl<AGN: Agent> PublicBridge<AGN> {
     }
 }
 
-fn send_to_remote<AGN: Agent>(worker: &Value, msg: ToWorker<AGN::Input>) {
+fn send_to_remote<AGN: Agent>(
+    #[cfg(feature = "std_web")] worker: &Value,
+    #[cfg(feature = "web_sys")] worker: &Worker,
+    msg: ToWorker<AGN::Input>,
+) {
     // TODO(#937): Important! Implement.
     // Use a queue to collect a messages if an instance is not ready
     // and send them to an agent when it will reported readiness.
     let msg = msg.pack();
-    js! {
-        var worker = @{worker};
-        var bytes = @{msg};
-        worker.postMessage(bytes);
+    cfg_match! {
+        feature = "std_web" => js! {
+            var worker = @{worker};
+            var bytes = @{msg};
+            worker.postMessage(bytes);
+        },
+        feature = "web_sys" => worker.post_message_vec(msg),
     };
 }
 
@@ -632,36 +716,45 @@ impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
         if self.worker_is_loaded() {
             send_to_remote::<AGN>(&self.worker, msg);
         } else {
-            let msg = msg.pack();
-            self.msg_to_queue(msg);
+            self.msg_to_queue(msg.pack());
         }
     }
 }
 
 impl<AGN: Agent> Drop for PublicBridge<AGN> {
     fn drop(&mut self) {
-        REMOTE_AGENTS_POOL.with(|pool| {
+        let terminate_worker = REMOTE_AGENTS_POOL.with(|pool| {
+            let mut pool = pool.borrow_mut();
             let terminate_worker = {
-                if let Some(launched) = pool.borrow_mut().get_mut::<RemoteAgent<AGN>>() {
+                if let Some(launched) = pool.get_mut::<RemoteAgent<AGN>>() {
                     launched.remove_bridge(self)
                 } else {
                     false
                 }
             };
-            let upd = ToWorker::Disconnected(self.id);
-            send_to_remote::<AGN>(&self.worker, upd);
+
             if terminate_worker {
-                let upd = ToWorker::Destroy;
-                send_to_remote::<AGN>(&self.worker, upd);
-                pool.borrow_mut().remove::<RemoteAgent<AGN>>();
-                REMOTE_AGENTS_LOADED.with(|pool| {
-                    pool.borrow_mut().remove(&TypeId::of::<AGN>());
-                });
-                REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|pool| {
-                    pool.borrow_mut().remove(&TypeId::of::<AGN>());
-                });
+                pool.remove::<RemoteAgent<AGN>>();
             }
+
+            terminate_worker
         });
+
+        let disconnected = ToWorker::Disconnected(self.id);
+        send_to_remote::<AGN>(&self.worker, disconnected);
+
+        if terminate_worker {
+            let destroy = ToWorker::Destroy;
+            send_to_remote::<AGN>(&self.worker, destroy);
+
+            REMOTE_AGENTS_LOADED.with(|loaded| {
+                loaded.borrow_mut().remove(&TypeId::of::<AGN>());
+            });
+
+            REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|queue| {
+                queue.borrow_mut().remove(&TypeId::of::<AGN>());
+            });
+        }
     }
 }
 
@@ -704,6 +797,12 @@ pub trait Agent: Sized + 'static {
     /// have to live in a separate files.
     fn name_of_resource() -> &'static str {
         "main.js"
+    }
+
+    /// Signifies if resource is a module.
+    /// This has pending browser support.
+    fn is_module() -> bool {
+        false
     }
 }
 
@@ -761,9 +860,12 @@ impl<AGN: Agent> Responder<AGN> for WorkerResponder {
     fn respond(&self, id: HandlerId, output: AGN::Output) {
         let msg = FromWorker::ProcessOutput(id, output);
         let data = msg.pack();
-        js! {
-            var data = @{data};
-            self.postMessage(data);
+        cfg_match! {
+            feature = "std_web" => js! {
+                var data = @{data};
+                self.postMessage(data);
+            },
+            feature = "web_sys" => worker_self().post_message_vec(data),
         };
     }
 }
@@ -903,4 +1005,76 @@ where
             }
         }
     }
+}
+
+#[cfg(feature = "web_sys")]
+fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
+    let href = utils::document().location().unwrap().href().unwrap();
+
+    let array = Array::new();
+    array.push(
+        &format!(
+            "importScripts(\"{}{}\");onmessage=e=>{{wasm_bindgen(e.data)}}",
+            href, name_of_resource,
+        )
+        .into(),
+    );
+    let blob = Blob::new_with_str_sequence_and_options(
+        &array,
+        BlobPropertyBag::new().type_("application/javascript"),
+    )
+    .unwrap();
+    let url = Url::create_object_url_with_blob(&blob).unwrap();
+
+    if is_module {
+        let options = WorkerOptions::new();
+        Reflect::set(
+            options.as_ref(),
+            &JsValue::from_str("type"),
+            &JsValue::from_str("module"),
+        )
+        .unwrap();
+        Worker::new_with_options(&url, &options).expect("failed to spawn worker")
+    } else {
+        Worker::new(&url).expect("failed to spawn worker")
+    }
+}
+
+#[cfg(feature = "web_sys")]
+fn worker_self() -> DedicatedWorkerGlobalScope {
+    JsValue::from(js_sys::global()).into()
+}
+
+#[cfg(feature = "web_sys")]
+trait WorkerExt {
+    fn set_onmessage_closure(&self, handler: impl 'static + Fn(Vec<u8>));
+
+    fn post_message_vec(&self, data: Vec<u8>);
+}
+
+#[cfg(feature = "web_sys")]
+macro_rules! worker_ext_impl {
+    ($($type:ident),+) => {$(
+        impl WorkerExt for $type {
+            fn set_onmessage_closure(&self, handler: impl 'static + Fn(Vec<u8>)) {
+                let handler = move |message: MessageEvent| {
+                    let data = Uint8Array::from(message.data()).to_vec();
+                    handler(data);
+                };
+                let closure = Closure::wrap(Box::new(handler) as Box<dyn Fn(MessageEvent)>);
+                self.set_onmessage(Some(closure.as_ref().unchecked_ref()));
+                closure.forget();
+            }
+
+            fn post_message_vec(&self, data: Vec<u8>) {
+                self.post_message(&Uint8Array::from(data.as_slice()))
+                    .expect("failed to post message");
+            }
+        }
+    )+};
+}
+
+#[cfg(feature = "web_sys")]
+worker_ext_impl! {
+    Worker, DedicatedWorkerGlobalScope
 }

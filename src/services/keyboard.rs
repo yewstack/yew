@@ -1,8 +1,19 @@
 //! Service to register key press event listeners on elements.
+
 use crate::callback::Callback;
+use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use std::fmt;
-use stdweb::web::event::{KeyDownEvent, KeyPressEvent, KeyUpEvent};
-use stdweb::web::{EventListenerHandle, IEventTarget};
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::web::event::{ConcreteEvent, KeyDownEvent, KeyPressEvent, KeyUpEvent};
+        use stdweb::web::{EventListenerHandle, IEventTarget};
+    } else if #[cfg(feature = "web_sys")] {
+        use gloo::events::EventListener;
+        use wasm_bindgen::JsCast;
+        use web_sys::{Event, EventTarget, KeyboardEvent};
+    }
+}
 
 /// Service for registering callbacks on elements to get keystrokes from the user.
 ///
@@ -19,7 +30,10 @@ pub struct KeyboardService {}
 /// Handle to the key event listener.
 ///
 /// When it goes out of scope, the listener will be removed from the element.
-pub struct KeyListenerHandle(Option<EventListenerHandle>);
+pub struct KeyListenerHandle(
+    #[cfg(feature = "std_web")] Option<EventListenerHandle>,
+    #[cfg(feature = "web_sys")] EventListener,
+);
 
 impl fmt::Debug for KeyListenerHandle {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -36,14 +50,18 @@ impl KeyboardService {
     /// # Warning
     /// This API has been deprecated in the HTML standard and it is not recommended for use in new projects.
     /// Consult with the browser compatibility chart in the linked MDN documentation.
-    pub fn register_key_press<T: IEventTarget>(
+    pub fn register_key_press<
+        #[cfg(feature = "std_web")] T: IEventTarget,
+        #[cfg(feature = "web_sys")] T: AsRef<EventTarget>,
+    >(
         element: &T,
-        callback: Callback<KeyPressEvent>,
+        #[cfg(feature = "std_web")] callback: Callback<KeyPressEvent>,
+        #[cfg(feature = "web_sys")] callback: Callback<KeyboardEvent>,
     ) -> KeyListenerHandle {
-        let handle = element.add_event_listener(move |event: KeyPressEvent| {
-            callback.emit(event);
-        });
-        KeyListenerHandle(Some(handle))
+        cfg_match! {
+            feature = "std_web" => register_key_impl(element, callback),
+            feature = "web_sys" => register_key_impl(element, callback, "keypress"),
+        }
     }
 
     /// Registers a callback that listens to KeyDownEvents on a provided element.
@@ -55,14 +73,18 @@ impl KeyboardService {
     /// This browser feature is relatively new and is set to replace keypress events.
     /// Not all browsers may support it completely.
     /// Consult with the browser compatibility chart in the linked MDN documentation.
-    pub fn register_key_down<T: IEventTarget>(
+    pub fn register_key_down<
+        #[cfg(feature = "std_web")] T: IEventTarget,
+        #[cfg(feature = "web_sys")] T: AsRef<EventTarget>,
+    >(
         element: &T,
-        callback: Callback<KeyDownEvent>,
+        #[cfg(feature = "std_web")] callback: Callback<KeyDownEvent>,
+        #[cfg(feature = "web_sys")] callback: Callback<KeyboardEvent>,
     ) -> KeyListenerHandle {
-        let handle = element.add_event_listener(move |event: KeyDownEvent| {
-            callback.emit(event);
-        });
-        KeyListenerHandle(Some(handle))
+        cfg_match! {
+            feature = "std_web" => register_key_impl(element, callback),
+            feature = "web_sys" => register_key_impl(element, callback, "keydown"),
+        }
     }
 
     /// Registers a callback that listens to KeyUpEvents on a provided element.
@@ -74,17 +96,53 @@ impl KeyboardService {
     /// This browser feature is relatively new and is set to replace keypress events.
     /// Not all browsers may support it completely.
     /// Consult with the browser compatibility chart in the linked MDN documentation.
-    pub fn register_key_up<T: IEventTarget>(
+    pub fn register_key_up<
+        #[cfg(feature = "std_web")] T: IEventTarget,
+        #[cfg(feature = "web_sys")] T: AsRef<EventTarget>,
+    >(
         element: &T,
-        callback: Callback<KeyUpEvent>,
+        #[cfg(feature = "std_web")] callback: Callback<KeyUpEvent>,
+        #[cfg(feature = "web_sys")] callback: Callback<KeyboardEvent>,
     ) -> KeyListenerHandle {
-        let handle = element.add_event_listener(move |event: KeyUpEvent| {
-            callback.emit(event);
-        });
-        KeyListenerHandle(Some(handle))
+        cfg_match! {
+            feature = "std_web" => register_key_impl(element, callback),
+            feature = "web_sys" => register_key_impl(element, callback, "keyup"),
+        }
     }
 }
 
+#[cfg(feature = "std_web")]
+fn register_key_impl<T: IEventTarget, E: 'static + ConcreteEvent>(
+    element: &T,
+    callback: Callback<E>,
+) -> KeyListenerHandle {
+    let handle = element.add_event_listener(move |event: E| {
+        callback.emit(event);
+    });
+    cfg_match! {
+        feature = "std_web" => KeyListenerHandle(Some(handle)),
+        feature = "web_sys" => KeyListenerHandle(handle),
+    }
+}
+
+#[cfg(feature = "web_sys")]
+fn register_key_impl<T: AsRef<EventTarget>>(
+    element: &T,
+    callback: Callback<KeyboardEvent>,
+    event: &'static str,
+) -> KeyListenerHandle {
+    let listener = move |event: &Event| {
+        let event = event
+            .dyn_ref::<KeyboardEvent>()
+            .expect("wrong event type")
+            .clone();
+        callback.emit(event);
+    };
+
+    KeyListenerHandle(EventListener::new(element.as_ref(), event, listener))
+}
+
+#[cfg(feature = "std_web")]
 impl Drop for KeyListenerHandle {
     fn drop(&mut self) {
         if let Some(handle) = self.0.take() {

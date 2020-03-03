@@ -52,7 +52,7 @@ impl ToTokens for HtmlList {
         let children = &self.0;
         tokens.extend(quote! {
             ::yew::virtual_dom::VNode::VList(
-                ::yew::virtual_dom::vlist::VList::new_with_children({
+                ::yew::virtual_dom::VList::new_with_children({
                     let mut v = ::std::vec::Vec::new();
                     #(v.extend(::yew::utils::NodeSeq::from(#children));)*
                     v
