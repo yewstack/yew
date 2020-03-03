@@ -17,7 +17,7 @@ authors = ["Yew App Developer <name@example.com>"]
 edition = "2018"
 
 [dependencies]
-yew = { version = "0.13.0", features = "std_web" }
+yew = { version = "0.13.0", features = ["std_web"] }
 ```
 {% endcode %}
 
