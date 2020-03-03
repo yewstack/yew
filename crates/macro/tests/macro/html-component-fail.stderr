@@ -83,38 +83,37 @@ error: Using special syntax `with props` along with named prop is not allowed. T
 63 |     html! { <Child value=1 ref=() with props ref=() /> };
    |                                   ^^^^
 
-error: Using special syntax `with props` along with named prop is not allowed. This rule does not apply to special `ref` prop
-  --> $DIR/html-component-fail.rs:64:43
+error: too many refs set
+  --> $DIR/html-component-fail.rs:64:27
    |
 64 |     html! { <Child ref=() ref=() value=1  with props  /> };
-   |                                           ^^^^
-
-error: Using special syntax `with props` along with named prop is not allowed. This rule does not apply to special `ref` prop
-  --> $DIR/html-component-fail.rs:65:27
-   |
-65 |     html! { <Child ref=() with props /> };
-   |                           ^^^^
+   |                           ^^^
 
 error: unexpected token
-  --> $DIR/html-component-fail.rs:67:31
+  --> $DIR/html-component-fail.rs:66:31
    |
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 67 |     html! { <Child with props () /> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+66 |     html! { <Child with props () /> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |                               ^^
 
 error: Using special syntax `with props` along with named prop is not allowed. This rule does not apply to special `ref` prop
-  --> $DIR/html-component-fail.rs:68:28
+  --> $DIR/html-component-fail.rs:67:28
    |
-68 |     html! { <Child value=1 with props /> };
+67 |     html! { <Child value=1 with props /> };
    |                            ^^^^
 
 error: Using special syntax `with props` along with named prop is not allowed. This rule does not apply to special `ref` prop
-  --> $DIR/html-component-fail.rs:69:31
+  --> $DIR/html-component-fail.rs:68:31
    |
-69 |     html! { <Child with props value=1 /> };
+68 |     html! { <Child with props value=1 /> };
    |                               ^^^^^
 
 error: expected identifier
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:79:20
@@ -137,30 +136,38 @@ error: unexpected end of input, expected expression
 =======
   --> $DIR/html-component-fail.rs:70:20
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:69:20
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |
-70 |     html! { <Child type=0 /> };
+69 |     html! { <Child type=0 /> };
    |                    ^^^^
 
 error: expected identifier
-  --> $DIR/html-component-fail.rs:71:20
+  --> $DIR/html-component-fail.rs:70:20
    |
-71 |     html! { <Child invalid-prop-name=0 /> };
+70 |     html! { <Child invalid-prop-name=0 /> };
    |                    ^^^^^^^^^^^^^^^^^
 
 error: unexpected end of input, expected expression
-  --> $DIR/html-component-fail.rs:73:5
+  --> $DIR/html-component-fail.rs:72:5
    |
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 67 |     html! { <Child string= /> };
 >>>>>>> add stderr:tests/macro/html-component-fail.stderr
 =======
 73 |     html! { <Child string= /> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+72 |     html! { <Child string= /> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error: too many refs set
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:87:33
@@ -202,42 +209,46 @@ error: this close tag has no corresponding open tag
 =======
   --> $DIR/html-component-fail.rs:78:33
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:77:33
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |
-78 |     html! { <Child int=1 ref=() ref=() /> };
+77 |     html! { <Child int=1 ref=() ref=() /> };
    |                                 ^^^
 
 error: this close tag has no corresponding open tag
-  --> $DIR/html-component-fail.rs:81:13
+  --> $DIR/html-component-fail.rs:80:13
    |
-81 |     html! { </Child> };
+80 |     html! { </Child> };
    |             ^^^^^^^^
 
 error: this open tag has no corresponding close tag
-  --> $DIR/html-component-fail.rs:82:13
+  --> $DIR/html-component-fail.rs:81:13
    |
-82 |     html! { <Child><Child></Child> };
+81 |     html! { <Child><Child></Child> };
    |             ^^^^^^^
 
 error: only one root html element allowed
-  --> $DIR/html-component-fail.rs:83:28
+  --> $DIR/html-component-fail.rs:82:28
    |
-83 |     html! { <Child></Child><Child></Child> };
+82 |     html! { <Child></Child><Child></Child> };
    |                            ^^^^^^^^^^^^^^^
+
+error: this close tag has no corresponding open tag
+  --> $DIR/html-component-fail.rs:91:30
+   |
+91 |     html! { <Generic<String>></Generic> };
+   |                              ^^^^^^^^^^
 
 error: this close tag has no corresponding open tag
   --> $DIR/html-component-fail.rs:92:30
    |
-92 |     html! { <Generic<String>></Generic> };
-   |                              ^^^^^^^^^^
-
-error: this close tag has no corresponding open tag
-  --> $DIR/html-component-fail.rs:93:30
-   |
-93 |     html! { <Generic<String>></Generic<Vec<String>>> };
+92 |     html! { <Generic<String>></Generic<Vec<String>>> };
    |                              ^^^^^^^^^^^^^^^^^^^^^^^
 >>>>>>> add stderr:tests/macro/html-component-fail.stderr
 
 error[E0425]: cannot find value `blah` in this scope
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:77:25
    |
@@ -256,20 +267,28 @@ error[E0609]: no field `unknown` on type `ChildProperties`
 >>>>>>> add stderr:tests/macro/html-component-fail.stderr
 =======
   --> $DIR/html-component-fail.rs:66:25
+=======
+  --> $DIR/html-component-fail.rs:65:25
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |
-66 |     html! { <Child with blah /> };
+65 |     html! { <Child with blah /> };
    |                         ^^^^ not found in this scope
 
 error[E0609]: no field `unknown` on type `ChildProperties`
-  --> $DIR/html-component-fail.rs:72:20
+  --> $DIR/html-component-fail.rs:71:20
    |
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 72 |     html! { <Child unknown="unknown" /> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+71 |     html! { <Child unknown="unknown" /> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |                    ^^^^^^^ unknown field
    |
    = note: available fields are: `string`, `int`
 
 error[E0599]: no method named `unknown` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:81:20
@@ -279,10 +298,14 @@ error[E0599]: no method named `unknown` found for type `ChildPropertiesBuilder<C
 =======
   --> $DIR/html-component-fail.rs:72:20
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:71:20
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |
 6  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `unknown` not found for this
 ...
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 81 |     html! { <Child unknown="unknown" /> };
@@ -297,17 +320,24 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
 =======
 72 |     html! { <Child unknown="unknown" /> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+71 |     html! { <Child unknown="unknown" /> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |                    ^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<(), std::string::String>` is not satisfied
-  --> $DIR/html-component-fail.rs:74:33
+  --> $DIR/html-component-fail.rs:73:33
    |
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 68 |     html! { <Child int=1 string={} /> };
 >>>>>>> add stderr:tests/macro/html-component-fail.stderr
 =======
 74 |     html! { <Child int=1 string={} /> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+73 |     html! { <Child int=1 string={} /> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |                                 ^^ the trait `yew::virtual_dom::Transformer<(), std::string::String>` is not implemented for `yew::virtual_dom::vcomp::VComp`
    |
    = help: the following implementations were found:
@@ -319,6 +349,7 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<{integer}, std::string::String>` is not satisfied
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:84:33
@@ -334,6 +365,11 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    |
 75 |     html! { <Child int=1 string=3 /> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:74:33
+   |
+74 |     html! { <Child int=1 string=3 /> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |                                 ^ the trait `yew::virtual_dom::Transformer<{integer}, std::string::String>` is not implemented for `yew::virtual_dom::vcomp::VComp`
    |
    = help: the following implementations were found:
@@ -345,6 +381,7 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<{integer}, std::string::String>` is not satisfied
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:85:33
@@ -360,6 +397,11 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    |
 76 |     html! { <Child int=1 string={3} /> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:75:33
+   |
+75 |     html! { <Child int=1 string={3} /> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |                                 ^^^ the trait `yew::virtual_dom::Transformer<{integer}, std::string::String>` is not implemented for `yew::virtual_dom::vcomp::VComp`
    |
    = help: the following implementations were found:
@@ -371,6 +413,7 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
    = note: required by `yew::virtual_dom::Transformer::transform`
 
 error[E0308]: mismatched types
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:86:30
@@ -387,19 +430,26 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
 =======
   --> $DIR/html-component-fail.rs:77:30
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:76:30
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |
-77 |     html! { <Child int=1 ref=() /> };
+76 |     html! { <Child int=1 ref=() /> };
    |                              ^^ expected struct `yew::html::NodeRef`, found `()`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<u32, i32>` is not satisfied
-  --> $DIR/html-component-fail.rs:79:24
+  --> $DIR/html-component-fail.rs:78:24
    |
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 73 |     html! { <Child int=0u32 /> };
 >>>>>>> add stderr:tests/macro/html-component-fail.stderr
 =======
 79 |     html! { <Child int=0u32 /> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+78 |     html! { <Child int=0u32 /> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |                        ^^^^ the trait `yew::virtual_dom::Transformer<u32, i32>` is not implemented for `yew::virtual_dom::vcomp::VComp`
    |
    = help: the following implementations were found:
@@ -413,6 +463,7 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom:
 error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:89:20
 =======
   --> $DIR/html-component-fail.rs:74:20
@@ -420,10 +471,14 @@ error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<Ch
 =======
   --> $DIR/html-component-fail.rs:80:20
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:79:20
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |
 6  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `string` not found for this
 ...
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 89 |     html! { <Child string="abc" /> };
@@ -433,6 +488,9 @@ error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<Ch
 =======
 80 |     html! { <Child string="abc" /> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+79 |     html! { <Child string="abc" /> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |                    ^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
    |
    = help: items from traits can only be used if the trait is implemented and in scope
@@ -442,6 +500,7 @@ error[E0599]: no method named `string` found for type `ChildPropertiesBuilder<Ch
 error[E0599]: no method named `children` found for type `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:93:5
 =======
   --> $DIR/html-component-fail.rs:78:5
@@ -449,10 +508,14 @@ error[E0599]: no method named `children` found for type `ChildPropertiesBuilder<
 =======
   --> $DIR/html-component-fail.rs:84:5
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:83:5
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |
 6  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `children` not found for this
 ...
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 93 |     html! { <Child>{ "Not allowed" }</Child> };
@@ -462,11 +525,15 @@ error[E0599]: no method named `children` found for type `ChildPropertiesBuilder<
 =======
 84 |     html! { <Child>{ "Not allowed" }</Child> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+83 |     html! { <Child>{ "Not allowed" }</Child> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
    |
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0599]: no method named `build` found for type `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:95:5
@@ -476,10 +543,14 @@ error[E0599]: no method named `build` found for type `ChildContainerPropertiesBu
 =======
   --> $DIR/html-component-fail.rs:86:5
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:85:5
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |
 29 | #[derive(Clone, Properties)]
    |                 ---------- method `build` not found for this
 ...
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 95 |     html! { <ChildContainer /> };
@@ -489,6 +560,9 @@ error[E0599]: no method named `build` found for type `ChildContainerPropertiesBu
 =======
 86 |     html! { <ChildContainer /> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+85 |     html! { <ChildContainer /> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
    |
    = help: items from traits can only be used if the trait is implemented and in scope
@@ -499,6 +573,7 @@ error[E0599]: no method named `build` found for type `ChildContainerPropertiesBu
 error[E0599]: no method named `build` found for type `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:96:5
 =======
   --> $DIR/html-component-fail.rs:81:5
@@ -506,10 +581,14 @@ error[E0599]: no method named `build` found for type `ChildContainerPropertiesBu
 =======
   --> $DIR/html-component-fail.rs:87:5
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:86:5
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |
 29 | #[derive(Clone, Properties)]
    |                 ---------- method `build` not found for this
 ...
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 96 |     html! { <ChildContainer></ChildContainer> };
@@ -519,6 +598,9 @@ error[E0599]: no method named `build` found for type `ChildContainerPropertiesBu
 =======
 87 |     html! { <ChildContainer></ChildContainer> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+86 |     html! { <ChildContainer></ChildContainer> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
    |
    = help: items from traits can only be used if the trait is implemented and in scope
@@ -527,6 +609,7 @@ error[E0599]: no method named `build` found for type `ChildContainerPropertiesBu
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<&str>` is not satisfied
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:97:5
@@ -542,6 +625,11 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::conv
    |
 88 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:87:5
+   |
+87 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<&str>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
    |
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `&str`
@@ -549,6 +637,7 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::conv
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:98:5
@@ -564,6 +653,11 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::conv
    |
 89 |     html! { <ChildContainer><></></ChildContainer> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:88:5
+   |
+88 |     html! { <ChildContainer><></></ChildContainer> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
    |
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
@@ -571,6 +665,7 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::conv
    = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
+<<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
 <<<<<<< HEAD:crates/macro/tests/macro/html-component-fail.stderr
   --> $DIR/html-component-fail.rs:99:5
@@ -586,6 +681,11 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::conv
    |
 90 |     html! { <ChildContainer><other /></ChildContainer> };
 >>>>>>> remove logs:tests/macro/html-component-fail.stderr
+=======
+  --> $DIR/html-component-fail.rs:89:5
+   |
+89 |     html! { <ChildContainer><other /></ChildContainer> };
+>>>>>>> Fix with props checks:tests/macro/html-component-fail.stderr
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
    |
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
