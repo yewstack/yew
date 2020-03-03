@@ -6,7 +6,6 @@ use boolinator::Boolinator;
 use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
 use std::cmp::Ordering;
-use std::collections::HashMap;
 use syn::buffer::Cursor;
 use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
@@ -341,15 +340,20 @@ impl ToTokens for HtmlComponentClose {
     }
 }
 
-enum PropType {
-    List,
-    With,
-}
-
 enum Props {
     List(Box<ListProps>),
     With(Box<WithProps>),
     None,
+}
+
+struct ListProps {
+    props: Vec<HtmlProp>,
+    node_ref: Option<Expr>,
+}
+
+struct WithProps {
+    props: Ident,
+    node_ref: Option<Expr>,
 }
 
 impl Props {
@@ -360,181 +364,97 @@ impl Props {
             Props::None => None,
         }
     }
+
     fn collision_message() -> &'static str {
         "Using special syntax `with props` along with named prop is not allowed. This rule does not apply to special `ref` prop"
-    }
-
-    fn collect_props(input: ParseStream) -> ParseResult<Vec<HtmlProp>> {
-        let mut props: Vec<HtmlProp> = Vec::new();
-        while HtmlProp::peek(input.cursor()).is_some() {
-            props.push(input.parse::<HtmlProp>()?);
-        }
-        Ok(props)
-    }
-
-    fn remove_refs(mut props: Vec<HtmlProp>) -> ListProps {
-        let ref_position = props.iter().position(|p| p.label.to_string() == "ref");
-        let node_ref = ref_position.map(|i| props.remove(i).value);
-        ListProps { props, node_ref }
-    }
-
-    fn return_type(input: ParseStream) -> ParseResult<PropType> {
-        let stream = input.fork();
-        let mut is_with = false;
-        let mut ref_counter = 0;
-        let mut props_counter = 0;
-
-        while let Some((token, _)) = stream.cursor().ident() {
-            let prop_value = stream.parse::<HtmlProp>();
-            if token == "with" {
-                is_with = true;
-            }
-            if is_with && (props_counter - ref_counter) > 0 {
-                return Err(syn::Error::new_spanned(&token, Props::collision_message()));
-            }
-            if let Ok(prop) = prop_value {
-                if prop.label.to_string() == "ref" {
-                    ref_counter = ref_counter + 1;
-                    if ref_counter > 1 {
-                        return Err(syn::Error::new_spanned(&prop.label, "too many refs set"));
-                    }
-                } else {
-                    if is_with {
-                        return Err(syn::Error::new_spanned(&token, Props::collision_message()));
-                    }
-                }
-                if prop.label.to_string() == "type" {
-                    return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
-                }
-                if !prop.label.extended.is_empty() {
-                    return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
-                }
-                props_counter = props_counter + 1;
-            }
-        }
-        if is_with {
-            Ok(PropType::With)
-        } else {
-            Ok(PropType::List)
-        }
-    }
-
-    fn get_type(input: ParseStream) -> ParseResult<Option<PropType>> {
-        let props_type = match Props::return_type(input) {
-            Ok(props) => Some(props),
-            Err(_) => None,
-        };
-
-        match props_type {
-            Some(PropType::With) => println!("props_type::with"),
-            Some(PropType::List) => println!("props_type::list"),
-            None => println!("none"),
-        }
-        let _ = Props::collect_props(input)?;
-
-        println!("RETURN TYPE");
-        Ok(props_type)
-    }
-}
-
-impl PeekValue<PropType> for Props {
-    fn peek(cursor: Cursor) -> Option<PropType> {
-        let (ident, _) = cursor.ident()?;
-
-        let prop_type = if ident == "with" {
-            PropType::With
-        } else {
-            PropType::List
-        };
-
-        Some(prop_type)
     }
 }
 
 impl Parse for Props {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        match Props::get_type(input)? {
-            Some(PropType::List) => input.parse().map(|l| Props::List(Box::new(l))),
-            Some(PropType::With) => {
-                let result = input.parse().map(|w| Props::With(Box::new(w)));
-                match result {
-                    Ok(v) => Ok(v),
-                    Err(e) => {
-                        println!("MY ERROR");
-                        return Err(input.error("MY"));
+        let mut props = Props::None;
+        let mut node_ref: Option<Expr> = None;
+
+        while let Some((token, _)) = input.cursor().ident() {
+            if token == "with" {
+                match props {
+                    Props::None => Ok(()),
+                    Props::With(_) => Err(input.error("too many `with` tokens used")),
+                    Props::List(_) => Err(syn::Error::new_spanned(&token, Props::collision_message())),
+                }?;
+
+                input.parse::<Ident>()?;
+                props = Props::With(Box::new(WithProps {
+                    props: input.parse::<Ident>()?,
+                    node_ref: None,
+                }));
+
+                // Handle optional comma
+                let _ = input.parse::<Token![,]>();
+                continue;
+            }
+
+            if (HtmlProp::peek(input.cursor())).is_none() {
+                break;
+            }
+
+            let prop = input.parse::<HtmlProp>()?;
+            if prop.label.to_string() == "ref" {
+                match node_ref {
+                    None => Ok(()),
+                    Some(_) => Err(syn::Error::new_spanned(&prop.label, "too many refs set")),
+                }?;
+
+                node_ref = Some(prop.value);
+                continue;
+            }
+
+            if prop.label.to_string() == "type" {
+                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
+            }
+
+            if !prop.label.extended.is_empty() {
+                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
+            }
+
+            match props {
+                ref mut props @ Props::None => {
+                    *props = Props::List(Box::new(ListProps {
+                        props: vec![prop],
+                        node_ref: None,
+                    }));
+                },
+                Props::With(_) => return Err(syn::Error::new_spanned(&token, Props::collision_message())),
+                Props::List(ref mut list) => {
+                    list.props.push(prop);
+                }
+            };
+        }
+
+        match props {
+            Props::None => {},
+            Props::With(ref mut p) => p.node_ref = node_ref,
+            Props::List(ref mut p) => {
+                p.node_ref = node_ref;
+
+                // alphabetize
+                p.props.sort_by(|a, b| {
+                    if a.label == b.label {
+                        Ordering::Equal
+                    } else if a.label.to_string() == "children" {
+                        Ordering::Greater
+                    } else if b.label.to_string() == "children" {
+                        Ordering::Less
+                    } else {
+                        a.label
+                            .to_string()
+                            .partial_cmp(&b.label.to_string())
+                            .unwrap()
                     }
-                }
+                });
             }
-            None => Ok(Props::None),
-        }
-    }
-}
+        };
 
-struct ListProps {
-    props: Vec<HtmlProp>,
-    node_ref: Option<Expr>,
-}
-
-impl Parse for ListProps {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
-        let ListProps {
-            mut props,
-            node_ref,
-        } = Props::remove_refs(Props::collect_props(input)?);
-
-        // alphabetize
-        props.sort_by(|a, b| {
-            if a.label == b.label {
-                Ordering::Equal
-            } else if a.label.to_string() == "children" {
-                Ordering::Greater
-            } else if b.label.to_string() == "children" {
-                Ordering::Less
-            } else {
-                a.label
-                    .to_string()
-                    .partial_cmp(&b.label.to_string())
-                    .unwrap()
-            }
-        });
-
-        Ok(ListProps { props, node_ref })
-    }
-}
-
-struct WithProps {
-    props: Ident,
-    node_ref: Option<Expr>,
-}
-
-impl Parse for WithProps {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
-        let with = input.parse::<Ident>()?;
-        if with != "with" {
-            return Err(input.error("expected to find `with` token"));
-        }
-        let props = input.parse::<Ident>()?;
-
-        let _ = input.parse::<Token![,]>();
-
-        // Check for the ref tag after `with`
-        let mut node_ref = None;
-
-        if input.cursor().ident().is_some() {
-            let ListProps {
-                node_ref: reference,
-                ..
-            } = Props::remove_refs(Props::collect_props(input)?);
-            node_ref = reference;
-
-            if let Some(ident) = input.cursor().ident() {
-                let prop = input.parse::<HtmlProp>()?;
-                if ident.0 == "ref" {
-                    node_ref = Some(prop.value);
-                }
-            }
-        }
-
-        Ok(WithProps { props, node_ref })
+        Ok(props)
     }
 }
