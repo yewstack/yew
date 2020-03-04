@@ -59,9 +59,9 @@ impl Cellule {
 
 fn wrap(coord: isize, range: isize) -> usize {
     let result = if coord < 0 {
-        (coord + range)
+        coord + range
     } else if coord >= range {
-        (coord - range)
+        coord - range
     } else {
         coord
     };
@@ -160,6 +160,7 @@ impl Component for Model {
         let callback = link.callback(|_| Msg::Tick);
         let mut interval = IntervalService::new();
         let handle = interval.spawn(Duration::from_millis(200), callback);
+
         Model {
             link,
             active: false,
