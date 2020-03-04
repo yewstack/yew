@@ -1,5 +1,11 @@
 # Changelog
 
+## ✨ **0.13.1** *(2020-03-04)*
+
+- #### 🛠 Fixes
+
+Fix for `web-sys` version `0.3.36`. [[@detegr], [#997](https://github.com/yewstack/yew/pull/997)]
+
 ## ✨ **0.13** *(2020-03-01)*
 
 `web-sys` support has arrived! [@daxpedda] spear-headed the effort and courageously integrated `web-sys` while maintaining support for `stdweb` through no small amount of `cfg` macro usage. We chose to continue support for apps built with `stdweb` because the dev experience is still quite a bit better _(Unfortunately `cargo-web` is incompatible with `web-sys`)_. However, the Yew team recognizes that the future of `cargo-web` of `stdweb` are uncertain. For this reason, we recommend devs start making the switch over to `web-sys` and `wasm-bindgen`. We will likely invest in improving the dev experience with these tools so that switching over is eventually a no-brainer. Please reach out with ideas and feedback for this migration through Github issues and in our Gitter chatroom!
@@ -713,6 +719,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@davidkna]: https://github.com/davidkna
 [@DenisKolodin]: https://github.com/DenisKolodin
 [@dermetfan]: https://github.com/dermetfan
+[@detegr]: https://github.com/Detegr
 [@dunnock]: https://github.com/dunnock
 [@hgzimmerman]: https://github.com/hgzimmerman
 [@izissise]: https://github.com/izissise
