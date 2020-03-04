@@ -48,6 +48,18 @@ error: unexpected token
 78 |     html! { <Child with props () /> };
    |                               ^^
 
+error: Using special syntax `with props` along with named prop is not allowed. This rule does not apply to special `ref` prop
+  --> $DIR/html-component-fail.rs:67:28
+   |
+67 |     html! { <Child value=1 with props /> };
+   |                            ^^^^
+
+error: Using special syntax `with props` along with named prop is not allowed. This rule does not apply to special `ref` prop
+  --> $DIR/html-component-fail.rs:68:31
+   |
+68 |     html! { <Child with props value=1 /> };
+   |                               ^^^^^
+
 error: expected identifier
   --> $DIR/html-component-fail.rs:79:20
    |
