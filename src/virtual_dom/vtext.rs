@@ -113,7 +113,7 @@ impl VDiff for VText {
         self.reference.as_ref().map(|t| {
             let node = cfg_match! {
                 feature = "std_web" => t.as_node(),
-                feature = "web_sys" => t.deref(),
+                feature = "web_sys" => t.deref().deref(),
             };
             node.to_owned()
         })
