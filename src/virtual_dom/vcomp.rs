@@ -372,7 +372,7 @@ mod tests {
         };
 
         html! {
-            <Comp ref=::yew::html::NodeRef::default()   with props />
+            <Comp with props />
         };
     }
 }
