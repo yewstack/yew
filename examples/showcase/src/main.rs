@@ -89,6 +89,7 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <div id="fullscreen">
+                <style>{ self.view_style() }</style>
                 <div id="left_pane">
                     <h2>{ "Yew showcase" }</h2>
                     <Select<Scene>
@@ -128,6 +129,19 @@ impl Model {
             html! {
                 <p>{ "Select the scene, please." }</p>
             }
+        }
+    }
+
+    fn view_style(&self) -> &str {
+        if let Some(scene) = self.scene.as_ref() {
+            match scene {
+                Scene::GameOfLife => { include_str!("../../game_of_life/static/styles.css") },
+                Scene::LargeTable => { include_str!("../../large_table/static/styles.css") },
+                Scene::Todomvc => { include_str!("../static/todomvc.css") },
+                _ => { "" },
+            }
+        } else {
+            ""
         }
     }
 }
