@@ -1,5 +1,11 @@
 # Changelog
 
+## ✨ **0.13.2** *(2020-03-05)*
+
+- #### 🛠 Fixes
+
+Fix clippy warning when building with `web_sys` feature. [[@jstarry], [#1001](https://github.com/yewstack/yew/pull/1001)]
+
 ## ✨ **0.13.1** *(2020-03-04)*
 
 - #### 🛠 Fixes
