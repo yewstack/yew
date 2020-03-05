@@ -380,7 +380,9 @@ impl Parse for Props {
                 match props {
                     Props::None => Ok(()),
                     Props::With(_) => Err(input.error("too many `with` tokens used")),
-                    Props::List(_) => Err(syn::Error::new_spanned(&token, Props::collision_message())),
+                    Props::List(_) => {
+                        Err(syn::Error::new_spanned(&token, Props::collision_message()))
+                    }
                 }?;
 
                 input.parse::<Ident>()?;
@@ -423,8 +425,10 @@ impl Parse for Props {
                         props: vec![prop],
                         node_ref: None,
                     }));
-                },
-                Props::With(_) => return Err(syn::Error::new_spanned(&token, Props::collision_message())),
+                }
+                Props::With(_) => {
+                    return Err(syn::Error::new_spanned(&token, Props::collision_message()))
+                }
                 Props::List(ref mut list) => {
                     list.props.push(prop);
                 }
@@ -432,7 +436,7 @@ impl Parse for Props {
         }
 
         match props {
-            Props::None => {},
+            Props::None => {}
             Props::With(ref mut p) => p.node_ref = node_ref,
             Props::List(ref mut p) => {
                 p.node_ref = node_ref;
