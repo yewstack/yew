@@ -311,10 +311,7 @@ impl WebSocketTask {
         if let Ok(body) = data.into() {
             let result = cfg_match! {
                 feature = "std_web" => self.ws.send_bytes(&body),
-                feature = "web_sys" => ({
-                    let mut body = body;
-                    self.ws.send_with_u8_array(&mut body)
-                }),
+                feature = "web_sys" => self.ws.send_with_u8_array(&body),
             };
 
             if result.is_err() {
