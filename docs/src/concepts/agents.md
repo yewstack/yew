@@ -19,7 +19,7 @@ Agents that run concurrently use [web-workers](https://developer.mozilla.org/en-
 #### Reaches
 
 * Job - Spawn a new agent on the UI thread for every new bridge. This is good for moving shared but independent behavior that communicates with the browser out of components. \(TODO verify\) When the task is done, the agent will disappear.
-* Context - Bridges will spawn or connect to an agent on the UI thread. This can be used to coordinate with state between components or other agents. When no bridges are are connected to this agent, the agent will disappear.
+* Context - Bridges will spawn or connect to an agent on the UI thread. This can be used to coordinate with state between components or other agents. When no bridges are connected to this agent, the agent will disappear.
 * Private - Same as Job, but runs on its own web worker. 
 * Public - Same as Context, but runs on its own web worker.
 * Global \(WIP\)

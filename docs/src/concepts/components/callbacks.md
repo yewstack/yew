@@ -10,7 +10,7 @@ The component "link" is the mechanism through which components are able to regis
 
 ### callback
 
-Registers a callback that will send a message to the component's update mechanism when it is executed. Under the hood, it will call `send_self` with the message that is returned by the provided closure. A`Fn(IN) -> Vec<COMP::Message>` is provided and a `Callback<IN>` is returned.
+Register a callback that will send a message to the component's update mechanism when it is executed. Under the hood, it will call `send_self` with the message that is returned by the provided closure. A`Fn(IN) -> Vec<COMP::Message>` is provided and a `Callback<IN>` is returned.
 
 ### send\_message
 
