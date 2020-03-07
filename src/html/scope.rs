@@ -124,9 +124,10 @@ impl<COMP: Component> Scope<COMP> {
 
     /// This method creates a `Callback` which will send a message to the linked component's
     /// update method when invoked.
-    pub fn callback<F, IN>(&self, function: F) -> Callback<IN>
+    pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
-        F: Fn(IN) -> COMP::Message + 'static,
+        M: Into<COMP::Message>,
+        F: Fn(IN) -> M + 'static,
     {
         let scope = self.clone();
         let closure = move |input| {
