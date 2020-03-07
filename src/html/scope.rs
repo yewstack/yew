@@ -16,9 +16,9 @@ cfg_if! {
 /// Updates for a `Component` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {
     /// Wraps messages for a component.
-    Message(Into<COMP::Message>),
+    Message(COMP::Message),
     /// Wraps batch of messages for a component.
-    MessageBatch(Vec<Into<COMP::Message>>),
+    MessageBatch(Vec<COMP::Message>),
     /// Wraps properties for a component.
     Properties(COMP::Properties),
 }
@@ -108,20 +108,25 @@ impl<COMP: Component> Scope<COMP> {
     }
 
     /// Send a message to the component
-    pub fn send_message(&self, msg: Into<COMP::Message>) {
-        self.update(ComponentUpdate::Message(msg));
+    pub fn send_message<T>(&self, msg: T)
+    where
+        T: Into<COMP::Message>,
+    {
+        self.update(ComponentUpdate::Message(msg.into()));
     }
-
     /// Send a batch of messages to the component
-    pub fn send_message_batch(&self, messages:Vec<Into<COMP::Message>>) {
-        self.update(ComponentUpdate::MessageBatch(messages));
+    pub fn send_message_batch<T>(&self, messages: T)
+    where
+        T: Into<Vec<COMP::Message>>,
+    {
+        self.update(ComponentUpdate::MessageBatch(messages.into()));
     }
 
     /// This method creates a `Callback` which will send a message to the linked component's
     /// update method when invoked.
     pub fn callback<F, IN>(&self, function: F) -> Callback<IN>
     where
-        F: Fn(IN) -> Into<COMP::Message> + 'static,
+        F: Fn(IN) -> COMP::Message + 'static,
     {
         let scope = self.clone();
         let closure = move |input| {
@@ -135,7 +140,7 @@ impl<COMP: Component> Scope<COMP> {
     /// component's update method when called.
     pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
     where
-        F: Fn(IN) -> Vec<Into<COMP::Message>> + 'static,
+        F: Fn(IN) -> Vec<COMP::Message> + 'static,
     {
         let scope = self.clone();
         let closure = move |input| {
