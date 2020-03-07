@@ -138,9 +138,10 @@ impl<COMP: Component> Scope<COMP> {
 
     /// This method creates a `Callback` which will send a batch of messages back to the linked
     /// component's update method when called.
-    pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
+    pub fn batch_callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
-        F: Fn(IN) -> Vec<COMP::Message> + 'static,
+        M: Into<Vec<COMP::Message>>,
+        F: Fn(IN) -> M + 'static,
     {
         let scope = self.clone();
         let closure = move |input| {
