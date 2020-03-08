@@ -82,6 +82,10 @@ pub enum FormatError {
     /// on a WebSocket that is using a binary serialization format, like Cbor.
     #[error("received text for a binary format")]
     ReceivedTextForBinary,
+    /// Received binary for a text format, e.g. someone sending binary
+    /// on a WebSocket that is using a text serialization format, like Json.
+    #[error("received binary for a text format")]
+    ReceivedBinaryForText,
     /// Trying to encode a binary format as text", e.g., trying to
     /// store a Cbor encoded value in a String.
     #[error("trying to encode a binary format as Text")]

@@ -8,7 +8,7 @@ dist: trusty
 language: rust
 sudo: false
 addons:
-  chrome: stable
+  firefox: latest
 
 cache: cargo
 before_cache:
@@ -32,12 +32,11 @@ install:
   - cargo install cargo-update || true
   - cargo install-update-config --version =0.2.59 wasm-bindgen-cli
   - cargo install-update --allow-no-update wasm-bindgen-cli
-  - LATEST_CHROMEDRIVER_VERSION=`curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE"`
-  - curl --retry 5 -LO "https://chromedriver.storage.googleapis.com/${LATEST_CHROMEDRIVER_VERSION}/chromedriver_linux64.zip"
-  - unzip chromedriver_linux64.zip
+  - curl --retry 5 -LO https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz
+  - tar -xzf geckodriver-v0.26.0-linux64.tar.gz
   - ./ci/install_cargo_web.sh
 
 script:
   - ./ci/run_checks.sh
-  - CHROMEDRIVER=$(pwd)/chromedriver ./ci/run_tests.sh
-  - CHROMEDRIVER=$(pwd)/chromedriver ./ci/check_examples.sh
+  - GECKODRIVER=$(pwd)/geckodriver ./ci/run_tests.sh
+  - ./ci/check_examples.sh

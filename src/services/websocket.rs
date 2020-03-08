@@ -3,7 +3,7 @@
 
 use super::Task;
 use crate::callback::Callback;
-use crate::format::{Binary, Text};
+use crate::format::{Binary, FormatError, Text};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::fmt;
@@ -21,7 +21,7 @@ cfg_if! {
 }
 
 /// A status of a websocket connection. Used for status notification.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum WebSocketStatus {
     /// Fired when a websocket connection was opened.
     Opened,
@@ -121,7 +121,7 @@ impl WebSocketService {
             feature = "std_web" => ({
                 let ws = self.connect_common(url, &notification)?.0;
                 ws.add_event_listener(move |event: SocketMessageEvent| {
-                    did_process_binary(&event, &callback);
+                    process_binary(&event, &callback);
                 });
                 Ok(WebSocketTask { ws, notification })
             }),
@@ -129,7 +129,7 @@ impl WebSocketService {
                 let ConnectCommon(ws, listeners) = self.connect_common(url, &notification)?;
                 let listener = EventListener::new(&ws, "message", move |event: &Event| {
                     let event = event.dyn_ref::<MessageEvent>().unwrap();
-                    did_process_binary(&event, &callback);
+                    process_binary(&event, &callback);
                 });
                 WebSocketTask::new(ws, notification, listener, listeners)
             }),
@@ -226,32 +226,35 @@ impl WebSocketService {
 
 struct ConnectCommon(WebSocket, #[cfg(feature = "web_sys")] [EventListener; 3]);
 
-fn did_process_binary<OUT: 'static>(
+fn process_binary<OUT: 'static>(
     #[cfg(feature = "std_web")] event: &SocketMessageEvent,
     #[cfg(feature = "web_sys")] event: &MessageEvent,
     callback: &Callback<OUT>,
-) -> bool
-where
+) where
     OUT: From<Binary>,
 {
-    let bytes = cfg_match! {
-        feature = "std_web" => event.data().into_array_buffer(),
-        feature = "web_sys" => Some(event.data()),
+    #[cfg(feature = "std_web")]
+    let bytes = event.data().into_array_buffer();
+
+    #[cfg(feature = "web_sys")]
+    let bytes = if !event.data().is_string() {
+        Some(event.data())
+    } else {
+        None
     };
 
-    match bytes {
-        None => false,
-        Some(bytes) => {
-            let bytes: Vec<u8> = cfg_match! {
-                feature = "std_web" => bytes.into(),
-                feature = "web_sys" => Uint8Array::new(&bytes).to_vec(),
-            };
-            let data = Ok(bytes);
-            let out = OUT::from(data);
-            callback.emit(out);
-            true
-        }
-    }
+    let data = if let Some(bytes) = bytes {
+        let bytes: Vec<u8> = cfg_match! {
+            feature = "std_web" => bytes.into(),
+            feature = "web_sys" => Uint8Array::new(&bytes).to_vec(),
+        };
+        Ok(bytes)
+    } else {
+        Err(FormatError::ReceivedTextForBinary.into())
+    };
+
+    let out = OUT::from(data);
+    callback.emit(out);
 }
 
 fn process_text<OUT: 'static>(
@@ -266,11 +269,14 @@ fn process_text<OUT: 'static>(
         feature = "web_sys" => event.data().as_string(),
     };
 
-    if let Some(text) = text {
-        let data = Ok(text);
-        let out = OUT::from(data);
-        callback.emit(out);
-    }
+    let data = if let Some(text) = text {
+        Ok(text)
+    } else {
+        Err(FormatError::ReceivedBinaryForText.into())
+    };
+
+    let out = OUT::from(data);
+    callback.emit(out);
 }
 
 fn process_both<OUT: 'static>(
@@ -280,8 +286,16 @@ fn process_both<OUT: 'static>(
 ) where
     OUT: From<Text> + From<Binary>,
 {
-    if !did_process_binary(event, callback) {
+    #[cfg(feature = "std_web")]
+    let is_text = event.data().into_text().is_some();
+
+    #[cfg(feature = "web_sys")]
+    let is_text = event.data().is_string();
+
+    if is_text {
         process_text(event, callback);
+    } else {
+        process_binary(event, callback);
     }
 }
 
@@ -337,6 +351,116 @@ impl Drop for WebSocketTask {
                 feature = "std_web" => self.ws.close(),
                 feature = "web_sys" => self.ws.close().ok(),
             };
+        }
+    }
+}
+
+#[cfg(test)]
+#[cfg(feature = "wasm_test")]
+mod tests {
+    use super::*;
+    use crate::callback::{test_util::CallbackFuture, Callback};
+    use crate::format::{FormatError, Json};
+    use serde::{Deserialize, Serialize};
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[derive(Serialize, Deserialize, Debug, PartialEq)]
+    struct Message {
+        test: String,
+    }
+
+    #[test]
+    async fn connect() {
+        let url = "wss://echo.websocket.org";
+        let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let status_future = CallbackFuture::<WebSocketStatus>::default();
+        let notification: Callback<_> = status_future.clone().into();
+
+        let mut ws = WebSocketService::new();
+        let mut task = ws.connect(url, callback, notification).unwrap();
+        assert_eq!(status_future.await, WebSocketStatus::Opened);
+
+        let msg = Message {
+            test: String::from("hello"),
+        };
+
+        task.send(Json(&msg));
+        match cb_future.clone().await {
+            Json(Ok(received)) => assert_eq!(received, msg),
+            Json(Err(err)) => assert!(false, err),
+        }
+
+        task.send_binary(Json(&msg));
+        match cb_future.await {
+            Json(Ok(received)) => assert_eq!(received, msg),
+            Json(Err(err)) => assert!(false, err),
+        }
+    }
+
+    #[test]
+    async fn connect_text() {
+        let url = "wss://echo.websocket.org";
+        let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let status_future = CallbackFuture::<WebSocketStatus>::default();
+        let notification: Callback<_> = status_future.clone().into();
+
+        let mut ws = WebSocketService::new();
+        let mut task = ws.connect_text(url, callback, notification).unwrap();
+        assert_eq!(status_future.await, WebSocketStatus::Opened);
+
+        let msg = Message {
+            test: String::from("hello"),
+        };
+
+        task.send(Json(&msg));
+        match cb_future.clone().await {
+            Json(Ok(received)) => assert_eq!(received, msg),
+            Json(Err(err)) => assert!(false, err),
+        }
+
+        task.send_binary(Json(&msg));
+        match cb_future.await {
+            Json(Ok(received)) => assert!(false, received),
+            Json(Err(err)) => assert_eq!(
+                err.to_string(),
+                FormatError::ReceivedBinaryForText.to_string()
+            ),
+        }
+    }
+
+    #[test]
+    async fn connect_binary() {
+        let url = "wss://echo.websocket.org";
+        let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let status_future = CallbackFuture::<WebSocketStatus>::default();
+        let notification: Callback<_> = status_future.clone().into();
+
+        let mut ws = WebSocketService::new();
+        let mut task = ws.connect_binary(url, callback, notification).unwrap();
+        assert_eq!(status_future.await, WebSocketStatus::Opened);
+
+        let msg = Message {
+            test: String::from("hello"),
+        };
+
+        task.send_binary(Json(&msg));
+        match cb_future.clone().await {
+            Json(Ok(received)) => assert_eq!(received, msg),
+            Json(Err(err)) => assert!(false, err),
+        }
+
+        task.send(Json(&msg));
+        match cb_future.await {
+            Json(Ok(received)) => assert!(false, received),
+            Json(Err(err)) => assert_eq!(
+                err.to_string(),
+                FormatError::ReceivedTextForBinary.to_string()
+            ),
         }
     }
 }
