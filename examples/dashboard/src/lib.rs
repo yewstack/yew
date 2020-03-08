@@ -205,7 +205,7 @@ impl Component for Model {
                         { "Connect To WebSocket" }
                     </button>
                     <button disabled=self.ws.is_none()
-                            onclick=self.link.callback(|_| WsAction::SendData(false).into())>
+                            onclick=self.link.callback(|_| WsAction::SendData(false))>
                         { "Send To WebSocket" }
                     </button>
                     <button disabled=self.ws.is_none()
