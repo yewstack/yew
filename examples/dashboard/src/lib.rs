@@ -213,7 +213,7 @@ impl Component for Model {
                         { "Send To WebSocket [binary]" }
                     </button>
                     <button disabled=self.ws.is_none()
-                            onclick=self.link.callback(|_| WsAction::Disconnect.into())>
+                            onclick=self.link.callback(|_| WsAction::Disconnect)>
                         { "Close WebSocket connection" }
                     </button>
                 </nav>
