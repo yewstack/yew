@@ -585,10 +585,7 @@ impl Discoverer for Public {
         let bridge = REMOTE_AGENTS_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
             match pool.entry::<RemoteAgent<AGN>>() {
-                anymap::Entry::Occupied(mut entry) => {
-                    // TODO(#945): Insert callback!
-                    entry.get_mut().create_bridge(callback)
-                }
+                anymap::Entry::Occupied(mut entry) => entry.get_mut().create_bridge(callback),
                 anymap::Entry::Vacant(entry) => {
                     let slab: Shared<Slab<Option<Callback<AGN::Output>>>> =
                         Rc::new(RefCell::new(Slab::new()));
