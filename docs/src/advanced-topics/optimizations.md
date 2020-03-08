@@ -82,7 +82,7 @@ This optimization works best if the values are never updated by the children, an
 
 ## View Functions
 
-For code readability reasons, it often makes sense to migrate sections of`html!` to their own functions so you can avoid the rightward drift present in deeply nested HTML.
+For code readability reasons, it often makes sense to migrate sections of `html!` to their own functions so you can avoid the rightward drift present in deeply nested HTML.
 
 ## Pure Components/Function Components
 

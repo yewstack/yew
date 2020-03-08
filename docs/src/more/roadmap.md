@@ -32,7 +32,7 @@ description: The planned feature roadmap for the Yew framework
 
 * Server Side Rendering: [https://github.com/yewstack/yew/issues/41](https://github.com/yewstack/yew/issues/41)
 * Component Library: [https://github.com/yewstrap/yewstrap](https://github.com/yewstrap/yewstrap)
-* Code Splitting [https://github.com/yewstack/yew/issues/599](https://github.com/yewstack/yew/issues/599)
+* Code Splitting: [https://github.com/yewstack/yew/issues/599](https://github.com/yewstack/yew/issues/599)
 * Allow different Virtual DOM backends: [https://github.com/yewstack/yew/issues/482](https://github.com/yewstack/yew/issues/482)
 * Rethink Services: [https://github.com/yewstack/yew/issues/364](https://github.com/yewstack/yew/issues/364)
 * Mature Utility crate: [https://github.com/yewstack/yewtil](https://github.com/yewstack/yewtil)
