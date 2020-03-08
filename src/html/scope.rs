@@ -114,6 +114,7 @@ impl<COMP: Component> Scope<COMP> {
     {
         self.update(ComponentUpdate::Message(msg.into()));
     }
+    
     /// Send a batch of messages to the component
     pub fn send_message_batch<T>(&self, messages: T)
     where
