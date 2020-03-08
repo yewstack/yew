@@ -1,11 +1,9 @@
 use log::info;
 use serde_derive::{Deserialize, Serialize};
 use std::time::Duration;
-use yew::worker::*;
-// TODO use yew::services::{IntervalService, FetchService, Task};
-use yew::services::fetch::FetchService;
 use yew::services::interval::IntervalService;
 use yew::services::Task;
+use yew::worker::*;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request {
@@ -23,9 +21,7 @@ pub enum Msg {
 
 pub struct Worker {
     link: AgentLink<Worker>,
-    interval: IntervalService,
-    task: Box<dyn Task>,
-    fetch: FetchService,
+    _task: Box<dyn Task>,
 }
 
 impl Agent for Worker {
@@ -35,15 +31,12 @@ impl Agent for Worker {
     type Output = Response;
 
     fn create(link: AgentLink<Self>) -> Self {
-        let mut interval = IntervalService::new();
         let duration = Duration::from_secs(3);
         let callback = link.callback(|_| Msg::Updating);
-        let task = interval.spawn(duration, callback);
+        let task = IntervalService::new().spawn(duration, callback);
         Worker {
             link,
-            interval,
-            task: Box::new(task),
-            fetch: FetchService::new(),
+            _task: Box::new(task),
         }
     }
 
@@ -59,12 +52,13 @@ impl Agent for Worker {
         info!("Request: {:?}", msg);
         match msg {
             Request::GetDataFromServer => {
+                // TODO fetch actual data
                 self.link.respond(who, Response::DataFetched);
             }
         }
     }
 
     fn name_of_resource() -> &'static str {
-        "bin/native_worker.js"
+        "worker.js"
     }
 }

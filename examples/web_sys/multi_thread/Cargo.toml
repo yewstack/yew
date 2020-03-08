@@ -5,11 +5,11 @@ authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 
 [[bin]]
-name = "main"
-path = "src/bin/main.rs"
+name = "multi_thread_app"
+path = "src/bin/app.rs"
 
 [[bin]]
-name = "native_worker"
+name = "multi_thread_worker"
 path = "src/bin/native_worker.rs"
 
 [dependencies]

@@ -1010,12 +1010,28 @@ where
 #[cfg(feature = "web_sys")]
 fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
     let href = utils::document().location().unwrap().href().unwrap();
-
+    let script_url = format!("{}{}", href, name_of_resource);
+    let wasm_url = format!("{}{}", href, name_of_resource.replace(".js", "_bg.wasm"));
     let array = Array::new();
     array.push(
         &format!(
-            "importScripts(\"{}{}\");onmessage=e=>{{wasm_bindgen(e.data)}}",
-            href, name_of_resource,
+            r#"importScripts("{}");
+
+            let initialized = wasm_bindgen("{}").catch(err => {{
+                // Propagate to main `onerror`:
+                setTimeout(() => {{
+                    throw err;
+                }});
+
+                // Rethrow to keep promise rejected and prevent execution of further commands:
+                throw err;
+            }});
+
+            self.onmessage = async (event) => {{
+                await initialized;
+                wasm_bindgen.child_entry_point(event.data);
+            }};"#,
+            script_url, wasm_url
         )
         .into(),
     );
