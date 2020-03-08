@@ -303,7 +303,7 @@ impl FetchService {
     /// 
     ///# fn dont_execute() {
     ///# let link: ComponentLink<Comp> = unimplemented!();
-    ///# let callback = link.callback(|response: Response<Result<String, anyhow::Error>>| unimplemented!());
+    ///# let callback = link.callback(|response: Response<Result<String, anyhow::Error>>| -> Msg { unimplemented!() });
     /// let request = fetch::Request::get("/path/")
     ///     .body(Nothing)
     ///     .unwrap();

@@ -201,7 +201,7 @@ impl Component for Model {
                     </button>
                     { self.view_data() }
                     <button disabled=self.ws.is_some()
-                            onclick=self.link.callback(|_| WsAction::Connect.into())>
+                            onclick=self.link.callback(|_| WsAction::Connect)>
                         { "Connect To WebSocket" }
                     </button>
                     <button disabled=self.ws.is_none()
