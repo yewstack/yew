@@ -6,7 +6,7 @@ branches:
 
 dist: trusty
 language: rust
-sudo: false
+sudo: true
 addons:
   chrome: stable
 
@@ -40,4 +40,4 @@ install:
 script:
   - ./ci/run_checks.sh
   - CHROMEDRIVER=$(pwd)/chromedriver ./ci/run_tests.sh
-  - CHROMEDRIVER=$(pwd)/chromedriver ./ci/check_examples.sh
+  - ./ci/check_examples.sh
