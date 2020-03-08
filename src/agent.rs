@@ -467,7 +467,8 @@ impl Discoverer for Private {
                 }
             }
         };
-        // TODO(#947): Need somethig better...
+
+        // TODO(#947): Drop handler when bridge is dropped
         let name_of_resource = AGN::name_of_resource();
         let worker = cfg_match! {
             feature = "std_web" => js! {
