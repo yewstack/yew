@@ -37,6 +37,9 @@ install:
   - unzip chromedriver_linux64.zip
   - ./ci/install_cargo_web.sh
 
+# Prevents intermittent chromedriver issues https://github.com/travis-ci/travis-ci/issues/8361#issuecomment-350090030
+before_script: sudo sh -c 'echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6'
+
 script:
   - ./ci/run_checks.sh
   - CHROMEDRIVER=$(pwd)/chromedriver ./ci/run_tests.sh
