@@ -692,6 +692,7 @@ impl<AGN: Agent> PublicBridge<AGN> {
         });
     }
 
+    /// Send a message to the worker, queuing it up if necessary
     fn send_message(&self, msg: ToWorker<AGN::Input>) {
         if self.worker_is_loaded() {
             send_to_remote::<AGN>(&self.worker, msg);
@@ -747,11 +748,11 @@ impl<AGN: Agent> Drop for PublicBridge<AGN> {
         });
 
         let disconnected = ToWorker::Disconnected(self.id);
-        send_to_remote::<AGN>(&self.worker, disconnected);
+        self.send_message(disconnected);
 
         if terminate_worker {
             let destroy = ToWorker::Destroy;
-            send_to_remote::<AGN>(&self.worker, destroy);
+            self.send_message(destroy);
 
             REMOTE_AGENTS_LOADED.with(|loaded| {
                 loaded.borrow_mut().remove(&TypeId::of::<AGN>());
