@@ -115,10 +115,10 @@ impl<COMP: Component> Scope<COMP> {
         self.update(ComponentUpdate::Message(msg.into()));
     }
     /// Send a batch of messages to the component
-    pub fn send_message_batch<T: IntoIterator<Item = COMP::Message> + Into<Vec<COMP::Message>>>(
-        &self,
-        messages: T,
-    ) {
+    pub fn send_message_batch<I: Into<Vec<COMP::Message>>>(&self, messages: I)
+    where
+        I: IntoIterator<Item = COMP::Message>,
+    {
         self.update(ComponentUpdate::MessageBatch(messages.into()));
     }
 
