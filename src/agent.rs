@@ -292,10 +292,7 @@ impl Discoverer for Context {
         let bridge = LOCAL_AGENTS_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
             match pool.entry::<LocalAgent<AGN>>() {
-                anymap::Entry::Occupied(mut entry) => {
-                    // TODO(#940): Insert callback!
-                    entry.get_mut().create_bridge(callback)
-                }
+                anymap::Entry::Occupied(mut entry) => entry.get_mut().create_bridge(callback),
                 anymap::Entry::Vacant(entry) => {
                     let scope = AgentScope::<AGN>::new();
                     let launched = LocalAgent::new(&scope);
