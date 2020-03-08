@@ -291,7 +291,16 @@ impl FetchService {
     ///#     fn update(&mut self, msg: Self::Message) -> bool {unimplemented!()}
     ///#     fn view(&self) -> Html {unimplemented!()}
     ///# }
-    ///# pub enum Msg {}
+    ///# pub enum Msg {
+    /// f
+    /// }
+    /// 
+    /// 
+    /// 
+    /// 
+    /// 
+    /// 
+    /// 
     ///# fn dont_execute() {
     ///# let link: ComponentLink<Comp> = unimplemented!();
     ///# let callback = link.callback(|response: Response<Result<String, anyhow::Error>>| unimplemented!());

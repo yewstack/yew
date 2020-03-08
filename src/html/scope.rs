@@ -114,12 +114,11 @@ impl<COMP: Component> Scope<COMP> {
     {
         self.update(ComponentUpdate::Message(msg.into()));
     }
-    
     /// Send a batch of messages to the component
-    pub fn send_message_batch<T>(&self, messages: T)
-    where
-        T: Into<Vec<COMP::Message>>,
-    {
+    pub fn send_message_batch<T: IntoIterator<Item = COMP::Message> + Into<Vec<COMP::Message>>>(
+        &self,
+        messages: T,
+    ) {
         self.update(ComponentUpdate::MessageBatch(messages.into()));
     }
 
@@ -140,9 +139,9 @@ impl<COMP: Component> Scope<COMP> {
 
     /// This method creates a `Callback` which will send a batch of messages back to the linked
     /// component's update method when called.
-    pub fn batch_callback<F, IN, M>(&self, function: F) -> Callback<IN>
+    pub fn batch_callback<F, IN, M: Into<Vec<COMP::Message>>>(&self, function: F) -> Callback<IN>
     where
-        M: Into<Vec<COMP::Message>>,
+        M: IntoIterator<Item = COMP::Message>,
         F: Fn(IN) -> M + 'static,
     {
         let scope = self.clone();
