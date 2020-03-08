@@ -594,7 +594,6 @@ impl Discoverer for Public {
                             let msg = FromWorker::<AGN::Output>::unpack(&data);
                             match msg {
                                 FromWorker::WorkerLoaded => {
-                                    // TODO(#944): Send `Connected` message
                                     REMOTE_AGENTS_LOADED.with(|loaded| {
                                         let _ = loaded.borrow_mut().insert(TypeId::of::<AGN>());
                                     });
@@ -640,7 +639,9 @@ impl Discoverer for Public {
                         }),
                     };
                     let launched = RemoteAgent::new(worker, slab);
-                    entry.insert(launched).create_bridge(callback)
+                    let bridge = entry.insert(launched).create_bridge(callback);
+                    bridge.send_message(ToWorker::Connected(bridge.id));
+                    bridge
                 }
             }
         });
@@ -684,6 +685,15 @@ impl<AGN: Agent> PublicBridge<AGN> {
             }
         });
     }
+
+    /// Send a message to the worker, queuing it up if necessary
+    fn send_message(&self, msg: ToWorker<AGN::Input>) {
+        if self.worker_is_loaded() {
+            send_to_remote::<AGN>(&self.worker, msg);
+        } else {
+            self.msg_to_queue(msg.pack());
+        }
+    }
 }
 
 fn send_to_remote<AGN: Agent>(
@@ -705,11 +715,7 @@ fn send_to_remote<AGN: Agent>(
 impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
     fn send(&mut self, msg: AGN::Input) {
         let msg = ToWorker::ProcessInput(self.id, msg);
-        if self.worker_is_loaded() {
-            send_to_remote::<AGN>(&self.worker, msg);
-        } else {
-            self.msg_to_queue(msg.pack());
-        }
+        self.send_message(msg);
     }
 }
 
@@ -733,11 +739,11 @@ impl<AGN: Agent> Drop for PublicBridge<AGN> {
         });
 
         let disconnected = ToWorker::Disconnected(self.id);
-        send_to_remote::<AGN>(&self.worker, disconnected);
+        self.send_message(disconnected);
 
         if terminate_worker {
             let destroy = ToWorker::Destroy;
-            send_to_remote::<AGN>(&self.worker, destroy);
+            self.send_message(destroy);
 
             REMOTE_AGENTS_LOADED.with(|loaded| {
                 loaded.borrow_mut().remove(&TypeId::of::<AGN>());
