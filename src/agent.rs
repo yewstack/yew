@@ -697,9 +697,6 @@ fn send_to_remote<AGN: Agent>(
     #[cfg(feature = "web_sys")] worker: &Worker,
     msg: ToWorker<AGN::Input>,
 ) {
-    // TODO(#937): Important! Implement.
-    // Use a queue to collect a messages if an instance is not ready
-    // and send them to an agent when it will reported readiness.
     let msg = msg.pack();
     cfg_match! {
         feature = "std_web" => js! {
