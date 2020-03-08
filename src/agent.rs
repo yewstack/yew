@@ -599,7 +599,6 @@ impl Discoverer for Public {
                             let msg = FromWorker::<AGN::Output>::unpack(&data);
                             match msg {
                                 FromWorker::WorkerLoaded => {
-                                    // TODO(#944): Send `Connected` message
                                     REMOTE_AGENTS_LOADED.with(|loaded| {
                                         let _ = loaded.borrow_mut().insert(TypeId::of::<AGN>());
                                     });
