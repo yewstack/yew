@@ -107,7 +107,7 @@ wasm-bindgen = "0.2.59"
 # Changes here must be reflected in `build.rs`
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dev-dependencies]
 wasm-bindgen-test = "0.3.4"
-base64 = "0.11.0"
+base64 = "0.12.0"
 ssri = "5.0.0"
 
 [target.'cfg(target_os = "emscripten")'.dependencies]
