@@ -26,7 +26,7 @@ cfg-if = "0.1"
 cfg-match = "0.2"
 console_error_panic_hook = { version = "0.1", optional = true }
 futures = { version = "0.3", optional = true }
-gloo = { version = "0.2", optional = true }
+gloo = { git = "https://github.com/rustwasm/gloo", optional = true, rev = "f9b1727" }
 http = "0.2"
 indexmap = "1.0.2"
 js-sys = { version = "0.3", optional = true }

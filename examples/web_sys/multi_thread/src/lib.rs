@@ -5,7 +5,7 @@ pub mod job;
 pub mod native_worker;
 
 use log::info;
-use yew::worker::*;
+use yew::worker::{Bridge, Bridged};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
