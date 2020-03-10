@@ -12,7 +12,7 @@ Don't try to implement `Properties` yourself, derive it by using `#[derive(Prope
 
 ### Required attribute
 
-The fields within a struct that implements `Properties` must be either `Default` or have a `#[props(required)]` attribute applied to them. This attribute signals to the framework that the field must be supplied when the component is created in a `html!` macro, otherwise you will receive a compiler error. For fields that aren't required, it is common to wrap them in an `Option`, which will default to `None` when the field isn't supplied.
+The fields within a struct that implements `Properties` are required by default.  When the field is missing and the component is created in the `html!` macro, a compiler error is returned. For fields with optional properties, use `#[prop_or_default]` to use the default value for that type. To specify a value, use `#[prop_or_else(value)]` where value is the default value for the property.  For example, to default a boolean value as `true`, use the attribute `#[prop_or_else(true)]`. It is common for optional properties to use `Option` which defaults to `None`.
 
 ### PartialEq
 
@@ -55,16 +55,19 @@ impl Default for LinkColor {
 #[derive(Properties, PartialEq)]
 pub struct LinkProps {
     /// The link must have a target.
-    #[props(required)]
     href: String,
     /// If the link text is huge, this will make copying the string much cheaper.
     /// This isn't usually recommended unless performance is a problem.
-    #[props(required)]
     text: Rc<String>,
     /// Color of the link.
+    #[prop_or_default]
     color: LinkColor,
     /// The view function will not specify a size if this is None.
+    #[prop_or_default]
     size: Option<u32>
+    /// When the view function doesn't specify active, it defaults to true.
+    #[prop_or_else(true)]
+    active: bool,
 }
 ```
 
