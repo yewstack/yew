@@ -6,7 +6,7 @@ use yew::callback::Callback;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::js;
-        use stdweb::web::{window, Window};
+        use stdweb::web::{event::ResizeEvent, window, Window};
         use stdweb::Value;
     } else if #[cfg(feature = "web_sys")] {
         use gloo::events::EventListener;
@@ -64,14 +64,16 @@ impl ResizeService {
 
     /// Register a callback that will be called when the browser window resizes.
     pub fn register(&mut self, callback: Callback<WindowDimensions>) -> ResizeTask {
-        let callback = move |#[cfg(feature = "web_sys")] _event: &Event| {
-            let window = cfg_match! {
-                feature = "std_web" => window(),
-                feature = "web_sys" => web_sys::window().unwrap(),
+        let callback =
+            move |#[cfg(feature = "web_sys")] _event: &Event,
+                  #[cfg(feature = "std_web")] _event: ResizeEvent| {
+                let window = cfg_match! {
+                    feature = "std_web" => window(),
+                    feature = "web_sys" => web_sys::window().unwrap(),
+                };
+                let dimensions = WindowDimensions::get_dimensions(&window);
+                callback.emit(dimensions);
             };
-            let dimensions = WindowDimensions::get_dimensions(&window);
-            callback.emit(dimensions);
-        };
         let handle = cfg_match! {
             feature = "std_web" => js! {
                 var handle = @{callback};
