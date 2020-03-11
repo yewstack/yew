@@ -1013,22 +1013,7 @@ fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
     let array = Array::new();
     array.push(
         &format!(
-            r#"importScripts("{}");
-
-            let initialized = wasm_bindgen("{}").catch(err => {{
-                // Propagate to main `onerror`:
-                setTimeout(() => {{
-                    throw err;
-                }});
-
-                // Rethrow to keep promise rejected and prevent execution of further commands:
-                throw err;
-            }});
-
-            self.onmessage = async (event) => {{
-                await initialized;
-                wasm_bindgen.child_entry_point(event.data);
-            }};"#,
+            r#"importScripts("{}");wasm_bindgen("{}");"#,
             script_url, wasm_url
         )
         .into(),
