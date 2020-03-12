@@ -6,20 +6,20 @@ pub enum Msg {
     NewMessage(String),
 }
 
-pub struct Subsciber {
+pub struct Subscriber {
     message: String,
     _producer: Box<dyn Bridge<EventBus>>,
 }
 
-impl Component for Subsciber {
+impl Component for Subscriber {
     type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.callback(|s| Msg::NewMessage(s));
         let _producer = EventBus::bridge(callback);
-        Subsciber {
-            message: format!("No message yet"),
+        Subscriber {
+            message: format!("No message yet."),
             _producer,
         }
     }
@@ -33,7 +33,7 @@ impl Component for Subsciber {
 
     fn view(&self) -> Html {
         html! {
-            <h1>{self.message.clone()}</h1>
+            <h1>{ &self.message }</h1>
         }
     }
 }

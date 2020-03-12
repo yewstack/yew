@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use std::fmt::Debug;
 use yew::worker::*;
 
 #[derive(Serialize, Deserialize, Debug)]
