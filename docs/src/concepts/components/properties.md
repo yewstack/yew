@@ -12,7 +12,7 @@ Don't try to implement `Properties` yourself, derive it by using `#[derive(Prope
 
 ### Required attribute
 
-The fields within a struct that implements `Properties` are required by default.  When the field is missing and the component is created in the `html!` macro, a compiler error is returned. For fields with optional properties, use `#[prop_or_default]` to use the default value for that type. To specify a value, use `#[prop_or_else(value)]` where value is the default value for the property.  For example, to default a boolean value as `true`, use the attribute `#[prop_or_else(true)]`. It is common for optional properties to use `Option` which defaults to `None`.
+The fields within a struct that implements `Properties` are required by default. When the field is missing and the component is created in the `html!` macro, a compiler error is returned. For fields with optional properties, use `#[prop_or_default]` to use the default value for that type. To specify a value, use `#[prop_or_else(value)]` where value is the default value for the property. For example, to default a boolean value as `true`, use the attribute `#[prop_or_else(true)]`. It is common for optional properties to use `Option` which defaults to `None`.
 
 ### PartialEq
 
