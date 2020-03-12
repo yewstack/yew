@@ -6,5 +6,5 @@ edition = "2018"
 
 [dependencies]
 stdweb = "0.4.20"
-yew = { path = "../.." }
+yew = { path = "../..", features = [ "std_web" ] }
 webgl_stdweb = "0.3.0"
