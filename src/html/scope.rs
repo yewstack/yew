@@ -115,7 +115,7 @@ impl<COMP: Component> Scope<COMP> {
         self.update(ComponentUpdate::Message(msg.into()));
     }
     /// Send a batch of messages to the component
-    pub fn send_message_batch(&self, messages: Vec<COMP::Message>>){
+    pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
         self.update(ComponentUpdate::MessageBatch(messages));
     }
 
