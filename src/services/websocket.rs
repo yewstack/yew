@@ -21,7 +21,7 @@ cfg_if! {
 }
 
 /// A status of a websocket connection. Used for status notification.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum WebSocketStatus {
     /// Fired when a websocket connection was opened.
     Opened,
