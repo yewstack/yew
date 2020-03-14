@@ -246,6 +246,22 @@ mod tests {
     }
 
     #[test]
+    async fn fetch_fail() {
+        let request = Request::get("https://fetch.fail").body(Nothing).unwrap();
+        let cb_future = CallbackFuture::<Response<Result<String, anyhow::Error>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let _task = FetchService::new().fetch(request, callback);
+        let resp = cb_future.await;
+        #[cfg(feature = "std_web")]
+        assert!(resp.body().is_err());
+        #[cfg(feature = "web_sys")]
+        assert_eq!(
+            "TypeError: NetworkError when attempting to fetch resource.",
+            resp.body().as_ref().unwrap_err().to_string()
+        );
+    }
+
+    #[test]
     async fn fetch_referrer_policy_no_referrer() {
         let request = Request::get("https://httpbin.org/headers")
             .body(Nothing)

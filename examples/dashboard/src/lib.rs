@@ -201,19 +201,19 @@ impl Component for Model {
                     </button>
                     { self.view_data() }
                     <button disabled=self.ws.is_some()
-                            onclick=self.link.callback(|_| WsAction::Connect.into())>
+                            onclick=self.link.callback(|_| WsAction::Connect)>
                         { "Connect To WebSocket" }
                     </button>
                     <button disabled=self.ws.is_none()
-                            onclick=self.link.callback(|_| WsAction::SendData(false).into())>
+                            onclick=self.link.callback(|_| WsAction::SendData(false))>
                         { "Send To WebSocket" }
                     </button>
                     <button disabled=self.ws.is_none()
-                            onclick=self.link.callback(|_| WsAction::SendData(true).into())>
+                            onclick=self.link.callback(|_| WsAction::SendData(true))>
                         { "Send To WebSocket [binary]" }
                     </button>
                     <button disabled=self.ws.is_none()
-                            onclick=self.link.callback(|_| WsAction::Disconnect.into())>
+                            onclick=self.link.callback(|_| WsAction::Disconnect)>
                         { "Close WebSocket connection" }
                     </button>
                 </nav>
