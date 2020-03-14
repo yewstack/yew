@@ -1,15 +1,16 @@
 #[cfg(test)]
 extern crate wasm_bindgen_test;
 
-use wasm_bindgen_test::*;
 use std::ops::DerefMut;
+use wasm_bindgen_test::*;
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
-
 
 extern crate yew;
 
-use yew::{Html, html, App, Properties};
-use functional_yew::{FunctionProvider, use_state, FunctionComponent, use_ref, use_effect, use_effect1, use_reducer2};
+use functional_yew::{
+    use_effect, use_effect1, use_reducer2, use_ref, use_state, FunctionComponent, FunctionProvider,
+};
+use yew::{html, App, Html, Properties};
 
 #[wasm_bindgen_test]
 fn use_state_works() {
@@ -35,7 +36,10 @@ fn use_state_works() {
     // yew::initialize();
     let app: App<UseComponent> = yew::App::new();
     app.mount(yew::utils::document().get_element_by_id("output").unwrap());
-    let result: String = yew::utils::document().get_element_by_id("result").unwrap().inner_html();
+    let result: String = yew::utils::document()
+        .get_element_by_id("result")
+        .unwrap()
+        .inner_html();
     assert_eq!(result.as_str(), "5");
 }
 
@@ -44,7 +48,7 @@ fn props_are_passed() {
     struct PropsPassedFunction {}
     #[derive(Properties, Clone, PartialEq)]
     struct PropsPassedFunctionProps {
-        value: String
+        value: String,
     }
     impl FunctionProvider for PropsPassedFunction {
         type TProps = PropsPassedFunctionProps;
@@ -60,9 +64,16 @@ fn props_are_passed() {
     }
     type PropsComponent = FunctionComponent<PropsPassedFunction>;
     let app: App<PropsComponent> = yew::App::new();
-    app.mount_with_props(yew::utils::document().get_element_by_id("output").unwrap(),
-                         PropsPassedFunctionProps { value: "props".to_string() });
-    let result: String = yew::utils::document().get_element_by_id("result").unwrap().inner_html();
+    app.mount_with_props(
+        yew::utils::document().get_element_by_id("output").unwrap(),
+        PropsPassedFunctionProps {
+            value: "props".to_string(),
+        },
+    );
+    let result: String = yew::utils::document()
+        .get_element_by_id("result")
+        .unwrap()
+        .inner_html();
     assert_eq!(result.as_str(), "done");
 }
 
@@ -91,7 +102,10 @@ fn use_ref_works() {
     type UseRefComponent = FunctionComponent<UseRefFunction>;
     let app: App<UseRefComponent> = yew::App::new();
     app.mount(yew::utils::document().get_element_by_id("output").unwrap());
-    let result: String = yew::utils::document().get_element_by_id("result").unwrap().inner_html();
+    let result: String = yew::utils::document()
+        .get_element_by_id("result")
+        .unwrap()
+        .inner_html();
     assert_eq!(result.as_str(), "true");
 }
 
@@ -109,9 +123,7 @@ fn use_effect_works() {
                     panic!("This effect should have been called once only")
                 }
                 *number_ref_c.borrow_mut().deref_mut() += 1;
-                || {
-                    panic!("Destructor should not have been called")
-                }
+                || panic!("Destructor should not have been called")
             });
             return html! {
                 <div>
@@ -125,7 +137,10 @@ fn use_effect_works() {
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;
     let app: App<UseEffectComponent> = yew::App::new();
     app.mount(yew::utils::document().get_element_by_id("output").unwrap());
-    let result: String = yew::utils::document().get_element_by_id("result").unwrap().inner_html();
+    let result: String = yew::utils::document()
+        .get_element_by_id("result")
+        .unwrap()
+        .inner_html();
     assert_eq!(result.as_str(), "1");
 }
 
@@ -141,19 +156,22 @@ fn use_effect_refires_on_dependency_change() {
             let number_ref2 = use_ref(|| 0);
             let number_ref2_c = number_ref2.clone();
             let arg = *number_ref.borrow_mut().deref_mut();
-            use_effect1(move |dep| {
-                let mut ref_mut = number_ref_c.borrow_mut();
-                let inner_ref_mut = ref_mut.deref_mut();
-                if *inner_ref_mut < 1 {
-                    *inner_ref_mut += 1;
-                    assert_eq!(dep, &0);
-                } else {
-                    assert_eq!(dep, &1);
-                }
-                move || {
-                    *number_ref2_c.borrow_mut().deref_mut() += 1;
-                }
-            }, arg);
+            use_effect1(
+                move |dep| {
+                    let mut ref_mut = number_ref_c.borrow_mut();
+                    let inner_ref_mut = ref_mut.deref_mut();
+                    if *inner_ref_mut < 1 {
+                        *inner_ref_mut += 1;
+                        assert_eq!(dep, &0);
+                    } else {
+                        assert_eq!(dep, &1);
+                    }
+                    move || {
+                        *number_ref2_c.borrow_mut().deref_mut() += 1;
+                    }
+                },
+                arg,
+            );
             return html! {
                 <div>
                     {"The test result is"}
@@ -166,7 +184,10 @@ fn use_effect_refires_on_dependency_change() {
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;
     let app: App<UseEffectComponent> = yew::App::new();
     app.mount(yew::utils::document().get_element_by_id("output").unwrap());
-    let result: String = yew::utils::document().get_element_by_id("result").unwrap().inner_html();
+    let result: String = yew::utils::document()
+        .get_element_by_id("result")
+        .unwrap()
+        .inner_html();
 
     assert_eq!(result.as_str(), "11");
 }
@@ -190,10 +211,13 @@ fn use_reducer_works() {
                     counter: initial + 10,
                 },
             );
-            use_effect1(|_| {
-                dispatch(1);
-                || {}
-            }, 0);
+            use_effect1(
+                |_| {
+                    dispatch(1);
+                    || {}
+                },
+                0,
+            );
             return html! {
                 <div>
                     {"The test result is"}
@@ -206,7 +230,10 @@ fn use_reducer_works() {
     type UseReducerComponent = FunctionComponent<UseReducerFunction>;
     let app: App<UseReducerComponent> = yew::App::new();
     app.mount(yew::utils::document().get_element_by_id("output").unwrap());
-    let result: String = yew::utils::document().get_element_by_id("result").unwrap().inner_html();
+    let result: String = yew::utils::document()
+        .get_element_by_id("result")
+        .unwrap()
+        .inner_html();
 
     assert_eq!(result.as_str(), "11");
 }

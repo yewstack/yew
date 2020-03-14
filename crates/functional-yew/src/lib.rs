@@ -26,8 +26,8 @@ pub struct FunctionComponent<T: FunctionProvider> {
 }
 
 impl<T: 'static> Component for FunctionComponent<T>
-    where
-        T: FunctionProvider,
+where
+    T: FunctionProvider,
 {
     type Message = ();
     type Properties = T::TProps;
@@ -86,8 +86,8 @@ impl<T: 'static> Component for FunctionComponent<T>
 }
 
 pub fn use_ref<T: 'static, InitialProvider>(initial_value: InitialProvider) -> Rc<RefCell<T>>
-    where
-        InitialProvider: FnOnce() -> T,
+where
+    InitialProvider: FnOnce() -> T,
 {
     struct UseRefState<T> {
         o: Rc<RefCell<T>>,
@@ -110,8 +110,8 @@ pub fn use_reducer1<Action: 'static, Reducer, State: 'static>(
     reducer: Reducer,
     initial_state: State,
 ) -> (Rc<State>, Box<impl Fn(Action)>)
-    where
-        Reducer: Fn(Rc<State>, Action) -> State + 'static,
+where
+    Reducer: Fn(Rc<State>, Action) -> State + 'static,
 {
     return use_reducer2(reducer, initial_state, |a| a);
 }
@@ -121,9 +121,9 @@ pub fn use_reducer2<Action: 'static, Reducer, State: 'static, InitialState, Init
     initial_state: InitialState,
     init: InitFn,
 ) -> (Rc<State>, Box<impl Fn(Action)>)
-    where
-        Reducer: Fn(Rc<State>, Action) -> State + 'static,
-        InitFn: Fn(InitialState) -> State,
+where
+    Reducer: Fn(Rc<State>, Action) -> State + 'static,
+    InitFn: Fn(InitialState) -> State,
 {
     struct UseReducerState<State> {
         current_state: Rc<State>,
@@ -156,9 +156,9 @@ pub fn use_reducer2<Action: 'static, Reducer, State: 'static, InitialState, Init
 }
 
 pub fn use_state<T, F>(initial_state_fn: F) -> (Rc<T>, Box<impl Fn(T)>)
-    where
-        F: FnOnce() -> T,
-        T: 'static,
+where
+    F: FnOnce() -> T,
+    T: 'static,
 {
     struct UseStateState<T2> {
         current: Rc<T2>,
@@ -183,9 +183,9 @@ pub fn use_state<T, F>(initial_state_fn: F) -> (Rc<T>, Box<impl Fn(T)>)
 }
 
 pub fn use_effect<F, Destructor>(callback: F)
-    where
-        F: FnOnce() -> Destructor,
-        Destructor: FnOnce() + 'static,
+where
+    F: FnOnce() -> Destructor,
+    Destructor: FnOnce() + 'static,
 {
     let callback = Box::new(callback);
     use_effect5(
@@ -199,10 +199,10 @@ pub fn use_effect<F, Destructor>(callback: F)
 }
 
 pub fn use_effect1<F, Destructor, T1>(callback: F, o1: T1)
-    where
-        F: FnOnce(&T1) -> Destructor,
-        Destructor: FnOnce() + 'static,
-        T1: PartialEq + 'static,
+where
+    F: FnOnce(&T1) -> Destructor,
+    Destructor: FnOnce() + 'static,
+    T1: PartialEq + 'static,
 {
     let callback = Box::new(callback);
     use_effect5(
@@ -216,11 +216,11 @@ pub fn use_effect1<F, Destructor, T1>(callback: F, o1: T1)
 }
 
 pub fn use_effect2<F, Destructor, T1, T2>(callback: F, o1: T1, o2: T2)
-    where
-        F: FnOnce(&T1, &T2) -> Destructor,
-        Destructor: FnOnce() + 'static,
-        T1: PartialEq + 'static,
-        T2: PartialEq + 'static,
+where
+    F: FnOnce(&T1, &T2) -> Destructor,
+    Destructor: FnOnce() + 'static,
+    T1: PartialEq + 'static,
+    T2: PartialEq + 'static,
 {
     let callback = Box::new(callback);
     use_effect5(
@@ -234,12 +234,12 @@ pub fn use_effect2<F, Destructor, T1, T2>(callback: F, o1: T1, o2: T2)
 }
 
 pub fn use_effect3<F, Destructor, T1, T2, T3>(callback: F, o1: T1, o2: T2, o3: T3)
-    where
-        F: FnOnce(&T1, &T2, &T3) -> Destructor,
-        Destructor: FnOnce() + 'static,
-        T1: PartialEq + 'static,
-        T2: PartialEq + 'static,
-        T3: PartialEq + 'static,
+where
+    F: FnOnce(&T1, &T2, &T3) -> Destructor,
+    Destructor: FnOnce() + 'static,
+    T1: PartialEq + 'static,
+    T2: PartialEq + 'static,
+    T3: PartialEq + 'static,
 {
     let callback = Box::new(callback);
     use_effect5(
@@ -253,13 +253,13 @@ pub fn use_effect3<F, Destructor, T1, T2, T3>(callback: F, o1: T1, o2: T2, o3: T
 }
 
 pub fn use_effect4<F, Destructor, T1, T2, T3, T4>(callback: F, o1: T1, o2: T2, o3: T3, o4: T4)
-    where
-        F: FnOnce(&T1, &T2, &T3, &T4) -> Destructor,
-        Destructor: FnOnce() + 'static,
-        T1: PartialEq + 'static,
-        T2: PartialEq + 'static,
-        T3: PartialEq + 'static,
-        T4: PartialEq + 'static,
+where
+    F: FnOnce(&T1, &T2, &T3, &T4) -> Destructor,
+    Destructor: FnOnce() + 'static,
+    T1: PartialEq + 'static,
+    T2: PartialEq + 'static,
+    T3: PartialEq + 'static,
+    T4: PartialEq + 'static,
 {
     let callback = Box::new(callback);
     use_effect5(
@@ -271,7 +271,6 @@ pub fn use_effect4<F, Destructor, T1, T2, T3, T4>(callback: F, o1: T1, o2: T2, o
         (),
     );
 }
-
 
 pub fn use_effect5<F, Destructor, T1, T2, T3, T4, T5>(
     callback: Box<F>,
@@ -344,9 +343,7 @@ pub fn use_effect5<F, Destructor, T1, T2, T3, T4, T5>(
             }
             return move || {
                 if should_update {
-                    hook_update(
-                        move |_: &mut UseEffectState<T1, T2, T3, T4, T5, Destructor>| true,
-                    )
+                    hook_update(move |_: &mut UseEffectState<T1, T2, T3, T4, T5, Destructor>| true)
                 }
             };
         },
@@ -365,11 +362,11 @@ pub fn use_hook<InternalHookState, HookRunner, R, InitialStateProvider, Pretrigg
     hook_runner: HookRunner,
     initial_state_producer: InitialStateProvider,
 ) -> R
-    where
-        HookRunner: FnOnce(&mut InternalHookState, Rc<dyn Fn(PretriggerChange)>) -> R,
-        InternalHookState: 'static,
-        InitialStateProvider: FnOnce() -> InternalHookState,
-        PretriggerChange: FnOnce(&mut InternalHookState) -> bool,
+where
+    HookRunner: FnOnce(&mut InternalHookState, Rc<dyn Fn(PretriggerChange)>) -> R,
+    InternalHookState: 'static,
+    InitialStateProvider: FnOnce() -> InternalHookState,
+    PretriggerChange: FnOnce(&mut InternalHookState) -> bool,
 {
     return CURRENT_HOOK.with(|current_hook_field| {
         // Obtain a persistent Rc to the hook
@@ -508,4 +505,3 @@ pub fn use_hook<InternalHookState, HookRunner, R, InitialStateProvider, Pretrigg
         }
     });
 }
-
