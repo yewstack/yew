@@ -177,7 +177,7 @@ fn use_reducer_works() {
     impl FunctionProvider for UseReducerFunction {
         type TProps = ();
 
-        fn run(props: &Self::TProps) -> Html {
+        fn run(_: &Self::TProps) -> Html {
             struct CounterState {
                 counter: i32,
             }

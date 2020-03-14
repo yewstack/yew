@@ -1,4 +1,3 @@
-use std::any::Any;
 use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::ops::DerefMut;
@@ -346,7 +345,7 @@ pub fn use_effect5<F, Destructor, T1, T2, T3, T4, T5>(
             return move || {
                 if should_update {
                     hook_update(
-                        move |state: &mut UseEffectState<T1, T2, T3, T4, T5, Destructor>| true,
+                        move |_: &mut UseEffectState<T1, T2, T3, T4, T5, Destructor>| true,
                     )
                 }
             };
