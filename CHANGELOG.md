@@ -1,16 +1,42 @@
 # Changelog
 
+## ✨ **0.14** *(2020-03-14)*
+
+Happy 🥧 (PI) Day! This release brings a number of bug fixes for `web-sys` apps and ergonomic improvements to the API. Huge thanks to the community for diving into the migration from `stdweb` to `web-sys` so quickly and uncovering these issues!
+
+#### Changelog
+
+- #### ⚡️ Features
+
+  - Implemented `Clone` for `WebSocketStatus`. [[@kellytk], [#1023](https://github.com/yewstack/yew/pull/1023)]
+  - Improved ergonomics for message APIs by accepting `Into<Msg>`. [[@captain-yossarian], [#999](https://github.com/yewstack/yew/pull/999)]
+  - `html!` improved compiler messages and flexible syntax for `with props`. [[@captain-yossarian], [#960](https://github.com/yewstack/yew/pull/960)]
+
+- #### 🛠 Fixes
+
+  - Fixed panic in `stdweb` `ResizeService` event handling. [[@nicklaswj], [#1014](https://github.com/yewstack/yew/pull/1014)]
+  - Removed build check for OS compatibility. [[@jstarry], [#1019](https://github.com/yewstack/yew/pull/1019)]
+  - Fixed interval and timer usage in `web-sys` workers by updating `gloo`. [[@jstarry], [#1018](https://github.com/yewstack/yew/pull/1018)]
+  - Send `Connected` message for Public agents. [[@TheNeikos], [#1007](https://github.com/yewstack/yew/pull/1007)]
+  - Fixed `web-sys` Public / Private agent initialization. [[@jstarry], [#1006](https://github.com/yewstack/yew/pull/1006)]
+  - Fixed websocket 'text' message handling for `web-sys` agents. [[@jstarry], [#1005](https://github.com/yewstack/yew/pull/1005)]
+
+- #### 🚨 Breaking changes
+
+  - `FetchError::FetchFailed` enum variant now wraps a `String` to hold the failure reason. [[@jstarry], [#1025](https://github.com/yewstack/yew/pull/1025)]
+  - Message APIs now accept `Into<Msg>`, so calling `msg.into()` will cause compile errors. [[@captain-yossarian], [#999](https://github.com/yewstack/yew/pull/999)]
+
 ## ✨ **0.13.2** *(2020-03-05)*
 
 - #### 🛠 Fixes
 
-Fix clippy warning when building with `web_sys` feature. [[@jstarry], [#1001](https://github.com/yewstack/yew/pull/1001)]
+  - Fix clippy warning when building with `web_sys` feature. [[@jstarry], [#1001](https://github.com/yewstack/yew/pull/1001)]
 
 ## ✨ **0.13.1** *(2020-03-04)*
 
 - #### 🛠 Fixes
 
-Fix for `web-sys` version `0.3.36`. [[@detegr], [#997](https://github.com/yewstack/yew/pull/997)]
+  - Fix for `web-sys` version `0.3.36`. [[@detegr], [#997](https://github.com/yewstack/yew/pull/997)]
 
 ## ✨ **0.13** *(2020-03-01)*
 
@@ -717,6 +743,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@AlephAlpha]: https://github.com/AlephAlpha
 [@astraw]: https://github.com/astraw
 [@boydjohnson]: https://github.com/boydjohnson
+[@captain-yossarian]: https://github.com/captain-yossarian
 [@carlosdp]: https://github.com/carlosdp
 [@charvp]: https://github.com/charvp
 [@ctaggart]: https://github.com/ctaggart
@@ -740,6 +767,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@philip-peterson]: https://github.com/philip-peterson
 [@serzhiio]: https://github.com/serzhiio
 [@stkevintan]: https://github.com/stkevintan
+[@TheNeikos]: https://github.com/TheNeikos
 [@tiziano88]: https://github.com/tiziano88
 [@trivigy]: https://github.com/trivigy
 [@totorigolo]: https://github.com/totorigolo

@@ -30,7 +30,7 @@ or
 ```bash
 cargo build --target wasm32-unknown-unknown --features std_web
 ```
-See more about features [here](https://docs.rs/yew/0.13.0/yew/#important-notes)
+See more about features [here](https://docs.rs/yew/0.14.0/yew/#important-notes)
 
 
 #### Test
