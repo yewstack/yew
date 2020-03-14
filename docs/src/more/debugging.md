@@ -45,3 +45,7 @@ There is currently no first-class support for source maps for Rust / Wasm web ap
 
 > Unfortunately, the debugging story for WebAssembly is still immature. On most Unix systems, [DWARF](http://dwarfstd.org/) is used to encode the information that a debugger needs to provide source-level inspection of a running program. There is an alternative format that encodes similar information on Windows. Currently, there is no equivalent for WebAssembly.
 
+\[2019\] [Rust Wasm roadmap](https://rustwasm.github.io/rfcs/007-2019-roadmap.html#debugging)
+
+> Debugging is tricky because much of the story is out of this working group's hands, and depends on both the WebAssembly standardization bodies and the folks implementing browser developer tools instead.
+
