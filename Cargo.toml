@@ -138,4 +138,5 @@ features = ["web_sys", "agent", "services", "yaml", "cbor", "toml", "msgpack", "
 [workspace]
 members = [
   "crates/macro",
+  "crates/functional-yew",
 ]
