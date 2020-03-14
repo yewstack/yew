@@ -6,18 +6,18 @@ description: The planned feature roadmap for the Yew framework
 
 ## `v1.0.0`
 
-#### Planned Features
+### Planned Features
 
 * Keyed list items [https://github.com/yewstack/yew/issues/479](https://github.com/yewstack/yew/issues/479)
 * Routing: [https://github.com/yewstack/yew\_router](https://github.com/yewstack/yew_router)
 
-#### Production Readiness
+### Production Readiness
 
 * Browser compatibility
 * Improve Yew framework test coverage
 * Add performance benchmarks [https://github.com/yewstack/yew/issues/5](https://github.com/yewstack/yew/issues/5)
 
-#### Guides
+### Guides
 
 * Best practices: [https://yew.rs/docs/optimizations](https://yew.rs/docs/optimizations)
 * End-to-end Tutorial
@@ -28,7 +28,7 @@ description: The planned feature roadmap for the Yew framework
 
 ## Future
 
-#### Potential Features
+### Potential Features
 
 * Server Side Rendering: [https://github.com/yewstack/yew/issues/41](https://github.com/yewstack/yew/issues/41)
 * Component Library: [https://github.com/yewstrap/yewstrap](https://github.com/yewstrap/yewstrap)
