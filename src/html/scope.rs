@@ -108,10 +108,12 @@ impl<COMP: Component> Scope<COMP> {
     }
 
     /// Send a message to the component
-    pub fn send_message(&self, msg: COMP::Message) {
-        self.update(ComponentUpdate::Message(msg));
+    pub fn send_message<T>(&self, msg: T)
+    where
+        T: Into<COMP::Message>,
+    {
+        self.update(ComponentUpdate::Message(msg.into()));
     }
-
     /// Send a batch of messages to the component
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
         self.update(ComponentUpdate::MessageBatch(messages));
@@ -119,9 +121,10 @@ impl<COMP: Component> Scope<COMP> {
 
     /// This method creates a `Callback` which will send a message to the linked component's
     /// update method when invoked.
-    pub fn callback<F, IN>(&self, function: F) -> Callback<IN>
+    pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
-        F: Fn(IN) -> COMP::Message + 'static,
+        M: Into<COMP::Message>,
+        F: Fn(IN) -> M + 'static,
     {
         let scope = self.clone();
         let closure = move |input| {
