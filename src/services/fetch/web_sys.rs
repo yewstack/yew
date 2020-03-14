@@ -132,8 +132,8 @@ fn header_iter(headers: Headers) -> impl Iterator<Item = (String, String)> {
 enum FetchError {
     #[error("canceled")]
     Canceled,
-    #[error("fetch failed")]
-    FetchFailed,
+    #[error("{0}")]
+    FetchFailed(String),
     #[error("invalid response")]
     InvalidResponse,
     #[error("unexpected error, please report")]
@@ -298,7 +298,7 @@ impl FetchService {
     ///# pub enum Msg {}
     ///# fn dont_execute() {
     ///# let link: ComponentLink<Comp> = unimplemented!();
-    ///# let callback = link.callback(|response: Response<Result<String, Error>>| unimplemented!());
+    ///# let callback = link.callback(|response: Response<Result<String, Error>>|  -> Msg { unimplemented!() });
     /// let request = fetch::Request::get("/path/")
     ///     .body(Nothing)
     ///     .unwrap();
@@ -456,7 +456,8 @@ where
     async fn get_response(&self, fetch_promise: Promise) -> Result<WebResponse, FetchError> {
         let response = JsFuture::from(fetch_promise)
             .await
-            .map_err(|_| FetchError::FetchFailed)?;
+            .map_err(|err| err.unchecked_into::<js_sys::Error>())
+            .map_err(|err| FetchError::FetchFailed(err.to_string().as_string().unwrap()))?;
         if *self.active.borrow() {
             Ok(WebResponse::from(response))
         } else {

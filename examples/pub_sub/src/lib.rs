@@ -5,7 +5,7 @@ mod producer;
 mod subscriber;
 
 use producer::Producer;
-use subscriber::Subsciber;
+use subscriber::Subscriber;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {}
@@ -26,7 +26,7 @@ impl Component for Model {
         html! {
             <div>
                 <Producer />
-                <Subsciber />
+                <Subscriber />
             </div>
         }
     }
