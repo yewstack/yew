@@ -770,6 +770,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@lizhaoxian]: https://github.com/lizhaoxian
 [@mdtusz]: https://github.com/mdtusz
 [@mrh0057]: https://github.com/mrh0057
+[@nicklaswj]: https://github.com/nicklaswj
 [@philip-peterson]: https://github.com/philip-peterson
 [@serzhiio]: https://github.com/serzhiio
 [@stkevintan]: https://github.com/stkevintan
