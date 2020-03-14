@@ -18,14 +18,14 @@ cfg_if! {
         #[allow(unused_imports)]
         use stdweb::{_js_impl, js};
         use stdweb::unstable::TryFrom;
-        use stdweb::web::html_element::{InputElement, TextAreaElement};
+        use stdweb::web::html_element::{InputElement, TextAreaElement, ButtonElement};
         use stdweb::web::{Element, IElement, INode, Node};
     } else if #[cfg(feature = "web_sys")] {
         use gloo::events::EventListener;
         use std::ops::Deref;
         use wasm_bindgen::JsCast;
         use web_sys::{
-            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, Node,
+            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, Node, HtmlButtonElement
         };
     }
 }
@@ -310,6 +310,24 @@ impl VTag {
                         feature = "std_web" => element.remove_attribute(&key),
                         feature = "web_sys" => element.remove_attribute(&key).expect("could not remove class"),
                     };
+                }
+            }
+        }
+
+        if let Some(button) = {
+            cfg_match! {
+                feature = "std_web" => ButtonElement::try_from(element.clone()).ok(),
+                feature = "web_sys" => element.dyn_ref::<HtmlButtonElement>(),
+            }
+        } {
+            if let Some(change) = self.diff_kind(ancestor) {
+                let kind = match change {
+                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                    Patch::Remove(_) => "",
+                };
+                cfg_match! {
+                    feature = "std_web" => button.set_type(kind),
+                    feature = "web_sys" => button.set_type(kind),
                 }
             }
         }
