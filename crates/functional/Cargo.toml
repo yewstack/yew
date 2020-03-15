@@ -18,8 +18,10 @@ travis-ci = { repository = "yewstack/yew" }
 wasm-bindgen-test = "0.3.9"
 
 [dependencies]
-yew = { path = "../..", features = ["web_sys"] }
-web-sys = "0.3.36"
+yew = { path = "../.." }
+web-sys = { version = "0.3.36", optional = true }
+stdweb = { version = "0.4.20", optional = true }
+cfg-if = "0.1.10"
 
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]
 wasm-bindgen = "0.2.59"
@@ -31,3 +33,5 @@ ssri = "5.0.0"
 
 [features]
 wasm_test = []
+web_sys = ["yew/web_sys", "web-sys"]
+std_web = ["yew/std_web", "stdweb"]

@@ -21,4 +21,6 @@ cargo test --doc --features doc_test,wasm_test,yaml,msgpack,cbor,web_sys
   && cargo test --doc)
 
 (cd crates/functional \
-  && wasm-pack test --firefox --headless)
+  && cargo test --features web_sys,wasm_test --target wasm32-unknown-unknown \
+  && cargo test --features web_sys,wasm_test --target wasm32-unknown-unknown)
+
