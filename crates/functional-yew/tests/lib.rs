@@ -7,10 +7,10 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 extern crate yew;
 
-use functional_yew::{
-    use_effect, use_effect1, use_reducer2, use_ref, use_state, FunctionComponent, FunctionProvider,
-};
 use yew::{html, App, Html, Properties};
+use yew_functional::{
+    use_effect, use_effect1, use_reducer1, use_ref, use_state, FunctionComponent, FunctionProvider,
+};
 
 #[wasm_bindgen_test]
 fn use_state_works() {
@@ -202,7 +202,7 @@ fn use_reducer_works() {
             struct CounterState {
                 counter: i32,
             }
-            let (counter, dispatch) = use_reducer2(
+            let (counter, dispatch) = use_reducer1(
                 |prev: std::rc::Rc<CounterState>, action: i32| CounterState {
                     counter: prev.counter + action,
                 },
