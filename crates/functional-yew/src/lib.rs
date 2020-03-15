@@ -113,10 +113,10 @@ pub fn use_reducer<Action: 'static, Reducer, State: 'static>(
 where
     Reducer: Fn(Rc<State>, Action) -> State + 'static,
 {
-    return use_reducer1(reducer, initial_state, |a| a);
+    return use_reducer_with_init(reducer, initial_state, |a| a);
 }
 
-pub fn use_reducer1<Action: 'static, Reducer, State: 'static, InitialState, InitFn>(
+pub fn use_reducer_with_init<Action: 'static, Reducer, State: 'static, InitialState, InitFn>(
     reducer: Reducer,
     initial_state: InitialState,
     init: InitFn,
