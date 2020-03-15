@@ -363,7 +363,7 @@ pub fn use_hook<InternalHookState, HookRunner, R, InitialStateProvider, Pretrigg
     initial_state_producer: InitialStateProvider,
 ) -> R
 where
-    HookRunner: FnOnce(&mut InternalHookState, Rc<dyn Fn(PretriggerChange)>) -> R,
+    HookRunner: FnOnce(&mut InternalHookState, Box<dyn Fn(PretriggerChange)>) -> R,
     InternalHookState: 'static,
     InitialStateProvider: FnOnce() -> InternalHookState,
     PretriggerChange: FnOnce(&mut InternalHookState) -> bool,
@@ -405,7 +405,7 @@ where
 
             // Execute the actual hook closure we were given. Let it mutate the hook state and let
             // it create a callback that takes the mutable hook state.
-            let ret = hook_runner(preexisting_hook, Rc::new(move |pretrigger_change| {
+            let ret = hook_runner(preexisting_hook, Box::new(move |pretrigger_change| {
                 // We are called with a closure the hook wants to execute, borrowing component
                 // hook state.
                 let mut borrowed_hook_state = persistent_hook_state.try_borrow_mut()
@@ -460,7 +460,7 @@ where
             // Clone for later
             let persistent_hook_state_c = persistent_hook_state.clone();
             // Run the provided hook runner with the mutable internal hook state and the callback-acceptor
-            let ret = hook_runner(&mut new_state, Rc::new(move |pretrigger_change| {
+            let ret = hook_runner(&mut new_state, Box::new(move |pretrigger_change| {
                 // The component wishes to modify its state. First we need to get hold of the state
                 let mut borrowed_hook_state = persistent_hook_state.try_borrow_mut()
                     .expect("Hook state currently borrowed. Note: you cannot nest hooks.");
