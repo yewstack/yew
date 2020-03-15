@@ -106,17 +106,17 @@ where
     )
 }
 
-pub fn use_reducer1<Action: 'static, Reducer, State: 'static>(
+pub fn use_reducer<Action: 'static, Reducer, State: 'static>(
     reducer: Reducer,
     initial_state: State,
 ) -> (Rc<State>, Box<impl Fn(Action)>)
 where
     Reducer: Fn(Rc<State>, Action) -> State + 'static,
 {
-    return use_reducer2(reducer, initial_state, |a| a);
+    return use_reducer1(reducer, initial_state, |a| a);
 }
 
-pub fn use_reducer2<Action: 'static, Reducer, State: 'static, InitialState, InitFn>(
+pub fn use_reducer1<Action: 'static, Reducer, State: 'static, InitialState, InitFn>(
     reducer: Reducer,
     initial_state: InitialState,
     init: InitFn,
