@@ -120,13 +120,18 @@ mod test {
             fn run(_: &Self::TProps) -> Html {
                 let number_ref = use_ref(|| 0);
                 let number_ref_c = number_ref.clone();
+                let initially_true_ref = use_ref(|| false);
                 use_effect(|| {
+                    if *initially_true_ref.borrow() {
+                        panic!("use_effect should have been called post render!")
+                    }
                     if *number_ref_c.borrow_mut().deref_mut() == 1 {
                         panic!("This effect should have been called once only")
                     }
                     *number_ref_c.borrow_mut().deref_mut() += 1;
                     || panic!("Destructor should not have been called")
                 });
+                *initially_true_ref.borrow_mut() = false;
                 return html! {
                     <div>
                         {"The test result is"}
