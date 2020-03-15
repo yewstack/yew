@@ -9,7 +9,8 @@ extern crate yew;
 
 use yew::{html, App, Html, Properties};
 use yew_functional::{
-    use_effect, use_effect1, use_reducer1, use_ref, use_state, FunctionComponent, FunctionProvider,
+    use_effect, use_effect1, use_reducer_with_init, use_ref, use_state, FunctionComponent,
+    FunctionProvider,
 };
 
 #[wasm_bindgen_test]
@@ -202,7 +203,7 @@ fn use_reducer_works() {
             struct CounterState {
                 counter: i32,
             }
-            let (counter, dispatch) = use_reducer1(
+            let (counter, dispatch) = use_reducer_with_init(
                 |prev: std::rc::Rc<CounterState>, action: i32| CounterState {
                     counter: prev.counter + action,
                 },
