@@ -93,8 +93,6 @@ where
         o: Rc<RefCell<T>>,
     }
 
-    let initial_value = Box::new(initial_value);
-
     use_hook(
         |state: &mut UseRefState<T>, pretrigger_change_acceptor| {
             let _ignored = || pretrigger_change_acceptor(|_| false); // we need it to be a specific closure type, even if we never use it
