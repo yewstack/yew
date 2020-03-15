@@ -20,5 +20,5 @@ cargo test --doc --features doc_test,wasm_test,yaml,msgpack,cbor,web_sys
   && cargo test --test derive_props_test \
   && cargo test --doc)
 
-(cd crates/functional-yew \
+(cd crates/functional \
   && wasm-pack test --firefox --headless)
