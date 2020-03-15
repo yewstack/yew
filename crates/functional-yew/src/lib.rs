@@ -89,14 +89,14 @@ pub fn use_ref<T: 'static, InitialProvider>(initial_value: InitialProvider) -> R
 where
     InitialProvider: FnOnce() -> T,
 {
-    struct UseRefState<T>(Rc<RefCell<T>>);
+    type UseRefState<T> = Rc<RefCell<T>>;
 
     use_hook(
         |state: &mut UseRefState<T>, pretrigger_change_acceptor| {
             let _ignored = || pretrigger_change_acceptor(|_| false); // we need it to be a specific closure type, even if we never use it
-            return state.0.clone();
+            return state.clone();
         },
-        move || UseRefState(Rc::new(RefCell::new(initial_value()))),
+        move || Rc::new(RefCell::new(initial_value())),
     )
 }
 
