@@ -5,13 +5,13 @@ use std::rc::Rc;
 use yew::{Component, ComponentLink, Html, Properties};
 
 thread_local! {
-    static CURRENT_HOOK: Rc<RefCell<Option<Rc<RefCell<HookState>>>>> = Rc::new(RefCell::new(None));
+    static CURRENT_HOOK: Rc<RefCell<Option<HookState>>> = Rc::new(RefCell::new(None));
 }
 
 struct HookState {
     counter: usize,
     render_call: Rc<dyn Fn()>,
-    hooks: Vec<Option<Box<dyn std::any::Any>>>,
+    hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
 }
 
 pub trait FunctionProvider {
@@ -22,7 +22,7 @@ pub trait FunctionProvider {
 pub struct FunctionComponent<T: FunctionProvider> {
     _never: std::marker::PhantomData<T>,
     props: T::TProps,
-    hook_state: RefCell<Option<Rc<RefCell<HookState>>>>,
+    hook_state: RefCell<Option<HookState>>,
 }
 
 impl<T: 'static> Component for FunctionComponent<T>
@@ -37,11 +37,11 @@ where
         FunctionComponent {
             _never: std::marker::PhantomData::default(),
             props,
-            hook_state: RefCell::new(Some(Rc::new(RefCell::new(HookState {
+            hook_state: RefCell::new(Some(HookState {
                 counter: 0,
                 render_call,
                 hooks: vec![],
-            })))),
+            })),
         }
     }
 
@@ -55,32 +55,39 @@ where
         props == self.props
     }
 
+    //noinspection DuplicatedCode
     fn view(&self) -> Html {
+        // Reset hook
         self.hook_state
             .try_borrow_mut()
             .expect("Unexpected concurrent/nested view call")
             .as_mut()
-            .map(|a| {
-                a.clone()
+            .unwrap()
+            .counter = 0;
+        // Load hook
+        CURRENT_HOOK.with(|previous_hook| {
+            std::mem::swap(
+                previous_hook
                     .try_borrow_mut()
-                    .expect("Unexpected borrow for hook state")
-                    .counter = 0
-            });
-        let previous_hook = CURRENT_HOOK.with(|previous_hook| previous_hook.clone());
-        std::mem::swap(
-            previous_hook
-                .try_borrow_mut()
-                .expect("Previous hook still borrowed")
-                .deref_mut(),
-            self.hook_state.try_borrow_mut().unwrap().deref_mut(),
-        );
+                    .expect("Previous hook still borrowed")
+                    .deref_mut(),
+                self.hook_state.borrow_mut().deref_mut(),
+            );
+        });
 
         let ret = T::run(&self.props);
 
-        std::mem::swap(
-            previous_hook.borrow_mut().deref_mut(),
-            self.hook_state.borrow_mut().deref_mut(),
-        );
+        // Unload hook
+        CURRENT_HOOK.with(|previous_hook| {
+            std::mem::swap(
+                previous_hook
+                    .try_borrow_mut()
+                    .expect("Previous hook still borrowed")
+                    .deref_mut(),
+                self.hook_state.borrow_mut().deref_mut(),
+            );
+        });
+
         return ret;
     }
 }
@@ -362,140 +369,50 @@ where
     InitialStateProvider: FnOnce() -> InternalHookState,
     PretriggerChange: FnOnce(&mut InternalHookState) -> bool,
 {
-    return CURRENT_HOOK.with(|current_hook_field| {
-        // Obtain a persistent Rc to the hook
-        let current_hook = current_hook_field.clone();
-        let hook_ref = current_hook.try_borrow_mut()
-            .expect("Nested hooks not supported");
-        let persistent_hook_state = hook_ref.clone().expect(
-            "No current hook. Hooks can only be called inside functional components",
-        );
-        // ...and release the mutable ref to the global hook state immediately
-        std::mem::drop(hook_ref);
-
+    // Extract current hook
+    let (hook, render_call) = CURRENT_HOOK.with(|hook_state_holder| {
+        let hook_state_holder = hook_state_holder.try_borrow_mut();
+        let mut hook_state_holder = hook_state_holder.expect("Nested hooks not supported");
+        let mut hook_state = hook_state_holder
+            .as_mut()
+            .expect("No current hook. Hooks can only be called inside functional components");
 
         // Determine which hook position we're at and increment for the next hook
-        let mut mut_hook_state = persistent_hook_state.try_borrow_mut()
-            .expect("This hook state is already in use");
-        let hook_pos = mut_hook_state.counter;
-        mut_hook_state.counter += 1;
+        let hook_pos = hook_state.counter;
+        hook_state.counter += 1;
 
-        // Check if this is the first time this hook is run
-        if let Some(preexisting_hook_outer) = mut_hook_state.hooks.get_mut(hook_pos) {
-            // Nope, has been run previously -> Has a state we are managing
-
-            // Take the current hook state out of its optional and release the mut ref to the
-            // per component hook state right away so that nested hooks can act
-            let mut hook_state_inner = preexisting_hook_outer.take()
-                .expect("Hook nested in itself (1)");
-            std::mem::drop(mut_hook_state);
-            // Cast to the expected hook state
-            let preexisting_hook = hook_state_inner
-                .downcast_mut::<InternalHookState>()
-                .expect("Incompatible hook type. Hooks must always be called in the same order");
-
-            // Need a copy that is not moved into the closure
-            let persistent_hook_state_c = persistent_hook_state.clone();
-
-            // Execute the actual hook closure we were given. Let it mutate the hook state and let
-            // it create a callback that takes the mutable hook state.
-            let ret = hook_runner(preexisting_hook, Box::new(move |pretrigger_change| {
-                // We are called with a closure the hook wants to execute, borrowing component
-                // hook state.
-                let mut borrowed_hook_state = persistent_hook_state.try_borrow_mut()
-                    .expect("Could not borrow hook state. Note: you cannot nest hooks.");
-                // We get the render call for later
-                let render_call = borrowed_hook_state.render_call.clone();
-
-                // We take the internal hook state out of its place
-                let mut internal_hook_state = borrowed_hook_state.hooks
-                    .get_mut(hook_pos)
-                    .expect("Hook should have been initialized at this point")
-                    .take()
-                    .expect("Hook already in use elsewhere");
-                std::mem::drop(borrowed_hook_state);
-
-                // ...and cast it to the appropriate type
-                let internal_hook_state_ref: &mut InternalHookState = internal_hook_state
-                    .downcast_mut::<InternalHookState>()
-                    .expect("Unexpected hook type change. Hooks must always be called in the same order");
-
-                // It's time to call the callback. We remember whether it wants to rerender or not.
-                let should_rerender = pretrigger_change(internal_hook_state_ref);
-                // We put the internal hook state back into its place
-                persistent_hook_state
-                    .try_borrow_mut()
-                    .expect("Hook state unexpectedly in use.")
-                    .hooks
-                    .get_mut(hook_pos)
-                    .expect("Hook should have been initialized at this point")
-                    .replace(internal_hook_state);
-                // If a render was requested, we trigger it
-                if should_rerender {
-                    render_call();
-                }
-            })); // End of hook runner execution
-            // We can now put the internal hook state back into place (keeping in mind we are not
-            // inside the closure callback yet)
-            persistent_hook_state_c.try_borrow_mut()
-                .expect("Hook state already borrowed. Note that hooks cannot be nested")
-                .hooks
-                .get_mut(hook_pos).expect("Hook removed itself").replace(hook_state_inner);
-            // Return whatever the hook runner returned
-            return ret;
-        } else {
-            // This is the first execution
-            // Get the initial state
-            let mut new_state: InternalHookState = initial_state_producer();
-            // We are currently using the state ourselves, so let's place a placeholder
-            mut_hook_state.hooks.push(None);
-            // We pushed it, now we can drop our mutable reference
-            std::mem::drop(mut_hook_state);
-            // Clone for later
-            let persistent_hook_state_c = persistent_hook_state.clone();
-            // Run the provided hook runner with the mutable internal hook state and the callback-acceptor
-            let ret = hook_runner(&mut new_state, Box::new(move |pretrigger_change| {
-                // The component wishes to modify its state. First we need to get hold of the state
-                let mut borrowed_hook_state = persistent_hook_state.try_borrow_mut()
-                    .expect("Hook state currently borrowed. Note: you cannot nest hooks.");
-                // While we're at it, get the render call
-                let render_call = borrowed_hook_state.render_call.clone();
-                // Take the internal hook state out of its optional
-                let internal_hook_state_opt = borrowed_hook_state.hooks
-                    .get_mut(hook_pos)
-                    .expect("Hook should have been initialized at this point");
-                let mut hook_state = internal_hook_state_opt.take()
-                    .expect("Hook nested in itself (2)");
-                // ...so that we can drop our reference
-                std::mem::drop(borrowed_hook_state);
-
-                // Cast the hook state
-                let internal_hook_state: &mut InternalHookState = hook_state
-                    .downcast_mut::<InternalHookState>()
-                    .expect("Unexpected hook type change. Hooks must always be called in the same order");
-
-                // Run the actual trigger with the state we now hold
-                let ret = pretrigger_change(internal_hook_state);
-
-                // We put the hook state back into it's original place
-                let mut borrowed_hook_state = persistent_hook_state.try_borrow_mut()
-                    .expect("Hook is being mutated. You cannot call hooks inside hooks");
-                let internal_hook_state_opt = borrowed_hook_state.hooks.get_mut(hook_pos)
-                    .expect("Hook should have been initialized at this point");
-                internal_hook_state_opt.replace(hook_state);
-                std::mem::drop(borrowed_hook_state);
-                // If a rerender was requested, do it
-                if ret {
-                    render_call();
-                }
-            }));
-            // After the initial call, we place the internal state into the spot for the first time
-            persistent_hook_state_c.try_borrow_mut().expect("Hook state could not be borrowed. Note that hooks cannot be called inside hooks.")
-                .hooks
-                .get_mut(hook_pos)
-                .expect("Double borrow of hook state")
-                .replace(Box::new(new_state));
-            return ret;
+        // Initialize hook if this is the first call
+        if hook_pos >= hook_state.hooks.len() {
+            let initial_state = Rc::new(RefCell::new(initial_state_producer()));
+            hook_state.hooks.push(initial_state);
         }
+
+        let hook = hook_state.hooks[hook_pos].clone();
+        let render_call = hook_state.render_call.clone();
+
+        return (hook, render_call);
     });
+
+    let trigger = {
+        let hook = hook.clone();
+        Box::new(move |pretrigger_change: PretriggerChange| {
+            let mut hook = hook.borrow_mut();
+            let hook = hook.downcast_mut::<InternalHookState>();
+            let hook = hook
+                .expect("Incompatible hook type. Hooks must always be called in the same order");
+            // It's time to call the callback. We remember whether it wants to rerender or not.
+            if pretrigger_change(hook) {
+                // If a render was requested, we trigger it
+                render_call();
+            }
+        })
+    };
+    let mut hook = hook.borrow_mut();
+    let hook = hook.downcast_mut::<InternalHookState>();
+    let mut hook =
+        hook.expect("Incompatible hook type. Hooks must always be called in the same order");
+
+    // Execute the actual hook closure we were given. Let it mutate the hook state and let
+    // it create a callback that takes the mutable hook state.
+    hook_runner(&mut hook, trigger)
 }
