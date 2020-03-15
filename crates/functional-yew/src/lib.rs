@@ -20,7 +20,7 @@ pub trait FunctionProvider {
 }
 
 pub struct FunctionComponent<T: FunctionProvider> {
-    _never: Option<std::marker::PhantomData<T>>,
+    _never: std::marker::PhantomData<T>,
     props: T::TProps,
     hook_state: RefCell<Option<Rc<RefCell<HookState>>>>,
 }
@@ -35,7 +35,7 @@ where
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let render_call = Rc::new(move || link.send_message(()));
         FunctionComponent {
-            _never: None,
+            _never: std::marker::PhantomData::default(),
             props,
             hook_state: RefCell::new(Some(Rc::new(RefCell::new(HookState {
                 counter: 0,
