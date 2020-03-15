@@ -1,5 +1,5 @@
 [package]
-name = "functional-yew"
+name = "yew-functional"
 version = "0.13.0"
 authors = ["ZainlessBrombie <zainredirect@gmail.com>"]
 edition = "2018"
