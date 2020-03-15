@@ -157,6 +157,7 @@ fn use_effect_refires_on_dependency_change() {
             let number_ref2 = use_ref(|| 0);
             let number_ref2_c = number_ref2.clone();
             let arg = *number_ref.borrow_mut().deref_mut();
+            let (_, set_counter) = use_state(|| 0);
             use_effect1(
                 move |dep| {
                     let mut ref_mut = number_ref_c.borrow_mut();
@@ -167,7 +168,9 @@ fn use_effect_refires_on_dependency_change() {
                     } else {
                         assert_eq!(dep, &1);
                     }
+                    set_counter(10); // we just need to make sure it does not panic
                     move || {
+                        set_counter(11);
                         *number_ref2_c.borrow_mut().deref_mut() += 1;
                     }
                 },
