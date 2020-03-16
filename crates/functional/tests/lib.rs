@@ -11,8 +11,7 @@ mod test {
 
     use yew::{html, App, Html, Properties};
     use yew_functional::{
-        use_effect, use_effect1, use_reducer_with_init, use_ref, use_state, FunctionComponent,
-        FunctionProvider,
+        use_reducer_with_init, use_ref, use_state, FunctionComponent, FunctionProvider,
     };
 
     #[wasm_bindgen_test]
@@ -102,6 +101,7 @@ mod test {
         let result = obtain_result();
         assert_eq!(result.as_str(), "true");
     }
+    /*
 
     #[wasm_bindgen_test]
     fn use_effect_works() {
@@ -187,6 +187,7 @@ mod test {
 
         assert_eq!(result.as_str(), "11");
     }
+    */
 
     #[wasm_bindgen_test]
     fn use_reducer_works() {
