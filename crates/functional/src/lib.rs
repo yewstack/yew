@@ -10,9 +10,8 @@ thread_local! {
 
 struct HookState {
     counter: usize,
-    render_call: Rc<dyn Fn()>,
+    process_message: Rc<dyn Fn(Box<dyn FnOnce() -> bool>)>,
     hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
-    next_tick: Vec<Box<dyn FnOnce() -> bool>>,
 }
 
 pub trait FunctionProvider {
@@ -30,37 +29,23 @@ impl<T: 'static> Component for FunctionComponent<T>
 where
     T: FunctionProvider,
 {
-    type Message = ();
+    type Message = Box<dyn FnOnce() -> bool>;
     type Properties = T::TProps;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let render_call = Rc::new(move || link.send_message(()));
         FunctionComponent {
             _never: std::marker::PhantomData::default(),
             props,
             hook_state: RefCell::new(Some(HookState {
                 counter: 0,
-                render_call,
+                process_message: Rc::new(move |msg| link.send_message(msg)),
                 hooks: vec![],
-                next_tick: vec![],
             })),
         }
     }
 
-    fn update(&mut self, _: Self::Message) -> bool {
-        let mut should_rerender = false;
-        for scheduled_fn in self
-            .hook_state
-            .borrow_mut()
-            .deref_mut()
-            .as_mut()
-            .expect("Hook state should be mutable here")
-            .next_tick
-            .drain(..)
-        {
-            should_rerender = scheduled_fn() || should_rerender;
-        }
-        should_rerender
+    fn update(&mut self, msg: Self::Message) -> bool {
+        msg()
     }
 
     fn change(&mut self, props: Self::Properties) -> bool {
@@ -92,7 +77,7 @@ where
         let ret = T::run(&self.props);
 
         // Unload hook
-        let (render_call, has_next_tick) = CURRENT_HOOK.with(|previous_hook| {
+        CURRENT_HOOK.with(|previous_hook| {
             std::mem::swap(
                 previous_hook
                     .try_borrow_mut()
@@ -100,23 +85,7 @@ where
                     .deref_mut(),
                 self.hook_state.borrow_mut().deref_mut(),
             );
-            let mut hook_ref_mut = self
-                .hook_state
-                .try_borrow_mut()
-                .expect("Expected hook to be borrowable at this point");
-            let component_hook_state = hook_ref_mut
-                .deref_mut()
-                .as_mut()
-                .expect("Components should always have a hook state");
-            (
-                component_hook_state.render_call.clone(),
-                !component_hook_state.next_tick.is_empty(),
-            )
         });
-
-        if has_next_tick {
-            render_call();
-        }
 
         return ret;
     }
@@ -400,7 +369,7 @@ where
     PretriggerChange: FnOnce(&mut InternalHookState) -> bool,
 {
     // Extract current hook
-    let (mut component_hook_state, hook, render_call) = CURRENT_HOOK.with(|hook_state_holder| {
+    let (mut component_hook_state, hook) = CURRENT_HOOK.with(|hook_state_holder| {
         let component_hook_state = hook_state_holder.clone();
         let hook_state_holder = hook_state_holder.try_borrow_mut();
         let mut hook_state_holder = hook_state_holder.expect("Nested hooks not supported");
@@ -419,30 +388,28 @@ where
         }
 
         let hook = hook_state.hooks[hook_pos].clone();
-        let render_call = hook_state.render_call.clone();
 
-        return (component_hook_state, hook, render_call);
+        return (component_hook_state, hook);
     });
 
     let trigger = {
         let hook = hook.clone();
         Box::new(move |pretrigger_change: PretriggerChange| {
             let mut hook = hook.clone();
-            component_hook_state
+            (component_hook_state
                 .try_borrow_mut()
                 .expect("Hook is being modified elsewhere. Note that hooks cannot be nested.")
                 .deref_mut()
                 .as_mut()
                 .unwrap()
-                .next_tick
-                .push(Box::new(move || {
-                    let mut hook = hook.borrow_mut();
-                    let hook = hook.downcast_mut::<InternalHookState>();
-                    let hook = hook.expect(
-                        "Incompatible hook type. Hooks must always be called in the same order",
-                    );
-                    pretrigger_change(hook)
-                }));
+                .process_message)(Box::new(move || {
+                let mut hook = hook.borrow_mut();
+                let hook = hook.downcast_mut::<InternalHookState>();
+                let hook = hook.expect(
+                    "Incompatible hook type. Hooks must always be called in the same order",
+                );
+                pretrigger_change(hook)
+            }));
         })
     };
     let mut hook = hook.borrow_mut();
