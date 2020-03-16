@@ -11,7 +11,6 @@ struct HookState {
     counter: usize,
     process_message: Rc<dyn Fn(Box<dyn FnOnce() -> bool>)>,
     hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
-    next_tick: Vec<Box<dyn FnOnce() -> bool>>,
 }
 
 pub trait FunctionProvider {
@@ -40,7 +39,6 @@ where
                 counter: 0,
                 process_message: Rc::new(move |msg| link.send_message(msg)),
                 hooks: vec![],
-                next_tick: vec![],
             })),
         }
     }
@@ -78,7 +76,7 @@ where
         let ret = T::run(&self.props);
 
         // Unload hook
-        let (render_call, has_next_tick) = CURRENT_HOOK.with(|previous_hook| {
+        CURRENT_HOOK.with(|previous_hook| {
             std::mem::swap(
                 previous_hook
                     .try_borrow_mut()
@@ -86,23 +84,7 @@ where
                     .deref_mut(),
                 self.hook_state.borrow_mut().deref_mut(),
             );
-            let mut hook_ref_mut = self
-                .hook_state
-                .try_borrow_mut()
-                .expect("Expected hook to be borrowable at this point");
-            let component_hook_state = hook_ref_mut
-                .deref_mut()
-                .as_mut()
-                .expect("Components should always have a hook state");
-            (
-                component_hook_state.render_call.clone(),
-                !component_hook_state.next_tick.is_empty(),
-            )
         });
-
-        if has_next_tick {
-            render_call();
-        }
 
         return ret;
     }
