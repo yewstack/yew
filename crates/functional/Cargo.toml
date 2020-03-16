@@ -31,5 +31,3 @@ wasm-bindgen-test = "0.3.4"
 
 [features]
 wasm_test = []
-web_sys = ["yew/web_sys", "web-sys"]
-std_web = ["yew/std_web", "stdweb"]

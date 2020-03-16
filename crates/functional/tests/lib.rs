@@ -97,15 +97,7 @@ mod test {
         }
         type UseRefComponent = FunctionComponent<UseRefFunction>;
         let app: App<UseRefComponent> = yew::App::new();
-        #[cfg(feature = "web_sys")]
         app.mount(yew::utils::document().get_element_by_id("output").unwrap());
-        #[cfg(feature = "std_web")]
-        app.mount(
-            yew::utils::document()
-                .query_selector("#output")
-                .unwrap()
-                .unwrap(),
-        );
 
         let result = obtain_result();
         assert_eq!(result.as_str(), "true");
@@ -143,15 +135,7 @@ mod test {
         }
         type UseEffectComponent = FunctionComponent<UseEffectFunction>;
         let app: App<UseEffectComponent> = yew::App::new();
-        #[cfg(feature = "web_sys")]
         app.mount(yew::utils::document().get_element_by_id("output").unwrap());
-        #[cfg(feature = "std_web")]
-        app.mount(
-            yew::utils::document()
-                .query_selector("#output")
-                .unwrap()
-                .unwrap(),
-        );
         let result = obtain_result();
         assert_eq!(result.as_str(), "1");
     }
@@ -198,15 +182,7 @@ mod test {
         }
         type UseEffectComponent = FunctionComponent<UseEffectFunction>;
         let app: App<UseEffectComponent> = yew::App::new();
-        #[cfg(feature = "web_sys")]
         app.mount(yew::utils::document().get_element_by_id("output").unwrap());
-        #[cfg(feature = "std_web")]
-        app.mount(
-            yew::utils::document()
-                .query_selector("#output")
-                .unwrap()
-                .unwrap(),
-        );
         let result: String = obtain_result();
 
         assert_eq!(result.as_str(), "11");
