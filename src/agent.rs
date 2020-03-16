@@ -553,11 +553,14 @@ impl<AGN: Agent> RemoteAgent<AGN> {
         let mut slab = self.slab.borrow_mut();
         let id: usize = slab.insert(callback);
         let id = HandlerId::new(id, respondable);
-        PublicBridge {
+        let bridge = PublicBridge {
             worker: self.worker.clone(),
             id,
             _agent: PhantomData,
-        }
+        };
+        bridge.send_message(ToWorker::Connected(bridge.id));
+
+        bridge
     }
 
     fn remove_bridge(&mut self, bridge: &PublicBridge<AGN>) -> Last {
@@ -639,9 +642,7 @@ impl Discoverer for Public {
                         }),
                     };
                     let launched = RemoteAgent::new(worker, slab);
-                    let bridge = entry.insert(launched).create_bridge(callback);
-                    bridge.send_message(ToWorker::Connected(bridge.id));
-                    bridge
+                    entry.insert(launched).create_bridge(callback)
                 }
             }
         });
