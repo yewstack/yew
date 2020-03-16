@@ -22,5 +22,5 @@ cargo test --doc --features doc_test,wasm_test,yaml,msgpack,cbor,web_sys
 
 (cd crates/functional \
   && cargo test --features web_sys,wasm_test --target wasm32-unknown-unknown \
-  && cargo test --features web_sys,wasm_test --target wasm32-unknown-unknown)
+  && cargo test --features std_web,wasm_test --target wasm32-unknown-unknown)
 
