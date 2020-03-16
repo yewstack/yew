@@ -193,40 +193,39 @@ where
     PretriggerChange: FnOnce(&mut InternalHookState) -> bool,
 {
     // Extract current hook
-    let (mut component_hook_state, hook) = CURRENT_HOOK.with(|hook_state_holder| {
-        let component_hook_state = hook_state_holder.clone();
-        let hook_state_holder = hook_state_holder.try_borrow_mut();
-        let mut hook_state_holder = hook_state_holder.expect("Nested hooks not supported");
-        let mut hook_state = hook_state_holder
-            .as_mut()
-            .expect("No current hook. Hooks can only be called inside functional components");
+    let (mut component_hook_state, hook, process_message) =
+        CURRENT_HOOK.with(|hook_state_holder| {
+            let component_hook_state = hook_state_holder.clone();
+            let hook_state_holder = hook_state_holder.try_borrow_mut();
+            let mut hook_state_holder = hook_state_holder.expect("Nested hooks not supported");
+            let mut hook_state = hook_state_holder
+                .as_mut()
+                .expect("No current hook. Hooks can only be called inside functional components");
 
-        // Determine which hook position we're at and increment for the next hook
-        let hook_pos = hook_state.counter;
-        hook_state.counter += 1;
+            // Determine which hook position we're at and increment for the next hook
+            let hook_pos = hook_state.counter;
+            hook_state.counter += 1;
 
-        // Initialize hook if this is the first call
-        if hook_pos >= hook_state.hooks.len() {
-            let initial_state = Rc::new(RefCell::new(initial_state_producer()));
-            hook_state.hooks.push(initial_state);
-        }
+            // Initialize hook if this is the first call
+            if hook_pos >= hook_state.hooks.len() {
+                let initial_state = Rc::new(RefCell::new(initial_state_producer()));
+                hook_state.hooks.push(initial_state);
+            }
 
-        let hook = hook_state.hooks[hook_pos].clone();
+            let hook = hook_state.hooks[hook_pos].clone();
 
-        return (component_hook_state, hook);
-    });
+            return (
+                component_hook_state,
+                hook,
+                hook_state.process_message.clone(),
+            );
+        });
 
     let trigger = {
         let hook = hook.clone();
         Box::new(move |pretrigger_change: PretriggerChange| {
-            let mut hook = hook.clone();
-            (component_hook_state
-                .try_borrow_mut()
-                .expect("Hook is being modified elsewhere. Note that hooks cannot be nested.")
-                .deref_mut()
-                .as_mut()
-                .unwrap()
-                .process_message)(Box::new(move || {
+            let hook = hook.clone();
+            process_message(Box::new(move || {
                 let mut hook = hook.borrow_mut();
                 let hook = hook.downcast_mut::<InternalHookState>();
                 let hook = hook.expect(
