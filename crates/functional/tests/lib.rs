@@ -41,7 +41,7 @@ mod test {
         type UseComponent = FunctionComponent<UseStateFunction>;
         // yew::initialize();
         let app: App<UseComponent> = yew::App::new();
-        #[cfg(feature = "web_sys")]
+        // #[cfg(feature = "web_sys")]
         app.mount(yew::utils::document().get_element_by_id("output").unwrap());
         #[cfg(feature = "std_web")]
         app.mount(
@@ -75,7 +75,7 @@ mod test {
         }
         type PropsComponent = FunctionComponent<PropsPassedFunction>;
         let app: App<PropsComponent> = yew::App::new();
-        #[cfg(feature = "web_sys")]
+        // #[cfg(feature = "web_sys")]
         app.mount_with_props(
             yew::utils::document().get_element_by_id("output").unwrap(),
             PropsPassedFunctionProps {
@@ -120,7 +120,7 @@ mod test {
         }
         type UseRefComponent = FunctionComponent<UseRefFunction>;
         let app: App<UseRefComponent> = yew::App::new();
-        #[cfg(feature = "web_sys")]
+        // #[cfg(feature = "web_sys")]
         app.mount(yew::utils::document().get_element_by_id("output").unwrap());
         #[cfg(feature = "std_web")]
         app.mount(
@@ -166,7 +166,7 @@ mod test {
         }
         type UseEffectComponent = FunctionComponent<UseEffectFunction>;
         let app: App<UseEffectComponent> = yew::App::new();
-        #[cfg(feature = "web_sys")]
+        // #[cfg(feature = "web_sys")]
         app.mount(yew::utils::document().get_element_by_id("output").unwrap());
         #[cfg(feature = "std_web")]
         app.mount(
@@ -221,7 +221,7 @@ mod test {
         }
         type UseEffectComponent = FunctionComponent<UseEffectFunction>;
         let app: App<UseEffectComponent> = yew::App::new();
-        #[cfg(feature = "web_sys")]
+        // #[cfg(feature = "web_sys")]
         app.mount(yew::utils::document().get_element_by_id("output").unwrap());
         #[cfg(feature = "std_web")]
         app.mount(
@@ -272,7 +272,7 @@ mod test {
         }
         type UseReducerComponent = FunctionComponent<UseReducerFunction>;
         let app: App<UseReducerComponent> = yew::App::new();
-        #[cfg(feature = "web_sys")]
+        // #[cfg(feature = "web_sys")]
         app.mount(yew::utils::document().get_element_by_id("output").unwrap());
         #[cfg(feature = "std_web")]
         app.mount(
@@ -303,10 +303,10 @@ mod test {
                 let reference: stdweb::Reference = node.into();
                 let el: HtmlElement = reference.downcast().unwrap();
                 el.inner_text()
-            } else if #[cfg(feature = "web_sys")] {
+            } else {
                 return yew::utils::document()
                     .get_element_by_id("result")
-                    .unwrap()
+                    .expect("No result found. Most likely, the application crashed and burned")
                     .inner_html();
             }
         }
