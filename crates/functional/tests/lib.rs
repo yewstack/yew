@@ -12,7 +12,8 @@ mod test {
 
     use yew::{html, App, Html, Properties};
     use yew_functional::{
-        use_reducer_with_init, use_ref, use_state, FunctionComponent, FunctionProvider,
+        use_effect, use_effect1, use_reducer_with_init, use_ref, use_state, FunctionComponent,
+        FunctionProvider,
     };
 
     #[wasm_bindgen_test]
@@ -122,18 +123,13 @@ mod test {
                         counter: initial + 10,
                     },
                 );
-                let once = use_ref(|| true);
-                if *once.borrow_mut().deref_mut() {
-                    dispatch(1);
-                }
-                *once.borrow_mut().deref_mut() = false;
-                /*use_effect1(
+                use_effect1(
                     |_| {
                         dispatch(1);
                         || {}
                     },
                     0,
-                );*/
+                );
                 return html! {
                     <div>
                         {"The test result is"}
@@ -147,6 +143,91 @@ mod test {
         let app: App<UseReducerComponent> = yew::App::new();
         app.mount(yew::utils::document().get_element_by_id("output").unwrap());
         let result = obtain_result();
+
+        assert_eq!(result.as_str(), "11");
+    }
+
+    #[wasm_bindgen_test]
+    fn use_effect_works() {
+        struct UseEffectFunction {}
+        impl FunctionProvider for UseEffectFunction {
+            type TProps = ();
+
+            fn run(_: &Self::TProps) -> Html {
+                let number_ref = use_ref(|| 0);
+                let number_ref_c = number_ref.clone();
+                let initially_true_ref = use_ref(|| false);
+                use_effect(|| {
+                    if *initially_true_ref.borrow() {
+                        panic!("use_effect should have been called post render!")
+                    }
+                    if *number_ref_c.borrow_mut().deref_mut() == 1 {
+                        panic!("This effect should have been called once only")
+                    }
+                    *number_ref_c.borrow_mut().deref_mut() += 1;
+                    || panic!("Destructor should not have been called")
+                });
+                *initially_true_ref.borrow_mut() = false;
+                return html! {
+                    <div>
+                        {"The test result is"}
+                        <div id="result">{*number_ref.borrow_mut().deref_mut()}</div>
+                        {"\n"}
+                    </div>
+                };
+            }
+        }
+        type UseEffectComponent = FunctionComponent<UseEffectFunction>;
+        let app: App<UseEffectComponent> = yew::App::new();
+        app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+        let result = obtain_result();
+        assert_eq!(result.as_str(), "1");
+    }
+
+    #[wasm_bindgen_test]
+    fn use_effect_refires_on_dependency_change() {
+        struct UseEffectFunction {}
+        impl FunctionProvider for UseEffectFunction {
+            type TProps = ();
+
+            fn run(_: &Self::TProps) -> Html {
+                let number_ref = use_ref(|| 0);
+                let number_ref_c = number_ref.clone();
+                let number_ref2 = use_ref(|| 0);
+                let number_ref2_c = number_ref2.clone();
+                let arg = *number_ref.borrow_mut().deref_mut();
+                let (_, set_counter) = use_state(|| 0);
+                use_effect1(
+                    move |dep| {
+                        let mut ref_mut = number_ref_c.borrow_mut();
+                        let inner_ref_mut = ref_mut.deref_mut();
+                        if *inner_ref_mut < 1 {
+                            *inner_ref_mut += 1;
+                            assert_eq!(dep, &0);
+                        } else {
+                            assert_eq!(dep, &1);
+                        }
+                        set_counter(10); // we just need to make sure it does not panic
+                        move || {
+                            set_counter(11);
+                            *number_ref2_c.borrow_mut().deref_mut() += 1;
+                        }
+                    },
+                    arg,
+                );
+                return html! {
+                    <div>
+                        {"The test result is"}
+                        <div id="result">{*number_ref.borrow_mut().deref_mut()}{*number_ref2.borrow_mut().deref_mut()}</div>
+                        {"\n"}
+                    </div>
+                };
+            }
+        }
+        type UseEffectComponent = FunctionComponent<UseEffectFunction>;
+        let app: App<UseEffectComponent> = yew::App::new();
+        app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+        let result: String = obtain_result();
 
         assert_eq!(result.as_str(), "11");
     }
