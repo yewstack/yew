@@ -1,5 +1,11 @@
 # Changelog
 
+## ✨ **0.14.1** *(2020-03-14)*
+
+- #### 🛠 Fixes
+
+  - `Connected` message was only called for first bridge creation. [[@nicklaswj], [#1029](https://github.com/yewstack/yew/pull/1029)]
+
 ## ✨ **0.14** *(2020-03-14)*
 
 Happy 🥧 (PI) Day! This release brings a number of bug fixes for `web-sys` apps and ergonomic improvements to the API. Huge thanks to the community for diving into the migration from `stdweb` to `web-sys` so quickly and uncovering these issues!
@@ -764,6 +770,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@lizhaoxian]: https://github.com/lizhaoxian
 [@mdtusz]: https://github.com/mdtusz
 [@mrh0057]: https://github.com/mrh0057
+[@nicklaswj]: https://github.com/nicklaswj
 [@philip-peterson]: https://github.com/philip-peterson
 [@serzhiio]: https://github.com/serzhiio
 [@stkevintan]: https://github.com/stkevintan

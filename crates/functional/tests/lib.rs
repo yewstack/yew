@@ -123,6 +123,7 @@ mod test {
                         counter: initial + 10,
                     },
                 );
+
                 use_effect1(
                     |_| {
                         dispatch(1);
