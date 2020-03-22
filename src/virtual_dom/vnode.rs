@@ -2,7 +2,6 @@
 
 use super::{VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{Component, Renderable};
-use crate::services::ConsoleService;
 use cfg_if::cfg_if;
 use log::warn;
 use std::cmp::PartialEq;
