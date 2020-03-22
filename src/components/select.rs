@@ -112,7 +112,7 @@ where
                     .selected
                     .as_ref()
                     .map(|v| v.to_string())
-                    .unwrap_or("".into());
+                    .unwrap_or_else(|| "".into());
                 cfg_match! {
                     feature = "std_web" => select.set_raw_value(&val),
                     feature = "web_sys" => select.set_value(&val),
