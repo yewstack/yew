@@ -184,23 +184,33 @@ where
 
 pub fn use_effect<F, Destructor>(callback: F)
 where
-    F: FnOnce() -> Destructor,
+    F: FnOnce() -> Destructor + 'static,
     Destructor: FnOnce() + 'static,
 {
     let callback = Box::new(callback);
-    use_effect5(
-        Box::new(|_: &(), _: &(), _: &(), _: &(), _: &()| callback()),
-        (),
-        (),
-        (),
-        (),
-        (),
-    );
+    struct UseEffectState<Destructor> {
+        destructor: Option<Box<Destructor>>,
+    }
+    use_hook(
+        |_: &mut UseEffectState<Destructor>, hook_update| {
+            return move || {
+                hook_update(move |state: &mut UseEffectState<Destructor>| {
+                    if let Some(de) = state.destructor.take() {
+                        de();
+                    }
+                    let new_destructor = callback();
+                    state.destructor.replace(Box::new(new_destructor));
+                    false
+                });
+            };
+        },
+        || UseEffectState { destructor: None },
+    )();
 }
 
 pub fn use_effect1<F, Destructor, T1>(callback: F, o1: T1)
 where
-    F: FnOnce(&T1) -> Destructor,
+    F: FnOnce(&T1) -> Destructor + 'static,
     Destructor: FnOnce() + 'static,
     T1: PartialEq + 'static,
 {
@@ -217,7 +227,7 @@ where
 
 pub fn use_effect2<F, Destructor, T1, T2>(callback: F, o1: T1, o2: T2)
 where
-    F: FnOnce(&T1, &T2) -> Destructor,
+    F: FnOnce(&T1, &T2) -> Destructor + 'static,
     Destructor: FnOnce() + 'static,
     T1: PartialEq + 'static,
     T2: PartialEq + 'static,
@@ -235,7 +245,7 @@ where
 
 pub fn use_effect3<F, Destructor, T1, T2, T3>(callback: F, o1: T1, o2: T2, o3: T3)
 where
-    F: FnOnce(&T1, &T2, &T3) -> Destructor,
+    F: FnOnce(&T1, &T2, &T3) -> Destructor + 'static,
     Destructor: FnOnce() + 'static,
     T1: PartialEq + 'static,
     T2: PartialEq + 'static,
@@ -254,7 +264,7 @@ where
 
 pub fn use_effect4<F, Destructor, T1, T2, T3, T4>(callback: F, o1: T1, o2: T2, o3: T3, o4: T4)
 where
-    F: FnOnce(&T1, &T2, &T3, &T4) -> Destructor,
+    F: FnOnce(&T1, &T2, &T3, &T4) -> Destructor + 'static,
     Destructor: FnOnce() + 'static,
     T1: PartialEq + 'static,
     T2: PartialEq + 'static,
@@ -280,7 +290,7 @@ pub fn use_effect5<F, Destructor, T1, T2, T3, T4, T5>(
     o4: T4,
     o5: T5,
 ) where
-    F: FnOnce(&T1, &T2, &T3, &T4, &T5) -> Destructor,
+    F: FnOnce(&T1, &T2, &T3, &T4, &T5) -> Destructor + 'static,
     Destructor: FnOnce() + 'static,
     T1: PartialEq + 'static,
     T2: PartialEq + 'static,
@@ -314,37 +324,39 @@ pub fn use_effect5<F, Destructor, T1, T2, T3, T4, T5>(
                 && *state.o4 == *o4
                 && *state.o5 == *o5);
 
-            if should_update {
-                if let Some(de) = state.destructor.take() {
-                    de();
-                }
-                let new_destructor = callback(
-                    o1.borrow(),
-                    o2.borrow(),
-                    o3.borrow(),
-                    o4.borrow(),
-                    o5.borrow(),
-                );
-                state.o1 = o1.clone();
-                state.o2 = o2.clone();
-                state.o3 = o3.clone();
-                state.o4 = o4.clone();
-                state.o5 = o5.clone();
-                state.destructor.replace(Box::new(new_destructor));
-            } else if state.destructor.is_none() {
-                should_update = true;
-                state.destructor.replace(Box::new(callback(
-                    state.o1.borrow(),
-                    state.o2.borrow(),
-                    state.o3.borrow(),
-                    state.o4.borrow(),
-                    state.o5.borrow(),
-                )));
-            }
             return move || {
-                if should_update {
-                    hook_update(move |_: &mut UseEffectState<T1, T2, T3, T4, T5, Destructor>| true)
-                }
+                hook_update(
+                    move |state: &mut UseEffectState<T1, T2, T3, T4, T5, Destructor>| {
+                        if should_update {
+                            if let Some(de) = state.destructor.take() {
+                                de();
+                            }
+                            let new_destructor = callback(
+                                o1.borrow(),
+                                o2.borrow(),
+                                o3.borrow(),
+                                o4.borrow(),
+                                o5.borrow(),
+                            );
+                            state.o1 = o1.clone();
+                            state.o2 = o2.clone();
+                            state.o3 = o3.clone();
+                            state.o4 = o4.clone();
+                            state.o5 = o5.clone();
+                            state.destructor.replace(Box::new(new_destructor));
+                        } else if state.destructor.is_none() {
+                            should_update = true;
+                            state.destructor.replace(Box::new(callback(
+                                state.o1.borrow(),
+                                state.o2.borrow(),
+                                state.o3.borrow(),
+                                state.o4.borrow(),
+                                state.o5.borrow(),
+                            )));
+                        }
+                        false
+                    },
+                )
             };
         },
         || UseEffectState {
