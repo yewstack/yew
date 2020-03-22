@@ -165,9 +165,23 @@ mod test {
                 let node_ref_c = node_ref.clone();
 
                 use_effect(move || {
-                    node_ref
+                    let text_content = node_ref
                         .get()
                         .expect("Should have filled node_ref at this point")
+                        .text_content()
+                        .expect("Text node should have content");
+                    let mut previous = -1;
+                    if *counter == 0 {
+                        assert_eq!("placeholder that should not appear", &text_content);
+                    } else {
+                        previous = text_content
+                            .parse()
+                            .expect("Expected content to be number set last time");
+                    }
+                    assert_eq!(previous, *counter - 1);
+                    node_ref
+                        .get()
+                        .unwrap()
                         .set_text_content(Some(&format!("{}", counter)));
                     || {}
                 });
