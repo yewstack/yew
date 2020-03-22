@@ -2,11 +2,13 @@
 
 use super::{VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{Component, Renderable};
+use crate::services::ConsoleService;
 use cfg_if::cfg_if;
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
+
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::{Element, INode, Node};
@@ -28,6 +30,12 @@ pub enum VNode {
     VList(VList),
     /// A holder for any `Node` (necessary for replacing node).
     VRef(Node),
+}
+
+#[derive(Debug)]
+struct VNodeStruct {
+    vnode: VNode,
+    children: Option<Box<Vec<VNodeStruct>>>,
 }
 
 impl VDiff for VNode {
@@ -152,13 +160,9 @@ impl<A: Into<VNode>> FromIterator<A> for VNode {
 
 impl fmt::Debug for VNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
-            VNode::VTag(ref vtag) => vtag.fmt(f),
-            VNode::VText(ref vtext) => vtext.fmt(f),
-            VNode::VComp(_) => "Component<>".fmt(f),
-            VNode::VList(_) => "List<>".fmt(f),
-            VNode::VRef(_) => "NodeReference<>".fmt(f),
-        }
+        let vnode_structure = get_complete_vnode(self.clone());
+
+        vnode_structure.fmt(f)
     }
 }
 
@@ -173,5 +177,47 @@ impl PartialEq for VNode {
             (VNode::VComp(_), VNode::VComp(_)) => false,
             _ => false,
         }
+    }
+}
+
+fn get_complete_vnode(vnode: VNode) -> VNodeStruct {
+    match vnode {
+        VNode::VTag(ref vtag) => VNodeStruct {
+            vnode: vnode.clone(),
+            children: if !vtag.children.is_empty() {
+                Some(Box::new(vec![get_complete_vnode(VNode::VList(
+                    vtag.children.clone(),
+                ))]))
+            } else {
+                None
+            },
+        },
+        VNode::VText(ref _vtext) => VNodeStruct {
+            vnode: vnode.clone(),
+            children: None,
+        },
+        VNode::VList(ref vlist) => VNodeStruct {
+            vnode: vnode.clone(),
+            children: if !vlist.children.is_empty() {
+                Some(Box::new(
+                    vlist
+                        .children
+                        .clone()
+                        .into_iter()
+                        .map(|child| get_complete_vnode(child))
+                        .collect(),
+                ))
+            } else {
+                None
+            },
+        },
+        VNode::VComp(_) => VNodeStruct {
+            vnode: vnode.clone(),
+            children: None,
+        },
+        VNode::VRef(_) => VNodeStruct {
+            vnode: vnode.clone(),
+            children: None,
+        },
     }
 }
