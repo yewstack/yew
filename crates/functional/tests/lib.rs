@@ -10,6 +10,7 @@ mod test {
 
     extern crate yew;
 
+    use self::yew::NodeRef;
     use yew::{html, App, Html, Properties};
     use yew_functional::{
         use_effect, use_effect1, use_reducer_with_init, use_ref, use_state, FunctionComponent,
@@ -123,7 +124,7 @@ mod test {
                     },
                 );
                 use_effect1(
-                    |_| {
+                    move |_| {
                         dispatch(1);
                         || {}
                     },
@@ -147,7 +148,47 @@ mod test {
     }
 
     #[wasm_bindgen_test]
-    fn use_effect_works() {
+    fn use_effect_works_many_times() {
+        struct UseEffectFunction {}
+        impl FunctionProvider for UseEffectFunction {
+            type TProps = ();
+
+            fn run(_: &Self::TProps) -> Html {
+                let (counter, set_counter) = use_state(|| 0);
+                if *counter < 4 {
+                    set_counter(*counter + 1);
+                }
+
+                let node_ref = NodeRef::default();
+                let node_ref_c = node_ref.clone();
+
+                use_effect(move || {
+                    node_ref
+                        .get()
+                        .expect("Should have filled node_ref at this point")
+                        .set_text_content(Some(&format!("{}", counter)));
+                    || {}
+                });
+
+                return html! {
+                    <div>
+                        {"The test result is"}
+                        <div id="result" ref=node_ref_c>{"placeholder that should not appear"}</div>
+                        {"\n"}
+                    </div>
+                };
+            }
+        }
+
+        type UseEffectComponent = FunctionComponent<UseEffectFunction>;
+        let app: App<UseEffectComponent> = yew::App::new();
+        app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+        let result = obtain_result();
+        assert_eq!(result.as_str(), "4");
+    }
+
+    #[wasm_bindgen_test]
+    fn use_effect_works_once() {
         struct UseEffectFunction {}
         impl FunctionProvider for UseEffectFunction {
             type TProps = ();
@@ -156,21 +197,38 @@ mod test {
                 let number_ref = use_ref(|| 0);
                 let number_ref_c = number_ref.clone();
                 let initially_true_ref = use_ref(|| false);
-                use_effect(|| {
-                    if *initially_true_ref.borrow() {
-                        panic!("use_effect should have been called post render!")
-                    }
-                    if *number_ref_c.borrow_mut().deref_mut() == 1 {
-                        panic!("This effect should have been called once only")
-                    }
-                    *number_ref_c.borrow_mut().deref_mut() += 1;
-                    || panic!("Destructor should not have been called")
-                });
-                *initially_true_ref.borrow_mut() = false;
+                let initially_true_ref_c = initially_true_ref.clone();
+
+                let node_ref = NodeRef::default();
+                let node_ref_c = node_ref.clone();
+
+                use_effect1(
+                    move |_| {
+                        if *initially_true_ref.borrow() {
+                            panic!("use_effect should have been called post render!")
+                        }
+                        if *number_ref_c.borrow_mut().deref_mut() == 1 {
+                            panic!("This effect should have been called once only")
+                        }
+                        *number_ref_c.borrow_mut().deref_mut() += 1;
+                        node_ref
+                            .get()
+                            .expect("This NodeRef should point at the result!");
+                        || panic!("Destructor should not have been called")
+                    },
+                    0,
+                );
+                *initially_true_ref_c.borrow_mut() = false;
+
+                let (do_rerender, set_rerender) = use_state(|| true);
+                if *do_rerender {
+                    set_rerender(false);
+                }
+
                 return html! {
                     <div>
                         {"The test result is"}
-                        <div id="result">{*number_ref.borrow_mut().deref_mut()}</div>
+                        <div id="result" ref=node_ref_c>{*number_ref.borrow_mut().deref_mut()}</div>
                         {"\n"}
                     </div>
                 };
