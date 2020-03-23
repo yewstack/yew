@@ -1,5 +1,12 @@
 # Changelog
 
+## ✨ **0.14.2** *(2020-03-23)*
+
+- #### 🛠 Fixes
+
+  - Fix issue where components were rendered out of order. [[@mrh0057] & [@jstarry], [#1051](https://github.com/yewstack/yew/pull/1051)]
+  - Reset Select component correctly in Firefox / Edge. [[@kuy], [#987](https://github.com/yewstack/yew/pull/987)]
+
 ## ✨ **0.14.1** *(2020-03-14)*
 
 - #### 🛠 Fixes
@@ -766,6 +773,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@jstarry]: https://github.com/jstarry
 [@kakoc]: https://github.com/kakoc
 [@kellytk]: https://github.com/kellytk
+[@kuy]: https://github.com/kuy
 [@leo-lb]: https://github.com/leo-lb
 [@lizhaoxian]: https://github.com/lizhaoxian
 [@mdtusz]: https://github.com/mdtusz
