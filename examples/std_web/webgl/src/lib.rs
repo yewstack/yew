@@ -1,7 +1,6 @@
 #![recursion_limit = "512"]
 extern crate stdweb;
 
-use stdweb::unstable::TryInto;
 use stdweb::web::html_element::CanvasElement;
 use stdweb::web::TypedArray;
 use webgl_stdweb::{GLfloat, GLuint, WebGLRenderingContext as GL};
@@ -38,7 +37,7 @@ impl Component for Model {
         // Once mounted, store references for the canvas and GL context. These can be used for
         // resizing the rendering area when the window or canvas element are resized, as well as
         // for making GL calls.
-        let c: CanvasElement = self.node_ref.get().unwrap().try_into().unwrap();
+        let c: CanvasElement = self.node_ref.cast().unwrap();
         let gl: GL = c.get_context().expect("WebGL not supported!");
 
         self.canvas = Some(c);
