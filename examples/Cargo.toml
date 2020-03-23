@@ -35,4 +35,5 @@ members = [
   "web_sys/npm_and_rest",
   "web_sys/todomvc",
   "web_sys/two_apps",
+  "web_sys/webgl",
 ]
