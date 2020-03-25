@@ -31,12 +31,6 @@ pub enum VNode {
     VRef(Node),
 }
 
-#[derive(Debug)]
-struct VNodeStruct {
-    vnode: VNode,
-    children: Option<Box<Vec<VNodeStruct>>>,
-}
-
 impl VDiff for VNode {
     /// Remove VNode from parent.
     fn detach(&mut self, parent: &Element) -> Option<Node> {
@@ -159,9 +153,13 @@ impl<A: Into<VNode>> FromIterator<A> for VNode {
 
 impl fmt::Debug for VNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let vnode_structure = get_complete_vnode(self.clone());
-
-        vnode_structure.fmt(f)
+        match *self {
+            VNode::VTag(ref vtag) => vtag.fmt(f),
+            VNode::VText(ref vtext) => vtext.fmt(f),
+            VNode::VComp(_) => "Component<>".fmt(f),
+            VNode::VList(_) => "List<>".fmt(f),
+            VNode::VRef(_) => "NodeReference<>".fmt(f),
+        }
     }
 }
 
@@ -176,47 +174,5 @@ impl PartialEq for VNode {
             (VNode::VComp(_), VNode::VComp(_)) => false,
             _ => false,
         }
-    }
-}
-
-fn get_complete_vnode(vnode: VNode) -> VNodeStruct {
-    match vnode {
-        VNode::VTag(ref vtag) => VNodeStruct {
-            vnode: vnode.clone(),
-            children: if !vtag.children.is_empty() {
-                Some(Box::new(vec![get_complete_vnode(VNode::VList(
-                    vtag.children.clone(),
-                ))]))
-            } else {
-                None
-            },
-        },
-        VNode::VText(ref _vtext) => VNodeStruct {
-            vnode: vnode.clone(),
-            children: None,
-        },
-        VNode::VList(ref vlist) => VNodeStruct {
-            vnode: vnode.clone(),
-            children: if !vlist.children.is_empty() {
-                Some(Box::new(
-                    vlist
-                        .children
-                        .clone()
-                        .into_iter()
-                        .map(|child| get_complete_vnode(child))
-                        .collect(),
-                ))
-            } else {
-                None
-            },
-        },
-        VNode::VComp(_) => VNodeStruct {
-            vnode: vnode.clone(),
-            children: None,
-        },
-        VNode::VRef(_) => VNodeStruct {
-            vnode: vnode.clone(),
-            children: None,
-        },
     }
 }
