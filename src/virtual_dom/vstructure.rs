@@ -14,7 +14,7 @@
 //!
 //! ```
 //!   let vnode_button = VNodeStruct::new(button);
-//!   
+//!
 //!   console.log(&format!("{:#?}", vnode_button));
 //! ```
 //!
