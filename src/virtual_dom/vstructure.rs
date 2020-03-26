@@ -20,7 +20,7 @@ impl VNodeStruct {
                 },
             },
             VNode::VText(_) => VNodeStruct {
-                vnode: vnode.clone(),
+                vnode,
                 children: None,
             },
             VNode::VList(ref vlist) => VNodeStruct {
@@ -31,7 +31,7 @@ impl VNodeStruct {
                             .children
                             .clone()
                             .into_iter()
-                            .map(|child| VNodeStruct::new(child))
+                            .map(VNodeStruct::new)
                             .collect(),
                     ))
                 } else {
