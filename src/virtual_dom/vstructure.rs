@@ -3,7 +3,7 @@ use super::VNode;
 #[derive(Debug, PartialEq)]
 pub struct VNodeStruct {
     vnode: VNode,
-    children: Option<Box<Vec<VNodeStruct>>>,
+    children: Option<Vec<VNodeStruct>>,
 }
 
 impl VNodeStruct {
@@ -12,9 +12,7 @@ impl VNodeStruct {
             VNode::VTag(ref vtag) => VNodeStruct {
                 vnode: vnode.clone(),
                 children: if !vtag.children.is_empty() {
-                    Some(Box::new(vec![VNodeStruct::new(VNode::VList(
-                        vtag.children.clone(),
-                    ))]))
+                    Some(vec![VNodeStruct::new(VNode::VList(vtag.children.clone()))])
                 } else {
                     None
                 },
@@ -26,14 +24,14 @@ impl VNodeStruct {
             VNode::VList(ref vlist) => VNodeStruct {
                 vnode: vnode.clone(),
                 children: if !vlist.children.is_empty() {
-                    Some(Box::new(
+                    Some(
                         vlist
                             .children
                             .clone()
                             .into_iter()
                             .map(VNodeStruct::new)
                             .collect(),
-                    ))
+                    )
                 } else {
                     None
                 },
