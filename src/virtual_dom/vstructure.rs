@@ -1,3 +1,88 @@
+//! This module contains the implementation to get all the VNode structure.
+//! it is useful for testing and debuging. For example we want to know what contain this VNode:
+//! ```
+//! let button = html! {
+//!     <button
+//!         onclick=link.callback(|_| Msg::Clicked)
+//!         class="button standard medium regular test-button">
+//!         <div id="parent">{"parent"}</div>
+//!     </button>
+//! };
+//! ```
+//!
+//! Now we use VStructure to get the complete Vnode button and log the result:
+//!
+//! ```
+//!   let vnode_button = VNodeStruct::new(button);
+//!   
+//!   console.log(&format!("{:#?}", vnode_button));
+//! ```
+//!
+//! We will get this in the console:
+//!
+//! ```
+//! VNodeStruct {
+//! vtag: Some(
+//!     VTagStruct {
+//!         reference: None,
+//!         attributes: {
+//!             "id": "example",
+//!         },
+//!         classes: Classes {
+//!             set: {},
+//!         },
+//!         value: None,
+//!         kind: None,
+//!         checked: false,
+//!         node_ref: NodeRef(
+//!             RefCell {
+//!                 value: NodeRefInner {
+//!                     node: None,
+//!                     link: None,
+//!                 },
+//!             },
+//!         ),
+//!     },
+//! ),
+//! vlist: None,
+//! vtext: None,
+//! vcomp: None,
+//! vref: None,
+//! children: Some(
+//!     [
+//!         VNodeStruct {
+//!             vtag: None,
+//!             vlist: Some(
+//!                 VList {
+//!                     children: [
+//!                         VText { text: example },
+//!                     ],
+//!                     elide_placeholder: true,
+//!                 },
+//!             ),
+//!             vtext: None,
+//!             vcomp: None,
+//!             vref: None,
+//!             children: Some(
+//!                 [
+//!                     VNodeStruct {
+//!                         vtag: None,
+//!                         vlist: None,
+//!                         vtext: Some(
+//!                             VText { text: example },
+//!                         ),
+//!                         vcomp: None,
+//!                         vref: None,
+//!                         children: None,
+//!                     },
+//!                 ],
+//!             ),
+//!         },
+//!     ],
+//! ),
+//! }
+//! ```
+
 use super::{Attributes, Classes, VComp, VList, VNode, VTag, VText};
 use crate::html::NodeRef;
 use cfg_if::cfg_if;
@@ -34,6 +119,7 @@ impl From<VTag> for VTagStruct {
     }
 }
 
+/// all the properties of VNodeStruct
 #[derive(Debug, PartialEq)]
 pub struct VNodeStruct {
     vtag: Option<VTagStruct>,
@@ -45,6 +131,7 @@ pub struct VNodeStruct {
 }
 
 impl VNodeStruct {
+    /// Get all the complete structure from VNode
     pub fn new(vnode: VNode) -> Self {
         match vnode {
             VNode::VTag(ref vtag) => VNodeStruct {
