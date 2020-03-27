@@ -9,14 +9,17 @@
 //! Now we use VStructure to get the complete Vnode button and log the result:
 //!
 //! ```
+//!# fn dont_execute() {
 //!   let vnode_example = VNodeStruct::new(example);
 //!
 //!   console.log(&format!("{:#?}", example));
+//!# }
 //! ```
 //!
 //! We will get this in the console:
 //!
 //! ```
+//!# fn dont_execute() {
 //! VNodeStruct {
 //!     vtag: Some(
 //!         VTagStruct {
@@ -77,6 +80,7 @@
 //!         ],
 //!     ),
 //! }
+//!# }
 //! ```
 
 use super::{Attributes, Classes, VComp, VList, VNode, VTag, VText};
