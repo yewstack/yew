@@ -1,6 +1,6 @@
 //! This module contains the implementation to get all the VNode structure.
 //! it is useful for testing and debuging. For example we want to know what contain this VNode:
-//! ```
+//! ```ignore
 //! let example = html! {
 //!     <div id="example">{"example"}</div>
 //! };
@@ -8,18 +8,15 @@
 //!
 //! Now we use VStructure to get the complete Vnode button and log the result:
 //!
-//! ```
-//!# fn dont_execute() {
+//! ```ignore
 //!   let vnode_example = VNodeStruct::new(example);
 //!
 //!   console.log(&format!("{:#?}", example));
-//!# }
 //! ```
 //!
 //! We will get this in the console:
 //!
-//! ```
-//!# fn dont_execute() {
+//! ```ignore
 //! VNodeStruct {
 //!     vtag: Some(
 //!         VTagStruct {
@@ -80,7 +77,6 @@
 //!         ],
 //!     ),
 //! }
-//!# }
 //! ```
 
 use super::{Attributes, Classes, VComp, VList, VNode, VTag, VText};
