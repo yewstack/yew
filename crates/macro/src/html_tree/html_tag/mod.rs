@@ -96,8 +96,9 @@ impl ToTokens for HtmlTag {
             value,
             checked,
             node_ref,
+            key,
             href,
-            listeners,
+            listeners
         } = &attributes;
 
         let vtag = Ident::new("__yew_vtag", tag_name.span());
@@ -141,6 +142,11 @@ impl ToTokens for HtmlTag {
                 #vtag.node_ref = #node_ref;
             }
         });
+        let set_key = key.iter().map(|key| {
+            quote! {
+                #vtag.key = #key;
+            }
+        });
         let listeners = listeners.iter().map(|listener| {
             let name = &listener.label.name;
             let callback = &listener.value;
@@ -163,6 +169,7 @@ impl ToTokens for HtmlTag {
             #(#set_booleans)*
             #(#set_classes)*
             #(#set_node_ref)*
+            #(#set_key)*
             #vtag.add_attributes(vec![#(#attr_pairs),*]);
             #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
             #vtag.add_children(vec![#(#children),*]);

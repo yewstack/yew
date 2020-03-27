@@ -19,6 +19,19 @@ pub struct VList {
     elide_placeholder: bool,
 }
 
+impl VList {
+
+    pub fn key(&self) -> String{
+        let mut key = "vlist".to_string();
+        for n in &self.children{
+            key = key+&n.key()
+        }
+
+        key
+    }
+
+}
+
 impl Deref for VList {
     type Target = Vec<VNode>;
 
@@ -104,20 +117,41 @@ impl VDiff for VList {
 
         // Process children
         let mut lefts = self.children.iter_mut();
-        let mut rights = rights.drain(..);
+        let mut rights = rights.drain(..).collect::<Vec<_>>();
+        // loop {
+        //     match (lefts.next(), rights.next()) {
+        //         (Some(left), Some(right)) => {
+        //             previous_sibling = left.apply(parent, previous_sibling.as_ref(), Some(right));
+        //         }
+        //         (Some(left), None) => {
+        //             previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
+        //         }
+        //         (None, Some(ref mut right)) => {
+        //             right.detach(parent);
+        //         }
+        //         (None, None) => break,
+        //     }
+        // }
         loop {
-            match (lefts.next(), rights.next()) {
-                (Some(left), Some(right)) => {
-                    previous_sibling = left.apply(parent, previous_sibling.as_ref(), Some(right));
+            match lefts.next() {
+                Some(left) =>{
+                    let right = rights.iter().position(|r| left.key()==r.key());
+                    match right{
+                        Some(rightindex)=>{
+                            let right = rights.remove(rightindex);
+                            previous_sibling = left.apply(parent, previous_sibling.as_ref(), Some(right));
+                        }
+                        None => {
+                            previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
+                        }
+                    }
                 }
-                (Some(left), None) => {
-                    previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
-                }
-                (None, Some(ref mut right)) => {
-                    right.detach(parent);
-                }
-                (None, None) => break,
+                None => break
             }
+        }
+
+        for mut righti in rights{
+            righti.detach(parent);
         }
         previous_sibling
     }

@@ -30,6 +30,20 @@ pub enum VNode {
     VRef(Node),
 }
 
+impl VNode{
+
+    pub fn key(&self) -> String{
+        match self{
+            VNode::VTag(vtag) => vtag.key.clone(),
+            VNode::VText(vtext) => String::default(),
+            VNode::VComp(vcomp) => vcomp.key.clone(),
+            VNode::VList(vlist) => String::default(),
+            VNode::VRef(vref) => String::default()
+        }
+    }
+
+}
+
 impl VDiff for VNode {
     /// Remove VNode from parent.
     fn detach(&mut self, parent: &Element) -> Option<Node> {
