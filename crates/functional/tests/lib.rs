@@ -4,13 +4,15 @@ extern crate wasm_bindgen_test;
 #[cfg(test)]
 #[cfg(feature = "wasm_test")]
 mod test {
+    use std::ops::Deref;
     use std::ops::DerefMut;
+    use std::rc::Rc;
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
     extern crate yew;
 
-    use self::yew::NodeRef;
+    use self::yew::{Callback, NodeRef};
     use yew::{html, App, Html, Properties};
     use yew_functional::{
         use_effect, use_effect1, use_reducer_with_init, use_ref, use_state, FunctionComponent,
@@ -147,6 +149,66 @@ mod test {
         let result = obtain_result();
 
         assert_eq!(result.as_str(), "11");
+    }
+
+    #[wasm_bindgen_test]
+    fn use_effect_destroys_on_component_drop() {
+        struct UseEffectFunction {}
+        struct UseEffectWrapper {}
+        #[derive(Properties, Clone)]
+        struct DestroyCalledProps {
+            destroy_called: Rc<dyn Fn()>,
+        }
+        impl PartialEq for DestroyCalledProps {
+            fn eq(&self, other: &Self) -> bool {
+                false
+            }
+        }
+        type UseEffectComponent = FunctionComponent<UseEffectFunction>;
+        type UseEffectWrapperComponent = FunctionComponent<UseEffectWrapper>;
+        impl FunctionProvider for UseEffectFunction {
+            type TProps = DestroyCalledProps;
+
+            fn run(props: &Self::TProps) -> Html {
+                let destroy_called = props.destroy_called.clone();
+                use_effect1(
+                    move |_| {
+                        move || {
+                            destroy_called();
+                        }
+                    },
+                    0,
+                );
+                return html! {};
+            }
+        }
+        impl FunctionProvider for UseEffectWrapper {
+            type TProps = DestroyCalledProps;
+
+            fn run(props: &Self::TProps) -> Html {
+                let (should_rerender, set_rerender) = use_state(|| true);
+                if *should_rerender {
+                    set_rerender(false);
+                    return html! {
+                        <UseEffectComponent destroy_called=props.destroy_called.clone() />
+                    };
+                } else {
+                    return html! {
+                        <div>{"EMPTY"}</div>
+                    };
+                }
+            }
+        }
+        let app: App<UseEffectWrapperComponent> = yew::App::new();
+        let destroy_counter = Rc::new(std::cell::RefCell::new(0));
+        let destroy_country_c = destroy_counter.clone();
+        app.mount_with_props(
+            yew::utils::document().get_element_by_id("output").unwrap(),
+            DestroyCalledProps {
+                destroy_called: Rc::new(move || *destroy_country_c.borrow_mut().deref_mut() += 1),
+            },
+        );
+        assert_eq!(1, *destroy_counter.borrow().deref());
     }
 
     #[wasm_bindgen_test]
