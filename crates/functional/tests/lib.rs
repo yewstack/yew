@@ -12,7 +12,7 @@ mod test {
 
     extern crate yew;
 
-    use self::yew::{Callback, NodeRef};
+    use self::yew::NodeRef;
     use yew::{html, App, Html, Properties};
     use yew_functional::{
         use_effect, use_effect_with_deps, use_reducer_with_init, use_ref, use_state,
@@ -159,7 +159,7 @@ mod test {
             destroy_called: Rc<dyn Fn()>,
         }
         impl PartialEq for DestroyCalledProps {
-            fn eq(&self, other: &Self) -> bool {
+            fn eq(&self, _other: &Self) -> bool {
                 false
             }
         }
