@@ -14,7 +14,6 @@ members = [
   "showcase",
   "textarea",
   "timer",
-  "webgl",
   "std_web/counter",
   "std_web/file_upload",
   "std_web/inner_html",
@@ -25,6 +24,7 @@ members = [
   "std_web/npm_and_rest",
   "std_web/todomvc",
   "std_web/two_apps",
+  "std_web/webgl",
   "web_sys/counter",
   "web_sys/file_upload",
   "web_sys/inner_html",
@@ -35,4 +35,5 @@ members = [
   "web_sys/npm_and_rest",
   "web_sys/todomvc",
   "web_sys/two_apps",
+  "web_sys/webgl",
 ]

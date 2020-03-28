@@ -67,6 +67,7 @@ struct Model {
 
 enum Msg {
     SwitchTo(Scene),
+    Reset,
 }
 
 impl Component for Model {
@@ -83,6 +84,10 @@ impl Component for Model {
                 self.scene = Some(scene);
                 true
             }
+            Msg::Reset => {
+                self.scene = None;
+                true
+            }
         }
     }
 
@@ -96,6 +101,9 @@ impl Component for Model {
                         selected=self.scene.clone()
                         options=Scene::iter().collect::<Vec<_>>()
                         onchange=self.link.callback(Msg::SwitchTo) />
+                    <button onclick=self.link.callback(|_| Msg::Reset)>
+                        { "Reset" }
+                    </button>
                 </div>
                 <div id="right_pane">
                     { self.view_scene() }
@@ -135,10 +143,10 @@ impl Model {
     fn view_style(&self) -> &str {
         if let Some(scene) = self.scene.as_ref() {
             match scene {
-                Scene::GameOfLife => { include_str!("../../game_of_life/static/styles.css") },
-                Scene::LargeTable => { include_str!("../../large_table/static/styles.css") },
-                Scene::Todomvc => { include_str!("../static/todomvc.css") },
-                _ => { "" },
+                Scene::GameOfLife => include_str!("../../game_of_life/static/styles.css"),
+                Scene::LargeTable => include_str!("../../large_table/static/styles.css"),
+                Scene::Todomvc => include_str!("../static/todomvc.css"),
+                _ => "",
             }
         } else {
             ""

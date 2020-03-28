@@ -19,8 +19,8 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     Message(COMP::Message),
     /// Wraps batch of messages for a component.
     MessageBatch(Vec<COMP::Message>),
-    /// Wraps properties for a component.
-    Properties(COMP::Properties),
+    /// Wraps properties and new node ref for a component.
+    Properties(COMP::Properties, NodeRef),
 }
 
 /// A context which allows sending messages to a component.
@@ -319,7 +319,12 @@ where
                     ComponentUpdate::MessageBatch(messages) => messages
                         .into_iter()
                         .fold(false, |acc, msg| this.component.update(msg) || acc),
-                    ComponentUpdate::Properties(props) => this.component.change(props),
+                    ComponentUpdate::Properties(props, node_ref) => {
+                        // When components are updated, they receive a new node ref that
+                        // must be linked to previous one.
+                        node_ref.link(this.node_ref.clone());
+                        this.component.change(props)
+                    }
                 };
                 let next_state = if should_update { this.update() } else { this };
                 ComponentState::Created(next_state)

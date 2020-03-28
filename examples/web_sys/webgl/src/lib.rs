@@ -1,15 +1,12 @@
-#![recursion_limit = "512"]
-extern crate stdweb;
-
-use stdweb::unstable::TryInto;
-use stdweb::web::html_element::CanvasElement;
-use stdweb::web::TypedArray;
-use webgl_stdweb::{GLfloat, GLuint, WebGLRenderingContext as GL};
+use web_sys::HtmlCanvasElement;
+use web_sys::WebGlRenderingContext as GL;
 use yew::services::{RenderService, Task};
 use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
 
+use wasm_bindgen::JsCast;
+
 pub struct Model {
-    canvas: Option<CanvasElement>,
+    canvas: Option<HtmlCanvasElement>,
     gl: Option<GL>,
     link: ComponentLink<Self>,
     node_ref: NodeRef,
@@ -38,10 +35,17 @@ impl Component for Model {
         // Once mounted, store references for the canvas and GL context. These can be used for
         // resizing the rendering area when the window or canvas element are resized, as well as
         // for making GL calls.
-        let c: CanvasElement = self.node_ref.get().unwrap().try_into().unwrap();
-        let gl: GL = c.get_context().expect("WebGL not supported!");
 
-        self.canvas = Some(c);
+        let canvas = self.node_ref.cast::<HtmlCanvasElement>().unwrap();
+
+        let gl: GL = canvas
+            .get_context("webgl")
+            .unwrap()
+            .unwrap()
+            .dyn_into()
+            .unwrap();
+
+        self.canvas = Some(canvas);
         self.gl = Some(gl);
 
         // In a more complex use-case, there will be additional WebGL initialization that should be
@@ -94,10 +98,10 @@ impl Model {
             -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
         ];
         let vertex_buffer = gl.create_buffer().unwrap();
-        let verts = TypedArray::<f32>::from(vertices.as_slice());
+        let verts = js_sys::Float32Array::from(vertices.as_slice());
 
         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vertex_buffer));
-        gl.buffer_data_1(GL::ARRAY_BUFFER, Some(&verts.buffer()), GL::STATIC_DRAW);
+        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &verts, GL::STATIC_DRAW);
 
         let vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
         gl.shader_source(&vert_shader, &vert_code);
@@ -115,13 +119,13 @@ impl Model {
         gl.use_program(Some(&shader_program));
 
         // Attach the position vector as an attribute for the GL context.
-        let position = gl.get_attrib_location(&shader_program, "a_position") as GLuint;
-        gl.vertex_attrib_pointer(position, 2, GL::FLOAT, false, 0, 0);
+        let position = gl.get_attrib_location(&shader_program, "a_position") as u32;
+        gl.vertex_attrib_pointer_with_i32(position, 2, GL::FLOAT, false, 0, 0);
         gl.enable_vertex_attrib_array(position);
 
         // Attach the time as a uniform for the GL context.
         let time = gl.get_uniform_location(&shader_program, "u_time");
-        gl.uniform1f(time.as_ref(), timestamp as GLfloat);
+        gl.uniform1f(time.as_ref(), timestamp as f32);
 
         gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
