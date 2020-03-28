@@ -8,10 +8,15 @@ thread_local! {
     static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
 }
 
+pub trait Hook {
+    fn tear_down(&mut self) {}
+}
+
 struct HookState {
     counter: usize,
     process_message: Rc<dyn Fn(Box<dyn FnOnce() -> bool>)>,
     hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
+    destroy_listeners: Vec<Box<dyn FnOnce()>>,
 }
 
 pub trait FunctionProvider {
@@ -40,6 +45,7 @@ where
                 counter: 0,
                 process_message: Rc::new(move |msg| link.send_message(msg)),
                 hooks: vec![],
+                destroy_listeners: vec![],
             })),
         }
     }
@@ -89,20 +95,30 @@ where
 
         return ret;
     }
+
+    fn destroy(&mut self) {
+        if let Some(hook_state) = self.hook_state.borrow_mut().deref_mut() {
+            for hook in hook_state.destroy_listeners.drain(..) {
+                hook()
+            }
+        }
+    }
 }
 
 pub fn use_ref<T: 'static, InitialProvider>(initial_value: InitialProvider) -> Rc<RefCell<T>>
 where
     InitialProvider: FnOnce() -> T,
 {
-    type UseRefState<T> = Rc<RefCell<T>>;
+    #[derive(Clone)]
+    struct UseRefState<T>(Rc<RefCell<T>>);
+    impl<T> Hook for UseRefState<T> {}
 
     use_hook(
         |state: &mut UseRefState<T>, pretrigger_change_acceptor| {
             let _ignored = || pretrigger_change_acceptor(|_| false); // we need it to be a specific closure type, even if we never use it
-            return state.clone();
+            return state.0.clone();
         },
-        move || Rc::new(RefCell::new(initial_value())),
+        move || UseRefState(Rc::new(RefCell::new(initial_value()))),
     )
 }
 
@@ -128,6 +144,7 @@ where
     struct UseReducerState<State> {
         current_state: Rc<State>,
     }
+    impl<T> Hook for UseReducerState<T> {};
     let init = Box::new(init);
     let reducer = Rc::new(reducer);
     let ret = use_hook(
@@ -163,6 +180,7 @@ where
     struct UseStateState<T2> {
         current: Rc<T2>,
     }
+    impl<T> Hook for UseStateState<T> {}
     return use_hook(
         |prev: &mut UseStateState<T>, hook_update| {
             let current = prev.current.clone();
@@ -190,6 +208,13 @@ where
     let callback = Box::new(callback);
     struct UseEffectState<Destructor> {
         destructor: Option<Box<Destructor>>,
+    }
+    impl<T: FnOnce() + 'static> Hook for UseEffectState<T> {
+        fn tear_down(&mut self) {
+            if let Some(destructor) = self.destructor.take() {
+                destructor()
+            }
+        }
     }
     use_hook(
         |_: &mut UseEffectState<Destructor>, hook_update| {
@@ -316,6 +341,16 @@ pub fn use_effect5<F, Destructor, T1, T2, T3, T4, T5>(
     let o3_c = o3.clone();
     let o4_c = o4.clone();
     let o5_c = o5.clone();
+
+    impl<T1, T2, T3, T4, T5, Destructor: FnOnce() + 'static> Hook
+        for UseEffectState<T1, T2, T3, T4, T5, Destructor>
+    {
+        fn tear_down(&mut self) {
+            if let Some(destructor) = self.destructor.take() {
+                destructor()
+            }
+        }
+    }
     use_hook(
         move |state: &mut UseEffectState<T1, T2, T3, T4, T5, Destructor>, hook_update| {
             let mut should_update = !(*state.o1 == *o1
@@ -376,7 +411,7 @@ pub fn use_hook<InternalHookState, HookRunner, R, InitialStateProvider, Pretrigg
 ) -> R
 where
     HookRunner: FnOnce(&mut InternalHookState, Box<dyn Fn(PretriggerChange)>) -> R,
-    InternalHookState: 'static,
+    InternalHookState: Hook + 'static,
     InitialStateProvider: FnOnce() -> InternalHookState,
     PretriggerChange: FnOnce(&mut InternalHookState) -> bool,
 {
@@ -395,7 +430,10 @@ where
         // Initialize hook if this is the first call
         if hook_pos >= hook_state.hooks.len() {
             let initial_state = Rc::new(RefCell::new(initial_state_producer()));
-            hook_state.hooks.push(initial_state);
+            hook_state.hooks.push(initial_state.clone());
+            hook_state.destroy_listeners.push(Box::new(move || {
+                initial_state.borrow_mut().deref_mut().tear_down();
+            }));
         }
 
         let hook = hook_state.hooks[hook_pos].clone();
