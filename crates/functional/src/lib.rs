@@ -109,7 +109,7 @@ where
 pub fn use_reducer<Action: 'static, Reducer, State: 'static>(
     reducer: Reducer,
     initial_state: State,
-) -> (Rc<State>, Box<impl Fn(Action)>)
+) -> (Rc<State>, Rc<impl Fn(Action)>)
 where
     Reducer: Fn(Rc<State>, Action) -> State + 'static,
 {
@@ -120,7 +120,7 @@ pub fn use_reducer_with_init<Action: 'static, Reducer, State: 'static, InitialSt
     reducer: Reducer,
     initial_state: InitialState,
     init: InitFn,
-) -> (Rc<State>, Box<impl Fn(Action)>)
+) -> (Rc<State>, Rc<impl Fn(Action)>)
 where
     Reducer: Fn(Rc<State>, Action) -> State + 'static,
     InitFn: Fn(InitialState) -> State,
@@ -134,7 +134,7 @@ where
         |internal_hook_change: &mut UseReducerState<State>, pretrigger_change_runner| {
             return (
                 internal_hook_change.current_state.clone(),
-                Box::new(move |action: Action| {
+                Rc::new(move |action: Action| {
                     let reducer = reducer.clone();
                     pretrigger_change_runner(
                         move |internal_hook_change: &mut UseReducerState<State>| {
