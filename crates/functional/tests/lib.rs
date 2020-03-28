@@ -15,8 +15,8 @@ mod test {
     use self::yew::{Callback, NodeRef};
     use yew::{html, App, Html, Properties};
     use yew_functional::{
-        use_effect, use_effect1, use_reducer_with_init, use_ref, use_state, FunctionComponent,
-        FunctionProvider,
+        use_effect, use_effect_with_deps, use_reducer_with_init, use_ref, use_state,
+        FunctionComponent, FunctionProvider,
     };
 
     #[wasm_bindgen_test]
@@ -127,12 +127,12 @@ mod test {
                     },
                 );
 
-                use_effect1(
+                use_effect_with_deps(
                     move |_| {
                         dispatch(1);
                         || {}
                     },
-                    0,
+                    (),
                 );
                 return html! {
                     <div>
@@ -171,13 +171,13 @@ mod test {
 
             fn run(props: &Self::TProps) -> Html {
                 let destroy_called = props.destroy_called.clone();
-                use_effect1(
+                use_effect_with_deps(
                     move |_| {
                         move || {
                             destroy_called();
                         }
                     },
-                    0,
+                    (),
                 );
                 return html! {};
             }
@@ -280,7 +280,7 @@ mod test {
                 let node_ref = NodeRef::default();
                 let node_ref_c = node_ref.clone();
 
-                use_effect1(
+                use_effect_with_deps(
                     move |_| {
                         if *initially_true_ref.borrow() {
                             panic!("use_effect should have been called post render!")
@@ -294,7 +294,7 @@ mod test {
                             .expect("This NodeRef should point at the result!");
                         || panic!("Destructor should not have been called")
                     },
-                    0,
+                    (),
                 );
                 *initially_true_ref_c.borrow_mut() = false;
 
@@ -332,7 +332,7 @@ mod test {
                 let number_ref2_c = number_ref2.clone();
                 let arg = *number_ref.borrow_mut().deref_mut();
                 let (_, set_counter) = use_state(|| 0);
-                use_effect1(
+                use_effect_with_deps(
                     move |dep| {
                         let mut ref_mut = number_ref_c.borrow_mut();
                         let inner_ref_mut = ref_mut.deref_mut();
