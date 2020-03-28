@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::ops::DerefMut;
 use std::rc::Rc;
@@ -7,10 +8,15 @@ thread_local! {
     static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
 }
 
+pub trait Hook {
+    fn tear_down(&mut self) {}
+}
+
 struct HookState {
     counter: usize,
     process_message: Rc<dyn Fn(Box<dyn FnOnce() -> bool>)>,
     hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
+    destroy_listeners: Vec<Box<dyn FnOnce()>>,
 }
 
 pub trait FunctionProvider {
@@ -39,6 +45,7 @@ where
                 counter: 0,
                 process_message: Rc::new(move |msg| link.send_message(msg)),
                 hooks: vec![],
+                destroy_listeners: vec![],
             })),
         }
     }
@@ -88,27 +95,37 @@ where
 
         return ret;
     }
+
+    fn destroy(&mut self) {
+        if let Some(hook_state) = self.hook_state.borrow_mut().deref_mut() {
+            for hook in hook_state.destroy_listeners.drain(..) {
+                hook()
+            }
+        }
+    }
 }
 
 pub fn use_ref<T: 'static, InitialProvider>(initial_value: InitialProvider) -> Rc<RefCell<T>>
 where
     InitialProvider: FnOnce() -> T,
 {
-    type UseRefState<T> = Rc<RefCell<T>>;
+    #[derive(Clone)]
+    struct UseRefState<T>(Rc<RefCell<T>>);
+    impl<T> Hook for UseRefState<T> {}
 
     use_hook(
         |state: &mut UseRefState<T>, pretrigger_change_acceptor| {
             let _ignored = || pretrigger_change_acceptor(|_| false); // we need it to be a specific closure type, even if we never use it
-            return state.clone();
+            return state.0.clone();
         },
-        move || Rc::new(RefCell::new(initial_value())),
+        move || UseRefState(Rc::new(RefCell::new(initial_value()))),
     )
 }
 
 pub fn use_reducer<Action: 'static, Reducer, State: 'static>(
     reducer: Reducer,
     initial_state: State,
-) -> (Rc<State>, Box<impl Fn(Action)>)
+) -> (Rc<State>, Rc<impl Fn(Action)>)
 where
     Reducer: Fn(Rc<State>, Action) -> State + 'static,
 {
@@ -119,7 +136,7 @@ pub fn use_reducer_with_init<Action: 'static, Reducer, State: 'static, InitialSt
     reducer: Reducer,
     initial_state: InitialState,
     init: InitFn,
-) -> (Rc<State>, Box<impl Fn(Action)>)
+) -> (Rc<State>, Rc<impl Fn(Action)>)
 where
     Reducer: Fn(Rc<State>, Action) -> State + 'static,
     InitFn: Fn(InitialState) -> State,
@@ -127,13 +144,14 @@ where
     struct UseReducerState<State> {
         current_state: Rc<State>,
     }
+    impl<T> Hook for UseReducerState<T> {};
     let init = Box::new(init);
     let reducer = Rc::new(reducer);
     let ret = use_hook(
         |internal_hook_change: &mut UseReducerState<State>, pretrigger_change_runner| {
             return (
                 internal_hook_change.current_state.clone(),
-                Box::new(move |action: Action| {
+                Rc::new(move |action: Action| {
                     let reducer = reducer.clone();
                     pretrigger_change_runner(
                         move |internal_hook_change: &mut UseReducerState<State>| {
@@ -162,6 +180,7 @@ where
     struct UseStateState<T2> {
         current: Rc<T2>,
     }
+    impl<T> Hook for UseStateState<T> {}
     return use_hook(
         |prev: &mut UseStateState<T>, hook_update| {
             let current = prev.current.clone();
@@ -181,13 +200,96 @@ where
     );
 }
 
+pub fn use_effect<F, Destructor>(callback: F)
+where
+    F: FnOnce() -> Destructor + 'static,
+    Destructor: FnOnce() + 'static,
+{
+    let callback = Box::new(callback);
+    struct UseEffectState<Destructor> {
+        destructor: Option<Box<Destructor>>,
+    }
+    impl<T: FnOnce() + 'static> Hook for UseEffectState<T> {
+        fn tear_down(&mut self) {
+            if let Some(destructor) = self.destructor.take() {
+                destructor()
+            }
+        }
+    }
+    use_hook(
+        |_: &mut UseEffectState<Destructor>, hook_update| {
+            return move || {
+                hook_update(move |state: &mut UseEffectState<Destructor>| {
+                    if let Some(de) = state.destructor.take() {
+                        de();
+                    }
+                    let new_destructor = callback();
+                    state.destructor.replace(Box::new(new_destructor));
+                    false
+                });
+            };
+        },
+        || UseEffectState { destructor: None },
+    )();
+}
+
+pub fn use_effect_with_deps<F, Destructor, Dependents>(callback: F, deps: Dependents)
+where
+    F: FnOnce(&Dependents) -> Destructor + 'static,
+    Destructor: FnOnce() + 'static,
+    Dependents: PartialEq + 'static,
+{
+    struct UseEffectState<Dependents, Destructor> {
+        deps: Rc<Dependents>,
+        destructor: Option<Box<Destructor>>,
+    }
+    let deps = Rc::new(deps);
+    let deps_c = deps.clone();
+
+    impl<Dependents, Destructor: FnOnce() + 'static> Hook for UseEffectState<Dependents, Destructor> {
+        fn tear_down(&mut self) {
+            if let Some(destructor) = self.destructor.take() {
+                destructor()
+            }
+        }
+    }
+    use_hook(
+        move |state: &mut UseEffectState<Dependents, Destructor>, hook_update| {
+            let mut should_update = !(*state.deps == *deps);
+
+            return move || {
+                hook_update(move |state: &mut UseEffectState<Dependents, Destructor>| {
+                    if should_update {
+                        if let Some(de) = state.destructor.take() {
+                            de();
+                        }
+                        let new_destructor = callback(deps.borrow());
+                        state.deps = deps.clone();
+                        state.destructor.replace(Box::new(new_destructor));
+                    } else if state.destructor.is_none() {
+                        should_update = true;
+                        state
+                            .destructor
+                            .replace(Box::new(callback(state.deps.borrow())));
+                    }
+                    false
+                })
+            };
+        },
+        || UseEffectState {
+            deps: deps_c,
+            destructor: None,
+        },
+    )();
+}
+
 pub fn use_hook<InternalHookState, HookRunner, R, InitialStateProvider, PretriggerChange: 'static>(
     hook_runner: HookRunner,
     initial_state_producer: InitialStateProvider,
 ) -> R
 where
     HookRunner: FnOnce(&mut InternalHookState, Box<dyn Fn(PretriggerChange)>) -> R,
-    InternalHookState: 'static,
+    InternalHookState: Hook + 'static,
     InitialStateProvider: FnOnce() -> InternalHookState,
     PretriggerChange: FnOnce(&mut InternalHookState) -> bool,
 {
@@ -206,7 +308,10 @@ where
         // Initialize hook if this is the first call
         if hook_pos >= hook_state.hooks.len() {
             let initial_state = Rc::new(RefCell::new(initial_state_producer()));
-            hook_state.hooks.push(initial_state);
+            hook_state.hooks.push(initial_state.clone());
+            hook_state.destroy_listeners.push(Box::new(move || {
+                initial_state.borrow_mut().deref_mut().tear_down();
+            }));
         }
 
         let hook = hook_state.hooks[hook_pos].clone();
