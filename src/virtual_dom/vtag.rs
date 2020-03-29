@@ -10,7 +10,6 @@ use cfg_match::cfg_match;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
-use std::fmt;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -39,6 +38,7 @@ pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
+#[derive(Debug)]
 pub struct VTag {
     /// A tag of the element.
     tag: Cow<'static, str>,
@@ -505,12 +505,6 @@ impl VDiff for VTag {
         });
         self.node_ref.set(node.clone());
         node
-    }
-}
-
-impl fmt::Debug for VTag {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "VTag {{ tag: {} }}", self.tag)
     }
 }
 
