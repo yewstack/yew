@@ -49,6 +49,12 @@ impl<IN> Callback<IN> {
     }
 }
 
+impl<IN> Default for Callback<IN> {
+    fn default() -> Self {
+        Self::noop()
+    }
+}
+
 impl<IN: 'static> Callback<IN> {
     /// Changes input type of the callback to another.
     /// Works like common `map` method but in an opposite direction.
