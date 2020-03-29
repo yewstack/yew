@@ -16,7 +16,7 @@ pub struct VList {
     /// The list of children nodes.
     pub children: Vec<VNode>,
     /// Never use a placeholder element if set to true.
-    pub elide_placeholder: bool,
+    elide_placeholder: bool,
 }
 
 impl Deref for VList {
