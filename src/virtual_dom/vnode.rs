@@ -154,35 +154,11 @@ impl<A: Into<VNode>> FromIterator<A> for VNode {
 impl fmt::Debug for VNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            VNode::VTag(ref vtag) => f
-                .debug_struct("VTag")
-                .field("tag", &vtag.tag())
-                .field("reference", &vtag.reference)
-                .field("listeners", &vtag.listeners)
-                .field("attibutes", &vtag.attributes)
-                .field("classes", &vtag.classes)
-                .field("value", &vtag.value)
-                .field("kind", &vtag.kind)
-                .field("checked", &vtag.checked)
-                .field("node_ref", &vtag.node_ref)
-                .field("captured", &vtag.captured)
-                .field("children", &vtag.children)
-                .finish(),
-            VNode::VText(ref vtext) => f
-                .debug_struct("VText")
-                .field("text", &vtext.text)
-                .field("reference", &vtext.reference)
-                .finish(),
-            VNode::VComp(ref vcomp) => f
-                .debug_struct("VComp")
-                .field("node_ref", &vcomp.node_ref)
-                .finish(),
-            VNode::VList(ref vlist) => f
-                .debug_struct("VList")
-                .field("elide_placeholder", &vlist.elide_placeholder)
-                .field("children", &vlist.children)
-                .finish(),
-            VNode::VRef(_) => f.debug_struct("VRef").finish(),
+            VNode::VTag(ref vtag) => vtag.fmt(f),
+            VNode::VText(ref vtext) => vtext.fmt(f),
+            VNode::VComp(ref vcomp) => vcomp.fmt(f),
+            VNode::VList(ref vlist) => vlist.fmt(f),
+            VNode::VRef(ref vref) => vref.fmt(f),
         }
     }
 }
