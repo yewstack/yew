@@ -68,7 +68,7 @@ pub struct VTag {
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
     /// Keeps handler for attached listeners to have an opportunity to drop them later.
-    captured: Vec<EventListener>,
+    pub captured: Vec<EventListener>,
 }
 
 impl Clone for VTag {
