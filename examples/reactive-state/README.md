@@ -20,6 +20,19 @@ $ npm run start:dev # yarn start:dev
 
 Then you can visit http://localhost:8000 in your favorite browser :)
 
+### Editing note
+
+If you're running VS Code, you may need to add this to your `.vscode/settings.json`:
+
+```json
+{
+  "rust.target": "wasm32-unknown-unknown",
+  "emmet.includeLanguages": {
+    "rust": "html"
+  }
+}
+```
+
 ## About
 
 The purpose of this project is to show how to effectively pass state around your application in a reactive way, without throwing away the convenience of yew's `Agent` system.
