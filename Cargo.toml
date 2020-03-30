@@ -50,6 +50,7 @@ members = [
   "examples/node_refs",
   "examples/npm_and_rest",
   "examples/pub_sub",
+  "examples/reactive-state",
   "examples/store",
   "examples/textarea",
   "examples/timer",

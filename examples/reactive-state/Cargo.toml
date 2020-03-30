@@ -1,0 +1,35 @@
+[package]
+name = "yew-reactive-state"
+version = "0.1.0"
+authors = ["Doug Hooker <DouglassHooker@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+log = "0.4"
+serde = { version = "1", features = ["rc"] }
+serde_derive = "1"
+wasm-bindgen = "0.2.58"
+web_logger = "0.2"
+yew = { version = "0.13", features = ["web_sys"] }
+futures-signals = "0.3.15"
+futures = "0.3.4"
+wasm-bindgen-futures = "0.4.10"
+http = "0.2.1"
+anyhow = "1.0"
+
+# `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
+# compared to the default allocator's ~10K. It is slower than the default
+# allocator, however.
+wee_alloc = { version = "0.4.4", optional = true }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[dependencies.web-sys]
+version = "0.3.4"
+features = [
+  'KeyboardEvent',
+]
