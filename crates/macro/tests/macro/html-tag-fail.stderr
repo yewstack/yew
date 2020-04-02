@@ -173,7 +173,7 @@ error[E0308]: mismatched types
    = note: expected struct `yew::callback::Callback<stdweb::webapi::events::mouse::ClickEvent>`
               found struct `yew::callback::Callback<std::string::String>`
 
-error[E0599]: no method named `to_string` found for type `NotToString` in the current scope
+error[E0599]: no method named `to_string` found for struct `NotToString` in the current scope
   --> $DIR/html-tag-fail.rs:35:27
    |
 3  | struct NotToString;
