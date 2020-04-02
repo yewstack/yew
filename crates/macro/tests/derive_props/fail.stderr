@@ -31,7 +31,7 @@ error[E0277]: the trait bound `t1::Value: std::default::Default` is not satisfie
   |
   = note: required by `std::default::Default::default`
 
-error[E0599]: no method named `build` found for type `t3::PropsBuilder<t3::PropsBuilderStep_missing_required_prop_value>` in the current scope
+error[E0599]: no method named `build` found for struct `t3::PropsBuilder<t3::PropsBuilderStep_missing_required_prop_value>` in the current scope
   --> $DIR/fail.rs:35:26
    |
 29 |     #[derive(Clone, Properties)]
@@ -44,7 +44,7 @@ error[E0599]: no method named `build` found for type `t3::PropsBuilder<t3::Props
    = note: the following trait defines an item `build`, perhaps you need to implement it:
            candidate #1: `proc_macro::bridge::server::TokenStreamBuilder`
 
-error[E0599]: no method named `b` found for type `t4::PropsBuilder<t4::PropsBuilderStep_missing_required_prop_a>` in the current scope
+error[E0599]: no method named `b` found for struct `t4::PropsBuilder<t4::PropsBuilderStep_missing_required_prop_a>` in the current scope
   --> $DIR/fail.rs:48:26
    |
 41 |     #[derive(Clone, Properties)]
