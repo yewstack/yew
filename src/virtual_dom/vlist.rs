@@ -20,17 +20,6 @@ pub struct VList {
     elide_placeholder: bool,
 }
 
-impl VList {
-    pub fn key(&self) -> String {
-        let mut key = "vlist".to_string();
-        for n in &self.children {
-            key = key + &n.key()
-        }
-
-        key
-    }
-}
-
 impl Deref for VList {
     type Target = Vec<VNode>;
 
@@ -116,21 +105,29 @@ impl VDiff for VList {
 
         // Process children
         let mut lefts = self.children.iter_mut();
-        if rights
-            .first()
-            .map(|n| n.key() != String::default())
-            .unwrap_or_default()
-        {
+        let has_keys = if let Some(first) = rights.first() {
+            if let Some(_) = first.key() {
+                true
+            } else {
+                false
+            }
+        } else {
+            true
+        };
+        if has_keys {
             let mut rights_lookup = HashMap::with_capacity(rights.len());
-            let mut i = 0 as usize;
             for r in rights.drain(..) {
+                if r.key().is_none() {
+                    log::warn!(
+                        "The list has elements with and without keys!  This is likely a bug."
+                    );
+                }
                 rights_lookup.insert(r.key().to_owned(), r);
-                i += 1;
             }
             loop {
                 match lefts.next() {
                     Some(left) => {
-                        let mut right = rights_lookup.remove(&left.key());
+                        let right = rights_lookup.remove(&left.key());
                         match right {
                             Some(right) => {
                                 previous_sibling =

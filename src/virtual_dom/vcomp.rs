@@ -31,7 +31,7 @@ pub struct VComp {
     type_id: TypeId,
     state: MountState,
     pub(crate) node_ref: NodeRef,
-    pub(crate) key: String,
+    pub(crate) key: Option<String>,
 }
 
 /// A virtual child component.
@@ -40,7 +40,7 @@ pub struct VChild<COMP: Component> {
     pub props: COMP::Properties,
     /// Reference to the mounted node
     node_ref: NodeRef,
-    key: String,
+    key: Option<String>,
 }
 
 impl<COMP: Component> Clone for VChild<COMP> {
@@ -58,7 +58,7 @@ where
     COMP: Component,
 {
     /// Creates a child component that can be accessed and modified by its parent.
-    pub fn new(props: COMP::Properties, node_ref: NodeRef, key: String) -> Self {
+    pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<String>) -> Self {
         Self {
             props,
             node_ref,
@@ -104,7 +104,7 @@ impl Clone for Mounted {
 
 impl VComp {
     /// This method prepares a generator to make a new instance of the `Component`.
-    pub fn new<COMP>(props: COMP::Properties, node_ref: NodeRef, key: String) -> Self
+    pub fn new<COMP>(props: COMP::Properties, node_ref: NodeRef, key: Option<String>) -> Self
     where
         COMP: Component,
     {

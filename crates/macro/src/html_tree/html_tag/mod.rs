@@ -144,7 +144,7 @@ impl ToTokens for HtmlTag {
         });
         let set_key = key.iter().map(|key| {
             quote! {
-                #vtag.key = #key;
+                #vtag.key = Some(#key);
             }
         });
         let listeners = listeners.iter().map(|listener| {
