@@ -98,7 +98,7 @@ impl ToTokens for HtmlTag {
             node_ref,
             key,
             href,
-            listeners
+            listeners,
         } = &attributes;
 
         let vtag = Ident::new("__yew_vtag", tag_name.span());

@@ -1,8 +1,8 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
 use cfg_if::cfg_if;
-use std::ops::{Deref, DerefMut};
 use std::collections::HashMap;
+use std::ops::{Deref, DerefMut};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::{Element, Node};
@@ -21,16 +21,14 @@ pub struct VList {
 }
 
 impl VList {
-
-    pub fn key(&self) -> String{
+    pub fn key(&self) -> String {
         let mut key = "vlist".to_string();
-        for n in &self.children{
-            key = key+&n.key()
+        for n in &self.children {
+            key = key + &n.key()
         }
 
         key
     }
-
 }
 
 impl Deref for VList {
@@ -118,31 +116,42 @@ impl VDiff for VList {
 
         // Process children
         let mut lefts = self.children.iter_mut();
-        if rights.first().map(|n| n.key() != String::default()).unwrap_or_default()
+        if rights
+            .first()
+            .map(|n| n.key() != String::default())
+            .unwrap_or_default()
         {
             let mut rights_lookup = HashMap::with_capacity(rights.len());
             let mut i = 0 as usize;
             for r in rights.drain(..) {
-                rights_lookup.insert(r.key().to_owned(), RightNode {
-                    node: Some(r),
-                    pos: i
-                });
+                rights_lookup.insert(
+                    r.key().to_owned(),
+                    RightNode {
+                        node: Some(r),
+                        pos: i,
+                    },
+                );
                 i += 1;
             }
             loop {
                 match lefts.next() {
-                    Some(left) =>{
+                    Some(left) => {
                         let right = rights_lookup.get_mut(&left.key());
-                        match right{
-                            Some(right)=>{
-                                previous_sibling = left.apply(parent, previous_sibling.as_ref(), right.node.take());
+                        match right {
+                            Some(right) => {
+                                previous_sibling = left.apply(
+                                    parent,
+                                    previous_sibling.as_ref(),
+                                    right.node.take(),
+                                );
                             }
                             None => {
-                                previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
+                                previous_sibling =
+                                    left.apply(parent, previous_sibling.as_ref(), None);
                             }
                         }
                     }
-                    None => break
+                    None => break,
                 }
             }
             for right in rights_lookup.values_mut() {
@@ -157,7 +166,8 @@ impl VDiff for VList {
             loop {
                 match (lefts.next(), rights.next()) {
                     (Some(left), Some(right)) => {
-                        previous_sibling = left.apply(parent, previous_sibling.as_ref(), Some(right));
+                        previous_sibling =
+                            left.apply(parent, previous_sibling.as_ref(), Some(right));
                     }
                     (Some(left), None) => {
                         previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);

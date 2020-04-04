@@ -154,7 +154,7 @@ impl ToTokens for HtmlComponent {
             quote! { ::yew::html::NodeRef::default() }
         };
 
-        let key = if let Some(key) = props.key(){
+        let key = if let Some(key) = props.key() {
             quote_spanned! { key.span() => #key }
         } else {
             quote! { String::default() }
@@ -349,13 +349,13 @@ enum Props {
 struct ListProps {
     props: Vec<HtmlProp>,
     node_ref: Option<Expr>,
-    key: Option<Expr>
+    key: Option<Expr>,
 }
 
 struct WithProps {
     props: Ident,
     node_ref: Option<Expr>,
-    key: Option<Expr>
+    key: Option<Expr>,
 }
 
 impl Props {
@@ -400,7 +400,7 @@ impl Parse for Props {
                 props = Props::With(Box::new(WithProps {
                     props: input.parse::<Ident>()?,
                     node_ref: None,
-                    key:None
+                    key: None,
                 }));
 
                 // Handle optional comma
@@ -445,7 +445,7 @@ impl Parse for Props {
                     *props = Props::List(Box::new(ListProps {
                         props: vec![prop],
                         node_ref: None,
-                        key: None
+                        key: None,
                     }));
                 }
                 Props::With(_) => {
@@ -459,7 +459,10 @@ impl Parse for Props {
 
         match props {
             Props::None => {}
-            Props::With(ref mut p) =>{ p.node_ref = node_ref; p.key=key},
+            Props::With(ref mut p) => {
+                p.node_ref = node_ref;
+                p.key = key
+            }
             Props::List(ref mut p) => {
                 p.node_ref = node_ref;
                 p.key = key;

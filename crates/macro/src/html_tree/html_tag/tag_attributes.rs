@@ -204,7 +204,7 @@ impl Parse for TagAttributes {
             kind,
             node_ref,
             href,
-            key
+            key,
         })
     }
 }

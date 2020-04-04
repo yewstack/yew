@@ -70,7 +70,7 @@ pub struct VTag {
     /// Keeps handler for attached listeners to have an opportunity to drop them later.
     captured: Vec<EventListener>,
 
-    pub key: String
+    pub key: String,
 }
 
 impl Clone for VTag {
