@@ -91,6 +91,10 @@ impl Component for Model {
         }
     }
 
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        false
+    }
+
     fn view(&self) -> Html {
         html! {
             <div id="fullscreen">

@@ -21,6 +21,9 @@ impl Component for Child {
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         unimplemented!()
     }
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        unimplemented!()
+    }
     fn view(&self) -> Html {
         unimplemented!()
     }
@@ -42,6 +45,9 @@ impl Component for ChildContainer {
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         unimplemented!()
     }
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        unimplemented!()
+    }
     fn view(&self) -> Html {
         unimplemented!()
     }
@@ -59,6 +65,9 @@ impl Component for Generic<String> {
         unimplemented!()
     }
     fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
         unimplemented!()
     }
     fn view(&self) -> Html {

@@ -575,6 +575,10 @@ mod tests {
             unimplemented!();
         }
 
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+            unimplemented!();
+        }
+
         fn view(&self) -> Html {
             unimplemented!();
         }
@@ -594,6 +598,10 @@ mod tests {
             unimplemented!();
         }
 
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+            unimplemented!();
+        }
+
         fn view(&self) -> Html {
             unimplemented!();
         }
@@ -610,6 +618,10 @@ mod tests {
         }
 
         fn update(&mut self, _: Self::Message) -> ShouldRender {
+            unimplemented!();
+        }
+
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
             unimplemented!();
         }
 

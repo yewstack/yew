@@ -31,6 +31,10 @@
 //! #         unimplemented!()
 //! #     }
 //! #
+//! #     fn change(&mut self, props: Self::Properties) -> ShouldRender {
+//! #         unimplemented!()
+//! #     }
+//! #
 //! #     fn view(&self) -> Html {
 //! #
 //! // ...

@@ -31,6 +31,11 @@ impl Component for InputComponent {
         false
     }
 
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.props = props;
+        true
+    }
+
     fn view(&self) -> Html {
         html! {
             <input
