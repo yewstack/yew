@@ -1,5 +1,13 @@
 # Changelog
 
+## ✨ **0.14.3** *(2020-04-04)*
+
+- #### 🛠 Fixes
+
+  - Remove `html!` component validation to allow generic components. [[@mankinskin], [#1065](https://github.com/yewstack/yew/pull/1065)]
+  - Improve `Debug` formatting for `VTag` and `VText`. [[@dancespiele], [#1059](https://github.com/yewstack/yew/pull/1059)]
+  - Implement `Default` for `Callback`. [[@TheNeikos], [#1043](https://github.com/yewstack/yew/pull/1043)]
+
 ## ✨ **0.14.2** *(2020-03-23)*
 
 - #### 🛠 Fixes
@@ -761,6 +769,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@charvp]: https://github.com/charvp
 [@ctaggart]: https://github.com/ctaggart
 [@ctm]: https://github.com/ctm
+[@dancespiele]: https://github.com/dancespiele
 [@daxpedda]: https://github.com/daxpedda
 [@davidkna]: https://github.com/davidkna
 [@DenisKolodin]: https://github.com/DenisKolodin
@@ -776,6 +785,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@kuy]: https://github.com/kuy
 [@leo-lb]: https://github.com/leo-lb
 [@lizhaoxian]: https://github.com/lizhaoxian
+[@mankinskin]: https://github.com/mankinskin
 [@mdtusz]: https://github.com/mdtusz
 [@mrh0057]: https://github.com/mrh0057
 [@nicklaswj]: https://github.com/nicklaswj

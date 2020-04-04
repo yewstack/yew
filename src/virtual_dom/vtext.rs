@@ -6,7 +6,6 @@ use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;
 use std::cmp::PartialEq;
-use std::fmt;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::{Element, INode, Node, TextNode};
@@ -19,7 +18,7 @@ cfg_if! {
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// representation.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct VText {
     /// Contains a text of the node.
     pub text: String,
@@ -120,12 +119,6 @@ impl VDiff for VText {
     }
 }
 
-impl fmt::Debug for VText {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "VText {{ text: {} }}", self.text)
-    }
-}
-
 impl PartialEq for VText {
     fn eq(&self, other: &VText) -> bool {
         self.text == other.text
@@ -152,6 +145,10 @@ mod test {
         }
 
         fn update(&mut self, _: Self::Message) -> ShouldRender {
+            unimplemented!();
+        }
+
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
             unimplemented!();
         }
 

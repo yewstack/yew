@@ -14,6 +14,7 @@
 //!#     type Message = ();type Properties = ();
 //!#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
 //!#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+//!#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
 //!#     fn view(&self) -> Html {unimplemented!()}}
 //! impl ToString for Scene {
 //!     fn to_string(&self) -> String {

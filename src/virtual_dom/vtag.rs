@@ -10,7 +10,6 @@ use cfg_match::cfg_match;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
-use std::fmt;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -39,6 +38,7 @@ pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
+#[derive(Debug)]
 pub struct VTag {
     /// A tag of the element.
     tag: Cow<'static, str>,
@@ -512,12 +512,6 @@ impl VDiff for VTag {
     }
 }
 
-impl fmt::Debug for VTag {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "VTag {{ tag: {} }}", self.tag)
-    }
-}
-
 /// Set `checked` value for the `InputElement`.
 fn set_checked(input: &InputElement, value: bool) {
     cfg_match! {
@@ -585,6 +579,10 @@ mod tests {
             unimplemented!();
         }
 
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+            unimplemented!();
+        }
+
         fn view(&self) -> Html {
             unimplemented!();
         }
@@ -604,6 +602,10 @@ mod tests {
             unimplemented!();
         }
 
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+            unimplemented!();
+        }
+
         fn view(&self) -> Html {
             unimplemented!();
         }
@@ -620,6 +622,10 @@ mod tests {
         }
 
         fn update(&mut self, _: Self::Message) -> ShouldRender {
+            unimplemented!();
+        }
+
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
             unimplemented!();
         }
 

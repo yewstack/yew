@@ -7,6 +7,7 @@ use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
+
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::{Element, INode, Node};
@@ -169,9 +170,9 @@ impl fmt::Debug for VNode {
         match *self {
             VNode::VTag(ref vtag) => vtag.fmt(f),
             VNode::VText(ref vtext) => vtext.fmt(f),
-            VNode::VComp(_) => "Component<>".fmt(f),
-            VNode::VList(_) => "List<>".fmt(f),
-            VNode::VRef(_) => "NodeReference<>".fmt(f),
+            VNode::VComp(ref vcomp) => vcomp.fmt(f),
+            VNode::VList(ref vlist) => vlist.fmt(f),
+            VNode::VRef(ref vref) => vref.fmt(f),
         }
     }
 }
