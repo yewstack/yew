@@ -2,6 +2,7 @@
 use super::{VDiff, VNode, VText};
 use cfg_if::cfg_if;
 use std::ops::{Deref, DerefMut};
+use std::collections::HashMap;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::{Element, Node};
@@ -117,44 +118,64 @@ impl VDiff for VList {
 
         // Process children
         let mut lefts = self.children.iter_mut();
-        let mut rights = rights.drain(..).collect::<Vec<_>>();
-        // loop {
-        //     match (lefts.next(), rights.next()) {
-        //         (Some(left), Some(right)) => {
-        //             previous_sibling = left.apply(parent, previous_sibling.as_ref(), Some(right));
-        //         }
-        //         (Some(left), None) => {
-        //             previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
-        //         }
-        //         (None, Some(ref mut right)) => {
-        //             right.detach(parent);
-        //         }
-        //         (None, None) => break,
-        //     }
-        // }
-        loop {
-            match lefts.next() {
-                Some(left) =>{
-                    let right = rights.iter().position(|r| left.key()==r.key());
-                    match right{
-                        Some(rightindex)=>{
-                            let right = rights.remove(rightindex);
-                            previous_sibling = left.apply(parent, previous_sibling.as_ref(), Some(right));
-                        }
-                        None => {
-                            previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
+        if rights.first().map(|n| n.key() != String::default()).unwrap_or_default()
+        {
+            let mut rights_lookup = HashMap::with_capacity(rights.len());
+            let mut i = 0 as usize;
+            for r in rights.drain(..) {
+                rights_lookup.insert(r.key().to_owned(), RightNode {
+                    node: Some(r),
+                    pos: i
+                });
+                i += 1;
+            }
+            loop {
+                match lefts.next() {
+                    Some(left) =>{
+                        let right = rights_lookup.get_mut(&left.key());
+                        match right{
+                            Some(right)=>{
+                                previous_sibling = left.apply(parent, previous_sibling.as_ref(), right.node.take());
+                            }
+                            None => {
+                                previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
+                            }
                         }
                     }
+                    None => break
                 }
-                None => break
             }
+            for right in rights_lookup.values_mut() {
+                if let Some(mut right) = right.node.take() {
+                    right.detach(parent);
+                }
+            }
+            previous_sibling
+        } else {
+            let mut lefts = self.children.iter_mut();
+            let mut rights = rights.drain(..);
+            loop {
+                match (lefts.next(), rights.next()) {
+                    (Some(left), Some(right)) => {
+                        previous_sibling = left.apply(parent, previous_sibling.as_ref(), Some(right));
+                    }
+                    (Some(left), None) => {
+                        previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
+                    }
+                    (None, Some(ref mut right)) => {
+                        right.detach(parent);
+                    }
+                    (None, None) => break,
+                }
+            }
+            previous_sibling
         }
-
-        for mut righti in rights{
-            righti.detach(parent);
-        }
-        previous_sibling
     }
+}
+
+struct RightNode {
+    pos: usize,
+    node: Option<VNode>,
 }
 
 #[cfg(test)]

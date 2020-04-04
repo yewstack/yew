@@ -33,7 +33,7 @@ pub enum VNode {
 
 impl VNode{
 
-    pub fn key(&self) -> String{
+    pub fn key(&self) -> String {
         match self{
             VNode::VTag(vtag) => vtag.key.clone(),
             VNode::VText(vtext) => String::default(),
