@@ -67,14 +67,9 @@ pub trait Component: Sized + 'static {
     /// Components are created with their properties as well as a `ComponentLink` which
     /// can be used to send messages and create callbacks for triggering updates.
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self;
-    /// Called after the component has been attached to the VDOM and it is safe to receive messages
-    /// from agents but before the browser updates the screen. If true is returned, the view will
-    /// be re-rendered and the user will not see the initial render.
-    fn mounted(&mut self) -> ShouldRender {
-        false
-    }
-    /// Called everytime when a messages of `Msg` type received. It also takes a
-    /// reference to a context.
+
+    /// Components handle messages in their `update` method and commonly use this method
+    /// to update their state and (optionally) re-render themselves.
     fn update(&mut self, msg: Self::Message) -> ShouldRender;
 
     /// When the parent of a Component is re-rendered, it will either be re-created or
@@ -107,7 +102,12 @@ pub trait Component: Sized + 'static {
     /// `html!` procedural macro. The full guide to using the macro can be found in [Yew's
     /// documentation](https://yew.rs/docs/concepts/html).
     fn view(&self) -> Html;
-    /// Called for finalization on the final point of the component's lifetime.
+
+    /// The `rendered` method is called after each time a Component is rendered but
+    /// before the browser updates the page.
+    fn rendered(&mut self, _first_render: bool) {}
+
+    /// The `destroy` method is called right before a Component is unmounted.
     fn destroy(&mut self) {} // TODO(#941): Replace with `Drop`
 }
 
@@ -359,9 +359,11 @@ where
 ///         }
 ///     }
 ///
-///     fn mounted(&mut self) -> ShouldRender {
-///         if let Some(input) = self.node_ref.cast::<InputElement>() {
-///             input.focus();
+///     fn rendered(&mut self, first_render: bool) {
+///         if first_render {
+///             if let Some(input) = self.node_ref.cast::<InputElement>() {
+///                 input.focus();
+///             }
 ///         }
 ///         false
 ///     }

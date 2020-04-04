@@ -31,8 +31,8 @@ impl Component for Model {
         }
     }
 
-    fn mounted(&mut self) -> ShouldRender {
-        // Once mounted, store references for the canvas and GL context. These can be used for
+    fn rendered(&mut self, first_render: bool) {
+        // Once rendered, store references for the canvas and GL context. These can be used for
         // resizing the rendering area when the window or canvas element are resized, as well as
         // for making GL calls.
 
@@ -52,18 +52,16 @@ impl Component for Model {
         // done here, such as enabling or disabling depth testing, depth functions, face
         // culling etc.
 
-        // The callback to request animation frame is passed a time value which can be used for
-        // rendering motion independent of the framerate which may vary.
-        let render_frame = self.link.callback(|time: f64| Msg::Render(time));
-        let handle = RenderService::new().request_animation_frame(render_frame);
+        if first_render {
+            // The callback to request animation frame is passed a time value which can be used for
+            // rendering motion independent of the framerate which may vary.
+            let render_frame = self.link.callback(|time: f64| Msg::Render(time));
+            let handle = RenderService::new().request_animation_frame(render_frame);
 
-        // A reference to the handle must be stored, otherwise it is dropped and the render won't
-        // occur.
-        self.render_loop = Some(Box::new(handle));
-
-        // Since WebGL is rendered to the canvas "separate" from the DOM, there is no need to
-        // render the DOM element(s) again.
-        false
+            // A reference to the handle must be stored, otherwise it is dropped and the render won't
+            // occur.
+            self.render_loop = Some(Box::new(handle));
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {

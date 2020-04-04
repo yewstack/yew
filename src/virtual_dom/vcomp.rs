@@ -126,6 +126,7 @@ impl VComp {
                         props.clone(),
                         node_ref_clone.clone(),
                     ));
+                    scope.rendered(false);
 
                     Mounted {
                         node_ref: node_ref_clone.clone(),
