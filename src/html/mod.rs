@@ -31,13 +31,41 @@ cfg_if! {
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
 
-/// An interface of a UI-component. Uses `self` as a model.
+/// Components are the basic building blocks of the UI in a Yew app. Each Component
+/// chooses how to display itself using received props and self-managed state.
+/// Components can be dynamic and interactive by declaring messages that are
+/// triggered and handled asynchronously. This async update mechanism is inspired by
+/// Elm and the actor model used in the Actix framework.
 pub trait Component: Sized + 'static {
-    /// Control message type which `update` loop get.
+    /// Messages are used to make Components dynamic and interactive. Simple
+    /// Component's can declare their Message type to be `()`. Complex Component's
+    /// commonly use an enum to declare multiple Message types.
     type Message: 'static;
-    /// Properties type of component implementation.
+
+    /// Properties are the inputs to a Component and should not mutated within a
+    /// Component. They are passed to a Component using a JSX-style syntax.
+    /// ```
+    ///# use yew::{Html, Component, Properties, ComponentLink, html};
+    ///# struct Model;
+    ///# #[derive(Clone, Properties)]
+    ///# struct Props {
+    ///#     prop: String,
+    ///# }
+    ///# impl Component for Model {
+    ///#     type Message = ();type Properties = Props;
+    ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
+    ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+    ///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
+    ///#     fn view(&self) -> Html {
+    /// html! {
+    ///     <Model prop="value" />
+    /// }
+    ///# }}
+    /// ```
     type Properties: Properties;
-    /// Initialization routine which could use a context.
+
+    /// Components are created with their properties as well as a `ComponentLink` which
+    /// can be used to send messages and create callbacks for triggering updates.
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self;
     /// Called after the component has been attached to the VDOM and it is safe to receive messages
     /// from agents but before the browser updates the screen. If true is returned, the view will
@@ -48,15 +76,36 @@ pub trait Component: Sized + 'static {
     /// Called everytime when a messages of `Msg` type received. It also takes a
     /// reference to a context.
     fn update(&mut self, msg: Self::Message) -> ShouldRender;
-    /// Called when the component's parent component re-renders and the
-    /// component's place in the DOM tree remains unchanged. If the component's
-    /// place in the DOM tree changes, calling this method is unnecessary as the
-    /// component is recreated from scratch. It defaults to true if not implemented
-    /// and Self::Properties is not the unit type `()`.
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        TypeId::of::<Self::Properties>() != TypeId::of::<()>()
-    }
-    /// Called by rendering loop.
+
+    /// When the parent of a Component is re-rendered, it will either be re-created or
+    /// receive new properties in the `change` lifecycle method. Component's can choose
+    /// to re-render if the new properties are different than the previously
+    /// received properties. Most Component's will use props with a `PartialEq`
+    /// impl and will be implemented like this:
+    /// ```
+    ///# use yew::{Html, Component, ComponentLink, html, ShouldRender};
+    ///# struct Model{props: ()};
+    ///# impl Component for Model {
+    ///#     type Message = ();type Properties = ();
+    ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
+    ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+    ///#     fn view(&self) -> Html {unimplemented!()}
+    /// fn change(&mut self, props: Self::Properties) -> ShouldRender {
+    ///     if self.props != props {
+    ///         self.props = props;
+    ///         true
+    ///     } else {
+    ///         false
+    ///     }
+    /// }
+    ///# }
+    /// ```
+    /// Components which don't have properties should always return false.
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender;
+
+    /// Components define their visual layout using a JSX-style syntax through the use of the
+    /// `html!` procedural macro. The full guide to using the macro can be found in [Yew's
+    /// documentation](https://yew.rs/docs/concepts/html).
     fn view(&self) -> Html;
     /// Called for finalization on the final point of the component's lifetime.
     fn destroy(&mut self) {} // TODO(#941): Replace with `Drop`
@@ -83,6 +132,7 @@ pub type Html = VNode;
 ///#     type Properties = WrapperProps;
 ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
 ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
 ///#     // This is not a valid implementation.  This is done for space convenience.
 ///#     fn view(&self) -> Html {
 /// html! {
@@ -113,6 +163,7 @@ pub type Html = VNode;
 ///#     type Properties = WrapperProps;
 ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
 ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
 ///     fn view(&self) -> Html {
 ///         html! {
 ///             <div id="container">
@@ -143,6 +194,7 @@ pub type Children = ChildrenRenderer<Html>;
 ///#     type Properties = ListProps;
 ///#     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {unimplemented!()}
 ///#     fn update(&mut self, msg: Self::Message) -> bool {unimplemented!()}
+///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
 ///#     fn view(&self) -> Html {unimplemented!()}
 ///# }
 ///# #[derive(Clone, Properties)]
@@ -155,6 +207,7 @@ pub type Children = ChildrenRenderer<Html>;
 ///#     type Properties = ListItemProps;
 ///#     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {unimplemented!()}
 ///#     fn update(&mut self, msg: Self::Message) -> bool {unimplemented!()}
+///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
 ///#     fn view(&self) -> Html {unimplemented!()}
 ///# }
 ///# fn view() -> Html {
@@ -186,6 +239,7 @@ pub type Children = ChildrenRenderer<Html>;
 ///#     type Properties = ListProps;
 ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
 ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
 ///     // ...
 ///     fn view(&self) -> Html {
 ///         html!{{
@@ -209,6 +263,7 @@ pub type Children = ChildrenRenderer<Html>;
 ///#     type Properties = ListItemProps;
 ///#     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {unimplemented!()}
 ///#     fn update(&mut self, msg: Self::Message) -> bool {unimplemented!()}
+///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
 ///#     fn view(&self) -> Html {unimplemented!()}
 ///# }
 /// ```
@@ -308,6 +363,10 @@ where
 ///         if let Some(input) = self.node_ref.cast::<InputElement>() {
 ///             input.focus();
 ///         }
+///         false
+///     }
+///
+///     fn change(&mut self, _: Self::Properties) -> ShouldRender {
 ///         false
 ///     }
 ///

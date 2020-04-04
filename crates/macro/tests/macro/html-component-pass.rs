@@ -19,6 +19,9 @@ impl Component for Generic<String> {
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         unimplemented!()
     }
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        unimplemented!()
+    }
     fn view(&self) -> Html {
         unimplemented!()
     }
@@ -32,6 +35,9 @@ impl Component for Generic<Vec<String>> {
         unimplemented!()
     }
     fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
         unimplemented!()
     }
     fn view(&self) -> Html {
@@ -55,6 +61,9 @@ impl Component for Container {
         unimplemented!()
     }
     fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
         unimplemented!()
     }
     fn view(&self) -> Html {
@@ -113,6 +122,9 @@ impl Component for Child {
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         unimplemented!()
     }
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        unimplemented!()
+    }
     fn view(&self) -> Html {
         unimplemented!()
     }
@@ -127,6 +139,9 @@ impl Component for AltChild {
         unimplemented!()
     }
     fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
         unimplemented!()
     }
     fn view(&self) -> Html {
@@ -150,6 +165,9 @@ impl Component for ChildContainer {
         unimplemented!()
     }
     fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
         unimplemented!()
     }
     fn view(&self) -> Html {
