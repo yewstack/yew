@@ -148,11 +148,6 @@ impl ToTokens for HtmlComponent {
             },
         };
 
-        let validate_comp = quote_spanned! { ty.span()=>
-            trait __yew_validate_comp: ::yew::html::Component {}
-            impl __yew_validate_comp for #ty {}
-        };
-
         let node_ref = if let Some(node_ref) = props.node_ref() {
             quote_spanned! { node_ref.span()=> #node_ref }
         } else {
@@ -163,7 +158,6 @@ impl ToTokens for HtmlComponent {
             // These validation checks show a nice error message to the user.
             // They do not execute at runtime
             if false {
-                #validate_comp
                 #validate_props
             }
 
