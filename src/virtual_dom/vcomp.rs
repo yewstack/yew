@@ -346,6 +346,10 @@ mod tests {
             unimplemented!();
         }
 
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+            unimplemented!();
+        }
+
         fn view(&self) -> Html {
             unimplemented!();
         }
