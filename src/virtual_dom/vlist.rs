@@ -124,26 +124,17 @@ impl VDiff for VList {
             let mut rights_lookup = HashMap::with_capacity(rights.len());
             let mut i = 0 as usize;
             for r in rights.drain(..) {
-                rights_lookup.insert(
-                    r.key().to_owned(),
-                    RightNode {
-                        node: Some(r),
-                        pos: i,
-                    },
-                );
+                rights_lookup.insert(r.key().to_owned(), r);
                 i += 1;
             }
             loop {
                 match lefts.next() {
                     Some(left) => {
-                        let right = rights_lookup.get_mut(&left.key());
+                        let mut right = rights_lookup.remove(&left.key());
                         match right {
                             Some(right) => {
-                                previous_sibling = left.apply(
-                                    parent,
-                                    previous_sibling.as_ref(),
-                                    right.node.take(),
-                                );
+                                previous_sibling =
+                                    left.apply(parent, previous_sibling.as_ref(), Some(right));
                             }
                             None => {
                                 previous_sibling =
@@ -155,9 +146,7 @@ impl VDiff for VList {
                 }
             }
             for right in rights_lookup.values_mut() {
-                if let Some(mut right) = right.node.take() {
-                    right.detach(parent);
-                }
+                right.detach(parent);
             }
             previous_sibling
         } else {
@@ -181,11 +170,6 @@ impl VDiff for VList {
             previous_sibling
         }
     }
-}
-
-struct RightNode {
-    pos: usize,
-    node: Option<VNode>,
 }
 
 #[cfg(test)]
