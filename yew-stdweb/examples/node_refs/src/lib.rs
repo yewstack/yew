@@ -29,11 +29,12 @@ impl Component for Model {
         }
     }
 
-    fn mounted(&mut self) -> ShouldRender {
-        if let Some(input) = self.refs[self.focus_index].cast::<InputElement>() {
-            input.focus();
+    fn rendered(&mut self, first_render: bool) {
+        if first_render {
+            if let Some(input) = self.refs[self.focus_index].cast::<InputElement>() {
+                input.focus();
+            }
         }
-        false
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
