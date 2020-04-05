@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>CRM with syntax highlighting</title>
+    <link rel="stylesheet" href="solarized-light.css" />
+</head>
+
+<body>
+    <script src="/crm.js"></script>
+    <script src="/highlight.pack.js"></script>
+    <script>
+        const f = async function () {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightBlock(block);
+                console.log("Highlighted code");
+            });
+        }
+
+        const minutes = 0.1;
+        const interval = minutes * 60 * 1000;
+
+        setInterval(function () {
+            f();
+        }, interval);
+    </script>
+</body>
+
+</html>
