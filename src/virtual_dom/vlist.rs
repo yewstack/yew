@@ -60,6 +60,22 @@ impl VList {
     pub fn add_child(&mut self, child: VNode) {
         self.children.push(child);
     }
+
+    pub fn key(&self) -> Option<String> {
+        let mut key = String::with_capacity(150);
+        const START_STRING: &str = "#vlist_";
+        key.push_str(START_STRING);
+        for n in &self.children{
+            if let Some(child_key) = &n.key() {
+                key = key + child_key;
+            }
+        }
+        if START_STRING == &key {
+            None
+        } else {
+            Some(key)
+        }
+    }
 }
 
 impl VDiff for VList {
