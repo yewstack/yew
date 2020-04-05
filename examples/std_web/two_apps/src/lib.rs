@@ -1,6 +1,8 @@
 #![recursion_limit = "256"]
 
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use stdweb::web::IParentNode;
+use yew::{html, App, Component, ComponentLink, Html, ShouldRender};
+use yew::html::{Scope};
 
 pub struct Model {
     link: ComponentLink<Self>,
@@ -69,6 +71,50 @@ impl Component for Model {
                 <button onclick=self.link.callback(|_| Msg::SendToOpposite("Two".into()))>{ "Two" }</button>
                 <button onclick=self.link.callback(|_| Msg::SendToOpposite("Three".into()))>{ "Three" }</button>
                 <button onclick=self.link.callback(|_| Msg::SendToOpposite("Ping".into()))>{ "Ping" }</button>
+            </div>
+        }
+    }
+}
+
+fn mount_app(selector: &'static str, app: App<Model>) -> Scope<Model> {
+    let document = yew::utils::document();
+    let element = document.query_selector(selector).unwrap().unwrap();
+    app.mount(element)
+}
+
+pub struct TwoModels {}
+
+impl Component for TwoModels {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        TwoModels { }
+    }
+
+    fn mounted(&mut self) -> ShouldRender {
+        let first_app = App::new();
+        let second_app = App::new();
+        let to_first = mount_app(".first-app", first_app);
+        let to_second = mount_app(".second-app", second_app);
+        to_first.send_message(Msg::SetOpposite(to_second.clone()));
+        to_second.send_message(Msg::SetOpposite(to_first.clone()));
+        false
+    }
+
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        false
+    }
+
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        false
+    }
+
+    fn view(&self) -> Html {
+        html! {
+            <div>
+                <div class="first-app"></div>
+                <div class="second-app"></div>
             </div>
         }
     }

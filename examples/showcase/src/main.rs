@@ -37,7 +37,7 @@ use strum_macros::{Display, EnumIter, EnumString};
 use textarea::Model as Textarea;
 use timer::Model as Timer;
 use todomvc::Model as Todomvc;
-use two_apps::Model as TwoApps;
+use two_apps::TwoModels as TwoApps;
 use yew::components::Select;
 use yew::{html, App, Component, ComponentLink, Html, ShouldRender};
 
