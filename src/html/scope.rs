@@ -78,7 +78,7 @@ impl<COMP: Component> Scope<COMP> {
     }
 
     /// Schedules a task to call the rendered method on a component and optionally re-render
-    pub(crate) fn rendered(&mut self, first_render: bool) {
+    pub(crate) fn rendered(&self, first_render: bool) {
         let shared_state = self.shared_state.clone();
         let rendered = RenderedComponent {
             shared_state,
@@ -243,7 +243,7 @@ where
                 if needs_render {
                     ComponentState::Created((false, state.rendered(self.first_render)))
                 } else {
-                    current_state
+                    ComponentState::Created((needs_render, state))
                 }
             }
             ComponentState::Destroyed => current_state,
