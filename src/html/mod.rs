@@ -365,7 +365,6 @@ where
 ///                 input.focus();
 ///             }
 ///         }
-///         false
 ///     }
 ///
 ///     fn change(&mut self, _: Self::Properties) -> ShouldRender {
