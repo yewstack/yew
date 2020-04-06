@@ -4,6 +4,9 @@ use std::ops::DerefMut;
 use std::rc::Rc;
 use yew::{Component, ComponentLink, Html, Properties};
 
+mod use_context_hook;
+pub use use_context_hook::*;
+
 thread_local! {
     static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
 }
@@ -255,7 +258,7 @@ where
     }
     use_hook(
         move |state: &mut UseEffectState<Dependents, Destructor>, hook_update| {
-            let mut should_update = !(*state.deps == *deps);
+            let should_update = !(*state.deps == *deps);
 
             return move || {
                 hook_update(move |state: &mut UseEffectState<Dependents, Destructor>| {
@@ -267,7 +270,6 @@ where
                         state.deps = deps.clone();
                         state.destructor.replace(Box::new(new_destructor));
                     } else if state.destructor.is_none() {
-                        should_update = true;
                         state
                             .destructor
                             .replace(Box::new(callback(state.deps.borrow())));
