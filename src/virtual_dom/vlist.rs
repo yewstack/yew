@@ -114,7 +114,6 @@ impl VDiff for VList {
         let mut rights_lookup = HashMap::with_capacity(key_count);
         for r in rights.drain(..) {
             if let Some(key) = r.key() {
-                log::info!("Key {}", key);
                 if rights_lookup.contains_key(&key) {
                     log::error!("Duplicate key of {}", &key);
                 } else {
