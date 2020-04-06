@@ -123,7 +123,7 @@ impl Parse for HtmlListOpen {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let lt = input.parse()?;
         if input.cursor().ident().is_some() {
-            let HtmlPropSuffix { stream, div: _, gt } = input.parse()?;
+            let HtmlPropSuffix { stream, gt, .. } = input.parse()?;
             let props = parse::<ParseKey>(stream)?;
             Ok(HtmlListOpen {
                 lt,
