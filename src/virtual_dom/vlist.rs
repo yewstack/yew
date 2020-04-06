@@ -1,7 +1,7 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
 use cfg_if::cfg_if;
-use std::collections::{ HashMap, HashSet };
+use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -47,7 +47,7 @@ impl VList {
         VList {
             children,
             elide_placeholder: false,
-            key 
+            key,
         }
     }
 
@@ -56,7 +56,7 @@ impl VList {
         VList {
             children: Vec::new(),
             elide_placeholder: true,
-            key: None
+            key: None,
         }
     }
 
@@ -138,7 +138,7 @@ impl VDiff for VList {
             }
         }
         let mut rights = rights_nokeys.into_iter();
-        for left in lefts  {
+        for left in lefts {
             if let Some(key) = &left.key() {
                 match rights_lookup.remove(key) {
                     Some(right) => {
@@ -146,8 +146,7 @@ impl VDiff for VList {
                             left.apply(parent, previous_sibling.as_ref(), Some(right));
                     }
                     None => {
-                        previous_sibling =
-                            left.apply(parent, previous_sibling.as_ref(), None);
+                        previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
                     }
                 }
             } else {

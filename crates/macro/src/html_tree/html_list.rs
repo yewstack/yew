@@ -1,17 +1,17 @@
 use super::HtmlTree;
+use crate::html_tree::{HtmlProp, HtmlPropSuffix};
 use crate::PeekValue;
-use crate::html_tree::{ HtmlProp, HtmlPropSuffix };
 use boolinator::Boolinator;
-use quote::{quote, ToTokens, quote_spanned};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::{ Token, Expr };
 use syn::parse;
+use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
+use syn::{Expr, Token};
 
 pub struct HtmlList {
     pub children: Vec<HtmlTree>,
-    pub key: Option<Expr>
+    pub key: Option<Expr>,
 }
 
 impl PeekValue<()> for HtmlList {
@@ -49,9 +49,9 @@ impl Parse for HtmlList {
 
         input.parse::<HtmlListClose>()?;
 
-        Ok(HtmlList{
+        Ok(HtmlList {
             children,
-            key: open.key
+            key: open.key,
         })
     }
 }
@@ -123,7 +123,7 @@ impl Parse for HtmlListOpen {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let lt = input.parse()?;
         if input.cursor().ident().is_some() {
-            let HtmlPropSuffix {stream, div: _, gt} = input.parse()?;
+            let HtmlPropSuffix { stream, div: _, gt } = input.parse()?;
             let props = parse::<ParseKey>(stream)?;
             Ok(HtmlListOpen {
                 lt,
@@ -132,11 +132,7 @@ impl Parse for HtmlListOpen {
             })
         } else {
             let gt = input.parse()?;
-            Ok(HtmlListOpen {
-                lt,
-                key: None,
-                gt,
-            })
+            Ok(HtmlListOpen { lt, key: None, gt })
         }
     }
 }
@@ -146,15 +142,12 @@ struct ParseKey {
 }
 
 impl Parse for ParseKey {
-    
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let key = input.parse::<HtmlProp>()?;
         if !input.is_empty() {
             input.error("Only a single key element is allowed on a <></>");
         }
-        Ok(ParseKey {
-            key
-        })
+        Ok(ParseKey { key })
     }
 }
 
