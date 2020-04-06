@@ -1,7 +1,7 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
 use cfg_if::cfg_if;
-use std::collections::HashMap;
+use std::collections::{ HashMap, HashSet };
 use std::ops::{Deref, DerefMut};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -83,7 +83,7 @@ impl VDiff for VList {
     ) -> Option<Node> {
         // Reuse previous_sibling, because fragment reuse parent
         let mut previous_sibling = previous_sibling.cloned();
-        let mut rights = {
+        let rights = {
             match ancestor {
                 // If element matched this type
                 Some(VNode::VList(vlist)) => {
@@ -106,16 +106,30 @@ impl VDiff for VList {
             let placeholder = VText::new("".into());
             self.children.push(placeholder.into());
         }
+        // Check for lefts to see if there are duplicates and show a warning.
+        {
+            let mut hash_set = HashSet::with_capacity(self.children.len());
+            for l in self.children.iter() {
+                if let Some(k) = l.key() {
+                    if hash_set.contains(&k) {
+                        log::error!("Duplicate key of {}", &k);
+                    } else {
+                        hash_set.insert(k);
+                    }
+                }
+            }
+        }
 
         // Process children
         let lefts = self.children.iter_mut();
         let key_count = rights.iter().filter(|r| r.key().is_some()).count();
         let mut rights_nokeys = Vec::with_capacity(rights.len() - key_count);
         let mut rights_lookup = HashMap::with_capacity(key_count);
-        for r in rights.drain(..) {
+        for mut r in rights.into_iter() {
             if let Some(key) = r.key() {
                 if rights_lookup.contains_key(&key) {
                     log::error!("Duplicate key of {}", &key);
+                    r.detach(parent);
                 } else {
                     rights_lookup.insert(key.clone(), r);
                 }

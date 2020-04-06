@@ -110,17 +110,8 @@ impl PeekValue<()> for HtmlListOpen {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
-        if let Some((ident, cursor)) = cursor.ident() {
-            if ident.to_string() == "key" {
-                let (punct, _) = cursor.punct()?;
-                if punct.as_char() == '=' {
-                    Some(())
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
+        if let Some((ident, _)) = cursor.ident() {
+            (ident.to_string() == "key").as_option()
         } else {
             let (punct, _) = cursor.punct()?;
             (punct.as_char() == '>').as_option()
@@ -130,21 +121,21 @@ impl PeekValue<()> for HtmlListOpen {
 
 impl Parse for HtmlListOpen {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let lt = input.parse();
+        let lt = input.parse()?;
         if input.cursor().ident().is_some() {
             let HtmlPropSuffix {stream, div: _, gt} = input.parse()?;
             let props = parse::<ParseKey>(stream)?;
             Ok(HtmlListOpen {
-                lt: lt?,
+                lt,
                 key: Some(props.key.value),
                 gt,
             })
         } else {
-            let gt = input.parse();
+            let gt = input.parse()?;
             Ok(HtmlListOpen {
-                lt: lt?,
+                lt,
                 key: None,
-                gt: gt?,
+                gt,
             })
         }
     }
@@ -158,7 +149,7 @@ impl Parse for ParseKey {
     
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let key = input.parse::<HtmlProp>()?;
-        if input.cursor().ident().is_some() {
+        if !input.is_empty() {
             input.error("Only a single key element is allowed on a <></>");
         }
         Ok(ParseKey {
@@ -169,7 +160,7 @@ impl Parse for ParseKey {
 
 impl ToTokens for HtmlListOpen {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlListOpen { lt, key: _, gt } = self;
+        let HtmlListOpen { lt, gt, .. } = self;
         tokens.extend(quote! {#lt#gt});
     }
 }

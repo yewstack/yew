@@ -191,12 +191,16 @@ impl PeekValue<TagName> for HtmlTagOpen {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
 
-        let (name, _) = TagName::peek(cursor)?;
+        let (name, cursor) = TagName::peek(cursor)?;
         if name.to_string() == "key" {
-            None
+            let (punct, _) = cursor.punct()?;
+            if punct.as_char() == '=' {
+                None
+            } else {
+                Some(name)
+            }
         } else {
             non_capitalized_ascii(&name.to_string()).as_option()?;
-
             Some(name)
         }
     }
