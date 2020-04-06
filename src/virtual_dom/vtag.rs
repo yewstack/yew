@@ -410,7 +410,7 @@ impl VDiff for VTag {
         let (reform, mut ancestor) = {
             match ancestor {
                 Some(VNode::VTag(mut vtag)) => {
-                    if self.tag == vtag.tag && self.key == vtag.key {
+                    if self.tag == vtag.tag {
                         // If tags are equal, preserve the reference that already exists.
                         self.reference = vtag.reference.take();
                         (Reform::Keep, Some(vtag))

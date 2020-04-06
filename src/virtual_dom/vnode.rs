@@ -32,13 +32,13 @@ pub enum VNode {
 }
 
 impl VNode {
-    pub fn key(&self) -> Option<String> {
+    pub fn key(&self) -> &Option<String> {
         match self {
-            VNode::VTag(vtag) => vtag.key.clone(),
-            VNode::VText(_) => None,
-            VNode::VComp(vcomp) => vcomp.key.clone(),
-            VNode::VList(vlist) => vlist.key.clone(),
-            VNode::VRef(_) => None,
+            VNode::VTag(vtag) => &vtag.key,
+            VNode::VText(_) => &None,
+            VNode::VComp(vcomp) => &vcomp.key,
+            VNode::VList(vlist) => &vlist.key,
+            VNode::VRef(_) => &None,
         }
     }
 }
