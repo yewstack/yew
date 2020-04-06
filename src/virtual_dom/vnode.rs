@@ -37,7 +37,7 @@ impl VNode {
             VNode::VTag(vtag) => vtag.key.clone(),
             VNode::VText(_) => None,
             VNode::VComp(vcomp) => vcomp.key.clone(),
-            VNode::VList(vnode) => vnode.key().clone(),
+            VNode::VList(_) => None,
             VNode::VRef(_) => None,
         }
     }

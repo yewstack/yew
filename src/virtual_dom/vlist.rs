@@ -60,22 +60,6 @@ impl VList {
     pub fn add_child(&mut self, child: VNode) {
         self.children.push(child);
     }
-
-    pub fn key(&self) -> Option<String> {
-        let mut key = String::with_capacity(150);
-        const START_STRING: &str = "#vlist_";
-        key.push_str(START_STRING);
-        for n in &self.children{
-            if let Some(child_key) = &n.key() {
-                key = key + child_key;
-            }
-        }
-        if START_STRING == &key {
-            None
-        } else {
-            Some(key)
-        }
-    }
 }
 
 impl VDiff for VList {
@@ -120,9 +104,10 @@ impl VDiff for VList {
         }
 
         // Process children
-        let mut lefts = self.children.iter_mut();
-        let mut rights_nokeys = Vec::with_capacity(rights.len());
-        let mut rights_lookup = HashMap::with_capacity(rights.len());
+        let lefts = self.children.iter_mut();
+        let key_count = rights.iter().filter(|r| r.key().is_some()).count();
+        let mut rights_nokeys = Vec::with_capacity(rights.len() - key_count);
+        let mut rights_lookup = HashMap::with_capacity(key_count);
         for r in rights.drain(..) {
             if let Some(key) = r.key() {
                 if rights_lookup.contains_key(&key) {
@@ -134,43 +119,33 @@ impl VDiff for VList {
                 rights_nokeys.push(r);
             }
         }
-        let mut rights = rights_nokeys.drain(..);
-        loop {
-            match lefts.next() {
-                Some(left) => {
-                    if let Some(key) = &left.key() {
-                        let right = rights_lookup.remove(key);
-                        match right {
-                            Some(right) => {
-                                previous_sibling =
-                                    left.apply(parent, previous_sibling.as_ref(), Some(right));
-                            }
-                            None => {
-                                previous_sibling =
-                                    left.apply(parent, previous_sibling.as_ref(), None);
-                            }
-                        }
-                    } else {
-                        match rights.next() {
-                            Some(right) => {
-                                previous_sibling =
-                                    left.apply(parent, previous_sibling.as_ref(), Some(right));
-                            }
-                            None => {
-                                previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
-                            }
-                        }
+        let mut rights = rights_nokeys.into_iter();
+        for left in lefts  {
+            if let Some(key) = &left.key() {
+                match rights_lookup.remove(key) {
+                    Some(right) => {
+                        previous_sibling =
+                            left.apply(parent, previous_sibling.as_ref(), Some(right));
+                    }
+                    None => {
+                        previous_sibling =
+                            left.apply(parent, previous_sibling.as_ref(), None);
                     }
                 }
-                None => break,
+            } else {
+                match rights.next() {
+                    Some(right) => {
+                        previous_sibling =
+                            left.apply(parent, previous_sibling.as_ref(), Some(right));
+                    }
+                    None => {
+                        previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
+                    }
+                }
             }
         }
-        loop {
-            if let Some(ref mut right) = rights.next() {
-                right.detach(parent);
-            } else {
-                break;
-            }
+        for mut right in rights {
+            right.detach(parent);
         }
         for right in rights_lookup.values_mut() {
             right.detach(parent);
