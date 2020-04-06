@@ -18,6 +18,8 @@ pub struct VList {
     pub children: Vec<VNode>,
     /// Never use a placeholder element if set to true.
     elide_placeholder: bool,
+
+    pub key: Option<String>,
 }
 
 impl Deref for VList {
@@ -41,10 +43,11 @@ impl VList {
     }
 
     /// Creates a new `VList` instance with children.
-    pub fn new_with_children(children: Vec<VNode>) -> Self {
+    pub fn new_with_children(children: Vec<VNode>, key: Option<String>) -> Self {
         VList {
             children,
             elide_placeholder: false,
+            key 
         }
     }
 
@@ -53,6 +56,7 @@ impl VList {
         VList {
             children: Vec::new(),
             elide_placeholder: true,
+            key: None
         }
     }
 
@@ -110,6 +114,7 @@ impl VDiff for VList {
         let mut rights_lookup = HashMap::with_capacity(key_count);
         for r in rights.drain(..) {
             if let Some(key) = r.key() {
+                log::info!("Key {}", key);
                 if rights_lookup.contains_key(&key) {
                     log::error!("Duplicate key of {}", &key);
                 } else {
