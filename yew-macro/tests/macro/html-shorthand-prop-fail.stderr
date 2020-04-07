@@ -4,17 +4,29 @@ error[E0425]: cannot find value `placeholder` in this scope
 7 |     html! { <input placeholder= />};
   |                    ^^^^^^^^^^^ not found in this scope
 
-error[E0425]: cannot find value `placeholder` in this scope
- --> $DIR/html-shorthand-prop-fail.rs:8:20
+error[E0425]: cannot find value `maxlength` in this scope
+ --> $DIR/html-shorthand-prop-fail.rs:8:37
   |
-8 |     html! { <input placeholder= maxlength= />};
-  |                    ^^^^^^^^^^^ not found in this scope
+8 |     html! { <input placeholder=text maxlength= />};
+  |                                     ^^^^^^^^^ help: a local variable with a similar name exists: `length`
+
+error[E0425]: cannot find value `maxlength` in this scope
+ --> $DIR/html-shorthand-prop-fail.rs:9:33
+  |
+9 |     html! { <input placeholder= maxlength=length />};
+  |                                 ^^^^^^^^^ help: a local variable with a similar name exists: `length`
 
 error[E0425]: cannot find value `href` in this scope
- --> $DIR/html-shorthand-prop-fail.rs:9:16
-  |
-9 |     html! { <a href= >{"Yew"}</a>};
-  |                ^^^^ not found in this scope
+  --> $DIR/html-shorthand-prop-fail.rs:10:16
+   |
+10 |     html! { <a href= >{"Yew"}</a>};
+   |                ^^^^ not found in this scope
+
+error[E0425]: cannot find value `target` in this scope
+  --> $DIR/html-shorthand-prop-fail.rs:11:26
+   |
+11 |     html! { <a href=link target= >{"Yew"}</a>};
+   |                          ^^^^^^ not found in this scope
 
 error[E0601]: `main` function not found in crate `$CRATE`
   --> $DIR/html-shorthand-prop-fail.rs:1:1
@@ -24,6 +36,6 @@ error[E0601]: `main` function not found in crate `$CRATE`
 3  | | fn compile_fail() {
 4  | |     let text = "placeholder-text";
 ...  |
-9  | |     html! { <a href= >{"Yew"}</a>};
-10 | | }
+11 | |     html! { <a href=link target= >{"Yew"}</a>};
+12 | | }
    | |_^ consider adding a `main` function to `$DIR/tests/macro/html-shorthand-prop-fail.rs`

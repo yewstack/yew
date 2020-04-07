@@ -25,8 +25,8 @@ impl Parse for HtmlProp {
         let label = input.parse::<HtmlPropLabel>()?;
         input.parse::<Token![=]>()?;
         let value: Expr = match input.parse::<Expr>().ok() {
-                Some(expr) => expr,
-                None => label.clone().into(),
+            Some(expr) => expr,
+            None => label.clone().into(),
         };
         // backwards compat
         let _ = input.parse::<Token![,]>();
