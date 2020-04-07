@@ -111,7 +111,7 @@ impl PeekValue<()> for HtmlListOpen {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
         if let Some((ident, _)) = cursor.ident() {
-            (ident.to_string() == "key").as_option()
+            (ident == "key").as_option()
         } else {
             let (punct, _) = cursor.punct()?;
             (punct.as_char() == '>').as_option()
