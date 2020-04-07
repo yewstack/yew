@@ -21,4 +21,7 @@ fn tests() {
 
     t.pass("tests/macro/html-tag-pass.rs");
     t.compile_fail("tests/macro/html-tag-fail.rs");
+
+    t.pass("tests/macro/html-shorthand-prop-pass.rs");
+    t.compile_fail("tests/macro/html-shorthand-prop-fail.rs");
 }
