@@ -1,0 +1,29 @@
+error[E0425]: cannot find value `placeholder` in this scope
+ --> $DIR/html-shorthand-prop-fail.rs:7:20
+  |
+7 |     html! { <input placeholder= />};
+  |                    ^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `placeholder` in this scope
+ --> $DIR/html-shorthand-prop-fail.rs:8:20
+  |
+8 |     html! { <input placeholder= maxlength= />};
+  |                    ^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `href` in this scope
+ --> $DIR/html-shorthand-prop-fail.rs:9:16
+  |
+9 |     html! { <a href= >{"Yew"}</a>};
+  |                ^^^^ not found in this scope
+
+error[E0601]: `main` function not found in crate `$CRATE`
+  --> $DIR/html-shorthand-prop-fail.rs:1:1
+   |
+1  | / use yew::prelude::*;
+2  | |
+3  | | fn compile_fail() {
+4  | |     let text = "placeholder-text";
+...  |
+9  | |     html! { <a href= >{"Yew"}</a>};
+10 | | }
+   | |_^ consider adding a `main` function to `$DIR/tests/macro/html-shorthand-prop-fail.rs`
