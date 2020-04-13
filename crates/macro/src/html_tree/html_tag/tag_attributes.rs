@@ -15,6 +15,7 @@ pub struct TagAttributes {
     pub kind: Option<Expr>,
     pub checked: Option<Expr>,
     pub node_ref: Option<Expr>,
+    pub key: Option<Expr>,
     pub href: Option<Expr>,
 }
 
@@ -189,6 +190,8 @@ impl Parse for TagAttributes {
         let kind = TagAttributes::remove_attr(&mut attributes, "type");
         let checked = TagAttributes::remove_attr(&mut attributes, "checked");
         let node_ref = TagAttributes::remove_attr(&mut attributes, "ref");
+        let key = TagAttributes::remove_attr(&mut attributes, "key");
+
         let href = TagAttributes::remove_attr(&mut attributes, "href");
 
         Ok(TagAttributes {
@@ -201,6 +204,7 @@ impl Parse for TagAttributes {
             kind,
             node_ref,
             href,
+            key,
         })
     }
 }

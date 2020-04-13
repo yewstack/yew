@@ -1,12 +1,18 @@
 use super::HtmlTree;
+use crate::html_tree::{HtmlProp, HtmlPropSuffix};
 use crate::PeekValue;
 use boolinator::Boolinator;
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
+use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::Token;
+use syn::spanned::Spanned;
+use syn::{Expr, Token};
 
-pub struct HtmlList(pub Vec<HtmlTree>);
+pub struct HtmlList {
+    pub children: Vec<HtmlTree>,
+    pub key: Option<Expr>,
+}
 
 impl PeekValue<()> for HtmlList {
     fn peek(cursor: Cursor) -> Option<()> {
@@ -43,20 +49,29 @@ impl Parse for HtmlList {
 
         input.parse::<HtmlListClose>()?;
 
-        Ok(HtmlList(children))
+        Ok(HtmlList {
+            children,
+            key: open.key,
+        })
     }
 }
 
 impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let children = &self.0;
+        let children = &self.children;
+        let key = if let Some(key) = &self.key {
+            quote_spanned! {key.span() => Some(#key)}
+        } else {
+            quote! {None }
+        };
         tokens.extend(quote! {
             ::yew::virtual_dom::VNode::VList(
                 ::yew::virtual_dom::VList::new_with_children({
                     let mut v = ::std::vec::Vec::new();
                     #(v.extend(::yew::utils::NodeSeq::from(#children));)*
                     v
-                })
+                },
+                #key)
             )
         });
     }
@@ -87,6 +102,7 @@ impl HtmlList {
 
 struct HtmlListOpen {
     lt: Token![<],
+    key: Option<Expr>,
     gt: Token![>],
 }
 
@@ -94,24 +110,50 @@ impl PeekValue<()> for HtmlListOpen {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
-
-        let (punct, _) = cursor.punct()?;
-        (punct.as_char() == '>').as_option()
+        if let Some((ident, _)) = cursor.ident() {
+            (ident == "key").as_option()
+        } else {
+            let (punct, _) = cursor.punct()?;
+            (punct.as_char() == '>').as_option()
+        }
     }
 }
 
 impl Parse for HtmlListOpen {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        Ok(HtmlListOpen {
-            lt: input.parse()?,
-            gt: input.parse()?,
-        })
+        let lt = input.parse()?;
+        if input.cursor().ident().is_some() {
+            let HtmlPropSuffix { stream, gt, .. } = input.parse()?;
+            let props = parse::<ParseKey>(stream)?;
+            Ok(HtmlListOpen {
+                lt,
+                key: Some(props.key.value),
+                gt,
+            })
+        } else {
+            let gt = input.parse()?;
+            Ok(HtmlListOpen { lt, key: None, gt })
+        }
+    }
+}
+
+struct ParseKey {
+    key: HtmlProp,
+}
+
+impl Parse for ParseKey {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        let key = input.parse::<HtmlProp>()?;
+        if !input.is_empty() {
+            input.error("Only a single key element is allowed on a <></>");
+        }
+        Ok(ParseKey { key })
     }
 }
 
 impl ToTokens for HtmlListOpen {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlListOpen { lt, gt } = self;
+        let HtmlListOpen { lt, gt, .. } = self;
         tokens.extend(quote! {#lt#gt});
     }
 }
@@ -126,7 +168,6 @@ impl PeekValue<()> for HtmlListClose {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
-
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '/').as_option()?;
 

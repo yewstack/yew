@@ -1,6 +1,7 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
 use cfg_if::cfg_if;
+use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -17,6 +18,8 @@ pub struct VList {
     pub children: Vec<VNode>,
     /// Never use a placeholder element if set to true.
     elide_placeholder: bool,
+
+    pub key: Option<String>,
 }
 
 impl Deref for VList {
@@ -40,10 +43,11 @@ impl VList {
     }
 
     /// Creates a new `VList` instance with children.
-    pub fn new_with_children(children: Vec<VNode>) -> Self {
+    pub fn new_with_children(children: Vec<VNode>, key: Option<String>) -> Self {
         VList {
             children,
             elide_placeholder: false,
+            key,
         }
     }
 
@@ -52,6 +56,7 @@ impl VList {
         VList {
             children: Vec::new(),
             elide_placeholder: true,
+            key: None,
         }
     }
 
@@ -78,7 +83,7 @@ impl VDiff for VList {
     ) -> Option<Node> {
         // Reuse previous_sibling, because fragment reuse parent
         let mut previous_sibling = previous_sibling.cloned();
-        let mut rights = {
+        let rights = {
             match ancestor {
                 // If element matched this type
                 Some(VNode::VList(vlist)) => {
@@ -101,23 +106,66 @@ impl VDiff for VList {
             let placeholder = VText::new("".into());
             self.children.push(placeholder.into());
         }
+        // Check for lefts to see if there are duplicates and show a warning.
+        {
+            let mut hash_set = HashSet::with_capacity(self.children.len());
+            for l in self.children.iter() {
+                if let Some(k) = l.key() {
+                    if hash_set.contains(&k) {
+                        log::error!("Duplicate key of {}", &k);
+                    } else {
+                        hash_set.insert(k);
+                    }
+                }
+            }
+        }
 
         // Process children
-        let mut lefts = self.children.iter_mut();
-        let mut rights = rights.drain(..);
-        loop {
-            match (lefts.next(), rights.next()) {
-                (Some(left), Some(right)) => {
-                    previous_sibling = left.apply(parent, previous_sibling.as_ref(), Some(right));
+        let lefts = self.children.iter_mut();
+        let key_count = rights.iter().filter(|r| r.key().is_some()).count();
+        let mut rights_nokeys = Vec::with_capacity(rights.len() - key_count);
+        let mut rights_lookup = HashMap::with_capacity(key_count);
+        for mut r in rights.into_iter() {
+            if let Some(key) = r.key() {
+                if rights_lookup.contains_key(key) {
+                    log::error!("Duplicate key of {}", &key);
+                    r.detach(parent);
+                } else {
+                    rights_lookup.insert(key.clone(), r);
                 }
-                (Some(left), None) => {
-                    previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
-                }
-                (None, Some(ref mut right)) => {
-                    right.detach(parent);
-                }
-                (None, None) => break,
+            } else {
+                rights_nokeys.push(r);
             }
+        }
+        let mut rights = rights_nokeys.into_iter();
+        for left in lefts {
+            if let Some(key) = &left.key() {
+                match rights_lookup.remove(key) {
+                    Some(right) => {
+                        previous_sibling =
+                            left.apply(parent, previous_sibling.as_ref(), Some(right));
+                    }
+                    None => {
+                        previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
+                    }
+                }
+            } else {
+                match rights.next() {
+                    Some(right) => {
+                        previous_sibling =
+                            left.apply(parent, previous_sibling.as_ref(), Some(right));
+                    }
+                    None => {
+                        previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
+                    }
+                }
+            }
+        }
+        for mut right in rights {
+            right.detach(parent);
+        }
+        for right in rights_lookup.values_mut() {
+            right.detach(parent);
         }
         previous_sibling
     }

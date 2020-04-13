@@ -31,6 +31,18 @@ pub enum VNode {
     VRef(Node),
 }
 
+impl VNode {
+    pub fn key(&self) -> &Option<String> {
+        match self {
+            VNode::VTag(vtag) => &vtag.key,
+            VNode::VText(_) => &None,
+            VNode::VComp(vcomp) => &vcomp.key,
+            VNode::VList(vlist) => &vlist.key,
+            VNode::VRef(_) => &None,
+        }
+    }
+}
+
 impl VDiff for VNode {
     /// Remove VNode from parent.
     fn detach(&mut self, parent: &Element) -> Option<Node> {
