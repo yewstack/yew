@@ -154,6 +154,12 @@ impl ToTokens for HtmlComponent {
             quote! { ::yew::html::NodeRef::default() }
         };
 
+        let key = if let Some(key) = props.key() {
+            quote_spanned! { key.span() => Some(#key) }
+        } else {
+            quote! {None }
+        };
+
         tokens.extend(quote! {{
             // These validation checks show a nice error message to the user.
             // They do not execute at runtime
@@ -161,7 +167,7 @@ impl ToTokens for HtmlComponent {
                 #validate_props
             }
 
-            ::yew::virtual_dom::VChild::<#ty>::new(#init_props, #node_ref)
+            ::yew::virtual_dom::VChild::<#ty>::new(#init_props, #node_ref, #key)
         }});
     }
 }
@@ -343,11 +349,13 @@ enum Props {
 struct ListProps {
     props: Vec<HtmlProp>,
     node_ref: Option<Expr>,
+    key: Option<Expr>,
 }
 
 struct WithProps {
     props: Ident,
     node_ref: Option<Expr>,
+    key: Option<Expr>,
 }
 
 impl Props {
@@ -355,6 +363,14 @@ impl Props {
         match self {
             Props::List(list_props) => list_props.node_ref.as_ref(),
             Props::With(with_props) => with_props.node_ref.as_ref(),
+            Props::None => None,
+        }
+    }
+
+    fn key(&self) -> Option<&Expr> {
+        match self {
+            Props::List(list_props) => list_props.key.as_ref(),
+            Props::With(with_props) => with_props.key.as_ref(),
             Props::None => None,
         }
     }
@@ -368,6 +384,7 @@ impl Parse for Props {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let mut props = Props::None;
         let mut node_ref: Option<Expr> = None;
+        let mut key: Option<Expr> = None;
 
         while let Some((token, _)) = input.cursor().ident() {
             if token == "with" {
@@ -383,6 +400,7 @@ impl Parse for Props {
                 props = Props::With(Box::new(WithProps {
                     props: input.parse::<Ident>()?,
                     node_ref: None,
+                    key: None,
                 }));
 
                 // Handle optional comma
@@ -404,6 +422,15 @@ impl Parse for Props {
                 node_ref = Some(prop.value);
                 continue;
             }
+            if prop.label.to_string() == "key" {
+                match key {
+                    None => Ok(()),
+                    Some(_) => Err(syn::Error::new_spanned(&prop.label, "too many keys set")),
+                }?;
+
+                key = Some(prop.value);
+                continue;
+            }
 
             if prop.label.to_string() == "type" {
                 return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
@@ -418,6 +445,7 @@ impl Parse for Props {
                     *props = Props::List(Box::new(ListProps {
                         props: vec![prop],
                         node_ref: None,
+                        key: None,
                     }));
                 }
                 Props::With(_) => {
@@ -431,9 +459,13 @@ impl Parse for Props {
 
         match props {
             Props::None => {}
-            Props::With(ref mut p) => p.node_ref = node_ref,
+            Props::With(ref mut p) => {
+                p.node_ref = node_ref;
+                p.key = key
+            }
             Props::List(ref mut p) => {
                 p.node_ref = node_ref;
+                p.key = key;
 
                 // alphabetize
                 p.props.sort_by(|a, b| {

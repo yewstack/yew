@@ -9,6 +9,10 @@ fn compile_pass() {
             <></>
         </>
     };
+    html! {
+        <key="key".to_string()>
+        </>
+    };
 }
 
 fn main() {}

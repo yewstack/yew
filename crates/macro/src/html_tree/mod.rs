@@ -115,7 +115,11 @@ impl ToTokens for HtmlTree {
 impl HtmlTree {
     fn token_stream(&self) -> proc_macro2::TokenStream {
         match self {
-            HtmlTree::Empty => HtmlList(Vec::new()).into_token_stream(),
+            HtmlTree::Empty => HtmlList {
+                children: Vec::new(),
+                key: None,
+            }
+            .into_token_stream(),
             HtmlTree::Component(comp) => comp.into_token_stream(),
             HtmlTree::Tag(tag) => tag.into_token_stream(),
             HtmlTree::List(list) => list.into_token_stream(),

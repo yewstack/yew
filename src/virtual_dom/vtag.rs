@@ -69,6 +69,8 @@ pub struct VTag {
     pub node_ref: NodeRef,
     /// Keeps handler for attached listeners to have an opportunity to drop them later.
     captured: Vec<EventListener>,
+
+    pub key: Option<String>,
 }
 
 impl Clone for VTag {
@@ -84,6 +86,7 @@ impl Clone for VTag {
             kind: self.kind.clone(),
             checked: self.checked,
             node_ref: self.node_ref.clone(),
+            key: self.key.clone(),
             captured: Vec::new(),
         }
     }
@@ -101,6 +104,7 @@ impl VTag {
             captured: Vec::new(),
             children: VList::new_without_placeholder(),
             node_ref: NodeRef::default(),
+            key: None,
             value: None,
             kind: None,
             // In HTML node `checked` attribute sets `defaultChecked` parameter,

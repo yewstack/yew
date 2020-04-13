@@ -302,8 +302,8 @@ fn compile_pass() {
 
     let variants = || -> Vec<ChildrenVariants> {
         vec![
-            ChildrenVariants::Child(VChild::new(ChildProperties::default(), NodeRef::default())),
-            ChildrenVariants::AltChild(VChild::new((), NodeRef::default())),
+            ChildrenVariants::Child(VChild::new(ChildProperties::default(), NodeRef::default(), None)),
+            ChildrenVariants::AltChild(VChild::new((), NodeRef::default(), None)),
         ]
     };
 

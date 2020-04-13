@@ -39,3 +39,17 @@ error: expected valid html element
    |
 10 |     html! { <>invalid</> };
    |               ^^^^^^^
+
+error: unexpected end of input, expected expression
+  --> $DIR/html-list-fail.rs:11:5
+   |
+11 |     html! { <key=></>}
+   |     ^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error: this open tag has no corresponding close tag
+  --> $DIR/html-list-fail.rs:12:13
+   |
+12 |     html! { <key="key".to_string()>invalid</key>}
+   |             ^^^^^^^^^^^^^^^^^^^^^^^
