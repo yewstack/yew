@@ -24,6 +24,10 @@ impl Component for Producer {
         Producer { event_bus, link }
     }
 
+     fn change(&mut self, _: Self::Properties) -> bool {
+         false
+     }
+
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Clicked => {
