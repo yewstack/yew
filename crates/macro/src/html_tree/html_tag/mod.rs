@@ -79,6 +79,7 @@ impl Parse for HtmlTag {
 }
 
 impl ToTokens for HtmlTag {
+    #[allow(clippy::cognitive_complexity)]
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let HtmlTag {
             tag_name,
