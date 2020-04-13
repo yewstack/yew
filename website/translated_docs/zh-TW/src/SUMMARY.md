@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Introduction](README.md)
+* [簡介](README.md)
 
 ## Getting Started
 
