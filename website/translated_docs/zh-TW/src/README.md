@@ -1,20 +1,20 @@
-# Introduction
+# 簡介
 
-## What is Yew?
+## 什麼是 Yew？
 
-**Yew** is a modern [Rust](https://www.rust-lang.org/) framework for creating multi-threaded front-end web apps with [WebAssembly](https://webassembly.org/).
+**Yew** 是現代的 [Rust](https://www.rust-lang.org/) 框架，使用 [WebAssembly](https://webassembly.org/) 來開發多執行緒的網頁前端應用程式
 
-* It features a **component-based** framework which makes it easy to create interactive UIs. Developers who have experience with frameworks like [React](https://reactjs.org/) and [Elm](https://elm-lang.org/) should feel quite at home when using Yew.
-* It has **great performance** by minimizing DOM API calls and by helping developers easily offload processing to background web workers.
-* It supports **JavaScript interoperability**, allowing developers to leverage NPM packages and integrate with existing JavaScript applications.
+* **基於元件的框架**，可以輕鬆開發互動的使用者介面 \(UI\)。有使用過 [React](https://reactjs.org/) 與 [Elm](https://elm-lang.org/) 的開發者在使用 Yew 的時候更容易上手。
+* **高效能**，減少 DOM API 的呼叫次數，並幫助開發者輕鬆的將行程分流到背景的 web workers 中執行
+* **與 JavaScript 互通**，允許開發者使用 NPM 的套件，並可以與現有的 JavaScript 應用程式整合
 
-### Join Us 😊
+### 加入我們 😊
 
-* You can report bugs and discuss features on the [GitHub issues page](https://github.com/yewstack/yew/issues)
-* We ❤️pull requests. Check out [good first issues](https://github.com/yewstack/yew/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) if you'd like to help out!
-* Our [Gitter chatroom](https://gitter.im/yewframework/Lobby) is pretty active and is a great place to ask questions
+* 你可以在 [GitHub issues page](https://github.com/yewstack/yew/issues) 回報錯誤或一起討論新的功能
+* 我們歡迎大家多發 PR \(pull request\)。 如果你有興趣與我們一起開發，歡迎先在 issues page 中尋找 [good first issues](https://github.com/yewstack/yew/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
+* 如果你還有任何問題，都可以在我們的 [Gitter chatroom](https://gitter.im/yewframework/Lobby) 中發問
 
-![Our community is thriving!](https://img.shields.io/github/stars/yewstack/yew?color=009A5B&label=Github%20stars)
+![&#x6211;&#x5011;&#x793E;&#x7FA4;&#x6B63;&#x5728;&#x84EC;&#x52C3;&#x767C;&#x5C55;&#xFF01;](https://img.shields.io/github/stars/yewstack/yew?color=009A5B&label=Github%20stars)
 
 ### Ready to dive in?
 
