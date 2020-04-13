@@ -15,7 +15,7 @@ fn main() {
     let second_app = App::new();
     let to_first = mount_app(".first-app", first_app);
     let to_second = mount_app(".second-app", second_app);
-    to_first.send_message(Msg::SetScope(to_second.clone()));
-    to_second.send_message(Msg::SetScope(to_first.clone()));
+    to_first.send_message(Msg::SetOpposite(to_second.clone()));
+    to_second.send_message(Msg::SetOpposite(to_first.clone()));
     yew::run_loop();
 }
