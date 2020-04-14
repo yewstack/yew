@@ -76,10 +76,8 @@ impl Classes {
     ///
     /// Prevents duplication of class names.
     pub fn push(&mut self, class: &str) {
-        let class = class.trim();
-        if !class.is_empty() {
-            self.set.insert(class.into());
-        }
+        let classes_to_add: Classes = class.into();
+        self.set.extend(classes_to_add.set);
     }
 
     /// Check the set contains a class.
@@ -269,6 +267,7 @@ mod tests {
     fn it_splits_class_with_spaces() {
         let mut subject = Classes::new();
         subject.push("foo bar");
-        assert!(subject.contains("foo bar"));
+        assert!(subject.contains("foo"));
+        assert!(subject.contains("bar"));
     }
 }
