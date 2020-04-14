@@ -76,10 +76,8 @@ impl Classes {
     ///
     /// Prevents duplication of class names.
     pub fn push(&mut self, class: &str) {
-        let class = class.trim();
-        if !class.is_empty() {
-            self.set.insert(class.into());
-        }
+        let classes_to_add: Classes = class.into();
+        self.set.extend(classes_to_add.set);
     }
 
     /// Check the set contains a class.
@@ -148,7 +146,9 @@ impl<T: AsRef<str>> From<Vec<T>> for Classes {
     fn from(t: Vec<T>) -> Self {
         let set = t
             .iter()
-            .map(|x| x.as_ref().to_string())
+            .map(|x| x.as_ref())
+            .flat_map(|s| s.split_whitespace())
+            .map(String::from)
             .filter(|c| !c.is_empty())
             .collect();
         Self { set }
@@ -227,4 +227,49 @@ pub(crate) trait VDiff {
 pub trait Transformer<FROM, TO> {
     /// Transforms one type to another.
     fn transform(from: FROM) -> TO;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_is_initially_empty() {
+        let subject = Classes::new();
+        assert!(subject.is_empty());
+    }
+
+    #[test]
+    fn it_pushes_value() {
+        let mut subject = Classes::new();
+        subject.push("foo");
+        assert!(!subject.is_empty());
+        assert!(subject.contains("foo"));
+    }
+
+    #[test]
+    fn it_adds_values_via_extend() {
+        let mut other = Classes::new();
+        other.push("bar");
+        let subject = Classes::new().extend(other);
+        assert!(subject.contains("bar"));
+    }
+
+    #[test]
+    fn it_contains_both_values() {
+        let mut other = Classes::new();
+        other.push("bar");
+        let mut subject = Classes::new().extend(other);
+        subject.push("foo");
+        assert!(subject.contains("foo"));
+        assert!(subject.contains("bar"));
+    }
+
+    #[test]
+    fn it_splits_class_with_spaces() {
+        let mut subject = Classes::new();
+        subject.push("foo bar");
+        assert!(subject.contains("foo"));
+        assert!(subject.contains("bar"));
+    }
 }

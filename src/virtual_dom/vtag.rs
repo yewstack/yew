@@ -756,6 +756,22 @@ mod tests {
     }
 
     #[test]
+    fn supports_multiple_non_unique_classes_tuple() {
+        let a = html! {
+            <div class=("class-1", "class-1 class-2")></div>
+        };
+
+        if let VNode::VTag(vtag) = a {
+            println!("{:?}", vtag.classes);
+            assert!(vtag.classes.contains("class-1"));
+            assert!(vtag.classes.contains("class-2"));
+            assert!(!vtag.classes.contains("class-3"));
+        } else {
+            panic!("vtag expected");
+        }
+    }
+
+    #[test]
     fn supports_multiple_classes_string() {
         let a = html! {
             <div class="class-1 class-2   class-3"></div>
@@ -781,6 +797,23 @@ mod tests {
     fn supports_multiple_classes_vec() {
         let mut classes = vec!["class-1"];
         classes.push("class-2");
+        let a = html! {
+            <div class=classes></div>
+        };
+
+        if let VNode::VTag(vtag) = a {
+            println!("{:?}", vtag.classes);
+            assert!(vtag.classes.contains("class-1"));
+            assert!(vtag.classes.contains("class-2"));
+            assert!(!vtag.classes.contains("class-3"));
+        } else {
+            panic!("vtag expected");
+        }
+    }
+
+    #[test]
+    fn supports_multiple_classes_one_value_vec() {
+        let classes = vec!["class-1 class-2", "class-1"];
         let a = html! {
             <div class=classes></div>
         };
