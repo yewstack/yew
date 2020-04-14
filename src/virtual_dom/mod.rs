@@ -146,7 +146,9 @@ impl<T: AsRef<str>> From<Vec<T>> for Classes {
     fn from(t: Vec<T>) -> Self {
         let set = t
             .iter()
-            .map(|x| x.as_ref().to_string())
+            .map(|x| x.as_ref())
+            .flat_map(|s| s.split_whitespace())
+            .map(String::from)
             .filter(|c| !c.is_empty())
             .collect();
         Self { set }
