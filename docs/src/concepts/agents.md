@@ -10,9 +10,7 @@ In order for agents to run concurrently, Yew uses [web-workers](https://develope
 
 ## Lifecycle
 
-{% hint style="info" %}
-`Contribute to our docs:` [Add a diagram of the Agent lifecycle](https://github.com/yewstack/docs/issues/23)
-{% endhint %}
+![Agent lifecycle](https://user-images.githubusercontent.com/42674621/79125224-b6481d80-7d95-11ea-8e6a-ab9b52d1d8ac.png)
 
 ## Types of Agents
 
