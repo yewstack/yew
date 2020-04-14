@@ -228,3 +228,47 @@ pub trait Transformer<FROM, TO> {
     /// Transforms one type to another.
     fn transform(from: FROM) -> TO;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_is_initially_empty() {
+        let subject = Classes::new();
+        assert!(subject.is_empty());
+    }
+
+    #[test]
+    fn it_pushes_value() {
+        let mut subject = Classes::new();
+        subject.push("foo");
+        assert!(!subject.is_empty());
+        assert!(subject.contains("foo"));
+    }
+
+    #[test]
+    fn it_adds_values_via_extend() {
+        let mut other = Classes::new();
+        other.push("bar");
+        let subject = Classes::new().extend(other);
+        assert!(subject.contains("bar"));
+    }
+
+    #[test]
+    fn it_contains_both_values() {
+        let mut other = Classes::new();
+        other.push("bar");
+        let mut subject = Classes::new().extend(other);
+        subject.push("foo");
+        assert!(subject.contains("foo"));
+        assert!(subject.contains("bar"));
+    }
+
+    #[test]
+    fn it_splits_class_with_spaces() {
+        let mut subject = Classes::new();
+        subject.push("foo bar");
+        assert!(subject.contains("foo bar"));
+    }
+}
