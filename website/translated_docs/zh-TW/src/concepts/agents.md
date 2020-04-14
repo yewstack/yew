@@ -4,9 +4,9 @@ description: Yew's Actor System
 
 # Agents
 
-Agents are similar to Angular's [Services](https://angular.io/guide/architecture-services) \(but without dependency injection\), and provide a Yew with an [Actor Model](https://en.wikipedia.org/wiki/Actor_model). Agents can be used to route messages between components independently of where they sit in the component hierarchy, or they can be used to coordinate global state, or they can be used to offload computationally expensive tasks off of the main UI-thread, or communicate between different tabs \(in the future\).
+Agents are similar to Angular's [Services](https://angular.io/guide/architecture-services) \(but without dependency injection\), and provide a Yew with an [Actor Model](https://en.wikipedia.org/wiki/Actor_model). Agents can be used to route messages between components independently of where they sit in the component hierarchy, or they can be used to create a global state, and they can also be used to offload computationally expensive tasks from the main thread which renders the UI. There is also planned support for using agents to allow Yew applications to communicate accross tabs \(in the future\).
 
-Agents that run concurrently use [web-workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to achieve that concurrency.
+In order for agents to run concurrently, Yew uses [web-workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers).
 
 ## Lifecycle
 
@@ -24,17 +24,21 @@ Agents that run concurrently use [web-workers](https://developer.mozilla.org/en-
 * Public - Same as Context, but runs on its own web worker.
 * Global \(WIP\)
 
-## Agent Communication
+## Communication between Agents and Components
+
 
 ### Bridges
 
-Bridges will connect to an agent and allow two way communication.
-
+A bridge allows bi-directional communication between an agent and a component. Bridges also allow agents to communicate with one another.
+ 
 ### Dispatchers
 
-Dispatchers are like bridges, but they can only send messages to agents.
+A dispatcher allows uni-directional communication between a component and an agent. A bridge allows a component to send messages to an agent.
 
 ## Overhead
 
 Agents communicate by serializing their messages using bincode\(???\). So there is a higher performance cost than just calling functions. Unless the cost of computation or the need to coordinate across arbitrary components will outweigh the cost of message passing, you should contain your logic to functions where possible.
+
+## Further reading
+* The [pub_sub](https://github.com/yewstack/yew/tree/master/examples/pub_sub) example shows how components can use agents to communicate with each other.
 
