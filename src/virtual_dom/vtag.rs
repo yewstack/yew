@@ -205,8 +205,9 @@ impl VTag {
         }
     }
 
-    /// If there is no ancestor or the classes, or the order, differs from the ancestor:
-    /// - Returns the classes of self separated by spaces.
+    /// Returns the classes of self separated by spaces if and only if
+    /// - the classes, or the order, differs from the ancestor
+    /// - or there is no ancestor and the classes are not empty
     ///
     /// Otherwise None is returned.
     fn diff_classes<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<String> {
