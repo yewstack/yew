@@ -2,9 +2,9 @@
 
 * [簡介](README.md)
 
-## Getting Started
+## 從零開始 <a id="getting-started"></a>
 
-* [Project Setup](getting-started/project-setup/README.md)
+* [專案設定](getting-started/project-setup/README.md)
   * [Using wasm-pack](getting-started/project-setup/using-wasm-pack.md)
   * [Using wasm-bindgen](getting-started/project-setup/using-wasm-bindgen.md)
   * [Using cargo-web](getting-started/project-setup/using-cargo-web.md)
