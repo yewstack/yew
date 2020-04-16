@@ -213,7 +213,7 @@ impl VTag {
         if ancestor
             .as_ref()
             .map(|ancestor| self.classes.ne(&ancestor.classes))
-            .unwrap_or(true)
+            .unwrap_or_else(|| !self.classes.is_empty())
         {
             Some(self.classes.to_string())
         } else {
