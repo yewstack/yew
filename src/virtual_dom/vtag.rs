@@ -889,7 +889,7 @@ mod tests {
         let namespace = Some(namespace);
         let svg_el = document.create_element_ns(namespace, "svg").unwrap();
 
-        let mut g_node = html! { <g></g> };
+        let mut g_node = html! { <g class="segment"></g> };
         let path_node = html! { <path></path> };
         let mut svg_node = html! { <svg>{path_node}</svg> };
 
