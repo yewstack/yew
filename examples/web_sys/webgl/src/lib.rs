@@ -84,6 +84,10 @@ impl Component for Model {
             <canvas ref={self.node_ref.clone()} />
         }
     }
+
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        false
+    }
 }
 
 impl Model {
