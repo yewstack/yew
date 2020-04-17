@@ -131,14 +131,14 @@ impl VTag {
     }
 
     /// Adds a single class to this virtual node. Actually it will set by
-    /// [Element.className](https://developer.mozilla.org/en-US/docs/Web/API/Element/className)
+    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
     /// call later.
     pub fn add_class(&mut self, class: &str) {
         self.classes.push(class);
     }
 
     /// Adds multiple classes to this virtual node. Actually it will set by
-    /// [Element.className](https://developer.mozilla.org/en-US/docs/Web/API/Element/className)
+    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
     /// call later.
     pub fn add_classes(&mut self, classes: Vec<&str>) {
         for class in classes {
@@ -147,7 +147,7 @@ impl VTag {
     }
 
     /// Add classes to this virtual node. Actually it will set by
-    /// [Element.className](https://developer.mozilla.org/en-US/docs/Web/API/Element/className)
+    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
     /// call later.
     pub fn set_classes(&mut self, classes: impl Into<Classes>) {
         self.classes = classes.into();
@@ -297,7 +297,9 @@ impl VTag {
         // Update parameters
         let class_str = self.diff_classes(ancestor);
         if let Some(class_str) = class_str {
-            set_class_name(element, &class_str);
+            element
+                .set_attribute("class", &class_str)
+                .expect("could not set class");
         }
 
         let changes = self.diff_attributes(ancestor);
@@ -516,14 +518,6 @@ fn set_checked(input: &InputElement, value: bool) {
     cfg_match! {
         feature = "std_web" => js!( @(no_return) @{input}.checked = @{value}; ),
         feature = "web_sys" => input.set_checked(value),
-    };
-}
-
-/// Set `className` value for the `Element`.
-fn set_class_name(input: &Element, value: &str) {
-    cfg_match! {
-        feature = "std_web" => js!( @(no_return) @{input}.className = @{value}; ),
-        feature = "web_sys" => input.set_class_name(value),
     };
 }
 
