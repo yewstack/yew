@@ -1025,6 +1025,78 @@ mod tests {
     }
 
     #[test]
+    fn test_diff_classes_no_ancestor() {
+        // test with missing class property
+        let mut elem = html! { <div></div> };
+        let expected = None;
+        let vtag = assert_vtag(&mut elem);
+        assert_eq!(vtag.diff_classes(&None), expected);
+
+        // test with class
+        let mut elem = html! { <div class="ferris the crab"></div> };
+        let expected = Some(String::from("ferris the crab"));
+        let vtag = assert_vtag(&mut elem);
+        assert_eq!(vtag.diff_classes(&None), expected);
+
+        // test with empty string
+        let mut elem = html! { <div class=""></div> };
+        // Some(String::from("")) is not expected, even though class=""
+        // this is done to prevent unnecessary updates to the DOM
+        // furthermore a missing class property or an empty string both result in an empty Classes set
+        let expected = None;
+        let vtag = assert_vtag(&mut elem);
+        assert_eq!(vtag.diff_classes(&None), expected);
+    }
+
+    #[test]
+    fn it_does_not_set_empty_class_name() {
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let mut elem = html! { <div class=""></div> };
+        elem.apply(&parent, None, None);
+        let vtag = assert_vtag(&mut elem);
+        // test if the className has not been set
+        assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
+    }
+
+    #[test]
+    fn it_does_not_set_missing_class_name() {
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let mut elem = html! { <div></div> };
+        elem.apply(&parent, None, None);
+        let vtag = assert_vtag(&mut elem);
+        // test if the className has not been set
+        assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
+    }
+
+    #[test]
+    fn it_sets_class_name() {
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let mut elem = html! { <div class="ferris the crab"></div> };
+        elem.apply(&parent, None, None);
+        let vtag = assert_vtag(&mut elem);
+        // test if the className has been set
+        assert!(vtag.reference.as_ref().unwrap().has_attribute("class"));
+    }
+
+    #[test]
     fn swap_order_of_classes() {
         let parent = document().create_element("div").unwrap();
 
