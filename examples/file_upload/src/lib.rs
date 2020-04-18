@@ -66,6 +66,10 @@ impl Component for Model {
         true
     }
 
+    fn change(&mut self, _: Self::Properties) -> bool {
+        unimplemented!()
+    }
+
     fn view(&self) -> Html {
         let flag = self.by_chunks;
         html! {
