@@ -18,6 +18,7 @@ pub enum Msg {
     Chunk(Option<FileChunk>),
     Files(Vec<File>, Chunks),
     ToggleByChunks,
+    InvalidString
 }
 
 impl Component for Model {
@@ -52,7 +53,16 @@ impl Component for Model {
                 for file in files.into_iter() {
                     let task = {
                         if chunks {
-                            let callback = self.link.callback(Msg::Chunk);
+                            let callback = self.link.callback(|chunk| {
+                                match chunk {
+                                    Some(file_chunk) => {
+                                        Msg::Chunk(file_chunk)
+                                    },
+                                    None => {
+                                        Msg::InvalidString
+                                    }
+                                }
+                            });
                             self.reader.read_file_by_chunks(file, callback, 10).unwrap()
                         } else {
                             let callback = self.link.callback(Msg::Loaded);
