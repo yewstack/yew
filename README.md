@@ -25,7 +25,7 @@
     <span> | </span>
     <a href="https://yew.rs/docs/v/zh_cn/">简体中文文档</a>
     <span> | </span>
-    <a href="https://yew.rs/docs/v/zh_cn/">繁體中文文檔</a>
+    <a href="https://yew.rs/docs/v/zh_/">繁體中文文檔</a>
   </h4>
 </div>
 
