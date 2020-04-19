@@ -1,6 +1,6 @@
-# Using wasm-bindgen
+# 使用 wasm-bindgen
 
 {% hint style="info" %}
-`Contribute to our docs:` [Explain how to use wasm-bindgen to build an app](https://github.com/yewstack/docs/issues/34)
+`歡迎來貢獻文件：`[`解說如何用 wasm-bindgen 建立一個應用程式`](https://github.com/yewstack/docs/issues/34)\`\`
 {% endhint %}
 
