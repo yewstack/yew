@@ -149,6 +149,9 @@ impl VTag {
     /// Add classes to this virtual node. Actually it will set by
     /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
     /// call later.
+    /// Or if the classes are empty it will be removed by
+    /// [Element.removeAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/removeAttribute)
+    /// call later.
     pub fn set_classes(&mut self, classes: impl Into<Classes>) {
         self.classes = classes.into();
     }
@@ -205,20 +208,39 @@ impl VTag {
         }
     }
 
-    /// Returns the classes of self separated by spaces if and only if
-    /// - the classes, or the order, differs from the ancestor
-    /// - or there is no ancestor and the classes are not empty
+    /// Returns the classes of this virtual node if they are not empty, or `None` otherwise.
+    fn non_empty_classes(&self) -> Option<&Classes> {
+        Some(&self.classes).filter(|c| !c.is_empty())
+    }
+
+    /// Compute differences between the ancestor and determine patch changes for classes.
     ///
-    /// Otherwise None is returned.
-    fn diff_classes<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<String> {
-        if ancestor
-            .as_ref()
-            .map(|ancestor| self.classes.ne(&ancestor.classes))
-            .unwrap_or_else(|| !self.classes.is_empty())
-        {
-            Some(self.classes.to_string())
-        } else {
-            None
+    /// If the classes of this virtual node are empty, the following patches can occur:
+    /// - `Patch::Remove` if the ancestor is present and in containing at least one class.
+    /// - `None` otherwise.
+    ///
+    /// If the classes of this virtual node contain at least one class, the following patches can occur:
+    /// - `Patch::Add` if there is no ancestor or it contains no classes.
+    /// - `Patch::Replace` if there is an ancestor and it classes are not equal to this virtual nodes classes.
+    /// - `None` if there is an ancestor and it classes are equal to this virtual nodes classes.
+    ///
+    fn diff_classes<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<(), String>> {
+        match (
+            self.non_empty_classes(),
+            ancestor
+                .as_ref()
+                .and_then(|ancestor| ancestor.non_empty_classes()),
+        ) {
+            (Some(ref left), Some(ref right)) => {
+                if left != right {
+                    Some(Patch::Replace((), left.to_string()))
+                } else {
+                    None
+                }
+            }
+            (Some(left), None) => Some(Patch::Add((), left.to_string())),
+            (None, Some(ref _right)) => Some(Patch::Remove(())),
+            (None, None) => None,
         }
     }
 
@@ -295,14 +317,15 @@ impl VTag {
         let element = self.reference.as_ref().expect("element expected");
 
         // Update parameters
-        let class_str = self.diff_classes(ancestor);
-        if let Some(class_str) = class_str {
-            element
-                .set_attribute("class", &class_str)
-                .expect("could not set class");
-        }
+        let owned_class_patch = self.diff_classes(ancestor);
+        let class_attribute: Option<Patch<&str, &str>> = owned_class_patch
+            .as_ref()
+            .map(|patch| patch.as_ref().map_key(|_| "class").map(String::as_str));
 
-        let changes = self.diff_attributes(ancestor);
+        let attributes = self.diff_attributes(ancestor);
+
+        // apply attribute patches including an optional "class"-attribute patch
+        let changes = attributes.chain(class_attribute);
         for change in changes {
             match change {
                 Patch::Add(key, value) | Patch::Replace(key, value) => {
@@ -313,7 +336,7 @@ impl VTag {
                 Patch::Remove(key) => {
                     cfg_match! {
                         feature = "std_web" => element.remove_attribute(&key),
-                        feature = "web_sys" => element.remove_attribute(&key).expect("could not remove class"),
+                        feature = "web_sys" => element.remove_attribute(&key).expect("could not remove attribute"),
                     };
                 }
             }
@@ -1018,28 +1041,37 @@ mod tests {
         html! { <div><a data-val=Box::<u32>::default() /></div> };
     }
 
+    fn vtag_with_class(class: &str) -> Box<VTag> {
+        let node = html! { <div class=class></div> };
+        if let VNode::VTag(vtag) = node {
+            return vtag;
+        }
+        panic!("should be vtag");
+    }
+
     #[test]
-    fn test_diff_classes_no_ancestor() {
-        // test with missing class property
-        let mut elem = html! { <div></div> };
-        let expected = None;
-        let vtag = assert_vtag(&mut elem);
-        assert_eq!(vtag.diff_classes(&None), expected);
-
-        // test with class
-        let mut elem = html! { <div class="ferris the crab"></div> };
-        let expected = Some(String::from("ferris the crab"));
-        let vtag = assert_vtag(&mut elem);
-        assert_eq!(vtag.diff_classes(&None), expected);
-
-        // test with empty string
-        let mut elem = html! { <div class=""></div> };
-        // Some(String::from("")) is not expected, even though class=""
-        // this is done to prevent unnecessary updates to the DOM
-        // furthermore a missing class property or an empty string both result in an empty Classes set
-        let expected = None;
-        let vtag = assert_vtag(&mut elem);
-        assert_eq!(vtag.diff_classes(&None), expected);
+    fn test_diff_classes() {
+        assert_eq!(vtag_with_class("").diff_classes(&None), None,);
+        assert_eq!(
+            vtag_with_class("ferris the crab").diff_classes(&None),
+            Some(Patch::Add((), String::from("ferris the crab"))),
+        );
+        assert_eq!(
+            vtag_with_class("").diff_classes(&Some(vtag_with_class(""))),
+            None,
+        );
+        assert_eq!(
+            vtag_with_class("ferris the crab").diff_classes(&Some(vtag_with_class(""))),
+            Some(Patch::Add((), String::from("ferris the crab"))),
+        );
+        assert_eq!(
+            vtag_with_class("ferris the crab").diff_classes(&Some(vtag_with_class("hello world"))),
+            Some(Patch::Replace((), String::from("ferris the crab"))),
+        );
+        assert_eq!(
+            vtag_with_class("").diff_classes(&Some(vtag_with_class("hello world"))),
+            Some(Patch::Remove(())),
+        );
     }
 
     #[test]
