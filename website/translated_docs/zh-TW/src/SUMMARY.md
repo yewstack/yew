@@ -8,7 +8,7 @@
   * [使用 wasm-pack](getting-started/project-setup/using-wasm-pack.md)
   * [使用 wasm-bindgen](getting-started/project-setup/using-wasm-bindgen.md)
   * [使用 cargo-web](getting-started/project-setup/using-cargo-web.md)
-* [Starter Templates](getting-started/starter-templates.md)
+* [初始模板](getting-started/starter-templates.md)
 * [Build a Sample App](getting-started/build-a-sample-app.md)
 * [Choose web-sys or stdweb](getting-started/choose-web-library.md)
 * [Learn through examples](getting-started/examples.md)
