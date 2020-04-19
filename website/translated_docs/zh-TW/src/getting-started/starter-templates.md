@@ -1,13 +1,13 @@
-# Starter Templates
+# 初始模板
 
 ## `wasm-pack`
 
-* [Minimal Template](https://github.com/yewstack/yew-wasm-pack-minimal) - Uses `wasm-pack` and `rollup` to build your application, and your own server to serve it. No bells or whistles here.
-* [Webpack Template](https://github.com/yewstack/yew-wasm-pack-template) - Uses `wasm-pack` and the [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin) for Webpack to streamline development.
+* [Minimal Template](https://github.com/yewstack/yew-wasm-pack-minimal) - 使用 `wasm-pack` 與 `rollup` 來建置應用程式。你必須用你自己的伺服器服務來啟動它。 
+* [Webpack Template](https://github.com/yewstack/yew-wasm-pack-template) - 使用 `wasm-pack` 與 [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin)，用 Wepack 套件來簡化開發流程。 
 
-The important distinction between these templates and using `cargo-web` is that this approach uses a `lib`, not a `bin` crate, and the entry-point to your program is annotated with a `#[wasm_bindgen]` annotation.
+使用上述的模板與單純使用 `cargo-web` 最重要的區別在於，模板使用的是 `lib` 而不是 `bin` crate，而且程式的進入點會註解 `#[wasm_bindgen]`
 
-Your `Cargo.toml` also should specify that you have a "cdylib" crate-type.
+你的 Cargo.toml 必須要設定一個 `cdylib` 的 crate-type。
 
 {% code title="Cargo.toml" %}
 ```text
@@ -28,5 +28,5 @@ wasm-bindgen = "0.2"
 
 ## Parcel
 
-* [Parcel Template](https://github.com/spielrs/yew-parcel-template) - Created by a community member and uses [Parcel](https://parceljs.org/)
+* [Parcel Template](https://github.com/spielrs/yew-parcel-template) - 由一個社群成員用 [Parcel](https://parceljs.org/) 製作
 
