@@ -1,8 +1,8 @@
-# Using cargo-web
+# 使用 cargo-web
 
-Cargo web is a cargo subcommand for building client web apps. It makes building and deploying web applications incredibly easy. It is also the only toolchain that supports Emscripten targets. Read more [here](https://github.com/koute/cargo-web).
+Cargo web 是一個 cargo 的指令之一，用來建置客戶端的網頁應用程式。使用它可以非常輕鬆的建置與開發網頁應用程式。他也是唯一一個支援 Emscripten targets 的工具。詳情請見[這裡](https://github.com/koute/cargo-web)。
 
-**Install**
+## Install
 
 ```bash
 cargo install cargo-web
@@ -20,13 +20,13 @@ cargo web build
 cargo web start
 ```
 
-## Supported Targets
+## 支援目標平台
 
 * `wasm32-unknown-unknown`
 * `wasm32-unknown-emscripten`
 * `asmjs-unknown-emscripten`
 
 {% hint style="info" %}
-For `*-emscripten` targets, you'll need to install the Emscripten SDK
+更多關於 `*-emscripten` targets 的資訊，請自行安裝 Emscripten SDK。
 {% endhint %}
 
