@@ -3,6 +3,8 @@ echo "$(rustup default)" | grep -q "1.39.0"
 emscripten_supported=$?
 set -euxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 
+pushd yew
+
 # Some examples are known not to work with some builds, i.e. futures with the
 # std_web feature.  Other items in the examples/ directory are helpers, i.e.
 # pub_sub and server.  These block lists allow us to exempt some examples but
@@ -36,3 +38,4 @@ for ex in $(find examples -maxdepth 1 -mindepth 1 -type d); do
   # Reset cwd
   popd
 done
+popd

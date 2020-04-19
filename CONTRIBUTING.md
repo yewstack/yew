@@ -48,9 +48,9 @@ although more driver support may be added! You can download these at:
 * safaridriver - should be preinstalled on OSX
 
 ##### Macro Tests
-When adding or updating tests, please make sure you have updated the appropriate `stderr` file, which you can find [here](https://github.com/yewstack/yew/tree/master/crates/macro/tests/macro) for the `html!` macro. These files ensure that macro compilation errors are correct and easy to understand.
+When adding or updating tests, please make sure you have updated the appropriate `stderr` file, which you can find [here](https://github.com/yewstack/yew/tree/master/yew-macro/tests/macro) for the `html!` macro. These files ensure that macro compilation errors are correct and easy to understand.
 
-To update or generate a new `stderr` file you can run `TRYBUILD=overwrite cargo test --test macro_test` or `TRYBUILD=overwrite cargo test --test derive_props_test` from the `crates/macro` directory.
+To update or generate a new `stderr` file you can run `TRYBUILD=overwrite cargo test --test macro_test` or `TRYBUILD=overwrite cargo test --test derive_props_test` from the `yew-macro` directory.
 
 ##### Running Tests
 
