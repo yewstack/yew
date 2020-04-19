@@ -5,7 +5,7 @@
 ## 從零開始 <a id="getting-started"></a>
 
 * [專案設定](getting-started/project-setup/README.md)
-  * [Using wasm-pack](getting-started/project-setup/using-wasm-pack.md)
+  * [使用 wasm-pack](getting-started/project-setup/using-wasm-pack.md)
   * [Using wasm-bindgen](getting-started/project-setup/using-wasm-bindgen.md)
   * [Using cargo-web](getting-started/project-setup/using-cargo-web.md)
 * [Starter Templates](getting-started/starter-templates.md)
