@@ -1,4 +1,4 @@
-//! Messages describing the state of an application. 
+//! Messages describing the state of an application.
 
 use serde::Serialize;
 
@@ -11,8 +11,10 @@ pub enum ComponentEvent {
     Unmounted,
     /// Sent when a component updates itself
     Updated,
-    /// Sent when a component is created,
+    /// Sent when a component is created
     Created,
+    /// Sent when a component is destroyed
+    Destroyed,
 }
 
 /// Data about a component
@@ -22,6 +24,13 @@ pub struct DebugComponent {
     name: String,
 }
 
+impl DebugComponent {
+    /// Creates a new instance of `DebugComponent`
+    pub fn new(name: String) -> Self {
+        Self { name }
+    }
+}
+
 /// A message sent to describe a change in a component's state.
 #[derive(Serialize, Debug)]
 pub struct ComponentMessage {
@@ -29,7 +38,7 @@ pub struct ComponentMessage {
     time: f64,
     /// The event which has happened
     event: ComponentEvent,
-    /// Optional additional data about the event. 
+    /// Optional additional data about the event.
     data: Option<DebugComponent>,
 }
 
