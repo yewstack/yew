@@ -24,6 +24,10 @@ impl Component for App {
         }
     }
 
+    fn change(&mut self, _: Self::Properties) -> bool {
+        false
+    }
+
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Hover(hovered) => self.hovered = hovered,

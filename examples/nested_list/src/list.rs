@@ -56,6 +56,10 @@ impl Component for List {
         }
     }
 
+    fn change(&mut self, _: Self::Properties) -> bool {
+        false
+    }
+
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::HeaderClick => {
@@ -122,8 +126,10 @@ where
 impl Into<VNode> for ListVariant {
     fn into(self) -> VNode {
         match self.props {
-            Variants::Header(props) => VComp::new::<ListHeader>(props, NodeRef::default()).into(),
-            Variants::Item(props) => VComp::new::<ListItem>(props, NodeRef::default()).into(),
+            Variants::Header(props) => {
+                VComp::new::<ListHeader>(props, NodeRef::default(), None).into()
+            }
+            Variants::Item(props) => VComp::new::<ListItem>(props, NodeRef::default(), None).into(),
         }
     }
 }
