@@ -10,7 +10,7 @@
   <p>
     <a href="https://crates.io/crates/yew"><img alt="Crate Info" src="https://img.shields.io/crates/v/yew.svg"/></a>
     <a href="https://docs.rs/yew/"><img alt="API Docs" src="https://img.shields.io/badge/docs.rs-yew-green"/></a>
-    <a href="https://discord.gg/wWTVEZ"><img alt="Discord Chat" src="https://img.shields.io/discord/701068342760570933"/></a>
+    <a href="https://discord.gg/VQck8X4"><img alt="Discord Chat" src="https://img.shields.io/discord/701068342760570933"/></a>
     <a href="https://blog.rust-lang.org/2019/11/07/Rust-1.39.0.html"><img alt="Rustc Version 1.39+" src="https://img.shields.io/badge/rustc-1.39+-lightgray.svg"/></a>
   </p>
 
