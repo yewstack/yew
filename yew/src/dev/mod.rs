@@ -17,7 +17,6 @@ pub struct DebuggerConnection {
     ws: web_sys::WebSocket,
 }
 
-
 /// A debugger is capable of sending messages over a WebSocket connection.
 pub trait Debugger<T>
 where

@@ -16,7 +16,10 @@ cfg_if! {
 }
 
 #[cfg(feature = "dev")]
-use crate::dev::{messages::ComponentEvent, Debugger};
+use crate::dev::{
+    messages::{ComponentEvent, DebugComponent},
+    Debugger,
+};
 
 /// Updates for a `Component` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {
