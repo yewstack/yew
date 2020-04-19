@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Garrett Berg <vitiral@gmail.com>"]
 edition = "2018"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 web-sys = { version = "0.3", features = ["console", "Document", "Element", "Node", "Window"] }
 yew = { path = "../../..", features = ["web_sys"] }
