@@ -24,11 +24,10 @@ In order for agents to run concurrently, Yew uses [web-workers](https://develope
 
 ## Communication between Agents and Components
 
-
 ### Bridges
 
 A bridge allows bi-directional communication between an agent and a component. Bridges also allow agents to communicate with one another.
- 
+
 ### Dispatchers
 
 A dispatcher allows uni-directional communication between a component and an agent. A bridge allows a component to send messages to an agent.
@@ -38,5 +37,6 @@ A dispatcher allows uni-directional communication between a component and an age
 Agents communicate by serializing their messages using bincode\(???\). So there is a higher performance cost than just calling functions. Unless the cost of computation or the need to coordinate across arbitrary components will outweigh the cost of message passing, you should contain your logic to functions where possible.
 
 ## Further reading
-* The [pub_sub](https://github.com/yewstack/yew/tree/master/examples/pub_sub) example shows how components can use agents to communicate with each other.
+
+* The [pub\_sub](https://github.com/yewstack/yew/tree/master/examples/pub_sub) example shows how components can use agents to communicate with each other.
 
