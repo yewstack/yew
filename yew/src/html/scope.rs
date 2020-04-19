@@ -87,6 +87,8 @@ impl AnyScope {
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
     shared_state: Shared<ComponentState<COMP>>,
+    #[cfg(feature = "dev")]
+    debugger: Rc<crate::dev::DebuggerConnection>,
 }
 
 impl<COMP: Component> fmt::Debug for Scope<COMP> {
