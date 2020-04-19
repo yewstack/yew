@@ -43,10 +43,13 @@ pub struct ComponentMessage {
 }
 
 impl ComponentMessage {
-    /// Creates a new `ComponentMessage`.
+    /// Creates a new `ComponentMessage`. 
     pub fn new(event: ComponentEvent, data: Option<DebugComponent>) -> Self {
         Self {
+            #[cfg(feature="web_sys")]
             time: web_sys::window().expect("").performance().unwrap().now(),
+            #[cfg(feature="std_web")]
+            time: stdweb::web::Date::now(),
             event,
             data,
         }
