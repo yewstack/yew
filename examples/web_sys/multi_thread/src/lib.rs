@@ -79,4 +79,8 @@ impl Component for Model {
             </div>
         }
     }
+
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        false
+    }
 }
