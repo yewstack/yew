@@ -98,6 +98,8 @@ features = [
   "Worker",
   "WorkerGlobalScope",
   "WorkerOptions",
+  "Performance",
+  "Window"
 ]
 
 # Changes here must be reflected in `build.rs`
@@ -131,6 +133,7 @@ agent = ["bincode"]
 yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
+dev = ["wasm-bindgen"]
 
 [package.metadata.docs.rs]
 features = ["web_sys", "agent", "services", "yaml", "cbor", "toml", "msgpack", "doc_test"]

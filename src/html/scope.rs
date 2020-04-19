@@ -13,6 +13,9 @@ cfg_if! {
     }
 }
 
+#[cfg(feature = "dev")]
+use crate::dev::{messages::ComponentEvent, Debugger};
+
 /// Updates for a `Component` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {
     /// Wraps messages for a component.
@@ -26,6 +29,8 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
     shared_state: Shared<ComponentState<COMP>>,
+    #[cfg(feature = "dev")]
+    debugger: Rc<crate::dev::DebuggerConnection>,
 }
 
 impl<COMP: Component> fmt::Debug for Scope<COMP> {
@@ -38,6 +43,8 @@ impl<COMP: Component> Clone for Scope<COMP> {
     fn clone(&self) -> Self {
         Scope {
             shared_state: self.shared_state.clone(),
+            #[cfg(feature = "dev")]
+            debugger: self.debugger.clone(),
         }
     }
 }
@@ -52,7 +59,11 @@ impl<COMP: Component> Scope<COMP> {
     /// visible for testing
     pub fn new() -> Self {
         let shared_state = Rc::new(RefCell::new(ComponentState::Empty));
-        Scope { shared_state }
+        Scope {
+            shared_state,
+            #[cfg(feature = "dev")]
+            debugger: Rc::new(crate::dev::DebuggerConnection::new()),
+        }
     }
 
     /// Mounts a component with `props` to the specified `element` in the DOM.
@@ -81,6 +92,13 @@ impl<COMP: Component> Scope<COMP> {
     pub(crate) fn mounted(&mut self) {
         let shared_state = self.shared_state.clone();
         let mounted = MountedComponent { shared_state };
+        #[cfg(feature = "dev")]
+        self.debugger
+            .as_ref()
+            .send_message(crate::dev::messages::ComponentMessage::new(
+                ComponentEvent::Created,
+                None,
+            ));
         scheduler().push_mount(Box::new(mounted));
     }
 
