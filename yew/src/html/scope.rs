@@ -15,6 +15,9 @@ cfg_if! {
     }
 }
 
+#[cfg(feature = "dev")]
+use crate::dev::{messages::ComponentEvent, Debugger};
+
 /// Updates for a `Component` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {
     /// Wraps messages for a component.
@@ -79,8 +82,7 @@ impl AnyScope {
 
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
-    parent: Option<Rc<AnyScope>>,
-    state: Shared<ComponentState<COMP>>,
+    shared_state: Shared<ComponentState<COMP>>,
 }
 
 impl<COMP: Component> fmt::Debug for Scope<COMP> {
