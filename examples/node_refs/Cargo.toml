@@ -8,5 +8,5 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-yew = { path = "../../yew", features = ["web_sys"] }
+yew = { path = "../../yew" }
 web-sys = { version = "0.3", features = ["HtmlElement", "HtmlInputElement", "Node"] }

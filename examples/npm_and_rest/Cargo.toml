@@ -14,4 +14,4 @@ serde = "1"
 serde_derive = "1"
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = ["console"] }
-yew = { path = "../../yew", features = ["web_sys"] }
+yew = { path = "../../yew" }

@@ -9,4 +9,4 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 js-sys = "0.3"
-yew = { path = "../../yew", features = ["web_sys"] }
+yew = { path = "../../yew" }

@@ -8,5 +8,4 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-stdweb = "0.4.20"
-yew = { path = "../../yew", features = ["web_sys"] }
+yew = { path = "../../yew" }

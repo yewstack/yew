@@ -55,10 +55,7 @@ To update or generate a new `stderr` file you can run `TRYBUILD=overwrite cargo 
 or
 
 ```bash
-cargo test --target wasm32-unknown-unknown --features wasm_test --features web_sys
+cd yew # or yew-stdweb
+cargo test --target wasm32-unknown-unknown --features wasm_test
 ```
 or
-
-```bash
-cargo test --target wasm32-unknown-unknown --features wasm_test --features std_web
-```

@@ -29,7 +29,7 @@ syn = { version = "1.0", features = ["full", "extra-traits"] }
 [dev-dependencies]
 rustversion = "1.0"
 trybuild = "1.0"
-yew = { path = "../yew", features = ["web_sys"] }
+yew = { path = "../yew" }
 
 [build-dependencies]
 
