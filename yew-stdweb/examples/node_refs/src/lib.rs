@@ -1,5 +1,4 @@
 #![recursion_limit = "256"]
-extern crate yew_stdweb as yew;
 
 mod input;
 

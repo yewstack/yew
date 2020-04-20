@@ -1,5 +1,4 @@
 #![recursion_limit = "128"]
-extern crate yew_stdweb as yew;
 
 #[macro_use]
 extern crate stdweb;

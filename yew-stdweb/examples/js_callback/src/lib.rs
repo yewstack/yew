@@ -1,6 +1,5 @@
 #![recursion_limit = "128"]
 #![deny(warnings)]
-extern crate yew_stdweb as yew;
 
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};

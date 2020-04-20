@@ -1,5 +1,3 @@
-extern crate yew_stdweb as yew;
-
 use yew::agent::Threaded;
 
 fn main() {

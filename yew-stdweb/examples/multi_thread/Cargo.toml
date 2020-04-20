@@ -17,7 +17,7 @@ log = "0.4"
 web_logger = "0.2"
 serde = "1.0"
 serde_derive = "1.0"
-yew-stdweb = { path = "../.." }
+yew = { path = "../..", package = "yew-stdweb" }
 
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]
 wasm-bindgen = "0.2.60"

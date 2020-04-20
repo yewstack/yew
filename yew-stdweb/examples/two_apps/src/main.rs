@@ -1,5 +1,3 @@
-extern crate yew_stdweb as yew;
-
 use stdweb::web::IParentNode;
 use two_apps::{Model, Msg};
 use yew::html::Scope;

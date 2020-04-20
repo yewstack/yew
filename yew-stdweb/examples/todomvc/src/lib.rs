@@ -1,5 +1,4 @@
 #![recursion_limit = "512"]
-extern crate yew_stdweb as yew;
 
 use serde_derive::{Deserialize, Serialize};
 use strum::IntoEnumIterator;

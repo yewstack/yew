@@ -1,5 +1,3 @@
-extern crate yew_stdweb as yew;
-
 use yew::{html, Component, ComponentLink, Html, InputData, ShouldRender};
 
 pub struct Model {

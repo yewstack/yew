@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 stdweb = "0.4.20"
 webgl_stdweb = {version = "0.3.0", optional = true}
-yew-stdweb = { path = "../.." }
+yew = { path = "../..", package = "yew-stdweb" }
 
 # Used to fix CI (most projects won't need this)
 [target.'cfg(any(not(target_arch = "wasm32"), target_os="wasi", cargo_web))'.dependencies]

@@ -1,6 +1,4 @@
 #![recursion_limit = "256"]
-extern crate yew_stdweb as yew;
-
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {

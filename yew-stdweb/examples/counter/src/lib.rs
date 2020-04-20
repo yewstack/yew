@@ -1,7 +1,5 @@
 #![recursion_limit = "256"]
 
-extern crate yew_stdweb as yew;
-
 use stdweb::web::Date;
 use yew::services::ConsoleService;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};

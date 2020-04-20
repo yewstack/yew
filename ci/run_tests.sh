@@ -5,8 +5,6 @@ set -euxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_
 
 (cd yew \
   && cargo test --target wasm32-unknown-unknown --features wasm_test \
-  && cargo test --target wasm32-unknown-unknown --features wasm_test \
-    --features std_web,agent,services --no-default-features \
   && cargo test --doc --features doc_test,wasm_test,yaml,msgpack,cbor,toml \
   && cargo test --doc --features doc_test,wasm_test,yaml,msgpack,cbor,toml \
     --features std_web,agent,services --no-default-features)
@@ -19,11 +17,11 @@ set -euxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_
   && cargo test --test derive_props_test \
   && cargo test --doc)
 
+(cd yew-stdweb && cargo test --target wasm32-unknown-unknown --features wasm_test)
+
 # TODO - Emscripten builds are broken on rustc > 1.39.0
 if [ "$emscripten_supported" == "0" ]; then
-  (cd yew \
+  (cd yew-stdweb \
     && cargo web test --target asmjs-unknown-emscripten \
-      --features std_web,agent,services --no-default-features \
-    && cargo web test --target wasm32-unknown-emscripten \
-      --features std_web,agent,services --no-default-features)
+    && cargo web test --target wasm32-unknown-emscripten)
 fi

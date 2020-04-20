@@ -1,6 +1,5 @@
 #![cfg(feature = "webgl_stdweb")]
 #![recursion_limit = "512"]
-extern crate yew_stdweb as yew;
 
 use stdweb::web::html_element::CanvasElement;
 use stdweb::web::TypedArray;

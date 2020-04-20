@@ -1,5 +1,4 @@
 #![recursion_limit = "256"]
-extern crate yew_stdweb as yew;
 
 use yew::services::reader::{File, FileChunk, FileData, ReaderService, ReaderTask};
 use yew::{html, ChangeData, Component, ComponentLink, Html, ShouldRender};
