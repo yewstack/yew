@@ -24,6 +24,6 @@ if [ "$emscripten_supported" == "0" ]; then
   (cd yew \
     && cargo web test --target asmjs-unknown-emscripten \
       --features std_web,agent,services --no-default-features \
-    && cargo web test --target wasm32-unknown-emscripten
+    && cargo web test --target wasm32-unknown-emscripten \
       --features std_web,agent,services --no-default-features)
 fi
