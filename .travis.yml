@@ -37,5 +37,5 @@ install:
 
 script:
   - ./ci/run_stable_checks.sh
-  - ./ci/run_stdweb_checks.sh
   - GECKODRIVER=$(pwd)/geckodriver ./ci/run_tests.sh
+  - ./ci/run_emscipten_checks.sh

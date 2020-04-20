@@ -7,6 +7,7 @@ if [ "$?" != "0" ]; then
 fi
 
 set -euxo pipefail
+
 cargo fmt --all -- --check
 cargo clippy --all -- --deny=warnings
 cargo check --all
@@ -15,3 +16,13 @@ cargo check --all
 (cd yew \
   && cargo check --features cbor,msgpack,toml,yaml \
   && cargo clippy --features cbor,msgpack,toml,yaml -- --deny=warnings)
+
+# Check stdweb examples
+pushd stdweb-examples
+cargo fmt --all -- --check
+cargo clippy --all -- --deny=warnings
+cargo check --all --target wasm32-unknown-unknown
+
+# webgl_stdweb doesn't play nice with wasm-bindgen
+(cd webgl && cargo web check --target wasm32-unknown-unknown)
+popd
