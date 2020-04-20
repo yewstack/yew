@@ -10,3 +10,8 @@ set -euxo pipefail
 cargo fmt --all -- --check
 cargo clippy -- --deny=warnings
 cargo check
+
+# Enable all optional features
+(cd yew \
+  && cargo check --features cbor,msgpack,toml,yaml \
+  && cargo clippy --features cbor,msgpack,toml,yaml -- --deny=warnings)
