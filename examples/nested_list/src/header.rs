@@ -21,6 +21,10 @@ impl Component for ListHeader {
         ListHeader { props }
     }
 
+    fn change(&mut self, _: Self::Properties) -> bool {
+        false
+    }
+
     fn update(&mut self, _: Self::Message) -> ShouldRender {
         false
     }

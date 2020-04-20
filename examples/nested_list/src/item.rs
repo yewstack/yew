@@ -24,6 +24,10 @@ impl Component for ListItem {
         ListItem { props }
     }
 
+    fn change(&mut self, _: Self::Properties) -> bool {
+        false
+    }
+
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {
         false
     }
