@@ -1,0 +1,14 @@
+[workspace]
+members = [
+  "counter",
+  "file_upload",
+  "inner_html",
+  "js_callback",
+  "mount_point",
+  "multi_thread",
+  "node_refs",
+  "npm_and_rest",
+  "todomvc",
+  "two_apps",
+  "webgl",
+]

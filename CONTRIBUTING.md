@@ -11,7 +11,6 @@ rustup target add wasm32-unknown-unknown
 #### Build
 
 ```bash
-cd yew # or yew-stdweb
 cargo build --target wasm32-unknown-unknown
 ```
 
@@ -20,7 +19,7 @@ cargo build --target wasm32-unknown-unknown
 TODO: Add more info 
 
 ##### stdweb
-In order to run the examples in `./yew-stdweb`, you may wish to install [cargo-web]:
+In order to run the examples in `./stdweb-examples`, you may wish to install [cargo-web]:
 
 ```bash
 cargo install cargo-web
@@ -55,7 +54,5 @@ To update or generate a new `stderr` file you can run `TRYBUILD=overwrite cargo 
 or
 
 ```bash
-cd yew # or yew-stdweb
 cargo test --target wasm32-unknown-unknown --features wasm_test
 ```
-or
