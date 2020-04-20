@@ -8,5 +8,5 @@ fi
 
 set -euxo pipefail
 cargo fmt --all -- --check
-cargo clippy --features std_web -- --deny=warnings
-cargo clippy --features web_sys -- --deny=warnings
+cargo clippy -- --deny=warnings
+cargo check

@@ -1,0 +1,14 @@
+[package]
+name = "pub_sub"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+log = "0.4"
+web_logger = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+yew = { path = "../../yew" }
+
+[features]
+std_web = ["yew/std_web"]
+web_sys = ["yew/web_sys"]

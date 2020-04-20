@@ -28,8 +28,3 @@ wasm-bindgen = "0.2.60"
 
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dev-dependencies]
 wasm-bindgen-test = "0.3.4"
-
-[features]
-wasm_test = []
-web_sys = ["yew/web_sys"]
-std_web = ["yew/std_web"]

@@ -1,5 +1,5 @@
 [package]
-name = "yew"
+name = "yew-stdweb"
 version = "0.14.3"
 edition = "2018"
 authors = [
@@ -121,7 +121,7 @@ rmp-serde = "0.14.0"
 bincode = "~1.2.1"
 
 [features]
-default = ["services", "agent", "web_sys"]
+default = ["services", "agent", "std_web"]
 std_web = ["stdweb"]
 web_sys = ["console_error_panic_hook", "futures", "gloo", "js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 doc_test = []
@@ -134,3 +134,18 @@ cbor = ["serde_cbor"]
 
 [package.metadata.docs.rs]
 features = ["yaml", "cbor", "toml", "msgpack", "doc_test"]
+
+[workspace]
+members = [
+  "examples/counter",
+  # "file_upload",
+  # "inner_html",
+  # "js_callback",
+  # "mount_point",
+  # "multi_thread",
+  # "node_refs",
+  # "npm_and_rest",
+  # "todomvc",
+  # "two_apps",
+  # "webgl",
+]
