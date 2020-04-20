@@ -3,6 +3,9 @@ members = [
   "yew",
   "yew-functional",
   "yew-macro",
+  "yew-router",
+  "yew-router-macro",
+  "yew-router-route-parser",
 
   # Examples
   "examples/counter",
