@@ -12,9 +12,10 @@ pub trait Hook {
     fn tear_down(&mut self) {}
 }
 
+type ProcessMessage = Rc<dyn Fn(Box<dyn FnOnce() -> bool>)>;
 struct HookState {
     counter: usize,
-    process_message: Rc<dyn Fn(Box<dyn FnOnce() -> bool>)>,
+    process_message: ProcessMessage,
     hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
     destroy_listeners: Vec<Box<dyn FnOnce()>>,
 }
@@ -93,7 +94,7 @@ where
             );
         });
 
-        return ret;
+        ret
     }
 
     fn destroy(&mut self) {
@@ -116,7 +117,7 @@ where
     use_hook(
         |state: &mut UseRefState<T>, pretrigger_change_acceptor| {
             let _ignored = || pretrigger_change_acceptor(|_| false); // we need it to be a specific closure type, even if we never use it
-            return state.0.clone();
+            state.0.clone()
         },
         move || UseRefState(Rc::new(RefCell::new(initial_value()))),
     )
@@ -129,7 +130,7 @@ pub fn use_reducer<Action: 'static, Reducer, State: 'static>(
 where
     Reducer: Fn(Rc<State>, Action) -> State + 'static,
 {
-    return use_reducer_with_init(reducer, initial_state, |a| a);
+    use_reducer_with_init(reducer, initial_state, |a| a)
 }
 
 pub fn use_reducer_with_init<Action: 'static, Reducer, State: 'static, InitialState, InitFn>(
@@ -147,9 +148,9 @@ where
     impl<T> Hook for UseReducerState<T> {};
     let init = Box::new(init);
     let reducer = Rc::new(reducer);
-    let ret = use_hook(
+    use_hook(
         |internal_hook_change: &mut UseReducerState<State>, pretrigger_change_runner| {
-            return (
+            (
                 internal_hook_change.current_state.clone(),
                 Rc::new(move |action: Action| {
                     let reducer = reducer.clone();
@@ -163,13 +164,12 @@ where
                         },
                     );
                 }),
-            );
+            )
         },
         move || UseReducerState {
             current_state: Rc::new(init(initial_state)),
         },
-    );
-    return ret;
+    )
 }
 
 pub fn use_state<T, F>(initial_state_fn: F) -> (Rc<T>, Box<impl Fn(T)>)
@@ -181,10 +181,10 @@ where
         current: Rc<T2>,
     }
     impl<T> Hook for UseStateState<T> {}
-    return use_hook(
+    use_hook(
         |prev: &mut UseStateState<T>, hook_update| {
             let current = prev.current.clone();
-            return (
+            (
                 current,
                 Box::new(move |o: T| {
                     hook_update(|state: &mut UseStateState<T>| {
@@ -192,12 +192,12 @@ where
                         true
                     });
                 }),
-            );
+            )
         },
         move || UseStateState {
             current: Rc::new(initial_state_fn()),
         },
-    );
+    )
 }
 
 pub fn use_effect<F, Destructor>(callback: F)
@@ -218,7 +218,7 @@ where
     }
     use_hook(
         |_: &mut UseEffectState<Destructor>, hook_update| {
-            return move || {
+            move || {
                 hook_update(move |state: &mut UseEffectState<Destructor>| {
                     if let Some(de) = state.destructor.take() {
                         de();
@@ -227,7 +227,7 @@ where
                     state.destructor.replace(Box::new(new_destructor));
                     false
                 });
-            };
+            }
         },
         || UseEffectState { destructor: None },
     )();
@@ -257,7 +257,7 @@ where
         move |state: &mut UseEffectState<Dependents, Destructor>, hook_update| {
             let mut should_update = !(*state.deps == *deps);
 
-            return move || {
+            move || {
                 hook_update(move |state: &mut UseEffectState<Dependents, Destructor>| {
                     if should_update {
                         if let Some(de) = state.destructor.take() {
@@ -274,7 +274,7 @@ where
                     }
                     false
                 })
-            };
+            }
         },
         || UseEffectState {
             deps: deps_c,
@@ -316,7 +316,7 @@ where
 
         let hook = hook_state.hooks[hook_pos].clone();
 
-        return (hook, hook_state.process_message.clone());
+        (hook, hook_state.process_message.clone())
     });
 
     let trigger = {

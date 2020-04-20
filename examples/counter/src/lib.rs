@@ -31,11 +31,11 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Increment => {
-                self.value = self.value + 1;
+                self.value += 1;
                 self.console.log("plus one");
             }
             Msg::Decrement => {
-                self.value = self.value - 1;
+                self.value -= 1;
                 self.console.log("minus one");
             }
             Msg::Bulk(list) => {

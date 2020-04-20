@@ -8,8 +8,8 @@ fi
 
 set -euxo pipefail
 cargo fmt --all -- --check
-cargo clippy -- --deny=warnings
-cargo check
+cargo clippy --all -- --deny=warnings
+cargo check --all
 
 # Enable all optional features
 (cd yew \

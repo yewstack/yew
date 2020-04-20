@@ -23,16 +23,6 @@ path = "../yew"
 default-features = false
 features = ["agent", "services", "std_web"]
 
-[features]
-bincode = ["yew/bincode"]
-cbor = ["yew/cbor"]
-doc_test = ["yew/doc_test"]
-msgpack = ["yew/msgpack"]
-services = ["yew/services"]
-toml = ["yew/toml"]
-wasm_test = ["yew/wasm_test"]
-yaml = ["yew/yaml"]
-
 [workspace]
 members = [
   "examples/counter",
