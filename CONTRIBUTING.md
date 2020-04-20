@@ -19,7 +19,7 @@ cargo build --target wasm32-unknown-unknown
 TODO: Add more info 
 
 ##### stdweb
-In order to run the examples in `./stdweb-examples`, you may wish to install [cargo-web]:
+In order to run the examples in `./yew-stdweb`, you may wish to install [cargo-web]:
 
 ```bash
 cargo install cargo-web
