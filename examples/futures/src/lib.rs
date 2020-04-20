@@ -101,6 +101,10 @@ impl Component for Model {
         }
     }
 
+    fn change(&mut self, _: Self::Properties) -> bool {
+        false
+    }
+
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::SetMarkdownFetchState(fetch_state) => {
