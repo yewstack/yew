@@ -5,9 +5,6 @@
 use serde::Serialize;
 use serde_json;
 
-
-
-
 #[cfg(feature = "web_sys")]
 use web_sys;
 
@@ -43,7 +40,13 @@ impl DebuggerConnection {
             #[cfg(feature = "web_sys")]
             ws: web_sys::WebSocket::new("localhost:8017").unwrap(),
             #[cfg(feature = "std_web")]
-            ws: stdweb::web::WebSocket::new("localhost:8017").unwrap(),
+            ws: match stdweb::web::WebSocket::new("localhost:8017") {
+                Ok(s) => s,
+                Err(_) => {
+                    stdweb::console!(error, "Error: could not connect to the WebSocket. Are you sure the DevTools backend is running?");
+                    panic!("")
+                }
+            },
         }
     }
 }
