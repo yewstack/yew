@@ -166,7 +166,7 @@ impl FetchService {
     }
 
     /// Sends a request to a remote server given a Request object and a callback
-    /// fuction to convert a Response object into a loop's message.
+    /// function to convert a Response object into a loop's message.
     ///
     /// You may use a Request builder to build your request declaratively as on the
     /// following examples:

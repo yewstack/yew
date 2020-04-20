@@ -404,7 +404,7 @@ cloned is when a wrapper component re-renders nested children components.
 
 - #### ⚡️ Features
 
-  - `Future` support :tada: A `Component` can update following the completion of a `Future`. Check out [this example](https://github.com/yewstack/yew/tree/master/examples/futures) to see how it works. This approach was borrowed from a fork of Yew called [`plaster`](https://github.com/carlosdp/plaster) created by [@carlosdp]. [[@hgzimmerman], [#717](https://github.com/yewstack/yew/pull/717)]
+  - `Future` support :tada: A `Component` can update following the completion of a `Future`. Check out [this example](https://github.com/yewstack/yew/tree/v0.14.0/examples/futures) to see how it works. This approach was borrowed from a fork of Yew called [`plaster`](https://github.com/carlosdp/plaster) created by [@carlosdp]. [[@hgzimmerman], [#717](https://github.com/yewstack/yew/pull/717)]
   - Added the `agent` and `services` features so that this functionality can be disabled (useful if you are switching to using `Future`s). [[@hgzimmerman], [#684](https://github.com/yewstack/yew/pull/684)]
   - Add `ref` keyword for allowing a `Component` to have a direct reference to its rendered elements. For example, you can now easily focus an `<input>` element after mounting. [[@jstarry], [#715](https://github.com/yewstack/yew/pull/715)]
 
