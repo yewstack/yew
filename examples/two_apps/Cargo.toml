@@ -1,0 +1,11 @@
+[package]
+name = "two_apps"
+version = "0.1.0"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+yew = { path = "../../yew" }

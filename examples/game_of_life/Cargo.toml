@@ -10,7 +10,7 @@ edition = "2018"
 rand = "0.6.5"
 log = "0.4"
 web_logger = "0.2"
-yew = { path = "../.." }
+yew = { path = "../../yew" }
 
 [features]
 std_web = ["rand/stdweb", "yew/std_web"]

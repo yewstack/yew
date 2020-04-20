@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 serde = "1"
 serde_derive = "1"
-yew = { path = "../.." }
+yew = { path = "../../yew" }
 pulldown-cmark = "0.1.2"
 
 [features]

@@ -1,0 +1,23 @@
+[package]
+name = "multi_thread"
+version = "0.1.0"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "multi_thread_app"
+path = "src/bin/app.rs"
+
+[[bin]]
+name = "multi_thread_worker"
+path = "src/bin/native_worker.rs"
+
+[dependencies]
+log = "0.4"
+wasm-logger = "0.2"
+serde = "1.0"
+serde_derive = "1.0"
+yew = { path = "../../yew" }
