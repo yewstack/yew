@@ -16,10 +16,10 @@ impl Component for Subscriber {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.callback(|s| Msg::NewMessage(s));
+        let callback = link.callback(Msg::NewMessage);
         let _producer = EventBus::bridge(callback);
         Subscriber {
-            message: format!("No message yet."),
+            message: "No message yet.".to_string(),
             _producer,
         }
     }

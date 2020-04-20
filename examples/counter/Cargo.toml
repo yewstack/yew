@@ -1,0 +1,12 @@
+[package]
+name = "counter"
+version = "0.1.1"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+js-sys = "0.3"
+yew = { path = "../../yew" }

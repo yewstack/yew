@@ -34,9 +34,9 @@ pub fn render_markdown(src: &str) -> Html {
                     top = pre;
                 } else if let Tag::Table(aligns) = tag {
                     for r in top.children.iter_mut() {
-                        if let &mut VNode::VTag(ref mut vtag) = r {
+                        if let VNode::VTag(ref mut vtag) = r {
                             for (i, c) in vtag.children.iter_mut().enumerate() {
-                                if let &mut VNode::VTag(ref mut vtag) = c {
+                                if let VNode::VTag(ref mut vtag) = c {
                                     match aligns[i] {
                                         Alignment::None => {}
                                         Alignment::Left => vtag.add_class("text-left"),
@@ -49,7 +49,7 @@ pub fn render_markdown(src: &str) -> Html {
                     }
                 } else if let Tag::TableHead = tag {
                     for c in top.children.iter_mut() {
-                        if let &mut VNode::VTag(ref mut vtag) = c {
+                        if let VNode::VTag(ref mut vtag) = c {
                             // TODO
                             //                            vtag.tag = "th".into();
                             vtag.add_attribute("scope", &"col");
