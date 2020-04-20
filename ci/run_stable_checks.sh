@@ -24,5 +24,5 @@ cargo clippy --all -- --deny=warnings
 cargo check --all --target wasm32-unknown-unknown
 
 # webgl_stdweb doesn't play nice with wasm-bindgen
-(cd webgl && cargo web check --target wasm32-unknown-unknown)
+(cd examples/webgl && cargo web check --target wasm32-unknown-unknown)
 popd
