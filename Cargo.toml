@@ -3,9 +3,15 @@ members = [
   "yew",
   "yew-functional",
   "yew-macro",
+
+  # Router
   "yew-router",
   "yew-router-macro",
   "yew-router-route-parser",
+  "yew-router/examples/guide",
+  "yew-router/examples/minimal",
+  "yew-router/examples/router_component",
+  "yew-router/examples/switch",
 
   # Examples
   "examples/counter",
