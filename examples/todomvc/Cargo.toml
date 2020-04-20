@@ -9,4 +9,4 @@ strum = "0.18"
 strum_macros = "0.18"
 serde = "1"
 serde_derive = "1"
-yew = { path = "../../..", features = ["std_web", "dev"] }
+yew = { path = "../../..", features = ["std_web"] }
