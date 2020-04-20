@@ -26,13 +26,13 @@ pub enum ComponentEvent {
     Destroyed,
 }
 
-/// Generates a selector for a given node which can then be sent over a WebSocket 
+/// Generates a selector for a given node which can then be sent over a WebSocket
 /// connection to the browser extension.
 pub fn selector(dom_node: &Node) -> String {
     let mut current_node = Some(dom_node.clone());
     let mut selector_string = String::new();
     loop {
-        match current_node { 
+        match current_node {
             Some(node) => {
                 cfg_if! {
                     if #[cfg(feature="std_web")] {
@@ -56,12 +56,13 @@ pub fn selector(dom_node: &Node) -> String {
 pub struct DebugComponent {
     /// The name of the component
     name: String,
+    selector: Option<String>,
 }
 
 impl DebugComponent {
     /// Creates a new instance of `DebugComponent`
-    pub fn new(name: String) -> Self {
-        Self { name }
+    pub fn new(name: String, selector: Option<String>) -> Self {
+        Self { name, selector }
     }
 }
 
@@ -93,7 +94,7 @@ impl ComponentMessage {
 #[cfg(test)]
 mod tests {
     use cfg_if::cfg_if;
-    #[cfg(feature="wasm_test")]
+    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::*;
     cfg_if! {
         if #[cfg(feature = "std_web")] {
@@ -103,8 +104,8 @@ mod tests {
         }
     }
 
-    #[cfg(feature="wasm_test")]
-    #[cfg(feature="std_web")]
+    #[cfg(feature = "wasm_test")]
+    #[cfg(feature = "std_web")]
     #[wasm_bindgen_test]
     fn test_dom_selector() {
         use super::selector;
@@ -114,15 +115,11 @@ mod tests {
                 let dom_selector = selector(&n);
                 assert_eq!(dom_selector, "SPAN/H1/")
             }
-            Err(e) => {
-                panic!("{:?}", e)
-            }
+            Err(e) => panic!("{:?}", e),
         }
     }
-    #[cfg(feature="wasm_test")]
-    #[cfg(feature="web_sys")]
+    #[cfg(feature = "wasm_test")]
+    #[cfg(feature = "web_sys")]
     #[wasm_bindgen_test]
-    fn test_dom_selector() {
-
-    }
+    fn test_dom_selector() {}
 }
