@@ -11,8 +11,8 @@ extern crate yew;
 use self::yew::NodeRef;
 use yew::{html, App, Html, Properties};
 use yew_functional::{
-    use_effect, use_effect_with_deps, use_reducer_with_init, use_ref, use_state,
-    FunctionComponent, FunctionProvider,
+    use_effect, use_effect_with_deps, use_reducer_with_init, use_ref, use_state, FunctionComponent,
+    FunctionProvider,
 };
 
 #[wasm_bindgen_test]
