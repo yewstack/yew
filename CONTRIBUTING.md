@@ -8,30 +8,25 @@
 rustup target add wasm32-unknown-unknown
 ```
 
-#### Install [cargo-web]
+#### Build
 
-This is an optional tool that simplifies running the examples:
+```bash
+cd yew # or yew-stdweb
+cargo build --target wasm32-unknown-unknown
+```
+
+#### Examples
+
+TODO: Add more info 
+
+##### stdweb
+In order to run the examples in `./yew-stdweb`, you may wish to install [cargo-web]:
 
 ```bash
 cargo install cargo-web
 ```
 
-> Add `--force` option to ensure you install the latest version.
-
 [cargo-web]: https://github.com/koute/cargo-web
-
-#### Build
-
-Either
-```bash
-cargo build --target wasm32-unknown-unknown --features web_sys
-```
-or
-```bash
-cargo build --target wasm32-unknown-unknown --features std_web
-```
-See more about features [here](https://docs.rs/yew/0.14.0/yew/#important-notes)
-
 
 #### Test
 

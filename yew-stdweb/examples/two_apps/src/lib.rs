@@ -1,8 +1,8 @@
 #![recursion_limit = "256"]
 
 use stdweb::web::IParentNode;
+use yew::html::Scope;
 use yew::{html, App, Component, ComponentLink, Html, ShouldRender};
-use yew::html::{Scope};
 
 pub struct Model {
     link: ComponentLink<Self>,
@@ -89,7 +89,7 @@ impl Component for TwoModels {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        TwoModels { }
+        TwoModels {}
     }
 
     fn mounted(&mut self) -> ShouldRender {

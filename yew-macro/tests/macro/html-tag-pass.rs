@@ -2,7 +2,7 @@
 use yew::prelude::*;
 
 fn compile_pass() {
-    let onclick = Callback::from(|_: ClickEvent| ());
+    let onclick = Callback::from(|_: MouseEvent| ());
     let parent_ref = NodeRef::default();
     html! {
         <div>
