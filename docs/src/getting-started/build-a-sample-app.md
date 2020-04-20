@@ -17,7 +17,7 @@ authors = ["Yew App Developer <name@example.com>"]
 edition = "2018"
 
 [dependencies]
-yew = { version = "0.13.0", features = ["std_web"] }
+yew = { version = "0.14.3", features = ["std_web"] }
 ```
 {% endcode %}
 
@@ -25,53 +25,52 @@ Copy the following template into your `src/main.rs` file:
 
 {% code title="src/main.rs" %}
 ```rust
-use yew::{html, Callback, ClickEvent, Component, ComponentLink, Html, ShouldRender};
+use yew::prelude::*;
 
-struct App {
-    clicked: bool,
-    onclick: Callback<ClickEvent>,
+struct Model {
+    link: ComponentLink<Self>,
+    value: i64,
 }
 
 enum Msg {
-    Click,
+    AddOne,
 }
 
-impl Component for App {
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
-
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        App {
-            clicked: false,
-            onclick: link.callback(|_| Msg::Click),
+        Self {
+            link,
+            value: 0,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::Click => {
-                self.clicked = true;
-                true // Indicate that the Component should re-render
-            }
+            Msg::AddOne => self.value += 1
         }
+        true
     }
 
     fn view(&self) -> Html {
-        let button_text = if self.clicked { "Clicked!" } else { "Click me!" };
-
         html! {
-            <button onclick=&self.onclick>{ button_text }</button>
+            <div>
+                <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
+                <p>{ self.value }</p>
+            </div>
         }
     }
 }
 
 fn main() {
-    yew::start_app::<App>();
+    yew::initialize();
+    App::<Model>::new().mount_to_body();
 }
 ```
 {% endcode %}
 
-This template sets up your root `Component`, called `App` which shows a button that updates itself when you click it. Take special note of `yew::start_app::<App>()` inside `main()` which starts your app and mounts it to the page's `<body>` tag. If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props(..)`.
+This template sets up your root `Component`, called `Model` which shows a button that updates itself when you click it. Take special note of `App::<Model>::new().mount_to_body()` inside `main()` which starts your app and mounts it to the page's `<body>` tag. If you would like to start your application with any dynamic properties, you can instead use `App::<Model>::new().mount_to_body_with_props(..)`.
 
 ## Run your App!
 
