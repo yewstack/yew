@@ -413,6 +413,9 @@ mod test {
                         </ExampleContextProvider>
                         <ExampleContextProvider context=ExampleContext("wrong2".into())>
                             <ExampleContextProvider context=ExampleContext("correct".into())>
+                                <ExampleContextProvider context=ExampleContext("wrong1".into())>
+                                    <div>{"ignored"}</div>
+                                </ExampleContextProvider>
                                 <UseContextComponentInner />
                             </ExampleContextProvider>
                         </ExampleContextProvider>
