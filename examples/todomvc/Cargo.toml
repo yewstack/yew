@@ -9,7 +9,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 strum = "0.13"
-strum_macros = "0.13"
+strum_macros = "0.18"
 serde = "1"
 serde_derive = "1"
 yew = { path = "../../yew" }
