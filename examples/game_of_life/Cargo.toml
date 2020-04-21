@@ -7,7 +7,7 @@ authors = ["Diego Cardoso <dige0card0s0@hotmail.com>",
 edition = "2018"
 
 [dependencies]
-rand = "0.6.5"
+rand = "0.7.3"
 log = "0.4"
 web_logger = "0.2"
 yew = { path = "../../yew" }
