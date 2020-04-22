@@ -137,11 +137,12 @@ fn make_tag(t: Tag) -> VTag {
             el
         }
         Tag::Code => VTag::new("code"),
-        Tag::Link(ref href, ref title) => {
+        Tag::Link(_link_type, ref href, ref title) => {
             let mut el = VTag::new("a");
             el.add_attribute("href", href);
+            let title = title.clone().into_string();
             if title != "" {
-                el.add_attribute("title", title);
+                el.add_attribute("title", &title);
             }
             el
         }
