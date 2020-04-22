@@ -1,6 +1,6 @@
 /// Original author of this code is [Nathan Ringo](https://github.com/remexre)
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
-use pulldown_cmark::{Alignment, Event, Parser, Tag, Options, CodeBlockKind};
+use pulldown_cmark::{Alignment, CodeBlockKind, Event, Options, Parser, Tag};
 use yew::virtual_dom::{VNode, VTag, VText};
 use yew::{html, Html};
 
@@ -18,8 +18,8 @@ pub fn render_markdown(src: &str) -> Html {
         }};
     }
 
-   let mut options = Options::empty();
-   options.insert(Options::ENABLE_TABLES);
+    let mut options = Options::empty();
+    options.insert(Options::ENABLE_TABLES);
 
     for ev in Parser::new_ext(src, options) {
         match ev {
