@@ -5,10 +5,8 @@ authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-yew = { git = "https://github.com/yewstack/yew", branch="master" }
-yewtil = {path="../..", features=["dsl"]}
-web_logger = "0.2.0"
 log = "0.4.8"
+web_logger = "0.2.0"
+yew = { path = "../../../yew" }
+yewtil = { path = "../..", features = ["dsl"] }

@@ -1,19 +1,16 @@
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
-use yewtil::{Effect, effect};
+use yewtil::{effect, Effect};
 
 pub struct Model {
-    value: bool
+    value: bool,
 }
-
 
 impl Component for Model {
     type Message = Effect<Self>;
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model {
-            value: false
-        }
+        Model { value: false }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {

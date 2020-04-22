@@ -1,35 +1,40 @@
-use proc_macro2::{TokenStream, Ident, Span};
 use proc_macro::TokenStream as TokenStream1;
-use syn::{Visibility, Error, Field, Stmt, Block, VisPublic, Type};
-use syn::Token;
-use syn::token;
-use syn::punctuated::Punctuated;
-use syn::parse::{Parse, ParseBuffer};
-use syn::{parenthesized, braced};
-use syn::parse_macro_input;
-use syn::export::ToTokens;
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
+use syn::export::ToTokens;
+use syn::parse::{Parse, ParseBuffer};
+use syn::parse_macro_input;
+use syn::punctuated::Punctuated;
+use syn::token;
+use syn::Token;
+use syn::{braced, parenthesized};
+use syn::{Block, Error, Field, Stmt, Type, VisPublic, Visibility};
 
 pub fn function_component_handler(attr: TokenStream, item: TokenStream1) -> TokenStream1 {
     let component_name = attr.to_string();
-    assert!(!component_name.is_empty(), "you must provide a component name. eg: function_component(MyComponent)");
+    assert!(
+        !component_name.is_empty(),
+        "you must provide a component name. eg: function_component(MyComponent)"
+    );
     let component_name = Ident::new(&component_name, Span::call_site());
 
     let item_copy = item.clone();
 
     let function = parse_macro_input!(item_copy as Function);
 
-    TokenStream1::from(FunctionComponentInfo {
-        component_name,
-        function
-    }.to_token_stream())
+    TokenStream1::from(
+        FunctionComponentInfo {
+            component_name,
+            function,
+        }
+        .to_token_stream(),
+    )
 }
 
 pub struct FunctionComponentInfo {
     component_name: Ident,
-    function: Function
+    function: Function,
 }
-
 
 // TODO, support type parameters
 
@@ -42,7 +47,7 @@ pub struct Function {
     pub returns_token: Token![->],
     pub return_ty: Ident,
     pub brace_token: token::Brace,
-    pub body: Vec<Stmt>
+    pub body: Vec<Stmt>,
 }
 
 impl Parse for Function {
@@ -58,7 +63,7 @@ impl Parse for Function {
             returns_token: input.parse()?,
             return_ty: input.parse()?,
             brace_token: braced!(content2 in input),
-            body: content2.call(Block::parse_within)?
+            body: content2.call(Block::parse_within)?,
         })
     }
 }
@@ -66,9 +71,17 @@ impl Parse for Function {
 impl ToTokens for Function {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Function {
-            vis, fn_token, name, fields, returns_token, return_ty,  body, ..
+            vis,
+            fn_token,
+            name,
+            fields,
+            returns_token,
+            return_ty,
+            body,
+            ..
         } = self;
-        let fields = fields.iter()
+        let fields = fields
+            .iter()
             .map(|field: &Field| {
                 let mut new_field: Field = field.clone();
                 new_field.attrs = vec![];
@@ -87,7 +100,8 @@ impl ToTokens for Function {
 impl ToTokens for FunctionComponentInfo {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let FunctionComponentInfo {
-            component_name, function
+            component_name,
+            function,
         } = self;
         // The function tokens must be re-generated in order to strip the attributes that are not allowed.
         let function_token_stream = function.to_token_stream();
@@ -104,20 +118,25 @@ impl ToTokens for FunctionComponentInfo {
 
         // Set the fields to be public and strips references as necessary.
         // This will preserve attributes like #[props(required)], which will appear in the generated struct below.
-        let new_fields = fields.iter()
+        let new_fields = fields
+            .iter()
             .map(|field: &Field| {
                 let mut new_field: Field = field.clone();
-                let visibility = Visibility::Public(VisPublic{ pub_token: syn::token::Pub {span: Span::call_site()} });
+                let visibility = Visibility::Public(VisPublic {
+                    pub_token: syn::token::Pub {
+                        span: Span::call_site(),
+                    },
+                });
                 // Strip references so the component can have a static lifetime.
                 // TODO Handle 'static lifetimes gracefully here - allowing &'static strings instead of erroneously converting them to plain strs.
                 let ty = match &field.ty {
                     Type::Reference(x) => {
                         let elem = x.elem.clone();
-                        Type::Verbatim(quote!{
+                        Type::Verbatim(quote! {
                             #elem
                         })
                     }
-                    x => x.clone()
+                    x => x.clone(),
                 };
                 new_field.vis = visibility;
                 new_field.ty = ty;
@@ -125,15 +144,16 @@ impl ToTokens for FunctionComponentInfo {
             })
             .collect::<Punctuated<_, Token![,]>>();
 
-
-        let component_struct = quote!{
+        let component_struct = quote! {
             #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::yew::Properties)]
             #vis struct #impl_name {
                 #new_fields
             }
         };
 
-        let arguments = fields.iter().zip(new_fields.iter())
+        let arguments = fields
+            .iter()
+            .zip(new_fields.iter())
             .map(|(field, new_field): (&Field, &Field)| {
                 let field_name = field.ident.as_ref().expect("Field must have name");
 
@@ -161,8 +181,7 @@ impl ToTokens for FunctionComponentInfo {
             }
         };
 
-
-        tokens.extend(quote!{
+        tokens.extend(quote! {
             #function_token_stream
             #alias
             #component_struct

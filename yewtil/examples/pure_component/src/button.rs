@@ -1,5 +1,5 @@
 use yew::virtual_dom::VNode;
-use yew::{html, Callback, Properties, ClickEvent};
+use yew::{html, Callback, ClickEvent, Properties};
 use yewtil::{Pure, PureComponent};
 
 /// Alias to make usability better.

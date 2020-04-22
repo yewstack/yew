@@ -3,11 +3,10 @@ use crate::NeqAssign;
 use yew::{Component, ComponentLink, Html, Properties, ShouldRender};
 
 /// Allows immutable components to be declared using a single struct and a single method.
-pub trait PureComponent: Properties +  PartialEq + Sized + 'static {
+pub trait PureComponent: Properties + PartialEq + Sized + 'static {
     /// Renders self to `Html`.
     fn render(&self) -> Html;
 }
-
 
 /// Wrapper component for pure components.
 ///

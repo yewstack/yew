@@ -6,24 +6,22 @@
 //! Because this makes use of futures, enabling this feature will require the use of a
 //! web_sys compatible build environment and will prevent you from using `cargo web`.
 
-
 use crate::NeqAssign; // requires "neq" feature.
 
 mod action;
 mod error;
-mod state;
 mod request;
+mod state;
 
 pub use self::action::*;
 pub use self::error::*;
-pub use self::state::*;
 pub use self::request::*;
-use wasm_bindgen::__rt::core::marker::PhantomData;
+pub use self::state::*;
 use std::future::Future;
+use wasm_bindgen::__rt::core::marker::PhantomData;
 
 /// Indicates that a change was caused by a set function.
 pub type DidChange = bool;
-
 
 /// A fetch type that is useful for when you don't hold any request directly.
 ///
@@ -37,31 +35,25 @@ pub type AcquireFetch<T> = Fetch<(), T>;
 /// Some PUT requests are amenable to this arrangement.
 pub type ModifyFetch<T> = Fetch<T, T>;
 
-
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct Fetch<REQ, RES> {
     request: REQ,
-    response: FetchState<RES>
+    response: FetchState<RES>,
 }
 
-
-impl <REQ: PartialEq, RES> Fetch<REQ, RES> {
-
+impl<REQ: PartialEq, RES> Fetch<REQ, RES> {
     /// Sets the request without changing the variant.
     pub fn set_req(&mut self, request: REQ) -> DidChange {
         self.request.neq_assign(request)
     }
 }
 
-impl <REQ: Default, RES: PartialEq> Fetch<REQ, RES> {
-
+impl<REQ: Default, RES: PartialEq> Fetch<REQ, RES> {
     /// Sets the Fetch wrapper to indicate that a request was successfully fetched.
     pub fn set_fetched(&mut self, res: RES) -> DidChange {
         let will_change = match &self.response {
-            FetchState::Fetched(old_res) => {
-                &res == old_res
-            },
-            _ => true
+            FetchState::Fetched(old_res) => &res == old_res,
+            _ => true,
         };
 
         // TODO replace this with std::mem::take when it stabilizes.
@@ -83,20 +75,22 @@ impl <REQ: Default, RES: PartialEq> Fetch<REQ, RES> {
     }
 }
 
-impl <REQ, RES> Fetch<REQ, RES> {
+impl<REQ, RES> Fetch<REQ, RES> {
     /// Creates a new Fetch wrapper around the request.
     ///
     /// It will default the response field to be put in a NotFetching state.
     pub fn new(request: REQ) -> Self {
         Self {
             request,
-            response: Default::default()
+            response: Default::default(),
         }
     }
 
     /// Sets the response field to indicate that no fetch request is in flight.
     pub fn set_not_fetching(&mut self) -> DidChange {
-        let will_change = self.response.discriminant_differs(&FetchState::NotFetching(None));
+        let will_change = self
+            .response
+            .discriminant_differs(&FetchState::NotFetching(None));
 
         let old = std::mem::replace(&mut self.response, FetchState::default());
         let new = old.not_fetching();
@@ -107,7 +101,9 @@ impl <REQ, RES> Fetch<REQ, RES> {
 
     /// Sets the response field to indicate that a fetch request is currently being made.
     pub fn set_fetching(&mut self) -> DidChange {
-        let will_change = self.response.discriminant_differs(&FetchState::Fetching(None));
+        let will_change = self
+            .response
+            .discriminant_differs(&FetchState::Fetching(None));
 
         let old = std::mem::replace(&mut self.response, FetchState::default());
         let new = old.fetching();
@@ -119,10 +115,8 @@ impl <REQ, RES> Fetch<REQ, RES> {
     /// Sets the response field to indicate that a fetch request failed to complete.
     pub fn set_failed(&mut self, err: FetchError) -> DidChange {
         let will_change = match &self.response {
-            FetchState::Failed(_, old_err) => {
-                &err == old_err
-            }
-            _ => true
+            FetchState::Failed(_, old_err) => &err == old_err,
+            _ => true,
         };
 
         let old = std::mem::replace(&mut self.response, FetchState::default());
@@ -132,23 +126,21 @@ impl <REQ, RES> Fetch<REQ, RES> {
         will_change
     }
 
-
-
     // TODO need tests to make sure that this is ergonomic.
     /// Makes an asynchronous fetch request, which will produce a message that makes use of a
     /// `FetchAction` when it completes.
     pub fn fetch_convert<T: FetchRequest, Msg>(
         &self,
         to_request: impl Fn(&Self) -> &T,
-        to_msg: impl Fn(FetchAction<T::ResponseBody>) -> Msg
-    ) -> impl Future<Output=Msg> {
+        to_msg: impl Fn(FetchAction<T::ResponseBody>) -> Msg,
+    ) -> impl Future<Output = Msg> {
         let request: &T = to_request(self);
         let request = create_request(request);
         let req_type: PhantomData<T> = PhantomData;
         async move {
             let fetch_state = match fetch_resource(request, req_type).await {
                 Ok(response) => FetchAction::Success(response),
-                Err(err) => FetchAction::Failed(err)
+                Err(err) => FetchAction::Failed(err),
             };
 
             to_msg(fetch_state)
@@ -156,7 +148,10 @@ impl <REQ, RES> Fetch<REQ, RES> {
     }
 
     /// Transforms the type of the response held by the fetch state (if any exists).
-    pub fn map<NewRes, F: Fn(Fetch<REQ, RES>) -> Fetch<REQ, NewRes> >(self, f:F) -> Fetch<REQ, NewRes> {
+    pub fn map<NewRes, F: Fn(Fetch<REQ, RES>) -> Fetch<REQ, NewRes>>(
+        self,
+        f: F,
+    ) -> Fetch<REQ, NewRes> {
         f(self)
     }
 
@@ -202,7 +197,7 @@ impl <REQ, RES> Fetch<REQ, RES> {
 
         Fetch {
             request: &self.request,
-            response
+            response,
         }
     }
 
@@ -219,33 +214,31 @@ impl <REQ, RES> Fetch<REQ, RES> {
         };
         Fetch {
             request: &mut self.request,
-            response
+            response,
         }
     }
 }
 
-impl <REQ: FetchRequest> Fetch<REQ, REQ::ResponseBody>{
-
+impl<REQ: FetchRequest> Fetch<REQ, REQ::ResponseBody> {
     /// Makes an asynchronous fetch request, which will produce a message that makes use of a
     /// `FetchAction` when it completes.
     pub fn fetch<Msg>(
         &self,
-        to_msg: impl Fn(FetchAction<REQ::ResponseBody>) -> Msg
-    )-> impl Future<Output=Msg> {
+        to_msg: impl Fn(FetchAction<REQ::ResponseBody>) -> Msg,
+    ) -> impl Future<Output = Msg> {
         let request = self.as_ref().req();
         let request = create_request(request);
         let req_type: PhantomData<REQ> = PhantomData;
         async move {
             let fetch_state = match fetch_resource(request, req_type).await {
                 Ok(response) => FetchAction::Success(response),
-                Err(err) => FetchAction::Failed(err)
+                Err(err) => FetchAction::Failed(err),
             };
 
             to_msg(fetch_state)
         }
     }
 }
-
 
 #[cfg(test)]
 mod test {
@@ -269,7 +262,7 @@ mod test {
     fn setting_fetched_state() {
         let mut fs = Fetch {
             request: (),
-            response: FetchState::Fetching(None)
+            response: FetchState::Fetching(None),
         };
         assert!(fs.set_fetched("SomeValue".to_string()));
         assert_eq!(fs.response, FetchState::Fetched("SomeValue".to_string()));
@@ -279,7 +272,7 @@ mod test {
     fn setting_fetching_from_fetched() {
         let mut fs = Fetch {
             request: (),
-            response: FetchState::Fetched("Lorem".to_string())
+            response: FetchState::Fetched("Lorem".to_string()),
         };
         assert!(fs.set_fetching());
         assert_eq!(fs.response, FetchState::Fetching(Some("Lorem".to_string())));

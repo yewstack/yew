@@ -1,8 +1,8 @@
 use crate::Msg::SetMarkdownFetchState;
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
-use yewtil::fetch::{FetchAction, FetchRequest, MethodBody, Json, Fetch, FetchState};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yewtil::fetch::{Fetch, FetchAction, FetchRequest, FetchState, Json, MethodBody};
 use yewtil::future::ComponentLinkFuture;
 
 #[wasm_bindgen]
@@ -23,7 +23,7 @@ pub struct Employee {
     employee_name: String,
     employee_salary: String,
     employee_age: String,
-    profile_image: String
+    profile_image: String,
 }
 
 impl FetchRequest for Request {
@@ -50,7 +50,6 @@ impl FetchRequest for Request {
     }
 }
 
-
 enum Msg {
     SetMarkdownFetchState(FetchAction<Vec<Employee>>),
     GetMarkdown,
@@ -76,8 +75,10 @@ impl Component for Model {
                 true
             }
             Msg::GetMarkdown => {
-                self.link.send_future(self.markdown.fetch(Msg::SetMarkdownFetchState));
-                self.link.send_message(SetMarkdownFetchState(FetchAction::Fetching));
+                self.link
+                    .send_future(self.markdown.fetch(Msg::SetMarkdownFetchState));
+                self.link
+                    .send_message(SetMarkdownFetchState(FetchAction::Fetching));
                 false
             }
         }
@@ -115,5 +116,3 @@ fn render_employee(e: &Employee) -> Html {
         </div>
     }
 }
-
-

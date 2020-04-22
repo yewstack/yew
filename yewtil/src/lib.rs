@@ -35,7 +35,6 @@ pub use not_equal_assign::NeqAssign;
 #[cfg(feature = "pure")]
 pub use pure::{Pure, PureComponent};
 
-
 #[cfg(feature = "pure")]
 pub use yewtil_macro::function_component;
 
@@ -45,8 +44,7 @@ pub mod fetch;
 #[cfg(feature = "effect")]
 mod effect;
 #[cfg(feature = "effect")]
-pub use effect::{Effect, effect};
+pub use effect::{effect, Effect};
 
 #[cfg(feature = "future")]
 pub mod future;
-

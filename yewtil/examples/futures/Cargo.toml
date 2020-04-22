@@ -1,5 +1,5 @@
 [package]
-name = "futures"
+name = "futures-yewtil"
 version = "0.1.0"
 authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
@@ -11,9 +11,9 @@ repository = "https://github.com/yewstack/yew"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-yew = { git = "https://github.com/yewstack/yew", branch="master" }
-yewtil = {path="../.."}
 wasm-bindgen-futures = "0.4.3"
+yew = { path = "../../../yew" }
+yewtil = { path = "../.." }
 
 [dependencies.web-sys]
 version = "0.3.30"

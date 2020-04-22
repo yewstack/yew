@@ -1,16 +1,13 @@
 use yew::{html, Callback, ClickEvent, Html};
-use yewtil::{function_component};
+use yewtil::function_component;
 
 #[function_component(Button)]
 pub fn button(
-    #[props(required)]
-    callback: &Callback<ClickEvent>,
+    #[props(required)] callback: &Callback<ClickEvent>,
     text: &String,
-    _num: usize
+    _num: usize,
 ) -> Html {
     html! {
         <button onclick=callback>{ text }</button>
     }
 }
-
-

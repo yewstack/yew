@@ -1,5 +1,5 @@
-use yew::ShouldRender;
 use std::rc::Rc;
+use yew::ShouldRender;
 
 /// Alternative to using Message enums.
 ///
@@ -7,15 +7,15 @@ use std::rc::Rc;
 /// from inside `html!` macros instead of from within update functions.
 pub struct Effect<COMP>(Box<dyn Fn(&mut COMP) -> ShouldRender>);
 
-impl <COMP> Default for Effect<COMP> {
+impl<COMP> Default for Effect<COMP> {
     fn default() -> Self {
         Effect::new(|_| false)
     }
 }
 
-impl <COMP> Effect<COMP> {
+impl<COMP> Effect<COMP> {
     /// Wraps a function in an Effect wrapper.
-    pub fn new(f: impl Fn(&mut COMP)-> ShouldRender + 'static) -> Self {
+    pub fn new(f: impl Fn(&mut COMP) -> ShouldRender + 'static) -> Self {
         Effect(Box::new(f))
     }
 
@@ -26,25 +26,22 @@ impl <COMP> Effect<COMP> {
 }
 
 /// Terser wrapper function to be used instead of `Effect::new()`.
-pub fn effect<COMP>(f: impl Fn(&mut COMP) -> ShouldRender + 'static ) -> Effect<COMP>
-{
+pub fn effect<COMP>(f: impl Fn(&mut COMP) -> ShouldRender + 'static) -> Effect<COMP> {
     Effect::new(f)
 }
-
 
 #[allow(dead_code)]
 mod wip {
     use super::*;
 
-// TODO, once function_traits stabalize, this `to_effect()` will be able to be replaced with just a () call, making this more ergonomic.
-// https://github.com/rust-lang/rust/issues/29625
-// TODO, change naming of this.
+    // TODO, once function_traits stabalize, this `to_effect()` will be able to be replaced with just a () call, making this more ergonomic.
+    // https://github.com/rust-lang/rust/issues/29625
+    // TODO, change naming of this.
 
-
-// TODO. Consider an arbitrary state holder: Hashmap<&str, Box<dyn Any + 'static>. It might be possible to write a function that returns a &T, and a StateHook<COMP, T>
-// TODO for any given T that could be inserted into the holder. This might work well if the state holder itself is a component.
-// Actually, as long as order is preserved, a Vec<Box<dyn Any + 'static>>, might work just as well.
-// This would replicate the useState hook in react https://reactjs.org/docs/hooks-state.html
+    // TODO. Consider an arbitrary state holder: Hashmap<&str, Box<dyn Any + 'static>. It might be possible to write a function that returns a &T, and a StateHook<COMP, T>
+    // TODO for any given T that could be inserted into the holder. This might work well if the state holder itself is a component.
+    // Actually, as long as order is preserved, a Vec<Box<dyn Any + 'static>>, might work just as well.
+    // This would replicate the useState hook in react https://reactjs.org/docs/hooks-state.html
 
     /// Wrapper around a mutable accessor to one of the component's (or another construct capabale of storing state's) fields.
     pub struct StateHook<STORE, T>(Rc<dyn Fn(&mut STORE) -> &mut T>);

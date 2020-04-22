@@ -111,7 +111,7 @@ impl<T> Drop for Irc<T> {
     }
 }
 
-impl <T: Default> Default for Irc<T> {
+impl<T: Default> Default for Irc<T> {
     fn default() -> Self {
         Irc::new(T::default())
     }

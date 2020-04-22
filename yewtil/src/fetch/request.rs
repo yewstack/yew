@@ -1,11 +1,11 @@
-use crate::fetch::{FetchError};
-use wasm_bindgen::JsValue;
-use serde::{Serialize};
+use crate::fetch::FetchError;
 use serde::de::DeserializeOwned;
-use web_sys::{Request, RequestInit, RequestMode, Response, Window};
-use wasm_bindgen::JsCast;
-use wasm_bindgen_futures::JsFuture;
+use serde::Serialize;
 use std::marker::PhantomData;
+use wasm_bindgen::JsCast;
+use wasm_bindgen::JsValue;
+use wasm_bindgen_futures::JsFuture;
+use web_sys::{Request, RequestInit, RequestMode, Response, Window};
 
 /// An enum representing what method to use for the request,
 /// as well as a body if the method is able to have a body.
@@ -21,7 +21,7 @@ pub enum MethodBody<'a, T> {
     Patch(&'a T),
 }
 
-impl <'a, T> MethodBody<'a, T> {
+impl<'a, T> MethodBody<'a, T> {
     pub fn as_method(&self) -> &'static str {
         match self {
             MethodBody::Get => "GET",
@@ -34,23 +34,18 @@ impl <'a, T> MethodBody<'a, T> {
     }
 }
 
-impl <'a, T: Serialize> MethodBody<'a, T> {
+impl<'a, T: Serialize> MethodBody<'a, T> {
     pub fn as_body<FORMAT: Format>(&self) -> Result<Option<JsValue>, FetchError> {
         let body: Option<String> = match self {
-            MethodBody::Get
-            | MethodBody::Delete
-            | MethodBody::Head => None,
-            MethodBody::Put(data)
-            | MethodBody::Post(data)
-            | MethodBody::Patch(data) => {
+            MethodBody::Get | MethodBody::Delete | MethodBody::Head => None,
+            MethodBody::Put(data) | MethodBody::Post(data) | MethodBody::Patch(data) => {
                 let body = FORMAT::serialize(data)
                     .ok_or_else(|| FetchError::CouldNotSerializeRequestBody)?;
                 Some(body)
             }
         };
 
-        let body = body
-            .map(|data| JsValue::from_str(data.as_str()));
+        let body = body.map(|data| JsValue::from_str(data.as_str()));
         Ok(body)
     }
 }
@@ -65,7 +60,7 @@ pub trait Format {
 /// Transport data using the JSON format
 pub struct Json;
 impl Format for Json {
-//    type Transport = Text;
+    //    type Transport = Text;
 
     fn serialize<T: Serialize>(t: &T) -> Option<String> {
         serde_json::to_string(t).ok()
@@ -75,7 +70,6 @@ impl Format for Json {
         serde_json::from_str(s).ok()
     }
 }
-
 
 /// Trait used to declare how a fetch request shall be made using a type.
 ///
@@ -182,18 +176,16 @@ pub fn create_request<T: FetchRequest>(request: &T) -> Result<Request, FetchErro
     }
 
     // Create the request
-    Request::new_with_str_and_init(
-        &request.url(),
-        &opts,
-    )
+    Request::new_with_str_and_init(&request.url(), &opts)
         .map_err(|e| FetchError::CouldNotCreateRequest(e)) // TODO make this a Rust value instead.
-
 }
 
 /// Fetch a resource, returning a result of the expected response,
 /// or an error indicating what went wrong.
-pub async fn fetch_resource<T: FetchRequest>(request: Result<Request, FetchError>, _req_type: PhantomData<T>) -> Result<T::ResponseBody, FetchError> {
-
+pub async fn fetch_resource<T: FetchRequest>(
+    request: Result<Request, FetchError>,
+    _req_type: PhantomData<T>,
+) -> Result<T::ResponseBody, FetchError> {
     let request = request?;
     // Send the request, resolving it to a response.
     let window: Window = web_sys::window().unwrap();
@@ -202,7 +194,6 @@ pub async fn fetch_resource<T: FetchRequest>(request: Result<Request, FetchError
         .map_err(|_| FetchError::CouldNotCreateFetchFuture)?;
     debug_assert!(resp_value.is_instance_of::<Response>());
     let resp: Response = resp_value.dyn_into().unwrap();
-
 
     // Process the response
     let text = JsFuture::from(resp.text().map_err(|_| FetchError::TextNotAvailable)?)
@@ -213,13 +204,16 @@ pub async fn fetch_resource<T: FetchRequest>(request: Result<Request, FetchError
 
     // If the response isn't ok, then return an error without trying to deserialize.
     if !resp.ok() {
-        return Err(FetchError::ResponseError {status_code: resp.status(), response_body: text_string})
+        return Err(FetchError::ResponseError {
+            status_code: resp.status(),
+            response_body: text_string,
+        });
     }
 
-
-    let deserialized = <T::Format>::deserialize(&text_string)
-        .ok_or_else(|| {
-            FetchError::DeserializeError{error: "".to_string(), content: text_string}
+    let deserialized =
+        <T::Format>::deserialize(&text_string).ok_or_else(|| FetchError::DeserializeError {
+            error: "".to_string(),
+            content: text_string,
         })?;
 
     Ok(deserialized)

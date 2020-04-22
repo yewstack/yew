@@ -250,8 +250,7 @@ impl<T> Clone for Mrc<T> {
     }
 }
 
-
-impl <T: Default> Default for Mrc<T> {
+impl<T: Default> Default for Mrc<T> {
     fn default() -> Self {
         Mrc::new(T::default())
     }

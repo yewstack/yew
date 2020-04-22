@@ -13,9 +13,9 @@ mod takeable;
 
 #[cfg(feature = "mrc_irc")]
 pub use irc::Irc;
-#[cfg(feature = "mrc_irc")]
-pub use mrc::Mrc;
 #[cfg(feature = "lrc")]
 pub use lrc::Lrc;
+#[cfg(feature = "mrc_irc")]
+pub use mrc::Mrc;
 
 pub(crate) type IsZero = bool;
