@@ -4,6 +4,19 @@ members = [
   "yew-functional",
   "yew-macro",
 
+  # Utilities
+  "yewtil",
+  "yewtil-macro",
+  "yewtil/examples/pure_component",
+  "yewtil/examples/dsl",
+  "yewtil/examples/lrc",
+  "yewtil/examples/history",
+  "yewtil/examples/mrc_irc",
+  "yewtil/examples/effect",
+  "yewtil/examples/fetch",
+  "yewtil/examples/futures",
+  "yewtil/examples/function_component",
+
   # Examples
   "examples/counter",
   "examples/crm",

@@ -1,0 +1,17 @@
+[package]
+name = "fetch"
+version = "0.1.0"
+authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+yew = { git = "https://github.com/yewstack/yew", branch="master" }
+yewtil = {path="../..", features=["fetch"]}
+web_logger = "0.2.0"
+log = "0.4.8"
+serde = "1.0.102"
+wasm-bindgen = "0.2.51"
