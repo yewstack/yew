@@ -149,11 +149,12 @@ fn make_tag(t: Tag) -> VTag {
             }
             el
         }
-        Tag::Image(ref src, ref title) => {
+        Tag::Image(_link_type, ref src, ref title) => {
             let mut el = VTag::new("img");
             el.add_attribute("src", src);
+            let title = title.clone().into_string();
             if title != "" {
-                el.add_attribute("title", title);
+                el.add_attribute("title", &title);
             }
             el
         }
