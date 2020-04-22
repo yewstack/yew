@@ -159,5 +159,10 @@ fn make_tag(t: Tag) -> VTag {
             el
         }
         Tag::FootnoteDefinition(ref _footnote_id) => VTag::new("span"), // Footnotes are not rendered as anything special
+        Tag::Strikethrough => {
+            let mut el = VTag::new("span");
+            el.add_class("text-decoration-strikethrough");
+            el
+        }
     }
 }
