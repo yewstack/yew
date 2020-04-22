@@ -1,6 +1,6 @@
 /// Original author of this code is [Nathan Ringo](https://github.com/remexre)
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
-use pulldown_cmark::{Alignment, Event, Parser, Tag, Options};
+use pulldown_cmark::{Alignment, Event, Parser, Tag, Options, CodeBlockKind};
 use yew::virtual_dom::{VNode, VTag, VText};
 use yew::{html, Html};
 
@@ -95,19 +95,23 @@ fn make_tag(t: Tag) -> VTag {
             el.add_class("blockquote");
             el
         }
-        Tag::CodeBlock(lang) => {
+        Tag::CodeBlock(code_block_kind) => {
             let mut el = VTag::new("code");
-            // Different color schemes may be used for different code blocks,
-            // but a different library (likely js based at the moment) would be necessary to actually provide the
-            // highlighting support by locating the language classes and applying dom transforms
-            // on their contents.
-            match lang.as_ref() {
-                "html" => el.add_class("html-language"),
-                "rust" => el.add_class("rust-language"),
-                "java" => el.add_class("java-language"),
-                "c" => el.add_class("c-language"),
-                _ => {} // Add your own language highlighting support
-            };
+
+            if let CodeBlockKind::Fenced(lang) = code_block_kind {
+                // Different color schemes may be used for different code blocks,
+                // but a different library (likely js based at the moment) would be necessary to actually provide the
+                // highlighting support by locating the language classes and applying dom transforms
+                // on their contents.
+                match lang.as_ref() {
+                    "html" => el.add_class("html-language"),
+                    "rust" => el.add_class("rust-language"),
+                    "java" => el.add_class("java-language"),
+                    "c" => el.add_class("c-language"),
+                    _ => {} // Add your own language highlighting support
+                };
+            }
+
             el
         }
         Tag::List(None) => VTag::new("ul"),
