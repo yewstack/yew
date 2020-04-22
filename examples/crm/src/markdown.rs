@@ -66,6 +66,7 @@ pub fn render_markdown(src: &str) -> Html {
                 }
             }
             Event::Text(text) => add_child!(VText::new(text.to_string()).into()),
+            Event::Rule => add_child!(VTag::new("hr").into()),
             Event::SoftBreak => add_child!(VText::new("\n".to_string()).into()),
             Event::HardBreak => add_child!(VTag::new("br").into()),
             _ => println!("Unknown event: {:#?}", ev),
@@ -84,7 +85,6 @@ pub fn render_markdown(src: &str) -> Html {
 fn make_tag(t: Tag) -> VTag {
     match t {
         Tag::Paragraph => VTag::new("p"),
-        Tag::Rule => VTag::new("hr"),
         Tag::Header(n) => {
             assert!(n > 0);
             assert!(n < 7);
