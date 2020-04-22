@@ -136,7 +136,6 @@ fn make_tag(t: Tag) -> VTag {
             el.add_class("font-weight-bold");
             el
         }
-        Tag::Code => VTag::new("code"),
         Tag::Link(_link_type, ref href, ref title) => {
             let mut el = VTag::new("a");
             el.add_attribute("href", href);
