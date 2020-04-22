@@ -1,12 +1,12 @@
-# Build a Sample App
+# 第一個簡單的 App
 
-First create a new binary project:
+首先，先建立一個新的 binary 專案：
 
 ```bash
 cargo new --bin yew-app && cd yew-app
 ```
 
-Add `yew` to your dependencies \(refer [here](https://docs.rs/yew) for the latest version\)
+在依賴庫裡加入 `yew` （最新的版號，請參考[這裡](https://docs.rs/yew)）
 
 {% code title="Cargo.toml" %}
 ```text
@@ -21,7 +21,7 @@ yew = { version = "0.14.3", features = ["std_web"] }
 ```
 {% endcode %}
 
-Copy the following template into your `src/main.rs` file:
+將下面的模板複製進你的 `src/main.rs` 檔案：
 
 {% code title="src/main.rs" %}
 ```rust
@@ -70,15 +70,15 @@ fn main() {
 ```
 {% endcode %}
 
-This template sets up your root `Component`, called `Model` which shows a button that updates itself when you click it. Take special note of `App::<Model>::new().mount_to_body()` inside `main()` which starts your app and mounts it to the page's `<body>` tag. If you would like to start your application with any dynamic properties, you can instead use `App::<Model>::new().mount_to_body_with_props(..)`.
+模板會建置名叫 `Model` 的根元件 `Component`，Model 會顯示一個按鈕，當你按下按鈕時， `Model` 會更新自己的狀態。需要特別注意的是，在 `main()` 裡的 `App::<Model>::new().mount_to_body()`，他會啟動你的 app 並且掛載 `Model` 裡的 HTML 到 `<body>` 標籤中。如果你想要在啟動應用程式時，帶入動態的屬性，你可以改用 `App::<Model>::new().mount_to_body_with_props(..)`。
 
-## Run your App!
+## 執行你的 App！
 
-Using [`cargo-web`](https://github.com/koute/cargo-web) is the quickest way to get up and running. If you haven't already, install the tool with `cargo install cargo-web` and then build and start a development server by running:
+建議使用 [`cargo-web`](https://github.com/koute/cargo-web)，可以最快執行專案。請用指令 `cargo intall cargo-web` 將工具安裝起來，再使用下面的指令執行專案：
 
 ```bash
 cargo web start
 ```
 
-`cargo-web` will automatically add the `wasm32-unknown-unknown` target for you, build your app, and finally make it available at [http://\[::1\]:8000](http://[::1]:8000) by default. Consult `cargo web start --help` for other options.
+`cargo-web` 會自動將 `wasm32-unknown-unknown` 加入你專案的編譯目標平台中，協助編譯你的 app，最後預設在 [http會自己更新畫面://\[::1\]:8000](http://[::1]:8000) 啟動。詳細參數請參考 `cargo web start --help`。
 
