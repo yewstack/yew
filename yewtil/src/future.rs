@@ -32,7 +32,7 @@ impl<COMP: Component> LinkFuture for ComponentLink<COMP> {
     where
         F: Future<Output = Self::Message> + 'static,
     {
-        let mut link: ComponentLink<COMP> = self.clone();
+        let link: ComponentLink<COMP> = self.clone();
         let js_future = async move {
             let message: COMP::Message = future.await;
             link.send_message(message);
@@ -44,7 +44,7 @@ impl<COMP: Component> LinkFuture for ComponentLink<COMP> {
     where
         F: Future<Output = Vec<Self::Message>> + 'static,
     {
-        let mut link: ComponentLink<COMP> = self.clone();
+        let link: ComponentLink<COMP> = self.clone();
         let js_future = async move {
             let messages: Vec<COMP::Message> = future.await;
             link.send_message_batch(messages);

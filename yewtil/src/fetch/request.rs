@@ -177,7 +177,7 @@ pub fn create_request<T: FetchRequest>(request: &T) -> Result<Request, FetchErro
 
     // Create the request
     Request::new_with_str_and_init(&request.url(), &opts)
-        .map_err(|e| FetchError::CouldNotCreateRequest(e)) // TODO make this a Rust value instead.
+        .map_err(FetchError::CouldNotCreateRequest) // TODO make this a Rust value instead.
 }
 
 /// Fetch a resource, returning a result of the expected response,

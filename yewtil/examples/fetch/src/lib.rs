@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 use yewtil::fetch::{Fetch, FetchAction, FetchRequest, FetchState, Json, MethodBody};
-use yewtil::future::ComponentLinkFuture;
+use yewtil::future::LinkFuture;
 
 #[wasm_bindgen]
 pub fn run_app() {
@@ -82,6 +82,10 @@ impl Component for Model {
                 false
             }
         }
+    }
+
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        false
     }
 
     fn view(&self) -> Html {

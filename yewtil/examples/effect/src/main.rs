@@ -3,18 +3,23 @@ use yewtil::{effect, Effect};
 
 pub struct Model {
     value: bool,
+    link: ComponentLink<Self>,
 }
 
 impl Component for Model {
     type Message = Effect<Self>;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model { value: false }
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Model { value: false, link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         msg.call(self)
+    }
+
+    fn change(&mut self, _props: ()) -> ShouldRender {
+        false
     }
 
     fn view(&self) -> Html {
@@ -25,10 +30,10 @@ impl Component for Model {
                 </div>
                 <div>
                     <button
-                        onclick=|_| effect(|model: &mut Self| {
+                        onclick=self.link.callback(|_| effect(|model: &mut Self| {
                             model.value = !model.value;
                             true
-                        })
+                        }))
                     >
                         {"Toggle"}
                     </button>

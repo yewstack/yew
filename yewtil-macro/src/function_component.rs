@@ -17,11 +17,7 @@ pub fn function_component_handler(attr: TokenStream, item: TokenStream1) -> Toke
         "you must provide a component name. eg: function_component(MyComponent)"
     );
     let component_name = Ident::new(&component_name, Span::call_site());
-
-    let item_copy = item.clone();
-
-    let function = parse_macro_input!(item_copy as Function);
-
+    let function = parse_macro_input!(item as Function);
     TokenStream1::from(
         FunctionComponentInfo {
             component_name,
@@ -52,17 +48,24 @@ pub struct Function {
 
 impl Parse for Function {
     fn parse(input: &ParseBuffer) -> Result<Self, Error> {
+        let vis = input.parse()?;
+        let fn_token = input.parse()?;
+        let name = input.parse()?;
         let content;
+        let paren_token = parenthesized!(content in input);
+        let returns_token = input.parse()?;
+        let return_ty = input.parse()?;
         let content2;
+        let brace_token = braced!(content2 in input);
         Ok(Function {
-            vis: input.parse()?,
-            fn_token: input.parse()?,
-            name: input.parse()?,
-            paren_token: parenthesized!(content in input),
+            vis,
+            fn_token,
+            name,
+            paren_token,
             fields: content.parse_terminated(Field::parse_named)?,
-            returns_token: input.parse()?,
-            return_ty: input.parse()?,
-            brace_token: braced!(content2 in input),
+            returns_token,
+            return_ty,
+            brace_token,
             body: content2.call(Block::parse_within)?,
         })
     }

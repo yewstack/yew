@@ -1,4 +1,4 @@
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Callback, Component, ComponentLink, Html, ShouldRender};
 use yewtil::ptr::Lrc;
 
 mod child;
@@ -6,6 +6,7 @@ use crate::child::Child;
 
 pub struct Model {
     text: Lrc<String>,
+    update_text: Callback<()>,
 }
 
 pub enum Msg {
@@ -16,9 +17,10 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
             text: Lrc::new("".to_string()),
+            update_text: link.callback(|_| Msg::UpdateTextAtADistance),
         }
     }
 
@@ -26,6 +28,10 @@ impl Component for Model {
         match msg {
             Msg::UpdateTextAtADistance => self.text.update(),
         }
+    }
+
+    fn change(&mut self, _props: ()) -> ShouldRender {
+        false
     }
 
     fn view(&self) -> Html {
@@ -37,10 +43,10 @@ impl Component for Model {
                 // Either of the children's update buttons will cause this component's text
                 // to update to the most recently edited text.
                 <div>
-                    <Child text=&self.text callback = |_| Msg::UpdateTextAtADistance />
+                    <Child text=&self.text callback = &self.update_text />
                 </div>
                 <div>
-                    <Child text=&self.text callback = |_| Msg::UpdateTextAtADistance />
+                    <Child text=&self.text callback = &self.update_text />
                 </div>
             </>
         }

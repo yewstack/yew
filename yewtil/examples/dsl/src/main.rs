@@ -25,6 +25,10 @@ impl Component for Model {
         }
     }
 
+    fn change(&mut self, _props: ()) -> ShouldRender {
+        false
+    }
+
     fn view(&self) -> Html {
         BoxedVNodeProducer::from(
             list()

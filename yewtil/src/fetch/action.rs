@@ -46,9 +46,8 @@ impl<T> FetchAction<T> {
 
     /// Applies a function that mutates the response if the Action is the success case.
     pub fn alter<F: Fn(&mut T)>(&mut self, f: F) {
-        match self {
-            FetchAction::Success(t) => f(t),
-            _ => {}
+        if let FetchAction::Success(t) = self {
+            f(t)
         }
     }
 

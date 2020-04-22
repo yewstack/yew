@@ -4,29 +4,30 @@ use yew::{
 use yewtil::ptr::Lrc;
 use yewtil::NeqAssign;
 
-#[derive(PartialEq, Properties)]
+#[derive(PartialEq, Clone, Properties)]
 pub struct Props {
-    #[props(required)]
     pub text: Lrc<String>,
-    #[props(required)]
     pub callback: Callback<()>,
 }
 
 pub struct Child {
     props: Props,
+    on_input: Callback<InputData>,
 }
 
 pub enum Msg {
     UpdateText(InputData),
-    SendCallback,
 }
 
 impl Component for Child {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Child { props }
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Child {
+            props,
+            on_input: link.callback(Msg::UpdateText),
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -35,10 +36,6 @@ impl Component for Child {
                 // Only update the Lrc if the new value is different.
                 self.props.text.neq_set(input.value);
                 true
-            }
-            Msg::SendCallback => {
-                self.props.callback.emit(());
-                false
             }
         }
     }
@@ -52,10 +49,12 @@ impl Component for Child {
             <>
                 <input
                     type = "text"
-                    value = self.props.text.as_ref(),
-                    oninput = |x| Msg::UpdateText(x)
+                    value = self.props.text.as_ref()
+                    oninput = &self.on_input
                 />
-                <button onclick=|_| Msg::SendCallback >{"Update parent"} </button>
+                <button onclick=self.props.callback.reform(|_| ()) >
+                    {"Update parent"}
+                </button>
             </>
         }
     }

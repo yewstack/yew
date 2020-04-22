@@ -1,4 +1,4 @@
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Callback, Component, ComponentLink, Html, ShouldRender};
 use yewtil::ptr::Mrc;
 
 mod child;
@@ -7,6 +7,7 @@ use yewtil::NeqAssign;
 
 pub struct Model {
     text: Mrc<String>,
+    update_text: Callback<String>,
 }
 
 pub enum Msg {
@@ -17,9 +18,10 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
             text: Mrc::new("".to_string()),
+            update_text: link.callback(Msg::UpdateText),
         }
     }
 
@@ -32,6 +34,10 @@ impl Component for Model {
         }
     }
 
+    fn change(&mut self, _: ()) -> ShouldRender {
+        false
+    }
+
     fn view(&self) -> Html {
         html! {
             <>
@@ -42,7 +48,7 @@ impl Component for Model {
                     // By passing an `Irc`, we strongly imply that the value should not be updated
                     // by the child. An effort to modify the value downstream is easily identified
                     // as subverting the contract implied by using `Irc`s.
-                    <Child text=&self.text.irc() callback = Msg::UpdateText />
+                    <Child text=&self.text.irc() callback=&self.update_text />
                 </div>
             </>
         }

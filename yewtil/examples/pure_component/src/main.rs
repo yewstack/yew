@@ -28,6 +28,10 @@ impl Component for Model {
         }
     }
 
+    fn change(&mut self, _props: ()) -> ShouldRender {
+        false
+    }
+
     fn view(&self) -> Html {
         html! {
             <Button callback=self.link.callback(|_| Msg::DoIt) text = "Click me!" />

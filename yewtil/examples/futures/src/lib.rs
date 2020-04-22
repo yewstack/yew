@@ -5,7 +5,7 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response, Window};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
-use yewtil::future::ComponentLinkFuture;
+use yewtil::future::LinkFuture;
 
 /// Something wrong has occurred while fetching an external resource.
 #[derive(Debug, Clone, PartialEq)]
@@ -99,6 +99,10 @@ impl Component for Model {
                 false
             }
         }
+    }
+
+    fn change(&mut self, _props: ()) -> ShouldRender {
+        false
     }
 
     fn view(&self) -> Html {

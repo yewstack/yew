@@ -1,8 +1,9 @@
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, InputData, ShouldRender};
 use yewtil::History;
 
 pub struct Model {
     text: History<String>,
+    link: ComponentLink<Self>,
 }
 
 pub enum Msg {
@@ -15,9 +16,10 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
             text: History::new("".to_string()),
+            link,
         }
     }
 
@@ -32,6 +34,10 @@ impl Component for Model {
         }
     }
 
+    fn change(&mut self, _props: ()) -> ShouldRender {
+        false
+    }
+
     fn view(&self) -> Html {
         html! {
             <>
@@ -41,11 +47,11 @@ impl Component for Model {
                 <div>
                     <input
                         type = "text"
-                        value = &*self.text,
-                        oninput = |x| Msg::SetText(x.value)
+                        value = &*self.text
+                        oninput = self.link.callback(|x: InputData| Msg::SetText(x.value))
                     />
-                    <button onclick=|_| Msg::Reset >{"Reset to the oldest value"} </button>
-                    <button onclick=|_| Msg::Forget>{"Forget prior values"} </button>
+                    <button onclick=self.link.callback(|_| Msg::Reset)>{"Reset to the oldest value"} </button>
+                    <button onclick=self.link.callback(|_| Msg::Forget)>{"Forget prior values"} </button>
                 </div>
             </>
         }

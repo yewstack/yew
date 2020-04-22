@@ -56,8 +56,7 @@ impl<REQ: Default, RES: PartialEq> Fetch<REQ, RES> {
             _ => true,
         };
 
-        // TODO replace this with std::mem::take when it stabilizes.
-        let old = std::mem::replace(&mut self.response, FetchState::default());
+        let old = std::mem::take(&mut self.response);
         let new = old.fetched(res);
         std::mem::replace(&mut self.response, new);
 
@@ -92,7 +91,7 @@ impl<REQ, RES> Fetch<REQ, RES> {
             .response
             .discriminant_differs(&FetchState::NotFetching(None));
 
-        let old = std::mem::replace(&mut self.response, FetchState::default());
+        let old = std::mem::take(&mut self.response);
         let new = old.not_fetching();
         std::mem::replace(&mut self.response, new);
 
@@ -105,7 +104,7 @@ impl<REQ, RES> Fetch<REQ, RES> {
             .response
             .discriminant_differs(&FetchState::Fetching(None));
 
-        let old = std::mem::replace(&mut self.response, FetchState::default());
+        let old = std::mem::take(&mut self.response);
         let new = old.fetching();
         std::mem::replace(&mut self.response, new);
 
@@ -119,7 +118,7 @@ impl<REQ, RES> Fetch<REQ, RES> {
             _ => true,
         };
 
-        let old = std::mem::replace(&mut self.response, FetchState::default());
+        let old = std::mem::take(&mut self.response);
         let new = old.failed(err);
         std::mem::replace(&mut self.response, new);
 

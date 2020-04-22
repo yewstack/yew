@@ -42,10 +42,10 @@ fn change(&mut self, props: Self::Properties) -> ShouldRender {
 ```rust
 pub type Button = Pure<PureButton>;
 
-#[derive(PartialEq, Properties)]
+#[derive(PartialEq, Clone, Properties)]
 pub struct PureButton {
-    #[props(required)]
     pub callback: Callback<Msg>,
+    #[prop_or_default]
     pub text: String,
 }
 

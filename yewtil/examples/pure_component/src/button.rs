@@ -1,14 +1,14 @@
 use yew::virtual_dom::VNode;
-use yew::{html, Callback, ClickEvent, Properties};
+use yew::{html, Callback, MouseEvent, Properties};
 use yewtil::{Pure, PureComponent};
 
 /// Alias to make usability better.
 pub type Button = Pure<PureButton>;
 
-#[derive(PartialEq, Properties)]
+#[derive(Clone, PartialEq, Properties)]
 pub struct PureButton {
-    #[props(required)]
-    pub callback: Callback<ClickEvent>,
+    pub callback: Callback<MouseEvent>,
+    #[prop_or_default]
     pub text: String,
 }
 
