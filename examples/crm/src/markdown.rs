@@ -1,6 +1,6 @@
 /// Original author of this code is [Nathan Ringo](https://github.com/remexre)
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
-use pulldown_cmark::{Alignment, Event, Parser, Tag, OPTION_ENABLE_TABLES};
+use pulldown_cmark::{Alignment, Event, Parser, Tag, Options};
 use yew::virtual_dom::{VNode, VTag, VText};
 use yew::{html, Html};
 
@@ -18,7 +18,10 @@ pub fn render_markdown(src: &str) -> Html {
         }};
     }
 
-    for ev in Parser::new_ext(src, OPTION_ENABLE_TABLES) {
+   let mut options = Options::empty();
+   options.insert(Options::ENABLE_TABLES);
+
+    for ev in Parser::new_ext(src, options) {
         match ev {
             Event::Start(tag) => {
                 spine.push(make_tag(tag));
