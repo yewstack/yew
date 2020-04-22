@@ -85,7 +85,7 @@ pub fn render_markdown(src: &str) -> Html {
 fn make_tag(t: Tag) -> VTag {
     match t {
         Tag::Paragraph => VTag::new("p"),
-        Tag::Header(n) => {
+        Tag::Heading(n) => {
             assert!(n > 0);
             assert!(n < 7);
             VTag::new(format!("h{}", n))
