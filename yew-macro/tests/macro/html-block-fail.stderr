@@ -9,6 +9,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
   = note: required by `std::convert::From::from`
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-block-fail.rs:12:16
@@ -21,6 +22,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
    = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
    = note: required by `std::convert::From::from`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-block-fail.rs:15:17
@@ -33,3 +35,4 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
    = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

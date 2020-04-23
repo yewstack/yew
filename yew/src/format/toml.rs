@@ -1,7 +1,5 @@
 //! Contains an implementation of TOML serialization format.
 
-use toml;
-
 /// A representation of a TOML data. Use it as wrapper to
 /// set a format you want to use for conversion:
 ///
