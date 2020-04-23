@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Yew Router Guide</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" name="viewport" />
+        <script>
+          var Module = {};
+          var __cargo_web = {};
+          Object.defineProperty( Module, 'canvas', {
+            get: function() {
+              if( __cargo_web.canvas ) {
+                return __cargo_web.canvas;
+              }
+              var canvas = document.createElement( 'canvas' );
+              document.querySelector( 'body' ).appendChild( canvas );
+              __cargo_web.canvas = canvas;
+              return canvas;
+            }
+          });
+        </script>
+    </head>
+    <body style="margin: 0; padding: 0; height: 100vh; overflow: hidden">
+        <script>Module = {};</script> <!--This is required to avoid a runtime error at startup-->
+        <script src="/guide.js"></script>
+    </body>
+
+</html>

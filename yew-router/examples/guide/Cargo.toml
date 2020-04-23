@@ -1,0 +1,11 @@
+[package]
+name = "guide"
+version = "0.1.0"
+authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+yew = { path = "../../../yew" }
+yew-router = {path = "../../" }
+log = "0.4.8"
+pulldown-cmark = "0.6.1"
