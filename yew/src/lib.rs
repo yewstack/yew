@@ -124,11 +124,11 @@ pub mod virtual_dom;
 pub mod dev;
 
 #[cfg(feature = "dev")]
-
-thread_local!(
+thread_local! {
     /// A global debugger object.
-    pub static DEBUGGER_CONNECTION: std::rc::Rc<dev::DebuggerConnection> 
-    = std::rc::Rc::new(dev::DebuggerConnection::new()));
+    pub static DEBUGGER_CONNECTION: std::rc::Rc<dev::DebuggerConnection>
+    = std::rc::Rc::new(dev::DebuggerConnection::new());
+}
 
 #[cfg(feature = "agent")]
 pub mod agent;

@@ -4,6 +4,7 @@
 
 use serde::Serialize;
 use serde_json;
+use std::future::Future;
 
 #[cfg(feature = "web_sys")]
 use web_sys;
@@ -16,7 +17,7 @@ use stdweb;
 pub mod messages;
 
 /// Stores a connection to the DevTools server.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DebuggerConnection {
     #[cfg(feature = "web_sys")]
     ws: web_sys::WebSocket,
@@ -81,7 +82,7 @@ impl DebuggerConnection {
                 Ok(s) => s,
                 Err(_) => {
                     web_sys::console::error_1(&"Error: could not open a connection to the DevTools WebSocket. Are you sure the DevTools backend is running?".into());
-                    panic!("");
+                    panic!("Could not open a connection to the DevTools WebSocket.");
                 }
             },
             #[cfg(feature = "std_web")]
@@ -89,9 +90,35 @@ impl DebuggerConnection {
                 Ok(s) => s,
                 Err(_) => {
                     stdweb::console!(error, "Error: could not open a connection to the DevTools WebSocket. Are you sure the DevTools backend is running?");
-                    panic!("")
+                    panic!("Could not open a connection to the DevTools WebSocket.")
                 }
             },
+        }
+    }
+}
+
+/// Stores the state of the debugger.
+#[derive(Debug)]
+pub enum DebuggerState {
+    /// The debugger is connected
+    Connected,
+    /// The debugger has disconnected
+    Closed,
+}
+use std::{
+    pin::Pin,
+    task::{Context, Poll},
+};
+
+impl Future for &DebuggerConnection {
+    type Output = DebuggerState;
+    fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
+        match self.ws.ready_state() {
+            0 => Poll::Pending,
+            1 => Poll::Ready(DebuggerState::Connected),
+            2 => Poll::Pending,
+            3 => Poll::Ready(DebuggerState::Closed),
+            _ => Poll::Pending,
         }
     }
 }
@@ -102,7 +129,9 @@ impl<T: Serialize> Debugger<T> for DebuggerConnection {
             if #[cfg(feature="web_sys")] {
                 match self.ws.send_with_str(&serde_json::to_string(&message).unwrap()) {
                     Ok(_) => {}
-                    Err(e) => println!("Error sending debug message: {:?}", e),
+                    Err(e) => {
+                        web_sys::console::log_1(&format!("Encountered an error `{:?}` when trying to send data to the DevTools extension.", e).into());
+                    },
                 };
             }
             else {
@@ -119,11 +148,11 @@ impl<T: Serialize> Debugger<T> for DebuggerConnection {
 pub mod tests {
     use cfg_if::cfg_if;
     use cfg_match::cfg_match;
-    use wasm_bindgen_test::*;
     use wasm_bindgen::prelude::*;
+    use wasm_bindgen_test::*;
     #[cfg(feature = "wasm_test")]
     #[wasm_bindgen_test]
-    fn test_websocket_logging() {
+    async fn test_websocket_logging() {
         use crate::html::{Component, ComponentLink, Html};
         cfg_if! {
             if #[cfg(feature="std_web")] {
@@ -143,7 +172,7 @@ pub mod tests {
         impl Component for TestDebugComponent {
             type Message = ();
             type Properties = ();
-            fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+            fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
                 Self {}
             }
             fn change(&mut self, _props: Self::Properties) -> bool {
@@ -161,32 +190,16 @@ pub mod tests {
                 )
             }
         }
+
         let test_debug_app: crate::App<TestDebugComponent> = crate::App::new();
+        crate::DEBUGGER_CONNECTION
+            .with(|debugger| debugger.clone())
+            .as_ref()
+            .await;
         test_debug_app.mount(
             crate::utils::document()
                 .get_element_by_id("output")
                 .unwrap(),
         );
-        #[cfg(feature="web_sys")]
-        let onmessage_callback = Closure::wrap(Box::new(move |e: MessageEvent| {
-            let response = e
-                .data()
-                .as_string();
-            match response {
-                Some(text) => {
-                    web_sys::console::log_1(&text.into());
-                },
-                None => {
-
-                }
-            };
-        }) as Box<dyn FnMut(MessageEvent)>);
-        #[cfg(feature="web_sys")]
-        crate::DEBUGGER_CONNECTION.with(|d| {
-            d.ws.set_onmessage(Some(onmessage_callback.as_ref().unchecked_ref()));
-        });
-        #[cfg(feature="web_sys")]
-        onmessage_callback.forget();
     }
-
 }
