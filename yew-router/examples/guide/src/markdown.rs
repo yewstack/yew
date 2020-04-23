@@ -1,8 +1,11 @@
 /// Original author of this code is [Nathan Ringo](https://github.com/remexre)
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
-use pulldown_cmark::{Alignment, CodeBlockKind, Event, Options, Parser, Tag};
-use yew::virtual_dom::{VNode, VTag, VText};
-use yew::{html, Html};
+use pulldown_cmark::{Alignment, Event, Options, Parser, Tag};
+use yew::{
+    html,
+    virtual_dom::{VNode, VTag, VText},
+    Html,
+};
 
 /// Renders a string of Markdown to HTML with the default options (footnotes
 /// disabled, tables enabled).
@@ -18,8 +21,7 @@ pub fn render_markdown(src: &str) -> Html {
         }};
     }
 
-    let mut options = Options::empty();
-    options.insert(Options::ENABLE_TABLES);
+    let options = Options::ENABLE_TABLES;
 
     for ev in Parser::new_ext(src, options) {
         match ev {
@@ -37,9 +39,9 @@ pub fn render_markdown(src: &str) -> Html {
                     top = pre;
                 } else if let Tag::Table(aligns) = tag {
                     for r in top.children.iter_mut() {
-                        if let VNode::VTag(ref mut vtag) = r {
+                        if let VNode::VTag(ref mut vtag) = *r {
                             for (i, c) in vtag.children.iter_mut().enumerate() {
-                                if let VNode::VTag(ref mut vtag) = c {
+                                if let VNode::VTag(ref mut vtag) = *c {
                                     match aligns[i] {
                                         Alignment::None => {}
                                         Alignment::Left => vtag.add_class("text-left"),
@@ -52,7 +54,7 @@ pub fn render_markdown(src: &str) -> Html {
                     }
                 } else if let Tag::TableHead = tag {
                     for c in top.children.iter_mut() {
-                        if let VNode::VTag(ref mut vtag) = c {
+                        if let VNode::VTag(ref mut vtag) = *c {
                             // TODO
                             //                            vtag.tag = "th".into();
                             vtag.add_attribute("scope", &"col");
@@ -66,9 +68,13 @@ pub fn render_markdown(src: &str) -> Html {
                 }
             }
             Event::Text(text) => add_child!(VText::new(text.to_string()).into()),
-            Event::Rule => add_child!(VTag::new("hr").into()),
             Event::SoftBreak => add_child!(VText::new("\n".to_string()).into()),
             Event::HardBreak => add_child!(VTag::new("br").into()),
+            Event::Code(code) => {
+                let mut c = VTag::new("code");
+                c.add_child(VText::new(code.to_string()).into());
+                add_child!(c.into());
+            }
             _ => println!("Unknown event: {:#?}", ev),
         }
     }
@@ -85,33 +91,24 @@ pub fn render_markdown(src: &str) -> Html {
 fn make_tag(t: Tag) -> VTag {
     match t {
         Tag::Paragraph => VTag::new("p"),
-        Tag::Heading(n) => {
-            assert!(n > 0);
-            assert!(n < 7);
-            VTag::new(format!("h{}", n))
-        }
         Tag::BlockQuote => {
             let mut el = VTag::new("blockquote");
             el.add_class("blockquote");
             el
         }
-        Tag::CodeBlock(code_block_kind) => {
+        Tag::CodeBlock(lang) => {
             let mut el = VTag::new("code");
-
-            if let CodeBlockKind::Fenced(lang) = code_block_kind {
-                // Different color schemes may be used for different code blocks,
-                // but a different library (likely js based at the moment) would be necessary to actually provide the
-                // highlighting support by locating the language classes and applying dom transforms
-                // on their contents.
-                match lang.as_ref() {
-                    "html" => el.add_class("html-language"),
-                    "rust" => el.add_class("rust-language"),
-                    "java" => el.add_class("java-language"),
-                    "c" => el.add_class("c-language"),
-                    _ => {} // Add your own language highlighting support
-                };
-            }
-
+            // Different color schemes may be used for different code blocks,
+            // but a different library (likely js based at the moment) would be necessary to
+            // actually provide the highlighting support by locating the language
+            // classes and applying dom transforms on their contents.
+            match lang.as_ref() {
+                "html" => el.add_class("html-language"),
+                "rust" => el.add_class("rust-language"),
+                "java" => el.add_class("java-language"),
+                "c" => el.add_class("c-language"),
+                _ => {} // Add your own language highlighting support
+            };
             el
         }
         Tag::List(None) => VTag::new("ul"),
@@ -127,7 +124,7 @@ fn make_tag(t: Tag) -> VTag {
             el.add_class("table");
             el
         }
-        Tag::TableHead => VTag::new("th"),
+        Tag::TableHead => VTag::new("tr"),
         Tag::TableRow => VTag::new("tr"),
         Tag::TableCell => VTag::new("td"),
         Tag::Emphasis => {
@@ -140,29 +137,29 @@ fn make_tag(t: Tag) -> VTag {
             el.add_class("font-weight-bold");
             el
         }
-        Tag::Link(_link_type, ref href, ref title) => {
+        Tag::Link(_lt, ref href, ref title) => {
             let mut el = VTag::new("a");
             el.add_attribute("href", href);
-            let title = title.clone().into_string();
-            if title != "" {
-                el.add_attribute("title", &title);
+            if title.as_ref() != "" {
+                el.add_attribute("title", title);
             }
             el
         }
-        Tag::Image(_link_type, ref src, ref title) => {
+        Tag::Image(_lt, ref src, ref title) => {
             let mut el = VTag::new("img");
             el.add_attribute("src", src);
-            let title = title.clone().into_string();
-            if title != "" {
-                el.add_attribute("title", &title);
+            if title.as_ref() != "" {
+                el.add_attribute("title", title);
             }
             el
         }
-        Tag::FootnoteDefinition(ref _footnote_id) => VTag::new("span"), // Footnotes are not rendered as anything special
-        Tag::Strikethrough => {
-            let mut el = VTag::new("span");
-            el.add_class("text-decoration-strikethrough");
-            el
+
+        Tag::FootnoteDefinition(ref _footnote_id) => VTag::new("span"),
+        Tag::Strikethrough => VTag::new("strike"),
+        Tag::Heading(n) => {
+            assert!(n > 0);
+            assert!(n < 7);
+            VTag::new(format!("h{}", n))
         }
     }
 }

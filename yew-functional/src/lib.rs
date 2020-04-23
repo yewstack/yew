@@ -58,7 +58,7 @@ where
     fn change(&mut self, props: Self::Properties) -> bool {
         let mut props = props;
         std::mem::swap(&mut self.props, &mut props);
-        props == self.props
+        props != self.props
     }
 
     //noinspection DuplicatedCode
