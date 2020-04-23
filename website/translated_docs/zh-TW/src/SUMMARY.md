@@ -10,10 +10,10 @@
   * [使用 cargo-web](getting-started/project-setup/using-cargo-web.md)
 * [初始模板](getting-started/starter-templates.md)
 * [第一個簡單的 App](getting-started/build-a-sample-app.md)
-* [Choose web-sys or stdweb](getting-started/choose-web-library.md)
+* [選擇 web-sys 或 stdweb](getting-started/choose-web-library.md)
 * [Learn through examples](getting-started/examples.md)
 
-## Core Concepts <a id="concepts"></a>
+## 核心觀念 <a id="concepts"></a>
 
 * [Using html!](concepts/html/README.md)
   * [Lists](concepts/html/lists.md)
