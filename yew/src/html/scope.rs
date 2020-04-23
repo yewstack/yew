@@ -181,7 +181,7 @@ impl<COMP: Component> Scope<COMP> {
     }
 
     /// Send a message to the component
-    pub fn send_message<T>(&self, msg: T)
+    pub fn queue_message<T>(&self, msg: T)
     where
         T: Into<COMP::Message>,
     {
@@ -190,7 +190,7 @@ impl<COMP: Component> Scope<COMP> {
     }
 
     /// Send a batch of messages to the component
-    pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
+    pub fn queue_message_batch(&self, messages: Vec<COMP::Message>) {
         self.update(ComponentUpdate::MessageBatch(messages));
         self.rendered(false);
     }
@@ -205,7 +205,7 @@ impl<COMP: Component> Scope<COMP> {
         let scope = self.clone();
         let closure = move |input| {
             let output = function(input);
-            scope.send_message(output);
+            scope.queue_message(output);
         };
         closure.into()
     }
@@ -234,7 +234,7 @@ impl<COMP: Component> Scope<COMP> {
         let scope = self.clone();
         let closure = move |input| {
             let messages = function(input);
-            scope.send_message_batch(messages);
+            scope.queue_message_batch(messages);
         };
         closure.into()
     }

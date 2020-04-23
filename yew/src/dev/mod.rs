@@ -4,12 +4,9 @@
 
 use serde::Serialize;
 use serde_json;
-use std::future::Future;
 
 #[cfg(feature = "web_sys")]
 use web_sys;
-
-use cfg_if::cfg_if;
 
 #[cfg(feature = "std_web")]
 use stdweb;
@@ -23,6 +20,7 @@ pub struct DebuggerConnection {
     ws: web_sys::WebSocket,
     #[cfg(feature = "std_web")]
     ws: stdweb::web::WebSocket,
+    message_queue: Vec<String>
 }
 
 /// A debugger is capable of sending messages over a WebSocket connection.
@@ -30,8 +28,15 @@ pub trait Debugger<T>
 where
     T: Serialize,
 {
-    /// Sends a message over websockets.
-    fn send_message(&self, message: T);
+    /// Queue a message to be sent.
+    fn queue_message(&mut self, message: T);
+
+}
+
+impl<T: Serialize> Debugger<T> for DebuggerConnection {
+    fn queue_message(&mut self, message: T) {
+        self.message_queue.push(serde_json::to_string(&message).unwrap());
+    }
 }
 
 impl DebuggerConnection {
@@ -93,113 +98,40 @@ impl DebuggerConnection {
                     panic!("Could not open a connection to the DevTools WebSocket.")
                 }
             },
-        }
-    }
-}
-
-/// Stores the state of the debugger.
-#[derive(Debug)]
-pub enum DebuggerState {
-    /// The debugger is connected
-    Connected,
-    /// The debugger has disconnected
-    Closed,
-}
-use std::{
-    pin::Pin,
-    task::{Context, Poll},
-};
-
-impl Future for &DebuggerConnection {
-    type Output = DebuggerState;
-    fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
-        match self.ws.ready_state() {
-            0 => Poll::Pending,
-            1 => Poll::Ready(DebuggerState::Connected),
-            2 => Poll::Pending,
-            3 => Poll::Ready(DebuggerState::Closed),
-            _ => Poll::Pending,
-        }
-    }
-}
-
-impl<T: Serialize> Debugger<T> for DebuggerConnection {
-    fn send_message(&self, message: T) {
-        cfg_if! {
-            if #[cfg(feature="web_sys")] {
-                match self.ws.send_with_str(&serde_json::to_string(&message).unwrap()) {
-                    Ok(_) => {}
-                    Err(e) => {
-                        web_sys::console::log_1(&format!("Encountered an error `{:?}` when trying to send data to the DevTools extension.", e).into());
-                    },
-                };
-            }
-            else {
-                match self.ws.send_text(&serde_json::to_string(&message).unwrap()) {
-                    Ok(_) => {},
-                    Err(e) => println!("Error sending debug message: {:?}", e)
-                };
-            }
+            message_queue: Vec::new()
         }
     }
 }
 
 #[cfg(test)]
 pub mod tests {
-    use cfg_if::cfg_if;
-    use cfg_match::cfg_match;
-    use wasm_bindgen::prelude::*;
     use wasm_bindgen_test::*;
-    #[cfg(feature = "wasm_test")]
     #[wasm_bindgen_test]
-    async fn test_websocket_logging() {
-        use crate::html::{Component, ComponentLink, Html};
-        cfg_if! {
-            if #[cfg(feature="std_web")] {
-                use stdweb::traits::IMessageEvent;
-                use stdweb::web::event::SocketMessageEvent;
-            } else if #[cfg(feature="web_sys")] {
-                use gloo::events::EventListener;
-                use web_sys::{Event, MessageEvent};
-                use wasm_bindgen::JsCast;
-            }
-        }
-
-        wasm_bindgen_test_configure!(run_in_browser);
-
-        struct TestDebugComponent {}
-
-        impl Component for TestDebugComponent {
+    fn test_message_queuing() {
+        struct TestComponent {}
+        impl crate::Component for TestComponent {
             type Message = ();
             type Properties = ();
-            fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+            fn create(_: Self::Properties, _l: crate::ComponentLink<Self>) -> Self {
                 Self {}
             }
             fn change(&mut self, _props: Self::Properties) -> bool {
-                unimplemented!()
+                false
             }
             fn update(&mut self, _: Self::Message) -> bool {
                 false
             }
-            fn view(&self) -> Html {
+            fn view(&self) -> crate::Html {
                 html!(
-                    <>
                     <h1>{"Hello World!"}</h1>
-                    <p>{"HELLO WORLD2"}</p>
-                    </>
                 )
             }
         }
-
-        let test_debug_app: crate::App<TestDebugComponent> = crate::App::new();
-        crate::DEBUGGER_CONNECTION
-            .with(|debugger| debugger.clone())
-            .as_ref()
-            .await;
-        test_debug_app.mount(
-            crate::utils::document()
-                .get_element_by_id("output")
-                .unwrap(),
-        );
+        let app: crate::App<TestComponent> = crate::App::new();
+        app.mount(crate::utils::document().get_element_by_id("output").unwrap());
+        crate::DEBUGGER_CONNECTION.with(|debugger| {
+            // should have been created and mounted only
+            assert_eq!(debugger.borrow().message_queue.len(), 2)
+        });
     }
 }

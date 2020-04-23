@@ -126,8 +126,8 @@ pub mod dev;
 #[cfg(feature = "dev")]
 thread_local! {
     /// A global debugger object.
-    pub static DEBUGGER_CONNECTION: std::rc::Rc<dev::DebuggerConnection>
-    = std::rc::Rc::new(dev::DebuggerConnection::new());
+    pub static DEBUGGER_CONNECTION: std::cell::RefCell<dev::DebuggerConnection>
+    = std::cell::RefCell::new(dev::DebuggerConnection::new());
 }
 
 #[cfg(feature = "agent")]
