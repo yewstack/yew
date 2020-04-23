@@ -1,6 +1,6 @@
-# Learn through examples
+# 透過範例學習
 
-The Yew repository is chock-full of examples \(in various states of maintenance\). We recommend perusing them to get a feel for how to use different framework features. We also welcome pull-requests and issues for when they inevitably get neglected and need some ♥️
+我們有各種範例（都持續在維護中），建議你可以仔細閱讀他們，以了解如何使用各種不同的框架功能。當遇到問題或需要幫忙時，我們也很歡迎大家 pull-requests 或開 issues ♥️
 
 * [**Todo App \(stdweb\)**](https://github.com/yewstack/yew/tree/v0.14.0/examples/std_web/todomvc)
 * [**Todo App \(web\_sys\)**](https://github.com/yewstack/yew/tree/v0.14.0/examples/web_sys/todomvc)
