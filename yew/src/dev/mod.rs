@@ -20,22 +20,41 @@ pub struct DebuggerConnection {
     ws: web_sys::WebSocket,
     #[cfg(feature = "std_web")]
     ws: stdweb::web::WebSocket,
-    message_queue: Vec<String>
+    message_queue: Vec<String>,
 }
 
 /// A debugger is capable of sending messages over a WebSocket connection.
-pub trait Debugger<T>
+pub trait DebuggerMessageQueue<T>
 where
     T: Serialize,
 {
-    /// Queue a message to be sent.
+    /// Adds a message to the message queue.
     fn queue_message(&mut self, message: T);
-
 }
 
-impl<T: Serialize> Debugger<T> for DebuggerConnection {
+/// Sends messages. 
+pub trait DebuggerMessageSend {
+    /// Send all the messages in the queue.
+    fn send_messages(&mut self);
+}
+
+impl<T: Serialize> DebuggerMessageQueue<T> for DebuggerConnection {
     fn queue_message(&mut self, message: T) {
-        self.message_queue.push(serde_json::to_string(&message).unwrap());
+        self.message_queue
+            .push(serde_json::to_string(&message).unwrap());
+    }
+}
+
+impl DebuggerMessageSend for DebuggerConnection {
+    fn send_messages(&mut self) {
+        for _ in 1..self.message_queue.len() {
+            match self.ws.send_with_str(self.message_queue.first().unwrap()) {
+                Ok(_) => {
+                    self.message_queue.pop();
+                }
+                Err(_) => {}
+            }
+        }
     }
 }
 
@@ -98,13 +117,14 @@ impl DebuggerConnection {
                     panic!("Could not open a connection to the DevTools WebSocket.")
                 }
             },
-            message_queue: Vec::new()
+            message_queue: Vec::new(),
         }
     }
 }
 
 #[cfg(test)]
 pub mod tests {
+    use crate::dev::{DebuggerMessageQueue, DebuggerMessageSend};
     use wasm_bindgen_test::*;
     #[wasm_bindgen_test]
     fn test_message_queuing() {
@@ -128,10 +148,15 @@ pub mod tests {
             }
         }
         let app: crate::App<TestComponent> = crate::App::new();
-        app.mount(crate::utils::document().get_element_by_id("output").unwrap());
+        app.mount(
+            crate::utils::document()
+                .get_element_by_id("output")
+                .unwrap(),
+        );
         crate::DEBUGGER_CONNECTION.with(|debugger| {
             // should have been created and mounted only
-            assert_eq!(debugger.borrow().message_queue.len(), 2)
+            assert_eq!(debugger.borrow().message_queue.len(), 2);
+            debugger.borrow_mut().send_messages();
         });
     }
 }

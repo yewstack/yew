@@ -19,7 +19,7 @@ cfg_if! {
 #[cfg(feature = "dev")]
 use crate::dev::{
     messages::{ComponentEvent, DebugComponent},
-    Debugger,
+    DebuggerMessageQueue,
 };
 
 /// Updates for a `Component` instance. Used by scope sender.

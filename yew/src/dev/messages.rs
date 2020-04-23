@@ -92,7 +92,7 @@ impl ComponentMessage {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use cfg_if::cfg_if;
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::*;
