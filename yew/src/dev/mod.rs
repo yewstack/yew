@@ -156,7 +156,9 @@ pub mod tests {
         crate::DEBUGGER_CONNECTION.with(|debugger| {
             // should have been created and mounted only
             assert_eq!(debugger.borrow().message_queue.len(), 2);
-            debugger.borrow_mut().send_messages();
+            let mut borrowed = debugger.borrow_mut();
+            borrowed.send_messages();
+            assert_eq!(borrowed.message_queue.len(), 0);
         });
     }
 }
