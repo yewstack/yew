@@ -1,22 +1,22 @@
-# Choose web-sys or stdweb
+# 選擇 web-sys 或 stdweb
 
-## Introduction
+## 簡介
 
-Yew apps can be built with either [`web-sys`](https://docs.rs/web-sys) or [`stdweb`](https://docs.rs/stdweb). These two crates provide the bindings between Rust and Web APIs. You'll need to choose one or the other when adding `yew` to your cargo dependencies:
+Yew apps 可以用 `web-sys` 或 `stdweb` 編譯。這兩個 creates 都提供了 Rust 與 WebAPIs 的連結。當把 `yew` 加進你的依賴時，請擇其一使用：
 
 {% code title="Cargo.toml" %}
 ```rust
-# Choose `web-sys`
+# 選擇 `web-sys`
 yew = { version = "0.13", features = ["web_sys"] }
 
-# Choose `stdweb`
+# 選擇 `stdweb`
 yew = { version = "0.13", features = ["std_web"] }
 ```
 {% endcode %}
 
-We recommend using `web-sys` due to its support from the [Rust / Wasm Working Group](https://rustwasm.github.io/).
+我們建議使用 `web-sys`，因為他是由 [Rust / Wasm Working Group](https://rustwasm.github.io/) 維護。
 
-## Example Usage
+## 使用範例
 
 ```rust
 // web-sys
@@ -37,32 +37,32 @@ let window = Window::try_from(window_val).expect("conversion to window failed");
 window.alert("hello from wasm!");
 ```
 
-The APIs for the two crates differ slightly but they serve roughly the same purpose with similar functionality.
+兩個 crates 提供的 APIs 雖然不一樣，但是他們的目標與功能大致相同。
 
-## Choosing One
+## 比較
 
-There are a few different angles to consider when choosing between using `web-sys` and `stdweb` for your app. Note, it's possible to use both in one app, but to minimize the binary size of your compiled `.wasm` it's best to choose one or the other.
+以下列出幾點，幫助你從不同的角度去考慮要使用 `web-sys` 還是 `stdweb`。請注意，雖然你可以兩個 crates 都使用，但是為了減少編譯成 `.wasm` 的檔案大小，最好還是只選一個使用。
 
 |  | `web-sys` | `stdweb` |
 | :--- | :--- | :--- |
 
 
-| Project Status | Actively maintained by the [Rust / Wasm Working Group](https://rustwasm.github.io/) | No Github activity for over 4 months |
+| 專案狀態 | 由 [Rust / Wasm Working Group](https://rustwasm.github.io/) 持續維護中 | GitHub repo 已經有四個月沒有動靜了 |
 | :--- | :--- | :--- |
 
 
-| Web API Coverage | Rust APIs are auto-generated from the Web IDL spec and so should have 100% coverage. | Browser APIs are added as needed by the community |
+| Web API 覆蓋率 | Rust APIs 是由 Web IDL 自動產生，所以應該已經有 100% 的覆蓋率 | 依社群所需加入 Browser APIs  |
 | :--- | :--- | :--- |
 
 
-| Rust API Design | Takes conservative approach by returning `Result` for most API calls | Often avoids `Result` in favor of panics. For instance, `stdweb::web::window()` will panic when called in a worker. |
+| Rust API 設計 | 使用保守的方式，大多的 API 呼叫後會返回 `Result` | 通常比起使用 `Result` 更傾向於直接造成 panic。例如，在 worker 中呼叫 `stdweb::web::window()` 的話就會 panic。 |
 | :--- | :--- | :--- |
 
 
 <table>
   <thead>
     <tr>
-      <th style="text-align:left">Supported Build Tools</th>
+      <th style="text-align:left">&#x652F;&#x63F4;&#x7684;&#x5EFA;&#x7F6E;&#x5DE5;&#x5177;</th>
       <th style="text-align:left">
         <ul>
           <li><code>wasm-bindgen</code>
@@ -87,7 +87,7 @@ There are a few different angles to consider when choosing between using `web-sy
 </table><table>
   <thead>
     <tr>
-      <th style="text-align:left">Supported Targets</th>
+      <th style="text-align:left">&#x652F;&#x63F4;&#x7684;&#x76EE;&#x6A19;&#x5E73;&#x53F0;</th>
       <th style="text-align:left">
         <ul>
           <li><code>wasm32-unknown-unknown</code>
