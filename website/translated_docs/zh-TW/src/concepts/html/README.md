@@ -2,7 +2,7 @@
 description: The procedural macro for generating HTML and SVG
 ---
 
-# Using html!
+# 使用 html!
 
 The `html!` macro allows you to write declarative HTML and SVG for your components. If you've used React's JSX it will feel quite familiar.
 

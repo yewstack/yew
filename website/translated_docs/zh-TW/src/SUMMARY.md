@@ -15,7 +15,7 @@
 
 ## 核心觀念 <a id="concepts"></a>
 
-* [Using html!](concepts/html/README.md)
+* [使用 html!](concepts/html/README.md)
   * [Lists](concepts/html/lists.md)
   * [Elements](concepts/html/elements.md)
   * [Literals & Expressions](concepts/html/literals-and-expressions.md)
