@@ -1,0 +1,8 @@
+[package]
+name = "switch"
+version = "0.1.0"
+authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+yew-router = { path = "../..", default-features = false, features = ["web_sys"] }

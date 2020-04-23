@@ -1,0 +1,13 @@
+[package]
+name = "router_component"
+version = "0.1.0"
+authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
+
+edition="2018"
+
+[dependencies]
+yew = { path = "../../../yew" }
+yew-router = {path = "../.." }
+web_logger = "0.2"
+log = "0.4.8"
+wee_alloc = "0.4.5"

@@ -1,0 +1,5 @@
+# Reference: https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+
+yew-router/ @hgzimmerman
+yew-router-macro/ @hgzimmerman
+yew-router-route-parser/ @hgzimmerman
