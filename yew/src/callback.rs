@@ -2,6 +2,7 @@
 
 use std::fmt;
 use std::rc::Rc;
+use std::cell::RefCell;
 
 /// Universal callback wrapper.
 /// <aside class="warning">
@@ -10,36 +11,61 @@ use std::rc::Rc;
 /// Callbacks should be used from JS callbacks or `setTimeout` calls.
 /// </aside>
 /// `Rc` wrapper used to make it clonable.
-pub struct Callback<IN>(Rc<dyn Fn(IN)>);
+
+pub enum Callback<IN> {
+    /// A callback that can be called multiple times
+    Callback(Rc<dyn Fn(IN)>),
+    /// A callback that will only be called once. Panics if it is called again
+    CallbackOnce(Rc<RefCell<Option<Box<dyn FnOnce(IN)>>>>),
+}
 
 impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
     fn from(func: F) -> Self {
-        Callback(Rc::new(func))
+        Callback::Callback(Rc::new(func))
     }
 }
 
 impl<IN> Clone for Callback<IN> {
     fn clone(&self) -> Self {
-        Callback(self.0.clone())
+        match self {
+            Callback::Callback(cb) => Callback::Callback(cb.clone()),
+            Callback::CallbackOnce(cb) => Callback::CallbackOnce(cb.clone()),
+        }
     }
 }
 
 impl<IN> PartialEq for Callback<IN> {
     fn eq(&self, other: &Callback<IN>) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
+        match (&self, &other) {
+            (Callback::Callback(cb), Callback::Callback(other_cb)) => Rc::ptr_eq(cb, other_cb),
+            (Callback::CallbackOnce(cb), Callback::CallbackOnce(other_cb)) => Rc::ptr_eq(cb, other_cb),
+            _ => false,
+        }
     }
 }
 
 impl<IN> fmt::Debug for Callback<IN> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("Callback<_>")
+        let data = match self {
+            Callback::Callback(_) => "Callback<_>",
+            Callback::CallbackOnce(_) => "CallbackOnce<_>",
+        };
+
+        f.write_str(data)
     }
 }
 
 impl<IN> Callback<IN> {
     /// This method calls the actual callback.
     pub fn emit(&self, value: IN) {
-        (self.0)(value);
+        match self {
+            Callback::Callback(cb) => cb(value),
+            Callback::CallbackOnce(rc) => {
+                let cb = rc.replace(None);
+                let f = cb.expect("callback in CallbackOnce has already been used");
+                f(value)
+            },
+        };
     }
 
     /// Creates a no-op callback which can be used when it is not suitable to use an
