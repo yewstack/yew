@@ -75,7 +75,7 @@ impl<IN> Callback<IN> {
     /// the callback is only called once otherwise it will panic.
     pub fn callback_once<F>(func: F) -> Self
     where
-        F: FnOnce(IN) + 'static
+        F: FnOnce(IN) + 'static,
     {
         Callback::CallbackOnce(Rc::new(RefCell::new(Some(Box::new(func)))))
     }
