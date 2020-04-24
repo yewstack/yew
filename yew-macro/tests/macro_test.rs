@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-#[rustversion::attr(stable(1.42), test)]
+#[rustversion::attr(stable(1.43), test)]
 fn tests() {
     let t = trybuild::TestCases::new();
 
