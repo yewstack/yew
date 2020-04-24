@@ -13,3 +13,6 @@ pulldown-cmark = { version = "0.7.0", default-features = false }
 [features]
 std_web = ["yew/std_web"]
 web_sys = ["yew/web_sys"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
