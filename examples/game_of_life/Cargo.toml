@@ -15,3 +15,6 @@ yew = { path = "../../yew" }
 [features]
 std_web = ["rand/stdweb", "yew/std_web"]
 web_sys = ["rand/wasm-bindgen", "yew/web_sys"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
