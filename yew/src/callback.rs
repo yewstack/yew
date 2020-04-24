@@ -11,13 +11,14 @@ use std::rc::Rc;
 /// Callbacks should be used from JS callbacks or `setTimeout` calls.
 /// </aside>
 /// `Rc` wrapper used to make it clonable.
-
 pub enum Callback<IN> {
     /// A callback that can be called multiple times
     Callback(Rc<dyn Fn(IN)>),
     /// A callback that will only be called once. Panics if it is called again
-    CallbackOnce(Rc<RefCell<Option<Box<dyn FnOnce(IN)>>>>),
+    CallbackOnce(Rc<CallbackOnce<IN>>),
 }
+
+type CallbackOnce<IN> = RefCell<Option<Box<dyn FnOnce(IN)>>>;
 
 impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
     fn from(func: F) -> Self {
