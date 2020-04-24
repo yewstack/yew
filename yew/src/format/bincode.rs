@@ -1,7 +1,5 @@
 //! Contains an implementation of Bincode serialization format.
 
-use bincode;
-
 /// A representation of a Bincode data. Use it as wrapper to
 /// set a format you want to use for conversion:
 ///
