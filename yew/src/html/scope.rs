@@ -119,7 +119,7 @@ impl<COMP: Component> Scope<COMP> {
         self.update(ComponentUpdate::MessageBatch(messages));
     }
 
-    /// This method creates a `Callback` which will send a message to the linked component's
+    /// Creates a `Callback` which will send a message to the linked component's
     /// update method when invoked.
     pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
@@ -134,8 +134,23 @@ impl<COMP: Component> Scope<COMP> {
         closure.into()
     }
 
-    /// This method creates a `Callback` which will send a batch of messages back to the linked
-    /// component's update method when called.
+    /// Creates a `Callback` from a FnOnce which will send a message to the linked
+    /// component's update method when invoked.
+    pub fn callback_once<F, IN, M>(&self, function: F) -> Callback<IN>
+    where
+        M: Into<COMP::Message>,
+        F: FnOnce(IN) -> M + 'static,
+    {
+        let scope = self.clone();
+        let closure = move |input| {
+            let output = function(input);
+            scope.send_message(output);
+        };
+        Callback::callback_once(closure)
+    }
+
+    /// Creates a `Callback` which will send a batch of messages back to the linked
+    /// component's update method when invoked.
     pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> Vec<COMP::Message> + 'static,
