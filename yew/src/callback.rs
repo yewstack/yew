@@ -1,8 +1,8 @@
-//! This module contains structs to interact with `Scope`s.
+//! This module contains data types for interacting with `Scope`s.
 
+use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
-use std::cell::RefCell;
 
 /// Universal callback wrapper.
 /// <aside class="warning">
@@ -38,7 +38,9 @@ impl<IN> PartialEq for Callback<IN> {
     fn eq(&self, other: &Callback<IN>) -> bool {
         match (&self, &other) {
             (Callback::Callback(cb), Callback::Callback(other_cb)) => Rc::ptr_eq(cb, other_cb),
-            (Callback::CallbackOnce(cb), Callback::CallbackOnce(other_cb)) => Rc::ptr_eq(cb, other_cb),
+            (Callback::CallbackOnce(cb), Callback::CallbackOnce(other_cb)) => {
+                Rc::ptr_eq(cb, other_cb)
+            }
             _ => false,
         }
     }
@@ -64,7 +66,7 @@ impl<IN> Callback<IN> {
                 let cb = rc.replace(None);
                 let f = cb.expect("callback in CallbackOnce has already been used");
                 f(value)
-            },
+            }
         };
     }
 
