@@ -146,7 +146,7 @@ impl<COMP: Component> Scope<COMP> {
             let output = function(input);
             scope.send_message(output);
         };
-        Callback::callback_once(closure)
+        Callback::once(closure)
     }
 
     /// Creates a `Callback` which will send a batch of messages back to the linked

@@ -73,7 +73,7 @@ impl<IN> Callback<IN> {
 
     /// Creates a callback from a FnOnce. You are responsible for ensuring
     /// the callback is only called once otherwise it will panic.
-    pub fn callback_once<F>(func: F) -> Self
+    pub fn once<F>(func: F) -> Self
     where
         F: FnOnce(IN) + 'static,
     {
