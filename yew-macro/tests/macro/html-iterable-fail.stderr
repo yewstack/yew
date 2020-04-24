@@ -3,6 +3,8 @@ error: expected expression after `for`
   |
 4 |     html! { for };
   |             ^^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` is not an iterator
  --> $DIR/html-iterable-fail.rs:5:17
@@ -12,6 +14,7 @@ error[E0277]: `()` is not an iterator
   |
   = help: the trait `std::iter::Iterator` is not implemented for `()`
   = note: required by `std::iter::IntoIterator::into_iter`
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` is not an iterator
  --> $DIR/html-iterable-fail.rs:6:17
@@ -21,6 +24,7 @@ error[E0277]: `()` is not an iterator
   |
   = help: the trait `std::iter::Iterator` is not implemented for `()`
   = note: required by `std::iter::IntoIterator::into_iter`
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
  --> $DIR/html-iterable-fail.rs:7:17
@@ -33,6 +37,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-iterable-fail.rs:10:17
@@ -45,6 +50,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
    = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-iterable-fail.rs:13:17
@@ -58,3 +64,4 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::string::ToString` for `&()`
    = note: required because of the requirements on the impl of `std::convert::From<&()>` for `yew::virtual_dom::vnode::VNode`
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `&()`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

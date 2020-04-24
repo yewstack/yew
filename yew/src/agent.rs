@@ -3,7 +3,6 @@
 use crate::callback::Callback;
 use crate::scheduler::{scheduler, Runnable, Shared};
 use anymap::{self, AnyMap};
-use bincode;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;
