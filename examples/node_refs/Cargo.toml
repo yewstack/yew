@@ -1,0 +1,12 @@
+[package]
+name = "node_refs"
+version = "0.1.0"
+authors = ["Justin Starry <justin.starry@icloud.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+yew = { path = "../../yew" }
+web-sys = { version = "0.3", features = ["HtmlElement", "HtmlInputElement", "Node"] }

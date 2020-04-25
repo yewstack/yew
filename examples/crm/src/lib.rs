@@ -10,7 +10,7 @@ use yew::services::storage::Area;
 use yew::services::{DialogService, StorageService};
 use yew::{html, Component, ComponentLink, Html, InputData, Renderable, ShouldRender};
 
-const KEY: &'static str = "yew.crm.database";
+const KEY: &str = "yew.crm.database";
 
 #[derive(Serialize, Deserialize)]
 struct Database {

@@ -36,6 +36,6 @@ install:
   - ./ci/install_cargo_web.sh
 
 script:
-  - ./ci/run_checks.sh
+  - ./ci/run_stable_checks.sh
   - GECKODRIVER=$(pwd)/geckodriver ./ci/run_tests.sh
-  - ./ci/check_examples.sh
+  - ./ci/run_emscripten_checks.sh

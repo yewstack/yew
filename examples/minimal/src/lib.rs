@@ -16,6 +16,10 @@ impl Component for Model {
         Model { link }
     }
 
+    fn change(&mut self, _: Self::Properties) -> bool {
+        false
+    }
+
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Click => {}

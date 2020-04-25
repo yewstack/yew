@@ -5,4 +5,4 @@ authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-tungstenite = "0.5.2"
+tungstenite = "0.10.1"

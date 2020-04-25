@@ -5,8 +5,11 @@ authors = ["qthree <qthree3@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-yew = { path = "../.." }
+yew = { path = "../../yew" }
 
 [features]
 std_web = ["yew/std_web"]
 web_sys = ["yew/web_sys"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]

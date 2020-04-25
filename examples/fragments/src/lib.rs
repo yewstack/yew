@@ -23,11 +23,11 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::More => {
-                self.counter = self.counter + 1;
+                self.counter += 1;
             }
             Msg::Less => {
                 if self.counter > 0 {
-                    self.counter = self.counter - 1;
+                    self.counter -= 1;
                 }
             }
         }

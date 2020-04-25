@@ -7,8 +7,11 @@ edition = "2018"
 [dependencies]
 log = "0.4"
 web_logger = "0.2"
-yew = { path = "../.." }
+yew = { path = "../../yew" }
 
 [features]
 std_web = ["yew/std_web"]
 web_sys = ["yew/web_sys"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]

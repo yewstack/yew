@@ -11,7 +11,8 @@ repository = "https://github.com/yewstack/yew"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-yew = { path = "../.." }
+yew = { path = "../../yew" }
+wasm-bindgen = "0.2.60"
 wasm-bindgen-futures = "0.4.3"
 
 [dependencies.web-sys]
@@ -24,10 +25,3 @@ features = [
   'Response',
   'Window',
 ]
-
-[target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
-wasm-bindgen = "0.2.60"
-
-[features]
-std_web = ["yew/std_web"]
-web_sys = ["yew/web_sys"]

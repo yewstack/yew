@@ -1,3 +1,3 @@
 fn main() {
-    yew::start_app::<event_bus::Model>();
+    yew::start_app::<pub_sub::Model>();
 }
