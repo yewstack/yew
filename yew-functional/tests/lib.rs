@@ -181,9 +181,16 @@ fn use_effect_destroys_on_component_drop() {
         type TProps = DestroyCalledProps;
 
         fn run(props: &Self::TProps) -> Html {
-            let (should_rerender, set_rerender) = use_state(|| true);
-            if *should_rerender {
-                set_rerender(false);
+            let (show, set_show) = use_state(|| true);
+            use_effect_with_deps(
+                move |_| {
+                    set_show(false);
+                    || {}
+                },
+                (),
+            );
+
+            if *show {
                 return html! {
                     <UseEffectComponent destroy_called=props.destroy_called.clone() />
                 };
@@ -196,11 +203,11 @@ fn use_effect_destroys_on_component_drop() {
     }
     let app: App<UseEffectWrapperComponent> = yew::App::new();
     let destroy_counter = Rc::new(std::cell::RefCell::new(0));
-    let destroy_country_c = destroy_counter.clone();
+    let destroy_counter_c = destroy_counter.clone();
     app.mount_with_props(
         yew::utils::document().get_element_by_id("output").unwrap(),
         DestroyCalledProps {
-            destroy_called: Rc::new(move || *destroy_country_c.borrow_mut().deref_mut() += 1),
+            destroy_called: Rc::new(move || *destroy_counter_c.borrow_mut().deref_mut() += 1),
         },
     );
     assert_eq!(1, *destroy_counter.borrow().deref());

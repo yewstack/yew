@@ -1,5 +1,5 @@
 use super::*;
-use crate::scheduler::{scheduler, Runnable, Shared};
+use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use cfg_if::cfg_if;
 use std::cell::RefCell;
@@ -73,22 +73,15 @@ impl<COMP: Component> Scope<COMP> {
         };
         *scope.shared_state.borrow_mut() = ComponentState::Ready(ready_state);
         scope.create();
-        scope.mounted();
         scope
-    }
-
-    /// Schedules a task to call the mounted method on a component and optionally re-render
-    pub(crate) fn mounted(&mut self) {
-        let shared_state = self.shared_state.clone();
-        let mounted = MountedComponent { shared_state };
-        scheduler().push_mount(Box::new(mounted));
     }
 
     /// Schedules a task to create and render a component and then mount it to the DOM
     pub(crate) fn create(&mut self) {
         let shared_state = self.shared_state.clone();
         let create = CreateComponent { shared_state };
-        scheduler().push_create(Box::new(create));
+        scheduler().push_comp(ComponentRunnableType::Create, Box::new(create));
+        self.rendered(true);
     }
 
     /// Schedules a task to send a message or new props to a component
@@ -97,14 +90,25 @@ impl<COMP: Component> Scope<COMP> {
             shared_state: self.shared_state.clone(),
             update,
         };
-        scheduler().push(Box::new(update));
+        scheduler().push_comp(ComponentRunnableType::Update, Box::new(update));
+        self.rendered(false);
+    }
+
+    /// Schedules a task to call the rendered method on a component
+    pub(crate) fn rendered(&self, first_render: bool) {
+        let shared_state = self.shared_state.clone();
+        let rendered = RenderedComponent {
+            shared_state,
+            first_render,
+        };
+        scheduler().push_comp(ComponentRunnableType::Rendered, Box::new(rendered));
     }
 
     /// Schedules a task to destroy a component
     pub(crate) fn destroy(&mut self) {
         let shared_state = self.shared_state.clone();
         let destroy = DestroyComponent { shared_state };
-        scheduler().push(Box::new(destroy));
+        scheduler().push_comp(ComponentRunnableType::Destroy, Box::new(destroy));
     }
 
     /// Send a message to the component
@@ -113,10 +117,13 @@ impl<COMP: Component> Scope<COMP> {
         T: Into<COMP::Message>,
     {
         self.update(ComponentUpdate::Message(msg.into()));
+        self.rendered(false);
     }
+
     /// Send a batch of messages to the component
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
         self.update(ComponentUpdate::MessageBatch(messages));
+        self.rendered(false);
     }
 
     /// Creates a `Callback` which will send a message to the linked component's
@@ -196,6 +203,7 @@ struct ReadyState<COMP: Component> {
 impl<COMP: Component> ReadyState<COMP> {
     fn create(self) -> CreatedState<COMP> {
         CreatedState {
+            rendered: false,
             component: COMP::create(self.props, self.scope),
             element: self.element,
             last_frame: self.ancestor,
@@ -205,6 +213,7 @@ impl<COMP: Component> ReadyState<COMP> {
 }
 
 struct CreatedState<COMP: Component> {
+    rendered: bool,
     element: Element,
     component: COMP,
     last_frame: Option<VNode>,
@@ -212,13 +221,11 @@ struct CreatedState<COMP: Component> {
 }
 
 impl<COMP: Component> CreatedState<COMP> {
-    /// Called once immediately after the component is created.
-    fn mounted(mut self) -> Self {
-        if self.component.mounted() {
-            self.update()
-        } else {
-            self
-        }
+    /// Called after a component and all of its children have been rendered.
+    fn rendered(mut self, first_render: bool) -> Self {
+        self.rendered = true;
+        self.component.rendered(first_render);
+        self
     }
 
     fn update(mut self) -> Self {
@@ -237,22 +244,25 @@ impl<COMP: Component> CreatedState<COMP> {
     }
 }
 
-struct MountedComponent<COMP>
+struct RenderedComponent<COMP>
 where
     COMP: Component,
 {
     shared_state: Shared<ComponentState<COMP>>,
+    first_render: bool,
 }
 
-impl<COMP> Runnable for MountedComponent<COMP>
+impl<COMP> Runnable for RenderedComponent<COMP>
 where
     COMP: Component,
 {
     fn run(self: Box<Self>) {
         let current_state = self.shared_state.replace(ComponentState::Processing);
         self.shared_state.replace(match current_state {
-            ComponentState::Created(state) => ComponentState::Created(state.mounted()),
-            ComponentState::Destroyed => current_state,
+            ComponentState::Created(s) if !s.rendered => {
+                ComponentState::Created(s.rendered(self.first_render))
+            }
+            ComponentState::Destroyed | ComponentState::Created(_) => current_state,
             ComponentState::Empty | ComponentState::Processing | ComponentState::Ready(_) => {
                 panic!("unexpected component state: {}", current_state);
             }
@@ -274,7 +284,7 @@ where
     fn run(self: Box<Self>) {
         let current_state = self.shared_state.replace(ComponentState::Processing);
         self.shared_state.replace(match current_state {
-            ComponentState::Ready(state) => ComponentState::Created(state.create().update()),
+            ComponentState::Ready(s) => ComponentState::Created(s.create().update()),
             ComponentState::Created(_) | ComponentState::Destroyed => current_state,
             ComponentState::Empty | ComponentState::Processing => {
                 panic!("unexpected component state: {}", current_state);
@@ -341,7 +351,12 @@ where
                         this.component.change(props)
                     }
                 };
-                let next_state = if should_update { this.update() } else { this };
+                let next_state = if should_update {
+                    this.rendered = false;
+                    this.update()
+                } else {
+                    this
+                };
                 ComponentState::Created(next_state)
             }
             ComponentState::Destroyed => current_state,
