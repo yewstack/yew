@@ -5,8 +5,8 @@ use yew_router::{agent::RouteRequest, prelude::*};
 pub struct BModel {
     props: Props,
     router: Box<dyn Bridge<RouteAgent>>,
-    increment: Callback<MouseEvent>,
-    decrement: Callback<MouseEvent>,
+    increment: Callback<ClickEvent>,
+    decrement: Callback<ClickEvent>,
     update_subpath: Callback<InputData>,
 }
 

@@ -7,8 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-yew = { path = "../../../yew" }
-yew-router = { path = "../.." }
+yew = { path = "../../../yew", features = ["std_web", "services"], default-features = false }
+yew-router = { path = "../..", features = ["std_web", "core"], default-features = false }
 web_logger = "0.2"
 log = "0.4.8"
 wee_alloc = "0.4.5"
