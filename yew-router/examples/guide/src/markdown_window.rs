@@ -41,10 +41,6 @@ impl Component for MarkdownWindow {
         }
     }
 
-    fn mounted(&mut self) -> ShouldRender {
-        false
-    }
-
     fn update(&mut self, msg: Self::Message) -> bool {
         match msg {
             Msg::MarkdownArrived(md) => {

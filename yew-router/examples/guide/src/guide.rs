@@ -34,18 +34,21 @@ impl Component for Guide {
         }
     }
 
-    fn mounted(&mut self) -> ShouldRender {
+    fn rendered(&mut self, _first_render: bool) {
         self.router_agent.send(GetCurrentRoute);
-        false
     }
 
     fn update(&mut self, msg: Self::Message) -> bool {
         match msg {
             Msg::UpdateRoute(route) => {
-                self.route = Some(route);
+                let new_route = Some(route);
+                if self.route != new_route {
+                    self.route = new_route;
+                    return true;
+                }
             }
         }
-        true
+        false
     }
 
     fn change(&mut self, _: Self::Properties) -> bool {

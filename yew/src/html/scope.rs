@@ -174,7 +174,7 @@ impl<COMP: Component> Scope<COMP> {
 enum ComponentState<COMP: Component> {
     Empty,
     Ready(ReadyState<COMP>),
-    Created((bool, CreatedState<COMP>)),
+    Created(CreatedState<COMP>),
     Processing,
     Destroyed,
 }
@@ -203,6 +203,7 @@ struct ReadyState<COMP: Component> {
 impl<COMP: Component> ReadyState<COMP> {
     fn create(self) -> CreatedState<COMP> {
         CreatedState {
+            rendered: false,
             component: COMP::create(self.props, self.scope),
             element: self.element,
             last_frame: self.ancestor,
@@ -212,6 +213,7 @@ impl<COMP: Component> ReadyState<COMP> {
 }
 
 struct CreatedState<COMP: Component> {
+    rendered: bool,
     element: Element,
     component: COMP,
     last_frame: Option<VNode>,
@@ -221,6 +223,7 @@ struct CreatedState<COMP: Component> {
 impl<COMP: Component> CreatedState<COMP> {
     /// Called after a component and all of its children have been rendered.
     fn rendered(mut self, first_render: bool) -> Self {
+        self.rendered = true;
         self.component.rendered(first_render);
         self
     }
@@ -256,14 +259,10 @@ where
     fn run(self: Box<Self>) {
         let current_state = self.shared_state.replace(ComponentState::Processing);
         self.shared_state.replace(match current_state {
-            ComponentState::Created((needs_render, state)) => {
-                if needs_render {
-                    ComponentState::Created((false, state.rendered(self.first_render)))
-                } else {
-                    ComponentState::Created((needs_render, state))
-                }
+            ComponentState::Created(s) if !s.rendered => {
+                ComponentState::Created(s.rendered(self.first_render))
             }
-            ComponentState::Destroyed => current_state,
+            ComponentState::Destroyed | ComponentState::Created(_) => current_state,
             ComponentState::Empty | ComponentState::Processing | ComponentState::Ready(_) => {
                 panic!("unexpected component state: {}", current_state);
             }
@@ -285,9 +284,7 @@ where
     fn run(self: Box<Self>) {
         let current_state = self.shared_state.replace(ComponentState::Processing);
         self.shared_state.replace(match current_state {
-            ComponentState::Ready(state) => {
-                ComponentState::Created((true, state.create().update()))
-            }
+            ComponentState::Ready(s) => ComponentState::Created(s.create().update()),
             ComponentState::Created(_) | ComponentState::Destroyed => current_state,
             ComponentState::Empty | ComponentState::Processing => {
                 panic!("unexpected component state: {}", current_state);
@@ -309,7 +306,7 @@ where
 {
     fn run(self: Box<Self>) {
         match self.shared_state.replace(ComponentState::Destroyed) {
-            ComponentState::Created((_, mut this)) => {
+            ComponentState::Created(mut this) => {
                 this.component.destroy();
                 if let Some(last_frame) = &mut this.last_frame {
                     last_frame.detach(&this.element);
@@ -341,7 +338,7 @@ where
     fn run(self: Box<Self>) {
         let current_state = self.shared_state.replace(ComponentState::Processing);
         self.shared_state.replace(match current_state {
-            ComponentState::Created((needs_render, mut this)) => {
+            ComponentState::Created(mut this) => {
                 let should_update = match self.update {
                     ComponentUpdate::Message(message) => this.component.update(message),
                     ComponentUpdate::MessageBatch(messages) => messages
@@ -354,8 +351,13 @@ where
                         this.component.change(props)
                     }
                 };
-                let next_state = if should_update { this.update() } else { this };
-                ComponentState::Created((!needs_render && !should_update, next_state))
+                let next_state = if should_update {
+                    this.rendered = false;
+                    this.update()
+                } else {
+                    this
+                };
+                ComponentState::Created(next_state)
             }
             ComponentState::Destroyed => current_state,
             ComponentState::Processing | ComponentState::Ready(_) | ComponentState::Empty => {
