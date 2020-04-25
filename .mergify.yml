@@ -1,0 +1,29 @@
+pull_request_rules:
+  - name: automatic merge on CI success - admin
+    conditions:
+      - author=@yewstack/maintainers
+      - status-success=Travis CI - Pull Request
+      - label=automerge
+    actions:
+      merge:
+        method: rebase
+  - name: automatic merge on CI success - reviewed
+    conditions:
+      - "#approved-reviews-by>=1"
+      - status-success=Travis CI - Pull Request
+    actions:
+      merge:
+        method: rebase
+  - name: remove automerge label on CI failure
+    conditions:
+      - status-failure=Travis CI - Pull Request
+      - label=automerge
+    actions:
+      label:
+        remove:
+          - automerge
+  - name: remove outdated reviews
+    conditions:
+      - base=master
+    actions:
+      dismiss_reviews: {}
