@@ -185,9 +185,8 @@ where
         }
     }
 
-    fn mounted(&mut self) -> ShouldRender {
+    fn rendered(&mut self, _first_render: bool) {
         self.router_agent.send(RouteRequest::GetCurrentRoute);
-        false
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
