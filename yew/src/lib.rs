@@ -103,7 +103,6 @@ pub mod macros {
 
 pub mod app;
 pub mod callback;
-pub mod components;
 pub mod format;
 pub mod html;
 mod scheduler;

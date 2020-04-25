@@ -28,23 +28,15 @@
 //! fn view(link: ComponentLink<Model>) -> Html {
 //!     let scenes = vec![Scene::First, Scene::Second];
 //!     html! {
-//!         <Select<Scene> options=scenes onchange=link.callback(|_| ()) />
+//!         <Select<Scene> options=scenes on_change=link.callback(|_| ()) />
 //!     }
 //! }
 //! ```
 
-use crate::callback::Callback;
-use crate::html::{ChangeData, Component, ComponentLink, Html, NodeRef, ShouldRender};
-use crate::macros::{html, Properties};
-use cfg_if::cfg_if;
-use cfg_match::cfg_match;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::html_element::SelectElement;
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::HtmlSelectElement as SelectElement;
-    }
-}
+use web_sys::HtmlSelectElement;
+use yew::callback::Callback;
+use yew::html::{ChangeData, Component, ComponentLink, Html, NodeRef, ShouldRender};
+use yew::macros::{html, Properties};
 
 /// `Select` component.
 #[derive(Debug)]
@@ -74,7 +66,7 @@ pub struct Props<T: Clone> {
     #[prop_or_default]
     pub options: Vec<T>,
     /// Callback to handle changes.
-    pub onchange: Callback<T>,
+    pub on_change: Callback<T>,
 }
 
 impl<T> Component for Select<T>
@@ -96,9 +88,9 @@ where
         match msg {
             Msg::Selected(value) => {
                 if let Some(idx) = value {
-                    let item = self.props.options.get(idx - 1).cloned();
+                    let item = self.props.options.get(idx - 1);
                     if let Some(value) = item {
-                        self.props.onchange.emit(value);
+                        self.props.on_change.emit(value.clone());
                     }
                 }
             }
@@ -108,16 +100,13 @@ where
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         if self.props.selected != props.selected {
-            if let Some(select) = self.select_ref.cast::<SelectElement>() {
+            if let Some(select) = self.select_ref.cast::<HtmlSelectElement>() {
                 let val = props
                     .selected
                     .as_ref()
                     .map(|v| v.to_string())
                     .unwrap_or_default();
-                cfg_match! {
-                    feature = "std_web" => select.set_raw_value(&val),
-                    feature = "web_sys" => select.set_value(&val),
-                }
+                select.set_value(&val);
             }
         }
         self.props = props;
@@ -134,7 +123,7 @@ where
         };
 
         html! {
-            <select ref=self.select_ref.clone() disabled=self.props.disabled onchange=self.onchange()>
+            <select ref=self.select_ref.clone() disabled=self.props.disabled onchange=self.on_change()>
                 <option value="" disabled=true selected=selected.is_none()>
                     { "↪" }
                 </option>
@@ -148,19 +137,13 @@ impl<T> Select<T>
 where
     T: ToString + PartialEq + Clone + 'static,
 {
-    fn onchange(&self) -> Callback<ChangeData> {
+    fn on_change(&self) -> Callback<ChangeData> {
         self.link.callback(|event| match event {
             ChangeData::Select(elem) => {
                 let value = elem.selected_index();
-                let value = cfg_match! {
-                    feature = "std_web" => value.map(|x| x as usize),
-                    feature = "web_sys" => Some(value as usize),
-                };
-                Msg::Selected(value)
+                Msg::Selected(Some(value as usize))
             }
-            _ => {
-                unreachable!();
-            }
+            _ => unreachable!(),
         })
     }
 }
