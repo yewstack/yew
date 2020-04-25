@@ -1,0 +1,14 @@
+[package]
+name = "function_component"
+version = "0.1.0"
+authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+log = "0.4.8"
+web_logger = "0.2.0"
+yew = { path = "../../../yew" }
+yewtil = { path = "../.." }
+
+[target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
+wasm-bindgen = "0.2.51"
