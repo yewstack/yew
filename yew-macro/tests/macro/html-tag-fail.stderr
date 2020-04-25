@@ -204,10 +204,10 @@ error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:32:20
    |
 32 |     html! { <input onclick=1 /> };
-   |                    ^^^^^^^ expected struct `yew::callback::Callback`, found integer
+   |                    ^^^^^^^ expected enum `yew::callback::Callback`, found integer
    |
-   = note: expected struct `yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>`
-                found type `{integer}`
+   = note: expected enum `yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>`
+              found type `{integer}`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
@@ -216,8 +216,8 @@ error[E0308]: mismatched types
 33 |     html! { <input onclick=Callback::from(|a: String| ()) /> };
    |                    ^^^^^^^ expected struct `web_sys::features::gen_MouseEvent::MouseEvent`, found struct `std::string::String`
    |
-   = note: expected struct `yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>`
-              found struct `yew::callback::Callback<std::string::String>`
+   = note: expected enum `yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>`
+              found enum `yew::callback::Callback<std::string::String>`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `to_string` found for struct `NotToString` in the current scope
