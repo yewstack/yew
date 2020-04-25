@@ -1,5 +1,42 @@
 # Changelog
 
+## ✨ **0.15** *(2020-04-25)*
+
+#### Attention!
+`yew` now uses `web-sys` by default. If your project uses `web-sys`, you can now drop the `"web_sys"` feature from your yew dependency.
+Don't worry `stdweb` users, we have created a new alias crate for y'all called `yew-stdweb`. In order to use it, update your `Cargo.toml` yew dependency to the following:
+
+```toml
+yew = { version = "0.15", package = "yew-stdweb" }
+```
+
+#### Dev Survey Results
+Thank you to everyone that took the time to fill out the Yew Dev Survey! 🙇‍♂️
+
+Results have been posted here: https://github.com/yewstack/yew/wiki/Dev-Survey-%5BSpring-2020%5D
+
+#### New Chatroom
+We moved from Gitter to Discord! Join us: https://discord.gg/VQck8X4
+
+#### Changelog
+
+- #### ⚡️ Features
+
+  - Add support for single use callbacks (useful for `TimeoutService`). [[@lukerandall], [#1125](https://github.com/yewstack/yew/pull/1125)]
+  - Updated scheduler to eagerly destroy components to avoid unnecessary renders. [[@jstarry], [#1072](https://github.com/yewstack/yew/pull/1072)]
+  - Add support `key` attribute to improve rendering performance. [[@mrh0057], [#1076](https://github.com/yewstack/yew/pull/1076)]
+
+- #### 🛠 Fixes
+
+  - Split class names on whitespace when passed within `tuple` or `Vec`. [[@bryanjswift], [#1084](https://github.com/yewstack/yew/pull/1084)]
+
+- #### 🚨 Breaking changes
+
+  - The `components` module has been moved out `yew` and into `yew-components`. [[@jstarry], [#1132](https://github.com/yewstack/yew/pull/1132)]
+  - Replaced `mounted` component lifecycle method with `rendered` which is called after each render. [[@jstarry], [#1072](https://github.com/yewstack/yew/pull/1072)]
+  - Components must now implement the `change` method (forgetting this was a very common issue). [[@jstarry], [#1071](https://github.com/yewstack/yew/pull/1071)]
+  - Yew now builds with `web-sys` by default. [[@jstarry], [#1092](https://github.com/yewstack/yew/pull/1092)]
+
 ## ✨ **0.14.3** *(2020-04-04)*
 
 - #### 🛠 Fixes
@@ -763,6 +800,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
 [@AlephAlpha]: https://github.com/AlephAlpha
 [@astraw]: https://github.com/astraw
+[@bryanjswift]: https://github.com/bryanjswift
 [@boydjohnson]: https://github.com/boydjohnson
 [@captain-yossarian]: https://github.com/captain-yossarian
 [@carlosdp]: https://github.com/carlosdp
@@ -785,6 +823,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@kuy]: https://github.com/kuy
 [@leo-lb]: https://github.com/leo-lb
 [@lizhaoxian]: https://github.com/lizhaoxian
+[@lukerandall]: https://github.com/lukerandall
 [@mankinskin]: https://github.com/mankinskin
 [@mdtusz]: https://github.com/mdtusz
 [@mrh0057]: https://github.com/mrh0057
