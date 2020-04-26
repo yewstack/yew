@@ -3,7 +3,7 @@
 use super::{
     Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
 };
-use crate::html::NodeRef;
+use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
@@ -399,6 +399,7 @@ impl VDiff for VTag {
     /// to compute what to patch in the actual DOM nodes.
     fn apply(
         &mut self,
+        scope: &AnyScope,
         parent: &Element,
         previous_sibling: Option<&Node>,
         ancestor: Option<VNode>,
@@ -498,7 +499,7 @@ impl VDiff for VTag {
 
         // Process children
         self.children
-            .apply(&element, None, ancestor.map(|a| a.children.into()));
+            .apply(scope, &element, None, ancestor.map(|a| a.children.into()));
 
         let node = self.reference.as_ref().map(|e| {
             let node = cfg_match! {
@@ -876,6 +877,7 @@ mod tests {
         #[cfg(feature = "web_sys")]
         let document = web_sys::window().unwrap().document().unwrap();
 
+        let scope = AnyScope::default();
         let div_el = document.create_element("div").unwrap();
         let namespace = SVG_NAMESPACE;
         #[cfg(feature = "web_sys")]
@@ -887,17 +889,17 @@ mod tests {
         let mut svg_node = html! { <svg>{path_node}</svg> };
 
         let svg_tag = assert_vtag(&mut svg_node);
-        svg_tag.apply(&div_el, None, None);
+        svg_tag.apply(&scope, &div_el, None, None);
         assert_namespace(svg_tag, SVG_NAMESPACE);
         let path_tag = assert_vtag(svg_tag.children.get_mut(0).unwrap());
         assert_namespace(path_tag, SVG_NAMESPACE);
 
         let g_tag = assert_vtag(&mut g_node);
-        g_tag.apply(&div_el, None, None);
+        g_tag.apply(&scope, &div_el, None, None);
         assert_namespace(g_tag, HTML_NAMESPACE);
         g_tag.reference = None;
 
-        g_tag.apply(&svg_el, None, None);
+        g_tag.apply(&scope, &svg_el, None, None);
         assert_namespace(g_tag, SVG_NAMESPACE);
     }
 
@@ -1019,6 +1021,7 @@ mod tests {
 
     #[test]
     fn swap_order_of_classes() {
+        let scope = AnyScope::default();
         let parent = document().create_element("div").unwrap();
 
         #[cfg(feature = "std_web")]
@@ -1027,7 +1030,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
-        elem.apply(&parent, None, None);
+        elem.apply(&scope, &parent, None, None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1053,7 +1056,7 @@ mod tests {
         } else {
             panic!("should be vtag")
         };
-        vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
+        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
 
         let expected = "class-3 class-2 class-1";
         assert_eq!(vtag.classes.to_string(), expected);
@@ -1069,6 +1072,7 @@ mod tests {
 
     #[test]
     fn add_class_to_the_middle() {
+        let scope = AnyScope::default();
         let parent = document().create_element("div").unwrap();
 
         #[cfg(feature = "std_web")]
@@ -1077,7 +1081,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-3")></div> };
-        elem.apply(&parent, None, None);
+        elem.apply(&scope, &parent, None, None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1103,7 +1107,7 @@ mod tests {
         } else {
             panic!("should be vtag")
         };
-        vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
+        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
 
         let expected = "class-1 class-2 class-3";
         assert_eq!(vtag.classes.to_string(), expected);

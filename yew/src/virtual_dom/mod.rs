@@ -11,6 +11,7 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
+use crate::html::AnyScope;
 use cfg_if::cfg_if;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
@@ -217,6 +218,7 @@ pub(crate) trait VDiff {
     /// (always removes the `Node` that exists).
     fn apply(
         &mut self,
+        scope: &AnyScope,
         parent: &Element,
         previous_sibling: Option<&Node>,
         ancestor: Option<VNode>,

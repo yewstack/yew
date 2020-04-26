@@ -1,6 +1,7 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use super::{Reform, VDiff, VNode};
+use crate::html::AnyScope;
 use crate::utils::document;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
@@ -53,6 +54,7 @@ impl VDiff for VText {
     /// Renders virtual node over existing `TextNode`, but only if value of text had changed.
     fn apply(
         &mut self,
+        _scope: &AnyScope,
         parent: &Element,
         previous_sibling: Option<&Node>,
         ancestor: Option<VNode>,
