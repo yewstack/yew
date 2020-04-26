@@ -1,7 +1,8 @@
-use super::*;
+use super::{Callback, Component, NodeRef, Renderable};
 use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use cfg_if::cfg_if;
+use std::any::Any;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
@@ -367,31 +368,23 @@ where
     }
 }
 
-struct Hidden;
-
-pub(crate) struct HiddenScope {
-    type_id: TypeId,
-    scope: *mut Hidden,
+pub(crate) struct AnyScope {
+    scope: Box<dyn Any>,
 }
 
-impl<COMP: Component> From<Scope<COMP>> for HiddenScope {
+impl<COMP: Component> From<Scope<COMP>> for AnyScope {
     fn from(scope: Scope<COMP>) -> Self {
-        HiddenScope {
-            type_id: TypeId::of::<COMP>(),
-            scope: Box::into_raw(Box::new(scope)) as *mut Hidden,
+        AnyScope {
+            scope: Box::new(scope),
         }
     }
 }
 
-impl<COMP: Component> Into<Scope<COMP>> for HiddenScope {
-    fn into(self: HiddenScope) -> Scope<COMP> {
-        if self.type_id != TypeId::of::<COMP>() {
-            panic!("encountered unespected component type");
-        }
-
-        unsafe {
-            let raw: *mut Scope<COMP> = self.scope as *mut Scope<COMP>;
-            *Box::from_raw(raw)
-        }
+impl AnyScope {
+    pub(crate) fn downcast<COMP: Component>(&self) -> Scope<COMP> {
+        self.scope
+            .downcast_ref::<Scope<COMP>>()
+            .expect("INTERNAL: unexpected component type, please report")
+            .clone()
     }
 }
