@@ -8,8 +8,8 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-yew = { path = "../../../yew", features = ["std_web", "services"], default-features = false }
-yew-router = { path = "../..", features = ["std_web", "core"], default-features = false }
+yew = { path = "../../../yew"  }
+yew-router = { path = "../..", features = ["service", "web_sys"], default-features = false }
 web_logger = "0.2"
 log = "0.4.8"
 wee_alloc = "0.4.5"

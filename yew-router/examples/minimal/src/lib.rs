@@ -36,7 +36,7 @@ pub enum AppRoute {
 }
 
 impl Model {
-    fn change_route(&self, app_route: AppRoute) -> Callback<ClickEvent> {
+    fn change_route(&self, app_route: AppRoute) -> Callback<MouseEvent> {
         self.link.callback(move |_| {
             let route = app_route.clone();
             Msg::ChangeRoute(route)
