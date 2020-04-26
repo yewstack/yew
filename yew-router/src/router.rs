@@ -176,18 +176,13 @@ where
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.callback(Msg::UpdateRoute);
         let router_agent = RouteAgentBridge::new(callback);
+        router_agent.send(RouteRequest::GetCurrentRoute);
 
         Router {
             switch: Default::default(), /* This must be updated by immediately requesting a route
                                          * update from the service bridge. */
             props,
             router_agent,
-        }
-    }
-
-    fn rendered(&mut self, first_render: bool) {
-        if first_render {
-            self.router_agent.send(RouteRequest::GetCurrentRoute);
         }
     }
 
