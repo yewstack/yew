@@ -169,32 +169,6 @@ enum Patch<ID, T> {
     Remove(ID),
 }
 
-impl<ID, T> Patch<ID, T> {
-    pub fn as_ref(&self) -> Patch<&ID, &T> {
-        match self {
-            Patch::Add(ref id, ref x) => Patch::Add(id, x),
-            Patch::Replace(ref id, ref x) => Patch::Replace(id, x),
-            Patch::Remove(ref id) => Patch::Remove(id),
-        }
-    }
-
-    pub fn map<U, F: FnOnce(T) -> U>(self, f: F) -> Patch<ID, U> {
-        match self {
-            Patch::Add(id, x) => Patch::Add(id, f(x)),
-            Patch::Replace(id, x) => Patch::Replace(id, f(x)),
-            Patch::Remove(id) => Patch::Remove(id),
-        }
-    }
-
-    pub fn map_key<K, F: FnOnce(ID) -> K>(self, f: F) -> Patch<K, T> {
-        match self {
-            Patch::Add(id, x) => Patch::Add(f(id), x),
-            Patch::Replace(id, x) => Patch::Replace(f(id), x),
-            Patch::Remove(id) => Patch::Remove(f(id)),
-        }
-    }
-}
-
 /// Reform of a node.
 enum Reform {
     /// Don't create a NEW reference (js Node).

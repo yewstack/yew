@@ -50,8 +50,6 @@ pub struct VTag {
     pub attributes: Attributes,
     /// List of children nodes
     pub children: VList,
-    /// List of attached classes.
-    pub classes: Classes,
     /// Contains a value of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     pub value: Option<String>,
@@ -81,7 +79,6 @@ impl Clone for VTag {
             listeners: self.listeners.clone(),
             attributes: self.attributes.clone(),
             children: self.children.clone(),
-            classes: self.classes.clone(),
             value: self.value.clone(),
             kind: self.kind.clone(),
             checked: self.checked,
@@ -98,7 +95,6 @@ impl VTag {
         VTag {
             tag: tag.into(),
             reference: None,
-            classes: Classes::new(),
             attributes: Attributes::new(),
             listeners: Vec::new(),
             captured: Vec::new(),
@@ -130,19 +126,12 @@ impl VTag {
         }
     }
 
-    /// Adds a single class to this virtual node. Actually it will set by
-    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
-    /// call later.
-    pub fn add_class(&mut self, class: &str) {
-        self.classes.push(class);
-    }
-
-    /// Adds multiple classes to this virtual node. Actually it will set by
-    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
-    /// call later.
-    pub fn add_classes(&mut self, classes: Vec<&str>) {
-        for class in classes {
-            self.classes.push(class);
+    /// List of attached classes.
+    pub fn classes(&self) -> &str {
+        if let Some(class_str) = self.attributes.get("class") {
+            class_str.as_ref()
+        } else {
+            ""
         }
     }
 
@@ -153,7 +142,13 @@ impl VTag {
     /// [Element.removeAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/removeAttribute)
     /// call later.
     pub fn set_classes(&mut self, classes: impl Into<Classes>) {
-        self.classes = classes.into();
+        let classes: Classes = classes.into();
+        if classes.is_empty() {
+            self.attributes.remove("class");
+        } else {
+            self.attributes
+                .insert("class".to_string(), classes.to_string());
+        }
     }
 
     /// Sets `value` for an
@@ -205,42 +200,6 @@ impl VTag {
     pub fn add_listeners(&mut self, listeners: Vec<Rc<dyn Listener>>) {
         for listener in listeners {
             self.listeners.push(listener);
-        }
-    }
-
-    /// Returns the classes of this virtual node if they are not empty, or `None` otherwise.
-    fn non_empty_classes(&self) -> Option<&Classes> {
-        Some(&self.classes).filter(|c| !c.is_empty())
-    }
-
-    /// Compute differences between the ancestor and determine patch changes for classes.
-    ///
-    /// If the classes of this virtual node are empty, the following patches can occur:
-    /// - `Patch::Remove` if the ancestor is present and in containing at least one class.
-    /// - `None` otherwise.
-    ///
-    /// If the classes of this virtual node contain at least one class, the following patches can occur:
-    /// - `Patch::Add` if there is no ancestor or it contains no classes.
-    /// - `Patch::Replace` if there is an ancestor and it classes are not equal to this virtual nodes classes.
-    /// - `None` if there is an ancestor and it classes are equal to this virtual nodes classes.
-    ///
-    fn diff_classes<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<(), String>> {
-        match (
-            self.non_empty_classes(),
-            ancestor
-                .as_ref()
-                .and_then(|ancestor| ancestor.non_empty_classes()),
-        ) {
-            (Some(ref left), Some(ref right)) => {
-                if left != right {
-                    Some(Patch::Replace((), left.to_string()))
-                } else {
-                    None
-                }
-            }
-            (Some(left), None) => Some(Patch::Add((), left.to_string())),
-            (None, Some(ref _right)) => Some(Patch::Remove(())),
-            (None, None) => None,
         }
     }
 
@@ -317,15 +276,9 @@ impl VTag {
         let element = self.reference.as_ref().expect("element expected");
 
         // Update parameters
-        let owned_class_patch = self.diff_classes(ancestor);
-        let class_attribute: Option<Patch<&str, &str>> = owned_class_patch
-            .as_ref()
-            .map(|patch| patch.as_ref().map_key(|_| "class").map(String::as_str));
-
-        let attributes = self.diff_attributes(ancestor);
+        let changes = self.diff_attributes(ancestor);
 
         // apply attribute patches including an optional "class"-attribute patch
-        let changes = attributes.chain(class_attribute);
         for change in changes {
             match change {
                 Patch::Add(key, value) | Patch::Replace(key, value) => {
@@ -557,7 +510,6 @@ impl PartialEq for VTag {
                 .map(|l| l.kind())
                 .eq(other.listeners.iter().map(|l| l.kind()))
             && self.attributes == other.attributes
-            && self.classes.eq(&other.classes)
             && self.children == other.children
     }
 }
@@ -786,10 +738,10 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes);
-            assert!(vtag.classes.contains("class-1"));
-            assert!(vtag.classes.contains("class-2"));
-            assert!(!vtag.classes.contains("class-3"));
+            println!("{:?}", vtag.classes());
+            assert!(vtag.classes().contains("class-1"));
+            assert!(vtag.classes().contains("class-2"));
+            assert!(!vtag.classes().contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -808,10 +760,10 @@ mod tests {
         assert_ne!(a, b);
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes);
-            assert!(vtag.classes.contains("class-1"));
-            assert!(vtag.classes.contains("class-2"));
-            assert!(vtag.classes.contains("class-3"));
+            println!("{:?}", vtag.classes());
+            assert!(vtag.classes().contains("class-1"));
+            assert!(vtag.classes().contains("class-2"));
+            assert!(vtag.classes().contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -826,10 +778,10 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes);
-            assert!(vtag.classes.contains("class-1"));
-            assert!(vtag.classes.contains("class-2"));
-            assert!(!vtag.classes.contains("class-3"));
+            println!("{:?}", vtag.classes());
+            assert!(vtag.classes().contains("class-1"));
+            assert!(vtag.classes().contains("class-2"));
+            assert!(!vtag.classes().contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -843,10 +795,10 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes);
-            assert!(vtag.classes.contains("class-1"));
-            assert!(vtag.classes.contains("class-2"));
-            assert!(!vtag.classes.contains("class-3"));
+            println!("{:?}", vtag.classes());
+            assert!(vtag.classes().contains("class-1"));
+            assert!(vtag.classes().contains("class-2"));
+            assert!(!vtag.classes().contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -861,19 +813,19 @@ mod tests {
         let c = html! { <div class=""></div> };
 
         if let VNode::VTag(vtag) = a {
-            assert!(vtag.classes.is_empty());
+            assert!(vtag.classes().is_empty());
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = b {
-            assert!(vtag.classes.is_empty());
+            assert!(vtag.classes().is_empty());
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = c {
-            assert!(vtag.classes.is_empty());
+            assert!(vtag.classes().is_empty());
         } else {
             panic!("vtag expected");
         }
@@ -932,8 +884,8 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes);
-            assert_eq!(vtag.classes.to_string(), "class-1 class-2 class-3");
+            println!("{:?}", vtag.classes());
+            assert_eq!(vtag.classes(), "class-1 class-2 class-3");
         }
     }
 
@@ -1041,39 +993,6 @@ mod tests {
         html! { <div><a data-val=Box::<u32>::default() /></div> };
     }
 
-    fn vtag_with_class(class: &str) -> Box<VTag> {
-        let node = html! { <div class=class></div> };
-        if let VNode::VTag(vtag) = node {
-            return vtag;
-        }
-        panic!("should be vtag");
-    }
-
-    #[test]
-    fn test_diff_classes() {
-        assert_eq!(vtag_with_class("").diff_classes(&None), None,);
-        assert_eq!(
-            vtag_with_class("ferris the crab").diff_classes(&None),
-            Some(Patch::Add((), String::from("ferris the crab"))),
-        );
-        assert_eq!(
-            vtag_with_class("").diff_classes(&Some(vtag_with_class(""))),
-            None,
-        );
-        assert_eq!(
-            vtag_with_class("ferris the crab").diff_classes(&Some(vtag_with_class(""))),
-            Some(Patch::Add((), String::from("ferris the crab"))),
-        );
-        assert_eq!(
-            vtag_with_class("ferris the crab").diff_classes(&Some(vtag_with_class("hello world"))),
-            Some(Patch::Replace((), String::from("ferris the crab"))),
-        );
-        assert_eq!(
-            vtag_with_class("").diff_classes(&Some(vtag_with_class("hello world"))),
-            Some(Patch::Remove(())),
-        );
-    }
-
     #[test]
     fn it_does_not_set_empty_class_name() {
         let parent = document().create_element("div").unwrap();
@@ -1141,7 +1060,7 @@ mod tests {
         };
 
         let expected = "class-1 class-2 class-3";
-        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(vtag.classes(), expected);
         assert_eq!(
             vtag.reference
                 .as_ref()
@@ -1161,7 +1080,7 @@ mod tests {
         vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
 
         let expected = "class-3 class-2 class-1";
-        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(vtag.classes(), expected);
         assert_eq!(
             vtag.reference
                 .as_ref()
@@ -1191,7 +1110,7 @@ mod tests {
         };
 
         let expected = "class-1 class-3";
-        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(vtag.classes(), expected);
         assert_eq!(
             vtag.reference
                 .as_ref()
@@ -1211,7 +1130,7 @@ mod tests {
         vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
 
         let expected = "class-1 class-2 class-3";
-        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(vtag.classes(), expected);
         assert_eq!(
             vtag.reference
                 .as_ref()

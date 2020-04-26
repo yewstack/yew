@@ -132,7 +132,7 @@ impl ToTokens for HtmlTag {
         });
         let set_classes = classes.iter().map(|classes_form| match classes_form {
             ClassesForm::Tuple(classes) => quote! {
-                #vtag.add_classes(vec![#(&(#classes)),*]);
+                #vtag.set_classes(<::yew::virtual_dom::Classes as ::std::convert::From::<Vec<&str>>>::from(vec![#(&(#classes)),*]));
             },
             ClassesForm::Single(classes) => quote! {
                 #vtag.set_classes(#classes);
