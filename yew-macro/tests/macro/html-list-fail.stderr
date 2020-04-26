@@ -1,0 +1,71 @@
+error: this open tag has no corresponding close tag
+ --> $DIR/html-list-fail.rs:4:13
+  |
+4 |     html! { <> };
+  |             ^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: this close tag has no corresponding open tag
+ --> $DIR/html-list-fail.rs:5:13
+  |
+5 |     html! { </> };
+  |             ^^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: this open tag has no corresponding close tag
+ --> $DIR/html-list-fail.rs:6:13
+  |
+6 |     html! { <><> };
+  |             ^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: this close tag has no corresponding open tag
+ --> $DIR/html-list-fail.rs:7:13
+  |
+7 |     html! { </></> };
+  |             ^^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: this open tag has no corresponding close tag
+ --> $DIR/html-list-fail.rs:8:13
+  |
+8 |     html! { <><></> };
+  |             ^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: only one root html element allowed
+ --> $DIR/html-list-fail.rs:9:18
+  |
+9 |     html! { <></><></> };
+  |                  ^^^^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected valid html element
+  --> $DIR/html-list-fail.rs:10:15
+   |
+10 |     html! { <>invalid</> };
+   |               ^^^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected end of input, expected expression
+  --> $DIR/html-list-fail.rs:11:5
+   |
+11 |     html! { <key=></>}
+   |     ^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: this open tag has no corresponding close tag
+  --> $DIR/html-list-fail.rs:12:13
+   |
+12 |     html! { <key="key".to_string()>invalid</key>}
+   |             ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

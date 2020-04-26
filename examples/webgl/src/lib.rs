@@ -1,15 +1,11 @@
-#![recursion_limit = "512"]
-extern crate stdweb;
-
-use stdweb::unstable::TryInto;
-use stdweb::web::html_element::CanvasElement;
-use stdweb::web::TypedArray;
-use webgl_stdweb::{GLfloat, GLuint, WebGLRenderingContext as GL};
+use wasm_bindgen::JsCast;
+use web_sys::HtmlCanvasElement;
+use web_sys::WebGlRenderingContext as GL;
 use yew::services::{RenderService, Task};
 use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
 
 pub struct Model {
-    canvas: Option<CanvasElement>,
+    canvas: Option<HtmlCanvasElement>,
     gl: Option<GL>,
     link: ComponentLink<Self>,
     node_ref: NodeRef,
@@ -28,38 +24,43 @@ impl Component for Model {
         Model {
             canvas: None,
             gl: None,
-            link: link,
+            link,
             node_ref: NodeRef::default(),
             render_loop: None,
         }
     }
 
-    fn mounted(&mut self) -> ShouldRender {
-        // Once mounted, store references for the canvas and GL context. These can be used for
+    fn rendered(&mut self, first_render: bool) {
+        // Once rendered, store references for the canvas and GL context. These can be used for
         // resizing the rendering area when the window or canvas element are resized, as well as
         // for making GL calls.
-        let c: CanvasElement = self.node_ref.get().unwrap().try_into().unwrap();
-        let gl: GL = c.get_context().expect("WebGL not supported!");
 
-        self.canvas = Some(c);
+        let canvas = self.node_ref.cast::<HtmlCanvasElement>().unwrap();
+
+        let gl: GL = canvas
+            .get_context("webgl")
+            .unwrap()
+            .unwrap()
+            .dyn_into()
+            .unwrap();
+
+        self.canvas = Some(canvas);
         self.gl = Some(gl);
 
         // In a more complex use-case, there will be additional WebGL initialization that should be
         // done here, such as enabling or disabling depth testing, depth functions, face
         // culling etc.
 
-        // The callback to request animation frame is passed a time value which can be used for
-        // rendering motion independent of the framerate which may vary.
-        let render_frame = self.link.callback(|time: f64| Msg::Render(time));
-        let handle = RenderService::new().request_animation_frame(render_frame);
+        if first_render {
+            // The callback to request animation frame is passed a time value which can be used for
+            // rendering motion independent of the framerate which may vary.
+            let render_frame = self.link.callback(Msg::Render);
+            let handle = RenderService::new().request_animation_frame(render_frame);
 
-        // A reference to the handle must be stored, otherwise it is dropped and the render won't
-        // occur.
-        self.render_loop = Some(Box::new(handle));
-
-        // Since WebGL is rendered to the canvas "separate" from the DOM, there is no need to
-        // render the DOM element(s) again.
-        false
+            // A reference to the handle must be stored, otherwise it is dropped and the render won't
+            // occur.
+            self.render_loop = Some(Box::new(handle));
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -80,6 +81,10 @@ impl Component for Model {
             <canvas ref={self.node_ref.clone()} />
         }
     }
+
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        false
+    }
 }
 
 impl Model {
@@ -94,10 +99,10 @@ impl Model {
             -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
         ];
         let vertex_buffer = gl.create_buffer().unwrap();
-        let verts = TypedArray::<f32>::from(vertices.as_slice());
+        let verts = js_sys::Float32Array::from(vertices.as_slice());
 
         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vertex_buffer));
-        gl.buffer_data_1(GL::ARRAY_BUFFER, Some(&verts.buffer()), GL::STATIC_DRAW);
+        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &verts, GL::STATIC_DRAW);
 
         let vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
         gl.shader_source(&vert_shader, &vert_code);
@@ -115,17 +120,17 @@ impl Model {
         gl.use_program(Some(&shader_program));
 
         // Attach the position vector as an attribute for the GL context.
-        let position = gl.get_attrib_location(&shader_program, "a_position") as GLuint;
-        gl.vertex_attrib_pointer(position, 2, GL::FLOAT, false, 0, 0);
+        let position = gl.get_attrib_location(&shader_program, "a_position") as u32;
+        gl.vertex_attrib_pointer_with_i32(position, 2, GL::FLOAT, false, 0, 0);
         gl.enable_vertex_attrib_array(position);
 
         // Attach the time as a uniform for the GL context.
         let time = gl.get_uniform_location(&shader_program, "u_time");
-        gl.uniform1f(time.as_ref(), timestamp as GLfloat);
+        gl.uniform1f(time.as_ref(), timestamp as f32);
 
         gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
-        let render_frame = self.link.callback(|time: f64| Msg::Render(time));
+        let render_frame = self.link.callback(Msg::Render);
         let handle = RenderService::new().request_animation_frame(render_frame);
 
         // A reference to the new handle must be retained for the next render to run.

@@ -1,11 +1,17 @@
 [package]
-name = "event_bus"
+name = "pub_sub"
 version = "0.1.0"
 edition = "2018"
 
 [dependencies]
 log = "0.4"
-web_logger = "0.1"
+web_logger = "0.2"
 serde = { version = "1.0", features = ["derive"] }
-yew = { path = "../..", features = ["std_web"] }
-stdweb = "0.4.20"
+yew = { path = "../../yew" }
+
+[features]
+std_web = ["yew/std_web"]
+web_sys = ["yew/web_sys"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]

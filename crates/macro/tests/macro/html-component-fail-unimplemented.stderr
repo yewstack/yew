@@ -1,5 +1,0 @@
-error[E0277]: the trait bound `std::string::String: yew::html::Component` is not satisfied
- --> $DIR/html-component-fail-unimplemented.rs:6:14
-  |
-6 |     html! { <String /> };
-  |              ^^^^^^ the trait `yew::html::Component` is not implemented for `std::string::String`

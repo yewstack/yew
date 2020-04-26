@@ -10,7 +10,7 @@ use yew::services::storage::Area;
 use yew::services::{DialogService, StorageService};
 use yew::{html, Component, ComponentLink, Html, InputData, Renderable, ShouldRender};
 
-const KEY: &'static str = "yew.crm.database";
+const KEY: &str = "yew.crm.database";
 
 #[derive(Serialize, Deserialize)]
 struct Database {
@@ -144,6 +144,10 @@ impl Component for Model {
             self.scene = new_scene;
         }
         true
+    }
+
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        false
     }
 
     fn view(&self) -> Html {

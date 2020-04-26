@@ -1,0 +1,97 @@
+error: only one root html element allowed
+ --> $DIR/html-node-fail.rs:4:21
+  |
+4 |     html! { "valid" "invalid" };
+  |                     ^^^^^^^^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected token
+ --> $DIR/html-node-fail.rs:5:29
+  |
+5 |     html! { <span>{ "valid" "invalid" }</span> };
+  |                             ^^^^^^^^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unsupported type
+  --> $DIR/html-node-fail.rs:10:14
+   |
+10 |     html! {  b'a' };
+   |              ^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unsupported type
+  --> $DIR/html-node-fail.rs:11:14
+   |
+11 |     html! {  b"str" };
+   |              ^^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: integer literal is too large
+  --> $DIR/html-node-fail.rs:12:14
+   |
+12 |     html! {  1111111111111111111111111111111111111111111111111111111111111111111111111111 };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unsupported type
+  --> $DIR/html-node-fail.rs:13:22
+   |
+13 |     html! {  <span>{ b'a' }</span> };
+   |                      ^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unsupported type
+  --> $DIR/html-node-fail.rs:14:22
+   |
+14 |     html! {  <span>{ b"str" }</span> };
+   |                      ^^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: integer literal is too large
+  --> $DIR/html-node-fail.rs:15:22
+   |
+15 |     html! {  <span>{ 1111111111111111111111111111111111111111111111111111111111111111111111111111 }</span> };
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0425]: cannot find value `invalid` in this scope
+ --> $DIR/html-node-fail.rs:7:13
+  |
+7 |     html! { invalid };
+  |             ^^^^^^^ not found in this scope
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+ --> $DIR/html-node-fail.rs:6:13
+  |
+6 |     html! { () };
+  |             ^^ `()` cannot be formatted with the default formatter
+  |
+  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
+  = note: required by `std::convert::From::from`
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/html-node-fail.rs:19:9
+   |
+19 |         not_node()
+   |         ^^^^^^^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
+   = note: required by `std::convert::From::from`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

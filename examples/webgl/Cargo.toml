@@ -4,7 +4,21 @@ version = "0.1.0"
 authors = ["Miklós Tusz <mdtusz@gmail.com>"]
 edition = "2018"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
-stdweb = "0.4.20"
-yew = { path = "../..", features = [ "std_web" ] }
-webgl_stdweb = "0.3.0"
+js-sys = "0.3"
+yew = { path = "../../yew" }
+wasm-bindgen = "0.2"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  'HtmlCanvasElement',
+  'WebGlBuffer',
+  'WebGlProgram',
+  'WebGlRenderingContext',
+  'WebGlShader',
+  'WebGlUniformLocation',
+]

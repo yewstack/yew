@@ -1,0 +1,15 @@
+[package]
+name = "todomvc"
+version = "0.1.0"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+strum = "0.18"
+strum_macros = "0.18"
+serde = "1"
+serde_derive = "1"
+yew = { path = "../../yew" }

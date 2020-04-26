@@ -10,22 +10,22 @@
   <p>
     <a href="https://crates.io/crates/yew"><img alt="Crate Info" src="https://img.shields.io/crates/v/yew.svg"/></a>
     <a href="https://docs.rs/yew/"><img alt="API Docs" src="https://img.shields.io/badge/docs.rs-yew-green"/></a>
-    <a href="https://gitter.im/yewframework/Lobby"><img alt="Gitter Chat" src="https://badges.gitter.im/yewframework.svg"/></a>
+    <a href="https://discord.gg/VQck8X4"><img alt="Discord Chat" src="https://img.shields.io/discord/701068342760570933"/></a>
     <a href="https://blog.rust-lang.org/2019/11/07/Rust-1.39.0.html"><img alt="Rustc Version 1.39+" src="https://img.shields.io/badge/rustc-1.39+-lightgray.svg"/></a>
   </p>
 
   <h4>
     <a href="https://yew.rs/docs">Documentation</a>
     <span> | </span>
-    <a href="https://github.com/yewstack/yew/tree/v0.14.0/examples">Examples</a>
+    <a href="https://github.com/yewstack/yew/tree/v0.15.0/examples">Examples</a>
     <span> | </span>
     <a href="https://github.com/yewstack/yew/blob/master/CHANGELOG.md">Changelog</a>
     <span> | </span>
     <a href="https://yew.rs/docs/roadmap">Roadmap</a>
     <span> | </span>
-    <a href="https://gitter.im/yewframework/%E4%B8%AD%E6%96%87">中文的聊天室</a>
-    <span> | </span>
     <a href="https://yew.rs/docs/v/zh_cn/">简体中文文档</a>
+    <span> | </span>
+    <a href="https://yew.rs/docs/v/zh_tw/">繁體中文文檔</a>
   </h4>
 </div>
 
@@ -54,6 +54,11 @@ Feel free to drop into our [Gitter chatroom](https://gitter.im/yewframework/Lobb
 #### 🙂 Ready to dive into the code?
 
 After reviewing the [Contribution Guide](CONTRIBUTING.md), check out the ["Good First Issues"](https://github.com/yewstack/yew/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) (they are eager for attention!). Once you find one that interests you, feel free to assign yourself to an issue and don't hesitate to reach out for guidance, the issues vary in complexity.
+
+#### 🤑 Let's help each other!
+
+Come help us on the [issues that matter that the most](https://github.com/yewstack/yew/labels/%3Adollar%3A%20Funded%20on%20Issuehunt) and receive a small cash reward for your troubles. We use [Issuehunt](https://issuehunt.io/r/yewstack/yew/) to fund issues from our Open Collective funds. If you really care about an issue, you can choose to add funds yourself! 
+
 
 #### 😱 Found a bug?
 

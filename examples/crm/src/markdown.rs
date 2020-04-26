@@ -1,6 +1,6 @@
 /// Original author of this code is [Nathan Ringo](https://github.com/remexre)
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
-use pulldown_cmark::{Alignment, Event, Parser, Tag, OPTION_ENABLE_TABLES};
+use pulldown_cmark::{Alignment, CodeBlockKind, Event, Options, Parser, Tag};
 use yew::virtual_dom::{VNode, VTag, VText};
 use yew::{html, Html};
 
@@ -18,7 +18,10 @@ pub fn render_markdown(src: &str) -> Html {
         }};
     }
 
-    for ev in Parser::new_ext(src, OPTION_ENABLE_TABLES) {
+    let mut options = Options::empty();
+    options.insert(Options::ENABLE_TABLES);
+
+    for ev in Parser::new_ext(src, options) {
         match ev {
             Event::Start(tag) => {
                 spine.push(make_tag(tag));
@@ -34,9 +37,9 @@ pub fn render_markdown(src: &str) -> Html {
                     top = pre;
                 } else if let Tag::Table(aligns) = tag {
                     for r in top.children.iter_mut() {
-                        if let &mut VNode::VTag(ref mut vtag) = r {
+                        if let VNode::VTag(ref mut vtag) = r {
                             for (i, c) in vtag.children.iter_mut().enumerate() {
-                                if let &mut VNode::VTag(ref mut vtag) = c {
+                                if let VNode::VTag(ref mut vtag) = c {
                                     match aligns[i] {
                                         Alignment::None => {}
                                         Alignment::Left => vtag.add_class("text-left"),
@@ -49,7 +52,7 @@ pub fn render_markdown(src: &str) -> Html {
                     }
                 } else if let Tag::TableHead = tag {
                     for c in top.children.iter_mut() {
-                        if let &mut VNode::VTag(ref mut vtag) = c {
+                        if let VNode::VTag(ref mut vtag) = c {
                             // TODO
                             //                            vtag.tag = "th".into();
                             vtag.add_attribute("scope", &"col");
@@ -63,6 +66,7 @@ pub fn render_markdown(src: &str) -> Html {
                 }
             }
             Event::Text(text) => add_child!(VText::new(text.to_string()).into()),
+            Event::Rule => add_child!(VTag::new("hr").into()),
             Event::SoftBreak => add_child!(VText::new("\n".to_string()).into()),
             Event::HardBreak => add_child!(VTag::new("br").into()),
             _ => println!("Unknown event: {:#?}", ev),
@@ -81,8 +85,7 @@ pub fn render_markdown(src: &str) -> Html {
 fn make_tag(t: Tag) -> VTag {
     match t {
         Tag::Paragraph => VTag::new("p"),
-        Tag::Rule => VTag::new("hr"),
-        Tag::Header(n) => {
+        Tag::Heading(n) => {
             assert!(n > 0);
             assert!(n < 7);
             VTag::new(format!("h{}", n))
@@ -92,19 +95,23 @@ fn make_tag(t: Tag) -> VTag {
             el.add_class("blockquote");
             el
         }
-        Tag::CodeBlock(lang) => {
+        Tag::CodeBlock(code_block_kind) => {
             let mut el = VTag::new("code");
-            // Different color schemes may be used for different code blocks,
-            // but a different library (likely js based at the moment) would be necessary to actually provide the
-            // highlighting support by locating the language classes and applying dom transforms
-            // on their contents.
-            match lang.as_ref() {
-                "html" => el.add_class("html-language"),
-                "rust" => el.add_class("rust-language"),
-                "java" => el.add_class("java-language"),
-                "c" => el.add_class("c-language"),
-                _ => {} // Add your own language highlighting support
-            };
+
+            if let CodeBlockKind::Fenced(lang) = code_block_kind {
+                // Different color schemes may be used for different code blocks,
+                // but a different library (likely js based at the moment) would be necessary to actually provide the
+                // highlighting support by locating the language classes and applying dom transforms
+                // on their contents.
+                match lang.as_ref() {
+                    "html" => el.add_class("html-language"),
+                    "rust" => el.add_class("rust-language"),
+                    "java" => el.add_class("java-language"),
+                    "c" => el.add_class("c-language"),
+                    _ => {} // Add your own language highlighting support
+                };
+            }
+
             el
         }
         Tag::List(None) => VTag::new("ul"),
@@ -133,23 +140,29 @@ fn make_tag(t: Tag) -> VTag {
             el.add_class("font-weight-bold");
             el
         }
-        Tag::Code => VTag::new("code"),
-        Tag::Link(ref href, ref title) => {
+        Tag::Link(_link_type, ref href, ref title) => {
             let mut el = VTag::new("a");
             el.add_attribute("href", href);
+            let title = title.clone().into_string();
             if title != "" {
-                el.add_attribute("title", title);
+                el.add_attribute("title", &title);
             }
             el
         }
-        Tag::Image(ref src, ref title) => {
+        Tag::Image(_link_type, ref src, ref title) => {
             let mut el = VTag::new("img");
             el.add_attribute("src", src);
+            let title = title.clone().into_string();
             if title != "" {
-                el.add_attribute("title", title);
+                el.add_attribute("title", &title);
             }
             el
         }
         Tag::FootnoteDefinition(ref _footnote_id) => VTag::new("span"), // Footnotes are not rendered as anything special
+        Tag::Strikethrough => {
+            let mut el = VTag::new("span");
+            el.add_class("text-decoration-strikethrough");
+            el
+        }
     }
 }

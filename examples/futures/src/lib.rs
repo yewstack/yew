@@ -3,29 +3,23 @@ use std::fmt::{Error, Formatter};
 use std::future::Future;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen_futures::spawn_local;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response, Window};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
-#[cfg(all(target_arch = "wasm32", not(target_os = "wasi"), not(cargo_web)))]
 /// This method processes a Future that returns a message and sends it back to the component's
 /// loop.
 ///
 /// # Panics
 /// If the future panics, then the promise will not resolve, and will leak.
-pub fn send_future<COMP: Component, F>(link: &ComponentLink<COMP>, future: F)
+pub fn send_future<COMP: Component, F>(link: ComponentLink<COMP>, future: F)
 where
     F: Future<Output = COMP::Message> + 'static,
 {
-    use wasm_bindgen_futures::future_to_promise;
-
-    let mut link = link.clone();
-    let js_future = async move {
+    spawn_local(async move {
         link.send_message(future.await);
-        Ok(JsValue::NULL)
-    };
-
-    future_to_promise(js_future);
+    });
 }
 
 /// Something wrong has occurred while fetching an external resource.
@@ -101,6 +95,10 @@ impl Component for Model {
         }
     }
 
+    fn change(&mut self, _: Self::Properties) -> bool {
+        false
+    }
+
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::SetMarkdownFetchState(fetch_state) => {
@@ -114,7 +112,7 @@ impl Component for Model {
                         Err(err) => Msg::SetMarkdownFetchState(FetchState::Failed(err)),
                     }
                 };
-                send_future(&self.link, future);
+                send_future(self.link.clone(), future);
                 self.link
                     .send_message(SetMarkdownFetchState(FetchState::Fetching));
                 false
