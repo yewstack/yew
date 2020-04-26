@@ -2,9 +2,10 @@ use super::{Callback, Component, NodeRef, Renderable};
 use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use cfg_if::cfg_if;
-use std::any::Any;
-use std::cell::RefCell;
+use std::any::{Any, TypeId};
+use std::cell::{Ref, RefCell};
 use std::fmt;
+use std::ops::Deref;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -24,9 +25,61 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     Properties(COMP::Properties, NodeRef),
 }
 
+/// Untyped scope used for accessing parent scope
+#[derive(Debug, Clone)]
+pub struct AnyScope {
+    type_id: TypeId,
+    parent: Option<Rc<AnyScope>>,
+    state: Rc<dyn Any>,
+}
+
+impl Default for AnyScope {
+    fn default() -> Self {
+        Self {
+            type_id: TypeId::of::<()>(),
+            parent: None,
+            state: Rc::new(()),
+        }
+    }
+}
+
+impl<COMP: Component> From<Scope<COMP>> for AnyScope {
+    fn from(scope: Scope<COMP>) -> Self {
+        AnyScope {
+            type_id: TypeId::of::<COMP>(),
+            parent: scope.parent,
+            state: Rc::new(scope.state),
+        }
+    }
+}
+
+impl AnyScope {
+    /// Returns the parent scope
+    pub fn get_parent(&self) -> Option<&AnyScope> {
+        self.parent.as_deref()
+    }
+
+    /// Returns the type of the linked component
+    pub fn get_type_id(&self) -> &TypeId {
+        &self.type_id
+    }
+
+    /// Attempts to downcast into a typed scope
+    pub fn downcast<COMP: Component>(self) -> Scope<COMP> {
+        Scope {
+            parent: self.parent,
+            state: self
+                .state
+                .downcast_ref::<Shared<ComponentState<COMP>>>()
+                .expect("unexpected component type")
+                .clone(),
+        }
+    }
+}
+
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
-    parent: Rc<Option<AnyScope>>,
+    parent: Option<Rc<AnyScope>>,
     state: Shared<ComponentState<COMP>>,
 }
 
@@ -46,8 +99,21 @@ impl<COMP: Component> Clone for Scope<COMP> {
 }
 
 impl<COMP: Component> Scope<COMP> {
+    /// Returns the parent scope
+    pub fn get_parent(&self) -> Option<&AnyScope> {
+        self.parent.as_deref()
+    }
+
+    /// Returns the linked component if available
+    pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
+        self.state.try_borrow().ok().and_then(|state_ref| {
+            state_ref.component()?;
+            Some(Ref::map(state_ref, |this| this.component().unwrap()))
+        })
+    }
+
     pub(crate) fn new(parent: Option<AnyScope>) -> Self {
-        let parent = Rc::new(parent);
+        let parent = parent.map(Rc::new);
         let state = Rc::new(RefCell::new(ComponentState::Empty));
         Scope { parent, state }
     }
@@ -174,6 +240,15 @@ enum ComponentState<COMP: Component> {
     Created(CreatedState<COMP>),
     Processing,
     Destroyed,
+}
+
+impl<COMP: Component> ComponentState<COMP> {
+    fn component(&self) -> Option<&COMP> {
+        match self {
+            ComponentState::Created(state) => Some(&state.component),
+            _ => None,
+        }
+    }
 }
 
 impl<COMP: Component> fmt::Display for ComponentState<COMP> {
@@ -368,42 +443,5 @@ where
                 panic!("unexpected component state: {}", current_state);
             }
         });
-    }
-}
-
-#[derive(Clone)]
-pub(crate) struct AnyScope {
-    parent: Rc<Option<AnyScope>>,
-    state: Rc<dyn Any>,
-}
-
-impl Default for AnyScope {
-    fn default() -> Self {
-        Self {
-            parent: Rc::new(None),
-            state: Rc::new(()),
-        }
-    }
-}
-
-impl<COMP: Component> From<Scope<COMP>> for AnyScope {
-    fn from(scope: Scope<COMP>) -> Self {
-        AnyScope {
-            parent: scope.parent,
-            state: Rc::new(scope.state),
-        }
-    }
-}
-
-impl AnyScope {
-    pub(crate) fn downcast<COMP: Component>(self) -> Scope<COMP> {
-        Scope {
-            parent: self.parent,
-            state: self
-                .state
-                .downcast_ref::<Shared<ComponentState<COMP>>>()
-                .expect("INTERNAL: unexpected component type, please report")
-                .clone(),
-        }
     }
 }
