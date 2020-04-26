@@ -185,8 +185,10 @@ where
         }
     }
 
-    fn rendered(&mut self, _first_render: bool) {
-        self.router_agent.send(RouteRequest::GetCurrentRoute);
+    fn rendered(&mut self, first_render: bool) {
+        if first_render {
+            self.router_agent.send(RouteRequest::GetCurrentRoute);
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
