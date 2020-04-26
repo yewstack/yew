@@ -12,6 +12,8 @@ members = [
   "yew-router/examples/minimal",
   "yew-router/examples/router_component",
   "yew-router/examples/switch",
+  "yew-router/examples/servers/warp",
+  "yew-router/examples/servers/actix",
 
   # Utilities
   "yewtil",

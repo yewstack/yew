@@ -15,8 +15,7 @@ fn main() {
     let addr = (localhost, port);
 
     // You will need to change this if you use this as a template for your application.
-
-    const ASSETS_DIR: &str = "../../../target/deploy";
+    const ASSETS_DIR: &str = "../../static";
     let assets_dir: PathBuf = PathBuf::from(ASSETS_DIR);
 
     let routes = api().or(static_files_handler(assets_dir));
