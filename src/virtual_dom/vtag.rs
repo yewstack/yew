@@ -18,7 +18,7 @@ cfg_if! {
         #[allow(unused_imports)]
         use stdweb::{_js_impl, js};
         use stdweb::unstable::TryFrom;
-        use stdweb::web::html_element::{InputElement, TextAreaElement, ButtonElement};
+        use stdweb::web::html_element::{InputElement, TextAreaElement};
         use stdweb::web::{Element, IElement, INode, Node};
     } else if #[cfg(feature = "web_sys")] {
         use gloo::events::EventListener;
@@ -315,8 +315,9 @@ impl VTag {
         }
 
         if let Some(button) = {
+            // TODO: add std_web after https://github.com/koute/stdweb/issues/395 will be approved
+            // Check this out: https://github.com/yewstack/yew/pull/1033/commits/4b4e958bb1ccac0524eb20f63f06ae394c20553d
             cfg_match! {
-                feature = "std_web" => ButtonElement::try_from(element.clone()).ok(),
                 feature = "web_sys" => element.dyn_ref::<HtmlButtonElement>(),
             }
         } {
@@ -326,7 +327,6 @@ impl VTag {
                     Patch::Remove(_) => "",
                 };
                 cfg_match! {
-                    feature = "std_web" => button.set_type(kind),
                     feature = "web_sys" => button.set_type(kind),
                 }
             }
