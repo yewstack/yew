@@ -8,13 +8,12 @@ mod scope;
 
 pub use listener::*;
 pub use scope::Scope;
-pub(crate) use scope::{ComponentUpdate, HiddenScope};
+pub(crate) use scope::{AnyScope, ComponentUpdate};
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VList, VNode};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
-use std::any::TypeId;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
