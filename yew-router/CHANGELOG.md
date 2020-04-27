@@ -5,22 +5,30 @@
 ## ✨ **VERSION** *(DATE)*
 
 - #### ⚡️ Features
-  - Sample
+  - None 
 - #### 🛠 Fixes
-  - Sample
+  - None 
 - #### 🚨 Breaking changes
-  - Sample
+  - None 
 
 END TEMPLATE-->
 
-## ✨ **0.12.0** *(TBD)*
+
+## ✨ **0.13.0** *(TBD)*
 
 - #### ⚡️ Features
-  - x
+  - None
 - #### 🛠 Fixes
-  - x
+  - None
 - #### 🚨 Breaking changes
-  - x
+  - None
+
+## ✨ **0.12.0** *2020-4-25*
+
+- #### 🚨 Breaking changes
+  - Bump `yew` version to `0.15`.
+- #### Extraneous
+  - Remove `guide` example.
 
 ## ✨ **0.11.0** *2020-3-14*
 
