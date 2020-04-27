@@ -132,10 +132,16 @@ impl ToTokens for HtmlTag {
         });
         let set_classes = classes.iter().map(|classes_form| match classes_form {
             ClassesForm::Tuple(classes) => quote! {
-                #vtag.set_classes(<::yew::virtual_dom::Classes as ::std::convert::From::<Vec<&str>>>::from(vec![#(&(#classes)),*]));
+                let mut __yew_classes = ::yew::virtual_dom::Classes::default()#(.extend(#classes))*;
+                if !__yew_classes.is_empty() {
+                    #vtag.add_attribute("class", &__yew_classes);
+                }
             },
             ClassesForm::Single(classes) => quote! {
-                #vtag.set_classes(#classes);
+                let mut __yew_classes = std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
+                if !__yew_classes.is_empty() {
+                    #vtag.add_attribute("class", &__yew_classes);
+                }
             },
         });
         let set_node_ref = node_ref.iter().map(|node_ref| {

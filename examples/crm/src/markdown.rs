@@ -11,9 +11,14 @@ use yew::{html, Html};
 /// where n is the number of classes already in VTag plus
 /// the number of classes to be added.
 fn add_class(vtag: &mut VTag, class: &str) {
-    let mut classes: Classes = vtag.classes().into();
+    let mut classes: Classes = vtag
+        .attributes
+        .get("class")
+        .map(AsRef::as_ref)
+        .unwrap_or("")
+        .into();
     classes.push(class);
-    vtag.set_classes(classes);
+    vtag.add_attribute("class", &classes);
 }
 
 /// Renders a string of Markdown to HTML with the default options (footnotes
@@ -104,7 +109,7 @@ fn make_tag(t: Tag) -> VTag {
         }
         Tag::BlockQuote => {
             let mut el = VTag::new("blockquote");
-            el.set_classes("blockquote");
+            el.add_attribute("class", &"blockquote");
             el
         }
         Tag::CodeBlock(code_block_kind) => {
@@ -116,10 +121,10 @@ fn make_tag(t: Tag) -> VTag {
                 // highlighting support by locating the language classes and applying dom transforms
                 // on their contents.
                 match lang.as_ref() {
-                    "html" => el.set_classes("html-language"),
-                    "rust" => el.set_classes("rust-language"),
-                    "java" => el.set_classes("java-language"),
-                    "c" => el.set_classes("c-language"),
+                    "html" => el.add_attribute("class", &"html-language"),
+                    "rust" => el.add_attribute("class", &"rust-language"),
+                    "java" => el.add_attribute("class", &"java-language"),
+                    "c" => el.add_attribute("class", &"c-language"),
                     _ => {} // Add your own language highlighting support
                 };
             }
@@ -136,7 +141,7 @@ fn make_tag(t: Tag) -> VTag {
         Tag::Item => VTag::new("li"),
         Tag::Table(_) => {
             let mut el = VTag::new("table");
-            el.set_classes("table");
+            el.add_attribute("class", &"table");
             el
         }
         Tag::TableHead => VTag::new("th"),
@@ -144,12 +149,12 @@ fn make_tag(t: Tag) -> VTag {
         Tag::TableCell => VTag::new("td"),
         Tag::Emphasis => {
             let mut el = VTag::new("span");
-            el.set_classes("font-italic");
+            el.add_attribute("class", &"font-italic");
             el
         }
         Tag::Strong => {
             let mut el = VTag::new("span");
-            el.set_classes("font-weight-bold");
+            el.add_attribute("class", &"font-weight-bold");
             el
         }
         Tag::Link(_link_type, ref href, ref title) => {
@@ -173,7 +178,7 @@ fn make_tag(t: Tag) -> VTag {
         Tag::FootnoteDefinition(ref _footnote_id) => VTag::new("span"), // Footnotes are not rendered as anything special
         Tag::Strikethrough => {
             let mut el = VTag::new("span");
-            el.set_classes("text-decoration-strikethrough");
+            el.add_attribute("class", &"text-decoration-strikethrough");
             el
         }
     }

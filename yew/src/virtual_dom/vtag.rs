@@ -1,8 +1,6 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{
-    Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
-};
+use super::{Attributes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode};
 use crate::html::NodeRef;
 use crate::utils::document;
 use cfg_if::cfg_if;
@@ -126,31 +124,6 @@ impl VTag {
         }
     }
 
-    /// List of attached classes.
-    pub fn classes(&self) -> &str {
-        if let Some(class_str) = self.attributes.get("class") {
-            class_str.as_ref()
-        } else {
-            ""
-        }
-    }
-
-    /// Add classes to this virtual node. Actually it will set by
-    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
-    /// call later.
-    /// Or if the classes are empty it will be removed by
-    /// [Element.removeAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/removeAttribute)
-    /// call later.
-    pub fn set_classes(&mut self, classes: impl Into<Classes>) {
-        let classes: Classes = classes.into();
-        if classes.is_empty() {
-            self.attributes.remove("class");
-        } else {
-            self.attributes
-                .insert("class".to_string(), classes.to_string());
-        }
-    }
-
     /// Sets `value` for an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     pub fn set_value<T: ToString>(&mut self, value: &T) {
@@ -173,14 +146,14 @@ impl VTag {
 
     /// Adds attribute to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
-    /// `class`, `type/kind`, `value` and `checked`.
+    /// `type/kind`, `value` and `checked`.
     pub fn add_attribute<T: ToString>(&mut self, name: &str, value: &T) {
         self.attributes.insert(name.to_owned(), value.to_string());
     }
 
     /// Adds attributes to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
-    /// `class`, `type/kind`, `value` and `checked`.
+    /// `type/kind`, `value` and `checked`.
     pub fn add_attributes(&mut self, attrs: Vec<(String, String)>) {
         for (name, value) in attrs {
             self.attributes.insert(name, value);
@@ -203,9 +176,7 @@ impl VTag {
         }
     }
 
-    /// Similar to diff_classes except for attributes.
-    ///
-    /// This also handles patching of attributes when the keys are equal but
+    /// This handles patching of attributes when the keys are equal but
     /// the values are different.
     fn diff_attributes<'a>(
         &'a self,
@@ -738,10 +709,24 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes());
-            assert!(vtag.classes().contains("class-1"));
-            assert!(vtag.classes().contains("class-2"));
-            assert!(!vtag.classes().contains("class-3"));
+            assert!(vtag
+                .attributes
+                .get("class")
+                .map(AsRef::as_ref)
+                .unwrap_or("")
+                .contains("class-1"));
+            assert!(vtag
+                .attributes
+                .get("class")
+                .map(AsRef::as_ref)
+                .unwrap_or("")
+                .contains("class-2"));
+            assert!(!vtag
+                .attributes
+                .get("class")
+                .map(AsRef::as_ref)
+                .unwrap_or("")
+                .contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -760,10 +745,24 @@ mod tests {
         assert_ne!(a, b);
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes());
-            assert!(vtag.classes().contains("class-1"));
-            assert!(vtag.classes().contains("class-2"));
-            assert!(vtag.classes().contains("class-3"));
+            assert!(vtag
+                .attributes
+                .get("class")
+                .map(AsRef::as_ref)
+                .unwrap_or("")
+                .contains("class-1"));
+            assert!(vtag
+                .attributes
+                .get("class")
+                .map(AsRef::as_ref)
+                .unwrap_or("")
+                .contains("class-2"));
+            assert!(vtag
+                .attributes
+                .get("class")
+                .map(AsRef::as_ref)
+                .unwrap_or("")
+                .contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -778,10 +777,24 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes());
-            assert!(vtag.classes().contains("class-1"));
-            assert!(vtag.classes().contains("class-2"));
-            assert!(!vtag.classes().contains("class-3"));
+            assert!(vtag
+                .attributes
+                .get("class")
+                .map(AsRef::as_ref)
+                .unwrap_or("")
+                .contains("class-1"));
+            assert!(vtag
+                .attributes
+                .get("class")
+                .map(AsRef::as_ref)
+                .unwrap_or("")
+                .contains("class-2"));
+            assert!(!vtag
+                .attributes
+                .get("class")
+                .map(AsRef::as_ref)
+                .unwrap_or("")
+                .contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -795,10 +808,24 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes());
-            assert!(vtag.classes().contains("class-1"));
-            assert!(vtag.classes().contains("class-2"));
-            assert!(!vtag.classes().contains("class-3"));
+            assert!(vtag
+                .attributes
+                .get("class")
+                .map(AsRef::as_ref)
+                .unwrap_or("")
+                .contains("class-1"));
+            assert!(vtag
+                .attributes
+                .get("class")
+                .map(AsRef::as_ref)
+                .unwrap_or("")
+                .contains("class-2"));
+            assert!(!vtag
+                .attributes
+                .get("class")
+                .map(AsRef::as_ref)
+                .unwrap_or("")
+                .contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -813,19 +840,19 @@ mod tests {
         let c = html! { <div class=""></div> };
 
         if let VNode::VTag(vtag) = a {
-            assert!(vtag.classes().is_empty());
+            assert!(vtag.attributes.get("class").is_none());
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = b {
-            assert!(vtag.classes().is_empty());
+            assert!(vtag.attributes.get("class").is_none());
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = c {
-            assert!(vtag.classes().is_empty());
+            assert!(vtag.attributes.get("class").is_none());
         } else {
             panic!("vtag expected");
         }
@@ -884,8 +911,10 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes());
-            assert_eq!(vtag.classes(), "class-1 class-2 class-3");
+            assert_eq!(
+                vtag.attributes.get("class").map(AsRef::as_ref),
+                Some("class-1 class-2 class-3")
+            );
         }
     }
 
@@ -1042,6 +1071,26 @@ mod tests {
     }
 
     #[test]
+    fn tuple_different_types() {
+        // check if tuples containing different types are compiling
+        html! { <div class=("class-1", "class-2".to_string(), vec!["class-3", "class-4"])></div> };
+        html! { <div class=("class-1", Some("class-2"), "class-3")></div> };
+        // check different string references
+        let str = "class";
+        let string = str.to_string();
+        let string_ref = &string;
+        html! { <div class=str></div> };
+        html! { <div class=string.clone()></div> };
+        html! { <div class=string_ref></div> };
+        html! { <div class=Some(str)></div> };
+        html! { <div class=Some(string.clone())></div> };
+        html! { <div class=Some(string_ref)></div> };
+        html! { <div class=&Some(str)></div> };
+        html! { <div class=&Some(string.clone())></div> };
+        html! { <div class=&Some(string_ref)></div> };
+    }
+
+    #[test]
     fn swap_order_of_classes() {
         let parent = document().create_element("div").unwrap();
 
@@ -1060,7 +1109,10 @@ mod tests {
         };
 
         let expected = "class-1 class-2 class-3";
-        assert_eq!(vtag.classes(), expected);
+        assert_eq!(
+            vtag.attributes.get("class").map(AsRef::as_ref),
+            Some(expected)
+        );
         assert_eq!(
             vtag.reference
                 .as_ref()
@@ -1080,7 +1132,10 @@ mod tests {
         vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
 
         let expected = "class-3 class-2 class-1";
-        assert_eq!(vtag.classes(), expected);
+        assert_eq!(
+            vtag.attributes.get("class").map(AsRef::as_ref),
+            Some(expected)
+        );
         assert_eq!(
             vtag.reference
                 .as_ref()
@@ -1110,7 +1165,10 @@ mod tests {
         };
 
         let expected = "class-1 class-3";
-        assert_eq!(vtag.classes(), expected);
+        assert_eq!(
+            vtag.attributes.get("class").map(AsRef::as_ref),
+            Some(expected)
+        );
         assert_eq!(
             vtag.reference
                 .as_ref()
@@ -1130,7 +1188,10 @@ mod tests {
         vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
 
         let expected = "class-1 class-2 class-3";
-        assert_eq!(vtag.classes(), expected);
+        assert_eq!(
+            vtag.attributes.get("class").map(AsRef::as_ref),
+            Some(expected)
+        );
         assert_eq!(
             vtag.reference
                 .as_ref()
