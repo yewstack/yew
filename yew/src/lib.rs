@@ -122,6 +122,7 @@ pub mod events {
 
     cfg_if! {
         if #[cfg(feature = "std_web")] {
+            #[doc(no_inline)]
             pub use stdweb::web::event::{
                 BlurEvent, ClickEvent, ContextMenuEvent, DoubleClickEvent, DragDropEvent, DragEndEvent,
                 DragEnterEvent, DragEvent, DragExitEvent, DragLeaveEvent, DragOverEvent, DragStartEvent,
@@ -133,6 +134,7 @@ pub mod events {
                 ScrollEvent, SubmitEvent, TouchCancel, TouchEnd, TouchEnter, TouchMove, TouchStart,
             };
         } else if #[cfg(feature = "web_sys")] {
+            #[doc(no_inline)]
             pub use web_sys::{
                 DragEvent, Event, FocusEvent, KeyboardEvent, MouseEvent, PointerEvent, TouchEvent, UiEvent,
                 WheelEvent,
