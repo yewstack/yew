@@ -22,6 +22,12 @@ END TEMPLATE-->
   - None
 - #### 🚨 Breaking changes
   - None
+  
+  
+## ✨ **0.12.1** *2020-4-26*
+
+- #### 🛠 Fixes
+  - Fix infinite rerender bug in 'Router' component. (Thanks @dancespiele)
 
 ## ✨ **0.12.0** *2020-4-25*
 
