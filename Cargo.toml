@@ -41,6 +41,7 @@ members = [
   "examples/js_callback",
   "examples/large_table",
   "examples/minimal",
+  "examples/minimal_wb",
   "examples/mount_point",
   "examples/multi_thread",
   "examples/nested_list",
