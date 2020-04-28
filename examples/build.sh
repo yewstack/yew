@@ -14,7 +14,10 @@ EXAMPLE=$1
 cd $EXAMPLE
 
 
-if [[ $EXAMPLE == *_wb ]]; then
+if [[ $EXAMPLE == *_wp ]]; then
+    info "Using wasm-pack"
+    wasm-pack build --debug --target web --out-name wasm --out-dir ../static
+else 
     # Remove -wb from variable
     #EXAMPLE="${EXAMPLE%-wb}"
 
@@ -34,7 +37,4 @@ if [[ $EXAMPLE == *_wb ]]; then
     # Optimalization 
     # -Os -> size
     wasm-opt $SRCDIR/static/wasm_bg_orig.wasm -Os -o $SRCDIR/static/wasm_bg.wasm
-else 
-    info "Using wasm-pack"
-    wasm-pack build --debug --target web --out-name wasm --out-dir ../static
 fi
