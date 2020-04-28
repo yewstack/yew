@@ -1,7 +1,7 @@
 //! This module contains the implementation of abstract virtual node.
 
 use super::{VChild, VComp, VDiff, VList, VTag, VText};
-use crate::html::{Component, Renderable};
+use crate::html::{AnyScope, Component, Renderable};
 use cfg_if::cfg_if;
 use log::warn;
 use std::cmp::PartialEq;
@@ -63,15 +63,16 @@ impl VDiff for VNode {
 
     fn apply(
         &mut self,
+        scope: &AnyScope,
         parent: &Element,
         previous_sibling: Option<&Node>,
         ancestor: Option<VNode>,
     ) -> Option<Node> {
         match *self {
-            VNode::VTag(ref mut vtag) => vtag.apply(parent, previous_sibling, ancestor),
-            VNode::VText(ref mut vtext) => vtext.apply(parent, previous_sibling, ancestor),
-            VNode::VComp(ref mut vcomp) => vcomp.apply(parent, previous_sibling, ancestor),
-            VNode::VList(ref mut vlist) => vlist.apply(parent, previous_sibling, ancestor),
+            VNode::VTag(ref mut vtag) => vtag.apply(scope, parent, previous_sibling, ancestor),
+            VNode::VText(ref mut vtext) => vtext.apply(scope, parent, previous_sibling, ancestor),
+            VNode::VComp(ref mut vcomp) => vcomp.apply(scope, parent, previous_sibling, ancestor),
+            VNode::VList(ref mut vlist) => vlist.apply(scope, parent, previous_sibling, ancestor),
             VNode::VRef(ref mut node) => {
                 let sibling = match ancestor {
                     Some(mut n) => n.detach(parent),
