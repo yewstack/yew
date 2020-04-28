@@ -1,5 +1,1 @@
-*.wasm
-*.js
-*.json
-*.ts
-snippets/
+*

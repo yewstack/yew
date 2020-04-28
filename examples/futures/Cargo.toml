@@ -7,9 +7,6 @@ description = "web_sys fetching and futures demonstration"
 license = "MIT/Apache"
 repository = "https://github.com/yewstack/yew"
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
 yew = { path = "../../yew" }
 wasm-bindgen = "0.2.60"
