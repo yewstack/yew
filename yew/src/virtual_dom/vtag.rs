@@ -147,6 +147,8 @@ impl VTag {
     /// Adds attribute to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
     /// `type/kind`, `value` and `checked`.
+    ///
+    /// If this virtual node has this attribute present, the value is replaced.
     pub fn add_attribute<T: ToString>(&mut self, name: &str, value: &T) {
         self.attributes.insert(name.to_owned(), value.to_string());
     }
@@ -702,6 +704,23 @@ mod tests {
         assert_eq!(a, c);
     }
 
+    /// Returns the class attribute as str reference, or "" if the attribute is not set.
+    fn get_class_str(vtag: &VTag) -> &str {
+        vtag.attributes
+            .get("class")
+            .map(AsRef::as_ref)
+            .unwrap_or("")
+    }
+
+    /// Note: Compares to "" if the class attribute is not set.
+    fn assert_class(vnode: VNode, class: &str) {
+        if let VNode::VTag(ref vtag) = vnode {
+            assert_eq!(get_class_str(vtag), class);
+        } else {
+            panic!("expected VTag");
+        }
+    }
+
     #[test]
     fn supports_multiple_non_unique_classes_tuple() {
         let a = html! {
@@ -709,24 +728,9 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            assert!(vtag
-                .attributes
-                .get("class")
-                .map(AsRef::as_ref)
-                .unwrap_or("")
-                .contains("class-1"));
-            assert!(vtag
-                .attributes
-                .get("class")
-                .map(AsRef::as_ref)
-                .unwrap_or("")
-                .contains("class-2"));
-            assert!(!vtag
-                .attributes
-                .get("class")
-                .map(AsRef::as_ref)
-                .unwrap_or("")
-                .contains("class-3"));
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(!get_class_str(&vtag).contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -745,24 +749,9 @@ mod tests {
         assert_ne!(a, b);
 
         if let VNode::VTag(vtag) = a {
-            assert!(vtag
-                .attributes
-                .get("class")
-                .map(AsRef::as_ref)
-                .unwrap_or("")
-                .contains("class-1"));
-            assert!(vtag
-                .attributes
-                .get("class")
-                .map(AsRef::as_ref)
-                .unwrap_or("")
-                .contains("class-2"));
-            assert!(vtag
-                .attributes
-                .get("class")
-                .map(AsRef::as_ref)
-                .unwrap_or("")
-                .contains("class-3"));
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(get_class_str(&vtag).contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -777,24 +766,9 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            assert!(vtag
-                .attributes
-                .get("class")
-                .map(AsRef::as_ref)
-                .unwrap_or("")
-                .contains("class-1"));
-            assert!(vtag
-                .attributes
-                .get("class")
-                .map(AsRef::as_ref)
-                .unwrap_or("")
-                .contains("class-2"));
-            assert!(!vtag
-                .attributes
-                .get("class")
-                .map(AsRef::as_ref)
-                .unwrap_or("")
-                .contains("class-3"));
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(!get_class_str(&vtag).contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -808,24 +782,9 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            assert!(vtag
-                .attributes
-                .get("class")
-                .map(AsRef::as_ref)
-                .unwrap_or("")
-                .contains("class-1"));
-            assert!(vtag
-                .attributes
-                .get("class")
-                .map(AsRef::as_ref)
-                .unwrap_or("")
-                .contains("class-2"));
-            assert!(!vtag
-                .attributes
-                .get("class")
-                .map(AsRef::as_ref)
-                .unwrap_or("")
-                .contains("class-3"));
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(!get_class_str(&vtag).contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -840,19 +799,19 @@ mod tests {
         let c = html! { <div class=""></div> };
 
         if let VNode::VTag(vtag) = a {
-            assert!(vtag.attributes.get("class").is_none());
+            assert!(!vtag.attributes.contains_key("class"));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = b {
-            assert!(vtag.attributes.get("class").is_none());
+            assert!(!vtag.attributes.contains_key("class"));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = c {
-            assert!(vtag.attributes.get("class").is_none());
+            assert!(!vtag.attributes.contains_key("class"));
         } else {
             panic!("vtag expected");
         }
@@ -911,10 +870,7 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            assert_eq!(
-                vtag.attributes.get("class").map(AsRef::as_ref),
-                Some("class-1 class-2 class-3")
-            );
+            assert_eq!(get_class_str(&vtag), "class-1 class-2 class-3");
         }
     }
 
@@ -1073,21 +1029,35 @@ mod tests {
     #[test]
     fn tuple_different_types() {
         // check if tuples containing different types are compiling
-        html! { <div class=("class-1", "class-2".to_string(), vec!["class-3", "class-4"])></div> };
-        html! { <div class=("class-1", Some("class-2"), "class-3")></div> };
+        assert_class(
+            html! { <div class=("class-1", "class-2".to_string(), vec!["class-3", "class-4"])></div> },
+            "class-1 class-2 class-3 class-4",
+        );
+        assert_class(
+            html! { <div class=("class-1", Some("class-2"), "class-3", Some("class-4".to_string()))></div> },
+            "class-1 class-2 class-3 class-4",
+        );
         // check different string references
-        let str = "class";
+        let str = "some-class";
         let string = str.to_string();
         let string_ref = &string;
-        html! { <div class=str></div> };
-        html! { <div class=string.clone()></div> };
-        html! { <div class=string_ref></div> };
-        html! { <div class=Some(str)></div> };
-        html! { <div class=Some(string.clone())></div> };
-        html! { <div class=Some(string_ref)></div> };
-        html! { <div class=&Some(str)></div> };
-        html! { <div class=&Some(string.clone())></div> };
-        html! { <div class=&Some(string_ref)></div> };
+        assert_class(html! { <p class=str /> }, "some-class");
+        assert_class(html! { <p class=string.clone() /> }, "some-class");
+        assert_class(html! { <p class=&Some(str) /> }, "some-class");
+        assert_class(html! { <p class=string_ref /> }, "some-class");
+        assert_class(html! { <p class=Some(str) /> }, "some-class");
+        assert_class(html! { <p class=Some(string.clone()) /> }, "some-class");
+        assert_class(html! { <p class=Some(string_ref) /> }, "some-class");
+        assert_class(html! { <p class=&Some(string.clone()) /> }, "some-class");
+        assert_class(html! { <p class=&Some(string_ref) /> }, "some-class");
+        // check with None
+        assert_class(html! { <p class=&Option::<&str>::None /> }, "");
+        assert_class(html! { <p class=Option::<String>::None /> }, "");
+        // check with variables
+        let some: Option<bool> = Some(false);
+        let none: Option<bool> = None;
+        assert_class(html! { <p class=some.map(|i| i.to_string()) /> }, "false");
+        assert_class(html! { <p class=none.map(|i| i.to_string()) /> }, "");
     }
 
     #[test]
@@ -1109,10 +1079,7 @@ mod tests {
         };
 
         let expected = "class-1 class-2 class-3";
-        assert_eq!(
-            vtag.attributes.get("class").map(AsRef::as_ref),
-            Some(expected)
-        );
+        assert_eq!(get_class_str(&vtag), expected);
         assert_eq!(
             vtag.reference
                 .as_ref()
@@ -1132,10 +1099,7 @@ mod tests {
         vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
 
         let expected = "class-3 class-2 class-1";
-        assert_eq!(
-            vtag.attributes.get("class").map(AsRef::as_ref),
-            Some(expected)
-        );
+        assert_eq!(get_class_str(&vtag), expected);
         assert_eq!(
             vtag.reference
                 .as_ref()
@@ -1165,10 +1129,7 @@ mod tests {
         };
 
         let expected = "class-1 class-3";
-        assert_eq!(
-            vtag.attributes.get("class").map(AsRef::as_ref),
-            Some(expected)
-        );
+        assert_eq!(get_class_str(&vtag), expected);
         assert_eq!(
             vtag.reference
                 .as_ref()
@@ -1188,10 +1149,7 @@ mod tests {
         vtag.apply(&parent, None, Some(VNode::VTag(ancestor)));
 
         let expected = "class-1 class-2 class-3";
-        assert_eq!(
-            vtag.attributes.get("class").map(AsRef::as_ref),
-            Some(expected)
-        );
+        assert_eq!(get_class_str(&vtag), expected);
         assert_eq!(
             vtag.reference
                 .as_ref()
