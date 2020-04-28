@@ -132,13 +132,13 @@ impl ToTokens for HtmlTag {
         });
         let set_classes = classes.iter().map(|classes_form| match classes_form {
             ClassesForm::Tuple(classes) => quote! {
-                let mut __yew_classes = ::yew::virtual_dom::Classes::default()#(.extend(#classes))*;
+                let __yew_classes = ::yew::virtual_dom::Classes::default()#(.extend(#classes))*;
                 if !__yew_classes.is_empty() {
                     #vtag.add_attribute("class", &__yew_classes);
                 }
             },
             ClassesForm::Single(classes) => quote! {
-                let mut __yew_classes = std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
+                let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
                 if !__yew_classes.is_empty() {
                     #vtag.add_attribute("class", &__yew_classes);
                 }
