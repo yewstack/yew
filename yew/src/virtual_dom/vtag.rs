@@ -1056,8 +1056,8 @@ mod tests {
         // check with variables
         let some: Option<&'static str> = Some("some");
         let none: Option<&'static str> = None;
-        assert_class(html! { <p class=some.map(|i| i.to_string()) /> }, "some");
-        assert_class(html! { <p class=none.map(|i| i.to_string()) /> }, "");
+        assert_class(html! { <p class=some /> }, "some");
+        assert_class(html! { <p class=none /> }, "");
         // check with variables of different type
         let some: Option<bool> = Some(false);
         let none: Option<bool> = None;
