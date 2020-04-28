@@ -7,13 +7,6 @@ pull_request_rules:
     actions:
       merge:
         method: rebase
-  - name: automatic merge on CI success - reviewed
-    conditions:
-      - "#approved-reviews-by>=1"
-      - status-success=Travis CI - Pull Request
-    actions:
-      merge:
-        method: rebase
   - name: remove automerge label on CI failure
     conditions:
       - status-failure=Travis CI - Pull Request
