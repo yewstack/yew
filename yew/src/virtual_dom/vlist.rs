@@ -1,5 +1,6 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
+use crate::html::AnyScope;
 use cfg_if::cfg_if;
 use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
@@ -77,6 +78,7 @@ impl VDiff for VList {
 
     fn apply(
         &mut self,
+        scope: &AnyScope,
         parent: &Element,
         previous_sibling: Option<&Node>,
         ancestor: Option<VNode>,
@@ -143,20 +145,22 @@ impl VDiff for VList {
                 match rights_lookup.remove(key) {
                     Some(right) => {
                         previous_sibling =
-                            left.apply(parent, previous_sibling.as_ref(), Some(right));
+                            left.apply(scope, parent, previous_sibling.as_ref(), Some(right));
                     }
                     None => {
-                        previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
+                        previous_sibling =
+                            left.apply(scope, parent, previous_sibling.as_ref(), None);
                     }
                 }
             } else {
                 match rights.next() {
                     Some(right) => {
                         previous_sibling =
-                            left.apply(parent, previous_sibling.as_ref(), Some(right));
+                            left.apply(scope, parent, previous_sibling.as_ref(), Some(right));
                     }
                     None => {
-                        previous_sibling = left.apply(parent, previous_sibling.as_ref(), None);
+                        previous_sibling =
+                            left.apply(scope, parent, previous_sibling.as_ref(), None);
                     }
                 }
             }
