@@ -19,3 +19,5 @@ set -euxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_
 (cd yew-router-route-parser && cargo test)
 
 (cd yew-stdweb && cargo test --target wasm32-unknown-unknown --features wasm_test)
+
+(cd yewtil && cargo test)
