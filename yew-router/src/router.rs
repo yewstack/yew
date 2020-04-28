@@ -35,6 +35,9 @@ impl<STATE> RouterState for STATE where STATE: RouteState + PartialEq {}
 /// #   fn update(&mut self, msg: Self::Message) -> ShouldRender {
 /// #        false
 /// #   }
+/// #   fn change(&mut self, props: Self::Properties) -> ShouldRender {
+/// #        false
+/// #   }
 ///
 ///     fn view(&self) -> VNode {
 ///         html! {
