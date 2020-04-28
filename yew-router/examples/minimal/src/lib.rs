@@ -1,4 +1,5 @@
 #![recursion_limit = "256"]
+use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
 use yew::virtual_dom::VNode;
@@ -7,11 +8,10 @@ use yew_router::{route::Route, service::RouteService, Switch};
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-fn main() {
-    yew::initialize();
+#[wasm_bindgen(start)]
+pub fn run_app() {
     web_logger::init();
-    App::<Model>::new().mount_to_body();
-    yew::run_loop();
+    yew::start_app::<Model>();
 }
 
 pub struct Model {
@@ -38,7 +38,7 @@ pub enum AppRoute {
 impl Model {
     fn change_route(&self, app_route: AppRoute) -> Callback<MouseEvent> {
         self.link.callback(move |_| {
-            let route = app_route.clone(); // TODO, I don't think I should have to clone here?
+            let route = app_route.clone();
             Msg::ChangeRoute(route)
         })
     }

@@ -4,11 +4,13 @@ version = "0.1.0"
 authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-yew = { path = "../../../yew" }
-yew-router = { path = "../.." }
+yew = { path = "../../../yew"  }
+yew-router = { path = "../..", features = ["service", "web_sys"], default-features = false }
 web_logger = "0.2"
 log = "0.4.8"
 wee_alloc = "0.4.5"
+wasm-bindgen = "0.2.60"

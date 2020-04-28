@@ -451,11 +451,13 @@ pub struct Private;
 impl Discoverer for Private {
     fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let callback = callback.expect("Callback required for Private agents");
-        let handler = move |data: Vec<u8>| {
+        let handler = move |data: Vec<u8>,
+                            #[cfg(feature = "std_web")] worker: Value,
+                            #[cfg(feature = "web_sys")] worker: &Worker| {
             let msg = FromWorker::<AGN::Output>::unpack(&data);
             match msg {
                 FromWorker::WorkerLoaded => {
-                    // TODO(#948): Send `Connected` message
+                    send_to_remote::<AGN>(&worker, ToWorker::Connected(SINGLETON_ID));
                 }
                 FromWorker::ProcessOutput(id, output) => {
                     assert_eq!(id.raw_id(), SINGLETON_ID.raw_id());
@@ -471,13 +473,14 @@ impl Discoverer for Private {
                 var worker = new Worker(@{name_of_resource});
                 var handler = @{handler};
                 worker.onmessage = function(event) {
-                    handler(event.data);
+                    handler(event.data, worker);
                 };
                 return worker;
             },
             feature = "web_sys" => ({
                 let worker = worker_new(name_of_resource, AGN::is_module());
-                worker.set_onmessage_closure(handler);
+                let worker_clone = worker.clone();
+                worker.set_onmessage_closure(move |data: Vec<u8>| handler(data, &worker_clone));
                 worker
             }),
         };
@@ -526,7 +529,11 @@ impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
 
 impl<AGN: Agent> Drop for PrivateBridge<AGN> {
     fn drop(&mut self) {
-        // TODO(#946): Send `Destroy` message.
+        let disconnected = ToWorker::Disconnected(SINGLETON_ID);
+        send_to_remote::<AGN>(&self.worker, disconnected);
+
+        let destroy = ToWorker::Destroy;
+        send_to_remote::<AGN>(&self.worker, destroy);
     }
 }
 

@@ -23,7 +23,7 @@ pub trait PureComponent: Properties + PartialEq + Sized + 'static {
 /// use yew::Html;
 /// use yewtil::{PureComponent, Pure};
 ///
-/// #[derive(Properties, PartialEq)]
+/// #[derive(Clone, Properties, PartialEq)]
 /// pub struct PureMyComponent {
 ///     pub data: String
 /// }

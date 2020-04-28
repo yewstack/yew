@@ -89,7 +89,7 @@ where
 {
     /// Creates a new `App` with a component in a context.
     pub fn new() -> Self {
-        let scope = Scope::new();
+        let scope = Scope::new(None);
         App { scope }
     }
 

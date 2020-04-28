@@ -15,7 +15,7 @@ pub trait NeqAssign<NEW> {
     /// # use yewtil::NeqAssign;
     /// # use yew::Properties;
     ///# use yew::virtual_dom::VNode;
-    /// ##[derive(Properties, PartialEq)]
+    /// ##[derive(Clone, Properties, PartialEq)]
     ///  struct Props {
     ///     field1: String,
     ///     field2: usize

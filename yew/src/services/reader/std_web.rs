@@ -6,6 +6,7 @@ use crate::services::Task;
 use std::cmp;
 use stdweb::unstable::{TryFrom, TryInto};
 use stdweb::web::event::LoadEndEvent;
+#[doc(no_inline)]
 pub use stdweb::web::{Blob, File, IBlob};
 use stdweb::web::{FileReader, FileReaderReadyState, FileReaderResult, IEventTarget, TypedArray};
 #[allow(unused_imports)]

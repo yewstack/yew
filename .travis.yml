@@ -15,7 +15,7 @@ before_cache:
   - ./ci/clear_cache.sh
 
 rust:
-  - 1.39.0 # min supported
+  - 1.40.0 # min supported
   - stable
   - beta
 
@@ -38,4 +38,3 @@ install:
 script:
   - ./ci/run_stable_checks.sh
   - GECKODRIVER=$(pwd)/geckodriver ./ci/run_tests.sh
-  - ./ci/run_emscripten_checks.sh

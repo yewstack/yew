@@ -21,6 +21,7 @@ use web_sys::{
     Response as WebResponse,
 };
 
+#[doc(no_inline)]
 pub use web_sys::{
     RequestCache as Cache, RequestCredentials as Credentials, RequestMode as Mode,
     RequestRedirect as Redirect, Window, WorkerGlobalScope,

@@ -3,6 +3,7 @@ mod a_component;
 mod b_component;
 mod c_component;
 
+use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
 use yew_router::{prelude::*, Switch};
@@ -18,11 +19,10 @@ use yew_router::switch::{AllowMissing, Permissive};
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-fn main() {
-    yew::initialize();
+#[wasm_bindgen(start)]
+pub fn run_app() {
     web_logger::init();
-    App::<Model>::new().mount_to_body();
-    yew::run_loop();
+    yew::start_app::<Model>();
 }
 
 pub struct Model {}

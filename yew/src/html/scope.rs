@@ -1,9 +1,11 @@
-use super::*;
+use super::{Callback, Component, NodeRef, Renderable};
 use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use cfg_if::cfg_if;
-use std::cell::RefCell;
+use std::any::{Any, TypeId};
+use std::cell::{Ref, RefCell};
 use std::fmt;
+use std::ops::Deref;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -23,9 +25,62 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     Properties(COMP::Properties, NodeRef),
 }
 
+/// Untyped scope used for accessing parent scope
+#[derive(Debug, Clone)]
+pub struct AnyScope {
+    type_id: TypeId,
+    parent: Option<Rc<AnyScope>>,
+    state: Rc<dyn Any>,
+}
+
+impl Default for AnyScope {
+    fn default() -> Self {
+        Self {
+            type_id: TypeId::of::<()>(),
+            parent: None,
+            state: Rc::new(()),
+        }
+    }
+}
+
+impl<COMP: Component> From<Scope<COMP>> for AnyScope {
+    fn from(scope: Scope<COMP>) -> Self {
+        AnyScope {
+            type_id: TypeId::of::<COMP>(),
+            parent: scope.parent,
+            state: Rc::new(scope.state),
+        }
+    }
+}
+
+impl AnyScope {
+    /// Returns the parent scope
+    pub fn get_parent(&self) -> Option<&AnyScope> {
+        self.parent.as_deref()
+    }
+
+    /// Returns the type of the linked component
+    pub fn get_type_id(&self) -> &TypeId {
+        &self.type_id
+    }
+
+    /// Attempts to downcast into a typed scope
+    pub fn downcast<COMP: Component>(self) -> Scope<COMP> {
+        Scope {
+            parent: self.parent,
+            state: self
+                .state
+                .downcast_ref::<Shared<ComponentState<COMP>>>()
+                .expect("unexpected component type")
+                .clone(),
+        }
+    }
+}
+
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
-    shared_state: Shared<ComponentState<COMP>>,
+    parent: Option<Rc<AnyScope>>,
+    state: Shared<ComponentState<COMP>>,
 }
 
 impl<COMP: Component> fmt::Debug for Scope<COMP> {
@@ -37,22 +92,30 @@ impl<COMP: Component> fmt::Debug for Scope<COMP> {
 impl<COMP: Component> Clone for Scope<COMP> {
     fn clone(&self) -> Self {
         Scope {
-            shared_state: self.shared_state.clone(),
+            parent: self.parent.clone(),
+            state: self.state.clone(),
         }
     }
 }
 
-impl<COMP: Component> Default for Scope<COMP> {
-    fn default() -> Self {
-        Scope::new()
-    }
-}
-
 impl<COMP: Component> Scope<COMP> {
-    /// visible for testing
-    pub fn new() -> Self {
-        let shared_state = Rc::new(RefCell::new(ComponentState::Empty));
-        Scope { shared_state }
+    /// Returns the parent scope
+    pub fn get_parent(&self) -> Option<&AnyScope> {
+        self.parent.as_deref()
+    }
+
+    /// Returns the linked component if available
+    pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
+        self.state.try_borrow().ok().and_then(|state_ref| {
+            state_ref.component()?;
+            Some(Ref::map(state_ref, |this| this.component().unwrap()))
+        })
+    }
+
+    pub(crate) fn new(parent: Option<AnyScope>) -> Self {
+        let parent = parent.map(Rc::new);
+        let state = Rc::new(RefCell::new(ComponentState::Empty));
+        Scope { parent, state }
     }
 
     /// Mounts a component with `props` to the specified `element` in the DOM.
@@ -71,15 +134,15 @@ impl<COMP: Component> Scope<COMP> {
             props,
             ancestor,
         };
-        *scope.shared_state.borrow_mut() = ComponentState::Ready(ready_state);
+        *scope.state.borrow_mut() = ComponentState::Ready(ready_state);
         scope.create();
         scope
     }
 
     /// Schedules a task to create and render a component and then mount it to the DOM
     pub(crate) fn create(&mut self) {
-        let shared_state = self.shared_state.clone();
-        let create = CreateComponent { shared_state };
+        let state = self.state.clone();
+        let create = CreateComponent { state };
         scheduler().push_comp(ComponentRunnableType::Create, Box::new(create));
         self.rendered(true);
     }
@@ -87,7 +150,7 @@ impl<COMP: Component> Scope<COMP> {
     /// Schedules a task to send a message or new props to a component
     pub(crate) fn update(&self, update: ComponentUpdate<COMP>) {
         let update = UpdateComponent {
-            shared_state: self.shared_state.clone(),
+            state: self.state.clone(),
             update,
         };
         scheduler().push_comp(ComponentRunnableType::Update, Box::new(update));
@@ -96,9 +159,9 @@ impl<COMP: Component> Scope<COMP> {
 
     /// Schedules a task to call the rendered method on a component
     pub(crate) fn rendered(&self, first_render: bool) {
-        let shared_state = self.shared_state.clone();
+        let state = self.state.clone();
         let rendered = RenderedComponent {
-            shared_state,
+            state,
             first_render,
         };
         scheduler().push_comp(ComponentRunnableType::Rendered, Box::new(rendered));
@@ -106,8 +169,8 @@ impl<COMP: Component> Scope<COMP> {
 
     /// Schedules a task to destroy a component
     pub(crate) fn destroy(&mut self) {
-        let shared_state = self.shared_state.clone();
-        let destroy = DestroyComponent { shared_state };
+        let state = self.state.clone();
+        let destroy = DestroyComponent { state };
         scheduler().push_comp(ComponentRunnableType::Destroy, Box::new(destroy));
     }
 
@@ -179,6 +242,15 @@ enum ComponentState<COMP: Component> {
     Destroyed,
 }
 
+impl<COMP: Component> ComponentState<COMP> {
+    fn component(&self) -> Option<&COMP> {
+        match self {
+            ComponentState::Created(state) => Some(&state.component),
+            _ => None,
+        }
+    }
+}
+
 impl<COMP: Component> fmt::Display for ComponentState<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let name = match self {
@@ -204,10 +276,11 @@ impl<COMP: Component> ReadyState<COMP> {
     fn create(self) -> CreatedState<COMP> {
         CreatedState {
             rendered: false,
-            component: COMP::create(self.props, self.scope),
+            component: COMP::create(self.props, self.scope.clone()),
             element: self.element,
             last_frame: self.ancestor,
             node_ref: self.node_ref,
+            scope: self.scope,
         }
     }
 }
@@ -218,6 +291,7 @@ struct CreatedState<COMP: Component> {
     component: COMP,
     last_frame: Option<VNode>,
     node_ref: NodeRef,
+    scope: Scope<COMP>,
 }
 
 impl<COMP: Component> CreatedState<COMP> {
@@ -230,7 +304,12 @@ impl<COMP: Component> CreatedState<COMP> {
 
     fn update(mut self) -> Self {
         let mut root = self.component.render();
-        if let Some(node) = root.apply(&self.element, None, self.last_frame) {
+        if let Some(node) = root.apply(
+            &self.scope.clone().into(),
+            &self.element,
+            None,
+            self.last_frame,
+        ) {
             self.node_ref.set(Some(node));
         } else if let VNode::VComp(child) = &root {
             // If the root VNode is a VComp, we won't have access to the rendered DOM node
@@ -248,7 +327,7 @@ struct RenderedComponent<COMP>
 where
     COMP: Component,
 {
-    shared_state: Shared<ComponentState<COMP>>,
+    state: Shared<ComponentState<COMP>>,
     first_render: bool,
 }
 
@@ -257,8 +336,8 @@ where
     COMP: Component,
 {
     fn run(self: Box<Self>) {
-        let current_state = self.shared_state.replace(ComponentState::Processing);
-        self.shared_state.replace(match current_state {
+        let current_state = self.state.replace(ComponentState::Processing);
+        self.state.replace(match current_state {
             ComponentState::Created(s) if !s.rendered => {
                 ComponentState::Created(s.rendered(self.first_render))
             }
@@ -274,7 +353,7 @@ struct CreateComponent<COMP>
 where
     COMP: Component,
 {
-    shared_state: Shared<ComponentState<COMP>>,
+    state: Shared<ComponentState<COMP>>,
 }
 
 impl<COMP> Runnable for CreateComponent<COMP>
@@ -282,8 +361,8 @@ where
     COMP: Component,
 {
     fn run(self: Box<Self>) {
-        let current_state = self.shared_state.replace(ComponentState::Processing);
-        self.shared_state.replace(match current_state {
+        let current_state = self.state.replace(ComponentState::Processing);
+        self.state.replace(match current_state {
             ComponentState::Ready(s) => ComponentState::Created(s.create().update()),
             ComponentState::Created(_) | ComponentState::Destroyed => current_state,
             ComponentState::Empty | ComponentState::Processing => {
@@ -297,7 +376,7 @@ struct DestroyComponent<COMP>
 where
     COMP: Component,
 {
-    shared_state: Shared<ComponentState<COMP>>,
+    state: Shared<ComponentState<COMP>>,
 }
 
 impl<COMP> Runnable for DestroyComponent<COMP>
@@ -305,7 +384,7 @@ where
     COMP: Component,
 {
     fn run(self: Box<Self>) {
-        match self.shared_state.replace(ComponentState::Destroyed) {
+        match self.state.replace(ComponentState::Destroyed) {
             ComponentState::Created(mut this) => {
                 this.component.destroy();
                 if let Some(last_frame) = &mut this.last_frame {
@@ -327,7 +406,7 @@ struct UpdateComponent<COMP>
 where
     COMP: Component,
 {
-    shared_state: Shared<ComponentState<COMP>>,
+    state: Shared<ComponentState<COMP>>,
     update: ComponentUpdate<COMP>,
 }
 
@@ -336,8 +415,8 @@ where
     COMP: Component,
 {
     fn run(self: Box<Self>) {
-        let current_state = self.shared_state.replace(ComponentState::Processing);
-        self.shared_state.replace(match current_state {
+        let current_state = self.state.replace(ComponentState::Processing);
+        self.state.replace(match current_state {
             ComponentState::Created(mut this) => {
                 let should_update = match self.update {
                     ComponentUpdate::Message(message) => this.component.update(message),
@@ -364,34 +443,5 @@ where
                 panic!("unexpected component state: {}", current_state);
             }
         });
-    }
-}
-
-struct Hidden;
-
-pub(crate) struct HiddenScope {
-    type_id: TypeId,
-    scope: *mut Hidden,
-}
-
-impl<COMP: Component> From<Scope<COMP>> for HiddenScope {
-    fn from(scope: Scope<COMP>) -> Self {
-        HiddenScope {
-            type_id: TypeId::of::<COMP>(),
-            scope: Box::into_raw(Box::new(scope)) as *mut Hidden,
-        }
-    }
-}
-
-impl<COMP: Component> Into<Scope<COMP>> for HiddenScope {
-    fn into(self: HiddenScope) -> Scope<COMP> {
-        if self.type_id != TypeId::of::<COMP>() {
-            panic!("encountered unespected component type");
-        }
-
-        unsafe {
-            let raw: *mut Scope<COMP> = self.scope as *mut Scope<COMP>;
-            *Box::from_raw(raw)
-        }
     }
 }

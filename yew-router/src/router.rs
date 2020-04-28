@@ -35,6 +35,9 @@ impl<STATE> RouterState for STATE where STATE: RouteState + PartialEq {}
 /// #   fn update(&mut self, msg: Self::Message) -> ShouldRender {
 /// #        false
 /// #   }
+/// #   fn change(&mut self, props: Self::Properties) -> ShouldRender {
+/// #        false
+/// #   }
 ///
 ///     fn view(&self) -> VNode {
 ///         html! {
@@ -175,7 +178,8 @@ where
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.callback(Msg::UpdateRoute);
-        let router_agent = RouteAgentBridge::new(callback);
+        let mut router_agent = RouteAgentBridge::new(callback);
+        router_agent.send(RouteRequest::GetCurrentRoute);
 
         Router {
             switch: Default::default(), /* This must be updated by immediately requesting a route
@@ -183,10 +187,6 @@ where
             props,
             router_agent,
         }
-    }
-
-    fn rendered(&mut self, _first_render: bool) {
-        self.router_agent.send(RouteRequest::GetCurrentRoute);
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
