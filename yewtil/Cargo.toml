@@ -28,7 +28,7 @@ with_callback = []
 history = []
 dsl = []
 effect = []
-fetch = ["serde", "serde_json", "neq", "future"]
+fetch = ["serde", "serde_json", "neq", "future", "web-sys"]
 future = ["wasm-bindgen-futures", "wasm-bindgen", "futures"]
 
 # Ptr features
