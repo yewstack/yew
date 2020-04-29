@@ -1,5 +1,5 @@
 use std::future::Future;
-use stdweb::spawn_local;
+use wasm_bindgen_futures::spawn_local;
 use yew::{
     agent::{Agent, AgentLink},
     Component, ComponentLink,
