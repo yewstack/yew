@@ -15,7 +15,7 @@ all = ["stable", "experimental"]
 # Broad features
 ## All features MUST be stable or experimental
 stable = ["neq", "pure", "history", "mrc_irc", "effect", "future"]
-experimental = ["dsl", "lrc", "with_callback", "fetch" ]
+experimental = ["dsl", "lrc", "with_callback", "fetch"]
 
 # Some pointers are stable, some experimental.
 # This makes sure you get all the pointers
@@ -28,8 +28,8 @@ with_callback = []
 history = []
 dsl = []
 effect = []
-fetch = ["serde", "serde_json", "neq", "future"]
-future = ["wasm-bindgen-futures", "wasm-bindgen", "stdweb", "futures", "web-sys"]
+fetch = ["serde", "serde_json", "neq", "future", "web-sys"]
+future = ["wasm-bindgen-futures", "wasm-bindgen", "futures"]
 
 # Ptr features
 lrc = []
