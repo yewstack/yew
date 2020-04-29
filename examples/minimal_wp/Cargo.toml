@@ -8,5 +8,8 @@ edition = "2018"
 yew = { path = "../../yew" }
 wasm-bindgen = "0.2"
 
+
+# requirement of wasm-pack which builds crates as libraries
+# it is required to have `#[wasm_bindgen(start)]` in lib.rs as starting point
 [lib]
 crate-type = ["cdylib", "rlib"]
