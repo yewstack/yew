@@ -38,3 +38,4 @@ install:
 script:
   - ./ci/run_stable_checks.sh
   - GECKODRIVER=$(pwd)/geckodriver ./ci/run_tests.sh
+  - ./ci/build_examples.sh
