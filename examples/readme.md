@@ -15,7 +15,7 @@ For your own project, you may wish to check out the Yew [starter templates](http
 
 ```
 git clone https://github.com/yewstack/yew.git
-cd yew
+cd yew/examples
 ./build.sh minimal # example subfolder
 python3 -m http.server --directory examples/static # open localhost:8000 in browser
 ```
