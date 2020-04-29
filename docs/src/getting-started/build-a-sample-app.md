@@ -17,7 +17,7 @@ authors = ["Yew App Developer <name@example.com>"]
 edition = "2018"
 
 [dependencies]
-yew = { version = "0.14.3", features = ["std_web"] }
+yew = { version = "0.15", package = "yew-stdweb" }
 ```
 {% endcode %}
 
@@ -51,6 +51,13 @@ impl Component for Model {
             Msg::AddOne => self.value += 1
         }
         true
+    }
+
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        // Should only return "true" if new properties are different to
+        // previously received properties.
+        // This component has no properties so we will always return "false".
+        false
     }
 
     fn view(&self) -> Html {

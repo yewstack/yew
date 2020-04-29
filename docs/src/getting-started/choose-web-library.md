@@ -7,10 +7,10 @@ Yew apps can be built with either [`web-sys`](https://docs.rs/web-sys) or [`stdw
 {% code title="Cargo.toml" %}
 ```rust
 # Choose `web-sys`
-yew = { version = "0.13", features = ["web_sys"] }
+yew = "0.15"
 
 # Choose `stdweb`
-yew = { version = "0.13", features = ["std_web"] }
+yew = { version = "0.15", package = "yew-stdweb" }
 ```
 {% endcode %}
 

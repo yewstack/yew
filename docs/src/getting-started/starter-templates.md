@@ -21,7 +21,10 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-yew = { version = "0.13.0", features = ["web_sys" OR "std_web"] }
+# for web_sys
+yew = 0.15
+# or for stdweb
+# yew = { version = "0.15", package = "yew-stdweb" }
 wasm-bindgen = "0.2"
 ```
 {% endcode %}
