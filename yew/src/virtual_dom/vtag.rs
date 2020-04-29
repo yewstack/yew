@@ -1,8 +1,6 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{
-    Attributes, Classes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
-};
+use super::{Attributes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
@@ -50,8 +48,6 @@ pub struct VTag {
     pub attributes: Attributes,
     /// List of children nodes
     pub children: VList,
-    /// List of attached classes.
-    pub classes: Classes,
     /// Contains a value of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     pub value: Option<String>,
@@ -81,7 +77,6 @@ impl Clone for VTag {
             listeners: self.listeners.clone(),
             attributes: self.attributes.clone(),
             children: self.children.clone(),
-            classes: self.classes.clone(),
             value: self.value.clone(),
             kind: self.kind.clone(),
             checked: self.checked,
@@ -98,7 +93,6 @@ impl VTag {
         VTag {
             tag: tag.into(),
             reference: None,
-            classes: Classes::new(),
             attributes: Attributes::new(),
             listeners: Vec::new(),
             captured: Vec::new(),
@@ -130,29 +124,6 @@ impl VTag {
         }
     }
 
-    /// Adds a single class to this virtual node. Actually it will set by
-    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
-    /// call later.
-    pub fn add_class(&mut self, class: &str) {
-        self.classes.push(class);
-    }
-
-    /// Adds multiple classes to this virtual node. Actually it will set by
-    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
-    /// call later.
-    pub fn add_classes(&mut self, classes: Vec<&str>) {
-        for class in classes {
-            self.classes.push(class);
-        }
-    }
-
-    /// Add classes to this virtual node. Actually it will set by
-    /// [Element.setAttribute](https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute)
-    /// call later.
-    pub fn set_classes(&mut self, classes: impl Into<Classes>) {
-        self.classes = classes.into();
-    }
-
     /// Sets `value` for an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     pub fn set_value<T: ToString>(&mut self, value: &T) {
@@ -175,14 +146,16 @@ impl VTag {
 
     /// Adds attribute to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
-    /// `class`, `type/kind`, `value` and `checked`.
+    /// `type/kind`, `value` and `checked`.
+    ///
+    /// If this virtual node has this attribute present, the value is replaced.
     pub fn add_attribute<T: ToString>(&mut self, name: &str, value: &T) {
         self.attributes.insert(name.to_owned(), value.to_string());
     }
 
     /// Adds attributes to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
-    /// `class`, `type/kind`, `value` and `checked`.
+    /// `type/kind`, `value` and `checked`.
     pub fn add_attributes(&mut self, attrs: Vec<(String, String)>) {
         for (name, value) in attrs {
             self.attributes.insert(name, value);
@@ -205,25 +178,7 @@ impl VTag {
         }
     }
 
-    /// If there is no ancestor or the classes, or the order, differs from the ancestor:
-    /// - Returns the classes of self separated by spaces.
-    ///
-    /// Otherwise None is returned.
-    fn diff_classes<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<String> {
-        if ancestor
-            .as_ref()
-            .map(|ancestor| self.classes.ne(&ancestor.classes))
-            .unwrap_or(true)
-        {
-            Some(self.classes.to_string())
-        } else {
-            None
-        }
-    }
-
-    /// Similar to diff_classes except for attributes.
-    ///
-    /// This also handles patching of attributes when the keys are equal but
+    /// This handles patching of attributes when the keys are equal but
     /// the values are different.
     fn diff_attributes<'a>(
         &'a self,
@@ -294,14 +249,9 @@ impl VTag {
         let element = self.reference.as_ref().expect("element expected");
 
         // Update parameters
-        let class_str = self.diff_classes(ancestor);
-        if let Some(class_str) = class_str {
-            element
-                .set_attribute("class", &class_str)
-                .expect("could not set class");
-        }
-
         let changes = self.diff_attributes(ancestor);
+
+        // apply attribute patches including an optional "class"-attribute patch
         for change in changes {
             match change {
                 Patch::Add(key, value) | Patch::Replace(key, value) => {
@@ -312,7 +262,7 @@ impl VTag {
                 Patch::Remove(key) => {
                     cfg_match! {
                         feature = "std_web" => element.remove_attribute(&key),
-                        feature = "web_sys" => element.remove_attribute(&key).expect("could not remove class"),
+                        feature = "web_sys" => element.remove_attribute(&key).expect("could not remove attribute"),
                     };
                 }
             }
@@ -534,7 +484,6 @@ impl PartialEq for VTag {
                 .map(|l| l.kind())
                 .eq(other.listeners.iter().map(|l| l.kind()))
             && self.attributes == other.attributes
-            && self.classes.eq(&other.classes)
             && self.children == other.children
     }
 }
@@ -756,6 +705,23 @@ mod tests {
         assert_eq!(a, c);
     }
 
+    /// Returns the class attribute as str reference, or "" if the attribute is not set.
+    fn get_class_str(vtag: &VTag) -> &str {
+        vtag.attributes
+            .get("class")
+            .map(AsRef::as_ref)
+            .unwrap_or("")
+    }
+
+    /// Note: Compares to "" if the class attribute is not set.
+    fn assert_class(vnode: VNode, class: &str) {
+        if let VNode::VTag(ref vtag) = vnode {
+            assert_eq!(get_class_str(vtag), class);
+        } else {
+            panic!("expected VTag");
+        }
+    }
+
     #[test]
     fn supports_multiple_non_unique_classes_tuple() {
         let a = html! {
@@ -763,10 +729,9 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes);
-            assert!(vtag.classes.contains("class-1"));
-            assert!(vtag.classes.contains("class-2"));
-            assert!(!vtag.classes.contains("class-3"));
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(!get_class_str(&vtag).contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -785,10 +750,9 @@ mod tests {
         assert_ne!(a, b);
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes);
-            assert!(vtag.classes.contains("class-1"));
-            assert!(vtag.classes.contains("class-2"));
-            assert!(vtag.classes.contains("class-3"));
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(get_class_str(&vtag).contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -803,10 +767,9 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes);
-            assert!(vtag.classes.contains("class-1"));
-            assert!(vtag.classes.contains("class-2"));
-            assert!(!vtag.classes.contains("class-3"));
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(!get_class_str(&vtag).contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -820,10 +783,9 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes);
-            assert!(vtag.classes.contains("class-1"));
-            assert!(vtag.classes.contains("class-2"));
-            assert!(!vtag.classes.contains("class-3"));
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(!get_class_str(&vtag).contains("class-3"));
         } else {
             panic!("vtag expected");
         }
@@ -838,19 +800,19 @@ mod tests {
         let c = html! { <div class=""></div> };
 
         if let VNode::VTag(vtag) = a {
-            assert!(vtag.classes.is_empty());
+            assert!(!vtag.attributes.contains_key("class"));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = b {
-            assert!(vtag.classes.is_empty());
+            assert!(!vtag.attributes.contains_key("class"));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = c {
-            assert!(vtag.classes.is_empty());
+            assert!(!vtag.attributes.contains_key("class"));
         } else {
             panic!("vtag expected");
         }
@@ -884,7 +846,7 @@ mod tests {
         let namespace = Some(namespace);
         let svg_el = document.create_element_ns(namespace, "svg").unwrap();
 
-        let mut g_node = html! { <g></g> };
+        let mut g_node = html! { <g class="segment"></g> };
         let path_node = html! { <path></path> };
         let mut svg_node = html! { <svg>{path_node}</svg> };
 
@@ -910,8 +872,7 @@ mod tests {
         };
 
         if let VNode::VTag(vtag) = a {
-            println!("{:?}", vtag.classes);
-            assert_eq!(vtag.classes.to_string(), "class-1 class-2 class-3");
+            assert_eq!(get_class_str(&vtag), "class-1 class-2 class-3");
         }
     }
 
@@ -1020,6 +981,96 @@ mod tests {
     }
 
     #[test]
+    fn it_does_not_set_empty_class_name() {
+        let scope = AnyScope::default();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let mut elem = html! { <div class=""></div> };
+        elem.apply(&scope, &parent, None, None);
+        let vtag = assert_vtag(&mut elem);
+        // test if the className has not been set
+        assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
+    }
+
+    #[test]
+    fn it_does_not_set_missing_class_name() {
+        let scope = AnyScope::default();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let mut elem = html! { <div></div> };
+        elem.apply(&scope, &parent, None, None);
+        let vtag = assert_vtag(&mut elem);
+        // test if the className has not been set
+        assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
+    }
+
+    #[test]
+    fn it_sets_class_name() {
+        let scope = AnyScope::default();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let mut elem = html! { <div class="ferris the crab"></div> };
+        elem.apply(&scope, &parent, None, None);
+        let vtag = assert_vtag(&mut elem);
+        // test if the className has been set
+        assert!(vtag.reference.as_ref().unwrap().has_attribute("class"));
+    }
+
+    #[test]
+    fn tuple_different_types() {
+        // check if tuples containing different types are compiling
+        assert_class(
+            html! { <div class=("class-1", "class-2".to_string(), vec!["class-3", "class-4"])></div> },
+            "class-1 class-2 class-3 class-4",
+        );
+        assert_class(
+            html! { <div class=("class-1", Some("class-2"), "class-3", Some("class-4".to_string()))></div> },
+            "class-1 class-2 class-3 class-4",
+        );
+        // check different string references
+        let str = "some-class";
+        let string = str.to_string();
+        let string_ref = &string;
+        assert_class(html! { <p class=str /> }, "some-class");
+        assert_class(html! { <p class=string.clone() /> }, "some-class");
+        assert_class(html! { <p class=&Some(str) /> }, "some-class");
+        assert_class(html! { <p class=string_ref /> }, "some-class");
+        assert_class(html! { <p class=Some(str) /> }, "some-class");
+        assert_class(html! { <p class=Some(string.clone()) /> }, "some-class");
+        assert_class(html! { <p class=Some(string_ref) /> }, "some-class");
+        assert_class(html! { <p class=&Some(string.clone()) /> }, "some-class");
+        assert_class(html! { <p class=&Some(string_ref) /> }, "some-class");
+        // check with None
+        assert_class(html! { <p class=&Option::<&str>::None /> }, "");
+        assert_class(html! { <p class=Option::<String>::None /> }, "");
+        // check with variables
+        let some: Option<&'static str> = Some("some");
+        let none: Option<&'static str> = None;
+        assert_class(html! { <p class=some /> }, "some");
+        assert_class(html! { <p class=none /> }, "");
+        // check with variables of different type
+        let some: Option<bool> = Some(false);
+        let none: Option<bool> = None;
+        assert_class(html! { <p class=some.map(|i| i.to_string()) /> }, "false");
+        assert_class(html! { <p class=none.map(|i| i.to_string()) /> }, "");
+    }
+
+    #[test]
     fn swap_order_of_classes() {
         let scope = AnyScope::default();
         let parent = document().create_element("div").unwrap();
@@ -1039,7 +1090,7 @@ mod tests {
         };
 
         let expected = "class-1 class-2 class-3";
-        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(get_class_str(&vtag), expected);
         assert_eq!(
             vtag.reference
                 .as_ref()
@@ -1059,7 +1110,7 @@ mod tests {
         vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
 
         let expected = "class-3 class-2 class-1";
-        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(get_class_str(&vtag), expected);
         assert_eq!(
             vtag.reference
                 .as_ref()
@@ -1090,7 +1141,7 @@ mod tests {
         };
 
         let expected = "class-1 class-3";
-        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(get_class_str(&vtag), expected);
         assert_eq!(
             vtag.reference
                 .as_ref()
@@ -1110,7 +1161,7 @@ mod tests {
         vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
 
         let expected = "class-1 class-2 class-3";
-        assert_eq!(vtag.classes.to_string(), expected);
+        assert_eq!(get_class_str(&vtag), expected);
         assert_eq!(
             vtag.reference
                 .as_ref()

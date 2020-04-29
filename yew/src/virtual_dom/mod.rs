@@ -123,23 +123,29 @@ impl From<&str> for Classes {
 
 impl From<String> for Classes {
     fn from(t: String) -> Self {
-        let set = t
-            .split_whitespace()
-            .map(String::from)
-            .filter(|c| !c.is_empty())
-            .collect();
-        Self { set }
+        Classes::from(t.as_str())
     }
 }
 
 impl From<&String> for Classes {
     fn from(t: &String) -> Self {
-        let set = t
-            .split_whitespace()
-            .map(String::from)
-            .filter(|c| !c.is_empty())
-            .collect();
-        Self { set }
+        Classes::from(t.as_str())
+    }
+}
+
+impl<T: AsRef<str>> From<Option<T>> for Classes {
+    fn from(t: Option<T>) -> Self {
+        t.as_ref()
+            .map(|s| <Classes as From<&str>>::from(s.as_ref()))
+            .unwrap_or_default()
+    }
+}
+
+impl<T: AsRef<str>> From<&Option<T>> for Classes {
+    fn from(t: &Option<T>) -> Self {
+        t.as_ref()
+            .map(|s| <Classes as From<&str>>::from(s.as_ref()))
+            .unwrap_or_default()
     }
 }
 
@@ -163,6 +169,7 @@ impl PartialEq for Classes {
 }
 
 /// Patch for DOM node modification.
+#[derive(Debug, PartialEq)]
 enum Patch<ID, T> {
     Add(ID, T),
     Replace(ID, T),
