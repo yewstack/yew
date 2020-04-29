@@ -13,7 +13,7 @@ For your own project, you may wish to check out the Yew [starter templates](http
 
 ## How to run
 
-```
+```sh
 git clone https://github.com/yewstack/yew.git
 cd yew/examples
 ./build.sh minimal # example subfolder
