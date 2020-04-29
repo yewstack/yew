@@ -21,7 +21,7 @@ python3 -m http.server --directory static # open localhost:8000 in browser
 ```
 
 
-Note: [Visual Studio Code IDE](https://code.visualstudio.com/) has extension [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) which can be used to run example in browser with automatic reload. After install open context menu on `index.html` -> `Open with Live Server`
+Note: [Visual Studio Code IDE](https://code.visualstudio.com/) has the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension which can be used to run examples in the browser with automatic reload. After installing, open the context menu on `index.html` -> `Open with Live Server`
 
 ## Requirements
 
