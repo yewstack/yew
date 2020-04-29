@@ -2,7 +2,7 @@
 
 Use `build.sh` script to build examples. 
 
-Examples are prepared for `wasm-bindgen` except folders which ends with `_wp` which are prepared for `wasm-pack`.
+Examples are prepared for `wasm-bindgen` except folders ending with `_wp` which are prepared for `wasm-pack`.
 
 - The examples do not use external bundlers and all use the same `static/index.html` after being built.
 - wasm-bindgen builds project using binary crate - `main.rs`
