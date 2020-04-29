@@ -4,9 +4,6 @@ version = "0.1.0"
 authors = ["Garrett Berg <vitiral@gmail.com>"]
 edition = "2018"
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
 yew = { path = "../../yew" }
 
