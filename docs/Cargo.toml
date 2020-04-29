@@ -8,5 +8,5 @@ edition = "2018"
 
 [dependencies]
 doc-comment="0.3.3"
-yew = {version="0.14.0", features = ["std_web", "wasm_test"]}
+yew = {version="0.15.0", package = "yew-stdweb", features = ["wasm_test"]}
 wasm-bindgen-test = "0.3.0"

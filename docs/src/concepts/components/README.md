@@ -61,9 +61,9 @@ For usage details, check out the `html!` guide:
 
 {% page-ref page="../html/" %}
 
-### Mounted
+### Rendered
 
-The `mounted()` component lifecycle method is called after `view()` is processed and Yew has mounted your component to the DOM but before the browser refreshes the page. A component may wish to implement this method to perform actions that can only be done after the component has rendered elements. If you wish to re-render your component after making changes `mounted()`, return `true`.
+The `rendered()` component lifecycle method is called after `view()` is processed and Yew has rendered your component, but before the browser refreshes the page. A component may wish to implement this method to perform actions that can only be done after the component has rendered elements. You can check whether this is the first time the component was rendered via the `first_render` parameter.
 
 ```rust
 use stdweb::web::html_element::InputElement;
@@ -83,11 +83,12 @@ impl Component for MyComponent {
         }
     }
 
-    fn mounted(&mut self) -> ShouldRender {
-        if let Some(input) = self.node_ref.try_into::<InputElement>() {
-            input.focus();
+    fn rendered(&mut self, first_render: bool) {
+        if first_render {
+            if let Some(input) = self.node_ref.try_into::<InputElement>() {
+                input.focus();
+            }
         }
-        false
     }
 }
 ```
