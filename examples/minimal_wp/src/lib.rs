@@ -1,5 +1,5 @@
+use wasm_bindgen::prelude::*;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
-use wasm_bindgen::prelude::*; 
 
 pub struct Model {
     link: ComponentLink<Self>,
