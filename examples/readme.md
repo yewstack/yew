@@ -37,17 +37,3 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # wasm-pack install
 curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh;
 ```
-
-## Build size optimalization 
-
-- It is possible to optimize code size using `wasm-opt` when building using `wasm-bindgen`
-    - possible to enable opt when building `example/build.sh minimal --opt
-- `wasm-pack` does that by default in release build
-
-**Release size of example 'minimal'**
-
-| release commands            | size ( uncompressed )
-|---                          |---
-| wasm-bindgen                | 158KB  
-| wasm-binggen + wasm-opt -Os | 116KB 
-| wasm-pack                   | 99 KB
