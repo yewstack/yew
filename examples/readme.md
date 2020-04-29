@@ -8,7 +8,7 @@ Examples are prepared for `wasm-bindgen` except folders which ends with `_wp` wh
 - wasm-bindgen builds project using binary crate - `main.rs`
 - wasm-pack build project using library only - `lib.rs`
 
-Another option is to use [starter templates](https://yew.rs/docs/getting-started/starter-templates)
+For your own project, you may wish to check out the Yew [starter templates](https://yew.rs/docs/getting-started/starter-templates)
 
 
 ## How to run
