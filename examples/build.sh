@@ -35,7 +35,7 @@ elif [[ $EXAMPLE == multi_thread ]]; then
 
     info "Building: $EXAMPLE worker using wasm-bindgen"
     cargo build --target wasm32-unknown-unknown --bin multi_thread_worker
-    wasm-bindgen --target web --no-typescript --out-dir static/ --out-name worker $TARGET_DIR/multi_thread_worker.wasm
+    wasm-bindgen --target no-modules --no-typescript --out-dir $SRCDIR/static/ --out-name worker $TARGET_DIR/multi_thread_worker.wasm
 
 else # Default wasm-bindgen build
     info "Building: $EXAMPLE using wasm-bindgen"
