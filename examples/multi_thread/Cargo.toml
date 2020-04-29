@@ -4,9 +4,6 @@ version = "0.1.0"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [[bin]]
 name = "multi_thread_app"
 path = "src/bin/app.rs"

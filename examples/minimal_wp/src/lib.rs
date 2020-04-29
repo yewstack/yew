@@ -1,3 +1,4 @@
+use wasm_bindgen::prelude::*;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
@@ -30,8 +31,13 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <div>
-                <button onclick=self.link.callback(|_| Msg::Click)>{ "Click ( wasm-bindgen )" }</button>
+                <button onclick=self.link.callback(|_| Msg::Click)>{ "Click ( wasm-pack )" }</button>
             </div>
         }
     }
+}
+
+#[wasm_bindgen(start)]
+pub fn run_app() {
+    yew::start_app::<Model>();
 }
