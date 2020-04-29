@@ -2,9 +2,14 @@
 
 Use `build.sh` script to build examples. 
 
-Examples are prepared for `wasm-bindgen` except `minimal_wp` which is prepared for `wasm-pack`.
+Examples are prepared for `wasm-bindgen` except folders which ends with `_wp` which are prepared for `wasm-pack`.
 
-Note: `multi_thread` example has separate build script because it has app and worker ( two .wasm files )
+- examples does not use external bundlers and use same `static/index.html` to load application.
+- wasm-bindgen builds project using binary crate - `main.rs`
+- wasm-pack build project using library only - `lib.rs`
+
+Another option is to use [starter templates](https://yew.rs/docs/getting-started/starter-templates)
+
 
 ## How to run
 
@@ -12,17 +17,26 @@ Note: `multi_thread` example has separate build script because it has app and wo
 git clone https://github.com/yewstack/yew.git
 cd yew
 examples/build.sh minimal # example subfolder
-python3 -m http.server 8000 --directory examples/static # open localhost:8000 in browser
+python3 -m http.server --directory examples/static # open localhost:8000 in browser
 ```
 
-Note: VSCode has extension "Live Server" which can be used to run example in browser with automatic reload
+
+Note: [Visual Studio Code IDE](https://code.visualstudio.com/) has extension [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) which can be used to run example in browser with automatic reload. After install open context menu on `index.html` -> `Open with Live Server`
 
 ## Requirements
 
-Official recomanded way to install `wasm-bindgen-cli` is together with `wasm-pack`  [wasm-pack-installer page](https://rustwasm.github.io/wasm-pack/installer/)
+Default way to build is using `wasm-bindgen` which comes with `wasm-pack`
 
-- It is possible to install `wasm-pack` with `wasm-bindgen` using: `cargo install wasm-pack`
-- Or install `cargo install wasm-bindgen-cli` as separate binary
+- Install using cargo: `cargo install wasm-pack`
+
+Install guides: [Rust](https://www.rust-lang.org/learn/get-started) and [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+
+```bash
+# rust install
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# wasm-pack install
+curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh;
+```
 
 ## Build size optimalization 
 

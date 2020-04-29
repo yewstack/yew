@@ -1,11 +1,14 @@
 [package]
-name = "futures"
+name = "futures_wp"
 version = "0.1.0"
 authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
 description = "web_sys fetching and futures demonstration"
 license = "MIT/Apache"
 repository = "https://github.com/yewstack/yew"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 yew = { path = "../../yew" }
