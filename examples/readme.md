@@ -6,7 +6,7 @@ Examples are prepared for `wasm-bindgen` except folders ending with `_wp` which 
 
 - The examples do not use external bundlers and all use the same `static/index.html` after being built.
 - `wasm-bindgen` builds projects as binary crates (`main.rs`)
-- wasm-pack build project using library only - `lib.rs`
+- `wasm-pack` builds projects as library crates (`lib.rs`)
 
 For your own project, you may wish to check out the Yew [starter templates](https://yew.rs/docs/getting-started/starter-templates)
 
