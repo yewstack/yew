@@ -5,7 +5,7 @@ Use `build.sh` script to build examples.
 Examples are prepared for `wasm-bindgen` except folders ending with `_wp` which are prepared for `wasm-pack`.
 
 - The examples do not use external bundlers and all use the same `static/index.html` after being built.
-- wasm-bindgen builds project using binary crate - `main.rs`
+- `wasm-bindgen` builds projects as binary crates (`main.rs`)
 - wasm-pack build project using library only - `lib.rs`
 
 For your own project, you may wish to check out the Yew [starter templates](https://yew.rs/docs/getting-started/starter-templates)
