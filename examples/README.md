@@ -1,6 +1,6 @@
 # Yew Examples
 
-Use `build.sh` script to build examples. 
+Use `build.sh` script to build examples.
 
 Examples are prepared for `wasm-bindgen` except folders ending with `_wp` which are prepared for `wasm-pack`.
 
