@@ -81,6 +81,22 @@ impl Classes {
         self.set.extend(classes_to_add.set);
     }
 
+    /// Pushes the value if the `flag` is `true`.
+    pub fn push_if(&mut self, flag: bool, class: &str) {
+        if flag {
+            self.push(class);
+        }
+    }
+
+    /// Pushes `class` if the `flag` is `true` or `alt_class` if `flag` is `false`.
+    pub fn push_if_else(&mut self, flag: bool, class: &str, alt_class: &str) {
+        if flag {
+            self.push(class);
+        } else {
+            self.push(alt_class);
+        }
+    }
+
     /// Check the set contains a class.
     pub fn contains(&self, class: &str) -> bool {
         self.set.contains(class)
