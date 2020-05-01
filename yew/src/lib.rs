@@ -27,7 +27,7 @@
 #![cfg_attr(
     feature = "std_web",
     doc = "\
- - We recommend aliasing `yew-stdweb` to `yew` in your Cargo.toml: `yew = { package = "yew-stdweb", .. }`
+ - We recommend aliasing `yew-stdweb` to `yew` in your Cargo.toml: `yew = { package = \"yew-stdweb\", .. }`
  - If your app is built with `web-sys`, we recommend using [`yew`](https://docs.rs/yew) instead."
 )]
 //!
