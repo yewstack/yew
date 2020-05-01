@@ -17,10 +17,37 @@ pub mod messages;
 #[derive(Debug, Clone)]
 pub struct DebuggerConnection {
     #[cfg(feature = "web_sys")]
-    ws: web_sys::WebSocket,
+    /// Public only for testing.
+    pub ws: web_sys::WebSocket,
     #[cfg(feature = "std_web")]
-    ws: stdweb::web::WebSocket,
+    /// Public only for testing.
+    pub ws: stdweb::web::WebSocket,
     message_queue: Vec<String>,
+}
+
+/// Describes the state of a WebSocket connection.
+#[derive(Debug)]
+pub enum ConnectionState {
+    /// The socket has successfully connected.
+    Connected,
+    /// The socket has not successfully connnected.
+    CouldntConnect,
+}
+
+impl std::future::Future for DebuggerConnection {
+    type Output = Self;
+    fn poll(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Self::Output> {
+        match self.ws.ready_state() {
+            0 => std::task::Poll::Pending,
+            1 => std::task::Poll::Ready(self.clone()),
+            2 => std::task::Poll::Pending,
+            3 => std::task::Poll::Ready(self.clone()),
+            _ => std::task::Poll::Pending,
+        }
+    }
 }
 
 /// A debugger is capable of sending messages over a WebSocket connection.
@@ -32,7 +59,7 @@ where
     fn queue_message(&mut self, message: T);
 }
 
-/// Sends messages. 
+/// Sends messages.
 pub trait DebuggerMessageSend {
     /// Send all the messages in the queue.
     fn send_messages(&mut self);
@@ -114,7 +141,7 @@ impl DebuggerConnection {
                 Ok(s) => s,
                 Err(_) => {
                     stdweb::console!(error, "Error: could not open a connection to the DevTools WebSocket. Are you sure the DevTools backend is running?");
-                    panic!("Could not open a connection to the DevTools WebSocket.")
+                    panic!("Could not open a connection to the DevTools WebSocket.");
                 }
             },
             message_queue: Vec::new(),
@@ -125,6 +152,7 @@ impl DebuggerConnection {
 #[cfg(test)]
 pub mod tests {
     use crate::dev::{DebuggerMessageQueue, DebuggerMessageSend};
+    use std::ops::DerefMut;
     use wasm_bindgen_test::*;
     #[wasm_bindgen_test]
     fn test_message_queuing() {
@@ -156,9 +184,14 @@ pub mod tests {
         crate::DEBUGGER_CONNECTION.with(|debugger| {
             // should have been created and mounted only
             assert_eq!(debugger.borrow().message_queue.len(), 2);
-            let mut borrowed = debugger.borrow_mut();
-            borrowed.send_messages();
-            assert_eq!(borrowed.message_queue.len(), 0);
+        });
+        let mut debugger = crate::DEBUGGER_CONNECTION.with(|debugger| {
+            debugger.clone().into_inner()
+        });
+        wasm_bindgen_futures::spawn_local(async move {
+            let mut finished = debugger.await;
+            finished.send_messages();
+            assert_eq!(finished.message_queue.len(), 0);
         });
     }
 }
