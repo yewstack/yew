@@ -11,14 +11,25 @@
 //!
 //! ### Supported Targets
 //! - `wasm32-unknown-unknown`
-//! - `wasm32-unknown-emscripten` - (`feature = "std_web"` is required)
-//! - `asmjs-unknown-emscripten` - (`feature = "std_web"` is required)
+#![cfg_attr(
+    feature = "std_web",
+    doc = "\
+ - `wasm32-unknown-emscripten`
+ - `asmjs-unknown-emscripten`"
+)]
 //!
 //! ### Important Notes
 //! - Yew is not (yet) production ready but is great for side projects and internal tools
-//! - Yew supports both `web-sys` and `stdweb`, developers *must* choose one or the other using the features `"web_sys"` and `"std_web"`.
-//! - Building with `cargo-web` is not supported for `web-sys`
-//! - Docs.rs docs are built by default with the `"web_sys"` feature, for `"std_web"` docs, visit [`yew-stdweb`](https://docs.rs/yew-stdweb)
+#![cfg_attr(
+    feature = "web_sys",
+    doc = " - If your app is built with `stdweb`, we recommend using [`yew-stdweb`](https://docs.rs/yew-stdweb) instead."
+)]
+#![cfg_attr(
+    feature = "std_web",
+    doc = "\
+ - We recommend aliasing `yew-stdweb` to `yew` in your Cargo.toml: `yew = { package = \"yew-stdweb\", .. }`
+ - If your app is built with `web-sys`, we recommend using [`yew`](https://docs.rs/yew) instead."
+)]
 //!
 //! ## Example
 //!
