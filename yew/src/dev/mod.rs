@@ -151,11 +151,25 @@ impl DebuggerConnection {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::dev::{DebuggerMessageQueue, DebuggerMessageSend};
+    use crate::dev::{DebuggerMessageQueue, DebuggerMessageSend, DebuggerConnection};
     use std::ops::DerefMut;
     use wasm_bindgen_test::*;
+
     #[wasm_bindgen_test]
-    fn test_message_queuing() {
+    fn test_messages_send() {
+        let mut debugger = DebuggerConnection::new();
+        debugger.queue_message(crate::dev::messages::DebugComponent::new("Test".to_string(), None));
+        assert_eq!(debugger.message_queue.len(), 1);
+        wasm_bindgen_futures::spawn_local(async {
+            let mut result = debugger.await;
+            assert_eq!(result.message_queue.len(), 1);
+            result.send_messages();
+            assert_eq!(result.message_queue.len(), 0);
+        });
+        
+    }
+    #[wasm_bindgen_test]
+    fn test_integration() {
         struct TestComponent {}
         impl crate::Component for TestComponent {
             type Message = ();
@@ -186,7 +200,7 @@ pub mod tests {
             assert_eq!(debugger.borrow().message_queue.len(), 2);
         });
         let mut debugger = crate::DEBUGGER_CONNECTION.with(|debugger| {
-            debugger.clone().into_inner()
+            debugger.replace(crate::dev::DebuggerConnection::new())
         });
         wasm_bindgen_futures::spawn_local(async move {
             let mut finished = debugger.await;
