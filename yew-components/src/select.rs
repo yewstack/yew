@@ -3,7 +3,8 @@
 //! helps you to track selected value in an original type. Example:
 //!
 //! ```
-//!# use yew::{Html, Component, components::Select, ComponentLink, html};
+//!# use yew::{Html, Component, ComponentLink, html};
+//!# use yew_components::Select;
 //! #[derive(PartialEq, Clone)]
 //! enum Scene {
 //!     First,
