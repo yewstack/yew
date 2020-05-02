@@ -1,9 +1,11 @@
 //! Developer tools.
-//! These communicate with a backend over a WebSocket connection.
-//! Messages are sent as JSON.
+//! These communicate with a debugging server (normally a browser extension) over a WebSocket connection.
 
 use serde::Serialize;
 use serde_json;
+
+#[cfg(test)]
+pub use messages::tests as message_tests;
 
 #[cfg(feature = "web_sys")]
 use web_sys;
@@ -90,7 +92,7 @@ impl DebuggerConnection {
     /// The URL to which the debugger attempts to connect can be configured by setting some environment variables at compile time.
     /// If you do not set any of these environment variables, the default values are used.
     /// The following variables are accepted: `YEW_DEBUGGER_CONNECTION_TYPE`, `YEW_DEBUGGER_HOST` and `YEW_DEBUGGER_PORT`.
-    /// * `YEW_DEBUGGER_CONNECTION_TYPE` – either `ws` or `wss`. `ws` is an insecure WebSocket (but this is fine for local development) and `wss` creates a secure WebSocket which can be used for remote debugging. You will need to set up certificates for a secure connection.
+    /// * `YEW_DEBUGGER_CONNECTION_TYPE` – either `ws` or `wss`. `ws` is an insecure WebSocket (but this is fine for local development) and `wss` creates a secure WebSocket which can be used for remote debugging. If you choose `wss` you will need to ensure that your server is configured correctly.
     /// * `YEW_DEBUGGER_HOST` – a domain or IP address where a debug server can be found.
     /// * `YEW_DEBUGGER_PORT` – the port on which the debugger is operating.
     pub fn new() -> Self {
@@ -151,61 +153,23 @@ impl DebuggerConnection {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::dev::{DebuggerMessageQueue, DebuggerMessageSend, DebuggerConnection};
+    use crate::dev::{DebuggerConnection, DebuggerMessageQueue, DebuggerMessageSend};
     use std::ops::DerefMut;
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
     fn test_messages_send() {
         let mut debugger = DebuggerConnection::new();
-        debugger.queue_message(crate::dev::messages::DebugComponent::new("Test".to_string(), None));
+        debugger.queue_message(crate::dev::messages::DebugComponent::new(
+            "Test".to_string(),
+            None,
+        ));
         assert_eq!(debugger.message_queue.len(), 1);
         wasm_bindgen_futures::spawn_local(async {
             let mut result = debugger.await;
             assert_eq!(result.message_queue.len(), 1);
             result.send_messages();
             assert_eq!(result.message_queue.len(), 0);
-        });
-        
-    }
-    #[wasm_bindgen_test]
-    fn test_integration() {
-        struct TestComponent {}
-        impl crate::Component for TestComponent {
-            type Message = ();
-            type Properties = ();
-            fn create(_: Self::Properties, _l: crate::ComponentLink<Self>) -> Self {
-                Self {}
-            }
-            fn change(&mut self, _props: Self::Properties) -> bool {
-                false
-            }
-            fn update(&mut self, _: Self::Message) -> bool {
-                false
-            }
-            fn view(&self) -> crate::Html {
-                html!(
-                    <h1>{"Hello World!"}</h1>
-                )
-            }
-        }
-        let app: crate::App<TestComponent> = crate::App::new();
-        app.mount(
-            crate::utils::document()
-                .get_element_by_id("output")
-                .unwrap(),
-        );
-        crate::DEBUGGER_CONNECTION.with(|debugger| {
-            // should have been created and mounted only
-            assert_eq!(debugger.borrow().message_queue.len(), 2);
-        });
-        let mut debugger = crate::DEBUGGER_CONNECTION.with(|debugger| {
-            debugger.replace(crate::dev::DebuggerConnection::new())
-        });
-        wasm_bindgen_futures::spawn_local(async move {
-            let mut finished = debugger.await;
-            finished.send_messages();
-            assert_eq!(finished.message_queue.len(), 0);
         });
     }
 }

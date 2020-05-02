@@ -8,6 +8,9 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
+#[cfg(feature="dev")]
+use crate::dev::{DebuggerMessageSend, DebuggerMessageQueue};
+
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::Element;
@@ -149,6 +152,18 @@ impl<COMP: Component> Scope<COMP> {
     pub(crate) fn create(&mut self) {
         let state = self.state.clone();
         let create = CreateComponent { state };
+        #[cfg(feature = "dev")]
+        crate::DEBUGGER_CONNECTION.with(|debugger| {
+            debugger
+                .borrow_mut()
+                .queue_message(crate::dev::messages::ComponentMessage::new(
+                    crate::dev::messages::ComponentEvent::Created,
+                    Some(crate::dev::messages::DebugComponent::new(
+                        std::any::type_name::<COMP>().to_string(),
+                        None,
+                    )),
+                ));
+        });
         scheduler().push_comp(ComponentRunnableType::Create, Box::new(create));
         self.rendered(true);
     }
@@ -159,6 +174,18 @@ impl<COMP: Component> Scope<COMP> {
             state: self.state.clone(),
             update,
         };
+        #[cfg(feature = "dev")]
+        crate::DEBUGGER_CONNECTION.with(|debugger| {
+            debugger
+                .borrow_mut()
+                .queue_message(crate::dev::messages::ComponentMessage::new(
+                    crate::dev::messages::ComponentEvent::Updated,
+                    Some(crate::dev::messages::DebugComponent::new(
+                        std::any::type_name::<COMP>().to_string(),
+                        None,
+                    )),
+                ));
+        });
         scheduler().push_comp(ComponentRunnableType::Update, Box::new(update));
         self.rendered(false);
     }
@@ -177,6 +204,18 @@ impl<COMP: Component> Scope<COMP> {
     pub(crate) fn destroy(&mut self) {
         let state = self.state.clone();
         let destroy = DestroyComponent { state };
+        #[cfg(feature = "dev")]
+        crate::DEBUGGER_CONNECTION.with(|debugger| {
+            debugger
+                .borrow_mut()
+                .queue_message(crate::dev::messages::ComponentMessage::new(
+                    crate::dev::messages::ComponentEvent::Destroyed,
+                    Some(crate::dev::messages::DebugComponent::new(
+                        std::any::type_name::<COMP>().to_string(),
+                        None,
+                    )),
+                ));
+        });
         scheduler().push_comp(ComponentRunnableType::Destroy, Box::new(destroy));
     }
 
