@@ -8,8 +8,8 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
-#[cfg(feature="dev")]
-use crate::dev::{DebuggerMessageSend, DebuggerMessageQueue};
+#[cfg(feature = "dev")]
+use crate::dev::{DebuggerMessageQueue, DebuggerMessageSend};
 
 cfg_if! {
     if #[cfg(feature = "std_web")] {

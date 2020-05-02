@@ -172,4 +172,40 @@ pub mod tests {
             assert_eq!(result.message_queue.len(), 0);
         });
     }
+
+    #[wasm_bindgen_test]
+    async fn test_integration() {
+        struct TestComponent {}
+        impl crate::Component for TestComponent {
+            type Message = ();
+            type Properties = ();
+            fn create(_: Self::Properties, _l: crate::ComponentLink<Self>) -> Self {
+                Self {}
+            }
+            fn change(&mut self, _props: Self::Properties) -> bool {
+                false
+            }
+            fn update(&mut self, _: Self::Message) -> bool {
+                false
+            }
+            fn view(&self) -> crate::Html {
+                html!(
+                    <h1>{"Hello World!"}</h1>
+                )
+            }
+        }
+        let app: crate::App<TestComponent> = crate::App::new();
+        app.mount(
+            crate::utils::document()
+                .get_element_by_id("output")
+                .unwrap(),
+        );
+        let mut debugger = crate::DEBUGGER_CONNECTION.with(|debugger| {
+            debugger.replace(crate::dev::DebuggerConnection::new())
+        });
+        wasm_bindgen_futures::spawn_local(async {
+            let mut new = debugger.await;
+            new.send_messages();
+        });
+    }
 }
