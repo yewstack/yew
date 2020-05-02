@@ -206,6 +206,7 @@ pub mod tests {
         wasm_bindgen_futures::spawn_local(async {
             let mut new = debugger.await;
             new.send_messages();
+            assert_eq!(new.message_queue.len(), 0);
         });
     }
 }
