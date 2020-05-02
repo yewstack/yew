@@ -41,10 +41,10 @@ where
     pub fn mount(self, element: Element) -> ComponentLink<COMP> {
         #[cfg(feature = "dev")]
         let _ = wasm_bindgen_futures::spawn_local(async move {
-                let new_debugger = crate::dev::DebuggerConnection::new().await;
-                crate::DEBUGGER_CONNECTION.with(|debugger| {
-                    debugger.replace(new_debugger);
-                });
+            let new_debugger = crate::dev::DebuggerConnection::new().await;
+            crate::DEBUGGER_CONNECTION.with(|debugger| {
+                debugger.replace(new_debugger);
+            });
         });
         clear_element(&element);
         self.scope.mount_in_place(

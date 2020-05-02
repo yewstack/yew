@@ -77,11 +77,28 @@ impl<T: Serialize> DebuggerMessageQueue<T> for DebuggerConnection {
 impl DebuggerMessageSend for DebuggerConnection {
     fn send_messages(&mut self) {
         for _ in 1..self.message_queue.len() {
-            match self.ws.send_with_str(self.message_queue.first().unwrap()) {
-                Ok(_) => {
-                    self.message_queue.pop();
+            // either send message if the websocket is open or else use a promise
+            match self.ws.ready_state() {
+                // still connecting, so add an event listener which sends the messages once connected
+                0 => {
+                    let mut this = self.clone();
+                    let ws_listener = move |_: &web_sys::Event| this.send_messages();
+                    gloo::events::EventListener::new(&self.ws, "open", ws_listener);
                 }
-                Err(_) => {}
+                1 => {
+                    for _ in 1..self.message_queue.len() {
+                        self.ws.send_with_str(&self.message_queue.pop().unwrap());
+                    }
+                }
+                2 | 3 =>
+                {
+                    #[cfg(feature = "web_sys")]
+                    web_sys::console::error_1(
+                        &"Could not open a connection to Yew's developer tools; are they running?"
+                            .into(),
+                    )
+                }
+                _ => panic!("The WebSocket is in an incorrect state."),
             }
         }
     }
@@ -200,9 +217,8 @@ pub mod tests {
                 .get_element_by_id("output")
                 .unwrap(),
         );
-        let mut debugger = crate::DEBUGGER_CONNECTION.with(|debugger| {
-            debugger.replace(crate::dev::DebuggerConnection::new())
-        });
+        let mut debugger = crate::DEBUGGER_CONNECTION
+            .with(|debugger| debugger.replace(crate::dev::DebuggerConnection::new()));
         wasm_bindgen_futures::spawn_local(async {
             let mut new = debugger.await;
             new.send_messages();
