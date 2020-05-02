@@ -60,18 +60,6 @@ fn change(&mut self, props: Self::Properties) -> ShouldRender {
 
 You aren't limited to using this in the `change` function. It often makes sense to do this in the `update` function as well, although the performance wins aren't as obvious there.
 
-## wee\_alloc
-
-[wee\_alloc](https://github.com/rustwasm/wee_alloc) is a tiny allocator that is much smaller than the allocator that is normally used in Rust binaries. Replacing the default allocator with this one will result in smaller WASM file sizes, at the expense of speed and memory overhead.
-
-The slower speed and memory overhead are minor in comparison to the size gains made by not including the default allocator. This smaller file size means that your page will load faster, and so it is generally recommended that you use this allocator over the default, unless your app is doing some allocation-heavy work.
-
-```rust
-// Use `wee_alloc` as the global allocator.
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-```
-
 ## RC
 
 In an effort to avoid cloning large chunks of data to create props when re-rendering, we can use smart pointers to only clone the pointer instead. If you use `Rc<_>`s in your props and child components instead of plain unboxed values, you can delay cloning until you need to modify the data in the child component, where you use `Rc::make_mut` to clone and get a mutable reference to the data you want to alter. By not cloning until mutation, child components can reject props identical to their state-owned props in `Component::change` for almost no performance cost, versus the case where the data itself needs to be copied into the props struct in the parent before it is compared and rejected in the child.
@@ -101,4 +89,72 @@ Arguabley, the largest drawback to using Yew is the long time it takes to compil
 You should try to make your main crate handle routing/page selection, move all commonly shared code to another crate, and then make a different crate for each page, where each page could be a different component, or just a big function that produces `Html`. In the best case scenario, you go from rebuilding all of your code on each compile to rebuilding only the main crate, and one of your page crates. In the worst case, where you edit something in the "common" crate, you will be right back to where you started: compiling all code that depends on that commonly shared crate, which is probably everything else.
 
 If your main crate is too heavyweight, or you want to rapidly iterate on a deeply nested page \(eg. a page that renders on top of another page\), you can use an example crate to create a more simple implementation of the main page and render your work-in-progress component on top of that.
+
+## Build size optimization
+
+- optimize Rust code
+  - `wee_aloc` ( using tiny allocator )
+  - `cargo.toml` ( defining release profile )
+- optimize wasm code using `wasm-opt`
+
+More information about code size profiling: [rustwasm book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
+
+
+### wee\_alloc
+
+[wee\_alloc](https://github.com/rustwasm/wee_alloc) is a tiny allocator that is much smaller than the allocator that is normally used in Rust binaries. Replacing the default allocator with this one will result in smaller WASM file sizes, at the expense of speed and memory overhead.
+
+The slower speed and memory overhead are minor in comparison to the size gains made by not including the default allocator. This smaller file size means that your page will load faster, and so it is generally recommended that you use this allocator over the default, unless your app is doing some allocation-heavy work.
+
+```rust
+// Use `wee_alloc` as the global allocator.
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+```
+
+### Cargo.toml
+
+It is possible to setup release build for smaller size using `[profile.release]` section in `Cargo.toml`
+
+[Rust profiles documentation](https://doc.rust-lang.org/cargo/reference/profiles.html)
+
+```toml
+[profile.release]
+# less code to include into binary
+panic = 'abort' 
+# optimization over all codebase ( better optimization, slower build )
+codegen-units = 1
+# optimization for size ( more aggresive )
+opt-level = 'z' 
+# optimization for size 
+# opt-level = 's' 
+# link time optimization using using whole-program analysis
+lto = true 
+```
+
+### wasm-opt
+
+Further more it is possible to optimize size of `wasm` code.
+
+wasm-opt info: [binaryen project](https://github.com/WebAssembly/binaryen)
+
+The Rust Wasm book features a section about reducing the size of WASM binaries: [Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
+
+- using `wasm-pack` which by default optimizes `wasm` code in release builds
+- using `wasm-opt` directly on `wasm` files.
+
+```
+wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
+```
+
+#### Build size of 'minimal' example in yew/examples/
+
+Note: `wasm-pack` combines optimization for Rust and wasm code. `wasm-bindgen` is in this example without any `Rust` size optimization.
+
+
+| used tool                   | size 
+| ---                         | ---
+| wasm-bindgen                | 158KB  
+| wasm-binggen + wasm-opt -Os | 116KB 
+| wasm-pack                   | 99 KB
 
