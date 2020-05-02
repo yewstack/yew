@@ -148,3 +148,16 @@ where
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn can_create_select() {
+        let on_change = Callback::<u8>::default();
+        html! {
+            <Select<u8> on_change=on_change />
+        };
+    }
+}
