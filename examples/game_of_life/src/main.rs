@@ -3,7 +3,7 @@ use log::trace;
 use yew::App;
 
 fn main() {
-    web_logger::init();
+    wasm_logger::init(wasm_logger::Config::default());
     trace!("Initializing yew...");
     yew::initialize();
     App::<Model>::new()

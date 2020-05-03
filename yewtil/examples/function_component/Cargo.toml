@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 log = "0.4.8"
-web_logger = "0.2.0"
+wasm-logger = "0.2.0"
 yew = { path = "../../../yew" }
 yewtil = { path = "../.." }
 
