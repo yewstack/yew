@@ -1,15 +1,16 @@
-#[macro_use]
-extern crate doc_comment;
-extern crate wasm_bindgen_test;
+use doc_comment::{doc_comment, doctest};
 use wasm_bindgen_test::*;
 
 #[wasm_bindgen_test]
 fn test_sample_app() {
-    doctest!("getting-started/build-a-sample-app.md");
+    doc_comment!(include_str!(concat!(
+        env!("OUT_DIR"),
+        "/getting-started/build-a-sample-app.md"
+    )));
 }
 
 #[wasm_bindgen_test]
-fn test_optimisations() {
+fn test_optimizations() {
     doctest!("advanced-topics/optimizations.md");
 }
 
