@@ -1,16 +1,16 @@
 ---
-description: The procedural macro for generating HTML and SVG
+description: 用來產生 HTML 與 SVG 的巨集
 ---
 
 # 使用 html!
 
-The `html!` macro allows you to write declarative HTML and SVG for your components. If you've used React's JSX it will feel quite familiar.
+`html!` 巨集可以讓你用 HTML 與 SVG 寫元件。如果你寫過 React 的 JSX，應該會覺得這兩者十分相似。
 
-**Important notes**
+**重要提示**
 
-1. There must be only one root node in an `html!` invocation
-2. An empty `html! {}` invocation is valid and will not render anything
-3. Literals must always be quoted and wrapped in braces: `html! { "Hello, World" }`
+1. 在 `html!` 裡，只能有一個根結點
+2. 空的 `html! {}` 是合法的，且他不會渲染任何東西在畫面上
+3. 字串必須被雙引號與大括號包裹住：`html! { "Hello, World" }`
 
 {% page-ref page="lists.md" %}
 

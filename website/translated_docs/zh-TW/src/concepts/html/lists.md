@@ -2,7 +2,7 @@
 
 ## Fragments
 
-The `html!` macro always requires a single root node. In order to get around this restriction, it's valid to wrap content in empty tags:
+`html!` 巨集裡必須只有一個根結點。為了可以繞過這個限制，將兩個以上的結點，用空的標籤包裹起來，是合法的：
 
 {% tabs %}
 {% tab title="Valid" %}
@@ -30,7 +30,7 @@ html! {
 
 ## Iterators
 
-Yew supports two different syntaxes for building html from an iterator:
+Yew 支援兩種不同的方式，從 iterator 建構 html：
 
 {% tabs %}
 {% tab title="Syntax Type 1" %}
