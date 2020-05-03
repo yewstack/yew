@@ -24,13 +24,7 @@ It is likely to make sense to derive `PartialEq` on your props if you can do thi
 
 ## Memory/speed overhead of using Properties
 
-The signature of `Component::view` looks like this:
-
-```rust
-fn view(&self) -> Html
-```
-
-You take a reference to the component's state, and use that to create `Html`. Properties, however, are owned values. This means that in order to create them and pass them to child components, we need to take ownership of the references provided in the `view` function. This is done by implicitly cloning the references as they are passed to components in order to get owned values.
+In `Component::view`, you take a reference to the component's state, and use that to create `Html`. Properties, however, are owned values. This means that in order to create them and pass them to child components, we need to take ownership of the references provided in the `view` function. This is done by implicitly cloning the references as they are passed to components in order to get owned values.
 
 This means that each component has its own distinct copy of the state passed down from its parent, and that whenever you re-render a component, the props for all child components of the re-rendering component will have to be cloned.
 
@@ -41,10 +35,14 @@ If you won't need to modify the data passed down through props you can wrap it i
 ## Example
 
 ```rust
-pub struct LinkColor {
+use std::rc::Rc;
+use yew::Properties;
+
+#[derive(Clone, PartialEq)]
+pub enum LinkColor {
     Blue,
     Red,
-    Green
+    Green,
     Black,
     Purple,
 }
@@ -56,7 +54,7 @@ impl Default for LinkColor {
     }
 }
 
-#[derive(Properties, PartialEq)]
+#[derive(Properties, Clone, PartialEq)]
 pub struct LinkProps {
     /// The link must have a target.
     href: String,
@@ -68,9 +66,9 @@ pub struct LinkProps {
     color: LinkColor,
     /// The view function will not specify a size if this is None.
     #[prop_or_default]
-    size: Option<u32>
+    size: Option<u32>,
     /// When the view function doesn't specify active, it defaults to true.
-    #[prop_or_else(true)]
+    #[prop_or(true)]
     active: bool,
 }
 ```
