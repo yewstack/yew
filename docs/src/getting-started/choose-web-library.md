@@ -1,6 +1,6 @@
 # Choose web-sys or stdweb
 
-### Introduction
+## Introduction
 
 Yew apps can be built with either [`web-sys`](https://docs.rs/web-sys) or [`stdweb`](https://docs.rs/stdweb). These two crates provide the bindings between Rust and Web APIs. You'll need to choose one or the other when adding `yew` to your cargo dependencies:
 
@@ -14,9 +14,9 @@ yew = { version = "0.15", package = "yew-stdweb" }
 ```
 {% endcode %}
 
-We recommend using `web-sys` due to its support from the [Rust / Wasm Working Group](https://rustwasm.github.io/). 
+We recommend using `web-sys` due to its support from the [Rust / Wasm Working Group](https://rustwasm.github.io/).
 
-### Example Usage
+## Example Usage
 
 ```rust
 // web-sys
@@ -39,52 +39,39 @@ window.alert("hello from wasm!");
 
 The APIs for the two crates differ slightly but they serve roughly the same purpose with similar functionality.
 
-### Choosing One
+## Choosing One
 
-There are a few different angles to consider when choosing between using `web-sys` and `stdweb` for your app. Note, it's possible to use both in one app, but to minimize the binary size of your compiled `.wasm` it's best to choose one or the other.  
+There are a few different angles to consider when choosing between using `web-sys` and `stdweb` for your app. Note, it's possible to use both in one app, but to minimize the binary size of your compiled `.wasm` it's best to choose one or the other.
+
+|  | `web-sys` | `stdweb` |
+| :--- | :--- | :--- |
+
+
+| Project Status | Actively maintained by the [Rust / Wasm Working Group](https://rustwasm.github.io/) | No Github activity for over 4 months |
+| :--- | :--- | :--- |
+
+
+| Web API Coverage | Rust APIs are auto-generated from the Web IDL spec and so should have 100% coverage. | Browser APIs are added as needed by the community |
+| :--- | :--- | :--- |
+
+
+| Rust API Design | Takes conservative approach by returning `Result` for most API calls | Often avoids `Result` in favor of panics. For instance, `stdweb::web::window()` will panic when called in a worker. |
+| :--- | :--- | :--- |
 
 
 <table>
   <thead>
     <tr>
-      <th style="text-align:left"></th>
-      <th style="text-align:left"><code>web-sys</code>
-      </th>
-      <th style="text-align:left"><code>stdweb</code>
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align:left">Project Status</td>
-      <td style="text-align:left">Actively maintained by the <a href="https://rustwasm.github.io/">Rust / Wasm Working Group</a>
-      </td>
-      <td style="text-align:left">No Github activity for over 4 months</td>
-    </tr>
-    <tr>
-      <td style="text-align:left">Web API Coverage</td>
-      <td style="text-align:left">Rust APIs are auto-generated from the Web IDL spec and so should have
-        100% coverage.</td>
-      <td style="text-align:left">Browser APIs are added as needed by the community</td>
-    </tr>
-    <tr>
-      <td style="text-align:left">Rust API Design</td>
-      <td style="text-align:left">Takes conservative approach by returning <code>Result</code> for most API
-        calls</td>
-      <td style="text-align:left">Often avoids <code>Result</code> in favor of panics. For instance, <code>stdweb::web::window()</code> will
-        panic when called in a worker.</td>
-    </tr>
-    <tr>
-      <td style="text-align:left">Supported Build Tools</td>
-      <td style="text-align:left">
+      <th style="text-align:left">Supported Build Tools</th>
+      <th style="text-align:left">
         <ul>
           <li><code>wasm-bindgen</code>
           </li>
           <li><code>wasm-pack</code>
           </li>
         </ul>
-      </td>
-      <td style="text-align:left">
+      </th>
+      <th style="text-align:left">
         <ul>
           <li><code>cargo-web</code>
           </li>
@@ -93,17 +80,21 @@ There are a few different angles to consider when choosing between using `web-sy
           <li><code>wasm-pack</code>
           </li>
         </ul>
-      </td>
+      </th>
     </tr>
+  </thead>
+  <tbody></tbody>
+</table><table>
+  <thead>
     <tr>
-      <td style="text-align:left">Supported Targets</td>
-      <td style="text-align:left">
+      <th style="text-align:left">Supported Targets</th>
+      <th style="text-align:left">
         <ul>
           <li><code>wasm32-unknown-unknown</code>
           </li>
         </ul>
-      </td>
-      <td style="text-align:left">
+      </th>
+      <th style="text-align:left">
         <ul>
           <li><code>wasm32-unknown-unknown</code>
           </li>
@@ -112,10 +103,8 @@ There are a few different angles to consider when choosing between using `web-sy
           <li><code>asmjs-unknown-emscripten</code>
           </li>
         </ul>
-      </td>
+      </th>
     </tr>
-  </tbody>
-</table>For more information about picking a build tool, checkout the [Wasm Build Tools](project-setup/#wasm-build-tools) guide.
-
-
-
+  </thead>
+  <tbody></tbody>
+</table>
