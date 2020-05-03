@@ -1,14 +1,14 @@
 # Debugging
 
-### Panics
+## Panics
 
 Please use the [`console_error_panic`](https://github.com/rustwasm/console_error_panic_hook) crate for nicer stacktraces with Rust symbols. Note, that it is not compatible with apps built with `cargo-web`.
 
-### Console Logging
+## Console Logging
 
 In general, Wasm web apps are able to interact with Browser APIs, and the `console.log` api is no exception. There are a few options available:
 
-#### [`wasm-logger`](https://crates.io/crates/wasm-logger)
+### [`wasm-logger`](https://crates.io/crates/wasm-logger)
 
 This crate integrates with the familiar Rust `log` crate:
 
@@ -22,7 +22,7 @@ fn main() {
 log::info!("Update: {:?}", msg);
 ```
 
-#### **\`\`**[**`ConsoleService`**](https://docs.rs/yew/0.15.0/yew/services/console/struct.ConsoleService.html)**\`\`**
+### **\`\`**[**`ConsoleService`**](https://docs.rs/yew/0.15.0/yew/services/console/struct.ConsoleService.html)**\`\`**
 
 This service is included within yew and is available when the `"services"` feature is enabled:
 
@@ -31,11 +31,11 @@ This service is included within yew and is available when the `"services"` featu
 ConsoleService::new()::info(format!("Update: {:?}", msg));
 ```
 
-### Source Maps
+## Source Maps
 
 There is currently no first-class support for source maps for Rust / Wasm web apps. This, of course, is subject to change. If this is no longer true or if progress is made, please suggest a change!
 
-#### Latest Info
+### Latest Info
 
 \[Dec 2019\] [Chrome DevTools update](https://developers.google.com/web/updates/2019/12/webassembly#the_future)
 

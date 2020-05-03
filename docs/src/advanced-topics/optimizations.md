@@ -92,13 +92,12 @@ If your main crate is too heavyweight, or you want to rapidly iterate on a deepl
 
 ## Build size optimization
 
-- optimize Rust code
-  - `wee_aloc` ( using tiny allocator )
-  - `cargo.toml` ( defining release profile )
-- optimize wasm code using `wasm-opt`
+* optimize Rust code
+  * `wee_aloc` \( using tiny allocator \)
+  * `cargo.toml` \( defining release profile \)
+* optimize wasm code using `wasm-opt`
 
 More information about code size profiling: [rustwasm book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
-
 
 ### wee\_alloc
 
@@ -118,7 +117,7 @@ It is possible to setup release build for smaller size using `[profile.release]`
 
 [Rust profiles documentation](https://doc.rust-lang.org/cargo/reference/profiles.html)
 
-```toml
+```text
 [profile.release]
 # less code to include into binary
 panic = 'abort' 
@@ -129,7 +128,7 @@ opt-level = 'z'
 # optimization for size 
 # opt-level = 's' 
 # link time optimization using using whole-program analysis
-lto = true 
+lto = true
 ```
 
 ### wasm-opt
@@ -140,10 +139,10 @@ wasm-opt info: [binaryen project](https://github.com/WebAssembly/binaryen)
 
 The Rust Wasm book features a section about reducing the size of WASM binaries: [Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
-- using `wasm-pack` which by default optimizes `wasm` code in release builds
-- using `wasm-opt` directly on `wasm` files.
+* using `wasm-pack` which by default optimizes `wasm` code in release builds
+* using `wasm-opt` directly on `wasm` files.
 
-```
+```text
 wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 ```
 
@@ -151,10 +150,9 @@ wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 
 Note: `wasm-pack` combines optimization for Rust and wasm code. `wasm-bindgen` is in this example without any `Rust` size optimization.
 
-
-| used tool                   | size 
-| ---                         | ---
-| wasm-bindgen                | 158KB  
-| wasm-binggen + wasm-opt -Os | 116KB 
-| wasm-pack                   | 99 KB
+| used tool | size |
+| :--- | :--- |
+| wasm-bindgen | 158KB |
+| wasm-binggen + wasm-opt -Os | 116KB |
+| wasm-pack | 99 KB |
 
