@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 yew = { path = "../../../yew" }
 yew-router = { path = "../.." }
-wasm_logger = "0.2.0"
+wasm-logger = "0.2.0"
 log = "0.4.8"
 wee_alloc = "0.4.5"
 wasm-bindgen = "0.2.60"
