@@ -9,5 +9,5 @@ edition = "2018"
 [dependencies]
 rand = "0.7.3"
 log = "0.4"
-web_logger = "0.2"
+wasm_logger = "0.2.0"
 yew = { path = "../../yew" }

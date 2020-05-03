@@ -10,7 +10,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen(start)]
 pub fn run_app() {
-    web_logger::init();
+    wasm_logger::init(wasm_logger::Config::default());
     yew::start_app::<Model>();
 }
 
