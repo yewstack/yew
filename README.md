@@ -49,7 +49,7 @@ Start learning about the framework by helping us improve our [Documentation](htt
 
 #### 🤔 Confused about something?
 
-Feel free to drop into our [Gitter chatroom](https://gitter.im/yewframework/Lobby) or open a [new "Question" issue](https://github.com/yewstack/yew/issues/new/choose) to get help from contributors. Oftentimes questions lead to improvements to the ergonomics of the framework, better documentation, and even new features!
+Feel free to drop into our [Discord chatroom](https://discord.gg/VQck8X4) or open a [new "Question" issue](https://github.com/yewstack/yew/issues/new/choose) to get help from contributors. Often questions lead to improvements to the ergonomics of the framework, better documentation, and even new features!
 
 #### 🙂 Ready to dive into the code?
 
