@@ -10,17 +10,17 @@ Properties enable child and parent components to communicate with each other.
 
 Don't try to implement `Properties` yourself, derive it by using `#[derive(Properties)]` instead.
 
-{% hint type="note" %}
+{% hint style="info" %}
 Types for which you derive `Properties` must also implement `Clone`. This can be done by either using `#[derive(Properties, Clone)` or manually implementing `Clone` for your type.
 {% endhint %}
 
 ### Required attributes
 
-The fields within a struct that derives `Properties` are required by default. When a field is missing and the component is created in the `html!` macro, a compiler error is returned. For fields with optional properties, use the `#[prop_or_default]` attribute to use the default value for that type when the prop is not specified. To specify a value, use  the `#[prop_or_else(value)]` attribute where value is the default value for the property. For example, to default a boolean value as `true`, use the attribute `#[prop_or_else(true)]`. It is common for optional properties to use the `Option` enum which has the default value `None`.
+The fields within a struct that derives `Properties` are required by default. When a field is missing and the component is created in the `html!` macro, a compiler error is returned. For fields with optional properties, use the `#[prop_or_default]` attribute to use the default value for that type when the prop is not specified. To specify a value, use the `#[prop_or_else(value)]` attribute where value is the default value for the property. For example, to default a boolean value as `true`, use the attribute `#[prop_or_else(true)]`. It is common for optional properties to use the `Option` enum which has the default value `None`.
 
 ### PartialEq
 
-It is likely to make sense to derive `PartialEq` on your props if you can do this. Using `PartialEq` makes it much easier to avoid unnecessary rerendering (this is explained in the **Optimizations & Best Practices** section).
+It is likely to make sense to derive `PartialEq` on your props if you can do this. Using `PartialEq` makes it much easier to avoid unnecessary rerendering \(this is explained in the **Optimizations & Best Practices** section\).
 
 ## Memory/speed overhead of using Properties
 
