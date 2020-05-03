@@ -3,7 +3,8 @@
 //! helps you to track selected value in an original type. Example:
 //!
 //! ```
-//!# use yew::{Html, Component, components::Select, ComponentLink, html};
+//!# use yew::{Html, Component, ComponentLink, html};
+//!# use yew_components::Select;
 //! #[derive(PartialEq, Clone)]
 //! enum Scene {
 //!     First,
@@ -145,5 +146,18 @@ where
             }
             _ => unreachable!(),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn can_create_select() {
+        let on_change = Callback::<u8>::default();
+        html! {
+            <Select<u8> on_change=on_change />
+        };
     }
 }
