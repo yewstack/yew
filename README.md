@@ -12,6 +12,7 @@
     <a href="https://docs.rs/yew/"><img alt="API Docs" src="https://img.shields.io/badge/docs.rs-yew-green"/></a>
     <a href="https://discord.gg/VQck8X4"><img alt="Discord Chat" src="https://img.shields.io/discord/701068342760570933"/></a>
     <a href="https://blog.rust-lang.org/2019/12/19/Rust-1.40.0.html"><img alt="Rustc Version 1.40+" src="https://img.shields.io/badge/rustc-1.40+-lightgray.svg"/></a>
+    <a href="https://github.com/jetli/awesome-yew"><img alt="Yew Awesome" src="https://raw.githubusercontent.com/sindresorhus/awesome/master/media/badge.svg"/></a>
   </p>
 
   <h4>
@@ -46,6 +47,10 @@ Yew is a community effort and we welcome all kinds of contributions, big or smal
 #### 🤓 New to Yew?
 
 Start learning about the framework by helping us improve our [Documentation](https://github.com/yewstack/docs). Pull requests which improve test coverage are also very welcome.
+
+#### 😎 Looking for inspiration?
+
+Check out the community curated list of awesome things related to Yew / WebAssembly at [jetli/awesome-yew](https://github.com/jetli/awesome-yew).
 
 #### 🤔 Confused about something?
 
