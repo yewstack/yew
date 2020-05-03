@@ -11,54 +11,28 @@ When a component receives props from its parent component, the `change` method i
 Re-rendering is expensive, and if you can avoid it, you should. As a general rule, you only want to re-render when the props actually changed. The following block of code represents this rule, returning `true` if the props differed from the previous props:
 
 ```rust
-fn change(&mut self, props: Self::Properties) -> ShouldRender {
-    if self.props != &props {
-        *self.props = props;
-        true
-    } else {
-        false
-    }
-}
-```
+use yew::ShouldRender;
 
-But we can go further! This is six lines of boilerplate can be reduced down to one by using a trait and a blanket implementation for anything that implements `PartialEq`.
+#[derive(PartialEq)]
+struct ExampleProps;
 
-{% code title="neq\_assign.rs" %}
-```rust
-pub trait NeqAssign {
-    fn neq_assign(&mut self, new: Self) -> ShouldRender;
-}
-impl<T: PartialEq> NeqAssign for T {
-    fn neq_assign(&mut self, new: T) -> ShouldRender {
-        if self != &new {
-            *self = new;
+struct Example {
+    props: ExampleProps,
+};
+
+impl Example {
+    fn change(&mut self, props: ExampleProps) -> ShouldRender {
+        if self.props != props {
+            self.props = props;
             true
         } else {
             false
         }
     }
 }
-
-// ...
-fn change(&mut self, props: Self::Properties) -> ShouldRender {
-    self.props.neq_assign(props)
-}
-```
-{% endcode %}
-
-The trait is called `NeqAssign` because it assigns the new value if the target and new value aren't equal.
-
-This is even shorter than the naive implementation:
-
-```rust
-// Don't do this, unless you can't avoid it.
-fn change(&mut self, props: Self::Properties) -> ShouldRender {
-    self.props = props;
-    true
-}
 ```
 
-You aren't limited to using this in the `change` function. It often makes sense to do this in the `update` function as well, although the performance wins aren't as obvious there.
+But we can go further! This is six lines of boilerplate can be reduced down to one by using a trait and a blanket implementation for anything that implements `PartialEq`. Check out the `yewtil` crate's `NeqAssign` trait [here](https://docs.rs/yewtil/*/yewtil/trait.NeqAssign.html).
 
 ## RC
 

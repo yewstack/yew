@@ -1,12 +1,11 @@
 [package]
 name = "docs"
 version = "0.1.0"
-authors = ["Teymour Aldridge <teymour.aldridge@icloud.com>"]
+authors = ["Yew Maintainers <maintainers@yew.rs>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-doc-comment="0.3.3"
-yew = {version="0.15.0", package = "yew-stdweb", features = ["wasm_test"]}
+doc-comment = "0.3.3"
 wasm-bindgen-test = "0.3.0"
+wee_alloc = "0.4"
+yew = { version = "0.15.0", features = ["wasm_test"] }
