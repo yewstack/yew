@@ -114,6 +114,7 @@ pub trait Component: Sized + 'static {
     ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
     ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
     ///#     fn view(&self) -> Html {unimplemented!()}
+    ///#     fn change(&mut self, _props: Self::Properties) -> ShouldRender { unimplemented!() }
     /// fn rendered(&mut self, first_render: bool) {
     ///    if first_render {
     ///      self.setup_element(); # Similar to `mounted` in other frameworks
