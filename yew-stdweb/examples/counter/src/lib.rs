@@ -13,7 +13,6 @@ pub struct Model {
 pub enum Msg {
     Increment,
     Decrement,
-    Bulk(Vec<Msg>),
 }
 
 impl Component for Model {
@@ -37,12 +36,6 @@ impl Component for Model {
             Msg::Decrement => {
                 self.value -= 1;
                 self.console.log("minus one");
-            }
-            Msg::Bulk(list) => {
-                for msg in list {
-                    self.update(msg);
-                    self.console.log("Bulk action");
-                }
             }
         }
         true
