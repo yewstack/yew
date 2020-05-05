@@ -1,12 +1,12 @@
 ---
-description: Both HTML and SVG elements are supported
+description: HTML 與 SVG 元件都支援
 ---
 
 # Elements
 
-## Tag Structure
+## 標籤結構
 
-Element tags must either self-close `<... />` or have a corresponding close tag for each open tag
+ 元件標籤都必須要是自封閉的標籤 `<... />` 或是跟開啟標籤對應的關閉標籤。
 
 {% tabs %}
 {% tab title="Open - Close" %}
@@ -20,7 +20,7 @@ html! {
 {% tab title="INVALID" %}
 ```rust
 html! {
-  <div id="my_div"> // <- MISSING CLOSE TAG
+  <div id="my_div"> // <- 缺少關閉標籤
 }
 ```
 {% endtab %}
@@ -36,19 +36,19 @@ html! {
 {% tab title="INVALID" %}
 ```rust
 html! {
-  <input id="my_input"> // <- MISSING SELF-CLOSE
+  <input id="my_input"> // <- 缺少自封閉標籤語法
 }
 ```
 {% endtab %}
 {% endtabs %}
 
 {% hint style="info" %}
-For convenience, elements which _usually_ require a closing tag are **allowed** to self-close. For example, writing `html! { <div class="placeholder" /> }` is valid.
+為了方便起見，通常需要關閉標籤的元件，也都可以用自封閉標籤表示。例如，寫 `html! { <div class="placeholder" /> }` 是合法的。
 {% endhint %}
 
-## Children
+## 子結點
 
-Create complex nested HTML and SVG layouts with ease:
+輕鬆寫出複雜巢狀的 HTML 與 SVG 架構：
 
 {% tabs %}
 {% tab title="HTML" %}
@@ -97,7 +97,7 @@ html! {
 
 ## Classes
 
-There are a number of convenient options for specifying classes for an element:
+你很多方便的選項可以寫元件裡的 class：
 
 {% tabs %}
 {% tab title="Literal" %}
@@ -149,9 +149,9 @@ html! {
 {% endtab %}
 {% endtabs %}
 
-## Listeners
+## 監聽
 
-Listener attributes need to be passed a `Callback` which is a wrapper around a closure. How you create your callback depends on how you wish your app to react to a listener event:
+監聽器的屬性必須要傳入一個 `Callback` ，他封裝了閉包。callback 的內容取決於，當觸發監聽事件時，你希望應用程式有什麼反應：
 
 {% tabs %}
 {% tab title="Component Handler" %}
@@ -175,13 +175,13 @@ impl Component for MyComponent {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Click => {
-                // Handle Click
+                // 處理點擊事件
             }
         }
     }
 
     fn view(&self) -> Html {
-        // Create a callback from a component link to handle it in a component
+        // 從一個元件連結中，建立一個 callback 並在元件中處理他
         let click_callback = self.link.callback(|_: ClickEvent| Msg::Click);
         html! {
             <button onclick=click_callback>
@@ -214,7 +214,7 @@ impl Component for MyComponent {
     }
 
     fn view(&self) -> Html {
-        // Create a callback from a worker to handle it in another context
+        // 從一個 worker 中建立一個 callback，並在其他的 context 中處理他
         let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
         html! {
             <button onclick=click_callback>
@@ -243,7 +243,7 @@ impl Component for MyComponent {
     }
 
     fn view(&self) -> Html {
-        // Create an ephemeral callback
+        // 建立一個臨時的 callback
         let click_callback = Callback::from(|| {
             ConsoleService::new().log("clicked!");
         });
