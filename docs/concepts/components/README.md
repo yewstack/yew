@@ -130,17 +130,21 @@ impl Component for MyComponent {
 
 ### Change
 
-Components may be re-rendered by their parents. When this happens, they could receive new properties and choose to re-render. This design facilitates parent to child component communication through changed properties. You don't have to implement `change()` but you probably want to if you want to update a component via props after it has been created.
+Components may be re-rendered by their parents. When this happens, they could receive new properties and choose to re-render. This design facilitates parent to child component communication through changed properties.
 
-A naive implementation would look like:
+A typical implementation would look like:
 
 ```rust
 impl Component for MyComponent {
     // ...
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-       self.props = props;
-       true // This will always re-render when new props are provided.
+        if self.props != props {
+            self.props = props;
+            true
+        } else {
+            false
+        }
     }
 }
 ```
