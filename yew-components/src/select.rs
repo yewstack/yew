@@ -66,6 +66,15 @@ pub struct Props<T: Clone> {
     /// Options are available to choose.
     #[prop_or_default]
     pub options: Vec<T>,
+    /// Classes applied to the `<select>` tag
+    #[prop_or_default]
+    pub classes: String,
+    /// ID for the `<select>` tag
+    #[prop_or_default]
+    pub id: String,
+    /// Placeholder value, shown at the top as a disabled option
+    #[prop_or(String::from("↪"))]
+    pub placeholder: String,
     /// Callback to handle changes.
     pub on_change: Callback<T>,
 }
@@ -124,9 +133,15 @@ where
         };
 
         html! {
-            <select ref=self.select_ref.clone() disabled=self.props.disabled onchange=self.on_change()>
+            <select
+                ref=self.select_ref.clone()
+                id=self.props.id.clone()
+                class=self.props.classes.clone()
+                disabled=self.props.disabled
+                onchange=self.on_change()
+            >
                 <option value="" disabled=true selected=selected.is_none()>
-                    { "↪" }
+                    { self.props.placeholder.clone() }
                 </option>
                 { for self.props.options.iter().map(view_option) }
             </select>
@@ -158,6 +173,32 @@ mod tests {
         let on_change = Callback::<u8>::default();
         html! {
             <Select<u8> on_change=on_change />
+        };
+    }
+
+    #[test]
+    fn can_create_select_with_class() {
+        let on_change = Callback::<u8>::default();
+        let class = "form-control";
+        html! {
+            <Select<u8> on_change=on_change classes=class />
+        };
+    }
+
+    #[test]
+    fn can_create_select_with_id() {
+        let on_change = Callback::<u8>::default();
+        let id = "test-select";
+        html! {
+            <Select<u8> on_change=on_change id=id />
+        };
+    }
+
+    #[test]
+    fn can_create_select_with_placeholder() {
+        let on_change = Callback::<u8>::default();
+        html! {
+            <Select<u8> on_change=on_change placeholder="--Please choose an option--" />
         };
     }
 }
