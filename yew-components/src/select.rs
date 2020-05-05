@@ -179,18 +179,16 @@ mod tests {
     #[test]
     fn can_create_select_with_class() {
         let on_change = Callback::<u8>::default();
-        let class = "form-control";
         html! {
-            <Select<u8> on_change=on_change classes=class />
+            <Select<u8> on_change=on_change classes="form-control" />
         };
     }
 
     #[test]
     fn can_create_select_with_id() {
         let on_change = Callback::<u8>::default();
-        let id = "test-select";
         html! {
-            <Select<u8> on_change=on_change id=id />
+            <Select<u8> on_change=on_change id="test-select" />
         };
     }
 
