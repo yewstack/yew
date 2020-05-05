@@ -125,6 +125,9 @@ pub mod agent;
 #[cfg(feature = "services")]
 pub mod services;
 
+#[cfg(feature = "web_sys")]
+pub use web_sys;
+
 /// The module that contains all events available in the framework.
 pub mod events {
     use cfg_if::cfg_if;
