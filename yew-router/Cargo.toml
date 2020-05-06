@@ -35,6 +35,7 @@ yew = { version = "0.15.0", path = "../yew", features = ["services", "agent"], d
 yew-router-macro = { version = "0.12.0", path = "../yew-router-macro" }
 yew-router-route-parser = { version = "0.12.0", path = "../yew-router-route-parser" }
 
+bincode = { version = "~1.2.1" }
 cfg-if = "0.1.10"
 cfg-match = "0.2"
 gloo = { version = "0.2.0", optional = true }
@@ -42,7 +43,6 @@ js-sys = { version = "0.3.35", optional = true }
 log = "0.4.8"
 nom = "5.1.1"
 serde = { version = "1.0.104", features = ["derive"] }
-serde_json = "1.0.48"
 stdweb = { version = "0.4.20", optional = true }
 wasm-bindgen = { version = "0.2.58", optional = true }
 

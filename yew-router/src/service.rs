@@ -12,11 +12,12 @@ cfg_if! {
         use stdweb::{
             js,
             unstable::{TryFrom, TryInto},
-            web::{event::PopStateEvent, window, EventListenerHandle, History, IEventTarget, Location},
+            web::{event::PopStateEvent, window, EventListenerHandle, History, IEventTarget, Location, TypedArray},
             Value,
         };
     } else if #[cfg(feature = "web_sys")] {
         use web_sys::{History, Location, PopStateEvent};
+        use js_sys::Uint8Array;
         use gloo::events::EventListener;
         use wasm_bindgen::{JsValue as Value, JsCast};
     }
@@ -107,12 +108,12 @@ where
     pub fn register_callback(&mut self, callback: Callback<Route<STATE>>) {
         let cb = move |event: PopStateEvent| {
             let state_value: Value = event.state();
-            let state_string: String = cfg_match! {
-                feature = "std_web" => String::try_from(state_value).unwrap_or_default(),
-                feature = "web_sys" => state_value.as_string().unwrap_or_default(),
+            let state_buf: Vec<u8> = cfg_match! {
+                feature = "std_web" => TypedArray::try_from(state_value).map(|arr| arr.to_vec()).unwrap_or_default(),
+                feature = "web_sys" => state_value.dyn_into::<Uint8Array>().map(|arr| arr.to_vec()).unwrap_or_default(),
             };
-            let state: STATE = serde_json::from_str(&state_string).unwrap_or_else(|_| {
-                log::error!("Could not deserialize state string");
+            let state: STATE = bincode::deserialize(&state_buf).unwrap_or_else(|_| {
+                log::error!("Could not deserialize state");
                 STATE::default()
             });
 
@@ -146,16 +147,16 @@ where
     ///
     /// The route should be a relative path that starts with a `/`.
     pub fn set_route(&mut self, route: &str, state: STATE) {
-        let state_string: String = serde_json::to_string(&state).unwrap_or_else(|_| {
-            log::error!("Could not serialize state string");
-            "".to_string()
+        let state_buf = bincode::serialize(&state).unwrap_or_else(|_| {
+            log::error!("Could not serialize state");
+            Vec::default()
         });
         cfg_match! {
             feature = "std_web" => ({
-                self.history.push_state(state_string, "", Some(route));
+                self.history.push_state(TypedArray::from(state_buf.as_slice()), "", Some(route));
             }),
             feature = "web_sys" => ({
-                let _ = self.history.push_state_with_url(&Value::from_str(&state_string), "", Some(route));
+                let _ = self.history.push_state_with_url(&Uint8Array::from(state_buf.as_slice()).into(), "", Some(route));
             }),
         };
     }
@@ -163,16 +164,16 @@ where
     /// Replaces the route with another one removing the most recent history event and
     /// creating another history event in its place.
     pub fn replace_route(&mut self, route: &str, state: STATE) {
-        let state_string: String = serde_json::to_string(&state).unwrap_or_else(|_| {
-            log::error!("Could not serialize state string");
-            "".to_string()
+        let state_buf = bincode::serialize(&state).unwrap_or_else(|_| {
+            log::error!("Could not serialize state");
+            Vec::default()
         });
         cfg_match! {
             feature = "std_web" => ({
-                let _ = self.history.replace_state(state_string, "", Some(route));
+                let _ = self.history.replace_state(TypedArray::from(state_buf.as_slice()), "", Some(route));
             }),
             feature = "web_sys" => ({
-                let _ = self.history.replace_state_with_url(&Value::from_str(&state_string), "", Some(route));
+                let _ = self.history.replace_state_with_url(&Uint8Array::from(state_buf.as_slice()).into(), "", Some(route));
             }),
         };
     }
@@ -180,19 +181,18 @@ where
     /// Gets the concatenated path, query, and fragment.
     pub fn get_route(&self) -> Route<STATE> {
         let route_string = Self::get_route_from_location(&self.location);
-        let state: STATE = get_state_string(&self.history)
+        let state: STATE = get_state_buf(&self.history)
             .or_else(|| {
                 log::trace!("History state is empty");
                 None
             })
-            .and_then(|state_string| -> Option<STATE> {
-                serde_json::from_str(&state_string)
+            .and_then(|state_buf| -> Option<STATE> {
+                bincode::deserialize(&state_buf)
                     .ok()
                     .or_else(|| {
-                        log::error!("Could not deserialize state string");
+                        log::error!("Could not deserialize state");
                         None
                     })
-                    .and_then(std::convert::identity) // flatten
             })
             .unwrap_or_default();
         Route {
@@ -224,9 +224,9 @@ fn get_state(history: &History) -> Value {
     }
 }
 
-fn get_state_string(history: &History) -> Option<String> {
+fn get_state_buf(history: &History) -> Option<Vec<u8>> {
     cfg_match! {
-        feature = "std_web" => get_state(history).try_into().ok(),
-        feature = "web_sys" => get_state(history).as_string(),
+        feature = "std_web" => TypedArray::try_from(get_state(history)).map(|arr| arr.to_vec()).ok(),
+        feature = "web_sys" => get_state(history).dyn_into::<Uint8Array>().map(|arr| arr.to_vec()).ok(),
     }
 }
