@@ -17,7 +17,7 @@ cargo install wasm-pack
 This command will produce a bundle in the `./pkg` directory with your app's compiled WebAssembly along with a JavaScript wrapper which can be used to start your application.
 
 ```bash
-wasm-pack build
+wasm-pack build --target web
 ```
 
 ### Bundle
