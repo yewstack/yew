@@ -68,7 +68,7 @@ pub struct Props<T: Clone> {
     pub options: Vec<T>,
     /// Classes applied to the `<select>` tag
     #[prop_or_default]
-    pub classes: String,
+    pub class: String,
     /// ID for the `<select>` tag
     #[prop_or_default]
     pub id: String,
@@ -136,7 +136,7 @@ where
             <select
                 ref=self.select_ref.clone()
                 id=self.props.id.clone()
-                class=self.props.classes.clone()
+                class=self.props.class.clone()
                 disabled=self.props.disabled
                 onchange=self.on_change()
             >
@@ -180,7 +180,7 @@ mod tests {
     fn can_create_select_with_class() {
         let on_change = Callback::<u8>::default();
         html! {
-            <Select<u8> on_change=on_change classes="form-control" />
+            <Select<u8> on_change=on_change class="form-control" />
         };
     }
 
