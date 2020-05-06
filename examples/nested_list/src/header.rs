@@ -6,7 +6,7 @@ pub struct ListHeader {
     props: Props,
 }
 
-#[derive(Clone, Properties)]
+#[derive(Clone, PartialEq, Properties)]
 pub struct Props {
     pub on_hover: Callback<Hovered>,
     pub text: String,
@@ -21,8 +21,13 @@ impl Component for ListHeader {
         ListHeader { props }
     }
 
-    fn change(&mut self, _: Self::Properties) -> bool {
-        false
+    fn change(&mut self, props: Self::Properties) -> bool {
+        if self.props != props {
+            self.props = props;
+            true
+        } else {
+            false
+        }
     }
 
     fn update(&mut self, _: Self::Message) -> ShouldRender {
