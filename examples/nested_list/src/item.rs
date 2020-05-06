@@ -6,7 +6,7 @@ pub struct ListItem {
     props: Props,
 }
 
-#[derive(Clone, Properties)]
+#[derive(PartialEq, Clone, Properties)]
 pub struct Props {
     #[prop_or_default]
     pub hide: bool,
@@ -24,8 +24,13 @@ impl Component for ListItem {
         ListItem { props }
     }
 
-    fn change(&mut self, _: Self::Properties) -> bool {
-        false
+    fn change(&mut self, props: Self::Properties) -> bool {
+        if self.props != props {
+            self.props = props;
+            true
+        } else {
+            false
+        }
     }
 
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {
