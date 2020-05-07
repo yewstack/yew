@@ -125,9 +125,9 @@ The preferred web workflow tool before the introduction of `wasm-pack` and `wasm
       <td style="text-align:left">Example Usage</td>
       <td style="text-align:left"><a href="https://github.com/yewstack/yew-wasm-pack-minimal">Starter template</a>
       </td>
-      <td style="text-align:left"><a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">Build script</a> for
+      <td style="text-align:left"><a href="https://github.com/yewstack/yew/blob/master/examples/build.sh">Build script</a> for
         Yew examples</td>
-      <td style="text-align:left"><a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">Build script</a> for
+      <td style="text-align:left"><a href="https://www.github.com/yewstack/yew/tree/master/yew-stdweb/examples">Build script</a> for
         Yew examples</td>
     </tr>
   </tbody>
