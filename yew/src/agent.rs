@@ -69,7 +69,7 @@ impl<T: Serialize + for<'de> Deserialize<'de>> Packed for T {
 }
 
 /// Type alias to a sharable Slab that owns optional callbacks that emit messages of the type of the specified Agent.
-type SharedOutputSlab<AGN> = Shared<Slab<Option<Callback<<AGN as Agent>::Output>>>>;
+type SharedOutputSlab<AGN> = Shared<Slab<Option<Callback<<<AGN as Agent>::Reach as Discoverer>::Output>>>>;
 
 /// Id of responses handler.
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
@@ -91,7 +91,7 @@ impl HandlerId {
 /// This trait allows registering or getting the address of a worker.
 pub trait Bridged: Agent + Sized + 'static {
     /// Creates a messaging bridge between a worker and the component.
-    fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>>;
+    fn bridge(callback: Callback<<Self::Reach as Discoverer>::Output>) -> Box<dyn Bridge<Self>>;
 }
 
 /// This trait allows the creation of a dispatcher to an existing agent that will not send replies when messages are sent.
@@ -144,18 +144,20 @@ pub trait Threaded {
     fn register();
 }
 
-impl<T> Threaded for T
+impl<AGN, I: fmt::Debug, O: 'static> Threaded for AGN
 where
-    T: Agent<Reach = Public>,
+    AGN: Agent<Reach = Public<I, O>>,
+    I: Serialize + for<'de> Deserialize<'de>,
+    O: Serialize + for<'de> Deserialize<'de>
 {
     fn register() {
-        let scope = AgentScope::<T>::new();
+        let scope = AgentScope::<AGN>::new();
         let responder = WorkerResponder {};
         let link = AgentLink::connect(&scope, responder);
         let upd = AgentLifecycleEvent::Create(link);
         scope.send(upd);
         let handler = move |data: Vec<u8>| {
-            let msg = ToWorker::<T::Input>::unpack(&data);
+            let msg = ToWorker::<<AGN::Reach as Discoverer>::Input>::unpack(&data);
             match msg {
                 ToWorker::Connected(id) => {
                     let upd = AgentLifecycleEvent::Connected(id);
@@ -180,7 +182,7 @@ where
                 }
             }
         };
-        let loaded: FromWorker<T::Output> = FromWorker::WorkerLoaded;
+        let loaded: FromWorker<<AGN::Reach as Discoverer>::Output> = FromWorker::WorkerLoaded;
         let loaded = loaded.pack();
         cfg_match! {
             feature = "std_web" => js! {
@@ -203,7 +205,7 @@ impl<T> Bridged for T
 where
     T: Agent,
 {
-    fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>> {
+    fn bridge(callback: Callback<<Self::Reach as Discoverer>::Output>) -> Box<dyn Bridge<Self>> {
         Self::Reach::spawn_or_join(Some(callback))
     }
 }
@@ -221,8 +223,13 @@ where
 /// Determine a visibility of an agent.
 #[doc(hidden)]
 pub trait Discoverer {
+    type Input: fmt::Debug;
+    type Output;
+
     /// Spawns an agent and returns `Bridge` implementation.
-    fn spawn_or_join<AGN: Agent>(_callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+    fn spawn_or_join<AGN: Agent>(_callback: Option<Callback<Self::Output>>) -> Box<dyn Bridge<AGN>>
+    where AGN::Reach: Discoverer<Input=Self::Input, Output=Self::Output>
+    {
         unimplemented!(
             "The Reach type that you tried to use with this Agent does not have
 Discoverer properly implemented for it yet. Please see
@@ -234,7 +241,7 @@ https://docs.rs/yew/latest/yew/agent/ for other Reach options."
 /// Bridge to a specific kind of worker.
 pub trait Bridge<AGN: Agent> {
     /// Send a message to an agent.
-    fn send(&mut self, msg: AGN::Input);
+    fn send(&mut self, msg: <AGN::Reach as Discoverer>::Input);
 }
 
 // <<< SAME THREAD >>>
@@ -259,7 +266,7 @@ impl<AGN: Agent> LocalAgent<AGN> {
         self.slab.clone()
     }
 
-    fn create_bridge(&mut self, callback: Option<Callback<AGN::Output>>) -> ContextBridge<AGN> {
+    fn create_bridge(&mut self, callback: Option<Callback<<AGN::Reach as Discoverer>::Output>>) -> ContextBridge<AGN> {
         let respondable = callback.is_some();
         let mut slab = self.slab.borrow_mut();
         let id: usize = slab.insert(callback);
@@ -283,10 +290,18 @@ thread_local! {
 
 /// Create a single instance in the current thread.
 #[allow(missing_debug_implementations)]
-pub struct Context;
+pub struct Context<I, O> {
+    _input: PhantomData<I>,
+    _output: PhantomData<O>
+}
 
-impl Discoverer for Context {
-    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+impl<I: fmt::Debug, O> Discoverer for Context<I, O> {
+    type Input = I;
+    type Output = O;
+
+    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<Self::Output>>) -> Box<dyn Bridge<AGN>>
+    where AGN::Reach: Discoverer<Input=Self::Input, Output=Self::Output>
+    {
         let mut scope_to_init = None;
         let bridge = LOCAL_AGENTS_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
@@ -314,14 +329,14 @@ impl Discoverer for Context {
     }
 }
 
-impl Dispatchable for Context {}
+impl<I: fmt::Debug, O> Dispatchable for Context<I, O> {}
 
 struct SlabResponder<AGN: Agent> {
-    slab: Shared<Slab<Option<Callback<AGN::Output>>>>,
+    slab: Shared<Slab<Option<Callback<<AGN::Reach as Discoverer>::Output>>>>,
 }
 
 impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
-    fn respond(&self, id: HandlerId, output: AGN::Output) {
+    fn respond(&self, id: HandlerId, output: <AGN::Reach as Discoverer>::Output) {
         locate_callback_and_respond::<AGN>(&self.slab, id, output);
     }
 }
@@ -331,7 +346,7 @@ impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
 fn locate_callback_and_respond<AGN: Agent>(
     slab: &SharedOutputSlab<AGN>,
     id: HandlerId,
-    output: AGN::Output,
+    output: <AGN::Reach as Discoverer>::Output,
 ) {
     let callback = {
         let slab = slab.borrow();
@@ -355,7 +370,7 @@ struct ContextBridge<AGN: Agent> {
 }
 
 impl<AGN: Agent> Bridge<AGN> for ContextBridge<AGN> {
-    fn send(&mut self, msg: AGN::Input) {
+    fn send(&mut self, msg: <AGN::Reach as Discoverer>::Input) {
         let upd = AgentLifecycleEvent::Input(msg, self.id);
         self.scope.send(upd);
     }
@@ -392,10 +407,18 @@ impl<AGN: Agent> Drop for ContextBridge<AGN> {
 
 /// Create an instance in the current thread.
 #[allow(missing_debug_implementations)]
-pub struct Job;
+pub struct Job<I, O> {
+    _input: PhantomData<I>,
+    _output: PhantomData<O>
+}
 
-impl Discoverer for Job {
-    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+impl<I: fmt::Debug, O> Discoverer for Job<I, O> {
+    type Input = I;
+    type Output = O;
+
+    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<Self::Output>>) -> Box<dyn Bridge<AGN>>
+    where AGN::Reach: Discoverer<Input=Self::Input, Output=Self::Output>
+    {
         let callback = callback.expect("Callback required for Job");
         let scope = AgentScope::<AGN>::new();
         let responder = CallbackResponder { callback };
@@ -412,11 +435,11 @@ impl Discoverer for Job {
 const SINGLETON_ID: HandlerId = HandlerId(0, true);
 
 struct CallbackResponder<AGN: Agent> {
-    callback: Callback<AGN::Output>,
+    callback: Callback<<AGN::Reach as Discoverer>::Output>,
 }
 
 impl<AGN: Agent> Responder<AGN> for CallbackResponder<AGN> {
-    fn respond(&self, id: HandlerId, output: AGN::Output) {
+    fn respond(&self, id: HandlerId, output: <AGN::Reach as Discoverer>::Output) {
         assert_eq!(id.raw_id(), SINGLETON_ID.raw_id());
         self.callback.emit(output);
     }
@@ -427,7 +450,7 @@ struct JobBridge<AGN: Agent> {
 }
 
 impl<AGN: Agent> Bridge<AGN> for JobBridge<AGN> {
-    fn send(&mut self, msg: AGN::Input) {
+    fn send(&mut self, msg: <AGN::Reach as Discoverer>::Input) {
         let upd = AgentLifecycleEvent::Input(msg, SINGLETON_ID);
         self.scope.send(upd);
     }
@@ -446,18 +469,29 @@ impl<AGN: Agent> Drop for JobBridge<AGN> {
 
 /// Create a new instance for every bridge.
 #[allow(missing_debug_implementations)]
-pub struct Private;
+pub struct Private<I, O> {
+    _input: PhantomData<I>,
+    _output: PhantomData<O>
+}
 
-impl Discoverer for Private {
-    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+impl<I: fmt::Debug, O: 'static> Discoverer for Private<I, O>
+where I: Serialize + for<'de> Deserialize<'de>,
+      O: Serialize + for<'de> Deserialize<'de>
+{
+    type Input = I;
+    type Output = O;
+
+    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<Self::Output>>) -> Box<dyn Bridge<AGN>>
+    where AGN::Reach: Discoverer<Input=Self::Input, Output=Self::Output>
+    {
         let callback = callback.expect("Callback required for Private agents");
         let handler = move |data: Vec<u8>,
                             #[cfg(feature = "std_web")] worker: Value,
                             #[cfg(feature = "web_sys")] worker: &Worker| {
-            let msg = FromWorker::<AGN::Output>::unpack(&data);
+            let msg = FromWorker::<Self::Output>::unpack(&data);
             match msg {
                 FromWorker::WorkerLoaded => {
-                    send_to_remote::<AGN>(&worker, ToWorker::Connected(SINGLETON_ID));
+                    send_to_remote::<Self::Input>(&worker, ToWorker::Connected(SINGLETON_ID));
                 }
                 FromWorker::ProcessOutput(id, output) => {
                     assert_eq!(id.raw_id(), SINGLETON_ID.raw_id());
@@ -493,22 +527,28 @@ impl Discoverer for Private {
 }
 
 /// A connection manager for components interaction with workers.
-pub struct PrivateBridge<T: Agent> {
+pub struct PrivateBridge<AGN: Agent>
+where <AGN::Reach as Discoverer>::Input: Serialize + for<'de> Deserialize<'de>
+{
     #[cfg(feature = "std_web")]
     worker: Value,
     #[cfg(feature = "web_sys")]
     worker: Worker,
-    _agent: PhantomData<T>,
+    _agent: PhantomData<AGN>,
 }
 
-impl<AGN: Agent> fmt::Debug for PrivateBridge<AGN> {
+impl<AGN: Agent> fmt::Debug for PrivateBridge<AGN>
+where <AGN::Reach as Discoverer>::Input: Serialize + for<'de> Deserialize<'de>
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("PrivateBridge<_>")
     }
 }
 
-impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
-    fn send(&mut self, msg: AGN::Input) {
+impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN>
+where <AGN::Reach as Discoverer>::Input: Serialize + for<'de> Deserialize<'de>
+{
+    fn send(&mut self, msg: <AGN::Reach as Discoverer>::Input) {
         // TODO(#937): Important! Implement.
         // Use a queue to collect a messages if an instance is not ready
         // and send them to an agent when it will reported readiness.
@@ -527,13 +567,15 @@ impl<AGN: Agent> Bridge<AGN> for PrivateBridge<AGN> {
     }
 }
 
-impl<AGN: Agent> Drop for PrivateBridge<AGN> {
+impl<AGN: Agent> Drop for PrivateBridge<AGN>
+where <AGN::Reach as Discoverer>::Input: Serialize + for<'de> Deserialize<'de>
+{
     fn drop(&mut self) {
         let disconnected = ToWorker::Disconnected(SINGLETON_ID);
-        send_to_remote::<AGN>(&self.worker, disconnected);
+        send_to_remote::<<AGN::Reach as Discoverer>::Input>(&self.worker, disconnected);
 
         let destroy = ToWorker::Destroy;
-        send_to_remote::<AGN>(&self.worker, destroy);
+        send_to_remote::<<AGN::Reach as Discoverer>::Input>(&self.worker, destroy);
     }
 }
 
@@ -545,7 +587,10 @@ struct RemoteAgent<AGN: Agent> {
     slab: SharedOutputSlab<AGN>,
 }
 
-impl<AGN: Agent> RemoteAgent<AGN> {
+impl<AGN: Agent> RemoteAgent<AGN>
+where <AGN::Reach as Discoverer>::Input: Serialize + for<'de> Deserialize<'de>,
+      <AGN::Reach as Discoverer>::Output: Serialize + for<'de> Deserialize<'de>
+{
     pub fn new(
         #[cfg(feature = "std_web")] worker: Value,
         #[cfg(feature = "web_sys")] worker: Worker,
@@ -554,7 +599,7 @@ impl<AGN: Agent> RemoteAgent<AGN> {
         RemoteAgent { worker, slab }
     }
 
-    fn create_bridge(&mut self, callback: Option<Callback<AGN::Output>>) -> PublicBridge<AGN> {
+    fn create_bridge(&mut self, callback: Option<Callback<<AGN::Reach as Discoverer>::Output>>) -> PublicBridge<AGN> {
         let respondable = callback.is_some();
         let mut slab = self.slab.borrow_mut();
         let id: usize = slab.insert(callback);
@@ -584,23 +629,34 @@ thread_local! {
 
 /// Create a single instance in a tab.
 #[allow(missing_debug_implementations)]
-pub struct Public;
+pub struct Public<I, O> {
+    _input: PhantomData<I>,
+    _output: PhantomData<O>
+}
 
-impl Discoverer for Public {
-    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+impl<I: fmt::Debug, O: 'static> Discoverer for Public<I, O>
+where I: Serialize + for<'de> Deserialize<'de>,
+      O: Serialize + for<'de> Deserialize<'de>
+{
+    type Input = I;
+    type Output = O;
+
+    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<Self::Output>>) -> Box<dyn Bridge<AGN>>
+    where AGN::Reach: Discoverer<Input=Self::Input, Output=Self::Output>
+    {
         let bridge = REMOTE_AGENTS_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
             match pool.entry::<RemoteAgent<AGN>>() {
                 anymap::Entry::Occupied(mut entry) => entry.get_mut().create_bridge(callback),
                 anymap::Entry::Vacant(entry) => {
-                    let slab: Shared<Slab<Option<Callback<AGN::Output>>>> =
+                    let slab: Shared<Slab<Option<Callback<Self::Output>>>> =
                         Rc::new(RefCell::new(Slab::new()));
                     let handler = {
                         let slab = slab.clone();
                         move |data: Vec<u8>,
                               #[cfg(feature = "std_web")] worker: Value,
                               #[cfg(feature = "web_sys")] worker: &Worker| {
-                            let msg = FromWorker::<AGN::Output>::unpack(&data);
+                            let msg = FromWorker::<Self::Output>::unpack(&data);
                             match msg {
                                 FromWorker::WorkerLoaded => {
                                     REMOTE_AGENTS_LOADED.with(|loaded| {
@@ -656,10 +712,16 @@ impl Discoverer for Public {
     }
 }
 
-impl Dispatchable for Public {}
+impl<I: fmt::Debug, O: 'static> Dispatchable for Public<I, O>
+where I: Serialize + for<'de> Deserialize<'de>,
+      O: Serialize + for<'de> Deserialize<'de>
+{}
 
 /// A connection manager for components interaction with workers.
-pub struct PublicBridge<AGN: Agent> {
+pub struct PublicBridge<AGN: Agent>
+where <AGN::Reach as Discoverer>::Input: Serialize + for<'de> Deserialize<'de>,
+      <AGN::Reach as Discoverer>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     #[cfg(feature = "std_web")]
     worker: Value,
     #[cfg(feature = "web_sys")]
@@ -668,13 +730,19 @@ pub struct PublicBridge<AGN: Agent> {
     _agent: PhantomData<AGN>,
 }
 
-impl<AGN: Agent> fmt::Debug for PublicBridge<AGN> {
+impl<AGN: Agent> fmt::Debug for PublicBridge<AGN>
+where <AGN::Reach as Discoverer>::Input: Serialize + for<'de> Deserialize<'de>,
+      <AGN::Reach as Discoverer>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("PublicBridge<_>")
     }
 }
 
-impl<AGN: Agent> PublicBridge<AGN> {
+impl<AGN: Agent> PublicBridge<AGN>
+where <AGN::Reach as Discoverer>::Input: Serialize + for<'de> Deserialize<'de>,
+      <AGN::Reach as Discoverer>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     fn worker_is_loaded(&self) -> bool {
         REMOTE_AGENTS_LOADED.with(|loaded| loaded.borrow().contains(&TypeId::of::<AGN>()))
     }
@@ -694,20 +762,22 @@ impl<AGN: Agent> PublicBridge<AGN> {
     }
 
     /// Send a message to the worker, queuing it up if necessary
-    fn send_message(&self, msg: ToWorker<AGN::Input>) {
+    fn send_message(&self, msg: ToWorker<<AGN::Reach as Discoverer>::Input>) {
         if self.worker_is_loaded() {
-            send_to_remote::<AGN>(&self.worker, msg);
+            send_to_remote::<<AGN::Reach as Discoverer>::Input>(&self.worker, msg);
         } else {
             self.msg_to_queue(msg.pack());
         }
     }
 }
 
-fn send_to_remote<AGN: Agent>(
+fn send_to_remote<Input>(
     #[cfg(feature = "std_web")] worker: &Value,
     #[cfg(feature = "web_sys")] worker: &Worker,
-    msg: ToWorker<AGN::Input>,
-) {
+    msg: ToWorker<Input>,
+)
+where Input: Serialize + for<'de> Deserialize<'de>
+{
     let msg = msg.pack();
     cfg_match! {
         feature = "std_web" => js! {
@@ -719,14 +789,20 @@ fn send_to_remote<AGN: Agent>(
     };
 }
 
-impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
-    fn send(&mut self, msg: AGN::Input) {
+impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN>
+where <AGN::Reach as Discoverer>::Input: Serialize + for<'de> Deserialize<'de>,
+      <AGN::Reach as Discoverer>::Output: Serialize + for<'de> Deserialize<'de>,
+{
+    fn send(&mut self, msg: <AGN::Reach as Discoverer>::Input) {
         let msg = ToWorker::ProcessInput(self.id, msg);
         self.send_message(msg);
     }
 }
 
-impl<AGN: Agent> Drop for PublicBridge<AGN> {
+impl<AGN: Agent> Drop for PublicBridge<AGN>
+where <AGN::Reach as Discoverer>::Input: Serialize + for<'de> Deserialize<'de>,
+      <AGN::Reach as Discoverer>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     fn drop(&mut self) {
         let terminate_worker = REMOTE_AGENTS_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
@@ -765,9 +841,15 @@ impl<AGN: Agent> Drop for PublicBridge<AGN> {
 
 /// Create a single instance in a browser.
 #[allow(missing_debug_implementations)]
-pub struct Global;
+pub struct Global<I, O> {
+    _input: PhantomData<I>,
+    _output: PhantomData<O>
+}
 
-impl Discoverer for Global {}
+impl<I: fmt::Debug, O> Discoverer for Global<I, O> {
+    type Input = I;
+    type Output = O;
+}
 
 /// Declares the behavior of the agent.
 pub trait Agent: Sized + 'static {
@@ -776,9 +858,9 @@ pub trait Agent: Sized + 'static {
     /// Type of an input message.
     type Message;
     /// Incoming message type.
-    type Input: Serialize + for<'de> Deserialize<'de>;
+    //type Input: Serialize + for<'de> Deserialize<'de>;
     /// Outgoing message type.
-    type Output: Serialize + for<'de> Deserialize<'de>;
+    //type Output: Serialize + for<'de> Deserialize<'de>;
 
     /// Creates an instance of an agent.
     fn create(link: AgentLink<Self>) -> Self;
@@ -790,7 +872,7 @@ pub trait Agent: Sized + 'static {
     fn connected(&mut self, _id: HandlerId) {}
 
     /// This method called on every incoming message.
-    fn handle_input(&mut self, msg: Self::Input, id: HandlerId);
+    fn handle_input(&mut self, msg: <Self::Reach as Discoverer>::Input, id: HandlerId);
 
     /// This method called on when a new bridge destroyed.
     fn disconnected(&mut self, _id: HandlerId) {}
@@ -856,13 +938,16 @@ impl<AGN: Agent> Default for AgentScope<AGN> {
 /// Defines communication from Worker to Consumers
 pub trait Responder<AGN: Agent> {
     /// Implementation for communication channel from Worker to Consumers
-    fn respond(&self, id: HandlerId, output: AGN::Output);
+    fn respond(&self, id: HandlerId, output: <AGN::Reach as Discoverer>::Output);
 }
 
 struct WorkerResponder {}
 
-impl<AGN: Agent> Responder<AGN> for WorkerResponder {
-    fn respond(&self, id: HandlerId, output: AGN::Output) {
+impl<AGN: Agent> Responder<AGN> for WorkerResponder
+where AGN: Agent,
+      <AGN::Reach as Discoverer>::Output: Serialize + for<'de> Deserialize<'de>
+{
+    fn respond(&self, id: HandlerId, output: <AGN::Reach as Discoverer>::Output) {
         let msg = FromWorker::ProcessOutput(id, output);
         let data = msg.pack();
         cfg_match! {
@@ -894,7 +979,7 @@ impl<AGN: Agent> AgentLink<AGN> {
     }
 
     /// Send response to an agent.
-    pub fn respond(&self, id: HandlerId, output: AGN::Output) {
+    pub fn respond(&self, id: HandlerId, output: <AGN::Reach as Discoverer>::Output) {
         self.responder.respond(id, output);
     }
 
@@ -952,7 +1037,7 @@ pub enum AgentLifecycleEvent<AGN: Agent> {
     /// Client connected
     Connected(HandlerId),
     /// Received mesasge from Client
-    Input(AGN::Input, HandlerId),
+    Input(<AGN::Reach as Discoverer>::Input, HandlerId),
     /// Client disconnected
     Disconnected(HandlerId),
     /// Request to destroy agent
