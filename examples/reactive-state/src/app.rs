@@ -95,7 +95,7 @@ impl App {
             Msg::FromStore(s) => match s {
                 StoreOutput::StateInstance(state) => {
                     self.state_ref = Some(state);
-                    true
+                    false
                 }
             },
 
