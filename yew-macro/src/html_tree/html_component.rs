@@ -467,7 +467,7 @@ impl Parse for Props {
                 p.node_ref = node_ref;
                 p.key = key;
 
-                // alphabetize
+                // sort alphabetically
                 p.props.sort_by(|a, b| {
                     if a.label == b.label {
                         Ordering::Equal
