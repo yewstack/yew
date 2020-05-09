@@ -110,7 +110,7 @@ error: the attribute `checked` can only be specified once
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one `disabled` attribute allowed
+error: the attribute `disabled` can only be specified once
   --> $DIR/html-tag-fail.rs:21:34
    |
 21 |     html! { <input disabled=true disabled=false /> };
@@ -118,7 +118,7 @@ error: only one `disabled` attribute allowed
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one `selected` attribute allowed
+error: the attribute `selected` can only be specified once
   --> $DIR/html-tag-fail.rs:22:35
    |
 22 |     html! { <option selected=true selected=false /> };
@@ -126,7 +126,7 @@ error: only one `selected` attribute allowed
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one `class` attribute allowed
+error: the attribute `class` can only be specified once
   --> $DIR/html-tag-fail.rs:23:32
    |
 23 |     html! { <div class="first" class="second" /> };
@@ -134,7 +134,7 @@ error: only one `class` attribute allowed
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one `ref` attribute allowed
+error: the attribute `ref` can only be specified once
   --> $DIR/html-tag-fail.rs:38:27
    |
 38 |     html! { <input ref=() ref=() /> };
