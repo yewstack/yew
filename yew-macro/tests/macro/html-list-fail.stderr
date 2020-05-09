@@ -1,4 +1,4 @@
-error: this open tag has no corresponding close tag
+error: this opening tag has no corresponding closing tag
  --> $DIR/html-list-fail.rs:4:13
   |
 4 |     html! { <> };
@@ -14,7 +14,7 @@ error: this close tag has no corresponding open tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this open tag has no corresponding close tag
+error: this opening tag has no corresponding closing tag
  --> $DIR/html-list-fail.rs:6:13
   |
 6 |     html! { <><> };
@@ -30,7 +30,7 @@ error: this close tag has no corresponding open tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this open tag has no corresponding close tag
+error: this opening tag has no corresponding closing tag
  --> $DIR/html-list-fail.rs:8:13
   |
 8 |     html! { <><></> };
@@ -38,7 +38,7 @@ error: this open tag has no corresponding close tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one root html element allowed
+error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
  --> $DIR/html-list-fail.rs:9:18
   |
 9 |     html! { <></><></> };
@@ -46,7 +46,7 @@ error: only one root html element allowed
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected valid html element
+error: expected a valid html element
   --> $DIR/html-list-fail.rs:10:15
    |
 10 |     html! { <>invalid</> };
@@ -54,7 +54,7 @@ error: expected valid html element
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected end of input, expected expression
+error: unexpected end of input, expected an expression
   --> $DIR/html-list-fail.rs:11:5
    |
 11 |     html! { <key=></>}
@@ -62,7 +62,7 @@ error: unexpected end of input, expected expression
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this open tag has no corresponding close tag
+error: this opening tag has no corresponding closing tag
   --> $DIR/html-list-fail.rs:12:13
    |
 12 |     html! { <key="key".to_string()>invalid</key>}

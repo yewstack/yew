@@ -376,7 +376,7 @@ impl Props {
     }
 
     fn collision_message() -> &'static str {
-        "Using the `with props` syntax in combination with named props is not allowed (note: this rule does not apply to the `ref` prop)."
+        "Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to the `ref` prop)."
     }
 }
 
