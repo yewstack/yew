@@ -64,15 +64,12 @@ impl Component for Subscriber {
     }
 
     fn view(&self) -> Html {
-        let ip = if self.ip.is_some() {
-            self.ip.as_ref().unwrap()
-        } else {
-            "No IP yet. It will show up here"
-        };
+        let ip_message = "No IP yet. It will show up here".to_string();
+        let ip = self.ip.as_ref().unwrap_or(&ip_message);
         html! {
           <div class="subscriber-container">
             <h4 class="subscriber">{{"I'm subscriber "}}{{ self.id }}</h4>
-            {{"IP: "}}{{ ip }}
+            {"IP: "}{ ip }
           </div>
         }
     }
