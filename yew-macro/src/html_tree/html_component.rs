@@ -36,7 +36,7 @@ impl Parse for HtmlComponent {
             return match input.parse::<HtmlComponentClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
                     close,
-                    "this close tag has no corresponding open tag",
+                    "this closing tag has no corresponding opening tag",
                 )),
                 Err(err) => Err(err),
             };
@@ -57,7 +57,7 @@ impl Parse for HtmlComponent {
             if input.is_empty() {
                 return Err(syn::Error::new_spanned(
                     open,
-                    "this open tag has no corresponding close tag",
+                    "this opening tag has no corresponding closing tag",
                 ));
             }
             if let Some(ty) = HtmlComponentClose::peek(input.cursor()) {
@@ -376,7 +376,7 @@ impl Props {
     }
 
     fn collision_message() -> &'static str {
-        "Using special syntax `with props` along with named prop is not allowed. This rule does not apply to special `ref` prop"
+        "Using the `with props` syntax in combination with named props is not allowed (note: this rule does not apply to the `ref` prop)."
     }
 }
 
@@ -433,11 +433,11 @@ impl Parse for Props {
             }
 
             if prop.label.to_string() == "type" {
-                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
+                return Err(syn::Error::new_spanned(&prop.label, "expected an identifier"));
             }
 
             if !prop.label.extended.is_empty() {
-                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
+                return Err(syn::Error::new_spanned(&prop.label, "expected an identifier"));
             }
 
             match props {
