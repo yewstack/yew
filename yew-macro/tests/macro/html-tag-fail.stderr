@@ -14,7 +14,7 @@ error: this opening tag has no corresponding closing tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
  --> $DIR/html-tag-fail.rs:8:13
   |
 8 |     html! { </div> };
@@ -38,7 +38,7 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
   --> $DIR/html-tag-fail.rs:11:18
    |
 11 |     html! { <div></span> };
@@ -46,7 +46,7 @@ error: this close tag has no corresponding open tag
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
   --> $DIR/html-tag-fail.rs:12:20
    |
 12 |     html! { <tag-a></tag-b> };
@@ -54,7 +54,7 @@ error: this close tag has no corresponding open tag
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
   --> $DIR/html-tag-fail.rs:13:18
    |
 13 |     html! { <div></span></div> };

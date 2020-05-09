@@ -6,7 +6,7 @@ error: this opening tag has no corresponding closing tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
  --> $DIR/html-list-fail.rs:5:13
   |
 5 |     html! { </> };
@@ -22,7 +22,7 @@ error: this opening tag has no corresponding closing tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
  --> $DIR/html-list-fail.rs:7:13
   |
 7 |     html! { </></> };

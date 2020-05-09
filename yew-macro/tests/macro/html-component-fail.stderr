@@ -134,7 +134,7 @@ error: expected an identifier
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected end of input, expected expression
+error: unexpected end of input, expected an expression
   --> $DIR/html-component-fail.rs:98:5
    |
 98 |     html! { <Child string= /> };
@@ -150,7 +150,7 @@ error: too many refs set
     |
     = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
    --> $DIR/html-component-fail.rs:106:13
     |
 106 |     html! { </Child> };
@@ -174,7 +174,7 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
     |
     = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
    --> $DIR/html-component-fail.rs:117:30
     |
 117 |     html! { <Generic<String>></Generic> };
@@ -182,7 +182,7 @@ error: this close tag has no corresponding open tag
     |
     = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
    --> $DIR/html-component-fail.rs:118:30
     |
 118 |     html! { <Generic<String>></Generic<Vec<String>>> };
