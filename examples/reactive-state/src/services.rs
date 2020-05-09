@@ -27,10 +27,6 @@ impl Fetcher {
     pub fn new() -> Fetcher {
         Fetcher {}
     }
-    // Init this way just in case we want to do anything with global configs
-    pub fn init_fetcher() -> FetchService {
-        FetchService::new()
-    }
 
     pub fn build_url(url: &str, endpoint: &str) -> String {
         format!("{}{}", url, endpoint)
@@ -52,7 +48,7 @@ impl Fetcher {
             }
         };
 
-        let mut fetcher = Fetcher::init_fetcher();
+        let mut fetcher = FetchService::new();
         fetcher.fetch(req, handler.into()).unwrap()
     }
 }
