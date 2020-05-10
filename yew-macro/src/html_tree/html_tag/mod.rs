@@ -37,9 +37,7 @@ impl Parse for HtmlTag {
                     close,
                     "this closing tag has no corresponding opening tag",
                 )),
-                Err(err) => {
-                    Err(err)
-                },
+                Err(err) => Err(err),
             };
         }
 
