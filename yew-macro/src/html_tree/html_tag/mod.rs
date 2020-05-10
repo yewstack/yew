@@ -35,7 +35,7 @@ impl Parse for HtmlTag {
             return match input.parse::<HtmlTagClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
                     close,
-                    "this close tag has no corresponding open tag",
+                    "this closing tag has no corresponding opening tag",
                 )),
                 Err(err) => Err(err),
             };
@@ -56,7 +56,7 @@ impl Parse for HtmlTag {
             if input.is_empty() {
                 return Err(syn::Error::new_spanned(
                     open,
-                    "this open tag has no corresponding close tag",
+                    "this opening tag has no corresponding closing tag",
                 ));
             }
             if let Some(next_close_tag_name) = HtmlTagClose::peek(input.cursor()) {

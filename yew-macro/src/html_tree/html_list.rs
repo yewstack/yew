@@ -28,7 +28,7 @@ impl Parse for HtmlList {
             return match input.parse::<HtmlListClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
                     close,
-                    "this close tag has no corresponding open tag",
+                    "this closing tag has no corresponding opening tag",
                 )),
                 Err(err) => Err(err),
             };
@@ -38,7 +38,7 @@ impl Parse for HtmlList {
         if !HtmlList::verify_end(input.cursor()) {
             return Err(syn::Error::new_spanned(
                 open,
-                "this open tag has no corresponding close tag",
+                "this opening tag has no corresponding closing tag",
             ));
         }
 

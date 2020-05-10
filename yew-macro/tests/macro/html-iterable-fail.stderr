@@ -1,4 +1,4 @@
-error: expected expression after `for`
+error: expected an expression after the keyword `for`
  --> $DIR/html-iterable-fail.rs:4:13
   |
 4 |     html! { for };
