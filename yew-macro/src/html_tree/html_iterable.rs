@@ -26,7 +26,7 @@ impl Parse for HtmlIterable {
                 if err.to_string().starts_with("unexpected end of input") {
                     Err(syn::Error::new_spanned(
                         for_token,
-                        "expected expression after `for`",
+                        "expected an expression after the keyword `for`",
                     ))
                 } else {
                     Err(err)

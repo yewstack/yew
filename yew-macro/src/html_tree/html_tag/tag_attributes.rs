@@ -177,7 +177,7 @@ impl Parse for TagAttributes {
                 let label = &attributes[i + 1].label;
                 return Err(syn::Error::new_spanned(
                     label,
-                    format!("only one `{}` attribute allowed", label),
+                    format!("the attribute `{}` can only be specified once", label),
                 ));
             }
             i += 1;
