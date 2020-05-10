@@ -1,4 +1,4 @@
-error: only one root html element allowed
+error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
  --> $DIR/html-node-fail.rs:4:21
   |
 4 |     html! { "valid" "invalid" };
