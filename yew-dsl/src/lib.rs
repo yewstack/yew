@@ -10,8 +10,8 @@ mod vlist;
 mod vtag;
 mod vtext;
 
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 use yew::html::Scope;
 
 type ScopeHolder<PARENT> = Rc<RefCell<Option<Scope<PARENT>>>>;
