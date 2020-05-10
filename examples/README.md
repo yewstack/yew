@@ -1,17 +1,17 @@
 # Yew Examples
 
-Use `build.sh` script to build examples.
+In order to build the examples, use the `build.sh` script.
 
-Examples are prepared for `wasm-bindgen` except folders ending with `_wp` which are prepared for `wasm-pack`.
+All the examples are designed to work with `wasm-bindgen` except for examples in folders ending in `_wp` (these are prepared for `wasm-pack`).
 
 - The examples do not use external bundlers and all use the same `static/index.html` after being built.
 - `wasm-bindgen` builds projects as binary crates (`main.rs`)
 - `wasm-pack` builds projects as library crates (`lib.rs`)
 
-For your own project, you may wish to check out the Yew [starter templates](https://yew.rs/docs/getting-started/starter-templates)
+Have a look at Yew's [starter templates](https://yew.rs/docs/getting-started/starter-templates) when starting a project using Yew – they can significantly simplify things.
 
 
-## How to run
+## How to run the examples
 
 ```sh
 git clone https://github.com/yewstack/yew.git
@@ -21,15 +21,13 @@ python3 -m http.server --directory static # open localhost:8000 in browser
 ```
 
 
-Note: [Visual Studio Code IDE](https://code.visualstudio.com/) has the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension which can be used to run examples in the browser with automatic reload. After installing, open the context menu on `index.html` -> `Open with Live Server`
+Note: [Visual Studio Code](https://code.visualstudio.com/) has an extension called [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) which can be used to run examples in the browser (with automatic page refreshes when a file is changed). After installing the extension open `index.html` and press `Open with Live Server` in the context menu.
 
 ## Requirements
 
-Default way to build is using `wasm-bindgen` which comes with `wasm-pack`
+The default way to build the examples is by using `wasm-bindgen` (this is automatically installed if you've installed `wasm-pack`). If they aren't installed, these tools can be installed by using `cargo` (`cargo install wasm-pack`).
 
-- Install using cargo: `cargo install wasm-pack`
-
-Install guides: [Rust](https://www.rust-lang.org/learn/get-started) and [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+Installation guides: [Rust](https://www.rust-lang.org/learn/get-started) and [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
 
 ```bash
 # rust install
