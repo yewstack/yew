@@ -129,22 +129,8 @@ impl DebuggerConnection {
                     "ws"
                 }
             },
-            match std::option_env!("YEW_DEBUGGER_HOST") {
-                Some(url) => {
-                    url
-                }
-                None => {
-                    "localhost"
-                }
-            },
-            match std::option_env!("YEW_DEBUGGER_PORT") {
-                Some(port) => {
-                    port
-                }
-                None => {
-                    "8017"
-                }
-            }
+            std::option_env!("YEW_DEBUGGER_HOST").as_deref().unwrap_or("localhost"),
+            std::option_env!("YEW_DEBUGGER_PORT").as_deref().unwrap_or("8017")
         );
         Self {
             #[cfg(feature = "web_sys")]
