@@ -6,3 +6,5 @@ edition = "2018"
 
 [dependencies]
 tungstenite = "0.10.1"
+
+[workspace]
