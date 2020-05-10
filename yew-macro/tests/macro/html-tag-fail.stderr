@@ -1,4 +1,4 @@
-error: this open tag has no corresponding close tag
+error: this opening tag has no corresponding closing tag
  --> $DIR/html-tag-fail.rs:6:13
   |
 6 |     html! { <div> };
@@ -6,7 +6,7 @@ error: this open tag has no corresponding close tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this open tag has no corresponding close tag
+error: this opening tag has no corresponding closing tag
  --> $DIR/html-tag-fail.rs:7:18
   |
 7 |     html! { <div><div> };
@@ -14,7 +14,7 @@ error: this open tag has no corresponding close tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
  --> $DIR/html-tag-fail.rs:8:13
   |
 8 |     html! { </div> };
@@ -22,7 +22,7 @@ error: this close tag has no corresponding open tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this open tag has no corresponding close tag
+error: this opening tag has no corresponding closing tag
  --> $DIR/html-tag-fail.rs:9:13
   |
 9 |     html! { <div><div></div> };
@@ -30,7 +30,7 @@ error: this open tag has no corresponding close tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one root html element allowed
+error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
   --> $DIR/html-tag-fail.rs:10:24
    |
 10 |     html! { <div></div><div></div> };
@@ -38,7 +38,7 @@ error: only one root html element allowed
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
   --> $DIR/html-tag-fail.rs:11:18
    |
 11 |     html! { <div></span> };
@@ -46,7 +46,7 @@ error: this close tag has no corresponding open tag
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
   --> $DIR/html-tag-fail.rs:12:20
    |
 12 |     html! { <tag-a></tag-b> };
@@ -54,7 +54,7 @@ error: this close tag has no corresponding open tag
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this close tag has no corresponding open tag
+error: this closing tag has no corresponding opening tag
   --> $DIR/html-tag-fail.rs:13:18
    |
 13 |     html! { <div></span></div> };
@@ -62,7 +62,7 @@ error: this close tag has no corresponding open tag
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one root html element allowed
+error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
   --> $DIR/html-tag-fail.rs:14:20
    |
 14 |     html! { <img /></img> };
@@ -70,7 +70,7 @@ error: only one root html element allowed
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected valid html element
+error: expected a valid html element
   --> $DIR/html-tag-fail.rs:15:18
    |
 15 |     html! { <div>Invalid</div> };
@@ -78,7 +78,7 @@ error: expected valid html element
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one `attr` attribute allowed
+error: the attribute `attr` can only be specified once
   --> $DIR/html-tag-fail.rs:17:27
    |
 17 |     html! { <input attr=1 attr=2 /> };
@@ -86,7 +86,7 @@ error: only one `attr` attribute allowed
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one `value` attribute allowed
+error: the attribute `value` can only be specified once
   --> $DIR/html-tag-fail.rs:18:32
    |
 18 |     html! { <input value="123" value="456" /> };
@@ -94,7 +94,7 @@ error: only one `value` attribute allowed
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one `kind` attribute allowed
+error: the attribute `kind` can only be specified once
   --> $DIR/html-tag-fail.rs:19:36
    |
 19 |     html! { <input kind="checkbox" kind="submit" /> };
@@ -102,7 +102,7 @@ error: only one `kind` attribute allowed
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one `checked` attribute allowed
+error: the attribute `checked` can only be specified once
   --> $DIR/html-tag-fail.rs:20:33
    |
 20 |     html! { <input checked=true checked=false /> };
@@ -110,7 +110,7 @@ error: only one `checked` attribute allowed
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one `disabled` attribute allowed
+error: the attribute `disabled` can only be specified once
   --> $DIR/html-tag-fail.rs:21:34
    |
 21 |     html! { <input disabled=true disabled=false /> };
@@ -118,7 +118,7 @@ error: only one `disabled` attribute allowed
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one `selected` attribute allowed
+error: the attribute `selected` can only be specified once
   --> $DIR/html-tag-fail.rs:22:35
    |
 22 |     html! { <option selected=true selected=false /> };
@@ -126,7 +126,7 @@ error: only one `selected` attribute allowed
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one `class` attribute allowed
+error: the attribute `class` can only be specified once
   --> $DIR/html-tag-fail.rs:23:32
    |
 23 |     html! { <div class="first" class="second" /> };
@@ -134,7 +134,7 @@ error: only one `class` attribute allowed
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one `ref` attribute allowed
+error: the attribute `ref` can only be specified once
   --> $DIR/html-tag-fail.rs:38:27
    |
 38 |     html! { <input ref=() ref=() /> };
