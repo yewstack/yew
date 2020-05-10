@@ -1,5 +1,4 @@
 use crate::BoxedVNodeProducer;
-use crate::ScopeHolder;
 use yew::virtual_dom::VText;
 use yew::Component;
 
