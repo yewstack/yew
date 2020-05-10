@@ -6,7 +6,7 @@ error: this opening tag has no corresponding closing tag
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected an identifier
+error: expected identifier
   --> $DIR/html-component-fail.rs:80:22
    |
 80 |     html! { <Child:: /> };
@@ -14,7 +14,7 @@ error: expected an identifier
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected end of input, expected an identifier
+error: unexpected end of input, expected identifier
   --> $DIR/html-component-fail.rs:81:5
    |
 81 |     html! { <Child with /> };
@@ -118,7 +118,7 @@ error: Using the `with props` syntax in combination with named props is not allo
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected an identifier
+error: expected identifier
   --> $DIR/html-component-fail.rs:95:20
    |
 95 |     html! { <Child type=0 /> };
@@ -126,7 +126,7 @@ error: expected an identifier
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected an identifier
+error: expected identifier
   --> $DIR/html-component-fail.rs:96:20
    |
 96 |     html! { <Child invalid-prop-name=0 /> };
@@ -134,7 +134,7 @@ error: expected an identifier
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected end of input, expected an expression
+error: unexpected end of input, expected expression
   --> $DIR/html-component-fail.rs:98:5
    |
 98 |     html! { <Child string= /> };

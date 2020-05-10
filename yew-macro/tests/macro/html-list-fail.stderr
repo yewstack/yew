@@ -54,7 +54,7 @@ error: expected a valid html element
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected end of input, expected an expression
+error: unexpected end of input, expected expression
   --> $DIR/html-list-fail.rs:11:5
    |
 11 |     html! { <key=></>}

@@ -1,4 +1,4 @@
-error: unexpected end of input, expected an expression
+error: unexpected end of input, expected expression
   --> $DIR/fail.rs:57:18
    |
 57 |         #[prop_or()]

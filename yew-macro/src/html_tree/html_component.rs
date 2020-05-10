@@ -435,14 +435,14 @@ impl Parse for Props {
             if prop.label.to_string() == "type" {
                 return Err(syn::Error::new_spanned(
                     &prop.label,
-                    "expected an identifier",
+                    "expected identifier",
                 ));
             }
 
             if !prop.label.extended.is_empty() {
                 return Err(syn::Error::new_spanned(
                     &prop.label,
-                    "expected an identifier",
+                    "expected identifier",
                 ));
             }
 
