@@ -1,6 +1,6 @@
-//! yew_dsl provides an Rust-based syntax for creating DOM elements. 
-//! It provides five basic functions with which you should be able to create complex layouts 
-//! (these are `tag`, `comp`, `text`, `populated_list` and `list`). 
+//! yew_dsl provides an Rust-based syntax for creating DOM elements.
+//! It provides five basic functions with which you should be able to create complex layouts
+//! (these are `tag`, `comp`, `text`, `populated_list` and `list`).
 
 pub use crate::vcomp::VCompProducer;
 use crate::vlist::VListProducer;
@@ -18,7 +18,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use yew::html::Scope;
 
-/// A `ScopeHolder` contains a reference to the scope of the parent component. 
+/// A `ScopeHolder` contains a reference to the scope of the parent component.
 type ScopeHolder<PARENT> = Rc<RefCell<Option<Scope<PARENT>>>>;
 
 /// `BoxedVNodeProducer` is wrapper around a function which produces a `VNode`.
