@@ -1,5 +1,32 @@
 # Changelog
 
+## ✨ **0.16** *(2020-05-09)*
+
+#### Changelog
+
+- #### ⚡️ Features
+
+  - Added optional `id`, `class`, and `placeholder` properties to the `Select` component. [[@Stigjb], [#1187](https://github.com/yewstack/yew/pull/1187)]
+  - Re-export `web-sys` from Yew. This allows projects to use `web-sys` without adding it to their `Cargo.toml`. [[@D4nte], [#1176](https://github.com/yewstack/yew/pull/1176)]
+  - Added support for `Option` wrapped class names. [[@liquidblock], [#1085](https://github.com/yewstack/yew/pull/1085)]
+
+    The following code is now supported:
+    ```rust
+    let color: &Option<String> = &self.color;
+    html! { <div class=("btn", color)></div> }
+    ```
+
+  - Added `get_parent` and `get_component` methods to `ComponentLink` to allow access to parent component state. [[@jstarry], [#1151](https://github.com/yewstack/yew/pull/1151)]
+
+- #### 🛠 Fixes
+
+  - Fixed bug that caused html class attributes to be set to an empty string. [[@liquidblock], [#1085](https://github.com/yewstack/yew/pull/1085)]
+  - Fixed `Private` worker lifecycle event sending. [[@joaquindk], [#1146](https://github.com/yewstack/yew/pull/1146)]
+
+- #### 🚨 Breaking changes
+
+  - Bumped minimum supported Rust version (MSRV) to 1.40.0. [[@jstarry], [#1152](https://github.com/yewstack/yew/pull/1152)]
+
 ## ✨ **0.15** *(2020-04-25)*
 
 #### Attention!
@@ -807,6 +834,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@charvp]: https://github.com/charvp
 [@ctaggart]: https://github.com/ctaggart
 [@ctm]: https://github.com/ctm
+[@D4nte]: https://github.com/D4nte
 [@dancespiele]: https://github.com/dancespiele
 [@daxpedda]: https://github.com/daxpedda
 [@davidkna]: https://github.com/davidkna
@@ -816,12 +844,14 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@dunnock]: https://github.com/dunnock
 [@hgzimmerman]: https://github.com/hgzimmerman
 [@izissise]: https://github.com/izissise
+[@joaquindk]: https://github.com/joaquindk
 [@jplatte]: https://github.com/jplatte
 [@jstarry]: https://github.com/jstarry
 [@kakoc]: https://github.com/kakoc
 [@kellytk]: https://github.com/kellytk
 [@kuy]: https://github.com/kuy
 [@leo-lb]: https://github.com/leo-lb
+[@liquidblock]: https://github.com/liquidblock
 [@lizhaoxian]: https://github.com/lizhaoxian
 [@lukerandall]: https://github.com/lukerandall
 [@mankinskin]: https://github.com/mankinskin
@@ -830,6 +860,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@nicklaswj]: https://github.com/nicklaswj
 [@philip-peterson]: https://github.com/philip-peterson
 [@serzhiio]: https://github.com/serzhiio
+[@Stigjb]: https://github.com/Stigjb
 [@stkevintan]: https://github.com/stkevintan
 [@TheNeikos]: https://github.com/TheNeikos
 [@tiziano88]: https://github.com/tiziano88

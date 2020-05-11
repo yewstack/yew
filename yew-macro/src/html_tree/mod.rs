@@ -55,7 +55,7 @@ impl Parse for HtmlRoot {
             let stream: TokenStream = input.parse()?;
             Err(syn::Error::new_spanned(
                 stream,
-                "only one root html element allowed",
+                "only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)",
             ))
         } else {
             Ok(html_root)
@@ -73,7 +73,7 @@ impl ToTokens for HtmlRoot {
 impl Parse for HtmlTree {
     fn parse(input: ParseStream) -> Result<Self> {
         let html_type = HtmlTree::peek(input.cursor())
-            .ok_or_else(|| input.error("expected valid html element"))?;
+            .ok_or_else(|| input.error("expected a valid html element"))?;
         let html_tree = match html_type {
             HtmlType::Empty => HtmlTree::Empty,
             HtmlType::Component => HtmlTree::Component(Box::new(input.parse()?)),
