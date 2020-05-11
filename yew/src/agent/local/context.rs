@@ -4,8 +4,8 @@ use crate::scheduler::Shared;
 use anymap::{self, AnyMap};
 use slab::Slab;
 use std::cell::RefCell;
-use std::rc::Rc;
 use std::marker::PhantomData;
+use std::rc::Rc;
 
 thread_local! {
     static LOCAL_AGENTS_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());
@@ -14,17 +14,17 @@ thread_local! {
 /// Create a single instance in the current thread.
 #[allow(missing_debug_implementations)]
 pub struct Context<AGN> {
-    _agent: PhantomData<AGN>
+    _agent: PhantomData<AGN>,
 }
 
 impl<AGN> Discoverer for Context<AGN>
-where AGN: Agent,
-      <AGN as Agent>::Input: fmt::Debug
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: fmt::Debug,
 {
     type Agent = AGN;
 
-    fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>>
-    {
+    fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let mut scope_to_init = None;
         let bridge = LOCAL_AGENTS_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();

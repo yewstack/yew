@@ -19,18 +19,18 @@ const SINGLETON_ID: HandlerId = HandlerId(0, true);
 /// Create a new instance for every bridge.
 #[allow(missing_debug_implementations)]
 pub struct Private<AGN> {
-    _agent: PhantomData<AGN>
+    _agent: PhantomData<AGN>,
 }
 
 impl<AGN> Discoverer for Private<AGN>
-where AGN: Agent,
-      <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
-      <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     type Agent = AGN;
 
-    fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>>
-    {
+    fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let callback = callback.expect("Callback required for Private agents");
         let handler = move |data: Vec<u8>,
                             #[cfg(feature = "std_web")] worker: Value,
@@ -75,9 +75,10 @@ where AGN: Agent,
 
 /// A connection manager for components interaction with workers.
 pub struct PrivateBridge<AGN>
-where AGN: Agent,
-      <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
-      <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     #[cfg(feature = "std_web")]
     worker: Value,
@@ -87,9 +88,10 @@ where AGN: Agent,
 }
 
 impl<AGN> fmt::Debug for PrivateBridge<AGN>
-where AGN: Agent,
-      <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
-      <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("PrivateBridge<_>")
@@ -97,9 +99,10 @@ where AGN: Agent,
 }
 
 impl<AGN> Bridge<AGN> for PrivateBridge<AGN>
-where AGN: Agent,
-      <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
-      <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     fn send(&mut self, msg: AGN::Input) {
         // TODO(#937): Important! Implement.
@@ -121,9 +124,10 @@ where AGN: Agent,
 }
 
 impl<AGN> Drop for PrivateBridge<AGN>
-where AGN: Agent,
-      <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
-      <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     fn drop(&mut self) {
         let disconnected = ToWorker::Disconnected(SINGLETON_ID);

@@ -82,7 +82,9 @@ pub trait Discoverer {
     type Agent: Agent;
 
     /// Spawns an agent and returns `Bridge` implementation.
-    fn spawn_or_join(_callback: Option<Callback<<Self::Agent as Agent>::Output>>) -> Box<dyn Bridge<Self::Agent>>;
+    fn spawn_or_join(
+        _callback: Option<Callback<<Self::Agent as Agent>::Output>>,
+    ) -> Box<dyn Bridge<Self::Agent>>;
 }
 
 /// Bridge to a specific kind of worker.

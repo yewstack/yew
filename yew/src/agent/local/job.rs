@@ -7,17 +7,17 @@ const SINGLETON_ID: HandlerId = HandlerId(0, true);
 /// Create an instance in the current thread.
 #[allow(missing_debug_implementations)]
 pub struct Job<AGN> {
-    _agent: PhantomData<AGN>
+    _agent: PhantomData<AGN>,
 }
 
 impl<AGN> Discoverer for Job<AGN>
-where AGN: Agent,
-      <AGN as Agent>::Input: fmt::Debug
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: fmt::Debug,
 {
     type Agent = AGN;
 
-    fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>>
-    {
+    fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let callback = callback.expect("Callback required for Job");
         let scope = AgentScope::<AGN>::new();
         let responder = CallbackResponder { callback };
