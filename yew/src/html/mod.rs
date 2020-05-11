@@ -108,7 +108,7 @@ pub trait Component: Sized + 'static {
     /// ```rust
     ///# use yew::{Html, Component, ComponentLink, html, ShouldRender};
     ///# struct Model{props: ()};
-    ///# impl Model { fn setup_elemnt(&self) { } }
+    ///# impl Model { fn setup_element(&self) { } }
     ///# impl Component for Model {
     ///#     type Message = ();type Properties = ();
     ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
@@ -117,7 +117,7 @@ pub trait Component: Sized + 'static {
     ///#     fn change(&mut self, _props: Self::Properties) -> ShouldRender { unimplemented!() }
     /// fn rendered(&mut self, first_render: bool) {
     ///    if first_render {
-    ///      self.setup_element(); # Similar to `mounted` in other frameworks
+    ///      self.setup_element(); // Similar to 'mounted' in other frameworks
     ///    }
     /// }
     ///# }
