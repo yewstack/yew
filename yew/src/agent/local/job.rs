@@ -1,6 +1,5 @@
 use super::*;
 use crate::callback::Callback;
-use crate::agent::SyncAgent;
 use std::marker::PhantomData;
 
 const SINGLETON_ID: HandlerId = HandlerId(0, true);
@@ -11,7 +10,10 @@ pub struct Job<AGN> {
     _agent: PhantomData<AGN>
 }
 
-impl<AGN: SyncAgent> Discoverer for Job<AGN> {
+impl<AGN> Discoverer for Job<AGN>
+where AGN: Agent,
+      <AGN as Agent>::Input: fmt::Debug
+{
     type Agent = AGN;
 
     fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>>

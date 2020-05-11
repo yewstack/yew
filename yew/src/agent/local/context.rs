@@ -1,7 +1,6 @@
 use super::*;
 use crate::callback::Callback;
 use crate::scheduler::Shared;
-use crate::agent::SyncAgent;
 use anymap::{self, AnyMap};
 use slab::Slab;
 use std::cell::RefCell;
@@ -18,7 +17,10 @@ pub struct Context<AGN> {
     _agent: PhantomData<AGN>
 }
 
-impl<AGN: SyncAgent> Discoverer for Context<AGN> {
+impl<AGN> Discoverer for Context<AGN>
+where AGN: Agent,
+      <AGN as Agent>::Input: fmt::Debug
+{
     type Agent = AGN;
 
     fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>>
@@ -60,7 +62,7 @@ impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
     }
 }
 
-impl<AGN: SyncAgent> Dispatchable for Context<AGN> {}
+impl<AGN: Agent> Dispatchable for Context<AGN> {}
 
 struct ContextBridge<AGN: Agent> {
     scope: AgentScope<AGN>,

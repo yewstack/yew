@@ -17,15 +17,6 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 
-// Demand Input and Output serializable on worker agents,
-// but no need for that constraint for local ones
-pub trait WorkerAgent = Agent
-where <Self as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
-      <Self as Agent>::Output: Serialize + for<'de> Deserialize<'de>;
-
-pub trait SyncAgent = Agent
-where <Self as Agent>::Input: fmt::Debug;
-
 /// Declares the behavior of the agent.
 pub trait Agent: Sized + 'static {
     /// Reach capability of the agent.

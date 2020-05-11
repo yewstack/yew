@@ -22,7 +22,10 @@ pub struct Private<AGN> {
     _agent: PhantomData<AGN>
 }
 
-impl<AGN: WorkerAgent> Discoverer for Private<AGN>
+impl<AGN> Discoverer for Private<AGN>
+where AGN: Agent,
+      <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+      <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>
 {
     type Agent = AGN;
 
@@ -71,21 +74,33 @@ impl<AGN: WorkerAgent> Discoverer for Private<AGN>
 }
 
 /// A connection manager for components interaction with workers.
-pub struct PrivateBridge<T: WorkerAgent> {
+pub struct PrivateBridge<AGN>
+where AGN: Agent,
+      <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+      <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>
+{
     #[cfg(feature = "std_web")]
     worker: Value,
     #[cfg(feature = "web_sys")]
     worker: Worker,
-    _agent: PhantomData<T>,
+    _agent: PhantomData<AGN>,
 }
 
-impl<AGN: WorkerAgent> fmt::Debug for PrivateBridge<AGN> {
+impl<AGN> fmt::Debug for PrivateBridge<AGN>
+where AGN: Agent,
+      <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+      <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("PrivateBridge<_>")
     }
 }
 
-impl<AGN: WorkerAgent> Bridge<AGN> for PrivateBridge<AGN> {
+impl<AGN> Bridge<AGN> for PrivateBridge<AGN>
+where AGN: Agent,
+      <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+      <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>
+{
     fn send(&mut self, msg: AGN::Input) {
         // TODO(#937): Important! Implement.
         // Use a queue to collect a messages if an instance is not ready
@@ -105,7 +120,11 @@ impl<AGN: WorkerAgent> Bridge<AGN> for PrivateBridge<AGN> {
     }
 }
 
-impl<AGN: WorkerAgent> Drop for PrivateBridge<AGN> {
+impl<AGN> Drop for PrivateBridge<AGN>
+where AGN: Agent,
+      <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+      <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>
+{
     fn drop(&mut self) {
         let disconnected = ToWorker::Disconnected(SINGLETON_ID);
         send_to_remote::<AGN>(&self.worker, disconnected);

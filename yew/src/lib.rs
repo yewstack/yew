@@ -1,8 +1,6 @@
 #![allow(clippy::needless_doctest_main)]
 #![doc(html_logo_url = "https://static.yew.rs/logo.svg")]
 
-#![feature(trait_alias)]
-
 //! # Yew Framework - API Documentation
 //!
 //! Yew is a modern Rust framework for creating multi-threaded front-end web apps with WebAssembly
