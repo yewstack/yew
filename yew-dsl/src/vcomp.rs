@@ -4,13 +4,14 @@ use yew::{Component, NodeRef};
 
 use crate::ScopeHolder;
 
-/// Creates virtual components.
+/// `VCompProducer` returns instances of virtual components. It implements the `From` trait 
+/// for `BoxedVNodeProducer` through which it can be used to return virtual nodes.
 pub struct VCompProducer<COMP: Component>(Box<dyn FnOnce(ScopeHolder<COMP>) -> VComp>);
 
 impl<COMP: Component> VCompProducer<COMP> {
     pub fn new<CHILD: Component>(props: CHILD::Properties) -> Self {
-        // TODO allow getting the noderef as a parameter somewhere.
-        VCompProducer(Box::new(move |scope| {
+        // TODO: allow getting the NodeRef as a parameter somewhere.
+        VCompProducer(Box::new(move |_| {
             VComp::new::<CHILD>(props, NodeRef::default(), None)
         }))
     }
