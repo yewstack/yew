@@ -13,6 +13,7 @@ use yew::macros::{html, Properties};
 /// # Example
 ///
 /// ```
+///# use std::fmt;
 ///# use yew::{Html, Component, ComponentLink, html};
 ///# use yew_components::Select;
 /// #[derive(PartialEq, Clone)]
@@ -27,11 +28,11 @@ use yew::macros::{html, Properties};
 ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
 ///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
 ///#     fn view(&self) -> Html {unimplemented!()}}
-/// impl ToString for Scene {
-///     fn to_string(&self) -> String {
+/// impl fmt::Display for Scene {
+///     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 ///         match self {
-///             Scene::First => "First".to_string(),
-///             Scene::Second => "Second".to_string()
+///             Scene::First => write!(f, "{}", "First"),
+///             Scene::Second => write!(f, "{}", "Second"),
 ///         }
 ///     }
 /// }
