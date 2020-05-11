@@ -74,7 +74,7 @@ fn send_to_remote<AGN>(
     msg: ToWorker<AGN::Input>,
 ) where
     AGN: Agent,
-    <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     let msg = msg.pack();

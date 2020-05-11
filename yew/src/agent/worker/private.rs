@@ -25,7 +25,7 @@ pub struct Private<AGN> {
 impl<AGN> Discoverer for Private<AGN>
 where
     AGN: Agent,
-    <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     type Agent = AGN;
@@ -77,7 +77,7 @@ where
 pub struct PrivateBridge<AGN>
 where
     AGN: Agent,
-    <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     #[cfg(feature = "std_web")]
@@ -90,7 +90,7 @@ where
 impl<AGN> fmt::Debug for PrivateBridge<AGN>
 where
     AGN: Agent,
-    <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -101,7 +101,7 @@ where
 impl<AGN> Bridge<AGN> for PrivateBridge<AGN>
 where
     AGN: Agent,
-    <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     fn send(&mut self, msg: AGN::Input) {
@@ -126,7 +126,7 @@ where
 impl<AGN> Drop for PrivateBridge<AGN>
 where
     AGN: Agent,
-    <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     fn drop(&mut self) {
