@@ -3,6 +3,7 @@
 use super::*;
 use crate::callback::Callback;
 use crate::services::Task;
+#[doc(no_inline)]
 pub use ::web_sys::{Blob, File};
 use ::web_sys::{Event, FileReader};
 use anyhow::{anyhow, Result};

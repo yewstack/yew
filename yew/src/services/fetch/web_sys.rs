@@ -27,6 +27,7 @@ pub use web_sys::{
     RequestRedirect as Redirect, Window, WorkerGlobalScope,
 };
 
+#[doc(no_inline)]
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
 trait JsInterop: Sized {
