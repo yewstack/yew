@@ -206,7 +206,7 @@ where
 /// ```
 pub mod prelude {
     #[cfg(feature = "agent")]
-    pub use crate::agent::{Bridge, Bridged, Threaded};
+    pub use crate::agent::{Bridge, Bridged, Dispatched, Threaded};
     pub use crate::app::App;
     pub use crate::callback::Callback;
     pub use crate::events::*;
@@ -221,7 +221,7 @@ pub mod prelude {
     #[cfg(feature = "agent")]
     pub mod worker {
         pub use crate::agent::{
-            Agent, AgentLink, Bridge, Bridged, Context, Global, HandlerId, Job, Private, Public,
+            Agent, AgentLink, Bridge, Bridged, Context, HandlerId, Job, Private, Public,
         };
     }
 }
