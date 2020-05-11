@@ -104,6 +104,23 @@ pub trait Component: Sized + 'static {
 
     /// The `rendered` method is called after each time a Component is rendered but
     /// before the browser updates the page.
+    /// ## Examples
+    /// ```rust
+    ///# use yew::{Html, Component, ComponentLink, html, ShouldRender};
+    ///# struct Model{props: ()};
+    ///# impl Model { fn setup_element(&self) { } }
+    ///# impl Component for Model {
+    ///#     type Message = ();type Properties = ();
+    ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
+    ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+    ///#     fn view(&self) -> Html {unimplemented!()}
+    ///#     fn change(&mut self, _props: Self::Properties) -> ShouldRender { unimplemented!() }
+    /// fn rendered(&mut self, first_render: bool) {
+    ///    if first_render {
+    ///      self.setup_element(); // Similar to 'mounted' in other frameworks
+    ///    }
+    /// }
+    ///# }
     fn rendered(&mut self, _first_render: bool) {}
 
     /// The `destroy` method is called right before a Component is unmounted.
