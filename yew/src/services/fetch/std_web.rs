@@ -16,6 +16,7 @@ use stdweb::{JsSerialize, Value};
 use stdweb::{_js_impl, js};
 use thiserror::Error;
 
+#[doc(no_inline)]
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
 /// Type to set cache for fetch.
