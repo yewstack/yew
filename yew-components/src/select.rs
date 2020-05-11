@@ -1,45 +1,54 @@
-//! This module contains implementation of `Select` component.
-//! You can use it instead `<select>` tag, because the component
-//! helps you to track selected value in an original type. Example:
-//!
-//! ```
-//!# use yew::{Html, Component, ComponentLink, html};
-//!# use yew_components::Select;
-//! #[derive(PartialEq, Clone)]
-//! enum Scene {
-//!     First,
-//!     Second,
-//! }
-//!# struct Model { link: ComponentLink<Self> };
-//!# impl Component for Model {
-//!#     type Message = ();type Properties = ();
-//!#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-//!#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-//!#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
-//!#     fn view(&self) -> Html {unimplemented!()}}
-//! impl ToString for Scene {
-//!     fn to_string(&self) -> String {
-//!         match self {
-//!             Scene::First => "First".to_string(),
-//!             Scene::Second => "Second".to_string()
-//!         }
-//!     }
-//! }
-//!
-//! fn view(link: ComponentLink<Model>) -> Html {
-//!     let scenes = vec![Scene::First, Scene::Second];
-//!     html! {
-//!         <Select<Scene> options=scenes on_change=link.callback(|_| ()) />
-//!     }
-//! }
-//! ```
+//! This module contains the implementation of the `Select` component.
 
 use web_sys::HtmlSelectElement;
 use yew::callback::Callback;
 use yew::html::{ChangeData, Component, ComponentLink, Html, NodeRef, ShouldRender};
 use yew::macros::{html, Properties};
 
-/// `Select` component.
+/// An alternative to the HTML `<select>` tag.
+///
+/// The display of options is handled by the `ToString` implementation on their
+/// type.
+///
+/// # Example
+///
+/// ```
+///# use std::fmt;
+///# use yew::{Html, Component, ComponentLink, html};
+///# use yew_components::Select;
+/// #[derive(PartialEq, Clone)]
+/// enum Scene {
+///     First,
+///     Second,
+/// }
+///# struct Model { link: ComponentLink<Self> };
+///# impl Component for Model {
+///#     type Message = ();type Properties = ();
+///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
+///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
+///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
+///#     fn view(&self) -> Html {unimplemented!()}}
+/// impl fmt::Display for Scene {
+///     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+///         match self {
+///             Scene::First => write!(f, "{}", "First"),
+///             Scene::Second => write!(f, "{}", "Second"),
+///         }
+///     }
+/// }
+///
+/// fn view(link: ComponentLink<Model>) -> Html {
+///     let scenes = vec![Scene::First, Scene::Second];
+///     html! {
+///         <Select<Scene> options=scenes on_change=link.callback(|_| ()) />
+///     }
+/// }
+/// ```
+///
+/// # Properties
+///
+/// Only the `on_change` property is mandatory. Other (optional) properties
+/// are `selected`, `disabled`, `options`, `class`, `id`, and `placeholder`.
 #[derive(Debug)]
 pub struct Select<T: ToString + PartialEq + Clone + 'static> {
     props: Props<T>,
@@ -47,35 +56,35 @@ pub struct Select<T: ToString + PartialEq + Clone + 'static> {
     link: ComponentLink<Self>,
 }
 
-/// Internal message of the component.
+/// Messages sent internally as part of the select component
 #[derive(Debug)]
 pub enum Msg {
-    /// This message indicates the option with id selected.
+    /// Sent when the user selects a new option.
     Selected(Option<usize>),
 }
 
-/// Properties of `Select` component.
+/// Properties of the `Select` component.
 #[derive(PartialEq, Clone, Properties, Debug)]
 pub struct Props<T: Clone> {
     /// Initially selected value.
     #[prop_or_default]
     pub selected: Option<T>,
-    /// Disabled the component's selector.
+    /// Whether or not the selector should be disabled.
     #[prop_or_default]
     pub disabled: bool,
-    /// Options are available to choose.
+    /// A vector of options which the end user can choose from.
     #[prop_or_default]
     pub options: Vec<T>,
-    /// Classes applied to the `<select>` tag
+    /// Classes to be applied to the `<select>` tag
     #[prop_or_default]
     pub class: String,
-    /// ID for the `<select>` tag
+    /// The ID for the `<select>` tag
     #[prop_or_default]
     pub id: String,
     /// Placeholder value, shown at the top as a disabled option
     #[prop_or(String::from("↪"))]
     pub placeholder: String,
-    /// Callback to handle changes.
+    /// A callback which is called when the value of the `<select>` changes.
     pub on_change: Callback<T>,
 }
 
