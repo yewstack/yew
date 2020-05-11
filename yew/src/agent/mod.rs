@@ -20,7 +20,7 @@ use std::ops::{Deref, DerefMut};
 /// Declares the behavior of the agent.
 pub trait Agent: Sized + 'static {
     /// Reach capability of the agent.
-    type Reach: Discoverer;
+    type Reach: Discoverer<Agent = Self>;
     /// Type of an input message.
     type Message;
     /// Incoming message type.
