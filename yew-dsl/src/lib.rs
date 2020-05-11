@@ -21,7 +21,7 @@ use yew::html::Scope;
 /// A `ScopeHolder` contains a reference to the scope of the parent component.
 type ScopeHolder<PARENT> = Rc<RefCell<Option<Scope<PARENT>>>>;
 
-/// `BoxedVNodeProducer` is wrapper around a function which produces a `VNode`.
+/// `BoxedVNodeProducer` is a wrapper around a function which produces a `VNode`.
 pub struct BoxedVNodeProducer<COMP: Component>(Box<dyn FnOnce(ScopeHolder<COMP>) -> VNode>);
 
 impl<COMP: Component> BoxedVNodeProducer<COMP> {
@@ -54,8 +54,8 @@ pub fn comp<COMP: Component, CHILD: Component>(props: CHILD::Properties) -> VCom
 }
 
 /// Creates text nodes.
-pub fn text<COMP: Component, T: Into<String> + 'static>(text: T) -> VTextProducer {
-    VTextProducer::new::<T>(text)
+pub fn text<COMP: Component, TEXT: Into<String> + 'static>(text: TEXT) -> VTextProducer {
+    VTextProducer::new::<TEXT>(text)
 }
 
 /// Creates new lists populatated with the data supplied to the function.

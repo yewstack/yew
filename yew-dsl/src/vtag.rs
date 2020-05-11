@@ -24,7 +24,8 @@ impl<COMP: Component> VTagProducer<COMP> {
         }
     }
 
-    // TODO, consider making this T: Into<VNode> - The whole dsl doesn't need to be lazy. - although being generic over an additional argument that is either () OR Scope is problematic.
+    // TODO, consider making this T: Into<VNode> - The whole dsl doesn't need to be lazy.
+    // - although being generic over an additional argument that is either () OR Scope is problematic.
     pub fn child<T: Into<BoxedVNodeProducer<COMP>> + 'static>(mut self, child: T) -> Self {
         let effect = Effect::new(move |mut vtag: VTag, scope: &ScopeHolder<COMP>| {
             let child = child.into().execute(scope);

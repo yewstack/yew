@@ -2,14 +2,15 @@ use crate::BoxedVNodeProducer;
 use yew::virtual_dom::VList;
 use yew::Component;
 
+///
 pub struct VListProducer<COMP: Component> {
     children: Vec<BoxedVNodeProducer<COMP>>,
 }
 
 impl<COMP: Component> Default for VListProducer<COMP> {
     fn default() -> Self {
-        VListProducer::<COMP> {children: vec![]}
-     }
+        VListProducer::<COMP> { children: vec![] }
+    }
 }
 
 impl<COMP: Component> VListProducer<COMP> {
