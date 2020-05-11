@@ -55,7 +55,6 @@ pub struct WsResponse {
 }
 
 pub struct Model {
-    fetch_service: FetchService,
     ws_service: WebSocketService,
     link: ComponentLink<Model>,
     fetching: bool,
@@ -91,9 +90,9 @@ impl Model {
         );
         let request = Request::get("/data.json").body(Nothing).unwrap();
         if binary {
-            self.fetch_service.fetch_binary(request, callback).unwrap()
+            FetchService::new().fetch_binary(request, callback).unwrap()
         } else {
-            self.fetch_service.fetch(request, callback).unwrap()
+            FetchService::new().fetch(request, callback).unwrap()
         }
     }
 
@@ -111,9 +110,9 @@ impl Model {
         );
         let request = Request::get("/data.toml").body(Nothing).unwrap();
         if binary {
-            self.fetch_service.fetch_binary(request, callback).unwrap()
+            FetchService::new().fetch_binary(request, callback).unwrap()
         } else {
-            self.fetch_service.fetch(request, callback).unwrap()
+            FetchService::new().fetch(request, callback).unwrap()
         }
     }
 }
@@ -124,7 +123,6 @@ impl Component for Model {
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
-            fetch_service: FetchService::new(),
             ws_service: WebSocketService::new(),
             link,
             fetching: false,
