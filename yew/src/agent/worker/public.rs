@@ -111,7 +111,11 @@ where AGN: Agent,
     }
 }
 
-impl<AGN: Agent> Dispatchable for Public<AGN> {}
+impl<AGN> Dispatchable for Public<AGN>
+where AGN: Agent,
+      <AGN as Agent>::Input: fmt::Debug + Serialize + for<'de> Deserialize<'de>,
+      <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>
+{ }
 
 /// A connection manager for components interaction with workers.
 pub struct PublicBridge<AGN>
