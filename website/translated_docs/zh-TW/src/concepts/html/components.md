@@ -4,28 +4,28 @@ description: Create complex layouts with component hierarchies
 
 # Components
 
-## Basic
+## 基本
 
-Any type that implements `Component` can be used in the `html!` macro:
+任何實作 `Component` 的型別，都可以在 `html!` 的巨集中使用：
 
 ```rust
 html!{
     <>
-        // No properties
+        // 沒有屬性
         <MyComponent />
 
-        // With Properties
+        // 有屬性
         <MyComponent prop1="lorem" prop2="ipsum" />
 
-        // With the whole set of props provided at once
+        // 一次提供很多屬性
         <MyComponent with props />
     </>
 }
 ```
 
-## Nested
+## 巢狀
 
-Components can be passed children if they have a `children` field in their `Properties`.
+只要元件的 `Properties` 中有 `children`，就可以傳遞子結點給元件。
 
 {% code title="parent.rs" %}
 ```rust
@@ -63,9 +63,9 @@ impl Component for Container {
 ```
 {% endcode %}
 
-## Nested Children with Props
+## 指定子結點的型別
 
-Nested component properties can be accessed and mutated if the containing component types its children. In the following example, the `List` component can wrap `ListItem` components. For a real world example of this pattern, check out the `yew-router` source code. For a more advanced example, check out the `nested-list` example in the main yew repository.
+如果指定了子結點的型別，就可以使用或改變巢狀元件的屬性。下面的範例就是， `List` 元件包裹 `ListItem` 元件。另一個真實的範例是 `yew-router` 的原始碼。還有一個更進階的範例，請參考 Yew GitHub repo 中的 `nested-list` 範例。
 
 {% code title="parent.rs" %}
 ```rust
