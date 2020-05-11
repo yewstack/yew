@@ -1,14 +1,21 @@
-use crate::dsl::BoxedVNodeProducer;
+use crate::BoxedVNodeProducer;
 use yew::virtual_dom::VList;
 use yew::Component;
 
+///
 pub struct VListProducer<COMP: Component> {
     children: Vec<BoxedVNodeProducer<COMP>>,
 }
 
+impl<COMP: Component> Default for VListProducer<COMP> {
+    fn default() -> Self {
+        VListProducer::<COMP> { children: vec![] }
+    }
+}
+
 impl<COMP: Component> VListProducer<COMP> {
     pub fn new() -> Self {
-        VListProducer { children: vec![] }
+        VListProducer::<COMP> { children: vec![] }
     }
 
     pub fn child<T: Into<BoxedVNodeProducer<COMP>>>(mut self, child: T) -> Self {
@@ -17,7 +24,7 @@ impl<COMP: Component> VListProducer<COMP> {
     }
 
     pub fn populated_new(children: Vec<BoxedVNodeProducer<COMP>>) -> Self {
-        VListProducer { children }
+        VListProducer::<COMP> { children }
     }
 }
 
