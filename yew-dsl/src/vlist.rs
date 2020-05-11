@@ -6,6 +6,12 @@ pub struct VListProducer<COMP: Component> {
     children: Vec<BoxedVNodeProducer<COMP>>,
 }
 
+impl<COMP: Component> Default for VListProducer<COMP> {
+    fn default() -> Self {
+        VListProducer::<COMP> {children: vec![]}
+     }
+}
+
 impl<COMP: Component> VListProducer<COMP> {
     pub fn new() -> Self {
         VListProducer::<COMP> { children: vec![] }
