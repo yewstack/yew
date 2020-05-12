@@ -1,4 +1,4 @@
-//! This module contains types to support multi-threading in Yew.
+//! This module contains types to support multi-threading and state management.
 
 mod link;
 mod local;
@@ -20,13 +20,13 @@ use std::ops::{Deref, DerefMut};
 /// Declares the behavior of the agent.
 pub trait Agent: Sized + 'static {
     /// Reach capability of the agent.
-    type Reach: Discoverer;
+    type Reach: Discoverer<Agent = Self>;
     /// Type of an input message.
     type Message;
     /// Incoming message type.
-    type Input: Serialize + for<'de> Deserialize<'de>;
+    type Input;
     /// Outgoing message type.
-    type Output: Serialize + for<'de> Deserialize<'de>;
+    type Output;
 
     /// Creates an instance of an agent.
     fn create(link: AgentLink<Self>) -> Self;
@@ -76,6 +76,23 @@ impl HandlerId {
     }
 }
 
+/// Determine a visibility of an agent.
+#[doc(hidden)]
+pub trait Discoverer {
+    type Agent: Agent;
+
+    /// Spawns an agent and returns `Bridge` implementation.
+    fn spawn_or_join(
+        _callback: Option<Callback<<Self::Agent as Agent>::Output>>,
+    ) -> Box<dyn Bridge<Self::Agent>>;
+}
+
+/// Bridge to a specific kind of worker.
+pub trait Bridge<AGN: Agent> {
+    /// Send a message to an agent.
+    fn send(&mut self, msg: AGN::Input);
+}
+
 /// This trait allows registering or getting the address of a worker.
 pub trait Bridged: Agent + Sized + 'static {
     /// Creates a messaging bridge between a worker and the component.
@@ -85,21 +102,9 @@ pub trait Bridged: Agent + Sized + 'static {
 impl<T> Bridged for T
 where
     T: Agent,
+    <T as Agent>::Reach: Discoverer<Agent = T>,
 {
     fn bridge(callback: Callback<Self::Output>) -> Box<dyn Bridge<Self>> {
         Self::Reach::spawn_or_join(Some(callback))
     }
-}
-
-/// Determine a visibility of an agent.
-#[doc(hidden)]
-pub trait Discoverer {
-    /// Spawns an agent and returns `Bridge` implementation.
-    fn spawn_or_join<AGN: Agent>(_callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>>;
-}
-
-/// Bridge to a specific kind of worker.
-pub trait Bridge<AGN: Agent> {
-    /// Send a message to an agent.
-    fn send(&mut self, msg: AGN::Input);
 }

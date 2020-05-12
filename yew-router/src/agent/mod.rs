@@ -87,7 +87,7 @@ where
     type Input = RouteRequest<STATE>;
     type Message = Msg<STATE>;
     type Output = Route<STATE>;
-    type Reach = Context;
+    type Reach = Context<Self>;
 
     fn create(link: AgentLink<RouteAgent<STATE>>) -> Self {
         let callback = link.callback(Msg::BrowserNavigationRouteChanged);
