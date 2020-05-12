@@ -19,7 +19,7 @@ pub struct Context<AGN> {
 
 impl<AGN> Discoverer for Context<AGN>
 where
-    AGN: Agent
+    AGN: Agent,
 {
     type Agent = AGN;
 
