@@ -48,13 +48,14 @@ impl<AGN: Agent> AgentLink<AGN> {
     }
 
     /// Create a callback which will send a message to the agent when invoked.
-    pub fn callback<F, IN>(&self, function: F) -> Callback<IN>
+    pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
-        F: Fn(IN) -> AGN::Message + 'static,
+        M: Into<AGN::Message>,
+        F: Fn(IN) -> M + 'static,
     {
         let scope = self.scope.clone();
         let closure = move |input| {
-            let output = function(input);
+            let output = function(input).into();
             scope.send(AgentLifecycleEvent::Message(output));
         };
         closure.into()
