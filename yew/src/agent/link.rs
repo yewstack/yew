@@ -34,6 +34,19 @@ impl<AGN: Agent> AgentLink<AGN> {
         self.responder.respond(id, output);
     }
 
+    /// Send a message to the agent
+    pub fn send_message<T>(&self, msg: T)
+    where
+        T: Into<AGN::Message>,
+    {
+        self.scope.send(AgentLifecycleEvent::Message(msg.into()));
+    }
+
+    /// Send a batch of messages to the agent
+    pub fn send_message_batch(&self, messages: Vec<AGN::Message>) {
+        self.scope.send(AgentLifecycleEvent::MessageBatch(messages));
+    }
+
     /// Create a callback which will send a message to the agent when invoked.
     pub fn callback<F, IN>(&self, function: F) -> Callback<IN>
     where
@@ -126,9 +139,11 @@ pub(crate) enum AgentLifecycleEvent<AGN: Agent> {
     Create(AgentLink<AGN>),
     /// Internal Agent message
     Message(AGN::Message),
+    /// Internal Agent message batch
+    MessageBatch(Vec<AGN::Message>),
     /// Client connected
     Connected(HandlerId),
-    /// Received mesasge from Client
+    /// Received message from Client
     Input(AGN::Input, HandlerId),
     /// Client disconnected
     Disconnected(HandlerId),
@@ -159,6 +174,15 @@ where
                     .as_mut()
                     .expect("agent was not created to process messages")
                     .update(msg);
+            }
+            AgentLifecycleEvent::MessageBatch(batch) => {
+                let agent = this
+                    .agent
+                    .as_mut()
+                    .expect("agent was not created to process messages");
+                for msg in batch.into_iter() {
+                    agent.update(msg);
+                }
             }
             AgentLifecycleEvent::Connected(id) => {
                 this.agent
