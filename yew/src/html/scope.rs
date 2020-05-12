@@ -386,7 +386,7 @@ where
     fn run(self: Box<Self>) {
         match self.state.replace(ComponentState::Destroyed) {
             ComponentState::Created(mut this) => {
-                this.component.destroy();
+                drop(this.component);
                 if let Some(last_frame) = &mut this.last_frame {
                     last_frame.detach(&this.element);
                 }
