@@ -1,20 +1,20 @@
 ---
-description: Components and their lifecycle hooks
+description: 元件，以及生命周期鉤子
 ---
 
-# Components
+# 元件
 
-## What are Components?
+## 什麼是元件？
 
-Components are the building blocks of Yew. They manage their own state and can render themselves to the DOM. Components are created by implementing the `Component` trait which describes the lifecycle of a component.
+元件是 Yew 的基石。他們管理自己的狀態，可以渲染自己成為 DOM。元件可以透過實作，描述元件生命周期的 `Component` trait 來建立。
 
-## Lifecycle
+## 生命周期
 
 {% hint style="info" %}
 `Contribute to our docs:` [Add a diagram of the component lifecycle](https://github.com/yewstack/docs/issues/22)
 {% endhint %}
 
-## Lifecycle Methods
+## 生命周期的方法
 
 ### Create
 
