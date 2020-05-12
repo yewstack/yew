@@ -195,7 +195,6 @@ where
 }
 
 #[cfg(test)]
-#[cfg(feature = "agent")]
 pub(crate) mod tests {
     use super::*;
 
