@@ -34,7 +34,7 @@ impl<AGN: Agent> AgentLink<AGN> {
         self.responder.respond(id, output);
     }
 
-    /// Send a message to the agent immediatelly
+    /// Send a message to the agent immediately
     pub fn send(&self, msg: AGN::Message) {
         self.scope.send(AgentLifecycleEvent::Message(msg));
     }
