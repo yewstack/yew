@@ -96,8 +96,13 @@ where
 
         ret
     }
+}
 
-    fn destroy(&mut self) {
+impl<T> Drop for FunctionComponent<T>
+where
+    T: FunctionProvider,
+{
+    fn drop(&mut self) {
         if let Some(hook_state) = self.hook_state.borrow_mut().deref_mut() {
             for hook in hook_state.destroy_listeners.drain(..) {
                 hook()
