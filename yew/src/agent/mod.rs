@@ -34,11 +34,11 @@ pub trait Agent: Sized + 'static {
     /// This method called on every update message.
     fn update(&mut self, msg: Self::Message);
 
-    /// This method called on when a new bridge created.
-    fn connected(&mut self, _id: HandlerId) {}
-
     /// This method called on every incoming message.
     fn handle_input(&mut self, msg: Self::Input, id: HandlerId);
+
+    /// This method called on when a new bridge created.
+    fn connected(&mut self, _id: HandlerId) {}
 
     /// This method called on when a new bridge destroyed.
     fn disconnected(&mut self, _id: HandlerId) {}

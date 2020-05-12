@@ -16,6 +16,7 @@ pub enum Response {
 }
 
 pub enum Msg {
+    Initialized,
     Updating,
 }
 
@@ -34,6 +35,8 @@ impl Agent for Worker {
         let duration = Duration::from_secs(3);
         let callback = link.callback(|_| Msg::Updating);
         let task = IntervalService::new().spawn(duration, callback);
+
+        link.send(Msg::Initialized);
         Worker {
             link,
             _task: Box::new(task),
@@ -42,6 +45,9 @@ impl Agent for Worker {
 
     fn update(&mut self, msg: Self::Message) {
         match msg {
+            Msg::Initialized => {
+                info!("Initialized!");
+            }
             Msg::Updating => {
                 info!("Tick...");
             }

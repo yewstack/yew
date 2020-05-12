@@ -34,6 +34,11 @@ impl<AGN: Agent> AgentLink<AGN> {
         self.responder.respond(id, output);
     }
 
+    /// Send a message to the agent immediatelly
+    pub fn send(&self, msg: AGN::Message) {
+        self.scope.send(AgentLifecycleEvent::Message(msg));
+    }
+
     /// Create a callback which will send a message to the agent when invoked.
     pub fn callback<F, IN>(&self, function: F) -> Callback<IN>
     where
