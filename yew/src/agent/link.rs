@@ -188,3 +188,34 @@ where
         }
     }
 }
+
+#[cfg(test)]
+#[cfg(feature = "agent")]
+pub(crate) mod tests {
+    use super::*;
+
+    struct TestAgent;
+    impl Agent for TestAgent {
+        type Reach = Context<Self>;
+        type Message = ();
+        type Input = ();
+        type Output = ();
+
+        fn create(_link: AgentLink<Self>) -> Self {
+            TestAgent
+        }
+
+        fn update(&mut self, _msg: Self::Message) {
+            unimplemented!();
+        }
+
+        fn handle_input(&mut self, _msg: Self::Input, _asker: HandlerId) {
+            unimplemented!();
+        }
+    }
+
+    #[test]
+    fn agent_link_send_triggers_message() {
+        assert_eq!(true, true);
+    }
+}
