@@ -68,11 +68,15 @@ enum FromWorker<T> {
     ProcessOutput(HandlerId, T),
 }
 
-fn send_to_remote<AGN: Agent>(
+fn send_to_remote<AGN>(
     #[cfg(feature = "std_web")] worker: &Value,
     #[cfg(feature = "web_sys")] worker: &Worker,
     msg: ToWorker<AGN::Input>,
-) {
+) where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     let msg = msg.pack();
     cfg_match! {
         feature = "std_web" => js! {

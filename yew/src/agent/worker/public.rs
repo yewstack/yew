@@ -30,10 +30,19 @@ thread_local! {
 
 /// Create a single instance in a tab.
 #[allow(missing_debug_implementations)]
-pub struct Public;
+pub struct Public<AGN> {
+    _agent: PhantomData<AGN>,
+}
 
-impl Discoverer for Public {
-    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+impl<AGN> Discoverer for Public<AGN>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
+    type Agent = AGN;
+
+    fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let bridge = REMOTE_AGENTS_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
             match pool.entry::<RemoteAgent<AGN>>() {
@@ -102,10 +111,21 @@ impl Discoverer for Public {
     }
 }
 
-impl Dispatchable for Public {}
+impl<AGN> Dispatchable for Public<AGN>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
+}
 
 /// A connection manager for components interaction with workers.
-pub struct PublicBridge<AGN: Agent> {
+pub struct PublicBridge<AGN>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     #[cfg(feature = "std_web")]
     worker: Value,
     #[cfg(feature = "web_sys")]
@@ -114,13 +134,23 @@ pub struct PublicBridge<AGN: Agent> {
     _agent: PhantomData<AGN>,
 }
 
-impl<AGN: Agent> fmt::Debug for PublicBridge<AGN> {
+impl<AGN> fmt::Debug for PublicBridge<AGN>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("PublicBridge<_>")
     }
 }
 
-impl<AGN: Agent> PublicBridge<AGN> {
+impl<AGN> PublicBridge<AGN>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     fn worker_is_loaded(&self) -> bool {
         REMOTE_AGENTS_LOADED.with(|loaded| loaded.borrow().contains(&TypeId::of::<AGN>()))
     }
@@ -149,14 +179,24 @@ impl<AGN: Agent> PublicBridge<AGN> {
     }
 }
 
-impl<AGN: Agent> Bridge<AGN> for PublicBridge<AGN> {
+impl<AGN> Bridge<AGN> for PublicBridge<AGN>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     fn send(&mut self, msg: AGN::Input) {
         let msg = ToWorker::ProcessInput(self.id, msg);
         self.send_message(msg);
     }
 }
 
-impl<AGN: Agent> Drop for PublicBridge<AGN> {
+impl<AGN> Drop for PublicBridge<AGN>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     fn drop(&mut self) {
         let terminate_worker = REMOTE_AGENTS_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
@@ -195,7 +235,12 @@ impl<AGN: Agent> Drop for PublicBridge<AGN> {
 
 struct WorkerResponder {}
 
-impl<AGN: Agent> Responder<AGN> for WorkerResponder {
+impl<AGN> Responder<AGN> for WorkerResponder
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     fn respond(&self, id: HandlerId, output: AGN::Output) {
         let msg = FromWorker::ProcessOutput(id, output);
         let data = msg.pack();
@@ -209,18 +254,20 @@ impl<AGN: Agent> Responder<AGN> for WorkerResponder {
     }
 }
 
-impl<T> Threaded for T
+impl<AGN> Threaded for AGN
 where
-    T: Agent<Reach = Public>,
+    AGN: Agent<Reach = Public<AGN>>,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     fn register() {
-        let scope = AgentScope::<T>::new();
+        let scope = AgentScope::<AGN>::new();
         let responder = WorkerResponder {};
         let link = AgentLink::connect(&scope, responder);
         let upd = AgentLifecycleEvent::Create(link);
         scope.send(upd);
         let handler = move |data: Vec<u8>| {
-            let msg = ToWorker::<T::Input>::unpack(&data);
+            let msg = ToWorker::<AGN::Input>::unpack(&data);
             match msg {
                 ToWorker::Connected(id) => {
                     let upd = AgentLifecycleEvent::Connected(id);
@@ -245,7 +292,7 @@ where
                 }
             }
         };
-        let loaded: FromWorker<T::Output> = FromWorker::WorkerLoaded;
+        let loaded: FromWorker<AGN::Output> = FromWorker::WorkerLoaded;
         let loaded = loaded.pack();
         cfg_match! {
             feature = "std_web" => js! {
@@ -264,7 +311,12 @@ where
     }
 }
 
-struct RemoteAgent<AGN: Agent> {
+struct RemoteAgent<AGN>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     #[cfg(feature = "std_web")]
     worker: Value,
     #[cfg(feature = "web_sys")]
@@ -272,7 +324,12 @@ struct RemoteAgent<AGN: Agent> {
     slab: SharedOutputSlab<AGN>,
 }
 
-impl<AGN: Agent> RemoteAgent<AGN> {
+impl<AGN> RemoteAgent<AGN>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
     pub fn new(
         #[cfg(feature = "std_web")] worker: Value,
         #[cfg(feature = "web_sys")] worker: Worker,

@@ -1,14 +1,22 @@
 use super::*;
 use crate::callback::Callback;
+use std::marker::PhantomData;
 
 const SINGLETON_ID: HandlerId = HandlerId(0, true);
 
 /// Create an instance in the current thread.
 #[allow(missing_debug_implementations)]
-pub struct Job;
+pub struct Job<AGN> {
+    _agent: PhantomData<AGN>,
+}
 
-impl Discoverer for Job {
-    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+impl<AGN> Discoverer for Job<AGN>
+where
+    AGN: Agent,
+{
+    type Agent = AGN;
+
+    fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let callback = callback.expect("Callback required for Job");
         let scope = AgentScope::<AGN>::new();
         let responder = CallbackResponder { callback };

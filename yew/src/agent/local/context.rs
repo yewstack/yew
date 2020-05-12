@@ -4,6 +4,7 @@ use crate::scheduler::Shared;
 use anymap::{self, AnyMap};
 use slab::Slab;
 use std::cell::RefCell;
+use std::marker::PhantomData;
 use std::rc::Rc;
 
 thread_local! {
@@ -12,10 +13,17 @@ thread_local! {
 
 /// Create a single instance in the current thread.
 #[allow(missing_debug_implementations)]
-pub struct Context;
+pub struct Context<AGN> {
+    _agent: PhantomData<AGN>,
+}
 
-impl Discoverer for Context {
-    fn spawn_or_join<AGN: Agent>(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+impl<AGN> Discoverer for Context<AGN>
+where
+    AGN: Agent,
+{
+    type Agent = AGN;
+
+    fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let mut scope_to_init = None;
         let bridge = LOCAL_AGENTS_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
@@ -53,7 +61,7 @@ impl<AGN: Agent> Responder<AGN> for SlabResponder<AGN> {
     }
 }
 
-impl Dispatchable for Context {}
+impl<AGN: Agent> Dispatchable for Context<AGN> {}
 
 struct ContextBridge<AGN: Agent> {
     scope: AgentScope<AGN>,
