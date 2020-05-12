@@ -86,9 +86,9 @@ fn send_to_remote<AGN: Agent>(
 
 #[cfg(feature = "web_sys")]
 fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
-    let href = utils::document().location().unwrap().href().unwrap();
-    let script_url = format!("{}{}", href, name_of_resource);
-    let wasm_url = format!("{}{}", href, name_of_resource.replace(".js", "_bg.wasm"));
+    let origin = utils::origin().unwrap();
+    let script_url = format!("{}/{}", origin, name_of_resource);
+    let wasm_url = format!("{}/{}", origin, name_of_resource.replace(".js", "_bg.wasm"));
     let array = Array::new();
     array.push(
         &format!(
