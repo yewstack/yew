@@ -13,7 +13,6 @@ pub struct Job<AGN> {
 impl<AGN> Discoverer for Job<AGN>
 where
     AGN: Agent,
-    <AGN as Agent>::Input: fmt::Debug,
 {
     type Agent = AGN;
 

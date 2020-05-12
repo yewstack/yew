@@ -19,8 +19,7 @@ pub struct Context<AGN> {
 
 impl<AGN> Discoverer for Context<AGN>
 where
-    AGN: Agent,
-    <AGN as Agent>::Input: fmt::Debug,
+    AGN: Agent
 {
     type Agent = AGN;
 
