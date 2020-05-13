@@ -24,6 +24,7 @@ pub struct DebuggerConnection {
     #[cfg(feature = "std_web")]
     /// Public only for testing.
     pub ws: stdweb::web::WebSocket,
+    /// A list of all the messages to be sent.
     message_queue: Vec<String>,
 }
 
@@ -159,10 +160,15 @@ impl DebuggerConnection {
         Self {
             #[cfg(feature = "web_sys")]
             ws: match web_sys::WebSocket::new(&ws_url) {
-                Ok(s) => s,
+                Ok(s) => {
+                    gloo::events::EventListener::new(&s, "close", |_| {
+                        web_sys::console::error_1(&"Error: could not open a connection to the DevTools WebSocket. Are you sure the DevTools backend is running?".into());
+                        panic!("Could not open a connection to the DevTools WebSocket.");
+                    });
+                    return s;
+                },
                 Err(_) => {
-                    web_sys::console::error_1(&"Error: could not open a connection to the DevTools WebSocket. Are you sure the DevTools backend is running?".into());
-                    panic!("Could not open a connection to the DevTools WebSocket.");
+                    panic!("");
                 }
             },
             #[cfg(feature = "std_web")]
