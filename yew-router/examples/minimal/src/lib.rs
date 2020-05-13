@@ -66,16 +66,8 @@ impl Component for Model {
             Msg::RouteChanged(route) => self.route = route,
             Msg::ChangeRoute(route) => {
                 // This might be derived in the future
-                let route_string = match route {
-                    AppRoute::A(s) => format!("/a/{}", s),
-                    AppRoute::B { anything, number } => format!("/b/{}/{}", anything, number),
-                    AppRoute::C => "/c".to_string(),
-                };
-                self.route_service.set_route(&route_string, ());
-                self.route = Route {
-                    route: route_string,
-                    state: (),
-                };
+                self.route = route.into();
+                self.route_service.set_route(&self.route.route, ());
             }
         }
         true
