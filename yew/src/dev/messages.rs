@@ -118,6 +118,6 @@ pub mod tests {
             .set_inner_html("<html><head></head><body><h1>Hello World!</h1></body></html>");
         let document_node = document_element.deref();
         let h1 = document_node.last_child().unwrap().first_child().unwrap();
-        assert_eq!(selector(&h1), "SPAN/H1/")
+        assert_eq!(selector(&h1), "#document/HTML/BODY/H1/")
     }
 }
