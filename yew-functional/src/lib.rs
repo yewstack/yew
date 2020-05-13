@@ -260,7 +260,7 @@ where
     }
     use_hook(
         move |state: &mut UseEffectState<Dependents, Destructor>, hook_update| {
-            let mut should_update = !(*state.deps == *deps);
+            let mut should_update = *state.deps != *deps;
 
             move || {
                 hook_update(move |state: &mut UseEffectState<Dependents, Destructor>| {
