@@ -36,6 +36,8 @@ fn compile_fail() {
 
     html! { <input ref=() /> };
     html! { <input ref=() ref=() /> };
+
+    html! { <input type="text"></input> };
 }
 
 fn main() {}
