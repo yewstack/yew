@@ -62,9 +62,10 @@ where
 }
 
 /// Sends messages.
-pub trait DebuggerMessageSend {
+pub trait DebuggerMessageSend<T> where T: Serialize {
     /// Send all the messages in the queue.
     fn send_messages(&mut self);
+    fn send_message(&mut self, message: T);
 }
 
 impl<T: Serialize> DebuggerMessageQueue<T> for DebuggerConnection {
@@ -74,7 +75,7 @@ impl<T: Serialize> DebuggerMessageQueue<T> for DebuggerConnection {
     }
 }
 
-impl DebuggerMessageSend for DebuggerConnection {
+impl<T: Serialize> DebuggerMessageSend<T> for DebuggerConnection {
     fn send_messages(&mut self) {
         for _ in 1..self.message_queue.len() {
             // either send message if the websocket is open or else use a promise
@@ -100,6 +101,25 @@ impl DebuggerMessageSend for DebuggerConnection {
                 }
                 _ => panic!("The WebSocket is in an incorrect state."),
             }
+        }
+    }
+    fn send_message(&mut self, message: T) {
+        match self.ws.ready_state() {
+            0 => {
+                self.queue_message(message);
+                self.send_messages();
+            }
+            1 => {
+                self.ws.send_with_str(serde_json::to_string(&message).unwrap());
+            }
+            2 | 3 => {
+                #[cfg(feature = "web_sys")]
+                    web_sys::console::error_1(
+                        &"Could not open a connection to Yew's developer tools; are they running?"
+                            .into(),
+                )
+            }
+            _ => panic!("The WebSocket is in an incorrect state.")
         }
     }
 }
@@ -129,8 +149,12 @@ impl DebuggerConnection {
                     "ws"
                 }
             },
-            std::option_env!("YEW_DEBUGGER_HOST").as_deref().unwrap_or("localhost"),
-            std::option_env!("YEW_DEBUGGER_PORT").as_deref().unwrap_or("8017")
+            std::option_env!("YEW_DEBUGGER_HOST")
+                .as_deref()
+                .unwrap_or("localhost"),
+            std::option_env!("YEW_DEBUGGER_PORT")
+                .as_deref()
+                .unwrap_or("8017")
         );
         Self {
             #[cfg(feature = "web_sys")]
@@ -159,56 +183,4 @@ pub mod tests {
     use crate::dev::{DebuggerConnection, DebuggerMessageQueue, DebuggerMessageSend};
     use std::ops::DerefMut;
     use wasm_bindgen_test::*;
-
-    #[wasm_bindgen_test]
-    fn test_messages_send() {
-        let mut debugger = DebuggerConnection::new();
-        debugger.queue_message(crate::dev::messages::DebugComponent::new(
-            "Test".to_string(),
-            None,
-        ));
-        assert_eq!(debugger.message_queue.len(), 1);
-        wasm_bindgen_futures::spawn_local(async {
-            let mut result = debugger.await;
-            assert_eq!(result.message_queue.len(), 1);
-            result.send_messages();
-            assert_eq!(result.message_queue.len(), 0);
-        });
-    }
-
-    #[wasm_bindgen_test]
-    async fn test_integration() {
-        struct TestComponent {}
-        impl crate::Component for TestComponent {
-            type Message = ();
-            type Properties = ();
-            fn create(_: Self::Properties, _l: crate::ComponentLink<Self>) -> Self {
-                Self {}
-            }
-            fn change(&mut self, _props: Self::Properties) -> bool {
-                false
-            }
-            fn update(&mut self, _: Self::Message) -> bool {
-                false
-            }
-            fn view(&self) -> crate::Html {
-                html!(
-                    <h1>{"Hello World!"}</h1>
-                )
-            }
-        }
-        let app: crate::App<TestComponent> = crate::App::new();
-        app.mount(
-            crate::utils::document()
-                .get_element_by_id("output")
-                .unwrap(),
-        );
-        let mut debugger = crate::DEBUGGER_CONNECTION
-            .with(|debugger| debugger.replace(crate::dev::DebuggerConnection::new()));
-        wasm_bindgen_futures::spawn_local(async {
-            let mut new = debugger.await;
-            new.send_messages();
-            assert_eq!(new.message_queue.len(), 0);
-        });
-    }
 }

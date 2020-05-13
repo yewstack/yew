@@ -22,8 +22,6 @@ pub enum ComponentEvent {
     Updated,
     /// Sent when a component is created
     Created,
-    /// Sent when a component is destroyed
-    Destroyed,
 }
 
 /// Generates a selector for a given node which can then be sent over a WebSocket
@@ -69,22 +67,16 @@ impl DebugComponent {
 /// A message sent to describe a change in a component's state.
 #[derive(Serialize, Debug)]
 pub struct ComponentMessage {
-    /// Time in seconds since the page was loaded.
-    time: f64,
     /// The event which has happened
     event: ComponentEvent,
     /// Optional additional data about the event.
-    data: Option<DebugComponent>,
+    data: DebugComponent,
 }
 
 impl ComponentMessage {
     /// Creates a new `ComponentMessage`.
     pub fn new(event: ComponentEvent, data: Option<DebugComponent>) -> Self {
         Self {
-            #[cfg(feature = "web_sys")]
-            time: web_sys::window().expect("").performance().unwrap().now(),
-            #[cfg(feature = "std_web")]
-            time: stdweb::web::Date::now(),
             event,
             data,
         }
