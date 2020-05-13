@@ -2,7 +2,6 @@
 
 use cfg_if::cfg_if;
 use serde::Serialize;
-use web_sys::Node;
 
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -108,14 +107,15 @@ pub mod tests {
     #[cfg(feature = "web_sys")]
     #[wasm_bindgen_test]
     fn test_dom_selector() {
+        use std::ops::Deref;
         use super::selector;
         let window = web_sys::window().expect("Failed to aquire window.");
-        let document = window.document();
+        let document = window.document().unwrap();
         let document_element = document
             .document_element()
             .expect("Could not get the root node");
         document_element
-            .set_outer_html("<html><head></head><body><h1>Hello World!</h1></body></html>");
+            .set_inner_html("<html><head></head><body><h1>Hello World!</h1></body></html>");
         let document_node = document_element.deref();
         let h1 = document_node.last_child().unwrap().first_child().unwrap();
         assert_eq!(selector(&h1), "SPAN/H1/")

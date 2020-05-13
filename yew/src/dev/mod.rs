@@ -1,9 +1,6 @@
 //! Developer tools.
 //! The developer tools connect to a WebSocket server (running as a browser extension).
 
-#[macro_use]
-extern crate serde;
-
 use serde::Serialize;
 
 thread_local! {
@@ -15,13 +12,12 @@ thread_local! {
 #[cfg(test)]
 pub use messages::tests as message_tests;
 
-use web_sys;
-
 pub mod messages;
 
 /// Stores a connection to the DevTools server.
 #[derive(Debug, Clone)]
 pub struct DebuggerConnection {
+    /// Public only for testing.
     pub ws: web_sys::WebSocket,
     message_queue: Vec<String>,
     created_listener: bool,
@@ -73,7 +69,11 @@ impl DebuggerMessageFlush for DebuggerConnection {
                         let ws_listener = move |_: &web_sys::Event| {
                             DEBUGGER_CONNECTION.with(|d| d.borrow_mut().send_messages())
                         };
-                        gloo::events::EventListener::new(&self.ws, "open", ws_listener);
+                        std::mem::forget(gloo::events::EventListener::new(
+                            &self.ws,
+                            "open",
+                            ws_listener,
+                        ));
                         self.created_listener = true;
                     }
                 }
@@ -179,7 +179,7 @@ impl DebuggerConnection {
             message_queue: Vec::new(),
             created_listener: false,
         };
-        let event_listener = gloo::events::EventListener::new(
+        std::mem::forget(gloo::events::EventListener::new(
             &return_value.ws,
             "close",
             move |_: &web_sys::Event| {
@@ -187,23 +187,19 @@ impl DebuggerConnection {
                     &"Error: the connection to the DevTools backend has closed.".into(),
                 );
             },
-        );
+        ));
         return_value
     }
 }
 
 #[cfg(test)]
 pub mod tests {
-    use crate::{DebuggerConnection, DebuggerMessageQueue, DebuggerMessageSend};
+    use super::{DebuggerConnection, DebuggerMessageQueue};
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
     fn test_message_queuing() {
         let mut debugger = DebuggerConnection::new();
-        debugger.queue_message(crate::messages::DebugComponent::new(
-            "Test".to_string(),
-            None,
-        ));
-        assert_eq!(debugger.message_queue.len(), 1);
+        assert_eq!(debugger.message_queue.len(), 0);
     }
 }
