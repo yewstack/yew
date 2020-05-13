@@ -11,16 +11,16 @@ description: 元件，以及生命周期鉤子
 ## 生命周期
 
 {% hint style="info" %}
-`Contribute to our docs:` [Add a diagram of the component lifecycle](https://github.com/yewstack/docs/issues/22)
+`歡迎來貢獻我們的文件：` [Add a diagram of the component lifecycle](https://github.com/yewstack/docs/issues/22)
 {% endhint %}
 
 ## 生命周期的方法
 
 ### Create
 
-When a component is created, it receives properties from its parent component as well as a `ComponentLink`. The properties can be used to initialize the component's state and the "link" can be used to register callbacks or send messages to the component.
+當一個元件被建立，他會接收從父元件，也就是 `ComponentLink` ，傳下來的屬性。 這些屬性用來初始化元件的狀態，此外，「link」可以用來註冊回調函式或傳訊息給元件。
 
-It is common to store the props and the link in your component struct, like so:
+通常，你的元件 struct 會儲存 props 與 link，就像下面的例子：
 
 ```rust
 pub struct MyComponent {
@@ -42,7 +42,7 @@ impl Component for MyComponent {
 
 ### View
 
-Components declare their layout in the `view()` method. Yew provides the `html!` macro for declaring HTML and SVG nodes and their listeners as well as child components. The macro acts a lot like React's JSX, but uses Rust expressions instead of JavaScript.
+元件會在 `view()` 方法中宣告佈局。Yew 提供 `html!` 巨集來宣告 HTML 合 SVG 的結點，包含他們的監聽事件與子結點。這個巨集扮演像是 React 的 JSX 的角色，但是是使用 Rust 的表達式，而不是 JavaScript 的。
 
 ```rust
 impl Component for MyComponent {
@@ -57,13 +57,13 @@ impl Component for MyComponent {
 }
 ```
 
-For usage details, check out the `html!` guide:
+更多使用細節，請參考 `html!` 教學：
 
 {% page-ref page="../html/" %}
 
 ### Mounted
 
-The `mounted()` component lifecycle method is called after `view()` is processed and Yew has mounted your component to the DOM but before the browser refreshes the page. A component may wish to implement this method to perform actions that can only be done after the component has rendered elements. If you wish to re-render your component after making changes `mounted()`, return `true`.
+`mounted()` 生命周期的方法，會在 `view()` 方法結束後被呼叫，此時，Yew 已經掛載你的元件到 DOM 上，但是在瀏覽器還未刷新頁面。 實作這個方法，可以執行，希望在元件渲染完的元素之後，才能做的動作。如果結束 `mounted()` 的改變後，你希望重新渲染你的元件，請回傳 `true`。
 
 ```rust
 use stdweb::web::html_element::InputElement;
@@ -93,7 +93,7 @@ impl Component for MyComponent {
 ```
 
 {% hint style="info" %}
-Note that this lifecycle method does not require an implementation and will do nothing by default
+注意，這個生命周期方法，不是一定要被實作，預設的行為是不做任何事情。
 {% endhint %}
 
 ### Update
