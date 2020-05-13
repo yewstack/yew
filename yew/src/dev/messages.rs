@@ -107,8 +107,8 @@ pub mod tests {
     #[cfg(feature = "web_sys")]
     #[wasm_bindgen_test]
     fn test_dom_selector() {
-        use std::ops::Deref;
         use super::selector;
+        use std::ops::Deref;
         let window = web_sys::window().expect("Failed to aquire window.");
         let document = window.document().unwrap();
         let document_element = document

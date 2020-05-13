@@ -194,7 +194,7 @@ impl DebuggerConnection {
 
 #[cfg(test)]
 pub mod tests {
-    use super::{DebuggerConnection, DebuggerMessageQueue, DebuggerMessageFlush};
+    use super::{DebuggerConnection, DebuggerMessageFlush, DebuggerMessageQueue};
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
@@ -209,13 +209,16 @@ pub mod tests {
             assert_eq!(debugger.borrow().message_queue.len(), 1);
         });
         crate::dev::DEBUGGER_CONNECTION.with(|debugger| {
-            std::mem::forget(gloo::events::EventListener::new(&debugger.borrow().ws, "open", |_: &web_sys::Event| {
-                crate::dev::DEBUGGER_CONNECTION.with(|d| {
-                    d.borrow_mut().send_messages();
-                    assert_eq!(d.borrow().message_queue.len(), 0);
-                })
-            }));
+            std::mem::forget(gloo::events::EventListener::new(
+                &debugger.borrow().ws,
+                "open",
+                |_: &web_sys::Event| {
+                    crate::dev::DEBUGGER_CONNECTION.with(|d| {
+                        d.borrow_mut().send_messages();
+                        assert_eq!(d.borrow().message_queue.len(), 0);
+                    })
+                },
+            ));
         });
-        
     }
 }
