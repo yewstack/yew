@@ -37,22 +37,6 @@ pub enum ConnectionState {
     CouldntConnect,
 }
 
-impl std::future::Future for DebuggerConnection {
-    type Output = Self;
-    fn poll(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Self::Output> {
-        match self.ws.ready_state() {
-            0 => std::task::Poll::Pending,
-            1 => std::task::Poll::Ready(self.clone()),
-            2 => std::task::Poll::Pending,
-            3 => std::task::Poll::Ready(self.clone()),
-            _ => std::task::Poll::Pending,
-        }
-    }
-}
-
 /// A debugger is capable of sending messages over a WebSocket connection.
 pub trait DebuggerMessageQueue<T>
 where
@@ -63,7 +47,10 @@ where
 }
 
 /// Sends messages.
-pub trait DebuggerMessageSend<T> where T: Serialize {
+pub trait DebuggerMessageSend<T>
+where
+    T: Serialize,
+{
     /// Send all the messages in the queue.
     fn send_messages(&mut self);
     fn send_message(&mut self, message: T);
@@ -111,16 +98,18 @@ impl<T: Serialize> DebuggerMessageSend<T> for DebuggerConnection {
                 self.send_messages();
             }
             1 => {
-                self.ws.send_with_str(serde_json::to_string(&message).unwrap());
+                self.ws
+                    .send_with_str(serde_json::to_string(&message).unwrap());
             }
-            2 | 3 => {
+            2 | 3 =>
+            {
                 #[cfg(feature = "web_sys")]
-                    web_sys::console::error_1(
-                        &"Could not open a connection to Yew's developer tools; are they running?"
-                            .into(),
+                web_sys::console::error_1(
+                    &"Could not open a connection to Yew's developer tools; are they running?"
+                        .into(),
                 )
             }
-            _ => panic!("The WebSocket is in an incorrect state.")
+            _ => panic!("The WebSocket is in an incorrect state."),
         }
     }
 }
@@ -166,7 +155,7 @@ impl DebuggerConnection {
                         panic!("Could not open a connection to the DevTools WebSocket.");
                     });
                     return s;
-                },
+                }
                 Err(_) => {
                     panic!("");
                 }
