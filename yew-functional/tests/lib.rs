@@ -151,10 +151,20 @@ fn use_effect_destroys_on_component_drop() {
     struct UseEffectFunction {}
     struct UseEffectWrapper {}
     #[derive(Properties, Clone)]
-    struct DestroyCalledProps {
+    struct WrapperProps {
         destroy_called: Rc<dyn Fn()>,
     }
-    impl PartialEq for DestroyCalledProps {
+    impl PartialEq for WrapperProps {
+        fn eq(&self, _other: &Self) -> bool {
+            false
+        }
+    }
+    #[derive(Properties, Clone)]
+    struct FunctionProps {
+        effect_called: Rc<dyn Fn()>,
+        destroy_called: Rc<dyn Fn()>,
+    }
+    impl PartialEq for FunctionProps {
         fn eq(&self, _other: &Self) -> bool {
             false
         }
@@ -162,15 +172,15 @@ fn use_effect_destroys_on_component_drop() {
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;
     type UseEffectWrapperComponent = FunctionComponent<UseEffectWrapper>;
     impl FunctionProvider for UseEffectFunction {
-        type TProps = DestroyCalledProps;
+        type TProps = FunctionProps;
 
         fn run(props: &Self::TProps) -> Html {
+            let effect_called = props.effect_called.clone();
             let destroy_called = props.destroy_called.clone();
             use_effect_with_deps(
                 move |_| {
-                    move || {
-                        destroy_called();
-                    }
+                    effect_called();
+                    move || destroy_called()
                 },
                 (),
             );
@@ -178,21 +188,14 @@ fn use_effect_destroys_on_component_drop() {
         }
     }
     impl FunctionProvider for UseEffectWrapper {
-        type TProps = DestroyCalledProps;
+        type TProps = WrapperProps;
 
         fn run(props: &Self::TProps) -> Html {
             let (show, set_show) = use_state(|| true);
-            use_effect_with_deps(
-                move |_| {
-                    set_show(false);
-                    || {}
-                },
-                (),
-            );
-
             if *show {
+                let effect_called: Rc<dyn Fn()> = Rc::new(move || set_show(false));
                 return html! {
-                    <UseEffectComponent destroy_called=props.destroy_called.clone() />
+                    <UseEffectComponent destroy_called=props.destroy_called.clone() effect_called=effect_called />
                 };
             } else {
                 return html! {
@@ -206,11 +209,74 @@ fn use_effect_destroys_on_component_drop() {
     let destroy_counter_c = destroy_counter.clone();
     app.mount_with_props(
         yew::utils::document().get_element_by_id("output").unwrap(),
-        DestroyCalledProps {
+        WrapperProps {
             destroy_called: Rc::new(move || *destroy_counter_c.borrow_mut().deref_mut() += 1),
         },
     );
     assert_eq!(1, *destroy_counter.borrow().deref());
+}
+
+#[wasm_bindgen_test]
+fn use_effect_not_called_if_destroyed_immediately() {
+    struct UseEffectFunction {}
+    struct UseEffectWrapper {}
+    #[derive(Properties, Clone)]
+    struct EffectCalledProps {
+        effect_called: Rc<dyn Fn()>,
+    }
+    impl PartialEq for EffectCalledProps {
+        fn eq(&self, _other: &Self) -> bool {
+            false
+        }
+    }
+    type UseEffectComponent = FunctionComponent<UseEffectFunction>;
+    type UseEffectWrapperComponent = FunctionComponent<UseEffectWrapper>;
+    impl FunctionProvider for UseEffectFunction {
+        type TProps = EffectCalledProps;
+
+        fn run(props: &Self::TProps) -> Html {
+            let effect_called = props.effect_called.clone();
+            use_effect(move || {
+                effect_called();
+                || {}
+            });
+            html! {}
+        }
+    }
+    impl FunctionProvider for UseEffectWrapper {
+        type TProps = EffectCalledProps;
+
+        fn run(props: &Self::TProps) -> Html {
+            let (show, set_show) = use_state(|| true);
+            use_effect_with_deps(
+                move |_| {
+                    set_show(false);
+                    || {}
+                },
+                (),
+            );
+
+            if *show {
+                return html! {
+                    <UseEffectComponent effect_called=props.effect_called.clone() />
+                };
+            } else {
+                return html! {
+                    <div>{"EMPTY"}</div>
+                };
+            }
+        }
+    }
+    let app: App<UseEffectWrapperComponent> = yew::App::new();
+    let effect_counter = Rc::new(std::cell::RefCell::new(0));
+    let effect_counter_c = effect_counter.clone();
+    app.mount_with_props(
+        yew::utils::document().get_element_by_id("output").unwrap(),
+        EffectCalledProps {
+            effect_called: Rc::new(move || *effect_counter_c.borrow_mut().deref_mut() += 1),
+        },
+    );
+    assert_eq!(0, *effect_counter.borrow().deref());
 }
 
 #[wasm_bindgen_test]

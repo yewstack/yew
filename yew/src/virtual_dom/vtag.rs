@@ -507,6 +507,7 @@ where
 mod tests {
     use super::*;
     use crate::{html, Component, ComponentLink, Html, ShouldRender};
+    use std::any::TypeId;
     #[cfg(feature = "std_web")]
     use stdweb::web::{document, IElement};
     #[cfg(feature = "wasm_test")]
@@ -514,6 +515,14 @@ mod tests {
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
+
+    fn test_scope() -> AnyScope {
+        AnyScope {
+            type_id: TypeId::of::<()>(),
+            parent: None,
+            state: Rc::new(()),
+        }
+    }
 
     struct Comp;
 
@@ -839,7 +848,7 @@ mod tests {
         #[cfg(feature = "web_sys")]
         let document = web_sys::window().unwrap().document().unwrap();
 
-        let scope = AnyScope::default();
+        let scope = test_scope();
         let div_el = document.create_element("div").unwrap();
         let namespace = SVG_NAMESPACE;
         #[cfg(feature = "web_sys")]
@@ -982,7 +991,7 @@ mod tests {
 
     #[test]
     fn it_does_not_set_empty_class_name() {
-        let scope = AnyScope::default();
+        let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
         #[cfg(feature = "std_web")]
@@ -999,7 +1008,7 @@ mod tests {
 
     #[test]
     fn it_does_not_set_missing_class_name() {
-        let scope = AnyScope::default();
+        let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
         #[cfg(feature = "std_web")]
@@ -1016,7 +1025,7 @@ mod tests {
 
     #[test]
     fn it_sets_class_name() {
-        let scope = AnyScope::default();
+        let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
         #[cfg(feature = "std_web")]
@@ -1072,7 +1081,7 @@ mod tests {
 
     #[test]
     fn swap_order_of_classes() {
-        let scope = AnyScope::default();
+        let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
         #[cfg(feature = "std_web")]
@@ -1123,7 +1132,7 @@ mod tests {
 
     #[test]
     fn add_class_to_the_middle() {
-        let scope = AnyScope::default();
+        let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
         #[cfg(feature = "std_web")]
