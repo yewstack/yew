@@ -39,13 +39,6 @@ where
     /// will render the model to a virtual DOM tree. If you would like to pass props,
     /// use the `mount_with_props` method.
     pub fn mount(self, element: Element) -> ComponentLink<COMP> {
-        #[cfg(feature = "dev")]
-        let _ = wasm_bindgen_futures::spawn_local(async move {
-            let new_debugger = crate::dev::DebuggerConnection::new().await;
-            crate::DEBUGGER_CONNECTION.with(|debugger| {
-                debugger.replace(new_debugger);
-            });
-        });
         clear_element(&element);
         self.scope.mount_in_place(
             element,

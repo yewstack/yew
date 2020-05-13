@@ -156,7 +156,7 @@ impl<COMP: Component> Scope<COMP> {
         crate::DEBUGGER_CONNECTION.with(|debugger| {
             debugger
                 .borrow_mut()
-                .queue_message(crate::dev::messages::ComponentMessage::new(
+                .send_message(crate::dev::messages::ComponentMessage::new(
                     crate::dev::messages::ComponentEvent::Created,
                     Some(crate::dev::messages::DebugComponent::new(
                         std::any::type_name::<COMP>().to_string(),
@@ -178,7 +178,7 @@ impl<COMP: Component> Scope<COMP> {
         crate::DEBUGGER_CONNECTION.with(|debugger| {
             debugger
                 .borrow_mut()
-                .queue_message(crate::dev::messages::ComponentMessage::new(
+                .send_message(crate::dev::messages::ComponentMessage::new(
                     crate::dev::messages::ComponentEvent::Updated,
                     Some(crate::dev::messages::DebugComponent::new(
                         std::any::type_name::<COMP>().to_string(),
@@ -208,7 +208,7 @@ impl<COMP: Component> Scope<COMP> {
         crate::DEBUGGER_CONNECTION.with(|debugger| {
             debugger
                 .borrow_mut()
-                .queue_message(crate::dev::messages::ComponentMessage::new(
+                .send_message(crate::dev::messages::ComponentMessage::new(
                     crate::dev::messages::ComponentEvent::Destroyed,
                     Some(crate::dev::messages::DebugComponent::new(
                         std::any::type_name::<COMP>().to_string(),
