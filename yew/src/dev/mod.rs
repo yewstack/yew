@@ -176,6 +176,5 @@ impl DebuggerConnection {
 #[cfg(test)]
 pub mod tests {
     use crate::dev::{DebuggerConnection, DebuggerMessageQueue, DebuggerMessageSend};
-    use std::ops::DerefMut;
     use wasm_bindgen_test::*;
 }

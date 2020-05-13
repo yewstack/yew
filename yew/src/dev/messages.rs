@@ -42,9 +42,7 @@ pub fn selector(dom_node: &Node) -> String {
                     }
                 }
             }
-            None => {
-                return selector_string;
-            }
+            None => selector_string,
         };
     }
 }
@@ -98,15 +96,12 @@ pub mod tests {
     #[wasm_bindgen_test]
     fn test_dom_selector() {
         use super::selector;
-        let node = Node::from_html("<html><head></head><body><h1>Hello World!</h1></body></html>");
-        match node {
-            Ok(n) => {
-                let dom_selector = selector(&n);
-                assert_eq!(dom_selector, "SPAN/H1/")
-            }
-            Err(e) => panic!("{:?}", e),
-        }
+        let node = Node::from_html("<html><head></head><body><h1>Hello World!</h1></body></html>")
+            .unwrap();
+        let dom_selector = selector(&n);
+        assert_eq!(dom_selector, "SPAN/H1/");
     }
+    
     #[cfg(feature = "wasm_test")]
     #[cfg(feature = "web_sys")]
     #[wasm_bindgen_test]
