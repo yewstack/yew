@@ -209,6 +209,9 @@ mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
 
+#[cfg(feature = "dev")]
+pub mod dev;
+
 #[cfg(feature = "agent")]
 pub mod agent;
 #[cfg(feature = "services")]
