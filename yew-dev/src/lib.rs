@@ -1,8 +1,10 @@
 //! Developer tools.
 //! The developer tools connect to a WebSocket server (running as a browser extension).
 
+#[macro_use]
+extern crate serde;
+
 use serde::Serialize;
-use serde_json;
 
 thread_local! {
     /// A global debugger object.
@@ -13,23 +15,14 @@ thread_local! {
 #[cfg(test)]
 pub use messages::tests as message_tests;
 
-#[cfg(feature = "web_sys")]
 use web_sys;
-
-#[cfg(feature = "std_web")]
-use stdweb;
 
 pub mod messages;
 
 /// Stores a connection to the DevTools server.
 #[derive(Debug, Clone)]
 pub struct DebuggerConnection {
-    #[cfg(feature = "web_sys")]
-    /// Public only for testing.
     pub ws: web_sys::WebSocket,
-    #[cfg(feature = "std_web")]
-    /// Public only for testing.
-    pub ws: stdweb::web::WebSocket,
     message_queue: Vec<String>,
     created_listener: bool,
 }
@@ -89,11 +82,12 @@ impl DebuggerMessageFlush for DebuggerConnection {
                         self.ws.send_with_str(&self.message_queue.pop().unwrap());
                     }
                 }
-                2 | 3 =>
-                #[cfg(feature = "web_sys")]
-                {
-                    web_sys::console::error_1(&"Error: could not open a connection to the DevTools WebSocket. Are you sure the DevTools backend is running?".into());
-                    panic!("Could not open a connection to the DevTools WebSocket.");
+                2 | 3 => {
+                    #[cfg(feature = "web_sys")]
+                    {
+                        web_sys::console::error_1(&"Error: could not open a connection to the DevTools WebSocket. Are you sure the DevTools backend is running?".into());
+                        panic!("Could not open a connection to the DevTools WebSocket.");
+                    };
                 }
                 _ => panic!("The WebSocket is in an incorrect state."),
             }
@@ -108,8 +102,19 @@ impl<T: Serialize> DebuggerMessageSend<T> for DebuggerConnection {
                 self.queue_message(message);
             }
             1 => {
-                self.ws
-                    .send_with_str(&serde_json::to_string(&message).unwrap());
+                match self
+                    .ws
+                    .send_with_str(&serde_json::to_string(&message).unwrap())
+                {
+                    Ok(_) => {}
+                    Err(e) => web_sys::console::error_1(
+                        &format!(
+                            "Encountered an error sending a message to the DevTools backend: {:?}",
+                            e
+                        )
+                        .into(),
+                    ),
+                };
             }
             2 | 3 =>
             {
@@ -166,43 +171,36 @@ impl DebuggerConnection {
                 }
             }
         );
-        Self {
-            #[cfg(feature = "web_sys")]
+        let return_value = Self {
             ws: match web_sys::WebSocket::new(&ws_url) {
-                Ok(s) => {
-                    gloo::events::EventListener::new(&s, "close", move |_: &web_sys::Event| {
-                        web_sys::console::error_1(
-                            &"Error: the connection to the DevTools backend has closed.",
-                        );
-                    });
-                    return s;
-                }
-                Err(_) => panic!(""),
-            },
-            #[cfg(feature = "std_web")]
-            ws: match stdweb::web::WebSocket::new(&ws_url) {
                 Ok(s) => s,
-                Err(_) => {
-                    stdweb::console!(error, "Error: could not open a connection to the DevTools WebSocket. Are you sure the DevTools backend is running?");
-                    panic!("Could not open a connection to the DevTools WebSocket.");
-                }
+                Err(_) => panic!(""),
             },
             message_queue: Vec::new(),
             created_listener: false,
-        }
+        };
+        let event_listener = gloo::events::EventListener::new(
+            &return_value.ws,
+            "close",
+            move |_: &web_sys::Event| {
+                web_sys::console::error_1(
+                    &"Error: the connection to the DevTools backend has closed.".into(),
+                );
+            },
+        );
+        return_value
     }
 }
 
 #[cfg(test)]
 pub mod tests {
-    use crate::dev::{DebuggerConnection, DebuggerMessageQueue, DebuggerMessageSend};
-    use std::ops::DerefMut;
+    use crate::{DebuggerConnection, DebuggerMessageQueue, DebuggerMessageSend};
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
     fn test_message_queuing() {
         let mut debugger = DebuggerConnection::new();
-        debugger.queue_message(crate::dev::messages::DebugComponent::new(
+        debugger.queue_message(crate::messages::DebugComponent::new(
             "Test".to_string(),
             None,
         ));

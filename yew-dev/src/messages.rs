@@ -2,6 +2,7 @@
 
 use cfg_if::cfg_if;
 use serde::Serialize;
+use web_sys::Node;
 
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -35,15 +36,8 @@ pub fn selector(dom_node: &Node) -> String {
     loop {
         match current_node {
             Some(node) => {
-                cfg_if! {
-                    if #[cfg(feature="std_web")] {
-                        selector_string = node.node_name() + "/" + &selector_string;
-                        current_node = node.parent_node();
-                    } else if #[cfg(feature="web_sys")] {
-                        selector_string = node.node_name() + "/" + &selector_string;
-                        current_node = node.parent_node();
-                    }
-                }
+                selector_string = node.node_name() + "/" + &selector_string;
+                current_node = node.parent_node();
             }
             None => {
                 return selector_string;

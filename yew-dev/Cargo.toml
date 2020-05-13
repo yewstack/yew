@@ -1,0 +1,24 @@
+[package]
+name = "yew-dev"
+version = "0.1.0"
+authors = ["Teymour Aldridge <teymour.aldridge@icloud.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+gloo = { version = "0.2.1"}
+cfg-if = "0.1"
+serde={version="1", features=["derive"]}
+serde_json={version="1"}
+
+[dependencies.web-sys]
+version = "0.3.4"
+features = [
+  "Node",
+  "WebSocket",
+  "console"
+]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.0"
