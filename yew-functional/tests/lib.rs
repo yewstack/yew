@@ -217,6 +217,69 @@ fn use_effect_destroys_on_component_drop() {
 }
 
 #[wasm_bindgen_test]
+fn use_effect_not_called_if_destroyed_immediately() {
+    struct UseEffectFunction {}
+    struct UseEffectWrapper {}
+    #[derive(Properties, Clone)]
+    struct EffectCalledProps {
+        effect_called: Rc<dyn Fn()>,
+    }
+    impl PartialEq for EffectCalledProps {
+        fn eq(&self, _other: &Self) -> bool {
+            false
+        }
+    }
+    type UseEffectComponent = FunctionComponent<UseEffectFunction>;
+    type UseEffectWrapperComponent = FunctionComponent<UseEffectWrapper>;
+    impl FunctionProvider for UseEffectFunction {
+        type TProps = EffectCalledProps;
+
+        fn run(props: &Self::TProps) -> Html {
+            let effect_called = props.effect_called.clone();
+            use_effect(move || {
+                effect_called();
+                || {}
+            });
+            html! {}
+        }
+    }
+    impl FunctionProvider for UseEffectWrapper {
+        type TProps = EffectCalledProps;
+
+        fn run(props: &Self::TProps) -> Html {
+            let (show, set_show) = use_state(|| true);
+            use_effect_with_deps(
+                move |_| {
+                    set_show(false);
+                    || {}
+                },
+                (),
+            );
+
+            if *show {
+                return html! {
+                    <UseEffectComponent effect_called=props.effect_called.clone() />
+                };
+            } else {
+                return html! {
+                    <div>{"EMPTY"}</div>
+                };
+            }
+        }
+    }
+    let app: App<UseEffectWrapperComponent> = yew::App::new();
+    let effect_counter = Rc::new(std::cell::RefCell::new(0));
+    let effect_counter_c = effect_counter.clone();
+    app.mount_with_props(
+        yew::utils::document().get_element_by_id("output").unwrap(),
+        EffectCalledProps {
+            effect_called: Rc::new(move || *effect_counter_c.borrow_mut().deref_mut() += 1),
+        },
+    );
+    assert_eq!(0, *effect_counter.borrow().deref());
+}
+
+#[wasm_bindgen_test]
 fn use_effect_works_many_times() {
     struct UseEffectFunction {}
     impl FunctionProvider for UseEffectFunction {
