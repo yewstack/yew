@@ -51,6 +51,16 @@ impl Parse for HtmlTag {
             });
         }
 
+        // Void elements should not have children.
+        // See https://html.spec.whatwg.org/multipage/syntax.html#void-elements
+        match open.tag_name.to_string().as_str() {
+            "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link" | "meta"
+            | "param" | "source" | "track" | "wbr" => {
+                return Err(syn::Error::new_spanned(&open, format!("the tag `<{}>` is a void element and cannot have children (hint: rewrite this as `<{0}/>`)", open.tag_name)));
+            }
+            _ => {}
+        }
+
         let mut children: Vec<HtmlTree> = vec![];
         loop {
             if input.is_empty() {
@@ -219,21 +229,6 @@ impl Parse for HtmlTagOpen {
         let tag_name = input.parse::<TagName>()?;
         let TagSuffix { stream, div, gt } = input.parse()?;
         let mut attributes: TagAttributes = parse(stream)?;
-
-        // Void elements should not have children.
-        // See https://html.spec.whatwg.org/multipage/syntax.html#void-elements
-        if div.is_none() {
-            match tag_name.to_string().as_str() {
-                "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
-                | "meta" | "param" | "source" | "track" | "wbr" => {
-                    return Err(syn::Error::new_spanned(
-                        gt,
-                        &format!("the tag `<{}>` is a void element and cannot have children (hint: rewrite this as `<{0}/>`)", tag_name),
-                    ));
-                }
-                _ => {}
-            }
-        }
 
         // Don't treat value as special for non input / textarea fields
         match tag_name.to_string().as_str() {

@@ -142,11 +142,11 @@ error: the attribute `ref` can only be specified once
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: the tag `<br>` is a void element and cannot have children (hint: rewrite this as `<br/>`)
-  --> $DIR/html-tag-fail.rs:40:16
+error: the tag `<input>` is a void element and cannot have children (hint: rewrite this as `<input/>`)
+  --> $DIR/html-tag-fail.rs:40:13
    |
-40 |     html! { <br></br> };
-   |                ^
+40 |     html! { <input type="text"></input> };
+   |             ^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
