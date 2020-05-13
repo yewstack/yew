@@ -79,10 +79,7 @@ pub struct ComponentMessage {
 impl ComponentMessage {
     /// Creates a new instance of `ComponentMessage`
     pub fn new(event: ComponentEvent, data: Option<DebugComponent>) -> Self {
-        Self {
-            event,
-            data,
-        }
+        Self { event, data }
     }
 }
 

@@ -44,17 +44,17 @@ where
 }
 
 /// Sends messages.
-pub trait DebuggerMessageFlush
-{
+pub trait DebuggerMessageFlush {
     /// Send all the messages in the queue.
     fn send_messages(&mut self);
 }
 
 /// Sends a single message, or adds it to the queue if the WebSocket is not open.
 pub trait DebuggerMessageSend<T>
-where T: Serialize
+where
+    T: Serialize,
 {
-    /// Send a message 
+    /// Send a message
     fn send_message(&mut self, message: T);
 }
 
@@ -90,11 +90,10 @@ impl DebuggerMessageFlush for DebuggerConnection {
                     }
                 }
                 2 | 3 =>
+                #[cfg(feature = "web_sys")]
                 {
-                    #[cfg(feature = "web_sys")] {
                     web_sys::console::error_1(&"Error: could not open a connection to the DevTools WebSocket. Are you sure the DevTools backend is running?".into());
                     panic!("Could not open a connection to the DevTools WebSocket.");
-                    }
                 }
                 _ => panic!("The WebSocket is in an incorrect state."),
             }
@@ -120,7 +119,7 @@ impl<T: Serialize> DebuggerMessageSend<T> for DebuggerConnection {
                         .into(),
                 )
             }
-            _ => panic!("The WebSocket is in an invalid state.")
+            _ => panic!("The WebSocket is in an invalid state."),
         }
     }
 }
@@ -170,10 +169,15 @@ impl DebuggerConnection {
         Self {
             #[cfg(feature = "web_sys")]
             ws: match web_sys::WebSocket::new(&ws_url) {
-                Ok(s) => s,
-                Err(_) => {
-                    panic!("")
+                Ok(s) => {
+                    gloo::events::EventListener::new(&s, "close", move |_: &web_sys::Event| {
+                        web_sys::console::error_1(
+                            &"Error: the connection to the DevTools backend has closed.",
+                        );
+                    });
+                    return s;
                 }
+                Err(_) => panic!(""),
             },
             #[cfg(feature = "std_web")]
             ws: match stdweb::web::WebSocket::new(&ws_url) {
