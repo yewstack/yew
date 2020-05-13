@@ -129,10 +129,10 @@ impl VComp {
                 }
                 GeneratorType::Overwrite(any_scope) => {
                     let mut scope: Scope<COMP> = any_scope.downcast();
-                    scope.update(ComponentUpdate::Properties(
-                        props.clone(),
-                        node_ref_clone.clone(),
-                    ));
+                    scope.update(
+                        ComponentUpdate::Properties(props.clone(), node_ref_clone.clone()),
+                        false,
+                    );
 
                     Mounted {
                         node_ref: node_ref_clone.clone(),
