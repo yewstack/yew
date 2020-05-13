@@ -194,12 +194,28 @@ impl DebuggerConnection {
 
 #[cfg(test)]
 pub mod tests {
-    use super::{DebuggerConnection, DebuggerMessageQueue};
+    use super::{DebuggerConnection, DebuggerMessageQueue, DebuggerMessageFlush};
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
     fn test_message_queuing() {
-        let mut debugger = DebuggerConnection::new();
-        assert_eq!(debugger.message_queue.len(), 0);
+        crate::dev::DEBUGGER_CONNECTION.with(|debugger| {
+            assert_eq!(debugger.borrow_mut().message_queue.len(), 0);
+        });
+        crate::dev::DEBUGGER_CONNECTION.with(|debugger| {
+            debugger.borrow_mut().queue_message("A message");
+        });
+        crate::dev::DEBUGGER_CONNECTION.with(|debugger| {
+            assert_eq!(debugger.borrow().message_queue.len(), 1);
+        });
+        crate::dev::DEBUGGER_CONNECTION.with(|debugger| {
+            std::mem::forget(gloo::events::EventListener::new(&debugger.borrow().ws, "open", |_: &web_sys::Event| {
+                crate::dev::DEBUGGER_CONNECTION.with(|d| {
+                    d.borrow_mut().send_messages();
+                    assert_eq!(d.borrow().message_queue.len(), 0);
+                })
+            }));
+        });
+        
     }
 }
