@@ -120,13 +120,17 @@ impl<COMP: Component> Scope<COMP> {
         node_ref: NodeRef,
         props: COMP::Properties,
     ) -> Scope<COMP> {
-        *self.state.borrow_mut() = Some(ComponentState::new(
-            element,
-            ancestor,
-            node_ref,
-            self.clone(),
-            props,
-        ));
+        scheduler().push_comp(
+            ComponentRunnableType::Create,
+            Box::new(CreateComponent {
+                state: self.state.clone(),
+                element,
+                ancestor,
+                node_ref,
+                scope: self.clone(),
+                props,
+            }),
+        );
         self.update(ComponentUpdate::Force, true);
         self
     }
@@ -219,13 +223,16 @@ impl<COMP: Component> Scope<COMP> {
     }
 }
 
+type Dirty = bool;
+const DIRTY: Dirty = true;
+
 struct ComponentState<COMP: Component> {
     element: Element,
     node_ref: NodeRef,
     scope: Scope<COMP>,
     component: Box<COMP>,
     last_root: Option<VNode>,
-    rendered: bool,
+    render_status: Option<Dirty>,
 }
 
 impl<COMP: Component> ComponentState<COMP> {
@@ -243,7 +250,37 @@ impl<COMP: Component> ComponentState<COMP> {
             scope,
             component,
             last_root: ancestor,
-            rendered: false,
+            render_status: None,
+        }
+    }
+}
+
+struct CreateComponent<COMP>
+where
+    COMP: Component,
+{
+    state: Shared<Option<ComponentState<COMP>>>,
+    element: Element,
+    ancestor: Option<VNode>,
+    node_ref: NodeRef,
+    scope: Scope<COMP>,
+    props: COMP::Properties,
+}
+
+impl<COMP> Runnable for CreateComponent<COMP>
+where
+    COMP: Component,
+{
+    fn run(self: Box<Self>) {
+        let mut current_state = self.state.borrow_mut();
+        if current_state.is_none() {
+            *current_state = Some(ComponentState::new(
+                self.element,
+                self.ancestor,
+                self.node_ref,
+                self.scope,
+                self.props,
+            ));
         }
     }
 }
@@ -277,7 +314,7 @@ where
             };
 
             if should_update {
-                state.rendered = false;
+                state.render_status = state.render_status.map(|_| DIRTY);
                 let mut root = state.component.render();
                 let last_root = state.last_root.take();
                 if let Some(node) =
@@ -311,10 +348,16 @@ where
 {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().as_mut() {
-            if !state.rendered {
-                state.rendered = true;
-                state.component.rendered(self.first_render);
+            if self.first_render && state.render_status.is_some() {
+                return;
             }
+
+            if !self.first_render && state.render_status != Some(DIRTY) {
+                return;
+            }
+
+            state.render_status = Some(!DIRTY);
+            state.component.rendered(self.first_render);
         }
     }
 }
@@ -354,17 +397,22 @@ mod tests {
     #[derive(Clone, Properties)]
     struct Props {
         lifecycle: Rc<RefCell<Vec<String>>>,
+        create_message: Option<bool>,
     }
+
     struct Comp {
         props: Props,
     }
 
     impl Component for Comp {
-        type Message = ();
+        type Message = bool;
         type Properties = Props;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
             props.lifecycle.borrow_mut().push("create".into());
+            if let Some(msg) = props.create_message {
+                link.send_message(msg);
+            }
             Comp { props }
         }
 
@@ -375,9 +423,12 @@ mod tests {
                 .push(format!("rendered({})", first_render));
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            self.props.lifecycle.borrow_mut().push("update".into());
-            false
+        fn update(&mut self, msg: Self::Message) -> ShouldRender {
+            self.props
+                .lifecycle
+                .borrow_mut()
+                .push(format!("update({})", msg));
+            msg
         }
 
         fn change(&mut self, _: Self::Properties) -> ShouldRender {
@@ -398,11 +449,12 @@ mod tests {
     }
 
     #[test]
-    fn text_mount_in_place() {
+    fn mount() {
         let document = crate::utils::document();
         let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
         let props = Props {
             lifecycle: lifecycle.clone(),
+            create_message: None,
         };
 
         let scope = Scope::<Comp>::new(None);
@@ -413,6 +465,55 @@ mod tests {
             lifecycle.borrow_mut().deref(),
             &vec![
                 "create".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string()
+            ]
+        );
+    }
+
+    #[test]
+    fn mount_with_create_message() {
+        let document = crate::utils::document();
+        let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
+        let props = Props {
+            lifecycle: lifecycle.clone(),
+            create_message: Some(false),
+        };
+
+        let scope = Scope::<Comp>::new(None);
+        let el = document.create_element("div").unwrap();
+        scope.mount_in_place(el, None, NodeRef::default(), props);
+
+        assert_eq!(
+            lifecycle.borrow_mut().deref(),
+            &vec![
+                "create".to_string(),
+                "update(false)".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string()
+            ]
+        );
+    }
+
+    #[test]
+    fn mount_with_create_render_message() {
+        let document = crate::utils::document();
+        let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
+        let props = Props {
+            lifecycle: lifecycle.clone(),
+            create_message: Some(true),
+        };
+
+        let scope = Scope::<Comp>::new(None);
+        let el = document.create_element("div").unwrap();
+        scope.mount_in_place(el, None, NodeRef::default(), props);
+
+        assert_eq!(
+            lifecycle.borrow_mut().deref(),
+            &vec![
+                "create".to_string(),
+                "update(true)".to_string(),
+                "view".to_string(),
                 "view".to_string(),
                 "rendered(true)".to_string()
             ]
