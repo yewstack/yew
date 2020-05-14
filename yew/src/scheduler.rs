@@ -31,6 +31,7 @@ pub(crate) struct Scheduler {
 
 pub(crate) enum ComponentRunnableType {
     Destroy,
+    Create,
     Update,
     Rendered,
 }
@@ -39,6 +40,7 @@ pub(crate) enum ComponentRunnableType {
 struct ComponentScheduler {
     // Queues
     destroy: Shared<VecDeque<Box<dyn Runnable>>>,
+    create: Shared<VecDeque<Box<dyn Runnable>>>,
     update: Shared<VecDeque<Box<dyn Runnable>>>,
 
     // Stack
@@ -49,6 +51,7 @@ impl ComponentScheduler {
     fn new() -> Self {
         ComponentScheduler {
             destroy: Rc::new(RefCell::new(VecDeque::new())),
+            create: Rc::new(RefCell::new(VecDeque::new())),
             update: Rc::new(RefCell::new(VecDeque::new())),
             rendered: Rc::new(RefCell::new(Vec::new())),
         }
@@ -56,6 +59,7 @@ impl ComponentScheduler {
 
     fn next_runnable(&self) -> Option<Box<dyn Runnable>> {
         None.or_else(|| self.destroy.borrow_mut().pop_front())
+            .or_else(|| self.create.borrow_mut().pop_front())
             .or_else(|| self.update.borrow_mut().pop_front())
             .or_else(|| self.rendered.borrow_mut().pop())
     }
@@ -75,6 +79,7 @@ impl Scheduler {
             ComponentRunnableType::Destroy => {
                 self.component.destroy.borrow_mut().push_back(runnable)
             }
+            ComponentRunnableType::Create => self.component.create.borrow_mut().push_back(runnable),
             ComponentRunnableType::Update => self.component.update.borrow_mut().push_back(runnable),
             ComponentRunnableType::Rendered => self.component.rendered.borrow_mut().push(runnable),
         };
