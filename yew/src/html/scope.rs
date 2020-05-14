@@ -339,3 +339,83 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::html::*;
+    use crate::Properties;
+    use std::ops::Deref;
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[derive(Clone, Properties)]
+    struct Props {
+        lifecycle: Rc<RefCell<Vec<String>>>,
+    }
+    struct Comp {
+        props: Props,
+    }
+
+    impl Component for Comp {
+        type Message = ();
+        type Properties = Props;
+
+        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+            props.lifecycle.borrow_mut().push("create".into());
+            Comp { props }
+        }
+
+        fn rendered(&mut self, first_render: bool) {
+            self.props
+                .lifecycle
+                .borrow_mut()
+                .push(format!("rendered({})", first_render));
+        }
+
+        fn update(&mut self, _: Self::Message) -> ShouldRender {
+            self.props.lifecycle.borrow_mut().push("update".into());
+            false
+        }
+
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+            self.props.lifecycle.borrow_mut().push("change".into());
+            false
+        }
+
+        fn view(&self) -> Html {
+            self.props.lifecycle.borrow_mut().push("view".into());
+            html! {}
+        }
+    }
+
+    impl Drop for Comp {
+        fn drop(&mut self) {
+            self.props.lifecycle.borrow_mut().push("drop".into());
+        }
+    }
+
+    #[test]
+    fn text_mount_in_place() {
+        let document = crate::utils::document();
+        let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
+        let props = Props {
+            lifecycle: lifecycle.clone(),
+        };
+
+        let scope = Scope::<Comp>::new(None);
+        let el = document.create_element("div").unwrap();
+        scope.mount_in_place(el, None, NodeRef::default(), props);
+
+        assert_eq!(
+            lifecycle.borrow_mut().deref(),
+            &vec![
+                "create".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string()
+            ]
+        );
+    }
+}
