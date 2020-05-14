@@ -166,7 +166,10 @@ impl<COMP: Component> Scope<COMP> {
         self.update(ComponentUpdate::Message(msg.into()), false);
     }
 
-    /// Send a batch of messages to the component
+    /// Send a batch of messages to the component.
+    ///
+    /// This is useful for reducing re-renders of the components because the messages are handled
+    /// together and the view function is called only once if needed.
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
         self.update(ComponentUpdate::MessageBatch(messages), false);
     }
