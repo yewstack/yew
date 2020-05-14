@@ -20,7 +20,7 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-yew = "0.15"
+yew = "0.16"
 wasm-bindgen = "0.2"
 ```
 {% endcode %}
