@@ -1,8 +1,6 @@
 branches:
   only:
-    - staging
-    - trying
-    - master
+    - v0.16.0
 
 dist: trusty
 language: rust
