@@ -1,14 +1,21 @@
 # Changelog
 
-## ✨ **0.16.1** *(2020-05-14)*
+## ✨ **0.16.2** *(2020-05-14)*
+
+#### Changelog
 
 - #### 🛠 Fixes
 
   - Fixed regression where messages sent from `Component::create` were skipped. [[@jstarry], [#1225](https://github.com/yewstack/yew/pull/1225)]
-  - Worker script is now loaded from absolute path. [[@domdir], [#1175](https://github.com/yewstack/yew/pull/1175)]
-  - Improved `html!` macro error messages. [[@teymour-aldridge], [#1192](https://github.com/yewstack/yew/pull/1192)], [[@kaoet], [#1219](https://github.com/yewstack/yew/pull/1219)]
+
+## ✨ **0.16.1** *(2020-05-14)*
 
 #### Changelog
+
+- #### 🛠 Fixes
+
+  - Worker script is now loaded from absolute path. [[@domdir], [#1175](https://github.com/yewstack/yew/pull/1175)]
+  - Improved `html!` macro error messages. [[@teymour-aldridge], [#1192](https://github.com/yewstack/yew/pull/1192)], [[@kaoet], [#1219](https://github.com/yewstack/yew/pull/1219)]
 
 ## ✨ **0.16** *(2020-05-09)*
 
