@@ -3,7 +3,7 @@
 First create a new binary project:
 
 ```bash
-cargo new yew-app && cd yew-app
+cargo new --lib yew-app && cd yew-app
 ```
 
 Add `yew` and `wasm-bindgen` to your dependencies \(refer [here](https://docs.rs/yew) for the latest version\)
