@@ -19,9 +19,9 @@ This should make it much easier to define simple components that don't hold stat
 This crate also has feature flags which will enable the following **experimental** features:
 * `Lrc` smart pointer - an Rc-like pointer implemented on top of a linked list. Allows for novel state update mechanics 
 and traversal over linked shared pointers. <sup><sub>(This needs to be fuzz tested to make sure it doesn't leak.)</sub></sup>
-* This crate used to contain a domain specific language which made it possible to create components without the `view` function, but this has now been moved into a different crate (`yew-dsl`).
+* This crate used to contain a domain specific language which made it possible to create components without use of the `html!` macro, but this has now been moved into a different crate (`yew-dsl`).
 
-These experimental features are either not sufficiently vetted, may change significantly, or may be removed.
+These experimental features are either not sufficiently vetted and may change significantly or be removed.
 
 ## Example Projects 
 There are [examples showing how to use every stable feature in this crate](https://github.com/yewstack/yew/tree/master/yewtil/examples). 
