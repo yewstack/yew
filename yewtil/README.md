@@ -16,10 +16,10 @@ This should make it much easier to define simple components that don't hold stat
 * `Effect` - A way to update component state by defining what to change inside of `html!` callbacks
  instead of handling messages in `Component::update()`.
 
-This crate also has feature flags that enables the following **experimental** features:
+This crate also has feature flags which will enable the following **experimental** features:
 * `Lrc` smart pointer - an Rc-like pointer implemented on top of a linked list. Allows for novel state update mechanics 
 and traversal over linked shared pointers. <sup><sub>(This needs to be fuzz tested to make sure it doesn't leak.)</sub></sup>
-* This crate used to contain a domain specific language which made it possible to create components without the `view` function, but this has now been moved into a different crate (`yew-dsl).
+* This crate used to contain a domain specific language which made it possible to create components without the `view` function, but this has now been moved into a different crate (`yew-dsl`).
 
 These experimental features are either not sufficiently vetted, may change significantly, or may be removed.
 
@@ -86,7 +86,7 @@ This crate will target stable Yew.
 As new idioms are introduced to Yew, this crate may see updates, but given the rarity of those, this crate may sit unaltered for some time.
 
 ## Scope
-This crate is less stringent in the code that it will include than Yew, so if you have a function, type, or trait you would like to include, please open a PR or Issue.
+This crate has less stringent requirements for its code that than the main Yew crate; if you have a function, type, or trait you would like to include, please open a PR or Issue.
 
 Components are welcome as well, but they must not have external dependencies, should solve some problem encountered my many users of Yew, and should allow for theming if possible, like an auto-scrolling wrapper, a RecyclerView/Infinite-scrolling component, or possibly a comprehensive Input component.
 
