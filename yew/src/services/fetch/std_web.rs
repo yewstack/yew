@@ -269,7 +269,7 @@ impl FetchService {
     pub fn fetch<IN, OUT: 'static>(
         request: Request<IN>,
         callback: Callback<Response<OUT>>,
-    ) -> Result<FetchTask, &str>
+    ) -> Result<FetchTask, &'static str>
     where
         IN: Into<Text>,
         OUT: From<Text>,
@@ -312,7 +312,7 @@ impl FetchService {
         request: Request<IN>,
         options: FetchOptions,
         callback: Callback<Response<OUT>>,
-    ) -> Result<FetchTask, &str>
+    ) -> Result<FetchTask, &'static str>
     where
         IN: Into<Text>,
         OUT: From<Text>,
@@ -324,7 +324,7 @@ impl FetchService {
     pub fn fetch_binary<IN, OUT: 'static>(
         request: Request<IN>,
         callback: Callback<Response<OUT>>,
-    ) -> Result<FetchTask, &str>
+    ) -> Result<FetchTask, &'static str>
     where
         IN: Into<Binary>,
         OUT: From<Binary>,
