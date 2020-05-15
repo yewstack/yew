@@ -18,7 +18,7 @@ pub enum Response {
 pub enum Msg {
     Initialized,
     Updating,
-    DataFetched
+    DataFetched,
 }
 
 pub struct Worker {
