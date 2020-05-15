@@ -21,13 +21,12 @@ pub struct Entry {
 
 #[derive(Default)]
 pub struct GravatarService {
-    web: FetchService,
 }
 
 impl GravatarService {
     pub fn new() -> Self {
         Self {
-            web: FetchService::new(),
+            
         }
     }
 
@@ -45,6 +44,6 @@ impl GravatarService {
             }
         };
         let request = Request::get(url.as_str()).body(Nothing).unwrap();
-        self.web.fetch(request, handler.into()).unwrap()
+        FetchService::fetch(request, handler.into()).unwrap()
     }
 }

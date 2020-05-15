@@ -90,9 +90,9 @@ impl Model {
         );
         let request = Request::get("/data.json").body(Nothing).unwrap();
         if binary {
-            fetch_service::fetch_binary(request, callback).unwrap()
+            FetchService::fetch_binary(request, callback).unwrap()
         } else {
-            FetchService::new().fetch(request, callback).unwrap()
+            FetchService::fetch(request, callback).unwrap()
         }
     }
 
@@ -112,7 +112,7 @@ impl Model {
         if binary {
             fetch_service::fetch_binary(request, callback).unwrap()
         } else {
-            FetchService::new().fetch(request, callback).unwrap()
+            FetchService::fetch(request, callback).unwrap()
         }
     }
 }
