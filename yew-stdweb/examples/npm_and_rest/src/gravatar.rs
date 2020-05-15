@@ -20,13 +20,11 @@ pub struct Entry {
 }
 
 #[derive(Default)]
-pub struct GravatarService {
-}
+pub struct GravatarService {}
 
 impl GravatarService {
     pub fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 
     pub fn profile(&mut self, hash: &str, callback: Callback<Result<Profile, Error>>) -> FetchTask {
