@@ -110,7 +110,7 @@ impl Model {
         );
         let request = Request::get("/data.toml").body(Nothing).unwrap();
         if binary {
-            fetch_service::fetch_binary(request, callback).unwrap()
+            FetchService::fetch_binary(request, callback).unwrap()
         } else {
             FetchService::fetch(request, callback).unwrap()
         }
