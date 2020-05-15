@@ -267,7 +267,6 @@ impl FetchService {
     /// ```
     ///
     pub fn fetch<IN, OUT: 'static>(
-        &mut self,
         request: Request<IN>,
         callback: Callback<Response<OUT>>,
     ) -> Result<FetchTask, &str>
@@ -310,7 +309,6 @@ impl FetchService {
     ///# }
     /// ```
     pub fn fetch_with_options<IN, OUT: 'static>(
-        &mut self,
         request: Request<IN>,
         options: FetchOptions,
         callback: Callback<Response<OUT>>,

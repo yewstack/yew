@@ -57,7 +57,7 @@ mod tests {
         let options = FetchOptions::default();
         let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
         if let Json(Ok(http_bin)) = resp.body() {
@@ -78,7 +78,7 @@ mod tests {
         };
         let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
         if let Json(Ok(http_bin)) = resp.body() {
@@ -100,7 +100,7 @@ mod tests {
         };
         let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
         if let Json(Ok(http_bin)) = resp.body() {
@@ -121,7 +121,7 @@ mod tests {
         };
         let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
         if let Json(Ok(http_bin)) = resp.body() {
@@ -139,7 +139,7 @@ mod tests {
         let options = FetchOptions::default();
         let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
         if let Json(Ok(http_bin)) = resp.body() {
@@ -160,7 +160,7 @@ mod tests {
         };
         let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
         if let Json(Ok(http_bin)) = resp.body() {
@@ -181,7 +181,7 @@ mod tests {
         };
         let cb_future = CallbackFuture::<Response<Result<String, anyhow::Error>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::REQUEST_TIMEOUT);
     }
@@ -197,7 +197,7 @@ mod tests {
         };
         let cb_future = CallbackFuture::<Response<Result<String, anyhow::Error>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
         // body is empty because the response is opaque for manual redirects
@@ -219,7 +219,7 @@ mod tests {
         };
         let cb_future = CallbackFuture::<Response<Result<String, anyhow::Error>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
         assert_eq!(resp.body().as_ref().unwrap(), resource);
@@ -240,7 +240,7 @@ mod tests {
         };
         let cb_future = CallbackFuture::<Response<Result<String, anyhow::Error>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert!(resp.body().is_err());
     }
@@ -250,7 +250,7 @@ mod tests {
         let request = Request::get("https://fetch.fail").body(Nothing).unwrap();
         let cb_future = CallbackFuture::<Response<Result<String, anyhow::Error>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch(request, callback);
+        let _task = FetchService::fetch(request, callback);
         let resp = cb_future.await;
         #[cfg(feature = "std_web")]
         assert!(resp.body().is_err());
@@ -273,7 +273,7 @@ mod tests {
         let cb_future =
             CallbackFuture::<Response<Json<Result<HttpBinHeaders, anyhow::Error>>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
         if let Json(Ok(httpbin_headers)) = resp.body() {
@@ -295,7 +295,7 @@ mod tests {
         let cb_future =
             CallbackFuture::<Response<Json<Result<HttpBinHeaders, anyhow::Error>>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
-        let _task = FetchService::new().fetch_with_options(request, options, callback);
+        let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
         if let Json(Ok(httpbin_headers)) = resp.body() {
