@@ -207,9 +207,8 @@ impl FetchService {
     ///# }
     ///# fn dont_execute() {
     ///# let link: ComponentLink<Comp> = unimplemented!();
-    ///# let mut fetch_service: FetchService = FetchService::new();
     ///# let post_request: Request<Result<String, anyhow::Error>> = unimplemented!();
-    /// let task = fetch_service::fetch(
+    /// let task = FetchService::fetch(
     ///     post_request,
     ///     link.callback(|response: Response<Result<String, anyhow::Error>>| {
     ///         if response.status().is_success() {
