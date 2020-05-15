@@ -337,7 +337,7 @@ impl FetchService {
         request: Request<IN>,
         options: FetchOptions,
         callback: Callback<Response<OUT>>,
-    ) -> Result<FetchTask, &str>
+    ) -> Result<FetchTask, &'static str>
     where
         IN: Into<Binary>,
         OUT: From<Binary>,
