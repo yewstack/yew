@@ -54,6 +54,7 @@ lazy_static! {
     static ref LISTENER_SET: HashSet<&'static str> = {
         HashSet::from_iter(
             // From https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers in original order.
+            // Unsupported: onsort
             vec![
                 "onabort",
                 "onanimationcancel",
@@ -72,7 +73,7 @@ lazy_static! {
                 "onclose",
                 "oncontextmenu",
                 "oncuechange",
-                "ondblclick",
+                "ondoubleclick", // changed from "ondblclick"
                 "ondrag",
                 "ondragend",
                 "ondragenter",
@@ -130,7 +131,6 @@ lazy_static! {
                 "onselectstart",
                 "onselectionchange",
                 "onshow",
-                "onsort",
                 "onstalled",
                 "onsubmit",
                 "onsuspend",
