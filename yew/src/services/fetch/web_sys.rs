@@ -210,9 +210,8 @@ impl FetchService {
     ///# }
     ///# fn dont_execute() {
     ///# let link: ComponentLink<Comp> = unimplemented!();
-    ///# let mut fetch_service: FetchService = FetchService::new();
     ///# let post_request: Request<Result<String, Error>> = unimplemented!();
-    /// let task = fetch_service.fetch(
+    /// let task = FetchService::fetch(
     ///     post_request,
     ///     link.callback(|response: Response<Result<String, Error>>| {
     ///         if response.status().is_success() {
@@ -266,12 +265,11 @@ impl FetchService {
     ///     Msg::FetchResourceFailed
     /// });
     ///
-    /// let task = FetchService::new().fetch(get_request, callback);
+    /// let task = FetchService::fetch(get_request, callback);
     ///# }
     /// ```
     ///
     pub fn fetch<IN, OUT: 'static>(
-        &mut self,
         request: Request<IN>,
         callback: Callback<Response<OUT>>,
     ) -> Result<FetchTask, Error>
@@ -311,11 +309,10 @@ impl FetchService {
     ///     credentials: Some(Credentials::SameOrigin),
     ///     ..FetchOptions::default()
     /// };
-    /// let task = FetchService::new().fetch_with_options(request, options, callback);
+    /// let task = FetchService::fetch_with_options(request, options, callback);
     ///# }
     /// ```
     pub fn fetch_with_options<IN, OUT: 'static>(
-        &mut self,
         request: Request<IN>,
         options: FetchOptions,
         callback: Callback<Response<OUT>>,
@@ -329,7 +326,6 @@ impl FetchService {
 
     /// Fetch the data in binary format.
     pub fn fetch_binary<IN, OUT: 'static>(
-        &mut self,
         request: Request<IN>,
         callback: Callback<Response<OUT>>,
     ) -> Result<FetchTask, Error>
@@ -340,9 +336,8 @@ impl FetchService {
         fetch_impl::<IN, OUT, Vec<u8>>(true, request, None, callback)
     }
 
-    /// Fetch the data in binary format.
+    /// Fetch the data in binary format with the provided request options.
     pub fn fetch_binary_with_options<IN, OUT: 'static>(
-        &mut self,
         request: Request<IN>,
         options: FetchOptions,
         callback: Callback<Response<OUT>>,
