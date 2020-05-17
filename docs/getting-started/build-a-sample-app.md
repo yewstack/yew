@@ -88,19 +88,19 @@ Finally, add an `index.html` file into a new folder named `static` in your app.
 
 ```bash
 mkdir static
-``` 
+```
 
 {% code title="index.html" %}
-```html
+```markup
 <!doctype html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
         <title>Yew Sample App</title>
         <script type="module">
-			import init from "./wasm.js"
-			init()
-		</script>
+            import init from "./wasm.js"
+            init()
+        </script>
     </head>
     <body></body>
 </html>
@@ -109,8 +109,7 @@ mkdir static
 
 ## Run your App!
 
-Using [`wasm-pack`](https://rustwasm.github.io/docs/wasm-pack/) is the preferred way to get up and running.
-If you haven't already, install `wasm-pack` with `cargo install wasm-pack` and then build and start a development server by running:
+Using [`wasm-pack`](https://rustwasm.github.io/docs/wasm-pack/) is the preferred way to get up and running. If you haven't already, install `wasm-pack` with `cargo install wasm-pack` and then build and start a development server by running:
 
 ```bash
 wasm-pack build --target web --out-name wasm --out-dir ./static
