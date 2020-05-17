@@ -27,7 +27,7 @@ These experimental features are either not sufficiently vetted and may change si
 ## Example Projects 
 There are [examples showing how to use every stable feature in this crate](https://github.com/yewstack/yew/tree/master/yewtil/examples). 
 
-Check out the [Pure Components example](https://github.com/yewstack/yew/tree/master/yewtil/examples/demo) to see how Pure Components work.
+Check out the [Pure Components example](https://github.com/yewstack/yew/tree/master/yewtil/examples/pure_component) to see how Pure Components work.
 
 ## Example usages
 #### neq_assign:
