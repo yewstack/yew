@@ -412,7 +412,7 @@ mod tests {
             NodeRef::default(),
             None,
         );
-        
+
         let vchild2: VChild<Comp> = VChild::new(
             Props {
                 field_1: 1,
