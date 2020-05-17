@@ -1,42 +1,42 @@
 ---
-description: Yew's Actor System
+description: Yew 的 Actor 系統
 ---
 
 # Agents
 
-Agents are similar to Angular's [Services](https://angular.io/guide/architecture-services) \(but without dependency injection\), and provide a Yew with an [Actor Model](https://en.wikipedia.org/wiki/Actor_model). Agents can be used to route messages between components independently of where they sit in the component hierarchy, or they can be used to create a global state, and they can also be used to offload computationally expensive tasks from the main thread which renders the UI. There is also planned support for using agents to allow Yew applications to communicate accross tabs \(in the future\).
+Agents 類似於 Angular 的 [Services](https://angular.io/guide/architecture-services) （但沒有依賴注入）而且提供 Tew 一個 [Actor Model](https://en.wikipedia.org/wiki/Actor_model). Agents 可以用來作為兩個元件間的路由訊息，而且與他們在元件間的層級關係獨立出來，所以他也可以用來作為一個全域的狀態，甚至可以用來減輕用來渲染 UI 畫面的主執行緒的大量運算任務。 未來，我們還規劃要讓 agents 幫忙 Yew 專案可以跨頁籤溝通。
 
-In order for agents to run concurrently, Yew uses [web-workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers).
+為了讓 agents 可以並行， Yew 使用了 [web-workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers)。
 
-## Lifecycle
+## 生命周期
 
-![Agent lifecycle](https://user-images.githubusercontent.com/42674621/79125224-b6481d80-7d95-11ea-8e6a-ab9b52d1d8ac.png)
+![Agent &#x751F;&#x547D;&#x5468;&#x671F;](https://user-images.githubusercontent.com/42674621/79125224-b6481d80-7d95-11ea-8e6a-ab9b52d1d8ac.png)
 
-## Types of Agents
+## Agents 的型別
 
-#### Reaches
+#### 範圍
 
-* Job - Spawn a new agent on the UI thread for every new bridge. This is good for moving shared but independent behavior that communicates with the browser out of components. \(TODO verify\) When the task is done, the agent will disappear.
-* Context - Bridges will spawn or connect to an agent on the UI thread. This can be used to coordinate with state between components or other agents. When no bridges are connected to this agent, the agent will disappear.
-* Private - Same as Job, but runs on its own web worker. 
-* Public - Same as Context, but runs on its own web worker.
-* Global \(WIP\)
+* Job - 在 UI 執行緒上，為每一個 bridge，新增一個 agent。這對於將「共享但獨立的行為」移出元件很有用。（待驗證）當工作結束，agent 會消失。
+* Context - Bridges 會建立並連接上 UI 執行緒上的 agent。這可以用來協調元件與其他 agent 之間的狀態。當沒有任何 bridge 連接上這個 agent，這個 agnet 就會消失。
+* Private - 與 Job 相同，但是是在自己的 web worker 上執行的。
+* Public - 與 Context 相同，但是是在自己的 web worker 上執行的。
+* Global （編寫中）
 
-## Communication between Agents and Components
+## 在 Agents 與元件之間溝通
 
 ### Bridges
 
-A bridge allows bi-directional communication between an agent and a component. Bridges also allow agents to communicate with one another.
+bridge 允許 agent 與元件進行雙向的溝通。bridge 也允許 agents 之間互相溝通。
 
 ### Dispatchers
 
-A dispatcher allows uni-directional communication between a component and an agent. A bridge allows a component to send messages to an agent.
+dispatcher 允許元件與 agnet 進行單向的溝通。dispatcher 也允許元件向 agnet 發送訊息。 
 
-## Overhead
+## 開銷
 
-Agents communicate by serializing their messages using bincode\(???\). So there is a higher performance cost than just calling functions. Unless the cost of computation or the need to coordinate across arbitrary components will outweigh the cost of message passing, you should contain your logic to functions where possible.
+Agents 透過使用 [bincode](https://github.com/servo/bincode) 序列化他們的訊息，來溝通。所以比起呼叫方法，他的效能花費比較高。除非計算的成本，或是跨元件計算的成本，比傳遞訊息的成本要高，否則 agnet 的方法儘量只有包含單純的邏輯運算。
 
-## Further reading
+## 延伸閱讀
 
-* The [pub\_sub](https://github.com/yewstack/yew/tree/master/examples/pub_sub) example shows how components can use agents to communicate with each other.
+* [pub\_sub](https://github.com/yewstack/yew/tree/master/examples/pub_sub) 範例顯示了如何在 agnets 之間溝通。
 
