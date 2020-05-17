@@ -1,27 +1,27 @@
 ---
-description: Out-of-band DOM access
+description: 外帶 DOM 的存取
 ---
 
 # Refs
 
 ## Refs
 
-The `ref` keyword can be used inside of any HTML element or component to get the DOM `Element` that the item is attached to. This can be used to make changes to the DOM outside of the `view` lifecycle method.
+`ref` 關鍵字可以被使用在任何 HTML 的元素或是元件，用來得到那個物件附加的 DOM `Element`。這個可以在 view 生命周期方法之外，改變 DOM。
 
-This is useful for getting ahold of canvas elements, or scrolling to different sections of a page.
+對於要存取 canvas 元素，或滾動到頁面不同的區塊，很有幫助。
 
-The syntax is:
+語法可以這樣使用：
 
 ```rust
-// In create
+// 建立
 self.node_ref = NodeRef::default();
 
-// In view
+// 在 view 裡
 html! {
     <div ref=self.node_ref.clone()></div>
 }
 
-// In update
+// 更新
 let has_attributes = self.node_ref.try_into::<Element>().has_attributes();
 ```
 
