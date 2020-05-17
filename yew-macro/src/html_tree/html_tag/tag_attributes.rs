@@ -54,19 +54,11 @@ lazy_static! {
     static ref LISTENER_SET: HashSet<&'static str> = {
         HashSet::from_iter(
             vec![
-                // From https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers in original order.
-                // Unsupported:
-                // - onmousewheel: replaced by onwheel
-                // - onsort: obsolete
+                // Living Standard
+                // From: https://html.spec.whatwg.org/multipage/webappapis.html#globaleventhandlers
                 "onabort",
-                "onanimationcancel",
-                "onanimationend",
-                "onanimationiteration",
-                "onanimationstart",
                 "onauxclick",
                 "onblur",
-                "onerror",
-                "onfocus",
                 "oncancel",
                 "oncanplay",
                 "oncanplaythrough",
@@ -75,7 +67,7 @@ lazy_static! {
                 "onclose",
                 "oncontextmenu",
                 "oncuechange",
-                "ondoubleclick", // changed from "ondblclick"
+                "ondoubleclick", // renamed from "ondblclick" for compatibility
                 "ondrag",
                 "ondragend",
                 "ondragenter",
@@ -87,8 +79,9 @@ lazy_static! {
                 "ondurationchange",
                 "onemptied",
                 "onended",
+                "onerror",
+                "onfocus",
                 "onformdata",
-                "ongotpointercapture",
                 "oninput",
                 "oninvalid",
                 "onkeydown",
@@ -97,9 +90,7 @@ lazy_static! {
                 "onload",
                 "onloadeddata",
                 "onloadedmetadata",
-                "onloadend",
                 "onloadstart",
-                "onlostpointercapture",
                 "onmousedown",
                 "onmouseenter",
                 "onmouseleave",
@@ -107,37 +98,56 @@ lazy_static! {
                 "onmouseout",
                 "onmouseover",
                 "onmouseup",
-                "onmousewheel",
-                "onwheel",
                 "onpause",
                 "onplay",
                 "onplaying",
-                "onpointerdown",
-                "onpointermove",
-                "onpointerup",
-                "onpointercancel",
-                "onpointerover",
-                "onpointerout",
-                "onpointerenter",
-                "onpointerleave",
-                "onpointerlockchange",
-                "onpointerlockerror",
                 "onprogress",
                 "onratechange",
                 "onreset",
                 "onresize",
                 "onscroll",
+                "onsecuritypolicyviolation",
                 "onseeked",
                 "onseeking",
                 "onselect",
-                "onselectstart",
-                "onselectionchange",
-                "onshow",
+                "onslotchange",
                 "onstalled",
                 "onsubmit",
                 "onsuspend",
                 "ontimeupdate",
+                "ontoggle",
                 "onvolumechange",
+                "onwaiting",
+                "onwheel",
+
+                // Standard HTML Document and Element
+                // From: https://html.spec.whatwg.org/multipage/webappapis.html#documentandelementeventhandlers
+                "oncopy",
+                "oncut",
+                "onpaste",
+
+                // Others
+                // From: https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers
+                "onanimationcancel",
+                "onanimationend",
+                "onanimationiteration",
+                "onanimationstart",
+                "ongotpointercapture",
+                "onloadend",
+                "onlostpointercapture",
+                "onpointercancel",
+                "onpointerdown",
+                "onpointerenter",
+                "onpointerleave",
+                "onpointerlockchange",
+                "onpointerlockerror",
+                "onpointermove",
+                "onpointerout",
+                "onpointerover",
+                "onpointerup",
+                "onselectionchange",
+                "onselectstart",
+                "onshow",
                 "ontouchcancel",
                 "ontouchend",
                 "ontouchmove",
@@ -146,12 +156,6 @@ lazy_static! {
                 "ontransitionend",
                 "ontransitionrun",
                 "ontransitionstart",
-                "onwaiting",
-
-                // From https://html.spec.whatwg.org/multipage/webappapis.html#documentandelementeventhandlers
-                "oncopy",
-                "oncut",
-                "onpaste",
             ]
             .into_iter(),
         )
