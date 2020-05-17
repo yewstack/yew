@@ -1,12 +1,12 @@
 ---
-description: Testing your app
+description: 測試你的專案
 ---
 
-# Testing
+# 測試
 
 &lt;TODO&gt;
 
-## Rust WebDriving
+## wasm\_bindgen\_test <a id="wasm_bindgen_test"></a>
 
-For programmatically driving UI integration testing using Rust, [fantoccini](https://crates.io/crates/fantoccini) is a recommended choice. It allows you to test your website by finding specific elements using CSS selectors, and then performing actions on them like inputting text, or clicking buttons, or waiting specific amounts of time for client code to execute \(eg, wait for a fetch request to finish and cause a UI change\).
+Rust WASM 工作群組有維護一個 crate 叫作 [`wasm_bindgen_test`](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html) ，他讓你可以在瀏覽器裡跑類似於用內建的巨集`#[test]`測試流程。 更多資訊可以參考 [Rust WASM working group's documentation](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html) 。
 
