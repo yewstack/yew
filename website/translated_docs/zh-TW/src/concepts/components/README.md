@@ -61,9 +61,9 @@ impl Component for MyComponent {
 
 {% page-ref page="../html/" %}
 
-### Mounted
+### Rendered
 
-`mounted()` 生命周期的方法，會在 `view()` 方法結束後被呼叫，此時，Yew 已經掛載你的元件到 DOM 上，但是在瀏覽器還未刷新頁面。 實作這個方法，可以執行，希望在元件渲染完的元素之後，才能做的動作。如果結束 `mounted()` 的改變後，你希望重新渲染你的元件，請回傳 `true`。
+`rendered()` 生命周期的方法會，在 `view()` 處理完並且 Yew 渲染完你的元件之後，與瀏覽器刷新頁面之前，被呼叫。一個元件可能希望實作這個方法，去執行只能在元件被渲染完元素才能做的事情。 你可以透過 `first_render` 變數來確認這個元件是不是第一次被渲染。
 
 ```rust
 use stdweb::web::html_element::InputElement;
@@ -83,11 +83,12 @@ impl Component for MyComponent {
         }
     }
 
-    fn mounted(&mut self) -> ShouldRender {
-        if let Some(input) = self.node_ref.try_into::<InputElement>() {
-            input.focus();
+    fn rendered(&mut self, first_render: bool) {
+        if first_render {
+            if let Some(input) = self.node_ref.try_into::<InputElement>() {
+                input.focus();
+            }
         }
-        false
     }
 }
 ```
@@ -98,9 +99,9 @@ impl Component for MyComponent {
 
 ### Update
 
-Components are dynamic and can register to receive asynchronous messages. The `update()` lifecycle method is called for each message. This allows the component to update itself based on what the message was, and determine if it needs to re-render itself. Messages can be triggered by HTML elements listeners or be sent by child components, Agents, Services, or Futures.
+元件是可動態更新且可以註冊接收非同步的訊息。 `update()` 生命周期方法會被每個訊息呼叫。他基於訊息是什麼，來允許元件更新自己，且會決定是否需要重新渲染。 訊息可以被 HTML 元素的監聽器觸發，或被子元件、Agents、Services 或 Futures 傳送。 
 
-Here's an example of what `update()` could look like:
+`update()` 應用範例：
 
 ```rust
 pub enum Msg {
@@ -117,7 +118,7 @@ impl Component for MyComponent {
            Msg::SetInputEnabled(enabled) => {
                if self.input_enabled != enabled {
                    self.input_enabled = enabled;
-                   true // Re-render
+                   true // 重新渲染
                } else {
                    false
                }
@@ -129,28 +130,32 @@ impl Component for MyComponent {
 
 ### Change
 
-Components may be re-rendered by their parents. When this happens, they could receive new properties and choose to re-render. This design facilitates parent to child component communication through changed properties. You don't have to implement `change()` but you probably want to if you want to update a component via props after it has been created.
+元件可能會被他的父元件重新渲染。當他被父元件重新渲染時，他會收到新的屬性，然後決定要不要再渲染一次。 這設計是讓父元件透過便於跟子元件溝通。
 
-A naive implementation would look like:
+一個簡單的實作方式像：
 
 ```rust
 impl Component for MyComponent {
     // ...
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-       self.props = props;
-       true // This will always re-render when new props are provided.
+        if self.props != props {
+            self.props = props;
+            true
+        } else {
+            false
+        }
     }
 }
 ```
 
 ### Destroy
 
-After Components are unmounted from the DOM, Yew calls the `destroy()` lifecycle method to support any necessary clean up operations. This method is optional and does nothing by default.
+當元件從 DOM 上被解除掛載，Yew 會呼叫 `destroy()` 生命周期方法以提供任何需要清理的操作。這個方法是不一定要被實作的，預設不會做設任何事。
 
-## Associated Types
+## 相關的型別
 
-The `Component` trait has two associated types: `Message` and `Properties`.
+`Component` trait 有兩個相關的型別：`Message` 與 `Properties`。
 
 ```rust
 impl Component for MyComponent {
@@ -161,7 +166,7 @@ impl Component for MyComponent {
 }
 ```
 
-`Message` represents a variety of messages that can be processed by the component to trigger some side effect. For example, you may have a `Click` message which triggers an API request or toggles the appearance of a UI component. It is common practice to create an enum called `Msg` in your component's module and use that as the message type in the component. It is common to shorten "message" to "msg".
+`Message` 負責各式各樣的訊息，他可能被元件處理去觸發各種影響。舉例來說，你可能有一個 `Click` 的訊息，他會觸發 API 請求，或是切換 UI 元件的樣貌。下面是一個常見的實作，在你的元件模組中，創建一個叫作 `Msg` 的 enum，然後把他當作元件裡的 Message 型別。通常 message 會縮寫成 msg。
 
 ```rust
 enum Msg {
@@ -169,5 +174,5 @@ enum Msg {
 }
 ```
 
-`Properties` represents the information passed to a component from its parent. This type must implements the `Properties` trait \(usually by deriving it\) and can specify whether certain properties are required or optional. This type is used when creating and updating a component. It is common practice to create a struct called `Props` in your component's module and use that as the component's `Properties` type. It is common to shorten "properties" to "props". Since props are handed down from parent components, the root component of your application typically has a `Properties` type of `()`. If you wish to specify properties for your root component, use the `App::mount_with_props` method.
+`Properties` 代表要從父員件傳遞到子元件的資訊。這個型別必須實作 `Properties` trait （通常會 deriving 他）並且可以決定某個屬性是必要的屬性，或是可選的屬性。這個型別會在創建元件的時候，或是更新元件的時候被使用到。常見的實作會在你的元件模組中，建立一個叫作 `Props`  的 struct，然後把他當作元件的`Properties` 型別。通常 properties 或縮寫成 props。因為屬性是從父原件被傳下來的，所以應用程式中的根元件的 `Properties` 原則上都是 `()`。如果你希望你的根元件有特定的屬性，可以使用 `App::mount_with_props` 的方法。
 
