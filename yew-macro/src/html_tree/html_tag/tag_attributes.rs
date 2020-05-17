@@ -53,9 +53,11 @@ lazy_static! {
 lazy_static! {
     static ref LISTENER_SET: HashSet<&'static str> = {
         HashSet::from_iter(
-            // From https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers in original order.
-            // Unsupported: onsort
             vec![
+                // From https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers in original order.
+                // Unsupported:
+                // - onmousewheel: replaced by onwheel
+                // - onsort: obsolete
                 "onabort",
                 "onanimationcancel",
                 "onanimationend",
@@ -145,6 +147,11 @@ lazy_static! {
                 "ontransitionrun",
                 "ontransitionstart",
                 "onwaiting",
+
+                // From https://html.spec.whatwg.org/multipage/webappapis.html#documentandelementeventhandlers
+                "oncopy",
+                "oncut",
+                "onpaste",
             ]
             .into_iter(),
         )

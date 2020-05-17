@@ -50,7 +50,6 @@ impl_action! {
     onmouseout(name: "mouseout", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
     onmouseover(name: "mouseover", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
     onmouseup(name: "mouseup", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
-    onmousewheel(name: "mousewheel", event: WheelEvent) -> web_sys::WheelEvent => |_, event| { event }
     onwheel(name: "wheel", event: WheelEvent) -> web_sys::WheelEvent => |_, event| { event }
     onpause(name: "pause", event: Event) -> web_sys::Event => |_, event| { event }
     onplay(name: "play", event: Event) -> web_sys::Event => |_, event| { event }
@@ -90,4 +89,8 @@ impl_action! {
     ontransitionrun(name: "transitionrun", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
     ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
     onwaiting(name: "waiting", event: Event) -> web_sys::Event => |_, event| { event }
+
+    oncopy(name: "copy", event: Event) -> web_sys::Event => |_, event| { event }
+    oncut(name: "cut", event: Event) -> web_sys::Event => |_, event| { event }
+    onpaste(name: "paste", event: Event) -> web_sys::Event => |_, event| { event }
 }
