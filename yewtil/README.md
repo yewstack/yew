@@ -1,8 +1,10 @@
 # Yewtil
-Utility crate for the [Yew](https://github.com/yewstack/yew) frontend web framework.
+A utility crate for the [Yew](https://github.com/yewstack/yew) frontend web framework.
+
+> This crate used to contain a domain specific language which made it possible to create components without use of the `html!` macro, but this has now been moved into a different crate ([`yew-dsl`](https://github.com/yewstack/yew/tree/master/yew-dsl)).
 
 ## Purpose
-Provide a place for commonly used utilities for Yew to reside without them having to be included in the Yew crate itself.
+Provide a place for commonly used utilities for Yew to reside having to include them in the core Yew crate.
 As a consequence of this, the Yew crate is free to make changes that may cause breakages in this crate.
 
 ## Features
@@ -16,20 +18,20 @@ This should make it much easier to define simple components that don't hold stat
 * `Effect` - A way to update component state by defining what to change inside of `html!` callbacks
  instead of handling messages in `Component::update()`.
 
-This crate also has an experimental feature flag that enables the following features:
-* `Lrc` smart pointer - Rc-like pointer implemented on top of a linked list. Allows for novel state update mechanics 
+This crate also has feature flags which will enable the following **experimental** features:
+* `Lrc` smart pointer - an Rc-like pointer implemented on top of a linked list which allows for novel state update mechanics 
 and traversal over linked shared pointers. <sup><sub>(This needs to be fuzz tested to make sure it doesn't leak.)</sub></sup>
-* DSL for `Html<Self>` - A function-based domain-specific-language for Yew that can be used in a limited capacity instead of the `html!` macro. <sup><sub>(Broken by recent changes in yew. Will be rewritten from scratch eventually.)</sub></sup>
 
-These experimental features are either not sufficiently vetted, may change significantly, or may be removed.
+These experimental features are either not sufficiently vetted and may change significantly or be removed.
 
 ## Example Projects 
-Examples for every stable feature exist [here](https://github.com/yewstack/yew/tree/master/yewtil/examples). 
+There are [examples showing how to use every stable feature in this crate](https://github.com/yewstack/yew/tree/master/yewtil/examples). 
 
 Check out the [Pure Components example](https://github.com/yewstack/yew/tree/master/yewtil/examples/demo) to see how Pure Components work.
 
-## Example
+## Example usages
 #### neq_assign:
+
 ```rust
 fn change(&mut self, props: Self::Properties) -> ShouldRender {
     self.props.neq_assign(props)
@@ -38,7 +40,7 @@ fn change(&mut self, props: Self::Properties) -> ShouldRender {
 
 -------------
 
-#### Pure Component:
+#### Pure Components:
 ```rust
 pub type Button = Pure<PureButton>;
 
@@ -84,13 +86,14 @@ This crate will target stable Yew.
 
 As new idioms are introduced to Yew, this crate may see updates, but given the rarity of those, this crate may sit unaltered for some time.
 
-## Scoping
-This crate aims to be more permissive in what is allowed in than Yew, so if you have a function, type, or trait you would like to share, please open a PR or Issue.
+## Scope
+This crate has less stringent requirements for its code than the main Yew crate; if you have a function, type, or trait you would like to include, please open a PR or Issue.
 
 Components are welcome as well, but they must not have external dependencies, should solve some problem encountered my many users of Yew, and should allow for theming if possible, like an auto-scrolling wrapper, a RecyclerView/Infinite-scrolling component, or possibly a comprehensive Input component.
 
-Common UI elements like modals or dropdowns should probably best be left to CSS-framework component libraries, as they should often be coupled to the external CSS used to display them.
+Common UI elements like modals or dropdowns should probably best be left to component libraries, as they are often be coupled to external CSS used to display them. The [Yewtify](https://github.com/yewstack/yewtify) crate is one such library.
 
 ### Stability
-Since this crate aims to present a variety of helper types, traits, and functions, where the utility of each may be unknown at the time the feature is added, newer additions may be not be included in the default feature-set, and may be locked behind an `experimental` flag. 
-While in early development, features marked as `experimental` may be changed more frequently or even entirely removed, while those marked as `stable` will not be removed and can be depended on to not change significantly.
+Since this crate aims to present a variety of helper types, traits, and functions, where the utility of each may be unknown at the time the feature is added, newer additions may be not be included in the default feature-set, and may be kept behind a feature flag. 
+
+While in early development, features marked as `experimental` may be changed frequently or even entirely removed, while those marked as `stable` will not be removed and can be relied upon to not change significantly.
