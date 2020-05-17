@@ -32,7 +32,7 @@
 ## Advanced Topics
 
 * [Optimizations & Best Practices](advanced-topics/optimizations.md)
-* [Low-level library internals](advanced-topics/how-it-works.md)
+* [內部底層的 library](advanced-topics/how-it-works.md)
 
 ## More
 
