@@ -29,12 +29,12 @@
   * [Format](concepts/services/format.md)
 * [路由器](concepts/router.md)
 
-## Advanced Topics
+## 進階主題 <a id="advanced-topics"></a>
 
 * [Optimizations & Best Practices](advanced-topics/optimizations.md)
 * [內部底層的 library](advanced-topics/how-it-works.md)
 
-## More
+## 更多 <a id="more"></a>
 
 * [CSS](more/css.md)
 * [Roadmap](more/roadmap.md)
