@@ -8,7 +8,7 @@ readme = "README.md"
 keywords = ["web", "yew", "router"]
 categories = ["gui", "web-programming"]
 description = "A router implementation for the Yew framework"
-repository = "https://github.com/yewstack/yew_router"
+repository = "https://github.com/yewstack/yew"
 
 [features]
 default = ["web_sys", "core", "unit_alias"]
