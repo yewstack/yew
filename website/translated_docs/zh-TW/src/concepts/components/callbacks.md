@@ -4,27 +4,31 @@ description: ComponentLink and Callbacks.
 
 # Callbacks
 
-The component "link" is the mechanism through which components are able to register callbacks and update themselves.
+元件的「link」是一個讓元件註冊 callbacks 並自我更新的機制。
 
 ## ComponentLink API
 
 ### callback
 
-Registers a callback that will send a message to the component's update mechanism when it is executed. Under the hood, it will call `send_self` with the message that is returned by the provided closure. A `Fn(IN) -> Vec<COMP::Message>` is provided and a `Callback<IN>` is returned.
+註冊一個 callback 後，當這個 callback 被執行時，會發送一個訊息給元件的更新機制。在生命周期的勾子下，他會呼叫 `send_self` 並將被閉包回傳的訊息帶給他。
+
+提供一個 `Fn(IN) -> Vec<COMP::Message>` 並回傳一個 `Callback<IN>` 。
 
 ### send\_message
 
-Sends a message to the component immediately after the current loop finishes, causing another update loop to initiate.
+當現在的迴圈結束後，向元件發送訊息，並且開啟另一個迴圈。
 
 ### send\_message\_batch
 
-Registers a callback that sends a batch of many messages at once when it is executed. If any of the messages cause the component to re-render, the component will re-render after all messages in the batch have been processed. A `Fn(IN) -> COMP::Message` is provided and a `Callback<IN>` is returned.
+註冊一個 callback，當這個 callback 被執行時，這個 callback 會一次送很多訊息。如果有任何一個訊息導致元件被重新渲染，元件會在所有批次送來的訊息都被處理完後，再重新渲染。
+
+提供一個 `Fn(IN) -> COMP::Message` 並回傳一個 `Callback<IN>` 。
 
 ## Callbacks
 
-_\(This might need its own short page.\)_
+_（他可能需要一個獨立的短頁來介紹）_
 
-Callbacks are used to communicate with services, agents, and parent components within Yew. They are just a `Fn` wrapped by an `Rc` to allow them to be cloned.
+Callbacks 被用來當作 services 、 agents 與父元件跟 Yew 溝通的方式。他們只是一個被 `Rc` 包裹著的 `Fn`，好讓他們可以被複製。
 
-They have an `emit` function that takes their `<IN>` type as an argument and converts that to a message expected by its destination. If a callback from a parent is provided in props to a child component, the child can call `emit` on the callback in its `update` lifecycle hook to send a message back to its parent. Closures or Functions provided as props inside the `html!` macro are automatically converted to Callbacks.
+他們有一個 `emit` 方法，這個方法拿他們的 `<IN>` 型別當作參數，並且轉換他作為目的地所期望的訊息。如果一個從父元件來的 callback被提供作為子元件的屬性，子元件可以在他的 update 生命周期中，呼叫 callback 中的 emit 以傳遞訊息回給父元件。 在 `html!` 巨集中的閉包與方法如果被當作屬性傳遞，會被自動轉為 Callbacks。
 
