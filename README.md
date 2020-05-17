@@ -22,7 +22,7 @@
     <span> | </span>
     <a href="https://github.com/yewstack/yew/blob/master/CHANGELOG.md">Changelog</a>
     <span> | </span>
-    <a href="https://yew.rs/docs/roadmap">Roadmap</a>
+    <a href="https://yew.rs/docs/more/roadmap">Roadmap</a>
     <span> | </span>
     <a href="https://yew.rs/docs/v/zh_cn/">简体中文文档</a>
     <span> | </span>
