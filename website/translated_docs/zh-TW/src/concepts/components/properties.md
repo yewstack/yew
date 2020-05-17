@@ -1,72 +1,70 @@
 ---
-description: Parent to child communication
+description: 父元件與子元件的溝通橋樑
 ---
 
 # Properties
 
-As stated in the Components page, Properties are used to communicate from a parent to a child component.
+屬性讓子元件與父元件可以互相溝通。
 
 ## Derive macro
 
-Don't try to implement `Properties` yourself, derive it by using `#[derive(Properties)]` instead.
+不要嘗試自己實作 `Properties`，而是用`#[derive(Properties)]`derive 他。
 
-### Required attribute
+### 必填的欄位
 
-The fields within a struct that implements `Properties` are required by default. When the field is missing and the component is created in the `html!` macro, a compiler error is returned. For fields with optional properties, use `#[prop_or_default]` to use the default value for that type. To specify a value, use `#[prop_or_else(value)]` where value is the default value for the property. For example, to default a boolean value as `true`, use the attribute `#[prop_or_else(true)]`. It is common for optional properties to use `Option` which defaults to `None`.
+預設所有在 `Properties` struct 裡的欄位都是必填的。當必填的欄位沒有值，而元件在 `html!` 巨集中又被建立，編譯器就會報錯。如果希望欄位是可選的，可以使用 `#[prop_or_default]` 來讓該欄位有預設值。如果希望欄位預設特定值，可以使用 `#[prop_or_else(value)]` ，裡面的 value 就會是這個欄位的預設值。舉例來說，希望預設值是 `true`可以在欄位宣告上面這樣寫 `#[prop_or_else(true)]`. 通常可選的屬性，會用 `Option` ，且預設值為`None`。
 
 ### PartialEq
 
-It often makes sense to derive `PartialEq` on your props if you can. This makes it much easier to avoid rerendering using a trick explained in the **Optimizations & Best Practices** section.
+如果可以，最好在你的屬性上面 derive `PartialEq` 。他可以避免畫面多餘的渲染，更細節的內容請參考，**優化與最佳實例**的區塊。
 
-## Memory/Speed overhead of Properties
+## 屬性的記憶體與速度的開銷
 
-Remember the component's `view` function signature:
+在 `Component::view`,裡，你可以拿到元件狀態的參考，且用他來建立 `Html` 。但是屬性是有所有權的。這代表著為了建立屬性，並且將他們傳遞給子元件，我們必須取得被 `view` 方法拿走的所有權。 當將參考傳給元件時，可以透過隱式的複製來做到得到所有權。
 
-```rust
-fn view(&self) -> Html
-```
+這意味著，每個元件，都有從父元件傳遞下來的獨有的狀態複本，且每當你重新渲染一次元件，被重新渲染的元件的所有的子元件的屬性就會被重新複製一次。
 
-You take a reference of the component's state, and use that to create `Html`. But properties are owned values. This means that in order to create them and pass them to child components, we need to get ownership of the references provided in the `view` function. This is done by implicitly cloning the references as they are passed to components in order to get owned values that constitute their props.
+代表如果你要在屬性中傳遞_大量_的資料（大於 10 KB 的字串之類的），你可能需要考慮將你的子元件變成一個回傳 `Html` 的方法，讓父元件呼叫，以避免資料被複製。
 
-This means that each component has its own distinct copy of state passed down from its parent, and that whenever you re-render a component, the props for all child components of the re-rendering component will have to be cloned.
+如果你不需要改變傳下去的資料，你可以用 `Rc` 將資料包裝起來，這樣就會只複製參考的指針，而不是資料本身。
 
-The implication of this is if you would otherwise be passing _huge_ amounts of data down as props \(Strings that are 10s of kilobytes in size\), you may want to consider turning your child component into a `Html`-returning function that runs in the parent, as you aren't forced to clone your data.
-
-Alternatively, if you won't need to alter the large data that is passed as props, and only will display it, you can wrap it in an `Rc` so that only a ref-counted pointer is cloned, instead of the data itself.
-
-## Example
+## 範例
 
 ```rust
-pub struct LinkColor {
+use std::rc::Rc;
+use yew::Properties;
+
+#[derive(Clone, PartialEq)]
+pub enum LinkColor {
     Blue,
     Red,
-    Green
+    Green,
     Black,
     Purple,
 }
 
 impl Default for LinkColor {
     fn default() -> Self {
-        // The link color will be Blue unless otherwise specified.
+        // 除非有指定，否則預設是藍色
         LinkColor::Blue
     }
 }
 
-#[derive(Properties, PartialEq)]
+#[derive(Properties, Clone, PartialEq)]
 pub struct LinkProps {
-    /// The link must have a target.
+    /// 連結必須要有一個目標
     href: String,
-    /// If the link text is huge, this will make copying the string much cheaper.
-    /// This isn't usually recommended unless performance is a problem.
+    /// 如果連結文字很大，複製字串的參考可以減少記憶體的開銷
+    /// 但除非效能已經成為嚴重的問題，否則通常不建議這麼做
     text: Rc<String>,
-    /// Color of the link.
+    /// 連結的顏色
     #[prop_or_default]
     color: LinkColor,
-    /// The view function will not specify a size if this is None.
+    /// 如果為 None，那 view 方法將不會指定 size
     #[prop_or_default]
-    size: Option<u32>
-    /// When the view function doesn't specify active, it defaults to true.
-    #[prop_or_else(true)]
+    size: Option<u32>,
+    /// 當沒有指定 active，預設為 true
+    #[prop_or(true)]
     active: bool,
 }
 ```

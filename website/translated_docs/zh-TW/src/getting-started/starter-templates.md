@@ -7,7 +7,7 @@
 
 使用上述的模板與單純使用 `cargo-web` 最重要的區別在於，模板使用的是 `lib` 而不是 `bin` crate，而且程式的進入點會註解 `#[wasm_bindgen]`
 
-你的 Cargo.toml 必須要設定一個 `cdylib` 的 crate-type。
+你的 `Cargo.toml` 必須要設定一個 `cdylib` 的 crate-type。
 
 {% code title="Cargo.toml" %}
 ```text
@@ -21,12 +21,15 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-yew = { version = "0.13.0", features = ["web_sys" OR "std_web"] }
+# for web_sys
+yew = 0.15
+# or for stdweb
+# yew = { version = "0.15", package = "yew-stdweb" }
 wasm-bindgen = "0.2"
 ```
 {% endcode %}
 
-## Parcel
+## 其他的模板
 
 * [Parcel Template](https://github.com/spielrs/yew-parcel-template) - 由一個社群成員用 [Parcel](https://parceljs.org/) 製作
 
