@@ -2,5 +2,5 @@
 
 &lt;TODO&gt;
 
-Proposal for proper CSS support can be found here: [https://github.com/yewstack/yew/issues/533](https://github.com/yewstack/yew/issues/533)
+有關 CSS 的支援與建議可以在這裡找到： [https://github.com/yewstack/yew/issues/533](https://github.com/yewstack/yew/issues/533)
 
