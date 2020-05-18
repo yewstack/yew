@@ -31,7 +31,7 @@
 
 ## 進階主題 <a id="advanced-topics"></a>
 
-* [Optimizations & Best Practices](advanced-topics/optimizations.md)
+* [優化與最佳實例](advanced-topics/optimizations.md)
 * [內部底層的 library](advanced-topics/how-it-works.md)
 
 ## 更多 <a id="more"></a>
