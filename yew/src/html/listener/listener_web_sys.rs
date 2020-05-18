@@ -11,7 +11,7 @@ impl_action! {
     onclose(name: "close", event: Event) -> web_sys::Event => |_, event| { event }
     oncontextmenu(name: "contextmenu", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
     oncuechange(name: "cuechange", event: Event) -> web_sys::Event => |_, event| { event }
-    ondoubleclick(name: "dblclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
+    ondblclick(name: "dblclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
     ondrag(name: "drag", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
     ondragend(name: "dragend", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
     ondragenter(name: "dragenter", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }

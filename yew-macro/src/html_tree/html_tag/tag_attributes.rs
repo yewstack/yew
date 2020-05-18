@@ -67,7 +67,7 @@ lazy_static! {
                 "onclose",
                 "oncontextmenu",
                 "oncuechange",
-                "ondoubleclick", // renamed from "ondblclick" for compatibility
+                "ondblclick",
                 "ondrag",
                 "ondragend",
                 "ondragenter",

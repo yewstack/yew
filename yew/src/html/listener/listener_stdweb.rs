@@ -11,7 +11,7 @@ impl_action! {
     // onclose not supported
     oncontextmenu(event: ContextMenuEvent) -> ContextMenuEvent => |_, event| { event }
     // oncuechange not supported
-    ondoubleclick(event: DoubleClickEvent) -> DoubleClickEvent => |_, event| { event }
+    ondblclick(event: DoubleClickEvent) -> DoubleClickEvent => |_, event| { event }
     ondrag(event: DragEvent) -> DragEvent => |_, event| { event }
     ondragend(event: DragEndEvent) -> DragEndEvent => |_, event| { event }
     ondragenter(event: DragEnterEvent) -> DragEnterEvent => |_, event| { event }
