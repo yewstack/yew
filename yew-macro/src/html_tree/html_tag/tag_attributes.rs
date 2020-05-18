@@ -162,6 +162,57 @@ lazy_static! {
     };
 }
 
+#[cfg(feature = "std_web")]
+lazy_static! {
+    static ref UNSUPPORTED_LISTENER_SET: HashSet<&'static str> = {
+        HashSet::from_iter(
+            vec![
+                "oncancel",
+                "oncanplay",
+                "oncanplaythrough",
+                "onclose",
+                "oncuechange",
+                "ondurationchange",
+                "onemptied",
+                "onended",
+                "onformdata",
+                "oninvalid",
+                "onloadeddata",
+                "onloadedmetadata",
+                "onpause",
+                "onplay",
+                "onplaying",
+                "onratechange",
+                "onreset",
+                "onsecuritypolicyviolation",
+                "onseeked",
+                "onseeking",
+                "onselect",
+                "onstalled",
+                "onsuspend",
+                "ontimeupdate",
+                "ontoggle",
+                "onvolumechange",
+                "onwaiting",
+                "oncopy",
+                "oncut",
+                "onpaste",
+                "onanimationcancel",
+                "onanimationend",
+                "onanimationiteration",
+                "onanimationstart",
+                "onselectstart",
+                "onshow",
+                "ontransitioncancel",
+                "ontransitionend",
+                "ontransitionrun",
+                "ontransitionstart",
+            ]
+            .into_iter(),
+        )
+    };
+}
+
 impl TagAttributes {
     fn drain_listeners(attrs: &mut Vec<TagAttribute>) -> Vec<TagAttribute> {
         let mut i = 0;
@@ -175,6 +226,17 @@ impl TagAttributes {
             }
         }
         drained
+    }
+
+    #[allow(unused_variables)]
+    fn is_listener_supported(attr: &TagAttribute) -> bool {
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "std_web")] {
+                !UNSUPPORTED_LISTENER_SET.contains(&attr.label.to_string().as_str())
+            } else {
+                true
+            }
+        }
     }
 
     fn drain_boolean(attrs: &mut Vec<TagAttribute>) -> Vec<TagAttribute> {
@@ -220,6 +282,16 @@ impl Parse for TagAttributes {
 
         let mut listeners = Vec::new();
         for listener in TagAttributes::drain_listeners(&mut attributes) {
+            if !TagAttributes::is_listener_supported(&listener) {
+                return Err(syn::Error::new_spanned(
+                    &listener.label,
+                    format!(
+                        "the listener `{}` is only available when using web-sys",
+                        &listener.label
+                    ),
+                ));
+            }
+
             listeners.push(listener);
         }
 

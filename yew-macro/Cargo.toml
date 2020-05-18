@@ -19,6 +19,7 @@ proc-macro = true
 
 [dependencies]
 boolinator = "2.4.0"
+cfg-if = "0.1"
 lazy_static = "1.3.0"
 proc-macro-hack = "0.5"
 proc-macro2 = "1.0"
@@ -35,3 +36,4 @@ yew = { path = "../yew" }
 
 [features]
 doc_test = []
+std_web = []

@@ -1,4 +1,6 @@
 // Inspired by: http://package.elm-lang.org/packages/elm-lang/html/2.0.0/Html-Events
+// Yew maintains a list of event listeners not supported by stdweb in the yew-macro crate (in the tag_attribute.rs file).
+// Be sure to update that list when you change anything here.
 impl_action! {
     onabort(event: ResourceAbortEvent) -> ResourceAbortEvent => |_, event| { event }
     onauxclick(event: AuxClickEvent) -> AuxClickEvent => |_, event| { event }

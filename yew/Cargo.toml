@@ -127,7 +127,7 @@ bincode = "~1.2.1"
 
 [features]
 default = ["services", "agent", "web_sys"]
-std_web = ["stdweb"]
+std_web = ["stdweb", "yew-macro/std_web"]
 web_sys = ["console_error_panic_hook", "futures", "gloo", "js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 doc_test = []
 wasm_test = []
