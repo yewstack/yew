@@ -1,51 +1,51 @@
-# Debugging
+# 除錯
 
 ## Panics
 
-Please use the [`console_error_panic`](https://github.com/rustwasm/console_error_panic_hook) crate for nicer stacktraces with Rust symbols. Note, that it is not compatible with apps built with `cargo-web`.
+請使用 [`console_error_panic`](https://github.com/rustwasm/console_error_panic_hook) crate ，他會用 Rust symbols 來做 stacktraces。注意，他跟 `cargo-web` 不相容。
 
 ## Console Logging
 
-In general, Wasm web apps are able to interact with Browser APIs, and the `console.log` api is no exception. There are a few options available:
+通常，Wasm 的網頁應用程式可以跟瀏覽器的 API 互操作，所以 `console.log` 這個 api 也不例外，你可以使用以下幾種方法：
 
 ### [`wasm-logger`](https://crates.io/crates/wasm-logger)
 
-This crate integrates with the familiar Rust `log` crate:
+這個 crate 整合了令人熟悉的 Rust `log` crate：
 
 ```rust
-// setup
+// 設定
 fn main() {
     wasm_logger::init(wasm_logger::Config::default());
 }
 
-// usage
+// 使用
 log::info!("Update: {:?}", msg);
 ```
 
 ### **\`\`**[**`ConsoleService`**](https://docs.rs/yew/0.13.2/yew/services/console/struct.ConsoleService.html)**\`\`**
 
-This service is included within yew and is available when the `"services"` feature is enabled:
+Yew 包含了這個 service，而且如果 `"services"` 這個 feaure 有被打開的話，你可以直接使用他：
 
 ```rust
-// usage
+// 使用
 ConsoleService::new()::info(format!("Update: {:?}", msg));
 ```
 
 ## Source Maps
 
-There is currently no first-class support for source maps for Rust / Wasm web apps. This, of course, is subject to change. If this is no longer true or if progress is made, please suggest a change!
+目前 Rust/Wasm 網頁應用程式，不對 source maps 第一線支援。當然，這件事在未來可能會改變，如果這裡寫的資訊不正確，或是事情有所變化，請建議我們修改這篇文件！
 
-### Latest Info
+### 最新資訊
 
-\[Dec 2019\] [Chrome DevTools update](https://developers.google.com/web/updates/2019/12/webassembly#the_future)
+\[2019 12月\] [Chrome DevTools update](https://developers.google.com/web/updates/2019/12/webassembly#the_future)
 
-> There is still quite a bit of work to do though. For example, on the tooling side, Emscripten \(Binaryen\) and wasm-pack \(wasm-bindgen\) don’t support updating DWARF information on transformations they perform yet.
+> 但還是有大量的工作要做。舉例還說，在工具方面，Emscripten \(Binaryen\) 與 wasm-pack \(wasm-bindgen\)，還不支援更新轉換他們的行為的 DWARF 資訊。
 
-\[2020\] [Rust Wasm debugging guide](https://rustwasm.github.io/book/reference/debugging.html#using-a-debugger)
+\[2020\] [Rust Wasm 除錯指南](https://rustwasm.github.io/book/reference/debugging.html#using-a-debugger)
 
-> Unfortunately, the debugging story for WebAssembly is still immature. On most Unix systems, [DWARF](http://dwarfstd.org/) is used to encode the information that a debugger needs to provide source-level inspection of a running program. There is an alternative format that encodes similar information on Windows. Currently, there is no equivalent for WebAssembly.
+> 不幸地，WebAssembly 的除錯還不夠完善。在大部分的 Unix 系統中，[DWARF](http://dwarfstd.org/) 被用來編碼除錯器需要提供的程式碼等級的資訊。還有一種在 Windows 上的編碼資訊。但現在還沒有跟 WebAssembly 等價。
 
 \[2019\] [Rust Wasm roadmap](https://rustwasm.github.io/rfcs/007-2019-roadmap.html#debugging)
 
-> Debugging is tricky because much of the story is out of this working group's hands, and depends on both the WebAssembly standardization bodies and the folks implementing browser developer tools instead.
+> 除錯是一件棘手的事情，因為大部分的事情都不是掌握在這個工作群組中，而是依賴 WebAssembly 的標準，與瀏覽器的開發者工具如何實作。
 
