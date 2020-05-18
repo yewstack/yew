@@ -1,24 +1,24 @@
 ---
-description: Libraries that can help with yew development
+description: 函式庫可以幫助 yew 的開發者
 ---
 
-# External Libs
+# 額外的函式庫
 
 ### Yewtil
 
-Yewtil is a collection of common utilities that help you write Yew programs. It includes:
+Yewtil 是一個常見的工具懶人包，可以幫助你編寫 Yew 的程式碼，裡面包含了：
 
-* NeqAssign - As discussed earlier, is the best way to assign props to ensure minimal re-rendering.
-* PureComponents - Components that don't update any of their state. Using NeqAssign under the hood, they act as memoized functions that are called from inside the `html!` macro like normal components are.
-* Lrc - linked list reference counted smart pointer functions like `Rc` does, but allows for novel data update patterns.
-* Mrc/Irc - Mutable/Immutable reference counted smart pointers that function like `Rc` but are more ergonomic to use within Yew, due to implementing `DerefMut` and `BorrowMut`for `Mrc`. This allows `Mrc` to be used with `NeqAssign`. `Irc` acts as an immutable view into the data, which makes this ideal for holding data used in display-only tasks.
-* History - A history tracking wrapper that uses a `VecDeque` to hold on to previous values that it has represented.
-* Futures - Support for running futures that send messages to component update loops.
-* Fetch - Abstractions for handling fetch requests made using `web_sys` and the aforementioned futures feature.
+* NeqAssign - 如前面的章節所述，這是一個減少因為屬性改變而重新渲染的最佳方法。
+* PureComponents - 不會更新自己狀態的元件。在他的生命周期底下使用 NeqAssign，可以讓他就像是 memoized 的函式。他可以寫在 `html!` 巨集中看起來就像是一般的元件。
+* Lrc - linked list 參考計數的智慧指針函式，跟 `Rc` 差不多，但是他可以讓新的資料更新他的模型。
+* Mrc/Irc - 可變與不可變的參考計數智慧指針，跟 Rc 差不多。但是因為 `Mrc` 實作了 `DerefMut` 與 `BorrowMut`，所以讓他在 Yew 中更便於使用。 這讓 `Mrc` 可以與 `NeqAssign` 一起使用。 `Irc` 在資料裡就像是不可變得 view，他可以管理只用來顯示用的資料。
+* History - 一個歷史追蹤器，他用 `VecDeque` 管理先前的值。
+* Futures - 支援運行 futures，他會送訊息給元件的更新迴圈。
+* Fetch - 處理使用 web\_sys 與前面所提的 futures 的功能所發出的請求，的抽象層。
 
-## Looking For
+## 尋找
 
-Libraries that the ecosystem needs, but doesn't have yet.
+我們需要函式庫的社群生態，目前還沒有。
 
-Bootstrap/MaterialUi/arbitrary css framework component wrappers.
+Boostrap/MaterialUI/任何 css 框架的元件封裝。
 

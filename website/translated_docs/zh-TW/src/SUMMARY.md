@@ -40,5 +40,5 @@
 * [Roadmap](more/roadmap.md)
 * [測試](more/testing.md)
 * [除錯](more/debugging.md)
-* [External Libs](more/external-libs.md)
+* [額外的函式庫](more/external-libs.md)
 
