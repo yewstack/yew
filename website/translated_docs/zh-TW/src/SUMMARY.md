@@ -39,6 +39,6 @@
 * [CSS](more/css.md)
 * [Roadmap](more/roadmap.md)
 * [測試](more/testing.md)
-* [Debugging](more/debugging.md)
+* [除錯](more/debugging.md)
 * [External Libs](more/external-libs.md)
 
