@@ -1,0 +1,29 @@
+[package]
+name = "interface"
+version = "0.1.0"
+authors = ["Michał Kawalec <michal@monad.cat>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = { version = "^0.2", features = ["serde-serialize"] }
+wasm-bindgen-futures = "0.4"
+futures = { version = "0.3.4", features = ["executor", "thread-pool"] }
+yew = { path = "../../yewstack/yew/yew" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["raw_value"] }
+
+wee_alloc = "0.4.4"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "Window",
+  "Navigator",
+  "MediaDevices",
+  "MediaStreamConstraints"
+]
