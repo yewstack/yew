@@ -1,8 +1,6 @@
 use yew::prelude::*;
-use yew::agent::{Bridgeable, Dispatcher, Dispatched, StatefulWrapper};
+use yew::agent::{Bridgeable, Dispatcher, Dispatched, ReadOnly, StatefulWrapper};
 use web_sys::{console};
-use std::rc::Rc;
-use std::cell::RefCell;
 
 use crate::agents::media_manager::{MediaManager, Request};
 
@@ -14,7 +12,7 @@ pub struct App {
 pub enum Msg {
     GetStream,
     GetDevices,
-    MediaManagerMsg(Rc<RefCell<MediaManager>>),
+    MediaManagerMsg(ReadOnly<MediaManager>),
 }
 
 impl Component for App {

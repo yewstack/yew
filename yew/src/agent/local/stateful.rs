@@ -52,11 +52,24 @@ pub struct StatefulWrapper<S: Stateful> {
 }
 
 /// TODO
+#[derive(Debug)]
+pub struct ReadOnly<S> {
+    state: Shared<S>,
+}
+
+impl<S> ReadOnly<S> {
+    /// Allow only immutable borrows to the underlying data
+    pub fn borrow<'a>(&'a self) -> impl Deref<Target = S> + 'a {
+        self.state.borrow()
+    }
+}
+
+/// TODO
 impl<S: Stateful> Agent for StatefulWrapper<S> {
     type Reach = Context<Self>;
     type Message = S::Message;
     type Input = S::Input;
-    type Output = Shared<S>;
+    type Output = ReadOnly<S>;
 
     fn create(link: AgentLink<Self>) -> Self {
         let state = Rc::new(RefCell::new(S::new()));
@@ -79,9 +92,7 @@ impl<S: Stateful> Agent for StatefulWrapper<S> {
         }
 
         for handler in self.handlers.iter() {
-            // Is there a way of sharing a RefCell that cannot have a mutable
-            // reference taken? That would be ideal
-            self.link.respond(*handler, self.state.clone());
+            self.link.respond(*handler, ReadOnly { state: self.state.clone() });
         }
     }
 

@@ -7,7 +7,7 @@ mod worker;
 
 pub use link::AgentLink;
 pub(crate) use link::*;
-pub use local::{Context, Job, Stateful, StatefulWrapper, Bridgeable};
+pub use local::{Context, Job, ReadOnly, Stateful, StatefulWrapper, Bridgeable};
 pub(crate) use pool::*;
 pub use pool::{Dispatched, Dispatcher};
 pub use worker::{Private, Public, Threaded};
