@@ -9,7 +9,7 @@ use std::collections::{HashSet};
 ///
 /// `handle_input` receives incoming messages from components,
 /// `reduce` applies changes to the state
-pub trait Stateful: Sized + 'static {
+pub trait Store: Sized + 'static {
     /// TODO
     type Message;
     /// TODO
@@ -23,10 +23,10 @@ pub trait Stateful: Sized + 'static {
     /// operation completes. This is the place to do side effects, like
     /// talking to the server, or asking the user for input.
     ///
-    /// Note that you can look at the state of your Stateful, but you
+    /// Note that you can look at the state of your Store, but you
     /// cannot modify it here. If you want to modify it, send a Message
     /// to the reducer
-    fn handle_input(&self, link: AgentLink<StatefulWrapper<Self>>, msg: Self::Input);
+    fn handle_input(&self, link: AgentLink<StoreWrapper<Self>>, msg: Self::Input);
 
     /// A pure function, with no side effects. Receives a message,
     /// and applies it to the state as it sees fit.
@@ -38,7 +38,7 @@ pub trait Stateful: Sized + 'static {
 
 /// TODO
 #[derive(Debug)]
-pub struct StatefulWrapper<S: Stateful> {
+pub struct StoreWrapper<S: Store> {
     /// TODO
     pub handlers: HashSet<HandlerId>,
     /// TODO
@@ -65,7 +65,7 @@ impl<S> ReadOnly<S> {
 }
 
 /// TODO
-impl<S: Stateful> Agent for StatefulWrapper<S> {
+impl<S: Store> Agent for StoreWrapper<S> {
     type Reach = Context<Self>;
     type Message = S::Message;
     type Input = S::Input;
@@ -78,7 +78,7 @@ impl<S: Stateful> Agent for StatefulWrapper<S> {
         // Link to self to never go out of scope
         let self_dispatcher = Self::dispatcher();
 
-        StatefulWrapper {
+        StoreWrapper {
             handlers,
             state,
             link,
@@ -126,10 +126,10 @@ pub trait Dispatchable: Sized + 'static {
 
 /// TODO
 impl<T> Dispatchable for T
-where T: Stateful
+where T: Store
 {
     /// TODO
-    type RefAgent = StatefulWrapper<T>;
+    type RefAgent = StoreWrapper<T>;
 
     fn dispatcher() -> Dispatcher<Self::RefAgent> {
         Dispatcher(<Self::RefAgent as Agent>::Reach::spawn_or_join(None))
@@ -147,10 +147,10 @@ pub trait Bridgeable: Sized + 'static {
 
 /// TODO
 impl<T> Bridgeable for T
-where T: Stateful
+where T: Store
 {
     /// TODO
-    type RefAgent = StatefulWrapper<T>;
+    type RefAgent = StoreWrapper<T>;
 
     fn bridge(callback: Callback<<Self::RefAgent as Agent>::Output>) -> Box<dyn Bridge<Self::RefAgent>> {
         <Self::RefAgent as Agent>::Reach::spawn_or_join(Some(callback))

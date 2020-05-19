@@ -1,4 +1,4 @@
-use yew::agent::{AgentLink, Stateful, StatefulWrapper};
+use yew::agent::{AgentLink, Store, StoreWrapper};
 use wasm_bindgen::prelude::*;
 use web_sys::{MediaDevices, window, console, MediaStreamConstraints};
 use wasm_bindgen_futures::{JsFuture, spawn_local};
@@ -37,7 +37,7 @@ pub struct MediaManager {
   pub set_stream_error: Option<JsValue>,
 }
 
-impl Stateful for MediaManager {
+impl Store for MediaManager {
   type Message = Message;
   type Input = Request;
 
@@ -54,7 +54,7 @@ impl Stateful for MediaManager {
     }
   }
 
-  fn handle_input(&self, link: AgentLink<StatefulWrapper<Self>>, msg: Self::Input) {
+  fn handle_input(&self, link: AgentLink<StoreWrapper<Self>>, msg: Self::Input) {
     match msg {
       Request::GetStream => {
         console::log_1(&"Continuing handling getstream".into());

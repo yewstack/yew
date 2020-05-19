@@ -1,9 +1,9 @@
 mod context;
 mod job;
-mod stateful;
+mod store;
 
 use super::*;
 
 pub use context::Context;
 pub use job::Job;
-pub use stateful::{ReadOnly, Stateful, StatefulWrapper, Bridgeable};
+pub use store::{ReadOnly, Store, StoreWrapper, Bridgeable};

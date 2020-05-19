@@ -1,12 +1,12 @@
 use yew::prelude::*;
-use yew::agent::{Bridgeable, Dispatcher, Dispatched, ReadOnly, StatefulWrapper};
+use yew::agent::{Bridgeable, Dispatcher, Dispatched, ReadOnly, StoreWrapper};
 use web_sys::{console};
 
 use crate::agents::media_manager::{MediaManager, Request};
 
 pub struct App {
     link: ComponentLink<Self>,
-    media_manager: Box<dyn Bridge<StatefulWrapper<MediaManager>>>
+    media_manager: Box<dyn Bridge<StoreWrapper<MediaManager>>>
 }
 
 pub enum Msg {
