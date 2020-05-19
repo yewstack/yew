@@ -150,8 +150,8 @@ pub mod events {
         } else if #[cfg(feature = "web_sys")] {
             #[doc(no_inline)]
             pub use web_sys::{
-                DragEvent, Event, FocusEvent, KeyboardEvent, MouseEvent, PointerEvent, TouchEvent, UiEvent,
-                WheelEvent,
+                AnimationEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent, KeyboardEvent,
+                MouseEvent, PointerEvent, ProgressEvent, TouchEvent, TransitionEvent, UiEvent, WheelEvent,
             };
         }
     }

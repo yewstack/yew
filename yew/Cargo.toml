@@ -52,6 +52,7 @@ optional = true
 features = [
   "AbortController",
   "AbortSignal",
+  "AnimationEvent",
   "BinaryType",
   "Blob",
   "BlobPropertyBag",
@@ -61,6 +62,7 @@ features = [
   "DomTokenList",
   "DragEvent",
   "Element",
+  "ErrorEvent",
   "Event",
   "EventTarget",
   "File",
@@ -72,6 +74,7 @@ features = [
   "HtmlInputElement",
   "HtmlSelectElement",
   "HtmlTextAreaElement",
+  "InputEvent",
   "KeyboardEvent",
   "Location",
   "MessageEvent",
@@ -79,6 +82,7 @@ features = [
   "Node",
   "ObserverCallback",
   "PointerEvent",
+  "ProgressEvent",
   "ReferrerPolicy",
   "Request",
   "RequestCache",
@@ -90,6 +94,7 @@ features = [
   "Storage",
   "Text",
   "TouchEvent",
+  "TransitionEvent",
   "UiEvent",
   "Url",
   "WebSocket",
@@ -122,7 +127,7 @@ bincode = "~1.2.1"
 
 [features]
 default = ["services", "agent", "web_sys"]
-std_web = ["stdweb"]
+std_web = ["stdweb", "yew-macro/std_web"]
 web_sys = ["console_error_panic_hook", "futures", "gloo", "js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 doc_test = []
 wasm_test = []
