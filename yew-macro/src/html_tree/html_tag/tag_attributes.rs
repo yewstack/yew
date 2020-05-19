@@ -228,17 +228,6 @@ impl TagAttributes {
         drained
     }
 
-    #[allow(unused_variables)]
-    fn is_listener_supported(attr: &TagAttribute) -> bool {
-        cfg_if::cfg_if! {
-            if #[cfg(feature = "std_web")] {
-                !UNSUPPORTED_LISTENER_SET.contains(&attr.label.to_string().as_str())
-            } else {
-                true
-            }
-        }
-    }
-
     fn drain_boolean(attrs: &mut Vec<TagAttribute>) -> Vec<TagAttribute> {
         let mut i = 0;
         let mut drained = Vec::new();
@@ -282,14 +271,18 @@ impl Parse for TagAttributes {
 
         let mut listeners = Vec::new();
         for listener in TagAttributes::drain_listeners(&mut attributes) {
-            if !TagAttributes::is_listener_supported(&listener) {
-                return Err(syn::Error::new_spanned(
-                    &listener.label,
-                    format!(
-                        "the listener `{}` is only available when using web-sys",
-                        &listener.label
-                    ),
-                ));
+            #[cfg(feature = "std_web")]
+            {
+                let label = &listener.label;
+                if UNSUPPORTED_LISTENER_SET.contains(&label.to_string().as_str()) {
+                    return Err(syn::Error::new_spanned(
+                        &label,
+                        format!(
+                            "the listener `{}` is only available when using web-sys",
+                            &label
+                        ),
+                    ));
+                }
             }
 
             listeners.push(listener);
