@@ -215,7 +215,7 @@ impl Model {
                         class="toggle"
                         checked=entry.completed
                         onclick=self.link.callback(move |_| Msg::Toggle(idx)) />
-                    <label ondoubleclick=self.link.callback(move |_| Msg::ToggleEdit(idx))>{ &entry.description }</label>
+                    <label ondblclick=self.link.callback(move |_| Msg::ToggleEdit(idx))>{ &entry.description }</label>
                     <button class="destroy" onclick=self.link.callback(move |_| Msg::Remove(idx)) />
                 </div>
                 { self.view_entry_edit_input((idx, &entry)) }
