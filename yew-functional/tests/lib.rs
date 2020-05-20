@@ -448,12 +448,8 @@ fn use_context_works() {
     impl FunctionProvider for ExpectNoContextFunction {
         type TProps = ();
 
-        fn run(props: &Self::TProps) -> Html {
+        fn run(_props: &Self::TProps) -> Html {
             if use_context::<ExampleContext>().is_some() {
-                /*panic!(format!(
-                    "Context should be None here, but was {:?}!",
-                    use_context::<ExampleContext>().unwrap()
-                ))*/
                 yew::services::ConsoleService::new().log(&format!(
                     "Context should be None here, but was {:?}!",
                     use_context::<ExampleContext>().unwrap()
@@ -467,7 +463,7 @@ fn use_context_works() {
     impl FunctionProvider for UseContextFunctionOuter {
         type TProps = ();
 
-        fn run(props: &Self::TProps) -> Html {
+        fn run(_props: &Self::TProps) -> Html {
             type ExampleContextProvider = ContextProvider<ExampleContext>;
             return html! {
                 <div>
@@ -493,11 +489,10 @@ fn use_context_works() {
     impl FunctionProvider for UseContextFunctionInner {
         type TProps = ();
 
-        fn run(props: &Self::TProps) -> Html {
+        fn run(_props: &Self::TProps) -> Html {
             let context = use_context::<ExampleContext>();
-            // context.unwrap().0
             return html! {
-                <div id="result">{context.unwrap().0}</div>
+                <div id="result">{ context.unwrap().0 }</div>
             };
         }
     }

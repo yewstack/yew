@@ -1,22 +1,22 @@
 // Naming this file use_context could be confusing. Not least to the IDE.
-use std::any::Any;
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::DerefMut;
 use yew::html::Renderable;
 use yew::{html, Children, Component, ComponentLink, Html, Properties};
 
+type ContextData = Option<Box<dyn Any>>;
+
 thread_local! {
-    // TODO using option means we do not have to modify the map much. Is this the right choice?
-    static CURRENT_CONTEXT: RefCell<HashMap<TypeId, Option<Box<dyn Any>>>> = RefCell::new(HashMap::new());
+    // TODO consider using a stack approach instead of swapping the context data in and out of the providers all the time.
+    static CURRENT_CONTEXT: RefCell<HashMap<TypeId, ContextData>> = RefCell::new(HashMap::new());
 }
 
 pub struct ContextProvider<T: Clone + 'static> {
     _never: std::marker::PhantomData<T>,
-    context_data: RefCell<Option<Box<dyn Any>>>,
+    context_data: RefCell<ContextData>,
     children: Children,
-    link: ComponentLink<Self>,
 }
 
 #[derive(Clone, PartialEq, Properties)]
@@ -29,12 +29,11 @@ impl<T: Clone + 'static> Component for ContextProvider<T> {
     type Message = ();
     type Properties = ContextProviderProps<T>;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
         ContextProvider {
             _never: std::marker::PhantomData::default(),
             context_data: RefCell::new(Some(Box::new(props.context))),
             children: props.children,
-            link,
         }
     }
 
@@ -50,39 +49,36 @@ impl<T: Clone + 'static> Component for ContextProvider<T> {
 
     fn view(&self) -> Html {
         // Place ourselves
-        yew::services::ConsoleService::new().log("PLACING HOOK");
+        yew::services::ConsoleService::new().log("PLACING HOOK"); // TODO remove
         CURRENT_CONTEXT.with(|cell| {
-            let mut mutable_map = cell.borrow_mut();
-            let previous_hook = mutable_map.entry(TypeId::of::<T>()).or_insert_with(|| None);
-            std::mem::swap(self.context_data.borrow_mut().deref_mut(), previous_hook);
+            let mut current_contexts = cell.borrow_mut();
+            let previous_ctx = current_contexts.entry(TypeId::of::<T>()).or_insert(None);
+            std::mem::swap(self.context_data.borrow_mut().deref_mut(), previous_ctx);
         });
-
-        let rendered = self.children.render();
-
-        // self.link.send_message(());
 
         return html! {
             <>
-                {rendered}
+                { self.children.render() }
             </>
         };
     }
 
     fn rendered(&mut self, _first_render: bool) {
+        // TODO remove log
         yew::services::ConsoleService::new().log("RECLAIMING HOOK");
         // Reclaim our context
         CURRENT_CONTEXT.with(|cell| {
-            let mut mutable_map = cell.borrow_mut();
-            let our_hook = mutable_map.entry(TypeId::of::<T>()).or_default();
-            std::mem::swap(self.context_data.borrow_mut().deref_mut(), our_hook);
+            let mut current_contexts = cell.borrow_mut();
+            let my_ctx = current_contexts.entry(TypeId::of::<T>()).or_default();
+            std::mem::swap(self.context_data.borrow_mut().deref_mut(), my_ctx);
         });
     }
 }
 
 pub fn use_context<T: 'static + Clone>() -> Option<T> {
     CURRENT_CONTEXT.with(|cell| {
-        let mut mutable_map = cell.borrow_mut();
-        let context = mutable_map.entry(TypeId::of::<T>()).or_default();
+        let mut current_context = cell.borrow_mut();
+        let context = current_context.entry(TypeId::of::<T>()).or_default();
         if let Some(context) = context {
             let context_ref = context.downcast_ref::<T>().expect("Data corruption");
             Some((*context_ref).clone())
