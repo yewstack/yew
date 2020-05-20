@@ -503,6 +503,95 @@ fn use_context_works() {
     assert_eq!("correct", result);
 }
 
+#[wasm_bindgen_test]
+fn use_context_works_with_multiple_types() {
+    #[derive(Clone, Debug, PartialEq)]
+    struct ContextA(u32);
+    #[derive(Clone, Debug, PartialEq)]
+    struct ContextB(u32);
+
+    struct Test1Function;
+    impl FunctionProvider for Test1Function {
+        type TProps = ();
+
+        fn run(_props: &Self::TProps) -> Html {
+            assert_eq!(use_context::<ContextA>(), Some(ContextA(2)));
+            assert_eq!(use_context::<ContextB>(), Some(ContextB(1)));
+
+            return html! {};
+        }
+    }
+    type Test1 = FunctionComponent<Test1Function>;
+
+    struct Test2Function;
+    impl FunctionProvider for Test2Function {
+        type TProps = ();
+
+        fn run(_props: &Self::TProps) -> Html {
+            assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
+            assert_eq!(use_context::<ContextB>(), Some(ContextB(1)));
+
+            return html! {};
+        }
+    }
+    type Test2 = FunctionComponent<Test2Function>;
+
+    struct Test3Function;
+    impl FunctionProvider for Test3Function {
+        type TProps = ();
+
+        fn run(_props: &Self::TProps) -> Html {
+            assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
+            assert_eq!(use_context::<ContextB>(), None);
+
+            return html! {};
+        }
+    }
+    type Test3 = FunctionComponent<Test3Function>;
+
+    struct Test4Function;
+    impl FunctionProvider for Test4Function {
+        type TProps = ();
+
+        fn run(_props: &Self::TProps) -> Html {
+            assert_eq!(use_context::<ContextA>(), None);
+            assert_eq!(use_context::<ContextB>(), None);
+
+            return html! {};
+        }
+    }
+    type Test4 = FunctionComponent<Test4Function>;
+
+    struct TestFunction;
+    impl FunctionProvider for TestFunction {
+        type TProps = ();
+
+        fn run(_props: &Self::TProps) -> Html {
+            type ContextAProvider = ContextProvider<ContextA>;
+            type ContextBProvider = ContextProvider<ContextB>;
+
+            return html! {
+                <div>
+                    <ContextAProvider context=ContextA(0)>
+                        <ContextBProvider context=ContextB(1)>
+                            <ContextAProvider context=ContextA(2)>
+                                <Test1/>
+                            </ContextAProvider>
+                            <Test2/>
+                        </ContextBProvider>
+                        <Test3/>
+                    </ContextAProvider>
+                    <Test4 />
+                </div>
+            };
+        }
+    }
+    type TestComponent = FunctionComponent<TestFunction>;
+
+    let app: App<TestComponent> = yew::App::new();
+    app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+}
+
 fn obtain_result() -> String {
     return yew::utils::document()
         .get_element_by_id("result")
