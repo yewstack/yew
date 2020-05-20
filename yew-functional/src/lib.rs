@@ -2,6 +2,7 @@ use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::ops::DerefMut;
 use std::rc::Rc;
+use yew::html::AnyScope;
 use yew::{Component, ComponentLink, Html, Properties};
 
 mod use_context_hook;
@@ -9,6 +10,10 @@ pub use use_context_hook::*;
 
 thread_local! {
     static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
+}
+
+thread_local! {
+    static CURRENT_SCOPE: RefCell<Option<AnyScope>> = RefCell::new(None);
 }
 
 pub trait Hook {
@@ -32,6 +37,36 @@ pub struct FunctionComponent<T: FunctionProvider> {
     _never: std::marker::PhantomData<T>,
     props: T::TProps,
     hook_state: RefCell<Option<HookState>>,
+    scope_state: RefCell<Option<AnyScope>>,
+}
+
+impl<T> FunctionComponent<T>
+where
+    T: FunctionProvider,
+{
+    fn swap_hook(&self) {
+        CURRENT_HOOK.with(|previous_hook| {
+            std::mem::swap(
+                previous_hook
+                    .try_borrow_mut()
+                    .expect("Previous hook still borrowed")
+                    .deref_mut(),
+                self.hook_state.borrow_mut().deref_mut(),
+            );
+        });
+    }
+
+    fn swap_scope(&self) {
+        CURRENT_SCOPE.with(|previous_scope| {
+            std::mem::swap(
+                previous_scope
+                    .try_borrow_mut()
+                    .expect("Previous scope still borrowed")
+                    .deref_mut(),
+                self.scope_state.borrow_mut().deref_mut(),
+            );
+        });
+    }
 }
 
 impl<T: 'static> Component for FunctionComponent<T>
@@ -42,6 +77,7 @@ where
     type Properties = T::TProps;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let scope = AnyScope::from(link.clone());
         FunctionComponent {
             _never: std::marker::PhantomData::default(),
             props,
@@ -51,6 +87,7 @@ where
                 hooks: vec![],
                 destroy_listeners: vec![],
             })),
+            scope_state: RefCell::new(Some(scope)),
         }
     }
 
@@ -73,29 +110,16 @@ where
             .as_mut()
             .unwrap()
             .counter = 0;
-        // Load hook
-        CURRENT_HOOK.with(|previous_hook| {
-            std::mem::swap(
-                previous_hook
-                    .try_borrow_mut()
-                    .expect("Previous hook still borrowed")
-                    .deref_mut(),
-                self.hook_state.borrow_mut().deref_mut(),
-            );
-        });
+
+        // Load
+        self.swap_hook();
+        self.swap_scope();
 
         let ret = T::run(&self.props);
 
-        // Unload hook
-        CURRENT_HOOK.with(|previous_hook| {
-            std::mem::swap(
-                previous_hook
-                    .try_borrow_mut()
-                    .expect("Previous hook still borrowed")
-                    .deref_mut(),
-                self.hook_state.borrow_mut().deref_mut(),
-            );
-        });
+        // Unload
+        self.swap_scope();
+        self.swap_hook();
 
         ret
     }
@@ -349,4 +373,8 @@ where
     // Execute the actual hook closure we were given. Let it mutate the hook state and let
     // it create a callback that takes the mutable hook state.
     hook_runner(&mut hook, trigger)
+}
+
+pub(crate) fn get_current_scope() -> Option<AnyScope> {
+    CURRENT_SCOPE.with(|scope| scope.borrow().clone())
 }
