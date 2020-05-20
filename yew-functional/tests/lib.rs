@@ -11,8 +11,8 @@ extern crate yew;
 use self::yew::NodeRef;
 use yew::{html, App, Html, Properties};
 use yew_functional::{
-    use_effect, use_effect_with_deps, use_reducer_with_init, use_ref, use_state, FunctionComponent,
-    FunctionProvider,
+    use_context, use_effect, use_effect_with_deps, use_reducer_with_init, use_ref, use_state,
+    ContextProvider, FunctionComponent, FunctionProvider,
 };
 
 #[wasm_bindgen_test]
@@ -433,6 +433,79 @@ fn use_effect_refires_on_dependency_change() {
     let result: String = obtain_result();
 
     assert_eq!(result.as_str(), "11");
+}
+
+#[wasm_bindgen_test]
+fn use_context_works() {
+    #[derive(Clone, Debug)]
+    struct ExampleContext(String);
+    struct UseContextFunctionOuter {}
+    struct UseContextFunctionInner {}
+    struct ExpectNoContextFunction {}
+    type UseContextComponent = FunctionComponent<UseContextFunctionOuter>;
+    type UseContextComponentInner = FunctionComponent<UseContextFunctionInner>;
+    type ExpectNoContextComponent = FunctionComponent<ExpectNoContextFunction>;
+    impl FunctionProvider for ExpectNoContextFunction {
+        type TProps = ();
+
+        fn run(props: &Self::TProps) -> Html {
+            if use_context::<ExampleContext>().is_some() {
+                /*panic!(format!(
+                    "Context should be None here, but was {:?}!",
+                    use_context::<ExampleContext>().unwrap()
+                ))*/
+                yew::services::ConsoleService::new().log(&format!(
+                    "Context should be None here, but was {:?}!",
+                    use_context::<ExampleContext>().unwrap()
+                ));
+            };
+            return html! {
+                <div></div>
+            };
+        }
+    }
+    impl FunctionProvider for UseContextFunctionOuter {
+        type TProps = ();
+
+        fn run(props: &Self::TProps) -> Html {
+            type ExampleContextProvider = ContextProvider<ExampleContext>;
+            return html! {
+                <div>
+                    <ExampleContextProvider context=ExampleContext("wrong1".into())>
+                        <div>{"ignored"}</div>
+                    </ExampleContextProvider>
+                    <ExampleContextProvider context=ExampleContext("wrong2".into())>
+                        <ExampleContextProvider context=ExampleContext("correct".into())>
+                            <ExampleContextProvider context=ExampleContext("wrong1".into())>
+                                <div>{"ignored"}</div>
+                            </ExampleContextProvider>
+                            <UseContextComponentInner />
+                        </ExampleContextProvider>
+                    </ExampleContextProvider>
+                    <ExampleContextProvider context=ExampleContext("wrong3".into())>
+                        <div>{"ignored"}</div>
+                    </ExampleContextProvider>
+                    <ExpectNoContextComponent />
+                </div>
+            };
+        }
+    }
+    impl FunctionProvider for UseContextFunctionInner {
+        type TProps = ();
+
+        fn run(props: &Self::TProps) -> Html {
+            let context = use_context::<ExampleContext>();
+            // context.unwrap().0
+            return html! {
+                <div id="result">{context.unwrap().0}</div>
+            };
+        }
+    }
+
+    let app: App<UseContextComponent> = yew::App::new();
+    app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+    let result: String = obtain_result();
+    assert_eq!("correct", result);
 }
 
 fn obtain_result() -> String {
