@@ -12,10 +12,6 @@ thread_local! {
     static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
 }
 
-thread_local! {
-    static CURRENT_SCOPE: RefCell<Option<AnyScope>> = RefCell::new(None);
-}
-
 pub trait Hook {
     fn tear_down(&mut self) {}
 }
@@ -23,6 +19,7 @@ pub trait Hook {
 type ProcessMessage = Rc<dyn Fn(Box<dyn FnOnce() -> bool>)>;
 struct HookState {
     counter: usize,
+    scope: AnyScope,
     process_message: ProcessMessage,
     hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
     destroy_listeners: Vec<Box<dyn FnOnce()>>,
@@ -37,14 +34,13 @@ pub struct FunctionComponent<T: FunctionProvider> {
     _never: std::marker::PhantomData<T>,
     props: T::TProps,
     hook_state: RefCell<Option<HookState>>,
-    scope_state: RefCell<Option<AnyScope>>,
 }
 
 impl<T> FunctionComponent<T>
 where
     T: FunctionProvider,
 {
-    fn swap_hook(&self) {
+    fn swap_hook_state(&self) {
         CURRENT_HOOK.with(|previous_hook| {
             std::mem::swap(
                 previous_hook
@@ -52,18 +48,6 @@ where
                     .expect("Previous hook still borrowed")
                     .deref_mut(),
                 self.hook_state.borrow_mut().deref_mut(),
-            );
-        });
-    }
-
-    fn swap_scope(&self) {
-        CURRENT_SCOPE.with(|previous_scope| {
-            std::mem::swap(
-                previous_scope
-                    .try_borrow_mut()
-                    .expect("Previous scope still borrowed")
-                    .deref_mut(),
-                self.scope_state.borrow_mut().deref_mut(),
             );
         });
     }
@@ -83,11 +67,11 @@ where
             props,
             hook_state: RefCell::new(Some(HookState {
                 counter: 0,
+                scope,
                 process_message: Rc::new(move |msg| link.send_message(msg)),
                 hooks: vec![],
                 destroy_listeners: vec![],
             })),
-            scope_state: RefCell::new(Some(scope)),
         }
     }
 
@@ -101,7 +85,6 @@ where
         props != self.props
     }
 
-    //noinspection DuplicatedCode
     fn view(&self) -> Html {
         // Reset hook
         self.hook_state
@@ -111,15 +94,13 @@ where
             .unwrap()
             .counter = 0;
 
-        // Load
-        self.swap_hook();
-        self.swap_scope();
+        // Load hook
+        self.swap_hook_state();
 
         let ret = T::run(&self.props);
 
-        // Unload
-        self.swap_scope();
-        self.swap_hook();
+        // Restore previous hook
+        self.swap_hook_state();
 
         ret
     }
@@ -376,5 +357,5 @@ where
 }
 
 pub(crate) fn get_current_scope() -> Option<AnyScope> {
-    CURRENT_SCOPE.with(|scope| scope.borrow().clone())
+    CURRENT_HOOK.with(|cell| cell.borrow().as_ref().map(|state| state.scope.clone()))
 }
