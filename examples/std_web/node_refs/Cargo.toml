@@ -1,9 +1,0 @@
-[package]
-name = "node_refs_std_web"
-version = "0.1.0"
-authors = ["Justin Starry <justin.starry@icloud.com>"]
-edition = "2018"
-
-[dependencies]
-yew = { path = "../../..", features = ["std_web"] }
-stdweb = "0.4.20"

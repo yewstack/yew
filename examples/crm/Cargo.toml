@@ -7,9 +7,5 @@ edition = "2018"
 [dependencies]
 serde = "1"
 serde_derive = "1"
-yew = { path = "../.." }
-pulldown-cmark = "0.1.2"
-
-[features]
-std_web = ["yew/std_web"]
-web_sys = ["yew/web_sys"]
+yew = { path = "../../yew" }
+pulldown-cmark = { version = "0.7.0", default-features = false }

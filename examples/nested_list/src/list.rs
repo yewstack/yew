@@ -5,7 +5,7 @@ use yew::html::{ChildrenRenderer, NodeRef};
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VComp, VNode};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Variants {
     Item(<ListItem as Component>::Properties),
     Header(<ListHeader as Component>::Properties),
@@ -23,12 +23,12 @@ impl From<HeaderProps> for Variants {
     }
 }
 
-#[derive(Clone)]
+#[derive(PartialEq, Clone)]
 pub struct ListVariant {
     props: Variants,
 }
 
-#[derive(Clone, Properties)]
+#[derive(Clone, PartialEq, Properties)]
 pub struct Props {
     pub children: ChildrenRenderer<ListVariant>,
     pub on_hover: Callback<Hovered>,
@@ -53,6 +53,15 @@ impl Component for List {
         List {
             props,
             inactive: false,
+        }
+    }
+
+    fn change(&mut self, props: Self::Properties) -> bool {
+        if self.props != props {
+            self.props = props;
+            true
+        } else {
+            false
         }
     }
 
@@ -122,8 +131,10 @@ where
 impl Into<VNode> for ListVariant {
     fn into(self) -> VNode {
         match self.props {
-            Variants::Header(props) => VComp::new::<ListHeader>(props, NodeRef::default()).into(),
-            Variants::Item(props) => VComp::new::<ListItem>(props, NodeRef::default()).into(),
+            Variants::Header(props) => {
+                VComp::new::<ListHeader>(props, NodeRef::default(), None).into()
+            }
+            Variants::Item(props) => VComp::new::<ListItem>(props, NodeRef::default(), None).into(),
         }
     }
 }

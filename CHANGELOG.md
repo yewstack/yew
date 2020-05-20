@@ -1,5 +1,86 @@
 # Changelog
 
+## ✨ **0.16.2** *(2020-05-14)*
+
+#### Changelog
+
+- #### 🛠 Fixes
+
+  - Fixed regression where messages sent from `Component::create` were skipped. [[@jstarry], [#1225](https://github.com/yewstack/yew/pull/1225)]
+
+## ✨ **0.16.1** *(2020-05-14)*
+
+#### Changelog
+
+- #### 🛠 Fixes
+
+  - Worker script is now loaded from absolute path. [[@domdir], [#1175](https://github.com/yewstack/yew/pull/1175)]
+  - Improved `html!` macro error messages. [[@teymour-aldridge], [#1192](https://github.com/yewstack/yew/pull/1192)], [[@kaoet], [#1219](https://github.com/yewstack/yew/pull/1219)]
+
+## ✨ **0.16** *(2020-05-09)*
+
+#### Changelog
+
+- #### ⚡️ Features
+
+  - Added optional `id`, `class`, and `placeholder` properties to the `Select` component. [[@Stigjb], [#1187](https://github.com/yewstack/yew/pull/1187)]
+  - Re-export `web-sys` from Yew. This allows projects to use `web-sys` without adding it to their `Cargo.toml`. [[@D4nte], [#1176](https://github.com/yewstack/yew/pull/1176)]
+  - Added support for `Option` wrapped class names. [[@liquidblock], [#1085](https://github.com/yewstack/yew/pull/1085)]
+
+    The following code is now supported:
+    ```rust
+    let color: &Option<String> = &self.color;
+    html! { <div class=("btn", color)></div> }
+    ```
+
+  - Added `get_parent` and `get_component` methods to `ComponentLink` to allow access to parent component state. [[@jstarry], [#1151](https://github.com/yewstack/yew/pull/1151)]
+
+- #### 🛠 Fixes
+
+  - Fixed bug that caused html class attributes to be set to an empty string. [[@liquidblock], [#1085](https://github.com/yewstack/yew/pull/1085)]
+  - Fixed `Private` worker lifecycle event sending. [[@joaquindk], [#1146](https://github.com/yewstack/yew/pull/1146)]
+
+- #### 🚨 Breaking changes
+
+  - Bumped minimum supported Rust version (MSRV) to 1.40.0. [[@jstarry], [#1152](https://github.com/yewstack/yew/pull/1152)]
+
+## ✨ **0.15** *(2020-04-25)*
+
+#### Attention!
+`yew` now uses `web-sys` by default. If your project uses `web-sys`, you can now drop the `"web_sys"` feature from your yew dependency.
+Don't worry `stdweb` users, we have created a new alias crate for y'all called `yew-stdweb`. In order to use it, update your `Cargo.toml` yew dependency to the following:
+
+```toml
+yew = { version = "0.15", package = "yew-stdweb" }
+```
+
+#### Dev Survey Results
+Thank you to everyone that took the time to fill out the Yew Dev Survey! 🙇‍♂️
+
+Results have been posted here: https://github.com/yewstack/yew/wiki/Dev-Survey-%5BSpring-2020%5D
+
+#### New Chatroom
+We moved from Gitter to Discord! Join us: https://discord.gg/VQck8X4
+
+#### Changelog
+
+- #### ⚡️ Features
+
+  - Add support for single use callbacks (useful for `TimeoutService`). [[@lukerandall], [#1125](https://github.com/yewstack/yew/pull/1125)]
+  - Updated scheduler to eagerly destroy components to avoid unnecessary renders. [[@jstarry], [#1072](https://github.com/yewstack/yew/pull/1072)]
+  - Add support `key` attribute to improve rendering performance. [[@mrh0057], [#1076](https://github.com/yewstack/yew/pull/1076)]
+
+- #### 🛠 Fixes
+
+  - Split class names on whitespace when passed within `tuple` or `Vec`. [[@bryanjswift], [#1084](https://github.com/yewstack/yew/pull/1084)]
+
+- #### 🚨 Breaking changes
+
+  - The `components` module has been moved out `yew` and into `yew-components`. [[@jstarry], [#1132](https://github.com/yewstack/yew/pull/1132)]
+  - Replaced `mounted` component lifecycle method with `rendered` which is called after each render. [[@jstarry], [#1072](https://github.com/yewstack/yew/pull/1072)]
+  - Components must now implement the `change` method (forgetting this was a very common issue). [[@jstarry], [#1071](https://github.com/yewstack/yew/pull/1071)]
+  - Yew now builds with `web-sys` by default. [[@jstarry], [#1092](https://github.com/yewstack/yew/pull/1092)]
+
 ## ✨ **0.14.3** *(2020-04-04)*
 
 - #### 🛠 Fixes
@@ -404,7 +485,7 @@ cloned is when a wrapper component re-renders nested children components.
 
 - #### ⚡️ Features
 
-  - `Future` support :tada: A `Component` can update following the completion of a `Future`. Check out [this example](https://github.com/yewstack/yew/tree/master/examples/futures) to see how it works. This approach was borrowed from a fork of Yew called [`plaster`](https://github.com/carlosdp/plaster) created by [@carlosdp]. [[@hgzimmerman], [#717](https://github.com/yewstack/yew/pull/717)]
+  - `Future` support :tada: A `Component` can update following the completion of a `Future`. Check out [this example](https://github.com/yewstack/yew/tree/v0.14.0/examples/futures) to see how it works. This approach was borrowed from a fork of Yew called [`plaster`](https://github.com/carlosdp/plaster) created by [@carlosdp]. [[@hgzimmerman], [#717](https://github.com/yewstack/yew/pull/717)]
   - Added the `agent` and `services` features so that this functionality can be disabled (useful if you are switching to using `Future`s). [[@hgzimmerman], [#684](https://github.com/yewstack/yew/pull/684)]
   - Add `ref` keyword for allowing a `Component` to have a direct reference to its rendered elements. For example, you can now easily focus an `<input>` element after mounting. [[@jstarry], [#715](https://github.com/yewstack/yew/pull/715)]
 
@@ -763,12 +844,15 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
 [@AlephAlpha]: https://github.com/AlephAlpha
 [@astraw]: https://github.com/astraw
+[@bryanjswift]: https://github.com/bryanjswift
 [@boydjohnson]: https://github.com/boydjohnson
 [@captain-yossarian]: https://github.com/captain-yossarian
 [@carlosdp]: https://github.com/carlosdp
 [@charvp]: https://github.com/charvp
 [@ctaggart]: https://github.com/ctaggart
 [@ctm]: https://github.com/ctm
+[@domdir]: https://github.com/domdir
+[@D4nte]: https://github.com/D4nte
 [@dancespiele]: https://github.com/dancespiele
 [@daxpedda]: https://github.com/daxpedda
 [@davidkna]: https://github.com/davidkna
@@ -778,21 +862,27 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@dunnock]: https://github.com/dunnock
 [@hgzimmerman]: https://github.com/hgzimmerman
 [@izissise]: https://github.com/izissise
+[@joaquindk]: https://github.com/joaquindk
 [@jplatte]: https://github.com/jplatte
 [@jstarry]: https://github.com/jstarry
 [@kakoc]: https://github.com/kakoc
+[@kaoet]: https://github.com/kaoet
 [@kellytk]: https://github.com/kellytk
 [@kuy]: https://github.com/kuy
 [@leo-lb]: https://github.com/leo-lb
+[@liquidblock]: https://github.com/liquidblock
 [@lizhaoxian]: https://github.com/lizhaoxian
+[@lukerandall]: https://github.com/lukerandall
 [@mankinskin]: https://github.com/mankinskin
 [@mdtusz]: https://github.com/mdtusz
 [@mrh0057]: https://github.com/mrh0057
 [@nicklaswj]: https://github.com/nicklaswj
 [@philip-peterson]: https://github.com/philip-peterson
 [@serzhiio]: https://github.com/serzhiio
+[@Stigjb]: https://github.com/Stigjb
 [@stkevintan]: https://github.com/stkevintan
 [@TheNeikos]: https://github.com/TheNeikos
+[@teymour-aldridge]: https://github.com/teymour-aldridge
 [@tiziano88]: https://github.com/tiziano88
 [@trivigy]: https://github.com/trivigy
 [@totorigolo]: https://github.com/totorigolo

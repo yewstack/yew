@@ -1,9 +1,0 @@
-[package]
-name = "file_upload_web_sys"
-version = "0.1.0"
-authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
-edition = "2018"
-
-[dependencies]
-js-sys = "0.3"
-yew = { path = "../../..", features = ["web_sys"] }

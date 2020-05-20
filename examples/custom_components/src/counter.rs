@@ -43,7 +43,7 @@ impl Component for Counter {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Increase => {
-                self.value = self.value + 1;
+                self.value += 1;
                 self.onclick.emit(self.value);
             }
         }

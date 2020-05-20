@@ -6,9 +6,5 @@ edition = "2018"
 
 [dependencies]
 log = "0.4"
-web_logger = "0.2"
-yew = { path = "../.." }
-
-[features]
-std_web = ["yew/std_web"]
-web_sys = ["yew/web_sys"]
+wasm-logger = "0.2.0"
+yew = { path = "../../yew" }

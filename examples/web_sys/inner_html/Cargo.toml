@@ -1,9 +1,0 @@
-[package]
-name = "inner_html_web_sys"
-version = "0.1.0"
-authors = ["Garrett Berg <vitiral@gmail.com>"]
-edition = "2018"
-
-[dependencies]
-web-sys = { version = "0.3", features = ["console", "Document", "Element", "Node", "Window"] }
-yew = { path = "../../..", features = ["web_sys"] }

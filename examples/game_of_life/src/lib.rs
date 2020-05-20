@@ -36,7 +36,7 @@ impl Cellule {
         self.life_state = LifeState::Dead;
     }
 
-    pub fn alive(&self) -> bool {
+    pub fn alive(self) -> bool {
         self.life_state == LifeState::Alive
     }
 
@@ -97,10 +97,8 @@ impl Model {
                     if Cellule::alone(&neighbors) || Cellule::overpopulated(&neighbors) {
                         to_dead.push(current_idx);
                     }
-                } else {
-                    if Cellule::can_be_revived(&neighbors) {
-                        to_live.push(current_idx);
-                    }
+                } else if Cellule::can_be_revived(&neighbors) {
+                    to_live.push(current_idx);
                 }
             }
         }
