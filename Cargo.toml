@@ -26,9 +26,10 @@ members = [
   "yewtil/examples/fetch",
   "yewtil/examples/futures",
   "yewtil/examples/function_component",
-
   # dsl
   "yew-dsl",
+  # DevTools
+  "devtools",
   # Examples
   "examples/counter",
   "examples/crm",
