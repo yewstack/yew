@@ -1,5 +1,8 @@
+mod agents;
+
 use yew::prelude::*;
-use yew::agent::{Bridgeable, Dispatcher, Dispatched, ReadOnly, StoreWrapper};
+//use yew::agent::{Bridgeable, Dispatcher, Dispatched, ReadOnly, StoreWrapper};
+use yewtil::store::{Bridgeable, ReadOnly, StoreWrapper};
 use web_sys::{console};
 
 use crate::agents::media_manager::{MediaManager, Request};

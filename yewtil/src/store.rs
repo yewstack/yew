@@ -1,25 +1,36 @@
-use super::*;
-use crate::scheduler::Shared;
+use yew::agent::{
+    AgentLink,
+    Agent,
+    HandlerId,
+    Dispatcher,
+    Context,
+    Discoverer
+};
+use yew::prelude::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::collections::{HashSet};
+use std::ops::Deref;
 
 /// A functional state wrapper, enforcing a unidirectional
 /// data flow and consistent state to the observers.
 ///
 /// `handle_input` receives incoming messages from components,
 /// `reduce` applies changes to the state
+/// 
+/// Once created with a first bridge, a Store will never be destroyed 
+/// for the lifetime of the application.
 pub trait Store: Sized + 'static {
-    /// TODO
-    type Message;
-    /// TODO
+    /// Messages instructing the store to do somethin
     type Input;
+    /// State updates to be consumed by `reduce`
+    type Action;
 
-    /// TODO
+    /// Create a new Store
     fn new() -> Self;
 
     /// Receives messages from components and other agents. Use the `link`
-    /// to send messages to itself in order to notify `reduce` once your
+    /// to send actions to itself in order to notify `reduce` once your
     /// operation completes. This is the place to do side effects, like
     /// talking to the server, or asking the user for input.
     ///
@@ -30,10 +41,7 @@ pub trait Store: Sized + 'static {
 
     /// A pure function, with no side effects. Receives a message,
     /// and applies it to the state as it sees fit.
-    fn reduce(&mut self, msg: Self::Message);
-
-    /// TODO
-    fn destroy(&mut self) {}
+    fn reduce(&mut self, msg: Self::Action);
 }
 
 /// TODO
@@ -51,7 +59,10 @@ pub struct StoreWrapper<S: Store> {
     pub self_dispatcher: Dispatcher<Self>
 }
 
-/// TODO
+type Shared<T> = Rc<RefCell<T>>;
+
+/// A wrapper ensuring state observers can only
+/// borrow the state immutably
 #[derive(Debug)]
 pub struct ReadOnly<S> {
     state: Shared<S>,
@@ -64,10 +75,11 @@ impl<S> ReadOnly<S> {
     }
 }
 
-/// TODO
+/// This is a wrapper, intended to be used as an opaque
+/// machinery allowing the Store to do it's things.
 impl<S: Store> Agent for StoreWrapper<S> {
     type Reach = Context<Self>;
-    type Message = S::Message;
+    type Message = S::Action;
     type Input = S::Input;
     type Output = ReadOnly<S>;
 
@@ -109,50 +121,28 @@ impl<S: Store> Agent for StoreWrapper<S> {
     }
 }
 
-// Those instances are quite unfortunate, as the Rust compiler
+// This instance is quite unfortunate, as the Rust compiler
 // does not support mutually exclusive trait bounds (https://github.com/rust-lang/rust/issues/51774),
-// we have to create new traits with the same functions as in the original traits.
-// I want to at the very least rename those to some better names,
-// preferably get rid of them if you know the way to do it.
+// we have to create a new trait with the same function as in the original one.
 
-/// TODO
-pub trait Dispatchable: Sized + 'static {
-    /// TODO
-    type RefAgent: Agent;
-
-    fn dispatcher() -> Dispatcher<Self::RefAgent>;
-}
-
-
-/// TODO
-impl<T> Dispatchable for T
-where T: Store
-{
-    /// TODO
-    type RefAgent = StoreWrapper<T>;
-
-    fn dispatcher() -> Dispatcher<Self::RefAgent> {
-        Dispatcher(<Self::RefAgent as Agent>::Reach::spawn_or_join(None))
-    }
-}
-
-/// TODO
+/// Allows us to communicate with a store
 pub trait Bridgeable: Sized + 'static {
-    /// TODO
-    type RefAgent: Agent;
+    /// A wrapper for the store we want to bridge to,
+    /// which serves as a communication intermediary
+    type Wrapper: Agent;
 
     /// Creates a messaging bridge between a worker and the component.
-    fn bridge(callback: Callback<<Self::RefAgent as Agent>::Output>) -> Box<dyn Bridge<Self::RefAgent>>;
+    fn bridge(callback: Callback<<Self::Wrapper as Agent>::Output>) -> Box<dyn Bridge<Self::Wrapper>>;
 }
 
-/// TODO
+/// Implementation of bridge creation
 impl<T> Bridgeable for T
 where T: Store
 {
     /// TODO
-    type RefAgent = StoreWrapper<T>;
+    type Wrapper = StoreWrapper<T>;
 
-    fn bridge(callback: Callback<<Self::RefAgent as Agent>::Output>) -> Box<dyn Bridge<Self::RefAgent>> {
-        <Self::RefAgent as Agent>::Reach::spawn_or_join(Some(callback))
+    fn bridge(callback: Callback<<Self::Wrapper as Agent>::Output>) -> Box<dyn Bridge<Self::Wrapper>> {
+        <Self::Wrapper as Agent>::Reach::spawn_or_join(Some(callback))
     }
 }

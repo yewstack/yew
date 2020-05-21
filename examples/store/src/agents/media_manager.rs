@@ -1,4 +1,5 @@
-use yew::agent::{AgentLink, Store, StoreWrapper};
+use yew::agent::{AgentLink};
+use yewtil::store::{Store, StoreWrapper};
 use wasm_bindgen::prelude::*;
 use web_sys::{MediaDevices, window, console, MediaStreamConstraints};
 use wasm_bindgen_futures::{JsFuture, spawn_local};
@@ -12,7 +13,7 @@ pub enum Request {
 }
 
 #[derive(Debug)]
-pub enum Message {
+pub enum Action {
   SetStream(JsValue),
   SetStreamError(JsValue),
   SetDevices(Vec<InputDeviceInfo>),
@@ -38,7 +39,7 @@ pub struct MediaManager {
 }
 
 impl Store for MediaManager {
-  type Message = Message;
+  type Action = Action;
   type Input = Request;
 
   fn new() -> Self {
@@ -68,8 +69,8 @@ impl Store for MediaManager {
 
         spawn_local(async move {
             match JsFuture::from(media_promise).await {
-              Ok(media) => link.send_message(Message::SetStream(media)),
-              Err(e) => link.send_message(Message::SetStreamError(e)),
+              Ok(media) => link.send_message(Action::SetStream(media)),
+              Err(e) => link.send_message(Action::SetStreamError(e)),
             }
         });
       }
@@ -82,21 +83,21 @@ impl Store for MediaManager {
                             .into_serde::<Vec<InputDeviceInfo>>()
                             .unwrap();
 
-            link.send_message(Message::SetDevices(devices));
+            link.send_message(Action::SetDevices(devices));
         });
       }
     }
   }
 
-  fn reduce(&mut self, msg: Self::Message) {
+  fn reduce(&mut self, msg: Self::Action) {
     match msg {
-      Message::SetStream(stream) => {
+      Action::SetStream(stream) => {
         self.media_stream = Some(stream);
       },
-      Message::SetStreamError(error) => {
+      Action::SetStreamError(error) => {
         self.set_stream_error = Some(error);
       }
-      Message::SetDevices(devices) => {
+      Action::SetDevices(devices) => {
         self.known_devices = devices;
       }
     }

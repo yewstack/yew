@@ -219,7 +219,7 @@ pub mod prelude {
     #[cfg(feature = "agent")]
     pub mod worker {
         pub use crate::agent::{
-            Agent, AgentLink, Bridge, Bridgeable, Bridged, Context, HandlerId, Job, Private, Public, ReadOnly, Store,
+            Agent, AgentLink, Bridge, Bridged, Context, HandlerId, Job, Private, Public,
         };
     }
 }

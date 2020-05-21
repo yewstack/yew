@@ -14,7 +14,7 @@ all = ["stable", "experimental"]
 
 # Broad features
 ## All features MUST be stable or experimental
-stable = ["neq", "pure", "history", "mrc_irc", "effect", "future"]
+stable = ["neq", "pure", "history", "mrc_irc", "effect", "future", "store"]
 experimental = ["dsl", "lrc", "with_callback", "fetch"]
 
 # Some pointers are stable, some experimental.
@@ -30,6 +30,7 @@ dsl = []
 effect = []
 fetch = ["serde", "serde_json", "neq", "future", "web-sys"]
 future = ["wasm-bindgen-futures", "wasm-bindgen", "futures"]
+store = []
 
 # Ptr features
 lrc = []
