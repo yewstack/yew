@@ -30,6 +30,7 @@ members = [
   "yew-dsl",
   # DevTools
   "devtools",
+  "devtools-extension",
   # Examples
   "examples/counter",
   "examples/crm",
