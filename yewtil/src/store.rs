@@ -1,24 +1,17 @@
-use yew::agent::{
-    AgentLink,
-    Agent,
-    HandlerId,
-    Dispatcher,
-    Context,
-    Discoverer
-};
-use yew::prelude::*;
 use std::cell::RefCell;
-use std::rc::Rc;
-use std::collections::{HashSet};
+use std::collections::HashSet;
 use std::ops::Deref;
+use std::rc::Rc;
+use yew::agent::{Agent, AgentLink, Context, Discoverer, Dispatcher, HandlerId};
+use yew::prelude::*;
 
 /// A functional state wrapper, enforcing a unidirectional
 /// data flow and consistent state to the observers.
 ///
 /// `handle_input` receives incoming messages from components,
 /// `reduce` applies changes to the state
-/// 
-/// Once created with a first bridge, a Store will never be destroyed 
+///
+/// Once created with a first bridge, a Store will never be destroyed
 /// for the lifetime of the application.
 pub trait Store: Sized + 'static {
     /// Messages instructing the store to do somethin
@@ -56,7 +49,7 @@ pub struct StoreWrapper<S: Store> {
     pub state: Shared<S>,
 
     /// TODO
-    pub self_dispatcher: Dispatcher<Self>
+    pub self_dispatcher: Dispatcher<Self>,
 }
 
 type Shared<T> = Rc<RefCell<T>>;
@@ -94,7 +87,7 @@ impl<S: Store> Agent for StoreWrapper<S> {
             handlers,
             state,
             link,
-            self_dispatcher
+            self_dispatcher,
         }
     }
 
@@ -104,7 +97,12 @@ impl<S: Store> Agent for StoreWrapper<S> {
         }
 
         for handler in self.handlers.iter() {
-            self.link.respond(*handler, ReadOnly { state: self.state.clone() });
+            self.link.respond(
+                *handler,
+                ReadOnly {
+                    state: self.state.clone(),
+                },
+            );
         }
     }
 
@@ -132,17 +130,22 @@ pub trait Bridgeable: Sized + 'static {
     type Wrapper: Agent;
 
     /// Creates a messaging bridge between a worker and the component.
-    fn bridge(callback: Callback<<Self::Wrapper as Agent>::Output>) -> Box<dyn Bridge<Self::Wrapper>>;
+    fn bridge(
+        callback: Callback<<Self::Wrapper as Agent>::Output>,
+    ) -> Box<dyn Bridge<Self::Wrapper>>;
 }
 
 /// Implementation of bridge creation
 impl<T> Bridgeable for T
-where T: Store
+where
+    T: Store,
 {
     /// TODO
     type Wrapper = StoreWrapper<T>;
 
-    fn bridge(callback: Callback<<Self::Wrapper as Agent>::Output>) -> Box<dyn Bridge<Self::Wrapper>> {
+    fn bridge(
+        callback: Callback<<Self::Wrapper as Agent>::Output>,
+    ) -> Box<dyn Bridge<Self::Wrapper>> {
         <Self::Wrapper as Agent>::Reach::spawn_or_join(Some(callback))
     }
 }

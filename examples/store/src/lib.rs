@@ -2,14 +2,14 @@ mod agents;
 
 use yew::prelude::*;
 //use yew::agent::{Bridgeable, Dispatcher, Dispatched, ReadOnly, StoreWrapper};
+use web_sys::console;
 use yewtil::store::{Bridgeable, ReadOnly, StoreWrapper};
-use web_sys::{console};
 
 use crate::agents::media_manager::{MediaManager, Request};
 
 pub struct App {
     link: ComponentLink<Self>,
-    media_manager: Box<dyn Bridge<StoreWrapper<MediaManager>>>
+    media_manager: Box<dyn Bridge<StoreWrapper<MediaManager>>>,
 }
 
 pub enum Msg {
@@ -27,7 +27,7 @@ impl Component for App {
         let media_manager = MediaManager::bridge(callback);
         Self {
             link,
-            media_manager
+            media_manager,
         }
     }
 
@@ -36,7 +36,7 @@ impl Component for App {
             Msg::GetStream => {
                 self.media_manager.send(Request::GetStream);
                 console::log_1(&"after send".into());
-            },
+            }
             Msg::GetDevices => self.media_manager.send(Request::GetDevices),
             Msg::MediaManagerMsg(state) => {
                 if let Some(stream) = &state.borrow().media_stream {
@@ -44,7 +44,7 @@ impl Component for App {
                 }
 
                 console::log_1(&"Received update".into());
-            },
+            }
         }
         false
     }
