@@ -37,18 +37,19 @@ pub trait Store: Sized + 'static {
     fn reduce(&mut self, msg: Self::Action);
 }
 
-/// TODO
+/// Hides the full context Agent from a Store and does
+/// the boring data wrangling logic
 #[derive(Debug)]
 pub struct StoreWrapper<S: Store> {
-    /// TODO
+    /// Currently subscibed components and agents
     pub handlers: HashSet<HandlerId>,
-    /// TODO
+    /// Link to itself so Store::handle_input can send actions to reducer
     pub link: AgentLink<Self>,
 
-    /// TODO
+    /// The actual Store
     pub state: Shared<S>,
 
-    /// TODO
+    /// A circular dispatcher to itself so the store is not removed
     pub self_dispatcher: Dispatcher<Self>,
 }
 
@@ -140,7 +141,7 @@ impl<T> Bridgeable for T
 where
     T: Store,
 {
-    /// TODO
+    /// The hiding wrapper
     type Wrapper = StoreWrapper<T>;
 
     fn bridge(
