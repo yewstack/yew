@@ -9,6 +9,7 @@
 //! * "mrc_irc" - Ergonomic Rc pointers.
 //! * "lrc" - Linked-list Rc pointer.
 //! * "history" - History tracker
+//! * "store" - Global state with easy binding
 // //! * "dsl" - Use functions instead of Yew's `html!` macro.
 
 //#[cfg(feature = "dsl")]
@@ -48,3 +49,6 @@ pub use effect::{effect, Effect};
 
 #[cfg(feature = "future")]
 pub mod future;
+
+#[cfg(feature = "store")]
+pub mod store;
