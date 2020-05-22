@@ -3,6 +3,7 @@ use super::{get_current_scope, use_hook, Hook};
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::iter;
+use std::mem;
 use std::rc::{Rc, Weak};
 use yew::html::{AnyScope, Renderable, Scope};
 use yew::{html, Children, Component, ComponentLink, Html, Properties};
@@ -22,9 +23,18 @@ pub struct ContextProvider<T: Clone + 'static> {
 }
 
 impl<T: Clone> ContextProvider<T> {
-    fn subscribe_consumer(&self, callback: Weak<ConsumerCallback<T>>) {
-        // TODO perhaps we should clean the consumers vector on every subscription
-        self.consumers.borrow_mut().push(callback);
+    fn subscribe_consumer(&self, mut callback: Weak<ConsumerCallback<T>>) {
+        let mut consumers = self.consumers.borrow_mut();
+        // consumers re-subscribe on every render. Try to keep the subscriber list small by reusing dead slots.
+        for cb in consumers.iter_mut() {
+            if cb.strong_count() == 0 {
+                mem::swap(cb, &mut callback);
+                return;
+            }
+        }
+
+        // no slot to reuse, this is a new consumer
+        consumers.push(callback);
     }
 }
 
