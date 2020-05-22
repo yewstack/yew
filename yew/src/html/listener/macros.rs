@@ -15,7 +15,7 @@ macro_rules! impl_action {
             use crate::virtual_dom::Listener;
             cfg_if! {
                 if #[cfg(feature = "std_web")] {
-                    use stdweb::web::event::{$type, IEvent};
+                    use stdweb::web::event::$type;
                     use stdweb::web::{Element, IEventTarget};
                 } else if #[cfg(feature = "web_sys")] {
                     use gloo::events::{EventListener, EventListenerOptions};
@@ -52,7 +52,6 @@ macro_rules! impl_action {
                         #[cfg(feature = "std_web")] event: $type,
                         #[cfg(feature = "web_sys")] event: &web_sys::Event
                     | {
-                        event.stop_propagation();
                         #[cfg(feature = "web_sys")]
                         let event: WebSysType = JsValue::from(event).into();
                         callback.emit($convert(&this, event));
