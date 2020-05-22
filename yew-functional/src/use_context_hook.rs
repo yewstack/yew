@@ -2,11 +2,10 @@
 use super::{get_current_scope, use_hook, Hook};
 use std::any::TypeId;
 use std::cell::RefCell;
-use std::iter;
-use std::mem;
 use std::rc::{Rc, Weak};
+use std::{iter, mem};
 use yew::html::{AnyScope, Renderable, Scope};
-use yew::{html, Children, Component, ComponentLink, Html, Properties};
+use yew::{Children, Component, ComponentLink, Html, Properties};
 
 type ConsumerCallback<T> = Box<dyn Fn(Rc<T>)>;
 
@@ -23,6 +22,8 @@ pub struct ContextProvider<T: Clone + 'static> {
 }
 
 impl<T: Clone> ContextProvider<T> {
+    /// Add the callback to the subscriber list to be called whenever the context changes.
+    /// The consumer is unsubscribed as soon as the callback is dropped.
     fn subscribe_consumer(&self, mut callback: Weak<ConsumerCallback<T>>) {
         let mut consumers = self.consumers.borrow_mut();
         // consumers re-subscribe on every render. Try to keep the subscriber list small by reusing dead slots.
@@ -36,9 +37,8 @@ impl<T: Clone> ContextProvider<T> {
         // no slot to reuse, this is a new consumer
         consumers.push(callback);
     }
-}
 
-impl<T: Clone> ContextProvider<T> {
+    /// Notify all subscribed consumers and remove dropped consumers from the list.
     fn notify_consumers(&mut self) {
         let context = &self.context;
         self.consumers.borrow_mut().retain(|cb| {
@@ -83,11 +83,7 @@ impl<T: Clone + 'static> Component for ContextProvider<T> {
     }
 
     fn view(&self) -> Html {
-        return html! {
-            <>
-                { self.children.render() }
-            </>
-        };
+        self.children.render()
     }
 }
 

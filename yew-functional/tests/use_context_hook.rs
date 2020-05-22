@@ -6,17 +6,17 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 extern crate yew;
 
-use yew::{html, App, Html, Properties};
+use yew::{html, App, Children, Html, Properties, Renderable};
 use yew_functional::{
     use_context, use_effect, use_ref, use_state, ContextProvider, FunctionComponent,
     FunctionProvider,
 };
 
 fn obtain_result(id: &str) -> String {
-    return yew::utils::document()
+    yew::utils::document()
         .get_element_by_id(id)
         .expect("No result found. Most likely, the application crashed and burned")
-        .inner_html();
+        .inner_html()
 }
 
 #[wasm_bindgen_test]
@@ -182,10 +182,35 @@ fn use_context_update_works() {
     struct MyContext(String);
 
     #[derive(Clone, Debug, PartialEq, Properties)]
+    struct RenderCounterProps {
+        id: String,
+        children: Children,
+    }
+    struct RenderCounterFunction;
+    impl FunctionProvider for RenderCounterFunction {
+        type TProps = RenderCounterProps;
+
+        fn run(props: &Self::TProps) -> Html {
+            let counter = use_ref(|| 0);
+            *counter.borrow_mut() += 1;
+            return html! {
+                <>
+                    <div id=props.id.clone()>
+                        { format!("total: {}", counter.borrow()) }
+                    </div>
+                    { props.children.render() }
+                </>
+            };
+        }
+    }
+    type RenderCounter = FunctionComponent<RenderCounterFunction>;
+
+    #[derive(Clone, Debug, PartialEq, Properties)]
     struct ContextOutletProps {
         id: String,
+        #[prop_or_default]
+        magic: usize,
     }
-
     struct ContextOutletFunction;
     impl FunctionProvider for ContextOutletFunction {
         type TProps = ContextOutletProps;
@@ -197,10 +222,12 @@ fn use_context_update_works() {
             let ctx = use_context::<Rc<MyContext>>().expect("context not passed down");
 
             return html! {
-                <div id=props.id.clone()>
-                    { format!("current: {}\n", ctx.0) }
-                    { format!("total: {}\n", counter.borrow()) }
-                </div>
+                <>
+                    <div>{ format!("magic: {}\n", props.magic) }</div>
+                    <div id=props.id.clone()>
+                        { format!("current: {}, total: {}", ctx.0, counter.borrow()) }
+                    </div>
+                </>
             };
         }
     }
@@ -214,39 +241,54 @@ fn use_context_update_works() {
             type MyContextProvider = ContextProvider<Rc<MyContext>>;
 
             let (ctx, set_ctx) = use_state(|| MyContext("hello".into()));
-            let rendered = use_ref(|| false);
+            let rendered = use_ref(|| 0);
+
+            // this is used to force an update specific to test-2
+            let (magic_rc, set_magic) = use_state(|| 0);
+            let magic: usize = *magic_rc;
 
             use_effect(move || {
-                if !*rendered.borrow() {
-                    set_ctx(MyContext("world".into()));
-                    *rendered.borrow_mut() = true;
-                }
+                let count = *rendered.borrow();
+                match count {
+                    0 => {
+                        set_ctx(MyContext("world".into()));
+                        *rendered.borrow_mut() += 1;
+                    }
+                    1 => {
+                        // force test-2 to re-render.
+                        set_magic(1);
+                        *rendered.borrow_mut() += 1;
+                    }
+                    2 => {
+                        set_ctx(MyContext("hello world!".into()));
+                        *rendered.borrow_mut() += 1;
+                    }
+                    _ => (),
+                };
                 || {}
             });
 
             return html! {
-                <>
-                    <MyContextProvider context=ctx>
-                        <div>
-                            <ContextOutlet id="test-nested"/>
-                        </div>
-
-                        <ContextOutlet id="test-child"/>
-                    </MyContextProvider>
-                </>
+                <MyContextProvider context=ctx.clone()>
+                    <RenderCounter id="test-0">
+                        <ContextOutlet id="test-1"/>
+                        <ContextOutlet id="test-2" magic=magic/>
+                    </RenderCounter>
+                </MyContextProvider>
             };
         }
     }
     type TestComponent = FunctionComponent<TestFunction>;
 
     let app: App<TestComponent> = yew::App::new();
-    app.mount(
-        yew::utils::document()
-            .get_element_by_id("output")
-            .unwrap()
-            .clone(),
-    );
+    app.mount(yew::utils::document().get_element_by_id("output").unwrap());
 
-    assert_eq!(obtain_result("test-nested"), "current: world\ntotal: 2\n");
-    assert_eq!(obtain_result("test-child"), "current: world\ntotal: 2\n");
+    // 1 initial render + 3 update steps
+    assert_eq!(obtain_result("test-0"), "total: 4");
+
+    // 1 initial + 2 context updates
+    assert_eq!(obtain_result("test-1"), "current: hello world!, total: 3");
+
+    // 1 initial + 1 context update + 1 magic update + 1 context update
+    assert_eq!(obtain_result("test-2"), "current: hello world!, total: 4");
 }

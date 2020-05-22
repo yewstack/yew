@@ -436,8 +436,8 @@ fn use_effect_refires_on_dependency_change() {
 }
 
 fn obtain_result() -> String {
-    return yew::utils::document()
+    yew::utils::document()
         .get_element_by_id("result")
         .expect("No result found. Most likely, the application crashed and burned")
-        .inner_html();
+        .inner_html()
 }
