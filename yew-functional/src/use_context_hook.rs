@@ -59,12 +59,12 @@ impl<T: Clone + 'static> Component for ContextProvider<T> {
     }
 
     fn change(&mut self, props: Self::Properties) -> bool {
-        let mut should_render = false;
-        if self.children != props.children {
+        let should_render = if self.children != props.children {
             self.children = props.children;
-            // only re-render if the children changed
-            should_render = true;
-        }
+            true
+        } else {
+            false
+        };
 
         self.context = Rc::new(props.context);
         self.notify_consumers();
