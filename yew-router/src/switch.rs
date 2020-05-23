@@ -127,7 +127,7 @@ impl<U: Switch> Switch for Permissive<U> {
 }
 
 /// Allows a section to match, providing a None value,
-/// if its contents are entirely missing, or starts with a '/'.
+/// if its contents are entirely missing, or ends with a '/' without any.
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct AllowMissing<U: std::fmt::Debug>(pub Option<U>);
 impl<U: Switch + std::fmt::Debug> Switch for AllowMissing<U> {
@@ -217,23 +217,34 @@ mod test {
     }
 
     #[test]
-    fn can_get_option_string_from_empty_str() {
+    fn permissive_can_get_option_string_from_empty_str() {
         let (s, _state): (Option<Permissive<String>>, Option<()>) =
             Permissive::from_route_part("".to_string(), Some(()));
         assert_eq!(s, Some(Permissive(Some("".to_string()))))
     }
 
     #[test]
-    fn can_get_none_option_string_from_empty_str() {
+    fn allow_missing_can_get_none_from_empty_str() {
         let (s, _state): (Option<AllowMissing<String>>, Option<()>) =
             AllowMissing::from_route_part("".to_string(), Some(()));
         assert_eq!(s, Some(AllowMissing(None)))
     }
 
     #[test]
-    fn can_get_none_option_string_from_slash_str() {
+    fn allow_missing_can_get_none_from_slash_str() {
         let (s, _state): (Option<AllowMissing<String>>, Option<()>) =
             AllowMissing::from_route_part("/".to_string(), Some(()));
         assert_eq!(s, Some(AllowMissing(None)))
+    }
+
+    #[test]
+    fn permissive_and_allow_missing_can_get_same_option_string_from_same_str() {
+        let same_str = "/test".to_string();
+        let (s1, _state): (Option<Permissive<String>>, Option<()>) =
+            Permissive::from_route_part(same_str, Some(()));
+        let (s2, _state): (Option<AllowMissing<String>>, Option<()>) =
+            AllowMissing::from_route_part(same_str, Some(()));
+        assert_eq!(s1, Some(Permissive(Some(&same_str))));
+        assert_eq!(s2, Some(AllowMissing(Some(&same_str))));
     }
 }
