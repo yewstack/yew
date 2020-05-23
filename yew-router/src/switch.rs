@@ -126,9 +126,6 @@ impl<U: Switch> Switch for Permissive<U> {
     }
 }
 
-// TODO the AllowMissing shim doesn't appear to offer much over Permissive.
-// Documentation should improve (need examples - to show the difference) or it should be removed.
-
 /// Allows a section to match, providing a None value,
 /// if its contents are entirely missing, or starts with a '/'.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -139,14 +136,7 @@ impl<U: Switch + std::fmt::Debug> Switch for AllowMissing<U> {
         let (inner, inner_state) = U::from_route_part(part, state);
 
         if inner.is_some() {
-            (Some(AllowMissing(inner)), inner_state)
-        } else if &route == ""
-            || (&route).starts_with('/')
-            || (&route).starts_with('?')
-            || (&route).starts_with('&')
-            || (&route).starts_with('#')
-        {
-            (Some(AllowMissing(None)), inner_state)
+            (Some(AllowMissing( if route == "" || route == "/" {None} else { inner } ) ), inner_state)
         } else {
             (None, None)
         }
@@ -231,5 +221,19 @@ mod test {
         let (s, _state): (Option<Permissive<String>>, Option<()>) =
             Permissive::from_route_part("".to_string(), Some(()));
         assert_eq!(s, Some(Permissive(Some("".to_string()))))
+    }
+
+    #[test]
+    fn can_get_none_option_string_from_empty_str() {
+        let (s, _state): (Option<AllowMissing<String>>, Option<()>) =
+            AllowMissing::from_route_part("".to_string(), Some(()));
+        assert_eq!(s, Some(AllowMissing(None)))
+    }
+
+    #[test]
+    fn can_get_none_option_string_from_slash_str() {
+        let (s, _state): (Option<AllowMissing<String>>, Option<()>) =
+            AllowMissing::from_route_part("/".to_string(), Some(()));
+        assert_eq!(s, Some(AllowMissing(None)))
     }
 }
