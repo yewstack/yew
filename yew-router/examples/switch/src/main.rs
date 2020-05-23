@@ -1,4 +1,4 @@
-use yew_router::{route::Route, switch::Permissive, Switch};
+use yew_router::{route::Route, switch::{Permissive, AllowMissing}, Switch};
 
 fn main() {
     let route = Route::new_no_state("/some/route");
@@ -29,10 +29,30 @@ fn main() {
     let app_route = AppRoute::switch(route);
     dbg!(app_route);
 
+    let route = Route::new_no_state("/option");
+    let app_route = AppRoute::switch(route);
+    dbg!(app_route);
+
+    let route = Route::new_no_state("/option/");
+    let app_route = AppRoute::switch(route);
+    dbg!(app_route);
+
     let route = Route::new_no_state("/option/test");
     let app_route = AppRoute::switch(route);
     dbg!(app_route);
 
+    let route = Route::new_no_state("/allow-missing");
+    let app_route = AppRoute::switch(route);
+    dbg!(app_route);
+
+    let route = Route::new_no_state("/allow-missing/");
+    let app_route = AppRoute::switch(route);
+    dbg!(app_route);
+
+    let route = Route::new_no_state("/allow-missing/test");
+    let app_route = AppRoute::switch(route);
+    dbg!(app_route);
+    
     let mut buf = String::new();
     AppRoute::Another("yeet".to_string()).build_route_section::<()>(&mut buf);
     println!("{}", buf);
@@ -69,9 +89,12 @@ pub enum AppRoute {
     Single(Single),
     #[rest]
     OtherSingle(OtherSingle),
+    #[to = "/option"] #[rest]
     /// Because this is permissive, the inner item doesn't have to match.
-    #[to = "/option/{}"]
     Optional(Permissive<String>),
+    #[to = "/allow-missing"] #[rest]
+    /// AllowMissing is like Permissive, except returns None on match of "" or "/".
+    OptionalMissing(AllowMissing<String>),
     /// Because this is permissive, a corresponding capture group doesn't need to exist
     #[to = "/missing/capture"]
     MissingCapture(Permissive<String>),
