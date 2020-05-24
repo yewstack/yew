@@ -1,8 +1,9 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{VChild, VComp, VDiff, VList, VTag, VText};
+use super::{Key, VChild, VComp, VDiff, VDiffNodePosition, VList, VTag, VText};
 use crate::html::{AnyScope, Component, Renderable};
 use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
@@ -32,20 +33,38 @@ pub enum VNode {
 }
 
 impl VNode {
-    pub fn key(&self) -> &Option<String> {
+    pub fn key(&self) -> &Option<Key> {
         match self {
-            VNode::VTag(vtag) => &vtag.key,
-            VNode::VText(_) => &None,
             VNode::VComp(vcomp) => &vcomp.key,
             VNode::VList(vlist) => &vlist.key,
             VNode::VRef(_) => &None,
+            VNode::VTag(vtag) => &vtag.key,
+            VNode::VText(_) => &None,
+        }
+    }
+
+    pub fn reference(&self) -> Option<Node> {
+        match self {
+            VNode::VComp(vcomp) => vcomp.node_ref.get(),
+            VNode::VList(_) => None,
+            VNode::VRef(node) => Some(node.clone()),
+            VNode::VTag(vtag) => vtag
+                .reference
+                .as_ref()
+                .map(|element| element.clone().into()),
+            VNode::VText(vtext) => vtext.reference.as_ref().map(|text_node| {
+                cfg_match! {
+                    feature = "std_web" => text_node.as_node().clone(),
+                    feature = "web_sys" => (text_node.as_ref() as &Node).clone(),
+                }
+            }),
         }
     }
 }
 
 impl VDiff for VNode {
     /// Remove VNode from parent.
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) -> VDiffNodePosition {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.detach(parent),
             VNode::VText(ref mut vtext) => vtext.detach(parent),
@@ -56,47 +75,38 @@ impl VDiff for VNode {
                 if parent.remove_child(node).is_err() {
                     warn!("Node not found to remove VRef");
                 }
-                sibling
+                match sibling {
+                    Some(node) => VDiffNodePosition::Before(node),
+                    None => VDiffNodePosition::LastChild,
+                }
             }
         }
     }
 
     fn apply(
         &mut self,
-        scope: &AnyScope,
+        parent_scope: &AnyScope,
         parent: &Element,
-        previous_sibling: Option<&Node>,
+        node_position: VDiffNodePosition,
         ancestor: Option<VNode>,
     ) -> Option<Node> {
         match *self {
-            VNode::VTag(ref mut vtag) => vtag.apply(scope, parent, previous_sibling, ancestor),
-            VNode::VText(ref mut vtext) => vtext.apply(scope, parent, previous_sibling, ancestor),
-            VNode::VComp(ref mut vcomp) => vcomp.apply(scope, parent, previous_sibling, ancestor),
-            VNode::VList(ref mut vlist) => vlist.apply(scope, parent, previous_sibling, ancestor),
+            VNode::VTag(ref mut vtag) => vtag.apply(parent_scope, parent, node_position, ancestor),
+            VNode::VText(ref mut vtext) => {
+                vtext.apply(parent_scope, parent, node_position, ancestor)
+            }
+            VNode::VComp(ref mut vcomp) => {
+                vcomp.apply(parent_scope, parent, node_position, ancestor)
+            }
+            VNode::VList(ref mut vlist) => {
+                vlist.apply(parent_scope, parent, node_position, ancestor)
+            }
             VNode::VRef(ref mut node) => {
-                let sibling = match ancestor {
+                let position = match ancestor {
                     Some(mut n) => n.detach(parent),
-                    None => None,
+                    None => node_position,
                 };
-                if let Some(sibling) = sibling {
-                    let sibling = &sibling;
-                    #[cfg(feature = "web_sys")]
-                    let sibling = Some(sibling);
-                    parent
-                        .insert_before(node, sibling)
-                        .expect("can't insert element before sibling");
-                } else {
-                    #[cfg_attr(
-                        feature = "std_web",
-                        allow(clippy::let_unit_value, unused_variables)
-                    )]
-                    {
-                        let result = parent.append_child(node);
-                        #[cfg(feature = "web_sys")]
-                        result.expect("can't append node to parent");
-                    }
-                }
-
+                super::insert_node(node, parent, &position);
                 Some(node.to_owned())
             }
         }
@@ -183,7 +193,7 @@ impl PartialEq for VNode {
             (VNode::VText(a), VNode::VText(b)) => a == b,
             (VNode::VList(a), VNode::VList(b)) => a == b,
             (VNode::VRef(a), VNode::VRef(b)) => a == b,
-            // Need to improve PartialEq for VComp before enabling
+            // TODO: Need to improve PartialEq for VComp before enabling.
             (VNode::VComp(_), VNode::VComp(_)) => false,
             _ => false,
         }

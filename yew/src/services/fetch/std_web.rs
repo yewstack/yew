@@ -4,8 +4,8 @@ use super::Referrer;
 use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
 use crate::services::Task;
+use cfg_if::cfg_if;
 use serde::Serialize;
-use std::collections::HashMap;
 use std::fmt;
 use stdweb::serde::Serde;
 use stdweb::unstable::{TryFrom, TryInto};
@@ -15,6 +15,13 @@ use stdweb::{JsSerialize, Value};
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 use thiserror::Error;
+cfg_if! {
+    if #[cfg(feature = "fast_hasher")] {
+        type HashMap<K, V> = ahash::AHashMap<K, V, ahash::RandomState>;
+    } else {
+        use std::collections::HashMap;
+    }
+}
 
 #[doc(no_inline)]
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};

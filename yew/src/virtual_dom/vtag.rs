@@ -1,11 +1,13 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{Attributes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode};
+use super::{
+    Attributes, Key, Listener, Listeners, Patch, Reform, Transformer, VDiff, VDiffNodePosition,
+    VList, VNode,
+};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
-use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::rc::Rc;
@@ -40,7 +42,7 @@ pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 pub struct VTag {
     /// A tag of the element.
     tag: Cow<'static, str>,
-    /// A reference to the `Element`.
+    /// A reference to the DOM `Element`.
     pub reference: Option<Element>,
     /// List of attached listeners.
     pub listeners: Listeners,
@@ -58,15 +60,17 @@ pub struct VTag {
     /// Represents `checked` attribute of
     /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
     /// It exists to override standard behavior of `checked` attribute, because
-    /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
-    /// frameworks it's more useful to control `checked` value of an `InputElement`.
+    /// in original HTML it sets `defaultChecked` value of `InputElement`, but
+    /// for reactive frameworks it's more useful to control `checked` value of
+    /// an `InputElement`.
     pub checked: bool,
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
-    /// Keeps handler for attached listeners to have an opportunity to drop them later.
+    /// Keeps handler for attached listeners to have an opportunity to drop them
+    /// later.
     captured: Vec<EventListener>,
 
-    pub key: Option<String>,
+    pub key: Option<Key>,
 }
 
 impl Clone for VTag {
@@ -88,7 +92,8 @@ impl Clone for VTag {
 }
 
 impl VTag {
-    /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
+    /// Creates a new `VTag` instance with `tag` name (cannot be changed later
+    /// in DOM).
     pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
         VTag {
             tag: tag.into(),
@@ -207,7 +212,7 @@ impl VTag {
         to_add_or_replace.chain(to_remove)
     }
 
-    /// Similar to `diff_attributers` except there is only a single `kind`.
+    /// Similar to `diff_attributes` except there is only a single `kind`.
     fn diff_kind<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
             self.kind.as_ref(),
@@ -226,7 +231,7 @@ impl VTag {
         }
     }
 
-    /// Almost identical in spirit to `diff_kind`
+    /// Almost identical in spirit to `diff_kind`.
     fn diff_value<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
             self.value.as_ref(),
@@ -329,7 +334,7 @@ impl VTag {
 
 impl VDiff for VTag {
     /// Remove VTag from parent.
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) -> VDiffNodePosition {
         let node = self
             .reference
             .take()
@@ -339,42 +344,47 @@ impl VDiff for VTag {
         self.children.detach(&node);
 
         let next_sibling = node.next_sibling();
-        if parent.remove_child(&node).is_err() {
-            warn!("Node not found to remove VTag");
+        parent
+            .remove_child(&node)
+            .expect("tried to remove not rendered VTag from DOM");
+        match next_sibling {
+            Some(node) => VDiffNodePosition::Before(node),
+            None => VDiffNodePosition::LastChild,
         }
-        next_sibling
     }
 
-    /// Renders virtual tag over DOM `Element`, but it also compares this with an ancestor `VTag`
-    /// to compute what to patch in the actual DOM nodes.
+    /// Renders virtual tag over DOM `Element`, but it also compares this with
+    /// an ancestor `VTag` to compute what to patch in the actual DOM nodes.
     fn apply(
         &mut self,
-        scope: &AnyScope,
+        parent_scope: &AnyScope,
         parent: &Element,
-        previous_sibling: Option<&Node>,
+        node_position: VDiffNodePosition,
         ancestor: Option<VNode>,
     ) -> Option<Node> {
         assert!(
             self.reference.is_none(),
             "reference is ignored so must not be set"
         );
+
         let (reform, mut ancestor) = {
             match ancestor {
                 Some(VNode::VTag(mut vtag)) => {
+                    // If tags are equal, preserve the reference that already exists.
                     if self.tag == vtag.tag {
-                        // If tags are equal, preserve the reference that already exists.
                         self.reference = vtag.reference.take();
                         (Reform::Keep, Some(vtag))
-                    } else {
-                        // We have to create a new reference, remove ancestor.
-                        (Reform::Before(vtag.detach(parent)), None)
+                    }
+                    // We have to create a new reference, remove ancestor.
+                    else {
+                        (Reform::Replace(vtag.detach(parent)), None)
                     }
                 }
                 Some(mut vnode) => {
                     // It is not a VTag variant we must remove the ancestor.
-                    (Reform::Before(vnode.detach(parent)), None)
+                    (Reform::Replace(vnode.detach(parent)), None)
                 }
-                None => (Reform::Before(None), None),
+                None => (Reform::Replace(node_position), None),
             }
         };
 
@@ -383,17 +393,18 @@ impl VDiff for VTag {
         // This can use the previous reference or create a new one.
         // If we create a new one we must insert it in the correct
         // place, which we use `next_sibling` or `previous_sibling` for.
-        match reform {
-            Reform::Keep => {}
-            Reform::Before(next_sibling) => {
+        let insert_tuple = match reform {
+            Reform::Keep => None,
+            Reform::Replace(position) => {
                 let element = if self.tag == "svg"
                     || parent
                         .namespace_uri()
                         .map_or(false, |ns| ns == SVG_NAMESPACE)
                 {
-                    let namespace = SVG_NAMESPACE;
-                    #[cfg(feature = "web_sys")]
-                    let namespace = Some(namespace);
+                    let namespace = cfg_match! {
+                        feature = "std_web" => SVG_NAMESPACE,
+                        feature = "web_sys" => Some(SVG_NAMESPACE),
+                    };
                     document()
                         .create_element_ns(namespace, &self.tag)
                         .expect("can't create namespaced element for vtag")
@@ -402,35 +413,18 @@ impl VDiff for VTag {
                         .create_element(&self.tag)
                         .expect("can't create element for vtag")
                 };
-
-                if let Some(next_sibling) = next_sibling {
-                    let next_sibling = &next_sibling;
-                    #[cfg(feature = "web_sys")]
-                    let next_sibling = Some(next_sibling);
-                    parent
-                        .insert_before(&element, next_sibling)
-                        .expect("can't insert tag before next sibling");
-                } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
-                    let next_sibling = &next_sibling;
-                    #[cfg(feature = "web_sys")]
-                    let next_sibling = Some(next_sibling);
-                    parent
-                        .insert_before(&element, next_sibling)
-                        .expect("can't insert tag before next sibling");
-                } else {
-                    #[cfg_attr(
-                        feature = "std_web",
-                        allow(clippy::let_unit_value, unused_variables)
-                    )]
-                    {
-                        let result = parent.append_child(&element);
-                        #[cfg(feature = "web_sys")]
-                        result.expect("can't append node to parent");
-                    }
-                }
-                self.reference = Some(element);
+                Some((element, position))
             }
+        };
+
+        if let Some((element, position)) = insert_tuple {
+            super::insert_node(&element, parent, &position);
+            self.reference = Some(element);
         }
+        assert!(
+            self.reference.is_some(),
+            "reference must be set to this point"
+        );
 
         self.apply_diffs(&ancestor);
 
@@ -448,18 +442,25 @@ impl VDiff for VTag {
         }
 
         // Process children
-        self.children
-            .apply(scope, &element, None, ancestor.map(|a| a.children.into()));
+        self.children.apply(
+            parent_scope,
+            &element,
+            VDiffNodePosition::FirstChild,
+            ancestor.map(|a| a.children.into()),
+        );
 
-        let node = self.reference.as_ref().map(|e| {
-            let node = cfg_match! {
-                feature = "std_web" => e.as_node(),
-                feature = "web_sys" => e.deref(),
-            };
-            node.to_owned()
-        });
-        self.node_ref.set(node.clone());
-        node
+        let reference = self
+            .reference
+            .as_ref()
+            .cloned()
+            .expect("there must be a reference");
+        let node: Node = cfg_match! {
+            feature = "std_web" => reference.as_node().to_owned(),
+            feature = "web_sys" => reference.deref(),
+        }
+        .to_owned();
+        self.node_ref.set(Some(node.clone()));
+        Some(node)
     }
 }
 
@@ -860,17 +861,17 @@ mod tests {
         let mut svg_node = html! { <svg>{path_node}</svg> };
 
         let svg_tag = assert_vtag(&mut svg_node);
-        svg_tag.apply(&scope, &div_el, None, None);
+        svg_tag.apply(&scope, &div_el, VDiffNodePosition::LastChild, None);
         assert_namespace(svg_tag, SVG_NAMESPACE);
         let path_tag = assert_vtag(svg_tag.children.get_mut(0).unwrap());
         assert_namespace(path_tag, SVG_NAMESPACE);
 
         let g_tag = assert_vtag(&mut g_node);
-        g_tag.apply(&scope, &div_el, None, None);
+        g_tag.apply(&scope, &div_el, VDiffNodePosition::LastChild, None);
         assert_namespace(g_tag, HTML_NAMESPACE);
         g_tag.reference = None;
 
-        g_tag.apply(&scope, &svg_el, None, None);
+        g_tag.apply(&scope, &svg_el, VDiffNodePosition::LastChild, None);
         assert_namespace(g_tag, SVG_NAMESPACE);
     }
 
@@ -1000,7 +1001,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=""></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, VDiffNodePosition::LastChild, None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1017,7 +1018,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, VDiffNodePosition::LastChild, None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1034,7 +1035,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class="ferris the crab"></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, VDiffNodePosition::LastChild, None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has been set
         assert!(vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1090,7 +1091,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, VDiffNodePosition::LastChild, None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1116,7 +1117,12 @@ mod tests {
         } else {
             panic!("should be vtag")
         };
-        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
+        vtag.apply(
+            &scope,
+            &parent,
+            VDiffNodePosition::LastChild,
+            Some(VNode::VTag(ancestor)),
+        );
 
         let expected = "class-3 class-2 class-1";
         assert_eq!(get_class_str(&vtag), expected);
@@ -1141,7 +1147,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-3")></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, VDiffNodePosition::LastChild, None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1167,7 +1173,12 @@ mod tests {
         } else {
             panic!("should be vtag")
         };
-        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
+        vtag.apply(
+            &scope,
+            &parent,
+            VDiffNodePosition::LastChild,
+            Some(VNode::VTag(ancestor)),
+        );
 
         let expected = "class-1 class-2 class-3";
         assert_eq!(get_class_str(&vtag), expected);

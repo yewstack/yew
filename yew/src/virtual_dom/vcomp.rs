@@ -1,12 +1,11 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
-use super::{Transformer, VDiff, VNode};
+use super::{Key, Transformer, VDiff, VDiffNodePosition, VNode};
 use crate::html::{AnyScope, Component, ComponentUpdate, NodeRef, Scope};
 use crate::utils::document;
 use cfg_if::cfg_if;
 use std::any::TypeId;
 use std::fmt;
-use std::mem::swap;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -31,7 +30,7 @@ pub struct VComp {
     type_id: TypeId,
     state: MountState,
     pub(crate) node_ref: NodeRef,
-    pub(crate) key: Option<String>,
+    pub(crate) key: Option<Key>,
 }
 
 /// A virtual child component.
@@ -40,7 +39,7 @@ pub struct VChild<COMP: Component> {
     pub props: COMP::Properties,
     /// Reference to the mounted node
     node_ref: NodeRef,
-    key: Option<String>,
+    key: Option<Key>,
 }
 
 impl<COMP: Component> Clone for VChild<COMP> {
@@ -67,7 +66,7 @@ where
     COMP: Component,
 {
     /// Creates a child component that can be accessed and modified by its parent.
-    pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<String>) -> Self {
+    pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
         Self {
             props,
             node_ref,
@@ -113,7 +112,7 @@ impl Clone for Mounted {
 
 impl VComp {
     /// This method prepares a generator to make a new instance of the `Component`.
-    pub fn new<COMP>(props: COMP::Properties, node_ref: NodeRef, key: Option<String>) -> Self
+    pub fn new<COMP>(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self
     where
         COMP: Component,
     {
@@ -177,92 +176,76 @@ impl Unmounted {
 
 enum Reform {
     Keep(Mounted),
-    Before(Option<Node>),
+    Replace(VDiffNodePosition),
 }
 
 impl VDiff for VComp {
-    fn detach(&mut self, _parent: &Element) -> Option<Node> {
-        let mut replace_state = MountState::Detached;
-        swap(&mut replace_state, &mut self.state);
-        match replace_state {
+    fn detach(&mut self, _parent: &Element) -> VDiffNodePosition {
+        match core::mem::replace(&mut self.state, MountState::Detached) {
             MountState::Mounted(this) => {
                 (this.destroyer)();
-                this.node_ref.get().and_then(|node| node.next_sibling())
+                match this.node_ref.get().and_then(|n| n.next_sibling()) {
+                    Some(node) => VDiffNodePosition::Before(node),
+                    None => VDiffNodePosition::LastChild,
+                }
             }
-            _ => None,
+            _ => VDiffNodePosition::LastChild,
         }
     }
 
     fn apply(
         &mut self,
-        scope: &AnyScope,
+        parent_scope: &AnyScope,
         parent: &Element,
-        previous_sibling: Option<&Node>,
+        node_position: VDiffNodePosition,
         ancestor: Option<VNode>,
     ) -> Option<Node> {
-        let mut replace_state = MountState::Mounting;
-        swap(&mut replace_state, &mut self.state);
-        if let MountState::Unmounted(this) = replace_state {
+        if let MountState::Unmounted(this) =
+            core::mem::replace(&mut self.state, MountState::Mounting)
+        {
             let reform = match ancestor {
                 Some(VNode::VComp(mut vcomp)) => {
                     // If the ancestor is a Component of the same type, don't replace, keep the
                     // old Component but update the properties.
                     if self.type_id == vcomp.type_id {
-                        let mut replace_state = MountState::Overwritten;
-                        swap(&mut replace_state, &mut vcomp.state);
-                        match replace_state {
+                        match core::mem::replace(&mut vcomp.state, MountState::Overwritten) {
                             MountState::Mounted(mounted) => Reform::Keep(mounted),
-                            _ => Reform::Before(None),
+                            _ => Reform::Replace(node_position),
                         }
                     } else {
-                        Reform::Before(vcomp.detach(parent))
+                        Reform::Replace(vcomp.detach(parent))
                     }
                 }
-                Some(mut vnode) => Reform::Before(vnode.detach(parent)),
-                None => Reform::Before(None),
+                Some(mut vnode) => Reform::Replace(vnode.detach(parent)),
+                None => Reform::Replace(node_position),
             };
 
-            let mounted = match reform {
+            let (mounted, node) = match reform {
                 Reform::Keep(mounted) => {
                     // Send properties update when the component is already rendered.
-                    this.replace(mounted)
+                    let node = mounted
+                        .node_ref
+                        .get()
+                        .expect("mounted VComp must have a node_ref");
+                    (this.replace(mounted), node)
                 }
-                Reform::Before(next_sibling) => {
-                    let dummy_node = document().create_text_node("");
-                    if let Some(next_sibling) = next_sibling {
-                        let next_sibling = &next_sibling;
-                        #[cfg(feature = "web_sys")]
-                        let next_sibling = Some(next_sibling);
-                        parent
-                            .insert_before(&dummy_node, next_sibling)
-                            .expect("can't insert dummy component node before next sibling");
-                    } else if let Some(next_sibling) =
-                        previous_sibling.and_then(|p| p.next_sibling())
-                    {
-                        let next_sibling = &next_sibling;
-                        #[cfg(feature = "web_sys")]
-                        let next_sibling = Some(next_sibling);
-                        parent
-                            .insert_before(&dummy_node, next_sibling)
-                            .expect("can't insert dummy component node before next sibling");
-                    } else {
-                        #[cfg_attr(
-                            feature = "std_web",
-                            allow(clippy::let_unit_value, unused_variables)
-                        )]
-                        {
-                            let result = parent.append_child(&dummy_node);
-                            #[cfg(feature = "web_sys")]
-                            result.expect("can't append node to parent");
-                        }
-                    }
-                    this.mount(scope.clone(), parent.to_owned(), dummy_node)
+                Reform::Replace(position) => {
+                    // TODO: Revert dummy text for VComp
+                    let dummy_node = document().create_text_node("DUMMY NODE FOR COMPONENT");
+                    let node: Node = dummy_node.clone().into();
+
+                    super::insert_node(&dummy_node, parent, &position);
+
+                    let mounted = this.mount(parent_scope.clone(), parent.to_owned(), dummy_node);
+                    (mounted, node)
                 }
             };
 
             self.state = MountState::Mounted(mounted);
+            Some(node)
+        } else {
+            None
         }
-        None
     }
 }
 
@@ -322,7 +305,7 @@ impl PartialEq for VComp {
 
 impl fmt::Debug for VComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("VComp")
+        f.debug_struct("VComp").field("key", &self.key).finish()
     }
 }
 

@@ -7,7 +7,6 @@ use cfg_match::cfg_match;
 use slab::Slab;
 use std::any::TypeId;
 use std::cell::RefCell;
-use std::collections::{hash_map, HashMap, HashSet};
 use std::fmt;
 use std::marker::PhantomData;
 use std::rc::Rc;
@@ -19,6 +18,15 @@ cfg_if! {
     } else if #[cfg(feature = "web_sys")] {
         use super::WorkerExt;
         use web_sys::{Worker};
+    }
+}
+cfg_if! {
+    if #[cfg(feature = "fast_hasher")] {
+        type HashMap<K, V> = ahash::AHashMap<K, V, ahash::RandomState>;
+        type HashSet<K> = ahash::AHashSet<K, ahash::RandomState>;
+        use std::collections::hash_map;
+    } else {
+        use std::collections::{hash_map, HashMap, HashSet};
     }
 }
 
