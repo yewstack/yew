@@ -38,6 +38,11 @@ fn compile_fail() {
     html! { <input ref=() ref=() /> };
 
     html! { <input type="text"></input> };
+
+    html! { <@></@> };
+    html! { <@{"test"}></@{"test"}> };
+    html! { <@{55}></@> };
+    html! { <@/> };
 }
 
 fn main() {}
