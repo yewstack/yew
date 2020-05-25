@@ -151,7 +151,7 @@ impl VDiff for VList {
             let right_key = rights
                 .get(current_right_idx)
                 .and_then(|vnode| vnode.key().as_ref());
-            let (right_idx, reused) = match (left.key(), right_key) {
+            let (right_idx, needs_move) = match (left.key(), right_key) {
                 (Some(left_key), Some(right_key)) if left_key == right_key => {
                     current_right_idx += 1;
                     (Some(current_right_idx - 1), false)
@@ -164,7 +164,7 @@ impl VDiff for VList {
                         (Some(*id), true)
                     }
                     _ if left_surplus > 0 => {
-                        left_surplus = left_surplus.saturating_sub(1);
+                        left_surplus -= 1;
                         (None, true)
                     }
                     _ => {
@@ -185,7 +185,7 @@ impl VDiff for VList {
                 })
             });
 
-            if reused {
+            if needs_move {
                 if let Some(right) = &right {
                     // Move the ancestor node.
                     super::insert_node(

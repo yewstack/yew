@@ -255,13 +255,13 @@ fn insert_node(node: &Node, parent: &Element, node_position: &VDiffNodePosition)
     match node_position {
         VDiffNodePosition::FirstChild => parent
             .insert_before(&node, parent.first_child().as_ref())
-            .expect("failed to insert tag before next sibling"),
+            .expect("failed to insert tag as first child"),
         VDiffNodePosition::Before(next_sibling) => parent
             .insert_before(&node, Some(next_sibling))
             .expect("failed to insert tag before next sibling"),
         VDiffNodePosition::After(previous_sibling) => parent
             .insert_before(&node, previous_sibling.next_sibling().as_ref())
-            .expect("failed to insert tag before next sibling"),
+            .expect("failed to insert tag after previous sibling"),
         VDiffNodePosition::LastChild => parent.append_child(node).expect("failed to append tag"),
     }
 }

@@ -230,8 +230,7 @@ impl VDiff for VComp {
                     (this.replace(mounted), node)
                 }
                 Reform::Replace(position) => {
-                    // TODO: Revert dummy text for VComp
-                    let dummy_node = document().create_text_node("DUMMY NODE FOR COMPONENT");
+                    let dummy_node = document().create_text_node("");
                     let node: Node = dummy_node.clone().into();
 
                     super::insert_node(&dummy_node, parent, &position);
