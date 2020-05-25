@@ -16,6 +16,7 @@ pub mod vtext;
 use crate::html::AnyScope;
 use cfg_if::cfg_if;
 use indexmap::set::IndexSet;
+use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 cfg_if! {
@@ -25,13 +26,6 @@ cfg_if! {
     } else if #[cfg(feature = "web_sys")] {
         use gloo::events::EventListener;
         use web_sys::{Element, Node};
-    }
-}
-cfg_if! {
-    if #[cfg(feature = "fast_hasher")] {
-        type HashMap<K, V> = ahash::AHashMap<K, V, ahash::RandomState>;
-    } else {
-        use std::collections::HashMap;
     }
 }
 

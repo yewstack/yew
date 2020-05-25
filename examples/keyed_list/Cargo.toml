@@ -9,5 +9,5 @@ log = "0.4"
 rand = { version = "0.7.3", features = ["wasm-bindgen"] }
 instant = { version = "0.1", features = [ "wasm-bindgen" ] }
 wasm-logger = "0.2.0"
-yew = { path = "../../yew", features = ["fast_hasher"] }
+yew = { path = "../../yew" }
 yewtil = { path = "../../yewtil" }

@@ -2,20 +2,13 @@
 use super::{Key, VDiff, VDiffNodePosition, VNode, VText};
 use crate::html::AnyScope;
 use cfg_if::cfg_if;
+use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::{Element, Node};
     } else if #[cfg(feature = "web_sys")] {
         use web_sys::{Element, Node};
-    }
-}
-cfg_if! {
-    if #[cfg(feature = "fast_hasher")] {
-        type HashMap<K, V> = ahash::AHashMap<K, V, ahash::RandomState>;
-        type HashSet<K> = ahash::AHashSet<K, ahash::RandomState>;
-    } else {
-        use std::collections::{HashMap, HashSet};
     }
 }
 
