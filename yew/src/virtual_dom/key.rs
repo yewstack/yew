@@ -5,7 +5,7 @@ use std::rc::Rc;
 /// Represents the (optional) key of Yew's virtual nodes.
 ///
 /// Keys are cheap to clone.
-// TODO: Explain when keys are useful and add an example.
+// TODO (#1263): Explain when keys are useful and add an example.
 #[derive(Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct Key {
     key: Rc<String>,
