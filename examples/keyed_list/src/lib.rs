@@ -31,7 +31,7 @@ pub enum Msg {
 }
 
 enum PersonType {
-    Basic(PersonInfo),
+    Inline(PersonInfo),
     Component(PersonInfo),
 }
 
@@ -230,14 +230,14 @@ impl Component for Model {
                 <hr />
                 <div class="persons">
                     { for self.persons.iter().map(|p| match p {
-                        PersonType::Basic(info) if self.keyed => {
+                        PersonType::Inline(info) if self.keyed => {
                             html! {
                                 <div class="basic-person" key=info.id.to_string() id=info.id.to_string()>
                                     { info.render() }
                                 </div>
                             }
                         },
-                        PersonType::Basic(info) => {
+                        PersonType::Inline(info) => {
                             html! {
                                 <div class="basic-person" id=info.id.to_string()>
                                     { info.render() }
@@ -258,7 +258,6 @@ impl Component for PersonComponent {
     type Properties = PersonProps;
 
     fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        // log::debug!("Created person {}", props.info.id);
         PersonComponent { info: props.info }
     }
 
@@ -267,7 +266,6 @@ impl Component for PersonComponent {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        // log::debug!("Changed person: {} -> {}", self.info.id, props.info.id);
         self.info.neq_assign(props.info)
     }
 
@@ -283,7 +281,7 @@ impl Component for PersonComponent {
 impl PersonType {
     fn info(&self) -> &PersonInfo {
         match self {
-            PersonType::Basic(info) => info,
+            PersonType::Inline(info) => info,
             PersonType::Component(info) => info,
         }
     }
@@ -291,7 +289,7 @@ impl PersonType {
     fn new_random(id: usize, ratio: f64) -> Self {
         let info = PersonInfo::new_random(id);
         if (rand::thread_rng().gen::<f64>() % 1.0) > ratio {
-            PersonType::Basic(info)
+            PersonType::Inline(info)
         } else {
             PersonType::Component(info)
         }
