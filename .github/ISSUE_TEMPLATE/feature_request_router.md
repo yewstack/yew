@@ -20,3 +20,10 @@ A clear and concise description of any alternative solutions or features you've 
 
 **Additional context** _(Optional)_
 Add any other context or screenshots about the feature request here.
+
+**Questionnaire**
+<!-- Developing Yew is a community effort! -->
+<!-- If you feel up to the challenge, please check one of the boxes below: -->
+- [ ] I'm interested in implementing this myself but don't know where to start
+- [ ] I would like to add this feature
+- [ ] I don't have time to add this right now, but maybe later
