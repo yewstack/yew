@@ -1,6 +1,6 @@
 ---
 name: Bug report [yew-router]
-about: Create a report to help us improve Yew
+about: Create a report to help us improve Yew Router
 title: ''
 labels: bug, router
 assignees: ''
