@@ -407,17 +407,17 @@ impl Parse for HtmlTagClose {
         let lt = input.parse()?;
         let div = input.parse()?;
         let tag_name = input.parse()?;
+        let gt = input.parse()?;
 
         if let TagName::Expr(name) = &tag_name {
             if let Some(expr) = &name.expr {
                 return Err(syn::Error::new_spanned(
-                    &expr,
+                    expr,
                     "dynamic closing tags must not have a body",
                 ));
             }
         }
 
-        let gt = input.parse()?;
         Ok(HtmlTagClose {
             lt,
             div,
