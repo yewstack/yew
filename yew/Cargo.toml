@@ -71,6 +71,7 @@ features = [
   "FocusEvent",
   "Headers",
   "HtmlElement",
+  "HtmlButtonElement",
   "HtmlInputElement",
   "HtmlSelectElement",
   "HtmlTextAreaElement",

@@ -22,7 +22,7 @@ cfg_if! {
         use std::ops::Deref;
         use wasm_bindgen::JsCast;
         use web_sys::{
-            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, Node,
+            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, Node, HtmlButtonElement
         };
     }
 }
@@ -264,6 +264,21 @@ impl VTag {
                         feature = "std_web" => element.remove_attribute(&key),
                         feature = "web_sys" => element.remove_attribute(&key).expect("could not remove attribute"),
                     };
+                }
+            }
+        }
+
+        // TODO: add std_web after https://github.com/koute/stdweb/issues/395 will be approved
+        // Check this out: https://github.com/yewstack/yew/pull/1033/commits/4b4e958bb1ccac0524eb20f63f06ae394c20553d
+        #[cfg(feature = "web_sys")]
+        {
+            if let Some(button) = element.dyn_ref::<HtmlButtonElement>() {
+                if let Some(change) = self.diff_kind(ancestor) {
+                    let kind = match change {
+                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                        Patch::Remove(_) => "",
+                    };
+                    button.set_type(kind);
                 }
             }
         }
