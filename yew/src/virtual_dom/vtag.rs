@@ -318,20 +318,17 @@ impl VTag {
             }
         }
 
-        if let Some(button) = {
-            // TODO: add std_web after https://github.com/koute/stdweb/issues/395 will be approved
-            // Check this out: https://github.com/yewstack/yew/pull/1033/commits/4b4e958bb1ccac0524eb20f63f06ae394c20553d
-            cfg_match! {
-                feature = "web_sys" => element.dyn_ref::<HtmlButtonElement>(),
-            }
-        } {
-            if let Some(change) = self.diff_kind(ancestor) {
-                let kind = match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                    Patch::Remove(_) => "",
-                };
-                cfg_match! {
-                    feature = "web_sys" => button.set_type(kind),
+        // TODO: add std_web after https://github.com/koute/stdweb/issues/395 will be approved
+        // Check this out: https://github.com/yewstack/yew/pull/1033/commits/4b4e958bb1ccac0524eb20f63f06ae394c20553d
+        #[cfg(feature = "web_sys")]
+        {
+            if let Some(button) = element.dyn_ref::<HtmlButtonElement>() {
+                if let Some(change) = self.diff_kind(ancestor) {
+                    let kind = match change {
+                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                        Patch::Remove(_) => "",
+                    };
+                    button.set_type(kind);
                 }
             }
         }
