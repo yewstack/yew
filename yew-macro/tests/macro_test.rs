@@ -1,3 +1,5 @@
+use yew::html;
+
 #[allow(dead_code)]
 #[rustversion::attr(stable(1.43), test)]
 fn tests() {
@@ -21,4 +23,26 @@ fn tests() {
 
     t.pass("tests/macro/html-tag-pass.rs");
     t.compile_fail("tests/macro/html-tag-fail.rs");
+}
+
+#[test]
+#[should_panic(
+    expected = "a dynamic tag tried to create a `<br>` tag with children. `<br>` is a void element which can't have any children."
+)]
+fn dynamic_tags_catch_void_elements() {
+    html! {
+        <@{"br"}>
+            <span>{ "No children allowed" }</span>
+        </@>
+    };
+}
+
+#[test]
+#[should_panic(
+    expected = "a dynamic tag returned a tag name containing non ASCII alphanumerics: `❤`"
+)]
+fn dynamic_tags_catch_non_ascii() {
+    html! {
+        <@{"❤"}/>
+    };
 }

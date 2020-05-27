@@ -54,6 +54,8 @@ impl Parse for HtmlTag {
         if let TagName::Lit(name) = &open.tag_name {
             // Void elements should not have children.
             // See https://html.spec.whatwg.org/multipage/syntax.html#void-elements
+            //
+            // For dynamic tags this is done at runtime!
             match name.to_string().as_str() {
                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
                 | "meta" | "param" | "source" | "track" | "wbr" => {
@@ -108,9 +110,15 @@ impl ToTokens for HtmlTag {
             TagName::Expr(name) => {
                 let expr = &name.expr;
                 // this way we get a nice error message (with the correct span) when the expression doesn't return a valid value
-                quote_spanned! {expr.span()=>
-                    ::std::borrow::Cow::<'static, str>::from(#expr)
-                }
+                quote_spanned! {expr.span()=> {
+                    let mut name = ::std::borrow::Cow::<'static, str>::from(#expr);
+                    if !name.bytes().all(|b| b.is_ascii_alphanumeric()) {
+                        ::std::panic!("a dynamic tag returned a tag name containing non ASCII alphanumerics: `{}`", name);
+                    }
+                    // convert to lowercase because the runtime checks rely on it.
+                    name.to_mut().make_ascii_lowercase();
+                    name
+                }}
             }
         };
 
@@ -192,6 +200,37 @@ impl ToTokens for HtmlTag {
             }}
         });
 
+        // These are the runtime-checks exclusive to dynamic tags.
+        // For literal tags this is already done at compile-time.
+        let dyn_tag_runtime_checks = if matches!(&tag_name, TagName::Expr(_)) {
+            // when Span::source_file Span::start get stabilised or yew-macro introduces a nightly feature flag
+            // we should expand the panic message to contain the exact location of the dynamic tag.
+            Some(quote! {
+                // check void element
+                if !#vtag.children.is_empty() {
+                    match #vtag.tag() {
+                        "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
+                        | "meta" | "param" | "source" | "track" | "wbr" => {
+                            ::std::panic!("a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.", #vtag.tag());
+                        }
+                        _ => {}
+                    }
+                }
+
+                // handle special attribute value
+                match #vtag.tag() {
+                    "input" | "textarea" => {}
+                    _ => {
+                        if let ::std::option::Option::Some(value) = #vtag.value.take() {
+                            #vtag.attributes.insert("value".to_string(), value);
+                        }
+                    }
+                }
+            })
+        } else {
+            None
+        };
+
         tokens.extend(quote! {{
             let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
             #(#set_kind)*
@@ -205,6 +244,7 @@ impl ToTokens for HtmlTag {
             #vtag.add_attributes(vec![#(#attr_pairs),*]);
             #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
             #vtag.add_children(vec![#(#children),*]);
+            #dyn_tag_runtime_checks
             ::yew::virtual_dom::VNode::from(#vtag)
         }});
     }
@@ -315,8 +355,10 @@ impl PeekValue<TagKey> for HtmlTagOpen {
 
         let (tag_key, cursor) = TagName::peek(cursor)?;
         if let TagKey::Lit(name) = &tag_key {
+            // Avoid parsing `<key=[...]>` as an HtmlTag. It needs to be parsed as an HtmlList.
             if name.to_string() == "key" {
                 let (punct, _) = cursor.punct()?;
+                // ... unless it isn't followed by a '='. `<key></key>` is a valid HtmlTag!
                 (punct.as_char() != '=').as_option()?;
             } else {
                 non_capitalized_ascii(&name.to_string()).as_option()?;
@@ -337,6 +379,7 @@ impl Parse for HtmlTagOpen {
         match &tag_name {
             TagName::Lit(name) => {
                 // Don't treat value as special for non input / textarea fields
+                // For dynamic tags this is done at runtime!
                 match name.to_string().as_str() {
                     "input" | "textarea" => {}
                     _ => {

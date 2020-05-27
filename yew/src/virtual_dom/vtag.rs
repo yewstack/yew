@@ -1195,4 +1195,51 @@ mod tests {
             expected
         );
     }
+
+    #[test]
+    fn dynamic_tags_work() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let mut elem = html! { <@{"a"}/> };
+        elem.apply(&scope, &parent, None, None);
+        let vtag = assert_vtag(&mut elem);
+        // make sure the new tag name is used.
+        // Element.tagName is always in the canonical upper-case form.
+        assert_eq!(vtag.reference.as_ref().unwrap().tag_name(), "A");
+    }
+
+    #[test]
+    fn dynamic_tags_handle_value_attribute() {
+        let mut div_el = html! {
+            <@{"div"} value="Hello"/>
+        };
+        let div_vtag = assert_vtag(&mut div_el);
+        assert!(div_vtag.value.is_none());
+        assert_eq!(
+            div_vtag.attributes.get("value").map(String::as_str),
+            Some("Hello")
+        );
+
+        let mut input_el = html! {
+            <@{"input"} value="World"/>
+        };
+        let input_vtag = assert_vtag(&mut input_el);
+        assert_eq!(input_vtag.value, Some("World".to_string()));
+        assert!(!input_vtag.attributes.contains_key("value"));
+    }
+
+    #[test]
+    fn dynamic_tags_handle_weird_capitalisation() {
+        let mut el = html! {
+            <@{"tExTAREa"}/>
+        };
+        let vtag = assert_vtag(&mut el);
+        assert_eq!(vtag.tag(), "textarea");
+    }
 }
