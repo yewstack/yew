@@ -1,14 +1,14 @@
-# Description
+#### Description
 
 <!-- Please include a summary of the change and which issue is fixed. -->
 
 Fixes # (issue)
 
-### Checklist:
+#### Checklist:
 
 - [ ] I have ran `./ci/run_stable_checks.sh`
 - [ ] I have performed a self-review of my own code
-- [ ] I have added tests that prove my fix is effective or that my feature works -->
+- [ ] I have added tests that prove my fix is effective or that my feature works
 
 <!-- Performance Improvements Only -->
 <!-- 1. Fork and clone https://github.com/yewstack/js-framework-benchmark -->
