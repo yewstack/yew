@@ -38,9 +38,7 @@ fn dynamic_tags_catch_void_elements() {
 }
 
 #[test]
-#[should_panic(
-    expected = "a dynamic tag returned a tag name containing non ASCII alphanumerics: `❤`"
-)]
+#[should_panic(expected = "a dynamic tag returned a tag name containing non ASCII characters: `❤`")]
 fn dynamic_tags_catch_non_ascii() {
     html! {
         <@{"❤"}/>

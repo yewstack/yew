@@ -109,15 +109,16 @@ impl ToTokens for HtmlTag {
             }
             TagName::Expr(name) => {
                 let expr = &name.expr;
+                let vtag_name = Ident::new("__yew_vtag_name", expr.span());
                 // this way we get a nice error message (with the correct span) when the expression doesn't return a valid value
                 quote_spanned! {expr.span()=> {
-                    let mut name = ::std::borrow::Cow::<'static, str>::from(#expr);
-                    if !name.bytes().all(|b| b.is_ascii_alphanumeric()) {
-                        ::std::panic!("a dynamic tag returned a tag name containing non ASCII alphanumerics: `{}`", name);
+                    let mut #vtag_name = ::std::borrow::Cow::<'static, str>::from(#expr);
+                    if !#vtag_name.is_ascii() {
+                        ::std::panic!("a dynamic tag returned a tag name containing non ASCII characters: `{}`", #vtag_name);
                     }
                     // convert to lowercase because the runtime checks rely on it.
-                    name.to_mut().make_ascii_lowercase();
-                    name
+                    #vtag_name.to_mut().make_ascii_lowercase();
+                    #vtag_name
                 }}
             }
         };
