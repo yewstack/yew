@@ -1206,10 +1206,18 @@ mod tests {
         #[cfg(feature = "web_sys")]
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut elem = html! { <@{"a"}/> };
+        let mut elem = html! { <@{
+            let mut builder = String::new();
+            builder.push_str("a");
+            builder
+        }/> };
+
         elem.apply(&scope, &parent, None, None);
         let vtag = assert_vtag(&mut elem);
-        // make sure the new tag name is used.
+        // make sure the new tag name is used internally
+        assert_eq!(vtag.tag, "a");
+
+        #[cfg(feature = "web_sys")]
         // Element.tagName is always in the canonical upper-case form.
         assert_eq!(vtag.reference.as_ref().unwrap().tag_name(), "A");
     }
