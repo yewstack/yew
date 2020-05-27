@@ -379,6 +379,27 @@ impl VDiff for VTag {
                     if self.tag == vtag.tag {
                         // If tags are equal, preserve the reference that already exists.
                         self.reference = vtag.reference.take();
+                        if let Some(element) = self.reference.as_ref() {
+                            if let Some(input) = {
+                                cfg_match! {
+                                    feature = "std_web" => InputElement::try_from(element.clone()).ok(),
+                                    feature = "web_sys" => element.dyn_ref::<InputElement>(),
+                                }
+                            } {
+                                let current_value = cfg_match! {
+                                    feature = "std_web" => input.raw_value(),
+                                    feature = "web_sys" => input.value(),
+                                };
+                                vtag.set_value(&current_value)
+                            } else if let Some(tae) = {
+                                cfg_match! {
+                                    feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
+                                    feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
+                                }
+                            } {
+                                vtag.set_value(&tae.value())
+                            }
+                        }
                         (Reform::Keep, Some(vtag))
                     } else {
                         // We have to create a new reference, remove ancestor.
