@@ -54,11 +54,11 @@ error: expected a valid html element
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected end of input, expected expression
-  --> $DIR/html-list-fail.rs:11:5
+error: expected an expression following this equals sign
+  --> $DIR/html-list-fail.rs:11:17
    |
 11 |     html! { <key=></>}
-   |     ^^^^^^^^^^^^^^^^^^
+   |                 ^^
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
