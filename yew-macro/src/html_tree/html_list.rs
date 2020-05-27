@@ -60,9 +60,9 @@ impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let children = &self.children;
         let key = if let Some(key) = &self.key {
-            quote_spanned! {key.span() => Some(#key)}
+            quote_spanned! {key.span()=> Some(#key)}
         } else {
-            quote! {None }
+            quote! {None}
         };
         tokens.extend(quote! {
             ::yew::virtual_dom::VNode::VList(

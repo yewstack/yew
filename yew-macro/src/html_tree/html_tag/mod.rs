@@ -130,11 +130,11 @@ impl ToTokens for HtmlTag {
         let vtag = Ident::new("__yew_vtag", tag_name.span());
         let attr_pairs = attributes.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
-            quote_spanned! {value.span() => (#label_str.to_owned(), (#value).to_string()) }
+            quote_spanned! {value.span()=> (#label_str.to_owned(), (#value).to_string()) }
         });
         let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
-            quote_spanned! {value.span() =>
+            quote_spanned! {value.span()=>
                 if #value {
                     #vtag.add_attribute(&#label_str, &#label_str);
                 }
