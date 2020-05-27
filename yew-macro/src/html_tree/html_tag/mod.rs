@@ -233,6 +233,7 @@ impl Peek<'_, ()> for DynamicName {
 impl Parse for DynamicName {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let at = input.parse()?;
+        // the expression block is optional, closing tags don't have it.
         let expr = if input.cursor().group(Delimiter::Brace).is_some() {
             Some(input.parse()?)
         } else {
@@ -413,7 +414,7 @@ impl Parse for HtmlTagClose {
             if let Some(expr) = &name.expr {
                 return Err(syn::Error::new_spanned(
                     expr,
-                    "dynamic closing tags must not have a body",
+                    "dynamic closing tags must not have a body (hint: replace it with just `</@>`)",
                 ));
             }
         }

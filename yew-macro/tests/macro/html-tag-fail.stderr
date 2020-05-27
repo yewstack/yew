@@ -158,7 +158,7 @@ error: this dynamic tag is missing an expression block defining its value
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: dynamic closing tags must not have a body
+error: dynamic closing tags must not have a body (hint: replace it with just `</@>`)
   --> $DIR/html-tag-fail.rs:43:27
    |
 43 |     html! { <@{"test"}></@{"test"}> };
