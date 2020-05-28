@@ -25,6 +25,7 @@ bincode = { version = "~1.2.1", optional = true }
 cfg-if = "0.1"
 cfg-match = "0.2"
 console_error_panic_hook = { version = "0.1", optional = true }
+fixedbitset = "0.3.0"
 futures = { version = "0.3", optional = true }
 gloo = { version = "0.2.1", optional = true }
 http = "0.2"
