@@ -134,11 +134,11 @@ error: expected identifier
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected end of input, expected expression
-  --> $DIR/html-component-fail.rs:98:5
+error: expected an expression following this equals sign
+  --> $DIR/html-component-fail.rs:98:26
    |
 98 |     html! { <Child string= /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                          ^
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
