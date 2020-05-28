@@ -334,14 +334,23 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 
 #[cfg(test)]
 mod tests {
-    use super::VChild;
+    use super::{AnyScope, VChild, VDiff};
     use crate::macros::Properties;
-    use crate::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
+    use crate::utils::document;
+    use crate::{html, Children, Component, ComponentLink, Html, NodeRef, ShouldRender};
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
+
+    fn test_scope() -> AnyScope {
+        AnyScope {
+            type_id: std::any::TypeId::of::<()>(),
+            parent: None,
+            state: std::rc::Rc::new(()),
+        }
+    }
 
     struct Comp;
 
@@ -434,5 +443,77 @@ mod tests {
         assert_eq!(vchild1, vchild2);
         assert_ne!(vchild1, vchild3);
         assert_ne!(vchild2, vchild3);
+    }
+
+    #[test]
+    fn iterators_produce_same_results() {
+        #[derive(Clone, Properties)]
+        struct Props {
+            children: Children,
+        }
+        struct List(Props);
+        impl Component for List {
+            type Message = ();
+            type Properties = Props;
+
+            fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+                Self(props)
+            }
+
+            fn update(&mut self, _: Self::Message) -> ShouldRender {
+                unimplemented!();
+            }
+
+            fn change(&mut self, _: Self::Properties) -> ShouldRender {
+                unimplemented!();
+            }
+
+            fn view(&self) -> Html {
+                let item_iter = self.0.children.iter().map(|item| html! {<li>{ item }</li>});
+                html! {
+                    <ul>{ for item_iter }</ul>
+                }
+            }
+        }
+        let children: Vec<_> = vec!["a", "b", "c"]
+            .drain(..)
+            .map(|text| html! {<span>{ text }</span>})
+            .collect();
+
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let mut list_method = html! {
+            <List>
+                { children.clone() }
+            </List>
+        };
+        list_method.apply(&scope, &parent, None, None);
+        let list_html = parent.inner_html();
+        assert_eq!(
+            list_html,
+            "<ul>\
+                <li><span>a</span></li>\
+                <li><span>b</span></li>\
+                <li><span>c</span></li>\
+            </ul>"
+        );
+
+        parent.set_inner_html("");
+
+        let mut for_method = html! {
+            <List>
+                { for children }
+            </List>
+        };
+        for_method.apply(&scope, &parent, None, None);
+        let for_html = parent.inner_html();
+
+        assert_eq!(list_html, for_html)
     }
 }
