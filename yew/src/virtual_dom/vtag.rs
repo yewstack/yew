@@ -1247,7 +1247,10 @@ mod tests {
             feature = "std_web" => InputElement::try_from(input_ref.clone()).ok(),
             feature = "web_sys" => input_ref.dyn_ref::<InputElement>(),
         };
-        input.unwrap().set_value("User input");
+        cfg_match! {
+            feature = "std_web" => input.unwrap().set_raw_value("User input"),
+            feature = "web_sys" => input.unwrap().set_value("User input"),
+        };
 
         let ancestor = vtag;
         // Same state after onInput or onChange event
