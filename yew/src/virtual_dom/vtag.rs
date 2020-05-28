@@ -1243,7 +1243,7 @@ mod tests {
     }
 
     #[test]
-    fn dynamic_tags_handle_weird_capitalisation() {
+    fn dynamic_tags_handle_weird_capitalization() {
         let mut el = html! {
             <@{"tExTAREa"}/>
         };

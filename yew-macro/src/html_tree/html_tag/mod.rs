@@ -56,7 +56,7 @@ impl Parse for HtmlTag {
             // See https://html.spec.whatwg.org/multipage/syntax.html#void-elements
             //
             // For dynamic tags this is done at runtime!
-            match name.to_string().as_str() {
+            match name.to_ascii_lowercase_string().as_str() {
                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
                 | "meta" | "param" | "source" | "track" | "wbr" => {
                     return Err(syn::Error::new_spanned(&open, format!("the tag `<{}>` is a void element and cannot have children (hint: rewrite this as `<{0}/>`)", name)));
@@ -381,7 +381,7 @@ impl Parse for HtmlTagOpen {
             TagName::Lit(name) => {
                 // Don't treat value as special for non input / textarea fields
                 // For dynamic tags this is done at runtime!
-                match name.to_string().as_str() {
+                match name.to_ascii_lowercase_string().as_str() {
                     "input" | "textarea" => {}
                     _ => {
                         if let Some(value) = attributes.value.take() {
