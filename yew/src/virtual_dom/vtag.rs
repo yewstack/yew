@@ -1216,4 +1216,67 @@ mod tests {
             expected
         );
     }
+
+    #[test]
+    fn check_input_current_value_sync() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let expected = "not_changed_value";
+
+        // Initial state
+        let mut elem = html! {
+            <input value=expected />
+        };
+        elem.apply(&scope, &parent, None, None);
+
+        let vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+
+        // User input
+        let input_ref = vtag.reference.as_ref().unwrap();
+        let input = cfg_match! {
+            feature = "std_web" => InputElement::try_from(input_ref.clone()).ok(),
+            feature = "web_sys" => input_ref.dyn_ref::<InputElement>(),
+        };
+        input.unwrap().set_value("User input");
+
+        let ancestor = vtag;
+        // Same state after onInput or onChange event
+        let elem = html! {
+            <input value=expected />
+        };
+        let mut vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+
+        // Sync happens here
+        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
+
+        // Get new current value of the input element
+        let input_ref = vtag.reference.as_ref().unwrap();
+        let input = cfg_match! {
+            feature = "std_web" => InputElement::try_from(input_ref.clone()).ok(),
+            feature = "web_sys" => input_ref.dyn_ref::<InputElement>(),
+        }
+        .unwrap();
+
+        let current_value = cfg_match! {
+            feature = "std_web" => input.raw_value(),
+            feature = "web_sys" => input.value(),
+        };
+
+        // check whether not changed virtual dom value has been set to the input element
+        assert_eq!(current_value, expected);
+    }
 }
