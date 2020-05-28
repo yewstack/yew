@@ -9,7 +9,7 @@ use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::Token;
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct HtmlDashedName {
     pub name: Ident,
     pub extended: Vec<(Token![-], Ident)>,
@@ -21,6 +21,12 @@ impl HtmlDashedName {
             name,
             extended: Vec::new(),
         }
+    }
+
+    pub fn to_ascii_lowercase_string(&self) -> String {
+        let mut s = self.to_string();
+        s.make_ascii_lowercase();
+        s
     }
 }
 
