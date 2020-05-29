@@ -143,7 +143,6 @@ impl VDiff for VList {
         } else {
             // Here the only thing we know is that _some_ virtual nodes have
             // keys, but maybe not all of them.
-            log::trace!("Using keyed algorithm");
 
             // Check for lefts to see if there are duplicates and show a warning
             // (no need to check in right, there cannot be duplicates).
@@ -234,15 +233,6 @@ impl VDiff for VList {
                 }
             }
 
-            log::trace!("Before reconciliation, node matching:");
-            for (left, right) in self.children.iter().zip(matched_rights.iter()) {
-                log::trace!(
-                    "{:?} - {:?}",
-                    left.key(),
-                    right.as_ref().map(|vnode| vnode.key().clone())
-                );
-            }
-
             // Reconciliation loop, i.e. apply the least amount of
             // transformations to rights to make them identical to lefts.
             let mut created_lefts: HashSet<Key> = HashSet::with_capacity(self.children.len());
@@ -277,7 +267,6 @@ impl VDiff for VList {
                 // position.
                 if let Some(key) = left.key() {
                     if created_lefts.contains(key) {
-                        log::trace!("Skipping new left: {}", key);
                         continue;
                     }
                 }
@@ -287,10 +276,8 @@ impl VDiff for VList {
                 while let Some(Some(key)) = right_key.clone() {
                     if moved.contains(&key) {
                         right_key = right_keys.next();
-                        log::trace!("Skipping moved right: {}", key);
                     } else if deleted_rights.contains_key(&key) {
                         right_key = right_keys.next();
-                        log::trace!("Skipping deleted right: {}", key);
                     } else {
                         break;
                     }
@@ -302,7 +289,6 @@ impl VDiff for VList {
                 // present in left.
                 if let (Some(a), Some(Some(b))) = (left.key(), right_keys.peek()) {
                     if a == b {
-                        log::trace!("Skipped right vnode {:?}, because next matches left: {}", right_key, b);
                         // Skip the right key. This will force a move of the
                         // matching left one later when we will process it.
                         right_key = right_keys.next();
@@ -311,19 +297,11 @@ impl VDiff for VList {
 
                 match (left.key(), right_key.clone()) {
                     (a, Some(b)) if *a == b => {
-                        log::trace!("Not moving matching keys: {:?}", a);
                         right_key = right_keys.next();
                     }
-                    (None, Some(None)) => {
-                        right_key = {
-                            log::trace!("Not moving None keys");
-                            right_keys.next()
-                        }
-                    }
-                    (None, b) => log::trace!("Skipping None left. (right={:?})", b),
-                    (Some(left_key), ref b) => {
-                        log::trace!("Moving left: {} (right={:?})", left_key, b);
-
+                    (None, Some(None)) => right_key = right_keys.next(),
+                    (None, _) => {}
+                    (Some(left_key), _) => {
                         // Move the left vnode.
                         if let Some(left_node) = left.reference() {
                             let position = match lefts_peekable.peek() {
@@ -347,9 +325,7 @@ impl VDiff for VList {
                     }
                 }
             }
-            log::debug!("finished collecting moves");
             for (node, position) in moves.into_iter().rev() {
-                log::debug!("moving");
                 super::insert_node(&node, parent, &position);
             }
 
@@ -366,8 +342,6 @@ impl VDiff for VList {
                 right.detach(parent);
             }
 
-            log::trace!("keyed diffing complete");
-
             match node_position {
                 VDiffNodePosition::Before(node) => Some(node),
                 VDiffNodePosition::After(node) => Some(node),
@@ -379,38 +353,54 @@ impl VDiff for VList {
 
 #[cfg(test)]
 mod tests {
-    use crate::{html, Component, ComponentLink, Html, ShouldRender};
+    use super::{Element, Node};
+    use crate::html::{AnyScope, Scope};
+    use crate::prelude::*;
+    use crate::virtual_dom::{
+        Key, VChild, VComp, VDiff, VDiffNodePosition, VList, VNode, VTag, VText,
+    };
+    use std::borrow::Cow;
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
-    struct Comp;
+    struct Comp {
+        id: usize,
+    }
+
+    #[derive(Properties, Clone)]
+    struct CountingCompProps {
+        id: usize,
+    }
 
     impl Component for Comp {
         type Message = ();
-        type Properties = ();
+        type Properties = CountingCompProps;
 
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Comp
+        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+            Comp { id: props.id }
+        }
+
+        fn change(&mut self, props: Self::Properties) -> ShouldRender {
+            wasm_bindgen_test::console_log!("Comp changed: {} -> {}", self.id, props.id);
+            let changed = self.id != props.id;
+            self.id = props.id;
+            changed
         }
 
         fn update(&mut self, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
 
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-
         fn view(&self) -> Html {
-            unimplemented!();
+            html! { <p>{ self.id }</p> }
         }
     }
 
     #[test]
-    fn check_fragments() {
+    fn check_fragment_has_child_of_tag_works() {
         let fragment = html! {
             <>
             </>
@@ -420,5 +410,395 @@ mod tests {
                 { fragment }
             </div>
         };
+    }
+
+    fn new_keyed_vtag<T: Into<Cow<'static, str>>, K: ToString>(tag: T, key: K) -> VTag {
+        let mut vtag = VTag::new(tag.into());
+        vtag.key = Some(Key::from(key.to_string()));
+        vtag
+    }
+
+    #[test]
+    fn vlist_vdiff_apply_non_keyed_from_none_works_with_all_vnode_types_as_children() {
+        let vchild: VChild<Comp> =
+            VChild::new(CountingCompProps { id: 0 }, NodeRef::default(), None);
+        let vref_element: Element = crate::utils::document().create_element("i").unwrap();
+        let vref_node: Node = vref_element.clone().into();
+        let mut vlist = VList::new_with_children(
+            vec![
+                VNode::VText(VText::new("a".into())),
+                VNode::VTag(Box::new(VTag::new("span"))),
+                VNode::VText(VText::new("c".into())),
+                VNode::VText(VText::new("d".into())),
+                VNode::VComp(vchild.into()),
+                VNode::VList(VList::new_with_children(
+                    vec![
+                        VNode::VText(VText::new("foo".into())),
+                        VNode::VText(VText::new("bar".into())),
+                    ],
+                    None,
+                )),
+                VNode::VRef(vref_node),
+            ],
+            None,
+        );
+
+        let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
+        let parent_element = crate::utils::document().create_element("div").unwrap();
+        vlist.apply(
+            &parent_scope,
+            &parent_element,
+            VDiffNodePosition::LastChild,
+            None,
+        );
+
+        assert_eq!(
+            parent_element.inner_html(),
+            "a<span></span>cd<p>0</p>foobar<i></i>",
+            "The VList didn't render properly."
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_apply_keyed_from_none_works_with_all_vnode_types_as_children() {
+        let vchild: VChild<Comp> = VChild::new(
+            CountingCompProps { id: 0 },
+            NodeRef::default(),
+            Some(Key::from(String::from("vchild"))),
+        );
+        let vref_element: Element = crate::utils::document().create_element("i").unwrap();
+        let vref_node: Node = vref_element.clone().into();
+        let vtag = new_keyed_vtag("span", "vtag");
+        let mut vlist = VList::new_with_children(
+            vec![
+                VNode::VText(VText::new("a".into())),
+                VNode::VTag(Box::new(vtag)),
+                VNode::VText(VText::new("c".into())),
+                VNode::VText(VText::new("d".into())),
+                VNode::VComp(vchild.into()),
+                VNode::VList(VList::new_with_children(
+                    vec![
+                        VNode::VText(VText::new("foo".into())),
+                        VNode::VText(VText::new("bar".into())),
+                    ],
+                    Some(Key::from(String::from("vlist"))),
+                )),
+                VNode::VRef(vref_node),
+            ],
+            None,
+        );
+
+        let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
+        let parent_element = crate::utils::document().create_element("div").unwrap();
+        vlist.apply(
+            &parent_scope,
+            &parent_element,
+            VDiffNodePosition::LastChild,
+            None,
+        );
+
+        assert_eq!(
+            parent_element.inner_html(),
+            "a<span></span>cd<p>0</p>foobar<i></i>",
+            "The VList didn't render properly."
+        );
+    }
+
+    fn test_vlist_vdiff_from_ancestor_works(
+        ancestor_children: Vec<VNode>,
+        ancestor_inner_html: impl AsRef<str>,
+        new_children: Vec<VNode>,
+        new_inner_html: impl AsRef<str>,
+    ) {
+        let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
+        let parent_element = crate::utils::document().create_element("div").unwrap();
+
+        let mut ancestor_vlist = VList::new_with_children(ancestor_children, None);
+        ancestor_vlist.apply(
+            &parent_scope,
+            &parent_element,
+            VDiffNodePosition::LastChild,
+            None,
+        );
+        assert_eq!(
+            parent_element.inner_html(),
+            ancestor_inner_html.as_ref(),
+            "ancestor VList didn't render properly"
+        );
+
+        let mut vlist = VList::new_with_children(new_children, None);
+        vlist.apply(
+            &parent_scope,
+            &parent_element,
+            VDiffNodePosition::FirstChild,
+            Some(VNode::VList(ancestor_vlist)),
+        );
+        assert_eq!(
+            parent_element.inner_html(),
+            new_inner_html.as_ref(),
+            "new VList didn't render properly"
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_non_keyed_from_ancestor_works_append() {
+        test_vlist_vdiff_from_ancestor_works(
+            vec![VText::new("a".into()).into(), VText::new("b".into()).into()],
+            "ab",
+            vec![
+                VText::new("a".into()).into(),
+                VText::new("b".into()).into(),
+                VText::new("c".into()).into(),
+            ],
+            "abc",
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_non_keyed_from_ancestor_works_prepend() {
+        test_vlist_vdiff_from_ancestor_works(
+            vec![VText::new("a".into()).into(), VText::new("b".into()).into()],
+            "ab",
+            vec![
+                VText::new("c".into()).into(),
+                VText::new("a".into()).into(),
+                VText::new("b".into()).into(),
+            ],
+            "cab",
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_non_keyed_from_ancestor_works_delete() {
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                VText::new("a".into()).into(),
+                VText::new("b".into()).into(),
+                VText::new("c".into()).into(),
+            ],
+            "abc",
+            vec![VText::new("a".into()).into(), VText::new("b".into()).into()],
+            "ab",
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_non_keyed_from_ancestor_works_swap() {
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                VText::new("a".into()).into(),
+                VText::new("b".into()).into(),
+                VText::new("c".into()).into(),
+            ],
+            "abc",
+            vec![
+                VText::new("a".into()).into(),
+                VText::new("c".into()).into(),
+                VText::new("b".into()).into(),
+            ],
+            "acb",
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_keyed_from_ancestor_works_append() {
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("e", "2").into(),
+            ],
+            "<i></i><e></e>",
+            vec![
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("e", "2").into(),
+                new_keyed_vtag("p", "3").into(),
+            ],
+            "<i></i><e></e><p></p>",
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_keyed_from_ancestor_works_prepend() {
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("e", "2").into(),
+            ],
+            "<i></i><e></e>",
+            vec![
+                new_keyed_vtag("p", "3").into(),
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("e", "2").into(),
+            ],
+            "<p></p><i></i><e></e>",
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_keyed_from_ancestor_works_delete_first() {
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("e", "2").into(),
+                new_keyed_vtag("p", "3").into(),
+            ],
+            "<i></i><e></e><p></p>",
+            vec![
+                new_keyed_vtag("e", "2").into(),
+                new_keyed_vtag("p", "3").into(),
+            ],
+            "<e></e><p></p>",
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_keyed_from_ancestor_works_delete_last() {
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("e", "2").into(),
+                new_keyed_vtag("p", "3").into(),
+            ],
+            "<i></i><e></e><p></p>",
+            vec![
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("e", "2").into(),
+            ],
+            "<i></i><e></e>",
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_keyed_from_ancestor_works_reverse() {
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                new_keyed_vtag("i", "r").into(),
+                new_keyed_vtag("e", "u").into(),
+                new_keyed_vtag("p", "s").into(),
+                new_keyed_vtag("u", "t").into(),
+            ],
+            "<i></i><e></e><p></p><u></u>",
+            vec![
+                new_keyed_vtag("u", "t").into(),
+                new_keyed_vtag("p", "s").into(),
+                new_keyed_vtag("e", "u").into(),
+                new_keyed_vtag("i", "r").into(),
+            ],
+            "<u></u><p></p><e></e><i></i>",
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_keyed_from_ancestor_works_swap() {
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("e", "2").into(),
+                new_keyed_vtag("p", "3").into(),
+                new_keyed_vtag("a", "4").into(),
+                new_keyed_vtag("u", "5").into(),
+            ],
+            "<i></i><e></e><p></p><a></a><u></u>",
+            vec![
+                new_keyed_vtag("e", "2").into(),
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("p", "3").into(),
+                new_keyed_vtag("a", "4").into(),
+                new_keyed_vtag("u", "5").into(),
+            ],
+            "<e></e><i></i><p></p><a></a><u></u>",
+        );
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("e", "2").into(),
+                new_keyed_vtag("p", "3").into(),
+                new_keyed_vtag("a", "4").into(),
+                new_keyed_vtag("u", "5").into(),
+            ],
+            "<i></i><e></e><p></p><a></a><u></u>",
+            vec![
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("p", "3").into(),
+                new_keyed_vtag("a", "4").into(),
+                new_keyed_vtag("e", "2").into(),
+                new_keyed_vtag("u", "5").into(),
+            ],
+            "<i></i><p></p><a></a><e></e><u></u>",
+        );
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("e", "2").into(),
+                new_keyed_vtag("p", "3").into(),
+                new_keyed_vtag("a", "4").into(),
+                new_keyed_vtag("u", "5").into(),
+            ],
+            "<i></i><e></e><p></p><a></a><u></u>",
+            vec![
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("e", "2").into(),
+                new_keyed_vtag("p", "3").into(),
+                new_keyed_vtag("u", "5").into(),
+                new_keyed_vtag("a", "4").into(),
+            ],
+            "<i></i><e></e><p></p><u></u><a></a>",
+        );
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                new_keyed_vtag("i", "1").into(),
+                new_keyed_vtag("e", "2").into(),
+                new_keyed_vtag("p", "3").into(),
+                new_keyed_vtag("a", "4").into(),
+                new_keyed_vtag("u", "5").into(),
+            ],
+            "<i></i><e></e><p></p><a></a><u></u>",
+            vec![
+                new_keyed_vtag("u", "5").into(),
+                new_keyed_vtag("e", "2").into(),
+                new_keyed_vtag("p", "3").into(),
+                new_keyed_vtag("a", "4").into(),
+                new_keyed_vtag("i", "1").into(),
+            ],
+            "<u></u><e></e><p></p><a></a><i></i>",
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_keyed_from_ancestor_with_multiple_children_keyed_types() {
+        let vcomp: VComp = VChild::<Comp>::new(
+            CountingCompProps { id: 0 },
+            NodeRef::default(),
+            Some(Key::from("VComp".to_string())),
+        )
+        .into();
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                new_keyed_vtag("u", "1").into(),
+                VList::new_with_children(
+                    vec![
+                        new_keyed_vtag("a", "a").into(),
+                        new_keyed_vtag("i", "i").into(),
+                    ],
+                    Some(Key::from("VList".to_string())),
+                )
+                .into(),
+                vcomp.clone().into(),
+            ],
+            "<u></u><a></a><i></i><p>0</p>",
+            vec![
+                vcomp.into(),
+                new_keyed_vtag("u", "1").into(),
+                VList::new_with_children(
+                    vec![
+                        new_keyed_vtag("a", "a").into(),
+                        new_keyed_vtag("i", "i").into(),
+                    ],
+                    Some(Key::from("VList".to_string())),
+                )
+                .into(),
+            ],
+            "<p>0</p><u></u><a></a><i></i>",
+        );
     }
 }
