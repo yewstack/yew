@@ -129,29 +129,3 @@ impl HtmlTree {
         }
     }
 }
-
-pub struct HtmlRootNested(HtmlTreeNested);
-impl Parse for HtmlRootNested {
-    fn parse(input: ParseStream) -> Result<Self> {
-        Ok(HtmlRootNested(HtmlTreeNested::parse(input)?))
-    }
-}
-
-impl ToTokens for HtmlRootNested {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
-
-pub struct HtmlTreeNested(HtmlTree);
-impl Parse for HtmlTreeNested {
-    fn parse(input: ParseStream) -> Result<Self> {
-        Ok(HtmlTreeNested(HtmlTree::parse(input)?))
-    }
-}
-
-impl ToTokens for HtmlTreeNested {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        tokens.extend(self.0.token_stream());
-    }
-}

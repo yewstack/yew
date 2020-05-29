@@ -1,6 +1,6 @@
 use super::HtmlProp;
 use super::HtmlPropSuffix;
-use super::HtmlTreeNested;
+use super::HtmlTree;
 use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::Span;
@@ -19,7 +19,7 @@ use syn::{
 pub struct HtmlComponent {
     ty: Type,
     props: Props,
-    children: Vec<HtmlTreeNested>,
+    children: Vec<HtmlTree>,
 }
 
 impl PeekValue<()> for HtmlComponent {
@@ -52,7 +52,7 @@ impl Parse for HtmlComponent {
             });
         }
 
-        let mut children: Vec<HtmlTreeNested> = vec![];
+        let mut children: Vec<HtmlTree> = vec![];
         loop {
             if input.is_empty() {
                 return Err(syn::Error::new_spanned(

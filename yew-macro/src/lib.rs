@@ -66,7 +66,7 @@ mod derive_props;
 mod html_tree;
 
 use derive_props::DerivePropsInput;
-use html_tree::{HtmlRoot, HtmlRootNested};
+use html_tree::{HtmlRoot, HtmlTree};
 use proc_macro::TokenStream;
 use proc_macro_hack::proc_macro_hack;
 use quote::{quote, ToTokens};
@@ -99,7 +99,7 @@ pub fn derive_props(input: TokenStream) -> TokenStream {
 
 #[proc_macro_hack]
 pub fn html_nested(input: TokenStream) -> TokenStream {
-    let root = parse_macro_input!(input as HtmlRootNested);
+    let root = parse_macro_input!(input as HtmlTree);
     TokenStream::from(quote! {#root})
 }
 
