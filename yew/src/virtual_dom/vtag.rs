@@ -118,10 +118,8 @@ impl VTag {
     }
 
     /// Add multiple `VNode` children.
-    pub fn add_children(&mut self, children: Vec<VNode>) {
-        for child in children {
-            self.add_child(child);
-        }
+    pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
+        self.children.add_children(children);
     }
 
     /// Sets `value` for an

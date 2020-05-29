@@ -157,7 +157,7 @@ impl ToTokens for HtmlComponent {
         let key = if let Some(key) = props.key() {
             quote_spanned! { key.span()=> Some(#key) }
         } else {
-            quote! {None }
+            quote! {None}
         };
 
         tokens.extend(quote! {{
