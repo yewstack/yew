@@ -446,7 +446,10 @@ mod tests {
     }
 
     #[test]
-    fn iterators_produce_same_results() {
+    #[cfg(feature = "web_sys")]
+    /// Test is only run for web_sys because it's a lot easier to test.
+    /// It tests the behaviour of the virtual dom so there won't be a difference between stdweb and web_sys.
+    fn children_blocks_produce_same_results() {
         #[derive(Clone, Properties)]
         struct Props {
             children: Children,
@@ -483,20 +486,17 @@ mod tests {
         let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
-        #[cfg(feature = "std_web")]
-        document().body().unwrap().append_child(&parent);
-        #[cfg(feature = "web_sys")]
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut list_method = html! {
+        let mut direct_method = html! {
             <List>
                 { children.clone() }
             </List>
         };
-        list_method.apply(&scope, &parent, None, None);
-        let list_html = parent.inner_html();
+        direct_method.apply(&scope, &parent, None, None);
+        let direct_html = parent.inner_html();
         assert_eq!(
-            list_html,
+            direct_html,
             "<ul>\
                 <li><span>a</span></li>\
                 <li><span>b</span></li>\
@@ -504,6 +504,7 @@ mod tests {
             </ul>"
         );
 
+        // clear parent
         parent.set_inner_html("");
 
         let mut for_method = html! {
@@ -514,6 +515,6 @@ mod tests {
         for_method.apply(&scope, &parent, None, None);
         let for_html = parent.inner_html();
 
-        assert_eq!(list_html, for_html)
+        assert_eq!(direct_html, for_html)
     }
 }
