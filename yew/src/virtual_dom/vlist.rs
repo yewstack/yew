@@ -81,7 +81,7 @@ impl VDiff for VList {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        mut next_sibling: Option<Node>,
+        _next_sibling: Option<Node>,
         ancestor: Option<VNode>,
     ) -> Option<Node> {
         // Here, we will try to diff the previous list elements with the new
@@ -238,16 +238,10 @@ impl VDiff for VList {
             for left in self.children.iter_mut() {
                 let right = matched_rights.next().unwrap();
 
-                // Discard the returned node, as we are only interested in the
-                // next sibling, not the previous one.
-                // TODO: Fix the next_sibling, there may be unnecessary work
-                if next_sibling.is_none() {
-                    next_sibling = matched_rights
-                        .peek()
-                        .and_then(|vnode| vnode.as_ref().and_then(|vnode| vnode.reference()));
-                }
-                let node = left.apply(parent_scope, parent, next_sibling.clone(), right);
-                next_sibling = node.and_then(|node| node.next_sibling());
+                let next_sibling = matched_rights
+                    .peek()
+                    .and_then(|vnode| vnode.as_ref().and_then(|vnode| vnode.reference()));
+                let _ = left.apply(parent_scope, parent, next_sibling, right);
             }
             drop(matched_rights);
 
