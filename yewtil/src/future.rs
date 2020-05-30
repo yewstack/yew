@@ -43,11 +43,12 @@ pub trait LinkFuture {
 impl<COMP: Component> LinkFuture for ComponentLink<COMP> {
     type Message = COMP::Message;
 
-    fn callback_future<F, FU, IN, M>(&self, function: F) -> yew::Callback<IN>
+    fn callback_future<FN, FU, IN, M>(&self, function: F) -> yew::Callback<IN>
     where
         M: Into<Self::Message>,
         FU: Future<Output = M> + 'static,
-        F: Fn(IN) -> FU + 'static {
+        FN: Fn(IN) -> FU + 'static,
+    {
         let link = self.clone();
 
         let closure = move |input: IN| {
@@ -87,11 +88,12 @@ impl<COMP: Component> LinkFuture for ComponentLink<COMP> {
 impl<AGN: Agent> LinkFuture for AgentLink<AGN> {
     type Message = AGN::Message;
 
-    fn callback_future<F, FU, IN, M>(&self, function: F) -> yew::Callback<IN>
+    fn callback_future<FN, FU, IN, M>(&self, function: F) -> yew::Callback<IN>
     where
         M: Into<Self::Message>,
         FU: Future<Output = M> + 'static,
-        F: Fn(IN) -> FU + 'static {
+        FN: Fn(IN) -> FU + 'static,
+    {
         let link = self.clone();
 
         let closure = move |input: IN| {
