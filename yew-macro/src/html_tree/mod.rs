@@ -151,7 +151,9 @@ impl ToChildrenTokens for HtmlTree {
     fn to_children_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         match self {
             HtmlTree::Block(block) => block.to_children_tokens(tokens),
-            other => tokens.extend(quote! {vec![#other]}),
+            other => {
+                tokens.extend(quote! {::std::iter::once(::yew::virtual_dom::VNode::from(#other))})
+            }
         }
     }
 }
@@ -159,16 +161,30 @@ impl ToChildrenTokens for HtmlTree {
 struct HtmlChildrenTree(Vec<HtmlTree>);
 
 impl HtmlChildrenTree {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self(Vec::new())
     }
-    fn parse_child(&mut self, input: ParseStream) -> Result<()> {
+
+    pub fn parse_child(&mut self, input: ParseStream) -> Result<()> {
         self.0.push(input.parse()?);
         Ok(())
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     fn only_single_children(&self) -> bool {
         self.0.iter().all(ToChildrenTokens::single_child)
+    }
+
+    pub fn to_vec_token_stream(&self) -> TokenStream {
+        let tokens = self.to_token_stream();
+        if self.only_single_children() {
+            tokens
+        } else {
+            quote! {(#tokens).collect::<Vec<_>>()}
+        }
     }
 }
 
@@ -176,7 +192,7 @@ impl ToTokens for HtmlChildrenTree {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let children = &self.0;
         if self.only_single_children() {
-            tokens.extend(quote! {vec![#(#children),*]});
+            tokens.extend(quote! {vec![#(::yew::virtual_dom::VNode::from(#children)),*]});
         } else {
             let mut children = children.iter().map(|c| c.to_children_token_stream());
             // can't fail because otherwise 'only_single_children' would be true.

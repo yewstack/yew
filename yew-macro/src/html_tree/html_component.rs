@@ -1,6 +1,6 @@
+use super::HtmlChildrenTree;
 use super::HtmlProp;
 use super::HtmlPropSuffix;
-use super::HtmlTree;
 use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::Span;
@@ -19,7 +19,7 @@ use syn::{
 pub struct HtmlComponent {
     ty: Type,
     props: Props,
-    children: Vec<HtmlTree>,
+    children: HtmlChildrenTree,
 }
 
 impl PeekValue<()> for HtmlComponent {
@@ -48,11 +48,11 @@ impl Parse for HtmlComponent {
             return Ok(HtmlComponent {
                 ty: open.ty,
                 props: open.props,
-                children: Vec::new(),
+                children: HtmlChildrenTree::new(),
             });
         }
 
-        let mut children: Vec<HtmlTree> = vec![];
+        let mut children = HtmlChildrenTree::new();
         loop {
             if input.is_empty() {
                 return Err(syn::Error::new_spanned(
@@ -66,7 +66,7 @@ impl Parse for HtmlComponent {
                 }
             }
 
-            children.push(input.parse()?);
+            children.parse_child(input)?;
         }
 
         input.parse::<HtmlComponentClose>()?;
@@ -109,12 +109,9 @@ impl ToTokens for HtmlComponent {
         };
 
         let set_children = if !children.is_empty() {
+            let children_vec = children.to_vec_token_stream();
             quote! {
-                .children(::yew::html::ChildrenRenderer::new({
-                    let mut v = ::std::vec::Vec::new();
-                    #(v.extend(::yew::utils::NodeSeq::from(#children));)*
-                    v
-                }))
+                .children(::yew::html::ChildrenRenderer::new(#children_vec))
             }
         } else {
             quote! {}
