@@ -109,9 +109,8 @@ impl ToTokens for HtmlComponent {
         };
 
         let set_children = if !children.is_empty() {
-            let children_vec = children.to_vec_token_stream();
             quote! {
-                .children(::yew::html::ChildrenRenderer::new(#children_vec))
+                .children(::yew::html::ChildrenRenderer::new(#children))
             }
         } else {
             quote! {}

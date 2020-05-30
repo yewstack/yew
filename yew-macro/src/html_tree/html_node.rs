@@ -58,9 +58,9 @@ impl ToChildrenTokens for HtmlNode {
 
     fn to_children_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(match &self {
-            HtmlNode::Literal(lit) => quote_spanned! {lit.span()=> ::std::iter::once(::yew::virtual_dom::VNode::from(#lit))},
+            HtmlNode::Literal(lit) => quote_spanned! {lit.span()=> ::std::iter::once(#lit)},
             HtmlNode::Expression(expr) => {
-                quote_spanned! {expr.span()=> {::yew::utils::NodeSeq::<_, ::yew::virtual_dom::VNode>::from(#expr)} }
+                quote_spanned! {expr.span()=> ::yew::utils::NodeSeq::<_, ::yew::virtual_dom::VNode>::from(#expr)}
             }
         });
     }

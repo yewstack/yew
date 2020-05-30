@@ -17,10 +17,11 @@ use html_node::HtmlNode;
 use html_prop::HtmlProp;
 use html_prop::HtmlPropSuffix;
 use html_tag::HtmlTag;
-use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
+use syn::spanned::Spanned;
 
 pub enum HtmlType {
     Block,
@@ -72,13 +73,9 @@ impl PeekValue<HtmlType> for HtmlTree {
 }
 
 impl ToTokens for HtmlTree {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         match self {
-            HtmlTree::Empty => HtmlList {
-                children: Vec::new(),
-                key: None,
-            }
-            .to_tokens(tokens),
+            HtmlTree::Empty => HtmlList::empty().to_tokens(tokens),
             HtmlTree::Component(comp) => comp.to_tokens(tokens),
             HtmlTree::Tag(tag) => tag.to_tokens(tokens),
             HtmlTree::List(list) => list.to_tokens(tokens),
@@ -116,7 +113,7 @@ impl Parse for HtmlRoot {
 }
 
 impl ToTokens for HtmlRoot {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let new_tokens = match self {
             HtmlRoot::Tree(tree) => tree.to_token_stream(),
             HtmlRoot::Node(node) => node.to_token_stream(),
@@ -129,11 +126,13 @@ impl ToTokens for HtmlRoot {
 }
 
 pub trait ToChildrenTokens {
+    /// Check if the generated code will only create a single node.
     fn single_child(&self) -> bool;
 
-    fn to_children_tokens(&self, tokens: &mut proc_macro2::TokenStream);
+    /// The generated code will produce a value that implements `IntoIter<Item = Into<VNode>>`.
+    fn to_children_tokens(&self, tokens: &mut TokenStream);
 
-    fn to_children_token_stream(&self) -> proc_macro2::TokenStream {
+    fn to_children_token_stream(&self) -> TokenStream {
         let mut tokens = TokenStream::new();
         self.to_children_tokens(&mut tokens);
         tokens
@@ -148,12 +147,10 @@ impl ToChildrenTokens for HtmlTree {
         }
     }
 
-    fn to_children_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_children_tokens(&self, tokens: &mut TokenStream) {
         match self {
             HtmlTree::Block(block) => block.to_children_tokens(tokens),
-            other => {
-                tokens.extend(quote! {::std::iter::once(::yew::virtual_dom::VNode::from(#other))})
-            }
+            other => tokens.extend(quote_spanned! {other.span()=> ::std::iter::once(#other)}),
         }
     }
 }
@@ -178,28 +175,41 @@ impl HtmlChildrenTree {
         self.0.iter().all(ToChildrenTokens::single_child)
     }
 
-    pub fn to_vec_token_stream(&self) -> TokenStream {
-        let tokens = self.to_token_stream();
+    pub fn to_build_vec_tokens(&self, tokens: &mut TokenStream) {
         if self.only_single_children() {
-            tokens
-        } else {
-            quote! {(#tokens).collect::<Vec<_>>()}
+            let children = &self.0;
+            tokens.extend(quote! {
+                vec![#((#children).into()),*]
+            });
+            return;
         }
+
+        let vec_ident = Ident::new("__yew_v", Span::call_site());
+        let add_children_streams = (&self.0).iter().map(|child| {
+            if child.single_child() {
+                quote! {
+                    #vec_ident.push((#child).into());
+                }
+            } else {
+                let children_stream = child.to_children_token_stream();
+                quote! {
+                    #vec_ident.extend((#children_stream).into_iter().map(|n| n.into()));
+                }
+            }
+        });
+
+        tokens.extend(quote! {
+            {
+                let mut #vec_ident = ::std::vec::Vec::new();
+                #(#add_children_streams)*
+                #vec_ident
+            }
+        });
     }
 }
 
 impl ToTokens for HtmlChildrenTree {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let children = &self.0;
-        if self.only_single_children() {
-            tokens.extend(quote! {vec![#(::yew::virtual_dom::VNode::from(#children)),*]});
-        } else {
-            let mut children = children.iter().map(|c| c.to_children_token_stream());
-            // can't fail because otherwise 'only_single_children' would be true.
-            let first = children.next().unwrap();
-            tokens.extend(quote! {
-                (#first).into_iter()#(.chain(#children))*
-            })
-        }
+        self.to_build_vec_tokens(tokens);
     }
 }

@@ -55,8 +55,6 @@ impl ToChildrenTokens for HtmlIterable {
 
     fn to_children_tokens(&self, tokens: &mut TokenStream) {
         let Self(expr) = self;
-        tokens.extend(quote_spanned! {expr.span()=> {
-            (#expr).into_iter().map(|n| ::yew::virtual_dom::VNode::from(n))
-        }});
+        expr.to_tokens(tokens);
     }
 }
