@@ -4,7 +4,6 @@ use super::Referrer;
 use crate::callback::Callback;
 use crate::format::{Binary, Format, Text};
 use crate::services::Task;
-use cfg_if::cfg_if;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt;

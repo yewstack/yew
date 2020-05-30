@@ -408,6 +408,22 @@ mod tests {
         vtag
     }
 
+    #[cfg(feature = "web_sys")]
+    fn inner_html(element: &Element) -> String {
+        element.inner_html()
+    }
+
+    #[cfg(feature = "std_web")]
+    fn inner_html(element: &Element) -> String {
+        use stdweb::unstable::TryInto;
+        use stdweb::web::{HtmlElement, IHtmlElement};
+        let html_element: HtmlElement = element
+            .clone()
+            .try_into()
+            .expect("Failed to convert element into HtmlElement");
+        html_element.inner_text()
+    }
+
     #[test]
     fn vlist_vdiff_apply_non_keyed_from_none_works_with_all_vnode_types_as_children() {
         let vchild: VChild<Comp> =
@@ -438,7 +454,7 @@ mod tests {
         vlist.apply(&parent_scope, &parent_element, None, None);
 
         assert_eq!(
-            parent_element.inner_html(),
+            inner_html(&parent_element),
             "a<span></span>cd<p>0</p>foobar<i></i>",
             "The VList didn't render properly."
         );
@@ -478,7 +494,7 @@ mod tests {
         vlist.apply(&parent_scope, &parent_element, None, None);
 
         assert_eq!(
-            parent_element.inner_html(),
+            inner_html(&parent_element),
             "a<span></span>cd<p>0</p>foobar<i></i>",
             "The VList didn't render properly."
         );
@@ -496,7 +512,7 @@ mod tests {
         let mut ancestor_vlist = VList::new_with_children(ancestor_children, None);
         ancestor_vlist.apply(&parent_scope, &parent_element, None, None);
         assert_eq!(
-            parent_element.inner_html(),
+            inner_html(&parent_element),
             ancestor_inner_html.as_ref(),
             "ancestor VList didn't render properly"
         );
@@ -509,7 +525,7 @@ mod tests {
             Some(VNode::VList(ancestor_vlist)),
         );
         assert_eq!(
-            parent_element.inner_html(),
+            inner_html(&parent_element),
             new_inner_html.as_ref(),
             "new VList didn't render properly"
         );
@@ -784,17 +800,15 @@ mod tests {
                 VTag::new("p").into(), // <- this node must not be reused ...
             ],
             "<p></p>",
-            vec![
-                VList::new_with_children(
-                    vec![
-                        // v-- ... because the children here are keyed
-                        new_keyed_vtag("a", "a").into(),
-                        new_keyed_vtag("i", "i").into(),
-                    ],
-                    None,
-                )
-                .into(),
-            ],
+            vec![VList::new_with_children(
+                vec![
+                    // v-- ... because the children here are keyed
+                    new_keyed_vtag("a", "a").into(),
+                    new_keyed_vtag("i", "i").into(),
+                ],
+                None,
+            )
+            .into()],
             "<a></a><i></i>",
         );
     }

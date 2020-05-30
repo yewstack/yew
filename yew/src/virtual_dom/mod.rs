@@ -255,7 +255,7 @@ fn insert_node(node: &Node, parent: &Element, next_sibling: Option<Node>) -> Nod
 fn insert_node(node: &impl INode, parent: &impl INode, next_sibling: Option<Node>) -> Node {
     if let Some(next_sibling) = next_sibling {
         parent
-            .insert_before(node, next_sibling)
+            .insert_before(node, &next_sibling)
             .expect("failed to insert tag before next sibling");
     } else {
         parent.append_child(node);
