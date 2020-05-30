@@ -34,4 +34,6 @@ Installation guides: [Rust](https://www.rust-lang.org/learn/get-started) and [wa
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # wasm-pack install
 curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh;
+# wasm-bindgen-cli install
+cargo install wasm-bindgen-cli
 ```
