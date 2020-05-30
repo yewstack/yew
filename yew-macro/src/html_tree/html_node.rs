@@ -5,8 +5,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
-use syn::Expr;
-use syn::Lit;
+use syn::{Expr, Lit};
 
 pub enum HtmlNode {
     Literal(Box<Lit>),
@@ -58,9 +57,11 @@ impl ToChildrenTokens for HtmlNode {
 
     fn to_children_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(match &self {
-            HtmlNode::Literal(lit) => quote_spanned! {lit.span()=> ::std::iter::once(#lit)},
+            HtmlNode::Literal(lit) => {
+                quote_spanned! {lit.span()=> ::std::iter::once((#lit).into())}
+            }
             HtmlNode::Expression(expr) => {
-                quote_spanned! {expr.span()=> ::yew::utils::NodeSeq::<_, ::yew::virtual_dom::VNode>::from(#expr)}
+                quote_spanned! {expr.span()=> ::yew::utils::NodeSeq::from(#expr)}
             }
         });
     }

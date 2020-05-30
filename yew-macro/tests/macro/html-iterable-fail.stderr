@@ -6,24 +6,34 @@ error: expected an expression after the keyword `for`
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: `()` is not an iterator
+error[E0599]: no method named `into_iter` found for unit type `()` in the current scope
  --> $DIR/html-iterable-fail.rs:5:17
   |
 5 |     html! { for () };
-  |                 ^^ `()` is not an iterator
+  |                 ^^ method not found in `()`
   |
-  = help: the trait `std::iter::Iterator` is not implemented for `()`
-  = note: required by `std::iter::IntoIterator::into_iter`
+  = note: the method `into_iter` exists but the following trait bounds were not satisfied:
+          `(): std::iter::Iterator`
+          which is required by `(): std::iter::IntoIterator`
+          `&(): std::iter::Iterator`
+          which is required by `&(): std::iter::IntoIterator`
+          `&mut (): std::iter::Iterator`
+          which is required by `&mut (): std::iter::IntoIterator`
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: `()` is not an iterator
+error[E0599]: no method named `into_iter` found for unit type `()` in the current scope
  --> $DIR/html-iterable-fail.rs:6:17
   |
 6 |     html! { for {()} };
-  |                 ^^^^ `()` is not an iterator
+  |                 ^^^^ method not found in `()`
   |
-  = help: the trait `std::iter::Iterator` is not implemented for `()`
-  = note: required by `std::iter::IntoIterator::into_iter`
+  = note: the method `into_iter` exists but the following trait bounds were not satisfied:
+          `(): std::iter::Iterator`
+          which is required by `(): std::iter::IntoIterator`
+          `&(): std::iter::Iterator`
+          which is required by `&(): std::iter::IntoIterator`
+          `&mut (): std::iter::Iterator`
+          which is required by `&mut (): std::iter::IntoIterator`
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
@@ -37,6 +47,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
+  = note: required because of the requirements on the impl of `std::iter::FromIterator<()>` for `yew::virtual_dom::vnode::VNode`
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
@@ -50,6 +61,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
    = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
+   = note: required because of the requirements on the impl of `std::iter::FromIterator<()>` for `yew::virtual_dom::vnode::VNode`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
@@ -64,4 +76,5 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::string::ToString` for `&()`
    = note: required because of the requirements on the impl of `std::convert::From<&()>` for `yew::virtual_dom::vnode::VNode`
    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `&()`
+   = note: required because of the requirements on the impl of `std::iter::FromIterator<&()>` for `yew::virtual_dom::vnode::VNode`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

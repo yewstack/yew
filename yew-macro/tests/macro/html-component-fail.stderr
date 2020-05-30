@@ -346,7 +346,6 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::conv
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<&str>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
     |
     = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `&str`
-    = note: required because of the requirements on the impl of `std::iter::IntoIterator` for `yew::utils::NodeSeq<&str, yew::virtual_dom::vcomp::VChild<Child>>`
     = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
@@ -356,7 +355,6 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::conv
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
     |
     = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
-    = note: required because of the requirements on the impl of `std::iter::IntoIterator` for `yew::utils::NodeSeq<yew::virtual_dom::vnode::VNode, yew::virtual_dom::vcomp::VChild<Child>>`
     = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
@@ -366,5 +364,4 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::conv
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
     |
     = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
-    = note: required because of the requirements on the impl of `std::iter::IntoIterator` for `yew::utils::NodeSeq<yew::virtual_dom::vnode::VNode, yew::virtual_dom::vcomp::VChild<Child>>`
     = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -334,23 +334,14 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 
 #[cfg(test)]
 mod tests {
-    use super::{AnyScope, VChild, VDiff};
+    use super::VChild;
     use crate::macros::Properties;
-    use crate::utils::document;
-    use crate::{html, Children, Component, ComponentLink, Html, NodeRef, ShouldRender};
+    use crate::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
-
-    fn test_scope() -> AnyScope {
-        AnyScope {
-            type_id: std::any::TypeId::of::<()>(),
-            parent: None,
-            state: std::rc::Rc::new(()),
-        }
-    }
 
     struct Comp;
 
@@ -450,6 +441,9 @@ mod tests {
     /// Test is only run for web_sys because it's a lot easier to test.
     /// It tests the behaviour of the virtual dom so there won't be a difference between stdweb and web_sys.
     fn children_blocks_produce_same_results() {
+        use super::{AnyScope, VDiff};
+        use crate::{utils::document, Children};
+
         #[derive(Clone, Properties)]
         struct Props {
             children: Children,
@@ -483,7 +477,11 @@ mod tests {
             .map(|text| html! {<span>{ text }</span>})
             .collect();
 
-        let scope = test_scope();
+        let scope = AnyScope {
+            type_id: std::any::TypeId::of::<()>(),
+            parent: None,
+            state: std::rc::Rc::new(()),
+        };
         let parent = document().create_element("div").unwrap();
 
         document().body().unwrap().append_child(&parent).unwrap();

@@ -129,7 +129,8 @@ pub trait ToChildrenTokens {
     /// Check if the generated code will only create a single node.
     fn single_child(&self) -> bool;
 
-    /// The generated code will produce a value that implements `IntoIter<Item = Into<VNode>>`.
+    /// The generated code must produce a value that implements IntoIterator.
+    /// The value itself
     fn to_children_tokens(&self, tokens: &mut TokenStream);
 
     fn to_children_token_stream(&self) -> TokenStream {
@@ -150,7 +151,9 @@ impl ToChildrenTokens for HtmlTree {
     fn to_children_tokens(&self, tokens: &mut TokenStream) {
         match self {
             HtmlTree::Block(block) => block.to_children_tokens(tokens),
-            other => tokens.extend(quote_spanned! {other.span()=> ::std::iter::once(#other)}),
+            other => {
+                tokens.extend(quote_spanned! {other.span()=> ::std::iter::once((#other).into())})
+            }
         }
     }
 }
@@ -175,17 +178,17 @@ impl HtmlChildrenTree {
         self.0.iter().all(ToChildrenTokens::single_child)
     }
 
-    pub fn to_build_vec_tokens(&self, tokens: &mut TokenStream) {
+    pub fn to_build_vec_token_stream(&self) -> TokenStream {
+        let Self(children) = self;
+
         if self.only_single_children() {
-            let children = &self.0;
-            tokens.extend(quote! {
+            return quote! {
                 vec![#((#children).into()),*]
-            });
-            return;
+            };
         }
 
         let vec_ident = Ident::new("__yew_v", Span::call_site());
-        let add_children_streams = (&self.0).iter().map(|child| {
+        let add_children_streams = children.iter().map(|child| {
             if child.single_child() {
                 quote! {
                     #vec_ident.push((#child).into());
@@ -193,23 +196,23 @@ impl HtmlChildrenTree {
             } else {
                 let children_stream = child.to_children_token_stream();
                 quote! {
-                    #vec_ident.extend((#children_stream).into_iter().map(|n| n.into()));
+                    #vec_ident.extend(#children_stream);
                 }
             }
         });
 
-        tokens.extend(quote! {
+        quote! {
             {
                 let mut #vec_ident = ::std::vec::Vec::new();
                 #(#add_children_streams)*
                 #vec_ident
             }
-        });
+        }
     }
 }
 
 impl ToTokens for HtmlChildrenTree {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.to_build_vec_tokens(tokens);
+        tokens.extend(self.to_build_vec_token_stream());
     }
 }
