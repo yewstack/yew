@@ -27,7 +27,7 @@ if [[ $EXAMPLE == *_wp ]]; then
     wasm-pack build --debug --target web --out-name wasm --out-dir $SRCDIR/static/
     rm $SRCDIR/static/.gitignore; mv $SRCDIR/static/.gitignore.copy $SRCDIR/static/.gitignore # restore .gitignore
 
-# multi_thrread build -> two binary/wasm files
+# multi_thread build -> two binary/wasm files
 elif [[ $EXAMPLE == multi_thread ]]; then
     info "Building: $EXAMPLE app using wasm-bindgen"
     cargo build --target wasm32-unknown-unknown --bin multi_thread_app

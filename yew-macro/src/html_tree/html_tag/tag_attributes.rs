@@ -54,49 +54,159 @@ lazy_static! {
     static ref LISTENER_SET: HashSet<&'static str> = {
         HashSet::from_iter(
             vec![
+                // Living Standard
+                // From: https://html.spec.whatwg.org/multipage/webappapis.html#globaleventhandlers
+                "onabort",
+                "onauxclick",
+                "onblur",
+                "oncancel",
+                "oncanplay",
+                "oncanplaythrough",
+                "onchange",
                 "onclick",
-                "ondoubleclick",
-                "onkeypress",
+                "onclose",
+                "oncontextmenu",
+                "oncuechange",
+                "ondblclick",
+                "ondrag",
+                "ondragend",
+                "ondragenter",
+                "ondragexit",
+                "ondragleave",
+                "ondragover",
+                "ondragstart",
+                "ondrop",
+                "ondurationchange",
+                "onemptied",
+                "onended",
+                "onerror",
+                "onfocus",
+                "onformdata",
+                "oninput",
+                "oninvalid",
                 "onkeydown",
+                "onkeypress",
                 "onkeyup",
+                "onload",
+                "onloadeddata",
+                "onloadedmetadata",
+                "onloadstart",
                 "onmousedown",
-                "onmousemove",
-                "onmouseout",
                 "onmouseenter",
                 "onmouseleave",
-                "onmousewheel",
+                "onmousemove",
+                "onmouseout",
                 "onmouseover",
                 "onmouseup",
-                "ontouchcancel",
-                "ontouchend",
-                "ontouchenter",
-                "ontouchmove",
-                "ontouchstart",
+                "onpause",
+                "onplay",
+                "onplaying",
+                "onprogress",
+                "onratechange",
+                "onreset",
+                "onresize",
+                "onscroll",
+                "onsecuritypolicyviolation",
+                "onseeked",
+                "onseeking",
+                "onselect",
+                "onslotchange",
+                "onstalled",
+                "onsubmit",
+                "onsuspend",
+                "ontimeupdate",
+                "ontoggle",
+                "onvolumechange",
+                "onwaiting",
+                "onwheel",
+
+                // Standard HTML Document and Element
+                // From: https://html.spec.whatwg.org/multipage/webappapis.html#documentandelementeventhandlers
+                "oncopy",
+                "oncut",
+                "onpaste",
+
+                // Others
+                // From: https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers
+                "onanimationcancel",
+                "onanimationend",
+                "onanimationiteration",
+                "onanimationstart",
                 "ongotpointercapture",
+                "onloadend",
                 "onlostpointercapture",
                 "onpointercancel",
                 "onpointerdown",
                 "onpointerenter",
                 "onpointerleave",
+                "onpointerlockchange",
+                "onpointerlockerror",
                 "onpointermove",
                 "onpointerout",
                 "onpointerover",
                 "onpointerup",
-                "onscroll",
-                "onblur",
-                "onfocus",
-                "onsubmit",
-                "oninput",
-                "onchange",
-                "ondrag",
-                "ondragstart",
-                "ondragend",
-                "ondragenter",
-                "ondragleave",
-                "ondragover",
-                "ondragexit",
-                "ondrop",
-                "oncontextmenu",
+                "onselectionchange",
+                "onselectstart",
+                "onshow",
+                "ontouchcancel",
+                "ontouchend",
+                "ontouchmove",
+                "ontouchstart",
+                "ontransitioncancel",
+                "ontransitionend",
+                "ontransitionrun",
+                "ontransitionstart",
+            ]
+            .into_iter(),
+        )
+    };
+}
+
+#[cfg(feature = "std_web")]
+lazy_static! {
+    static ref UNSUPPORTED_LISTENER_SET: HashSet<&'static str> = {
+        HashSet::from_iter(
+            vec![
+                "oncancel",
+                "oncanplay",
+                "oncanplaythrough",
+                "onclose",
+                "oncuechange",
+                "ondurationchange",
+                "onemptied",
+                "onended",
+                "onformdata",
+                "oninvalid",
+                "onloadeddata",
+                "onloadedmetadata",
+                "onpause",
+                "onplay",
+                "onplaying",
+                "onratechange",
+                "onreset",
+                "onsecuritypolicyviolation",
+                "onseeked",
+                "onseeking",
+                "onselect",
+                "onstalled",
+                "onsuspend",
+                "ontimeupdate",
+                "ontoggle",
+                "onvolumechange",
+                "onwaiting",
+                "oncopy",
+                "oncut",
+                "onpaste",
+                "onanimationcancel",
+                "onanimationend",
+                "onanimationiteration",
+                "onanimationstart",
+                "onselectstart",
+                "onshow",
+                "ontransitioncancel",
+                "ontransitionend",
+                "ontransitionrun",
+                "ontransitionstart",
             ]
             .into_iter(),
         )
@@ -161,6 +271,20 @@ impl Parse for TagAttributes {
 
         let mut listeners = Vec::new();
         for listener in TagAttributes::drain_listeners(&mut attributes) {
+            #[cfg(feature = "std_web")]
+            {
+                let label = &listener.label;
+                if UNSUPPORTED_LISTENER_SET.contains(&label.to_string().as_str()) {
+                    return Err(syn::Error::new_spanned(
+                        &label,
+                        format!(
+                            "the listener `{}` is only available when using web-sys",
+                            &label
+                        ),
+                    ));
+                }
+            }
+
             listeners.push(listener);
         }
 

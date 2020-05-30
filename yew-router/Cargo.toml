@@ -8,7 +8,7 @@ readme = "README.md"
 keywords = ["web", "yew", "router"]
 categories = ["gui", "web-programming"]
 description = "A router implementation for the Yew framework"
-repository = "https://github.com/yewstack/yew_router"
+repository = "https://github.com/yewstack/yew"
 
 [features]
 default = ["web_sys", "core", "unit_alias"]
@@ -31,7 +31,7 @@ web_sys = [
 ]
 
 [dependencies]
-yew = { version = "0.16.0", path = "../yew", features = ["services", "agent"], default-features= false, optional = true }
+yew = { version = "0.16.1", path = "../yew", features = ["services", "agent"], default-features= false, optional = true }
 yew-router-macro = { version = "0.12.0", path = "../yew-router-macro" }
 yew-router-route-parser = { version = "0.12.0", path = "../yew-router-route-parser" }
 

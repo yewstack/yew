@@ -17,6 +17,8 @@ cfg_if! {
 
 /// Updates for a `Component` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {
+    /// Force update
+    Force,
     /// Wraps messages for a component.
     Message(COMP::Message),
     /// Wraps batch of messages for a component.
@@ -28,19 +30,9 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
 /// Untyped scope used for accessing parent scope
 #[derive(Debug, Clone)]
 pub struct AnyScope {
-    type_id: TypeId,
-    parent: Option<Rc<AnyScope>>,
-    state: Rc<dyn Any>,
-}
-
-impl Default for AnyScope {
-    fn default() -> Self {
-        Self {
-            type_id: TypeId::of::<()>(),
-            parent: None,
-            state: Rc::new(()),
-        }
-    }
+    pub(crate) type_id: TypeId,
+    pub(crate) parent: Option<Rc<AnyScope>>,
+    pub(crate) state: Rc<dyn Any>,
 }
 
 impl<COMP: Component> From<Scope<COMP>> for AnyScope {
@@ -70,7 +62,7 @@ impl AnyScope {
             parent: self.parent,
             state: self
                 .state
-                .downcast_ref::<Shared<ComponentState<COMP>>>()
+                .downcast_ref::<Shared<Option<ComponentState<COMP>>>>()
                 .expect("unexpected component type")
                 .clone(),
         }
@@ -80,7 +72,7 @@ impl AnyScope {
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
     parent: Option<Rc<AnyScope>>,
-    state: Shared<ComponentState<COMP>>,
+    state: Shared<Option<ComponentState<COMP>>>,
 }
 
 impl<COMP: Component> fmt::Debug for Scope<COMP> {
@@ -107,14 +99,16 @@ impl<COMP: Component> Scope<COMP> {
     /// Returns the linked component if available
     pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
         self.state.try_borrow().ok().and_then(|state_ref| {
-            state_ref.component()?;
-            Some(Ref::map(state_ref, |this| this.component().unwrap()))
+            state_ref.as_ref()?;
+            Some(Ref::map(state_ref, |state| {
+                state.as_ref().unwrap().component.as_ref()
+            }))
         })
     }
 
     pub(crate) fn new(parent: Option<AnyScope>) -> Self {
         let parent = parent.map(Rc::new);
-        let state = Rc::new(RefCell::new(ComponentState::Empty));
+        let state = Rc::new(RefCell::new(None));
         Scope { parent, state }
     }
 
@@ -126,35 +120,29 @@ impl<COMP: Component> Scope<COMP> {
         node_ref: NodeRef,
         props: COMP::Properties,
     ) -> Scope<COMP> {
-        let mut scope = self;
-        let ready_state = ReadyState {
-            element,
-            node_ref,
-            scope: scope.clone(),
-            props,
-            ancestor,
-        };
-        *scope.state.borrow_mut() = ComponentState::Ready(ready_state);
-        scope.create();
-        scope
+        scheduler().push_comp(
+            ComponentRunnableType::Create,
+            Box::new(CreateComponent {
+                state: self.state.clone(),
+                element,
+                ancestor,
+                node_ref,
+                scope: self.clone(),
+                props,
+            }),
+        );
+        self.update(ComponentUpdate::Force, true);
+        self
     }
 
-    /// Schedules a task to create and render a component and then mount it to the DOM
-    pub(crate) fn create(&mut self) {
-        let state = self.state.clone();
-        let create = CreateComponent { state };
-        scheduler().push_comp(ComponentRunnableType::Create, Box::new(create));
-        self.rendered(true);
-    }
-
-    /// Schedules a task to send a message or new props to a component
-    pub(crate) fn update(&self, update: ComponentUpdate<COMP>) {
+    /// Schedules a task to send an update to a component
+    pub(crate) fn update(&self, update: ComponentUpdate<COMP>, first_update: bool) {
         let update = UpdateComponent {
             state: self.state.clone(),
             update,
         };
         scheduler().push_comp(ComponentRunnableType::Update, Box::new(update));
-        self.rendered(false);
+        self.rendered(first_update);
     }
 
     /// Schedules a task to call the rendered method on a component
@@ -179,14 +167,15 @@ impl<COMP: Component> Scope<COMP> {
     where
         T: Into<COMP::Message>,
     {
-        self.update(ComponentUpdate::Message(msg.into()));
-        self.rendered(false);
+        self.update(ComponentUpdate::Message(msg.into()), false);
     }
 
-    /// Send a batch of messages to the component
+    /// Send a batch of messages to the component.
+    ///
+    /// This is useful for reducing re-renders of the components because the messages are handled
+    /// together and the view function is called only once if needed.
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
-        self.update(ComponentUpdate::MessageBatch(messages));
-        self.rendered(false);
+        self.update(ComponentUpdate::MessageBatch(messages), false);
     }
 
     /// Creates a `Callback` which will send a message to the linked component's
@@ -234,118 +223,35 @@ impl<COMP: Component> Scope<COMP> {
     }
 }
 
-enum ComponentState<COMP: Component> {
-    Empty,
-    Ready(ReadyState<COMP>),
-    Created(CreatedState<COMP>),
-    Processing,
-    Destroyed,
+type Dirty = bool;
+const DIRTY: Dirty = true;
+
+struct ComponentState<COMP: Component> {
+    element: Element,
+    node_ref: NodeRef,
+    scope: Scope<COMP>,
+    component: Box<COMP>,
+    last_root: Option<VNode>,
+    render_status: Option<Dirty>,
 }
 
 impl<COMP: Component> ComponentState<COMP> {
-    fn component(&self) -> Option<&COMP> {
-        match self {
-            ComponentState::Created(state) => Some(&state.component),
-            _ => None,
+    fn new(
+        element: Element,
+        ancestor: Option<VNode>,
+        node_ref: NodeRef,
+        scope: Scope<COMP>,
+        props: COMP::Properties,
+    ) -> Self {
+        let component = Box::new(COMP::create(props, scope.clone()));
+        Self {
+            element,
+            node_ref,
+            scope,
+            component,
+            last_root: ancestor,
+            render_status: None,
         }
-    }
-}
-
-impl<COMP: Component> fmt::Display for ComponentState<COMP> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let name = match self {
-            ComponentState::Empty => "empty",
-            ComponentState::Ready(_) => "ready",
-            ComponentState::Created(_) => "created",
-            ComponentState::Processing => "processing",
-            ComponentState::Destroyed => "destroyed",
-        };
-        write!(f, "{}", name)
-    }
-}
-
-struct ReadyState<COMP: Component> {
-    element: Element,
-    node_ref: NodeRef,
-    props: COMP::Properties,
-    scope: Scope<COMP>,
-    ancestor: Option<VNode>,
-}
-
-impl<COMP: Component> ReadyState<COMP> {
-    fn create(self) -> CreatedState<COMP> {
-        CreatedState {
-            rendered: false,
-            component: COMP::create(self.props, self.scope.clone()),
-            element: self.element,
-            last_frame: self.ancestor,
-            node_ref: self.node_ref,
-            scope: self.scope,
-        }
-    }
-}
-
-struct CreatedState<COMP: Component> {
-    rendered: bool,
-    element: Element,
-    component: COMP,
-    last_frame: Option<VNode>,
-    node_ref: NodeRef,
-    scope: Scope<COMP>,
-}
-
-impl<COMP: Component> CreatedState<COMP> {
-    /// Called after a component and all of its children have been rendered.
-    fn rendered(mut self, first_render: bool) -> Self {
-        self.rendered = true;
-        self.component.rendered(first_render);
-        self
-    }
-
-    fn update(mut self) -> Self {
-        let mut root = self.component.render();
-        if let Some(node) = root.apply(
-            &self.scope.clone().into(),
-            &self.element,
-            None,
-            self.last_frame,
-        ) {
-            self.node_ref.set(Some(node));
-        } else if let VNode::VComp(child) = &root {
-            // If the root VNode is a VComp, we won't have access to the rendered DOM node
-            // because components render asynchronously. In order to bubble up the DOM node
-            // from the VComp, we need to link the currently rendering component with its
-            // root child component.
-            self.node_ref.link(child.node_ref.clone());
-        }
-        self.last_frame = Some(root);
-        self
-    }
-}
-
-struct RenderedComponent<COMP>
-where
-    COMP: Component,
-{
-    state: Shared<ComponentState<COMP>>,
-    first_render: bool,
-}
-
-impl<COMP> Runnable for RenderedComponent<COMP>
-where
-    COMP: Component,
-{
-    fn run(self: Box<Self>) {
-        let current_state = self.state.replace(ComponentState::Processing);
-        self.state.replace(match current_state {
-            ComponentState::Created(s) if !s.rendered => {
-                ComponentState::Created(s.rendered(self.first_render))
-            }
-            ComponentState::Destroyed | ComponentState::Created(_) => current_state,
-            ComponentState::Empty | ComponentState::Processing | ComponentState::Ready(_) => {
-                panic!("unexpected component state: {}", current_state);
-            }
-        });
     }
 }
 
@@ -353,7 +259,12 @@ struct CreateComponent<COMP>
 where
     COMP: Component,
 {
-    state: Shared<ComponentState<COMP>>,
+    state: Shared<Option<ComponentState<COMP>>>,
+    element: Element,
+    ancestor: Option<VNode>,
+    node_ref: NodeRef,
+    scope: Scope<COMP>,
+    props: COMP::Properties,
 }
 
 impl<COMP> Runnable for CreateComponent<COMP>
@@ -361,44 +272,16 @@ where
     COMP: Component,
 {
     fn run(self: Box<Self>) {
-        let current_state = self.state.replace(ComponentState::Processing);
-        self.state.replace(match current_state {
-            ComponentState::Ready(s) => ComponentState::Created(s.create().update()),
-            ComponentState::Created(_) | ComponentState::Destroyed => current_state,
-            ComponentState::Empty | ComponentState::Processing => {
-                panic!("unexpected component state: {}", current_state);
-            }
-        });
-    }
-}
-
-struct DestroyComponent<COMP>
-where
-    COMP: Component,
-{
-    state: Shared<ComponentState<COMP>>,
-}
-
-impl<COMP> Runnable for DestroyComponent<COMP>
-where
-    COMP: Component,
-{
-    fn run(self: Box<Self>) {
-        match self.state.replace(ComponentState::Destroyed) {
-            ComponentState::Created(mut this) => {
-                drop(this.component);
-                if let Some(last_frame) = &mut this.last_frame {
-                    last_frame.detach(&this.element);
-                }
-            }
-            ComponentState::Ready(mut this) => {
-                if let Some(ancestor) = &mut this.ancestor {
-                    ancestor.detach(&this.element);
-                }
-            }
-            ComponentState::Empty | ComponentState::Destroyed => {}
-            s @ ComponentState::Processing => panic!("unexpected component state: {}", s),
-        };
+        let mut current_state = self.state.borrow_mut();
+        if current_state.is_none() {
+            *current_state = Some(ComponentState::new(
+                self.element,
+                self.ancestor,
+                self.node_ref,
+                self.scope,
+                self.props,
+            ));
+        }
     }
 }
 
@@ -406,7 +289,7 @@ struct UpdateComponent<COMP>
 where
     COMP: Component,
 {
-    state: Shared<ComponentState<COMP>>,
+    state: Shared<Option<ComponentState<COMP>>>,
     update: ComponentUpdate<COMP>,
 }
 
@@ -415,33 +298,225 @@ where
     COMP: Component,
 {
     fn run(self: Box<Self>) {
-        let current_state = self.state.replace(ComponentState::Processing);
-        self.state.replace(match current_state {
-            ComponentState::Created(mut this) => {
-                let should_update = match self.update {
-                    ComponentUpdate::Message(message) => this.component.update(message),
-                    ComponentUpdate::MessageBatch(messages) => messages
-                        .into_iter()
-                        .fold(false, |acc, msg| this.component.update(msg) || acc),
-                    ComponentUpdate::Properties(props, node_ref) => {
-                        // When components are updated, they receive a new node ref that
-                        // must be linked to previous one.
-                        node_ref.link(this.node_ref.clone());
-                        this.component.change(props)
-                    }
-                };
-                let next_state = if should_update {
-                    this.rendered = false;
-                    this.update()
-                } else {
-                    this
-                };
-                ComponentState::Created(next_state)
+        if let Some(mut state) = self.state.borrow_mut().as_mut() {
+            let should_update = match self.update {
+                ComponentUpdate::Force => true,
+                ComponentUpdate::Message(message) => state.component.update(message),
+                ComponentUpdate::MessageBatch(messages) => messages
+                    .into_iter()
+                    .fold(false, |acc, msg| state.component.update(msg) || acc),
+                ComponentUpdate::Properties(props, node_ref) => {
+                    // When components are updated, they receive a new node ref that
+                    // must be linked to previous one.
+                    node_ref.link(state.node_ref.clone());
+                    state.component.change(props)
+                }
+            };
+
+            if should_update {
+                state.render_status = state.render_status.map(|_| DIRTY);
+                let mut root = state.component.render();
+                let last_root = state.last_root.take();
+                if let Some(node) =
+                    root.apply(&state.scope.clone().into(), &state.element, None, last_root)
+                {
+                    state.node_ref.set(Some(node));
+                } else if let VNode::VComp(child) = &root {
+                    // If the root VNode is a VComp, we won't have access to the rendered DOM node
+                    // because components render asynchronously. In order to bubble up the DOM node
+                    // from the VComp, we need to link the currently rendering component with its
+                    // root child component.
+                    state.node_ref.link(child.node_ref.clone());
+                }
+                state.last_root = Some(root);
+            };
+        }
+    }
+}
+
+struct RenderedComponent<COMP>
+where
+    COMP: Component,
+{
+    state: Shared<Option<ComponentState<COMP>>>,
+    first_render: bool,
+}
+
+impl<COMP> Runnable for RenderedComponent<COMP>
+where
+    COMP: Component,
+{
+    fn run(self: Box<Self>) {
+        if let Some(mut state) = self.state.borrow_mut().as_mut() {
+            if self.first_render && state.render_status.is_some() {
+                return;
             }
-            ComponentState::Destroyed => current_state,
-            ComponentState::Processing | ComponentState::Ready(_) | ComponentState::Empty => {
-                panic!("unexpected component state: {}", current_state);
+
+            if !self.first_render && state.render_status != Some(DIRTY) {
+                return;
             }
-        });
+
+            state.render_status = Some(!DIRTY);
+            state.component.rendered(self.first_render);
+        }
+    }
+}
+
+struct DestroyComponent<COMP>
+where
+    COMP: Component,
+{
+    state: Shared<Option<ComponentState<COMP>>>,
+}
+
+impl<COMP> Runnable for DestroyComponent<COMP>
+where
+    COMP: Component,
+{
+    fn run(self: Box<Self>) {
+        if let Some(mut state) = self.state.borrow_mut().take() {
+            drop(state.component);
+            if let Some(last_frame) = &mut state.last_root {
+                last_frame.detach(&state.element);
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::html::*;
+    use crate::Properties;
+    use std::ops::Deref;
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[derive(Clone, Properties)]
+    struct Props {
+        lifecycle: Rc<RefCell<Vec<String>>>,
+        create_message: Option<bool>,
+    }
+
+    struct Comp {
+        props: Props,
+    }
+
+    impl Component for Comp {
+        type Message = bool;
+        type Properties = Props;
+
+        fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+            props.lifecycle.borrow_mut().push("create".into());
+            if let Some(msg) = props.create_message {
+                link.send_message(msg);
+            }
+            Comp { props }
+        }
+
+        fn rendered(&mut self, first_render: bool) {
+            self.props
+                .lifecycle
+                .borrow_mut()
+                .push(format!("rendered({})", first_render));
+        }
+
+        fn update(&mut self, msg: Self::Message) -> ShouldRender {
+            self.props
+                .lifecycle
+                .borrow_mut()
+                .push(format!("update({})", msg));
+            msg
+        }
+
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+            self.props.lifecycle.borrow_mut().push("change".into());
+            false
+        }
+
+        fn view(&self) -> Html {
+            self.props.lifecycle.borrow_mut().push("view".into());
+            html! {}
+        }
+    }
+
+    impl Drop for Comp {
+        fn drop(&mut self) {
+            self.props.lifecycle.borrow_mut().push("drop".into());
+        }
+    }
+
+    #[test]
+    fn mount() {
+        let document = crate::utils::document();
+        let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
+        let props = Props {
+            lifecycle: lifecycle.clone(),
+            create_message: None,
+        };
+
+        let scope = Scope::<Comp>::new(None);
+        let el = document.create_element("div").unwrap();
+        scope.mount_in_place(el, None, NodeRef::default(), props);
+
+        assert_eq!(
+            lifecycle.borrow_mut().deref(),
+            &vec![
+                "create".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string()
+            ]
+        );
+    }
+
+    #[test]
+    fn mount_with_create_message() {
+        let document = crate::utils::document();
+        let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
+        let props = Props {
+            lifecycle: lifecycle.clone(),
+            create_message: Some(false),
+        };
+
+        let scope = Scope::<Comp>::new(None);
+        let el = document.create_element("div").unwrap();
+        scope.mount_in_place(el, None, NodeRef::default(), props);
+
+        assert_eq!(
+            lifecycle.borrow_mut().deref(),
+            &vec![
+                "create".to_string(),
+                "update(false)".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string()
+            ]
+        );
+    }
+
+    #[test]
+    fn mount_with_create_render_message() {
+        let document = crate::utils::document();
+        let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
+        let props = Props {
+            lifecycle: lifecycle.clone(),
+            create_message: Some(true),
+        };
+
+        let scope = Scope::<Comp>::new(None);
+        let el = document.create_element("div").unwrap();
+        scope.mount_in_place(el, None, NodeRef::default(), props);
+
+        assert_eq!(
+            lifecycle.borrow_mut().deref(),
+            &vec![
+                "create".to_string(),
+                "update(true)".to_string(),
+                "view".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string()
+            ]
+        );
     }
 }

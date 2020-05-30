@@ -155,7 +155,7 @@ impl ToTokens for HtmlComponent {
         };
 
         let key = if let Some(key) = props.key() {
-            quote_spanned! { key.span() => Some(#key) }
+            quote_spanned! { key.span()=> Some(#key) }
         } else {
             quote! {None }
         };
@@ -398,7 +398,9 @@ impl Parse for Props {
 
                 input.parse::<Ident>()?;
                 props = Props::With(Box::new(WithProps {
-                    props: input.parse::<Ident>()?,
+                    props: input.parse::<Ident>().map_err(|_| {
+                        syn::Error::new_spanned(&token, "`with` must be followed by an identifier")
+                    })?,
                     node_ref: None,
                     key: None,
                 }));

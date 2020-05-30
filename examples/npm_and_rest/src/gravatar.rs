@@ -20,15 +20,11 @@ pub struct Entry {
 }
 
 #[derive(Default)]
-pub struct GravatarService {
-    web: FetchService,
-}
+pub struct GravatarService {}
 
 impl GravatarService {
     pub fn new() -> Self {
-        Self {
-            web: FetchService::new(),
-        }
+        Self {}
     }
 
     pub fn profile(&mut self, hash: &str, callback: Callback<Result<Profile, Error>>) -> FetchTask {
@@ -38,7 +34,6 @@ impl GravatarService {
             if meta.status.is_success() {
                 callback.emit(data)
             } else {
-                // format_err! is a macro in crate `failure`
                 callback.emit(Err(anyhow!(
                     "{}: error getting profile https://gravatar.com/",
                     meta.status
@@ -46,6 +41,6 @@ impl GravatarService {
             }
         };
         let request = Request::get(url.as_str()).body(Nothing).unwrap();
-        self.web.fetch(request, handler.into()).unwrap()
+        FetchService::fetch(request, handler.into()).unwrap()
     }
 }

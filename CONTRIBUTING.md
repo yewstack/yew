@@ -56,3 +56,13 @@ or
 ```bash
 cargo test --target wasm32-unknown-unknown --features wasm_test
 ```
+
+#### Benchmarks
+
+If you wish to improve the performance of Yew, we request that you prove the improvements of your changes with benchmarks.
+
+1. Fork and clone https://github.com/yewstack/js-framework-benchmark
+2. Update `frameworks/yew/Cargo.toml` with your fork of Yew and the branch for your changes
+3. Open a new PR with your `Cargo.toml` changes
+
+Feel free to add new benchmark tests if the current benchmark coverage is insufficient!

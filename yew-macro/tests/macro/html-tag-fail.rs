@@ -36,6 +36,14 @@ fn compile_fail() {
 
     html! { <input ref=() /> };
     html! { <input ref=() ref=() /> };
+
+    html! { <input type="text"></input> };
+    html! { <iNpUt type="text"></iNpUt> };
+
+    html! { <@></@> };
+    html! { <@{"test"}></@{"test"}> };
+    html! { <@{55}></@> };
+    html! { <@/> };
 }
 
 fn main() {}

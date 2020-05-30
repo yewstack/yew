@@ -34,14 +34,23 @@ impl<AGN: Agent> AgentLink<AGN> {
         self.responder.respond(id, output);
     }
 
-    /// Create a callback which will send a message to the agent when invoked.
-    pub fn callback<F, IN>(&self, function: F) -> Callback<IN>
+    /// Send a message to the agent
+    pub fn send_message<T>(&self, msg: T)
     where
-        F: Fn(IN) -> AGN::Message + 'static,
+        T: Into<AGN::Message>,
+    {
+        self.scope.send(AgentLifecycleEvent::Message(msg.into()));
+    }
+
+    /// Create a callback which will send a message to the agent when invoked.
+    pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
+    where
+        M: Into<AGN::Message>,
+        F: Fn(IN) -> M + 'static,
     {
         let scope = self.scope.clone();
         let closure = move |input| {
-            let output = function(input);
+            let output = function(input).into();
             scope.send(AgentLifecycleEvent::Message(output));
         };
         closure.into()
@@ -87,6 +96,7 @@ impl<AGN: Agent> AgentScope<AGN> {
         let shared_agent = Rc::new(RefCell::new(AgentRunnable::new()));
         AgentScope { shared_agent }
     }
+
     /// Schedule message for sending to agent
     pub fn send(&self, update: AgentLifecycleEvent<AGN>) {
         let envelope = AgentEnvelope {
@@ -128,7 +138,7 @@ pub(crate) enum AgentLifecycleEvent<AGN: Agent> {
     Message(AGN::Message),
     /// Client connected
     Connected(HandlerId),
-    /// Received mesasge from Client
+    /// Received message from Client
     Input(AGN::Input, HandlerId),
     /// Client disconnected
     Disconnected(HandlerId),

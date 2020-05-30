@@ -1,6 +1,6 @@
 [package]
 name = "yew-macro"
-version = "0.16.0"
+version = "0.16.1"
 edition = "2018"
 authors = ["Justin Starry <justin@yew.rs>"]
 repository = "https://github.com/yewstack/yew"
@@ -35,3 +35,4 @@ yew = { path = "../yew" }
 
 [features]
 doc_test = []
+std_web = []

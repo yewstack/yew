@@ -5,7 +5,7 @@ authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
 description = "Utility crate for Yew"
 license = "MIT/Apache-2.0"
-repository = "https://github.com/yewstack/yewtil"
+repository = "https://github.com/yewstack/yew"
 readme = "Readme.md"
 
 [features]
@@ -14,7 +14,7 @@ all = ["stable", "experimental"]
 
 # Broad features
 ## All features MUST be stable or experimental
-stable = ["neq", "pure", "history", "mrc_irc", "effect", "future"]
+stable = ["neq", "pure", "history", "mrc_irc", "effect", "future", "store"]
 experimental = ["dsl", "lrc", "with_callback", "fetch"]
 
 # Some pointers are stable, some experimental.
@@ -30,6 +30,7 @@ dsl = []
 effect = []
 fetch = ["serde", "serde_json", "neq", "future", "web-sys"]
 future = ["wasm-bindgen-futures", "wasm-bindgen", "futures"]
+store = []
 
 # Ptr features
 lrc = []

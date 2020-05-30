@@ -1,5 +1,22 @@
 # Changelog
 
+## ✨ **0.16.2** *(2020-05-14)*
+
+#### Changelog
+
+- #### 🛠 Fixes
+
+  - Fixed regression where messages sent from `Component::create` were skipped. [[@jstarry], [#1225](https://github.com/yewstack/yew/pull/1225)]
+
+## ✨ **0.16.1** *(2020-05-14)*
+
+#### Changelog
+
+- #### 🛠 Fixes
+
+  - Worker script is now loaded from absolute path. [[@domdir], [#1175](https://github.com/yewstack/yew/pull/1175)]
+  - Improved `html!` macro error messages. [[@teymour-aldridge], [#1192](https://github.com/yewstack/yew/pull/1192)], [[@kaoet], [#1219](https://github.com/yewstack/yew/pull/1219)]
+
 ## ✨ **0.16** *(2020-05-09)*
 
 #### Changelog
@@ -834,6 +851,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@charvp]: https://github.com/charvp
 [@ctaggart]: https://github.com/ctaggart
 [@ctm]: https://github.com/ctm
+[@domdir]: https://github.com/domdir
 [@D4nte]: https://github.com/D4nte
 [@dancespiele]: https://github.com/dancespiele
 [@daxpedda]: https://github.com/daxpedda
@@ -848,6 +866,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@jplatte]: https://github.com/jplatte
 [@jstarry]: https://github.com/jstarry
 [@kakoc]: https://github.com/kakoc
+[@kaoet]: https://github.com/kaoet
 [@kellytk]: https://github.com/kellytk
 [@kuy]: https://github.com/kuy
 [@leo-lb]: https://github.com/leo-lb
@@ -863,6 +882,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@Stigjb]: https://github.com/Stigjb
 [@stkevintan]: https://github.com/stkevintan
 [@TheNeikos]: https://github.com/TheNeikos
+[@teymour-aldridge]: https://github.com/teymour-aldridge
 [@tiziano88]: https://github.com/tiziano88
 [@trivigy]: https://github.com/trivigy
 [@totorigolo]: https://github.com/totorigolo

@@ -1,18 +1,18 @@
 mod tag_attributes;
 
-use super::HtmlDashedName as TagName;
+use super::HtmlDashedName;
 use super::HtmlProp as TagAttribute;
 use super::HtmlPropSuffix as TagSuffix;
 use super::HtmlTree;
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
-use proc_macro2::Span;
+use proc_macro2::{Delimiter, Span};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
-use syn::{Ident, Token};
+use syn::{Block, Ident, Token};
 use tag_attributes::{ClassesForm, TagAttributes};
 
 pub struct HtmlTag {
@@ -51,6 +51,21 @@ impl Parse for HtmlTag {
             });
         }
 
+        if let TagName::Lit(name) = &open.tag_name {
+            // Void elements should not have children.
+            // See https://html.spec.whatwg.org/multipage/syntax.html#void-elements
+            //
+            // For dynamic tags this is done at runtime!
+            match name.to_ascii_lowercase_string().as_str() {
+                "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
+                | "meta" | "param" | "source" | "track" | "wbr" => {
+                    return Err(syn::Error::new_spanned(&open, format!("the tag `<{}>` is a void element and cannot have children (hint: rewrite this as `<{0}/>`)", name)));
+                }
+                _ => {}
+            }
+        }
+
+        let open_key = open.tag_name.get_key();
         let mut children: Vec<HtmlTree> = vec![];
         loop {
             if input.is_empty() {
@@ -59,8 +74,8 @@ impl Parse for HtmlTag {
                     "this opening tag has no corresponding closing tag",
                 ));
             }
-            if let Some(next_close_tag_name) = HtmlTagClose::peek(input.cursor()) {
-                if open.tag_name == next_close_tag_name {
+            if let Some(close_key) = HtmlTagClose::peek(input.cursor()) {
+                if open_key == close_key {
                     break;
                 }
             }
@@ -87,7 +102,26 @@ impl ToTokens for HtmlTag {
             children,
         } = self;
 
-        let name = tag_name.to_string();
+        let name = match &tag_name {
+            TagName::Lit(name) => {
+                let name_str = name.to_string();
+                quote! {#name_str}
+            }
+            TagName::Expr(name) => {
+                let expr = &name.expr;
+                let vtag_name = Ident::new("__yew_vtag_name", expr.span());
+                // this way we get a nice error message (with the correct span) when the expression doesn't return a valid value
+                quote_spanned! {expr.span()=> {
+                    let mut #vtag_name = ::std::borrow::Cow::<'static, str>::from(#expr);
+                    if !#vtag_name.is_ascii() {
+                        ::std::panic!("a dynamic tag returned a tag name containing non ASCII characters: `{}`", #vtag_name);
+                    }
+                    // convert to lowercase because the runtime checks rely on it.
+                    #vtag_name.to_mut().make_ascii_lowercase();
+                    #vtag_name
+                }}
+            }
+        };
 
         let TagAttributes {
             classes,
@@ -105,11 +139,11 @@ impl ToTokens for HtmlTag {
         let vtag = Ident::new("__yew_vtag", tag_name.span());
         let attr_pairs = attributes.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
-            quote_spanned! {value.span() => (#label_str.to_owned(), (#value).to_string()) }
+            quote_spanned! {value.span()=> (#label_str.to_owned(), (#value).to_string()) }
         });
         let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
-            quote_spanned! {value.span() =>
+            quote_spanned! {value.span()=>
                 if #value {
                     #vtag.add_attribute(&#label_str, &#label_str);
                 }
@@ -167,6 +201,37 @@ impl ToTokens for HtmlTag {
             }}
         });
 
+        // These are the runtime-checks exclusive to dynamic tags.
+        // For literal tags this is already done at compile-time.
+        let dyn_tag_runtime_checks = if matches!(&tag_name, TagName::Expr(_)) {
+            // when Span::source_file Span::start get stabilised or yew-macro introduces a nightly feature flag
+            // we should expand the panic message to contain the exact location of the dynamic tag.
+            Some(quote! {
+                // check void element
+                if !#vtag.children.is_empty() {
+                    match #vtag.tag() {
+                        "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
+                        | "meta" | "param" | "source" | "track" | "wbr" => {
+                            ::std::panic!("a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.", #vtag.tag());
+                        }
+                        _ => {}
+                    }
+                }
+
+                // handle special attribute value
+                match #vtag.tag() {
+                    "input" | "textarea" => {}
+                    _ => {
+                        if let ::std::option::Option::Some(value) = #vtag.value.take() {
+                            #vtag.attributes.insert("value".to_string(), value);
+                        }
+                    }
+                }
+            })
+        } else {
+            None
+        };
+
         tokens.extend(quote! {{
             let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
             #(#set_kind)*
@@ -180,8 +245,99 @@ impl ToTokens for HtmlTag {
             #vtag.add_attributes(vec![#(#attr_pairs),*]);
             #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
             #vtag.add_children(vec![#(#children),*]);
+            #dyn_tag_runtime_checks
             ::yew::virtual_dom::VNode::from(#vtag)
         }});
+    }
+}
+
+struct DynamicName {
+    at: Token![@],
+    expr: Option<Block>,
+}
+
+impl Peek<'_, ()> for DynamicName {
+    fn peek(cursor: Cursor) -> Option<((), Cursor)> {
+        let (punct, cursor) = cursor.punct()?;
+        (punct.as_char() == '@').as_option()?;
+
+        // move cursor past block if there is one
+        let cursor = cursor
+            .group(Delimiter::Brace)
+            .map(|(_, _, cursor)| cursor)
+            .unwrap_or(cursor);
+
+        Some(((), cursor))
+    }
+}
+
+impl Parse for DynamicName {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        let at = input.parse()?;
+        // the expression block is optional, closing tags don't have it.
+        let expr = if input.cursor().group(Delimiter::Brace).is_some() {
+            Some(input.parse()?)
+        } else {
+            None
+        };
+
+        Ok(Self { at, expr })
+    }
+}
+
+impl ToTokens for DynamicName {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let Self { at, expr } = self;
+        tokens.extend(quote! {#at#expr});
+    }
+}
+
+#[derive(PartialEq)]
+enum TagKey {
+    Lit(HtmlDashedName),
+    Expr,
+}
+
+enum TagName {
+    Lit(HtmlDashedName),
+    Expr(DynamicName),
+}
+
+impl TagName {
+    fn get_key(&self) -> TagKey {
+        match self {
+            TagName::Lit(name) => TagKey::Lit(name.clone()),
+            TagName::Expr(_) => TagKey::Expr,
+        }
+    }
+}
+
+impl Peek<'_, TagKey> for TagName {
+    fn peek(cursor: Cursor) -> Option<(TagKey, Cursor)> {
+        if let Some((_, cursor)) = DynamicName::peek(cursor) {
+            Some((TagKey::Expr, cursor))
+        } else {
+            HtmlDashedName::peek(cursor).map(|(name, cursor)| (TagKey::Lit(name), cursor))
+        }
+    }
+}
+
+impl Parse for TagName {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        if DynamicName::peek(input.cursor()).is_some() {
+            DynamicName::parse(input).map(Self::Expr)
+        } else {
+            HtmlDashedName::parse(input).map(Self::Lit)
+        }
+    }
+}
+
+impl ToTokens for TagName {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        match self {
+            TagName::Lit(name) => name.to_tokens(tokens),
+            TagName::Expr(name) => name.to_tokens(tokens),
+        }
     }
 }
 
@@ -193,23 +349,24 @@ struct HtmlTagOpen {
     gt: Token![>],
 }
 
-impl PeekValue<TagName> for HtmlTagOpen {
-    fn peek(cursor: Cursor) -> Option<TagName> {
+impl PeekValue<TagKey> for HtmlTagOpen {
+    fn peek(cursor: Cursor) -> Option<TagKey> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
 
-        let (name, cursor) = TagName::peek(cursor)?;
-        if name.to_string() == "key" {
-            let (punct, _) = cursor.punct()?;
-            if punct.as_char() == '=' {
-                None
+        let (tag_key, cursor) = TagName::peek(cursor)?;
+        if let TagKey::Lit(name) = &tag_key {
+            // Avoid parsing `<key=[...]>` as an HtmlTag. It needs to be parsed as an HtmlList.
+            if name.to_string() == "key" {
+                let (punct, _) = cursor.punct()?;
+                // ... unless it isn't followed by a '='. `<key></key>` is a valid HtmlTag!
+                (punct.as_char() != '=').as_option()?;
             } else {
-                Some(name)
+                non_capitalized_ascii(&name.to_string()).as_option()?;
             }
-        } else {
-            non_capitalized_ascii(&name.to_string()).as_option()?;
-            Some(name)
         }
+
+        Some(tag_key)
     }
 }
 
@@ -220,15 +377,28 @@ impl Parse for HtmlTagOpen {
         let TagSuffix { stream, div, gt } = input.parse()?;
         let mut attributes: TagAttributes = parse(stream)?;
 
-        // Don't treat value as special for non input / textarea fields
-        match tag_name.to_string().as_str() {
-            "input" | "textarea" => {}
-            _ => {
-                if let Some(value) = attributes.value.take() {
-                    attributes.attributes.push(TagAttribute {
-                        label: TagName::new(Ident::new("value", Span::call_site())),
-                        value,
-                    });
+        match &tag_name {
+            TagName::Lit(name) => {
+                // Don't treat value as special for non input / textarea fields
+                // For dynamic tags this is done at runtime!
+                match name.to_ascii_lowercase_string().as_str() {
+                    "input" | "textarea" => {}
+                    _ => {
+                        if let Some(value) = attributes.value.take() {
+                            attributes.attributes.push(TagAttribute {
+                                label: HtmlDashedName::new(Ident::new("value", Span::call_site())),
+                                value,
+                            });
+                        }
+                    }
+                }
+            }
+            TagName::Expr(name) => {
+                if name.expr.is_none() {
+                    return Err(syn::Error::new_spanned(
+                        tag_name,
+                        "this dynamic tag is missing an expression block defining its value",
+                    ));
                 }
             }
         }
@@ -257,31 +427,47 @@ struct HtmlTagClose {
     gt: Token![>],
 }
 
-impl PeekValue<TagName> for HtmlTagClose {
-    fn peek(cursor: Cursor) -> Option<TagName> {
+impl PeekValue<TagKey> for HtmlTagClose {
+    fn peek(cursor: Cursor) -> Option<TagKey> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
 
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '/').as_option()?;
 
-        let (name, cursor) = TagName::peek(cursor)?;
-        non_capitalized_ascii(&name.to_string()).as_option()?;
+        let (tag_key, cursor) = TagName::peek(cursor)?;
+        if let TagKey::Lit(name) = &tag_key {
+            non_capitalized_ascii(&name.to_string()).as_option()?;
+        }
 
         let (punct, _) = cursor.punct()?;
         (punct.as_char() == '>').as_option()?;
 
-        Some(name)
+        Some(tag_key)
     }
 }
 
 impl Parse for HtmlTagClose {
     fn parse(input: ParseStream) -> ParseResult<Self> {
+        let lt = input.parse()?;
+        let div = input.parse()?;
+        let tag_name = input.parse()?;
+        let gt = input.parse()?;
+
+        if let TagName::Expr(name) = &tag_name {
+            if let Some(expr) = &name.expr {
+                return Err(syn::Error::new_spanned(
+                    expr,
+                    "dynamic closing tags must not have a body (hint: replace it with just `</@>`)",
+                ));
+            }
+        }
+
         Ok(HtmlTagClose {
-            lt: input.parse()?,
-            div: input.parse()?,
-            tag_name: input.parse()?,
-            gt: input.parse()?,
+            lt,
+            div,
+            tag_name,
+            gt,
         })
     }
 }

@@ -1,6 +1,5 @@
 use crate::html_tree::HtmlDashedName as HtmlPropLabel;
 use crate::{Peek, PeekValue};
-use boolinator::Boolinator;
 use proc_macro::TokenStream;
 use proc_macro2::TokenTree;
 use syn::buffer::Cursor;
@@ -14,16 +13,22 @@ pub struct HtmlProp {
 
 impl PeekValue<()> for HtmlProp {
     fn peek(cursor: Cursor) -> Option<()> {
-        let (_, cursor) = HtmlPropLabel::peek(cursor)?;
-        let (punct, _) = cursor.punct()?;
-        (punct.as_char() == '=').as_option()
+        HtmlPropLabel::peek(cursor).map(|_| ())
     }
 }
 
 impl Parse for HtmlProp {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let label = input.parse::<HtmlPropLabel>()?;
-        input.parse::<Token![=]>()?;
+        let equals = input
+            .parse::<Token![=]>()
+            .map_err(|_| syn::Error::new_spanned(&label, "this prop doesn't have a value"))?;
+        if input.is_empty() {
+            return Err(syn::Error::new_spanned(
+                equals,
+                "expected an expression following this equals sign",
+            ));
+        }
         let value = input.parse::<Expr>()?;
         // backwards compat
         let _ = input.parse::<Token![,]>();

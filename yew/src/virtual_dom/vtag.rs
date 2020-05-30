@@ -22,7 +22,7 @@ cfg_if! {
         use std::ops::Deref;
         use wasm_bindgen::JsCast;
         use web_sys::{
-            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, Node,
+            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, Node, HtmlButtonElement
         };
     }
 }
@@ -268,6 +268,21 @@ impl VTag {
             }
         }
 
+        // TODO: add std_web after https://github.com/koute/stdweb/issues/395 will be approved
+        // Check this out: https://github.com/yewstack/yew/pull/1033/commits/4b4e958bb1ccac0524eb20f63f06ae394c20553d
+        #[cfg(feature = "web_sys")]
+        {
+            if let Some(button) = element.dyn_ref::<HtmlButtonElement>() {
+                if let Some(change) = self.diff_kind(ancestor) {
+                    let kind = match change {
+                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                        Patch::Remove(_) => "",
+                    };
+                    button.set_type(kind);
+                }
+            }
+        }
+
         // `input` element has extra parameters to control
         // I override behavior of attributes to make it more clear
         // and useful in templates. For example I interpret `checked`
@@ -364,6 +379,27 @@ impl VDiff for VTag {
                     if self.tag == vtag.tag {
                         // If tags are equal, preserve the reference that already exists.
                         self.reference = vtag.reference.take();
+                        if let Some(element) = self.reference.as_ref() {
+                            if let Some(input) = {
+                                cfg_match! {
+                                    feature = "std_web" => InputElement::try_from(element.clone()).ok(),
+                                    feature = "web_sys" => element.dyn_ref::<InputElement>(),
+                                }
+                            } {
+                                let current_value = cfg_match! {
+                                    feature = "std_web" => input.raw_value(),
+                                    feature = "web_sys" => input.value(),
+                                };
+                                vtag.set_value(&current_value)
+                            } else if let Some(tae) = {
+                                cfg_match! {
+                                    feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
+                                    feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
+                                }
+                            } {
+                                vtag.set_value(&tae.value())
+                            }
+                        }
                         (Reform::Keep, Some(vtag))
                     } else {
                         // We have to create a new reference, remove ancestor.
@@ -507,6 +543,7 @@ where
 mod tests {
     use super::*;
     use crate::{html, Component, ComponentLink, Html, ShouldRender};
+    use std::any::TypeId;
     #[cfg(feature = "std_web")]
     use stdweb::web::{document, IElement};
     #[cfg(feature = "wasm_test")]
@@ -514,6 +551,14 @@ mod tests {
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
+
+    fn test_scope() -> AnyScope {
+        AnyScope {
+            type_id: TypeId::of::<()>(),
+            parent: None,
+            state: Rc::new(()),
+        }
+    }
 
     struct Comp;
 
@@ -839,7 +884,7 @@ mod tests {
         #[cfg(feature = "web_sys")]
         let document = web_sys::window().unwrap().document().unwrap();
 
-        let scope = AnyScope::default();
+        let scope = test_scope();
         let div_el = document.create_element("div").unwrap();
         let namespace = SVG_NAMESPACE;
         #[cfg(feature = "web_sys")]
@@ -982,7 +1027,7 @@ mod tests {
 
     #[test]
     fn it_does_not_set_empty_class_name() {
-        let scope = AnyScope::default();
+        let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
         #[cfg(feature = "std_web")]
@@ -999,7 +1044,7 @@ mod tests {
 
     #[test]
     fn it_does_not_set_missing_class_name() {
-        let scope = AnyScope::default();
+        let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
         #[cfg(feature = "std_web")]
@@ -1016,7 +1061,7 @@ mod tests {
 
     #[test]
     fn it_sets_class_name() {
-        let scope = AnyScope::default();
+        let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
         #[cfg(feature = "std_web")]
@@ -1072,7 +1117,7 @@ mod tests {
 
     #[test]
     fn swap_order_of_classes() {
-        let scope = AnyScope::default();
+        let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
         #[cfg(feature = "std_web")]
@@ -1123,7 +1168,7 @@ mod tests {
 
     #[test]
     fn add_class_to_the_middle() {
-        let scope = AnyScope::default();
+        let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
         #[cfg(feature = "std_web")]
@@ -1170,5 +1215,126 @@ mod tests {
                 .unwrap(),
             expected
         );
+    }
+
+    #[test]
+    fn check_input_current_value_sync() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let expected = "not_changed_value";
+
+        // Initial state
+        let mut elem = html! {
+            <input value=expected />
+        };
+        elem.apply(&scope, &parent, None, None);
+
+        let vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+
+        // User input
+        let input_ref = vtag.reference.as_ref().unwrap();
+        let input = cfg_match! {
+            feature = "std_web" => InputElement::try_from(input_ref.clone()).ok(),
+            feature = "web_sys" => input_ref.dyn_ref::<InputElement>(),
+        };
+        cfg_match! {
+            feature = "std_web" => input.unwrap().set_raw_value("User input"),
+            feature = "web_sys" => input.unwrap().set_value("User input"),
+        };
+
+        let ancestor = vtag;
+        // Same state after onInput or onChange event
+        let elem = html! {
+            <input value=expected />
+        };
+        let mut vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+
+        // Sync happens here
+        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
+
+        // Get new current value of the input element
+        let input_ref = vtag.reference.as_ref().unwrap();
+        let input = cfg_match! {
+            feature = "std_web" => InputElement::try_from(input_ref.clone()).ok(),
+            feature = "web_sys" => input_ref.dyn_ref::<InputElement>(),
+        }
+        .unwrap();
+
+        let current_value = cfg_match! {
+            feature = "std_web" => input.raw_value(),
+            feature = "web_sys" => input.value(),
+        };
+
+        // check whether not changed virtual dom value has been set to the input element
+        assert_eq!(current_value, expected);
+    }
+
+    #[test]
+    fn dynamic_tags_work() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let mut elem = html! { <@{
+            let mut builder = String::new();
+            builder.push_str("a");
+            builder
+        }/> };
+
+        elem.apply(&scope, &parent, None, None);
+        let vtag = assert_vtag(&mut elem);
+        // make sure the new tag name is used internally
+        assert_eq!(vtag.tag, "a");
+
+        #[cfg(feature = "web_sys")]
+        // Element.tagName is always in the canonical upper-case form.
+        assert_eq!(vtag.reference.as_ref().unwrap().tag_name(), "A");
+    }
+
+    #[test]
+    fn dynamic_tags_handle_value_attribute() {
+        let mut div_el = html! {
+            <@{"div"} value="Hello"/>
+        };
+        let div_vtag = assert_vtag(&mut div_el);
+        assert!(div_vtag.value.is_none());
+        assert_eq!(
+            div_vtag.attributes.get("value").map(String::as_str),
+            Some("Hello")
+        );
+
+        let mut input_el = html! {
+            <@{"input"} value="World"/>
+        };
+        let input_vtag = assert_vtag(&mut input_el);
+        assert_eq!(input_vtag.value, Some("World".to_string()));
+        assert!(!input_vtag.attributes.contains_key("value"));
+    }
+
+    #[test]
+    fn dynamic_tags_handle_weird_capitalization() {
+        let mut el = html! {
+            <@{"tExTAREa"}/>
+        };
+        let vtag = assert_vtag(&mut el);
+        assert_eq!(vtag.tag(), "textarea");
     }
 }
