@@ -60,6 +60,12 @@ fn compile_pass() {
             }/>
         </div>
     };
+
+    let children = vec![
+        html! { <span>{ "Hello" }</span> },
+        html! { <span>{ "World" }</span> },
+    ];
+    html! { <div>{children}</div> };
 }
 
 fn main() {}
