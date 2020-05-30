@@ -192,17 +192,9 @@ enum Reform {
     /// The optional `Node` is used to insert the new node in the correct slot
     /// of the parent.
     ///
-    /// If it does not exist, the `node_position` will be used (see
+    /// If it does not exist, the `next_sibling` will be used (see
     /// `VDiff::apply()`).
-    Replace(VDiffNodePosition),
-}
-
-#[derive(Debug)]
-pub(crate) enum VDiffNodePosition {
-    FirstChild,
-    Before(Node),
-    After(Node),
-    LastChild,
+    Before(Option<Node>),
 }
 
 // TODO(#938): What about implementing `VDiff` for `Element`?
@@ -212,7 +204,7 @@ pub(crate) enum VDiffNodePosition {
 /// This trait provides features to update a tree by calculating a difference against another tree.
 pub(crate) trait VDiff {
     /// Remove self from parent and return the next sibling.
-    fn detach(&mut self, parent: &Element) -> VDiffNodePosition;
+    fn detach(&mut self, parent: &Element) -> Option<Node>;
 
     /// Scoped diff apply to other tree.
     ///
@@ -220,18 +212,17 @@ pub(crate) trait VDiff {
     /// children (virtual and DOM) to check the difference and apply patches to
     /// the actual DOM representation.
     ///
-    /// TODO: Explain that vnodes must be at their position before apply is called.
-    ///
     /// Parameters:
     /// - `parent_scope`: the parent `Scope` used for passing messages to the
     ///   parent `Component`.
     /// - `parent`: the parent node in the DOM.
-    /// - `node_position`: the position relative to `parent` used to efficiently
-    ///   find where to put the node.
+    /// - `next_sibling`: the next sibling, used to efficiently find where to
+    ///   put the node.
     /// - `ancestor`: the node that this node will be replacing in the DOM. This
     ///   method will _always_ remove the `ancestor` from the `parent`.
     ///
-    /// Returns the newly inserted element, if there is one (empty VList don't have one).
+    /// Returns the newly inserted element, if there is one (empty VList don't
+    /// have one).
     ///
     /// ### Internal Behavior Notice:
     ///
@@ -245,46 +236,29 @@ pub(crate) trait VDiff {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        node_position: VDiffNodePosition, // TODO: merge `node_position` and `ancestor`
+        next_sibling: Option<Node>,
         ancestor: Option<VNode>,
     ) -> Option<Node>;
 }
 
 #[cfg(feature = "web_sys")]
-fn insert_node(node: &Node, parent: &Element, node_position: &VDiffNodePosition) -> Node {
-    match node_position {
-        VDiffNodePosition::FirstChild => parent
-            .insert_before(&node, parent.first_child().as_ref())
-            .expect("failed to insert tag as first child"),
-        VDiffNodePosition::Before(next_sibling) => parent
-            .insert_before(&node, Some(next_sibling))
+fn insert_node(node: &Node, parent: &Element, next_sibling: Option<Node>) -> Node {
+    match next_sibling {
+        Some(next_sibling) => parent
+            .insert_before(&node, Some(&next_sibling))
             .expect("failed to insert tag before next sibling"),
-        VDiffNodePosition::After(previous_sibling) => parent
-            .insert_before(&node, previous_sibling.next_sibling().as_ref())
-            .expect("failed to insert tag after previous sibling"),
-        VDiffNodePosition::LastChild => parent.append_child(node).expect("failed to append tag"),
+        None => parent.append_child(node).expect("failed to append child"),
     }
 }
 
 #[cfg(feature = "std_web")]
-fn insert_node(node: &impl INode, parent: &impl INode, node_position: &VDiffNodePosition) -> Node {
-    fn insert_before(node: &impl INode, parent: &impl INode, reference: Option<&Node>) {
-        if let Some(reference) = reference {
-            parent
-                .insert_before(node, reference)
-                .expect("failed to insert tag before next sibling");
-        } else {
-            parent.append_child(node);
-        }
-    }
-
-    match node_position {
-        VDiffNodePosition::FirstChild => insert_before(node, parent, parent.first_child().as_ref()),
-        VDiffNodePosition::Before(next_sibling) => insert_before(node, parent, Some(next_sibling)),
-        VDiffNodePosition::After(previous_sibling) => {
-            insert_before(node, parent, previous_sibling.next_sibling().as_ref())
-        }
-        VDiffNodePosition::LastChild => parent.append_child(node),
+fn insert_node(node: &impl INode, parent: &impl INode, next_sibling: Option<Node>) -> Node {
+    if let Some(next_sibling) = next_sibling {
+        parent
+            .insert_before(node, next_sibling)
+            .expect("failed to insert tag before next sibling");
+    } else {
+        parent.append_child(node);
     }
     node.as_node().clone()
 }

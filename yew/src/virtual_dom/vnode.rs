@@ -1,6 +1,6 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{Key, VChild, VComp, VDiff, VDiffNodePosition, VList, VTag, VText};
+use super::{Key, VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{AnyScope, Component, Renderable};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
@@ -64,21 +64,18 @@ impl VNode {
 
 impl VDiff for VNode {
     /// Remove VNode from parent.
-    fn detach(&mut self, parent: &Element) -> VDiffNodePosition {
+    fn detach(&mut self, parent: &Element) -> Option<Node> {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.detach(parent),
             VNode::VText(ref mut vtext) => vtext.detach(parent),
             VNode::VComp(ref mut vcomp) => vcomp.detach(parent),
             VNode::VList(ref mut vlist) => vlist.detach(parent),
             VNode::VRef(ref node) => {
-                let sibling = node.next_sibling();
+                let next_sibling = node.next_sibling();
                 if parent.remove_child(node).is_err() {
                     warn!("Node not found to remove VRef");
                 }
-                match sibling {
-                    Some(node) => VDiffNodePosition::Before(node),
-                    None => VDiffNodePosition::LastChild,
-                }
+                next_sibling
             }
         }
     }
@@ -87,26 +84,23 @@ impl VDiff for VNode {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        node_position: VDiffNodePosition,
+        next_sibling: Option<Node>,
         ancestor: Option<VNode>,
     ) -> Option<Node> {
         match *self {
-            VNode::VTag(ref mut vtag) => vtag.apply(parent_scope, parent, node_position, ancestor),
+            VNode::VTag(ref mut vtag) => vtag.apply(parent_scope, parent, next_sibling, ancestor),
             VNode::VText(ref mut vtext) => {
-                vtext.apply(parent_scope, parent, node_position, ancestor)
+                vtext.apply(parent_scope, parent, next_sibling, ancestor)
             }
             VNode::VComp(ref mut vcomp) => {
-                vcomp.apply(parent_scope, parent, node_position, ancestor)
+                vcomp.apply(parent_scope, parent, next_sibling, ancestor)
             }
             VNode::VList(ref mut vlist) => {
-                vlist.apply(parent_scope, parent, node_position, ancestor)
+                vlist.apply(parent_scope, parent, next_sibling, ancestor)
             }
             VNode::VRef(ref mut node) => {
-                let position = match ancestor {
-                    Some(mut n) => n.detach(parent),
-                    None => node_position,
-                };
-                super::insert_node(node, parent, &position);
+                let next_sibling = ancestor.map(|mut n| n.detach(parent)).unwrap_or(None);
+                super::insert_node(node, parent, next_sibling);
                 Some(node.to_owned())
             }
         }

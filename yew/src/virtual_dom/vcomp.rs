@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual component `VComp`.
 
-use super::{Key, Transformer, VDiff, VDiffNodePosition, VNode};
+use super::{Key, Transformer, VDiff, VNode};
 use crate::html::{AnyScope, Component, ComponentUpdate, NodeRef, Scope};
 use crate::utils::document;
 use cfg_if::cfg_if;
@@ -176,20 +176,17 @@ impl Unmounted {
 
 enum Reform {
     Keep(Mounted),
-    Replace(VDiffNodePosition),
+    Before(Option<Node>),
 }
 
 impl VDiff for VComp {
-    fn detach(&mut self, _parent: &Element) -> VDiffNodePosition {
+    fn detach(&mut self, _parent: &Element) -> Option<Node> {
         match core::mem::replace(&mut self.state, MountState::Detached) {
             MountState::Mounted(this) => {
                 (this.destroyer)();
-                match this.node_ref.get().and_then(|n| n.next_sibling()) {
-                    Some(node) => VDiffNodePosition::Before(node),
-                    None => VDiffNodePosition::LastChild,
-                }
+                this.node_ref.get().and_then(|n| n.next_sibling())
             }
-            _ => VDiffNodePosition::LastChild,
+            _ => None,
         }
     }
 
@@ -197,7 +194,7 @@ impl VDiff for VComp {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        node_position: VDiffNodePosition,
+        next_sibling: Option<Node>,
         ancestor: Option<VNode>,
     ) -> Option<Node> {
         if let MountState::Unmounted(this) =
@@ -210,14 +207,14 @@ impl VDiff for VComp {
                     if self.type_id == vcomp.type_id {
                         match core::mem::replace(&mut vcomp.state, MountState::Overwritten) {
                             MountState::Mounted(mounted) => Reform::Keep(mounted),
-                            _ => Reform::Replace(node_position),
+                            _ => Reform::Before(next_sibling),
                         }
                     } else {
-                        Reform::Replace(vcomp.detach(parent))
+                        Reform::Before(vcomp.detach(parent))
                     }
                 }
-                Some(mut vnode) => Reform::Replace(vnode.detach(parent)),
-                None => Reform::Replace(node_position),
+                Some(mut vnode) => Reform::Before(vnode.detach(parent)),
+                None => Reform::Before(next_sibling),
             };
 
             let (mounted, node) = match reform {
@@ -229,11 +226,11 @@ impl VDiff for VComp {
                         .expect("mounted VComp must have a node_ref");
                     (this.replace(mounted), node)
                 }
-                Reform::Replace(position) => {
+                Reform::Before(next_sibling) => {
                     let dummy_node = document().create_text_node("");
                     let node: Node = dummy_node.clone().into();
 
-                    super::insert_node(&dummy_node, parent, &position);
+                    super::insert_node(&dummy_node, parent, next_sibling);
 
                     let mounted = this.mount(parent_scope.clone(), parent.to_owned(), dummy_node);
                     (mounted, node)

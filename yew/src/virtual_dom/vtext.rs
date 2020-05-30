@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::{Reform, VDiff, VDiffNodePosition, VNode};
+use super::{Reform, VDiff, VNode};
 use crate::html::AnyScope;
 use crate::utils::document;
 use cfg_if::cfg_if;
@@ -38,7 +38,7 @@ impl VText {
 
 impl VDiff for VText {
     /// Remove VText from parent.
-    fn detach(&mut self, parent: &Element) -> VDiffNodePosition {
+    fn detach(&mut self, parent: &Element) -> Option<Node> {
         let node = self
             .reference
             .take()
@@ -48,10 +48,7 @@ impl VDiff for VText {
         parent
             .remove_child(&node)
             .expect("tried to remove not rendered VText from DOM");
-        match next_sibling {
-            Some(node) => VDiffNodePosition::Before(node),
-            None => VDiffNodePosition::LastChild,
-        }
+        next_sibling
     }
 
     /// Renders virtual node over existing `TextNode`, but only if value of text
@@ -60,7 +57,7 @@ impl VDiff for VText {
         &mut self,
         _parent_scope: &AnyScope,
         parent: &Element,
-        node_position: VDiffNodePosition,
+        next_sibling: Option<Node>,
         ancestor: Option<VNode>,
     ) -> Option<Node> {
         assert!(
@@ -83,19 +80,19 @@ impl VDiff for VText {
             }
             // If there is an ancestor, but of another type, remove it from
             // the DOM and insert this at its position.
-            Some(mut vnode) => Reform::Replace(vnode.detach(parent)),
+            Some(mut vnode) => Reform::Before(vnode.detach(parent)),
             // Otherwise there was no element.
-            None => Reform::Replace(node_position),
+            None => Reform::Before(next_sibling),
         };
 
         match reform {
             Reform::Keep => {
                 // Nothing to do, we recycled the ancestor.
             }
-            Reform::Replace(position) => {
+            Reform::Before(next_sibling) => {
                 // Create a new text DOM element.
                 let element = document().create_text_node(&self.text);
-                super::insert_node(&element, parent, &position);
+                super::insert_node(&element, parent, next_sibling);
 
                 // Finally, we store the newly created element.
                 self.reference = Some(element);

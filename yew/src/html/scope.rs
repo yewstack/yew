@@ -1,6 +1,6 @@
 use super::{Callback, Component, NodeRef, Renderable};
 use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
-use crate::virtual_dom::{VDiff, VDiffNodePosition, VNode};
+use crate::virtual_dom::{VDiff, VNode};
 use cfg_if::cfg_if;
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
@@ -317,12 +317,8 @@ where
                 state.render_status = state.render_status.map(|_| DIRTY);
                 let mut root = state.component.render();
                 let last_root = state.last_root.take();
-                let new_node = root.apply(
-                    &state.scope.clone().into(),
-                    &state.element,
-                    VDiffNodePosition::FirstChild,
-                    last_root,
-                );
+                let new_node =
+                    root.apply(&state.scope.clone().into(), &state.element, None, last_root);
                 if let VNode::VComp(child) = &root {
                     // If the root VNode is a VComp, we won't have access to the rendered DOM node
                     // because components render asynchronously. In order to bubble up the DOM node

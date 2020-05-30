@@ -1,8 +1,7 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
 use super::{
-    Attributes, Key, Listener, Listeners, Patch, Reform, Transformer, VDiff, VDiffNodePosition,
-    VList, VNode,
+    Attributes, Key, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
 };
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
@@ -334,7 +333,7 @@ impl VTag {
 
 impl VDiff for VTag {
     /// Remove VTag from parent.
-    fn detach(&mut self, parent: &Element) -> VDiffNodePosition {
+    fn detach(&mut self, parent: &Element) -> Option<Node> {
         let node = self
             .reference
             .take()
@@ -347,10 +346,7 @@ impl VDiff for VTag {
         parent
             .remove_child(&node)
             .expect("tried to remove not rendered VTag from DOM");
-        match next_sibling {
-            Some(node) => VDiffNodePosition::Before(node),
-            None => VDiffNodePosition::LastChild,
-        }
+        next_sibling
     }
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with
@@ -359,7 +355,7 @@ impl VDiff for VTag {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        node_position: VDiffNodePosition,
+        next_sibling: Option<Node>,
         ancestor: Option<VNode>,
     ) -> Option<Node> {
         assert!(
@@ -377,14 +373,14 @@ impl VDiff for VTag {
                     }
                     // We have to create a new reference, remove ancestor.
                     else {
-                        (Reform::Replace(vtag.detach(parent)), None)
+                        (Reform::Before(vtag.detach(parent)), None)
                     }
                 }
                 Some(mut vnode) => {
                     // It is not a VTag variant we must remove the ancestor.
-                    (Reform::Replace(vnode.detach(parent)), None)
+                    (Reform::Before(vnode.detach(parent)), None)
                 }
-                None => (Reform::Replace(node_position), None),
+                None => (Reform::Before(next_sibling), None),
             }
         };
 
@@ -395,7 +391,7 @@ impl VDiff for VTag {
         // place, which we use `next_sibling` or `previous_sibling` for.
         let insert_tuple = match reform {
             Reform::Keep => None,
-            Reform::Replace(position) => {
+            Reform::Before(next_sibling) => {
                 let element = if self.tag == "svg"
                     || parent
                         .namespace_uri()
@@ -413,12 +409,12 @@ impl VDiff for VTag {
                         .create_element(&self.tag)
                         .expect("can't create element for vtag")
                 };
-                Some((element, position))
+                Some((element, next_sibling))
             }
         };
 
-        if let Some((element, position)) = insert_tuple {
-            super::insert_node(&element, parent, &position);
+        if let Some((element, next_sibling)) = insert_tuple {
+            super::insert_node(&element, parent, next_sibling);
             self.reference = Some(element);
         }
         assert!(
@@ -445,7 +441,7 @@ impl VDiff for VTag {
         self.children.apply(
             parent_scope,
             &element,
-            VDiffNodePosition::FirstChild,
+            None,
             ancestor.map(|a| a.children.into()),
         );
 
@@ -861,17 +857,17 @@ mod tests {
         let mut svg_node = html! { <svg>{path_node}</svg> };
 
         let svg_tag = assert_vtag(&mut svg_node);
-        svg_tag.apply(&scope, &div_el, VDiffNodePosition::LastChild, None);
+        svg_tag.apply(&scope, &div_el, None, None);
         assert_namespace(svg_tag, SVG_NAMESPACE);
         let path_tag = assert_vtag(svg_tag.children.get_mut(0).unwrap());
         assert_namespace(path_tag, SVG_NAMESPACE);
 
         let g_tag = assert_vtag(&mut g_node);
-        g_tag.apply(&scope, &div_el, VDiffNodePosition::LastChild, None);
+        g_tag.apply(&scope, &div_el, None, None);
         assert_namespace(g_tag, HTML_NAMESPACE);
         g_tag.reference = None;
 
-        g_tag.apply(&scope, &svg_el, VDiffNodePosition::LastChild, None);
+        g_tag.apply(&scope, &svg_el, None, None);
         assert_namespace(g_tag, SVG_NAMESPACE);
     }
 
@@ -1001,7 +997,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=""></div> };
-        elem.apply(&scope, &parent, VDiffNodePosition::LastChild, None);
+        elem.apply(&scope, &parent, None, None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1018,7 +1014,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div></div> };
-        elem.apply(&scope, &parent, VDiffNodePosition::LastChild, None);
+        elem.apply(&scope, &parent, None, None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1035,7 +1031,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class="ferris the crab"></div> };
-        elem.apply(&scope, &parent, VDiffNodePosition::LastChild, None);
+        elem.apply(&scope, &parent, None, None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has been set
         assert!(vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1091,7 +1087,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
-        elem.apply(&scope, &parent, VDiffNodePosition::LastChild, None);
+        elem.apply(&scope, &parent, None, None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1117,12 +1113,7 @@ mod tests {
         } else {
             panic!("should be vtag")
         };
-        vtag.apply(
-            &scope,
-            &parent,
-            VDiffNodePosition::LastChild,
-            Some(VNode::VTag(ancestor)),
-        );
+        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
 
         let expected = "class-3 class-2 class-1";
         assert_eq!(get_class_str(&vtag), expected);
@@ -1147,7 +1138,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-3")></div> };
-        elem.apply(&scope, &parent, VDiffNodePosition::LastChild, None);
+        elem.apply(&scope, &parent, None, None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1173,12 +1164,7 @@ mod tests {
         } else {
             panic!("should be vtag")
         };
-        vtag.apply(
-            &scope,
-            &parent,
-            VDiffNodePosition::LastChild,
-            Some(VNode::VTag(ancestor)),
-        );
+        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
 
         let expected = "class-1 class-2 class-3";
         assert_eq!(get_class_str(&vtag), expected);
