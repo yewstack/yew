@@ -1,3 +1,4 @@
+use super::ToChildrenTokens;
 use crate::PeekValue;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
@@ -7,7 +8,10 @@ use syn::spanned::Spanned;
 use syn::Expr;
 use syn::Lit;
 
-pub struct HtmlNode(Node);
+pub enum HtmlNode {
+    Literal(Box<Lit>),
+    Expression(Box<Expr>),
+}
 
 impl Parse for HtmlNode {
     fn parse(input: ParseStream) -> Result<Self> {
@@ -17,12 +21,12 @@ impl Parse for HtmlNode {
                 Lit::Str(_) | Lit::Char(_) | Lit::Int(_) | Lit::Float(_) | Lit::Bool(_) => {}
                 _ => return Err(syn::Error::new(lit.span(), "unsupported type")),
             }
-            Node::Literal(Box::new(lit))
+            HtmlNode::Literal(Box::new(lit))
         } else {
-            Node::Expression(Box::new(input.parse()?))
+            HtmlNode::Expression(Box::new(input.parse()?))
         };
 
-        Ok(HtmlNode(node))
+        Ok(node)
     }
 }
 
@@ -40,22 +44,24 @@ impl PeekValue<()> for HtmlNode {
 
 impl ToTokens for HtmlNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.0.to_tokens(tokens);
+        tokens.extend(match &self {
+            HtmlNode::Literal(lit) => quote! {#lit},
+            HtmlNode::Expression(expr) => quote_spanned! {expr.span()=> {#expr}},
+        });
     }
 }
 
-impl ToTokens for Node {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let node_token = match &self {
-            Node::Literal(lit) => quote! {#lit},
-            Node::Expression(expr) => quote_spanned! {expr.span()=> {#expr} },
-        };
-
-        tokens.extend(node_token);
+impl ToChildrenTokens for HtmlNode {
+    fn single_child(&self) -> bool {
+        matches!(self, HtmlNode::Literal(_))
     }
-}
 
-enum Node {
-    Literal(Box<Lit>),
-    Expression(Box<Expr>),
+    fn to_children_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(match &self {
+            HtmlNode::Literal(lit) => quote_spanned! {lit.span()=> ::std::iter::once(#lit)},
+            HtmlNode::Expression(expr) => {
+                quote_spanned! {expr.span()=> {::yew::utils::NodeSeq::from(#expr)} }
+            }
+        });
+    }
 }

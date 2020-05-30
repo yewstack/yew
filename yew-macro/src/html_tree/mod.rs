@@ -1,11 +1,11 @@
-pub mod html_block;
-pub mod html_component;
-pub mod html_dashed_name;
-pub mod html_iterable;
-pub mod html_list;
-pub mod html_node;
-pub mod html_prop;
-pub mod html_tag;
+mod html_block;
+mod html_component;
+mod html_dashed_name;
+mod html_iterable;
+mod html_list;
+mod html_node;
+mod html_prop;
+mod html_tag;
 
 use crate::PeekValue;
 use html_block::HtmlBlock;
@@ -33,41 +33,9 @@ pub enum HtmlType {
 pub enum HtmlTree {
     Block(Box<HtmlBlock>),
     Component(Box<HtmlComponent>),
-    Iterable(Box<HtmlIterable>),
     List(Box<HtmlList>),
     Tag(Box<HtmlTag>),
-    Node(Box<HtmlNode>),
     Empty,
-}
-
-pub struct HtmlRoot(HtmlTree);
-impl Parse for HtmlRoot {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let html_root = if HtmlTree::peek(input.cursor()).is_some() {
-            HtmlRoot(input.parse()?)
-        } else if HtmlIterable::peek(input.cursor()).is_some() {
-            HtmlRoot(HtmlTree::Iterable(Box::new(input.parse()?)))
-        } else {
-            HtmlRoot(HtmlTree::Node(Box::new(input.parse()?)))
-        };
-
-        if !input.is_empty() {
-            let stream: TokenStream = input.parse()?;
-            Err(syn::Error::new_spanned(
-                stream,
-                "only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)",
-            ))
-        } else {
-            Ok(html_root)
-        }
-    }
-}
-
-impl ToTokens for HtmlRoot {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlRoot(html_tree) = self;
-        html_tree.to_tokens(tokens);
-    }
 }
 
 impl Parse for HtmlTree {
@@ -105,27 +73,117 @@ impl PeekValue<HtmlType> for HtmlTree {
 
 impl ToTokens for HtmlTree {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let node = self.token_stream();
-        tokens.extend(quote! {
-            ::yew::virtual_dom::VNode::from(#node)
-        });
-    }
-}
-
-impl HtmlTree {
-    fn token_stream(&self) -> proc_macro2::TokenStream {
         match self {
             HtmlTree::Empty => HtmlList {
                 children: Vec::new(),
                 key: None,
             }
-            .into_token_stream(),
-            HtmlTree::Component(comp) => comp.into_token_stream(),
-            HtmlTree::Tag(tag) => tag.into_token_stream(),
-            HtmlTree::List(list) => list.into_token_stream(),
-            HtmlTree::Node(node) => node.into_token_stream(),
-            HtmlTree::Iterable(iterable) => iterable.into_token_stream(),
-            HtmlTree::Block(block) => block.into_token_stream(),
+            .to_tokens(tokens),
+            HtmlTree::Component(comp) => comp.to_tokens(tokens),
+            HtmlTree::Tag(tag) => tag.to_tokens(tokens),
+            HtmlTree::List(list) => list.to_tokens(tokens),
+            HtmlTree::Block(block) => block.to_tokens(tokens),
+        }
+    }
+}
+
+pub enum HtmlRoot {
+    Tree(HtmlTree),
+    Iterable(Box<HtmlIterable>),
+    Node(Box<HtmlNode>),
+}
+
+impl Parse for HtmlRoot {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let html_root = if HtmlTree::peek(input.cursor()).is_some() {
+            HtmlRoot::Tree(input.parse()?)
+        } else if HtmlIterable::peek(input.cursor()).is_some() {
+            HtmlRoot::Iterable(Box::new(input.parse()?))
+        } else {
+            HtmlRoot::Node(Box::new(input.parse()?))
+        };
+
+        if !input.is_empty() {
+            let stream: TokenStream = input.parse()?;
+            Err(syn::Error::new_spanned(
+                stream,
+                "only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)",
+            ))
+        } else {
+            Ok(html_root)
+        }
+    }
+}
+
+impl ToTokens for HtmlRoot {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let new_tokens = match self {
+            HtmlRoot::Tree(tree) => tree.to_token_stream(),
+            HtmlRoot::Node(node) => node.to_token_stream(),
+            HtmlRoot::Iterable(iterable) => iterable.to_token_stream(),
+        };
+        tokens.extend(quote! {
+            ::yew::virtual_dom::VNode::from(#new_tokens)
+        });
+    }
+}
+
+pub trait ToChildrenTokens {
+    fn single_child(&self) -> bool;
+
+    fn to_children_tokens(&self, tokens: &mut proc_macro2::TokenStream);
+
+    fn to_children_token_stream(&self) -> proc_macro2::TokenStream {
+        let mut tokens = TokenStream::new();
+        self.to_children_tokens(&mut tokens);
+        tokens
+    }
+}
+
+impl ToChildrenTokens for HtmlTree {
+    fn single_child(&self) -> bool {
+        match self {
+            HtmlTree::Block(block) => block.single_child(),
+            _ => true,
+        }
+    }
+
+    fn to_children_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        match self {
+            HtmlTree::Block(block) => block.to_children_tokens(tokens),
+            other => tokens.extend(quote! {vec![#other]}),
+        }
+    }
+}
+
+struct HtmlChildrenTree(Vec<HtmlTree>);
+
+impl HtmlChildrenTree {
+    fn new() -> Self {
+        Self(Vec::new())
+    }
+    fn parse_child(&mut self, input: ParseStream) -> Result<()> {
+        self.0.push(input.parse()?);
+        Ok(())
+    }
+
+    fn only_single_children(&self) -> bool {
+        self.0.iter().all(ToChildrenTokens::single_child)
+    }
+}
+
+impl ToTokens for HtmlChildrenTree {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let children = &self.0;
+        if self.only_single_children() {
+            tokens.extend(quote! {vec![#(#children),*]});
+        } else {
+            let mut children = children.iter().map(|c| c.to_children_token_stream());
+            // can't fail because otherwise 'only_single_children' would be true.
+            let first = children.next().unwrap();
+            tokens.extend(quote! {
+                (#first).into_iter()#(.chain(#children))*
+            })
         }
     }
 }

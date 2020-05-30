@@ -1,3 +1,4 @@
+use super::ToChildrenTokens;
 use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::TokenStream;
@@ -44,5 +45,18 @@ impl ToTokens for HtmlIterable {
         }};
 
         tokens.extend(new_tokens);
+    }
+}
+
+impl ToChildrenTokens for HtmlIterable {
+    fn single_child(&self) -> bool {
+        false
+    }
+
+    fn to_children_tokens(&self, tokens: &mut TokenStream) {
+        let Self(expr) = self;
+        tokens.extend(quote_spanned! {expr.span()=> {
+            (#expr).into_iter().map(|n| n.into())
+        }});
     }
 }

@@ -86,7 +86,7 @@ impl<IN: Into<OUT>, OUT> From<Vec<IN>> for NodeSeq<IN, OUT> {
     }
 }
 
-impl<IN: Into<OUT>, OUT> IntoIterator for NodeSeq<IN, OUT> {
+impl<IN, OUT> IntoIterator for NodeSeq<IN, OUT> {
     type Item = OUT;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
