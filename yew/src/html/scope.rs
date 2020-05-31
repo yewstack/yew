@@ -166,6 +166,11 @@ impl<COMP: Component> Scope<COMP> {
     ///
     /// Please be aware that currently this method synchronously
     /// schedules a call to the [Component](Component) interface.
+    ///
+    /// If you wish to send messages asynchronously, you should check
+    /// out the `yewtil` crate. It has the `LinkFuture` trait, allowing
+    /// you to call `link.send_future()` to await any `Futures` before
+    /// sending a message.
     pub fn send_message<T>(&self, msg: T)
     where
         T: Into<COMP::Message>,
