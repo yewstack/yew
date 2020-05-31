@@ -115,7 +115,7 @@ impl<COMP: Component> Scope<COMP> {
     /// Mounts a component with `props` to the specified `element` in the DOM.
     pub(crate) fn mount_in_place(
         self,
-        element: Element,
+        parent: Element,
         ancestor: Option<VNode>,
         node_ref: NodeRef,
         props: COMP::Properties,
@@ -124,7 +124,7 @@ impl<COMP: Component> Scope<COMP> {
             ComponentRunnableType::Create,
             Box::new(CreateComponent {
                 state: self.state.clone(),
-                element,
+                parent,
                 ancestor,
                 node_ref,
                 scope: self.clone(),
@@ -227,7 +227,7 @@ type Dirty = bool;
 const DIRTY: Dirty = true;
 
 struct ComponentState<COMP: Component> {
-    element: Element,
+    parent: Element,
     node_ref: NodeRef,
     scope: Scope<COMP>,
     component: Box<COMP>,
@@ -237,7 +237,7 @@ struct ComponentState<COMP: Component> {
 
 impl<COMP: Component> ComponentState<COMP> {
     fn new(
-        element: Element,
+        parent: Element,
         ancestor: Option<VNode>,
         node_ref: NodeRef,
         scope: Scope<COMP>,
@@ -245,7 +245,7 @@ impl<COMP: Component> ComponentState<COMP> {
     ) -> Self {
         let component = Box::new(COMP::create(props, scope.clone()));
         Self {
-            element,
+            parent,
             node_ref,
             scope,
             component,
@@ -260,7 +260,7 @@ where
     COMP: Component,
 {
     state: Shared<Option<ComponentState<COMP>>>,
-    element: Element,
+    parent: Element,
     ancestor: Option<VNode>,
     node_ref: NodeRef,
     scope: Scope<COMP>,
@@ -275,7 +275,7 @@ where
         let mut current_state = self.state.borrow_mut();
         if current_state.is_none() {
             *current_state = Some(ComponentState::new(
-                self.element,
+                self.parent,
                 self.ancestor,
                 self.node_ref,
                 self.scope,
@@ -318,7 +318,7 @@ where
                 let mut root = state.component.render();
                 let last_root = state.last_root.take();
                 if let Some(node) =
-                    root.apply(&state.scope.clone().into(), &state.element, None, last_root)
+                    root.apply(&state.scope.clone().into(), &state.parent, None, last_root)
                 {
                     state.node_ref.set(Some(node));
                 } else if let VNode::VComp(child) = &root {
@@ -377,7 +377,7 @@ where
         if let Some(mut state) = self.state.borrow_mut().take() {
             drop(state.component);
             if let Some(last_frame) = &mut state.last_root {
-                last_frame.detach(&state.element);
+                last_frame.detach(&state.parent);
             }
         }
     }
