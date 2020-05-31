@@ -164,9 +164,8 @@ impl<COMP: Component> Scope<COMP> {
 
     /// Send a message to the component.
     ///
-    /// Please be aware that currently this method
-    /// immediately/synchronously schedules a call to the
-    /// [Component](Component) interface. Check out
+    /// Please be aware that currently this method synchronously
+    /// schedules a call to the [Component](Component) interface.
     pub fn send_message<T>(&self, msg: T)
     where
         T: Into<COMP::Message>,
@@ -180,9 +179,8 @@ impl<COMP: Component> Scope<COMP> {
     /// because the messages are handled together and the view
     /// function is called only once if needed.
     ///
-    /// Please be aware that currently this method
-    /// immediately/synchronously schedules calls to the
-    /// [Component](Component) interface.
+    /// Please be aware that currently this method synchronously
+    /// schedules calls to the [Component](Component) interface.
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
         self.update(ComponentUpdate::MessageBatch(messages), false);
     }
@@ -191,8 +189,8 @@ impl<COMP: Component> Scope<COMP> {
     /// component's update method when invoked.
     ///
     /// Please be aware that currently the result of this callback
-    /// immediately/synchronously schedules a call to the
-    /// [Component](Component) interface.
+    /// synchronously schedules a call to the [Component](Component)
+    /// interface.
     pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
         M: Into<COMP::Message>,
@@ -210,7 +208,7 @@ impl<COMP: Component> Scope<COMP> {
     /// to the linked component's update method when invoked.
     ///
     /// Please be aware that currently the result of this callback
-    /// will immediately/synchronously schedule calls to the
+    /// will synchronously schedule calls to the
     /// [Component](Component) interface.
     pub fn callback_once<F, IN, M>(&self, function: F) -> Callback<IN>
     where
@@ -229,7 +227,7 @@ impl<COMP: Component> Scope<COMP> {
     /// to the linked component's update method when invoked.
     ///
     /// Please be aware that currently the results of these callbacks
-    /// will immediately/synchronously schedule calls to the
+    /// will synchronously schedule calls to the
     /// [Component](Component) interface.
     pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
     where
