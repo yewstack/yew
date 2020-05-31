@@ -175,7 +175,7 @@ impl VDiff for VList {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        _next_sibling: Option<Node>,
+        mut next_sibling: Option<Node>,
         ancestor: Option<VNode>,
     ) -> Option<Node> {
         // Here, we will try to diff the previous list elements with the new
@@ -210,9 +210,9 @@ impl VDiff for VList {
             }
             hash_set.len()
         };
-        let some_keyed = n_keyed_lefts > 0;
-        let all_keyed = self.children.len() == n_keyed_lefts;
-        if some_keyed && !all_keyed {
+        let lefts_some_keyed = n_keyed_lefts > 0;
+        let lefts_all_keyed = self.children.len() == n_keyed_lefts;
+        if lefts_some_keyed && !lefts_all_keyed {
             log::error!(
                 "Not all elements have keys in VList ({} keyed out of {}), this is currently not \
                 supported. Ignoring keys.",
@@ -229,7 +229,7 @@ impl VDiff for VList {
             // Otherwise, there was a node before but it wasn't a list. Then,
             // use the current node as a single fragment list and let the
             // `apply` of `VNode` handle it.
-            Some(vnode) if !some_keyed => vec![vnode],
+            Some(vnode) if !lefts_some_keyed => vec![vnode],
             // Otherwise, we don't reuse it, as the chance that the element
             // is keyed and present in left is almost null.
             Some(mut vnode) => {
@@ -249,19 +249,43 @@ impl VDiff for VList {
         // Determine which algorithm we use. If there are some keys, but not all
         // the elements are keyed, we consider it a degenerated case and use the
         // non-keyed algorithm. Importantly, don't use the keyed algorithm if
-        // rights is empty (no need).
-        let all_rights_have_keys = rights_lookup.len() == rights.len();
+        // rights is empty (no need) or if there are no keys in rights (no need
+        // neither).
         let use_keyed_algorithm =
-            some_keyed && all_keyed && all_rights_have_keys && !rights.is_empty();
+            lefts_all_keyed && !rights.is_empty() && !rights_lookup.is_empty();
+
+        // If there are keys in right but we are not using the keyed algorithm,
+        // then we detach all the rights to be sure to not reuse a keyed
+        // ancestor. We also detach rights if there are some keys but not all
+        // have keys.
+        if (!use_keyed_algorithm && !rights_lookup.is_empty())
+            || (use_keyed_algorithm && rights_lookup.len() != rights.len())
+        {
+            rights.drain(..).for_each(|mut right| {
+                right.detach(parent);
+            });
+        }
 
         // The algorithms are different when there are keys, because it is more
         // expensive and less frequent.
         if !use_keyed_algorithm {
-            let mut rights = rights.into_iter();
+            let mut rights = rights.into_iter().peekable();
+            let mut previous_reconciled_node: Option<Node> = None;
             for left in self.children.iter_mut() {
-                // Discard the returned node, as we are only interested in the
-                // next sibling, not the previous one.
-                let _ = left.apply(parent_scope, parent, None, rights.next());
+                let right = rights.next();
+
+                let ns = next_sibling.take();
+                next_sibling = rights
+                    .peek()
+                    .and_then(|vnode| vnode.reference())
+                    .or_else(|| {
+                        previous_reconciled_node
+                            .as_ref()
+                            .and_then(|node| node.next_sibling())
+                    })
+                    .or(ns);
+                previous_reconciled_node =
+                    left.apply(parent_scope, parent, next_sibling.take(), right);
             }
             for mut right in rights {
                 right.detach(parent);
@@ -319,15 +343,23 @@ impl VDiff for VList {
             // Reconciliation loop, i.e. apply the least amount of
             // transformations to rights to make them identical to lefts.
             let mut matched_rights = matched_rights.into_iter().peekable();
+            let mut previous_reconciled_node = None;
             for left in self.children.iter_mut() {
                 let right = matched_rights.next().unwrap();
 
-                let next_sibling = matched_rights
+                next_sibling = matched_rights
                     .peek()
-                    .and_then(|vnode| vnode.as_ref().and_then(|vnode| vnode.reference()));
-                let _ = left.apply(parent_scope, parent, next_sibling, right);
+                    .and_then(|vnode| vnode.as_ref().and_then(|vnode| vnode.reference()))
+                    .or_else(|| {
+                        previous_reconciled_node
+                            .as_ref()
+                            .and_then(|node: &Node| node.next_sibling())
+                    });
+                previous_reconciled_node =
+                    left.apply(parent_scope, parent, next_sibling.take(), right);
             }
             drop(matched_rights);
+            drop(previous_reconciled_node);
 
             // The remaining items in this map are the vnodes that have not been
             // reused, hence that have been deleted. We just rename the map for
@@ -837,6 +869,53 @@ mod tests {
                 VText::new("b".into()).into(),
             ],
             "acb",
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_non_keyed_from_ancestor_inserting_into_vlist_first_child() {
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                VList::new_with_children(vec![VText::new("1".into()).into()], None).into(),
+                VText::new("after".into()).into(),
+            ],
+            "1after",
+            vec![
+                VList::new_with_children(
+                    vec![VText::new("1".into()).into(), VTag::new("p").into()],
+                    None,
+                )
+                .into(),
+                VText::new("after".into()).into(),
+            ],
+            "1<p></p>after",
+        );
+    }
+
+    #[test]
+    fn vlist_vdiff_keyed_from_ancestor_inserting_into_vlist_first_child() {
+        test_vlist_vdiff_from_ancestor_works(
+            vec![
+                VList::new_with_children(
+                    vec![new_keyed_vtag("i", "i").into()],
+                    Some(Key::from(String::from("VList"))),
+                )
+                .into(),
+                new_keyed_vtag("p", "p").into(),
+            ],
+            "<i></i><p></p>",
+            vec![
+                VList::new_with_children(
+                    vec![
+                        new_keyed_vtag("i", "i").into(),
+                        new_keyed_vtag("e", "e").into(),
+                    ],
+                    Some(Key::from(String::from("VList"))),
+                )
+                .into(),
+                new_keyed_vtag("p", "p").into(),
+            ],
+            "<i></i><e></e><p></p>",
         );
     }
 
