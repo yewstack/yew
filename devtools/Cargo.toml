@@ -1,7 +1,7 @@
 [package]
 name = "devtools"
 version = "0.1.0"
-authors = ["Teymour Aldridge <teymour.aldridge@icloud.com>"]
+authors = ["Yew Maintainers <mainainers@yew.rs>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -10,5 +10,5 @@ edition = "2018"
 structopt = "0.3"
 actix_web="2.0"
 actix_rt="1.0"
-actix="2.0"
+actix="0.9"
 actix_web_actors="2.0"
