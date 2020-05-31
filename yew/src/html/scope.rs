@@ -166,7 +166,7 @@ impl<COMP: Component> Scope<COMP> {
     ///
     /// Please be aware that currently this method
     /// immediately/synchronously schedules a call to the
-    /// [Component](Component) interface. 
+    /// [Component](Component) interface. Check out
     pub fn send_message<T>(&self, msg: T)
     where
         T: Into<COMP::Message>,
@@ -192,7 +192,7 @@ impl<COMP: Component> Scope<COMP> {
     ///
     /// Please be aware that currently the result of this callback
     /// immediately/synchronously schedules a call to the
-    /// [Component](Component) interface. 
+    /// [Component](Component) interface.
     pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
         M: Into<COMP::Message>,
@@ -211,7 +211,7 @@ impl<COMP: Component> Scope<COMP> {
     ///
     /// Please be aware that currently the result of this callback
     /// will immediately/synchronously schedule calls to the
-    /// [Component](Component) interface. 
+    /// [Component](Component) interface.
     pub fn callback_once<F, IN, M>(&self, function: F) -> Callback<IN>
     where
         M: Into<COMP::Message>,
@@ -230,7 +230,7 @@ impl<COMP: Component> Scope<COMP> {
     ///
     /// Please be aware that currently the results of these callbacks
     /// will immediately/synchronously schedule calls to the
-    /// [Component](Component) interface. 
+    /// [Component](Component) interface.
     pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> Vec<COMP::Message> + 'static,
@@ -257,7 +257,7 @@ struct ComponentState<COMP: Component> {
 }
 
 impl<COMP: Component> ComponentState<COMP> {
-    /// Creates a new `ComponentState`, also invokes the `create()` 
+    /// Creates a new `ComponentState`, also invokes the `create()`
     /// method on component to create it.
     fn new(
         element: Element,
@@ -278,9 +278,9 @@ impl<COMP: Component> ComponentState<COMP> {
     }
 }
 
-/// A `Runnable` task which calls the creates the `ComponentState` (if
-/// there is none) and invokes the `create()` method on a `Component`
-/// to create it.
+/// A `Runnable` task which creates the `ComponentState` (if there is
+/// none) and invokes the `create()` method on a `Component` to create
+/// it.
 struct CreateComponent<COMP>
 where
     COMP: Component,

@@ -98,10 +98,9 @@ impl Scheduler {
     }
 
     pub(crate) fn start(&self) {
-        // The lock here is used to prevent recursion. It is assumed
-        // that if the lock here fails to acquire, it is because this
-        // `start()` method is being called recursively in a
-        // `runnable.run()`. 
+        // The lock here is used to prevent recursion. If the lock
+        // here fails to acquire, it is because this `start()` method
+        // is being called recursively in a `runnable.run()`.
         if let Ok(_lock) = self.lock.try_borrow_mut() {
             while let Some(runnable) = self.next_runnable() {
                 runnable.run();
