@@ -18,9 +18,6 @@ cfg_if! {
 pub struct VList {
     /// The list of children nodes.
     pub children: Vec<VNode>,
-    /// Never use a placeholder element if set to true.
-    elide_placeholder: bool,
-
     pub key: Option<Key>,
 }
 
@@ -46,20 +43,7 @@ impl VList {
 
     /// Creates a new `VList` instance with children.
     pub fn new_with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
-        VList {
-            children,
-            elide_placeholder: false,
-            key,
-        }
-    }
-
-    /// Creates a new empty `VList` instance which does not need a placeholder node.
-    pub(crate) fn new_without_placeholder() -> Self {
-        VList {
-            children: Vec::new(),
-            elide_placeholder: true,
-            key: None,
-        }
+        VList { children, key }
     }
 
     /// Add `VNode` child.
@@ -163,12 +147,10 @@ impl VList {
 }
 
 impl VDiff for VList {
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
-        let mut next_sibling = None;
+    fn detach(&mut self, parent: &Element) {
         for mut child in self.children.drain(..) {
-            next_sibling = child.detach(parent);
+            child.detach(parent);
         }
-        next_sibling
     }
 
     fn apply(
@@ -177,7 +159,7 @@ impl VDiff for VList {
         parent: &Element,
         mut next_sibling: Option<Node>,
         ancestor: Option<VNode>,
-    ) -> Option<Node> {
+    ) -> Node {
         // Here, we will try to diff the previous list elements with the new
         // ones we want to insert. For that, we will use two lists:
         //  - lefts: new elements to render in the DOM
@@ -187,10 +169,10 @@ impl VDiff for VList {
         // (self.children). For the right ones, we will look at the ancestor,
         // i.e. the current DOM list element that we want to replace with self.
 
-        if self.children.is_empty() && !self.elide_placeholder {
-            // When the list is empty, without a placeholder the next element
-            // becomes first and corrupts the order of rendering. We use empty
-            // text element to stake out a place.
+        if self.children.is_empty() {
+            // Without a placeholder the next element becomes first
+            // and corrupts the order of rendering
+            // We use empty text element to stake out a place
             let placeholder = VText::new("".into());
             self.children.push(placeholder.into());
         }
@@ -268,6 +250,7 @@ impl VDiff for VList {
 
         // The algorithms are different when there are keys, because it is more
         // expensive and less frequent.
+        let mut first_node = None;
         if !use_keyed_algorithm {
             let mut rights = rights.into_iter().peekable();
             let mut previous_reconciled_node: Option<Node> = None;
@@ -285,12 +268,14 @@ impl VDiff for VList {
                     })
                     .or(ns);
                 previous_reconciled_node =
-                    left.apply(parent_scope, parent, next_sibling.take(), right);
+                    Some(left.apply(parent_scope, parent, next_sibling.take(), right));
+                if first_node.is_none() {
+                    first_node = previous_reconciled_node.clone();
+                }
             }
             for mut right in rights {
                 right.detach(parent);
             }
-            None
         } else {
             // Here, we know that all the left and right elements have keys.
 
@@ -356,7 +341,10 @@ impl VDiff for VList {
                             .and_then(|node: &Node| node.next_sibling())
                     });
                 previous_reconciled_node =
-                    left.apply(parent_scope, parent, next_sibling.take(), right);
+                    Some(left.apply(parent_scope, parent, next_sibling.take(), right));
+                if first_node.is_none() {
+                    first_node = previous_reconciled_node.clone();
+                }
             }
             drop(matched_rights);
             drop(previous_reconciled_node);
@@ -382,9 +370,7 @@ impl VDiff for VList {
                 // Ignore the deleted right vnodes, and those corresponding to
                 // already moved left vnodes.
                 while let Some(key) = right_key.clone() {
-                    if moved.contains(&key) {
-                        right_key = right_keys.next();
-                    } else if deleted_rights.contains_key(&key) {
+                    if moved.contains(&key) || deleted_rights.contains_key(&key) {
                         right_key = right_keys.next();
                     } else {
                         break;
@@ -440,6 +426,9 @@ impl VDiff for VList {
             drop(right_key);
             for (node, next_sibling) in moves.into_iter().rev() {
                 super::insert_node(&node, parent, next_sibling);
+                if first_node.is_none() {
+                    first_node = Some(node);
+                }
             }
 
             // Detach all previously rendered elements that have not been
@@ -454,9 +443,8 @@ impl VDiff for VList {
                 let right = rights.get_mut(not_reused_idx).expect("id must exist");
                 right.detach(parent);
             }
-
-            self.children.last().and_then(|vnode| vnode.reference())
         }
+        first_node.unwrap()
     }
 }
 

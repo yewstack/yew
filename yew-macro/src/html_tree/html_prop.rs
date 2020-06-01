@@ -20,9 +20,15 @@ impl PeekValue<()> for HtmlProp {
 impl Parse for HtmlProp {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let label = input.parse::<HtmlPropLabel>()?;
-        input
+        let equals = input
             .parse::<Token![=]>()
             .map_err(|_| syn::Error::new_spanned(&label, "this prop doesn't have a value"))?;
+        if input.is_empty() {
+            return Err(syn::Error::new_spanned(
+                equals,
+                "expected an expression following this equals sign",
+            ));
+        }
         let value = input.parse::<Expr>()?;
         // backwards compat
         let _ = input.parse::<Token![,]>();

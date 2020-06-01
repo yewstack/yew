@@ -1,8 +1,8 @@
 ---
-name: Bug report
-about: Create a report to help us improve Yew
+name: Bug report [yew-router]
+about: Create a report to help us improve Yew Router
 title: ''
-labels: bug
+labels: bug, router
 assignees: ''
 
 ---
@@ -25,6 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Environment:**
  - Yew version: [e.g. v0.16.2, `master`]
+ - Yew Router version: [e.g. v0.13]
  - Rust version: [e.g. 1.43.0, `nightly`]
  - Target, if relevant: [e.g. `wasm32-unknown-emscripten`]
  - Build tool, if relevant: [e.g. `wasm-pack`, `cargo-web`]

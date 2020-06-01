@@ -1,8 +1,8 @@
 ---
-name: Feature request
+name: Feature request [yew-router]
 about: Suggest an idea for this project
 title: ''
-labels: feature
+labels: feature, router
 assignees: ''
 
 ---

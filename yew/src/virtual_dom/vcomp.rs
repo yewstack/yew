@@ -6,10 +6,11 @@ use crate::utils::document;
 use cfg_if::cfg_if;
 use std::any::TypeId;
 use std::fmt;
+use std::mem::replace;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, INode, Node, TextNode};
+        use stdweb::web::{Element, Node, TextNode};
     } else if #[cfg(feature = "web_sys")] {
         use web_sys::{Element, Node, Text as TextNode};
     }
@@ -119,11 +120,11 @@ impl VComp {
         let node_ref_clone = node_ref.clone();
         let generator = move |generator_type: GeneratorType| -> Mounted {
             match generator_type {
-                GeneratorType::Mount(parent_scope, element, dummy_node) => {
+                GeneratorType::Mount(parent_scope, parent, dummy_node) => {
                     let scope: Scope<COMP> = Scope::new(Some(parent_scope));
 
                     let mut scope = scope.mount_in_place(
-                        element,
+                        parent,
                         Some(VNode::VRef(dummy_node.into())),
                         node_ref_clone.clone(),
                         props.clone(),
@@ -174,20 +175,10 @@ impl Unmounted {
     }
 }
 
-#[derive(Debug)]
-enum Reform {
-    Keep(Mounted),
-    Before(Option<Node>),
-}
-
 impl VDiff for VComp {
-    fn detach(&mut self, _parent: &Element) -> Option<Node> {
-        match core::mem::replace(&mut self.state, MountState::Detached) {
-            MountState::Mounted(this) => {
-                (this.destroyer)();
-                this.node_ref.get().and_then(|n| n.next_sibling())
-            }
-            _ => None,
+    fn detach(&mut self, _parent: &Element) {
+        if let MountState::Mounted(this) = replace(&mut self.state, MountState::Detached) {
+            (this.destroyer)();
         }
     }
 
@@ -197,53 +188,37 @@ impl VDiff for VComp {
         parent: &Element,
         next_sibling: Option<Node>,
         ancestor: Option<VNode>,
-    ) -> Option<Node> {
-        if let MountState::Unmounted(this) =
-            core::mem::replace(&mut self.state, MountState::Mounting)
-        {
-            let reform = match ancestor {
-                Some(VNode::VComp(mut vcomp)) => {
-                    // If the ancestor is a Component of the same type, don't replace, keep the
-                    // old Component but update the properties.
+    ) -> Node {
+        if let MountState::Unmounted(this) = replace(&mut self.state, MountState::Mounting) {
+            if let Some(mut ancestor) = ancestor {
+                if let VNode::VComp(ref mut vcomp) = &mut ancestor {
+                    // If the ancestor is a Component of the same type, don't recreate, keep the
+                    // old Component and update the properties.
                     if self.type_id == vcomp.type_id {
-                        match core::mem::replace(&mut vcomp.state, MountState::Overwritten) {
-                            MountState::Mounted(mounted) => Reform::Keep(mounted),
-                            _ => Reform::Before(next_sibling),
+                        if let MountState::Mounted(mounted) =
+                            replace(&mut vcomp.state, MountState::Overwritten)
+                        {
+                            let node = mounted
+                                .node_ref
+                                .get()
+                                .expect("Component should always have a ref");
+                            // Send properties update when the component is already rendered.
+                            self.state = MountState::Mounted(this.replace(mounted));
+                            return node;
                         }
-                    } else {
-                        Reform::Before(vcomp.detach(parent))
                     }
                 }
-                Some(mut vnode) => Reform::Before(vnode.detach(parent)),
-                None => Reform::Before(next_sibling),
+                ancestor.detach(parent);
             };
 
-            let (mounted, node) = match reform {
-                Reform::Keep(mounted) => {
-                    // Send properties update when the component is already rendered.
-                    let node = mounted
-                        .node_ref
-                        .get()
-                        .expect("mounted VComp must have a node_ref");
-
-                    self.node_ref = mounted.node_ref.clone();
-                    (this.replace(mounted), node)
-                }
-                Reform::Before(next_sibling) => {
-                    let dummy_node = document().create_text_node("");
-                    let node: Node = dummy_node.clone().into();
-
-                    super::insert_node(&dummy_node, parent, next_sibling);
-
-                    let mounted = this.mount(parent_scope.clone(), parent.to_owned(), dummy_node);
-                    (mounted, node)
-                }
-            };
-
+            let dummy_node = document().create_text_node("");
+            let node: Node = dummy_node.clone().into();
+            super::insert_node(&dummy_node, parent, next_sibling);
+            let mounted = this.mount(parent_scope.clone(), parent.to_owned(), dummy_node);
             self.state = MountState::Mounted(mounted);
-            Some(node)
+            node
         } else {
-            None
+            unreachable!("Only unmounted components can be mounted");
         }
     }
 }

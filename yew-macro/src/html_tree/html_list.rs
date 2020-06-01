@@ -28,7 +28,7 @@ impl Parse for HtmlList {
             return match input.parse::<HtmlListClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
                     close,
-                    "this closing tag has no corresponding opening tag",
+                    "this closing fragment has no corresponding opening fragment",
                 )),
                 Err(err) => Err(err),
             };
@@ -38,7 +38,7 @@ impl Parse for HtmlList {
         if !HtmlList::verify_end(input.cursor()) {
             return Err(syn::Error::new_spanned(
                 open,
-                "this opening tag has no corresponding closing tag",
+                "this opening fragment has no corresponding closing fragment",
             ));
         }
 
@@ -62,7 +62,7 @@ impl ToTokens for HtmlList {
         let key = if let Some(key) = &self.key {
             quote_spanned! {key.span() => Some(::yew::virtual_dom::Key::from(#key))}
         } else {
-            quote! {None }
+            quote! {None}
         };
         tokens.extend(quote! {
             ::yew::virtual_dom::VNode::VList(

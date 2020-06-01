@@ -180,31 +180,14 @@ enum Patch<ID, T> {
     Remove(ID),
 }
 
-/// Reform of a node.
-enum Reform {
-    /// Don't create a NEW reference (js Node).
-    ///
-    /// The reference _may still be mutated_.
-    Keep,
-
-    /// Create a new reference (js Node).
-    ///
-    /// The optional `Node` is used to insert the new node in the correct slot
-    /// of the parent.
-    ///
-    /// If it does not exist, the `next_sibling` will be used (see
-    /// `VDiff::apply()`).
-    Before(Option<Node>),
-}
-
 // TODO(#938): What about implementing `VDiff` for `Element`?
 // It would make it possible to include ANY element into the tree.
 // `Ace` editor embedding for example?
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
 pub(crate) trait VDiff {
-    /// Remove self from parent and return the next sibling.
-    fn detach(&mut self, parent: &Element) -> Option<Node>;
+    /// Remove self from parent.
+    fn detach(&mut self, parent: &Element);
 
     /// Scoped diff apply to other tree.
     ///
@@ -221,8 +204,7 @@ pub(crate) trait VDiff {
     /// - `ancestor`: the node that this node will be replacing in the DOM. This
     ///   method will _always_ remove the `ancestor` from the `parent`.
     ///
-    /// Returns the newly inserted element, if there is one (empty VList don't
-    /// have one).
+    /// Returns the newly inserted element.
     ///
     /// ### Internal Behavior Notice:
     ///
@@ -238,21 +220,21 @@ pub(crate) trait VDiff {
         parent: &Element,
         next_sibling: Option<Node>,
         ancestor: Option<VNode>,
-    ) -> Option<Node>;
+    ) -> Node;
 }
 
 #[cfg(feature = "web_sys")]
-fn insert_node(node: &Node, parent: &Element, next_sibling: Option<Node>) -> Node {
+fn insert_node(node: &Node, parent: &Element, next_sibling: Option<Node>) {
     match next_sibling {
         Some(next_sibling) => parent
             .insert_before(&node, Some(&next_sibling))
             .expect("failed to insert tag before next sibling"),
         None => parent.append_child(node).expect("failed to append child"),
-    }
+    };
 }
 
 #[cfg(feature = "std_web")]
-fn insert_node(node: &impl INode, parent: &impl INode, next_sibling: Option<Node>) -> Node {
+fn insert_node(node: &impl INode, parent: &impl INode, next_sibling: Option<Node>) {
     if let Some(next_sibling) = next_sibling {
         parent
             .insert_before(node, &next_sibling)
@@ -260,7 +242,6 @@ fn insert_node(node: &impl INode, parent: &impl INode, next_sibling: Option<Node
     } else {
         parent.append_child(node);
     }
-    node.as_node().clone()
 }
 
 /// Transform properties to the expected type.

@@ -64,18 +64,16 @@ impl VNode {
 
 impl VDiff for VNode {
     /// Remove VNode from parent.
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.detach(parent),
             VNode::VText(ref mut vtext) => vtext.detach(parent),
             VNode::VComp(ref mut vcomp) => vcomp.detach(parent),
             VNode::VList(ref mut vlist) => vlist.detach(parent),
             VNode::VRef(ref node) => {
-                let next_sibling = node.next_sibling();
                 if parent.remove_child(node).is_err() {
                     warn!("Node not found to remove VRef");
                 }
-                next_sibling
             }
         }
     }
@@ -86,7 +84,7 @@ impl VDiff for VNode {
         parent: &Element,
         next_sibling: Option<Node>,
         ancestor: Option<VNode>,
-    ) -> Option<Node> {
+    ) -> Node {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.apply(parent_scope, parent, next_sibling, ancestor),
             VNode::VText(ref mut vtext) => {
@@ -99,9 +97,11 @@ impl VDiff for VNode {
                 vlist.apply(parent_scope, parent, next_sibling, ancestor)
             }
             VNode::VRef(ref mut node) => {
-                let next_sibling = ancestor.map(|mut n| n.detach(parent)).unwrap_or(None);
+                if let Some(mut n) = ancestor {
+                    n.detach(parent)
+                };
                 super::insert_node(node, parent, next_sibling);
-                Some(node.to_owned())
+                node.clone()
             }
         }
     }

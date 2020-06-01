@@ -115,7 +115,7 @@ impl<COMP: Component> Scope<COMP> {
     /// Mounts a component with `props` to the specified `element` in the DOM.
     pub(crate) fn mount_in_place(
         self,
-        element: Element,
+        parent: Element,
         ancestor: Option<VNode>,
         node_ref: NodeRef,
         props: COMP::Properties,
@@ -124,7 +124,7 @@ impl<COMP: Component> Scope<COMP> {
             ComponentRunnableType::Create,
             Box::new(CreateComponent {
                 state: self.state.clone(),
-                element,
+                parent,
                 ancestor,
                 node_ref,
                 scope: self.clone(),
@@ -162,7 +162,10 @@ impl<COMP: Component> Scope<COMP> {
         scheduler().push_comp(ComponentRunnableType::Destroy, Box::new(destroy));
     }
 
-    /// Send a message to the component
+    /// Send a message to the component.
+    ///
+    /// Please be aware that currently this method synchronously
+    /// schedules a call to the [Component](Component) interface.
     pub fn send_message<T>(&self, msg: T)
     where
         T: Into<COMP::Message>,
@@ -172,14 +175,22 @@ impl<COMP: Component> Scope<COMP> {
 
     /// Send a batch of messages to the component.
     ///
-    /// This is useful for reducing re-renders of the components because the messages are handled
-    /// together and the view function is called only once if needed.
+    /// This is useful for reducing re-renders of the components
+    /// because the messages are handled together and the view
+    /// function is called only once if needed.
+    ///
+    /// Please be aware that currently this method synchronously
+    /// schedules calls to the [Component](Component) interface.
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
         self.update(ComponentUpdate::MessageBatch(messages), false);
     }
 
-    /// Creates a `Callback` which will send a message to the linked component's
-    /// update method when invoked.
+    /// Creates a `Callback` which will send a message to the linked
+    /// component's update method when invoked.
+    ///
+    /// Please be aware that currently the result of this callback
+    /// synchronously schedules a call to the [Component](Component)
+    /// interface.
     pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
         M: Into<COMP::Message>,
@@ -193,8 +204,12 @@ impl<COMP: Component> Scope<COMP> {
         closure.into()
     }
 
-    /// Creates a `Callback` from a FnOnce which will send a message to the linked
-    /// component's update method when invoked.
+    /// Creates a `Callback` from a FnOnce which will send a message
+    /// to the linked component's update method when invoked.
+    ///
+    /// Please be aware that currently the result of this callback
+    /// will synchronously schedule calls to the
+    /// [Component](Component) interface.
     pub fn callback_once<F, IN, M>(&self, function: F) -> Callback<IN>
     where
         M: Into<COMP::Message>,
@@ -208,8 +223,12 @@ impl<COMP: Component> Scope<COMP> {
         Callback::once(closure)
     }
 
-    /// Creates a `Callback` which will send a batch of messages back to the linked
-    /// component's update method when invoked.
+    /// Creates a `Callback` which will send a batch of messages back
+    /// to the linked component's update method when invoked.
+    ///
+    /// Please be aware that currently the results of these callbacks
+    /// will synchronously schedule calls to the
+    /// [Component](Component) interface.
     pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> Vec<COMP::Message> + 'static,
@@ -227,7 +246,7 @@ type Dirty = bool;
 const DIRTY: Dirty = true;
 
 struct ComponentState<COMP: Component> {
-    element: Element,
+    parent: Element,
     node_ref: NodeRef,
     scope: Scope<COMP>,
     component: Box<COMP>,
@@ -236,8 +255,10 @@ struct ComponentState<COMP: Component> {
 }
 
 impl<COMP: Component> ComponentState<COMP> {
+    /// Creates a new `ComponentState`, also invokes the `create()`
+    /// method on component to create it.
     fn new(
-        element: Element,
+        parent: Element,
         ancestor: Option<VNode>,
         node_ref: NodeRef,
         scope: Scope<COMP>,
@@ -245,7 +266,7 @@ impl<COMP: Component> ComponentState<COMP> {
     ) -> Self {
         let component = Box::new(COMP::create(props, scope.clone()));
         Self {
-            element,
+            parent,
             node_ref,
             scope,
             component,
@@ -255,12 +276,15 @@ impl<COMP: Component> ComponentState<COMP> {
     }
 }
 
+/// A `Runnable` task which creates the `ComponentState` (if there is
+/// none) and invokes the `create()` method on a `Component` to create
+/// it.
 struct CreateComponent<COMP>
 where
     COMP: Component,
 {
     state: Shared<Option<ComponentState<COMP>>>,
-    element: Element,
+    parent: Element,
     ancestor: Option<VNode>,
     node_ref: NodeRef,
     scope: Scope<COMP>,
@@ -275,7 +299,7 @@ where
         let mut current_state = self.state.borrow_mut();
         if current_state.is_none() {
             *current_state = Some(ComponentState::new(
-                self.element,
+                self.parent,
                 self.ancestor,
                 self.node_ref,
                 self.scope,
@@ -285,6 +309,7 @@ where
     }
 }
 
+/// A `Runnable` task which calls the `update()` method on a `Component`.
 struct UpdateComponent<COMP>
 where
     COMP: Component,
@@ -317,15 +342,15 @@ where
                 state.render_status = state.render_status.map(|_| DIRTY);
                 let mut root = state.component.render();
                 let last_root = state.last_root.take();
-                let new_node =
-                    root.apply(&state.scope.clone().into(), &state.element, None, last_root);
+                let parent_scope = state.scope.clone().into();
+                let node = root.apply(&parent_scope, &state.parent, None, last_root);
                 if let VNode::VComp(child) = &root {
                     // If the root VNode is a VComp, we won't have access to the rendered DOM node
                     // because components render asynchronously. In order to bubble up the DOM node
                     // from the VComp, we need to link the currently rendering component with its
                     // root child component.
                     state.node_ref.link(child.node_ref.clone());
-                } else if let Some(node) = new_node {
+                } else {
                     state.node_ref.set(Some(node));
                 }
                 state.last_root = Some(root);
@@ -334,6 +359,7 @@ where
     }
 }
 
+/// A `Runnable` task which calls the `rendered()` method on a `Component`.
 struct RenderedComponent<COMP>
 where
     COMP: Component,
@@ -362,6 +388,7 @@ where
     }
 }
 
+/// A `Runnable` task which calls the `destroy()` method on a `Component`.
 struct DestroyComponent<COMP>
 where
     COMP: Component,
@@ -377,7 +404,7 @@ where
         if let Some(mut state) = self.state.borrow_mut().take() {
             drop(state.component);
             if let Some(last_frame) = &mut state.last_root {
-                last_frame.detach(&state.element);
+                last_frame.detach(&state.parent);
             }
         }
     }
