@@ -2,7 +2,7 @@
 use super::{VDiff, VNode, VText};
 use crate::html::AnyScope;
 use cfg_if::cfg_if;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::ops::{Deref, DerefMut};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -17,9 +17,6 @@ cfg_if! {
 pub struct VList {
     /// The list of children nodes.
     pub children: Vec<VNode>,
-    /// Never use a placeholder element if set to true.
-    elide_placeholder: bool,
-
     pub key: Option<String>,
 }
 
@@ -45,20 +42,7 @@ impl VList {
 
     /// Creates a new `VList` instance with children.
     pub fn new_with_children(children: Vec<VNode>, key: Option<String>) -> Self {
-        VList {
-            children,
-            elide_placeholder: false,
-            key,
-        }
-    }
-
-    /// Creates a new empty `VList` instance which does not need a placeholder node.
-    pub(crate) fn new_without_placeholder() -> Self {
-        VList {
-            children: Vec::new(),
-            elide_placeholder: true,
-            key: None,
-        }
+        VList { children, key }
     }
 
     /// Add `VNode` child.
@@ -68,23 +52,19 @@ impl VList {
 }
 
 impl VDiff for VList {
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
-        let mut next_sibling = None;
+    fn detach(&mut self, parent: &Element) {
         for mut child in self.children.drain(..) {
-            next_sibling = child.detach(parent);
+            child.detach(parent);
         }
-        next_sibling
     }
 
     fn apply(
         &mut self,
-        scope: &AnyScope,
+        parent_scope: &AnyScope,
         parent: &Element,
-        previous_sibling: Option<&Node>,
+        mut next_sibling: Option<Node>,
         ancestor: Option<VNode>,
-    ) -> Option<Node> {
-        // Reuse previous_sibling, because fragment reuse parent
-        let mut previous_sibling = previous_sibling.cloned();
+    ) -> Node {
         let rights = {
             match ancestor {
                 // If element matched this type
@@ -101,13 +81,14 @@ impl VDiff for VList {
             }
         };
 
-        if self.children.is_empty() && !self.elide_placeholder {
+        if self.children.is_empty() {
             // Without a placeholder the next element becomes first
             // and corrupts the order of rendering
             // We use empty text element to stake out a place
             let placeholder = VText::new("".into());
             self.children.push(placeholder.into());
         }
+
         // Check for lefts to see if there are duplicates and show a warning.
         {
             let mut hash_set = HashSet::with_capacity(self.children.len());
@@ -123,55 +104,22 @@ impl VDiff for VList {
         }
 
         // Process children
-        let lefts = self.children.iter_mut();
-        let key_count = rights.iter().filter(|r| r.key().is_some()).count();
-        let mut rights_nokeys = Vec::with_capacity(rights.len() - key_count);
-        let mut rights_lookup = HashMap::with_capacity(key_count);
-        for mut r in rights.into_iter() {
-            if let Some(key) = r.key() {
-                if rights_lookup.contains_key(key) {
-                    log::error!("Duplicate key of {}", &key);
-                    r.detach(parent);
-                } else {
-                    rights_lookup.insert(key.clone(), r);
-                }
-            } else {
-                rights_nokeys.push(r);
-            }
-        }
-        let mut rights = rights_nokeys.into_iter();
+        let mut lefts = self.children.iter_mut();
+        let mut rights = rights.into_iter();
+
+        let first_left = lefts.next().expect("list should have at least one child");
+        let first_child = first_left.apply(parent_scope, parent, next_sibling, rights.next());
+        next_sibling = Some(first_child.clone());
+
         for left in lefts {
-            if let Some(key) = &left.key() {
-                match rights_lookup.remove(key) {
-                    Some(right) => {
-                        previous_sibling =
-                            left.apply(scope, parent, previous_sibling.as_ref(), Some(right));
-                    }
-                    None => {
-                        previous_sibling =
-                            left.apply(scope, parent, previous_sibling.as_ref(), None);
-                    }
-                }
-            } else {
-                match rights.next() {
-                    Some(right) => {
-                        previous_sibling =
-                            left.apply(scope, parent, previous_sibling.as_ref(), Some(right));
-                    }
-                    None => {
-                        previous_sibling =
-                            left.apply(scope, parent, previous_sibling.as_ref(), None);
-                    }
-                }
-            }
+            next_sibling = Some(left.apply(parent_scope, parent, next_sibling, rights.next()));
         }
+
         for mut right in rights {
             right.detach(parent);
         }
-        for right in rights_lookup.values_mut() {
-            right.detach(parent);
-        }
-        previous_sibling
+
+        first_child
     }
 }
 
