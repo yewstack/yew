@@ -4,6 +4,7 @@ use anyhow::{anyhow, Error};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::marker::PhantomData;
+use yew::html::ChildrenRenderer;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::{Document, Window};
@@ -79,6 +80,15 @@ impl<IN: Into<OUT>, OUT> From<IN> for NodeSeq<IN, OUT> {
 
 impl<IN: Into<OUT>, OUT> From<Vec<IN>> for NodeSeq<IN, OUT> {
     fn from(val: Vec<IN>) -> Self {
+        Self(
+            val.into_iter().map(|x| x.into()).collect(),
+            PhantomData::default(),
+        )
+    }
+}
+
+impl<IN: Into<OUT>, OUT> From<ChildrenRenderer<IN>> for NodeSeq<IN, OUT> {
+    fn from(val: ChildrenRenderer<IN>) -> Self {
         Self(
             val.into_iter().map(|x| x.into()).collect(),
             PhantomData::default(),
