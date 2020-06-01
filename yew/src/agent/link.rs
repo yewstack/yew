@@ -45,10 +45,11 @@ impl<AGN: Agent> AgentLink<AGN> {
     /// Send an input to self
     pub fn send_input<T>(&self, input: T)
     where
-        T: Into<AGN::Input>
+        T: Into<AGN::Input>,
     {
         let handler_id = HandlerId::new(0, false);
-        self.scope.send(AgentLifecycleEvent::Input(input.into(), handler_id));
+        self.scope
+            .send(AgentLifecycleEvent::Input(input.into(), handler_id));
     }
 
     /// Create a callback which will send a message to the agent when invoked.
