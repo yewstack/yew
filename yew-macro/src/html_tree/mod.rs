@@ -18,10 +18,9 @@ use html_prop::HtmlProp;
 use html_prop::HtmlPropSuffix;
 use html_tag::HtmlTag;
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
-use syn::spanned::Spanned;
 
 pub enum HtmlType {
     Block,
@@ -125,35 +124,20 @@ impl ToTokens for HtmlRoot {
     }
 }
 
-pub trait ToChildrenTokens {
-    /// Check if the generated code will only create a single node.
-    fn single_child(&self) -> bool;
-
-    /// The generated code must produce a value that implements IntoIterator.
-    /// The value itself
-    fn to_children_tokens(&self, tokens: &mut TokenStream);
-
-    fn to_children_token_stream(&self) -> TokenStream {
-        let mut tokens = TokenStream::new();
-        self.to_children_tokens(&mut tokens);
-        tokens
-    }
+/// This trait represents a type that can be unfolded into multiple html nodes.
+pub trait ToNodeIterator {
+    /// Generate a token stream which produces a value that implements IntoIterator<Item=T> where T is inferred by the compiler.
+    /// The easiest way to achieve this is to call `.into()` on each element.
+    /// If the resulting iterator only ever yields a single item this function should return None instead.
+    fn to_node_iterator_stream(&self) -> Option<TokenStream>;
 }
 
-impl ToChildrenTokens for HtmlTree {
-    fn single_child(&self) -> bool {
+impl ToNodeIterator for HtmlTree {
+    fn to_node_iterator_stream(&self) -> Option<TokenStream> {
         match self {
-            HtmlTree::Block(block) => block.single_child(),
-            _ => true,
-        }
-    }
-
-    fn to_children_tokens(&self, tokens: &mut TokenStream) {
-        match self {
-            HtmlTree::Block(block) => block.to_children_tokens(tokens),
-            other => {
-                tokens.extend(quote_spanned! {other.span()=> ::std::iter::once((#other).into())})
-            }
+            HtmlTree::Block(block) => block.to_node_iterator_stream(),
+            // everthing else is just a single node.
+            _ => None,
         }
     }
 }
@@ -174,14 +158,20 @@ impl HtmlChildrenTree {
         self.0.is_empty()
     }
 
-    fn only_single_children(&self) -> bool {
-        self.0.iter().all(ToChildrenTokens::single_child)
+    // Check if each child represents a single node.
+    // This is the case when no expressions are used.
+    fn only_single_node_children(&self) -> bool {
+        self.0
+            .iter()
+            .map(ToNodeIterator::to_node_iterator_stream)
+            .all(|s| s.is_none())
     }
 
     pub fn to_build_vec_token_stream(&self) -> TokenStream {
         let Self(children) = self;
 
-        if self.only_single_children() {
+        if self.only_single_node_children() {
+            // optimize for the common case where all children are single nodes (only using literal html).
             return quote! {
                 vec![#((#children).into()),*]
             };
@@ -189,14 +179,13 @@ impl HtmlChildrenTree {
 
         let vec_ident = Ident::new("__yew_v", Span::call_site());
         let add_children_streams = children.iter().map(|child| {
-            if child.single_child() {
+            if let Some(node_iterator_stream) = child.to_node_iterator_stream() {
                 quote! {
-                    #vec_ident.push((#child).into());
+                    #vec_ident.extend(#node_iterator_stream);
                 }
             } else {
-                let children_stream = child.to_children_token_stream();
                 quote! {
-                    #vec_ident.extend(#children_stream);
+                    #vec_ident.push((#child).into());
                 }
             }
         });

@@ -1,4 +1,4 @@
-use super::ToChildrenTokens;
+use super::ToNodeIterator;
 use crate::PeekValue;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
@@ -50,19 +50,14 @@ impl ToTokens for HtmlNode {
     }
 }
 
-impl ToChildrenTokens for HtmlNode {
-    fn single_child(&self) -> bool {
-        matches!(self, HtmlNode::Literal(_))
-    }
-
-    fn to_children_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(match &self {
-            HtmlNode::Literal(lit) => {
-                quote_spanned! {lit.span()=> ::std::iter::once((#lit).into())}
-            }
+impl ToNodeIterator for HtmlNode {
+    fn to_node_iterator_stream(&self) -> Option<TokenStream> {
+        match self {
+            HtmlNode::Literal(_) => None,
             HtmlNode::Expression(expr) => {
-                quote_spanned! {expr.span()=> ::yew::utils::NodeSeq::from(#expr)}
+                // NodeSeq turns both Into<T> and Vec<Into<T>> into IntoIterator<Item = T>
+                Some(quote_spanned! {expr.span()=> ::yew::utils::NodeSeq::from(#expr)})
             }
-        });
+        }
     }
 }

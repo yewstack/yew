@@ -1,6 +1,6 @@
 use super::html_iterable::HtmlIterable;
 use super::html_node::HtmlNode;
-use super::ToChildrenTokens;
+use super::ToNodeIterator;
 use crate::PeekValue;
 use proc_macro2::Delimiter;
 use quote::{quote, quote_spanned, ToTokens};
@@ -51,21 +51,14 @@ impl ToTokens for HtmlBlock {
     }
 }
 
-impl ToChildrenTokens for HtmlBlock {
-    fn single_child(&self) -> bool {
-        match &self.content {
-            BlockContent::Iterable(iterable) => iterable.single_child(),
-            BlockContent::Node(node) => node.single_child(),
-        }
-    }
-
-    fn to_children_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+impl ToNodeIterator for HtmlBlock {
+    fn to_node_iterator_stream(&self) -> Option<proc_macro2::TokenStream> {
         let HtmlBlock { content, brace } = self;
         let new_tokens = match content {
-            BlockContent::Iterable(iterable) => iterable.to_children_token_stream(),
-            BlockContent::Node(node) => node.to_children_token_stream(),
-        };
+            BlockContent::Iterable(iterable) => iterable.to_node_iterator_stream(),
+            BlockContent::Node(node) => node.to_node_iterator_stream(),
+        }?;
 
-        tokens.extend(quote_spanned! {brace.span=> #new_tokens});
+        Some(quote_spanned! {brace.span=> #new_tokens})
     }
 }
