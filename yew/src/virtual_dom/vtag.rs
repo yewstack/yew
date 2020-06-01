@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{Attributes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode};
+use super::{Attributes, Listener, Listeners, Patch, Transformer, VDiff, VList, VNode};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
@@ -96,7 +96,7 @@ impl VTag {
             attributes: Attributes::new(),
             listeners: Vec::new(),
             captured: Vec::new(),
-            children: VList::new_without_placeholder(),
+            children: VList::new(),
             node_ref: NodeRef::default(),
             key: None,
             value: None,
@@ -175,6 +175,46 @@ impl VTag {
     pub fn add_listeners(&mut self, listeners: Vec<Rc<dyn Listener>>) {
         for listener in listeners {
             self.listeners.push(listener);
+        }
+    }
+
+    /// Every render it removes all listeners and attach it back later
+    /// TODO(#943): Compare references of handler to do listeners update better
+    fn recreate_listeners(&mut self, ancestor: &mut Option<Box<Self>>) {
+        if let Some(ancestor) = ancestor.as_mut() {
+            ancestor.captured.clear();
+        }
+
+        let element = self.reference.clone().expect("element expected");
+
+        for listener in self.listeners.drain(..) {
+            let handle = listener.attach(&element);
+            self.captured.push(handle);
+        }
+    }
+
+    fn refresh_value(&mut self) {
+        if let Some(element) = self.reference.as_ref() {
+            if let Some(input) = {
+                cfg_match! {
+                    feature = "std_web" => InputElement::try_from(element.clone()).ok(),
+                    feature = "web_sys" => element.dyn_ref::<InputElement>(),
+                }
+            } {
+                let current_value = cfg_match! {
+                    feature = "std_web" => input.raw_value(),
+                    feature = "web_sys" => input.value(),
+                };
+                self.set_value(&current_value)
+            } else if let Some(tae) = {
+                cfg_match! {
+                    feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
+                    feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
+                }
+            } {
+                let current_value = &tae.value();
+                self.set_value(&current_value)
+            }
         }
     }
 
@@ -340,11 +380,30 @@ impl VTag {
             }
         }
     }
+
+    fn create_element(&self, parent: &Element) -> Element {
+        if self.tag == "svg"
+            || parent
+                .namespace_uri()
+                .map_or(false, |ns| ns == SVG_NAMESPACE)
+        {
+            let namespace = SVG_NAMESPACE;
+            #[cfg(feature = "web_sys")]
+            let namespace = Some(namespace);
+            document()
+                .create_element_ns(namespace, &self.tag)
+                .expect("can't create namespaced element for vtag")
+        } else {
+            document()
+                .create_element(&self.tag)
+                .expect("can't create element for vtag")
+        }
+    }
 }
 
 impl VDiff for VTag {
     /// Remove VTag from parent.
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) {
         let node = self
             .reference
             .take()
@@ -352,150 +411,65 @@ impl VDiff for VTag {
 
         // recursively remove its children
         self.children.detach(&node);
-
-        let next_sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VTag");
         }
-        next_sibling
     }
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an ancestor `VTag`
     /// to compute what to patch in the actual DOM nodes.
     fn apply(
         &mut self,
-        scope: &AnyScope,
+        parent_scope: &AnyScope,
         parent: &Element,
-        previous_sibling: Option<&Node>,
+        next_sibling: Option<Node>,
         ancestor: Option<VNode>,
-    ) -> Option<Node> {
-        assert!(
-            self.reference.is_none(),
-            "reference is ignored so must not be set"
-        );
-        let (reform, mut ancestor) = {
+    ) -> Node {
+        let mut ancestor_tag = ancestor.and_then(|mut ancestor| {
             match ancestor {
-                Some(VNode::VTag(mut vtag)) => {
-                    if self.tag == vtag.tag {
-                        // If tags are equal, preserve the reference that already exists.
-                        self.reference = vtag.reference.take();
-                        if let Some(element) = self.reference.as_ref() {
-                            if let Some(input) = {
-                                cfg_match! {
-                                    feature = "std_web" => InputElement::try_from(element.clone()).ok(),
-                                    feature = "web_sys" => element.dyn_ref::<InputElement>(),
-                                }
-                            } {
-                                let current_value = cfg_match! {
-                                    feature = "std_web" => input.raw_value(),
-                                    feature = "web_sys" => input.value(),
-                                };
-                                vtag.set_value(&current_value)
-                            } else if let Some(tae) = {
-                                cfg_match! {
-                                    feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
-                                    feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
-                                }
-                            } {
-                                vtag.set_value(&tae.value())
-                            }
-                        }
-                        (Reform::Keep, Some(vtag))
-                    } else {
-                        // We have to create a new reference, remove ancestor.
-                        (Reform::Before(vtag.detach(parent)), None)
-                    }
+                // If the ancestor is a tag of the same type, don't recreate, keep the
+                // old tag and update its attributes and children.
+                VNode::VTag(vtag) if self.tag == vtag.tag => Some(vtag),
+                _ => {
+                    ancestor.detach(parent);
+                    None
                 }
-                Some(mut vnode) => {
-                    // It is not a VTag variant we must remove the ancestor.
-                    (Reform::Before(vnode.detach(parent)), None)
-                }
-                None => (Reform::Before(None), None),
             }
-        };
+        });
 
-        // Ensure that `self.reference` exists.
-        //
-        // This can use the previous reference or create a new one.
-        // If we create a new one we must insert it in the correct
-        // place, which we use `next_sibling` or `previous_sibling` for.
-        match reform {
-            Reform::Keep => {}
-            Reform::Before(next_sibling) => {
-                let element = if self.tag == "svg"
-                    || parent
-                        .namespace_uri()
-                        .map_or(false, |ns| ns == SVG_NAMESPACE)
-                {
-                    let namespace = SVG_NAMESPACE;
-                    #[cfg(feature = "web_sys")]
-                    let namespace = Some(namespace);
-                    document()
-                        .create_element_ns(namespace, &self.tag)
-                        .expect("can't create namespaced element for vtag")
-                } else {
-                    document()
-                        .create_element(&self.tag)
-                        .expect("can't create element for vtag")
-                };
-
-                if let Some(next_sibling) = next_sibling {
-                    let next_sibling = &next_sibling;
-                    #[cfg(feature = "web_sys")]
-                    let next_sibling = Some(next_sibling);
-                    parent
-                        .insert_before(&element, next_sibling)
-                        .expect("can't insert tag before next sibling");
-                } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
-                    let next_sibling = &next_sibling;
-                    #[cfg(feature = "web_sys")]
-                    let next_sibling = Some(next_sibling);
-                    parent
-                        .insert_before(&element, next_sibling)
-                        .expect("can't insert tag before next sibling");
-                } else {
-                    #[cfg_attr(
-                        feature = "std_web",
-                        allow(clippy::let_unit_value, unused_variables)
-                    )]
-                    {
-                        let result = parent.append_child(&element);
-                        #[cfg(feature = "web_sys")]
-                        result.expect("can't append node to parent");
-                    }
-                }
-                self.reference = Some(element);
-            }
+        if let Some(ref mut ancestor_tag) = &mut ancestor_tag {
+            // Control the values of inputs and text area elements
+            ancestor_tag.refresh_value();
+            // Preserve the reference that already exists.
+            self.reference = ancestor_tag.reference.take();
+        } else {
+            let element = self.create_element(parent);
+            super::insert_node(&element, parent, next_sibling);
+            self.reference = Some(element);
         }
 
-        self.apply_diffs(&ancestor);
-
-        // Every render it removes all listeners and attach it back later
-        // TODO(#943): Compare references of handler to do listeners update better
-        if let Some(ancestor) = ancestor.as_mut() {
-            ancestor.captured.clear();
-        }
-
-        let element = self.reference.clone().expect("element expected");
-
-        for listener in self.listeners.drain(..) {
-            let handle = listener.attach(&element);
-            self.captured.push(handle);
-        }
+        self.apply_diffs(&ancestor_tag);
+        self.recreate_listeners(&mut ancestor_tag);
 
         // Process children
-        self.children
-            .apply(scope, &element, None, ancestor.map(|a| a.children.into()));
+        let element = self.reference.as_ref().expect("Reference should be set");
+        if !self.children.is_empty() {
+            self.children.apply(
+                parent_scope,
+                element,
+                None,
+                ancestor_tag.map(|a| a.children.into()),
+            );
+        } else if let Some(mut ancestor_tag) = ancestor_tag {
+            ancestor_tag.children.detach(element);
+        }
 
-        let node = self.reference.as_ref().map(|e| {
-            let node = cfg_match! {
-                feature = "std_web" => e.as_node(),
-                feature = "web_sys" => e.deref(),
-            };
-            node.to_owned()
-        });
-        self.node_ref.set(node.clone());
-        node
+        let node = cfg_match! {
+            feature = "std_web" => element.as_node(),
+            feature = "web_sys" => element.deref(),
+        };
+        self.node_ref.set(Some(node.clone()));
+        node.clone()
     }
 }
 

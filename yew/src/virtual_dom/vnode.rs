@@ -45,59 +45,44 @@ impl VNode {
 
 impl VDiff for VNode {
     /// Remove VNode from parent.
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.detach(parent),
             VNode::VText(ref mut vtext) => vtext.detach(parent),
             VNode::VComp(ref mut vcomp) => vcomp.detach(parent),
             VNode::VList(ref mut vlist) => vlist.detach(parent),
             VNode::VRef(ref node) => {
-                let sibling = node.next_sibling();
                 if parent.remove_child(node).is_err() {
                     warn!("Node not found to remove VRef");
                 }
-                sibling
             }
         }
     }
 
     fn apply(
         &mut self,
-        scope: &AnyScope,
+        parent_scope: &AnyScope,
         parent: &Element,
-        previous_sibling: Option<&Node>,
+        next_sibling: Option<Node>,
         ancestor: Option<VNode>,
-    ) -> Option<Node> {
+    ) -> Node {
         match *self {
-            VNode::VTag(ref mut vtag) => vtag.apply(scope, parent, previous_sibling, ancestor),
-            VNode::VText(ref mut vtext) => vtext.apply(scope, parent, previous_sibling, ancestor),
-            VNode::VComp(ref mut vcomp) => vcomp.apply(scope, parent, previous_sibling, ancestor),
-            VNode::VList(ref mut vlist) => vlist.apply(scope, parent, previous_sibling, ancestor),
+            VNode::VTag(ref mut vtag) => vtag.apply(parent_scope, parent, next_sibling, ancestor),
+            VNode::VText(ref mut vtext) => {
+                vtext.apply(parent_scope, parent, next_sibling, ancestor)
+            }
+            VNode::VComp(ref mut vcomp) => {
+                vcomp.apply(parent_scope, parent, next_sibling, ancestor)
+            }
+            VNode::VList(ref mut vlist) => {
+                vlist.apply(parent_scope, parent, next_sibling, ancestor)
+            }
             VNode::VRef(ref mut node) => {
-                let sibling = match ancestor {
-                    Some(mut n) => n.detach(parent),
-                    None => None,
+                if let Some(mut n) = ancestor {
+                    n.detach(parent)
                 };
-                if let Some(sibling) = sibling {
-                    let sibling = &sibling;
-                    #[cfg(feature = "web_sys")]
-                    let sibling = Some(sibling);
-                    parent
-                        .insert_before(node, sibling)
-                        .expect("can't insert element before sibling");
-                } else {
-                    #[cfg_attr(
-                        feature = "std_web",
-                        allow(clippy::let_unit_value, unused_variables)
-                    )]
-                    {
-                        let result = parent.append_child(node);
-                        #[cfg(feature = "web_sys")]
-                        result.expect("can't append node to parent");
-                    }
-                }
-
-                Some(node.to_owned())
+                super::insert_node(node, parent, next_sibling);
+                node.clone()
             }
         }
     }
