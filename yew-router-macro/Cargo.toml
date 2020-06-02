@@ -5,7 +5,7 @@ authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
 description = "Contains macros used with yew-router"
-repository = "https://github.com/yewstack/yew_router"
+repository = "https://github.com/yewstack/yew"
 
 [lib]
 proc-macro = true

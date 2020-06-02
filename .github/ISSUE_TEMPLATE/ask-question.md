@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 <!-- Please limit issues to one question or a theme of a few closely related questions -->
-<!-- If you're really stuck, feel free chat with us in https://gitter.im/yewframework/Lobby -->
+<!-- If you're really stuck, feel free chat with us on our Discord server: https://discord.gg/VQck8X4 -->
 
 #### Question
 

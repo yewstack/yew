@@ -53,6 +53,15 @@ impl<COMP: Component> Clone for VChild<COMP> {
     }
 }
 
+impl<COMP: Component> PartialEq for VChild<COMP>
+where
+    COMP::Properties: PartialEq,
+{
+    fn eq(&self, other: &VChild<COMP>) -> bool {
+        self.props == other.props
+    }
+}
+
 impl<COMP> VChild<COMP>
 where
     COMP: Component,
@@ -111,11 +120,11 @@ impl VComp {
         let node_ref_clone = node_ref.clone();
         let generator = move |generator_type: GeneratorType| -> Mounted {
             match generator_type {
-                GeneratorType::Mount(parent_scope, element, dummy_node) => {
+                GeneratorType::Mount(parent_scope, parent, dummy_node) => {
                     let scope: Scope<COMP> = Scope::new(Some(parent_scope));
 
                     let mut scope = scope.mount_in_place(
-                        element,
+                        parent,
                         Some(VNode::VRef(dummy_node.into())),
                         node_ref_clone.clone(),
                         props.clone(),
@@ -129,10 +138,10 @@ impl VComp {
                 }
                 GeneratorType::Overwrite(any_scope) => {
                     let mut scope: Scope<COMP> = any_scope.downcast();
-                    scope.update(ComponentUpdate::Properties(
-                        props.clone(),
-                        node_ref_clone.clone(),
-                    ));
+                    scope.update(
+                        ComponentUpdate::Properties(props.clone(), node_ref_clone.clone()),
+                        false,
+                    );
 
                     Mounted {
                         node_ref: node_ref_clone.clone(),
@@ -325,8 +334,9 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 
 #[cfg(test)]
 mod tests {
+    use super::VChild;
     use crate::macros::Properties;
-    use crate::{html, Component, ComponentLink, Html, ShouldRender};
+    use crate::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
@@ -390,5 +400,39 @@ mod tests {
         html! {
             <Comp with props />
         };
+    }
+
+    #[test]
+    fn vchild_partialeq() {
+        let vchild1: VChild<Comp> = VChild::new(
+            Props {
+                field_1: 1,
+                field_2: 1,
+            },
+            NodeRef::default(),
+            None,
+        );
+
+        let vchild2: VChild<Comp> = VChild::new(
+            Props {
+                field_1: 1,
+                field_2: 1,
+            },
+            NodeRef::default(),
+            None,
+        );
+
+        let vchild3: VChild<Comp> = VChild::new(
+            Props {
+                field_1: 2,
+                field_2: 2,
+            },
+            NodeRef::default(),
+            None,
+        );
+
+        assert_eq!(vchild1, vchild2);
+        assert_ne!(vchild1, vchild3);
+        assert_ne!(vchild2, vchild3);
     }
 }

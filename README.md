@@ -11,7 +11,7 @@
     <a href="https://crates.io/crates/yew"><img alt="Crate Info" src="https://img.shields.io/crates/v/yew.svg"/></a>
     <a href="https://docs.rs/yew/"><img alt="API Docs" src="https://img.shields.io/badge/docs.rs-yew-green"/></a>
     <a href="https://discord.gg/VQck8X4"><img alt="Discord Chat" src="https://img.shields.io/discord/701068342760570933"/></a>
-    <a href="https://blog.rust-lang.org/2019/12/19/Rust-1.40.0.html"><img alt="Rustc Version 1.40+" src="https://img.shields.io/badge/rustc-1.40+-lightgray.svg"/></a>
+    <a href="https://blog.rust-lang.org/2020/03/12/Rust-1.42.html"><img alt="Rustc Version 1.42+" src="https://img.shields.io/badge/rustc-1.42%2B-lightgrey.svg"/></a>
     <a href="https://github.com/jetli/awesome-yew"><img alt="Yew Awesome" src="https://raw.githubusercontent.com/sindresorhus/awesome/master/media/badge.svg"/></a>
   </p>
 
@@ -22,7 +22,7 @@
     <span> | </span>
     <a href="https://github.com/yewstack/yew/blob/master/CHANGELOG.md">Changelog</a>
     <span> | </span>
-    <a href="https://yew.rs/docs/roadmap">Roadmap</a>
+    <a href="https://yew.rs/docs/more/roadmap">Roadmap</a>
     <span> | </span>
     <a href="https://yew.rs/docs/v/zh_cn/">简体中文文档</a>
     <span> | </span>

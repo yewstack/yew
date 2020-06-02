@@ -77,9 +77,10 @@ pub trait Dispatchable {}
 impl<T> Dispatched for T
 where
     T: Agent,
+    <T as Agent>::Reach: Discoverer<Agent = T>,
     <T as Agent>::Reach: Dispatchable,
 {
     fn dispatcher() -> Dispatcher<T> {
-        Dispatcher(Self::Reach::spawn_or_join::<T>(None))
+        Dispatcher(Self::Reach::spawn_or_join(None))
     }
 }

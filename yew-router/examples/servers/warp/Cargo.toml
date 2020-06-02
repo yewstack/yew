@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 warp = "0.2.2"
 tokio = {version = "0.2.19", features = ["macros"]}
+
+[workspace]

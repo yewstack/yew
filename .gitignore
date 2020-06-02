@@ -3,4 +3,5 @@ target
 Cargo.lock
 orig.*
 /.idea
+/.vscode
 /cmake-build-debug
