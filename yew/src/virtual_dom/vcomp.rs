@@ -336,7 +336,7 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 mod tests {
     use super::VChild;
     use crate::macros::Properties;
-    use crate::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
+    use crate::{html, Children, Component, ComponentLink, Html, NodeRef, ShouldRender};
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
@@ -436,46 +436,38 @@ mod tests {
         assert_ne!(vchild2, vchild3);
     }
 
-    #[test]
+    #[derive(Clone, Properties)]
+    pub struct ListProps {
+        pub children: Children,
+    }
+    pub struct List(ListProps);
+    impl Component for List {
+        type Message = ();
+        type Properties = ListProps;
+
+        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+            Self(props)
+        }
+        fn update(&mut self, _: Self::Message) -> ShouldRender {
+            unimplemented!();
+        }
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+            unimplemented!();
+        }
+        fn view(&self) -> Html {
+            let item_iter = self.0.children.iter().map(|item| html! {<li>{ item }</li>});
+            html! {
+                <ul>{ for item_iter }</ul>
+            }
+        }
+    }
+
     #[cfg(feature = "web_sys")]
-    /// Test is only run for web_sys because it's a lot easier to test.
-    /// It tests the behaviour of the virtual dom so there won't be a difference between stdweb and web_sys.
-    fn children_blocks_produce_same_results() {
-        use super::{AnyScope, VDiff};
-        use crate::{utils::document, Children};
+    use super::{AnyScope, Element};
 
-        #[derive(Clone, Properties)]
-        struct Props {
-            children: Children,
-        }
-        struct List(Props);
-        impl Component for List {
-            type Message = ();
-            type Properties = Props;
-
-            fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-                Self(props)
-            }
-
-            fn update(&mut self, _: Self::Message) -> ShouldRender {
-                unimplemented!();
-            }
-
-            fn change(&mut self, _: Self::Properties) -> ShouldRender {
-                unimplemented!();
-            }
-
-            fn view(&self) -> Html {
-                let item_iter = self.0.children.iter().map(|item| html! {<li>{ item }</li>});
-                html! {
-                    <ul>{ for item_iter }</ul>
-                }
-            }
-        }
-        let children: Vec<_> = vec!["a", "b", "c"]
-            .drain(..)
-            .map(|text| html! {<span>{ text }</span>})
-            .collect();
+    #[cfg(feature = "web_sys")]
+    fn setup_parent() -> (AnyScope, Element) {
+        use crate::utils::document;
 
         let scope = AnyScope {
             type_id: std::any::TypeId::of::<()>(),
@@ -486,33 +478,64 @@ mod tests {
 
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut direct_method = html! {
-            <List>
-                { children.clone() }
-            </List>
-        };
-        direct_method.apply(&scope, &parent, None, None);
-        let direct_html = parent.inner_html();
-        assert_eq!(
-            direct_html,
-            "<ul>\
-                <li><span>a</span></li>\
-                <li><span>b</span></li>\
-                <li><span>c</span></li>\
-            </ul>"
-        );
+        (scope, parent)
+    }
+
+    #[cfg(feature = "web_sys")]
+    fn get_html(mut node: Html, scope: &AnyScope, parent: &Element) -> String {
+        use super::VDiff;
 
         // clear parent
         parent.set_inner_html("");
 
-        let mut for_method = html! {
+        node.apply(&scope, &parent, None, None);
+        parent.inner_html()
+    }
+
+    #[test]
+    #[cfg(feature = "web_sys")]
+    fn all_ways_of_passing_children_work() {
+        let (scope, parent) = setup_parent();
+
+        let children: Vec<_> = vec!["a", "b", "c"]
+            .drain(..)
+            .map(|text| html! {<span>{ text }</span>})
+            .collect();
+        let children_renderer = Children::new(children.clone());
+        let expected_html = "\
+        <ul>\
+            <li><span>a</span></li>\
+            <li><span>b</span></li>\
+            <li><span>c</span></li>\
+        </ul>";
+
+        let prop_method = html! {
+            <List children=children_renderer.clone()/>
+        };
+        assert_eq!(get_html(prop_method, &scope, &parent), expected_html);
+
+        let children_renderer_method = html! {
+            <List>
+                { children_renderer.clone() }
+            </List>
+        };
+        assert_eq!(
+            get_html(children_renderer_method, &scope, &parent),
+            expected_html
+        );
+
+        let direct_method = html! {
+            <List>
+                { children.clone() }
+            </List>
+        };
+        assert_eq!(get_html(direct_method, &scope, &parent), expected_html);
+
+        let for_method = html! {
             <List>
                 { for children }
             </List>
         };
-        for_method.apply(&scope, &parent, None, None);
-        let for_html = parent.inner_html();
-
-        assert_eq!(direct_html, for_html)
+        assert_eq!(get_html(for_method, &scope, &parent), expected_html);
     }
 }
