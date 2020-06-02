@@ -4,15 +4,14 @@ A utility crate for the [Yew](https://github.com/yewstack/yew) frontend web fram
 > This crate used to contain a domain specific language which made it possible to create components without use of the `html!` macro, but this has now been moved into a different crate ([`yew-dsl`](https://github.com/yewstack/yew/tree/master/yew-dsl)).
 
 ## Purpose
-Provide a place for commonly used utilities for Yew to reside having to include them in the core Yew crate.
+Provide a place for commonly used utilities for Yew to reside without having to include them in the core Yew crate.
 As a consequence of this, the Yew crate is free to make changes that may cause breakages in this crate.
 
 ## Features
 Currently, this crate supports these features in a stable capacity:
 * `NeqAssign` - makes assigning props and returning a relevant ShouldRender value easier.
-* Pure Components - implement pure components using the `PureComponent` trait and the `Pure` Component adaptor. 
-This should make it much easier to define simple components that don't hold state.
-  * Function components - a macro that takes a function that returns `Html` and converts it to a pure component.
+* ~Pure Components - implement pure components using the `PureComponent` trait and the `Pure` Component adaptor.~
+  * ~Function components - a macro that takes a function that returns `Html` and converts it to a pure component.~
 * `Mrc`/`Irc` smart pointers - Rc-like pointers that are more ergonomic to use within Yew.
 * `History` - A wrapper that holds the history of values that have been assigned to it.
 * `Effect` - A way to update component state by defining what to change inside of `html!` callbacks

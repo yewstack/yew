@@ -1,6 +1,6 @@
 [package]
 name = "yewtil"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
 description = "Utility crate for Yew"
@@ -10,12 +10,19 @@ readme = "Readme.md"
 
 [features]
 default = ["stable"] # Only stable is included by default.
-all = ["stable", "experimental"]
+all = ["stable", "experimental", "soft_depricated"]
 
 # Broad features
-## All features MUST be stable or experimental
-stable = ["neq", "pure", "history", "mrc_irc", "effect", "future", "store"]
-experimental = ["dsl", "lrc", "with_callback", "fetch"]
+## All features MUST be stable or experimental or soft_depricated
+stable = ["neq", "history", "mrc_irc", "future", "store"]
+experimental = [ "fetch"]
+# The next release intends to remove these features
+# Please open an issue if removal of any of these would affect your project.
+soft_depricated = [
+    "pure", # Made redundant by yew hooks
+    "effect", # Made redundant by yew hooks
+    "lrc", # Just plain wacky
+]
 
 # Some pointers are stable, some experimental.
 # This makes sure you get all the pointers
@@ -24,9 +31,7 @@ ptr = ["lrc", "mrc_irc"]
 # Misc features
 neq = []
 pure = ["neq", "yewtil-macro"]
-with_callback = []
 history = []
-dsl = []
 effect = []
 fetch = ["serde", "serde_json", "neq", "future", "web-sys"]
 future = ["wasm-bindgen-futures", "wasm-bindgen", "futures"]
@@ -43,8 +48,8 @@ serde = {version= "1.0.102", optional = true}
 serde_json = { version = "1.0.41", optional = true }
 wasm-bindgen = {version = "0.2.51", features=["serde-serialize"], optional = true}
 wasm-bindgen-futures = {version = "0.4.3", optional = true}
-yew = { path = "../yew" }
-yewtil-macro = { path = "../yewtil-macro", optional = true }
+yew = { version = "0.16.0", path = "../yew" }
+yewtil-macro = { version = "0.1.0", path = "../yewtil-macro", optional = true }
 
 [dependencies.stdweb]
 version = "0.4.20"
