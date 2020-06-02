@@ -40,9 +40,9 @@ impl Parse for HtmlIterable {
 impl ToTokens for HtmlIterable {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let expr = &self.0;
-        let new_tokens = quote_spanned! {expr.span()=> {
-            (#expr).into_iter().collect::<::yew::virtual_dom::VNode>()
-        }};
+        let new_tokens = quote_spanned! {expr.span()=>
+            ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(::std::iter::IntoIterator::into_iter(#expr))
+        };
 
         tokens.extend(new_tokens);
     }
@@ -54,7 +54,7 @@ impl ToNodeIterator for HtmlIterable {
         // #expr can return anything that implements IntoIterator<Item=Into<T>>
         // so we generate some extra code to turn it into IntoIterator<Item=T>
         Some(quote_spanned! {expr.span()=>
-             (#expr).into_iter().map(|n| n.into())
+            ::std::iter::Iterator::map(::std::iter::IntoIterator::into_iter(#expr), |n| n.into())
         })
     }
 }
