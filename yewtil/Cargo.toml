@@ -10,22 +10,16 @@ readme = "Readme.md"
 
 [features]
 default = ["stable"] # Only stable is included by default.
-all = ["stable", "experimental", "soft_depricated"]
+all = ["stable", "experimental"]
 
 # Broad features
 ## All features MUST be stable or experimental or soft_depricated
 stable = ["neq", "history", "mrc_irc", "future", "store"]
-experimental = [ "fetch"]
-# The next release intends to remove these features
-# Please open an issue if removal of any of these would affect your project.
-soft_depricated = [
-    "pure", # Made redundant by yew hooks
-    "effect", # Made redundant by yew hooks
-    "lrc", # Just plain wacky
-]
+experimental = ["fetch", "pure", "effect", "lrc"]
+
 
 # Some pointers are stable, some experimental.
-# This makes sure you get all the pointers
+# This feature pulls in all pointer types.
 ptr = ["lrc", "mrc_irc"]
 
 # Misc features

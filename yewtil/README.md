@@ -10,16 +10,18 @@ As a consequence of this, the Yew crate is free to make changes that may cause b
 ## Features
 Currently, this crate supports these features in a stable capacity:
 * `NeqAssign` - makes assigning props and returning a relevant ShouldRender value easier.
-* ~Pure Components - implement pure components using the `PureComponent` trait and the `Pure` Component adaptor.~
-  * ~Function components - a macro that takes a function that returns `Html` and converts it to a pure component.~
+* Pure Components - implement pure components using the `PureComponent` trait and the `Pure` Component adaptor. (Deprecated)
+  * Function components - a macro that takes a function that returns `Html` and converts it to a pure component. (Deprecated)
 * `Mrc`/`Irc` smart pointers - Rc-like pointers that are more ergonomic to use within Yew.
 * `History` - A wrapper that holds the history of values that have been assigned to it.
 * `Effect` - A way to update component state by defining what to change inside of `html!` callbacks
- instead of handling messages in `Component::update()`.
+ instead of handling messages in `Component::update()`. (Deprecated)
+
 
 This crate also has feature flags which will enable the following **experimental** features:
 * `Lrc` smart pointer - an Rc-like pointer implemented on top of a linked list which allows for novel state update mechanics 
 and traversal over linked shared pointers. <sup><sub>(This needs to be fuzz tested to make sure it doesn't leak.)</sub></sup>
+(Deprecated)
 
 These experimental features are either not sufficiently vetted and may change significantly or be removed.
 
