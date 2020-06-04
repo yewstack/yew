@@ -35,9 +35,17 @@ pub enum VNode {
 impl From<&VNode> for Node {
     fn from(vnode: &VNode) -> Self {
         match vnode {
-            VNode::VTag(vtag) => vtag.reference.as_ref().unwrap().clone().into(),
+            VNode::VTag(vtag) => vtag
+                .reference
+                .as_ref()
+                .expect("VTag should always wrap a node")
+                .clone()
+                .into(),
             VNode::VText(vtext) => {
-                let text_node = vtext.reference.as_ref().unwrap();
+                let text_node = vtext
+                    .reference
+                    .as_ref()
+                    .expect("VText should always wrap a node");
                 cfg_match! {
                     feature = "std_web" => text_node.as_node(),
                     feature = "web_sys" => text_node.clone().into(),
