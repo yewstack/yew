@@ -61,7 +61,7 @@ impl VDiff for VText {
                 let text_node = self
                     .reference
                     .clone()
-                    .expect("text node should have reference");
+                    .expect("Rendered VText nodes should have a ref");
                 if self.text != vtext.text {
                     text_node.set_node_value(Some(&self.text));
                 }

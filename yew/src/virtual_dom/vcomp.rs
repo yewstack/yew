@@ -201,7 +201,7 @@ impl VDiff for VComp {
                             let node = mounted
                                 .node_ref
                                 .get()
-                                .expect("Component should always have a ref");
+                                .expect("Mounted components should always have a ref");
                             // Send properties update when the component is already rendered.
                             self.state = MountState::Mounted(this.replace(mounted));
                             return node;

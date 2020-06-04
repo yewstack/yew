@@ -107,7 +107,7 @@ impl VDiff for VList {
         let mut lefts = self.children.iter_mut();
         let mut rights = rights.into_iter();
 
-        let first_left = lefts.next().expect("list should have at least one child");
+        let first_left = lefts.next().expect("VList should have at least one child");
         let first_child = first_left.apply(parent_scope, parent, next_sibling, rights.next());
         next_sibling = Some(first_child.clone());
 
