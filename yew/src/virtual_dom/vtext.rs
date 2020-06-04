@@ -52,10 +52,10 @@ impl VDiff for VText {
         &mut self,
         _parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: Option<Node>,
+        mut next_sibling: Option<Node>,
         ancestor: Option<VNode>,
     ) -> Node {
-        if let Some(mut ancestor) = ancestor {
+        let _ancestor = if let Some(ancestor) = ancestor {
             if let VNode::VText(mut vtext) = ancestor {
                 self.reference = vtext.reference.take();
                 let text_node = self
@@ -68,8 +68,11 @@ impl VDiff for VText {
                 return text_node.into();
             }
 
-            ancestor.detach(parent);
-        }
+            next_sibling = Some((&ancestor).into());
+            Some(super::DelayDetach { ancestor, parent })
+        } else {
+            None
+        };
 
         let text_node = document().create_text_node(&self.text);
         super::insert_node(&text_node, parent, next_sibling);

@@ -176,6 +176,18 @@ enum Patch<ID, T> {
     Remove(ID),
 }
 
+/// Delay detachment of ancestors until after inserting new nodes
+struct DelayDetach<'a> {
+    ancestor: VNode,
+    parent: &'a Element,
+}
+
+impl Drop for DelayDetach<'_> {
+    fn drop(&mut self) {
+        self.ancestor.detach(self.parent);
+    }
+}
+
 // TODO(#938): What about implementing `VDiff` for `Element`?
 // It would make it possible to include ANY element into the tree.
 // `Ace` editor embedding for example?

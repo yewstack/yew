@@ -186,11 +186,11 @@ impl VDiff for VComp {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: Option<Node>,
+        mut next_sibling: Option<Node>,
         ancestor: Option<VNode>,
     ) -> Node {
         if let MountState::Unmounted(this) = replace(&mut self.state, MountState::Mounting) {
-            if let Some(mut ancestor) = ancestor {
+            let _ancestor = if let Some(mut ancestor) = ancestor {
                 if let VNode::VComp(ref mut vcomp) = &mut ancestor {
                     // If the ancestor is a Component of the same type, don't recreate, keep the
                     // old Component and update the properties.
@@ -208,7 +208,11 @@ impl VDiff for VComp {
                         }
                     }
                 }
-                ancestor.detach(parent);
+
+                next_sibling = Some((&ancestor).into());
+                Some(super::DelayDetach { ancestor, parent })
+            } else {
+                None
             };
 
             let dummy_node = document().create_text_node("");

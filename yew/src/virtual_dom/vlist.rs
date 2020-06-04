@@ -110,7 +110,7 @@ impl VDiff for VList {
         let children_len = self.children.len();
 
         // Detach rights until length equals lefts.len()
-        let mut rights = ancestor_children.into_iter();
+        let mut rights = ancestor_children.into_iter().rev();
         let extra_rights = ancestor_len.saturating_sub(children_len);
         for _ in 0..extra_rights {
             rights.next().unwrap().detach(parent);
@@ -139,21 +139,31 @@ impl VDiff for VList {
 
 #[cfg(test)]
 mod tests {
-    use crate::{html, Component, ComponentLink, Html, ShouldRender};
+    use super::{Element, Node};
+    use crate::html::{AnyScope, Scope};
+    use crate::prelude::*;
+    use crate::virtual_dom::{VChild, VDiff, VList, VNode, VTag, VText};
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
-    struct Comp;
+    struct Comp {
+        props: CompProps,
+    }
+
+    #[derive(Properties, Clone)]
+    struct CompProps {
+        inner: Html,
+    }
 
     impl Component for Comp {
         type Message = ();
-        type Properties = ();
+        type Properties = CompProps;
 
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Comp
+        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+            Comp { props }
         }
 
         fn update(&mut self, _: Self::Message) -> ShouldRender {
@@ -161,11 +171,11 @@ mod tests {
         }
 
         fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
+            true
         }
 
         fn view(&self) -> Html {
-            unimplemented!();
+            self.props.inner.clone()
         }
     }
 
@@ -180,5 +190,108 @@ mod tests {
                 { fragment }
             </div>
         };
+    }
+
+    #[cfg(feature = "web_sys")]
+    fn inner_html(element: &Element) -> String {
+        element.inner_html()
+    }
+
+    #[cfg(feature = "std_web")]
+    fn inner_html(element: &Element) -> String {
+        use stdweb::unstable::TryInto;
+        use stdweb::web::{HtmlElement, IHtmlElement};
+        let html_element: HtmlElement = element
+            .clone()
+            .try_into()
+            .expect("Failed to convert element into HtmlElement");
+        html_element.inner_text()
+    }
+
+    #[test]
+    fn vlist_vdiff_apply_non_keyed_from_none_works_with_all_vnode_types_as_children() {
+        let scheduler = yew::scheduler::scheduler();
+
+        let vchild_with_tag: VChild<Comp> = VChild::new(
+            CompProps {
+                inner: html! { <p>{0}</p> },
+            },
+            NodeRef::default(),
+            None,
+        );
+
+        let vchild_with_list: VChild<Comp> = VChild::new(
+            CompProps {
+                inner: html! { <>{"(list)"}</> },
+            },
+            NodeRef::default(),
+            None,
+        );
+
+        let vchild_with_comp: VChild<Comp> = VChild::new(
+            CompProps {
+                inner: html! { <Comp inner=html!{ "COMP" } /> },
+            },
+            NodeRef::default(),
+            None,
+        );
+
+        let vchild_empty: VChild<Comp> =
+            VChild::new(CompProps { inner: html! {} }, NodeRef::default(), None);
+
+        let vref_element: Element = crate::utils::document().create_element("i").unwrap();
+        let vref_node: Node = vref_element.clone().into();
+        let mut vlist = VList::new_with_children(
+            vec![
+                VNode::VText(VText::new("a".into())),
+                VNode::VTag(Box::new(VTag::new("span"))),
+                VNode::VText(VText::new("c".into())),
+                VNode::VComp(vchild_with_list.into()),
+                VNode::VText(VText::new("d".into())),
+                VNode::VComp(vchild_with_tag.into()),
+                VNode::VComp(vchild_empty.into()),
+                VNode::VList(VList::new_with_children(
+                    vec![
+                        VNode::VText(VText::new("foo".into())),
+                        VNode::VComp(vchild_with_comp.into()),
+                        VNode::VText(VText::new("bar".into())),
+                    ],
+                    None,
+                )),
+                VNode::VRef(vref_node),
+            ],
+            None,
+        );
+
+        let mut vlist_copy = vlist.clone();
+        let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
+        let parent_element = crate::utils::document().create_element("div").unwrap();
+
+        let scheduler_lock = scheduler.lock();
+        vlist.apply(&parent_scope, &parent_element, None, None);
+        drop(scheduler_lock);
+        scheduler.start();
+
+        assert_eq!(
+            inner_html(&parent_element),
+            "a<span></span>c(list)d<p>0</p>fooCOMPbar<i></i>",
+            "The VList didn't render properly."
+        );
+
+        let scheduler_lock = scheduler.lock();
+        vlist_copy.apply(
+            &parent_scope,
+            &parent_element,
+            None,
+            Some(VNode::VList(vlist)),
+        );
+        drop(scheduler_lock);
+        scheduler.start();
+
+        assert_eq!(
+            inner_html(&parent_element),
+            "a<span></span>c(list)d<p>0</p>fooCOMPbar<i></i>",
+            "The VList didn't render properly."
+        );
     }
 }

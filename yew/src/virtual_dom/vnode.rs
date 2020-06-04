@@ -3,6 +3,7 @@
 use super::{VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{AnyScope, Component, Renderable};
 use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
@@ -29,6 +30,27 @@ pub enum VNode {
     VList(VList),
     /// A holder for any `Node` (necessary for replacing node).
     VRef(Node),
+}
+
+impl From<&VNode> for Node {
+    fn from(vnode: &VNode) -> Self {
+        match vnode {
+            VNode::VTag(vtag) => vtag.reference.as_ref().unwrap().clone().into(),
+            VNode::VText(vtext) => {
+                let text_node = vtext.reference.as_ref().unwrap();
+                cfg_match! {
+                    feature = "std_web" => text_node.as_node(),
+                    feature = "web_sys" => text_node.clone().into(),
+                }
+            }
+            VNode::VComp(vcomp) => vcomp
+                .node_ref
+                .get()
+                .expect("VComp should always wrap a node"),
+            VNode::VList(vlist) => (&vlist.children[0]).into(),
+            VNode::VRef(node) => node.clone(),
+        }
+    }
 }
 
 impl VNode {
@@ -63,7 +85,7 @@ impl VDiff for VNode {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: Option<Node>,
+        mut next_sibling: Option<Node>,
         ancestor: Option<VNode>,
     ) -> Node {
         match *self {
@@ -78,9 +100,19 @@ impl VDiff for VNode {
                 vlist.apply(parent_scope, parent, next_sibling, ancestor)
             }
             VNode::VRef(ref mut node) => {
-                if let Some(mut n) = ancestor {
-                    n.detach(parent)
+                let _ancestor = if let Some(ancestor) = ancestor {
+                    if let VNode::VRef(n) = &ancestor {
+                        if node == n {
+                            return node.clone();
+                        }
+                    }
+
+                    next_sibling = Some((&ancestor).into());
+                    Some(super::DelayDetach { ancestor, parent })
+                } else {
+                    None
                 };
+
                 super::insert_node(node, parent, next_sibling);
                 node.clone()
             }

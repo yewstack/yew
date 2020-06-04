@@ -97,6 +97,11 @@ impl Scheduler {
             .or_else(|| self.main.borrow_mut().pop_front())
     }
 
+    #[cfg(test)]
+    pub(crate) fn lock(&self) -> std::cell::RefMut<'_, ()> {
+        self.lock.borrow_mut()
+    }
+
     pub(crate) fn start(&self) {
         // The lock here is used to prevent recursion. If the lock
         // here fails to acquire, it is because this `start()` method

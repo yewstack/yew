@@ -431,6 +431,9 @@ impl VDiff for VTag {
                 // old tag and update its attributes and children.
                 VNode::VTag(vtag) if self.tag == vtag.tag => Some(vtag),
                 _ => {
+                    let element = self.create_element(parent);
+                    super::insert_node(&element, parent, Some((&ancestor).into()));
+                    self.reference = Some(element);
                     ancestor.detach(parent);
                     None
                 }
@@ -444,7 +447,7 @@ impl VDiff for VTag {
 
             // Preserve the reference that already exists.
             self.reference = ancestor_tag.reference.take();
-        } else {
+        } else if self.reference.is_none() {
             let element = self.create_element(parent);
             super::insert_node(&element, parent, next_sibling);
             self.reference = Some(element);
