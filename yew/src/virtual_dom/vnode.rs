@@ -47,7 +47,7 @@ impl From<&VNode> for Node {
                     .as_ref()
                     .expect("VText should always wrap a node");
                 cfg_match! {
-                    feature = "std_web" => text_node.as_node(),
+                    feature = "std_web" => text_node.as_node().clone(),
                     feature = "web_sys" => text_node.clone().into(),
                 }
             }
