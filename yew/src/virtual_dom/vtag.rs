@@ -438,8 +438,10 @@ impl VDiff for VTag {
         });
 
         if let Some(ref mut ancestor_tag) = &mut ancestor_tag {
-            // Control the values of inputs and text area elements
+            // Refresh the current value to later compare it against the desired value
+            // since it may have been changed since we last set it.
             ancestor_tag.refresh_value();
+
             // Preserve the reference that already exists.
             self.reference = ancestor_tag.reference.take();
         } else {

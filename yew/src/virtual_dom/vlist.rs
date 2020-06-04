@@ -65,7 +65,7 @@ impl VDiff for VList {
         mut next_sibling: Option<Node>,
         ancestor: Option<VNode>,
     ) -> Node {
-        let rights = {
+        let ancestor_children = {
             match ancestor {
                 // If element matched this type
                 Some(VNode::VList(vlist)) => {
@@ -94,32 +94,46 @@ impl VDiff for VList {
             let mut hash_set = HashSet::with_capacity(self.children.len());
             for l in self.children.iter() {
                 if let Some(k) = l.key() {
-                    if hash_set.contains(&k) {
+                    if !hash_set.insert(k) {
                         log::error!("Duplicate key of {}", &k);
-                    } else {
-                        hash_set.insert(k);
                     }
                 }
             }
+
+            // This warning should be removed in https://github.com/yewstack/yew/pull/1231
+            if !hash_set.is_empty() {
+                log::warn!("Keys currently have no effect");
+            }
         }
 
-        // Process children
-        let mut lefts = self.children.iter_mut();
-        let mut rights = rights.into_iter();
+        let ancestor_len = ancestor_children.len();
+        let children_len = self.children.len();
 
-        let first_left = lefts.next().expect("VList should have at least one child");
-        let first_child = first_left.apply(parent_scope, parent, next_sibling, rights.next());
-        next_sibling = Some(first_child.clone());
+        // Detach rights until length equals lefts.len()
+        let mut rights = ancestor_children.into_iter();
+        let extra_rights = ancestor_len.saturating_sub(children_len);
+        for _ in 0..extra_rights {
+            rights.next().unwrap().detach(parent);
+        }
 
+        // Apply lefts until length equals rights.len()
+        let mut lefts = self.children.iter_mut().rev();
+        let extra_lefts = children_len.saturating_sub(ancestor_len);
+        for _ in 0..extra_lefts {
+            next_sibling = Some(lefts.next().unwrap().apply(
+                parent_scope,
+                parent,
+                next_sibling,
+                None,
+            ));
+        }
+
+        // Diff children in reverse order to ensure next_sibling is updated properly
         for left in lefts {
             next_sibling = Some(left.apply(parent_scope, parent, next_sibling, rights.next()));
         }
 
-        for mut right in rights {
-            right.detach(parent);
-        }
-
-        first_child
+        next_sibling.expect("VList should have at least one child")
     }
 }
 
