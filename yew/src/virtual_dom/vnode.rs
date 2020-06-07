@@ -1,7 +1,7 @@
 //! This module contains the implementation of abstract virtual node.
 
 use super::{VChild, VComp, VDiff, VList, VTag, VText};
-use crate::html::{AnyScope, Component, Renderable};
+use crate::html::{AnyScope, Component, NodeRef, Renderable};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;
@@ -32,9 +32,10 @@ pub enum VNode {
     VRef(Node),
 }
 
-impl From<&VNode> for Node {
-    fn from(vnode: &VNode) -> Self {
-        match vnode {
+impl VNode {
+    /// Returns the first DOM node that is used to designate the position of the virtual DOM node.
+    pub fn first_node(&self) -> Node {
+        match self {
             VNode::VTag(vtag) => vtag
                 .reference
                 .as_ref()
@@ -55,13 +56,11 @@ impl From<&VNode> for Node {
                 .node_ref
                 .get()
                 .expect("VComp should always wrap a node"),
-            VNode::VList(vlist) => (&vlist.children[0]).into(),
+            VNode::VList(vlist) => (&vlist.children[0]).first_node(),
             VNode::VRef(node) => node.clone(),
         }
     }
-}
 
-impl VNode {
     pub fn key(&self) -> &Option<String> {
         match self {
             VNode::VTag(vtag) => &vtag.key,
@@ -93,7 +92,7 @@ impl VDiff for VNode {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        mut next_sibling: Option<Node>,
+        next_sibling: NodeRef,
         ancestor: Option<VNode>,
     ) -> Node {
         match *self {
@@ -108,20 +107,15 @@ impl VDiff for VNode {
                 vlist.apply(parent_scope, parent, next_sibling, ancestor)
             }
             VNode::VRef(ref mut node) => {
-                let _ancestor = if let Some(ancestor) = ancestor {
+                if let Some(mut ancestor) = ancestor {
                     if let VNode::VRef(n) = &ancestor {
                         if node == n {
                             return node.clone();
                         }
                     }
-
-                    next_sibling = Some((&ancestor).into());
-                    Some(super::DelayDetach { ancestor, parent })
-                } else {
-                    None
-                };
-
-                super::insert_node(node, parent, next_sibling);
+                    ancestor.detach(parent);
+                }
+                super::insert_node(node, parent, next_sibling.get());
                 node.clone()
             }
         }
@@ -212,5 +206,36 @@ impl PartialEq for VNode {
             (VNode::VComp(_), VNode::VComp(_)) => false,
             _ => false,
         }
+    }
+}
+
+#[cfg(all(test, feature = "web_sys"))]
+mod layout_tests {
+    use super::*;
+    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn diff() {
+        let document = crate::utils::document();
+        let vref_node_1 = VNode::VRef(document.create_element("i").unwrap().into());
+        let vref_node_2 = VNode::VRef(document.create_element("b").unwrap().into());
+
+        let layout1 = TestLayout {
+            node: vref_node_1.into(),
+            expected: "<i></i>",
+        };
+
+        let layout2 = TestLayout {
+            node: vref_node_2.into(),
+            expected: "<b></b>",
+        };
+
+        diff_layouts(vec![layout1, layout2]);
     }
 }
