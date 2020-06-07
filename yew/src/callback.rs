@@ -35,6 +35,7 @@ impl<IN> Clone for Callback<IN> {
     }
 }
 
+#[allow(clippy::vtable_address_comparisons)]
 impl<IN> PartialEq for Callback<IN> {
     fn eq(&self, other: &Callback<IN>) -> bool {
         match (&self, &other) {

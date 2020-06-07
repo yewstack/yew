@@ -1,8 +1,13 @@
 error[E0599]: no function or associated item named `new` found for struct `yew::virtual_dom::vcomp::VChild<std::string::String>` in the current scope
    --> $DIR/html-component-fail-unimplemented.rs:6:5
     |
-6   |       html! { <String /> };
-    |       ^^^^^^^^^^^^^^^^^^^^^ function or associated item not found in `yew::virtual_dom::vcomp::VChild<std::string::String>`
+6   |     html! { <String /> };
+    |     ^^^^^^^^^^^^^^^^^^^^^ function or associated item not found in `yew::virtual_dom::vcomp::VChild<std::string::String>`
+    | 
+   ::: /Users/jstarry/.rustup/toolchains/stable-x86_64-apple-darwin/lib/rustlib/src/rust/src/liballoc/string.rs:282:1
+    |
+282 | pub struct String {
+    | ----------------- doesn't satisfy `std::string::String: yew::html::Component`
     |
     = note: the method `new` exists but the following trait bounds were not satisfied:
             `std::string::String: yew::html::Component`
