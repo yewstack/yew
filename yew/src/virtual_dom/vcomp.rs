@@ -10,9 +10,9 @@ use std::mem::replace;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, TextNode};
+        use stdweb::web::{Element, Node, TextNode};
     } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Text as TextNode};
+        use web_sys::{Element, Node, Text as TextNode};
     }
 }
 
@@ -122,11 +122,12 @@ impl VComp {
             match generator_type {
                 GeneratorType::Mount(parent_scope, parent, next_sibling, dummy_node) => {
                     let scope: Scope<COMP> = Scope::new(Some(parent_scope));
-
+                    let dummy_node: Node = dummy_node.into();
+                    node_ref_clone.set(Some(dummy_node.clone()));
                     let mut scope = scope.mount_in_place(
                         parent,
                         next_sibling,
-                        Some(VNode::VRef(dummy_node.into())),
+                        Some(VNode::VRef(dummy_node)),
                         node_ref_clone.clone(),
                         props.clone(),
                     );
@@ -519,6 +520,150 @@ mod layout_tests {
             expected: "AB",
         };
 
-        diff_layouts(vec![layout1, layout2, layout3, layout4, layout5]);
+        let layout6 = TestLayout {
+            node: html! {
+                <Comp<B>>
+                    <>
+                        <Comp<A>>
+                            {"A"}
+                        </Comp<A>>
+                        {"B"}
+                    </>
+                    {"C"}
+                </Comp<B>>
+            },
+            expected: "ABC",
+        };
+
+        let layout7 = TestLayout {
+            node: html! {
+                <Comp<B>>
+                    <>
+                        <Comp<A>>
+                            {"A"}
+                        </Comp<A>>
+                        <Comp<A>>
+                            {"B"}
+                        </Comp<A>>
+                    </>
+                    {"C"}
+                </Comp<B>>
+            },
+            expected: "ABC",
+        };
+
+        let layout8 = TestLayout {
+            node: html! {
+                <Comp<B>>
+                    <>
+                        <Comp<A>>
+                            {"A"}
+                        </Comp<A>>
+                        <Comp<A>>
+                            <Comp<A>>
+                                {"B"}
+                            </Comp<A>>
+                        </Comp<A>>
+                    </>
+                    {"C"}
+                </Comp<B>>
+            },
+            expected: "ABC",
+        };
+
+        let layout9 = TestLayout {
+            node: html! {
+                <Comp<B>>
+                    <>
+                        <>
+                            {"A"}
+                        </>
+                        <Comp<A>>
+                            <Comp<A>>
+                                {"B"}
+                            </Comp<A>>
+                        </Comp<A>>
+                    </>
+                    {"C"}
+                </Comp<B>>
+            },
+            expected: "ABC",
+        };
+
+        let layout10 = TestLayout {
+            node: html! {
+                <Comp<B>>
+                    <>
+                        <Comp<A>>
+                            <Comp<A>>
+                                {"A"}
+                            </Comp<A>>
+                        </Comp<A>>
+                        <>
+                            {"B"}
+                        </>
+                    </>
+                    {"C"}
+                </Comp<B>>
+            },
+            expected: "ABC",
+        };
+
+        let layout11 = TestLayout {
+            node: html! {
+                <Comp<B>>
+                    <>
+                        <>
+                            <Comp<A>>
+                                <Comp<A>>
+                                    {"A"}
+                                </Comp<A>>
+                                {"B"}
+                            </Comp<A>>
+                        </>
+                    </>
+                    {"C"}
+                </Comp<B>>
+            },
+            expected: "ABC",
+        };
+
+        let layout12 = TestLayout {
+            node: html! {
+                <Comp<B>>
+                    <>
+                        <Comp<A>></Comp<A>>
+                        <>
+                            <Comp<A>>
+                                <>
+                                    <Comp<A>>
+                                        {"A"}
+                                    </Comp<A>>
+                                    <></>
+                                    <Comp<A>>
+                                        <Comp<A>></Comp<A>>
+                                        <></>
+                                        {"B"}
+                                        <></>
+                                        <Comp<A>></Comp<A>>
+                                    </Comp<A>>
+                                </>
+                            </Comp<A>>
+                            <></>
+                        </>
+                        <Comp<A>></Comp<A>>
+                    </>
+                    {"C"}
+                    <Comp<A>></Comp<A>>
+                    <></>
+                </Comp<B>>
+            },
+            expected: "ABC",
+        };
+
+        diff_layouts(vec![
+            layout1, layout2, layout3, layout4, layout5, layout6, layout7, layout8, layout9,
+            layout10, layout11, layout12,
+        ]);
     }
 }

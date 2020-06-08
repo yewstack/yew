@@ -106,12 +106,16 @@ impl VDiff for VList {
             }
         }
 
-        let mut rights = ancestor_children.into_iter().peekable();
+        // Process children
         let lefts = self.children.iter_mut();
+        let mut rights = ancestor_children.into_iter().peekable();
         let mut last_next_sibling = NodeRef::default();
         let mut nodes: Vec<NodeRef> = lefts
             .map(|left| {
                 let ancestor = rights.next();
+
+                // Create a new `next_sibling` reference which points to the next `right` or
+                // the outer list's `next_sibling` if there are no more `rights`.
                 let new_next_sibling = NodeRef::default();
                 if let Some(next_right) = rights.peek() {
                     new_next_sibling.set(Some(next_right.first_node()));
@@ -119,6 +123,8 @@ impl VDiff for VList {
                     new_next_sibling.link(next_sibling.clone());
                 }
 
+                // Update the next list item and then link the previous left's `next_sibling` to the returned `node` reference
+                // so that the previous left has an up-to-date `next_sibling` (important for mounting a `Component`)
                 let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
                 last_next_sibling.link(node.clone());
                 last_next_sibling = new_next_sibling;
@@ -126,6 +132,11 @@ impl VDiff for VList {
             })
             .collect();
 
+        // If there are more `rights` than `lefts`, we need to make sure to link the last left's `next_sibling`
+        // to the outer list's `next_sibling` so that it doesn't point at a `right` that is detached.
+        last_next_sibling.link(next_sibling);
+
+        // Detach all extra rights
         for mut right in rights {
             right.detach(parent);
         }

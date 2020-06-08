@@ -438,6 +438,7 @@ impl NodeRef {
 
     /// Link a downstream `NodeRef`
     pub(crate) fn link(&self, node_ref: Self) {
+        self.0.borrow_mut().node = None;
         self.0.borrow_mut().link = Some(node_ref);
     }
 }
