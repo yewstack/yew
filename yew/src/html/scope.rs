@@ -354,15 +354,7 @@ where
                 let parent_scope = state.scope.clone().into();
                 let next_sibling = state.next_sibling.clone();
                 let node = root.apply(&parent_scope, &state.parent, next_sibling, last_root);
-                if let VNode::VComp(child) = &root {
-                    // If the root VNode is a VComp, we won't have access to the rendered DOM node
-                    // because components render asynchronously. In order to bubble up the DOM node
-                    // from the VComp, we need to link the currently rendering component with its
-                    // root child component.
-                    state.node_ref.link(child.node_ref.clone());
-                } else {
-                    state.node_ref.set(Some(node));
-                }
+                state.node_ref.link(node);
                 state.last_root = Some(root);
             };
         }

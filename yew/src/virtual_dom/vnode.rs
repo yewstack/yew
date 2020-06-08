@@ -94,7 +94,7 @@ impl VDiff for VNode {
         parent: &Element,
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Node {
+    ) -> NodeRef {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.apply(parent_scope, parent, next_sibling, ancestor),
             VNode::VText(ref mut vtext) => {
@@ -110,13 +110,17 @@ impl VDiff for VNode {
                 if let Some(mut ancestor) = ancestor {
                     if let VNode::VRef(n) = &ancestor {
                         if node == n {
-                            return node.clone();
+                            let node_ref = NodeRef::default();
+                            node_ref.set(Some(node.clone()));
+                            return node_ref;
                         }
                     }
                     ancestor.detach(parent);
                 }
                 super::insert_node(node, parent, next_sibling.get());
-                node.clone()
+                let node_ref = NodeRef::default();
+                node_ref.set(Some(node.clone()));
+                node_ref
             }
         }
     }

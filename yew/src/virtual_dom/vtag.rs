@@ -424,7 +424,7 @@ impl VDiff for VTag {
         parent: &Element,
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Node {
+    ) -> NodeRef {
         let mut ancestor_tag = ancestor.and_then(|mut ancestor| {
             match ancestor {
                 // If the ancestor is a tag of the same type, don't recreate, keep the
@@ -474,7 +474,7 @@ impl VDiff for VTag {
             feature = "web_sys" => element.deref(),
         };
         self.node_ref.set(Some(node.clone()));
-        node.clone()
+        self.node_ref.clone()
     }
 }
 

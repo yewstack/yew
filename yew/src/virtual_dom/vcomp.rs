@@ -204,7 +204,7 @@ impl VDiff for VComp {
         parent: &Element,
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Node {
+    ) -> NodeRef {
         if let MountState::Unmounted(this) = replace(&mut self.state, MountState::Mounting) {
             if let Some(mut ancestor) = ancestor {
                 if let VNode::VComp(ref mut vcomp) = &mut ancestor {
@@ -214,10 +214,7 @@ impl VDiff for VComp {
                         if let MountState::Mounted(mounted) =
                             replace(&mut vcomp.state, MountState::Overwritten)
                         {
-                            let node = mounted
-                                .node_ref
-                                .get()
-                                .expect("Mounted components should always have a ref");
+                            let node = mounted.node_ref.clone();
                             // Send properties update when the component is already rendered.
                             self.state = MountState::Mounted(this.replace(mounted, next_sibling));
                             return node;
@@ -237,8 +234,9 @@ impl VDiff for VComp {
                 next_sibling,
                 dummy_node,
             );
+            let node_ref = mounted.node_ref.clone();
             self.state = MountState::Mounted(mounted);
-            node
+            node_ref
         } else {
             unreachable!("Only unmounted components can be mounted");
         }
@@ -473,19 +471,19 @@ mod layout_tests {
             node: html! {
                 <Comp<A>>
                     <Comp<B>></Comp<B>>
-                    {"A"}
+                    {"C"}
                 </Comp<A>>
             },
-            expected: "A",
+            expected: "C",
         };
 
         let layout2 = TestLayout {
             node: html! {
                 <Comp<A>>
-                    {"AAAA"}
+                    {"A"}
                 </Comp<A>>
             },
-            expected: "AAAA",
+            expected: "A",
         };
 
         let layout3 = TestLayout {
@@ -508,6 +506,20 @@ mod layout_tests {
             expected: "AB",
         };
 
-        diff_layouts(vec![layout1, layout2, layout3, layout4]);
+        let layout5 = TestLayout {
+            node: html! {
+                <Comp<B>>
+                    <>
+                        <Comp<A>>
+                            {"A"}
+                        </Comp<A>>
+                    </>
+                    {"B"}
+                </Comp<B>>
+            },
+            expected: "AB",
+        };
+
+        diff_layouts(vec![layout1, layout2, layout3, layout4, layout5]);
     }
 }

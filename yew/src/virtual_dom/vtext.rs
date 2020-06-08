@@ -54,7 +54,7 @@ impl VDiff for VText {
         parent: &Element,
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Node {
+    ) -> NodeRef {
         if let Some(mut ancestor) = ancestor {
             if let VNode::VText(mut vtext) = ancestor {
                 self.reference = vtext.reference.take();
@@ -65,7 +65,10 @@ impl VDiff for VText {
                 if self.text != vtext.text {
                     text_node.set_node_value(Some(&self.text));
                 }
-                return text_node.into();
+
+                let node_ref = NodeRef::default();
+                node_ref.set(Some(text_node.into()));
+                return node_ref;
             }
 
             ancestor.detach(parent);
@@ -74,7 +77,9 @@ impl VDiff for VText {
         let text_node = document().create_text_node(&self.text);
         super::insert_node(&text_node, parent, next_sibling.get());
         self.reference = Some(text_node.clone());
-        text_node.into()
+        let node_ref = NodeRef::default();
+        node_ref.set(Some(text_node.into()));
+        node_ref
     }
 }
 

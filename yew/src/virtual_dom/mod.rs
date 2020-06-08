@@ -214,7 +214,7 @@ pub(crate) trait VDiff {
         parent: &Element,
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Node;
+    ) -> NodeRef;
 }
 
 #[cfg(feature = "web_sys")]
@@ -338,6 +338,7 @@ mod layout_tests {
         let next_sibling = NodeRef::default();
         next_sibling.set(Some(end_node.into()));
         for layout in layouts.iter() {
+            web_sys::console::log_1(&wasm_bindgen::JsValue::from_str("CHECK"));
             let mut node = layout.node.clone();
 
             let scheduler_lock = scheduler.lock();
@@ -403,7 +404,7 @@ mod layout_tests {
             ancestor = Some(next_node);
         }
 
-        // // Sequentially detach each layout
+        // Sequentially detach each layout
         for layout in layouts.into_iter().rev() {
             let mut next_node = layout.node.clone();
 

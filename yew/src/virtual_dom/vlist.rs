@@ -64,7 +64,7 @@ impl VDiff for VList {
         parent: &Element,
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Node {
+    ) -> NodeRef {
         let ancestor_children = {
             match ancestor {
                 // If element matched this type
@@ -106,20 +106,22 @@ impl VDiff for VList {
             }
         }
 
+        let ancestor_len = ancestor_children.len();
         let mut rights = ancestor_children.into_iter().peekable();
-        let lefts = self.children.iter_mut();
+        let lefts = self.children.iter_mut().enumerate();
         let mut last_next_sibling = NodeRef::default();
-        let mut nodes: Vec<Node> = lefts
-            .map(|left| {
-                let new_next_sibling = NodeRef::default();
+        let mut nodes: Vec<NodeRef> = lefts
+            .map(|(index, left)| {
                 let ancestor = rights.next();
-                let next_sibling = rights
-                    .peek()
-                    .map_or_else(|| next_sibling.get(), |a| Some(a.first_node()));
-                new_next_sibling.set(next_sibling);
+                let new_next_sibling = NodeRef::default();
+                if let Some(next_right) = rights.peek() {
+                    new_next_sibling.set(Some(next_right.first_node()));
+                } else {
+                    new_next_sibling.link(next_sibling.clone());
+                }
 
                 let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
-                last_next_sibling.set(Some(node.clone()));
+                last_next_sibling.link(node.clone());
                 last_next_sibling = new_next_sibling;
                 node
             })
