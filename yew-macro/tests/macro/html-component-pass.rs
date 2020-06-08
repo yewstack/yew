@@ -300,7 +300,10 @@ fn compile_pass() {
         </ChildContainer>
     };
 
-    let children = vec![html_nested! { <Child int=1 /> }, html_nested! { <Child int=2 /> }];
+    let children = vec![
+        html_nested! { <Child int=1 /> },
+        html_nested! { <Child int=2 /> },
+    ];
     html! {
         <ChildContainer int=1>
             { children }
@@ -351,6 +354,8 @@ fn compile_pass() {
             <Generic<Vec<String>>></ Generic<Vec<String>>>
         </>
     };
+
+    html_nested! { 1 };
 }
 
 fn main() {}

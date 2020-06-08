@@ -92,11 +92,11 @@ pub enum HtmlRoot {
 impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> Result<Self> {
         let html_root = if HtmlTree::peek(input.cursor()).is_some() {
-            HtmlRoot::Tree(input.parse()?)
+            Self::Tree(input.parse()?)
         } else if HtmlIterable::peek(input.cursor()).is_some() {
-            HtmlRoot::Iterable(Box::new(input.parse()?))
+            Self::Iterable(Box::new(input.parse()?))
         } else {
-            HtmlRoot::Node(Box::new(input.parse()?))
+            Self::Node(Box::new(input.parse()?))
         };
 
         if !input.is_empty() {
@@ -113,11 +113,24 @@ impl Parse for HtmlRoot {
 
 impl ToTokens for HtmlRoot {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let new_tokens = match self {
-            HtmlRoot::Tree(tree) => tree.to_token_stream(),
-            HtmlRoot::Node(node) => node.to_token_stream(),
-            HtmlRoot::Iterable(iterable) => iterable.to_token_stream(),
-        };
+        match self {
+            Self::Tree(tree) => tree.to_tokens(tokens),
+            Self::Node(node) => node.to_tokens(tokens),
+            Self::Iterable(iterable) => iterable.to_tokens(tokens),
+        }
+    }
+}
+
+/// Same as HtmlRoot but always returns a VNode.
+pub struct HtmlRootVNode(HtmlRoot);
+impl Parse for HtmlRootVNode {
+    fn parse(input: ParseStream) -> Result<Self> {
+        input.parse().map(Self)
+    }
+}
+impl ToTokens for HtmlRootVNode {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let new_tokens = self.0.to_token_stream();
         tokens.extend(quote! {
             ::yew::virtual_dom::VNode::from(#new_tokens)
         });

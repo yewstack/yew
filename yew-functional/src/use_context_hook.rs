@@ -4,6 +4,7 @@ use std::any::TypeId;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 use std::{iter, mem};
+use yew::html;
 use yew::html::{AnyScope, Scope};
 use yew::{Children, Component, ComponentLink, Html, Properties};
 
@@ -83,7 +84,7 @@ impl<T: Clone + 'static> Component for ContextProvider<T> {
     }
 
     fn view(&self) -> Html {
-        self.children.clone().into_iter().collect::<Html>()
+        html! { <>{ self.children.clone() }</> }
     }
 }
 

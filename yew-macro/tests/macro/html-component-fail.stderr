@@ -190,6 +190,14 @@ error: this closing tag has no corresponding opening tag
     |
     = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
+error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
+   --> $DIR/html-component-fail.rs:122:9
+    |
+122 |         <span>{ 2 }</span>
+    |         ^^^^^^^^^^^^^^^^^^
+    |
+    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
 error[E0425]: cannot find value `blah` in this scope
   --> $DIR/html-component-fail.rs:91:25
    |
