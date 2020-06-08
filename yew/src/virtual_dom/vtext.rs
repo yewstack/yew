@@ -8,9 +8,9 @@ use log::warn;
 use std::cmp::PartialEq;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, INode, Node, TextNode};
+        use stdweb::web::{Element, INode, TextNode};
     } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Node, Text as TextNode};
+        use web_sys::{Element, Text as TextNode};
     }
 }
 

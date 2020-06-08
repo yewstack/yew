@@ -6,9 +6,9 @@ use std::collections::HashSet;
 use std::ops::{Deref, DerefMut};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, Node};
+        use stdweb::web::Element;
     } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Node};
+        use web_sys::Element;
     }
 }
 
@@ -106,12 +106,11 @@ impl VDiff for VList {
             }
         }
 
-        let ancestor_len = ancestor_children.len();
         let mut rights = ancestor_children.into_iter().peekable();
-        let lefts = self.children.iter_mut().enumerate();
+        let lefts = self.children.iter_mut();
         let mut last_next_sibling = NodeRef::default();
         let mut nodes: Vec<NodeRef> = lefts
-            .map(|(index, left)| {
+            .map(|left| {
                 let ancestor = rights.next();
                 let new_next_sibling = NodeRef::default();
                 if let Some(next_right) = rights.peek() {

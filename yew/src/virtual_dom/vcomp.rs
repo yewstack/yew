@@ -10,9 +10,9 @@ use std::mem::replace;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, Node, TextNode};
+        use stdweb::web::{Element, TextNode};
     } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Node, Text as TextNode};
+        use web_sys::{Element, Text as TextNode};
     }
 }
 
@@ -226,7 +226,6 @@ impl VDiff for VComp {
             }
 
             let dummy_node = document().create_text_node("");
-            let node: Node = dummy_node.clone().into();
             super::insert_node(&dummy_node, parent, next_sibling.get());
             let mounted = this.mount(
                 parent_scope.clone(),

@@ -16,13 +16,13 @@ cfg_if! {
         use stdweb::{_js_impl, js};
         use stdweb::unstable::TryFrom;
         use stdweb::web::html_element::{InputElement, TextAreaElement};
-        use stdweb::web::{Element, IElement, INode, Node};
+        use stdweb::web::{Element, IElement, INode};
     } else if #[cfg(feature = "web_sys")] {
         use gloo::events::EventListener;
         use std::ops::Deref;
         use wasm_bindgen::JsCast;
         use web_sys::{
-            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, Node, HtmlButtonElement
+            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, HtmlButtonElement
         };
     }
 }
