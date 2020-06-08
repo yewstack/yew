@@ -324,8 +324,6 @@ mod layout_tests {
     }
 
     pub(crate) fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
-        let scheduler = yew::scheduler::scheduler();
-
         let document = crate::utils::document();
         let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
         let parent_element = document.create_element("div").unwrap();
@@ -334,18 +332,12 @@ mod layout_tests {
         parent_node.append_child(&end_node).unwrap();
         let empty_node: VNode = VText::new("".into()).into();
 
-        // Apply and detach each layout
-        let next_sibling = NodeRef::default();
-        next_sibling.set(Some(end_node.into()));
+        // Test each layout independently
+        let next_sibling = NodeRef::new(end_node.into());
         for layout in layouts.iter() {
-            web_sys::console::log_1(&wasm_bindgen::JsValue::from_str("CHECK"));
+            // Apply layout
             let mut node = layout.node.clone();
-
-            let scheduler_lock = scheduler.lock();
             node.apply(&parent_scope, &parent_element, next_sibling.clone(), None);
-            drop(scheduler_lock);
-            scheduler.start();
-
             assert_eq!(
                 parent_element.inner_html(),
                 format!("{}END", layout.expected)
@@ -353,32 +345,24 @@ mod layout_tests {
 
             // Diff with no changes
             let mut node_clone = layout.node.clone();
-            let scheduler_lock = scheduler.lock();
             node_clone.apply(
                 &parent_scope,
                 &parent_element,
                 next_sibling.clone(),
                 Some(node),
             );
-            drop(scheduler_lock);
-            scheduler.start();
-
             assert_eq!(
                 parent_element.inner_html(),
                 format!("{}END", layout.expected)
             );
 
             // Detach
-            let scheduler_lock = scheduler.lock();
             empty_node.clone().apply(
                 &parent_scope,
                 &parent_element,
                 next_sibling.clone(),
                 Some(node_clone),
             );
-            drop(scheduler_lock);
-            scheduler.start();
-
             assert_eq!(parent_element.inner_html(), "END");
         }
 
@@ -386,17 +370,12 @@ mod layout_tests {
         let mut ancestor: Option<VNode> = None;
         for layout in layouts.iter() {
             let mut next_node = layout.node.clone();
-
-            let scheduler_lock = scheduler.lock();
             next_node.apply(
                 &parent_scope,
                 &parent_element,
                 next_sibling.clone(),
                 ancestor,
             );
-            drop(scheduler_lock);
-            scheduler.start();
-
             assert_eq!(
                 parent_element.inner_html(),
                 format!("{}END", layout.expected)
@@ -407,17 +386,12 @@ mod layout_tests {
         // Sequentially detach each layout
         for layout in layouts.into_iter().rev() {
             let mut next_node = layout.node.clone();
-
-            let scheduler_lock = scheduler.lock();
             next_node.apply(
                 &parent_scope,
                 &parent_element,
                 next_sibling.clone(),
                 ancestor,
             );
-            drop(scheduler_lock);
-            scheduler.start();
-
             assert_eq!(
                 parent_element.inner_html(),
                 format!("{}END", layout.expected)
@@ -426,13 +400,9 @@ mod layout_tests {
         }
 
         // Detach last layout
-        let scheduler_lock = scheduler.lock();
         empty_node
             .clone()
             .apply(&parent_scope, &parent_element, next_sibling, ancestor);
-        drop(scheduler_lock);
-        scheduler.start();
-
         assert_eq!(parent_element.inner_html(), "END");
     }
 }

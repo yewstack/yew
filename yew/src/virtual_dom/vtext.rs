@@ -66,9 +66,7 @@ impl VDiff for VText {
                     text_node.set_node_value(Some(&self.text));
                 }
 
-                let node_ref = NodeRef::default();
-                node_ref.set(Some(text_node.into()));
-                return node_ref;
+                return NodeRef::new(text_node.into());
             }
 
             ancestor.detach(parent);
@@ -77,9 +75,7 @@ impl VDiff for VText {
         let text_node = document().create_text_node(&self.text);
         super::insert_node(&text_node, parent, next_sibling.get());
         self.reference = Some(text_node.clone());
-        let node_ref = NodeRef::default();
-        node_ref.set(Some(text_node.into()));
-        node_ref
+        NodeRef::new(text_node.into())
     }
 }
 

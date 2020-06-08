@@ -110,17 +110,13 @@ impl VDiff for VNode {
                 if let Some(mut ancestor) = ancestor {
                     if let VNode::VRef(n) = &ancestor {
                         if node == n {
-                            let node_ref = NodeRef::default();
-                            node_ref.set(Some(node.clone()));
-                            return node_ref;
+                            return NodeRef::new(node.clone());
                         }
                     }
                     ancestor.detach(parent);
                 }
                 super::insert_node(node, parent, next_sibling.get());
-                let node_ref = NodeRef::default();
-                node_ref.set(Some(node.clone()));
-                node_ref
+                NodeRef::new(node.clone())
             }
         }
     }
