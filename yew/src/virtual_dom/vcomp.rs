@@ -120,11 +120,11 @@ impl VComp {
         let node_ref_clone = node_ref.clone();
         let generator = move |generator_type: GeneratorType| -> Mounted {
             match generator_type {
-                GeneratorType::Mount(parent_scope, element, dummy_node) => {
+                GeneratorType::Mount(parent_scope, parent, dummy_node) => {
                     let scope: Scope<COMP> = Scope::new(Some(parent_scope));
 
                     let mut scope = scope.mount_in_place(
-                        element,
+                        parent,
                         Some(VNode::VRef(dummy_node.into())),
                         node_ref_clone.clone(),
                         props.clone(),
