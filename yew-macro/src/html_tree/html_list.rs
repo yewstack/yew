@@ -64,12 +64,21 @@ impl ToTokens for HtmlList {
         } else {
             quote! {None}
         };
+        let children_tokens = if !children.is_empty() {
+            quote! {
+                let mut v = ::std::vec::Vec::new();
+                #(v.extend(::yew::utils::NodeSeq::from(#children));)*
+                v
+            }
+        } else {
+            quote! {
+                ::std::vec::Vec::new()
+            }
+        };
         tokens.extend(quote! {
             ::yew::virtual_dom::VNode::VList(
                 ::yew::virtual_dom::VList::new_with_children({
-                    let mut v = ::std::vec::Vec::new();
-                    #(v.extend(::yew::utils::NodeSeq::from(#children));)*
-                    v
+                    #children_tokens
                 },
                 #key)
             )
