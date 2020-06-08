@@ -16,7 +16,7 @@ if [ ! -z "$CARGO_TARGET_DIR" ]; then
     TARGET_DIR=$CARGO_TARGET_DIR/wasm32-unknown-unknown/debug
 fi
 
-EXAMPLE=$1
+EXAMPLE=${1%\/}
 cd $EXAMPLE
 
 # wasm-pack build
