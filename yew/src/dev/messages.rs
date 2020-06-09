@@ -107,17 +107,12 @@ pub mod tests {
     #[cfg(feature = "web_sys")]
     #[wasm_bindgen_test]
     fn test_dom_selector() {
+        let document = crate::utils::document();
         use super::selector;
         use std::ops::Deref;
-        let window = web_sys::window().expect("Failed to aquire window.");
-        let document = window.document().unwrap();
-        let document_element = document
-            .document_element()
-            .expect("Could not get the root node");
-        document_element
-            .set_inner_html("<html><head></head><body><h1>Hello World!</h1></body></html>");
-        let document_node = document_element.deref();
-        let h1 = document_node.last_child().unwrap().first_child().unwrap();
-        assert_eq!(selector(&h1), "#document/HTML/BODY/H1/")
+        let element = document.create_element("div").unwrap();
+        let element2 = document.create_element("h1").unwrap();
+        element.append_child(&element2);
+        assert_eq!(selector(element2.as_ref()), "DIV/H1/");
     }
 }

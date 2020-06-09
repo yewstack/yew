@@ -154,22 +154,8 @@ impl DebuggerConnection {
                     "ws"
                 }
             },
-            match std::option_env!("YEW_DEBUGGER_HOST") {
-                Some(url) => {
-                    url
-                }
-                None => {
-                    "localhost"
-                }
-            },
-            match std::option_env!("YEW_DEBUGGER_PORT") {
-                Some(port) => {
-                    port
-                }
-                None => {
-                    "8017"
-                }
-            }
+            std::option_env!("YEW_DEBUGGER_HOST").unwrap_or("localhost"),
+            std::option_env!("YEW_DEBUGGER_PORT").unwrap_or("8017".into())
         );
         let return_value = Self {
             ws: match web_sys::WebSocket::new(&ws_url) {

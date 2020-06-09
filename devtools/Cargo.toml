@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 structopt = "0.3"
-actix_web="2.0"
-actix_rt="1.0"
+actix-web="2.0"
+actix-rt="1.0"
 actix="0.9"
-actix_web_actors="2.0"
+actix-web-actors="2.0"
