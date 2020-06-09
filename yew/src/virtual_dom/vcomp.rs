@@ -465,7 +465,7 @@ mod tests {
         // clear parent
         parent.set_inner_html("");
 
-        node.apply(&scope, &parent, None, None);
+        node.apply(&scope, &parent, NodeRef::default(), None);
         parent.inner_html()
     }
 
@@ -520,7 +520,7 @@ mod tests {
 #[cfg(all(test, feature = "web_sys"))]
 mod layout_tests {
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
-    use crate::{Children, Component, ComponentLink, Html, Properties, Renderable, ShouldRender};
+    use crate::{Children, Component, ComponentLink, Html, Properties, ShouldRender};
     use std::marker::PhantomData;
 
     #[cfg(feature = "wasm_test")]
@@ -561,7 +561,9 @@ mod layout_tests {
         }
 
         fn view(&self) -> Html {
-            self.props.children.render()
+            html! {
+                <>{ self.props.children.clone() }</>
+            }
         }
     }
 
