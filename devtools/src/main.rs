@@ -1,6 +1,10 @@
 extern crate actix;
+#[macro_use]
 extern crate actix_web;
 extern crate structopt;
+
+#[cfg(test)]
+mod tests;
 
 use structopt::StructOpt;
 
