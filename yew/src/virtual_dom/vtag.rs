@@ -33,6 +33,26 @@ pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
 /// Default namespace for html elements
 pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 
+/// Used to improve performance of runtime element checks
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum ElementType {
+    Input,
+    Textarea,
+    Button,
+    Other,
+}
+
+impl ElementType {
+    fn from_tag(tag: &str) -> Self {
+        match tag.to_ascii_lowercase().as_str() {
+            "input" => Self::Input,
+            "textarea" => Self::Textarea,
+            "button" => Self::Button,
+            _ => Self::Other,
+        }
+    }
+}
+
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
@@ -40,6 +60,8 @@ pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 pub struct VTag {
     /// A tag of the element.
     tag: Cow<'static, str>,
+    /// Type of element.
+    element_type: ElementType,
     /// A reference to the `Element`.
     pub reference: Option<Element>,
     /// List of attached listeners.
@@ -73,6 +95,7 @@ impl Clone for VTag {
     fn clone(&self) -> Self {
         VTag {
             tag: self.tag.clone(),
+            element_type: self.element_type,
             reference: None,
             listeners: self.listeners.clone(),
             attributes: self.attributes.clone(),
@@ -90,8 +113,11 @@ impl Clone for VTag {
 impl VTag {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
+        let tag: Cow<'static, str> = tag.into();
+        let element_type = ElementType::from_tag(&tag);
         VTag {
-            tag: tag.into(),
+            tag,
+            element_type,
             reference: None,
             attributes: Attributes::new(),
             listeners: Vec::new(),
@@ -193,25 +219,27 @@ impl VTag {
 
     fn refresh_value(&mut self) {
         if let Some(element) = self.reference.as_ref() {
-            if let Some(input) = {
-                cfg_match! {
+            if self.element_type == ElementType::Input {
+                let input_el = cfg_match! {
                     feature = "std_web" => InputElement::try_from(element.clone()).ok(),
                     feature = "web_sys" => element.dyn_ref::<InputElement>(),
-                }
-            } {
-                let current_value = cfg_match! {
-                    feature = "std_web" => input.raw_value(),
-                    feature = "web_sys" => input.value(),
                 };
-                self.set_value(&current_value)
-            } else if let Some(tae) = {
-                cfg_match! {
+                if let Some(input) = input_el {
+                    let current_value = cfg_match! {
+                        feature = "std_web" => input.raw_value(),
+                        feature = "web_sys" => input.value(),
+                    };
+                    self.set_value(&current_value)
+                }
+            } else if self.element_type == ElementType::Textarea {
+                let textarea_el = cfg_match! {
                     feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
                     feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
+                };
+                if let Some(tae) = textarea_el {
+                    let current_value = &tae.value();
+                    self.set_value(&current_value)
                 }
-            } {
-                let current_value = &tae.value();
-                self.set_value(&current_value)
             }
         }
     }
@@ -310,13 +338,15 @@ impl VTag {
         // Check this out: https://github.com/yewstack/yew/pull/1033/commits/4b4e958bb1ccac0524eb20f63f06ae394c20553d
         #[cfg(feature = "web_sys")]
         {
-            if let Some(button) = element.dyn_ref::<HtmlButtonElement>() {
-                if let Some(change) = self.diff_kind(ancestor) {
-                    let kind = match change {
-                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                        Patch::Remove(_) => "",
-                    };
-                    button.set_type(kind);
+            if self.element_type == ElementType::Button {
+                if let Some(button) = element.dyn_ref::<HtmlButtonElement>() {
+                    if let Some(change) = self.diff_kind(ancestor) {
+                        let kind = match change {
+                            Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                            Patch::Remove(_) => "",
+                        };
+                        button.set_type(kind);
+                    }
                 }
             }
         }
@@ -325,56 +355,60 @@ impl VTag {
         // I override behavior of attributes to make it more clear
         // and useful in templates. For example I interpret `checked`
         // attribute as `checked` parameter, not `defaultChecked` as browsers do
-        if let Some(input) = {
-            cfg_match! {
-                feature = "std_web" => InputElement::try_from(element.clone()).ok(),
-                feature = "web_sys" => element.dyn_ref::<InputElement>(),
-            }
-        } {
-            if let Some(change) = self.diff_kind(ancestor) {
-                let kind = match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                    Patch::Remove(_) => "",
-                };
+        if self.element_type == ElementType::Input {
+            if let Some(input) = {
                 cfg_match! {
-                    feature = "std_web" => ({
-                        //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
-                        //input.set_kind(&kind);
-                        let input = &input;
-                        js! { @(no_return)
-                            @{input}.type = @{kind};
-                        }
-                    }),
-                    feature = "web_sys" => input.set_type(kind),
+                    feature = "std_web" => InputElement::try_from(element.clone()).ok(),
+                    feature = "web_sys" => element.dyn_ref::<InputElement>(),
                 }
-            }
+            } {
+                if let Some(change) = self.diff_kind(ancestor) {
+                    let kind = match change {
+                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                        Patch::Remove(_) => "",
+                    };
+                    cfg_match! {
+                        feature = "std_web" => ({
+                            //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
+                            //input.set_kind(&kind);
+                            let input = &input;
+                            js! { @(no_return)
+                                @{input}.type = @{kind};
+                            }
+                        }),
+                        feature = "web_sys" => input.set_type(kind),
+                    }
+                }
 
-            if let Some(change) = self.diff_value(ancestor) {
-                let raw_value = match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                    Patch::Remove(_) => "",
-                };
+                if let Some(change) = self.diff_value(ancestor) {
+                    let raw_value = match change {
+                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                        Patch::Remove(_) => "",
+                    };
+                    cfg_match! {
+                        feature = "std_web" => input.set_raw_value(raw_value),
+                        feature = "web_sys" => input.set_value(raw_value),
+                    };
+                }
+
+                // IMPORTANT! This parameter has to be set every time
+                // to prevent strange behaviour in the browser when the DOM changes
+                set_checked(&input, self.checked);
+            }
+        } else if self.element_type == ElementType::Textarea {
+            if let Some(tae) = {
                 cfg_match! {
-                    feature = "std_web" => input.set_raw_value(raw_value),
-                    feature = "web_sys" => input.set_value(raw_value),
-                };
-            }
-
-            // IMPORTANT! This parameter has to be set every time
-            // to prevent strange behaviour in the browser when the DOM changes
-            set_checked(&input, self.checked);
-        } else if let Some(tae) = {
-            cfg_match! {
-                feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
-                feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
-            }
-        } {
-            if let Some(change) = self.diff_value(ancestor) {
-                let value = match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                    Patch::Remove(_) => "",
-                };
-                tae.set_value(value);
+                    feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
+                    feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
+                }
+            } {
+                if let Some(change) = self.diff_value(ancestor) {
+                    let value = match change {
+                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                        Patch::Remove(_) => "",
+                    };
+                    tae.set_value(value);
+                }
             }
         }
     }
@@ -442,7 +476,6 @@ impl VDiff for VTag {
             // Refresh the current value to later compare it against the desired value
             // since it may have been changed since we last set it.
             ancestor_tag.refresh_value();
-
             // Preserve the reference that already exists.
             self.reference = ancestor_tag.reference.take();
         } else if self.reference.is_none() {
