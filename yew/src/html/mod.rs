@@ -11,7 +11,7 @@ pub(crate) use scope::ComponentUpdate;
 pub use scope::{AnyScope, Scope};
 
 use crate::callback::Callback;
-use crate::virtual_dom::{VChild, VList, VNode};
+use crate::virtual_dom::{VChild, VNode};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::cell::RefCell;
@@ -163,7 +163,7 @@ pub type Html = VNode;
 /// The Wrapper component must define a `children` property in order to wrap other elements. The
 /// children property can be used to render the wrapped elements.
 /// ```
-///# use yew::{Children, Html, Properties, Renderable, Component, ComponentLink, html};
+///# use yew::{Children, Html, Properties, Component, ComponentLink, html};
 /// #[derive(Clone, Properties)]
 /// struct WrapperProps {
 ///     children: Children,
@@ -180,7 +180,7 @@ pub type Html = VNode;
 ///     fn view(&self) -> Html {
 ///         html! {
 ///             <div id="container">
-///                 { self.props.children.render() }
+///                 { self.props.children.clone() }
 ///             </div>
 ///         }
 ///     }
@@ -313,14 +313,11 @@ where
         self.children.len()
     }
 
-    /// Build children components and return `Vec`
-    pub fn to_vec(&self) -> Vec<T> {
-        self.children.clone()
-    }
-
     /// Render children components and return `Iterator`
-    pub fn iter(&self) -> impl Iterator<Item = T> {
-        self.to_vec().into_iter()
+    pub fn iter<'a>(&'a self) -> impl Iterator<Item = T> + 'a {
+        // clone each child lazily.
+        // This way `self.iter().next()` only has to clone a single node.
+        self.children.iter().cloned()
     }
 }
 
@@ -338,12 +335,12 @@ impl<T> fmt::Debug for ChildrenRenderer<T> {
     }
 }
 
-impl<T> Renderable for ChildrenRenderer<T>
-where
-    T: Clone + Into<VNode>,
-{
-    fn render(&self) -> Html {
-        VList::new_with_children(self.iter().map(|c| c.into()).collect(), None).into()
+impl<T> IntoIterator for ChildrenRenderer<T> {
+    type Item = T;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.children.into_iter()
     }
 }
 
@@ -424,6 +421,13 @@ impl NodeRef {
         }
     }
 
+    /// Wrap an existing `Node` in a `NodeRef`
+    pub(crate) fn new(node: Node) -> Self {
+        let node_ref = NodeRef::default();
+        node_ref.set(Some(node));
+        node_ref
+    }
+
     /// Place a Node in a reference for later use
     pub(crate) fn set(&self, node: Option<Node>) {
         self.0.borrow_mut().node = node;
@@ -431,6 +435,7 @@ impl NodeRef {
 
     /// Link a downstream `NodeRef`
     pub(crate) fn link(&self, node_ref: Self) {
+        self.0.borrow_mut().node = None;
         self.0.borrow_mut().link = Some(node_ref);
     }
 }

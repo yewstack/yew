@@ -1,8 +1,8 @@
 ---
-name: Ask question
+name: Ask question [yew-router]
 about: Ask for help or clarification
 title: ''
-labels: question
+labels: question, router
 assignees: ''
 
 ---

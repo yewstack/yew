@@ -1,12 +1,11 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{
-    Attributes, Key, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode,
-};
+use super::{Attributes, Key, Listener, Listeners, Patch, Transformer, VDiff, VList, VNode};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
+use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::rc::Rc;
@@ -17,13 +16,13 @@ cfg_if! {
         use stdweb::{_js_impl, js};
         use stdweb::unstable::TryFrom;
         use stdweb::web::html_element::{InputElement, TextAreaElement};
-        use stdweb::web::{Element, IElement, INode, Node};
+        use stdweb::web::{Element, IElement, INode};
     } else if #[cfg(feature = "web_sys")] {
         use gloo::events::EventListener;
         use std::ops::Deref;
         use wasm_bindgen::JsCast;
         use web_sys::{
-            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, Node,
+            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, HtmlButtonElement
         };
     }
 }
@@ -100,7 +99,7 @@ impl VTag {
             attributes: Attributes::new(),
             listeners: Vec::new(),
             captured: Vec::new(),
-            children: VList::new_without_placeholder(),
+            children: VList::new(),
             node_ref: NodeRef::default(),
             key: None,
             value: None,
@@ -122,10 +121,8 @@ impl VTag {
     }
 
     /// Add multiple `VNode` children.
-    pub fn add_children(&mut self, children: Vec<VNode>) {
-        for child in children {
-            self.add_child(child);
-        }
+    pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
+        self.children.add_children(children);
     }
 
     /// Sets `value` for an
@@ -179,6 +176,46 @@ impl VTag {
     pub fn add_listeners(&mut self, listeners: Vec<Rc<dyn Listener>>) {
         for listener in listeners {
             self.listeners.push(listener);
+        }
+    }
+
+    /// Every render it removes all listeners and attach it back later
+    /// TODO(#943): Compare references of handler to do listeners update better
+    fn recreate_listeners(&mut self, ancestor: &mut Option<Box<Self>>) {
+        if let Some(ancestor) = ancestor.as_mut() {
+            ancestor.captured.clear();
+        }
+
+        let element = self.reference.clone().expect("element expected");
+
+        for listener in self.listeners.drain(..) {
+            let handle = listener.attach(&element);
+            self.captured.push(handle);
+        }
+    }
+
+    fn refresh_value(&mut self) {
+        if let Some(element) = self.reference.as_ref() {
+            if let Some(input) = {
+                cfg_match! {
+                    feature = "std_web" => InputElement::try_from(element.clone()).ok(),
+                    feature = "web_sys" => element.dyn_ref::<InputElement>(),
+                }
+            } {
+                let current_value = cfg_match! {
+                    feature = "std_web" => input.raw_value(),
+                    feature = "web_sys" => input.value(),
+                };
+                self.set_value(&current_value)
+            } else if let Some(tae) = {
+                cfg_match! {
+                    feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
+                    feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
+                }
+            } {
+                let current_value = &tae.value();
+                self.set_value(&current_value)
+            }
         }
     }
 
@@ -272,6 +309,21 @@ impl VTag {
             }
         }
 
+        // TODO: add std_web after https://github.com/koute/stdweb/issues/395 will be approved
+        // Check this out: https://github.com/yewstack/yew/pull/1033/commits/4b4e958bb1ccac0524eb20f63f06ae394c20553d
+        #[cfg(feature = "web_sys")]
+        {
+            if let Some(button) = element.dyn_ref::<HtmlButtonElement>() {
+                if let Some(change) = self.diff_kind(ancestor) {
+                    let kind = match change {
+                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                        Patch::Remove(_) => "",
+                    };
+                    button.set_type(kind);
+                }
+            }
+        }
+
         // `input` element has extra parameters to control
         // I override behavior of attributes to make it more clear
         // and useful in templates. For example I interpret `checked`
@@ -329,11 +381,31 @@ impl VTag {
             }
         }
     }
+
+    fn create_element(&self, parent: &Element) -> Element {
+        if self.tag == "svg"
+            || parent
+                .namespace_uri()
+                .map_or(false, |ns| ns == SVG_NAMESPACE)
+        {
+            let namespace = cfg_match! {
+                feature = "std_web" => SVG_NAMESPACE,
+                feature = "web_sys" => Some(SVG_NAMESPACE),
+            };
+            document()
+                .create_element_ns(namespace, &self.tag)
+                .expect("can't create namespaced element for vtag")
+        } else {
+            document()
+                .create_element(&self.tag)
+                .expect("can't create element for vtag")
+        }
+    }
 }
 
 impl VDiff for VTag {
     /// Remove VTag from parent.
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) {
         let node = self
             .reference
             .take()
@@ -341,12 +413,9 @@ impl VDiff for VTag {
 
         // recursively remove its children
         self.children.detach(&node);
-
-        let next_sibling = node.next_sibling();
-        parent
-            .remove_child(&node)
-            .expect("tried to remove not rendered VTag from DOM");
-        next_sibling
+        if parent.remove_child(&node).is_err() {
+            warn!("Node not found to remove VTag");
+        }
     }
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with
@@ -355,108 +424,59 @@ impl VDiff for VTag {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: Option<Node>,
+        next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Option<Node> {
-        assert!(
-            self.reference.is_none(),
-            "reference is ignored so must not be set"
-        );
-
-        let (reform, mut ancestor) = {
+    ) -> NodeRef {
+        let mut ancestor_tag = ancestor.and_then(|mut ancestor| {
             match ancestor {
-                Some(VNode::VTag(mut vtag)) => {
-                    // If tags are equal, preserve the reference that already exists.
-                    if self.tag == vtag.tag {
-                        self.reference = vtag.reference.take();
-                        (Reform::Keep, Some(vtag))
-                    }
-                    // We have to create a new reference, remove ancestor.
-                    else {
-                        (Reform::Before(vtag.detach(parent)), None)
-                    }
+                // If the ancestor is a tag of the same type, don't recreate, keep the
+                // old tag and update its attributes and children.
+                VNode::VTag(vtag) if self.tag == vtag.tag => Some(vtag),
+                _ => {
+                    let element = self.create_element(parent);
+                    super::insert_node(&element, parent, Some(ancestor.first_node()));
+                    self.reference = Some(element);
+                    ancestor.detach(parent);
+                    None
                 }
-                Some(mut vnode) => {
-                    // It is not a VTag variant we must remove the ancestor.
-                    (Reform::Before(vnode.detach(parent)), None)
-                }
-                None => (Reform::Before(next_sibling), None),
             }
-        };
+        });
 
-        // Ensure that `self.reference` exists.
-        //
-        // This can use the previous reference or create a new one.
-        // If we create a new one we must insert it in the correct
-        // place, which we use `next_sibling` or `previous_sibling` for.
-        let insert_tuple = match reform {
-            Reform::Keep => None,
-            Reform::Before(next_sibling) => {
-                let element = if self.tag == "svg"
-                    || parent
-                        .namespace_uri()
-                        .map_or(false, |ns| ns == SVG_NAMESPACE)
-                {
-                    let namespace = cfg_match! {
-                        feature = "std_web" => SVG_NAMESPACE,
-                        feature = "web_sys" => Some(SVG_NAMESPACE),
-                    };
-                    document()
-                        .create_element_ns(namespace, &self.tag)
-                        .expect("can't create namespaced element for vtag")
-                } else {
-                    document()
-                        .create_element(&self.tag)
-                        .expect("can't create element for vtag")
-                };
-                Some((element, next_sibling))
-            }
-        };
+        if let Some(ref mut ancestor_tag) = &mut ancestor_tag {
+            // Refresh the current value to later compare it against the desired value
+            // since it may have been changed since we last set it.
+            ancestor_tag.refresh_value();
 
-        if let Some((element, next_sibling)) = insert_tuple {
-            super::insert_node(&element, parent, next_sibling);
+            // Preserve the reference that already exists.
+            self.reference = ancestor_tag.reference.take();
+        } else if self.reference.is_none() {
+            let element = self.create_element(parent);
+            super::insert_node(&element, parent, next_sibling.get());
             self.reference = Some(element);
         }
-        assert!(
-            self.reference.is_some(),
-            "reference must be set to this point"
-        );
 
-        self.apply_diffs(&ancestor);
-
-        // Every render it removes all listeners and attach it back later
-        // TODO(#943): Compare references of handler to do listeners update better
-        if let Some(ancestor) = ancestor.as_mut() {
-            ancestor.captured.clear();
-        }
-
-        let element = self.reference.clone().expect("element expected");
-
-        for listener in self.listeners.drain(..) {
-            let handle = listener.attach(&element);
-            self.captured.push(handle);
-        }
+        self.apply_diffs(&ancestor_tag);
+        self.recreate_listeners(&mut ancestor_tag);
 
         // Process children
-        self.children.apply(
-            parent_scope,
-            &element,
-            None,
-            ancestor.map(|a| a.children.into()),
-        );
-
-        let reference = self
-            .reference
-            .as_ref()
-            .cloned()
-            .expect("there must be a reference");
-        let node: Node = cfg_match! {
-            feature = "std_web" => reference.as_node().to_owned(),
-            feature = "web_sys" => reference.deref(),
+        let element = self.reference.as_ref().expect("Reference should be set");
+        if !self.children.is_empty() {
+            self.children.apply(
+                parent_scope,
+                element,
+                NodeRef::default(),
+                ancestor_tag.map(|a| a.children.into()),
+            );
+        } else if let Some(mut ancestor_tag) = ancestor_tag {
+            ancestor_tag.children.detach(element);
         }
-        .to_owned();
+
+        let node = cfg_match! {
+            feature = "std_web" => element.as_node(),
+            feature = "web_sys" => element.deref(),
+        };
         self.node_ref.set(Some(node.clone()));
-        Some(node)
+        self.node_ref.clone()
     }
 }
 
@@ -503,7 +523,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{html, Component, ComponentLink, Html, ShouldRender};
+    use crate::html;
     use std::any::TypeId;
     #[cfg(feature = "std_web")]
     use stdweb::web::{document, IElement};
@@ -518,75 +538,6 @@ mod tests {
             type_id: TypeId::of::<()>(),
             parent: None,
             state: Rc::new(()),
-        }
-    }
-
-    struct Comp;
-
-    impl Component for Comp {
-        type Message = ();
-        type Properties = ();
-
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Comp
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn view(&self) -> Html {
-            unimplemented!();
-        }
-    }
-
-    struct CompInt;
-
-    impl Component for CompInt {
-        type Message = u32;
-        type Properties = ();
-
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            CompInt
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn view(&self) -> Html {
-            unimplemented!();
-        }
-    }
-
-    struct CompBool;
-
-    impl Component for CompBool {
-        type Message = bool;
-        type Properties = ();
-
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            CompBool
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn view(&self) -> Html {
-            unimplemented!();
         }
     }
 
@@ -857,17 +808,17 @@ mod tests {
         let mut svg_node = html! { <svg>{path_node}</svg> };
 
         let svg_tag = assert_vtag(&mut svg_node);
-        svg_tag.apply(&scope, &div_el, None, None);
+        svg_tag.apply(&scope, &div_el, NodeRef::default(), None);
         assert_namespace(svg_tag, SVG_NAMESPACE);
         let path_tag = assert_vtag(svg_tag.children.get_mut(0).unwrap());
         assert_namespace(path_tag, SVG_NAMESPACE);
 
         let g_tag = assert_vtag(&mut g_node);
-        g_tag.apply(&scope, &div_el, None, None);
+        g_tag.apply(&scope, &div_el, NodeRef::default(), None);
         assert_namespace(g_tag, HTML_NAMESPACE);
         g_tag.reference = None;
 
-        g_tag.apply(&scope, &svg_el, None, None);
+        g_tag.apply(&scope, &svg_el, NodeRef::default(), None);
         assert_namespace(g_tag, SVG_NAMESPACE);
     }
 
@@ -997,7 +948,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=""></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1014,7 +965,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1031,7 +982,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class="ferris the crab"></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has been set
         assert!(vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1087,7 +1038,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1113,7 +1064,12 @@ mod tests {
         } else {
             panic!("should be vtag")
         };
-        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
+        vtag.apply(
+            &scope,
+            &parent,
+            NodeRef::default(),
+            Some(VNode::VTag(ancestor)),
+        );
 
         let expected = "class-3 class-2 class-1";
         assert_eq!(get_class_str(&vtag), expected);
@@ -1138,7 +1094,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-3")></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1164,7 +1120,12 @@ mod tests {
         } else {
             panic!("should be vtag")
         };
-        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
+        vtag.apply(
+            &scope,
+            &parent,
+            NodeRef::default(),
+            Some(VNode::VTag(ancestor)),
+        );
 
         let expected = "class-1 class-2 class-3";
         assert_eq!(get_class_str(&vtag), expected);
@@ -1176,5 +1137,220 @@ mod tests {
                 .unwrap(),
             expected
         );
+    }
+
+    #[test]
+    fn check_input_current_value_sync() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let expected = "not_changed_value";
+
+        // Initial state
+        let mut elem = html! {
+            <input value=expected />
+        };
+        elem.apply(&scope, &parent, NodeRef::default(), None);
+
+        let vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+
+        // User input
+        let input_ref = vtag.reference.as_ref().unwrap();
+        let input = cfg_match! {
+            feature = "std_web" => InputElement::try_from(input_ref.clone()).ok(),
+            feature = "web_sys" => input_ref.dyn_ref::<InputElement>(),
+        };
+        cfg_match! {
+            feature = "std_web" => input.unwrap().set_raw_value("User input"),
+            feature = "web_sys" => input.unwrap().set_value("User input"),
+        };
+
+        let ancestor = vtag;
+        // Same state after onInput or onChange event
+        let elem = html! {
+            <input value=expected />
+        };
+        let mut vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+
+        // Sync happens here
+        vtag.apply(
+            &scope,
+            &parent,
+            NodeRef::default(),
+            Some(VNode::VTag(ancestor)),
+        );
+
+        // Get new current value of the input element
+        let input_ref = vtag.reference.as_ref().unwrap();
+        let input = cfg_match! {
+            feature = "std_web" => InputElement::try_from(input_ref.clone()).ok(),
+            feature = "web_sys" => input_ref.dyn_ref::<InputElement>(),
+        }
+        .unwrap();
+
+        let current_value = cfg_match! {
+            feature = "std_web" => input.raw_value(),
+            feature = "web_sys" => input.value(),
+        };
+
+        // check whether not changed virtual dom value has been set to the input element
+        assert_eq!(current_value, expected);
+    }
+
+    #[test]
+    fn dynamic_tags_work() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let mut elem = html! { <@{
+            let mut builder = String::new();
+            builder.push_str("a");
+            builder
+        }/> };
+
+        elem.apply(&scope, &parent, NodeRef::default(), None);
+        let vtag = assert_vtag(&mut elem);
+        // make sure the new tag name is used internally
+        assert_eq!(vtag.tag, "a");
+
+        #[cfg(feature = "web_sys")]
+        // Element.tagName is always in the canonical upper-case form.
+        assert_eq!(vtag.reference.as_ref().unwrap().tag_name(), "A");
+    }
+
+    #[test]
+    fn dynamic_tags_handle_value_attribute() {
+        let mut div_el = html! {
+            <@{"div"} value="Hello"/>
+        };
+        let div_vtag = assert_vtag(&mut div_el);
+        assert!(div_vtag.value.is_none());
+        assert_eq!(
+            div_vtag.attributes.get("value").map(String::as_str),
+            Some("Hello")
+        );
+
+        let mut input_el = html! {
+            <@{"input"} value="World"/>
+        };
+        let input_vtag = assert_vtag(&mut input_el);
+        assert_eq!(input_vtag.value, Some("World".to_string()));
+        assert!(!input_vtag.attributes.contains_key("value"));
+    }
+
+    #[test]
+    fn dynamic_tags_handle_weird_capitalization() {
+        let mut el = html! {
+            <@{"tExTAREa"}/>
+        };
+        let vtag = assert_vtag(&mut el);
+        assert_eq!(vtag.tag(), "textarea");
+    }
+}
+
+#[cfg(all(test, feature = "web_sys"))]
+mod layout_tests {
+    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn diff() {
+        let layout1 = TestLayout {
+            node: html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b</li></ul>",
+        };
+
+        let layout2 = TestLayout {
+            node: html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                    <li>
+                        {"d"}
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b</li><li>d</li></ul>",
+        };
+
+        let layout3 = TestLayout {
+            node: html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                    <li>
+                        {"c"}
+                    </li>
+                    <li>
+                        {"d"}
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>",
+        };
+
+        let layout4 = TestLayout {
+            node: html! {
+                <ul>
+                    <li>
+                        <>
+                            {"a"}
+                        </>
+                    </li>
+                    <li>
+                        {"b"}
+                        <li>
+                            {"c"}
+                        </li>
+                        <li>
+                            {"d"}
+                        </li>
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b<li>c</li><li>d</li></li></ul>",
+        };
+
+        diff_layouts(vec![layout1, layout2, layout3, layout4]);
     }
 }

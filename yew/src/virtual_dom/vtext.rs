@@ -1,17 +1,16 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::{Reform, VDiff, VNode};
-use crate::html::AnyScope;
+use super::{VDiff, VNode};
+use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
-use cfg_match::cfg_match;
+use log::warn;
 use std::cmp::PartialEq;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, INode, Node, TextNode};
+        use stdweb::web::{Element, INode, TextNode};
     } else if #[cfg(feature = "web_sys")] {
-        use std::ops::Deref;
-        use web_sys::{Element, Node, Text as TextNode};
+        use web_sys::{Element, Text as TextNode};
     }
 }
 
@@ -38,17 +37,14 @@ impl VText {
 
 impl VDiff for VText {
     /// Remove VText from parent.
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) {
         let node = self
             .reference
             .take()
             .expect("tried to remove not rendered VText from DOM");
-
-        let next_sibling = node.next_sibling();
-        parent
-            .remove_child(&node)
-            .expect("tried to remove not rendered VText from DOM");
-        next_sibling
+        if parent.remove_child(&node).is_err() {
+            warn!("Node not found to remove VText");
+        }
     }
 
     /// Renders virtual node over existing `TextNode`, but only if value of text
@@ -57,58 +53,30 @@ impl VDiff for VText {
         &mut self,
         _parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: Option<Node>,
+        next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Option<Node> {
-        assert!(
-            self.reference.is_none(),
-            "reference is ignored so must not be set"
-        );
-
-        // Determine what to do from the type of the ancestor, i.e. the current
-        // element in the DOM that this node will replace.
-        let reform = match ancestor {
-            // If the ancestor is of the same type than this node.
-            Some(VNode::VText(mut vtext)) => {
+    ) -> NodeRef {
+        if let Some(mut ancestor) = ancestor {
+            if let VNode::VText(mut vtext) = ancestor {
                 self.reference = vtext.reference.take();
+                let text_node = self
+                    .reference
+                    .clone()
+                    .expect("Rendered VText nodes should have a ref");
                 if self.text != vtext.text {
-                    if let Some(ref element) = self.reference {
-                        element.set_node_value(Some(&self.text));
-                    }
+                    text_node.set_node_value(Some(&self.text));
                 }
-                Reform::Keep
-            }
-            // If there is an ancestor, but of another type, remove it from
-            // the DOM and insert this at its position.
-            Some(mut vnode) => Reform::Before(vnode.detach(parent)),
-            // Otherwise there was no element.
-            None => Reform::Before(next_sibling),
-        };
 
-        match reform {
-            Reform::Keep => {
-                // Nothing to do, we recycled the ancestor.
+                return NodeRef::new(text_node.into());
             }
-            Reform::Before(next_sibling) => {
-                // Create a new text DOM element.
-                let element = document().create_text_node(&self.text);
-                super::insert_node(&element, parent, next_sibling);
 
-                // Finally, we store the newly created element.
-                self.reference = Some(element);
-            }
+            ancestor.detach(parent);
         }
 
-        let text_node: TextNode = self
-            .reference
-            .as_ref()
-            .cloned()
-            .expect("there must be a reference");
-        let node = cfg_match! {
-            feature = "std_web" => text_node.as_node(),
-            feature = "web_sys" => text_node.deref().deref(),
-        };
-        Some(node.to_owned())
+        let text_node = document().create_text_node(&self.text);
+        super::insert_node(&text_node, parent, next_sibling.get());
+        self.reference = Some(text_node.clone());
+        NodeRef::new(text_node.into())
     }
 }
 
@@ -120,35 +88,13 @@ impl PartialEq for VText {
 
 #[cfg(test)]
 mod test {
-    use crate::{html, Component, ComponentLink, Html, ShouldRender};
+    use crate::html;
+
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
-
-    struct Comp;
-
-    impl Component for Comp {
-        type Message = ();
-        type Properties = ();
-
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Comp
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn view(&self) -> Html {
-            unimplemented!();
-        }
-    }
 
     #[test]
     fn text_as_root() {
@@ -159,5 +105,51 @@ mod test {
         html! {
             { "Text Node As Root" }
         };
+    }
+}
+
+#[cfg(all(test, feature = "web_sys"))]
+mod layout_tests {
+    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn diff() {
+        let layout1 = TestLayout {
+            node: html! { "a" },
+            expected: "a",
+        };
+
+        let layout2 = TestLayout {
+            node: html! { "b" },
+            expected: "b",
+        };
+
+        let layout3 = TestLayout {
+            node: html! {
+                <>
+                    {"a"}
+                    {"b"}
+                </>
+            },
+            expected: "ab",
+        };
+
+        let layout4 = TestLayout {
+            node: html! {
+                <>
+                    {"b"}
+                    {"a"}
+                </>
+            },
+            expected: "ba",
+        };
+
+        diff_layouts(vec![layout1, layout2, layout3, layout4]);
     }
 }

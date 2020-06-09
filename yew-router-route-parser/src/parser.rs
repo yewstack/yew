@@ -231,7 +231,7 @@ pub fn parse(
             _ => panic!("parser should not be incomplete"),
         })?;
         i = ii;
-        state = state.transition(token.clone()).map_err(|reason| {
+        state = state.transition(token).map_err(|reason| {
             let error = ParseError {
                 reason: Some(reason),
                 expected: vec![],

@@ -26,7 +26,7 @@ impl ReaderService {
             if let Ok(result) = reader.result() {
                 let array = Uint8Array::new(&result);
                 let data = FileData {
-                    name: name,
+                    name,
                     content: array.to_vec(),
                 };
                 callback.emit(data);

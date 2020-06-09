@@ -25,7 +25,7 @@ Note: [Visual Studio Code](https://code.visualstudio.com/) has an extension call
 
 ## Requirements
 
-The default way to build the examples is by using `wasm-bindgen` (this is automatically installed if you've installed `wasm-pack`). If they aren't installed, these tools can be installed by using `cargo` (`cargo install wasm-pack`).
+The default way to build the examples is by using `wasm-bindgen` (this is automatically installed if you've installed `wasm-pack`). If they aren't installed, these tools can be installed by using `cargo` (`cargo install wasm-pack wasm-bindgen-cli`).
 
 Installation guides: [Rust](https://www.rust-lang.org/learn/get-started) and [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
 
@@ -34,4 +34,6 @@ Installation guides: [Rust](https://www.rust-lang.org/learn/get-started) and [wa
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # wasm-pack install
 curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh;
+# wasm-bindgen-cli install
+cargo install wasm-bindgen-cli
 ```

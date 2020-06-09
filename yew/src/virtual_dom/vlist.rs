@@ -1,6 +1,6 @@
 //! This module contains fragments implementation.
 use super::{Key, VDiff, VNode, VText};
-use crate::html::AnyScope;
+use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use fixedbitset::FixedBitSet;
 use std::collections::{HashMap, HashSet};
@@ -18,9 +18,6 @@ cfg_if! {
 pub struct VList {
     /// The list of children nodes.
     pub children: Vec<VNode>,
-    /// Never use a placeholder element if set to true.
-    elide_placeholder: bool,
-
     pub key: Option<Key>,
 }
 
@@ -46,20 +43,7 @@ impl VList {
 
     /// Creates a new `VList` instance with children.
     pub fn new_with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
-        VList {
-            children,
-            elide_placeholder: false,
-            key,
-        }
-    }
-
-    /// Creates a new empty `VList` instance which does not need a placeholder node.
-    pub(crate) fn new_without_placeholder() -> Self {
-        VList {
-            children: Vec::new(),
-            elide_placeholder: true,
-            key: None,
-        }
+        VList { children, key }
     }
 
     /// Add `VNode` child.
@@ -67,117 +51,26 @@ impl VList {
         self.children.push(child);
     }
 
-    /// Apply some transformations on the children for performance and
-    /// correctness reasons:
-    ///  - avoid having consecutive VTexts, reducing the number of DOM calls.
-    ///  - avoid having consecutive VLists, which doesn't work well when they
-    ///    are keyed since VLists don't exist in the DOM and hence don't have
-    ///    references to be moved.
-    ///
-    /// Note that this has side-effects when using keyed elements: the keys must
-    /// be unique even after the normalization.
-    ///
-    // TODO (#1263): Test and explain (if need be) that keys must be unique
-    // after normalization, i.e. on the same levels.
-    fn normalize(&mut self) {
-        self.collapse_vlist_children();
-        self.collapse_vtext_children();
-        self.filter_out_empty_children();
-    }
-
-    /// Collapses the consecutive VList children into the first one, leaving the
-    /// other empty.
-    fn collapse_vlist_children(&mut self) {
-        let mut previous_vlist_idx: Option<usize> = None;
-        for i in 0..self.children.len() {
-            let children = match (previous_vlist_idx, self.children.get_mut(i).unwrap()) {
-                (Some(_), VNode::VList(ref mut vlist)) => {
-                    Some(Some(core::mem::take(&mut vlist.children)))
-                }
-                (None, VNode::VList(_)) => Some(None),
-                _ => None,
-            };
-
-            match children {
-                Some(Some(children)) => {
-                    let prev_idx = previous_vlist_idx.unwrap();
-                    if let VNode::VList(previous_vlist) = self.children.get_mut(prev_idx).unwrap() {
-                        previous_vlist.children.extend(children.into_iter());
-                    }
-                }
-                Some(None) => {
-                    previous_vlist_idx = Some(i);
-                }
-                None => previous_vlist_idx = None,
-            }
-        }
-    }
-
-    /// Collapses the consecutive VText children into the first one, leaving the
-    /// other empty. Doesn't touch the children with references
-    fn collapse_vtext_children(&mut self) {
-        let mut previous_vtext_idx: Option<usize> = None;
-        for i in 0..self.children.len() {
-            let text = match (previous_vtext_idx, self.children.get_mut(i).unwrap()) {
-                (Some(_), VNode::VText(ref mut vtext)) => {
-                    Some(Some(core::mem::take(&mut vtext.text)))
-                }
-                (None, VNode::VText(_)) => Some(None),
-                _ => None,
-            };
-
-            match text {
-                Some(Some(text)) => {
-                    let prev_idx = previous_vtext_idx.unwrap();
-                    if let VNode::VText(previous_vtext) = self.children.get_mut(prev_idx).unwrap() {
-                        previous_vtext.text.push_str(&text);
-                    }
-                }
-                Some(None) => {
-                    previous_vtext_idx = Some(i);
-                }
-                None => previous_vtext_idx = None,
-            }
-        }
-    }
-
-    /// Filter out the empty VList and VText children.
-    fn filter_out_empty_children(&mut self) {
-        fn keep_child(child: &VNode) -> bool {
-            match child {
-                VNode::VList(vlist) if vlist.children.is_empty() => false,
-                VNode::VText(VText {
-                    ref text,
-                    reference: None,
-                }) if text.is_empty() => false,
-                _ => true,
-            }
-        }
-
-        let needs_collect = !self.children.iter().all(keep_child);
-        if needs_collect {
-            let children = core::mem::replace(&mut self.children, vec![]);
-            self.children = children.into_iter().filter(keep_child).collect();
-        }
+    /// Add multiple `VNode` children.
+    pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
+        self.children.extend(children);
     }
 }
 
 impl VDiff for VList {
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
-        let mut next_sibling = None;
+    fn detach(&mut self, parent: &Element) {
         for mut child in self.children.drain(..) {
-            next_sibling = child.detach(parent);
+            child.detach(parent);
         }
-        next_sibling
     }
 
     fn apply(
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        mut next_sibling: Option<Node>,
+        next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Option<Node> {
+    ) -> NodeRef {
         // Here, we will try to diff the previous list elements with the new
         // ones we want to insert. For that, we will use two lists:
         //  - lefts: new elements to render in the DOM
@@ -187,15 +80,13 @@ impl VDiff for VList {
         // (self.children). For the right ones, we will look at the ancestor,
         // i.e. the current DOM list element that we want to replace with self.
 
-        if self.children.is_empty() && !self.elide_placeholder {
-            // When the list is empty, without a placeholder the next element
-            // becomes first and corrupts the order of rendering. We use empty
-            // text element to stake out a place.
+        if self.children.is_empty() {
+            // Without a placeholder the next element becomes first
+            // and corrupts the order of rendering
+            // We use empty text element to stake out a place
             let placeholder = VText::new("".into());
             self.children.push(placeholder.into());
         }
-
-        self.normalize();
 
         // Check for lefts to see if there are duplicates and show a warning
         // (no need to check in right, there cannot be duplicates).
@@ -270,27 +161,42 @@ impl VDiff for VList {
         // expensive and less frequent.
         if !use_keyed_algorithm {
             let mut rights = rights.into_iter().peekable();
-            let mut previous_reconciled_node: Option<Node> = None;
-            for left in self.children.iter_mut() {
-                let right = rights.next();
+            let mut last_next_sibling = NodeRef::default();
+            let mut nodes: Vec<NodeRef> = self
+                .children
+                .iter_mut()
+                .map(|left| {
+                    let ancestor = rights.next();
 
-                let ns = next_sibling.take();
-                next_sibling = rights
-                    .peek()
-                    .and_then(|vnode| vnode.reference())
-                    .or_else(|| {
-                        previous_reconciled_node
-                            .as_ref()
-                            .and_then(|node| node.next_sibling())
-                    })
-                    .or(ns);
-                previous_reconciled_node =
-                    left.apply(parent_scope, parent, next_sibling.take(), right);
-            }
+                    // Create a new `next_sibling` reference which points to the next `right` or
+                    // the outer list's `next_sibling` if there are no more `rights`.
+                    let new_next_sibling = NodeRef::default();
+                    if let Some(next_right) = rights.peek() {
+                        new_next_sibling.set(Some(next_right.first_node()));
+                    } else {
+                        new_next_sibling.link(next_sibling.clone());
+                    }
+
+                    // Update the next list item and then link the previous left's `next_sibling` to the returned `node` reference
+                    // so that the previous left has an up-to-date `next_sibling` (important for mounting a `Component`)
+                    let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
+                    last_next_sibling.link(node.clone());
+                    last_next_sibling = new_next_sibling;
+                    node
+                })
+                .collect();
+
+            // If there are more `rights` than `lefts`, we need to make sure to link the last left's `next_sibling`
+            // to the outer list's `next_sibling` so that it doesn't point at a `right` that is detached.
+            last_next_sibling.link(next_sibling);
+
+            // Detach all extra rights
             for mut right in rights {
                 right.detach(parent);
             }
-            None
+
+            assert!(!nodes.is_empty(), "VList should have at least one child");
+            nodes.swap_remove(0)
         } else {
             // Here, we know that all the left and right elements have keys.
 
@@ -343,23 +249,36 @@ impl VDiff for VList {
             // Reconciliation loop, i.e. apply the least amount of
             // transformations to rights to make them identical to lefts.
             let mut matched_rights = matched_rights.into_iter().peekable();
-            let mut previous_reconciled_node = None;
-            for left in self.children.iter_mut() {
-                let right = matched_rights.next().unwrap();
+            let mut last_next_sibling = NodeRef::default();
+            let mut nodes: Vec<NodeRef> = self
+                .children
+                .iter_mut()
+                .map(|left| {
+                    let ancestor = matched_rights.next().unwrap();
 
-                next_sibling = matched_rights
-                    .peek()
-                    .and_then(|vnode| vnode.as_ref().and_then(|vnode| vnode.reference()))
-                    .or_else(|| {
-                        previous_reconciled_node
-                            .as_ref()
-                            .and_then(|node: &Node| node.next_sibling())
-                    });
-                previous_reconciled_node =
-                    left.apply(parent_scope, parent, next_sibling.take(), right);
-            }
+                    // Create a new `next_sibling` reference which points to the next `right` or
+                    // the outer list's `next_sibling` if there are no more `rights`.
+                    let new_next_sibling = NodeRef::default();
+                    if let Some(Some(next_right)) = matched_rights.peek() {
+                        new_next_sibling.set(Some(next_right.first_node()));
+                    } else {
+                        new_next_sibling.link(next_sibling.clone());
+                    }
+
+                    // Update the next list item and then link the previous left's `next_sibling` to the returned `node` reference
+                    // so that the previous left has an up-to-date `next_sibling` (important for mounting a `Component`)
+                    let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
+                    last_next_sibling.link(node.clone());
+                    last_next_sibling = new_next_sibling;
+                    node
+                })
+                .collect();
+
+            // If there are more `rights` than `lefts`, we need to make sure to link the last left's `next_sibling`
+            // to the outer list's `next_sibling` so that it doesn't point at a `right` that is detached.
+            last_next_sibling.link(next_sibling);
+
             drop(matched_rights);
-            drop(previous_reconciled_node);
 
             // The remaining items in this map are the vnodes that have not been
             // reused, hence that have been deleted. We just rename the map for
@@ -382,9 +301,7 @@ impl VDiff for VList {
                 // Ignore the deleted right vnodes, and those corresponding to
                 // already moved left vnodes.
                 while let Some(key) = right_key.clone() {
-                    if moved.contains(&key) {
-                        right_key = right_keys.next();
-                    } else if deleted_rights.contains_key(&key) {
+                    if moved.contains(&key) || deleted_rights.contains_key(&key) {
                         right_key = right_keys.next();
                     } else {
                         break;
@@ -412,25 +329,16 @@ impl VDiff for VList {
                     }
                     (left_key, _) => {
                         // Move the left vnode.
-                        if let Some(left_node) = left.reference() {
-                            let next_sibling = match lefts.peek() {
-                                Some((_, vnode)) => vnode.reference(),
-                                _ => None,
-                            };
-                            moves.push((left_node, next_sibling));
+                        let left_node = left.first_node();
+                        let next_sibling = match lefts.peek() {
+                            Some((_, vnode)) => Some(vnode.first_node()),
+                            _ => None,
+                        };
+                        moves.push((left_node, next_sibling));
 
-                            // Remember that we moved it, to allow skipping the
-                            // matching right if there is one.
-                            moved.insert(left_key.clone());
-                        } else {
-                            log::error!(
-                                "Failed to move vnode with key {} to its correct position: it \
-                                doesn't have a reference! This is a bug in Yew, please report \
-                                it in our GitHub.\n\nThe faulty virtual node is: {:#?}",
-                                left_key,
-                                &left
-                            );
-                        }
+                        // Remember that we moved it, to allow skipping the
+                        // matching right if there is one.
+                        moved.insert(left_key.clone());
                     }
                 }
             }
@@ -455,7 +363,8 @@ impl VDiff for VList {
                 right.detach(parent);
             }
 
-            self.children.last().and_then(|vnode| vnode.reference())
+            assert!(!nodes.is_empty(), "VList should have at least one child");
+            nodes.swap_remove(0)
         }
     }
 }
@@ -496,6 +405,7 @@ mod tests {
         }
 
         fn change(&mut self, props: Self::Properties) -> ShouldRender {
+            #[cfg(feature = "wasm_test")]
             wasm_bindgen_test::console_log!("Comp changed: {} -> {}", self.id, props.id);
             let changed = self.id != props.id;
             if self.panic_if_changes && changed {
@@ -528,150 +438,6 @@ mod tests {
                 { fragment }
             </div>
         };
-    }
-
-    #[test]
-    fn vlist_collapse_vlist_children_when_empty() {
-        let mut vlist = VList::new_with_children(vec![], None);
-        vlist.collapse_vlist_children();
-        assert_eq!(vlist, VList::new_with_children(vec![], None))
-    }
-
-    #[test]
-    fn vlist_collapse_vlist_children() {
-        let mut vlist = VList::new_with_children(
-            vec![
-                VList::new_with_children(vec![], None).into(),
-                VText::new("1".to_string()).into(),
-                VList::new_with_children(
-                    vec![
-                        VText::new("2".to_string()).into(),
-                        VText::new("3".to_string()).into(),
-                        VText::new("4".to_string()).into(),
-                    ],
-                    None,
-                )
-                .into(),
-                VList::new_with_children(vec![], None).into(),
-                VList::new_with_children(
-                    vec![
-                        VText::new("5".to_string()).into(),
-                        VText::new("6".to_string()).into(),
-                    ],
-                    None,
-                )
-                .into(),
-                VText::new("7".to_string()).into(),
-            ],
-            None,
-        );
-
-        vlist.collapse_vlist_children();
-
-        assert_eq!(
-            vlist,
-            VList::new_with_children(
-                vec![
-                    VList::new_with_children(vec![], None).into(),
-                    VText::new("1".to_string()).into(),
-                    VList::new_with_children(
-                        vec![
-                            VText::new("2".to_string()).into(),
-                            VText::new("3".to_string()).into(),
-                            VText::new("4".to_string()).into(),
-                            VText::new("5".to_string()).into(),
-                            VText::new("6".to_string()).into(),
-                        ],
-                        None
-                    )
-                    .into(),
-                    VList::new_with_children(vec![], None).into(),
-                    VList::new_with_children(vec![], None).into(),
-                    VText::new("7".to_string()).into(),
-                ],
-                None
-            )
-        )
-    }
-
-    #[test]
-    fn vlist_collapse_vtext_children() {
-        let mut vlist = VList::new_with_children(
-            vec![
-                VText::new("1".to_string()).into(),
-                VText::new("2".to_string()).into(),
-                VTag::new("p").into(),
-                VText::new("3".to_string()).into(),
-                VTag::new("u").into(),
-                VText::new("4".to_string()).into(),
-                VTag::new("i").into(),
-                VText::new("5".to_string()).into(),
-                VText::new("6".to_string()).into(),
-                VText::new("7".to_string()).into(),
-                VText::new("8".to_string()).into(),
-            ],
-            None,
-        );
-
-        vlist.collapse_vtext_children();
-
-        assert_eq!(
-            vlist.children,
-            vec![
-                VText::new("12".to_string()).into(),
-                VText::new("".to_string()).into(),
-                VTag::new("p").into(),
-                VText::new("3".to_string()).into(),
-                VTag::new("u").into(),
-                VText::new("4".to_string()).into(),
-                VTag::new("i").into(),
-                VText::new("5678".to_string()).into(),
-                VText::new("".to_string()).into(),
-                VText::new("".to_string()).into(),
-                VText::new("".to_string()).into(),
-            ]
-        )
-    }
-
-    #[test]
-    fn vlist_filter_out_empty_children() {
-        let mut vlist = VList::new_with_children(
-            vec![
-                VList::new_with_children(vec![VTag::new("a").into()], None).into(),
-                VList::new_with_children(vec![], None).into(),
-                VList::new_with_children(vec![], None).into(),
-                VText::new("1".to_string()).into(),
-                VText::new("".to_string()).into(),
-                VTag::new("p").into(),
-                VText::new("3".to_string()).into(),
-                VList::new_with_children(vec![], None).into(),
-                VList::new_with_children(vec![], None).into(),
-                VTag::new("u").into(),
-                VText::new("4".to_string()).into(),
-                VTag::new("i").into(),
-                VText::new("5".to_string()).into(),
-                VText::new("".to_string()).into(),
-                VText::new("".to_string()).into(),
-                VText::new("".to_string()).into(),
-            ],
-            None,
-        );
-
-        vlist.filter_out_empty_children();
-
-        assert_eq!(
-            vlist.children,
-            vec![
-                VList::new_with_children(vec![VTag::new("a").into(),], None).into(),
-                VText::new("1".to_string()).into(),
-                VTag::new("p").into(),
-                VText::new("3".to_string()).into(),
-                VTag::new("u").into(),
-                VText::new("4".to_string()).into(),
-                VTag::new("i").into(),
-                VText::new("5".to_string()).into(),
-            ],
-        )
     }
 
     fn new_keyed_vtag<T: Into<Cow<'static, str>>, K: ToString>(tag: T, key: K) -> VTag {
@@ -729,7 +495,7 @@ mod tests {
 
         let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
         let parent_element = crate::utils::document().create_element("div").unwrap();
-        vlist.apply(&parent_scope, &parent_element, None, None);
+        vlist.apply(&parent_scope, &parent_element, NodeRef::default(), None);
 
         assert_eq!(
             inner_html(&parent_element),
@@ -772,7 +538,7 @@ mod tests {
 
         let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
         let parent_element = crate::utils::document().create_element("div").unwrap();
-        vlist.apply(&parent_scope, &parent_element, None, None);
+        vlist.apply(&parent_scope, &parent_element, NodeRef::default(), None);
 
         assert_eq!(
             inner_html(&parent_element),
@@ -791,7 +557,7 @@ mod tests {
         let parent_element = crate::utils::document().create_element("div").unwrap();
 
         let mut ancestor_vlist = VList::new_with_children(ancestor_children, None);
-        ancestor_vlist.apply(&parent_scope, &parent_element, None, None);
+        ancestor_vlist.apply(&parent_scope, &parent_element, NodeRef::default(), None);
         assert_eq!(
             inner_html(&parent_element),
             ancestor_inner_html.as_ref(),
@@ -802,7 +568,7 @@ mod tests {
         vlist.apply(
             &parent_scope,
             &parent_element,
-            None,
+            NodeRef::default(),
             Some(VNode::VList(ancestor_vlist)),
         );
         assert_eq!(
@@ -1616,5 +1382,76 @@ mod tests {
             ],
             "<a></a><u></u><p></p>",
         );
+    }
+}
+
+#[cfg(all(test, feature = "web_sys"))]
+mod layout_tests {
+    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn diff() {
+        let layout1 = TestLayout {
+            node: html! {
+                <>
+                    {"a"}
+                    {"b"}
+                    <>
+                        {"c"}
+                        {"d"}
+                    </>
+                    {"e"}
+                </>
+            },
+            expected: "abcde",
+        };
+
+        let layout2 = TestLayout {
+            node: html! {
+                <>
+                    {"a"}
+                    {"b"}
+                    <></>
+                    {"e"}
+                    {"f"}
+                </>
+            },
+            expected: "abef",
+        };
+
+        let layout3 = TestLayout {
+            node: html! {
+                <>
+                    {"a"}
+                    <></>
+                    {"b"}
+                    {"e"}
+                </>
+            },
+            expected: "abe",
+        };
+
+        let layout4 = TestLayout {
+            node: html! {
+                <>
+                    {"a"}
+                    <>
+                        {"c"}
+                        {"d"}
+                    </>
+                    {"b"}
+                    {"e"}
+                </>
+            },
+            expected: "acdbe",
+        };
+
+        diff_layouts(vec![layout1, layout2, layout3, layout4]);
     }
 }

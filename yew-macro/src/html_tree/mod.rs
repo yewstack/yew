@@ -1,11 +1,11 @@
-pub mod html_block;
-pub mod html_component;
-pub mod html_dashed_name;
-pub mod html_iterable;
-pub mod html_list;
-pub mod html_node;
-pub mod html_prop;
-pub mod html_tag;
+mod html_block;
+mod html_component;
+mod html_dashed_name;
+mod html_iterable;
+mod html_list;
+mod html_node;
+mod html_prop;
+mod html_tag;
 
 use crate::PeekValue;
 use html_block::HtmlBlock;
@@ -17,7 +17,7 @@ use html_node::HtmlNode;
 use html_prop::HtmlProp;
 use html_prop::HtmlPropSuffix;
 use html_tag::HtmlTag;
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
@@ -33,41 +33,9 @@ pub enum HtmlType {
 pub enum HtmlTree {
     Block(Box<HtmlBlock>),
     Component(Box<HtmlComponent>),
-    Iterable(Box<HtmlIterable>),
     List(Box<HtmlList>),
     Tag(Box<HtmlTag>),
-    Node(Box<HtmlNode>),
     Empty,
-}
-
-pub struct HtmlRoot(HtmlTree);
-impl Parse for HtmlRoot {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let html_root = if HtmlTree::peek(input.cursor()).is_some() {
-            HtmlRoot(input.parse()?)
-        } else if HtmlIterable::peek(input.cursor()).is_some() {
-            HtmlRoot(HtmlTree::Iterable(Box::new(input.parse()?)))
-        } else {
-            HtmlRoot(HtmlTree::Node(Box::new(input.parse()?)))
-        };
-
-        if !input.is_empty() {
-            let stream: TokenStream = input.parse()?;
-            Err(syn::Error::new_spanned(
-                stream,
-                "only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)",
-            ))
-        } else {
-            Ok(html_root)
-        }
-    }
-}
-
-impl ToTokens for HtmlRoot {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlRoot(html_tree) = self;
-        html_tree.to_tokens(tokens);
-    }
 }
 
 impl Parse for HtmlTree {
@@ -104,54 +72,149 @@ impl PeekValue<HtmlType> for HtmlTree {
 }
 
 impl ToTokens for HtmlTree {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let node = self.token_stream();
-        tokens.extend(quote! {
-            ::yew::virtual_dom::VNode::from(#node)
-        });
-    }
-}
-
-impl HtmlTree {
-    fn token_stream(&self) -> proc_macro2::TokenStream {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         match self {
-            HtmlTree::Empty => HtmlList {
-                children: Vec::new(),
-                key: None,
-            }
-            .into_token_stream(),
-            HtmlTree::Component(comp) => comp.into_token_stream(),
-            HtmlTree::Tag(tag) => tag.into_token_stream(),
-            HtmlTree::List(list) => list.into_token_stream(),
-            HtmlTree::Node(node) => node.into_token_stream(),
-            HtmlTree::Iterable(iterable) => iterable.into_token_stream(),
-            HtmlTree::Block(block) => block.into_token_stream(),
+            HtmlTree::Empty => HtmlList::empty().to_tokens(tokens),
+            HtmlTree::Component(comp) => comp.to_tokens(tokens),
+            HtmlTree::Tag(tag) => tag.to_tokens(tokens),
+            HtmlTree::List(list) => list.to_tokens(tokens),
+            HtmlTree::Block(block) => block.to_tokens(tokens),
         }
     }
 }
 
-pub struct HtmlRootNested(HtmlTreeNested);
-impl Parse for HtmlRootNested {
+pub enum HtmlRoot {
+    Tree(HtmlTree),
+    Iterable(Box<HtmlIterable>),
+    Node(Box<HtmlNode>),
+}
+
+impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> Result<Self> {
-        Ok(HtmlRootNested(HtmlTreeNested::parse(input)?))
+        let html_root = if HtmlTree::peek(input.cursor()).is_some() {
+            Self::Tree(input.parse()?)
+        } else if HtmlIterable::peek(input.cursor()).is_some() {
+            Self::Iterable(Box::new(input.parse()?))
+        } else {
+            Self::Node(Box::new(input.parse()?))
+        };
+
+        if !input.is_empty() {
+            let stream: TokenStream = input.parse()?;
+            Err(syn::Error::new_spanned(
+                stream,
+                "only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)",
+            ))
+        } else {
+            Ok(html_root)
+        }
     }
 }
 
-impl ToTokens for HtmlRootNested {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
+impl ToTokens for HtmlRoot {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        match self {
+            Self::Tree(tree) => tree.to_tokens(tokens),
+            Self::Node(node) => node.to_tokens(tokens),
+            Self::Iterable(iterable) => iterable.to_tokens(tokens),
+        }
     }
 }
 
-pub struct HtmlTreeNested(HtmlTree);
-impl Parse for HtmlTreeNested {
+/// Same as HtmlRoot but always returns a VNode.
+pub struct HtmlRootVNode(HtmlRoot);
+impl Parse for HtmlRootVNode {
     fn parse(input: ParseStream) -> Result<Self> {
-        Ok(HtmlTreeNested(HtmlTree::parse(input)?))
+        input.parse().map(Self)
+    }
+}
+impl ToTokens for HtmlRootVNode {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let new_tokens = self.0.to_token_stream();
+        tokens.extend(quote! {
+            ::yew::virtual_dom::VNode::from(#new_tokens)
+        });
     }
 }
 
-impl ToTokens for HtmlTreeNested {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        tokens.extend(self.0.token_stream());
+/// This trait represents a type that can be unfolded into multiple html nodes.
+pub trait ToNodeIterator {
+    /// Generate a token stream which produces a value that implements IntoIterator<Item=T> where T is inferred by the compiler.
+    /// The easiest way to achieve this is to call `.into()` on each element.
+    /// If the resulting iterator only ever yields a single item this function should return None instead.
+    fn to_node_iterator_stream(&self) -> Option<TokenStream>;
+}
+
+impl ToNodeIterator for HtmlTree {
+    fn to_node_iterator_stream(&self) -> Option<TokenStream> {
+        match self {
+            HtmlTree::Block(block) => block.to_node_iterator_stream(),
+            // everthing else is just a single node.
+            _ => None,
+        }
+    }
+}
+
+struct HtmlChildrenTree(Vec<HtmlTree>);
+
+impl HtmlChildrenTree {
+    pub fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    pub fn parse_child(&mut self, input: ParseStream) -> Result<()> {
+        self.0.push(input.parse()?);
+        Ok(())
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    // Check if each child represents a single node.
+    // This is the case when no expressions are used.
+    fn only_single_node_children(&self) -> bool {
+        self.0
+            .iter()
+            .map(ToNodeIterator::to_node_iterator_stream)
+            .all(|s| s.is_none())
+    }
+
+    pub fn to_build_vec_token_stream(&self) -> TokenStream {
+        let Self(children) = self;
+
+        if self.only_single_node_children() {
+            // optimize for the common case where all children are single nodes (only using literal html).
+            return quote! {
+                vec![#((#children).into()),*]
+            };
+        }
+
+        let vec_ident = Ident::new("__yew_v", Span::call_site());
+        let add_children_streams = children.iter().map(|child| {
+            if let Some(node_iterator_stream) = child.to_node_iterator_stream() {
+                quote! {
+                    #vec_ident.extend(#node_iterator_stream);
+                }
+            } else {
+                quote! {
+                    #vec_ident.push((#child).into());
+                }
+            }
+        });
+
+        quote! {
+            {
+                let mut #vec_ident = ::std::vec::Vec::new();
+                #(#add_children_streams)*
+                #vec_ident
+            }
+        }
+    }
+}
+
+impl ToTokens for HtmlChildrenTree {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(self.to_build_vec_token_stream());
     }
 }
