@@ -34,7 +34,7 @@ pub enum VNode {
 
 impl VNode {
     /// Returns the first DOM node that is used to designate the position of the virtual DOM node.
-    pub fn first_node(&self) -> Node {
+    pub(crate) fn first_node(&self) -> Node {
         match self {
             VNode::VTag(vtag) => vtag
                 .reference
@@ -56,7 +56,11 @@ impl VNode {
                 .node_ref
                 .get()
                 .expect("VComp should always wrap a node"),
-            VNode::VList(vlist) => (&vlist.children[0]).first_node(),
+            VNode::VList(vlist) => vlist
+                .children
+                .get(0)
+                .expect("VList should always always have at least one child")
+                .first_node(),
             VNode::VRef(node) => node.clone(),
         }
     }

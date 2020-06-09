@@ -142,7 +142,7 @@ impl VDiff for VList {
         }
 
         assert!(!nodes.is_empty(), "VList should have at least one child");
-        nodes.remove(0)
+        nodes.swap_remove(0)
     }
 }
 
