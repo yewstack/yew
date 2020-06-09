@@ -1,4 +1,4 @@
-use super::HtmlTree;
+use super::HtmlChildrenTree;
 use crate::html_tree::{HtmlProp, HtmlPropSuffix};
 use crate::PeekValue;
 use boolinator::Boolinator;
@@ -10,8 +10,17 @@ use syn::spanned::Spanned;
 use syn::{Expr, Token};
 
 pub struct HtmlList {
-    pub children: Vec<HtmlTree>,
-    pub key: Option<Expr>,
+    children: HtmlChildrenTree,
+    key: Option<Expr>,
+}
+
+impl HtmlList {
+    pub fn empty() -> Self {
+        Self {
+            children: HtmlChildrenTree::new(),
+            key: None,
+        }
+    }
 }
 
 impl PeekValue<()> for HtmlList {
@@ -42,9 +51,9 @@ impl Parse for HtmlList {
             ));
         }
 
-        let mut children: Vec<HtmlTree> = vec![];
+        let mut children = HtmlChildrenTree::new();
         while HtmlListClose::peek(input.cursor()).is_none() {
-            children.push(input.parse()?);
+            children.parse_child(input)?;
         }
 
         input.parse::<HtmlListClose>()?;
@@ -64,23 +73,9 @@ impl ToTokens for HtmlList {
         } else {
             quote! {None}
         };
-        let children_tokens = if !children.is_empty() {
-            quote! {
-                let mut v = ::std::vec::Vec::new();
-                #(v.extend(::yew::utils::NodeSeq::from(#children));)*
-                v
-            }
-        } else {
-            quote! {
-                ::std::vec::Vec::new()
-            }
-        };
         tokens.extend(quote! {
             ::yew::virtual_dom::VNode::VList(
-                ::yew::virtual_dom::VList::new_with_children({
-                    #children_tokens
-                },
-                #key)
+                ::yew::virtual_dom::VList::new_with_children(#children, #key)
             )
         });
     }

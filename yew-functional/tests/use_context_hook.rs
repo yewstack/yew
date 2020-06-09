@@ -6,7 +6,7 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 extern crate yew;
 
-use yew::{html, App, Children, Html, Properties, Renderable};
+use yew::{html, App, Children, Html, Properties};
 use yew_functional::{
     use_context, use_effect, use_ref, use_state, ContextProvider, FunctionComponent,
     FunctionProvider,
@@ -198,7 +198,7 @@ fn use_context_update_works() {
                     <div id=props.id.clone()>
                         { format!("total: {}", counter.borrow()) }
                     </div>
-                    { props.children.render() }
+                    { props.children.clone() }
                 </>
             };
         }

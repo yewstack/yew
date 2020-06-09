@@ -116,6 +116,11 @@ fn compile_fail() {
 
     html! { <Generic<String>></Generic> };
     html! { <Generic<String>></Generic<Vec<String>>> };
+
+    html_nested! {
+        <span>{ 1 }</span>
+        <span>{ 2 }</span>
+    };
 }
 
 fn main() {}

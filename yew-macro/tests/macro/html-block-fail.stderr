@@ -8,6 +8,8 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
+  = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
+  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::utils::NodeSeq<(), yew::virtual_dom::vnode::VNode>`
   = note: required by `std::convert::From::from`
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -21,6 +23,8 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
    = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
+   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::utils::NodeSeq<(), yew::virtual_dom::vnode::VNode>`
    = note: required by `std::convert::From::from`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 

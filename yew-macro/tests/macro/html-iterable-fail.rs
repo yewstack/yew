@@ -11,6 +11,13 @@ fn compile_fail() {
 
     let empty = Vec::<()>::new();
     html! { for empty.iter() };
+
+    html! {
+        <>
+            <div/>
+            { for () }
+        </>
+    };
 }
 
 fn main() {}
