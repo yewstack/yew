@@ -1,3 +1,4 @@
+use super::ToNodeIterator;
 use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::TokenStream;
@@ -39,14 +40,21 @@ impl Parse for HtmlIterable {
 impl ToTokens for HtmlIterable {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let expr = &self.0;
-        let new_tokens = quote_spanned! {expr.span()=> {
-            let mut __yew_vlist = ::yew::virtual_dom::VList::default();
-            for __yew_node in #expr {
-                __yew_vlist.add_child(__yew_node.into());
-            }
-            ::yew::virtual_dom::VNode::from(__yew_vlist)
-        }};
+        let new_tokens = quote_spanned! {expr.span()=>
+            ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(::std::iter::IntoIterator::into_iter(#expr))
+        };
 
         tokens.extend(new_tokens);
+    }
+}
+
+impl ToNodeIterator for HtmlIterable {
+    fn to_node_iterator_stream(&self) -> Option<TokenStream> {
+        let Self(expr) = self;
+        // #expr can return anything that implements IntoIterator<Item=Into<T>>
+        // so we generate some extra code to turn it into IntoIterator<Item=T>
+        Some(quote_spanned! {expr.span()=>
+            ::std::iter::Iterator::map(::std::iter::IntoIterator::into_iter(#expr), |n| n.into())
+        })
     }
 }

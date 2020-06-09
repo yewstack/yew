@@ -13,6 +13,12 @@ fn compile_pass() {
         <key="key".to_string()>
         </>
     };
+
+    let children = vec![
+        html! { <span>{ "Hello" }</span> },
+        html! { <span>{ "World" }</span> },
+    ];
+    html! { <>{children}</> };
 }
 
 fn main() {}

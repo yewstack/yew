@@ -65,6 +65,11 @@ impl VList {
     pub fn add_child(&mut self, child: VNode) {
         self.children.push(child);
     }
+
+    /// Add multiple `VNode` children.
+    pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
+        self.children.extend(children);
+    }
 }
 
 impl VDiff for VList {
