@@ -23,8 +23,8 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     Message(COMP::Message),
     /// Wraps batch of messages for a component.
     MessageBatch(Vec<COMP::Message>),
-    /// Wraps properties and new node ref for a component.
-    Properties(COMP::Properties, NodeRef),
+    /// Wraps properties, next sibling, and node ref for a component.
+    Properties(COMP::Properties, NodeRef, NodeRef),
 }
 
 /// Untyped scope used for accessing parent scope
@@ -116,6 +116,7 @@ impl<COMP: Component> Scope<COMP> {
     pub(crate) fn mount_in_place(
         self,
         parent: Element,
+        next_sibling: NodeRef,
         ancestor: Option<VNode>,
         node_ref: NodeRef,
         props: COMP::Properties,
@@ -125,6 +126,7 @@ impl<COMP: Component> Scope<COMP> {
             Box::new(CreateComponent {
                 state: self.state.clone(),
                 parent,
+                next_sibling,
                 ancestor,
                 node_ref,
                 scope: self.clone(),
@@ -247,6 +249,7 @@ const DIRTY: Dirty = true;
 
 struct ComponentState<COMP: Component> {
     parent: Element,
+    next_sibling: NodeRef,
     node_ref: NodeRef,
     scope: Scope<COMP>,
     component: Box<COMP>,
@@ -259,6 +262,7 @@ impl<COMP: Component> ComponentState<COMP> {
     /// method on component to create it.
     fn new(
         parent: Element,
+        next_sibling: NodeRef,
         ancestor: Option<VNode>,
         node_ref: NodeRef,
         scope: Scope<COMP>,
@@ -267,6 +271,7 @@ impl<COMP: Component> ComponentState<COMP> {
         let component = Box::new(COMP::create(props, scope.clone()));
         Self {
             parent,
+            next_sibling,
             node_ref,
             scope,
             component,
@@ -285,6 +290,7 @@ where
 {
     state: Shared<Option<ComponentState<COMP>>>,
     parent: Element,
+    next_sibling: NodeRef,
     ancestor: Option<VNode>,
     node_ref: NodeRef,
     scope: Scope<COMP>,
@@ -300,6 +306,7 @@ where
         if current_state.is_none() {
             *current_state = Some(ComponentState::new(
                 self.parent,
+                self.next_sibling,
                 self.ancestor,
                 self.node_ref,
                 self.scope,
@@ -330,10 +337,12 @@ where
                 ComponentUpdate::MessageBatch(messages) => messages
                     .into_iter()
                     .fold(false, |acc, msg| state.component.update(msg) || acc),
-                ComponentUpdate::Properties(props, node_ref) => {
+                ComponentUpdate::Properties(props, node_ref, next_sibling) => {
                     // When components are updated, they receive a new node ref that
                     // must be linked to previous one.
                     node_ref.link(state.node_ref.clone());
+                    // When components are updated, their siblings were likely also updated
+                    state.next_sibling = next_sibling;
                     state.component.change(props)
                 }
             };
@@ -342,17 +351,10 @@ where
                 state.render_status = state.render_status.map(|_| DIRTY);
                 let mut root = state.component.render();
                 let last_root = state.last_root.take();
-                if let Some(node) =
-                    root.apply(&state.scope.clone().into(), &state.parent, None, last_root)
-                {
-                    state.node_ref.set(Some(node));
-                } else if let VNode::VComp(child) = &root {
-                    // If the root VNode is a VComp, we won't have access to the rendered DOM node
-                    // because components render asynchronously. In order to bubble up the DOM node
-                    // from the VComp, we need to link the currently rendering component with its
-                    // root child component.
-                    state.node_ref.link(child.node_ref.clone());
-                }
+                let parent_scope = state.scope.clone().into();
+                let next_sibling = state.next_sibling.clone();
+                let node = root.apply(&parent_scope, &state.parent, next_sibling, last_root);
+                state.node_ref.link(node);
                 state.last_root = Some(root);
             };
         }
@@ -486,7 +488,7 @@ mod tests {
 
         let scope = Scope::<Comp>::new(None);
         let el = document.create_element("div").unwrap();
-        scope.mount_in_place(el, None, NodeRef::default(), props);
+        scope.mount_in_place(el, NodeRef::default(), None, NodeRef::default(), props);
 
         assert_eq!(
             lifecycle.borrow_mut().deref(),
@@ -509,7 +511,7 @@ mod tests {
 
         let scope = Scope::<Comp>::new(None);
         let el = document.create_element("div").unwrap();
-        scope.mount_in_place(el, None, NodeRef::default(), props);
+        scope.mount_in_place(el, NodeRef::default(), None, NodeRef::default(), props);
 
         assert_eq!(
             lifecycle.borrow_mut().deref(),
@@ -533,7 +535,7 @@ mod tests {
 
         let scope = Scope::<Comp>::new(None);
         let el = document.create_element("div").unwrap();
-        scope.mount_in_place(el, None, NodeRef::default(), props);
+        scope.mount_in_place(el, NodeRef::default(), None, NodeRef::default(), props);
 
         assert_eq!(
             lifecycle.borrow_mut().deref(),
