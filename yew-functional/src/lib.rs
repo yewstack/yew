@@ -277,7 +277,7 @@ where
                             de();
                         }
                         let new_destructor = callback(deps.borrow());
-                        state.deps = deps.clone();
+                        state.deps = deps;
                         state.destructor.replace(Box::new(new_destructor));
                     } else if state.destructor.is_none() {
                         should_update = true;

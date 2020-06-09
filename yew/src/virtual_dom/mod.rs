@@ -13,7 +13,7 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
-use crate::html::AnyScope;
+use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
@@ -204,7 +204,7 @@ pub(crate) trait VDiff {
     /// - `ancestor`: the node that this node will be replacing in the DOM. This
     ///   method will _always_ remove the `ancestor` from the `parent`.
     ///
-    /// Returns the newly inserted element.
+    /// Returns a reference to the newly inserted element.
     ///
     /// ### Internal Behavior Notice:
     ///
@@ -218,9 +218,9 @@ pub(crate) trait VDiff {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: Option<Node>,
+        next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Node;
+    ) -> NodeRef;
 }
 
 #[cfg(feature = "web_sys")]
@@ -292,5 +292,123 @@ mod tests {
         subject.push("foo bar");
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
+    }
+}
+
+// stdweb doesn't have `inner_html` method
+#[cfg(all(test, feature = "web_sys"))]
+mod layout_tests {
+    use super::*;
+    use crate::html::{AnyScope, Scope};
+    use crate::{Component, ComponentLink, Html, ShouldRender};
+
+    struct Comp;
+    impl Component for Comp {
+        type Message = ();
+        type Properties = ();
+
+        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+            unimplemented!()
+        }
+
+        fn update(&mut self, _: Self::Message) -> ShouldRender {
+            unimplemented!();
+        }
+
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+            unimplemented!()
+        }
+
+        fn view(&self) -> Html {
+            unimplemented!()
+        }
+    }
+
+    pub(crate) struct TestLayout<'a> {
+        pub(crate) node: VNode,
+        pub(crate) expected: &'a str,
+    }
+
+    pub(crate) fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
+        let document = crate::utils::document();
+        let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
+        let parent_element = document.create_element("div").unwrap();
+        let parent_node: Node = parent_element.clone().into();
+        let end_node = document.create_text_node("END");
+        parent_node.append_child(&end_node).unwrap();
+        let empty_node: VNode = VText::new("".into()).into();
+
+        // Test each layout independently
+        let next_sibling = NodeRef::new(end_node.into());
+        for layout in layouts.iter() {
+            // Apply layout
+            let mut node = layout.node.clone();
+            node.apply(&parent_scope, &parent_element, next_sibling.clone(), None);
+            assert_eq!(
+                parent_element.inner_html(),
+                format!("{}END", layout.expected)
+            );
+
+            // Diff with no changes
+            let mut node_clone = layout.node.clone();
+            node_clone.apply(
+                &parent_scope,
+                &parent_element,
+                next_sibling.clone(),
+                Some(node),
+            );
+            assert_eq!(
+                parent_element.inner_html(),
+                format!("{}END", layout.expected)
+            );
+
+            // Detach
+            empty_node.clone().apply(
+                &parent_scope,
+                &parent_element,
+                next_sibling.clone(),
+                Some(node_clone),
+            );
+            assert_eq!(parent_element.inner_html(), "END");
+        }
+
+        // Sequentially apply each layout
+        let mut ancestor: Option<VNode> = None;
+        for layout in layouts.iter() {
+            let mut next_node = layout.node.clone();
+            next_node.apply(
+                &parent_scope,
+                &parent_element,
+                next_sibling.clone(),
+                ancestor,
+            );
+            assert_eq!(
+                parent_element.inner_html(),
+                format!("{}END", layout.expected)
+            );
+            ancestor = Some(next_node);
+        }
+
+        // Sequentially detach each layout
+        for layout in layouts.into_iter().rev() {
+            let mut next_node = layout.node.clone();
+            next_node.apply(
+                &parent_scope,
+                &parent_element,
+                next_sibling.clone(),
+                ancestor,
+            );
+            assert_eq!(
+                parent_element.inner_html(),
+                format!("{}END", layout.expected)
+            );
+            ancestor = Some(next_node);
+        }
+
+        // Detach last layout
+        empty_node
+            .clone()
+            .apply(&parent_scope, &parent_element, next_sibling, ancestor);
+        assert_eq!(parent_element.inner_html(), "END");
     }
 }

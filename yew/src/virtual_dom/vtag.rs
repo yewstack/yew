@@ -16,13 +16,13 @@ cfg_if! {
         use stdweb::{_js_impl, js};
         use stdweb::unstable::TryFrom;
         use stdweb::web::html_element::{InputElement, TextAreaElement};
-        use stdweb::web::{Element, IElement, INode, Node};
+        use stdweb::web::{Element, IElement, INode};
     } else if #[cfg(feature = "web_sys")] {
         use gloo::events::EventListener;
         use std::ops::Deref;
         use wasm_bindgen::JsCast;
         use web_sys::{
-            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, Node, HtmlButtonElement
+            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, HtmlButtonElement
         };
     }
 }
@@ -121,10 +121,8 @@ impl VTag {
     }
 
     /// Add multiple `VNode` children.
-    pub fn add_children(&mut self, children: Vec<VNode>) {
-        for child in children {
-            self.add_child(child);
-        }
+    pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
+        self.children.add_children(children);
     }
 
     /// Sets `value` for an
@@ -426,15 +424,18 @@ impl VDiff for VTag {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: Option<Node>,
+        next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Node {
+    ) -> NodeRef {
         let mut ancestor_tag = ancestor.and_then(|mut ancestor| {
             match ancestor {
                 // If the ancestor is a tag of the same type, don't recreate, keep the
                 // old tag and update its attributes and children.
                 VNode::VTag(vtag) if self.tag == vtag.tag => Some(vtag),
                 _ => {
+                    let element = self.create_element(parent);
+                    super::insert_node(&element, parent, Some(ancestor.first_node()));
+                    self.reference = Some(element);
                     ancestor.detach(parent);
                     None
                 }
@@ -442,13 +443,15 @@ impl VDiff for VTag {
         });
 
         if let Some(ref mut ancestor_tag) = &mut ancestor_tag {
-            // Control the values of inputs and text area elements
+            // Refresh the current value to later compare it against the desired value
+            // since it may have been changed since we last set it.
             ancestor_tag.refresh_value();
+
             // Preserve the reference that already exists.
             self.reference = ancestor_tag.reference.take();
-        } else {
+        } else if self.reference.is_none() {
             let element = self.create_element(parent);
-            super::insert_node(&element, parent, next_sibling);
+            super::insert_node(&element, parent, next_sibling.get());
             self.reference = Some(element);
         }
 
@@ -461,7 +464,7 @@ impl VDiff for VTag {
             self.children.apply(
                 parent_scope,
                 element,
-                None,
+                NodeRef::default(),
                 ancestor_tag.map(|a| a.children.into()),
             );
         } else if let Some(mut ancestor_tag) = ancestor_tag {
@@ -473,7 +476,7 @@ impl VDiff for VTag {
             feature = "web_sys" => element.deref(),
         };
         self.node_ref.set(Some(node.clone()));
-        node.clone()
+        self.node_ref.clone()
     }
 }
 
@@ -520,7 +523,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{html, Component, ComponentLink, Html, ShouldRender};
+    use crate::html;
     use std::any::TypeId;
     #[cfg(feature = "std_web")]
     use stdweb::web::{document, IElement};
@@ -535,75 +538,6 @@ mod tests {
             type_id: TypeId::of::<()>(),
             parent: None,
             state: Rc::new(()),
-        }
-    }
-
-    struct Comp;
-
-    impl Component for Comp {
-        type Message = ();
-        type Properties = ();
-
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Comp
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn view(&self) -> Html {
-            unimplemented!();
-        }
-    }
-
-    struct CompInt;
-
-    impl Component for CompInt {
-        type Message = u32;
-        type Properties = ();
-
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            CompInt
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn view(&self) -> Html {
-            unimplemented!();
-        }
-    }
-
-    struct CompBool;
-
-    impl Component for CompBool {
-        type Message = bool;
-        type Properties = ();
-
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            CompBool
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn view(&self) -> Html {
-            unimplemented!();
         }
     }
 
@@ -874,17 +808,17 @@ mod tests {
         let mut svg_node = html! { <svg>{path_node}</svg> };
 
         let svg_tag = assert_vtag(&mut svg_node);
-        svg_tag.apply(&scope, &div_el, None, None);
+        svg_tag.apply(&scope, &div_el, NodeRef::default(), None);
         assert_namespace(svg_tag, SVG_NAMESPACE);
         let path_tag = assert_vtag(svg_tag.children.get_mut(0).unwrap());
         assert_namespace(path_tag, SVG_NAMESPACE);
 
         let g_tag = assert_vtag(&mut g_node);
-        g_tag.apply(&scope, &div_el, None, None);
+        g_tag.apply(&scope, &div_el, NodeRef::default(), None);
         assert_namespace(g_tag, HTML_NAMESPACE);
         g_tag.reference = None;
 
-        g_tag.apply(&scope, &svg_el, None, None);
+        g_tag.apply(&scope, &svg_el, NodeRef::default(), None);
         assert_namespace(g_tag, SVG_NAMESPACE);
     }
 
@@ -1014,7 +948,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=""></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1031,7 +965,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1048,7 +982,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class="ferris the crab"></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has been set
         assert!(vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1104,7 +1038,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1130,7 +1064,12 @@ mod tests {
         } else {
             panic!("should be vtag")
         };
-        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
+        vtag.apply(
+            &scope,
+            &parent,
+            NodeRef::default(),
+            Some(VNode::VTag(ancestor)),
+        );
 
         let expected = "class-3 class-2 class-1";
         assert_eq!(get_class_str(&vtag), expected);
@@ -1155,7 +1094,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-3")></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1181,7 +1120,12 @@ mod tests {
         } else {
             panic!("should be vtag")
         };
-        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
+        vtag.apply(
+            &scope,
+            &parent,
+            NodeRef::default(),
+            Some(VNode::VTag(ancestor)),
+        );
 
         let expected = "class-1 class-2 class-3";
         assert_eq!(get_class_str(&vtag), expected);
@@ -1211,7 +1155,7 @@ mod tests {
         let mut elem = html! {
             <input value=expected />
         };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1242,7 +1186,12 @@ mod tests {
         };
 
         // Sync happens here
-        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
+        vtag.apply(
+            &scope,
+            &parent,
+            NodeRef::default(),
+            Some(VNode::VTag(ancestor)),
+        );
 
         // Get new current value of the input element
         let input_ref = vtag.reference.as_ref().unwrap();
@@ -1277,7 +1226,7 @@ mod tests {
             builder
         }/> };
 
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // make sure the new tag name is used internally
         assert_eq!(vtag.tag, "a");
@@ -1314,5 +1263,94 @@ mod tests {
         };
         let vtag = assert_vtag(&mut el);
         assert_eq!(vtag.tag(), "textarea");
+    }
+}
+
+#[cfg(all(test, feature = "web_sys"))]
+mod layout_tests {
+    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn diff() {
+        let layout1 = TestLayout {
+            node: html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b</li></ul>",
+        };
+
+        let layout2 = TestLayout {
+            node: html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                    <li>
+                        {"d"}
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b</li><li>d</li></ul>",
+        };
+
+        let layout3 = TestLayout {
+            node: html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                    <li>
+                        {"c"}
+                    </li>
+                    <li>
+                        {"d"}
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>",
+        };
+
+        let layout4 = TestLayout {
+            node: html! {
+                <ul>
+                    <li>
+                        <>
+                            {"a"}
+                        </>
+                    </li>
+                    <li>
+                        {"b"}
+                        <li>
+                            {"c"}
+                        </li>
+                        <li>
+                            {"d"}
+                        </li>
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b<li>c</li><li>d</li></li></ul>",
+        };
+
+        diff_layouts(vec![layout1, layout2, layout3, layout4]);
     }
 }

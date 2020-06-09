@@ -9,7 +9,7 @@ cfg_if! {
         use stdweb::web::event::{ConcreteEvent, KeyDownEvent, KeyPressEvent, KeyUpEvent};
         use stdweb::web::{EventListenerHandle, IEventTarget};
     } else if #[cfg(feature = "web_sys")] {
-        use gloo::events::EventListener;
+        use gloo::events::{EventListener,EventListenerOptions};
         use wasm_bindgen::JsCast;
         use web_sys::{Event, EventTarget, KeyboardEvent};
     }
@@ -138,8 +138,13 @@ fn register_key_impl<T: AsRef<EventTarget>>(
             .clone();
         callback.emit(event);
     };
-
-    KeyListenerHandle(EventListener::new(element.as_ref(), event, listener))
+    let options = EventListenerOptions::enable_prevent_default();
+    KeyListenerHandle(EventListener::new_with_options(
+        element.as_ref(),
+        event,
+        options,
+        listener,
+    ))
 }
 
 #[cfg(feature = "std_web")]

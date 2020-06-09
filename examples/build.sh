@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # The example to build.
-EXAMPLE=$1
+EXAMPLE=${1%\/}
 # Optimization level. Can be either "--debug" or "--release". Defaults to debug.
 PROFILE=${2:---debug}
 

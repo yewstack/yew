@@ -6,7 +6,7 @@ pull_request_rules:
       - label=automerge
     actions:
       merge:
-        method: rebase
+        method: squash
   - name: remove automerge label on CI failure
     conditions:
       - status-failure=Travis CI - Pull Request

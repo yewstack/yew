@@ -1,7 +1,7 @@
 //! This module contains the implementation of abstract virtual node.
 
 use super::{Key, VChild, VComp, VDiff, VList, VTag, VText};
-use crate::html::{AnyScope, Component, Renderable};
+use crate::html::{AnyScope, Component, NodeRef, Renderable};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;
@@ -43,21 +43,35 @@ impl VNode {
         }
     }
 
-    pub fn reference(&self) -> Option<Node> {
+    /// Returns the first DOM node that is used to designate the position of the virtual DOM node.
+    pub(crate) fn first_node(&self) -> Node {
         match self {
-            VNode::VComp(vcomp) => vcomp.node_ref.get(),
-            VNode::VList(_) => None,
-            VNode::VRef(node) => Some(node.clone()),
             VNode::VTag(vtag) => vtag
                 .reference
                 .as_ref()
-                .map(|element| element.clone().into()),
-            VNode::VText(vtext) => vtext.reference.as_ref().map(|text_node| {
+                .expect("VTag should always wrap a node")
+                .clone()
+                .into(),
+            VNode::VText(vtext) => {
+                let text_node = vtext
+                    .reference
+                    .as_ref()
+                    .expect("VText should always wrap a node");
                 cfg_match! {
                     feature = "std_web" => text_node.as_node().clone(),
-                    feature = "web_sys" => (text_node.as_ref() as &Node).clone(),
+                    feature = "web_sys" => text_node.clone().into(),
                 }
-            }),
+            }
+            VNode::VComp(vcomp) => vcomp
+                .node_ref
+                .get()
+                .expect("VComp should always wrap a node"),
+            VNode::VList(vlist) => vlist
+                .children
+                .get(0)
+                .expect("VList should always always have at least one child")
+                .first_node(),
+            VNode::VRef(node) => node.clone(),
         }
     }
 }
@@ -82,9 +96,9 @@ impl VDiff for VNode {
         &mut self,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: Option<Node>,
+        next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Node {
+    ) -> NodeRef {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.apply(parent_scope, parent, next_sibling, ancestor),
             VNode::VText(ref mut vtext) => {
@@ -97,11 +111,16 @@ impl VDiff for VNode {
                 vlist.apply(parent_scope, parent, next_sibling, ancestor)
             }
             VNode::VRef(ref mut node) => {
-                if let Some(mut n) = ancestor {
-                    n.detach(parent)
-                };
-                super::insert_node(node, parent, next_sibling);
-                node.clone()
+                if let Some(mut ancestor) = ancestor {
+                    if let VNode::VRef(n) = &ancestor {
+                        if node == n {
+                            return NodeRef::new(node.clone());
+                        }
+                    }
+                    ancestor.detach(parent);
+                }
+                super::insert_node(node, parent, next_sibling.get());
+                NodeRef::new(node.clone())
             }
         }
     }
@@ -191,5 +210,36 @@ impl PartialEq for VNode {
             (VNode::VComp(_), VNode::VComp(_)) => false,
             _ => false,
         }
+    }
+}
+
+#[cfg(all(test, feature = "web_sys"))]
+mod layout_tests {
+    use super::*;
+    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn diff() {
+        let document = crate::utils::document();
+        let vref_node_1 = VNode::VRef(document.create_element("i").unwrap().into());
+        let vref_node_2 = VNode::VRef(document.create_element("b").unwrap().into());
+
+        let layout1 = TestLayout {
+            node: vref_node_1.into(),
+            expected: "<i></i>",
+        };
+
+        let layout2 = TestLayout {
+            node: vref_node_2.into(),
+            expected: "<b></b>",
+        };
+
+        diff_layouts(vec![layout1, layout2]);
     }
 }

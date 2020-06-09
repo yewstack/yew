@@ -60,7 +60,7 @@ impl ListItem {
 
         html! {
             <div class="list-item-details">
-                { self.props.children.render() }
+                { self.props.children.clone() }
             </div>
         }
     }

@@ -2,8 +2,10 @@
 
 use yew::prelude::*;
 
+struct Unimplemented;
+
 fn compile_fail() {
-    html! { <String /> };
+    html! { <Unimplemented /> };
 }
 
 fn main() {}

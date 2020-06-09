@@ -42,6 +42,7 @@ where
         clear_element(&element);
         self.scope.mount_in_place(
             element,
+            NodeRef::default(),
             None,
             NodeRef::default(),
             COMP::Properties::default(),
@@ -76,6 +77,7 @@ where
             .expect("can't remove body child");
         self.scope.mount_in_place(
             html_element,
+            NodeRef::default(),
             None,
             NodeRef::default(),
             COMP::Properties::default(),
@@ -104,7 +106,7 @@ where
     ) -> ComponentLink<COMP> {
         clear_element(&element);
         self.scope
-            .mount_in_place(element, None, NodeRef::default(), props)
+            .mount_in_place(element, NodeRef::default(), None, NodeRef::default(), props)
     }
 
     /// Alias to `mount_with_props("body", ...)`.
@@ -133,8 +135,13 @@ where
         html_element
             .remove_child(&body_element)
             .expect("can't remove body child");
-        self.scope
-            .mount_in_place(html_element, None, NodeRef::default(), props)
+        self.scope.mount_in_place(
+            html_element,
+            NodeRef::default(),
+            None,
+            NodeRef::default(),
+            props,
+        )
     }
 }
 

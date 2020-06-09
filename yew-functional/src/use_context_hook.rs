@@ -4,7 +4,8 @@ use std::any::TypeId;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 use std::{iter, mem};
-use yew::html::{AnyScope, Renderable, Scope};
+use yew::html;
+use yew::html::{AnyScope, Scope};
 use yew::{Children, Component, ComponentLink, Html, Properties};
 
 type ConsumerCallback<T> = Box<dyn Fn(Rc<T>)>;
@@ -83,7 +84,7 @@ impl<T: Clone + 'static> Component for ContextProvider<T> {
     }
 
     fn view(&self) -> Html {
-        self.children.render()
+        html! { <>{ self.children.clone() }</> }
     }
 }
 
