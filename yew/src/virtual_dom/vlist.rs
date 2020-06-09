@@ -1,14 +1,14 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
-use crate::html::AnyScope;
+use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::ops::{Deref, DerefMut};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, Node};
+        use stdweb::web::Element;
     } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Node};
+        use web_sys::Element;
     }
 }
 
@@ -17,9 +17,6 @@ cfg_if! {
 pub struct VList {
     /// The list of children nodes.
     pub children: Vec<VNode>,
-    /// Never use a placeholder element if set to true.
-    elide_placeholder: bool,
-
     pub key: Option<String>,
 }
 
@@ -45,20 +42,7 @@ impl VList {
 
     /// Creates a new `VList` instance with children.
     pub fn new_with_children(children: Vec<VNode>, key: Option<String>) -> Self {
-        VList {
-            children,
-            elide_placeholder: false,
-            key,
-        }
-    }
-
-    /// Creates a new empty `VList` instance which does not need a placeholder node.
-    pub(crate) fn new_without_placeholder() -> Self {
-        VList {
-            children: Vec::new(),
-            elide_placeholder: true,
-            key: None,
-        }
+        VList { children, key }
     }
 
     /// Add `VNode` child.
@@ -73,24 +57,20 @@ impl VList {
 }
 
 impl VDiff for VList {
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
-        let mut next_sibling = None;
+    fn detach(&mut self, parent: &Element) {
         for mut child in self.children.drain(..) {
-            next_sibling = child.detach(parent);
+            child.detach(parent);
         }
-        next_sibling
     }
 
     fn apply(
         &mut self,
-        scope: &AnyScope,
+        parent_scope: &AnyScope,
         parent: &Element,
-        previous_sibling: Option<&Node>,
+        next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Option<Node> {
-        // Reuse previous_sibling, because fragment reuse parent
-        let mut previous_sibling = previous_sibling.cloned();
-        let rights = {
+    ) -> NodeRef {
+        let ancestor_children = {
             match ancestor {
                 // If element matched this type
                 Some(VNode::VList(vlist)) => {
@@ -106,111 +86,79 @@ impl VDiff for VList {
             }
         };
 
-        if self.children.is_empty() && !self.elide_placeholder {
+        if self.children.is_empty() {
             // Without a placeholder the next element becomes first
             // and corrupts the order of rendering
             // We use empty text element to stake out a place
             let placeholder = VText::new("".into());
             self.children.push(placeholder.into());
         }
+
         // Check for lefts to see if there are duplicates and show a warning.
         {
             let mut hash_set = HashSet::with_capacity(self.children.len());
             for l in self.children.iter() {
                 if let Some(k) = l.key() {
-                    if hash_set.contains(&k) {
+                    if !hash_set.insert(k) {
                         log::error!("Duplicate key of {}", &k);
-                    } else {
-                        hash_set.insert(k);
                     }
                 }
+            }
+
+            // This warning should be removed in https://github.com/yewstack/yew/pull/1231
+            if !hash_set.is_empty() {
+                log::warn!("Keys currently have no effect");
             }
         }
 
         // Process children
         let lefts = self.children.iter_mut();
-        let key_count = rights.iter().filter(|r| r.key().is_some()).count();
-        let mut rights_nokeys = Vec::with_capacity(rights.len() - key_count);
-        let mut rights_lookup = HashMap::with_capacity(key_count);
-        for mut r in rights.into_iter() {
-            if let Some(key) = r.key() {
-                if rights_lookup.contains_key(key) {
-                    log::error!("Duplicate key of {}", &key);
-                    r.detach(parent);
+        let mut rights = ancestor_children.into_iter().peekable();
+        let mut last_next_sibling = NodeRef::default();
+        let mut nodes: Vec<NodeRef> = lefts
+            .map(|left| {
+                let ancestor = rights.next();
+
+                // Create a new `next_sibling` reference which points to the next `right` or
+                // the outer list's `next_sibling` if there are no more `rights`.
+                let new_next_sibling = NodeRef::default();
+                if let Some(next_right) = rights.peek() {
+                    new_next_sibling.set(Some(next_right.first_node()));
                 } else {
-                    rights_lookup.insert(key.clone(), r);
+                    new_next_sibling.link(next_sibling.clone());
                 }
-            } else {
-                rights_nokeys.push(r);
-            }
-        }
-        let mut rights = rights_nokeys.into_iter();
-        for left in lefts {
-            if let Some(key) = &left.key() {
-                match rights_lookup.remove(key) {
-                    Some(right) => {
-                        previous_sibling =
-                            left.apply(scope, parent, previous_sibling.as_ref(), Some(right));
-                    }
-                    None => {
-                        previous_sibling =
-                            left.apply(scope, parent, previous_sibling.as_ref(), None);
-                    }
-                }
-            } else {
-                match rights.next() {
-                    Some(right) => {
-                        previous_sibling =
-                            left.apply(scope, parent, previous_sibling.as_ref(), Some(right));
-                    }
-                    None => {
-                        previous_sibling =
-                            left.apply(scope, parent, previous_sibling.as_ref(), None);
-                    }
-                }
-            }
-        }
+
+                // Update the next list item and then link the previous left's `next_sibling` to the returned `node` reference
+                // so that the previous left has an up-to-date `next_sibling` (important for mounting a `Component`)
+                let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
+                last_next_sibling.link(node.clone());
+                last_next_sibling = new_next_sibling;
+                node
+            })
+            .collect();
+
+        // If there are more `rights` than `lefts`, we need to make sure to link the last left's `next_sibling`
+        // to the outer list's `next_sibling` so that it doesn't point at a `right` that is detached.
+        last_next_sibling.link(next_sibling);
+
+        // Detach all extra rights
         for mut right in rights {
             right.detach(parent);
         }
-        for right in rights_lookup.values_mut() {
-            right.detach(parent);
-        }
-        previous_sibling
+
+        assert!(!nodes.is_empty(), "VList should have at least one child");
+        nodes.swap_remove(0)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{html, Component, ComponentLink, Html, ShouldRender};
+    use crate::prelude::*;
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
-
-    struct Comp;
-
-    impl Component for Comp {
-        type Message = ();
-        type Properties = ();
-
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Comp
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn view(&self) -> Html {
-            unimplemented!();
-        }
-    }
 
     #[test]
     fn check_fragments() {
@@ -223,5 +171,76 @@ mod tests {
                 { fragment }
             </div>
         };
+    }
+}
+
+#[cfg(all(test, feature = "web_sys"))]
+mod layout_tests {
+    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn diff() {
+        let layout1 = TestLayout {
+            node: html! {
+                <>
+                    {"a"}
+                    {"b"}
+                    <>
+                        {"c"}
+                        {"d"}
+                    </>
+                    {"e"}
+                </>
+            },
+            expected: "abcde",
+        };
+
+        let layout2 = TestLayout {
+            node: html! {
+                <>
+                    {"a"}
+                    {"b"}
+                    <></>
+                    {"e"}
+                    {"f"}
+                </>
+            },
+            expected: "abef",
+        };
+
+        let layout3 = TestLayout {
+            node: html! {
+                <>
+                    {"a"}
+                    <></>
+                    {"b"}
+                    {"e"}
+                </>
+            },
+            expected: "abe",
+        };
+
+        let layout4 = TestLayout {
+            node: html! {
+                <>
+                    {"a"}
+                    <>
+                        {"c"}
+                        {"d"}
+                    </>
+                    {"b"}
+                    {"e"}
+                </>
+            },
+            expected: "acdbe",
+        };
+
+        diff_layouts(vec![layout1, layout2, layout3, layout4]);
     }
 }

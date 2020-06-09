@@ -421,6 +421,13 @@ impl NodeRef {
         }
     }
 
+    /// Wrap an existing `Node` in a `NodeRef`
+    pub(crate) fn new(node: Node) -> Self {
+        let node_ref = NodeRef::default();
+        node_ref.set(Some(node));
+        node_ref
+    }
+
     /// Place a Node in a reference for later use
     pub(crate) fn set(&self, node: Option<Node>) {
         self.0.borrow_mut().node = node;
@@ -428,6 +435,7 @@ impl NodeRef {
 
     /// Link a downstream `NodeRef`
     pub(crate) fn link(&self, node_ref: Self) {
+        self.0.borrow_mut().node = None;
         self.0.borrow_mut().link = Some(node_ref);
     }
 }
