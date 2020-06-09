@@ -22,7 +22,7 @@ struct Opt {
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     let opt = Opt::from_args();
-    actix_web::HttpServer::new(|| actix_web::App::new())
+    actix_web::HttpServer::new(|| actix_web::App::new().service(server::websocket_route))
         .bind(format!("{}:{}", opt.host, opt.port))?
         .run()
         .await
