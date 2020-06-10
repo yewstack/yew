@@ -44,3 +44,4 @@ set -x
 (cd yew-components && cargo test)
 
 (cd yew-validation && cargo test)
+(cd devtools && cargo test)

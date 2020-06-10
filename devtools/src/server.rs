@@ -8,8 +8,7 @@ use std::collections::{HashMap, HashSet};
 const HEARTBEAT_INTERVAL: std::time::Duration = std::time::Duration::from_secs(5);
 const CLIENT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
-#[get("/ws")]
-async fn websocket_route(
+pub(crate) async fn websocket_route(
     req: actix_web::HttpRequest,
     stream: web::Payload,
     srv: web::Data<Addr<DevToolsServer>>,
@@ -26,6 +25,7 @@ async fn websocket_route(
     )
 }
 
+/// A connection between the client and the server.
 struct DevToolsSession {
     id: usize,
     hb: std::time::Instant,
@@ -33,6 +33,7 @@ struct DevToolsSession {
     addr: Addr<DevToolsServer>,
 }
 
+/// Handles a message sent by the client to the server.
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for DevToolsSession {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         let msg = match msg {
@@ -72,7 +73,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for DevToolsSession {
                             .into_actor(self)
                             .then(|_res, _act, _ctx| fut::ready(()))
                             .wait(ctx),
-                        _ => return,
+                        _ => {}
                     }
                 } else {
                     match self.role {
@@ -96,10 +97,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for DevToolsSession {
                                 .then(|_res, _act, _ctx| fut::ready(()))
                                 .wait(ctx);
                         }
-                        _ => return,
+                        _ => {}
                     }
                 }
             }
+            // ignore any of these types of message
             ws::Message::Binary(_) => {}
             ws::Message::Continuation(_) => {}
             ws::Message::Close(_) => {}
@@ -108,6 +110,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for DevToolsSession {
     }
 }
 
+/// Handles starting/stopping of connections from clients to the server
 impl actix::Actor for DevToolsSession {
     type Context = ws::WebsocketContext<Self>;
     fn started(&mut self, ctx: &mut Self::Context) {
@@ -133,6 +136,7 @@ impl actix::Actor for DevToolsSession {
     }
 }
 
+/// Sends a message to a client.
 impl Handler<Message> for DevToolsSession {
     type Result = ();
     fn handle(&mut self, msg: Message, ctx: &mut Self::Context) {
@@ -141,6 +145,7 @@ impl Handler<Message> for DevToolsSession {
 }
 
 impl DevToolsSession {
+    /// Pings the client regularly.
     fn hb(&self, ctx: &mut ws::WebsocketContext<Self>) {
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
             if std::time::Instant::now().duration_since(act.hb) > CLIENT_TIMEOUT {
@@ -155,22 +160,26 @@ impl DevToolsSession {
 
 #[derive(Message)]
 #[rtype(result = "()")]
+/// A message to be sent to the client.
 pub struct Message(pub String);
 
 #[derive(Message)]
 #[rtype(usize)]
+/// Handles a user connecting to the server.
 pub struct Connect {
     pub addr: Recipient<Message>,
 }
 
 #[derive(Message)]
 #[rtype(result = "()")]
+/// Handles a user disconnecting from the server.
 pub struct Disconnect {
     pub id: usize,
 }
 
 #[derive(Message)]
 #[rtype(result = "()")]
+/// A message to be sent to the Yew client app.
 pub struct BrowserMessage {
     pub id: usize,
     pub msg: String,
@@ -178,6 +187,7 @@ pub struct BrowserMessage {
 
 #[derive(Message)]
 #[rtype(result = "()")]
+/// A message to be sent to the Yew browser extension.
 pub struct ExtensionMessage {
     pub id: usize,
     pub msg: String,
@@ -191,6 +201,7 @@ pub struct SpecifyRole {
     pub role: i32,
 }
 
+/// Coordinates extensions and Yew apps.
 pub struct DevToolsServer {
     sessions: HashMap<usize, Recipient<Message>>,
     browsers: HashSet<usize>,
@@ -217,6 +228,7 @@ impl Default for DevToolsServer {
 }
 
 impl DevToolsServer {
+    /// Sends a message to all the Yew apps.
     fn send_browser_message(&self, message: &str) {
         for id in self.browsers.iter() {
             if let Some(browser_sess) = self.sessions.get(id) {
@@ -224,6 +236,7 @@ impl DevToolsServer {
             }
         }
     }
+    /// Sends a message to all the Yew DevTools extensions.
     fn send_extension_message(&self, message: &str) {
         for id in self.extensions.iter() {
             if let Some(extension_sess) = self.sessions.get(id) {
