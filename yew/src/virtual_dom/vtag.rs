@@ -131,7 +131,7 @@ impl VTag {
     }
 
     /// Sets `kind` property of an
-    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
+    /// [TextTrack](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track).
     /// Same as set `type` attribute.
     pub fn set_kind<T: ToString>(&mut self, value: &T) {
         self.kind = Some(value.to_string());
