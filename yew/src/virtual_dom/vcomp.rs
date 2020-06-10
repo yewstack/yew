@@ -299,7 +299,7 @@ impl PartialEq for VComp {
 
 impl fmt::Debug for VComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("VComp").finish()
+        f.write_str("VComp")
     }
 }
 

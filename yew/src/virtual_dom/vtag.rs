@@ -63,8 +63,7 @@ pub struct VTag {
     pub checked: bool,
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
-    /// Keeps handler for attached listeners to have an opportunity to drop them
-    /// later.
+    /// Keeps handler for attached listeners to have an opportunity to drop them later.
     captured: Vec<EventListener>,
 
     pub key: Option<Key>,
