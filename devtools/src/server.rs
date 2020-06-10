@@ -55,9 +55,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for DevToolsSession {
                 let m = text.trim();
                 if m.starts_with('/') {
                     let v: Vec<&str> = m.splitn(3, '/').collect();
-                    if v.len() <= 0 {
-                        return;
-                    }
                     if let "specify" = v[1] {
                         self.addr
                             .send(SpecifyRole {
