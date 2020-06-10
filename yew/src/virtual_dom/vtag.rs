@@ -58,9 +58,8 @@ pub struct VTag {
     /// Represents `checked` attribute of
     /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
     /// It exists to override standard behavior of `checked` attribute, because
-    /// in original HTML it sets `defaultChecked` value of `InputElement`, but
-    /// for reactive frameworks it's more useful to control `checked` value of
-    /// an `InputElement`.
+    /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
+    /// frameworks it's more useful to control `checked` value of an `InputElement`.
     pub checked: bool,
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
@@ -90,8 +89,7 @@ impl Clone for VTag {
 }
 
 impl VTag {
-    /// Creates a new `VTag` instance with `tag` name (cannot be changed later
-    /// in DOM).
+    /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
         VTag {
             tag: tag.into(),
@@ -267,7 +265,7 @@ impl VTag {
         }
     }
 
-    /// Almost identical in spirit to `diff_kind`.
+    /// Almost identical in spirit to `diff_kind`
     fn diff_value<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
             self.value.as_ref(),
@@ -418,8 +416,8 @@ impl VDiff for VTag {
         }
     }
 
-    /// Renders virtual tag over DOM `Element`, but it also compares this with
-    /// an ancestor `VTag` to compute what to patch in the actual DOM nodes.
+    /// Renders virtual tag over DOM `Element`, but it also compares this with an ancestor `VTag`
+    /// to compute what to patch in the actual DOM nodes.
     fn apply(
         &mut self,
         parent_scope: &AnyScope,

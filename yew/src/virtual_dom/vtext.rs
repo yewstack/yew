@@ -47,8 +47,7 @@ impl VDiff for VText {
         }
     }
 
-    /// Renders virtual node over existing `TextNode`, but only if value of text
-    /// has changed.
+    /// Renders virtual node over existing `TextNode`, but only if value of text has changed.
     fn apply(
         &mut self,
         _parent_scope: &AnyScope,

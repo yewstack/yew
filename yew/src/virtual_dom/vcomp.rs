@@ -85,7 +85,7 @@ where
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 enum MountState {
     Unmounted(Unmounted),
     Mounted(Mounted),
@@ -299,26 +299,7 @@ impl PartialEq for VComp {
 
 impl fmt::Debug for VComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("VComp")
-            .field("type_id", &self.type_id)
-            .field("state", &self.state)
-            .field("key", &self.key)
-            .field("node_ref", &self.node_ref.get().is_some())
-            .finish()
-    }
-}
-
-impl fmt::Debug for Unmounted {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Unmounted").finish()
-    }
-}
-
-impl fmt::Debug for Mounted {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Mounted")
-            .field("node_ref", &self.node_ref.get().is_some())
-            .finish()
+        f.debug_struct("VComp").finish()
     }
 }
 
