@@ -446,6 +446,18 @@ mod tests {
         vtag
     }
 
+    fn new_counting_vcomp(id: usize, key: Option<&'static str>, panic_if_changes: bool) -> VComp {
+        VChild::<Comp>::new(
+            CountingCompProps {
+                id,
+                panic_if_changes,
+            },
+            NodeRef::default(),
+            key.map(|key| Key::from(key.to_string())),
+        )
+        .into()
+    }
+
     #[cfg(feature = "web_sys")]
     fn inner_html(element: &Element) -> String {
         element.inner_html()
@@ -464,14 +476,6 @@ mod tests {
 
     #[test]
     fn vlist_vdiff_apply_non_keyed_from_none_works_with_all_vnode_types_as_children() {
-        let vchild: VChild<Comp> = VChild::new(
-            CountingCompProps {
-                id: 0,
-                panic_if_changes: false,
-            },
-            NodeRef::default(),
-            None,
-        );
         let vref_element: Element = crate::utils::document().create_element("i").unwrap();
         let vref_node: Node = vref_element.clone().into();
         let mut vlist = VList::new_with_children(
@@ -480,7 +484,7 @@ mod tests {
                 VNode::VTag(Box::new(VTag::new("span"))),
                 VNode::VText(VText::new("c".into())),
                 VNode::VText(VText::new("d".into())),
-                VNode::VComp(vchild.into()),
+                VNode::VComp(new_counting_vcomp(0, None, false)),
                 VNode::VList(VList::new_with_children(
                     vec![
                         VNode::VText(VText::new("foo".into())),
@@ -506,14 +510,6 @@ mod tests {
 
     #[test]
     fn vlist_vdiff_apply_keyed_from_none_works_with_all_vnode_types_as_children() {
-        let vchild: VChild<Comp> = VChild::new(
-            CountingCompProps {
-                id: 0,
-                panic_if_changes: true,
-            },
-            NodeRef::default(),
-            Some(Key::from(String::from("vchild"))),
-        );
         let vref_element: Element = crate::utils::document().create_element("i").unwrap();
         let vref_node: Node = vref_element.clone().into();
         let vtag = new_keyed_vtag("span", "vtag");
@@ -523,7 +519,7 @@ mod tests {
                 VNode::VTag(Box::new(vtag)),
                 VNode::VText(VText::new("c".into())),
                 VNode::VText(VText::new("d".into())),
-                VNode::VComp(vchild.into()),
+                VNode::VComp(new_counting_vcomp(0, Some("vchild"), true)),
                 VNode::VList(VList::new_with_children(
                     vec![
                         VNode::VText(VText::new("foo".into())),
@@ -941,15 +937,6 @@ mod tests {
 
     #[test]
     fn vlist_vdiff_keyed_from_ancestor_with_multiple_children_keyed_types() {
-        let vcomp: VComp = VChild::<Comp>::new(
-            CountingCompProps {
-                id: 0,
-                panic_if_changes: true,
-            },
-            NodeRef::default(),
-            Some(Key::from("VComp".to_string())),
-        )
-        .into();
         test_vlist_vdiff_from_ancestor_works(
             vec![
                 new_keyed_vtag("u", "1").into(),
@@ -961,11 +948,11 @@ mod tests {
                     Some(Key::from("VList".to_string())),
                 )
                 .into(),
-                vcomp.clone().into(),
+                new_counting_vcomp(0, Some("VComp"), true).into(),
             ],
             "<u></u><a></a><i></i><p>0</p>",
             vec![
-                vcomp.into(),
+                new_counting_vcomp(0, Some("VComp"), true).into(),
                 new_keyed_vtag("u", "1").into(),
                 VList::new_with_children(
                     vec![
@@ -982,15 +969,6 @@ mod tests {
 
     #[test]
     fn vlist_vdiff_keyed_from_ancestor_insert_vcomp_front() {
-        let vcomp: VComp = VChild::<Comp>::new(
-            CountingCompProps {
-                id: 0,
-                panic_if_changes: true,
-            },
-            NodeRef::default(),
-            Some(Key::from("VComp".to_string())),
-        )
-        .into();
         test_vlist_vdiff_from_ancestor_works(
             vec![
                 new_keyed_vtag("u", "1").into(),
@@ -998,7 +976,7 @@ mod tests {
             ],
             "<u></u><a></a>",
             vec![
-                vcomp.into(),
+                new_counting_vcomp(0, Some("VComp"), true).into(),
                 new_keyed_vtag("u", "1").into(),
                 new_keyed_vtag("a", "2").into(),
             ],
@@ -1008,15 +986,6 @@ mod tests {
 
     #[test]
     fn vlist_vdiff_keyed_from_ancestor_insert_vcomp_middle() {
-        let vcomp: VComp = VChild::<Comp>::new(
-            CountingCompProps {
-                id: 0,
-                panic_if_changes: true,
-            },
-            NodeRef::default(),
-            Some(Key::from("VComp".to_string())),
-        )
-        .into();
         test_vlist_vdiff_from_ancestor_works(
             vec![
                 new_keyed_vtag("u", "1").into(),
@@ -1025,7 +994,7 @@ mod tests {
             "<u></u><a></a>",
             vec![
                 new_keyed_vtag("u", "1").into(),
-                vcomp.into(),
+                new_counting_vcomp(0, Some("VComp"), true).into(),
                 new_keyed_vtag("a", "2").into(),
             ],
             "<u></u><p>0</p><a></a>",
@@ -1034,15 +1003,6 @@ mod tests {
 
     #[test]
     fn vlist_vdiff_keyed_from_ancestor_insert_vcomp_back() {
-        let vcomp: VComp = VChild::<Comp>::new(
-            CountingCompProps {
-                id: 0,
-                panic_if_changes: true,
-            },
-            NodeRef::default(),
-            Some(Key::from("VComp".to_string())),
-        )
-        .into();
         test_vlist_vdiff_from_ancestor_works(
             vec![
                 new_keyed_vtag("u", "1").into(),
@@ -1052,7 +1012,7 @@ mod tests {
             vec![
                 new_keyed_vtag("u", "1").into(),
                 new_keyed_vtag("a", "2").into(),
-                vcomp.into(),
+                new_counting_vcomp(0, Some("VComp"), true).into(),
             ],
             "<u></u><a></a><p>0</p>",
         );
@@ -1060,44 +1020,18 @@ mod tests {
 
     #[test]
     fn vlist_vdiff_keyed_from_ancestor_vcomp_children_reverse() {
-        let vcomp1 = || -> VComp {
-            VChild::<Comp>::new(
-                CountingCompProps {
-                    id: 1,
-                    panic_if_changes: true,
-                },
-                NodeRef::default(),
-                Some(Key::from("1".to_string())),
-            )
-            .into()
-        };
-        let vcomp2 = || -> VComp {
-            VChild::<Comp>::new(
-                CountingCompProps {
-                    id: 2,
-                    panic_if_changes: true,
-                },
-                NodeRef::default(),
-                Some(Key::from("2".to_string())),
-            )
-            .into()
-        };
-        let vcomp3 = || -> VComp {
-            VChild::<Comp>::new(
-                CountingCompProps {
-                    id: 3,
-                    panic_if_changes: true,
-                },
-                NodeRef::default(),
-                Some(Key::from("3".to_string())),
-            )
-            .into()
-        };
-
         test_vlist_vdiff_from_ancestor_works(
-            vec![vcomp1().into(), vcomp2().into(), vcomp3().into()],
+            vec![
+                new_counting_vcomp(1, Some("1"), true).into(),
+                new_counting_vcomp(2, Some("2"), true).into(),
+                new_counting_vcomp(3, Some("3"), true).into(),
+            ],
             "<p>1</p><p>2</p><p>3</p>",
-            vec![vcomp3().into(), vcomp2().into(), vcomp1().into()],
+            vec![
+                new_counting_vcomp(3, Some("3"), true).into(),
+                new_counting_vcomp(2, Some("2"), true).into(),
+                new_counting_vcomp(1, Some("1"), true).into(),
+            ],
             "<p>3</p><p>2</p><p>1</p>",
         );
     }
