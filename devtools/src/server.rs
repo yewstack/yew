@@ -54,15 +54,15 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for DevToolsSession {
             ws::Message::Text(text) => {
                 let m = text.trim();
                 if m.starts_with('/') {
-                    let v: Vec<&str> = m.splitn(2, '/').collect();
+                    let v: Vec<&str> = m.splitn(3, '/').collect();
                     if v.len() <= 0 {
                         return;
                     }
-                    if let "specify" = v[0] {
+                    if let "specify" = v[1] {
                         self.addr
                             .send(SpecifyRole {
                                 id: self.id,
-                                role: match v[1].parse::<i32>() {
+                                role: match v[2].parse::<i32>() {
                                     Ok(p) => p,
                                     Err(_) => {
                                         return;
@@ -70,7 +70,17 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for DevToolsSession {
                                 },
                             })
                             .into_actor(self)
-                            .then(|_res, _act, _ctx| fut::ready(()))
+                            .then(|res, act, ctx| {
+                                match res {
+                                    Ok(r) => {
+                                        act.role = r;
+                                    }
+                                    Err(_) => {
+                                        ctx.stop();
+                                    }
+                                };
+                                fut::ready(())
+                            })
                             .wait(ctx);
                     }
                 } else {
@@ -192,7 +202,7 @@ pub struct ExtensionMessage {
 }
 
 #[derive(Message)]
-#[rtype(result = "()")]
+#[rtype(i32)]
 /// Sent by the client to specify whether they are a browser extension or Yew app.
 pub struct SpecifyRole {
     pub id: usize,
@@ -284,8 +294,8 @@ impl Handler<ExtensionMessage> for DevToolsServer {
 }
 
 impl Handler<SpecifyRole> for DevToolsServer {
-    type Result = ();
-    fn handle(&mut self, msg: SpecifyRole, _: &mut Self::Context) {
+    type Result = i32;
+    fn handle(&mut self, msg: SpecifyRole, _: &mut Self::Context) -> i32 {
         match msg.role {
             0 => {
                 if self.extensions.get(&msg.id).is_none() {
@@ -298,6 +308,7 @@ impl Handler<SpecifyRole> for DevToolsServer {
                 }
             }
             _ => {}
-        }
+        };
+        msg.role
     }
 }

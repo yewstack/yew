@@ -1,3 +1,7 @@
+use yew::prelude::*;
+
+struct DevToolsExtension {}
+
 #[cfg(test)]
 mod tests {
     #[test]
