@@ -53,14 +53,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for DevToolsSession {
             }
             ws::Message::Text(text) => {
                 let m = text.trim();
-                if m.starts_with("/") {
+                if m.starts_with('/') {
                     let v: Vec<&str> = m.splitn(2, '/').collect();
-                    if !(v.len() > 0) {
+                    if v.len() <= 0 {
                         return;
                     }
-                    match v[0] {
-                        "specify" => self
-                            .addr
+                    if let "specify" = v[0] {
+                        self.addr
                             .send(SpecifyRole {
                                 id: self.id,
                                 role: match v[1].parse::<i32>() {
@@ -72,8 +71,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for DevToolsSession {
                             })
                             .into_actor(self)
                             .then(|_res, _act, _ctx| fut::ready(()))
-                            .wait(ctx),
-                        _ => {}
+                            .wait(ctx);
                     }
                 } else {
                     match self.role {
@@ -232,7 +230,10 @@ impl DevToolsServer {
     fn send_browser_message(&self, message: &str) {
         for id in self.browsers.iter() {
             if let Some(browser_sess) = self.sessions.get(id) {
-                browser_sess.do_send(Message(message.to_owned()));
+                match browser_sess.do_send(Message(message.to_owned())) {
+                    Ok(_) => {}
+                    Err(_) => {}
+                };
             }
         }
     }
@@ -240,7 +241,10 @@ impl DevToolsServer {
     fn send_extension_message(&self, message: &str) {
         for id in self.extensions.iter() {
             if let Some(extension_sess) = self.sessions.get(id) {
-                extension_sess.do_send(Message(message.to_owned()));
+                match extension_sess.do_send(Message(message.to_owned())) {
+                    Ok(_) => {}
+                    Err(_) => {}
+                };
             }
         }
     }
