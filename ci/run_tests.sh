@@ -48,3 +48,4 @@ set -x
 (cd devtools-extension && cargo test --features logic_test)
 (cd yew-validation && cargo test)
 (cd devtools && cargo test)
+(cd devtools-extension && cargo test)
