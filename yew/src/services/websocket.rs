@@ -31,6 +31,14 @@ pub enum WebSocketStatus {
     Error,
 }
 
+#[derive(Clone, Debug, PartialEq, thiserror::Error)]
+/// An error encountered by a WebSocket.
+pub enum WebSocketError {
+    #[error("{0}")]
+    /// An error encountered when creating the WebSocket.
+    CreationError(String)
+}
+
 /// A handle to control the WebSocket connection. Implements `Task` and could be canceled.
 #[must_use]
 pub struct WebSocketTask {
@@ -48,7 +56,7 @@ impl WebSocketTask {
         notification: Callback<WebSocketStatus>,
         listener_0: EventListener,
         listeners: [EventListener; 3],
-    ) -> Result<WebSocketTask, &'static str> {
+    ) -> Result<WebSocketTask, WebSocketError> {
         let [listener_1, listener_2, listener_3] = listeners;
         Ok(WebSocketTask {
             ws,
@@ -81,7 +89,7 @@ impl WebSocketService {
         url: &str,
         callback: Callback<OUT>,
         notification: Callback<WebSocketStatus>,
-    ) -> Result<WebSocketTask, &str>
+    ) -> Result<WebSocketTask, WebSocketError>
     where
         OUT: From<Text> + From<Binary>,
     {
@@ -113,7 +121,7 @@ impl WebSocketService {
         url: &str,
         callback: Callback<OUT>,
         notification: Callback<WebSocketStatus>,
-    ) -> Result<WebSocketTask, &str>
+    ) -> Result<WebSocketTask, WebSocketError>
     where
         OUT: From<Binary>,
     {
@@ -145,7 +153,7 @@ impl WebSocketService {
         url: &str,
         callback: Callback<OUT>,
         notification: Callback<WebSocketStatus>,
-    ) -> Result<WebSocketTask, &str>
+    ) -> Result<WebSocketTask, WebSocketError>
     where
         OUT: From<Text>,
     {
@@ -172,13 +180,21 @@ impl WebSocketService {
         &mut self,
         url: &str,
         notification: &Callback<WebSocketStatus>,
-    ) -> Result<ConnectCommon, &str> {
+    ) -> Result<ConnectCommon, WebSocketError> {
         let ws = WebSocket::new(url);
-        if ws.is_err() {
-            return Err("Failed to open a WebSocket connection at the given URL.");
-        }
+        #[cfg(feature="web_sys")]
+        if let Err(ws_error) = &ws {
+            return Err(WebSocketError::CreationError(ws_error.clone().unchecked_into::<js_sys::Error>().to_string().as_string().unwrap()));
+        };
+        #[cfg(feature="std_web")]
+        if let Err(ws_error) = &ws {
+            return Err(match ws_error {
+                CreationError::SyntaxError => WebSocketError::CreationError("Syntax error".to_string()),
+                CreationError::SecurityError => WebSocketError::CreationError("Security error".to_string()),
+            });
+        };
 
-        let ws = ws.map_err(|_| "Failed to build WebSocket")?;
+        let ws = ws.unwrap();
         cfg_match! {
             feature = "std_web" => ws.set_binary_type(SocketBinaryType::ArrayBuffer),
             feature = "web_sys" => ws.set_binary_type(BinaryType::Arraybuffer),
