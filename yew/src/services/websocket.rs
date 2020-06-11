@@ -438,6 +438,7 @@ mod tests {
         let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
         let callback = cb_future.clone().into();
         let mut ws = WebSocketService::new();
+        let status_future = CallbackFuture::<WebSocketStatus>::default();
         let notification: Callback<_> = status_future.clone().into();
         let task = ws.connect_text(url, callback, notification);
         assert!(task.is_err());
