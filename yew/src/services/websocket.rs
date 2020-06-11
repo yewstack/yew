@@ -1,4 +1,4 @@
-//! Service to connect to a servers by
+//! A service to connect to a server through the
 //! [`WebSocket` Protocol](https://tools.ietf.org/html/rfc6455).
 
 use super::Task;
@@ -20,18 +20,18 @@ cfg_if! {
     }
 }
 
-/// A status of a websocket connection. Used for status notification.
+/// The status of a WebSocket connection. Used for status notifications.
 #[derive(Clone, Debug, PartialEq)]
 pub enum WebSocketStatus {
-    /// Fired when a websocket connection was opened.
+    /// Fired when a WebSocket connection has opened.
     Opened,
-    /// Fired when a websocket connection was closed.
+    /// Fired when a WebSocket connection has closed.
     Closed,
-    /// Fired when a websocket connection was failed.
+    /// Fired when a WebSocket connection has failed.
     Error,
 }
 
-/// A handle to control current websocket connection. Implements `Task` and could be canceled.
+/// A handle to control the WebSocket connection. Implements `Task` and could be canceled.
 #[must_use]
 pub struct WebSocketTask {
     ws: WebSocket,
@@ -64,7 +64,7 @@ impl fmt::Debug for WebSocketTask {
     }
 }
 
-/// A websocket service attached to a user context.
+/// A WebSocket service attached to a user context.
 #[derive(Default, Debug)]
 pub struct WebSocketService {}
 
@@ -74,7 +74,7 @@ impl WebSocketService {
         Self {}
     }
 
-    /// Connects to a server by a websocket connection. Needs two functions to generate
+    /// Connects to a server through a WebSocket connection. Needs two functions to generate
     /// data and notification messages.
     pub fn connect<OUT: 'static>(
         &mut self,
@@ -104,7 +104,7 @@ impl WebSocketService {
         }
     }
 
-    /// Connects to a server by a websocket connection, like connect,
+    /// Connects to a server through a WebSocket connection, like connect,
     /// but only processes binary frames. Text frames are silently
     /// ignored. Needs two functions to generate data and notification
     /// messages.
@@ -136,7 +136,7 @@ impl WebSocketService {
         }
     }
 
-    /// Connects to a server by a websocket connection, like connect,
+    /// Connects to a server through a WebSocket connection, like connect,
     /// but only processes text frames. Binary frames are silently
     /// ignored. Needs two functions to generate data and notification
     /// messages.
@@ -175,10 +175,10 @@ impl WebSocketService {
     ) -> Result<ConnectCommon, &str> {
         let ws = WebSocket::new(url);
         if ws.is_err() {
-            return Err("Failed to created websocket with given URL");
+            return Err("Failed to open a WebSocket connection at the given URL.");
         }
 
-        let ws = ws.map_err(|_| "failed to build websocket")?;
+        let ws = ws.map_err(|_| "Failed to build WebSocket")?;
         cfg_match! {
             feature = "std_web" => ws.set_binary_type(SocketBinaryType::ArrayBuffer),
             feature = "web_sys" => ws.set_binary_type(BinaryType::Arraybuffer),
@@ -300,7 +300,7 @@ fn process_both<OUT: 'static>(
 }
 
 impl WebSocketTask {
-    /// Sends data to a websocket connection.
+    /// Sends data to a WebSocket connection.
     pub fn send<IN>(&mut self, data: IN)
     where
         IN: Into<Text>,
@@ -317,7 +317,7 @@ impl WebSocketTask {
         }
     }
 
-    /// Sends binary data to a websocket connection.
+    /// Sends binary data to a WebSocket connection.
     pub fn send_binary<IN>(&mut self, data: IN)
     where
         IN: Into<Binary>,
