@@ -1,4 +1,4 @@
-//! This module contains the implementation of a service to
+//! This module contains Yew's implementation of a service which can be used to
 //! request frame rendering
 
 use crate::callback::Callback;
@@ -44,7 +44,7 @@ impl fmt::Debug for RenderTask {
 pub struct RenderService {}
 
 impl RenderService {
-    /// Create a new service instance
+    /// Create a new instance of the service.
     pub fn new() -> Self {
         Self {}
     }
