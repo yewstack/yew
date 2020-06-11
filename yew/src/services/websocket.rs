@@ -443,7 +443,7 @@ mod tests {
             if let WebSocketError::CreationError(some_error) = task_err {
                 assert_eq!(
                     some_error,
-                    "SyntaxError: The string did not match the expected pattern."
+                    "SyntaxError: An invalid or illegal string was specified"
                 )
             }
         }
