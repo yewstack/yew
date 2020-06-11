@@ -197,13 +197,10 @@ impl WebSocketService {
         }
         #[cfg(feature = "std_web")]
         {
-            if let Err(ws_error) = &ws {
-                return Err(match ws_error {
-                    SyntaxError => WebSocketError::CreationError("Syntax error".to_string()),
-                    CreationError::SecurityError => {
-                        WebSocketError::CreationError("Security error".to_string())
-                    }
-                });
+            if ws.is_err() {
+                return Err(WebSocketError::CreationError(
+                    "Error opening a WebSocket connection.".to_string(),
+                ));
             };
         }
 
@@ -446,7 +443,7 @@ mod tests {
             if let WebSocketError::CreationError(some_error) = task_err {
                 assert_eq!(
                     some_error,
-                    "SyntaxError: An invalid or illegal string was specified"
+                    "SyntaxError: The string did not match the expected pattern."
                 )
             }
         }
