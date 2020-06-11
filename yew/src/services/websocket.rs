@@ -36,7 +36,7 @@ pub enum WebSocketStatus {
 pub enum WebSocketError {
     #[error("{0}")]
     /// An error encountered when creating the WebSocket.
-    CreationError(String)
+    CreationError(String),
 }
 
 /// A handle to control the WebSocket connection. Implements `Task` and could be canceled.
@@ -182,19 +182,34 @@ impl WebSocketService {
         notification: &Callback<WebSocketStatus>,
     ) -> Result<ConnectCommon, WebSocketError> {
         let ws = WebSocket::new(url);
-        #[cfg(feature="web_sys")]
-        if let Err(ws_error) = &ws {
-            return Err(WebSocketError::CreationError(ws_error.clone().unchecked_into::<js_sys::Error>().to_string().as_string().unwrap()));
-        };
-        #[cfg(feature="std_web")]
-        if let Err(ws_error) = &ws {
-            return Err(match ws_error {
-                CreationError::SyntaxError => WebSocketError::CreationError("Syntax error".to_string()),
-                CreationError::SecurityError => WebSocketError::CreationError("Security error".to_string()),
-            });
-        };
+        #[cfg(feature = "web_sys")]
+        {
+            if let Err(ws_error) = &ws {
+                return Err(WebSocketError::CreationError(
+                    ws_error
+                        .clone()
+                        .unchecked_into::<js_sys::Error>()
+                        .to_string()
+                        .as_string()
+                        .unwrap(),
+                ));
+            };
+        }
+        #[cfg(feature = "std_web")]
+        {
+            if let Err(ws_error) = &ws {
+                return Err(match ws_error {
+                    SyntaxError => WebSocketError::CreationError("Syntax error".to_string()),
+                    CreationError::SecurityError => {
+                        WebSocketError::CreationError("Security error".to_string())
+                    }
+                });
+            };
+        }
 
-        let ws = ws.unwrap();
+        let ws =
+            ws.map_err(|_| WebSocketError::CreationError("Failed to build websocket".into()))?;
+
         cfg_match! {
             feature = "std_web" => ws.set_binary_type(SocketBinaryType::ArrayBuffer),
             feature = "web_sys" => ws.set_binary_type(BinaryType::Arraybuffer),
@@ -413,6 +428,26 @@ mod tests {
         match cb_future.await {
             Json(Ok(received)) => assert_eq!(received, msg),
             Json(Err(err)) => assert!(false, err),
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "web_sys")]
+    async fn test_invalid_url_error() {
+        let url = "syntactically-invalid";
+        let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
+        let callback = cb_future.clone().into();
+        let mut ws = WebSocketService::new();
+        let notification: Callback<_> = status_future.clone().into();
+        let task = ws.connect_text(url, callback, notification);
+        assert!(task.is_err());
+        if let Err(task_err) = task {
+            if let WebSocketError::CreationError(some_error) = task_err {
+                assert_eq!(
+                    some_error,
+                    "SyntaxError: An invalid or illegal string was specified"
+                )
+            }
         }
     }
 
