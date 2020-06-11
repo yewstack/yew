@@ -45,3 +45,4 @@ set -x
 
 (cd yew-validation && cargo test)
 (cd devtools && cargo test)
+(cd devtools-extension && cargo test)
