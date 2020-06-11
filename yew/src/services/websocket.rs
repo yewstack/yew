@@ -1,4 +1,4 @@
-//! Service to connect to a servers by
+//! A service to connect to a server through the
 //! [`WebSocket` Protocol](https://tools.ietf.org/html/rfc6455).
 
 use super::Task;
@@ -20,18 +20,26 @@ cfg_if! {
     }
 }
 
-/// A status of a websocket connection. Used for status notification.
+/// The status of a WebSocket connection. Used for status notifications.
 #[derive(Clone, Debug, PartialEq)]
 pub enum WebSocketStatus {
-    /// Fired when a websocket connection was opened.
+    /// Fired when a WebSocket connection has opened.
     Opened,
-    /// Fired when a websocket connection was closed.
+    /// Fired when a WebSocket connection has closed.
     Closed,
-    /// Fired when a websocket connection was failed.
+    /// Fired when a WebSocket connection has failed.
     Error,
 }
 
-/// A handle to control current websocket connection. Implements `Task` and could be canceled.
+#[derive(Clone, Debug, PartialEq, thiserror::Error)]
+/// An error encountered by a WebSocket.
+pub enum WebSocketError {
+    #[error("{0}")]
+    /// An error encountered when creating the WebSocket.
+    CreationError(String),
+}
+
+/// A handle to control the WebSocket connection. Implements `Task` and could be canceled.
 #[must_use = "the connection will be closed when the task is dropped"]
 pub struct WebSocketTask {
     ws: WebSocket,
@@ -48,7 +56,7 @@ impl WebSocketTask {
         notification: Callback<WebSocketStatus>,
         listener_0: EventListener,
         listeners: [EventListener; 3],
-    ) -> Result<WebSocketTask, &'static str> {
+    ) -> Result<WebSocketTask, WebSocketError> {
         let [listener_1, listener_2, listener_3] = listeners;
         Ok(WebSocketTask {
             ws,
@@ -64,18 +72,18 @@ impl fmt::Debug for WebSocketTask {
     }
 }
 
-/// A websocket service attached to a user context.
+/// A WebSocket service attached to a user context.
 #[derive(Default, Debug)]
 pub struct WebSocketService {}
 
 impl WebSocketService {
-    /// Connects to a server by a websocket connection. Needs two functions to generate
-    /// data and notification messages.
+    /// Connects to a server through a WebSocket connection. Needs two callbacks; one is passed
+    /// data, the other is passed updates about the WebSocket's status.
     pub fn connect<OUT: 'static>(
         url: &str,
         callback: Callback<OUT>,
         notification: Callback<WebSocketStatus>,
-    ) -> Result<WebSocketTask, &str>
+    ) -> Result<WebSocketTask, WebSocketError>
     where
         OUT: From<Text> + From<Binary>,
     {
@@ -98,7 +106,7 @@ impl WebSocketService {
         }
     }
 
-    /// Connects to a server by a websocket connection, like connect,
+    /// Connects to a server through a WebSocket connection, like connect,
     /// but only processes binary frames. Text frames are silently
     /// ignored. Needs two functions to generate data and notification
     /// messages.
@@ -106,7 +114,7 @@ impl WebSocketService {
         url: &str,
         callback: Callback<OUT>,
         notification: Callback<WebSocketStatus>,
-    ) -> Result<WebSocketTask, &str>
+    ) -> Result<WebSocketTask, WebSocketError>
     where
         OUT: From<Binary>,
     {
@@ -129,7 +137,7 @@ impl WebSocketService {
         }
     }
 
-    /// Connects to a server by a websocket connection, like connect,
+    /// Connects to a server through a WebSocket connection, like connect,
     /// but only processes text frames. Binary frames are silently
     /// ignored. Needs two functions to generate data and notification
     /// messages.
@@ -137,7 +145,7 @@ impl WebSocketService {
         url: &str,
         callback: Callback<OUT>,
         notification: Callback<WebSocketStatus>,
-    ) -> Result<WebSocketTask, &str>
+    ) -> Result<WebSocketTask, WebSocketError>
     where
         OUT: From<Text>,
     {
@@ -163,13 +171,26 @@ impl WebSocketService {
     fn connect_common(
         url: &str,
         notification: &Callback<WebSocketStatus>,
-    ) -> Result<ConnectCommon, &'static str> {
+    ) -> Result<ConnectCommon, WebSocketError> {
         let ws = WebSocket::new(url);
-        if ws.is_err() {
-            return Err("Failed to created websocket with given URL");
-        }
 
-        let ws = ws.map_err(|_| "failed to build websocket")?;
+        let ws = ws.map_err(
+            #[cfg(feature = "web_sys")]
+            |ws_error| {
+                WebSocketError::CreationError(
+                    ws_error
+                        .unchecked_into::<js_sys::Error>()
+                        .to_string()
+                        .as_string()
+                        .unwrap(),
+                )
+            },
+            #[cfg(feature = "std_web")]
+            |_| WebSocketError::CreationError("Error opening a WebSocket connection.".to_string()),
+        )?;
+
+        #[cfg(feature = "std")]
+
         cfg_match! {
             feature = "std_web" => ws.set_binary_type(SocketBinaryType::ArrayBuffer),
             feature = "web_sys" => ws.set_binary_type(BinaryType::Arraybuffer),
@@ -291,7 +312,7 @@ fn process_both<OUT: 'static>(
 }
 
 impl WebSocketTask {
-    /// Sends data to a websocket connection.
+    /// Sends data to a WebSocket connection.
     pub fn send<IN>(&mut self, data: IN)
     where
         IN: Into<Text>,
@@ -308,7 +329,7 @@ impl WebSocketTask {
         }
     }
 
-    /// Sends binary data to a websocket connection.
+    /// Sends binary data to a WebSocket connection.
     pub fn send_binary<IN>(&mut self, data: IN)
     where
         IN: Into<Binary>,
@@ -387,6 +408,29 @@ mod tests {
         match cb_future.await {
             Json(Ok(received)) => assert_eq!(received, msg),
             Json(Err(err)) => assert!(false, err),
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "web_sys")]
+    async fn test_invalid_url_error() {
+        let url = "syntactically-invalid";
+        let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
+        let callback = cb_future.clone().into();
+        let mut ws = WebSocketService::new();
+        let status_future = CallbackFuture::<WebSocketStatus>::default();
+        let notification: Callback<_> = status_future.clone().into();
+        let task = ws.connect_text(url, callback, notification);
+        assert!(task.is_err());
+        if let Err(task_err) = task {
+            if let WebSocketError::CreationError(some_error) = task_err {
+                assert_eq!(
+                    some_error,
+                    "SyntaxError: An invalid or illegal string was specified"
+                )
+            } else {
+                assert!(false);
+            }
         }
     }
 
