@@ -1,4 +1,4 @@
-name: Code Coverage
+name: Code Quality
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
           SECRET_KEY: 'secret'
       - uses: actions-rs/grcov@v0.1
         with:
-          config: codecov.yml
+          config: quality.yml
       - uses: codecov/codecov-action@v1
         with:
           file: ./coverage.txt
