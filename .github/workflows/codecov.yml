@@ -30,7 +30,7 @@ jobs:
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
       - name: Run tests
         run: |
-          (cd yew_macro && cargo test)
+          (cd yew-macro && cargo test)
           (cd yew-router-macro && cargo test)
           (cd yewtil-macro && cargo test)
         env:
