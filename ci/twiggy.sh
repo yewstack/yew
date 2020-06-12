@@ -1,4 +1,8 @@
 #!/bin/bash
+mkdir master
+cd master
+git clone https://github.com/yewstack/yew
+cd ../
 cargo build --all --release --target wasm32-unknown-unknown
 cd master/yew
 cargo build --all --release --target wasm32-unknown-unknown
