@@ -56,3 +56,4 @@ members = [
   "examples/two_apps",
   "examples/webgl",
 ]
+exclude=["twiggy-analysis"]

@@ -49,8 +49,9 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: stable
           override: true
+          target: wasm32-unknown-unknown
       - name: Cache cargo registry
         uses: actions/cache@v1
         with:
@@ -66,9 +67,10 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-      - name: Install twiggy
-        run: |
-          cargo install twiggy
+      - uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: twiggy
       - name: Run analysis
         run: |
           twiggy top
