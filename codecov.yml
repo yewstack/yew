@@ -1,0 +1,2 @@
+output-type: lcov
+output-path: coverage.txt
