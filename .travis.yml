@@ -14,6 +14,9 @@ cache: cargo
 before_cache:
   - ./ci/clear_cache.sh
 
+before_install:
+  - curl -L https://github.com/mozilla/grcov/releases/latest/download/grcov-linux-x86_64.tar.bz2 | tar jxf -
+
 rust:
   - 1.42.0 # min supported
   - stable
@@ -36,5 +39,23 @@ install:
   - ./ci/install_cargo_web.sh
 
 script:
+  - |
+      if [ "$TRAVIS_RUST_VERSION" = "nightly" ] && [ -z "$TRAVIS_TAG" ]; then
+        export CARGO_INCREMENTAL=0;
+        export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort";
+        export RUSTDOCFLAGS="-Cpanic=abort";
+      fi
   - ./ci/run_stable_checks.sh
   - GECKODRIVER=$(pwd)/geckodriver ./ci/run_tests.sh
+  - |
+    if [ "$TRAVIS_RUST_VERSION" = "nightly" ] && [ -z "$TRAVIS_TAG" ]; then
+      zip -0 ccov.zip `find . \( -name "grcov*.gc*" -o -name "llvmgcov.gc*" \) -print`;
+      ./target/debug/yew ccov.zip -s . -t lcov --llvm --branch --ignore-not-existing --ignore "/*" -o lcov.info --excl-line "#\[derive\(" --excl-br-line "#\[derive\(";
+      bash <(curl -s https://codecov.io/bash) -f lcov.info;
+    fi
+  - |
+    if [ "$TRAVIS_RUST_VERSION" = "nightly" ] && [ -z "$TRAVIS_TAG" ]; then
+      zip -0 ccov.zip `find . \( -name "grcov*.gc*" -o -name "llvmgcov.gc*" \) -print`;
+      ./target/debug/yew_macro ccov.zip -s . -t lcov --llvm --branch --ignore-not-existing --ignore "/*" -o lcov.info --excl-line "#\[derive\(" --excl-br-line "#\[derive\(";
+      bash <(curl -s https://codecov.io/bash) -f lcov.info;
+    fi
