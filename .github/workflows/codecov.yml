@@ -73,8 +73,4 @@ jobs:
           args: twiggy
       - name: Run analysis
         run: |
-          twiggy top
-          twiggy garbage
-      - name: Compute Diff
-        run: |
           ./ci/twiggy.sh
