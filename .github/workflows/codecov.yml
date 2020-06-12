@@ -30,9 +30,9 @@ jobs:
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
       - name: Run tests
         run: |
-          (cd yew-macro && cargo test)
-          (cd yew-router-macro && cargo test)
-          (cd yewtil-macro && cargo test)
+          cd yew-macro && cargo test && cd ../
+          cd yew-router-macro && cargo test && cd ../
+          cd yewtil-macro && cargo test && cd ../
         env:
           CARGO_INCREMENTAL: '0'
           RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
