@@ -75,3 +75,6 @@ jobs:
         run: |
           twiggy top
           twiggy garbage
+      - name: Compute Diff
+        run: |
+          ./ci/twiggy.sh
