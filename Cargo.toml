@@ -29,7 +29,6 @@ members = [
   # dsl
   "yew-dsl",
   # DevTools
-  "devtools",
   "devtools-extension",
   # Examples
   "examples/counter",
@@ -59,3 +58,5 @@ members = [
   "examples/two_apps",
   "examples/webgl",
 ]
+# the developer tools and server depend on wasm-incompatible libaries
+exclude=["devtools", "examples/server"]
