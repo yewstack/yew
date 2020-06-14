@@ -186,20 +186,18 @@ impl WebSocketService {
         let ws = ws.map_err(|ws_error| {
             #[cfg(feature = "web_sys")]
             {
-                Err(WebSocketError::CreationError(
+                WebSocketError::CreationError(
                     ws_error
                         .clone()
                         .unchecked_into::<js_sys::Error>()
                         .to_string()
                         .as_string()
                         .unwrap(),
-                ));
+                )
             }
             #[cfg(feature = "std_web")]
             {
-                Err(WebSocketError::CreationError(
-                    "Error opening a WebSocket connection.".to_string(),
-                ));
+                WebSocketError::CreationError("Error opening a WebSocket connection.".to_string())
             }
         })?;
 
