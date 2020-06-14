@@ -189,7 +189,6 @@ impl WebSocketService {
                 {
                     WebSocketError::CreationError(
                         ws_error
-                            .clone()
                             .unchecked_into::<js_sys::Error>()
                             .to_string()
                             .as_string()
