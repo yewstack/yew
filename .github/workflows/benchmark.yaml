@@ -1,0 +1,132 @@
+name: Benchmark
+
+on:
+  pull_request:
+    branches: [master]
+    types: [labeled, synchronize]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'performance') ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'performance'))
+
+    env:
+      MSG_FOOTER: |-
+        <br/>
+
+        Workflow: [${{ github.run_id }}](/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        *Adding new commits will generate a new report*
+
+    steps:
+      - name: Post comment
+        uses: jungwinter/comment@v1
+        id: create_comment
+        with:
+          type: create
+          body: |
+            Started a benchmark for this pull request.
+            This comment will be updated with the results.
+            ${{ env.MSG_FOOTER }}
+          issue_number: ${{ github.event.number }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/checkout@v2
+        with:
+          repository: yewstack/js-framework-benchmark
+
+      - name: Configure benchmark
+        run: |
+          search="{ git = \"https://github.com/jstarry/yew\", branch = \"keyed-list\" }"
+          replace="{ git = \"${{ github.event.pull_request.head.repo.html_url }}\", branch = \"${{ github.event.pull_request.head.ref }}\" }"
+          input=$(cat frameworks/keyed/yew/Cargo.toml)
+          output=${input//"$search"/"$replace"}
+          if [[ "$input" == "$output" ]]; then
+            echo "ERROR: failed to configure Cargo.toml"
+            exit 1
+          fi
+          echo "$output" > frameworks/keyed/yew/Cargo.toml
+          echo "$output"
+
+      - name: Setup ChromeDriver
+        uses: nanasess/setup-chromedriver@master
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-bindgen-cli
+          version: latest
+          use-tool-cache: true
+
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-pack
+          version: latest
+          use-tool-cache: true
+
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: https
+          version: latest
+          use-tool-cache: true
+
+      - name: Start Server
+        run: http -p 8080 &
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: npm Install
+        run: |
+          npm install
+          (cd webdriver-ts && npm install)
+          (cd webdriver-ts-results && npm install)
+
+      - name: Build
+        run: |
+          npm run build-prod
+          (cd webdriver-ts && npm run build-prod)
+
+      - name: Benchmark
+        run: npm run bench -- --headless
+
+      - name: Results
+        run: npm run results
+
+      - name: Write comment body
+        run: |
+          msg=$(cd results_diff && cargo run)
+          msg="${msg//'%'/'%25'}"
+          msg="${msg//$'\n'/'%0A'}"
+          msg="${msg//$'\r'/'%0D'}"
+          echo "::set-env name=MSG::$msg"
+
+      - name: Post results
+        uses: jungwinter/comment@v1
+        with:
+          type: edit
+          body: |
+            ${{ env.MSG }}
+            ${{ env.MSG_FOOTER }}
+          comment_id: ${{ steps.create_comment.outputs.id }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post failure
+        if: ${{ failure() }}
+        uses: jungwinter/comment@v1
+        with:
+          type: edit
+          body: |
+            **The benchmark failed to complete.**
+            Please see the workflow for more details.
+            ${{ env.MSG_FOOTER }}
+          comment_id: ${{ steps.create_comment.outputs.id }}
+          token: ${{ secrets.GITHUB_TOKEN }}
