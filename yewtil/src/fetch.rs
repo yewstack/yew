@@ -159,10 +159,7 @@ impl<REQ, RES> Fetch<REQ, RES> {
     /// # Panics
     /// If the Fetch wrapper doesn't contain an instance of a response, this function will panic.
     pub fn unwrap(self) -> RES {
-        match self.res() {
-            Some(res) => res,
-            None => panic!("No response body is present."),
-        }
+        self.res().expect("No response body is present.")
     }
 
     /// Gets the response body (if present).
