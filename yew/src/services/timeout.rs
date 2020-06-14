@@ -1,5 +1,5 @@
-//! This module contains the implementation of a service to
-//! send a messages when timeout elapsed.
+//! This module contains Yew's implementation of a service to
+//! send messages when a timeout has elapsed.
 
 use super::{to_ms, Task};
 use crate::callback::Callback;
@@ -40,7 +40,7 @@ impl TimeoutService {
         Self {}
     }
 
-    /// Sets timeout which send a messages from a `converter` after `duration`.
+    /// Sets timeout which sends messages from a `converter` after `duration`.
     pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> TimeoutTask {
         let callback = move || {
             callback.emit(());
