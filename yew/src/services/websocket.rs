@@ -182,10 +182,11 @@ impl WebSocketService {
         notification: &Callback<WebSocketStatus>,
     ) -> Result<ConnectCommon, WebSocketError> {
         let ws = WebSocket::new(url);
-        #[cfg(feature = "web_sys")]
-        {
-            if let Err(ws_error) = &ws {
-                return Err(WebSocketError::CreationError(
+
+        let ws = ws.map_err(|ws_error| {
+            #[cfg(feature = "web_sys")]
+            {
+                Err(WebSocketError::CreationError(
                     ws_error
                         .clone()
                         .unchecked_into::<js_sys::Error>()
@@ -193,19 +194,14 @@ impl WebSocketService {
                         .as_string()
                         .unwrap(),
                 ));
-            };
-        }
-        #[cfg(feature = "std_web")]
-        {
-            if ws.is_err() {
-                return Err(WebSocketError::CreationError(
+            }
+            #[cfg(feature = "std_web")]
+            {
+                Err(WebSocketError::CreationError(
                     "Error opening a WebSocket connection.".to_string(),
                 ));
-            };
-        }
-
-        let ws =
-            ws.map_err(|_| WebSocketError::CreationError("Failed to build websocket".into()))?;
+            }
+        })?;
 
         cfg_match! {
             feature = "std_web" => ws.set_binary_type(SocketBinaryType::ArrayBuffer),
@@ -445,6 +441,8 @@ mod tests {
                     some_error,
                     "SyntaxError: An invalid or illegal string was specified"
                 )
+            } else {
+                assert!(false);
             }
         }
     }
