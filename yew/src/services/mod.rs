@@ -38,13 +38,14 @@ pub use self::websocket::WebSocketService;
 use std::time::Duration;
 
 /// An universal task of a service.
-/// It have to be canceled when dropped.
+/// The task must be handled when it is cancelled.
 pub trait Task: Drop {
     /// Returns `true` if task is active.
     fn is_active(&self) -> bool;
 }
 
 #[doc(hidden)]
+/// Converts a `Duration` into milliseconds.
 fn to_ms(duration: Duration) -> u32 {
     let ms = duration.subsec_millis();
     ms + duration.as_secs() as u32 * 1000
