@@ -112,7 +112,7 @@ impl WebSocketService {
     {
         cfg_match! {
             feature = "std_web" => ({
-                let ws = self.connect_common(url, &notification)?.0;
+                let ws = Self::connect_common(url, &notification)?.0;
                 ws.add_event_listener(move |event: SocketMessageEvent| {
                     process_binary(&event, &callback);
                 });
