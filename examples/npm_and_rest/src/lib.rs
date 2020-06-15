@@ -35,7 +35,7 @@ impl Component for Model {
         Model {
             link: link.clone(),
             gravatar: GravatarService::new(),
-            ccxt: CcxtService::new(),
+            ccxt: CcxtService::default(),
             callback: link.callback(Msg::GravatarReady),
             profile: None,
             exchanges: Vec::new(),

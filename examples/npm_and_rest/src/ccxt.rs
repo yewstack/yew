@@ -12,7 +12,7 @@ extern "C" {
 }
 
 impl CcxtService {
-    pub fn new() -> Self {
+    pub fn default() -> Self {
         let lib: &JsValue = &ccxt;
         CcxtService(Some(lib))
     }

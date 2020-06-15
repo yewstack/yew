@@ -33,8 +33,7 @@ impl Component for Model {
         let callback = |_| {
             println!("Example of a standalone callback.");
         };
-        let mut interval = IntervalService::new();
-        let handle = interval.spawn(Duration::from_secs(10), callback.into());
+        let handle = IntervalService::spawn(Duration::from_secs(10), callback.into());
 
         Model {
             link: link.clone(),
