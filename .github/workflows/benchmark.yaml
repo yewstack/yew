@@ -85,7 +85,4 @@ jobs:
       - name: Log results
         run: |
           msg=$(cd results_diff && cargo run)
-          msg="${msg//'%'/'%25'}"
-          msg="${msg//$'\n'/'%0A'}"
-          msg="${msg//$'\r'/'%0D'}"
           echo "$msg"
