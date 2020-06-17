@@ -374,7 +374,7 @@ impl VDiff for VList {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "web_sys"))]
 mod tests {
     use super::{Element, Node};
     use crate::html::{AnyScope, Scope};
@@ -463,11 +463,6 @@ mod tests {
         .into()
     }
 
-    #[cfg(feature = "web_sys")]
-    fn inner_html(element: &Element) -> String {
-        element.inner_html()
-    }
-
     #[cfg(feature = "std_web")]
     fn inner_html(element: &Element) -> String {
         use stdweb::unstable::TryInto;
@@ -477,40 +472,6 @@ mod tests {
             .try_into()
             .expect("Failed to convert element into HtmlElement");
         html_element.inner_text()
-    }
-
-    #[test]
-    fn vlist_vdiff_apply_non_keyed_from_none_works_with_all_vnode_types_as_children() {
-        let vref_element: Element = crate::utils::document().create_element("i").unwrap();
-        let vref_node: Node = vref_element.clone().into();
-        let mut vlist = VList::new_with_children(
-            vec![
-                VNode::VText(VText::new("a".into())),
-                VNode::VTag(Box::new(VTag::new("span"))),
-                VNode::VText(VText::new("c".into())),
-                VNode::VText(VText::new("d".into())),
-                VNode::VComp(new_counting_vcomp(0, None, false)),
-                VNode::VList(VList::new_with_children(
-                    vec![
-                        VNode::VText(VText::new("foo".into())),
-                        VNode::VText(VText::new("bar".into())),
-                    ],
-                    None,
-                )),
-                VNode::VRef(vref_node),
-            ],
-            None,
-        );
-
-        let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
-        let parent_element = crate::utils::document().create_element("div").unwrap();
-        vlist.apply(&parent_scope, &parent_element, NodeRef::default(), None);
-
-        assert_eq!(
-            inner_html(&parent_element),
-            "a<span></span>cd<p>0</p>foobar<i></i>",
-            "The VList didn't render properly."
-        );
     }
 
     #[test]
@@ -576,86 +537,6 @@ mod tests {
             inner_html(&parent_element),
             new_inner_html.as_ref(),
             "new VList didn't render properly"
-        );
-    }
-
-    #[test]
-    fn vlist_vdiff_non_keyed_from_ancestor_works_append() {
-        test_vlist_vdiff_from_ancestor_works(
-            vec![VText::new("a".into()).into(), VText::new("b".into()).into()],
-            "ab",
-            vec![
-                VText::new("a".into()).into(),
-                VText::new("b".into()).into(),
-                VText::new("c".into()).into(),
-            ],
-            "abc",
-        );
-    }
-
-    #[test]
-    fn vlist_vdiff_non_keyed_from_ancestor_works_prepend() {
-        test_vlist_vdiff_from_ancestor_works(
-            vec![VText::new("a".into()).into(), VText::new("b".into()).into()],
-            "ab",
-            vec![
-                VText::new("c".into()).into(),
-                VText::new("a".into()).into(),
-                VText::new("b".into()).into(),
-            ],
-            "cab",
-        );
-    }
-
-    #[test]
-    fn vlist_vdiff_non_keyed_from_ancestor_works_delete() {
-        test_vlist_vdiff_from_ancestor_works(
-            vec![
-                VText::new("a".into()).into(),
-                VText::new("b".into()).into(),
-                VText::new("c".into()).into(),
-            ],
-            "abc",
-            vec![VText::new("a".into()).into(), VText::new("b".into()).into()],
-            "ab",
-        );
-    }
-
-    #[test]
-    fn vlist_vdiff_non_keyed_from_ancestor_works_swap() {
-        test_vlist_vdiff_from_ancestor_works(
-            vec![
-                VText::new("a".into()).into(),
-                VText::new("b".into()).into(),
-                VText::new("c".into()).into(),
-            ],
-            "abc",
-            vec![
-                VText::new("a".into()).into(),
-                VText::new("c".into()).into(),
-                VText::new("b".into()).into(),
-            ],
-            "acb",
-        );
-    }
-
-    #[test]
-    fn vlist_vdiff_non_keyed_from_ancestor_inserting_into_vlist_first_child() {
-        test_vlist_vdiff_from_ancestor_works(
-            vec![
-                VList::new_with_children(vec![VText::new("1".into()).into()], None).into(),
-                VText::new("after".into()).into(),
-            ],
-            "1after",
-            vec![
-                VList::new_with_children(
-                    vec![VText::new("1".into()).into(), VTag::new("p").into()],
-                    None,
-                )
-                .into(),
-                VText::new("after".into()).into(),
-            ],
-            "1<p></p>after",
         );
     }
 
