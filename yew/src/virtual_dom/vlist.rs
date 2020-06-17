@@ -157,8 +157,8 @@ impl VDiff for VList {
             });
         }
 
-        // The algorithms are different when there are keys, because it is more
-        // expensive and less frequent.
+        // The algorithms are different when there are keys, because the keyed
+        // variant it is more expensive and less frequent.
         if !use_keyed_algorithm {
             let mut rights = rights.into_iter().peekable();
             let mut last_next_sibling = NodeRef::default();
@@ -240,7 +240,6 @@ impl VDiff for VList {
                     *matched_right = Some(right);
                     reused_rights.put(right_idx);
                 } else {
-                    // This left node is new.
                     new_lefts.insert(left_idx);
                 }
             }
@@ -256,8 +255,9 @@ impl VDiff for VList {
                 .map(|left| {
                     let ancestor = matched_rights.next().unwrap();
 
-                    // Create a new `next_sibling` reference which points to the next `right` or
-                    // the outer list's `next_sibling` if there are no more `rights`.
+                    // Create a new `next_sibling` reference which points to the
+                    // next `right` or the outer list's `next_sibling` if there
+                    // are no more `rights`.
                     let new_next_sibling = NodeRef::default();
                     if let Some(Some(next_right)) = matched_rights.peek() {
                         new_next_sibling.set(Some(next_right.first_node()));
@@ -265,8 +265,10 @@ impl VDiff for VList {
                         new_next_sibling.link(next_sibling.clone());
                     }
 
-                    // Update the next list item and then link the previous left's `next_sibling` to the returned `node` reference
-                    // so that the previous left has an up-to-date `next_sibling` (important for mounting a `Component`)
+                    // Update the next list item and then link the previous
+                    // left's `next_sibling` to the returned `node` reference so
+                    // that the previous left has an up-to-date `next_sibling`
+                    // (important for mounting a `Component`)
                     let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
                     last_next_sibling.link(node.clone());
                     last_next_sibling = new_next_sibling;
@@ -274,8 +276,10 @@ impl VDiff for VList {
                 })
                 .collect();
 
-            // If there are more `rights` than `lefts`, we need to make sure to link the last left's `next_sibling`
-            // to the outer list's `next_sibling` so that it doesn't point at a `right` that is detached.
+            // If there are more `rights` than `lefts`, we need to make sure to
+            // link the last left's `next_sibling` to the outer list's
+            // `next_sibling` so that it doesn't point at a `right` that is
+            // detached.
             last_next_sibling.link(next_sibling);
 
             drop(matched_rights);
@@ -290,7 +294,7 @@ impl VDiff for VList {
             let mut lefts = self.children.iter().enumerate().peekable();
             let mut right_keys = right_keys.into_iter().peekable();
             let mut right_key = right_keys.next();
-            let mut moves: Vec<(Node, Option<Node>)> = vec![];
+            let mut moves: Vec<(&VNode, Option<Node>)> = Vec::with_capacity(self.children.len());
             while let Some((idx, left)) = lefts.next() {
                 // Ignore the new left vnodes, which are created at the correct
                 // position.
@@ -329,12 +333,11 @@ impl VDiff for VList {
                     }
                     (left_key, _) => {
                         // Move the left vnode.
-                        let left_node = left.first_node();
                         let next_sibling = match lefts.peek() {
                             Some((_, vnode)) => Some(vnode.first_node()),
                             _ => None,
                         };
-                        moves.push((left_node, next_sibling));
+                        moves.push((&left, next_sibling));
 
                         // Remember that we moved it, to allow skipping the
                         // matching right if there is one.
@@ -346,14 +349,15 @@ impl VDiff for VList {
             drop(lefts);
             drop(right_keys);
             drop(right_key);
-            for (node, next_sibling) in moves.into_iter().rev() {
-                super::insert_node(&node, parent, next_sibling);
+            drop(new_lefts);
+
+            // Apply the moves.
+            for (vnode, next_sibling) in moves.into_iter().rev() {
+                vnode.move_before(parent, next_sibling);
             }
 
             // Detach all previously rendered elements that have not been
-            // reused, which can be seen because reused nodes are replaced by
-            // dummy ones, that are VText nodes with empty text and without
-            // references to actual DOM node.
+            // reused, which can be seen because reused.
             let not_reused_rights = {
                 reused_rights.toggle_range(..);
                 reused_rights
@@ -846,7 +850,7 @@ mod tests {
     }
 
     #[test]
-    fn vlist_vdiff_keyed_list_of_list_from_ancestor_swap_1() {
+    fn vlist_vdiff_keyed_list_of_list_from_ancestor_swap() {
         test_vlist_vdiff_from_ancestor_works(
             vec![
                 VList::new_with_children(
@@ -890,7 +894,7 @@ mod tests {
     }
 
     #[test]
-    fn vlist_vdiff_keyed_list_of_list_from_ancestor_swap_no_collapse() {
+    fn vlist_vdiff_keyed_list_of_list_from_ancestor_swap_with_in_between() {
         test_vlist_vdiff_from_ancestor_works(
             vec![
                 VList::new_with_children(

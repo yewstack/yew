@@ -74,6 +74,17 @@ impl VNode {
             VNode::VRef(node) => node.clone(),
         }
     }
+
+    pub(crate) fn move_before(&self, parent: &Element, next_sibling: Option<Node>) {
+        match self {
+            VNode::VList(vlist) => {
+                for node in vlist.children.iter() {
+                    node.move_before(parent, next_sibling.clone());
+                }
+            }
+            _ => super::insert_node(&self.first_node(), parent, next_sibling),
+        };
+    }
 }
 
 impl VDiff for VNode {
