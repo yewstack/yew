@@ -137,6 +137,19 @@ impl VDiff for VList {
             .filter_map(|(idx, vnode)| vnode.key().as_ref().map(|key| (key.clone(), idx)))
             .collect::<HashMap<_, _>>();
 
+        // If there are some keys in right but not all lefts have keys (so we
+        // won't use the keyed algorithm), then we detach all the rights to be
+        // sure to not reuse a keyed ancestor. We also detach rights if there
+        // are some keys but not all have keys.
+        if (!lefts_all_keyed && !rights_lookup.is_empty())
+            || (!rights_lookup.is_empty() && rights_lookup.len() != rights.len())
+        {
+            rights.drain(..).for_each(|mut right| {
+                right.detach(parent);
+            });
+            rights_lookup.clear();
+        }
+
         // Determine which algorithm we use. If there are some keys, but not all
         // the elements are keyed, we consider it a degenerated case and use the
         // non-keyed algorithm. Importantly, don't use the keyed algorithm if
@@ -144,18 +157,6 @@ impl VDiff for VList {
         // neither).
         let use_keyed_algorithm =
             lefts_all_keyed && !rights.is_empty() && !rights_lookup.is_empty();
-
-        // If there are keys in right but we are not using the keyed algorithm,
-        // then we detach all the rights to be sure to not reuse a keyed
-        // ancestor. We also detach rights if there are some keys but not all
-        // have keys.
-        if (!use_keyed_algorithm && !rights_lookup.is_empty())
-            || (use_keyed_algorithm && rights_lookup.len() != rights.len())
-        {
-            rights.drain(..).for_each(|mut right| {
-                right.detach(parent);
-            });
-        }
 
         // The algorithms are different when there are keys, because the keyed
         // variant it is more expensive and less frequent.
