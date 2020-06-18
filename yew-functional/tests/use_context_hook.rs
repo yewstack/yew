@@ -283,12 +283,7 @@ fn use_context_update_works() {
     let app: App<TestComponent> = yew::App::new();
     app.mount(yew::utils::document().get_element_by_id("output").unwrap());
 
-    // 1 initial render + 3 update steps
-    assert_eq!(obtain_result("test-0"), "total: 4");
-
-    // 1 initial + 2 context updates
-    assert_eq!(obtain_result("test-1"), "current: hello world!, total: 3");
-
-    // 1 initial + 1 context update + 1 magic update + 1 context update
-    assert_eq!(obtain_result("test-2"), "current: hello world!, total: 4");
+    assert_eq!(obtain_result("test-0"), "total: 1");
+    assert_eq!(obtain_result("test-1"), "current: hello world!, total: 1");
+    assert_eq!(obtain_result("test-2"), "current: hello world!, total: 1");
 }

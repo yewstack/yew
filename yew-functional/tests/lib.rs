@@ -8,10 +8,9 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 extern crate yew;
 
-use self::yew::NodeRef;
 use yew::{html, App, Html, Properties};
 use yew_functional::{
-    use_effect, use_effect_with_deps, use_reducer_with_init, use_ref, use_state, FunctionComponent,
+    use_effect_with_deps, use_reducer_with_init, use_ref, use_state, FunctionComponent,
     FunctionProvider,
 };
 
@@ -217,69 +216,6 @@ fn use_effect_destroys_on_component_drop() {
 }
 
 #[wasm_bindgen_test]
-fn use_effect_not_called_if_destroyed_immediately() {
-    struct UseEffectFunction {}
-    struct UseEffectWrapper {}
-    #[derive(Properties, Clone)]
-    struct EffectCalledProps {
-        effect_called: Rc<dyn Fn()>,
-    }
-    impl PartialEq for EffectCalledProps {
-        fn eq(&self, _other: &Self) -> bool {
-            false
-        }
-    }
-    type UseEffectComponent = FunctionComponent<UseEffectFunction>;
-    type UseEffectWrapperComponent = FunctionComponent<UseEffectWrapper>;
-    impl FunctionProvider for UseEffectFunction {
-        type TProps = EffectCalledProps;
-
-        fn run(props: &Self::TProps) -> Html {
-            let effect_called = props.effect_called.clone();
-            use_effect(move || {
-                effect_called();
-                || {}
-            });
-            html! {}
-        }
-    }
-    impl FunctionProvider for UseEffectWrapper {
-        type TProps = EffectCalledProps;
-
-        fn run(props: &Self::TProps) -> Html {
-            let (show, set_show) = use_state(|| true);
-            use_effect_with_deps(
-                move |_| {
-                    set_show(false);
-                    || {}
-                },
-                (),
-            );
-
-            if *show {
-                return html! {
-                    <UseEffectComponent effect_called=props.effect_called.clone() />
-                };
-            } else {
-                return html! {
-                    <div>{"EMPTY"}</div>
-                };
-            }
-        }
-    }
-    let app: App<UseEffectWrapperComponent> = yew::App::new();
-    let effect_counter = Rc::new(std::cell::RefCell::new(0));
-    let effect_counter_c = effect_counter.clone();
-    app.mount_with_props(
-        yew::utils::document().get_element_by_id("output").unwrap(),
-        EffectCalledProps {
-            effect_called: Rc::new(move || *effect_counter_c.borrow_mut().deref_mut() += 1),
-        },
-    );
-    assert_eq!(0, *effect_counter.borrow().deref());
-}
-
-#[wasm_bindgen_test]
 fn use_effect_works_many_times() {
     struct UseEffectFunction {}
     impl FunctionProvider for UseEffectFunction {
@@ -287,39 +223,22 @@ fn use_effect_works_many_times() {
 
         fn run(_: &Self::TProps) -> Html {
             let (counter, set_counter) = use_state(|| 0);
-            if *counter < 4 {
-                set_counter(*counter + 1);
-            }
+            let counter_clone = counter.clone();
 
-            let node_ref = NodeRef::default();
-            let node_ref_c = node_ref.clone();
-
-            use_effect(move || {
-                let text_content = node_ref
-                    .get()
-                    .expect("Should have filled node_ref at this point")
-                    .text_content()
-                    .expect("Text node should have content");
-                let mut previous = -1;
-                if *counter == 0 {
-                    assert_eq!("placeholder that should not appear", &text_content);
-                } else {
-                    previous = text_content
-                        .parse()
-                        .expect("Expected content to be number set last time");
-                }
-                assert_eq!(previous, *counter - 1);
-                node_ref
-                    .get()
-                    .unwrap()
-                    .set_text_content(Some(&format!("{}", counter)));
-                || {}
-            });
+            use_effect_with_deps(
+                move |_| {
+                    if *counter_clone < 4 {
+                        set_counter(*counter_clone + 1);
+                    }
+                    || {}
+                },
+                *counter,
+            );
 
             return html! {
                 <div>
                     {"The test result is"}
-                    <div id="result" ref=node_ref_c>{"placeholder that should not appear"}</div>
+                    <div id="result">{counter}</div>
                     {"\n"}
                 </div>
             };
@@ -340,41 +259,21 @@ fn use_effect_works_once() {
         type TProps = ();
 
         fn run(_: &Self::TProps) -> Html {
-            let number_ref = use_ref(|| 0);
-            let number_ref_c = number_ref.clone();
-            let initially_true_ref = use_ref(|| false);
-            let initially_true_ref_c = initially_true_ref.clone();
-
-            let node_ref = NodeRef::default();
-            let node_ref_c = node_ref.clone();
+            let (counter, set_counter) = use_state(|| 0);
+            let counter_clone = counter.clone();
 
             use_effect_with_deps(
                 move |_| {
-                    if *initially_true_ref.borrow() {
-                        panic!("use_effect should have been called post render!")
-                    }
-                    if *number_ref_c.borrow_mut().deref_mut() == 1 {
-                        panic!("This effect should have been called once only")
-                    }
-                    *number_ref_c.borrow_mut().deref_mut() += 1;
-                    node_ref
-                        .get()
-                        .expect("This NodeRef should point at the result!");
+                    set_counter(*counter_clone + 1);
                     || panic!("Destructor should not have been called")
                 },
                 (),
             );
-            *initially_true_ref_c.borrow_mut() = false;
-
-            let (do_rerender, set_rerender) = use_state(|| true);
-            if *do_rerender {
-                set_rerender(false);
-            }
 
             return html! {
                 <div>
                     {"The test result is"}
-                    <div id="result" ref=node_ref_c>{*number_ref.borrow_mut().deref_mut()}</div>
+                    <div id="result">{counter}</div>
                     {"\n"}
                 </div>
             };
