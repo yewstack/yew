@@ -1,12 +1,14 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <meta charset="utf-8" />
-        <title>Yew • TodoMVC</title>
+        <meta charset="utf-8">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/todomvc-common@1.0.5/base.css"/ >
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/todomvc-app-css@2.1.2/index.css" />
+        <title>Yew Sample App</title>
+        <script type="module">
+            import init from "./wasm.js"
+            init()
+        </script>
     </head>
-    <body>
-        <script src="/todomvc.js"></script>
-    </body>
+    <body></body>
 </html>
