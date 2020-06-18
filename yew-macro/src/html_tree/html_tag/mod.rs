@@ -102,9 +102,55 @@ impl ToTokens for HtmlTag {
             children,
         } = self;
 
+        let TagAttributes {
+            classes,
+            attributes,
+            booleans,
+            kind,
+            value,
+            checked,
+            node_ref,
+            key,
+            href,
+            listeners,
+        } = &attributes;
+
         let name = match &tag_name {
             TagName::Lit(name) => {
                 let name_str = name.to_string();
+                match name_str.as_str() {
+                    "a" => {
+                        if href.is_none() {
+                            println!(
+                                "{}",
+                                syn::Error::new_spanned(
+                                    name,
+                                    "All <a> tags should have a `href` attribute to be \
+                                    keyboard accessible (hint: you might want to use a button or \
+                                    an anchor link here e.g. `<button>Some text</button>` or \
+                                    `<a href=\"#\">Some text</a>)."
+                                )
+                                .to_string()
+                            );
+                        }
+                    }
+                    "img" => {
+                        if attributes
+                            .iter()
+                            .filter(|item| item.label.name.to_string() == "alt")
+                            .next()
+                            .is_none()
+                        {
+                            println!(
+                                "{}",
+                                syn::Error::new_spanned(name, "All <img> tags should \
+                                have an `alt` attribute which should describe the image in a meaningful \
+                                way. If an image is purely decorative, this should be a blank string.").to_string()
+                            );
+                        }
+                    }
+                    _ => {}
+                }
                 quote! {#name_str}
             }
             TagName::Expr(name) => {
@@ -122,19 +168,6 @@ impl ToTokens for HtmlTag {
                 }}
             }
         };
-
-        let TagAttributes {
-            classes,
-            attributes,
-            booleans,
-            kind,
-            value,
-            checked,
-            node_ref,
-            key,
-            href,
-            listeners,
-        } = &attributes;
 
         let vtag = Ident::new("__yew_vtag", tag_name.span());
         let attr_pairs = attributes.iter().map(|TagAttribute { label, value }| {
