@@ -13,26 +13,7 @@ jobs:
       (github.event.action == 'labeled' && github.event.label.name == 'performance') ||
       (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'performance'))
 
-    env:
-      MSG_FOOTER: |-
-        <br/>
-
-        Workflow: [${{ github.run_id }}](/${{ github.repository }}/actions/runs/${{ github.run_id }})
-        *Adding new commits will generate a new report*
-
     steps:
-      - name: Post comment
-        uses: jungwinter/comment@v1
-        id: create_comment
-        with:
-          type: create
-          body: |
-            Started a benchmark for this pull request.
-            This comment will be updated with the results.
-            ${{ env.MSG_FOOTER }}
-          issue_number: ${{ github.event.number }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       - uses: actions/checkout@v2
         with:
           repository: yewstack/js-framework-benchmark
@@ -101,32 +82,7 @@ jobs:
       - name: Results
         run: npm run results
 
-      - name: Write comment body
+      - name: Log results
         run: |
           msg=$(cd results_diff && cargo run)
-          msg="${msg//'%'/'%25'}"
-          msg="${msg//$'\n'/'%0A'}"
-          msg="${msg//$'\r'/'%0D'}"
-          echo "::set-env name=MSG::$msg"
-
-      - name: Post results
-        uses: jungwinter/comment@v1
-        with:
-          type: edit
-          body: |
-            ${{ env.MSG }}
-            ${{ env.MSG_FOOTER }}
-          comment_id: ${{ steps.create_comment.outputs.id }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Post failure
-        if: ${{ failure() }}
-        uses: jungwinter/comment@v1
-        with:
-          type: edit
-          body: |
-            **The benchmark failed to complete.**
-            Please see the workflow for more details.
-            ${{ env.MSG_FOOTER }}
-          comment_id: ${{ steps.create_comment.outputs.id }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          echo "$msg"
