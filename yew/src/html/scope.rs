@@ -422,6 +422,7 @@ mod tests {
         lifecycle: Rc<RefCell<Vec<String>>>,
         create_message: Option<bool>,
         view_message: RefCell<Option<bool>>,
+        rendered_message: RefCell<Option<bool>>,
     }
 
     struct Comp {
@@ -442,6 +443,9 @@ mod tests {
         }
 
         fn rendered(&mut self, first_render: bool) {
+            if let Some(msg) = self.props.rendered_message.borrow_mut().take() {
+                self.link.send_message(msg);
+            }
             self.props
                 .lifecycle
                 .borrow_mut()
@@ -544,6 +548,36 @@ mod tests {
                 "view".to_string(),
                 "update(false)".to_string(),
                 "rendered(true)".to_string(),
+            ],
+        );
+
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                rendered_message: RefCell::new(Some(false)),
+                ..Props::default()
+            },
+            &vec![
+                "create".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string(),
+                "update(false)".to_string(),
+            ],
+        );
+
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                rendered_message: RefCell::new(Some(true)),
+                ..Props::default()
+            },
+            &vec![
+                "create".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string(),
+                "update(true)".to_string(),
+                "view".to_string(),
+                "rendered(false)".to_string(),
             ],
         );
     }

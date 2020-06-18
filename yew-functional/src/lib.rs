@@ -16,7 +16,9 @@ pub trait Hook {
     fn tear_down(&mut self) {}
 }
 
-type ProcessMessage = Rc<dyn Fn(Box<dyn FnOnce() -> bool>)>;
+type Msg = Box<dyn FnOnce() -> bool>;
+type ProcessMessage = Rc<dyn Fn(Msg, bool)>;
+
 struct HookState {
     counter: usize,
     scope: AnyScope,
@@ -30,10 +32,25 @@ pub trait FunctionProvider {
     fn run(props: &Self::TProps) -> Html;
 }
 
-pub struct FunctionComponent<T: FunctionProvider> {
+#[derive(Clone, Default)]
+struct MsgQueue(Rc<RefCell<Vec<Msg>>>);
+
+impl MsgQueue {
+    fn push(&self, msg: Msg) {
+        self.0.borrow_mut().push(msg);
+    }
+
+    fn drain(&self) -> Vec<Msg> {
+        self.0.borrow_mut().drain(..).collect()
+    }
+}
+
+pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
     props: T::TProps,
+    link: ComponentLink<Self>,
     hook_state: RefCell<Option<HookState>>,
+    message_queue: MsgQueue,
 }
 
 impl<T> FunctionComponent<T>
@@ -62,16 +79,31 @@ where
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let scope = AnyScope::from(link.clone());
+        let message_queue = MsgQueue::default();
         FunctionComponent {
             _never: std::marker::PhantomData::default(),
             props,
+            link: link.clone(),
+            message_queue: message_queue.clone(),
             hook_state: RefCell::new(Some(HookState {
                 counter: 0,
                 scope,
-                process_message: Rc::new(move |msg| link.send_message(msg)),
+                process_message: Rc::new(move |msg, post_render| {
+                    if post_render {
+                        message_queue.push(msg);
+                    } else {
+                        link.send_message(msg);
+                    }
+                }),
                 hooks: vec![],
                 destroy_listeners: vec![],
             })),
+        }
+    }
+
+    fn rendered(&mut self, _first_render: bool) {
+        for msg in self.message_queue.drain() {
+            self.link.send_message(msg);
         }
     }
 
@@ -129,7 +161,7 @@ where
 
     use_hook(
         |state: &mut UseRefState<T>, pretrigger_change_acceptor| {
-            let _ignored = || pretrigger_change_acceptor(|_| false); // we need it to be a specific closure type, even if we never use it
+            let _ignored = || pretrigger_change_acceptor(|_| false, true); // we need it to be a specific closure type, even if we never use it
             state.0.clone()
         },
         move || UseRefState(Rc::new(RefCell::new(initial_value()))),
@@ -175,6 +207,7 @@ where
                             ));
                             true
                         },
+                        false, // run pre render
                     );
                 }),
             )
@@ -200,10 +233,13 @@ where
             (
                 current,
                 Box::new(move |o: T| {
-                    hook_update(|state: &mut UseStateState<T>| {
-                        state.current = Rc::new(o);
-                        true
-                    });
+                    hook_update(
+                        |state: &mut UseStateState<T>| {
+                            state.current = Rc::new(o);
+                            true
+                        },
+                        false, // run pre render
+                    )
                 }),
             )
         },
@@ -231,19 +267,20 @@ where
     }
     use_hook(
         |_: &mut UseEffectState<Destructor>, hook_update| {
-            move || {
-                hook_update(move |state: &mut UseEffectState<Destructor>| {
+            hook_update(
+                move |state: &mut UseEffectState<Destructor>| {
                     if let Some(de) = state.destructor.take() {
                         de();
                     }
                     let new_destructor = callback();
                     state.destructor.replace(Box::new(new_destructor));
                     false
-                });
-            }
+                },
+                true, // run post render
+            )
         },
         || UseEffectState { destructor: None },
-    )();
+    );
 }
 
 pub fn use_effect_with_deps<F, Destructor, Dependents>(callback: F, deps: Dependents)
@@ -271,22 +308,25 @@ where
             let mut should_update = *state.deps != *deps;
 
             move || {
-                hook_update(move |state: &mut UseEffectState<Dependents, Destructor>| {
-                    if should_update {
-                        if let Some(de) = state.destructor.take() {
-                            de();
+                hook_update(
+                    move |state: &mut UseEffectState<Dependents, Destructor>| {
+                        if should_update {
+                            if let Some(de) = state.destructor.take() {
+                                de();
+                            }
+                            let new_destructor = callback(deps.borrow());
+                            state.deps = deps;
+                            state.destructor.replace(Box::new(new_destructor));
+                        } else if state.destructor.is_none() {
+                            should_update = true;
+                            state
+                                .destructor
+                                .replace(Box::new(callback(state.deps.borrow())));
                         }
-                        let new_destructor = callback(deps.borrow());
-                        state.deps = deps;
-                        state.destructor.replace(Box::new(new_destructor));
-                    } else if state.destructor.is_none() {
-                        should_update = true;
-                        state
-                            .destructor
-                            .replace(Box::new(callback(state.deps.borrow())));
-                    }
-                    false
-                })
+                        false
+                    },
+                    true, // run post render
+                )
             }
         },
         || UseEffectState {
@@ -301,7 +341,7 @@ pub fn use_hook<InternalHookState, HookRunner, R, InitialStateProvider, Pretrigg
     initial_state_producer: InitialStateProvider,
 ) -> R
 where
-    HookRunner: FnOnce(&mut InternalHookState, Box<dyn Fn(PretriggerChange)>) -> R,
+    HookRunner: FnOnce(&mut InternalHookState, Box<dyn Fn(PretriggerChange, bool)>) -> R,
     InternalHookState: Hook + 'static,
     InitialStateProvider: FnOnce() -> InternalHookState,
     PretriggerChange: FnOnce(&mut InternalHookState) -> bool,
@@ -334,16 +374,19 @@ where
 
     let trigger = {
         let hook = hook.clone();
-        Box::new(move |pretrigger_change: PretriggerChange| {
+        Box::new(move |pretrigger_change: PretriggerChange, post_render| {
             let hook = hook.clone();
-            process_message(Box::new(move || {
-                let mut hook = hook.borrow_mut();
-                let hook = hook.downcast_mut::<InternalHookState>();
-                let hook = hook.expect(
-                    "Incompatible hook type. Hooks must always be called in the same order",
-                );
-                pretrigger_change(hook)
-            }));
+            process_message(
+                Box::new(move || {
+                    let mut hook = hook.borrow_mut();
+                    let hook = hook.downcast_mut::<InternalHookState>();
+                    let hook = hook.expect(
+                        "Incompatible hook type. Hooks must always be called in the same order",
+                    );
+                    pretrigger_change(hook)
+                }),
+                post_render,
+            );
         })
     };
     let mut hook = hook.borrow_mut();
