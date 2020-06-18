@@ -160,8 +160,9 @@ where
     impl<T> Hook for UseRefState<T> {}
 
     use_hook(
-        |state: &mut UseRefState<T>, pretrigger_change_acceptor| {
-            let _ignored = || pretrigger_change_acceptor(|_| false, true); // we need it to be a specific closure type, even if we never use it
+        |state: &mut UseRefState<T>, hook_callback| {
+            // we need it to be a specific closure type, even if we never use it
+            let _ignored = || hook_callback(|_| false, false);
             state.0.clone()
         },
         move || UseRefState(Rc::new(RefCell::new(initial_value()))),
@@ -194,12 +195,12 @@ where
     let init = Box::new(init);
     let reducer = Rc::new(reducer);
     use_hook(
-        |internal_hook_change: &mut UseReducerState<State>, pretrigger_change_runner| {
+        |internal_hook_change: &mut UseReducerState<State>, hook_callback| {
             (
                 internal_hook_change.current_state.clone(),
                 Rc::new(move |action: Action| {
                     let reducer = reducer.clone();
-                    pretrigger_change_runner(
+                    hook_callback(
                         move |internal_hook_change: &mut UseReducerState<State>| {
                             internal_hook_change.current_state = Rc::new((reducer)(
                                 internal_hook_change.current_state.clone(),
@@ -228,12 +229,12 @@ where
     }
     impl<T> Hook for UseStateState<T> {}
     use_hook(
-        |prev: &mut UseStateState<T>, hook_update| {
+        |prev: &mut UseStateState<T>, hook_callback| {
             let current = prev.current.clone();
             (
                 current,
                 Box::new(move |o: T| {
-                    hook_update(
+                    hook_callback(
                         |state: &mut UseStateState<T>| {
                             state.current = Rc::new(o);
                             true
@@ -266,8 +267,8 @@ where
         }
     }
     use_hook(
-        |_: &mut UseEffectState<Destructor>, hook_update| {
-            hook_update(
+        |_: &mut UseEffectState<Destructor>, hook_callback| {
+            hook_callback(
                 move |state: &mut UseEffectState<Destructor>| {
                     if let Some(de) = state.destructor.take() {
                         de();
@@ -277,7 +278,7 @@ where
                     false
                 },
                 true, // run post render
-            )
+            );
         },
         || UseEffectState { destructor: None },
     );
@@ -304,47 +305,44 @@ where
         }
     }
     use_hook(
-        move |state: &mut UseEffectState<Dependents, Destructor>, hook_update| {
+        move |state: &mut UseEffectState<Dependents, Destructor>, hook_callback| {
             let mut should_update = *state.deps != *deps;
-
-            move || {
-                hook_update(
-                    move |state: &mut UseEffectState<Dependents, Destructor>| {
-                        if should_update {
-                            if let Some(de) = state.destructor.take() {
-                                de();
-                            }
-                            let new_destructor = callback(deps.borrow());
-                            state.deps = deps;
-                            state.destructor.replace(Box::new(new_destructor));
-                        } else if state.destructor.is_none() {
-                            should_update = true;
-                            state
-                                .destructor
-                                .replace(Box::new(callback(state.deps.borrow())));
+            hook_callback(
+                move |state: &mut UseEffectState<Dependents, Destructor>| {
+                    if should_update {
+                        if let Some(de) = state.destructor.take() {
+                            de();
                         }
-                        false
-                    },
-                    true, // run post render
-                )
-            }
+                        let new_destructor = callback(deps.borrow());
+                        state.deps = deps;
+                        state.destructor.replace(Box::new(new_destructor));
+                    } else if state.destructor.is_none() {
+                        should_update = true;
+                        state
+                            .destructor
+                            .replace(Box::new(callback(state.deps.borrow())));
+                    }
+                    false
+                },
+                true, // run post render
+            );
         },
         || UseEffectState {
             deps: deps_c,
             destructor: None,
         },
-    )();
+    );
 }
 
-pub fn use_hook<InternalHookState, HookRunner, R, InitialStateProvider, PretriggerChange: 'static>(
+pub fn use_hook<InternalHookState, HookRunner, R, InitialStateProvider, HookUpdate: 'static>(
     hook_runner: HookRunner,
     initial_state_producer: InitialStateProvider,
 ) -> R
 where
-    HookRunner: FnOnce(&mut InternalHookState, Box<dyn Fn(PretriggerChange, bool)>) -> R,
+    HookRunner: FnOnce(&mut InternalHookState, Box<dyn Fn(HookUpdate, bool)>) -> R,
     InternalHookState: Hook + 'static,
     InitialStateProvider: FnOnce() -> InternalHookState,
-    PretriggerChange: FnOnce(&mut InternalHookState) -> bool,
+    HookUpdate: FnOnce(&mut InternalHookState) -> bool,
 {
     // Extract current hook
     let (hook, process_message) = CURRENT_HOOK.with(|hook_state_holder| {
@@ -372,9 +370,9 @@ where
         (hook, hook_state.process_message.clone())
     });
 
-    let trigger = {
+    let hook_callback = {
         let hook = hook.clone();
-        Box::new(move |pretrigger_change: PretriggerChange, post_render| {
+        Box::new(move |update: HookUpdate, post_render| {
             let hook = hook.clone();
             process_message(
                 Box::new(move || {
@@ -383,7 +381,7 @@ where
                     let hook = hook.expect(
                         "Incompatible hook type. Hooks must always be called in the same order",
                     );
-                    pretrigger_change(hook)
+                    update(hook)
                 }),
                 post_render,
             );
@@ -396,7 +394,7 @@ where
 
     // Execute the actual hook closure we were given. Let it mutate the hook state and let
     // it create a callback that takes the mutable hook state.
-    hook_runner(&mut hook, trigger)
+    hook_runner(&mut hook, hook_callback)
 }
 
 pub(crate) fn get_current_scope() -> Option<AnyScope> {
