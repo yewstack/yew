@@ -390,24 +390,6 @@ mod tests {
     // }
 
     // #[test]
-    // fn vlist_vdiff_keyed_from_ancestor_vcomp_children_reverse() {
-    //     test_vlist_vdiff_from_ancestor_works(
-    //         vec![
-    //             new_counting_vcomp(1, Some("1"), true).into(),
-    //             new_counting_vcomp(2, Some("2"), true).into(),
-    //             new_counting_vcomp(3, Some("3"), true).into(),
-    //         ],
-    //         "<p>1</p><p>2</p><p>3</p>",
-    //         vec![
-    //             new_counting_vcomp(3, Some("3"), true).into(),
-    //             new_counting_vcomp(2, Some("2"), true).into(),
-    //             new_counting_vcomp(1, Some("1"), true).into(),
-    //         ],
-    //         "<p>3</p><p>2</p><p>1</p>",
-    //     );
-    // }
-
-    // #[test]
     // fn vlist_vdiff_do_not_reuse_non_vlist_ancestor_with_keyed_algorithm() {
     //     test_vlist_vdiff_from_ancestor_works(
     //         vec![
@@ -772,7 +754,7 @@ mod layout_tests_keys {
     use super::Node;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
-    use crate::{Component, ComponentLink, Html, Properties, ShouldRender};
+    use crate::{Children, Component, ComponentLink, Html, Properties, ShouldRender};
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -823,6 +805,34 @@ mod layout_tests_keys {
 
         fn view(&self) -> Html {
             html! { <p>{ self.id }</p> }
+        }
+    }
+
+    #[derive(Clone, Properties)]
+    pub struct ListProps {
+        pub children: Children,
+    }
+
+    pub struct List(ListProps);
+
+    impl Component for List {
+        type Message = ();
+        type Properties = ListProps;
+
+        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+            Self(props)
+        }
+
+        fn update(&mut self, _: Self::Message) -> ShouldRender {
+            unimplemented!();
+        }
+
+        fn change(&mut self, props: Self::Properties) -> ShouldRender {
+            self.0.children != props.children
+        }
+
+        fn view(&self) -> Html {
+            html! { <>{ for self.0.children.iter() }</> }
         }
     }
 
@@ -1258,6 +1268,56 @@ mod layout_tests_keys {
                     </>
                 },
                 expected: "<u></u><a></a><p>0</p>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "Reverse VComp children - before",
+                node: html! {
+                    <>
+                        <Comp id=1 key="comp-1"/>
+                        <Comp id=2 key="comp-2"/>
+                        <Comp id=3 key="comp-3"/>
+                    </>
+                },
+                expected: "<p>1</p><p>2</p><p>3</p>",
+            },
+            TestLayout {
+                name: "Reverse VComp children - after",
+                node: html! {
+                    <>
+                        <Comp id=3 key="comp-3"/>
+                        <Comp id=2 key="comp-2"/>
+                        <Comp id=1 key="comp-1"/>
+                    </>
+                },
+                expected: "<p>3</p><p>2</p><p>1</p>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "Reverse VComp children with children - before",
+                node: html! {
+                    <>
+                        <List key="comp-1"><p>{"11"}</p><p>{"12"}</p></List>
+                        <List key="comp-2"><p>{"21"}</p><p>{"22"}</p></List>
+                        <List key="comp-3"><p>{"31"}</p><p>{"32"}</p></List>
+                    </>
+                },
+                expected: "<p>11</p><p>12</p><p>21</p><p>22</p><p>31</p><p>32</p>",
+            },
+            TestLayout {
+                name: "Reverse VComp children with children - after",
+                node: html! {
+                    <>
+                        <List key="comp-3"><p>{"31"}</p><p>{"32"}</p></List>
+                        <List key="comp-2"><p>{"21"}</p><p>{"22"}</p></List>
+                        <List key="comp-1"><p>{"11"}</p><p>{"12"}</p></List>
+                    </>
+                },
+                expected: "<p>31</p><p>32</p><p>21</p><p>22</p><p>11</p><p>12</p>",
             },
         ]);
 
