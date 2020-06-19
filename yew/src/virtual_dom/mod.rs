@@ -344,6 +344,7 @@ mod layout_tests {
         for layout in layouts.iter() {
             // Apply layout
             let mut node = layout.node.clone();
+            wasm_bindgen_test::console_log!("Independently apply layout '{}'", layout.name);
             node.apply(&parent_scope, &parent_element, next_sibling.clone(), None);
             assert_eq!(
                 parent_element.inner_html(),
@@ -354,6 +355,7 @@ mod layout_tests {
 
             // Diff with no changes
             let mut node_clone = layout.node.clone();
+            wasm_bindgen_test::console_log!("Independently reapply layout '{}'", layout.name);
             node_clone.apply(
                 &parent_scope,
                 &parent_element,
@@ -386,6 +388,7 @@ mod layout_tests {
         let mut ancestor: Option<VNode> = None;
         for layout in layouts.iter() {
             let mut next_node = layout.node.clone();
+            wasm_bindgen_test::console_log!("Sequentially apply layout '{}'", layout.name);
             next_node.apply(
                 &parent_scope,
                 &parent_element,
@@ -404,6 +407,7 @@ mod layout_tests {
         // Sequentially detach each layout
         for layout in layouts.into_iter().rev() {
             let mut next_node = layout.node.clone();
+            wasm_bindgen_test::console_log!("Sequentially detach layout '{}'", layout.name);
             next_node.apply(
                 &parent_scope,
                 &parent_element,
