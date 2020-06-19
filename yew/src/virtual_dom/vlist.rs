@@ -250,32 +250,27 @@ impl VDiff for VList {
             // transformations to rights to make them identical to lefts.
             let mut matched_rights = matched_rights.into_iter().peekable();
             let mut last_next_sibling = NodeRef::default();
-            let mut nodes: Vec<NodeRef> = self // TODO: Remove this Vec
-                .children
-                .iter_mut()
-                .map(|left| {
-                    let ancestor = matched_rights.next().unwrap();
+            for left in self.children.iter_mut() {
+                let ancestor = matched_rights.next().unwrap();
 
-                    // Create a new `next_sibling` reference which points to the
-                    // next `right` or the outer list's `next_sibling` if there
-                    // are no more `rights`.
-                    let new_next_sibling = NodeRef::default();
-                    if let Some(Some(next_right)) = matched_rights.peek() {
-                        new_next_sibling.set(Some(next_right.first_node()));
-                    } else {
-                        new_next_sibling.link(next_sibling.clone());
-                    }
+                // Create a new `next_sibling` reference which points to the
+                // next `right` or the outer list's `next_sibling` if there
+                // are no more `rights`.
+                let new_next_sibling = NodeRef::default();
+                if let Some(Some(next_right)) = matched_rights.peek() {
+                    new_next_sibling.set(Some(next_right.first_node()));
+                } else {
+                    new_next_sibling.link(next_sibling.clone());
+                }
 
-                    // Update the next list item and then link the previous
-                    // left's `next_sibling` to the returned `node` reference so
-                    // that the previous left has an up-to-date `next_sibling`
-                    // (important for mounting a `Component`).
-                    let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
-                    last_next_sibling.link(node.clone());
-                    last_next_sibling = new_next_sibling;
-                    node
-                })
-                .collect();
+                // Update the next list item and then link the previous
+                // left's `next_sibling` to the returned `node` reference so
+                // that the previous left has an up-to-date `next_sibling`
+                // (important for mounting a `Component`).
+                let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
+                last_next_sibling.link(node.clone());
+                last_next_sibling = new_next_sibling;
+            }
 
             // If there are more `rights` than `lefts`, we need to make sure to
             // link the last left's `next_sibling` to the outer list's
@@ -292,11 +287,11 @@ impl VDiff for VList {
 
             // Move in the DOM the nodes that have been reused.
             let mut moved: HashSet<Key> = HashSet::with_capacity(self.children.len());
-            let mut lefts = self.children.iter().enumerate().peekable();
+            let mut lefts = self.children.iter().peekable();
             let mut right_keys = right_keys.into_iter().peekable();
             let mut right_key = right_keys.next();
             let mut moves: Vec<(&VNode, Option<Node>)> = Vec::with_capacity(self.children.len());
-            while let Some((idx, left)) = lefts.next() {
+            while let Some(left) = lefts.next() {
                 // Ignore the deleted right vnodes, and those corresponding to
                 // already moved left vnodes.
                 while let Some(key) = right_key.clone() {
@@ -328,7 +323,7 @@ impl VDiff for VList {
                     (left_key, _) => {
                         // Move the left vnode.
                         let next_sibling = match lefts.peek() {
-                            Some((_, vnode)) => Some(vnode.first_node()),
+                            Some(vnode) => Some(vnode.first_node()),
                             _ => next_sibling.get(),
                         };
                         moves.push((&left, next_sibling));
@@ -361,22 +356,13 @@ impl VDiff for VList {
                 right.detach(parent);
             }
 
-            assert!(!nodes.is_empty(), "VList should have at least one child");
-            nodes.swap_remove(0)
+            last_next_sibling
         }
     }
 }
 
 #[cfg(all(test, feature = "web_sys"))]
 mod tests {
-    use super::{Element, Node};
-    use crate::html::{AnyScope, Scope};
-    use crate::prelude::*;
-    use crate::virtual_dom::{Key, VChild, VComp, VDiff, VList, VNode, VTag, VText};
-    use std::borrow::Cow;
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
     // #[test]
     // fn vlist_vdiff_keyed_from_ancestor_with_multiple_children_keyed_types() {
     //     test_vlist_vdiff_from_ancestor_works(
