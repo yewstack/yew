@@ -167,9 +167,9 @@ impl Component for Model {
                 Cellule {
                     life_state: LifeState::Dead
                 };
-                2000
+                53*40
             ],
-            cellules_width: 50,
+            cellules_width: 53,
             cellules_height: 40,
             job: Box::new(handle),
         }
