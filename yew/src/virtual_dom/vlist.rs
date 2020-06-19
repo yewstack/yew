@@ -396,57 +396,6 @@ mod tests {
     // }
 
     // #[test]
-    // fn vlist_vdiff_keyed_from_ancestor_insert_vcomp_front() {
-    //     test_vlist_vdiff_from_ancestor_works(
-    //         vec![
-    //             new_keyed_vtag("u", "1").into(),
-    //             new_keyed_vtag("a", "2").into(),
-    //         ],
-    //         "<u></u><a></a>",
-    //         vec![
-    //             new_counting_vcomp(0, Some("VComp"), true).into(),
-    //             new_keyed_vtag("u", "1").into(),
-    //             new_keyed_vtag("a", "2").into(),
-    //         ],
-    //         "<p>0</p><u></u><a></a>",
-    //     );
-    // }
-
-    // #[test]
-    // fn vlist_vdiff_keyed_from_ancestor_insert_vcomp_middle() {
-    //     test_vlist_vdiff_from_ancestor_works(
-    //         vec![
-    //             new_keyed_vtag("u", "1").into(),
-    //             new_keyed_vtag("a", "2").into(),
-    //         ],
-    //         "<u></u><a></a>",
-    //         vec![
-    //             new_keyed_vtag("u", "1").into(),
-    //             new_counting_vcomp(0, Some("VComp"), true).into(),
-    //             new_keyed_vtag("a", "2").into(),
-    //         ],
-    //         "<u></u><p>0</p><a></a>",
-    //     );
-    // }
-
-    // #[test]
-    // fn vlist_vdiff_keyed_from_ancestor_insert_vcomp_back() {
-    //     test_vlist_vdiff_from_ancestor_works(
-    //         vec![
-    //             new_keyed_vtag("u", "1").into(),
-    //             new_keyed_vtag("a", "2").into(),
-    //         ],
-    //         "<u></u><a></a>",
-    //         vec![
-    //             new_keyed_vtag("u", "1").into(),
-    //             new_keyed_vtag("a", "2").into(),
-    //             new_counting_vcomp(0, Some("VComp"), true).into(),
-    //         ],
-    //         "<u></u><a></a><p>0</p>",
-    //     );
-    // }
-
-    // #[test]
     // fn vlist_vdiff_keyed_from_ancestor_vcomp_children_reverse() {
     //     test_vlist_vdiff_from_ancestor_works(
     //         vec![
@@ -1243,6 +1192,78 @@ mod layout_tests_keys {
                     </>
                 },
                 expected: "<a></a><u></u><p></p><i></i><e></e>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "Insert VComp front - before",
+                node: html! {
+                    <>
+                        <u key=1></u>
+                        <a key=2></a>
+                    </>
+                },
+                expected: "<u></u><a></a>",
+            },
+            TestLayout {
+                name: "Insert VComp front - after",
+                node: html! {
+                    <>
+                        <Comp id=0 key="comp"/>
+                        <u key=1></u>
+                        <a key=2></a>
+                    </>
+                },
+                expected: "<p>0</p><u></u><a></a>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "Insert VComp middle - before",
+                node: html! {
+                    <>
+                        <u key=1></u>
+                        <a key=2></a>
+                    </>
+                },
+                expected: "<u></u><a></a>",
+            },
+            TestLayout {
+                name: "Insert VComp middle - after",
+                node: html! {
+                    <>
+                        <u key=1></u>
+                        <Comp id=0 key="comp"/>
+                        <a key=2></a>
+                    </>
+                },
+                expected: "<u></u><p>0</p><a></a>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "Insert VComp back - before",
+                node: html! {
+                    <>
+                        <u key=1></u>
+                        <a key=2></a>
+                    </>
+                },
+                expected: "<u></u><a></a>",
+            },
+            TestLayout {
+                name: "Insert VComp back - after",
+                node: html! {
+                    <>
+                        <u key=1></u>
+                        <a key=2></a>
+                        <Comp id=0 key="comp"/>
+                    </>
+                },
+                expected: "<u></u><a></a><p>0</p>",
             },
         ]);
 

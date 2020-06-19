@@ -437,11 +437,10 @@ impl NodeRef {
 
     /// Link a downstream `NodeRef`
     pub(crate) fn link(&self, node_ref: Self) {
-        debug_assert_ne!(
-            node_ref.0.as_ptr(),
-            self.0.as_ptr(),
-            "Invalid NodeRef::link: cannot be linked to self.",
-        );
+        // Don't link to self
+        if node_ref.0.as_ptr() == self.0.as_ptr() {
+            return;
+        }
 
         let mut this = self.0.borrow_mut();
         this.node = None;
