@@ -249,7 +249,6 @@ impl VDiff for VList {
             // Reconciliation loop, i.e. apply the least amount of
             // transformations to rights to make them identical to lefts.
             let mut matched_rights = matched_rights.into_iter().peekable();
-            let mut last_next_sibling = NodeRef::default();
             for left in self.children.iter_mut() {
                 let ancestor = matched_rights.next().unwrap();
 
@@ -263,20 +262,15 @@ impl VDiff for VList {
                     new_next_sibling.link(next_sibling.clone());
                 }
 
-                // Update the next list item and then link the previous
-                // left's `next_sibling` to the returned `node` reference so
-                // that the previous left has an up-to-date `next_sibling`
-                // (important for mounting a `Component`).
-                let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
-                last_next_sibling.link(node.clone());
-                last_next_sibling = new_next_sibling;
+                // Update the list item.
+                left.apply(parent_scope, parent, new_next_sibling, ancestor);
             }
 
             // If there are more `rights` than `lefts`, we need to make sure to
             // link the last left's `next_sibling` to the outer list's
             // `next_sibling` so that it doesn't point at a `right` that is
             // detached.
-            last_next_sibling.link(next_sibling.clone());
+            let last_next_sibling = next_sibling.clone();
 
             drop(matched_rights);
 
