@@ -325,6 +325,7 @@ mod layout_tests {
     }
 
     pub(crate) struct TestLayout<'a> {
+        pub(crate) name: &'a str,
         pub(crate) node: VNode,
         pub(crate) expected: &'a str,
     }
@@ -346,7 +347,9 @@ mod layout_tests {
             node.apply(&parent_scope, &parent_element, next_sibling.clone(), None);
             assert_eq!(
                 parent_element.inner_html(),
-                format!("{}END", layout.expected)
+                format!("{}END", layout.expected),
+                "Independent apply failed for layout '{}'",
+                layout.name,
             );
 
             // Diff with no changes
@@ -359,7 +362,9 @@ mod layout_tests {
             );
             assert_eq!(
                 parent_element.inner_html(),
-                format!("{}END", layout.expected)
+                format!("{}END", layout.expected),
+                "Independent reapply failed for layout '{}'",
+                layout.name,
             );
 
             // Detach
@@ -369,7 +374,12 @@ mod layout_tests {
                 next_sibling.clone(),
                 Some(node_clone),
             );
-            assert_eq!(parent_element.inner_html(), "END");
+            assert_eq!(
+                parent_element.inner_html(),
+                "END",
+                "Independent detach failed for layout '{}'",
+                layout.name,
+            );
         }
 
         // Sequentially apply each layout
@@ -384,7 +394,9 @@ mod layout_tests {
             );
             assert_eq!(
                 parent_element.inner_html(),
-                format!("{}END", layout.expected)
+                format!("{}END", layout.expected),
+                "Sequential apply failed for layout '{}'",
+                layout.name,
             );
             ancestor = Some(next_node);
         }
@@ -400,7 +412,9 @@ mod layout_tests {
             );
             assert_eq!(
                 parent_element.inner_html(),
-                format!("{}END", layout.expected)
+                format!("{}END", layout.expected),
+                "Sequential detach failed for layout '{}'",
+                layout.name,
             );
             ancestor = Some(next_node);
         }
@@ -409,6 +423,10 @@ mod layout_tests {
         empty_node
             .clone()
             .apply(&parent_scope, &parent_element, next_sibling, ancestor);
-        assert_eq!(parent_element.inner_html(), "END");
+        assert_eq!(
+            parent_element.inner_html(),
+            "END",
+            "Failed to detach last layout"
+        );
     }
 }

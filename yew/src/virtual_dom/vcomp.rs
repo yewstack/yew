@@ -573,6 +573,7 @@ mod layout_tests {
     #[test]
     fn diff() {
         let layout1 = TestLayout {
+            name: "1",
             node: html! {
                 <Comp<A>>
                     <Comp<B>></Comp<B>>
@@ -583,6 +584,7 @@ mod layout_tests {
         };
 
         let layout2 = TestLayout {
+            name: "2",
             node: html! {
                 <Comp<A>>
                     {"A"}
@@ -592,6 +594,7 @@ mod layout_tests {
         };
 
         let layout3 = TestLayout {
+            name: "3",
             node: html! {
                 <Comp<B>>
                     <Comp<A>></Comp<A>>
@@ -602,6 +605,7 @@ mod layout_tests {
         };
 
         let layout4 = TestLayout {
+            name: "4",
             node: html! {
                 <Comp<B>>
                     <Comp<A>>{"A"}</Comp<A>>
@@ -612,6 +616,7 @@ mod layout_tests {
         };
 
         let layout5 = TestLayout {
+            name: "5",
             node: html! {
                 <Comp<B>>
                     <>
@@ -626,6 +631,7 @@ mod layout_tests {
         };
 
         let layout6 = TestLayout {
+            name: "6",
             node: html! {
                 <Comp<B>>
                     <>
@@ -641,6 +647,7 @@ mod layout_tests {
         };
 
         let layout7 = TestLayout {
+            name: "7",
             node: html! {
                 <Comp<B>>
                     <>
@@ -658,6 +665,7 @@ mod layout_tests {
         };
 
         let layout8 = TestLayout {
+            name: "8",
             node: html! {
                 <Comp<B>>
                     <>
@@ -677,6 +685,7 @@ mod layout_tests {
         };
 
         let layout9 = TestLayout {
+            name: "9",
             node: html! {
                 <Comp<B>>
                     <>
@@ -696,6 +705,7 @@ mod layout_tests {
         };
 
         let layout10 = TestLayout {
+            name: "10",
             node: html! {
                 <Comp<B>>
                     <>
@@ -715,6 +725,7 @@ mod layout_tests {
         };
 
         let layout11 = TestLayout {
+            name: "11",
             node: html! {
                 <Comp<B>>
                     <>
@@ -734,6 +745,7 @@ mod layout_tests {
         };
 
         let layout12 = TestLayout {
+            name: "12",
             node: html! {
                 <Comp<B>>
                     <>

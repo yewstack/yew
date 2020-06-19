@@ -120,16 +120,19 @@ mod layout_tests {
     #[test]
     fn diff() {
         let layout1 = TestLayout {
+            name: "1",
             node: html! { "a" },
             expected: "a",
         };
 
         let layout2 = TestLayout {
+            name: "2",
             node: html! { "b" },
             expected: "b",
         };
 
         let layout3 = TestLayout {
+            name: "3",
             node: html! {
                 <>
                     {"a"}
@@ -140,6 +143,7 @@ mod layout_tests {
         };
 
         let layout4 = TestLayout {
+            name: "4",
             node: html! {
                 <>
                     {"b"}

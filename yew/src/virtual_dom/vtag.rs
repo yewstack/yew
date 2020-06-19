@@ -1276,6 +1276,7 @@ mod layout_tests {
     #[test]
     fn diff() {
         let layout1 = TestLayout {
+            name: "1",
             node: html! {
                 <ul>
                     <li>
@@ -1290,6 +1291,7 @@ mod layout_tests {
         };
 
         let layout2 = TestLayout {
+            name: "2",
             node: html! {
                 <ul>
                     <li>
@@ -1307,6 +1309,7 @@ mod layout_tests {
         };
 
         let layout3 = TestLayout {
+            name: "3",
             node: html! {
                 <ul>
                     <li>
@@ -1327,6 +1330,7 @@ mod layout_tests {
         };
 
         let layout4 = TestLayout {
+            name: "4",
             node: html! {
                 <ul>
                     <li>

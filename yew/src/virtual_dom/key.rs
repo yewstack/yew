@@ -33,7 +33,9 @@ macro_rules! key_impl_from_to_string {
     ($type:ty) => {
         impl From<$type> for Key {
             fn from(key: $type) -> Self {
-                Key { key: Rc::new(key.to_string()) }
+                Key {
+                    key: Rc::new(key.to_string()),
+                }
             }
         }
     };

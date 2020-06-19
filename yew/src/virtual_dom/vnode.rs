@@ -242,11 +242,13 @@ mod layout_tests {
         let vref_node_2 = VNode::VRef(document.create_element("b").unwrap().into());
 
         let layout1 = TestLayout {
+            name: "1",
             node: vref_node_1.into(),
             expected: "<i></i>",
         };
 
         let layout2 = TestLayout {
+            name: "2",
             node: vref_node_2.into(),
             expected: "<b></b>",
         };
