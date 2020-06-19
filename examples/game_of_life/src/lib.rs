@@ -1,7 +1,6 @@
 #![recursion_limit = "512"]
 
 use log::info;
-use rand::Rng;
 use std::time::Duration;
 use yew::services::{IntervalService, Task};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
@@ -71,7 +70,9 @@ fn wrap(coord: isize, range: isize) -> usize {
 impl Model {
     pub fn random_mutate(&mut self) {
         for cellule in self.cellules.iter_mut() {
-            if rand::thread_rng().gen() {
+            let mut buf = [0u8; 1];
+            getrandom::getrandom(&mut buf).unwrap();
+            if buf[0] & 0x80 == 0x80 {
                 cellule.set_alive();
             } else {
                 cellule.set_dead();
@@ -166,9 +167,9 @@ impl Component for Model {
                 Cellule {
                     life_state: LifeState::Dead
                 };
-                2000
+                53 * 40
             ],
-            cellules_width: 50,
+            cellules_width: 53,
             cellules_height: 40,
             job: Box::new(handle),
         }
