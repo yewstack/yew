@@ -68,7 +68,7 @@ impl<REQ: Default, RES: PartialEq> Fetch<REQ, RES> {
         match action {
             FetchAction::NotFetching => self.set_not_fetching(),
             FetchAction::Fetching => self.set_fetching(),
-            FetchAction::Success(res) => self.set_fetched(res),
+            FetchAction::Fetched(res) => self.set_fetched(res),
             FetchAction::Failed(err) => self.set_failed(err),
         }
     }
@@ -138,7 +138,7 @@ impl<REQ, RES> Fetch<REQ, RES> {
         let req_type: PhantomData<T> = PhantomData;
         async move {
             let fetch_state = match fetch_resource(request, req_type).await {
-                Ok(response) => FetchAction::Success(response),
+                Ok(response) => FetchAction::Fetched(response),
                 Err(err) => FetchAction::Failed(err),
             };
 
@@ -159,8 +159,7 @@ impl<REQ, RES> Fetch<REQ, RES> {
     /// # Panics
     /// If the Fetch wrapper doesn't contain an instance of a response, this function will panic.
     pub fn unwrap(self) -> RES {
-        // TODO, actually provide some diagnostic here.
-        self.res().unwrap()
+        self.res().expect("No response body is present.")
     }
 
     /// Gets the response body (if present).
@@ -230,7 +229,7 @@ impl<REQ: FetchRequest> Fetch<REQ, REQ::ResponseBody> {
         let req_type: PhantomData<REQ> = PhantomData;
         async move {
             let fetch_state = match fetch_resource(request, req_type).await {
-                Ok(response) => FetchAction::Success(response),
+                Ok(response) => FetchAction::Fetched(response),
                 Err(err) => FetchAction::Failed(err),
             };
 
