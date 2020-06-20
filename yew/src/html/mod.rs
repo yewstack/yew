@@ -430,13 +430,21 @@ impl NodeRef {
 
     /// Place a Node in a reference for later use
     pub(crate) fn set(&self, node: Option<Node>) {
-        self.0.borrow_mut().node = node;
+        let mut this = self.0.borrow_mut();
+        this.node = node;
+        this.link = None;
     }
 
     /// Link a downstream `NodeRef`
     pub(crate) fn link(&self, node_ref: Self) {
-        self.0.borrow_mut().node = None;
-        self.0.borrow_mut().link = Some(node_ref);
+        // Don't link to self
+        if node_ref.0.as_ptr() == self.0.as_ptr() {
+            return;
+        }
+
+        let mut this = self.0.borrow_mut();
+        this.node = None;
+        this.link = Some(node_ref);
     }
 }
 
