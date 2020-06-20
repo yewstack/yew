@@ -1,6 +1,6 @@
 # Build a Sample App
 
-First create a new binary project:
+First create a new Rust library (**important:** create a *library*, not a *binary* by passing the `--lib` flag):
 
 ```bash
 cargo new --lib yew-app && cd yew-app
