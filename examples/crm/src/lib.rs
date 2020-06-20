@@ -44,7 +44,6 @@ pub enum Scene {
 pub struct Model {
     link: ComponentLink<Self>,
     storage: StorageService,
-    dialog: DialogService,
     database: Database,
     scene: Scene,
 }
@@ -72,7 +71,6 @@ impl Component for Model {
         Model {
             link,
             storage,
-            dialog: DialogService::new(),
             database,
             scene: Scene::ClientsList,
         }
@@ -126,7 +124,7 @@ impl Component for Model {
             },
             Scene::Settings => match msg {
                 Msg::Clear => {
-                    let ok = { self.dialog.confirm("Do you really want to clear the data?") };
+                    let ok = { DialogService::confirm("Do you really want to clear the data?") };
                     if ok {
                         self.database.clients.clear();
                         self.storage.remove(KEY);
