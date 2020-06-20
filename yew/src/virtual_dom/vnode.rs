@@ -39,27 +39,21 @@ impl VNode {
             VNode::VTag(vtag) => vtag
                 .reference
                 .as_ref()
-                .expect("VTag should always wrap a node")
+                .expect("VTag is not mounted")
                 .clone()
                 .into(),
             VNode::VText(vtext) => {
-                let text_node = vtext
-                    .reference
-                    .as_ref()
-                    .expect("VText should always wrap a node");
+                let text_node = vtext.reference.as_ref().expect("VText is not mounted");
                 cfg_match! {
                     feature = "std_web" => text_node.as_node().clone(),
                     feature = "web_sys" => text_node.clone().into(),
                 }
             }
-            VNode::VComp(vcomp) => vcomp
-                .node_ref
-                .get()
-                .expect("VComp should always wrap a node"),
+            VNode::VComp(vcomp) => vcomp.node_ref.get().expect("VComp is not mounted"),
             VNode::VList(vlist) => vlist
                 .children
                 .get(0)
-                .expect("VList should always always have at least one child")
+                .expect("VList is not mounted")
                 .first_node(),
             VNode::VRef(node) => node.clone(),
         }
