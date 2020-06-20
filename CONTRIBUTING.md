@@ -1,6 +1,6 @@
 ## Contribution Guide
 
-### Setup your local development environment
+### Settting up your local development environment
 
 #### Add the wasm target
 
@@ -65,10 +65,17 @@ cargo test --target wasm32-unknown-unknown --features wasm_test
 
 #### Benchmarks
 
-If you wish to improve the performance of Yew, we request that you prove the improvements of your changes with benchmarks.
+If you wish to improve the performance of Yew, we ask you to prove the improvements of your changes through benchmarking.
 
 1. Fork and clone https://github.com/yewstack/js-framework-benchmark
 2. Update `frameworks/yew/Cargo.toml` with your fork of Yew and the branch for your changes
 3. Open a new PR with your `Cargo.toml` changes
 
 Feel free to add new benchmark tests if the current benchmark coverage is insufficient!
+
+### Writing APIs
+When building new APIs, think about what it would be like to use them. Would this API cause confusing and hard to pin error mesages? Would this API integrate well with other APIs? Is it intuitive to use this API?
+
+There are many resources which provide good guidance on how to write APIs, a few of which are given below. These are only *guidlines* and while they are useful and should be followed where possible, in some cases it may not be possible to do so.
+* [The Rust API Guidelines](https://rust-lang.github.io/api-guidelines/)
+* [Elegant Library APIs in Rust](https://deterministic.space/elegant-apis-in-rust.html)
