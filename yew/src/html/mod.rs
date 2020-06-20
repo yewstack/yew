@@ -430,13 +430,21 @@ impl NodeRef {
 
     /// Place a Node in a reference for later use
     pub(crate) fn set(&self, node: Option<Node>) {
-        self.0.borrow_mut().node = node;
+        let mut this = self.0.borrow_mut();
+        this.node = node;
+        this.link = None;
     }
 
     /// Link a downstream `NodeRef`
     pub(crate) fn link(&self, node_ref: Self) {
-        self.0.borrow_mut().node = None;
-        self.0.borrow_mut().link = Some(node_ref);
+        // Don't link to self
+        if node_ref.0.as_ptr() == self.0.as_ptr() {
+            return;
+        }
+
+        let mut this = self.0.borrow_mut();
+        this.node = None;
+        this.link = Some(node_ref);
     }
 }
 
@@ -505,5 +513,28 @@ impl<'a> From<&'a str> for Href {
 impl ToString for Href {
     fn to_string(&self) -> String {
         self.link.to_owned()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::utils::document;
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn self_linking_node_ref() {
+        let node: Node = document().create_text_node("test node").into();
+        let node_ref = NodeRef::new(node.clone());
+        let node_ref_clone = node_ref.clone();
+
+        node_ref.link(node_ref_clone);
+
+        assert_eq!(node, node_ref.get().unwrap());
     }
 }
