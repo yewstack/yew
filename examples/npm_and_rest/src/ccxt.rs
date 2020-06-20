@@ -3,7 +3,6 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
 use web_sys::console;
 
-#[derive(Default)]
 pub struct CcxtService(Option<&'static JsValue>);
 
 #[wasm_bindgen]
