@@ -6,8 +6,6 @@ use yew::{html, Callback, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     link: ComponentLink<Self>,
-    timeout: TimeoutService,
-    interval: IntervalService,
     callback_tick: Callback<()>,
     callback_done: Callback<()>,
     job: Option<Box<dyn Task>>,
@@ -36,8 +34,6 @@ impl Component for Model {
 
         Model {
             link: link.clone(),
-            timeout: TimeoutService::new(),
-            interval,
             callback_tick: link.callback(|_| Msg::Tick),
             callback_done: link.callback(|_| Msg::Done),
             job: None,
@@ -50,9 +46,8 @@ impl Component for Model {
         match msg {
             Msg::StartTimeout => {
                 {
-                    let handle = self
-                        .timeout
-                        .spawn(Duration::from_secs(3), self.callback_done.clone());
+                    let handle =
+                        TimeoutService::spawn(Duration::from_secs(3), self.callback_done.clone());
                     self.job = Some(Box::new(handle));
                 }
                 self.messages.clear();
@@ -62,9 +57,8 @@ impl Component for Model {
             }
             Msg::StartInterval => {
                 {
-                    let handle = self
-                        .interval
-                        .spawn(Duration::from_secs(1), self.callback_tick.clone());
+                    let handle =
+                        IntervalService::spawn(Duration::from_secs(1), self.callback_tick.clone());
                     self.job = Some(Box::new(handle));
                 }
                 self.messages.clear();
