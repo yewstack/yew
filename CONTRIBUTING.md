@@ -41,7 +41,7 @@ although more driver support may be added! You can download these at:
 * chromedriver - http://chromedriver.chromium.org/downloads
 * safaridriver - should be preinstalled on OSX
 
-Lastly, the fetch tests require a local httpbin server running on port `8000`. We recommend running with Docker:
+Lastly, the fetch tests require a local httpbin server running on port `8000`. We recommend running this with Docker:
 
 ```bash
 docker run -p 8000:80 kennethreitz/httpbin
