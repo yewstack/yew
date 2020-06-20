@@ -23,8 +23,8 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     Message(COMP::Message),
     /// Wraps batch of messages for a component.
     MessageBatch(Vec<COMP::Message>),
-    /// Wraps properties, next sibling, and node ref for a component.
-    Properties(COMP::Properties, NodeRef, NodeRef),
+    /// Wraps properties and next sibling for a component.
+    Properties(COMP::Properties, NodeRef),
 }
 
 /// Untyped scope used for accessing parent scope
@@ -66,6 +66,37 @@ impl AnyScope {
                 .expect("unexpected component type")
                 .clone(),
         }
+    }
+}
+
+pub(crate) trait Scoped {
+    fn to_any(&self) -> AnyScope;
+    fn root_vnode(&self) -> Option<Ref<'_, VNode>>;
+    fn destroy(&mut self);
+}
+
+impl<COMP: Component> Scoped for Scope<COMP> {
+    fn to_any(&self) -> AnyScope {
+        self.clone().into()
+    }
+
+    fn root_vnode(&self) -> Option<Ref<'_, VNode>> {
+        let state_ref = self.state.borrow();
+        state_ref
+            .as_ref()
+            .and_then(|state| state.last_root.as_ref())?;
+
+        Some(Ref::map(state_ref, |state_ref| {
+            let state = state_ref.as_ref().unwrap();
+            state.last_root.as_ref().unwrap()
+        }))
+    }
+
+    /// Schedules a task to destroy a component
+    fn destroy(&mut self) {
+        let state = self.state.clone();
+        let destroy = DestroyComponent { state };
+        scheduler().push_comp(ComponentRunnableType::Destroy, Box::new(destroy));
     }
 }
 
@@ -155,13 +186,6 @@ impl<COMP: Component> Scope<COMP> {
             first_render,
         };
         scheduler().push_comp(ComponentRunnableType::Render, Box::new(rendered));
-    }
-
-    /// Schedules a task to destroy a component
-    pub(crate) fn destroy(&mut self) {
-        let state = self.state.clone();
-        let destroy = DestroyComponent { state };
-        scheduler().push_comp(ComponentRunnableType::Destroy, Box::new(destroy));
     }
 
     /// Send a message to the component.
@@ -334,10 +358,7 @@ where
                 ComponentUpdate::MessageBatch(messages) => messages
                     .into_iter()
                     .fold(false, |acc, msg| state.component.update(msg) || acc),
-                ComponentUpdate::Properties(props, node_ref, next_sibling) => {
-                    // When components are updated, they receive a new node ref that
-                    // must be linked to previous one.
-                    node_ref.link(state.node_ref.clone());
+                ComponentUpdate::Properties(props, next_sibling) => {
                     // When components are updated, their siblings were likely also updated
                     state.next_sibling = next_sibling;
                     state.component.change(props)
