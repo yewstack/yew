@@ -8,7 +8,6 @@ pub struct Model {
     link: ComponentLink<Self>,
     timeout: TimeoutService,
     interval: IntervalService,
-    console: ConsoleService,
     callback_tick: Callback<()>,
     callback_done: Callback<()>,
     job: Option<Box<dyn Task>>,
@@ -39,7 +38,6 @@ impl Component for Model {
             link: link.clone(),
             timeout: TimeoutService::new(),
             interval,
-            console: ConsoleService::new(),
             callback_tick: link.callback(|_| Msg::Tick),
             callback_done: link.callback(|_| Msg::Done),
             job: None,
@@ -58,9 +56,9 @@ impl Component for Model {
                     self.job = Some(Box::new(handle));
                 }
                 self.messages.clear();
-                self.console.clear();
+                ConsoleService::clear();
                 self.messages.push("Timer started!");
-                self.console.time_named("Timer");
+                ConsoleService::time_named("Timer");
             }
             Msg::StartInterval => {
                 {
@@ -70,27 +68,27 @@ impl Component for Model {
                     self.job = Some(Box::new(handle));
                 }
                 self.messages.clear();
-                self.console.clear();
+                ConsoleService::clear();
                 self.messages.push("Interval started!");
-                self.console.log("Interval started!");
+                ConsoleService::log("Interval started!");
             }
             Msg::Cancel => {
                 self.job.take();
                 self.messages.push("Canceled!");
-                self.console.warn("Canceled!");
-                self.console.assert(self.job.is_none(), "Job still exists!");
+                ConsoleService::warn("Canceled!");
+                ConsoleService::assert(self.job.is_none(), "Job still exists!");
             }
             Msg::Done => {
                 self.messages.push("Done!");
-                self.console.group();
-                self.console.info("Done!");
-                self.console.time_named_end("Timer");
-                self.console.group_end();
+                ConsoleService::group();
+                ConsoleService::info("Done!");
+                ConsoleService::time_named_end("Timer");
+                ConsoleService::group_end();
                 self.job = None;
             }
             Msg::Tick => {
                 self.messages.push("Tick...");
-                self.console.count_named("Tick");
+                ConsoleService::count_named("Tick");
             }
         }
         true

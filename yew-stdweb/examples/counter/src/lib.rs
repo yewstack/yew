@@ -6,7 +6,6 @@ use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     link: ComponentLink<Self>,
-    console: ConsoleService,
     value: i64,
 }
 
@@ -20,22 +19,18 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Model {
-            link,
-            console: ConsoleService::new(),
-            value: 0,
-        }
+        Model { link, value: 0 }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Increment => {
                 self.value += 1;
-                self.console.log("plus one");
+                ConsoleService::log("plus one");
             }
             Msg::Decrement => {
                 self.value -= 1;
-                self.console.log("minus one");
+                ConsoleService::log("minus one");
             }
         }
         true
