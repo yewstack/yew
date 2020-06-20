@@ -41,6 +41,12 @@ although more driver support may be added! You can download these at:
 * chromedriver - http://chromedriver.chromium.org/downloads
 * safaridriver - should be preinstalled on OSX
 
+Lastly, the fetch tests require a local httpbin server running on port `8000`. We recommend running with Docker:
+
+```bash
+docker run -p 8000:80 kennethreitz/httpbin
+```
+
 ##### Macro Tests
 When adding or updating tests, please make sure you have updated the appropriate `stderr` file, which you can find [here](https://github.com/yewstack/yew/tree/master/yew-macro/tests/macro) for the `html!` macro. These files ensure that macro compilation errors are correct and easy to understand.
 
