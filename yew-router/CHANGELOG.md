@@ -20,7 +20,7 @@ END TEMPLATE-->
 - #### 🛠 Fixes
   - None 
 - #### 🚨 Breaking changes
-  - None 
+  - The `unit_state` module has been removed. 
   
 
 ## ✨ **0.13.0** *2020-5-12*
