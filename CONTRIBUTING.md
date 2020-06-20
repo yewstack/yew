@@ -27,7 +27,7 @@ cargo install cargo-web
 
 [cargo-web]: https://github.com/koute/cargo-web
 
-#### Test
+#### Running the tests
 
 ##### Web Tests
 First, ensure that `wasm-bindgen-cli` is installed.
@@ -72,6 +72,22 @@ If you wish to improve the performance of Yew, we ask you to prove the improveme
 3. Open a new PR with your `Cargo.toml` changes
 
 Feel free to add new benchmark tests if the current benchmark coverage is insufficient!
+
+#### Pre commit hooks
+
+A Git hook is a script configured to run at a certain point in a Git workflow – for example every time a commit is added.
+
+Yew has Git hooks for this repository which you can (optionally) use. These enable you to catch problems before you commit them.
+
+Currently the hooks will run `cargo fmt` and `cargo check` which ensures that your contributions both compile and eliminates errors telling you that your code isn't correctly formatted. They also run `clippy` which is a Rust linter which finds and reports code which could be improved.
+
+To set up the Git hooks:
+1. install [pre-commit](https://pre-commit.com/)
+2. ensure you are in a directory which is a clone of the Yew git repo and run `pre-commit install`
+
+The hooks have been installed!
+
+You can manually run the hooks at any time using `pre-commit run`.
 
 ### Writing APIs
 When building new APIs, think about what it would be like to use them. Would this API cause confusing and hard to pin error mesages? Would this API integrate well with other APIs? Is it intuitive to use this API?
