@@ -183,7 +183,6 @@ impl WebSocketService {
     ) -> Result<ConnectCommon, WebSocketError> {
         let ws = WebSocket::new(url);
 
-        #[cfg(feature = "web_sys")]
         let ws = ws.map_err(
             #[cfg(feature = "web_sys")]
             |ws_error| {
@@ -198,6 +197,8 @@ impl WebSocketService {
             #[cfg(feature = "std_web")]
             |_| WebSocketError::CreationError("Error opening a WebSocket connection.".to_string()),
         )?;
+
+        #[cfg(feature = "std")]
 
         cfg_match! {
             feature = "std_web" => ws.set_binary_type(SocketBinaryType::ArrayBuffer),
