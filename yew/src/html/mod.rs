@@ -391,8 +391,14 @@ impl<T> IntoIterator for ChildrenRenderer<T> {
 ///         }
 ///     }
 /// }
-#[derive(PartialEq, Debug, Default, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct NodeRef(Rc<RefCell<NodeRefInner>>);
+
+impl PartialEq for NodeRef {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.as_ptr() == other.0.as_ptr() || Some(self) == other.0.borrow().link.as_ref()
+    }
+}
 
 #[derive(PartialEq, Debug, Default, Clone)]
 struct NodeRefInner {
@@ -437,8 +443,8 @@ impl NodeRef {
 
     /// Link a downstream `NodeRef`
     pub(crate) fn link(&self, node_ref: Self) {
-        // Don't link to self
-        if node_ref.0.as_ptr() == self.0.as_ptr() {
+        // Avoid circular references
+        if self == &node_ref {
             return;
         }
 
@@ -531,10 +537,15 @@ mod tests {
     fn self_linking_node_ref() {
         let node: Node = document().create_text_node("test node").into();
         let node_ref = NodeRef::new(node.clone());
-        let node_ref_clone = node_ref.clone();
+        let node_ref_2 = NodeRef::new(node.clone());
 
-        node_ref.link(node_ref_clone);
-
+        // Link to self
+        node_ref.link(node_ref.clone());
         assert_eq!(node, node_ref.get().unwrap());
+
+        // Create cycle of two node refs
+        node_ref.link(node_ref_2.clone());
+        node_ref_2.link(node_ref);
+        assert_eq!(node, node_ref_2.get().unwrap());
     }
 }
