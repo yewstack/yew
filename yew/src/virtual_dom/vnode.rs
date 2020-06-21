@@ -76,6 +76,12 @@ impl VNode {
                     node.move_before(parent, next_sibling.clone());
                 }
             }
+            VNode::VComp(vcomp) => {
+                vcomp
+                    .root_vnode()
+                    .expect("VComp is not mounted")
+                    .move_before(parent, next_sibling);
+            }
             _ => super::insert_node(&self.first_node(), parent, next_sibling),
         };
     }
