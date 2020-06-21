@@ -1,9 +1,10 @@
 use js_sys::{Array, Reflect};
-use wasm_bindgen::prelude::wasm_bindgen;
-use wasm_bindgen::JsValue;
 use web_sys::console;
 
-pub struct CcxtService(Option<&'static JsValue>);
+use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::JsValue;
+
+pub struct CcxtService(&'static JsValue);
 
 #[wasm_bindgen]
 extern "C" {
@@ -13,13 +14,13 @@ extern "C" {
 impl Default for CcxtService {
     fn default() -> CcxtService {
         let lib: &JsValue = &ccxt;
-        CcxtService(Some(lib))
+        CcxtService(lib)
     }
 }
 
 impl CcxtService {
     pub fn exchanges(&mut self) -> Vec<String> {
-        let lib = self.0.as_ref().expect("ccxt library object lost");
+        let lib = self.0.as_ref();
         let v = {
             let exchanges = Reflect::get(lib, &JsValue::from_str("exchanges")).unwrap();
             console::log_1(&exchanges);
