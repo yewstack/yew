@@ -15,7 +15,10 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Model { link, clicked: false }
+        Model {
+            link,
+            clicked: false,
+        }
     }
 
     fn change(&mut self, _: Self::Properties) -> bool {

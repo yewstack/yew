@@ -82,8 +82,10 @@ enum Msg {
     GetError,
 }
 
-const MARKDOWN_URL: &'static str = "https://raw.githubusercontent.com/yewstack/yew/master/README.md";
-const INCORRECT_URL: &'static str = "https://raw.githubusercontent.com/yewstack/yew/master/README.md.404";
+const MARKDOWN_URL: &'static str =
+    "https://raw.githubusercontent.com/yewstack/yew/master/README.md";
+const INCORRECT_URL: &'static str =
+    "https://raw.githubusercontent.com/yewstack/yew/master/README.md.404";
 
 impl Component for Model {
     type Message = Msg;
