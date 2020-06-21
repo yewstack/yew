@@ -14,7 +14,7 @@ cfg_if! {
 }
 
 #[cfg(feature = "ssr")]
-use super::{ToHtmlString};
+use super::ToHtmlString;
 
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Clone, Debug, PartialEq, Default)]

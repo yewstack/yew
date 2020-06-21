@@ -19,7 +19,7 @@ cfg_if! {
 }
 
 #[cfg(feature = "ssr")]
-use super::{ToHtmlString};
+use super::ToHtmlString;
 
 /// A virtual component.
 pub struct VComp {
