@@ -209,13 +209,11 @@ pub mod tests {
                 &debugger.borrow().ws,
                 "close",
                 |_: &web_sys::Event| {
-                    crate::dev::DEBUGGER_CONNECTION.with(|d| {
-                        panic!(
-                            "Failed to make a connection: make sure that the test is run with 
+                    panic!(
+                        "Failed to make a connection: make sure that the test is run with 
                         `YEW_DEBUGGER_HOST` and `YEW_DEBUGGER_PORT` set to the WebSocket echo 
                         server's address.."
-                        )
-                    })
+                    );
                 },
             ));
         });
