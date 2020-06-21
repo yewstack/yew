@@ -149,7 +149,7 @@ impl ToTokens for HtmlComponent {
             quote! { ::yew::html::NodeRef::default() }
         };
 
-        let key = if let Some(key) = props.key() {
+        let key = if let Some(key) = &props.key {
             quote_spanned! { key.span()=> Some(::yew::virtual_dom::Key::from(#key)) }
         } else {
             quote! {None}

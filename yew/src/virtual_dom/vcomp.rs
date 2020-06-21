@@ -349,7 +349,7 @@ mod tests {
 
     #[test]
     fn set_component_key() {
-        let test_key = "test".to_string();
+        let test_key: Key = "test".to_string().into();
         let check_key = |vnode: VNode| {
             assert_eq!(vnode.key().as_ref(), Some(&test_key));
         };
