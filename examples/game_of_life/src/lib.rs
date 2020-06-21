@@ -166,7 +166,7 @@ impl Component for Model {
                 Cellule {
                     life_state: LifeState::Dead
                 };
-                53*40
+                53 * 40
             ],
             cellules_width: 53,
             cellules_height: 40,
