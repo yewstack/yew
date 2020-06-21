@@ -42,7 +42,7 @@ impl IntervalService {
     }
 
     /// Sets interval which will call send a messages returned by a converter
-    /// on every intarval expiration.
+    /// on every interval expiration.
     pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> IntervalTask {
         let callback = move || {
             callback.emit(());
