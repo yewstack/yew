@@ -71,6 +71,7 @@ impl Component for Model {
         html! {
             <div>
                 <div>
+                    <p>{"Choose a file to upload to see the uploaded bytes"}</p>
                     <input type="file" multiple=true onchange=self.link.callback(move |value| {
                             let mut result = Vec::new();
                             if let ChangeData::Files(files) = value {
