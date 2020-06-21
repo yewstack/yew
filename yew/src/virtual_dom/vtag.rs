@@ -1,6 +1,8 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{Attributes, Listener, Listeners, Patch, Transformer, VDiff, VList, VNode, VText, ToHtmlString};
+use super::{
+    Attributes, Listener, Listeners, Patch, ToHtmlString, Transformer, VDiff, VList, VNode, VText,
+};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 

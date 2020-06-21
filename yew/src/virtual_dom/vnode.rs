@@ -1,6 +1,6 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{VChild, VComp, VDiff, VList, VTag, VText, ToHtmlString};
+use super::{ToHtmlString, VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{AnyScope, Component, NodeRef, Renderable};
 
 #[cfg(feature = "ssr")]
@@ -40,21 +40,11 @@ pub enum VNode {
 impl ToHtmlString for VNode {
     fn to_html_string(&self) -> String {
         match self {
-            VNode::VTag(vtag) => {
-                unimplemented!()
-            },
-            VNode::VText(vtext) => {
-                unimplemented!()
-            },
-            VNode::VComp(vcomp) => {
-                unimplemented!()
-            },
-            VNode::VList(vlist) => {
-                unimplemented!()
-            },
-            VNode::VRef(node) => {
-                unimplemented!()
-            }
+            VNode::VTag(vtag) => unimplemented!(),
+            VNode::VText(vtext) => unimplemented!(),
+            VNode::VComp(vcomp) => unimplemented!(),
+            VNode::VList(vlist) => unimplemented!(),
+            VNode::VRef(node) => unimplemented!(),
         }
     }
 }

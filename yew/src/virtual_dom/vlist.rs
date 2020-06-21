@@ -1,5 +1,5 @@
 //! This module contains fragments implementation.
-use super::{VDiff, VNode, VText, ToHtmlString};
+use super::{ToHtmlString, VDiff, VNode, VText};
 use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use std::collections::HashSet;
@@ -36,7 +36,11 @@ impl DerefMut for VList {
 
 impl ToHtmlString for VList {
     fn to_html_string(&self) -> String {
-        let parts: Vec<String> = self.children.iter().map(|child| child.to_html_string()).collect();
+        let parts: Vec<String> = self
+            .children
+            .iter()
+            .map(|child| child.to_html_string())
+            .collect();
         parts.join("")
     }
 }
