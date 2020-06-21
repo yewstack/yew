@@ -9,7 +9,7 @@ const HTML: &str = r#"
 <p>The whole contents of this page is stored as a constant string of HTML in
 the Rust source code. The code queries the DOM, creates a new element, and
 applies this snippet of HTML to the element's innerHTML.</p>
-<p>Also check out the console where we console.log() the DOM element.</p>
+<p>If you look at your browser's console you can see the DOM element (logged to the console).</p>
 <svg height="250" width="500">
   <polygon points="220,10 300,210 170,250 123,234" style="fill:lime;stroke:purple;stroke-width:1" />
     Sorry, your browser does not support inline SVG.
