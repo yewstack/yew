@@ -827,7 +827,8 @@ mod layout_tests_keys {
             unimplemented!();
         }
 
-        fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        fn change(&mut self, mut props: Self::Properties) -> ShouldRender {
+            std::mem::swap(&mut self.0, &mut props);
             self.0.children != props.children
         }
 
