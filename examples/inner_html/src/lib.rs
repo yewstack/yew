@@ -4,8 +4,12 @@ use web_sys::{console, Node};
 use yew::virtual_dom::VNode;
 use yew::{Component, ComponentLink, Html, ShouldRender};
 
-const SVG: &str = r#"
-<h2>Inline SVG or <i>any</i> HTML:</h2>
+const HTML: &str = r#"
+<h2>Inline HTML with SVG</h2>
+<p>The whole contents of this page is stored as a constant string of HTML in
+the Rust source code. The code queries the DOM, creates a new element, and
+applies this snippet of HTML to the element's innerHTML.</p>
+<p>Also check out the console where we console.log() the DOM element.</p>
 <svg height="250" width="500">
   <polygon points="220,10 300,210 170,250 123,234" style="fill:lime;stroke:purple;stroke-width:1" />
     Sorry, your browser does not support inline SVG.
@@ -42,7 +46,7 @@ impl Component for Model {
                 .unwrap()
                 .create_element("div")
                 .unwrap();
-            div.set_inner_html(SVG);
+            div.set_inner_html(HTML);
             console::log_1(&div);
             div
         };
