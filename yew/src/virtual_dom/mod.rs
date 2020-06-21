@@ -1,4 +1,4 @@
-//! This module contains the implementation of reactive virtual dom concept.
+//! This module contains Yew's implementation of a reactive virtual DOM.
 
 #[doc(hidden)]
 pub mod key;
@@ -42,10 +42,10 @@ pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
 
-/// `Listener` trait is an universal implementation of an event listener
-/// which helps to bind Rust-listener to JS-listener (DOM).
+/// The `Listener` trait is an universal implementation of an event listener
+/// which is used to bind Rust-listener to JS-listener (DOM).
 pub trait Listener {
-    /// Returns standard name of DOM's event.
+    /// Returns the name of the event
     fn kind(&self) -> &'static str;
     /// Attaches a listener to the element.
     fn attach(&self, element: &Element) -> EventListener;
@@ -70,7 +70,7 @@ pub struct Classes {
 }
 
 impl Classes {
-    /// Creates empty set of classes.
+    /// Creates an empty set of classes.
     pub fn new() -> Self {
         Self {
             set: IndexSet::new(),
@@ -79,7 +79,7 @@ impl Classes {
 
     /// Adds a class to a set.
     ///
-    /// Prevents duplication of class names.
+    /// If the provided class has already been added, this method will ignore it.
     pub fn push(&mut self, class: &str) {
         let classes_to_add: Classes = class.into();
         self.set.extend(classes_to_add.set);
@@ -295,7 +295,7 @@ mod tests {
     }
 }
 
-// stdweb doesn't have `inner_html` method
+// stdweb lacks the `inner_html` method
 #[cfg(all(test, feature = "web_sys"))]
 mod layout_tests {
     use super::*;
@@ -339,10 +339,10 @@ mod layout_tests {
         parent_node.append_child(&end_node).unwrap();
         let empty_node: VNode = VText::new("".into()).into();
 
-        // Test each layout independently
+        // Tests each layout independently
         let next_sibling = NodeRef::new(end_node.into());
         for layout in layouts.iter() {
-            // Apply layout
+            // Apply the layout
             let mut node = layout.node.clone();
             wasm_bindgen_test::console_log!("Independently apply layout '{}'", layout.name);
             node.apply(&parent_scope, &parent_element, next_sibling.clone(), None);

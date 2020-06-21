@@ -74,14 +74,6 @@ pub mod components;
 #[cfg(feature = "router")]
 pub mod router;
 
-/// TODO remove this
-/// Contains aliases and functions for working with this library using a state of type  `()`.
-#[cfg(feature = "unit_alias")]
-pub mod unit_state {
-    define_router_state!(());
-    pub use router_state::*;
-}
-
 /// Prelude module that can be imported when working with the yew_router
 pub mod prelude {
     pub use super::matcher::Captures;

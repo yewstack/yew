@@ -129,12 +129,15 @@ pub fn use_context<T: 'static + Clone>() -> Option<Rc<T>> {
         }
     }
     use_hook(
-        |state: &mut UseContextState<T>, hook_update| {
+        |state: &mut UseContextState<T>, hook_callback| {
             state.callback = Some(Rc::new(Box::new(move |ctx: Rc<T>| {
-                hook_update(|state: &mut UseContextState<T>| {
-                    state.current_context = Some(ctx);
-                    true
-                });
+                hook_callback(
+                    |state: &mut UseContextState<T>| {
+                        state.current_context = Some(ctx);
+                        true
+                    },
+                    false, // run pre render
+                );
             })));
             let weak_cb = Rc::downgrade(state.callback.as_ref().unwrap());
             with_provider_component(&state.provider_scope, |comp| {

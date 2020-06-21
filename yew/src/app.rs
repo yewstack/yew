@@ -12,7 +12,7 @@ cfg_if! {
     }
 }
 
-/// An application instance.
+/// An instance of an application.
 #[derive(Debug)]
 pub struct App<COMP: Component> {
     /// `Scope` holder
@@ -33,7 +33,7 @@ where
     COMP: Component,
     COMP::Properties: Default,
 {
-    /// The main entrypoint of a yew program. It works similarly to the `program`
+    /// The main entry point of a Yew program. It works similarly to the `program`
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree. If you would like to pass props,
@@ -95,7 +95,7 @@ where
         App { scope }
     }
 
-    /// The main entrypoint of a yew program which also allows passing properties. It works
+    /// The main entry point of a Yew program which also allows passing properties. It works
     /// similarly to the `program` function in Elm. You should provide an initial model, `update`
     /// function which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.

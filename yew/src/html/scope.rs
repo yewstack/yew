@@ -23,8 +23,8 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     Message(COMP::Message),
     /// Wraps batch of messages for a component.
     MessageBatch(Vec<COMP::Message>),
-    /// Wraps properties, next sibling, and node ref for a component.
-    Properties(COMP::Properties, NodeRef, NodeRef),
+    /// Wraps properties and next sibling for a component.
+    Properties(COMP::Properties, NodeRef),
 }
 
 /// Untyped scope used for accessing parent scope
@@ -66,6 +66,37 @@ impl AnyScope {
                 .expect("unexpected component type")
                 .clone(),
         }
+    }
+}
+
+pub(crate) trait Scoped {
+    fn to_any(&self) -> AnyScope;
+    fn root_vnode(&self) -> Option<Ref<'_, VNode>>;
+    fn destroy(&mut self);
+}
+
+impl<COMP: Component> Scoped for Scope<COMP> {
+    fn to_any(&self) -> AnyScope {
+        self.clone().into()
+    }
+
+    fn root_vnode(&self) -> Option<Ref<'_, VNode>> {
+        let state_ref = self.state.borrow();
+        state_ref
+            .as_ref()
+            .and_then(|state| state.last_root.as_ref())?;
+
+        Some(Ref::map(state_ref, |state_ref| {
+            let state = state_ref.as_ref().unwrap();
+            state.last_root.as_ref().unwrap()
+        }))
+    }
+
+    /// Schedules a task to destroy a component
+    fn destroy(&mut self) {
+        let state = self.state.clone();
+        let destroy = DestroyComponent { state };
+        scheduler().push_comp(ComponentRunnableType::Destroy, Box::new(destroy));
     }
 }
 
@@ -144,24 +175,17 @@ impl<COMP: Component> Scope<COMP> {
             update,
         };
         scheduler().push_comp(ComponentRunnableType::Update, Box::new(update));
-        self.rendered(first_update);
+        self.render(first_update);
     }
 
-    /// Schedules a task to call the rendered method on a component
-    pub(crate) fn rendered(&self, first_render: bool) {
+    /// Schedules a task to render the component and call its rendered method
+    pub(crate) fn render(&self, first_render: bool) {
         let state = self.state.clone();
-        let rendered = RenderedComponent {
+        let rendered = RenderComponent {
             state,
             first_render,
         };
-        scheduler().push_comp(ComponentRunnableType::Rendered, Box::new(rendered));
-    }
-
-    /// Schedules a task to destroy a component
-    pub(crate) fn destroy(&mut self) {
-        let state = self.state.clone();
-        let destroy = DestroyComponent { state };
-        scheduler().push_comp(ComponentRunnableType::Destroy, Box::new(destroy));
+        scheduler().push_comp(ComponentRunnableType::Render, Box::new(rendered));
     }
 
     /// Send a message to the component.
@@ -244,9 +268,6 @@ impl<COMP: Component> Scope<COMP> {
     }
 }
 
-type Dirty = bool;
-const DIRTY: Dirty = true;
-
 struct ComponentState<COMP: Component> {
     parent: Element,
     next_sibling: NodeRef,
@@ -254,7 +275,7 @@ struct ComponentState<COMP: Component> {
     scope: Scope<COMP>,
     component: Box<COMP>,
     last_root: Option<VNode>,
-    render_status: Option<Dirty>,
+    new_root: Option<VNode>,
 }
 
 impl<COMP: Component> ComponentState<COMP> {
@@ -276,7 +297,7 @@ impl<COMP: Component> ComponentState<COMP> {
             scope,
             component,
             last_root: ancestor,
-            render_status: None,
+            new_root: None,
         }
     }
 }
@@ -337,10 +358,7 @@ where
                 ComponentUpdate::MessageBatch(messages) => messages
                     .into_iter()
                     .fold(false, |acc, msg| state.component.update(msg) || acc),
-                ComponentUpdate::Properties(props, node_ref, next_sibling) => {
-                    // When components are updated, they receive a new node ref that
-                    // must be linked to previous one.
-                    node_ref.link(state.node_ref.clone());
+                ComponentUpdate::Properties(props, next_sibling) => {
                     // When components are updated, their siblings were likely also updated
                     state.next_sibling = next_sibling;
                     state.component.change(props)
@@ -348,21 +366,14 @@ where
             };
 
             if should_update {
-                state.render_status = state.render_status.map(|_| DIRTY);
-                let mut root = state.component.render();
-                let last_root = state.last_root.take();
-                let parent_scope = state.scope.clone().into();
-                let next_sibling = state.next_sibling.clone();
-                let node = root.apply(&parent_scope, &state.parent, next_sibling, last_root);
-                state.node_ref.link(node);
-                state.last_root = Some(root);
+                state.new_root = Some(state.component.render());
             };
         }
     }
 }
 
-/// A `Runnable` task which calls the `rendered()` method on a `Component`.
-struct RenderedComponent<COMP>
+/// A `Runnable` task which renders a `Component` and calls its `rendered()` method.
+struct RenderComponent<COMP>
 where
     COMP: Component,
 {
@@ -370,22 +381,26 @@ where
     first_render: bool,
 }
 
-impl<COMP> Runnable for RenderedComponent<COMP>
+impl<COMP> Runnable for RenderComponent<COMP>
 where
     COMP: Component,
 {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().as_mut() {
-            if self.first_render && state.render_status.is_some() {
+            // Skip render if we haven't seen the "first render" yet
+            if !self.first_render && state.last_root.is_none() {
                 return;
             }
 
-            if !self.first_render && state.render_status != Some(DIRTY) {
-                return;
+            if let Some(mut new_root) = state.new_root.take() {
+                let last_root = state.last_root.take();
+                let parent_scope = state.scope.clone().into();
+                let next_sibling = state.next_sibling.clone();
+                let node = new_root.apply(&parent_scope, &state.parent, next_sibling, last_root);
+                state.node_ref.link(node);
+                state.last_root = Some(new_root);
+                state.component.rendered(self.first_render);
             }
-
-            state.render_status = Some(!DIRTY);
-            state.component.rendered(self.first_render);
         }
     }
 }
@@ -423,14 +438,17 @@ mod tests {
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
-    #[derive(Clone, Properties)]
+    #[derive(Clone, Properties, Default)]
     struct Props {
         lifecycle: Rc<RefCell<Vec<String>>>,
         create_message: Option<bool>,
+        view_message: RefCell<Option<bool>>,
+        rendered_message: RefCell<Option<bool>>,
     }
 
     struct Comp {
         props: Props,
+        link: ComponentLink<Self>,
     }
 
     impl Component for Comp {
@@ -442,10 +460,13 @@ mod tests {
             if let Some(msg) = props.create_message {
                 link.send_message(msg);
             }
-            Comp { props }
+            Comp { props, link }
         }
 
         fn rendered(&mut self, first_render: bool) {
+            if let Some(msg) = self.props.rendered_message.borrow_mut().take() {
+                self.link.send_message(msg);
+            }
             self.props
                 .lifecycle
                 .borrow_mut()
@@ -466,6 +487,9 @@ mod tests {
         }
 
         fn view(&self) -> Html {
+            if let Some(msg) = self.props.view_message.borrow_mut().take() {
+                self.link.send_message(msg);
+            }
             self.props.lifecycle.borrow_mut().push("view".into());
             html! {}
         }
@@ -477,75 +501,105 @@ mod tests {
         }
     }
 
-    #[test]
-    fn mount() {
+    fn test_lifecycle(props: Props, expected: &[String]) {
         let document = crate::utils::document();
-        let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
-        let props = Props {
-            lifecycle: lifecycle.clone(),
-            create_message: None,
-        };
-
         let scope = Scope::<Comp>::new(None);
         let el = document.create_element("div").unwrap();
+        let lifecycle = props.lifecycle.clone();
+
+        lifecycle.borrow_mut().clear();
         scope.mount_in_place(el, NodeRef::default(), None, NodeRef::default(), props);
 
-        assert_eq!(
-            lifecycle.borrow_mut().deref(),
-            &vec![
-                "create".to_string(),
-                "view".to_string(),
-                "rendered(true)".to_string()
-            ]
-        );
+        assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);
     }
 
     #[test]
-    fn mount_with_create_message() {
-        let document = crate::utils::document();
+    fn lifecyle_tests() {
         let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
-        let props = Props {
-            lifecycle: lifecycle.clone(),
-            create_message: Some(false),
-        };
 
-        let scope = Scope::<Comp>::new(None);
-        let el = document.create_element("div").unwrap();
-        scope.mount_in_place(el, NodeRef::default(), None, NodeRef::default(), props);
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                ..Props::default()
+            },
+            &vec![
+                "create".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string(),
+            ],
+        );
 
-        assert_eq!(
-            lifecycle.borrow_mut().deref(),
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                create_message: Some(false),
+                ..Props::default()
+            },
             &vec![
                 "create".to_string(),
                 "update(false)".to_string(),
                 "view".to_string(),
-                "rendered(true)".to_string()
-            ]
+                "rendered(true)".to_string(),
+            ],
         );
-    }
 
-    #[test]
-    fn mount_with_create_render_message() {
-        let document = crate::utils::document();
-        let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
-        let props = Props {
-            lifecycle: lifecycle.clone(),
-            create_message: Some(true),
-        };
-
-        let scope = Scope::<Comp>::new(None);
-        let el = document.create_element("div").unwrap();
-        scope.mount_in_place(el, NodeRef::default(), None, NodeRef::default(), props);
-
-        assert_eq!(
-            lifecycle.borrow_mut().deref(),
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                view_message: RefCell::new(Some(true)),
+                ..Props::default()
+            },
             &vec![
                 "create".to_string(),
+                "view".to_string(),
                 "update(true)".to_string(),
                 "view".to_string(),
+                "rendered(true)".to_string(),
+            ],
+        );
+
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                view_message: RefCell::new(Some(false)),
+                ..Props::default()
+            },
+            &vec![
+                "create".to_string(),
                 "view".to_string(),
-                "rendered(true)".to_string()
-            ]
+                "update(false)".to_string(),
+                "rendered(true)".to_string(),
+            ],
+        );
+
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                rendered_message: RefCell::new(Some(false)),
+                ..Props::default()
+            },
+            &vec![
+                "create".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string(),
+                "update(false)".to_string(),
+            ],
+        );
+
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                rendered_message: RefCell::new(Some(true)),
+                ..Props::default()
+            },
+            &vec![
+                "create".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string(),
+                "update(true)".to_string(),
+                "view".to_string(),
+                "rendered(false)".to_string(),
+            ],
         );
     }
 }

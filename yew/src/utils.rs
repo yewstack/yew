@@ -1,4 +1,4 @@
-//! This module contains useful utils to get information about the current document.
+//! This module contains useful utilities to get information about the current document.
 
 use anyhow::{anyhow, Error};
 use cfg_if::cfg_if;
@@ -13,7 +13,7 @@ cfg_if! {
     }
 }
 
-/// Returns current window.
+/// Returns the current window. This function will panic if there is no available window.
 pub fn window() -> Window {
     cfg_match! {
         feature = "std_web" => stdweb::web::window(),
@@ -21,7 +21,7 @@ pub fn window() -> Window {
     }
 }
 
-/// Returns current document.
+/// Returns the current document.
 pub fn document() -> Document {
     cfg_match! {
         feature = "std_web" => stdweb::web::document(),
@@ -29,7 +29,8 @@ pub fn document() -> Document {
     }
 }
 
-/// Returns `host` for the current document. Useful to connect to a server that serves the app.
+/// Returns the `host` for the current document. Useful for connecting to the server which serves
+/// the app.
 pub fn host() -> Result<String, Error> {
     let location = document()
         .location()
@@ -48,7 +49,7 @@ pub fn host() -> Result<String, Error> {
     Ok(host)
 }
 
-/// Returns `origin` for the current window.
+/// Returns the `origin` of the current window.
 pub fn origin() -> Result<String, Error> {
     let location = window().location();
 
@@ -68,7 +69,7 @@ pub fn origin() -> Result<String, Error> {
     Ok(origin)
 }
 
-/// Specialty type necessary for helping flattening components returned from nested html macros.
+/// A special type necessary for flattening components returned from nested html macros.
 #[derive(Debug)]
 pub struct NodeSeq<IN, OUT>(Vec<OUT>, PhantomData<IN>);
 

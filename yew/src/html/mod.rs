@@ -7,8 +7,8 @@ mod listener;
 mod scope;
 
 pub use listener::*;
-pub(crate) use scope::ComponentUpdate;
 pub use scope::{AnyScope, Scope};
+pub(crate) use scope::{ComponentUpdate, Scoped};
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VNode};
@@ -513,5 +513,28 @@ impl<'a> From<&'a str> for Href {
 impl ToString for Href {
     fn to_string(&self) -> String {
         self.link.to_owned()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::utils::document;
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn self_linking_node_ref() {
+        let node: Node = document().create_text_node("test node").into();
+        let node_ref = NodeRef::new(node.clone());
+        let node_ref_clone = node_ref.clone();
+
+        node_ref.link(node_ref_clone);
+
+        assert_eq!(node, node_ref.get().unwrap());
     }
 }

@@ -6,15 +6,16 @@ use std::rc::Rc;
 
 /// Universal callback wrapper.
 /// <aside class="warning">
-/// Use callbacks carefully, because if you call it from `update` loop
-/// of `Components` (even from JS) it will delay a message until next.
+/// Use callbacks carefully, because if you call one from the `update` loop
+/// of a `Component` (even from JS) it will delay a message until next.
 /// Callbacks should be used from JS callbacks or `setTimeout` calls.
 /// </aside>
-/// `Rc` wrapper used to make it clonable.
+/// An `Rc` wrapper is used to make it cloneable.
 pub enum Callback<IN> {
-    /// A callback that can be called multiple times
+    /// A callback which can be called multiple times
     Callback(Rc<dyn Fn(IN)>),
-    /// A callback that will only be called once. Panics if it is called again
+    /// A callback which can only be called once. The callback will panic if it is
+    /// called more than once.
     CallbackOnce(Rc<CallbackOnce<IN>>),
 }
 
@@ -60,7 +61,7 @@ impl<IN> fmt::Debug for Callback<IN> {
 }
 
 impl<IN> Callback<IN> {
-    /// This method calls the actual callback.
+    /// This method calls the callback's function.
     pub fn emit(&self, value: IN) {
         match self {
             Callback::Callback(cb) => cb(value),
@@ -72,8 +73,9 @@ impl<IN> Callback<IN> {
         };
     }
 
-    /// Creates a callback from a FnOnce. You are responsible for ensuring
-    /// the callback is only called once otherwise it will panic.
+    /// Creates a callback from an `FnOnce`. The programmer is responsible for ensuring
+    /// that the callback is only called once. If it is called more than once, the callback
+    /// will panic.
     pub fn once<F>(func: F) -> Self
     where
         F: FnOnce(IN) + 'static,
@@ -81,7 +83,7 @@ impl<IN> Callback<IN> {
         Callback::CallbackOnce(Rc::new(RefCell::new(Some(Box::new(func)))))
     }
 
-    /// Creates a no-op callback which can be used when it is not suitable to use an
+    /// Creates a "no-op" callback which can be used when it is not suitable to use an
     /// `Option<Callback>`.
     pub fn noop() -> Self {
         Self::from(|_| {})
@@ -95,8 +97,8 @@ impl<IN> Default for Callback<IN> {
 }
 
 impl<IN: 'static> Callback<IN> {
-    /// Changes input type of the callback to another.
-    /// Works like common `map` method but in an opposite direction.
+    /// Changes the input type of the callback to another.
+    /// Works like the `map` method but in the opposite direction.
     pub fn reform<F, T>(&self, func: F) -> Callback<T>
     where
         F: Fn(T) -> IN + 'static,
