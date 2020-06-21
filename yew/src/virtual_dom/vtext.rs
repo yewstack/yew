@@ -1,8 +1,12 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::{VDiff, VNode};
+use super::{VDiff, VNode, ToHtmlString};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
+
+#[cfg(feature = "ssr")]
+use htmlescape;
+
 use cfg_if::cfg_if;
 use log::warn;
 use std::cmp::PartialEq;
@@ -32,6 +36,13 @@ impl VText {
             text,
             reference: None,
         }
+    }
+}
+
+#[cfg(feature = "ssr")]
+impl ToHtmlString for VText {
+    fn to_html_string(&self) -> String {
+        htmlescape::encode_minimal(&self.text)
     }
 }
 
