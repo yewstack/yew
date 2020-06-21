@@ -3,8 +3,7 @@
 #[macro_use]
 extern crate serde_derive;
 
-mod markdown;
-
+use common::markdown;
 use yew::format::Json;
 use yew::services::storage::Area;
 use yew::services::{DialogService, StorageService};

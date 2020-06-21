@@ -14,7 +14,7 @@ crate-type = ["cdylib", "rlib"]
 yew = { path = "../../yew" }
 wasm-bindgen = "0.2.60"
 wasm-bindgen-futures = "0.4.3"
-pulldown-cmark = { version = "0.7.0", default-features = false }
+common = { path = "../common" }
 
 [dependencies.web-sys]
 version = "0.3.35"

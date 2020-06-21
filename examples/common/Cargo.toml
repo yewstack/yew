@@ -1,0 +1,9 @@
+[package]
+name = "common"
+version = "0.1.0"
+authors = ["Martin Matusiak <numerodix@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+yew = { path = "../../yew" }
+pulldown-cmark = { version = "0.7.0", default-features = false }
