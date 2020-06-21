@@ -61,7 +61,7 @@ impl ElementType {
 #[derive(Debug)]
 pub struct VTag {
     /// A tag of the element.
-    tag: Cow<'static, str>,
+    pub(crate) tag: Cow<'static, str>,
     /// Type of element.
     element_type: ElementType,
     /// A reference to the DOM `Element`.

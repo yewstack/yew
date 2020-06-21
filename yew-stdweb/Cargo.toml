@@ -76,7 +76,7 @@ msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
 
 [package.metadata.docs.rs]
-features = ["yaml", "cbor", "toml", "msgpack", "doc_test"]
+features = ["yaml", "cbor", "toml", "msgpack", "doc_test", "sans_mount_render"]
 
 [workspace]
 members = [

@@ -19,7 +19,7 @@ cfg_if! {
 /// A virtual component.
 pub struct VComp {
     type_id: TypeId,
-    scope: Option<Box<dyn Scoped>>,
+    pub(crate) scope: Option<Box<dyn Scoped>>,
     props: Option<Box<dyn Mountable>>,
     pub(crate) node_ref: NodeRef,
     pub(crate) key: Option<Key>,
