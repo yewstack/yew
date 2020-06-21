@@ -38,6 +38,14 @@ pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
 
+/// Represents that a node can be stringified to HTML.
+pub trait ToHtmlString {
+    /// Outputs an HTML string corresponding to the node. This output
+    /// is not necessarily deterministic due to the serialization of
+    /// structures (e.g. props) which do not have a particular ordering.
+    fn to_html_string(&self) -> String;
+}
+
 /// The `Listener` trait is an universal implementation of an event listener
 /// which is used to bind Rust-listener to JS-listener (DOM).
 pub trait Listener {

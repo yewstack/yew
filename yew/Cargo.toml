@@ -28,6 +28,7 @@ console_error_panic_hook = { version = "0.1", optional = true }
 futures = { version = "0.3", optional = true }
 gloo = { version = "0.2.1", optional = true }
 http = "0.2"
+htmlescape = { version = "0.3.1", optional = true }
 indexmap = "1.0.2"
 js-sys = { version = "0.3", optional = true }
 log = "0.4"
@@ -133,6 +134,7 @@ web_sys = ["console_error_panic_hook", "futures", "gloo", "js-sys", "web-sys", "
 doc_test = []
 wasm_test = []
 services = []
+ssr = ["htmlescape"]
 agent = ["bincode"]
 yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]

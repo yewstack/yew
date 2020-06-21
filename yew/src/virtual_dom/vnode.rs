@@ -1,7 +1,11 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{VChild, VComp, VDiff, VList, VTag, VText};
+use super::{VChild, VComp, VDiff, VList, VTag, VText, ToHtmlString};
 use crate::html::{AnyScope, Component, NodeRef, Renderable};
+
+#[cfg(feature = "ssr")]
+use htmlescape;
+
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;
@@ -30,6 +34,29 @@ pub enum VNode {
     VList(VList),
     /// A holder for any `Node` (necessary for replacing node).
     VRef(Node),
+}
+
+#[cfg(feature = "ssr")]
+impl ToHtmlString for VNode {
+    fn to_html_string(&self) -> String {
+        match self {
+            VNode::VTag(vtag) => {
+                unimplemented!()
+            },
+            VNode::VText(vtext) => {
+                unimplemented!()
+            },
+            VNode::VComp(vcomp) => {
+                unimplemented!()
+            },
+            VNode::VList(vlist) => {
+                unimplemented!()
+            },
+            VNode::VRef(node) => {
+                unimplemented!()
+            }
+        }
+    }
 }
 
 impl VNode {

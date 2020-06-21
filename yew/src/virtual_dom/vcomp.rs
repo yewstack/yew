@@ -1,13 +1,18 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
-use super::{Transformer, VDiff, VNode};
+use super::{ToHtmlString, Transformer, VDiff, VNode};
 use crate::html::{AnyScope, Component, ComponentUpdate, NodeRef, Scope, Scoped};
 use crate::utils::document;
+
+#[cfg(feature = "ssr")]
+use htmlescape;
+
 use cfg_if::cfg_if;
 use std::any::TypeId;
 use std::borrow::Borrow;
 use std::fmt;
 use std::ops::Deref;
+
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::{Element, Node};
@@ -89,6 +94,23 @@ where
 {
     fn from(vchild: VChild<COMP>) -> Self {
         VComp::new::<COMP>(vchild.props, vchild.node_ref, vchild.key)
+    }
+}
+
+#[cfg(feature = "ssr")]
+impl ToHtmlString for VComp {
+    fn to_html_string(&self) -> String {
+        match &self.scope {
+            None => "".to_string(),
+            Some(scope) => {
+                match scope.root_vnode() {
+                    None => "".to_string(),
+                    Some(root_vnode) => {
+                        root_vnode.to_html_string()
+                    }
+                }
+            }
+        }
     }
 }
 
