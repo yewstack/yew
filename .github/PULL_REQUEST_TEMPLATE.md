@@ -8,7 +8,9 @@ Fixes # (issue)
 
 - [ ] I have run `./ci/run_stable_checks.sh`
 - [ ] I have reviewed my own code
-- [ ] I have added tests – if this is a bug fix, these tests will fail if the bug is present (to stop it from cropping up again). If this is a feature, my tests prove that the feature works.
+- [ ] I have added tests
+<!-- If this is a bug fix, these tests will fail if the bug is present (to stop it from cropping up again) -->
+<!-- If this is a feature, my tests prove that the feature works -->
 
 <!-- Testing instructions -->
 <!-- Check out the link below on how to setup and run tests -->
