@@ -279,7 +279,7 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 
 #[cfg(test)]
 mod tests {
-    use super::VChild;
+    use super::*;
     use crate::macros::Properties;
     use crate::{html, Children, Component, ComponentLink, Html, NodeRef, ShouldRender};
     #[cfg(feature = "wasm_test")]
@@ -348,6 +348,47 @@ mod tests {
     }
 
     #[test]
+    fn set_component_key() {
+        let test_key = "test".to_string();
+        let check_key = |vnode: VNode| {
+            assert_eq!(vnode.key().as_ref(), Some(&test_key));
+        };
+
+        let props = Props {
+            field_1: 1,
+            field_2: 1,
+        };
+        let props_2 = props.clone();
+
+        check_key(html! { <Comp key=test_key.clone() /> });
+        check_key(html! { <Comp key=test_key.clone() field_1=1 /> });
+        check_key(html! { <Comp field_1=1 key=test_key.clone() /> });
+        check_key(html! { <Comp with props key=test_key.clone() /> });
+        check_key(html! { <Comp key=test_key.clone() with props_2 /> });
+    }
+
+    #[test]
+    fn set_component_node_ref() {
+        let test_node: Node = document().create_text_node("test").into();
+        let test_node_ref = NodeRef::new(test_node);
+        let check_node_ref = |vnode: VNode| {
+            assert_eq!(vnode.first_node(), test_node_ref.get().unwrap());
+        };
+
+        let props = Props {
+            field_1: 1,
+            field_2: 1,
+        };
+        let props_2 = props.clone();
+
+        check_node_ref(html! { <Comp ref=test_node_ref.clone() /> });
+        check_node_ref(html! { <Comp ref=test_node_ref.clone() field_1=1 /> });
+        check_node_ref(html! { <Comp field_1=1 ref=test_node_ref.clone() /> });
+        check_node_ref(html! { <Comp with props ref=test_node_ref.clone() /> });
+        check_node_ref(html! { <Comp ref=test_node_ref.clone() with props_2 /> });
+    }
+
+    #[test]
     fn vchild_partialeq() {
         let vchild1: VChild<Comp> = VChild::new(
             Props {
@@ -412,8 +453,6 @@ mod tests {
 
     #[cfg(feature = "web_sys")]
     fn setup_parent() -> (AnyScope, Element) {
-        use crate::utils::document;
-
         let scope = AnyScope {
             type_id: std::any::TypeId::of::<()>(),
             parent: None,
@@ -428,8 +467,6 @@ mod tests {
 
     #[cfg(feature = "web_sys")]
     fn get_html(mut node: Html, scope: &AnyScope, parent: &Element) -> String {
-        use super::VDiff;
-
         // clear parent
         parent.set_inner_html("");
 
