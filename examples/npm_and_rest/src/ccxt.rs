@@ -20,9 +20,8 @@ impl Default for CcxtService {
 
 impl CcxtService {
     pub fn exchanges(&mut self) -> Vec<String> {
-        let lib = self.0.as_ref();
         let v = {
-            let exchanges = Reflect::get(lib, &JsValue::from_str("exchanges")).unwrap();
+            let exchanges = Reflect::get(&self.0, &JsValue::from_str("exchanges")).unwrap();
             console::log_1(&exchanges);
             exchanges
         };
