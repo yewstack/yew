@@ -82,13 +82,20 @@ impl<COMP: Component> Scoped for Scope<COMP> {
 
     fn root_vnode(&self) -> Option<Ref<'_, VNode>> {
         let state_ref = self.state.borrow();
-        state_ref
-            .as_ref()
-            .and_then(|state| state.last_root.as_ref())?;
+        state_ref.as_ref().and_then(|state| {
+            state
+                .last_root
+                .as_ref()
+                .or_else(|| state.placeholder.as_ref())
+        })?;
 
         Some(Ref::map(state_ref, |state_ref| {
             let state = state_ref.as_ref().unwrap();
-            state.last_root.as_ref().unwrap()
+            state
+                .last_root
+                .as_ref()
+                .or_else(|| state.placeholder.as_ref())
+                .unwrap()
         }))
     }
 
@@ -148,7 +155,7 @@ impl<COMP: Component> Scope<COMP> {
         self,
         parent: Element,
         next_sibling: NodeRef,
-        ancestor: Option<VNode>,
+        placeholder: Option<VNode>,
         node_ref: NodeRef,
         props: COMP::Properties,
     ) -> Scope<COMP> {
@@ -158,7 +165,7 @@ impl<COMP: Component> Scope<COMP> {
                 state: self.state.clone(),
                 parent,
                 next_sibling,
-                ancestor,
+                placeholder,
                 node_ref,
                 scope: self.clone(),
                 props,
@@ -274,6 +281,7 @@ struct ComponentState<COMP: Component> {
     node_ref: NodeRef,
     scope: Scope<COMP>,
     component: Box<COMP>,
+    placeholder: Option<VNode>,
     last_root: Option<VNode>,
     new_root: Option<VNode>,
 }
@@ -284,7 +292,7 @@ impl<COMP: Component> ComponentState<COMP> {
     fn new(
         parent: Element,
         next_sibling: NodeRef,
-        ancestor: Option<VNode>,
+        placeholder: Option<VNode>,
         node_ref: NodeRef,
         scope: Scope<COMP>,
         props: COMP::Properties,
@@ -296,7 +304,8 @@ impl<COMP: Component> ComponentState<COMP> {
             node_ref,
             scope,
             component,
-            last_root: ancestor,
+            placeholder,
+            last_root: None,
             new_root: None,
         }
     }
@@ -312,7 +321,7 @@ where
     state: Shared<Option<ComponentState<COMP>>>,
     parent: Element,
     next_sibling: NodeRef,
-    ancestor: Option<VNode>,
+    placeholder: Option<VNode>,
     node_ref: NodeRef,
     scope: Scope<COMP>,
     props: COMP::Properties,
@@ -328,7 +337,7 @@ where
             *current_state = Some(ComponentState::new(
                 self.parent,
                 self.next_sibling,
-                self.ancestor,
+                self.placeholder,
                 self.node_ref,
                 self.scope,
                 self.props,
@@ -393,7 +402,7 @@ where
             }
 
             if let Some(mut new_root) = state.new_root.take() {
-                let last_root = state.last_root.take();
+                let last_root = state.last_root.take().or_else(|| state.placeholder.take());
                 let parent_scope = state.scope.clone().into();
                 let next_sibling = state.next_sibling.clone();
                 let node = new_root.apply(&parent_scope, &state.parent, next_sibling, last_root);
