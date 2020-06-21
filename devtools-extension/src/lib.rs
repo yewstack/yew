@@ -44,7 +44,7 @@ struct DevToolsExtension {
 enum DevToolsExtensionMsg {
     ReceiveWSMessage(String),
     ReceiveWSStatus(yew::services::websocket::WebSocketStatus),
-    Nop,
+    Noop,
 }
 
 struct ComponentRepr {
@@ -61,7 +61,7 @@ impl Component for DevToolsExtension {
     type Message = DevToolsExtensionMsg;
     type Properties = ();
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let mut ws_service = yew::services::WebSocketService::new();
         let ws_task = ws_service
             .connect_text(
@@ -72,10 +72,10 @@ impl Component for DevToolsExtension {
                         yew::web_sys::console::error_1(
                             &"There was an error with the WebSocket connection.".into(),
                         );
-                        DevToolsExtensionMsg::Nop
+                        DevToolsExtensionMsg::Noop
                     }
                 }),
-                link.callback(|status| DevToolsExtensionMsg::ReceiveWSStatus(status)),
+                link.callback(DevToolsExtensionMsg::ReceiveWSStatus),
             )
             .unwrap();
         DevToolsExtension {
@@ -93,7 +93,12 @@ impl Component for DevToolsExtension {
                     Ok(t) => t,
                     Err(e) => {
                         yew::web_sys::console::error_1(
-                            &"Received an invalid message from the DevTools server.".into(),
+                            &format!(
+                                "Received an invalid message from the DevTools server. \
+                            Error message: `{:?}`",
+                                e
+                            )
+                            .into(),
                         );
                         return false;
                     }
@@ -117,7 +122,7 @@ impl Component for DevToolsExtension {
                 }
                 false
             }
-            DevToolsExtensionMsg::Nop => false,
+            DevToolsExtensionMsg::Noop => false,
         }
     }
 
