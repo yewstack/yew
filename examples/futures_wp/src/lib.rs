@@ -8,6 +8,8 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response, Window};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
+mod markdown;
+
 /// This method processes a Future that returns a message and sends it back to the component's
 /// loop.
 ///
@@ -52,15 +54,12 @@ pub enum FetchState<T> {
 ///
 /// Consult the following for an example of the fetch api by the team behind web_sys:
 /// https://rustwasm.github.io/wasm-bindgen/examples/fetch.html
-async fn fetch_markdown() -> Result<String, FetchError> {
+async fn fetch_markdown(url: &'static str) -> Result<String, FetchError> {
     let mut opts = RequestInit::new();
     opts.method("GET");
     opts.mode(RequestMode::Cors);
 
-    let request = Request::new_with_str_and_init(
-        "https://raw.githubusercontent.com/yewstack/yew/master/README.md",
-        &opts,
-    )?;
+    let request = Request::new_with_str_and_init(url, &opts)?;
 
     let window: Window = web_sys::window().unwrap();
     let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
@@ -80,11 +79,13 @@ struct Model {
 enum Msg {
     SetMarkdownFetchState(FetchState<String>),
     GetMarkdown,
+    GetError,
 }
 
-impl Component for Model {
-    // Some details omitted. Explore the examples to see more.
+const MARKDOWN_URL: &'static str = "https://raw.githubusercontent.com/yewstack/yew/master/README.md";
+const INCORRECT_URL: &'static str = "https://raw.githubusercontent.com/yewstack/yew/master/README.md.404";
 
+impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
@@ -107,7 +108,19 @@ impl Component for Model {
             }
             Msg::GetMarkdown => {
                 let future = async {
-                    match fetch_markdown().await {
+                    match fetch_markdown(MARKDOWN_URL).await {
+                        Ok(md) => Msg::SetMarkdownFetchState(FetchState::Success(md)),
+                        Err(err) => Msg::SetMarkdownFetchState(FetchState::Failed(err)),
+                    }
+                };
+                send_future(self.link.clone(), future);
+                self.link
+                    .send_message(SetMarkdownFetchState(FetchState::Fetching));
+                false
+            }
+            Msg::GetError => {
+                let future = async {
+                    match fetch_markdown(INCORRECT_URL).await {
                         Ok(md) => Msg::SetMarkdownFetchState(FetchState::Success(md)),
                         Err(err) => Msg::SetMarkdownFetchState(FetchState::Failed(err)),
                     }
@@ -123,12 +136,17 @@ impl Component for Model {
     fn view(&self) -> Html {
         match &self.markdown {
             FetchState::NotFetching => html! {
-                <button onclick=self.link.callback(|_| Msg::GetMarkdown)>
-                    {"Get Markdown"}
-                </button>
+                <>
+                    <button onclick=self.link.callback(|_| Msg::GetMarkdown)>
+                        {"Get Markdown"}
+                    </button>
+                    <button onclick=self.link.callback(|_| Msg::GetError)>
+                        {"Get using incorrect URL"}
+                    </button>
+                </>
             },
             FetchState::Fetching => html! {"Fetching"},
-            FetchState::Success(data) => html! {&data},
+            FetchState::Success(data) => html! { markdown::render_markdown(&data) },
             FetchState::Failed(err) => html! {&err},
         }
     }
