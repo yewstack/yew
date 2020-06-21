@@ -112,7 +112,7 @@ pub mod tests {
         use std::ops::Deref;
         let element = document.create_element("div").unwrap();
         let element2 = document.create_element("h1").unwrap();
-        element.append_child(&element2);
+        element.append_child(&element2).unwrap();
         assert_eq!(selector(element2.as_ref()), "DIV/H1/");
     }
 }
