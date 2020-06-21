@@ -25,7 +25,7 @@ impl core::fmt::Debug for Key {
 
 impl From<Rc<String>> for Key {
     fn from(key: Rc<String>) -> Self {
-        Key { key: key.into() }
+        Key { key }
     }
 }
 

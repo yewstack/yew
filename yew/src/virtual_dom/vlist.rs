@@ -105,10 +105,7 @@ impl VDiff for VList {
         let lefts_all_keyed = self.children.len() == n_keyed_lefts;
         if lefts_some_keyed && !lefts_all_keyed {
             log::error!(
-                "Not all elements have keys in VList ({} keyed out of {}), this is currently not \
-                supported. Ignoring keys.",
-                n_keyed_lefts,
-                self.children.len(),
+                "Ignoring keys. When using keyed lists, every element must have a key and they must be unique.",
             );
         }
 
@@ -120,7 +117,7 @@ impl VDiff for VList {
             // Otherwise, there was a node before but it wasn't a list. Then,
             // use the current node as a single fragment list and let the
             // `apply` of `VNode` handle it.
-            Some(vnode) if !lefts_some_keyed => vec![vnode],
+            Some(vnode) if n_keyed_lefts == 0 => vec![vnode],
             // Otherwise, we don't reuse it, as the chance that the element
             // is keyed and present in left is almost null.
             Some(mut vnode) => {
@@ -644,7 +641,7 @@ mod layout_tests_keys {
 
         layouts.extend(vec![
             TestLayout {
-                name: "Delete first - before",
+                name: "Delete last - before",
                 node: html! {
                     <>
                         <i key="i"></i>
@@ -655,7 +652,7 @@ mod layout_tests_keys {
                 expected: "<i></i><e></e><p></p>",
             },
             TestLayout {
-                name: "Delete first - after",
+                name: "Delete last - after",
                 node: html! {
                     <>
                         <i key="i"></i>
