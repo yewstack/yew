@@ -1,13 +1,10 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
 use super::{
-    Attributes, Listener, Listeners, Patch, ToHtmlString, Transformer, VDiff, VList, VNode, VText,
+    Attributes, Listener, Listeners, Patch, Transformer, VDiff, VList, VNode,
 };
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
-
-#[cfg(feature = "ssr")]
-use htmlescape;
 
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
@@ -30,6 +27,13 @@ cfg_if! {
         use web_sys::{
             Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, HtmlButtonElement
         };
+    }
+}
+
+cfg_if! {
+    if #[cfg(feature = "ssr")] {
+        use super::{ToHtmlString, VText};
+        use htmlescape;
     }
 }
 
@@ -138,7 +142,7 @@ impl ToHtmlString for VTag {
                 }
             }
 
-            let is_skipped = (tag_name == "textarea" && key == "value");
+            let is_skipped = tag_name == "textarea" && key == "value";
 
             if is_valid && !is_skipped {
                 parts.push(

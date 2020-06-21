@@ -1,11 +1,9 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::{VDiff, VNode, ToHtmlString};
+use super::{VDiff, VNode};
+
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
-
-#[cfg(feature = "ssr")]
-use htmlescape;
 
 use cfg_if::cfg_if;
 use log::warn;
@@ -15,6 +13,13 @@ cfg_if! {
         use stdweb::web::{Element, INode, TextNode};
     } else if #[cfg(feature = "web_sys")] {
         use web_sys::{Element, Text as TextNode};
+    }
+}
+
+cfg_if! {
+    if #[cfg(feature = "ssr")] {
+        use super::{ToHtmlString};
+        use htmlescape;
     }
 }
 

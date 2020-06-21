@@ -1,5 +1,5 @@
 //! This module contains fragments implementation.
-use super::{ToHtmlString, VDiff, VNode, VText};
+use super::{VDiff, VNode, VText};
 use crate::html::{AnyScope, NodeRef};
 
 use cfg_if::cfg_if;
@@ -12,6 +12,9 @@ cfg_if! {
         use web_sys::Element;
     }
 }
+
+#[cfg(feature = "ssr")]
+use super::{ToHtmlString};
 
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Clone, Debug, PartialEq, Default)]
@@ -35,6 +38,7 @@ impl DerefMut for VList {
     }
 }
 
+#[cfg(feature = "ssr")]
 impl ToHtmlString for VList {
     fn to_html_string(&self) -> String {
         let parts: Vec<String> = self

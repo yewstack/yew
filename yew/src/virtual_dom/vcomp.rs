@@ -1,11 +1,8 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
-use super::{ToHtmlString, Transformer, VDiff, VNode};
+use super::{Transformer, VDiff, VNode};
 use crate::html::{AnyScope, Component, ComponentUpdate, NodeRef, Scope, Scoped};
 use crate::utils::document;
-
-#[cfg(feature = "ssr")]
-use htmlescape;
 
 use cfg_if::cfg_if;
 use std::any::TypeId;
@@ -20,6 +17,9 @@ cfg_if! {
         use web_sys::{Element, Node};
     }
 }
+
+#[cfg(feature = "ssr")]
+use super::{ToHtmlString};
 
 /// A virtual component.
 pub struct VComp {
