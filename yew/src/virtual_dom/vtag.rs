@@ -1036,12 +1036,12 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "ssr")]
     fn it_stringifies_simple() {
         let p = html! {
             <p></p>
         };
 
-        #[cfg(feature = "ssr")]
         if let VNode::VTag(p) = p {
             let p_html = (*p).to_html_string();
         
@@ -1052,6 +1052,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "ssr")]
     fn it_stringifies_complex() {
         let other_sym = "bar";
         let div = html! {
@@ -1066,7 +1067,6 @@ mod tests {
             </p>
         };
 
-        #[cfg(feature = "ssr")]
         if let VNode::VTag(p) = p {
             let p_html = (*p).to_html_string();
         
@@ -1077,12 +1077,12 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "ssr")]
     fn it_stringifies_attrs() {
         let div = html! {
             <div a="b" b="a" />
         };
 
-        #[cfg(feature = "ssr")]
         if let VNode::VTag(div) = div {
             let div_html = (*div).to_html_string();
             let order_1 = "<div a=\"b\" b=\"a\" />";
