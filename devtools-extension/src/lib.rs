@@ -53,6 +53,7 @@ struct ComponentRepr {
     name: String,
     selector: String,
     is_in_dom: bool,
+    collapsed: bool,
 }
 
 impl std::convert::Into<Html> for &ComponentRepr {
@@ -233,6 +234,7 @@ impl DevToolsExtension {
                         .unwrap()
                         .clone(),
                     is_in_dom: false,
+                    collapsed: false,
                 }),
             );
         }
@@ -269,6 +271,7 @@ impl DevToolsExtension {
             name: message.data.as_ref().unwrap().name.clone(),
             selector: selector.to_string(),
             is_in_dom: false,
+            collapsed: false,
         });
         youngest_parent.append(component_node, &mut self.component_tree);
     }
