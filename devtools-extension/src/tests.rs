@@ -5,6 +5,19 @@ use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 #[cfg(target_arch = "wasm32")]
 wasm_bindgen_test_configure!(run_in_browser);
 
+fn construct_root_node(extension: &mut DevToolsExtension) {
+    extension.handle_message(
+        serde_json::to_string(&ComponentMessage {
+            event: ComponentEvent::Created,
+            data: Some(DebugComponent {
+                name: "App".to_string(),
+                selector: Some("body".to_string()),
+            }),
+        })
+        .unwrap(),
+    );
+}
+
 #[test]
 #[cfg(not(feature = "logic_test"))]
 pub fn test_layout() {
@@ -22,14 +35,7 @@ pub fn test_layout() {
 #[cfg(feature = "logic_test")]
 fn test_add_root_node() {
     let mut extension = DevToolsExtension::new();
-    let message = ComponentMessage {
-        event: ComponentEvent::Created,
-        data: Some(DebugComponent {
-            name: "App".to_string(),
-            selector: Some("body".to_string()),
-        }),
-    };
-    extension.handle_message(serde_json::to_string(&message).expect("Couldn't encode component."));
+    construct_root_node(&mut extension);
     assert_eq!(extension.component_tree.iter().count(), 1);
     assert!(extension.root_node.is_some());
 }
@@ -38,16 +44,18 @@ fn test_add_root_node() {
 #[cfg(feature = "logic_test")]
 fn test_add_child_nodes() {
     let mut extension = DevToolsExtension::new();
-    let message = ComponentMessage {
-        event: ComponentEvent::Created,
-        data: Some(DebugComponent {
-            name: "App".to_string(),
-            selector: Some("body".to_string()),
-        }),
-    };
-    extension.handle_message(serde_json::to_string(&message).expect("Couldn't encode component."));
+    construct_root_node(&mut extension);
     assert_eq!(extension.component_tree.iter().count(), 1);
     assert!(extension.root_node.is_some());
+    assert_eq!(
+        extension
+            .component_tree
+            .get(extension.root_node.unwrap())
+            .unwrap()
+            .get()
+            .selector,
+        "body"
+    );
     let first_child_message = ComponentMessage {
         event: ComponentEvent::Created,
         data: Some(DebugComponent {
@@ -93,16 +101,7 @@ fn test_add_child_nodes() {
 #[cfg(feature = "logic_test")]
 fn test_add_sibling_components() {
     let mut extension = DevToolsExtension::new();
-    let root_component_message = ComponentMessage {
-        event: ComponentEvent::Created,
-        data: Some(DebugComponent {
-            name: "App".to_string(),
-            selector: Some("body".to_string()),
-        }),
-    };
-    extension.handle_message(
-        serde_json::to_string(&root_component_message).expect("Couldn't encode component."),
-    );
+    construct_root_node(&mut extension);
     assert_eq!(extension.component_tree.iter().count(), 1);
     assert!(extension.root_node.is_some());
 
@@ -147,15 +146,89 @@ fn test_add_sibling_components() {
 
 #[test]
 #[cfg(feature = "logic_test")]
-fn test_mount_component() {}
+fn test_mount_component() {
+    let mut extension = DevToolsExtension::new();
+    construct_root_node(&mut extension);
+    let mount_root_node_message = ComponentMessage {
+        event: ComponentEvent::Mounted,
+        data: Some(DebugComponent {
+            name: "App".to_string(),
+            selector: Some("body".to_string()),
+        }),
+    };
+    extension.handle_message(serde_json::to_string(&mount_root_node_message).unwrap());
+    assert_eq!(
+        extension
+            .component_tree
+            .get(extension.root_node.unwrap())
+            .unwrap()
+            .get()
+            .is_in_dom,
+        true
+    );
+}
 
 #[test]
 #[cfg(feature = "logic_test")]
-fn test_unmount_component() {}
+fn test_unmount_component() {
+    let mut extension = DevToolsExtension::new();
+    construct_root_node(&mut extension);
+    let mount_root_node_message = ComponentMessage {
+        event: ComponentEvent::Mounted,
+        data: Some(DebugComponent {
+            name: "App".to_string(),
+            selector: Some("body".to_string()),
+        }),
+    };
+    extension.handle_message(serde_json::to_string(&mount_root_node_message).unwrap());
+    assert_eq!(
+        extension
+            .component_tree
+            .get(extension.root_node.unwrap())
+            .unwrap()
+            .get()
+            .is_in_dom,
+        true
+    );
+    let mount_root_node_message = ComponentMessage {
+        event: ComponentEvent::Unmounted,
+        data: Some(DebugComponent {
+            name: "App".to_string(),
+            selector: Some("body".to_string()),
+        }),
+    };
+    extension.handle_message(serde_json::to_string(&mount_root_node_message).unwrap());
+    assert_eq!(
+        extension
+            .component_tree
+            .get(extension.root_node.unwrap())
+            .unwrap()
+            .get()
+            .is_in_dom,
+        false
+    );
+}
 
 #[test]
 #[cfg(feature = "logic_test")]
-fn test_delete_component() {}
+fn test_delete_component() {
+    let mut extension = DevToolsExtension::new();
+    construct_root_node(&mut extension);
+    let destroy_root_node_message = ComponentMessage {
+        event: ComponentEvent::Destroyed,
+        data: Some(DebugComponent {
+            name: "App".to_string(),
+            selector: Some("body".to_string()),
+        }),
+    };
+    extension.handle_message(serde_json::to_string(&destroy_root_node_message).unwrap());
+    assert!(extension.root_node.is_none());
+    println!("{:?}", extension.component_tree);
+    assert_eq!(
+        extension.component_tree.iter().next().unwrap().is_removed(),
+        true
+    );
+}
 
 #[test]
 #[cfg(feature = "logic_test")]

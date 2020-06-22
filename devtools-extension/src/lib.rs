@@ -181,6 +181,16 @@ impl DevToolsExtension {
     }
 
     fn delete_component(&mut self, message: &ComponentMessage) {
+        if message.data.as_ref().unwrap().selector.as_ref().unwrap()
+            == &self
+                .component_tree
+                .get(self.root_node.unwrap())
+                .unwrap()
+                .get()
+                .selector
+        {
+            self.root_node = None;
+        };
         let found_node = self
             .component_tree
             .iter()
@@ -211,11 +221,20 @@ impl DevToolsExtension {
         if let Some(root_node) = self.root_node {
             self.create_with_existing_root_node(message, root_node);
         } else {
-            self.root_node = Some(self.component_tree.new_node(ComponentRepr {
-                name: "".to_string(),
-                selector: "".to_string(),
-                is_in_dom: false,
-            }));
+            self.root_node = Some(
+                self.component_tree.new_node(ComponentRepr {
+                    name: message.data.as_ref().unwrap().name.clone(),
+                    selector: message
+                        .data
+                        .as_ref()
+                        .unwrap()
+                        .selector
+                        .as_ref()
+                        .unwrap()
+                        .clone(),
+                    is_in_dom: false,
+                }),
+            );
         }
     }
 
