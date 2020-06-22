@@ -35,9 +35,8 @@ pub struct DebugComponent {
 }
 
 struct DevToolsExtension {
-    ws_task: yew::services::websocket::WebSocketTask,
-    ws_service: yew::services::websocket::WebSocketService,
-    component_tree: indextree::Arena<ComponentMessage>,
+    _ws_task: yew::services::websocket::WebSocketTask,
+    component_tree: indextree::Arena<ComponentRepr>,
     root_node: Option<indextree::NodeId>,
 }
 
@@ -50,11 +49,7 @@ enum DevToolsExtensionMsg {
 struct ComponentRepr {
     name: String,
     selector: String,
-    pending: bool,
-}
-
-fn compute_depth(string: String) -> usize {
-    string.matches('/').count() + 1
+    is_in_dom: bool,
 }
 
 impl Component for DevToolsExtension {
@@ -62,8 +57,7 @@ impl Component for DevToolsExtension {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let mut ws_service = yew::services::WebSocketService::new();
-        let ws_task = ws_service
+        let ws_task = yew::services::WebSocketService::new()
             .connect_text(
                 "ws://localhost:8017/ws",
                 link.callback(|text| match text {
@@ -79,8 +73,7 @@ impl Component for DevToolsExtension {
             )
             .unwrap();
         DevToolsExtension {
-            ws_service,
-            ws_task,
+            _ws_task: ws_task,
             component_tree: indextree::Arena::new(),
             root_node: None,
         }
@@ -104,11 +97,77 @@ impl Component for DevToolsExtension {
                     }
                 };
                 match message.event {
-                    ComponentEvent::Mounted => {}
+                    ComponentEvent::Mounted => {
+                        let selector = message.data.unwrap().selector.unwrap();
+                        let relevant_node = self
+                            .component_tree
+                            .iter()
+                            .find(|node| node.get().selector == selector)
+                            .unwrap()
+                            .get_mut();
+                        relevant_node.is_in_dom = true;
+                    }
                     ComponentEvent::Updated => {}
-                    ComponentEvent::Created => {}
-                    ComponentEvent::Destroyed => {}
-                    ComponentEvent::Unmounted => {}
+                    ComponentEvent::Created => {
+                        if let Some(root_node) = self.root_node {
+                            let selector = message.data.unwrap().selector.unwrap();
+                            let youngest_parent =
+                                self.component_tree.iter().fold(root_node, |acc, val| {
+                                    if self
+                                        .component_tree
+                                        .get(root_node)
+                                        .unwrap()
+                                        .get()
+                                        .selector
+                                        .starts_with(&selector)
+                                        && self
+                                            .component_tree
+                                            .get(root_node)
+                                            .unwrap()
+                                            .get()
+                                            .selector
+                                            .starts_with(&val.get().selector)
+                                    {
+                                        self.component_tree.get_node_id(val).unwrap()
+                                    } else {
+                                        root_node
+                                    }
+                                });
+                            let component_node = self.component_tree.new_node(ComponentRepr {
+                                name: "".to_string(),
+                                selector,
+                                is_in_dom: false,
+                            });
+                            youngest_parent.append(component_node, &mut self.component_tree);
+                        } else {
+                            self.root_node = Some(self.component_tree.new_node(ComponentRepr {
+                                name: "".to_string(),
+                                selector: "".to_string(),
+                                is_in_dom: false,
+                            }))
+                        }
+                    }
+                    ComponentEvent::Destroyed => {
+                        let found_node = self
+                            .component_tree
+                            .iter()
+                            .find(|node| {
+                                node.get().selector == message.data.unwrap().selector.unwrap()
+                            })
+                            .unwrap();
+                        let found_node = self.component_tree.get_node_id(found_node).unwrap();
+                        found_node.remove(&mut self.component_tree);
+                    }
+                    ComponentEvent::Unmounted => {
+                        let selector = message.data.unwrap().selector.unwrap();
+                        let relevant_node = self
+                            .component_tree
+                            .iter()
+                            .find(|node| node.get().selector == selector)
+                            .unwrap()
+                            .get_mut();
+                        relevant_node.is_in_dom = false;
+                    }
                 }
                 false
             }

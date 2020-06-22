@@ -10,4 +10,5 @@ edition = "2018"
 yew = "0.16.2"
 serde={version="1", features=["derive"]}
 serde_json="1"
-indextree="4"
+# this is waiting for a new release to be published
+indextree={git="https://github.com/saschagrunert/indextree", rev="2840ab7"}
