@@ -3,6 +3,7 @@ name = "common"
 version = "0.1.0"
 authors = ["Martin Matusiak <numerodix@gmail.com>"]
 edition = "2018"
+description="A useful utility for handing markdown which is used by other examples – not an example in itself!"
 
 [dependencies]
 yew = { path = "../../yew" }
