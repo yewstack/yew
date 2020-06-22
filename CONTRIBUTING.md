@@ -73,7 +73,7 @@ If you wish to improve the performance of Yew, we ask you to prove the improveme
 
 Feel free to add new benchmark tests if the current benchmark coverage is insufficient!
 
-#### Pre commit hooks
+#### Pre-commit hooks
 
 A Git hook is a script configured to run at a certain point in a Git workflow – for example every time a commit is added.
 
