@@ -108,6 +108,9 @@ mod test {
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
+    #[cfg(feature = "ssr")]
+    use super::{ToHtmlString};
+
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -120,6 +123,36 @@ mod test {
         html! {
             { "Text Node As Root" }
         };
+    }
+
+    #[test]
+    #[cfg(feature = "ssr")]
+    fn text_as_root_ssr() {
+        let a = html! {
+            "Text Node As Root"
+        };
+
+        let b = html! {
+            { "Text Node As Root" }
+        };
+
+        assert_eq!(&a.to_html_string(), &b.to_html_string());
+        assert!(b.clone().to_html_string() == "Text Node As Root");
+    }
+
+    #[test]
+    #[cfg(feature = "ssr")]
+    fn special_chars_ssr() {
+        let a = html! {
+            "some special-chars\"> here!"
+        };
+
+        let b = html! {
+            { "some special-chars\"> here!" }
+        };
+
+        assert_eq!(&a.to_html_string(), &b.to_html_string());
+        assert_eq!(b.clone().to_html_string(), "some special-chars&quot;&gt; here!");
     }
 }
 

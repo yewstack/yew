@@ -44,7 +44,7 @@ impl ToHtmlString for VNode {
             VNode::VText(vtext) => vtext.to_html_string(),
             VNode::VComp(vcomp) => vcomp.to_html_string(),
             VNode::VList(vlist) => vlist.to_html_string(),
-            VNode::VRef(_node) => unimplemented!(),
+            VNode::VRef(_node) => "".to_string(),
         }
     }
 }

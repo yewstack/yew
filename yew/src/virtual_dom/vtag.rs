@@ -1041,6 +1041,7 @@ mod tests {
             <p></p>
         };
 
+        #[cfg(feature = "ssr")]
         if let VNode::VTag(p) = p {
             let p_html = (*p).to_html_string();
         
@@ -1054,21 +1055,39 @@ mod tests {
     fn it_stringifies_complex() {
         let other_sym = "bar";
         let div = html! {
-            <div>
+            <div class=("foo", other_sym)>
                 { "quux" }
             </div>
         };
         let p = html! {
-            <p class=("foo", other_sym) aria-controls="it-works">
+            <p aria-controls="it-works">
                 { "test" }
                 {div}
             </p>
         };
 
+        #[cfg(feature = "ssr")]
         if let VNode::VTag(p) = p {
             let p_html = (*p).to_html_string();
         
-            assert_eq!(p_html, "<p aria-controls=\"it&#x2D;works\" class=\"foo&#x20;bar\">test<div>quux</div></p>");
+            assert_eq!(p_html, "<p aria-controls=\"it&#x2D;works\">test<div class=\"foo&#x20;bar\">quux</div></p>");
+        } else {
+            assert!(false);
+        }
+    }
+
+    #[test]
+    fn it_stringifies_attrs() {
+        let div = html! {
+            <div a="b" b="a" />
+        };
+
+        #[cfg(feature = "ssr")]
+        if let VNode::VTag(div) = div {
+            let div_html = (*div).to_html_string();
+            let order_1 = "<div a=\"b\" b=\"a\" />";
+            let order_2 = "<div b=\"a\" a=\"b\" />";
+            assert!(div_html == order_1 || div_html == order_2);
         } else {
             assert!(false);
         }
