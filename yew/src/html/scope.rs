@@ -8,9 +8,6 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
-#[cfg(feature = "dev")]
-use crate::dev::DEBUGGER_CONNECTION;
-
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::Element;

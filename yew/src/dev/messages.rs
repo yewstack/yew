@@ -3,14 +3,6 @@
 use cfg_if::cfg_if;
 use serde::Serialize;
 
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Node, INode};
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::Node;
-    }
-}
-
 /// Sent when something happens to a component.
 #[derive(Serialize, Debug)]
 pub enum ComponentEvent {
@@ -109,7 +101,6 @@ pub mod tests {
     fn test_dom_selector() {
         let document = crate::utils::document();
         use super::selector;
-        use std::ops::Deref;
         let element = document.create_element("div").unwrap();
         let element2 = document.create_element("h1").unwrap();
         element.append_child(&element2).unwrap();

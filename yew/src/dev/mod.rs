@@ -180,7 +180,7 @@ impl DebuggerConnection {
 
 #[cfg(test)]
 pub mod tests {
-    use super::{DebuggerConnection, DebuggerMessageFlush, DebuggerMessageQueue};
+    use super::{DebuggerMessageFlush, DebuggerMessageQueue};
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
