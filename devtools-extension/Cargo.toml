@@ -1,10 +1,11 @@
 [package]
 name = "devtools-extension"
 version = "0.1.0"
-authors = ["Yew Mainainers <mainainers@yew.rs>"]
+authors = ["Teymour Aldridge <teymour.aldridge@icloud.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dev-dependencies]
+wasm-bindgen-test = "0.3.4"
 
 [dependencies]
 yew = "0.16.2"
@@ -12,3 +13,6 @@ serde={version="1", features=["derive"]}
 serde_json="1"
 # this is waiting for a new release to be published
 indextree={git="https://github.com/saschagrunert/indextree", rev="2840ab7"}
+
+[features]
+logic_test=[]

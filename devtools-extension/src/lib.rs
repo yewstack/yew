@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate serde;
 use yew::prelude::*;
+use yew::services::websocket::WebSocketTask;
 
 #[cfg(test)]
 mod tests;
@@ -35,6 +36,7 @@ pub struct DebugComponent {
 }
 
 struct DevToolsExtension {
+    #[cfg(not(feature = "logic_test"))]
     _ws_task: yew::services::websocket::WebSocketTask,
     component_tree: indextree::Arena<ComponentRepr>,
     root_node: Option<indextree::NodeId>,
@@ -73,6 +75,7 @@ impl Component for DevToolsExtension {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        #[cfg(not(feature = "logic_test"))]
         let ws_task = yew::services::WebSocketService::new()
             .connect_text(
                 "ws://localhost:8017/ws",
@@ -89,6 +92,7 @@ impl Component for DevToolsExtension {
             )
             .unwrap();
         DevToolsExtension {
+            #[cfg(not(feature = "logic_test"))]
             _ws_task: ws_task,
             component_tree: indextree::Arena::new(),
             root_node: None,
@@ -137,6 +141,14 @@ impl Component for DevToolsExtension {
 }
 
 impl DevToolsExtension {
+    #[cfg(feature = "logic_test")]
+    /// Used internally only – for testing.
+    fn new() -> Self {
+        Self {
+            component_tree: indextree::Arena::new(),
+            root_node: None,
+        }
+    }
     fn render_component_tree(&self, top_node_id: indextree::NodeId) -> Html {
         let top_node = self.component_tree.get(top_node_id).unwrap().get();
         let top_node_html: Html = top_node.into();
@@ -214,20 +226,17 @@ impl DevToolsExtension {
     ) {
         let selector = message.data.as_ref().unwrap().selector.as_ref().unwrap();
         let youngest_parent = self.component_tree.iter().fold(root_node, |acc, val| {
-            if self
-                .component_tree
-                .get(root_node)
-                .unwrap()
+            if val
                 .get()
                 .selector
-                .as_str()
-                .starts_with(selector.as_str())
-                && self
-                    .component_tree
-                    .get(root_node)
+                .starts_with(&self.component_tree.get(acc).unwrap().get().selector)
+                && message
+                    .data
+                    .as_ref()
                     .unwrap()
-                    .get()
                     .selector
+                    .as_ref()
+                    .unwrap()
                     .as_str()
                     .starts_with(val.get().selector.as_str())
             {
@@ -238,7 +247,7 @@ impl DevToolsExtension {
         });
 
         let component_node = self.component_tree.new_node(ComponentRepr {
-            name: "".to_string(),
+            name: message.data.as_ref().unwrap().name.clone(),
             selector: selector.to_string(),
             is_in_dom: false,
         });
