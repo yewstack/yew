@@ -1,5 +1,10 @@
+//! Developer tools extension for Yew.
+//!
+//! This is shipped as the browser extension.
+
 #[macro_use]
 extern crate serde;
+
 use yew::prelude::*;
 use yew::services::websocket::WebSocketTask;
 
@@ -37,8 +42,14 @@ pub struct DebugComponent {
 
 struct DevToolsExtension {
     #[cfg(not(feature = "logic_test"))]
+    /// The WebSocket task – this handles the receiving data from the WebSocket connection.
+    ///
+    /// It isn't directly used, but it needs to be kept alive for the duration of the program.
     _ws_task: yew::services::websocket::WebSocketTask,
+    /// Stores the component tree.
     component_tree: indextree::Arena<ComponentRepr>,
+    /// The root component. Storing this is useful and makes it easier to implement some methods
+    /// than it otherwise would be.
     root_node: Option<indextree::NodeId>,
 }
 
@@ -49,14 +60,21 @@ enum DevToolsExtensionMsg {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+/// Used to store all the relevant information about a component in the extension.
 struct ComponentRepr {
+    /// The name of the component – this is obtained inside of the `yew` crate by using
+    /// `std::any::type_name::<COMP>()` and corresponds to the name of the item (e.g. a struct or an
+    /// enum) which the relevant implementation of `Component` refers to.
     name: String,
     selector: String,
+    /// Whether or not a component is in the browser's DOM.
     is_in_dom: bool,
+    /// Whether or not a component's children should be shown or not.
     collapsed: bool,
 }
 
 impl std::convert::Into<Html> for &ComponentRepr {
+    /// Converst a `ComponentRepr` into `Html` so that it can be rendered to the DOM.
     fn into(self) -> Html {
         html! {
             <>
@@ -121,6 +139,7 @@ impl Component for DevToolsExtension {
         false
     }
 
+    /// Renders the DevTools extension into the DOM.
     fn view(&self) -> Html {
         html! {
             <>
@@ -143,13 +162,16 @@ impl Component for DevToolsExtension {
 
 impl DevToolsExtension {
     #[cfg(feature = "logic_test")]
-    /// Used internally only – for testing.
+    /// This method is used internally for testing – it's just a utility function which makes it
+    /// slightly more concise to initialize an instance of `DevToolsExtension`.
     fn new() -> Self {
         Self {
             component_tree: indextree::Arena::new(),
             root_node: None,
         }
     }
+
+    /// Recursively renders the current component state.
     fn render_component_tree(&self, top_node_id: indextree::NodeId) -> Html {
         let top_node = self.component_tree.get(top_node_id).unwrap().get();
         let top_node_html: Html = top_node.into();
@@ -160,12 +182,27 @@ impl DevToolsExtension {
                     {top_node_html}
                 </div>
                 <div class="children">
-                    {children.map(|child| self.render_component_tree(child)).collect::<Html>()}
+                    {
+                        children.filter_map(|child| {
+                            if !child.is_removed() {
+                                Some(self.render_component_tree(child)).collect::<Html>()
+                            }
+                            else {
+                                None
+                            }
+                        })
+                    }
                 </div>
             </div>
         }
     }
 
+    /// Processes a message from the WebSocket.
+    ///
+    /// Returns `true` if the state has changed and `false` if the state hasn't changed. This
+    /// is used as the output of the `view` function.
+    ///
+    /// This has been written this way partly to make it easier to test it.
     fn handle_message(&mut self, message: String) -> bool {
         let message = match DevToolsExtension::extract_message(&message) {
             Some(t) => t,
@@ -181,6 +218,7 @@ impl DevToolsExtension {
         false
     }
 
+    /// Deletes a component from the component tree.
     fn delete_component(&mut self, message: &ComponentMessage) {
         if message.data.as_ref().unwrap().selector.as_ref().unwrap()
             == &self
@@ -203,6 +241,7 @@ impl DevToolsExtension {
         found_node.remove(&mut self.component_tree);
     }
 
+    /// Updates the status of the DOM status (e.g. when a component is mounted or unmounted).
     fn set_dom_status(&mut self, message: &ComponentMessage, status: bool) {
         let selector = message.data.as_ref().unwrap().selector.as_ref().unwrap();
         let node = self
@@ -218,6 +257,11 @@ impl DevToolsExtension {
             .is_in_dom = status;
     }
 
+    /// Adds a new component to the component tree.
+    ///
+    /// If the root node doesn't exist, then the component will be set as the root component. This
+    /// makes the assumption that a child component cannot be mounted or rendered before a child
+    /// component can.
     fn create_component(&mut self, message: &ComponentMessage) {
         if let Some(root_node) = self.root_node {
             self.create_with_existing_root_node(message, root_node);
@@ -240,6 +284,11 @@ impl DevToolsExtension {
         }
     }
 
+    /// Computes where in the component tree a new component should go and then inserts it as a
+    /// child node of the parent whose 'selector' matches the closest. For example, if there are
+    /// three nodes – one with selector `body`, another with selector `body/h1` and the final one
+    /// with selector `body/h1/a/h1` and a new node to be added with a selector `body/h1/p` then
+    /// the node will be added as the child of the component at `body/h1/`.
     fn create_with_existing_root_node(
         &mut self,
         message: &ComponentMessage,
@@ -276,6 +325,10 @@ impl DevToolsExtension {
         youngest_parent.append(component_node, &mut self.component_tree);
     }
 
+    /// Uses `serde_json` to parse a JSON message.
+    /// Please don't assume that the browser extension will always use JSON. The data serialization
+    /// format used might be changed at any point (e.g. to a binary message format such as
+    /// MessagePack or a serialization-less format such as Cap'n Proto).
     fn extract_message(message: &String) -> Option<ComponentMessage> {
         match serde_json::from_str(&message) {
             Ok(t) => Some(t),

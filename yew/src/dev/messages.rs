@@ -3,6 +3,14 @@
 use cfg_if::cfg_if;
 use serde::Serialize;
 
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::web::{Node, INode};
+    } else if #[cfg(feature = "web_sys")] {
+        use web_sys::Node;
+    }
+}
+
 /// Sent when something happens to a component.
 #[derive(Serialize, Debug)]
 pub enum ComponentEvent {
