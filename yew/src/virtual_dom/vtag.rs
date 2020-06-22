@@ -148,7 +148,12 @@ impl ToHtmlString for VTag {
             let is_skipped = tag_name == "textarea" && key == "value";
             if !is_skipped {
                 parts.push(
-                    format!(" {}=\"{}\"", htmlescape::encode_minimal(&key), htmlescape::encode_attribute(&value)).to_string(),
+                    format!(
+                        " {}=\"{}\"",
+                        htmlescape::encode_minimal(&key),
+                        htmlescape::encode_attribute(&value)
+                    )
+                    .to_string(),
                 );
             }
         }
@@ -1044,7 +1049,7 @@ mod tests {
 
         if let VNode::VTag(p) = p {
             let p_html = (*p).to_html_string();
-        
+
             assert_eq!(p_html, "<p />");
         } else {
             assert!(false);
@@ -1069,8 +1074,11 @@ mod tests {
 
         if let VNode::VTag(p) = p {
             let p_html = (*p).to_html_string();
-        
-            assert_eq!(p_html, "<p aria-controls=\"it&#x2D;works\">test<div class=\"foo&#x20;bar\">quux</div></p>");
+
+            assert_eq!(
+                p_html,
+                "<p aria-controls=\"it&#x2D;works\">test<div class=\"foo&#x20;bar\">quux</div></p>"
+            );
         } else {
             assert!(false);
         }

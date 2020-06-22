@@ -109,7 +109,7 @@ mod test {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     #[cfg(feature = "ssr")]
-    use super::{ToHtmlString};
+    use super::ToHtmlString;
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
@@ -152,7 +152,10 @@ mod test {
         };
 
         assert_eq!(&a.to_html_string(), &b.to_html_string());
-        assert_eq!(b.clone().to_html_string(), "some special-chars&quot;&gt; here!");
+        assert_eq!(
+            b.clone().to_html_string(),
+            "some special-chars&quot;&gt; here!"
+        );
     }
 }
 

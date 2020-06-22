@@ -46,7 +46,7 @@ impl ToHtmlString for VNode {
             VNode::VList(vlist) => vlist.to_html_string(),
             VNode::VRef(_node) => {
                 panic!("Stringifying VRef nodes is not supported.");
-            },
+            }
         }
     }
 }
