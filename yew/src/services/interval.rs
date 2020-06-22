@@ -36,14 +36,9 @@ impl fmt::Debug for IntervalTask {
 pub struct IntervalService {}
 
 impl IntervalService {
-    /// Creates a new service instance connected to `App` by provided `sender`.
-    pub fn new() -> Self {
-        Self {}
-    }
-
     /// Sets interval which will call send a messages returned by a converter
     /// on every interval expiration.
-    pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> IntervalTask {
+    pub fn spawn(duration: Duration, callback: Callback<()>) -> IntervalTask {
         let callback = move || {
             callback.emit(());
         };

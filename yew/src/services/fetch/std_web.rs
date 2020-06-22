@@ -161,11 +161,6 @@ impl fmt::Debug for FetchTask {
 pub struct FetchService {}
 
 impl FetchService {
-    /// Creates a new service instance connected to `App` by provided `sender`.
-    pub fn new() -> Self {
-        Self {}
-    }
-
     /// Sends a request to a remote server given a Request object and a callback
     /// function to convert a Response object into a loop's message.
     ///

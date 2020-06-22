@@ -69,15 +69,9 @@ impl fmt::Debug for WebSocketTask {
 pub struct WebSocketService {}
 
 impl WebSocketService {
-    /// Creates a new service instance connected to `App` by provided `sender`.
-    pub fn new() -> Self {
-        Self {}
-    }
-
     /// Connects to a server by a websocket connection. Needs two functions to generate
     /// data and notification messages.
     pub fn connect<OUT: 'static>(
-        &mut self,
         url: &str,
         callback: Callback<OUT>,
         notification: Callback<WebSocketStatus>,
@@ -87,14 +81,14 @@ impl WebSocketService {
     {
         cfg_match! {
             feature = "std_web" => ({
-                let ws = self.connect_common(url, &notification)?.0;
+                let ws = Self::connect_common(url, &notification)?.0;
                 ws.add_event_listener(move |event: SocketMessageEvent| {
                     process_both(&event, &callback);
                 });
                 Ok(WebSocketTask { ws, notification })
             }),
             feature = "web_sys" => ({
-                let ConnectCommon(ws, listeners) = self.connect_common(url, &notification)?;
+                let ConnectCommon(ws, listeners) = Self::connect_common(url, &notification)?;
                 let listener = EventListener::new(&ws, "message", move |event: &Event| {
                     let event = event.dyn_ref::<MessageEvent>().unwrap();
                     process_both(&event, &callback);
@@ -109,7 +103,6 @@ impl WebSocketService {
     /// ignored. Needs two functions to generate data and notification
     /// messages.
     pub fn connect_binary<OUT: 'static>(
-        &mut self,
         url: &str,
         callback: Callback<OUT>,
         notification: Callback<WebSocketStatus>,
@@ -119,14 +112,14 @@ impl WebSocketService {
     {
         cfg_match! {
             feature = "std_web" => ({
-                let ws = self.connect_common(url, &notification)?.0;
+                let ws = Self::connect_common(url, &notification)?.0;
                 ws.add_event_listener(move |event: SocketMessageEvent| {
                     process_binary(&event, &callback);
                 });
                 Ok(WebSocketTask { ws, notification })
             }),
             feature = "web_sys" => ({
-                let ConnectCommon(ws, listeners) = self.connect_common(url, &notification)?;
+                let ConnectCommon(ws, listeners) = Self::connect_common(url, &notification)?;
                 let listener = EventListener::new(&ws, "message", move |event: &Event| {
                     let event = event.dyn_ref::<MessageEvent>().unwrap();
                     process_binary(&event, &callback);
@@ -141,7 +134,6 @@ impl WebSocketService {
     /// ignored. Needs two functions to generate data and notification
     /// messages.
     pub fn connect_text<OUT: 'static>(
-        &mut self,
         url: &str,
         callback: Callback<OUT>,
         notification: Callback<WebSocketStatus>,
@@ -151,14 +143,14 @@ impl WebSocketService {
     {
         cfg_match! {
             feature = "std_web" => ({
-                let ws = self.connect_common(url, &notification)?.0;
+                let ws = Self::connect_common(url, &notification)?.0;
                 ws.add_event_listener(move |event: SocketMessageEvent| {
                     process_text(&event, &callback);
                 });
                 Ok(WebSocketTask { ws, notification })
             }),
             feature = "web_sys" => ({
-                let ConnectCommon(ws, listeners) = self.connect_common(url, &notification)?;
+                let ConnectCommon(ws, listeners) = Self::connect_common(url, &notification)?;
                 let listener = EventListener::new(&ws, "message", move |event: &Event| {
                     let event = event.dyn_ref::<MessageEvent>().unwrap();
                     process_text(&event, &callback);
@@ -169,10 +161,9 @@ impl WebSocketService {
     }
 
     fn connect_common(
-        &mut self,
         url: &str,
         notification: &Callback<WebSocketStatus>,
-    ) -> Result<ConnectCommon, &str> {
+    ) -> Result<ConnectCommon, &'static str> {
         let ws = WebSocket::new(url);
         if ws.is_err() {
             return Err("Failed to created websocket with given URL");
@@ -379,8 +370,7 @@ mod tests {
         let status_future = CallbackFuture::<WebSocketStatus>::default();
         let notification: Callback<_> = status_future.clone().into();
 
-        let mut ws = WebSocketService::new();
-        let mut task = ws.connect(url, callback, notification).unwrap();
+        let mut task = WebSocketService::connect(url, callback, notification).unwrap();
         assert_eq!(status_future.await, WebSocketStatus::Opened);
 
         let msg = Message {
@@ -408,8 +398,7 @@ mod tests {
         let status_future = CallbackFuture::<WebSocketStatus>::default();
         let notification: Callback<_> = status_future.clone().into();
 
-        let mut ws = WebSocketService::new();
-        let mut task = ws.connect_text(url, callback, notification).unwrap();
+        let mut task = WebSocketService::connect_text(url, callback, notification).unwrap();
         assert_eq!(status_future.await, WebSocketStatus::Opened);
 
         let msg = Message {
@@ -440,8 +429,7 @@ mod tests {
         let status_future = CallbackFuture::<WebSocketStatus>::default();
         let notification: Callback<_> = status_future.clone().into();
 
-        let mut ws = WebSocketService::new();
-        let mut task = ws.connect_binary(url, callback, notification).unwrap();
+        let mut task = WebSocketService::connect_binary(url, callback, notification).unwrap();
         assert_eq!(status_future.await, WebSocketStatus::Opened);
 
         let msg = Message {
