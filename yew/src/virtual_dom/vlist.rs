@@ -175,8 +175,10 @@ impl VDiff for VList {
                         new_next_sibling.link(next_sibling.clone());
                     }
 
-                    // Update the next list item and then link the previous left's `next_sibling` to the returned `node` reference
-                    // so that the previous left has an up-to-date `next_sibling` (important for mounting a `Component`)
+                    // Update the next list item and then link the previous left's `next_sibling` to the
+                    // returned `node` reference so that the previous left has an up-to-date `next_sibling`.
+                    // This is important for rendering a `VComp` because each `VComp` keeps track of its
+                    // `next_sibling` to properly render its children.
                     let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
                     last_next_sibling.link(node.clone());
                     last_next_sibling = new_next_sibling;
@@ -997,6 +999,58 @@ mod layout_tests_keys {
                     </>
                 },
                 expected: "<p>31</p><p>32</p><p>21</p><p>22</p><p>11</p><p>12</p>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "Reverse VComp children with children - before",
+                node: html! {
+                    <List>
+                        <Comp id=1 key="comp-1"/>
+                        <Comp id=2 key="comp-2"/>
+                    </List>
+                },
+                expected: "<p>1</p><p>2</p>",
+            },
+            TestLayout {
+                name: "Reverse VComp children with children - after",
+                node: html! {
+                    <List>
+                       <List key="comp-1"> // should have bad next sibling
+                            <Comp id=1 />
+                        </List>
+                        <List key="comp-2">
+                            <p>{"2"}</p>
+                        </List>
+                    </List>
+                },
+                expected: "<p>1</p><p>2</p>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "Reverse VComp children with children - before",
+                node: html! {
+                    <List>
+                        <List key="comp-1"><p>{"1"}</p></List>
+                        <List key="comp-2"><p>{"2"}</p></List>
+                        <List key="comp-3"><p>{"3"}</p></List>
+                    </List>
+                },
+                expected: "<p>1</p><p>2</p><p>3</p>",
+            },
+            TestLayout {
+                name: "Reverse VComp children with children - after",
+                node: html! {
+                    <List>
+                        <Comp id=3 key="comp-3" />
+                        <Comp id=2 key="comp-2" />
+                        <Comp id=1 key="comp-1" />
+                    </List>
+                },
+                expected: "<p>3</p><p>2</p><p>1</p>",
             },
         ]);
 
