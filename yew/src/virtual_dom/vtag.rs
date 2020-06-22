@@ -462,7 +462,7 @@ impl VDiff for VTag {
             match ancestor {
                 // If the ancestor is a tag of the same type, don't recreate, keep the
                 // old tag and update its attributes and children.
-                VNode::VTag(vtag) if self.tag == vtag.tag => Some(vtag),
+                VNode::VTag(vtag) if self.tag == vtag.tag && self.key == vtag.key => Some(vtag),
                 _ => {
                     let element = self.create_element(parent);
                     super::insert_node(&element, parent, Some(ancestor.first_node()));

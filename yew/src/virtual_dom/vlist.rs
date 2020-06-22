@@ -2,14 +2,13 @@
 use super::{Key, VDiff, VNode, VText};
 use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
-use fixedbitset::FixedBitSet;
 use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, Node};
+        use stdweb::web::Element;
     } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Node};
+        use web_sys::Element;
     }
 }
 
@@ -55,6 +54,18 @@ impl VList {
     pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
         self.children.extend(children);
     }
+
+    fn children_keys(&self, warn: bool) -> HashSet<Key> {
+        let mut hash_set = HashSet::with_capacity(self.children.len());
+        for l in self.children.iter() {
+            if let Some(k) = l.key() {
+                if !hash_set.insert(k.clone()) && warn {
+                    log::warn!("Key '{}' is not unique in list but must be.", k);
+                }
+            }
+        }
+        hash_set
+    }
 }
 
 impl VDiff for VList {
@@ -88,269 +99,139 @@ impl VDiff for VList {
             self.children.push(placeholder.into());
         }
 
-        // Check for lefts to see if there are duplicates and show a warning
-        // (no need to check in right, there cannot be duplicates).
-        let n_keyed_lefts = {
-            let mut hash_set = HashSet::with_capacity(self.children.len());
-            for l in self.children.iter() {
-                if let Some(k) = l.key() {
-                    if !hash_set.insert(k) {
-                        log::error!("Key '{}' is not unique in list but must be.", &k);
-                    }
-                }
-            }
-            hash_set.len()
-        };
-        let lefts_some_keyed = n_keyed_lefts > 0;
-        let lefts_all_keyed = self.children.len() == n_keyed_lefts;
-        if lefts_some_keyed && !lefts_all_keyed {
-            log::error!(
-                "Ignoring keys. When using keyed lists, every element must have a key and they must be unique.",
-            );
-        }
+        let left_keys = self.children_keys(true);
+        let lefts_keyed = left_keys.len() == self.children.len();
 
-        // Take rights from ancestor.
-        let mut rights = match ancestor {
-            // If the ancestor is also a VList, then the right list is the
+        let right_keys = if let Some(VNode::VList(vlist)) = &ancestor {
+            vlist.children_keys(false)
+        } else {
+            HashSet::new()
+        };
+
+        let mut right_children = match ancestor {
+            // If the ancestor is also a VList, then the "right" list is the
             // previously rendered items.
             Some(VNode::VList(vlist)) => vlist.children,
-            // Otherwise, there was a node before but it wasn't a list. Then,
-            // use the current node as a single fragment list and let the
-            // `apply` of `VNode` handle it.
-            Some(vnode) if n_keyed_lefts == 0 => vec![vnode],
-            // Otherwise, we don't reuse it, as the chance that the element
-            // is keyed and present in left is almost null.
-            Some(mut vnode) => {
-                vnode.detach(parent);
-                vec![]
-            }
+            // If the ancestor was not a VList, then the "right" list is a single node
+            Some(vnode) => vec![vnode],
             None => vec![],
         };
+        let rights_keyed = right_keys.len() == right_children.len();
 
-        // Collect the right/ancestor keyed elements in a hashmap.
-        let mut rights_lookup = rights
-            .iter()
-            .enumerate()
-            .filter_map(|(idx, vnode)| vnode.key().as_ref().map(|key| (key.clone(), idx)))
-            .collect::<HashMap<_, _>>();
+        // If the existing list and the new list are both properly keyed,
+        // then move existing list nodes into the new list's order before diffing
+        if lefts_keyed && rights_keyed {
+            // Find the intersection of keys to determine which right nodes can be reused
+            let matched_keys: HashSet<_> = left_keys.intersection(&right_keys).collect();
 
-        // If there are some keys in right but not all lefts have keys (so we
-        // won't use the keyed algorithm), then we detach all the rights to be
-        // sure to not reuse a keyed ancestor. We also detach rights if there
-        // are some keys but not all have keys.
-        if (!lefts_all_keyed && !rights_lookup.is_empty())
-            || (!rights_lookup.is_empty() && rights_lookup.len() != rights.len())
-        {
-            rights.drain(..).for_each(|mut right| {
-                right.detach(parent);
-            });
-            rights_lookup.clear();
-        }
-
-        // Determine which algorithm we use. If there are some keys, but not all
-        // the elements are keyed, we consider it a degenerated case and use the
-        // non-keyed algorithm. Importantly, don't use the keyed algorithm if
-        // rights is empty (no need) or if there are no keys in rights (no need
-        // neither).
-        let use_keyed_algorithm =
-            lefts_all_keyed && !rights.is_empty() && !rights_lookup.is_empty();
-
-        // The algorithms are different when there are keys, because the keyed
-        // variant it is more expensive and less frequent.
-        if !use_keyed_algorithm {
-            let mut rights = rights.into_iter().peekable();
-            let mut last_next_sibling = NodeRef::default();
-            let mut nodes: Vec<NodeRef> = self
-                .children
-                .iter_mut()
-                .map(|left| {
-                    let ancestor = rights.next();
-
-                    // Create a new `next_sibling` reference which points to the next `right` or
-                    // the outer list's `next_sibling` if there are no more `rights`.
-                    let new_next_sibling = NodeRef::default();
-                    if let Some(next_right) = rights.peek() {
-                        new_next_sibling.set(Some(next_right.first_node()));
+            // Detach any right nodes that were not matched with a left node
+            right_children = right_children
+                .into_iter()
+                .filter_map(|mut right| {
+                    if matched_keys.contains(right.key().as_ref().unwrap()) {
+                        Some(right)
                     } else {
-                        new_next_sibling.link(next_sibling.clone());
+                        right.detach(parent);
+                        None
+                    }
+                })
+                .collect();
+
+            // Determine which rights are already in correct order and which
+            // rights need to be moved in the DOM before being reused
+            let mut rights_to_move = HashMap::with_capacity(right_children.len());
+            let mut matched_lefts = self
+                .children
+                .iter()
+                .filter(|left| matched_keys.contains(left.key().as_ref().unwrap()))
+                .peekable();
+            let mut left = matched_lefts.next();
+
+            // Note: `filter_map` is used to move rights into `rights_to_move`
+            #[allow(clippy::unnecessary_filter_map)]
+            let rights_in_place: Vec<_> = right_children
+                .into_iter()
+                .filter_map(|right| {
+                    if right.key() == left.and_then(|l| l.key()) {
+                        left = matched_lefts.next();
+                        return Some(right);
+                    } else if right.key() == matched_lefts.peek().and_then(|l| l.key()) {
+                        matched_lefts.next();
+                        left = matched_lefts.next();
+                        return Some(right);
                     }
 
-                    // Update the next list item and then link the previous left's `next_sibling` to the
-                    // returned `node` reference so that the previous left has an up-to-date `next_sibling`.
-                    // This is important for rendering a `VComp` because each `VComp` keeps track of its
-                    // `next_sibling` to properly render its children.
-                    let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
-                    last_next_sibling.link(node.clone());
-                    last_next_sibling = new_next_sibling;
-                    node
+                    rights_to_move.insert(right.key().unwrap(), right);
+                    None
                 })
                 .collect();
 
-            // If there are more `rights` than `lefts`, we need to make sure to link the last left's `next_sibling`
-            // to the outer list's `next_sibling` so that it doesn't point at a `right` that is detached.
-            last_next_sibling.link(next_sibling);
-
-            // Detach all extra rights
-            for mut right in rights {
-                right.detach(parent);
-            }
-
-            assert!(!nodes.is_empty(), "VList should have at least one child");
-            nodes.swap_remove(0)
-        } else {
-            // Here, we know that all the left and right elements have keys.
-
-            // Copy the keys from rights, as we need them for moving the vnodes
-            // at the end of the algorithm, but we will steal nodes from
-            // `rights` so will not be able to use it.
-            let right_keys: Vec<Key> = rights
-                .iter()
-                .map(|vnode| vnode.key().clone().expect("right must have a key"))
-                .collect();
-
-            // We will try to match the left vnodes with the right ones, and
-            // store them in `matched_rights`: it is formed of vnodes from
-            // right, in the same order than left. `reused_rights` is used to
-            // know which right nodes have been matched and reused.
-            let mut matched_rights: Vec<Option<VNode>> = vec![None; self.children.len()];
-            let mut reused_rights = FixedBitSet::with_capacity(rights.len());
-
-            // Generator of dummy vnodes, used when stealing vnodes from rights.
-            let make_dummy = || {
-                VNode::VText(VText {
-                    text: String::default(),
-                    reference: None,
-                })
-            };
-
-            // Match all the elements that are not new, but may have moved.
-            let mut new_lefts: HashSet<usize> = HashSet::with_capacity(self.children.len());
-            for ((left_idx, left), matched_right) in self
+            // Move rights into correct order and build `right_children`
+            right_children = Vec::with_capacity(matched_keys.len());
+            let mut matched_lefts = self
                 .children
                 .iter()
-                .enumerate()
-                .zip(matched_rights.iter_mut())
-            {
-                let left_key = left.key().as_ref().expect("must have a key");
-                if let Some(right_idx) = rights_lookup.remove(&left_key) {
-                    let right = rights
-                        .get_mut(right_idx)
-                        .expect("the index from the map must be valid");
-                    let right = core::mem::replace(right, make_dummy());
-                    *matched_right = Some(right);
-                    reused_rights.put(right_idx);
-                } else {
-                    new_lefts.insert(left_idx);
+                .filter(|left| matched_keys.contains(left.key().as_ref().unwrap()));
+
+            for right in rights_in_place.into_iter() {
+                let mut left = matched_lefts.next().unwrap();
+                while right.key() != left.key() {
+                    let right_to_move = rights_to_move.remove(&left.key().unwrap()).unwrap();
+                    right_to_move.move_before(parent, Some(right.first_node()));
+                    right_children.push(right_to_move);
+                    left = matched_lefts.next().unwrap();
                 }
+                right_children.push(right);
             }
-            let new_lefts = new_lefts; // remove mutability
 
-            // Reconciliation loop, i.e. apply the least amount of
-            // transformations to rights to make them identical to lefts.
-            let mut matched_rights = matched_rights.into_iter().peekable();
-            for left in self.children.iter_mut() {
-                let ancestor = matched_rights.next().unwrap();
+            for left in matched_lefts {
+                let right_to_move = rights_to_move.remove(&left.key().unwrap()).unwrap();
+                right_to_move.move_before(parent, next_sibling.get());
+                right_children.push(right_to_move);
+            }
 
-                // Create a new `next_sibling` reference which points to the
-                // next `right` or the outer list's `next_sibling` if there
-                // are no more `rights`.
+            assert!(rights_to_move.is_empty())
+        }
+
+        let mut rights = right_children.into_iter().peekable();
+        let mut last_next_sibling = NodeRef::default();
+        let mut nodes: Vec<NodeRef> = self
+            .children
+            .iter_mut()
+            .map(|left| {
+                let ancestor = rights.next();
+
+                // Create a new `next_sibling` reference which points to the next `right` or
+                // the outer list's `next_sibling` if there are no more `rights`.
                 let new_next_sibling = NodeRef::default();
-                if let Some(Some(next_right)) = matched_rights.peek() {
+                if let Some(next_right) = rights.peek() {
                     new_next_sibling.set(Some(next_right.first_node()));
                 } else {
                     new_next_sibling.link(next_sibling.clone());
                 }
 
-                // Update the list item.
-                left.apply(parent_scope, parent, new_next_sibling, ancestor);
-            }
+                // Update the next list item and then link the previous left's `next_sibling` to the
+                // returned `node` reference so that the previous left has an up-to-date `next_sibling`.
+                // This is important for rendering a `VComp` because each `VComp` keeps track of its
+                // `next_sibling` to properly render its children.
+                let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
+                last_next_sibling.link(node.clone());
+                last_next_sibling = new_next_sibling;
+                node
+            })
+            .collect();
 
-            // If there are more `rights` than `lefts`, we need to make sure to
-            // link the last left's `next_sibling` to the outer list's
-            // `next_sibling` so that it doesn't point at a `right` that is
-            // detached.
-            let last_next_sibling = next_sibling.clone();
+        // If there are more `rights` than `lefts`, we need to make sure to link the last left's `next_sibling`
+        // to the outer list's `next_sibling` so that it doesn't point at a `right` that is detached.
+        last_next_sibling.link(next_sibling);
 
-            drop(matched_rights);
-
-            // The remaining items in this map are the vnodes that have not been
-            // reused, hence that have been deleted. We just rename the map for
-            // clarity.
-            let deleted_rights = rights_lookup;
-
-            // Move in the DOM the nodes that have been reused.
-            let mut moved: HashSet<Key> = HashSet::with_capacity(self.children.len());
-            let mut lefts = self.children.iter().peekable();
-            let mut right_keys = right_keys.into_iter().peekable();
-            let mut right_key = right_keys.next();
-            let mut moves: Vec<(&VNode, Option<Node>)> = Vec::with_capacity(self.children.len());
-            while let Some(left) = lefts.next() {
-                // Ignore the deleted right vnodes, and those corresponding to
-                // already moved left vnodes.
-                while let Some(key) = right_key.clone() {
-                    if moved.contains(&key) || deleted_rights.contains_key(&key) {
-                        right_key = right_keys.next();
-                    } else {
-                        break;
-                    }
-                }
-
-                let left_key = left.key().as_ref().expect("left must have key");
-
-                // Optimization: try to peek one after the current one, to
-                // detect one-off moves. We know that the current right hasn't
-                // been deleted or already moved, so it must be present in left.
-                if let (a, Some(b)) = (left_key, right_keys.peek()) {
-                    if a == b {
-                        // Skip the right key. This will force a move of the
-                        // matching left one later when we will process it.
-                        right_key = right_keys.next();
-                    }
-                }
-
-                match (left_key, &right_key) {
-                    (left_key, Some(b)) if left_key == b => {
-                        // Keys are matching, no move needed.
-                        right_key = right_keys.next();
-                    }
-                    (left_key, _) => {
-                        // Move the left vnode.
-                        let next_sibling = match lefts.peek() {
-                            Some(vnode) => Some(vnode.first_node()),
-                            _ => next_sibling.get(),
-                        };
-                        moves.push((&left, next_sibling));
-
-                        // Remember that we moved it, to allow skipping the
-                        // matching right if there is one.
-                        moved.insert(left_key.clone());
-                    }
-                }
-            }
-            drop(moved);
-            drop(lefts);
-            drop(right_keys);
-            drop(right_key);
-            drop(new_lefts);
-
-            // Apply the moves.
-            for (vnode, next_sibling) in moves.into_iter().rev() {
-                vnode.move_before(parent, next_sibling);
-            }
-
-            // Detach all previously rendered elements that have not been
-            // reused, which can be seen because reused.
-            let not_reused_rights = {
-                reused_rights.toggle_range(..);
-                reused_rights
-            };
-            for not_reused_idx in not_reused_rights.ones() {
-                let right = rights.get_mut(not_reused_idx).expect("id must exist");
-                right.detach(parent);
-            }
-
-            last_next_sibling
+        // Detach all extra rights
+        for mut right in rights {
+            right.detach(parent);
         }
+
+        assert!(!nodes.is_empty(), "VList should have at least one child");
+        nodes.swap_remove(0)
     }
 }
 
@@ -431,10 +312,10 @@ mod layout_tests {
 
 #[cfg(all(test, feature = "web_sys"))]
 mod layout_tests_keys {
-    use super::Node;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
     use crate::{Children, Component, ComponentLink, Html, Properties, ShouldRender};
+    use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -571,6 +452,29 @@ mod layout_tests_keys {
 
         layouts.extend(vec![
             TestLayout {
+                name: "No matches - before",
+                node: html! {
+                    <>
+                        <i key="i"></i>
+                        <e key="e"></e>
+                    </>
+                },
+                expected: "<i></i><e></e>",
+            },
+            TestLayout {
+                name: "No matches - after",
+                node: html! {
+                    <>
+                        <a key="a"></a>
+                        <p key="p"></p>
+                    </>
+                },
+                expected: "<a></a><p></p>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
                 name: "Append - before",
                 node: html! {
                     <>
@@ -667,6 +571,85 @@ mod layout_tests_keys {
 
         layouts.extend(vec![
             TestLayout {
+                name: "Delete last and change node type - before",
+                node: html! {
+                    <>
+                        <i key="i"></i>
+                        <e key="e"></e>
+                        <p key="p"></p>
+                    </>
+                },
+                expected: "<i></i><e></e><p></p>",
+            },
+            TestLayout {
+                name: "Delete last - after",
+                node: html! {
+                    <>
+                        <List key="i"><i/></List>
+                        <List key="e"><e/></List>
+                        <List key="a"><a/></List>
+                    </>
+                },
+                expected: "<i></i><e></e><a></a>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "Delete middle - before",
+                node: html! {
+                    <>
+                        <i key="i"></i>
+                        <e key="e"></e>
+                        <p key="p"></p>
+                        <a key="a"></a>
+                    </>
+                },
+                expected: "<i></i><e></e><p></p><a></a>",
+            },
+            TestLayout {
+                name: "Delete middle - after",
+                node: html! {
+                    <>
+                        <i key="i"></i>
+                        <e key="e2"></e>
+                        <p key="p2"></p>
+                        <a key="a"></a>
+                    </>
+                },
+                expected: "<i></i><e></e><p></p><a></a>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "Delete middle and change node type - before",
+                node: html! {
+                    <>
+                        <i key="i"></i>
+                        <e key="e"></e>
+                        <p key="p"></p>
+                        <a key="a"></a>
+                    </>
+                },
+                expected: "<i></i><e></e><p></p><a></a>",
+            },
+            TestLayout {
+                name: "Delete middle and change node type- after",
+                node: html! {
+                    <>
+                        <List key="i2"><i/></List>
+                        <e key="e"></e>
+                        <List key="p"><p/></List>
+                        <List key="a2"><a/></List>
+                    </>
+                },
+                expected: "<i></i><e></e><p></p><a></a>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
                 name: "Reverse - before",
                 node: html! {
                     <>
@@ -686,6 +669,38 @@ mod layout_tests_keys {
                         <p key="p"></p>
                         <e key="e"></e>
                         <i key="i"></i>
+                    </>
+                },
+                expected: "<u></u><p></p><e></e><i></i>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "Reverse and change node type - before",
+                node: html! {
+                    <>
+                        <i key="i"></i>
+                        <key="i1"></>
+                        <key="i2"></>
+                        <key="i3"></>
+                        <e key="e"></e>
+                        <key="yo">
+                            <p key="p"></p>
+                        </>
+                        <u key="u"></u>
+                    </>
+                },
+                expected: "<i></i><e></e><p></p><u></u>",
+            },
+            TestLayout {
+                name: "Reverse and change node type - after",
+                node: html! {
+                    <>
+                        <List key="u"><u/></List>
+                        <List key="p"><p/></List>
+                        <List key="e"><e/></List>
+                        <List key="i"><i/></List>
                     </>
                 },
                 expected: "<u></u><p></p><e></e><i></i>",
@@ -718,6 +733,71 @@ mod layout_tests_keys {
                     </>
                 },
                 expected: "<e></e><i></i><p></p><a></a><u></u>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "Swap 1&2 and change node type - before",
+                node: html! {
+                    <>
+                        <i key="1"></i>
+                        <e key="2"></e>
+                        <p key="3"></p>
+                        <a key="4"></a>
+                        <u key="5"></u>
+                    </>
+                },
+                expected: "<i></i><e></e><p></p><a></a><u></u>",
+            },
+            TestLayout {
+                name: "Swap 1&2 and change node type - after",
+                node: html! {
+                    <>
+                        <List key="2"><e/></List>
+                        <List key="1"><i/></List>
+                        <List key="3"><p/></List>
+                        <List key="4"><a/></List>
+                        <List key="5"><u/></List>
+                    </>
+                },
+                expected: "<e></e><i></i><p></p><a></a><u></u>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "test - before",
+                node: html! {
+                    <>
+                        <key="1">
+                            <e key="e"></e>
+                            <p key="p"></p>
+                            <a key="a"></a>
+                            <u key="u"></u>
+                        </>
+                        <key="2">
+                            <e key="e"></e>
+                            <p key="p"></p>
+                            <a key="a"></a>
+                            <u key="u"></u>
+                        </>
+                    </>
+                },
+                expected: "<e></e><p></p><a></a><u></u><e></e><p></p><a></a><u></u>",
+            },
+            TestLayout {
+                name: "Swap 4&5 - after",
+                node: html! {
+                    <>
+                        <e key="1"></e>
+                        <key="2">
+                            <p key="p"></p>
+                            <i key="i"></i>
+                        </>
+                    </>
+                },
+                expected: "<e></e><p></p><i></i>",
             },
         ]);
 
@@ -1004,7 +1084,7 @@ mod layout_tests_keys {
 
         layouts.extend(vec![
             TestLayout {
-                name: "Reverse VComp children with children - before",
+                name: "Complex component update - before",
                 node: html! {
                     <List>
                         <Comp id=1 key="comp-1"/>
@@ -1014,10 +1094,10 @@ mod layout_tests_keys {
                 expected: "<p>1</p><p>2</p>",
             },
             TestLayout {
-                name: "Reverse VComp children with children - after",
+                name: "Complex component update - after",
                 node: html! {
                     <List>
-                       <List key="comp-1"> // should have bad next sibling
+                        <List key="comp-1">
                             <Comp id=1 />
                         </List>
                         <List key="comp-2">
@@ -1031,7 +1111,38 @@ mod layout_tests_keys {
 
         layouts.extend(vec![
             TestLayout {
-                name: "Reverse VComp children with children - before",
+                name: "Reorder VComp children with children - before",
+                node: html! {
+                    <>
+                        <List key="comp-1"><p>{"1"}</p></List>
+                        <List key="comp-3"><p>{"3"}</p></List>
+                        <List key="comp-5"><p>{"5"}</p></List>
+                        <List key="comp-2"><p>{"2"}</p></List>
+                        <List key="comp-4"><p>{"4"}</p></List>
+                        <List key="comp-6"><p>{"6"}</p></List>
+                    </>
+                },
+                expected: "<p>1</p><p>3</p><p>5</p><p>2</p><p>4</p><p>6</p>",
+            },
+            TestLayout {
+                name: "Reorder VComp children with children - after",
+                node: html! {
+                    <>
+                        <Comp id=6 key="comp-6"/>
+                        <Comp id=5 key="comp-5"/>
+                        <Comp id=4 key="comp-4"/>
+                        <Comp id=3 key="comp-3"/>
+                        <Comp id=2 key="comp-2"/>
+                        <Comp id=1 key="comp-1"/>
+                    </>
+                },
+                expected: "<p>6</p><p>5</p><p>4</p><p>3</p><p>2</p><p>1</p>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
+                name: "Replace and reorder components - before",
                 node: html! {
                     <List>
                         <List key="comp-1"><p>{"1"}</p></List>
@@ -1042,7 +1153,7 @@ mod layout_tests_keys {
                 expected: "<p>1</p><p>2</p><p>3</p>",
             },
             TestLayout {
-                name: "Reverse VComp children with children - after",
+                name: "Replace and reorder components - after",
                 node: html! {
                     <List>
                         <Comp id=3 key="comp-3" />

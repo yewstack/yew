@@ -185,7 +185,7 @@ impl VDiff for VComp {
         if let Some(mut ancestor) = ancestor {
             if let VNode::VComp(ref mut vcomp) = &mut ancestor {
                 // If the ancestor is the same type, reuse it and update its properties
-                if self.type_id == vcomp.type_id {
+                if self.type_id == vcomp.type_id && self.key == vcomp.key {
                     self.node_ref.link(vcomp.node_ref.clone());
                     let scope = vcomp.scope.take().expect("VComp is not mounted");
                     mountable.reuse(scope.borrow(), next_sibling);
