@@ -35,13 +35,8 @@ impl fmt::Debug for TimeoutTask {
 pub struct TimeoutService {}
 
 impl TimeoutService {
-    /// Creates a new service instance connected to `App` by provided `sender`.
-    pub fn new() -> Self {
-        Self {}
-    }
-
     /// Sets timeout which sends messages from a `converter` after `duration`.
-    pub fn spawn(&mut self, duration: Duration, callback: Callback<()>) -> TimeoutTask {
+    pub fn spawn(duration: Duration, callback: Callback<()>) -> TimeoutTask {
         let callback = move || {
             callback.emit(());
         };

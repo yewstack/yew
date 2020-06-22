@@ -31,10 +31,9 @@ impl Agent for Worker {
     type Output = Response;
 
     fn create(link: AgentLink<Self>) -> Self {
-        let mut interval = IntervalService::new();
         let duration = Duration::from_secs(3);
         let callback = link.callback(|_| Msg::Updating);
-        let task = interval.spawn(duration, callback);
+        let task = IntervalService::spawn(duration, callback);
         Worker {
             link,
             _task: Box::new(task),
