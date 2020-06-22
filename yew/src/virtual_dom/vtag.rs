@@ -123,6 +123,14 @@ impl ToHtmlString for VTag {
     fn to_html_string(&self) -> String {
         let mut parts: Vec<String> = Vec::new();
         let tag_name = htmlescape::encode_minimal(&self.tag).to_lowercase();
+
+        for c in tag_name.chars() {
+            let is_alnum = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
+            if !is_alnum && c != '-' && c != '_' && c != ':' {
+                panic!("Invalid tag name: `{}`", &tag_name);
+            }
+        }
+
         parts.push(format!("<{}", tag_name).to_string());
 
         for (key_unclean, value) in &self.attributes {
@@ -130,21 +138,17 @@ impl ToHtmlString for VTag {
             // checked, value (special if textarea), disabled, href?, selected,
             // kind -> type if input, disallow ref, disallow LISTENER_SET, class
 
-            let mut is_valid = true;
             for c in key.chars() {
                 let is_alnum = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
                 if !is_alnum && c != '-' && c != '_' && c != ':' {
-                    is_valid = false;
-                    warn!("Invalid attribute name: `{}`", &key);
-                    break;
+                    panic!("Invalid attribute name: `{}`", &key);
                 }
             }
 
             let is_skipped = tag_name == "textarea" && key == "value";
-
-            if is_valid && !is_skipped {
+            if !is_skipped {
                 parts.push(
-                    format!(" {}=\"{}\"", key, htmlescape::encode_attribute(&value)).to_string(),
+                    format!(" {}=\"{}\"", htmlescape::encode_minimal(&key), htmlescape::encode_attribute(&value)).to_string(),
                 );
             }
         }
@@ -1029,6 +1033,45 @@ mod tests {
 
         html! { <div><a data-val=<u32 as Default>::default() /> </div> };
         html! { <div><a data-val=Box::<u32>::default() /></div> };
+    }
+
+    #[test]
+    fn it_stringifies_simple() {
+        let p = html! {
+            <p></p>
+        };
+
+        if let VNode::VTag(p) = p {
+            let p_html = (*p).to_html_string();
+        
+            assert_eq!(p_html, "<p />");
+        } else {
+            assert!(false);
+        }
+    }
+
+    #[test]
+    fn it_stringifies_complex() {
+        let other_sym = "bar";
+        let div = html! {
+            <div>
+                { "quux" }
+            </div>
+        };
+        let p = html! {
+            <p class=("foo", other_sym) aria-controls="it-works">
+                { "test" }
+                {div}
+            </p>
+        };
+
+        if let VNode::VTag(p) = p {
+            let p_html = (*p).to_html_string();
+        
+            assert_eq!(p_html, "<p aria-controls=\"it&#x2D;works\" class=\"foo&#x20;bar\">test<div>quux</div></p>");
+        } else {
+            assert!(false);
+        }
     }
 
     #[test]
