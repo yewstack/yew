@@ -1094,6 +1094,23 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "ssr")]
+    fn it_does_not_stringify_special_attrs() {
+        let node_ref = NodeRef::default();
+
+        let div = html! {
+            <div ref=node_ref />
+        };
+
+        if let VNode::VTag(div) = div {
+            let div_html = (*div).to_html_string();
+            assert_eq!(div_html, "<div />");
+        } else {
+            assert!(false);
+        }
+    }
+
+    #[test]
     fn it_does_not_set_empty_class_name() {
         let scope = test_scope();
         let parent = document().create_element("div").unwrap();
