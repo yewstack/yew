@@ -46,10 +46,26 @@ enum DevToolsExtensionMsg {
     Noop,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 struct ComponentRepr {
     name: String,
     selector: String,
     is_in_dom: bool,
+}
+
+impl std::convert::Into<Html> for &ComponentRepr {
+    fn into(self) -> Html {
+        html! {
+            <>
+                <h3>{self.name.clone()}</h3>
+                <p>{self.selector.clone()}</p>
+                <p>{match self.is_in_dom {
+                    true => "In DOM",
+                    false => "Not in DOM"
+                }}</p>
+            </>
+        }
+    }
 }
 
 impl Component for DevToolsExtension {
@@ -102,23 +118,52 @@ impl Component for DevToolsExtension {
 
     fn view(&self) -> Html {
         html! {
-            <h1>{"Yew DevTools"}</h1>
+            <>
+                <h1>{"Yew DevTools"}</h1>
+                <div>
+                    {
+                        if let Some(root_node) = self.root_node {
+                            self.render_component_tree(root_node)
+                        } else {
+                            html! {
+                                <p>{"No data received (yet)..."}</p>
+                            }
+                        }
+                    }
+                </div>
+            </>
         }
     }
 }
 
 impl DevToolsExtension {
+    fn render_component_tree(&self, top_node_id: indextree::NodeId) -> Html {
+        let top_node = self.component_tree.get(top_node_id).unwrap().get();
+        let top_node_html: Html = top_node.into();
+        let children = top_node_id.children(&self.component_tree);
+        html! {
+            <div class="node">
+                <div class="parent">
+                    {top_node_html}
+                </div>
+                <div class="children">
+                    {children.map(|child| self.render_component_tree(child)).collect::<Html>()}
+                </div>
+            </div>
+        }
+    }
+
     fn handle_message(&mut self, message: String) -> bool {
         let message = match DevToolsExtension::extract_message(&message) {
             Some(t) => t,
             None => return false,
         };
         match message.event {
-            ComponentEvent::Mounted => self.markd_added_to_dom(&message),
+            ComponentEvent::Mounted => self.set_dom_status(&message, true),
             ComponentEvent::Updated => {}
             ComponentEvent::Created => self.create_component(&message),
             ComponentEvent::Destroyed => self.delete_component(&message),
-            ComponentEvent::Unmounted => self.mark_removed_from_dom(message),
+            ComponentEvent::Unmounted => self.set_dom_status(&message, false),
         }
         false
     }
@@ -127,32 +172,27 @@ impl DevToolsExtension {
         let found_node = self
             .component_tree
             .iter()
-            .find(|node| node.get().selector == message.data.unwrap().selector.unwrap())
+            .find(|node| {
+                &node.get().selector == message.data.as_ref().unwrap().selector.as_ref().unwrap()
+            })
             .unwrap();
         let found_node = self.component_tree.get_node_id(found_node).unwrap();
         found_node.remove(&mut self.component_tree);
     }
 
-    fn markd_added_to_dom(&mut self, message: &ComponentMessage) {
-        let selector = message.data.unwrap().selector.unwrap();
-        let relevant_node = self
+    fn set_dom_status(&mut self, message: &ComponentMessage, status: bool) {
+        let selector = message.data.as_ref().unwrap().selector.as_ref().unwrap();
+        let node = self
             .component_tree
             .iter()
-            .find(|node| node.get().selector == selector)
+            .find(|node| &node.get().selector == selector)
+            .unwrap();
+        let node_id = self.component_tree.get_node_id(node).unwrap();
+        self.component_tree
+            .get_mut(node_id)
             .unwrap()
-            .get_mut();
-        relevant_node.is_in_dom = true;
-    }
-
-    fn mark_removed_from_dom(&mut self, message: ComponentMessage) {
-        let selector = message.data.unwrap().selector.unwrap();
-        let relevant_node = self
-            .component_tree
-            .iter()
-            .find(|node| node.get().selector == selector)
-            .unwrap()
-            .get_mut();
-        relevant_node.is_in_dom = false;
+            .get_mut()
+            .is_in_dom = status;
     }
 
     fn create_component(&mut self, message: &ComponentMessage) {
@@ -172,7 +212,7 @@ impl DevToolsExtension {
         message: &ComponentMessage,
         root_node: indextree::NodeId,
     ) {
-        let selector = message.data.unwrap().selector.unwrap();
+        let selector = message.data.as_ref().unwrap().selector.as_ref().unwrap();
         let youngest_parent = self.component_tree.iter().fold(root_node, |acc, val| {
             if self
                 .component_tree
@@ -180,23 +220,26 @@ impl DevToolsExtension {
                 .unwrap()
                 .get()
                 .selector
-                .starts_with(&selector)
+                .as_str()
+                .starts_with(selector.as_str())
                 && self
                     .component_tree
                     .get(root_node)
                     .unwrap()
                     .get()
                     .selector
-                    .starts_with(&val.get().selector)
+                    .as_str()
+                    .starts_with(val.get().selector.as_str())
             {
                 self.component_tree.get_node_id(val).unwrap()
             } else {
-                root_node
+                acc
             }
         });
+
         let component_node = self.component_tree.new_node(ComponentRepr {
             name: "".to_string(),
-            selector,
+            selector: selector.to_string(),
             is_in_dom: false,
         });
         youngest_parent.append(component_node, &mut self.component_tree);
