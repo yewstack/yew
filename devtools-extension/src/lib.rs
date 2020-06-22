@@ -81,96 +81,7 @@ impl Component for DevToolsExtension {
 
     fn update(&mut self, msg: Self::Message) -> bool {
         match msg {
-            DevToolsExtensionMsg::ReceiveWSMessage(message) => {
-                let message: ComponentMessage = match serde_json::from_str(&message) {
-                    Ok(t) => t,
-                    Err(e) => {
-                        yew::web_sys::console::error_1(
-                            &format!(
-                                "Received an invalid message from the DevTools server. \
-                            Error message: `{:?}`",
-                                e
-                            )
-                            .into(),
-                        );
-                        return false;
-                    }
-                };
-                match message.event {
-                    ComponentEvent::Mounted => {
-                        let selector = message.data.unwrap().selector.unwrap();
-                        let relevant_node = self
-                            .component_tree
-                            .iter()
-                            .find(|node| node.get().selector == selector)
-                            .unwrap()
-                            .get_mut();
-                        relevant_node.is_in_dom = true;
-                    }
-                    ComponentEvent::Updated => {}
-                    ComponentEvent::Created => {
-                        if let Some(root_node) = self.root_node {
-                            let selector = message.data.unwrap().selector.unwrap();
-                            let youngest_parent =
-                                self.component_tree.iter().fold(root_node, |acc, val| {
-                                    if self
-                                        .component_tree
-                                        .get(root_node)
-                                        .unwrap()
-                                        .get()
-                                        .selector
-                                        .starts_with(&selector)
-                                        && self
-                                            .component_tree
-                                            .get(root_node)
-                                            .unwrap()
-                                            .get()
-                                            .selector
-                                            .starts_with(&val.get().selector)
-                                    {
-                                        self.component_tree.get_node_id(val).unwrap()
-                                    } else {
-                                        root_node
-                                    }
-                                });
-                            let component_node = self.component_tree.new_node(ComponentRepr {
-                                name: "".to_string(),
-                                selector,
-                                is_in_dom: false,
-                            });
-                            youngest_parent.append(component_node, &mut self.component_tree);
-                        } else {
-                            self.root_node = Some(self.component_tree.new_node(ComponentRepr {
-                                name: "".to_string(),
-                                selector: "".to_string(),
-                                is_in_dom: false,
-                            }))
-                        }
-                    }
-                    ComponentEvent::Destroyed => {
-                        let found_node = self
-                            .component_tree
-                            .iter()
-                            .find(|node| {
-                                node.get().selector == message.data.unwrap().selector.unwrap()
-                            })
-                            .unwrap();
-                        let found_node = self.component_tree.get_node_id(found_node).unwrap();
-                        found_node.remove(&mut self.component_tree);
-                    }
-                    ComponentEvent::Unmounted => {
-                        let selector = message.data.unwrap().selector.unwrap();
-                        let relevant_node = self
-                            .component_tree
-                            .iter()
-                            .find(|node| node.get().selector == selector)
-                            .unwrap()
-                            .get_mut();
-                        relevant_node.is_in_dom = false;
-                    }
-                }
-                false
-            }
+            DevToolsExtensionMsg::ReceiveWSMessage(message) => self.handle_message(message),
             DevToolsExtensionMsg::ReceiveWSStatus(status) => {
                 if let yew::services::websocket::WebSocketStatus::Error = status {
                     yew::web_sys::console::error_1(
@@ -192,6 +103,119 @@ impl Component for DevToolsExtension {
     fn view(&self) -> Html {
         html! {
             <h1>{"Yew DevTools"}</h1>
+        }
+    }
+}
+
+impl DevToolsExtension {
+    fn handle_message(&mut self, message: String) -> bool {
+        let message = match DevToolsExtension::extract_message(&message) {
+            Some(t) => t,
+            None => return false,
+        };
+        match message.event {
+            ComponentEvent::Mounted => self.markd_added_to_dom(&message),
+            ComponentEvent::Updated => {}
+            ComponentEvent::Created => self.create_component(&message),
+            ComponentEvent::Destroyed => self.delete_component(&message),
+            ComponentEvent::Unmounted => self.mark_removed_from_dom(message),
+        }
+        false
+    }
+
+    fn delete_component(&mut self, message: &ComponentMessage) {
+        let found_node = self
+            .component_tree
+            .iter()
+            .find(|node| node.get().selector == message.data.unwrap().selector.unwrap())
+            .unwrap();
+        let found_node = self.component_tree.get_node_id(found_node).unwrap();
+        found_node.remove(&mut self.component_tree);
+    }
+
+    fn markd_added_to_dom(&mut self, message: &ComponentMessage) {
+        let selector = message.data.unwrap().selector.unwrap();
+        let relevant_node = self
+            .component_tree
+            .iter()
+            .find(|node| node.get().selector == selector)
+            .unwrap()
+            .get_mut();
+        relevant_node.is_in_dom = true;
+    }
+
+    fn mark_removed_from_dom(&mut self, message: ComponentMessage) {
+        let selector = message.data.unwrap().selector.unwrap();
+        let relevant_node = self
+            .component_tree
+            .iter()
+            .find(|node| node.get().selector == selector)
+            .unwrap()
+            .get_mut();
+        relevant_node.is_in_dom = false;
+    }
+
+    fn create_component(&mut self, message: &ComponentMessage) {
+        if let Some(root_node) = self.root_node {
+            self.create_with_existing_root_node(message, root_node);
+        } else {
+            self.root_node = Some(self.component_tree.new_node(ComponentRepr {
+                name: "".to_string(),
+                selector: "".to_string(),
+                is_in_dom: false,
+            }));
+        }
+    }
+
+    fn create_with_existing_root_node(
+        &mut self,
+        message: &ComponentMessage,
+        root_node: indextree::NodeId,
+    ) {
+        let selector = message.data.unwrap().selector.unwrap();
+        let youngest_parent = self.component_tree.iter().fold(root_node, |acc, val| {
+            if self
+                .component_tree
+                .get(root_node)
+                .unwrap()
+                .get()
+                .selector
+                .starts_with(&selector)
+                && self
+                    .component_tree
+                    .get(root_node)
+                    .unwrap()
+                    .get()
+                    .selector
+                    .starts_with(&val.get().selector)
+            {
+                self.component_tree.get_node_id(val).unwrap()
+            } else {
+                root_node
+            }
+        });
+        let component_node = self.component_tree.new_node(ComponentRepr {
+            name: "".to_string(),
+            selector,
+            is_in_dom: false,
+        });
+        youngest_parent.append(component_node, &mut self.component_tree);
+    }
+
+    fn extract_message(message: &String) -> Option<ComponentMessage> {
+        match serde_json::from_str(&message) {
+            Ok(t) => Some(t),
+            Err(e) => {
+                yew::web_sys::console::error_1(
+                    &format!(
+                        "Received an invalid message from the DevTools server. \
+                            Error message: `{:?}`",
+                        e
+                    )
+                    .into(),
+                );
+                None
+            }
         }
     }
 }
