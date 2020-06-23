@@ -640,12 +640,12 @@ mod tests {
     use super::*;
     use crate::html;
     use std::any::TypeId;
+    #[cfg(feature = "ssr")]
+    use std::convert::TryFrom;
     #[cfg(feature = "std_web")]
     use stdweb::web::{document, IElement};
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    #[cfg(feature = "ssr")]
-    use std::convert::TryFrom;
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
@@ -1062,7 +1062,9 @@ mod tests {
         };
 
         if let VNode::VTag(p) = p {
-            let p_html = Html::try_from(*p).expect("HTML stringify error").to_string();
+            let p_html = Html::try_from(*p)
+                .expect("HTML stringify error")
+                .to_string();
 
             assert_eq!(p_html, "<p />");
         } else {
@@ -1087,7 +1089,9 @@ mod tests {
         };
 
         if let VNode::VTag(p) = p {
-            let p_html = Html::try_from(*p).expect("HTML stringify error").to_string();
+            let p_html = Html::try_from(*p)
+                .expect("HTML stringify error")
+                .to_string();
 
             assert_eq!(
                 p_html,
@@ -1106,7 +1110,9 @@ mod tests {
         };
 
         if let VNode::VTag(div) = div {
-            let div_html = Html::try_from(*div).expect("HTML stringify error").to_string();
+            let div_html = Html::try_from(*div)
+                .expect("HTML stringify error")
+                .to_string();
             let order_1 = "<div a=\"b\" b=\"a\" />";
             let order_2 = "<div b=\"a\" a=\"b\" />";
             assert!(div_html == order_1 || div_html == order_2);
@@ -1125,7 +1131,9 @@ mod tests {
         };
 
         if let VNode::VTag(div) = div {
-            let div_html = Html::try_from(*div).expect("HTML stringify error").to_string();
+            let div_html = Html::try_from(*div)
+                .expect("HTML stringify error")
+                .to_string();
             assert_eq!(div_html, "<div />");
         } else {
             assert!(false);
