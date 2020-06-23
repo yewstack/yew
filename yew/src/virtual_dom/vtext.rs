@@ -46,7 +46,7 @@ impl VText {
 #[cfg(feature = "ssr")]
 impl TryFrom<VText> for Html {
     type Error = HtmlStringifyError;
-    
+
     fn try_from(value: VText) -> Result<Html, HtmlStringifyError> {
         Ok(Html::new(htmlescape::encode_minimal(&value.text)))
     }

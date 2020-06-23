@@ -44,7 +44,7 @@ impl DerefMut for VList {
 #[cfg(feature = "ssr")]
 impl TryFrom<VList> for Html {
     type Error = HtmlStringifyError;
-    
+
     fn try_from(value: VList) -> Result<Html, HtmlStringifyError> {
         let mut parts: Vec<String> = vec![];
         for child in value.children {

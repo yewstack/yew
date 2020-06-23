@@ -118,7 +118,6 @@ impl Clone for VTag {
     }
 }
 
-
 /// HTML output for a VTag is not necessarily deterministic due to the
 /// serialization of props which do not have a particular ordering.
 #[cfg(feature = "ssr")]
@@ -181,7 +180,7 @@ impl TryFrom<VTag> for Html {
             "textarea" => {
                 let vtext = VText::new(value.value.clone().unwrap_or("".to_string()));
                 Html::try_from(vtext)
-            },
+            }
             _ => Html::try_from(value.children),
         }?;
         let children_html = children_html.to_string();

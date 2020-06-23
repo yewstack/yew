@@ -49,9 +49,7 @@ impl TryFrom<VNode> for Html {
             VNode::VText(vtext) => Html::try_from(vtext)?,
             VNode::VComp(vcomp) => Html::try_from(vcomp)?,
             VNode::VList(vlist) => Html::try_from(vlist)?,
-            VNode::VRef(_) => {
-                Err(HtmlStringifyError::UnserializableVRef)?
-            }
+            VNode::VRef(_) => Err(HtmlStringifyError::UnserializableVRef)?,
         };
         Ok(html)
     }
