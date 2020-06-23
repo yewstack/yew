@@ -145,17 +145,20 @@ impl ToHtmlString for VTag {
                 }
             }
 
-            let is_skipped = tag_name == "textarea" && key == "value";
-            if !is_skipped {
-                parts.push(
-                    format!(
-                        " {}=\"{}\"",
-                        htmlescape::encode_minimal(&key),
-                        htmlescape::encode_attribute(&value)
-                    )
-                    .to_string(),
-                );
+            // textareas' innerHTML is specified via the `value` prop which doesn't
+            // exist in HTML, so we defer this prop's serialization until later in the process.
+            if (tag_name == "textarea" && key == "value") {
+                continue;
             }
+
+            parts.push(
+                format!(
+                    " {}=\"{}\"",
+                    htmlescape::encode_minimal(&key),
+                    htmlescape::encode_attribute(&value)
+                )
+                .to_string(),
+            );
         }
 
         if self.checked {
