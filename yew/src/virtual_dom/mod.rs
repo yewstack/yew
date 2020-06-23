@@ -26,7 +26,6 @@ cfg_if! {
         use web_sys::{Element, Node};
     }
 }
-use thiserror::Error as ThisError;
 
 #[doc(inline)]
 pub use self::vcomp::{VChild, VComp};
@@ -41,6 +40,8 @@ pub use self::vtext::VText;
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
+        use thiserror::Error as ThisError;
+
         /// Represents a block of HTML string content.
         #[derive(Debug)]
         pub struct Html {
