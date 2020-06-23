@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "scripts": {
+    "test": "cargo test --target wasm32-unknown-unknown && cargo test --features logic_test",
+    "dev": "webpack --mode development",
+    "build": "webpack --mode production",
+    "start:dev": "webpack-dev-server --mode development"
+  },
+  "devDependencies": {
+    "@wasm-tool/wasm-pack-plugin": "^1.1.0",
+    "copy-webpack-plugin": "^5.1.1",
+    "css-loader": "^3.5.3",
+    "sass": "^1.26.5",
+    "sass-loader": "^8.0.2",
+    "style-loader": "^1.2.1",
+    "wasm-pack": "^0.9.1",
+    "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
+  }
+}
