@@ -131,7 +131,7 @@ impl TryFrom<VTag> for Html {
         for c in tag_name.chars() {
             let is_alnum = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
             if !is_alnum && c != '-' && c != '_' && c != ':' {
-                panic!("Invalid tag name: `{}`", &tag_name);
+                return Err(HtmlStringifyError::InvalidTagName(tag_name));
             }
         }
 
@@ -145,7 +145,7 @@ impl TryFrom<VTag> for Html {
             for c in key.chars() {
                 let is_alnum = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
                 if !is_alnum && c != '-' && c != '_' && c != ':' {
-                    panic!("Invalid attribute name: `{}`", &key);
+                    return Err(HtmlStringifyError::InvalidAttributeName(key));
                 }
             }
 
