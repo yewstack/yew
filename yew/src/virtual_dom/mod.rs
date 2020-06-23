@@ -43,7 +43,7 @@ cfg_if! {
         use thiserror::Error as ThisError;
 
         /// Represents a block of HTML string content.
-        #[derive(Debug)]
+        #[derive(Debug, PartialEq, Eq)]
         pub struct Html {
             string: String,
         }
@@ -56,9 +56,9 @@ cfg_if! {
             }
         }
 
-        impl ToString for Html {
-            fn to_string(&self) -> String {
-                self.string.clone()
+        impl fmt::Display for Html {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                write!(f, "{}", self.string)
             }
         }
 

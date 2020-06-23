@@ -110,7 +110,10 @@ mod test {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     #[cfg(feature = "ssr")]
-    use super::ToHtmlString;
+    use super::{Html};
+
+    #[cfg(feature = "ssr")]
+    use std::convert::TryFrom;
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
@@ -137,8 +140,8 @@ mod test {
             { "Text Node As Root" }
         };
 
-        assert_eq!(&a.to_html_string(), &b.to_html_string());
-        assert!(b.clone().to_html_string() == "Text Node As Root");
+        assert_eq!(Html::try_from(a.clone()).expect("HTML stringify error"), Html::try_from(b.clone()).expect("HTML stringify error"));
+        assert!(Html::try_from(b).expect("HTML stringify error").to_string() == "Text Node As Root");
     }
 
     #[test]
@@ -152,9 +155,9 @@ mod test {
             { "some special-chars\"> here!" }
         };
 
-        assert_eq!(&a.to_html_string(), &b.to_html_string());
+        assert_eq!(Html::try_from(a.clone()).expect("HTML stringify error"), Html::try_from(b.clone()).expect("HTML stringify error"));
         assert_eq!(
-            b.clone().to_html_string(),
+            Html::try_from(b.clone()).expect("HTML stringify error").to_string(),
             "some special-chars&quot;&gt; here!"
         );
     }
