@@ -37,16 +37,16 @@ If you're running VS Code, you may need to add this to your `.vscode/settings.js
 
 The purpose of this project is to show how to effectively pass state around your application in a reactive way, without throwing away the convenience of Yew's `Agent` system.
 
-You can use this as a minimal template for any of your web applications. The base for the state system here is a `yew` Agent and the `Mutable` wrapper from `futures_signals`.
+You can use this example as a minimal template for any of your web applications. The base for the state system here is a Yew `Agent` and a `Mutable` wrapper from `futures_signals`.
 
 The flow is as follows:
 
-- App Component (or other higher up component) makes first connection with `Store` Agent.
-- `Store` agent is created, instantiates `State` object with `Mutable` field(s).
+- A component in the tree establishes a connection with the `Store` Agent.
+- An instance of the `Store` agent is created and the `State` object is initialized with `Mutable` field(s).
 - Store sends `StateInstance(State)` back to `App` (or other connected components on connect)
 - Component can then subscribe to any updates it cares about
 
-Here's an example on how to subscribe to updates on a `String` field:
+Below is an example showing how to subscribe to updates made to a `String` field.
 
 ```rust
 impl App {
@@ -71,7 +71,7 @@ impl App {
 // ... rest of your component implementation
 ```
 
-The `State` object in this case would look something like this:
+The corresponding `State` object in this case would look something like this:
 
 ```rust
 struct State {
@@ -81,7 +81,7 @@ struct State {
 
 ## Global Updates
 
-I've added the `Subscriber` component along with add and remove buttons in `App` just to show you how the global state will be retained as long as a connection to `Store` is alive (usually in `App` or your highest rendered component, even if `App` doesn't need to use anything in `State`).
+The `Subscriber` component (along with add and remove buttons) in `App` show how the global state will be retained as long as a connection to `Store` is alive (the easiest way to do this is to maintain a connection to `Store` in `App` or the root component, even if `App` doesn't need to use anything in `State`).
 
 Unfortunately due to the nature of Rust's memory management, you'll need to keep a reference to your `Store` connection around in each component in order to start up your state subscriptions. I haven't come up with any ways around this yet, but please feel free to make a PR/issue regarding this :)
 
