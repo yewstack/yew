@@ -181,7 +181,7 @@ impl ToHtmlString for VTag {
         } else {
             parts.push(">".to_string());
             parts.push(children_html);
-            parts.push(format!("</{}>", tag_name).to_string());
+            parts.push(format!("</{}>", tag_name));
         }
         parts.join("")
     }
