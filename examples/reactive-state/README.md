@@ -83,9 +83,9 @@ struct State {
 
 The `Subscriber` component (along with add and remove buttons) in `App` show how the global state will be retained as long as a connection to `Store` is alive (the easiest way to do this is to maintain a connection to `Store` in `App` or the root component, even if `App` doesn't need to use anything in `State`).
 
-Unfortunately due to the nature of Rust's memory management, you'll need to keep a reference to your `Store` connection around in each component in order to start up your state subscriptions. I haven't come up with any ways around this yet, but please feel free to make a PR/issue regarding this :)
+Because of the nature of Rust's memory management, you'll need to keep a reference to your `Store` connection around in each component in order to start up your state subscriptions. I haven't come up with any ways around this yet, but please feel free to make a PR/issue regarding this :)
 
-### For More info on `futures_signals`
+### For more info on `futures_signals`
 
 You can use the tutorial for the library [here](https://docs.rs/futures-signals/0.3.15/futures_signals/tutorial/index.html).
 
