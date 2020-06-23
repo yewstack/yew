@@ -26,8 +26,10 @@ members = [
   "yewtil/examples/fetch",
   "yewtil/examples/futures",
   "yewtil/examples/function_component",
+
   # dsl
   "yew-dsl",
+
   # DevTools
   "devtools-extension",
   # Examples
@@ -58,5 +60,5 @@ members = [
   "examples/two_apps",
   "examples/webgl",
 ]
-# the developer tools and server depend on wasm-incompatible libaries
+# the developer tools and server depend on Wasm-incompatible libaries
 exclude=["devtools", "examples/server"]
