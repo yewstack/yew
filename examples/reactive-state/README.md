@@ -1,6 +1,6 @@
-## How to Run
+## How to run
 
-Make sure you're using the nightly rust in this project:
+Make sure you're using a nightly Rust toolchain when compiling this project:
 
 ```bash
 $ rustup override set nightly
@@ -35,7 +35,7 @@ If you're running VS Code, you may need to add this to your `.vscode/settings.js
 
 ## About
 
-The purpose of this project is to show how to effectively pass state around your application in a reactive way, without throwing away the convenience of yew's `Agent` system.
+The purpose of this project is to show how to effectively pass state around your application in a reactive way, without throwing away the convenience of Yew's `Agent` system.
 
 You can use this as a minimal template for any of your web applications. The base for the state system here is a `yew` Agent and the `Mutable` wrapper from `futures_signals`.
 
