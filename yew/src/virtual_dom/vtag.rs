@@ -3,7 +3,6 @@
 use super::{Attributes, Listener, Listeners, Patch, Transformer, VDiff, VList, VNode};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
-
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;

@@ -2,7 +2,6 @@
 
 use super::{VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{AnyScope, Component, NodeRef, Renderable};
-
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;

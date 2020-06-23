@@ -1,7 +1,6 @@
 //! This module contains fragments implementation.
 use super::{VDiff, VNode, VText};
 use crate::html::{AnyScope, NodeRef};
-
 use cfg_if::cfg_if;
 use std::collections::HashSet;
 use std::ops::{Deref, DerefMut};

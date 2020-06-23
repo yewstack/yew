@@ -1,10 +1,8 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use super::{VDiff, VNode};
-
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
-
 use cfg_if::cfg_if;
 use log::warn;
 use std::cmp::PartialEq;
