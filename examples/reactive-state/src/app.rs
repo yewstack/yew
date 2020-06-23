@@ -46,11 +46,6 @@ impl Component for App {
         }
     }
 
-    fn mounted(&mut self) -> ShouldRender {
-        self.register_state_handlers();
-        true
-    }
-
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         self.handle_updates(msg)
     }
@@ -95,6 +90,7 @@ impl App {
             Msg::FromStore(s) => match s {
                 StoreOutput::StateInstance(state) => {
                     self.state_ref = Some(state);
+                    self.register_state_handlers();
                     false
                 }
             },
