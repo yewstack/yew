@@ -6,7 +6,7 @@ use yew::{Component, ComponentLink, Html, ShouldRender};
 
 const HTML: &str = r#"
 <h2>Inline HTML with SVG</h2>
-<p>The whole contents of this page is stored as a constant string of HTML in
+<p>The whole contents of this page is stored as a constant HTML string in
 the Rust source code. The code queries the DOM, creates a new element, and
 applies this snippet of HTML to the element's innerHTML.</p>
 <p>If you look at your browser's console you can see the DOM element (logged to the console).</p>

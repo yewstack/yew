@@ -163,7 +163,7 @@ impl Component for Model {
             },
             Scene::NewClientForm(ref client) => html! {
                 <div class="crm">
-                    <h1>{"Add new client"}</h1>
+                    <h1>{"Add a new client"}</h1>
                     <div class="names">
                         <div>
                             { client.view_first_name_input(&self.link) }
