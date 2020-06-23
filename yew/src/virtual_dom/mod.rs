@@ -26,6 +26,7 @@ cfg_if! {
         use web_sys::{Element, Node};
     }
 }
+use thiserror::Error as ThisError;
 
 #[doc(inline)]
 pub use self::vcomp::{VChild, VComp};
@@ -38,12 +39,44 @@ pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
 
-/// Represents that a node can be stringified to HTML.
-pub trait ToHtmlString {
-    /// Outputs an HTML string corresponding to the node. This output
-    /// is not necessarily deterministic due to the serialization of
-    /// structures (e.g. props) which do not have a particular ordering.
-    fn to_html_string(&self) -> String;
+cfg_if! {
+    if #[cfg(feature = "ssr")] {
+        /// Represents a block of HTML string content.
+        #[derive(Debug)]
+        pub struct Html {
+            string: String,
+        }
+
+        impl Html {
+            fn new(string: String) -> Self {
+                Html {
+                    string: string
+                }
+            }
+        }
+
+        impl ToString for Html {
+            fn to_string(&self) -> String {
+                self.string.clone()
+            }
+        }
+
+        /// Represents errors associated with conversion of Yew structures to HTML.
+        #[derive(Debug, ThisError)]
+        pub enum HtmlStringifyError {
+            /// Malformed/unserializable attribute name
+            #[error("cannot serialize invalid attribute name ({})", .0)]
+            InvalidAttributeName(String),
+
+            /// Malformed/unserializable tag name
+            #[error("cannot serialize invalid tag name ({})", .0)]
+            InvalidTagName(String),
+
+            /// Unsupported VRef serialization
+            #[error("cannot serialize VRef because that is not supported")]
+            UnserializableVRef,
+        }
+    }
 }
 
 /// The `Listener` trait is an universal implementation of an event listener

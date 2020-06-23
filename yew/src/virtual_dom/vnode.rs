@@ -17,8 +17,12 @@ cfg_if! {
     }
 }
 
-#[cfg(feature = "ssr")]
-use super::ToHtmlString;
+cfg_if! {
+    if #[cfg(feature = "ssr")] {
+        use super::{Html, HtmlStringifyError};
+        use std::convert::TryFrom;
+    }
+}
 
 /// Bind virtual element to a DOM reference.
 #[derive(Clone)]
@@ -36,17 +40,20 @@ pub enum VNode {
 }
 
 #[cfg(feature = "ssr")]
-impl ToHtmlString for VNode {
-    fn to_html_string(&self) -> String {
-        match self {
-            VNode::VTag(vtag) => vtag.to_html_string(),
-            VNode::VText(vtext) => vtext.to_html_string(),
-            VNode::VComp(vcomp) => vcomp.to_html_string(),
-            VNode::VList(vlist) => vlist.to_html_string(),
+impl TryFrom<VNode> for Html {
+    type Error = HtmlStringifyError;
+
+    fn try_from(value: VNode) -> Result<Html, HtmlStringifyError> {
+        let html = match value {
+            VNode::VTag(vtag) => Html::try_from(*vtag)?,
+            VNode::VText(vtext) => Html::try_from(vtext)?,
+            VNode::VComp(vcomp) => Html::try_from(vcomp)?,
+            VNode::VList(vlist) => Html::try_from(vlist)?,
             VNode::VRef(_) => {
-                panic!("Stringifying VRef nodes is not supported.");
+                Err(HtmlStringifyError::UnserializableVRef)?
             }
-        }
+        };
+        Ok(html)
     }
 }
 

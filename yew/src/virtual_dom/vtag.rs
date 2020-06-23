@@ -29,8 +29,9 @@ cfg_if! {
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
-        use super::{ToHtmlString, VText};
+        use super::{Html, HtmlStringifyError, VText};
         use htmlescape;
+        use std::convert::TryFrom;
     }
 }
 
@@ -117,11 +118,16 @@ impl Clone for VTag {
     }
 }
 
+
+/// HTML output for a VTag is not necessarily deterministic due to the
+/// serialization of props which do not have a particular ordering.
 #[cfg(feature = "ssr")]
-impl ToHtmlString for VTag {
-    fn to_html_string(&self) -> String {
+impl TryFrom<VTag> for Html {
+    type Error = HtmlStringifyError;
+
+    fn try_from(value: VTag) -> Result<Html, HtmlStringifyError> {
         let mut parts: Vec<String> = Vec::new();
-        let tag_name = htmlescape::encode_minimal(&self.tag).to_lowercase();
+        let tag_name = htmlescape::encode_minimal(&value.tag).to_lowercase();
 
         for c in tag_name.chars() {
             let is_alnum = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
@@ -132,7 +138,7 @@ impl ToHtmlString for VTag {
 
         parts.push(format!("<{}", tag_name).to_string());
 
-        for (key_unclean, value) in &self.attributes {
+        for (key_unclean, value) in &value.attributes {
             let key = key_unclean.to_lowercase();
             // checked, value (special if textarea), disabled, href?, selected,
             // kind -> type if input, disallow ref, disallow LISTENER_SET, class
@@ -146,7 +152,7 @@ impl ToHtmlString for VTag {
 
             // textareas' innerHTML is specified via the `value` prop which doesn't
             // exist in HTML, so we defer this prop's serialization until later in the process.
-            if (tag_name == "textarea" && key == "value") {
+            if tag_name == "textarea" && key == "value" {
                 continue;
             }
 
@@ -160,21 +166,25 @@ impl ToHtmlString for VTag {
             );
         }
 
-        if self.checked {
+        if value.checked {
             parts.push(" checked=\"true\"".to_string())
         }
 
         if tag_name == "input" {
-            if let Some(kind) = &self.kind {
+            if let Some(kind) = &value.kind {
                 parts
                     .push(format!(" type=\"{}\"", htmlescape::encode_attribute(&kind)).to_string());
             }
         }
 
-        let children_html = match tag_name.as_ref() {
-            "textarea" => VText::new(self.value.clone().unwrap_or("".to_string())).to_html_string(),
-            _ => self.children.to_html_string(),
-        };
+        let children_html: Html = match tag_name.as_ref() {
+            "textarea" => {
+                let vtext = VText::new(value.value.clone().unwrap_or("".to_string()));
+                Html::try_from(vtext)
+            },
+            _ => Html::try_from(value.children),
+        }?;
+        let children_html = children_html.to_string();
         if children_html == "" {
             parts.push(" />".to_string());
         } else {
@@ -182,7 +192,8 @@ impl ToHtmlString for VTag {
             parts.push(children_html);
             parts.push(format!("</{}>", tag_name));
         }
-        parts.join("")
+
+        Ok(Html::new(parts.join("")))
     }
 }
 

@@ -12,8 +12,12 @@ cfg_if! {
     }
 }
 
-#[cfg(feature = "ssr")]
-use super::ToHtmlString;
+cfg_if! {
+    if #[cfg(feature = "ssr")] {
+        use super::{Html, HtmlStringifyError};
+        use std::convert::TryFrom;
+    }
+}
 
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Clone, Debug, PartialEq, Default)]
@@ -38,14 +42,16 @@ impl DerefMut for VList {
 }
 
 #[cfg(feature = "ssr")]
-impl ToHtmlString for VList {
-    fn to_html_string(&self) -> String {
-        let parts: Vec<String> = self
-            .children
-            .iter()
-            .map(|child| child.to_html_string())
-            .collect();
-        parts.join("")
+impl TryFrom<VList> for Html {
+    type Error = HtmlStringifyError;
+    
+    fn try_from(value: VList) -> Result<Html, HtmlStringifyError> {
+        let mut parts: Vec<String> = vec![];
+        for child in value.children {
+            let html = Html::try_from(child)?.to_string();
+            parts.push(html);
+        }
+        Ok(Html::new(parts.join("")))
     }
 }
 

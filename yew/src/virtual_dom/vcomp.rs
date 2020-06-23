@@ -16,8 +16,12 @@ cfg_if! {
     }
 }
 
-#[cfg(feature = "ssr")]
-use super::ToHtmlString;
+cfg_if! {
+    if #[cfg(feature = "ssr")] {
+        use super::{Html, HtmlStringifyError};
+        use std::convert::TryFrom;
+    }
+}
 
 /// A virtual component.
 pub struct VComp {
@@ -96,15 +100,18 @@ where
 }
 
 #[cfg(feature = "ssr")]
-impl ToHtmlString for VComp {
-    fn to_html_string(&self) -> String {
-        match &self.scope {
+impl TryFrom<VComp> for Html {
+    type Error = HtmlStringifyError;
+
+    fn try_from(value: VComp) -> Result<Html, HtmlStringifyError> {
+        let html: String = match &value.scope {
             None => "".to_string(),
             Some(scope) => match scope.root_vnode() {
                 None => "".to_string(),
-                Some(root_vnode) => root_vnode.to_html_string(),
+                Some(root_vnode) => Html::try_from(root_vnode.clone())?.to_string(),
             },
-        }
+        };
+        Ok(Html::new(html))
     }
 }
 
