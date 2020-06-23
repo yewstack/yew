@@ -184,13 +184,13 @@ impl DevToolsExtension {
                 <div class="children">
                     {
                         children.filter_map(|child| {
-                            if !child.is_removed() {
-                                Some(self.render_component_tree(child)).collect::<Html>()
+                            if !self.component_tree.get(child).unwrap().is_removed() {
+                                Some(self.render_component_tree(child))
                             }
                             else {
                                 None
                             }
-                        })
+                        }).collect::<Html>()
                     }
                 </div>
             </div>

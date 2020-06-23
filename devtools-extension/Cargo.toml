@@ -11,8 +11,7 @@ wasm-bindgen-test = "0.3.4"
 yew = "0.16.2"
 serde={version="1", features=["derive"]}
 serde_json="1"
-# this is waiting for a new release to be published
-indextree={git="https://github.com/saschagrunert/indextree", rev="2840ab7"}
+indextree="4.2.0"
 
 [features]
 logic_test=[]
