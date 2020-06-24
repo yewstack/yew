@@ -22,7 +22,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 # for web_sys
-yew = 0.15
+yew = "0.16"
 # or for stdweb
 # yew = { version = "0.15", package = "yew-stdweb" }
 wasm-bindgen = "0.2"
@@ -32,4 +32,3 @@ wasm-bindgen = "0.2"
 ## Other templates
 
 * [Parcel Template](https://github.com/spielrs/yew-parcel-template) - Created by a community member and uses [Parcel](https://parceljs.org/)
-
