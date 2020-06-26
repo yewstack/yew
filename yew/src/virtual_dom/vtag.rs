@@ -149,7 +149,7 @@ impl TryFrom<VTag> for Html {
                 }
             }
 
-            // textareas' innerHTML is specified via the `value` prop which doesn't
+            // textareas' innerHTML properties are specified via the `value` prop which doesn't
             // exist in HTML, so we defer this prop's serialization until later in the process.
             if tag_name == "textarea" && key == "value" {
                 continue;
@@ -161,7 +161,6 @@ impl TryFrom<VTag> for Html {
                     htmlescape::encode_minimal(&key),
                     htmlescape::encode_attribute(&value)
                 )
-                .to_string(),
             );
         }
 

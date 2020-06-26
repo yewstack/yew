@@ -44,14 +44,13 @@ impl TryFrom<VNode> for Html {
     type Error = HtmlRenderError;
 
     fn try_from(value: VNode) -> Result<Html, HtmlRenderError> {
-        let html = match value {
+        Ok(match value {
             VNode::VTag(vtag) => Html::try_from(*vtag)?,
             VNode::VText(vtext) => Html::try_from(vtext)?,
             VNode::VComp(vcomp) => Html::try_from(vcomp)?,
             VNode::VList(vlist) => Html::try_from(vlist)?,
             VNode::VRef(_) => Err(HtmlRenderError::UnserializableVRef)?,
-        };
-        Ok(html)
+        })
     }
 }
 

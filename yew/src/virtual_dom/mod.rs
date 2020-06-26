@@ -66,15 +66,15 @@ cfg_if! {
         #[derive(Debug, ThisError)]
         pub enum HtmlRenderError {
             /// Malformed/unserializable attribute name
-            #[error("cannot serialize invalid attribute name ({})", .0)]
+            #[error("cannot serialize invalid attribute name `{}`", .0)]
             InvalidAttributeName(String),
 
             /// Malformed/unserializable tag name
-            #[error("cannot serialize invalid tag name ({})", .0)]
+            #[error("cannot serialize invalid tag name `{}`", .0)]
             InvalidTagName(String),
 
             /// Unsupported VRef serialization
-            #[error("cannot serialize VRef because that is not supported")]
+            #[error("cannot serialize VRef because that is unsupported")]
             UnserializableVRef,
         }
     }
