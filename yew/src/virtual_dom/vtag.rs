@@ -125,7 +125,7 @@ impl TryFrom<VTag> for Html {
     type Error = HtmlRenderError;
 
     fn try_from(value: VTag) -> Result<Html, HtmlRenderError> {
-        let mut parts: Vec<String> = Vec::new();
+        let mut result: String = "".to_string();
         let tag_name = htmlescape::encode_minimal(&value.tag).to_lowercase();
 
         for c in tag_name.chars() {
@@ -135,7 +135,7 @@ impl TryFrom<VTag> for Html {
             }
         }
 
-        parts.push(format!("<{}", tag_name).to_string());
+        result.push_str(format!("<{}", tag_name).as_ref());
 
         for (key_unclean, value) in &value.attributes {
             let key = key_unclean.to_lowercase();
@@ -155,23 +155,23 @@ impl TryFrom<VTag> for Html {
                 continue;
             }
 
-            parts.push(
+            result.push_str(
                 format!(
                     " {}=\"{}\"",
                     htmlescape::encode_minimal(&key),
                     htmlescape::encode_attribute(&value)
-                )
+                ).as_ref()
             );
         }
 
         if value.checked {
-            parts.push(" checked=\"true\"".to_string())
+            result.push_str(" checked=\"true\"")
         }
 
         if tag_name == "input" {
             if let Some(kind) = &value.kind {
-                parts
-                    .push(format!(" type=\"{}\"", htmlescape::encode_attribute(&kind)).to_string());
+                result
+                    .push_str(format!(" type=\"{}\"", htmlescape::encode_attribute(&kind)).as_ref());
             }
         }
 
@@ -184,14 +184,15 @@ impl TryFrom<VTag> for Html {
         }?;
         let children_html = children_html.to_string();
         if children_html == "" {
-            parts.push(" />".to_string());
+            result.push_str(" />");
         } else {
-            parts.push(">".to_string());
-            parts.push(children_html);
-            parts.push(format!("</{}>", tag_name));
+            result.push_str(">");
+            result.push_str(children_html.as_ref());
+            result.push_str(format!("</{}>", tag_name).as_ref());
         }
 
-        Ok(Html::new(parts.join("")))
+        result.shrink_to_fit();
+        Ok(Html::new(result))
     }
 }
 

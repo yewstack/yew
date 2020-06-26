@@ -46,12 +46,14 @@ impl TryFrom<VList> for Html {
     type Error = HtmlRenderError;
 
     fn try_from(value: VList) -> Result<Html, HtmlRenderError> {
-        let mut parts: Vec<String> = vec![];
+        let mut result: String = "".to_string();
         for child in value.children {
             let html = Html::try_from(child)?.to_string();
-            parts.push(html);
+            result.push_str(html.as_ref());
         }
-        Ok(Html::new(parts.join("")))
+        
+        result.shrink_to_fit();
+        Ok(Html::new(result))
     }
 }
 
