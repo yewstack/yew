@@ -51,7 +51,7 @@ impl TryFrom<VList> for Html {
             let html = Html::try_from(child)?.to_string();
             result.push_str(html.as_ref());
         }
-        
+
         result.shrink_to_fit();
         Ok(Html::new(result))
     }

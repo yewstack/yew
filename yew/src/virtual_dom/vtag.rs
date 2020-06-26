@@ -160,7 +160,8 @@ impl TryFrom<VTag> for Html {
                     " {}=\"{}\"",
                     htmlescape::encode_minimal(&key),
                     htmlescape::encode_attribute(&value)
-                ).as_ref()
+                )
+                .as_ref(),
             );
         }
 
@@ -170,8 +171,9 @@ impl TryFrom<VTag> for Html {
 
         if tag_name == "input" {
             if let Some(kind) = &value.kind {
-                result
-                    .push_str(format!(" type=\"{}\"", htmlescape::encode_attribute(&kind)).as_ref());
+                result.push_str(
+                    format!(" type=\"{}\"", htmlescape::encode_attribute(&kind)).as_ref(),
+                );
             }
         }
 
