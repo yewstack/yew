@@ -58,12 +58,18 @@ impl DialogService {
     pub fn prompt(message: &str, default: Option<&str>) -> Option<String> {
         cfg_match! {
             feature = "std_web" => compile_error!("The `prompt` method is not supported for `stdweb`."),
-            feature = "web_sys" => if let Some(default) = default {
-                    utils::window().prompt_with_message_and_default(message, default).expect("Couldn't read input.")
-                }
-                else {
-                    utils::window().prompt_with_message(message).expect("Couldn't read input.")
-                }
+            feature = "web_sys" => ({
+                    if let Some(default) = default {
+                        utils::window()
+                               .prompt_with_message_and_default(message, default)
+                               .expect("Couldn't read input.")
+                    }
+                    else {
+                        utils::window()
+                               .prompt_with_message(message)
+                               .expect("Couldn't read input.")
+                    }
+            })
         }
     }
 }
