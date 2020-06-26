@@ -555,7 +555,9 @@ impl WindowOrWorker {
         } else if !global.worker().is_undefined() {
             Self::Worker(global.unchecked_into())
         } else {
-            panic!("Yew's `FetchService` only works when a `window` or `worker` object is available.");
+            panic!(
+                "Yew's `FetchService` only works when a `window` or `worker` object is available."
+            );
         }
     }
 }

@@ -56,20 +56,25 @@ impl DialogService {
     /// Bear in mind that this function is blocking; no other code can be run on the thread while
     /// the user inputs their message.
     pub fn prompt(message: &str, default: Option<&str>) -> Option<String> {
-        cfg_match! {
-            feature = "std_web" => compile_error!("The `prompt` method is not supported for `stdweb`."),
-            feature = "web_sys" => ({
-                    if let Some(default) = default {
-                        utils::window()
-                               .prompt_with_message_and_default(message, default)
-                               .expect("Couldn't read input.")
-                    }
-                    else {
-                        utils::window()
-                               .prompt_with_message(message)
-                               .expect("Couldn't read input.")
-                    }
-            })
+        cfg_if! {
+            if #[cfg(feature="web_sys")] {
+                if let Some(default) = default {
+                    utils::window()
+                           .prompt_with_message_and_default(message, default)
+                           .expect("Couldn't read input.")
+                }
+                else {
+                    utils::window()
+                           .prompt_with_message(message)
+                           .expect("Couldn't read input.")
+                }
+            } else if #[cfg(feature="std_web")] {
+                let value: Value = js! { return prompt(@{message}); };
+                match value {
+                    Value::String(result) => Some(result),
+                    _ => None,
+                }
+            }
         }
     }
 }
