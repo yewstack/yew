@@ -16,7 +16,7 @@ cfg_if! {
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
-        use super::{Html, HtmlStringifyError};
+        use super::{Html, HtmlRenderError};
         use htmlescape;
         use std::convert::TryFrom;
     }
@@ -45,9 +45,9 @@ impl VText {
 
 #[cfg(feature = "ssr")]
 impl TryFrom<VText> for Html {
-    type Error = HtmlStringifyError;
+    type Error = HtmlRenderError;
 
-    fn try_from(value: VText) -> Result<Html, HtmlStringifyError> {
+    fn try_from(value: VText) -> Result<Html, HtmlRenderError> {
         Ok(Html::new(htmlescape::encode_minimal(&value.text)))
     }
 }

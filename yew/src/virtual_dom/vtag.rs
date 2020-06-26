@@ -29,7 +29,7 @@ cfg_if! {
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
-        use super::{Html, HtmlStringifyError, VText};
+        use super::{Html, HtmlRenderError, VText};
         use htmlescape;
         use std::convert::TryFrom;
     }
@@ -122,16 +122,16 @@ impl Clone for VTag {
 /// serialization of props which do not have a particular ordering.
 #[cfg(feature = "ssr")]
 impl TryFrom<VTag> for Html {
-    type Error = HtmlStringifyError;
+    type Error = HtmlRenderError;
 
-    fn try_from(value: VTag) -> Result<Html, HtmlStringifyError> {
+    fn try_from(value: VTag) -> Result<Html, HtmlRenderError> {
         let mut parts: Vec<String> = Vec::new();
         let tag_name = htmlescape::encode_minimal(&value.tag).to_lowercase();
 
         for c in tag_name.chars() {
             let is_alnum = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
             if !is_alnum && c != '-' && c != '_' && c != ':' {
-                return Err(HtmlStringifyError::InvalidTagName(tag_name));
+                return Err(HtmlRenderError::InvalidTagName(tag_name));
             }
         }
 
@@ -145,7 +145,7 @@ impl TryFrom<VTag> for Html {
             for c in key.chars() {
                 let is_alnum = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
                 if !is_alnum && c != '-' && c != '_' && c != ':' {
-                    return Err(HtmlStringifyError::InvalidAttributeName(key));
+                    return Err(HtmlRenderError::InvalidAttributeName(key));
                 }
             }
 

@@ -14,7 +14,7 @@ cfg_if! {
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
-        use super::{Html, HtmlStringifyError};
+        use super::{Html, HtmlRenderError};
         use std::convert::TryFrom;
     }
 }
@@ -43,9 +43,9 @@ impl DerefMut for VList {
 
 #[cfg(feature = "ssr")]
 impl TryFrom<VList> for Html {
-    type Error = HtmlStringifyError;
+    type Error = HtmlRenderError;
 
-    fn try_from(value: VList) -> Result<Html, HtmlStringifyError> {
+    fn try_from(value: VList) -> Result<Html, HtmlRenderError> {
         let mut parts: Vec<String> = vec![];
         for child in value.children {
             let html = Html::try_from(child)?.to_string();

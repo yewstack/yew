@@ -64,7 +64,7 @@ cfg_if! {
 
         /// Represents errors associated with conversion of Yew structures to HTML.
         #[derive(Debug, ThisError)]
-        pub enum HtmlStringifyError {
+        pub enum HtmlRenderError {
             /// Malformed/unserializable attribute name
             #[error("cannot serialize invalid attribute name ({})", .0)]
             InvalidAttributeName(String),

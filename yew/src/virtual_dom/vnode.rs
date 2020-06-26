@@ -19,7 +19,7 @@ cfg_if! {
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
-        use super::{Html, HtmlStringifyError};
+        use super::{Html, HtmlRenderError};
         use std::convert::TryFrom;
     }
 }
@@ -41,15 +41,15 @@ pub enum VNode {
 
 #[cfg(feature = "ssr")]
 impl TryFrom<VNode> for Html {
-    type Error = HtmlStringifyError;
+    type Error = HtmlRenderError;
 
-    fn try_from(value: VNode) -> Result<Html, HtmlStringifyError> {
+    fn try_from(value: VNode) -> Result<Html, HtmlRenderError> {
         let html = match value {
             VNode::VTag(vtag) => Html::try_from(*vtag)?,
             VNode::VText(vtext) => Html::try_from(vtext)?,
             VNode::VComp(vcomp) => Html::try_from(vcomp)?,
             VNode::VList(vlist) => Html::try_from(vlist)?,
-            VNode::VRef(_) => Err(HtmlStringifyError::UnserializableVRef)?,
+            VNode::VRef(_) => Err(HtmlRenderError::UnserializableVRef)?,
         };
         Ok(html)
     }

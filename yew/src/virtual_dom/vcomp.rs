@@ -18,7 +18,7 @@ cfg_if! {
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
-        use super::{Html, HtmlStringifyError};
+        use super::{Html, HtmlRenderError};
         use std::convert::TryFrom;
     }
 }
@@ -101,9 +101,9 @@ where
 
 #[cfg(feature = "ssr")]
 impl TryFrom<VComp> for Html {
-    type Error = HtmlStringifyError;
+    type Error = HtmlRenderError;
 
-    fn try_from(value: VComp) -> Result<Html, HtmlStringifyError> {
+    fn try_from(value: VComp) -> Result<Html, HtmlRenderError> {
         let html: String = match &value.scope {
             None => "".to_string(),
             Some(scope) => match scope.root_vnode() {
