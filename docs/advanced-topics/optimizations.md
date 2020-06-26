@@ -1,5 +1,5 @@
 ---
-description: Make your app faster.
+description: Make your app faster
 ---
 
 # Optimizations & Best Practices
