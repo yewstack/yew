@@ -27,7 +27,7 @@ crate-type = ["cdylib"]
 # for web_sys
 yew = "0.16"
 # or for stdweb
-# yew = { version = "0.15", package = "yew-stdweb" }
+# yew = { version = "0.16", package = "yew-stdweb" }
 wasm-bindgen = "0.2"
 ```
 {% endcode %}

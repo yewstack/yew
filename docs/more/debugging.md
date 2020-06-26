@@ -24,7 +24,7 @@ fn main() {
 log::info!("Update: {:?}", msg);
 ```
 
-### **\`\`**[**`ConsoleService`**](https://docs.rs/yew/0.15.0/yew/services/console/struct.ConsoleService.html)**\`\`**
+### [`ConsoleService`](https://docs.rs/yew/latest/yew/services/console/struct.ConsoleService.html)
 
 This service is included within yew and is available when the `"services"` feature is enabled:
 
@@ -51,4 +51,3 @@ change. If this is no longer true or if progress is made, please suggest a chang
 \[2019\] [Rust Wasm roadmap](https://rustwasm.github.io/rfcs/007-2019-roadmap.html#debugging)
 
 > Debugging is tricky because much of the story is out of this working group's hands, and depends on both the WebAssembly standardization bodies and the folks implementing browser developer tools instead.
-
