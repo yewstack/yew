@@ -9,10 +9,10 @@ You'll need to choose one or the other when adding `yew` to your cargo dependenc
 {% code title="Cargo.toml" %}
 ```rust
 # Choose `web-sys`
-yew = "0.15"
+yew = "0.16"
 
 # Choose `stdweb`
-yew = { version = "0.15", package = "yew-stdweb" }
+yew = { version = "0.16", package = "yew-stdweb" }
 ```
 {% endcode %}
 
