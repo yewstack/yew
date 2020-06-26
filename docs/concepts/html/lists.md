@@ -2,7 +2,8 @@
 
 ## Fragments
 
-The `html!` macro always requires a single root node. In order to get around this restriction, it's valid to wrap content in empty tags:
+The `html!` macro always requires a single root node. In order to get around this restriction, it's 
+valid to wrap content in empty tags:
 
 {% tabs %}
 {% tab title="Valid" %}
