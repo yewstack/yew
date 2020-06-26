@@ -4,7 +4,7 @@ use web_sys::{console, Node};
 use yew::virtual_dom::VNode;
 use yew::{Component, ComponentLink, Html, ShouldRender};
 
-const HTML: &'static str = include_str!("document.html");
+const HTML: &str = include_str!("document.html");
 
 pub struct Model {
     pub value: i64,
