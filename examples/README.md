@@ -17,7 +17,7 @@ Have a look at Yew's [starter templates](https://yew.rs/docs/getting-started/sta
 git clone https://github.com/yewstack/yew.git
 cd yew/examples
 ./build.sh minimal # example subfolder
-python3 -m http.server --directory static # open localhost:8000 in browser
+cd static && python3 -m http.server  # open localhost:8000 in browser
 ```
 
 
