@@ -1,5 +1,8 @@
 //! This module contains the implementation of a service
 //! to show alerts and confirm dialogs in a browser.
+//!
+//! If you call these methods repeatably browsers tend to disable these options to give users
+//! a better experience.
 
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
@@ -53,9 +56,14 @@ impl DialogService {
     /// This method will `panic!` if there is an error in the process of trying to carry out this
     /// operation.
     ///
-    /// Bear in mind that this function is blocking; no other code can be run on the thread while
-    /// the user inputs their message.
-    pub fn prompt(message: &str, default: Option<&str>) -> Option<String> {
+    /// Note that this function is blocking; no other code can be run on the thread while
+    /// the user inputs their message which means that the page will appear to have 'frozen'
+    /// while the user types in their message.
+    pub fn prompt(
+        message: &str,
+        #[cfg(feature = "web_sys")] default: Option<&str>,
+        #[cfg(feature = "std_web")] _: Option<&str>,
+    ) -> Option<String> {
         cfg_if! {
             if #[cfg(feature="web_sys")] {
                 if let Some(default) = default {
