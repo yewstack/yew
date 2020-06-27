@@ -298,7 +298,7 @@ lazy_static! {
             .iter()
             .chain(MATHML_TAGS.iter())
             .filter(|tag| tag.contains('-'))
-            .map(|t| *t)
+            .map(move |t| *t)
             .collect()
     };
 }
