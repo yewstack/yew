@@ -455,39 +455,52 @@ mod tests {
     }
 
     #[test]
-    fn mathml_positive() {
-        assert_eq!(is_valid_custom_element_name("script"), true);
-        assert_eq!(is_valid_custom_element_name("munder"), true);
+    fn mathml_element_positive() {
+        assert_eq!(is_valid_mathml_element_name("script"), true);
+        assert_eq!(is_valid_mathml_element_name("munder"), true);
     }
 
     #[test]
-    fn mathml_negative() {
-        assert_eq!(is_valid_custom_element_name("svg"), false);
-        assert_eq!(is_valid_custom_element_name("b"), false);
+    fn mathml_element_negative() {
+        assert_eq!(is_valid_mathml_element_name("svg"), false);
+        assert_eq!(is_valid_mathml_element_name("b"), false);
     }
 
     #[test]
-    fn html_positive() {
-        assert_eq!(is_valid_custom_element_name("svg"), true);
-        assert_eq!(is_valid_custom_element_name("section"), true);
-        assert_eq!(is_valid_custom_element_name("applet"), true);
+    fn html_element_positive() {
+        assert_eq!(is_valid_html_element_name("svg"), true);
+        assert_eq!(is_valid_html_element_name("section"), true);
+        assert_eq!(is_valid_html_element_name("applet"), true);
     }
 
     #[test]
-    fn html_negative() {
-        assert_eq!(is_valid_custom_element_name("math"), false);
-        assert_eq!(is_valid_custom_element_name("circle"), false);
+    fn html_element_negative() {
+        assert_eq!(is_valid_html_element_name("math"), false);
+        assert_eq!(is_valid_html_element_name("circle"), false);
     }
 
     #[test]
-    fn svg_positive() {
-        assert_eq!(is_valid_custom_element_name("circle"), true);
-        assert_eq!(is_valid_custom_element_name("g"), true);
+    fn svg_element_positive() {
+        assert_eq!(is_valid_svg_element_name("circle"), true);
+        assert_eq!(is_valid_svg_element_name("g"), true);
     }
 
     #[test]
-    fn svg_negative() {
-        assert_eq!(is_valid_custom_element_name("body"), false);
-        assert_eq!(is_valid_custom_element_name("a"), false);
+    fn svg_element_negative() {
+        assert_eq!(is_valid_svg_element_name("body"), false);
+        assert_eq!(is_valid_svg_element_name("a"), false);
+    }
+
+    #[test]
+    fn html_attribute_positive() {
+        assert_eq!(is_valid_html_attribute_name("-foo-bar"), true);
+        assert_eq!(is_valid_html_attribute_name("data-foobar"), true);
+    }
+
+    #[test]
+    fn html_attribute_negative() {
+        assert_eq!(is_valid_html_attribute_name("foo=bar"), false);
+        assert_eq!(is_valid_html_attribute_name("\"foo\""), false);
+        assert_eq!(is_valid_html_attribute_name("foo bar"), false);
     }
 }
