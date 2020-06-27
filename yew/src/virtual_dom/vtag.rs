@@ -29,6 +29,7 @@ cfg_if! {
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
+        use crate::sgml_tags::is_valid_sgml_tag;
         use super::{Html, HtmlRenderError, VText};
         use htmlescape;
         use std::convert::TryFrom;
@@ -128,11 +129,8 @@ impl TryFrom<VTag> for Html {
         let mut result: String = "".to_string();
         let tag_name = htmlescape::encode_minimal(&value.tag).to_lowercase();
 
-        for c in tag_name.chars() {
-            let is_alnum = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
-            if !is_alnum && c != '-' && c != '_' && c != ':' {
-                return Err(HtmlRenderError::InvalidTagName(tag_name));
-            }
+        if !is_valid_sgml_tag(tag_name.as_ref()) {
+            return Err(HtmlRenderError::InvalidTagName(tag_name));
         }
 
         result.push_str(format!("<{}", tag_name).as_ref());

@@ -117,6 +117,7 @@ pub mod callback;
 pub mod format;
 pub mod html;
 mod scheduler;
+pub mod sgml_tags;
 pub mod utils;
 pub mod virtual_dom;
 

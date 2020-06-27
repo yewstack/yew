@@ -383,6 +383,7 @@ fn is_valid_mathml_element_name(tag: &str) -> bool {
     MATHML_TAGS.contains(&tag)
 }
 
+/// Returns true iff you could validly construct a tag using this name in an HTML document
 pub fn is_valid_sgml_tag(tag: &str) -> bool {
     is_valid_html_element_name(tag) ||
     is_valid_svg_element_name(tag) ||

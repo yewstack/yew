@@ -52,6 +52,3 @@ pub mod future;
 
 #[cfg(feature = "store")]
 pub mod store;
-
-#[cfg(feature = "sgml_tags")]
-pub mod sgml_tags;
