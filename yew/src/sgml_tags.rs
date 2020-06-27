@@ -332,19 +332,12 @@ fn is_valid_custom_element_name(tag: &str) -> bool {
         return false;
     }
 
-    match tag {
-        "annotation-xml" | "color-profile" | "font-face" | "font-face-src" | "font-face-uri"
-        | "font-face-format" | "font-face-name" | "missing-glyph" => false,
-        _ => {
-            let mut chars = tag.chars();
-            let first_char = chars.next();
+    let mut chars = tag.chars();
+    let first_char = chars.next();
 
-            if let None = first_char {
-                return false;
-            }
-
-            let first_char = first_char.unwrap();
-
+    match first_char {
+        None => false,
+        Some(first_char) => {
             // must begin with [a-z]
             if first_char < 'a' || first_char > 'z' {
                 return false;
@@ -363,7 +356,7 @@ fn is_valid_custom_element_name(tag: &str) -> bool {
             }
 
             // must contain at least one hyphen
-            return seen_hyphen;
+            seen_hyphen
         }
     }
 }
