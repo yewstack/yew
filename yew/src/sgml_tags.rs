@@ -353,7 +353,7 @@ pub fn is_valid_html_attribute_name(attr: &str) -> bool {
             return false;
         }
     }
-    return true;
+    true
 }
 
 /// Returns true iff the character provided is a valid PCENChar as defined
