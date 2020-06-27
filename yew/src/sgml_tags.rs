@@ -1,7 +1,7 @@
 //! This module contains utilities for parsing or validating strings relating
 //! to tags.
 
-use lazy_static::lazy_static;
+use lazy_static::lazy_static as lazy_static;
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/HTML/Element
 static CONTEMPORARY_HTML_TAGS: [&str; 108] = [
@@ -298,7 +298,7 @@ lazy_static! {
             .iter()
             .chain(MATHML_TAGS.iter())
             .filter(|tag| tag.contains('-'))
-            .map(move |t| *t)
+            .map(|t| t.to_owned())
             .collect()
     };
 }
