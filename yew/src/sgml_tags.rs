@@ -439,13 +439,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn custom_elements_positive() {
+    fn custom_element_positive() {
         assert_eq!(is_valid_custom_element_name("foo-bar"), true);
         assert_eq!(is_valid_custom_element_name("foobar"), true);
     }
 
     #[test]
-    fn custom_elements_negative() {
+    fn custom_element_negative() {
         assert_eq!(is_valid_custom_element_name("foobar"), false);
         assert_eq!(is_valid_custom_element_name("-bar"), false);
         assert_eq!(is_valid_custom_element_name("foo bar"), false);
