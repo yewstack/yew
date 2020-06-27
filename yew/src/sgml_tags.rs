@@ -440,3 +440,59 @@ pub fn is_valid_sgml_tag(tag: &str) -> bool {
         || is_valid_mathml_element_name(tag)
         || is_valid_custom_element_name(tag)
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn custom_elements_positive() {
+        assert_eq!(is_valid_custom_element_name("foo-bar"), true);
+        assert_eq!(is_valid_custom_element_name("foobar"), true);
+    }
+
+    #[test]
+    fn custom_elements_negative() {
+        assert_eq!(is_valid_custom_element_name("foobar"), false);
+        assert_eq!(is_valid_custom_element_name("-bar"), false);
+        assert_eq!(is_valid_custom_element_name("foo bar"), false);
+        assert_eq!(is_valid_custom_element_name(""), false);
+        assert_eq!(is_valid_custom_element_name("foo\nbar"), false);
+        assert_eq!(is_valid_custom_element_name("-"), false);
+    }
+
+    #[test]
+    fn mathml_positive() {
+        assert_eq!(is_valid_custom_element_name("script"), true);
+        assert_eq!(is_valid_custom_element_name("munder"), true);
+    }
+
+    #[test]
+    fn mathml_negative() {
+        assert_eq!(is_valid_custom_element_name("svg"), false);
+        assert_eq!(is_valid_custom_element_name("b"), false);
+    }
+
+    #[test]
+    fn html_positive() {
+        assert_eq!(is_valid_custom_element_name("svg"), true);
+        assert_eq!(is_valid_custom_element_name("section"), true);
+        assert_eq!(is_valid_custom_element_name("applet"), true);
+    }
+
+    #[test]
+    fn html_negative() {
+        assert_eq!(is_valid_custom_element_name("math"), false);
+        assert_eq!(is_valid_custom_element_name("circle"), false);
+    }
+
+    #[test]
+    fn svg_positive() {
+        assert_eq!(is_valid_custom_element_name("circle"), true);
+        assert_eq!(is_valid_custom_element_name("g"), true);
+    }
+
+    #[test]
+    fn svg_negative() {
+        assert_eq!(is_valid_custom_element_name("body"), false);
+        assert_eq!(is_valid_custom_element_name("a"), false);
+    }
+}
