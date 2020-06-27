@@ -1,8 +1,7 @@
 //! This module contains utilities for parsing or validating strings relating
 //! to tags.
 
-use once_cell::sync::Lazy;
-use std::sync::Mutex;
+use lazy_static::lazy_static;
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/HTML/Element
 static CONTEMPORARY_HTML_TAGS: [&str; 108] = [
@@ -293,16 +292,14 @@ static SVG_TAGS: [&str; 90] = [
     "vkern",
 ];
 
-static DISALLOWED_CUSTOM_ELEMENT_TAGS: Lazy<Mutex<Vec<&str>>> = Lazy::new(|| {
-    Mutex::new(
-        SVG_TAGS
-            .iter()
-            .chain(MATHML_TAGS.iter())
-            .filter(|tag| tag.contains('-'))
-            .map(|t| t.to_owned())
-            .collect(),
-    )
-});
+lazy_static! {
+    static ref DISALLOWED_CUSTOM_ELEMENT_TAGS: Vec<&'static str> = SVG_TAGS
+        .iter()
+        .chain(MATHML_TAGS.iter())
+        .filter(|tag| tag.contains('-'))
+        .map(|t| t.to_owned())
+        .collect();
+}
 
 /// Returns true when the character provided is a "control" as defined
 /// in the WhatWG spec: https://infra.spec.whatwg.org/#control
@@ -381,11 +378,7 @@ fn is_pcen_char(c: char) -> bool {
 /// Returns true when the tag name provided would be a valid "custom element" per
 /// WhatWG spec: https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 fn is_valid_custom_element_name(tag: &str) -> bool {
-    if DISALLOWED_CUSTOM_ELEMENT_TAGS
-        .lock()
-        .expect("Could not unwrap DISALLOWED_CUSTOM_ELEMENT_TAGS")
-        .contains(&tag)
-    {
+    if DISALLOWED_CUSTOM_ELEMENT_TAGS.contains(&tag) {
         return false;
     }
 
