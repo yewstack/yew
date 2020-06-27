@@ -1,6 +1,8 @@
 //! This module contains utilities for parsing or validating strings relating
 //! to tags.
 
+use lazy_static::lazy_static;
+
 // Source: https://developer.mozilla.org/en-US/docs/Web/HTML/Element
 static CONTEMPORARY_HTML_TAGS: [&str; 108] = [
     "a",
@@ -287,8 +289,19 @@ static SVG_TAGS: [&str; 90] = [
     "unknown",
     "use",
     "view",
-    "vkern",
+    "vkern"
 ];
+
+lazy_static! {
+    static ref DISALLOWED_CUSTOM_ELEMENT_TAGS: Box<[&'static str]> = {
+        SVG_TAGS
+        .iter()
+        .chain(MATHML_TAGS.iter())
+        .filter(|tag| tag.contains('-'))
+        .map(|t| *t)
+        .collect()
+    };
+}
 
 /// Returns true iff the character provided is a valid PCENChar as defined
 /// in the WhatWG spec: https://html.spec.whatwg.org/multipage/custom-elements.html#prod-pcenchar
@@ -315,13 +328,9 @@ fn is_valid_pcen_char(c: char) -> bool {
 /// Returns true iff the tag name provided would be a valid "custom element" per
 /// WhatWG spec: https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 fn is_valid_custom_element_name(tag: &str) -> bool {
-    let prohibited: Vec<String> = SVG_TAGS
-        .iter()
-        .chain(MATHML_TAGS.iter())
-        .filter(|tag| tag.contains('-'))
-        .map(|s| s.to_string())
-        .collect();
-    // TODO use prohibited instead of the match statement below
+    if (*DISALLOWED_CUSTOM_ELEMENT_TAGS).contains(&tag) {
+        return false
+    }
 
     match tag {
         "annotation-xml" | "color-profile" | "font-face" | "font-face-src" | "font-face-uri"
@@ -357,4 +366,26 @@ fn is_valid_custom_element_name(tag: &str) -> bool {
             return seen_hyphen;
         }
     }
+}
+
+/// Returns true iff the tag name provided would be a valid HTML element
+fn is_valid_html_element_name(tag: &str) -> bool {
+    CONTEMPORARY_HTML_TAGS.contains(&tag) || DEPRECATED_HTML_TAGS.contains(&tag)
+}
+
+/// Returns true iff the tag name provided would be a valid SVG element
+fn is_valid_svg_element_name(tag: &str) -> bool {
+    SVG_TAGS.contains(&tag)
+}
+
+/// Returns true iff the tag name provided would be a valid MathML element
+fn is_valid_mathml_element_name(tag: &str) -> bool {
+    MATHML_TAGS.contains(&tag)
+}
+
+pub fn is_valid_sgml_tag(tag: &str) -> bool {
+    is_valid_html_element_name(tag) ||
+    is_valid_svg_element_name(tag) ||
+    is_valid_mathml_element_name(tag) ||
+    is_valid_custom_element_name(tag)
 }
