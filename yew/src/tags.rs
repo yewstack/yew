@@ -2,7 +2,7 @@
 //! to tags.
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/HTML/Element
-static contemporary_html_tags: [&str; 108] = [
+static CONTEMPORARY_HTML_TAGS: [&str; 108] = [
     "a",
     "abbr",
     "address",
@@ -114,7 +114,7 @@ static contemporary_html_tags: [&str; 108] = [
 ];
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/HTML/Element
-static deprecated_html_tags: [&str; 31] = [
+static DEPRECATED_HTML_TAGS: [&str; 31] = [
     "acronym",
     "applet",
     "basefont",
@@ -149,7 +149,7 @@ static deprecated_html_tags: [&str; 31] = [
 ];
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/MathML/Element
-static mathml_tags: [&str; 44] = [
+static MATHML_TAGS: [&str; 44] = [
     "annotation-xml",
     "annotation",
     "maction",
@@ -197,7 +197,7 @@ static mathml_tags: [&str; 44] = [
 ];
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/SVG/Element
-static svg_tags: [&str; 90] = [
+static SVG_TAGS: [&str; 90] = [
     "a",
     "altGlyph",
     "altGlyphDef",
@@ -315,13 +315,13 @@ fn is_valid_pcen_char(c: char) -> bool {
 /// Returns true iff the tag name provided would be a valid "custom element" per
 /// WhatWG spec: https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 fn is_valid_custom_element_name(tag: &str) -> bool {
-    let prohibited: Vec<String> = svg_tags
-        .into_iter()
-        .chain(mathml_tags.into_iter())
+    let prohibited: Vec<String> = SVG_TAGS
+        .iter()
+        .chain(MATHML_TAGS.iter())
         .filter(|tag| tag.contains('-'))
         .map(|s| s.to_string())
         .collect();
-    // TODO use prohibited
+    // TODO use prohibited instead of the match statement below
 
     match tag {
         "annotation-xml" | "color-profile" | "font-face" | "font-face-src" | "font-face-uri"
