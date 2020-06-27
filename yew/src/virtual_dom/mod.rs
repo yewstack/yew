@@ -56,8 +56,8 @@ cfg_if! {
             }
         }
 
-        impl fmt::Display for Html {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        impl Display for Html {
+            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 write!(f, "{}", self.string)
             }
         }
