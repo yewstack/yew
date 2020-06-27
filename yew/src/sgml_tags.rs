@@ -304,7 +304,7 @@ static DISALLOWED_CUSTOM_ELEMENT_TAGS: Lazy<Mutex<Vec<&str>>> = Lazy::new(|| {
     )
 });
 
-/// Returns true iff the character provided is a "control" as defined
+/// Returns true when the character provided is a "control" as defined
 /// in the WhatWG spec: https://infra.spec.whatwg.org/#control
 fn is_control(c: char) -> bool {
     match c {
@@ -313,7 +313,7 @@ fn is_control(c: char) -> bool {
     }
 }
 
-/// Returns true iff the character provided is a "c0 control" as defined
+/// Returns true when the character provided is a "c0 control" as defined
 /// in the WhatWG spec: https://infra.spec.whatwg.org/#c0-control
 fn is_c0_control(c: char) -> bool {
     match c {
@@ -322,7 +322,7 @@ fn is_c0_control(c: char) -> bool {
     }
 }
 
-/// Returns true iff the string provided is a "noncharacter" as defined
+/// Returns true when the string provided is a "noncharacter" as defined
 /// in the WhatWG spec: https://infra.spec.whatwg.org/#noncharacter
 fn is_noncharacter(c: char) -> bool {
     match c {
@@ -337,7 +337,7 @@ fn is_noncharacter(c: char) -> bool {
     }
 }
 
-/// Returns true iff the string provided is a valid "attribute name" as defined
+/// Returns true when the string provided is a valid "attribute name" as defined
 /// in the WhatWG spec: https://html.spec.whatwg.org/multipage/syntax.html#syntax-attribute-name
 pub fn is_valid_html_attribute_name(attr: &str) -> bool {
     for c in attr.chars() {
@@ -356,7 +356,7 @@ pub fn is_valid_html_attribute_name(attr: &str) -> bool {
     true
 }
 
-/// Returns true iff the character provided is a valid PCENChar as defined
+/// Returns true when the character provided is a valid PCENChar as defined
 /// in the WhatWG spec: https://html.spec.whatwg.org/multipage/custom-elements.html#prod-pcenchar
 fn is_pcen_char(c: char) -> bool {
     match c {
@@ -378,7 +378,7 @@ fn is_pcen_char(c: char) -> bool {
     }
 }
 
-/// Returns true iff the tag name provided would be a valid "custom element" per
+/// Returns true when the tag name provided would be a valid "custom element" per
 /// WhatWG spec: https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 fn is_valid_custom_element_name(tag: &str) -> bool {
     if DISALLOWED_CUSTOM_ELEMENT_TAGS
@@ -418,22 +418,22 @@ fn is_valid_custom_element_name(tag: &str) -> bool {
     }
 }
 
-/// Returns true iff the tag name provided would be a valid HTML element
+/// Returns true when the tag name provided would be a valid HTML element
 fn is_valid_html_element_name(tag: &str) -> bool {
     CONTEMPORARY_HTML_TAGS.contains(&tag) || DEPRECATED_HTML_TAGS.contains(&tag)
 }
 
-/// Returns true iff the tag name provided would be a valid SVG element
+/// Returns true when the tag name provided would be a valid SVG element
 fn is_valid_svg_element_name(tag: &str) -> bool {
     SVG_TAGS.contains(&tag)
 }
 
-/// Returns true iff the tag name provided would be a valid MathML element
+/// Returns true when the tag name provided would be a valid MathML element
 fn is_valid_mathml_element_name(tag: &str) -> bool {
     MATHML_TAGS.contains(&tag)
 }
 
-/// Returns true iff you could validly construct a tag using this name in an HTML document
+/// Returns true when you could validly construct a tag using this name in an HTML document
 pub fn is_valid_sgml_tag(tag: &str) -> bool {
     is_valid_html_element_name(tag)
         || is_valid_svg_element_name(tag)
