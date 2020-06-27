@@ -31,8 +31,8 @@ http = "0.2"
 htmlescape = { version = "0.3.1", optional = true }
 indexmap = "1.0.2"
 js-sys = { version = "0.3", optional = true }
-lazy_static = "1.3.0"
 log = "0.4"
+once_cell = "1.4.0"
 proc-macro-hack = "0.5"
 proc-macro-nested = "0.1"
 rmp-serde = { version = "0.14.0", optional = true }
