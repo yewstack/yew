@@ -289,17 +289,17 @@ static SVG_TAGS: [&str; 90] = [
     "unknown",
     "use",
     "view",
-    "vkern"
+    "vkern",
 ];
 
 lazy_static! {
     static ref DISALLOWED_CUSTOM_ELEMENT_TAGS: Box<[&'static str]> = {
         SVG_TAGS
-        .iter()
-        .chain(MATHML_TAGS.iter())
-        .filter(|tag| tag.contains('-'))
-        .map(|t| *t)
-        .collect()
+            .iter()
+            .chain(MATHML_TAGS.iter())
+            .filter(|tag| tag.contains('-'))
+            .map(|t| *t)
+            .collect()
     };
 }
 
@@ -329,7 +329,7 @@ fn is_valid_pcen_char(c: char) -> bool {
 /// WhatWG spec: https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 fn is_valid_custom_element_name(tag: &str) -> bool {
     if (*DISALLOWED_CUSTOM_ELEMENT_TAGS).contains(&tag) {
-        return false
+        return false;
     }
 
     match tag {
@@ -385,8 +385,8 @@ fn is_valid_mathml_element_name(tag: &str) -> bool {
 
 /// Returns true iff you could validly construct a tag using this name in an HTML document
 pub fn is_valid_sgml_tag(tag: &str) -> bool {
-    is_valid_html_element_name(tag) ||
-    is_valid_svg_element_name(tag) ||
-    is_valid_mathml_element_name(tag) ||
-    is_valid_custom_element_name(tag)
+    is_valid_html_element_name(tag)
+        || is_valid_svg_element_name(tag)
+        || is_valid_mathml_element_name(tag)
+        || is_valid_custom_element_name(tag)
 }
