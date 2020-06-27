@@ -18,7 +18,7 @@ cfg_if! {
 }
 
 cfg_if! {
-    if #[cfg(feature = "ssr")] {
+    if #[cfg(feature = "sans_mount_render")] {
         use super::{Html, HtmlRenderError};
         use std::convert::TryFrom;
     }
@@ -39,7 +39,7 @@ pub enum VNode {
     VRef(Node),
 }
 
-#[cfg(feature = "ssr")]
+#[cfg(feature = "sans_mount_render")]
 impl TryFrom<VNode> for Html {
     type Error = HtmlRenderError;
 

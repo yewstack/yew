@@ -28,7 +28,7 @@ cfg_if! {
 }
 
 cfg_if! {
-    if #[cfg(feature = "ssr")] {
+    if #[cfg(feature = "sans_mount_render")] {
         use crate::sgml_tags::is_valid_sgml_tag;
         use super::{Html, HtmlRenderError, VText};
         use htmlescape;
@@ -121,7 +121,7 @@ impl Clone for VTag {
 
 /// HTML output for a VTag is not necessarily deterministic due to the
 /// serialization of props which do not have a particular ordering.
-#[cfg(feature = "ssr")]
+#[cfg(feature = "sans_mount_render")]
 impl TryFrom<VTag> for Html {
     type Error = HtmlRenderError;
 
@@ -640,7 +640,7 @@ mod tests {
     use super::*;
     use crate::html;
     use std::any::TypeId;
-    #[cfg(feature = "ssr")]
+    #[cfg(feature = "sans_mount_render")]
     use std::convert::TryFrom;
     #[cfg(feature = "std_web")]
     use stdweb::web::{document, IElement};
@@ -1055,7 +1055,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "ssr")]
+    #[cfg(feature = "sans_mount_render")]
     fn it_stringifies_simple() {
         let p = html! {
             <p></p>
@@ -1073,7 +1073,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "ssr")]
+    #[cfg(feature = "sans_mount_render")]
     fn it_stringifies_complex() {
         let other_sym = "bar";
         let div = html! {
@@ -1103,7 +1103,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "ssr")]
+    #[cfg(feature = "sans_mount_render")]
     fn it_stringifies_attrs() {
         let div = html! {
             <div a="b" b="a" />
@@ -1122,7 +1122,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "ssr")]
+    #[cfg(feature = "sans_mount_render")]
     fn it_does_not_stringify_special_attrs() {
         let node_ref = NodeRef::default();
 

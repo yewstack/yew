@@ -15,7 +15,7 @@ cfg_if! {
 }
 
 cfg_if! {
-    if #[cfg(feature = "ssr")] {
+    if #[cfg(feature = "sans_mount_render")] {
         use super::{Html, HtmlRenderError};
         use htmlescape;
         use std::convert::TryFrom;
@@ -43,7 +43,7 @@ impl VText {
     }
 }
 
-#[cfg(feature = "ssr")]
+#[cfg(feature = "sans_mount_render")]
 impl TryFrom<VText> for Html {
     type Error = HtmlRenderError;
 
@@ -109,10 +109,10 @@ mod test {
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
-    #[cfg(feature = "ssr")]
+    #[cfg(feature = "sans_mount_render")]
     use super::Html;
 
-    #[cfg(feature = "ssr")]
+    #[cfg(feature = "sans_mount_render")]
     use std::convert::TryFrom;
 
     #[cfg(feature = "wasm_test")]
@@ -130,8 +130,8 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "ssr")]
-    fn text_as_root_ssr() {
+    #[cfg(feature = "sans_mount_render")]
+    fn text_as_root_smr() {
         let a = html! {
             "Text Node As Root"
         };
@@ -150,8 +150,8 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "ssr")]
-    fn special_chars_ssr() {
+    #[cfg(feature = "sans_mount_render")]
+    fn special_chars_smr() {
         let a = html! {
             "some special-chars\"> here!"
         };

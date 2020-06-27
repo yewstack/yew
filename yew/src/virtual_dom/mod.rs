@@ -39,7 +39,7 @@ pub use self::vtag::VTag;
 pub use self::vtext::VText;
 
 cfg_if! {
-    if #[cfg(feature = "ssr")] {
+    if #[cfg(feature = "sans_mount_render")] {
         use thiserror::Error as ThisError;
 
         /// Represents a block of HTML string content.
