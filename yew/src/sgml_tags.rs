@@ -339,7 +339,7 @@ fn is_noncharacter(c: char) -> bool {
 
 /// Returns true iff the string provided is a valid "attribute name" as defined
 /// in the WhatWG spec: https://html.spec.whatwg.org/multipage/syntax.html#syntax-attribute-name
-fn is_valid_html_attribute_name(attr: &str) -> bool {
+pub fn is_valid_html_attribute_name(attr: &str) -> bool {
     for c in attr.chars() {
         if is_noncharacter(c)
             || is_control(c)

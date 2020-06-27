@@ -29,7 +29,7 @@ cfg_if! {
 
 cfg_if! {
     if #[cfg(feature = "sans_mount_render")] {
-        use crate::sgml_tags::is_valid_sgml_tag;
+        use crate::sgml_tags::{is_valid_html_attribute_name, is_valid_sgml_tag};
         use super::{Html, HtmlRenderError, VText};
         use htmlescape;
         use std::convert::TryFrom;
@@ -140,10 +140,8 @@ impl TryFrom<VTag> for Html {
             // checked, value (special if textarea), disabled, href?, selected,
             // kind -> type if input, disallow ref, disallow LISTENER_SET, class
 
-            for c in key.chars() {
-                if !c.is_alphanumeric() && c != '-' && c != '_' && c != ':' {
-                    return Err(HtmlRenderError::InvalidAttributeName(key));
-                }
+            if !is_valid_html_attribute_name(key.as_str()) {
+                return Err(HtmlRenderError::InvalidAttributeName(key));
             }
 
             // textareas' innerHTML properties are specified via the `value` prop which doesn't
