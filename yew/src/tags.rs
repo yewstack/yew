@@ -110,7 +110,7 @@ static contemporary_html_tags: [&str; 108] = [
     "ul",
     "var",
     "video",
-    "wbr"
+    "wbr",
 ];
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/HTML/Element
@@ -145,7 +145,7 @@ static deprecated_html_tags: [&str; 31] = [
     "spacer",
     "strike",
     "tt",
-    "xmp"
+    "xmp",
 ];
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/MathML/Element
@@ -193,7 +193,7 @@ static mathml_tags: [&str; 44] = [
     "munder",
     "munderover",
     "none",
-    "semantics"
+    "semantics",
 ];
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/SVG/Element
@@ -287,7 +287,7 @@ static svg_tags: [&str; 90] = [
     "unknown",
     "use",
     "view",
-    "vkern"
+    "vkern",
 ];
 
 /// Returns true iff the character provided is a valid PCENChar as defined
@@ -308,14 +308,19 @@ fn is_valid_pcen_char(c: char) -> bool {
         '\u{F900}'..='\u{FDCF}' => true,
         '\u{FDF0}'..='\u{FFFD}' => true,
         '\u{10000}'..='\u{EFFFF}' => true,
-        _ => false
+        _ => false,
     }
 }
 
 /// Returns true iff the tag name provided would be a valid "custom element" per
 /// WhatWG spec: https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 fn is_valid_custom_element_name(tag: &str) -> bool {
-    let prohibited: Vec<String> = svg_tags.into_iter().chain(mathml_tags.into_iter()).filter(|tag| tag.contains('-')).map(|s| s.to_string()).collect();
+    let prohibited: Vec<String> = svg_tags
+        .into_iter()
+        .chain(mathml_tags.into_iter())
+        .filter(|tag| tag.contains('-'))
+        .map(|s| s.to_string())
+        .collect();
     // TODO use prohibited
 
     match tag {
@@ -326,14 +331,14 @@ fn is_valid_custom_element_name(tag: &str) -> bool {
             let first_char = chars.next();
 
             if let None = first_char {
-                return false
+                return false;
             }
 
             let first_char = first_char.unwrap();
 
             // must begin with [a-z]
             if first_char < 'a' || first_char > 'z' {
-                return false
+                return false;
             }
 
             let mut seen_hyphen = false;
@@ -344,12 +349,12 @@ fn is_valid_custom_element_name(tag: &str) -> bool {
 
                 // all characters must be valid PCENChar's
                 if !is_valid_pcen_char(c) {
-                    return false
+                    return false;
                 }
             }
 
             // must contain at least one hyphen
-            return seen_hyphen
-        },
+            return seen_hyphen;
+        }
     }
 }
