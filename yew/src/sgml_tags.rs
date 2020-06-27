@@ -304,9 +304,61 @@ static DISALLOWED_CUSTOM_ELEMENT_TAGS: Lazy<Mutex<Vec<&str>>> = Lazy::new(|| {
     )
 });
 
+/// Returns true iff the character provided is a "control" as defined
+/// in the WhatWG spec: https://infra.spec.whatwg.org/#control
+fn is_control(c: char) -> bool {
+    match c {
+        '\u{007F}'..='\u{009F}' => true,
+        _ => is_c0_control(c),
+    }
+}
+
+/// Returns true iff the character provided is a "c0 control" as defined
+/// in the WhatWG spec: https://infra.spec.whatwg.org/#c0-control
+fn is_c0_control(c: char) -> bool {
+    match c {
+        '\u{0000}'..='\u{001F}' => true,
+        _ => false,
+    }
+}
+
+/// Returns true iff the string provided is a "noncharacter" as defined
+/// in the WhatWG spec: https://infra.spec.whatwg.org/#noncharacter
+fn is_noncharacter(c: char) -> bool {
+    match c {
+        '\u{FDD0}'..='\u{FDEF}' => true,
+        '\u{FFFE}' | '\u{FFFF}' | '\u{1FFFE}' | '\u{1FFFF}' | '\u{2FFFE}' | '\u{2FFFF}'
+        | '\u{3FFFE}' | '\u{3FFFF}' | '\u{4FFFE}' | '\u{4FFFF}' | '\u{5FFFE}' | '\u{5FFFF}'
+        | '\u{6FFFE}' | '\u{6FFFF}' | '\u{7FFFE}' | '\u{7FFFF}' | '\u{8FFFE}' | '\u{8FFFF}'
+        | '\u{9FFFE}' | '\u{9FFFF}' | '\u{AFFFE}' | '\u{AFFFF}' | '\u{BFFFE}' | '\u{BFFFF}'
+        | '\u{CFFFE}' | '\u{CFFFF}' | '\u{DFFFE}' | '\u{DFFFF}' | '\u{EFFFE}' | '\u{EFFFF}'
+        | '\u{FFFFE}' | '\u{FFFFF}' | '\u{10FFFE}' | '\u{10FFFF}' => true,
+        _ => false,
+    }
+}
+
+/// Returns true iff the string provided is a valid "attribute name" as defined
+/// in the WhatWG spec: https://html.spec.whatwg.org/multipage/syntax.html#syntax-attribute-name
+fn is_valid_html_attribute_name(attr: &str) -> bool {
+    for c in attr.chars() {
+        if is_noncharacter(c)
+            || is_control(c)
+            || c == '\u{0020}'
+            || c == '\u{0022}'
+            || c == '\u{0027}'
+            || c == '\u{003E}'
+            || c == '\u{002F}'
+            || c == '\u{003D}'
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 /// Returns true iff the character provided is a valid PCENChar as defined
 /// in the WhatWG spec: https://html.spec.whatwg.org/multipage/custom-elements.html#prod-pcenchar
-fn is_valid_pcen_char(c: char) -> bool {
+fn is_pcen_char(c: char) -> bool {
     match c {
         '-' | '.' | '0'..='9' | 'a'..='z' | '_' => true,
         '\u{B7}' => true,
@@ -355,7 +407,7 @@ fn is_valid_custom_element_name(tag: &str) -> bool {
                 }
 
                 // all characters must be valid PCENChar's
-                if !is_valid_pcen_char(c) {
+                if !is_pcen_char(c) {
                     return false;
                 }
             }
