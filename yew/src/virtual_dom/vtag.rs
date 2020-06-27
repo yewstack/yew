@@ -141,8 +141,7 @@ impl TryFrom<VTag> for Html {
             // kind -> type if input, disallow ref, disallow LISTENER_SET, class
 
             for c in key.chars() {
-                let is_alnum = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
-                if !is_alnum && c != '-' && c != '_' && c != ':' {
+                if !c.is_alphanumeric() && c != '-' && c != '_' && c != ':' {
                     return Err(HtmlRenderError::InvalidAttributeName(key));
                 }
             }
