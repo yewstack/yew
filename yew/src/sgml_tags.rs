@@ -436,6 +436,8 @@ pub fn is_valid_sgml_tag(tag: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn custom_elements_positive() {
         assert_eq!(is_valid_custom_element_name("foo-bar"), true);
