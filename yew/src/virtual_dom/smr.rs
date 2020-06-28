@@ -13,7 +13,7 @@ use std::fmt::{self, Display, Formatter};
 use thiserror::Error as ThisError;
 
 /// Represents a block of HTML string content generated via Sans-Mount Rendering
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct HtmlString(String);
 
 impl HtmlString {
