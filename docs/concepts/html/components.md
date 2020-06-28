@@ -42,7 +42,7 @@ html! {
 ```rust
 pub struct Container(Props);
 
-#[derive(Properties)]
+#[derive(Properties, Clone)]
 pub struct Props {
     pub children: Children,
 }
@@ -62,6 +62,8 @@ impl Component for Container {
 }
 ```
 {% endcode %}
+
+{% hint style="info" %} Types for which you derive `Properties` must also implement `Clone`. This can be done by either using `#[derive(Properties, Clone)]` or manually implementing `Clone` for your type. {% endhint %}
 
 ## Nested Children with Props
 
@@ -86,7 +88,7 @@ html! {
 ```rust
 pub struct List(Props);
 
-#[derive(Properties)]
+#[derive(Properties, Clone)]
 pub struct Props {
     pub children: ChildrenWithProps<ListItem>,
 }
@@ -107,4 +109,3 @@ impl Component for List {
 }
 ```
 {% endcode %}
-
