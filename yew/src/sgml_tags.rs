@@ -302,7 +302,7 @@ lazy_static! {
 }
 
 /// Returns true when the character provided is a "control" as defined
-/// in the WhatWG spec: https://infra.spec.whatwg.org/#control
+/// in [the WhatWG spec](https://infra.spec.whatwg.org/#control)
 fn is_control(c: char) -> bool {
     match c {
         '\u{007F}'..='\u{009F}' => true,
@@ -311,7 +311,7 @@ fn is_control(c: char) -> bool {
 }
 
 /// Returns true when the character provided is a "c0 control" as defined
-/// in the WhatWG spec: https://infra.spec.whatwg.org/#c0-control
+/// in [the WhatWG spec](https://infra.spec.whatwg.org/#c0-control)
 fn is_c0_control(c: char) -> bool {
     match c {
         '\u{0000}'..='\u{001F}' => true,
@@ -320,7 +320,7 @@ fn is_c0_control(c: char) -> bool {
 }
 
 /// Returns true when the string provided is a "noncharacter" as defined
-/// in the WhatWG spec: https://infra.spec.whatwg.org/#noncharacter
+/// in [the WhatWG spec](https://infra.spec.whatwg.org/#noncharacter)
 fn is_noncharacter(c: char) -> bool {
     match c {
         '\u{FDD0}'..='\u{FDEF}' => true,
@@ -335,7 +335,7 @@ fn is_noncharacter(c: char) -> bool {
 }
 
 /// Returns true when the string provided is a valid "attribute name" as defined
-/// in the WhatWG spec: https://html.spec.whatwg.org/multipage/syntax.html#syntax-attribute-name
+/// in [the WhatWG spec](https://html.spec.whatwg.org/multipage/syntax.html#syntax-attribute-name)
 pub fn is_valid_html_attribute_name(attr: &str) -> bool {
     for c in attr.chars() {
         if is_noncharacter(c)
@@ -354,7 +354,7 @@ pub fn is_valid_html_attribute_name(attr: &str) -> bool {
 }
 
 /// Returns true when the character provided is a valid PCENChar as defined
-/// in the WhatWG spec: https://html.spec.whatwg.org/multipage/custom-elements.html#prod-pcenchar
+/// in [the WhatWG spec](https://html.spec.whatwg.org/multipage/custom-elements.html#prod-pcenchar)
 fn is_pcen_char(c: char) -> bool {
     match c {
         '-' | '.' | '0'..='9' | 'a'..='z' | '_' => true,
@@ -376,7 +376,7 @@ fn is_pcen_char(c: char) -> bool {
 }
 
 /// Returns true when the tag name provided would be a valid "custom element" per
-/// WhatWG spec: https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
+/// [the WhatWG spec](https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name)
 fn is_valid_custom_element_name(tag: &str) -> bool {
     if DISALLOWED_CUSTOM_ELEMENT_TAGS.contains(&tag) {
         return false;
