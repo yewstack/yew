@@ -70,7 +70,7 @@ cfg_if! {
             InvalidAttributeName(String),
 
             /// Malformed/unserializable tag name
-            #[error("cannot serialize invalid tag name `{}`", .0)]
+            #[error("cannot serialize invalid tag name `{0}`")]
             InvalidTagName(String),
 
             /// Unsupported VRef serialization
