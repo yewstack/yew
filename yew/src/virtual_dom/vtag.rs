@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{Attributes, Listener, Listeners, Patch, Transformer, VDiff, VList, VNode};
+use super::{Attributes, Key, Listener, Listeners, Patch, Transformer, VDiff, VList, VNode};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
@@ -62,7 +62,7 @@ pub struct VTag {
     tag: Cow<'static, str>,
     /// Type of element.
     element_type: ElementType,
-    /// A reference to the `Element`.
+    /// A reference to the DOM `Element`.
     pub reference: Option<Element>,
     /// List of attached listeners.
     pub listeners: Listeners,
@@ -88,7 +88,7 @@ pub struct VTag {
     /// Keeps handler for attached listeners to have an opportunity to drop them later.
     captured: Vec<EventListener>,
 
-    pub key: Option<String>,
+    pub key: Option<Key>,
 }
 
 impl Clone for VTag {
@@ -273,7 +273,7 @@ impl VTag {
         to_add_or_replace.chain(to_remove)
     }
 
-    /// Similar to `diff_attributers` except there is only a single `kind`.
+    /// Similar to `diff_attributes` except there is only a single `kind`.
     fn diff_kind<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
             self.kind.as_ref(),
@@ -419,9 +419,10 @@ impl VTag {
                 .namespace_uri()
                 .map_or(false, |ns| ns == SVG_NAMESPACE)
         {
-            let namespace = SVG_NAMESPACE;
-            #[cfg(feature = "web_sys")]
-            let namespace = Some(namespace);
+            let namespace = cfg_match! {
+                feature = "std_web" => SVG_NAMESPACE,
+                feature = "web_sys" => Some(SVG_NAMESPACE),
+            };
             document()
                 .create_element_ns(namespace, &self.tag)
                 .expect("can't create namespaced element for vtag")
@@ -461,7 +462,7 @@ impl VDiff for VTag {
             match ancestor {
                 // If the ancestor is a tag of the same type, don't recreate, keep the
                 // old tag and update its attributes and children.
-                VNode::VTag(vtag) if self.tag == vtag.tag => Some(vtag),
+                VNode::VTag(vtag) if self.tag == vtag.tag && self.key == vtag.key => Some(vtag),
                 _ => {
                     let element = self.create_element(parent);
                     super::insert_node(&element, parent, Some(ancestor.first_node()));
@@ -1308,6 +1309,7 @@ mod layout_tests {
     #[test]
     fn diff() {
         let layout1 = TestLayout {
+            name: "1",
             node: html! {
                 <ul>
                     <li>
@@ -1322,6 +1324,7 @@ mod layout_tests {
         };
 
         let layout2 = TestLayout {
+            name: "2",
             node: html! {
                 <ul>
                     <li>
@@ -1339,6 +1342,7 @@ mod layout_tests {
         };
 
         let layout3 = TestLayout {
+            name: "3",
             node: html! {
                 <ul>
                     <li>
@@ -1359,6 +1363,7 @@ mod layout_tests {
         };
 
         let layout4 = TestLayout {
+            name: "4",
             node: html! {
                 <ul>
                     <li>

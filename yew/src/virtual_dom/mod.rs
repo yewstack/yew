@@ -1,6 +1,8 @@
 //! This module contains Yew's implementation of a reactive virtual DOM.
 
 #[doc(hidden)]
+pub mod key;
+#[doc(hidden)]
 pub mod vcomp;
 #[doc(hidden)]
 pub mod vlist;
@@ -27,6 +29,8 @@ cfg_if! {
     }
 }
 
+#[doc(inline)]
+pub use self::key::Key;
 #[doc(inline)]
 pub use self::vcomp::{VChild, VComp};
 #[doc(inline)]
@@ -200,6 +204,8 @@ pub(crate) trait VDiff {
     /// - `ancestor`: the node that this node will be replacing in the DOM. This
     ///   method will _always_ remove the `ancestor` from the `parent`.
     ///
+    /// Returns a reference to the newly inserted element.
+    ///
     /// ### Internal Behavior Notice:
     ///
     /// Note that these modify the DOM by modifying the reference that _already_
@@ -319,6 +325,7 @@ mod layout_tests {
     }
 
     pub(crate) struct TestLayout<'a> {
+        pub(crate) name: &'a str,
         pub(crate) node: VNode,
         pub(crate) expected: &'a str,
     }
@@ -337,14 +344,18 @@ mod layout_tests {
         for layout in layouts.iter() {
             // Apply the layout
             let mut node = layout.node.clone();
+            wasm_bindgen_test::console_log!("Independently apply layout '{}'", layout.name);
             node.apply(&parent_scope, &parent_element, next_sibling.clone(), None);
             assert_eq!(
                 parent_element.inner_html(),
-                format!("{}END", layout.expected)
+                format!("{}END", layout.expected),
+                "Independent apply failed for layout '{}'",
+                layout.name,
             );
 
             // Diff with no changes
             let mut node_clone = layout.node.clone();
+            wasm_bindgen_test::console_log!("Independently reapply layout '{}'", layout.name);
             node_clone.apply(
                 &parent_scope,
                 &parent_element,
@@ -353,7 +364,9 @@ mod layout_tests {
             );
             assert_eq!(
                 parent_element.inner_html(),
-                format!("{}END", layout.expected)
+                format!("{}END", layout.expected),
+                "Independent reapply failed for layout '{}'",
+                layout.name,
             );
 
             // Detach
@@ -363,13 +376,19 @@ mod layout_tests {
                 next_sibling.clone(),
                 Some(node_clone),
             );
-            assert_eq!(parent_element.inner_html(), "END");
+            assert_eq!(
+                parent_element.inner_html(),
+                "END",
+                "Independent detach failed for layout '{}'",
+                layout.name,
+            );
         }
 
         // Sequentially apply each layout
         let mut ancestor: Option<VNode> = None;
         for layout in layouts.iter() {
             let mut next_node = layout.node.clone();
+            wasm_bindgen_test::console_log!("Sequentially apply layout '{}'", layout.name);
             next_node.apply(
                 &parent_scope,
                 &parent_element,
@@ -378,7 +397,9 @@ mod layout_tests {
             );
             assert_eq!(
                 parent_element.inner_html(),
-                format!("{}END", layout.expected)
+                format!("{}END", layout.expected),
+                "Sequential apply failed for layout '{}'",
+                layout.name,
             );
             ancestor = Some(next_node);
         }
@@ -386,6 +407,7 @@ mod layout_tests {
         // Sequentially detach each layout
         for layout in layouts.into_iter().rev() {
             let mut next_node = layout.node.clone();
+            wasm_bindgen_test::console_log!("Sequentially detach layout '{}'", layout.name);
             next_node.apply(
                 &parent_scope,
                 &parent_element,
@@ -394,7 +416,9 @@ mod layout_tests {
             );
             assert_eq!(
                 parent_element.inner_html(),
-                format!("{}END", layout.expected)
+                format!("{}END", layout.expected),
+                "Sequential detach failed for layout '{}'",
+                layout.name,
             );
             ancestor = Some(next_node);
         }
@@ -403,6 +427,10 @@ mod layout_tests {
         empty_node
             .clone()
             .apply(&parent_scope, &parent_element, next_sibling, ancestor);
-        assert_eq!(parent_element.inner_html(), "END");
+        assert_eq!(
+            parent_element.inner_html(),
+            "END",
+            "Failed to detach last layout"
+        );
     }
 }
