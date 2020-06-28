@@ -129,11 +129,11 @@ impl TryFrom<VTag> for Html {
         let mut result: String = "".to_string();
         let tag_name = htmlescape::encode_minimal(&value.tag).to_lowercase();
 
-        if !is_valid_sgml_tag(tag_name.as_ref()) {
+        if !is_valid_sgml_tag(&tag_name) {
             return Err(HtmlRenderError::InvalidTagName(tag_name));
         }
 
-        result.push_str(format!("<{}", tag_name).as_ref());
+        result.push_str(&format!("<{}", tag_name));
 
         for (key_unclean, value) in &value.attributes {
             let key = key_unclean.to_lowercase();
@@ -172,7 +172,7 @@ impl TryFrom<VTag> for Html {
             }
         }
 
-        let children_html: Html = match tag_name.as_ref() {
+        let children_html: Html = match &tag_name {
             "textarea" => {
                 let vtext = VText::new(value.value.clone().unwrap_or_else(String::new));
                 Html::try_from(vtext)

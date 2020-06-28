@@ -49,7 +49,7 @@ impl TryFrom<VList> for Html {
         let mut result: String = "".to_string();
         for child in value.children {
             let html = Html::try_from(child)?.to_string();
-            result.push_str(html.as_ref());
+            result.push_str(&html);
         }
 
         result.shrink_to_fit();
