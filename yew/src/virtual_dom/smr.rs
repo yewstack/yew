@@ -2,6 +2,8 @@
 //! future feature work such as Static Site Generation and Server-Side Rendering (SSR).
 //! This functionality allows Yew Components to be rendered to a string without needing
 //! to be mounted onto a DOM node first.
+//!
+//! *This module is only available if the `sans_mount_render` feature is enabled.*
 
 use super::{VComp, VList, VNode, VTag, VText};
 use crate::sgml_tags::{is_valid_html_attribute_name, is_valid_sgml_tag};
