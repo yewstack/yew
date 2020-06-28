@@ -89,25 +89,23 @@ impl TryFrom<VTag> for Html {
                 continue;
             }
 
-            result.push_str(
-                format!(
-                    " {}=\"{}\"",
-                    htmlescape::encode_minimal(&key),
-                    htmlescape::encode_attribute(&value)
-                )
-                .as_ref(),
-            );
+            result.push_str(&format!(
+                " {}=\"{}\"",
+                htmlescape::encode_minimal(&key),
+                htmlescape::encode_attribute(&value)
+            ));
         }
 
         if value.checked {
-            result.push_str(" checked")
+            result.push_str(&" checked")
         }
 
         if tag_name == "input" {
             if let Some(kind) = &value.kind {
-                result.push_str(
-                    format!(" type=\"{}\"", htmlescape::encode_attribute(&kind)).as_ref(),
-                );
+                result.push_str(&format!(
+                    " type=\"{}\"",
+                    htmlescape::encode_attribute(&kind)
+                ));
             }
         }
 
@@ -120,11 +118,11 @@ impl TryFrom<VTag> for Html {
         }?;
         let children_html = children_html.to_string();
         if children_html == "" {
-            result.push_str(" />");
+            result.push_str(&" />");
         } else {
-            result.push_str(">");
-            result.push_str(children_html.as_ref());
-            result.push_str(format!("</{}>", tag_name).as_ref());
+            result.push_str(&">");
+            result.push_str(&children_html);
+            result.push_str(&format!("</{}>", tag_name));
         }
 
         result.shrink_to_fit();
