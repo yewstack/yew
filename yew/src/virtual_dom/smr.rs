@@ -3,13 +3,13 @@
 //! This functionality allows Yew Components to be rendered to a string without needing
 //! to be mounted onto a DOM node first.
 
+use super::{VComp, VList, VNode, VTag, VText};
+use crate::html::NodeRef;
+use crate::sgml_tags::{is_valid_html_attribute_name, is_valid_sgml_tag};
 use htmlescape;
 use std::convert::TryFrom;
 use std::fmt::{self, Display, Formatter};
 use thiserror::Error as ThisError;
-use crate::html::NodeRef;
-use crate::sgml_tags::{is_valid_html_attribute_name, is_valid_sgml_tag};
-use super::{VText, VTag, VList, VNode, VComp};
 
 /// Represents a block of HTML string content generated via Sans-Mount Rendering
 #[derive(Debug, PartialEq, Eq)]
@@ -19,9 +19,7 @@ pub struct Html {
 
 impl Html {
     fn new(html: String) -> Self {
-        Html {
-            html: html
-        }
+        Html { html: html }
     }
 }
 
@@ -172,11 +170,10 @@ impl TryFrom<VNode> for Html {
     }
 }
 
-
 #[cfg(test)]
 mod test_vtext {
-    use crate::html;
     use super::Html;
+    use crate::html;
     use std::convert::TryFrom;
 
     #[cfg(feature = "wasm_test")]
