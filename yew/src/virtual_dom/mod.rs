@@ -15,7 +15,7 @@ use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
-use std::fmt::{self, Display, Formatter};
+use std::fmt;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {

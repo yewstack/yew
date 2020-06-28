@@ -12,13 +12,6 @@ cfg_if! {
     }
 }
 
-cfg_if! {
-    if #[cfg(feature = "sans_mount_render")] {
-        use super::{Html, HtmlRenderError};
-        use std::convert::TryFrom;
-    }
-}
-
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct VList {

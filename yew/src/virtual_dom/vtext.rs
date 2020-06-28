@@ -14,14 +14,6 @@ cfg_if! {
     }
 }
 
-cfg_if! {
-    if #[cfg(feature = "sans_mount_render")] {
-        use super::{Html, HtmlRenderError};
-        use htmlescape;
-        use std::convert::TryFrom;
-    }
-}
-
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// representation.

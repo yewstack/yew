@@ -27,15 +27,6 @@ cfg_if! {
     }
 }
 
-cfg_if! {
-    if #[cfg(feature = "sans_mount_render")] {
-        use crate::sgml_tags::{is_valid_html_attribute_name, is_valid_sgml_tag};
-        use super::{Html, HtmlRenderError, VText};
-        use htmlescape;
-        use std::convert::TryFrom;
-    }
-}
-
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
 

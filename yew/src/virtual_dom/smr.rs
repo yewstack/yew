@@ -1,6 +1,8 @@
-use super::{Html, HtmlRenderError};
+use htmlescape;
 use std::convert::TryFrom;
 use thiserror::Error as ThisError;
+use crate::sgml_tags::{is_valid_html_attribute_name, is_valid_sgml_tag};
+use super::{VText, VTag, VList, VNode, VRef, VComp};
 
 /// Represents a block of HTML string content.
 #[derive(Debug, PartialEq, Eq)]

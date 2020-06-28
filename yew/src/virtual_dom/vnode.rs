@@ -17,13 +17,6 @@ cfg_if! {
     }
 }
 
-cfg_if! {
-    if #[cfg(feature = "sans_mount_render")] {
-        use super::{Html, HtmlRenderError};
-        use std::convert::TryFrom;
-    }
-}
-
 /// Bind virtual element to a DOM reference.
 #[derive(Clone)]
 pub enum VNode {
