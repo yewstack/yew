@@ -45,20 +45,20 @@ cfg_if! {
         /// Represents a block of HTML string content.
         #[derive(Debug, PartialEq, Eq)]
         pub struct Html {
-            string: String,
+            html: String,
         }
 
         impl Html {
-            fn new(string: String) -> Self {
+            fn new(html: String) -> Self {
                 Html {
-                    string: string
+                    html: html
                 }
             }
         }
 
         impl Display for Html {
             fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-                write!(f, "{}", self.string)
+                write!(f, "{}", self.html)
             }
         }
 
