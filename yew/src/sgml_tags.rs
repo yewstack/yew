@@ -439,13 +439,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn custom_element_positive() {
+    fn valid_custom_element() {
         assert_eq!(is_valid_custom_element_name("foo-bar"), true);
         assert_eq!(is_valid_custom_element_name("foobar"), true);
     }
 
     #[test]
-    fn custom_element_negative() {
+    fn invalid_custom_element() {
         assert_eq!(is_valid_custom_element_name("foobar"), false);
         assert_eq!(is_valid_custom_element_name("-bar"), false);
         assert_eq!(is_valid_custom_element_name("foo bar"), false);
@@ -467,38 +467,38 @@ mod tests {
     }
 
     #[test]
-    fn html_element_positive() {
+    fn valid_html_element() {
         assert_eq!(is_valid_html_element_name("svg"), true);
         assert_eq!(is_valid_html_element_name("section"), true);
         assert_eq!(is_valid_html_element_name("applet"), true);
     }
 
     #[test]
-    fn html_element_negative() {
+    fn invalid_html_element() {
         assert_eq!(is_valid_html_element_name("math"), false);
         assert_eq!(is_valid_html_element_name("circle"), false);
     }
 
     #[test]
-    fn svg_element_positive() {
+    fn valid_svg_element() {
         assert_eq!(is_valid_svg_element_name("circle"), true);
         assert_eq!(is_valid_svg_element_name("g"), true);
     }
 
     #[test]
-    fn svg_element_negative() {
+    fn invalid_svg_element() {
         assert_eq!(is_valid_svg_element_name("body"), false);
         assert_eq!(is_valid_svg_element_name("a"), false);
     }
 
     #[test]
-    fn html_attribute_positive() {
+    fn valid_html_attribute() {
         assert_eq!(is_valid_html_attribute_name("-foo-bar"), true);
         assert_eq!(is_valid_html_attribute_name("data-foobar"), true);
     }
 
     #[test]
-    fn html_attribute_negative() {
+    fn invalid_html_attribute() {
         assert_eq!(is_valid_html_attribute_name("foo=bar"), false);
         assert_eq!(is_valid_html_attribute_name("\"foo\""), false);
         assert_eq!(is_valid_html_attribute_name("foo bar"), false);
