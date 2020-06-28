@@ -15,7 +15,7 @@ use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
-use std::fmt;
+use std::fmt::{self, Display, Formatter};
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -57,7 +57,7 @@ cfg_if! {
         }
 
         impl Display for Html {
-            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+            fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
                 write!(f, "{}", self.string)
             }
         }
