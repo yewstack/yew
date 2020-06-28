@@ -174,7 +174,7 @@ impl TryFrom<VTag> for Html {
 
         let children_html: Html = match tag_name.as_ref() {
             "textarea" => {
-                let vtext = VText::new(value.value.clone().unwrap_or("".to_string()));
+                let vtext = VText::new(value.value.clone().unwrap_or_else(String::new));
                 Html::try_from(vtext)
             }
             _ => Html::try_from(value.children),
