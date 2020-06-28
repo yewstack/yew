@@ -38,48 +38,6 @@ pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
 
-cfg_if! {
-    if #[cfg(feature = "sans_mount_render")] {
-        use thiserror::Error as ThisError;
-
-        /// Represents a block of HTML string content.
-        #[derive(Debug, PartialEq, Eq)]
-        pub struct Html {
-            html: String,
-        }
-
-        impl Html {
-            fn new(html: String) -> Self {
-                Html {
-                    html: html
-                }
-            }
-        }
-
-        impl Display for Html {
-            fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-                write!(f, "{}", self.html)
-            }
-        }
-
-        /// Represents errors associated with conversion of Yew structures to HTML.
-        #[derive(Debug, ThisError)]
-        pub enum HtmlRenderError {
-            /// Malformed/unserializable attribute name
-            #[error("cannot serialize invalid attribute name `{0}`")]
-            InvalidAttributeName(String),
-
-            /// Malformed/unserializable tag name
-            #[error("cannot serialize invalid tag name `{0}`")]
-            InvalidTagName(String),
-
-            /// Unsupported VRef serialization
-            #[error("cannot serialize VRef because that is unsupported")]
-            UnserializableVRef,
-        }
-    }
-}
-
 /// The `Listener` trait is an universal implementation of an event listener
 /// which is used to bind Rust-listener to JS-listener (DOM).
 pub trait Listener {

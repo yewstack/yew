@@ -43,15 +43,6 @@ impl VText {
     }
 }
 
-#[cfg(feature = "sans_mount_render")]
-impl TryFrom<VText> for Html {
-    type Error = HtmlRenderError;
-
-    fn try_from(value: VText) -> Result<Html, HtmlRenderError> {
-        Ok(Html::new(htmlescape::encode_minimal(&value.text)))
-    }
-}
-
 impl VDiff for VText {
     /// Remove VText from parent.
     fn detach(&mut self, parent: &Element) {

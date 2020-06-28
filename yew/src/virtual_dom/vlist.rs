@@ -41,22 +41,6 @@ impl DerefMut for VList {
     }
 }
 
-#[cfg(feature = "sans_mount_render")]
-impl TryFrom<VList> for Html {
-    type Error = HtmlRenderError;
-
-    fn try_from(value: VList) -> Result<Html, HtmlRenderError> {
-        let mut result: String = "".to_string();
-        for child in value.children {
-            let html = Html::try_from(child)?.to_string();
-            result.push_str(&html);
-        }
-
-        result.shrink_to_fit();
-        Ok(Html::new(result))
-    }
-}
-
 impl VList {
     /// Creates a new empty `VList` instance.
     pub fn new() -> Self {

@@ -16,13 +16,6 @@ cfg_if! {
     }
 }
 
-cfg_if! {
-    if #[cfg(feature = "sans_mount_render")] {
-        use super::{Html, HtmlRenderError};
-        use std::convert::TryFrom;
-    }
-}
-
 /// A virtual component.
 pub struct VComp {
     type_id: TypeId,
@@ -96,22 +89,6 @@ where
 {
     fn from(vchild: VChild<COMP>) -> Self {
         VComp::new::<COMP>(vchild.props, vchild.node_ref, vchild.key)
-    }
-}
-
-#[cfg(feature = "sans_mount_render")]
-impl TryFrom<VComp> for Html {
-    type Error = HtmlRenderError;
-
-    fn try_from(value: VComp) -> Result<Html, HtmlRenderError> {
-        let html: String = match &value.scope {
-            None => "".to_string(),
-            Some(scope) => match scope.root_vnode() {
-                None => "".to_string(),
-                Some(root_vnode) => Html::try_from(root_vnode.clone())?.to_string(),
-            },
-        };
-        Ok(Html::new(html))
     }
 }
 

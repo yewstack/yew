@@ -39,21 +39,6 @@ pub enum VNode {
     VRef(Node),
 }
 
-#[cfg(feature = "sans_mount_render")]
-impl TryFrom<VNode> for Html {
-    type Error = HtmlRenderError;
-
-    fn try_from(value: VNode) -> Result<Html, HtmlRenderError> {
-        Ok(match value {
-            VNode::VTag(vtag) => Html::try_from(*vtag)?,
-            VNode::VText(vtext) => Html::try_from(vtext)?,
-            VNode::VComp(vcomp) => Html::try_from(vcomp)?,
-            VNode::VList(vlist) => Html::try_from(vlist)?,
-            VNode::VRef(_) => Err(HtmlRenderError::UnserializableVRef)?,
-        })
-    }
-}
-
 impl VNode {
     /// Returns the first DOM node that is used to designate the position of the virtual DOM node.
     pub(crate) fn first_node(&self) -> Node {
