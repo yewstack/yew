@@ -1,12 +1,16 @@
-#![cfg(feature = "sans_mount_render")]
+//! This module contains Yew's implementation of Sans-Mount Rendering (SMR), to support
+//! future feature work such as Static Site Generation and Server-Side Rendering (SSR).
+//! This functionality allows Yew Components to be rendered to a string without needing
+//! to be mounted onto a DOM node first.
 
 use htmlescape;
 use std::convert::TryFrom;
+use std::fmt::{self, Display, Formatter};
 use thiserror::Error as ThisError;
 use crate::sgml_tags::{is_valid_html_attribute_name, is_valid_sgml_tag};
-use super::{VText, VTag, VList, VNode, VRef, VComp};
+use super::{VText, VTag, VList, VNode, VComp};
 
-/// Represents a block of HTML string content.
+/// Represents a block of HTML string content generated via Sans-Mount Rendering
 #[derive(Debug, PartialEq, Eq)]
 pub struct Html {
     html: String,

@@ -11,6 +11,9 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
+#[cfg(feature = "sans_mount_render")]
+pub mod smr;
+
 use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use indexmap::set::IndexSet;
@@ -37,6 +40,10 @@ pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
+
+#[cfg(feature = "sans_mount_render")]
+#[doc(no_inline)]
+pub use self::smr::{Html, HtmlRenderError};
 
 /// The `Listener` trait is an universal implementation of an event listener
 /// which is used to bind Rust-listener to JS-listener (DOM).
