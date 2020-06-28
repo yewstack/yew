@@ -161,7 +161,7 @@ impl TryFrom<VTag> for Html {
         }
 
         if value.checked {
-            result.push_str(" checked=\"true\"")
+            result.push_str(" checked")
         }
 
         if tag_name == "input" {
