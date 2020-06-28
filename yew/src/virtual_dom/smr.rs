@@ -12,19 +12,17 @@ use thiserror::Error as ThisError;
 
 /// Represents a block of HTML string content generated via Sans-Mount Rendering
 #[derive(Debug, PartialEq, Eq)]
-pub struct Html {
-    html: String,
-}
+pub struct HtmlString(String);
 
-impl Html {
+impl HtmlString {
     fn new(html: String) -> Self {
-        Html { html: html }
+        Self(html)
     }
 }
 
-impl Display for Html {
+impl Display for HtmlString {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.html)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -44,27 +42,27 @@ pub enum HtmlRenderError {
     UnserializableVRef,
 }
 
-impl TryFrom<VComp> for Html {
+impl TryFrom<VComp> for HtmlString {
     type Error = HtmlRenderError;
 
-    fn try_from(value: VComp) -> Result<Html, HtmlRenderError> {
+    fn try_from(value: VComp) -> Result<HtmlString, HtmlRenderError> {
         let html: String = match &value.scope {
             None => "".to_string(),
             Some(scope) => match scope.root_vnode() {
                 None => "".to_string(),
-                Some(root_vnode) => Html::try_from(root_vnode.clone())?.to_string(),
+                Some(root_vnode) => HtmlString::try_from(root_vnode.clone())?.to_string(),
             },
         };
-        Ok(Html::new(html))
+        Ok(HtmlString::new(html))
     }
 }
 
 /// HTML output for a VTag is not necessarily deterministic due to the
 /// serialization of props which do not have a particular ordering.
-impl TryFrom<VTag> for Html {
+impl TryFrom<VTag> for HtmlString {
     type Error = HtmlRenderError;
 
-    fn try_from(value: VTag) -> Result<Html, HtmlRenderError> {
+    fn try_from(value: VTag) -> Result<HtmlString, HtmlRenderError> {
         let mut result: String = "".to_string();
         let tag_name = htmlescape::encode_minimal(&value.tag).to_lowercase();
 
@@ -109,12 +107,12 @@ impl TryFrom<VTag> for Html {
             }
         }
 
-        let children_html: Html = match tag_name.as_ref() {
+        let children_html: HtmlString = match tag_name.as_ref() {
             "textarea" => {
                 let vtext = VText::new(value.value.clone().unwrap_or_else(String::new));
-                Html::try_from(vtext)
+                HtmlString::try_from(vtext)
             }
-            _ => Html::try_from(value.children),
+            _ => HtmlString::try_from(value.children),
         }?;
         let children_html = children_html.to_string();
         if children_html == "" {
@@ -126,42 +124,42 @@ impl TryFrom<VTag> for Html {
         }
 
         result.shrink_to_fit();
-        Ok(Html::new(result))
+        Ok(HtmlString::new(result))
     }
 }
 
-impl TryFrom<VText> for Html {
+impl TryFrom<VText> for HtmlString {
     type Error = HtmlRenderError;
 
-    fn try_from(value: VText) -> Result<Html, HtmlRenderError> {
-        Ok(Html::new(htmlescape::encode_minimal(&value.text)))
+    fn try_from(value: VText) -> Result<HtmlString, HtmlRenderError> {
+        Ok(HtmlString::new(htmlescape::encode_minimal(&value.text)))
     }
 }
 
-impl TryFrom<VList> for Html {
+impl TryFrom<VList> for HtmlString {
     type Error = HtmlRenderError;
 
-    fn try_from(value: VList) -> Result<Html, HtmlRenderError> {
+    fn try_from(value: VList) -> Result<HtmlString, HtmlRenderError> {
         let mut result: String = "".to_string();
         for child in value.children {
-            let html = Html::try_from(child)?.to_string();
+            let html = HtmlString::try_from(child)?.to_string();
             result.push_str(&html);
         }
 
         result.shrink_to_fit();
-        Ok(Html::new(result))
+        Ok(HtmlString::new(result))
     }
 }
 
-impl TryFrom<VNode> for Html {
+impl TryFrom<VNode> for HtmlString {
     type Error = HtmlRenderError;
 
-    fn try_from(value: VNode) -> Result<Html, HtmlRenderError> {
+    fn try_from(value: VNode) -> Result<HtmlString, HtmlRenderError> {
         Ok(match value {
-            VNode::VTag(vtag) => Html::try_from(*vtag)?,
-            VNode::VText(vtext) => Html::try_from(vtext)?,
-            VNode::VComp(vcomp) => Html::try_from(vcomp)?,
-            VNode::VList(vlist) => Html::try_from(vlist)?,
+            VNode::VTag(vtag) => HtmlString::try_from(*vtag)?,
+            VNode::VText(vtext) => HtmlString::try_from(vtext)?,
+            VNode::VComp(vcomp) => HtmlString::try_from(vcomp)?,
+            VNode::VList(vlist) => HtmlString::try_from(vlist)?,
             VNode::VRef(_) => Err(HtmlRenderError::UnserializableVRef)?,
         })
     }
@@ -169,7 +167,7 @@ impl TryFrom<VNode> for Html {
 
 #[cfg(test)]
 mod test_vtext {
-    use super::Html;
+    use super::HtmlString;
     use crate::html;
     use std::convert::TryFrom;
 
@@ -190,11 +188,14 @@ mod test_vtext {
         };
 
         assert_eq!(
-            Html::try_from(a.clone()).expect("HTML stringify error"),
-            Html::try_from(b.clone()).expect("HTML stringify error")
+            HtmlString::try_from(a.clone()).expect("HTML stringify error"),
+            HtmlString::try_from(b.clone()).expect("HTML stringify error")
         );
         assert!(
-            Html::try_from(b).expect("HTML stringify error").to_string() == "Text Node As Root"
+            HtmlString::try_from(b)
+                .expect("HTML stringify error")
+                .to_string()
+                == "Text Node As Root"
         );
     }
 
@@ -209,11 +210,11 @@ mod test_vtext {
         };
 
         assert_eq!(
-            Html::try_from(a.clone()).expect("HTML stringify error"),
-            Html::try_from(b.clone()).expect("HTML stringify error")
+            HtmlString::try_from(a.clone()).expect("HTML stringify error"),
+            HtmlString::try_from(b.clone()).expect("HTML stringify error")
         );
         assert_eq!(
-            Html::try_from(b.clone())
+            HtmlString::try_from(b.clone())
                 .expect("HTML stringify error")
                 .to_string(),
             "some special-chars&quot;&gt; here!"
@@ -241,7 +242,7 @@ mod tests_vtag {
         };
 
         if let VNode::VTag(p) = p {
-            let p_html = Html::try_from(*p)
+            let p_html = HtmlString::try_from(*p)
                 .expect("HTML stringify error")
                 .to_string();
 
@@ -267,7 +268,7 @@ mod tests_vtag {
         };
 
         if let VNode::VTag(p) = p {
-            let p_html = Html::try_from(*p)
+            let p_html = HtmlString::try_from(*p)
                 .expect("HTML stringify error")
                 .to_string();
 
@@ -287,7 +288,7 @@ mod tests_vtag {
         };
 
         if let VNode::VTag(div) = div {
-            let div_html = Html::try_from(*div)
+            let div_html = HtmlString::try_from(*div)
                 .expect("HTML stringify error")
                 .to_string();
             let order_1 = "<div a=\"b\" b=\"a\" />";
@@ -307,7 +308,7 @@ mod tests_vtag {
         };
 
         if let VNode::VTag(div) = div {
-            let div_html = Html::try_from(*div)
+            let div_html = HtmlString::try_from(*div)
                 .expect("HTML stringify error")
                 .to_string();
             assert_eq!(div_html, "<div />");
