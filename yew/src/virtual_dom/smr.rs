@@ -181,7 +181,6 @@ mod test_vtext {
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
-    #[cfg(feature = "sans_mount_render")]
     fn text_as_root_smr() {
         let a = html! {
             "Text Node As Root"
@@ -201,7 +200,6 @@ mod test_vtext {
     }
 
     #[test]
-    #[cfg(feature = "sans_mount_render")]
     fn special_chars_smr() {
         let a = html! {
             "some special-chars\"> here!"
@@ -221,5 +219,101 @@ mod test_vtext {
                 .to_string(),
             "some special-chars&quot;&gt; here!"
         );
+    }
+}
+
+#[cfg(test)]
+mod tests_vtag {
+    use super::*;
+    use crate::html;
+    use std::any::TypeId;
+    use std::convert::TryFrom;
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn it_stringifies_simple() {
+        let p = html! {
+            <p></p>
+        };
+
+        if let VNode::VTag(p) = p {
+            let p_html = Html::try_from(*p)
+                .expect("HTML stringify error")
+                .to_string();
+
+            assert_eq!(p_html, "<p />");
+        } else {
+            assert!(false);
+        }
+    }
+
+    #[test]
+    fn it_stringifies_complex() {
+        let other_sym = "bar";
+        let div = html! {
+            <div class=("foo", other_sym)>
+                { "quux" }
+            </div>
+        };
+        let p = html! {
+            <p aria-controls="it-works">
+                { "test" }
+                {div}
+            </p>
+        };
+
+        if let VNode::VTag(p) = p {
+            let p_html = Html::try_from(*p)
+                .expect("HTML stringify error")
+                .to_string();
+
+            assert_eq!(
+                p_html,
+                "<p aria-controls=\"it&#x2D;works\">test<div class=\"foo&#x20;bar\">quux</div></p>"
+            );
+        } else {
+            assert!(false);
+        }
+    }
+
+    #[test]
+    fn it_stringifies_attrs() {
+        let div = html! {
+            <div a="b" b="a" />
+        };
+
+        if let VNode::VTag(div) = div {
+            let div_html = Html::try_from(*div)
+                .expect("HTML stringify error")
+                .to_string();
+            let order_1 = "<div a=\"b\" b=\"a\" />";
+            let order_2 = "<div b=\"a\" a=\"b\" />";
+            assert!(div_html == order_1 || div_html == order_2);
+        } else {
+            assert!(false);
+        }
+    }
+
+    #[test]
+    fn it_does_not_stringify_special_attrs() {
+        let node_ref = NodeRef::default();
+
+        let div = html! {
+            <div ref=node_ref />
+        };
+
+        if let VNode::VTag(div) = div {
+            let div_html = Html::try_from(*div)
+                .expect("HTML stringify error")
+                .to_string();
+            assert_eq!(div_html, "<div />");
+        } else {
+            assert!(false);
+        }
     }
 }
