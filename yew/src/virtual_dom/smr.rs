@@ -7,6 +7,7 @@ use htmlescape;
 use std::convert::TryFrom;
 use std::fmt::{self, Display, Formatter};
 use thiserror::Error as ThisError;
+use crate::html::NodeRef;
 use crate::sgml_tags::{is_valid_html_attribute_name, is_valid_sgml_tag};
 use super::{VText, VTag, VList, VNode, VComp};
 
