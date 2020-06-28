@@ -4,7 +4,6 @@
 //! to be mounted onto a DOM node first.
 
 use super::{VComp, VList, VNode, VTag, VText};
-use crate::html::NodeRef;
 use crate::sgml_tags::{is_valid_html_attribute_name, is_valid_sgml_tag};
 use htmlescape;
 use std::convert::TryFrom;
@@ -227,7 +226,7 @@ mod test_vtext {
 #[cfg(test)]
 mod tests_vtag {
     use super::*;
-    use crate::html;
+    use crate::html::{self, NodeRef};
     use std::any::TypeId;
     use std::convert::TryFrom;
 
