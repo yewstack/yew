@@ -377,7 +377,7 @@ fn is_pcen_char(c: char) -> bool {
 
 /// Returns true when the tag name provided would be a valid "custom element" per
 /// [the WhatWG spec](https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name)
-fn is_valid_custom_element_name(tag: &str) -> bool {
+fn is_valid_custom_html_element_name(tag: &str) -> bool {
     if DISALLOWED_CUSTOM_ELEMENT_TAGS.contains(&tag) {
         return false;
     }
@@ -431,74 +431,81 @@ pub fn is_valid_sgml_tag(tag: &str) -> bool {
     is_valid_html_element_name(tag)
         || is_valid_svg_element_name(tag)
         || is_valid_mathml_element_name(tag)
-        || is_valid_custom_element_name(tag)
+        || is_valid_custom_html_element_name(tag)
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
 
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
     #[test]
-    fn custom_element_positive() {
-        assert_eq!(is_valid_custom_element_name("foo-bar"), true);
-        assert_eq!(is_valid_custom_element_name("foobar"), true);
+    fn valid_custom_element() {
+        assert_eq!(is_valid_custom_html_element_name("foo-bar"), true);
+        assert_eq!(is_valid_custom_html_element_name("foo-"), true);
+        assert_eq!(is_valid_custom_html_element_name("bar-baz"), true);
     }
 
     #[test]
-    fn custom_element_negative() {
-        assert_eq!(is_valid_custom_element_name("foobar"), false);
-        assert_eq!(is_valid_custom_element_name("-bar"), false);
-        assert_eq!(is_valid_custom_element_name("foo bar"), false);
-        assert_eq!(is_valid_custom_element_name(""), false);
-        assert_eq!(is_valid_custom_element_name("foo\nbar"), false);
-        assert_eq!(is_valid_custom_element_name("-"), false);
+    fn invalid_custom_element() {
+        assert_eq!(is_valid_custom_html_element_name("foobar"), false);
+        assert_eq!(is_valid_custom_html_element_name("-bar"), false);
+        assert_eq!(is_valid_custom_html_element_name("foo bar"), false);
+        assert_eq!(is_valid_custom_html_element_name(""), false);
+        assert_eq!(is_valid_custom_html_element_name("foo\nbar"), false);
+        assert_eq!(is_valid_custom_html_element_name("-"), false);
     }
 
     #[test]
-    fn mathml_element_positive() {
-        assert_eq!(is_valid_mathml_element_name("script"), true);
+    fn valid_mathml_element() {
+        assert_eq!(is_valid_mathml_element_name("annotation-xml"), true);
         assert_eq!(is_valid_mathml_element_name("munder"), true);
     }
 
     #[test]
-    fn mathml_element_negative() {
+    fn invalid_mathml_element() {
         assert_eq!(is_valid_mathml_element_name("svg"), false);
         assert_eq!(is_valid_mathml_element_name("b"), false);
     }
-
+    
     #[test]
-    fn html_element_positive() {
-        assert_eq!(is_valid_html_element_name("svg"), true);
+    fn valid_html_element() {
         assert_eq!(is_valid_html_element_name("section"), true);
         assert_eq!(is_valid_html_element_name("applet"), true);
     }
-
+    
     #[test]
-    fn html_element_negative() {
+    fn invalid_html_element() {
+        assert_eq!(is_valid_html_element_name("svg"), false);
         assert_eq!(is_valid_html_element_name("math"), false);
         assert_eq!(is_valid_html_element_name("circle"), false);
     }
 
     #[test]
-    fn svg_element_positive() {
+    fn valid_svg_element() {
         assert_eq!(is_valid_svg_element_name("circle"), true);
         assert_eq!(is_valid_svg_element_name("g"), true);
     }
 
     #[test]
-    fn svg_element_negative() {
+    fn invalid_svg_element() {
         assert_eq!(is_valid_svg_element_name("body"), false);
-        assert_eq!(is_valid_svg_element_name("a"), false);
+        assert_eq!(is_valid_svg_element_name("blockquote"), false);
     }
 
     #[test]
-    fn html_attribute_positive() {
+    fn valid_html_attribute() {
         assert_eq!(is_valid_html_attribute_name("-foo-bar"), true);
         assert_eq!(is_valid_html_attribute_name("data-foobar"), true);
     }
 
     #[test]
-    fn html_attribute_negative() {
+    fn invalid_html_attribute() {
         assert_eq!(is_valid_html_attribute_name("foo=bar"), false);
         assert_eq!(is_valid_html_attribute_name("\"foo\""), false);
         assert_eq!(is_valid_html_attribute_name("foo bar"), false);

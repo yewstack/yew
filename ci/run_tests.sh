@@ -3,7 +3,7 @@ set -euxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_
 
 (cd yew \
   && cargo test --target wasm32-unknown-unknown --features wasm_test \
-  && cargo test --target wasm32-unknown-unknown --features wasm_test --features sans_mount_render \
+  && cargo test --target wasm32-unknown-unknown --features wasm_test,sans_mount_render \
   && cargo test --doc --features doc_test,wasm_test,yaml,msgpack,cbor,toml \
   && cargo test --doc --features doc_test,wasm_test,yaml,msgpack,cbor,toml \
     --features std_web,agent,services,sans_mount_render --no-default-features)

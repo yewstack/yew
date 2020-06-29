@@ -168,7 +168,7 @@ impl TryFrom<VNode> for Html {
 }
 
 #[cfg(test)]
-mod test_vtext {
+mod tests_vtext {
     use super::Html;
     use crate::html;
     use std::convert::TryFrom;
@@ -224,8 +224,7 @@ mod test_vtext {
 #[cfg(test)]
 mod tests_vtag {
     use super::*;
-    use crate::html::{self, NodeRef};
-    use std::any::TypeId;
+    use crate::html::NodeRef;
     use std::convert::TryFrom;
 
     #[cfg(feature = "wasm_test")]
