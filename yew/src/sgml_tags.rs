@@ -158,7 +158,7 @@ pub fn is_valid_sgml_tag(tag: &str) -> bool {
 }
 
 #[cfg(test)]
-pub mod tests {
+mod tests {
     use super::*;
 
     #[cfg(feature = "wasm_test")]
@@ -201,6 +201,7 @@ pub mod tests {
     fn valid_html_attribute() {
         assert_eq!(is_valid_html_attribute_name("-foo-bar"), true);
         assert_eq!(is_valid_html_attribute_name("data-foobar"), true);
+        assert_eq!(is_valid_html_attribute_name("foo<bar"), true); // shocking but true
     }
 
     #[test]
@@ -208,5 +209,13 @@ pub mod tests {
         assert_eq!(is_valid_html_attribute_name("foo=bar"), false);
         assert_eq!(is_valid_html_attribute_name("\"foo\""), false);
         assert_eq!(is_valid_html_attribute_name("foo bar"), false);
+        assert_eq!(is_valid_html_attribute_name("foo>bar"), false);
+    }
+
+    #[test]
+    fn invalid_sgml_tag() {
+        assert_eq!(is_valid_sgml_tag("f>bar"), false);
+        assert_eq!(is_valid_sgml_tag("f<bar"), false);
+        assert_eq!(is_valid_sgml_tag("/>"), false);
     }
 }
