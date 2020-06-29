@@ -187,14 +187,19 @@ mod tests {
     #[test]
     fn valid_html_element() {
         assert_eq!(is_valid_html_standard_element_name("section"), true);
+        assert_eq!(is_valid_html_standard_element_name("h2"), true);
         assert_eq!(is_valid_html_standard_element_name("applet"), true);
+        assert_eq!(is_valid_html_standard_element_name("appLET"), true);
+        assert_eq!(is_valid_html_standard_element_name("aPPlet"), true);
     }
 
     #[test]
     fn invalid_html_element() {
-        assert_eq!(is_valid_html_standard_element_name("svg"), false);
-        assert_eq!(is_valid_html_standard_element_name("math"), false);
-        assert_eq!(is_valid_html_standard_element_name("circle"), false);
+        assert_eq!(is_valid_html_standard_element_name("foo-bar"), false);
+        assert_eq!(is_valid_html_standard_element_name(" foo"), false);
+        assert_eq!(is_valid_html_standard_element_name("foo "), false);
+        assert_eq!(is_valid_html_standard_element_name("-"), false);
+        assert_eq!(is_valid_html_standard_element_name("!doctype"), false);
     }
 
     #[test]
