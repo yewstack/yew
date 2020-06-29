@@ -472,13 +472,13 @@ pub mod tests {
         assert_eq!(is_valid_mathml_element_name("svg"), false);
         assert_eq!(is_valid_mathml_element_name("b"), false);
     }
-    
+
     #[test]
     fn valid_html_element() {
         assert_eq!(is_valid_html_element_name("section"), true);
         assert_eq!(is_valid_html_element_name("applet"), true);
     }
-    
+
     #[test]
     fn invalid_html_element() {
         assert_eq!(is_valid_html_element_name("svg"), false);
