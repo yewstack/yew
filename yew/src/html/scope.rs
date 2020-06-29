@@ -428,7 +428,7 @@ where
 {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
-            drop(state.component);
+            state.component.destroy();
             if let Some(last_frame) = &mut state.last_root {
                 last_frame.detach(&state.parent);
             }
