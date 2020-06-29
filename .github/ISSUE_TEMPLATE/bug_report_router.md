@@ -24,7 +24,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Environment:**
- - Yew version: [e.g. v0.16.2, `master`]
+ - Yew version: [e.g. v0.17, `master`]
  - Yew Router version: [e.g. v0.13]
  - Rust version: [e.g. 1.43.0, `nightly`]
  - Target, if relevant: [e.g. `wasm32-unknown-emscripten`]
