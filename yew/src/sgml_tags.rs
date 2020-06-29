@@ -2,303 +2,24 @@
 //! to tags.
 
 use lazy_static::lazy_static;
-
-// Source: https://developer.mozilla.org/en-US/docs/Web/HTML/Element
-static CONTEMPORARY_HTML_TAGS: [&str; 108] = [
-    "a",
-    "abbr",
-    "address",
-    "area",
-    "article",
-    "aside",
-    "audio",
-    "b",
-    "bdi",
-    "bdo",
-    "blockquote",
-    "body",
-    "br",
-    "button",
-    "canvas",
-    "caption",
-    "cite",
-    "code",
-    "col",
-    "colgroup",
-    "data",
-    "datalist",
-    "dd",
-    "del",
-    "details",
-    "dfn",
-    "dialog",
-    "div",
-    "dl",
-    "dt",
-    "em",
-    "embed",
-    "fieldset",
-    "figcaption",
-    "figure",
-    "footer",
-    "form",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "header",
-    "hgroup",
-    "hr",
-    "i",
-    "iframe",
-    "img",
-    "input",
-    "ins",
-    "kbd",
-    "label",
-    "legend",
-    "li",
-    "main",
-    "main",
-    "map",
-    "mark",
-    "menu",
-    "meter",
-    "nav",
-    "noscript",
-    "object",
-    "ol",
-    "optgroup",
-    "option",
-    "output",
-    "p",
-    "param",
-    "picture",
-    "pre",
-    "progress",
-    "q",
-    "rb",
-    "rp",
-    "rt",
-    "rtc",
-    "ruby",
-    "s",
-    "samp",
-    "script",
-    "section",
-    "select",
-    "slot",
-    "small",
-    "source",
-    "span",
-    "strong",
-    "sub",
-    "summary",
-    "sup",
-    "table",
-    "tbody",
-    "td",
-    "template",
-    "textarea",
-    "tfoot",
-    "th",
-    "thead",
-    "time",
-    "tr",
-    "track",
-    "u",
-    "ul",
-    "var",
-    "video",
-    "wbr",
-];
-
-// Source: https://developer.mozilla.org/en-US/docs/Web/HTML/Element
-static DEPRECATED_HTML_TAGS: [&str; 31] = [
-    "acronym",
-    "applet",
-    "basefont",
-    "bgsound",
-    "big",
-    "blink",
-    "center",
-    "command",
-    "content",
-    "dir",
-    "element",
-    "font",
-    "frame",
-    "frameset",
-    "image",
-    "isindex",
-    "keygen",
-    "listing",
-    "marquee",
-    "menuitem",
-    "multicol",
-    "nextid",
-    "nobr",
-    "noembed",
-    "noframes",
-    "plaintext",
-    "shadow",
-    "spacer",
-    "strike",
-    "tt",
-    "xmp",
-];
-
-// Source: https://developer.mozilla.org/en-US/docs/Web/MathML/Element
-static MATHML_TAGS: [&str; 44] = [
-    "annotation-xml",
-    "annotation",
-    "maction",
-    "maligngroup",
-    "malignmark",
-    "math",
-    "menclose",
-    "merror",
-    "mfenced",
-    "mfrac",
-    "mglyph",
-    "mi",
-    "mlabeledtr",
-    "mlongdiv",
-    "mmultiscripts",
-    "mn",
-    "mo",
-    "mover",
-    "mpadded",
-    "mphantom",
-    "mprescripts",
-    "mroot",
-    "mrow",
-    "ms",
-    "mscarries",
-    "mscarry",
-    "msgroup",
-    "msline",
-    "mspace",
-    "msqrt",
-    "msrow",
-    "mstack",
-    "mstyle",
-    "msub",
-    "msubsup",
-    "msup",
-    "mtable",
-    "mtd",
-    "mtext",
-    "mtr",
-    "munder",
-    "munderover",
-    "none",
-    "semantics",
-];
-
-// Source: https://developer.mozilla.org/en-US/docs/Web/SVG/Element
-static SVG_TAGS: [&str; 90] = [
-    "a",
-    "altGlyph",
-    "altGlyphDef",
-    "altGlyphItem",
-    "animate",
-    "animateColor",
-    "animateMotion",
-    "animateTransform",
-    "circle",
-    "clipPath",
-    "color-profile",
-    "cursor",
-    "defs",
-    "desc",
-    "discard",
-    "ellipse",
-    "feBlend",
-    "feColorMatrix",
-    "feComponentTransfer",
-    "feComposite",
-    "feConvolveMatrix",
-    "feDiffuseLighting",
-    "feDisplacementMap",
-    "feDistantLight",
-    "feDropShadow",
-    "feFlood",
-    "feFuncA",
-    "feFuncB",
-    "feFuncG",
-    "feFuncR",
-    "feGaussianBlur",
-    "feImage",
-    "feMerge",
-    "feMergeNode",
-    "feMorphology",
-    "feOffset",
-    "fePointLight",
-    "feSpecularLighting",
-    "feSpotLight",
-    "feTile",
-    "feTurbulence",
-    "filter",
-    "font-face-format",
-    "font-face-name",
-    "font-face-src",
-    "font-face-uri",
-    "font-face",
-    "font",
-    "foreignObject",
-    "g",
-    "glyph",
-    "glyphRef",
-    "hatch",
-    "hatchpath",
-    "hkern",
-    "image",
-    "line",
-    "linearGradient",
-    "marker",
-    "mask",
-    "mesh",
-    "meshgradient",
-    "meshpatch",
-    "meshrow",
-    "metadata",
-    "missing-glyph",
-    "mpath",
-    "path",
-    "pattern",
-    "polygon",
-    "polyline",
-    "radialGradient",
-    "rect",
-    "script",
-    "set",
-    "solidcolor",
-    "stop",
-    "style",
-    "svg",
-    "switch",
-    "symbol",
-    "text",
-    "textPath",
-    "title",
-    "tref",
-    "tspan",
-    "unknown",
-    "use",
-    "view",
-    "vkern",
-];
+use std::collections::HashSet;
+use std::iter::FromIterator;
 
 lazy_static! {
-    static ref DISALLOWED_CUSTOM_ELEMENT_TAGS: Vec<&'static str> = SVG_TAGS
+    static ref DISALLOWED_CUSTOM_ELEMENT_TAGS: HashSet<&'static str> = HashSet::from_iter(
+        vec![
+            "annotation-xml",
+            "color-profile",
+            "font-face",
+            "font-face-src",
+            "font-face-uri",
+            "font-face-format",
+            "font-face-name",
+            "missing-glyph",
+        ]
         .iter()
-        .chain(MATHML_TAGS.iter())
-        .filter(|tag| tag.contains('-'))
-        .map(|t| t.to_owned())
-        .collect();
+        .map(|tag| tag.clone())
+    );
 }
 
 /// Returns true when the character provided is a "control" as defined
@@ -377,7 +98,7 @@ fn is_pcen_char(c: char) -> bool {
 
 /// Returns true when the tag name provided would be a valid "custom element" per
 /// [the WhatWG spec](https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name)
-fn is_valid_custom_html_element_name(tag: &str) -> bool {
+fn is_valid_html_custom_element_name(tag: &str) -> bool {
     if DISALLOWED_CUSTOM_ELEMENT_TAGS.contains(&tag) {
         return false;
     }
@@ -411,27 +132,29 @@ fn is_valid_custom_html_element_name(tag: &str) -> bool {
     }
 }
 
-/// Returns true when the tag name provided would be a valid HTML element
-fn is_valid_html_element_name(tag: &str) -> bool {
-    CONTEMPORARY_HTML_TAGS.contains(&tag) || DEPRECATED_HTML_TAGS.contains(&tag)
-}
+/// Returns true when the tag name provided would be a valid non-custom HTML element
+fn is_valid_html_standard_element_name(tag: &str) -> bool {
+    // must contain at least one character
+    if tag.is_empty() {
+        return false;
+    }
 
-/// Returns true when the tag name provided would be a valid SVG element
-fn is_valid_svg_element_name(tag: &str) -> bool {
-    SVG_TAGS.contains(&tag)
-}
-
-/// Returns true when the tag name provided would be a valid MathML element
-fn is_valid_mathml_element_name(tag: &str) -> bool {
-    MATHML_TAGS.contains(&tag)
+    for c in tag.chars() {
+        match c {
+            'a'..='z' => {}
+            'A'..='Z' => {}
+            '0'..='9' => {}
+            _ => {
+                return false;
+            }
+        }
+    }
+    true
 }
 
 /// Returns true when you could validly construct a tag using this name in an HTML document
 pub fn is_valid_sgml_tag(tag: &str) -> bool {
-    is_valid_html_element_name(tag)
-        || is_valid_svg_element_name(tag)
-        || is_valid_mathml_element_name(tag)
-        || is_valid_custom_html_element_name(tag)
+    is_valid_html_standard_element_name(tag) || is_valid_html_custom_element_name(tag)
 }
 
 #[cfg(test)]
@@ -446,56 +169,32 @@ pub mod tests {
 
     #[test]
     fn valid_custom_element() {
-        assert_eq!(is_valid_custom_html_element_name("foo-bar"), true);
-        assert_eq!(is_valid_custom_html_element_name("foo-"), true);
-        assert_eq!(is_valid_custom_html_element_name("bar-baz"), true);
+        assert_eq!(is_valid_html_custom_element_name("foo-bar"), true);
+        assert_eq!(is_valid_html_custom_element_name("foo-"), true);
+        assert_eq!(is_valid_html_custom_element_name("bar-baz"), true);
     }
 
     #[test]
     fn invalid_custom_element() {
-        assert_eq!(is_valid_custom_html_element_name("foobar"), false);
-        assert_eq!(is_valid_custom_html_element_name("-bar"), false);
-        assert_eq!(is_valid_custom_html_element_name("foo bar"), false);
-        assert_eq!(is_valid_custom_html_element_name(""), false);
-        assert_eq!(is_valid_custom_html_element_name("foo\nbar"), false);
-        assert_eq!(is_valid_custom_html_element_name("-"), false);
-    }
-
-    #[test]
-    fn valid_mathml_element() {
-        assert_eq!(is_valid_mathml_element_name("annotation-xml"), true);
-        assert_eq!(is_valid_mathml_element_name("munder"), true);
-    }
-
-    #[test]
-    fn invalid_mathml_element() {
-        assert_eq!(is_valid_mathml_element_name("svg"), false);
-        assert_eq!(is_valid_mathml_element_name("b"), false);
+        assert_eq!(is_valid_html_custom_element_name("foobar"), false);
+        assert_eq!(is_valid_html_custom_element_name("-bar"), false);
+        assert_eq!(is_valid_html_custom_element_name("foo bar"), false);
+        assert_eq!(is_valid_html_custom_element_name(""), false);
+        assert_eq!(is_valid_html_custom_element_name("foo\nbar"), false);
+        assert_eq!(is_valid_html_custom_element_name("-"), false);
     }
 
     #[test]
     fn valid_html_element() {
-        assert_eq!(is_valid_html_element_name("section"), true);
-        assert_eq!(is_valid_html_element_name("applet"), true);
+        assert_eq!(is_valid_html_standard_element_name("section"), true);
+        assert_eq!(is_valid_html_standard_element_name("applet"), true);
     }
 
     #[test]
     fn invalid_html_element() {
-        assert_eq!(is_valid_html_element_name("svg"), false);
-        assert_eq!(is_valid_html_element_name("math"), false);
-        assert_eq!(is_valid_html_element_name("circle"), false);
-    }
-
-    #[test]
-    fn valid_svg_element() {
-        assert_eq!(is_valid_svg_element_name("circle"), true);
-        assert_eq!(is_valid_svg_element_name("g"), true);
-    }
-
-    #[test]
-    fn invalid_svg_element() {
-        assert_eq!(is_valid_svg_element_name("body"), false);
-        assert_eq!(is_valid_svg_element_name("blockquote"), false);
+        assert_eq!(is_valid_html_standard_element_name("svg"), false);
+        assert_eq!(is_valid_html_standard_element_name("math"), false);
+        assert_eq!(is_valid_html_standard_element_name("circle"), false);
     }
 
     #[test]
