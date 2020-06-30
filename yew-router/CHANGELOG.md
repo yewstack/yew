@@ -13,7 +13,17 @@
 
 END TEMPLATE-->
 
-## ✨ **0.14.0** *(TBD)*
+
+## ✨ **0.15.0** *(TBD)*
+
+- #### ⚡️ Features
+  - None
+- #### 🛠 Fixes
+  - None
+- #### 🚨 Breaking changes
+  - None
+
+## ✨ **0.14.0** *2020-6-30*
 
 - #### ⚡️ Features
   - None 
@@ -21,7 +31,8 @@ END TEMPLATE-->
   - None 
 - #### 🚨 Breaking changes
   - The `unit_state` module has been removed. 
-  
+  - Bump `yew` version to `0.17`.
+
 
 ## ✨ **0.13.0** *2020-5-12*
 
