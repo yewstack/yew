@@ -1,9 +1,9 @@
 mod tag_attributes;
 
+use super::HtmlChildrenTree;
 use super::HtmlDashedName;
 use super::HtmlProp as TagAttribute;
 use super::HtmlPropSuffix as TagSuffix;
-use super::HtmlTree;
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, Span};
@@ -18,7 +18,7 @@ use tag_attributes::{ClassesForm, TagAttributes};
 pub struct HtmlTag {
     tag_name: TagName,
     attributes: TagAttributes,
-    children: Vec<HtmlTree>,
+    children: HtmlChildrenTree,
 }
 
 impl PeekValue<()> for HtmlTag {
@@ -47,7 +47,7 @@ impl Parse for HtmlTag {
             return Ok(HtmlTag {
                 tag_name: open.tag_name,
                 attributes: open.attributes,
-                children: Vec::new(),
+                children: HtmlChildrenTree::new(),
             });
         }
 
@@ -66,7 +66,7 @@ impl Parse for HtmlTag {
         }
 
         let open_key = open.tag_name.get_key();
-        let mut children: Vec<HtmlTree> = vec![];
+        let mut children = HtmlChildrenTree::new();
         loop {
             if input.is_empty() {
                 return Err(syn::Error::new_spanned(
@@ -80,7 +80,7 @@ impl Parse for HtmlTag {
                 }
             }
 
-            children.push(input.parse()?);
+            children.parse_child(input)?;
         }
 
         input.parse::<HtmlTagClose>()?;
@@ -185,7 +185,7 @@ impl ToTokens for HtmlTag {
         });
         let set_key = key.iter().map(|key| {
             quote! {
-                #vtag.key = Some(#key);
+                #vtag.key = Some(::yew::virtual_dom::Key::from(#key));
             }
         });
         let listeners = listeners.iter().map(|listener| {
@@ -244,7 +244,7 @@ impl ToTokens for HtmlTag {
             #(#set_key)*
             #vtag.add_attributes(vec![#(#attr_pairs),*]);
             #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
-            #vtag.add_children(vec![#(#children),*]);
+            #vtag.add_children(#children);
             #dyn_tag_runtime_checks
             ::yew::virtual_dom::VNode::from(#vtag)
         }});

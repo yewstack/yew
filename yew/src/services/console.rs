@@ -18,14 +18,10 @@ cfg_if! {
 pub struct ConsoleService {}
 
 impl ConsoleService {
-    /// Creates a new service instance connected to `App` by provided `sender`.
-    pub fn new() -> Self {
-        Self {}
-    }
-
     /// [console.log](https://developer.mozilla.org/en-US/docs/Web/API/Console/log)
     /// method implementation.
-    pub fn log(&mut self, message: &str) {
+    /// This method outputs the provided message to the console.
+    pub fn log(message: &str) {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.log(@{message}); },
             feature = "web_sys" => console::log_1(&JsValue::from_str(message)),
@@ -34,7 +30,8 @@ impl ConsoleService {
 
     /// [console.warn](https://developer.mozilla.org/en-US/docs/Web/API/Console/warn)
     /// method implementation.
-    pub fn warn(&mut self, message: &str) {
+    /// This method outputs the provided message to the console as a warning.
+    pub fn warn(message: &str) {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.warn(@{message}); },
             feature = "web_sys" => console::warn_1(&JsValue::from_str(message)),
@@ -43,7 +40,8 @@ impl ConsoleService {
 
     /// [console.info](https://developer.mozilla.org/en-US/docs/Web/API/Console/info)
     /// method implementation.
-    pub fn info(&mut self, message: &str) {
+    /// This method outputs the provided message to the console as information.
+    pub fn info(message: &str) {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.info(@{message}); },
             feature = "web_sys" => console::info_1(&JsValue::from_str(message)),
@@ -52,7 +50,8 @@ impl ConsoleService {
 
     /// [console.error](https://developer.mozilla.org/en-US/docs/Web/API/Console/error)
     /// method implementation.
-    pub fn error(&mut self, message: &str) {
+    /// This method outputs the provided message to the console as an error.
+    pub fn error(message: &str) {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.error(@{message}); },
             feature = "web_sys" => console::error_1(&JsValue::from_str(message)),
@@ -61,7 +60,7 @@ impl ConsoleService {
 
     /// [console.debug](https://developer.mozilla.org/en-US/docs/Web/API/Console/debug)
     /// method implementation.
-    pub fn debug(&mut self, message: &str) {
+    pub fn debug(message: &str) {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.debug(@{message}); },
             feature = "web_sys" => console::debug_1(&JsValue::from_str(message)),
@@ -70,7 +69,7 @@ impl ConsoleService {
 
     /// [console.count_named](https://developer.mozilla.org/en-US/docs/Web/API/Console/count_named)
     /// method implementation.
-    pub fn count_named(&mut self, name: &str) {
+    pub fn count_named(name: &str) {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.count(@{name}); },
             feature = "web_sys" => console::count_with_label(name),
@@ -79,7 +78,7 @@ impl ConsoleService {
 
     /// [console.count](https://developer.mozilla.org/en-US/docs/Web/API/Console/count)
     /// method implementation.
-    pub fn count(&mut self) {
+    pub fn count() {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.count(); },
             feature = "web_sys" => console::count(),
@@ -88,7 +87,7 @@ impl ConsoleService {
 
     /// [console.time_named](https://developer.mozilla.org/en-US/docs/Web/API/Console/time_named)
     /// method implementation.
-    pub fn time_named(&mut self, name: &str) {
+    pub fn time_named(name: &str) {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.time(@{name}); },
             feature = "web_sys" => console::time_with_label(name),
@@ -97,7 +96,7 @@ impl ConsoleService {
 
     /// [console.time_named_end](https://developer.mozilla.org/en-US/docs/Web/API/Console/time_named_end)
     /// method implementation.
-    pub fn time_named_end(&mut self, name: &str) {
+    pub fn time_named_end(name: &str) {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.timeEnd(@{name}); },
             feature = "web_sys" => console::time_end_with_label(name),
@@ -106,7 +105,7 @@ impl ConsoleService {
 
     /// [console.time](https://developer.mozilla.org/en-US/docs/Web/API/Console/time)
     /// method implementation.
-    pub fn time(&mut self) {
+    pub fn time() {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.time(); },
             feature = "web_sys" => console::time(),
@@ -114,7 +113,7 @@ impl ConsoleService {
     }
     /// [console.time_end](https://developer.mozilla.org/en-US/docs/Web/API/Console/time_end)
     /// method implementation.
-    pub fn time_end(&mut self) {
+    pub fn time_end() {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.timeEnd(); },
             feature = "web_sys" => console::time_end(),
@@ -123,7 +122,7 @@ impl ConsoleService {
 
     /// [console.clear](https://developer.mozilla.org/en-US/docs/Web/API/Console/clear)
     /// method implementation.
-    pub fn clear(&mut self) {
+    pub fn clear() {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.clear(); },
             feature = "web_sys" => console::clear(),
@@ -132,7 +131,7 @@ impl ConsoleService {
 
     /// [console.group](https://developer.mozilla.org/en-US/docs/Web/API/Console/group)
     /// method implementation.
-    pub fn group(&mut self) {
+    pub fn group() {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.group(); },
             feature = "web_sys" => console::group_0(),
@@ -141,7 +140,7 @@ impl ConsoleService {
 
     /// [console.group_collapsed](https://developer.mozilla.org/en-US/docs/Web/API/Console/group_collapsed)
     /// method implementation.
-    pub fn group_collapsed(&mut self) {
+    pub fn group_collapsed() {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.groupCollapsed(); },
             feature = "web_sys" => console::group_collapsed_0(),
@@ -150,7 +149,7 @@ impl ConsoleService {
 
     /// [console.group_end](https://developer.mozilla.org/en-US/docs/Web/API/Console/group_end)
     /// method implementation.
-    pub fn group_end(&mut self) {
+    pub fn group_end() {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.groupEnd(); },
             feature = "web_sys" => console::group_end(),
@@ -159,7 +158,8 @@ impl ConsoleService {
 
     /// [console.trace](https://developer.mozilla.org/en-US/docs/Web/API/Console/trace)
     /// method implementation.
-    pub fn trace(&mut self) {
+    /// This method outputs the current stack trace to the console.
+    pub fn trace() {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.trace(); },
             feature = "web_sys" => console::trace_0(),
@@ -168,7 +168,7 @@ impl ConsoleService {
 
     /// [console.assert](https://developer.mozilla.org/en-US/docs/Web/API/Console/assert)
     /// method implementation.
-    pub fn assert(&mut self, condition: bool, message: &str) {
+    pub fn assert(condition: bool, message: &str) {
         cfg_match! {
             feature = "std_web" => js! { @(no_return) console.assert(@{condition}, @{message}); },
             feature = "web_sys" => console::assert_with_condition_and_data_1(condition, &String::from(message).into()),

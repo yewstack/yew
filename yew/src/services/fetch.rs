@@ -51,7 +51,7 @@ mod tests {
 
     #[test]
     async fn fetch_referrer_default() {
-        let request = Request::get("https://httpbin.org/get")
+        let request = Request::get("http://localhost:8000/get")
             .body(Nothing)
             .unwrap();
         let options = FetchOptions::default();
@@ -69,7 +69,7 @@ mod tests {
 
     #[test]
     async fn fetch_referrer_same_origin_url() {
-        let request = Request::get("https://httpbin.org/get")
+        let request = Request::get("http://localhost:8000/get")
             .body(Nothing)
             .unwrap();
         let options = FetchOptions {
@@ -91,7 +91,7 @@ mod tests {
 
     #[test]
     async fn fetch_referrer_about_client() {
-        let request = Request::get("https://httpbin.org/get")
+        let request = Request::get("http://localhost:8000/get")
             .body(Nothing)
             .unwrap();
         let options = FetchOptions {
@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     async fn fetch_referrer_empty() {
-        let request = Request::get("https://httpbin.org/get")
+        let request = Request::get("http://localhost:8000/get")
             .body(Nothing)
             .unwrap();
         let options = FetchOptions {
@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     async fn fetch_redirect_default() {
-        let request = Request::get("https://httpbin.org/relative-redirect/1")
+        let request = Request::get("http://localhost:8000/relative-redirect/1")
             .body(Nothing)
             .unwrap();
         let options = FetchOptions::default();
@@ -143,7 +143,7 @@ mod tests {
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
         if let Json(Ok(http_bin)) = resp.body() {
-            assert_eq!(http_bin.url, String::from("https://httpbin.org/get"));
+            assert_eq!(http_bin.url, String::from("http://localhost:8000/get"));
         } else {
             assert!(false, "unexpected resp: {:#?}", resp);
         }
@@ -151,7 +151,7 @@ mod tests {
 
     #[test]
     async fn fetch_redirect_follow() {
-        let request = Request::get("https://httpbin.org/relative-redirect/1")
+        let request = Request::get("http://localhost:8000/relative-redirect/1")
             .body(Nothing)
             .unwrap();
         let options = FetchOptions {
@@ -164,7 +164,7 @@ mod tests {
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
         if let Json(Ok(http_bin)) = resp.body() {
-            assert_eq!(http_bin.url, String::from("https://httpbin.org/get"));
+            assert_eq!(http_bin.url, String::from("http://localhost:8000/get"));
         } else {
             assert!(false, "unexpected resp: {:#?}", resp);
         }
@@ -172,7 +172,7 @@ mod tests {
 
     #[test]
     async fn fetch_redirect_error() {
-        let request = Request::get("https://httpbin.org/relative-redirect/1")
+        let request = Request::get("http://localhost:8000/relative-redirect/1")
             .body(Nothing)
             .unwrap();
         let options = FetchOptions {
@@ -188,7 +188,7 @@ mod tests {
 
     #[test]
     async fn fetch_redirect_manual() {
-        let request = Request::get("https://httpbin.org/relative-redirect/1")
+        let request = Request::get("http://localhost:8000/relative-redirect/1")
             .body(Nothing)
             .unwrap();
         let options = FetchOptions {
@@ -208,7 +208,7 @@ mod tests {
     async fn fetch_integrity() {
         let resource = "Yew SRI Test";
         let request = Request::get(format!(
-            "https://httpbin.org/base64/{}",
+            "http://localhost:8000/base64/{}",
             base64::encode_config(resource, base64::URL_SAFE)
         ))
         .body(Nothing)
@@ -229,7 +229,7 @@ mod tests {
     async fn fetch_integrity_fail() {
         let resource = "Yew SRI Test";
         let request = Request::get(format!(
-            "https://httpbin.org/base64/{}",
+            "http://localhost:8000/base64/{}",
             base64::encode_config(resource, base64::URL_SAFE)
         ))
         .body(Nothing)
@@ -263,7 +263,7 @@ mod tests {
 
     #[test]
     async fn fetch_referrer_policy_no_referrer() {
-        let request = Request::get("https://httpbin.org/headers")
+        let request = Request::get("http://localhost:8000/headers")
             .body(Nothing)
             .unwrap();
         let options = FetchOptions {
@@ -285,7 +285,7 @@ mod tests {
 
     #[test]
     async fn fetch_referrer_policy_origin() {
-        let request = Request::get("https://httpbin.org/headers")
+        let request = Request::get("http://localhost:8000/headers")
             .body(Nothing)
             .unwrap();
         let options = FetchOptions {

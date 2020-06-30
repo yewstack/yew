@@ -4,14 +4,15 @@ A utility crate for the [Yew](https://github.com/yewstack/yew) frontend web fram
 > This crate used to contain a domain specific language which made it possible to create components without use of the `html!` macro, but this has now been moved into a different crate ([`yew-dsl`](https://github.com/yewstack/yew/tree/master/yew-dsl)).
 
 ## Purpose
-Provide a place for commonly used utilities for Yew to reside without having to include them in the core Yew crate.
-As a consequence of this, the Yew crate is free to make changes that may cause breakages in this crate.
+To provide a place for utilities which are commonly used with Yew to reside without having to include them in the core Yew crate.
+Because of this the Yew crate can make breaking changes which will cause `yewtil` to become incompatible with Yew.
 
 ## Features
-Currently, this crate supports these features in a stable capacity:
-* `NeqAssign` - makes assigning props and returning a relevant ShouldRender value easier.
-* Pure Components - implement pure components using the `PureComponent` trait and the `Pure` Component adaptor. (Deprecated)
-  * Function components - a macro that takes a function that returns `Html` and converts it to a pure component. (Deprecated)
+Currently, this crate supports the following features in a "stable" capacity:
+* `NeqAssign` - makes assigning props and returning a relevant value for `ShouldRender` easier.
+* Pure Components - implement pure components using the `PureComponent` trait and the `Pure` Component adaptor. 
+This should make it much easier to define simple components that don't hold state.
+  * Function components - a macro that takes a function that returns `Html` and converts it to a pure component.
 * `Mrc`/`Irc` smart pointers - Rc-like pointers that are more ergonomic to use within Yew.
 * `History` - A wrapper that holds the history of values that have been assigned to it.
 * `Effect` - A way to update component state by defining what to change inside of `html!` callbacks
@@ -85,16 +86,16 @@ fn update(&mut self, msg: Self::Message) -> ShouldRender {
 ## Update Schedule
 This crate will target stable Yew.
 
-As new idioms are introduced to Yew, this crate may see updates, but given the rarity of those, this crate may sit unaltered for some time.
+As new idioms are introduced to Yew, this crate may see some updates, but given the rarity of those, this crate may sit unaltered for some time.
 
 ## Scope
-This crate has less stringent requirements for its code than the main Yew crate; if you have a function, type, or trait you would like to include, please open a PR or Issue.
+This crate has less stringent requirements for its code than the main Yew crate; if you have a function, type, or trait you would like to include, please open a pull request or an issue.
 
-Components are welcome as well, but they must not have external dependencies, should solve some problem encountered my many users of Yew, and should allow for theming if possible, like an auto-scrolling wrapper, a RecyclerView/Infinite-scrolling component, or possibly a comprehensive Input component.
+Components are welcome as well, but they must not have external dependencies, should solve some problem encountered by many users of Yew, and should allow for theming if possible, like an auto-scrolling wrapper, a RecyclerView/Infinite-scrolling component, or possibly a comprehensive input component.
 
-Common UI elements like modals or dropdowns should probably best be left to component libraries, as they are often be coupled to external CSS used to display them. The [Yewtify](https://github.com/yewstack/yewtify) crate is one such library.
+Common UI elements like modals or dropdowns are best be left to component libraries, as they are often coupled to external CSS used to display them. The [Yewtify](https://github.com/yewstack/yewtify) crate is one such component library.
 
 ### Stability
-Since this crate aims to present a variety of helper types, traits, and functions, where the utility of each may be unknown at the time the feature is added, newer additions may be not be included in the default feature-set, and may be kept behind a feature flag. 
+Since this crate aims to provide a variety of helper types, traits, and functions, where the utility of each may be unknown at the time the feature is added, newer additions may be not be included in the default feature set, and may be kept behind a feature flag.
 
 While in early development, features marked as `experimental` may be changed frequently or even entirely removed, while those marked as `stable` will not be removed and can be relied upon to not change significantly.

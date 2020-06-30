@@ -1,4 +1,4 @@
-//! This module contains the implementation of a service to
+//! This module contains Yew's implementation of a service which can be used to
 //! request frame rendering
 
 use crate::callback::Callback;
@@ -44,13 +44,8 @@ impl fmt::Debug for RenderTask {
 pub struct RenderService {}
 
 impl RenderService {
-    /// Create a new service instance
-    pub fn new() -> Self {
-        Self {}
-    }
-
     /// Request animation frame. Callback will be notified when frame should be rendered.
-    pub fn request_animation_frame(&mut self, callback: Callback<f64>) -> RenderTask {
+    pub fn request_animation_frame(callback: Callback<f64>) -> RenderTask {
         let callback = move |#[cfg(feature = "std_web")] v,
                              #[cfg(feature = "web_sys")] v: JsValue| {
             let time: f64 = cfg_match! {

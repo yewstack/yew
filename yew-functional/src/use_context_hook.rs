@@ -4,7 +4,8 @@ use std::any::TypeId;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 use std::{iter, mem};
-use yew::html::{AnyScope, Renderable, Scope};
+use yew::html;
+use yew::html::{AnyScope, Scope};
 use yew::{Children, Component, ComponentLink, Html, Properties};
 
 type ConsumerCallback<T> = Box<dyn Fn(Rc<T>)>;
@@ -83,7 +84,7 @@ impl<T: Clone + 'static> Component for ContextProvider<T> {
     }
 
     fn view(&self) -> Html {
-        self.children.render()
+        html! { <>{ self.children.clone() }</> }
     }
 }
 
@@ -128,12 +129,15 @@ pub fn use_context<T: 'static + Clone>() -> Option<Rc<T>> {
         }
     }
     use_hook(
-        |state: &mut UseContextState<T>, hook_update| {
+        |state: &mut UseContextState<T>, hook_callback| {
             state.callback = Some(Rc::new(Box::new(move |ctx: Rc<T>| {
-                hook_update(|state: &mut UseContextState<T>| {
-                    state.current_context = Some(ctx);
-                    true
-                });
+                hook_callback(
+                    |state: &mut UseContextState<T>| {
+                        state.current_context = Some(ctx);
+                        true
+                    },
+                    false, // run pre render
+                );
             })));
             let weak_cb = Rc::downgrade(state.callback.as_ref().unwrap());
             with_provider_component(&state.provider_scope, |comp| {

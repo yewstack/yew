@@ -1,4 +1,4 @@
-//! This module contains the implementation of a service that listens for browser window resize events.
+//! This module contains Yew's implementation of a service which listens for browser window resize events.
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::fmt;
@@ -14,11 +14,11 @@ cfg_if! {
     }
 }
 
-/// A service that fires events when the browser window resizes.
+/// A service which fires events when the browser window is resized.
 #[derive(Default, Debug)]
 pub struct ResizeService {}
 
-/// A handle to the event listener for resize events.
+/// A handle for the event listener listening for resize events.
 #[must_use]
 pub struct ResizeTask(
     #[cfg(feature = "std_web")] Value,

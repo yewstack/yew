@@ -12,7 +12,7 @@ cfg_if! {
     }
 }
 
-/// An application instance.
+/// An instance of an application.
 #[derive(Debug)]
 pub struct App<COMP: Component> {
     /// `Scope` holder
@@ -33,7 +33,7 @@ where
     COMP: Component,
     COMP::Properties: Default,
 {
-    /// The main entrypoint of a yew program. It works similarly to the `program`
+    /// The main entry point of a Yew program. It works similarly to the `program`
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree. If you would like to pass props,
@@ -42,6 +42,7 @@ where
         clear_element(&element);
         self.scope.mount_in_place(
             element,
+            NodeRef::default(),
             None,
             NodeRef::default(),
             COMP::Properties::default(),
@@ -76,6 +77,7 @@ where
             .expect("can't remove body child");
         self.scope.mount_in_place(
             html_element,
+            NodeRef::default(),
             None,
             NodeRef::default(),
             COMP::Properties::default(),
@@ -93,7 +95,7 @@ where
         App { scope }
     }
 
-    /// The main entrypoint of a yew program which also allows passing properties. It works
+    /// The main entry point of a Yew program which also allows passing properties. It works
     /// similarly to the `program` function in Elm. You should provide an initial model, `update`
     /// function which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
@@ -104,7 +106,7 @@ where
     ) -> ComponentLink<COMP> {
         clear_element(&element);
         self.scope
-            .mount_in_place(element, None, NodeRef::default(), props)
+            .mount_in_place(element, NodeRef::default(), None, NodeRef::default(), props)
     }
 
     /// Alias to `mount_with_props("body", ...)`.
@@ -133,8 +135,13 @@ where
         html_element
             .remove_child(&body_element)
             .expect("can't remove body child");
-        self.scope
-            .mount_in_place(html_element, None, NodeRef::default(), props)
+        self.scope.mount_in_place(
+            html_element,
+            NodeRef::default(),
+            None,
+            NodeRef::default(),
+            props,
+        )
     }
 }
 

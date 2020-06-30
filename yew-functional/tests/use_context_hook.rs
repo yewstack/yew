@@ -6,7 +6,7 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 extern crate yew;
 
-use yew::{html, App, Children, Html, Properties, Renderable};
+use yew::{html, App, Children, Html, Properties};
 use yew_functional::{
     use_context, use_effect, use_ref, use_state, ContextProvider, FunctionComponent,
     FunctionProvider,
@@ -34,7 +34,7 @@ fn use_context_scoping_works() {
 
         fn run(_props: &Self::TProps) -> Html {
             if use_context::<ExampleContext>().is_some() {
-                yew::services::ConsoleService::new().log(&format!(
+                yew::services::ConsoleService::log(&format!(
                     "Context should be None here, but was {:?}!",
                     use_context::<ExampleContext>().unwrap()
                 ));
@@ -198,7 +198,7 @@ fn use_context_update_works() {
                     <div id=props.id.clone()>
                         { format!("total: {}", counter.borrow()) }
                     </div>
-                    { props.children.render() }
+                    { props.children.clone() }
                 </>
             };
         }
@@ -283,12 +283,7 @@ fn use_context_update_works() {
     let app: App<TestComponent> = yew::App::new();
     app.mount(yew::utils::document().get_element_by_id("output").unwrap());
 
-    // 1 initial render + 3 update steps
-    assert_eq!(obtain_result("test-0"), "total: 4");
-
-    // 1 initial + 2 context updates
-    assert_eq!(obtain_result("test-1"), "current: hello world!, total: 3");
-
-    // 1 initial + 1 context update + 1 magic update + 1 context update
-    assert_eq!(obtain_result("test-2"), "current: hello world!, total: 4");
+    assert_eq!(obtain_result("test-0"), "total: 1");
+    assert_eq!(obtain_result("test-1"), "current: hello world!, total: 1");
+    assert_eq!(obtain_result("test-2"), "current: hello world!, total: 1");
 }

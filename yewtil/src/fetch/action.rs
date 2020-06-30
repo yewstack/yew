@@ -6,7 +6,7 @@ use crate::NeqAssign;
 pub enum FetchAction<T> {
     NotFetching,
     Fetching,
-    Success(T), // TODO rename to Fetched(T)
+    Fetched(T),
     Failed(FetchError),
 }
 
@@ -20,14 +20,14 @@ impl<T> FetchAction<T> {
     /// Returns a reference to the Success case
     pub fn success(&self) -> Option<&T> {
         match self {
-            FetchAction::Success(value) => Some(value),
+            FetchAction::Fetched(value) => Some(value),
             _ => None,
         }
     }
 
     /// Gets the value out of the fetch state if it is a `Success` variant.
     pub fn unwrap(self) -> T {
-        if let FetchAction::Success(value) = self {
+        if let FetchAction::Fetched(value) = self {
             value
         } else {
             panic!("Could not unwrap value of FetchState");
@@ -39,14 +39,14 @@ impl<T> FetchAction<T> {
         match self {
             FetchAction::NotFetching => FetchAction::NotFetching,
             FetchAction::Fetching => FetchAction::NotFetching,
-            FetchAction::Success(t) => FetchAction::Success(f(t)),
+            FetchAction::Fetched(t) => FetchAction::Fetched(f(t)),
             FetchAction::Failed(e) => FetchAction::Failed(e),
         }
     }
 
     /// Applies a function that mutates the response if the Action is the success case.
     pub fn alter<F: Fn(&mut T)>(&mut self, f: F) {
-        if let FetchAction::Success(t) = self {
+        if let FetchAction::Fetched(t) = self {
             f(t)
         }
     }
@@ -56,7 +56,7 @@ impl<T> FetchAction<T> {
         match self {
             FetchAction::NotFetching => FetchAction::NotFetching,
             FetchAction::Fetching => FetchAction::NotFetching,
-            FetchAction::Success(t) => FetchAction::Success(t),
+            FetchAction::Fetched(t) => FetchAction::Fetched(t),
             FetchAction::Failed(e) => FetchAction::Failed(e.clone()),
         }
     }

@@ -6,9 +6,11 @@ Fixes # (issue)
 
 #### Checklist:
 
-- [ ] I have ran `./ci/run_stable_checks.sh`
-- [ ] I have performed a self-review of my own code
-- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] I have run `./ci/run_stable_checks.sh`
+- [ ] I have reviewed my own code
+- [ ] I have added tests
+<!-- If this is a bug fix, these tests will fail if the bug is present (to stop it from cropping up again) -->
+<!-- If this is a feature, my tests prove that the feature works -->
 
 <!-- Testing instructions -->
 <!-- Check out the link below on how to setup and run tests -->

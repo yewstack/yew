@@ -1,8 +1,9 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{VChild, VComp, VDiff, VList, VTag, VText};
-use crate::html::{AnyScope, Component, Renderable};
+use super::{Key, VChild, VComp, VDiff, VList, VTag, VText};
+use crate::html::{AnyScope, Component, NodeRef, Renderable};
 use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
@@ -32,72 +33,105 @@ pub enum VNode {
 }
 
 impl VNode {
-    pub fn key(&self) -> &Option<String> {
+    pub fn key(&self) -> Option<Key> {
         match self {
-            VNode::VTag(vtag) => &vtag.key,
-            VNode::VText(_) => &None,
-            VNode::VComp(vcomp) => &vcomp.key,
-            VNode::VList(vlist) => &vlist.key,
-            VNode::VRef(_) => &None,
+            VNode::VComp(vcomp) => vcomp.key.clone(),
+            VNode::VList(vlist) => vlist.key.clone(),
+            VNode::VRef(_) => None,
+            VNode::VTag(vtag) => vtag.key.clone(),
+            VNode::VText(_) => None,
         }
+    }
+
+    /// Returns the first DOM node that is used to designate the position of the virtual DOM node.
+    pub(crate) fn first_node(&self) -> Node {
+        match self {
+            VNode::VTag(vtag) => vtag
+                .reference
+                .as_ref()
+                .expect("VTag is not mounted")
+                .clone()
+                .into(),
+            VNode::VText(vtext) => {
+                let text_node = vtext.reference.as_ref().expect("VText is not mounted");
+                cfg_match! {
+                    feature = "std_web" => text_node.as_node().clone(),
+                    feature = "web_sys" => text_node.clone().into(),
+                }
+            }
+            VNode::VComp(vcomp) => vcomp.node_ref.get().expect("VComp is not mounted"),
+            VNode::VList(vlist) => vlist
+                .children
+                .get(0)
+                .expect("VList is not mounted")
+                .first_node(),
+            VNode::VRef(node) => node.clone(),
+        }
+    }
+
+    pub(crate) fn move_before(&self, parent: &Element, next_sibling: Option<Node>) {
+        match self {
+            VNode::VList(vlist) => {
+                for node in vlist.children.iter() {
+                    node.move_before(parent, next_sibling.clone());
+                }
+            }
+            VNode::VComp(vcomp) => {
+                vcomp
+                    .root_vnode()
+                    .expect("VComp has no root vnode")
+                    .move_before(parent, next_sibling);
+            }
+            _ => super::insert_node(&self.first_node(), parent, next_sibling),
+        };
     }
 }
 
 impl VDiff for VNode {
     /// Remove VNode from parent.
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.detach(parent),
             VNode::VText(ref mut vtext) => vtext.detach(parent),
             VNode::VComp(ref mut vcomp) => vcomp.detach(parent),
             VNode::VList(ref mut vlist) => vlist.detach(parent),
             VNode::VRef(ref node) => {
-                let sibling = node.next_sibling();
                 if parent.remove_child(node).is_err() {
                     warn!("Node not found to remove VRef");
                 }
-                sibling
             }
         }
     }
 
     fn apply(
         &mut self,
-        scope: &AnyScope,
+        parent_scope: &AnyScope,
         parent: &Element,
-        previous_sibling: Option<&Node>,
+        next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Option<Node> {
+    ) -> NodeRef {
         match *self {
-            VNode::VTag(ref mut vtag) => vtag.apply(scope, parent, previous_sibling, ancestor),
-            VNode::VText(ref mut vtext) => vtext.apply(scope, parent, previous_sibling, ancestor),
-            VNode::VComp(ref mut vcomp) => vcomp.apply(scope, parent, previous_sibling, ancestor),
-            VNode::VList(ref mut vlist) => vlist.apply(scope, parent, previous_sibling, ancestor),
+            VNode::VTag(ref mut vtag) => vtag.apply(parent_scope, parent, next_sibling, ancestor),
+            VNode::VText(ref mut vtext) => {
+                vtext.apply(parent_scope, parent, next_sibling, ancestor)
+            }
+            VNode::VComp(ref mut vcomp) => {
+                vcomp.apply(parent_scope, parent, next_sibling, ancestor)
+            }
+            VNode::VList(ref mut vlist) => {
+                vlist.apply(parent_scope, parent, next_sibling, ancestor)
+            }
             VNode::VRef(ref mut node) => {
-                let sibling = match ancestor {
-                    Some(mut n) => n.detach(parent),
-                    None => None,
-                };
-                if let Some(sibling) = sibling {
-                    let sibling = &sibling;
-                    #[cfg(feature = "web_sys")]
-                    let sibling = Some(sibling);
-                    parent
-                        .insert_before(node, sibling)
-                        .expect("can't insert element before sibling");
-                } else {
-                    #[cfg_attr(
-                        feature = "std_web",
-                        allow(clippy::let_unit_value, unused_variables)
-                    )]
-                    {
-                        let result = parent.append_child(node);
-                        #[cfg(feature = "web_sys")]
-                        result.expect("can't append node to parent");
+                if let Some(mut ancestor) = ancestor {
+                    if let VNode::VRef(n) = &ancestor {
+                        if node == n {
+                            return NodeRef::new(node.clone());
+                        }
                     }
+                    ancestor.detach(parent);
                 }
-
-                Some(node.to_owned())
+                super::insert_node(node, parent, next_sibling.get());
+                NodeRef::new(node.clone())
             }
         }
     }
@@ -183,9 +217,42 @@ impl PartialEq for VNode {
             (VNode::VText(a), VNode::VText(b)) => a == b,
             (VNode::VList(a), VNode::VList(b)) => a == b,
             (VNode::VRef(a), VNode::VRef(b)) => a == b,
-            // Need to improve PartialEq for VComp before enabling
+            // TODO: Need to improve PartialEq for VComp before enabling.
             (VNode::VComp(_), VNode::VComp(_)) => false,
             _ => false,
         }
+    }
+}
+
+#[cfg(all(test, feature = "web_sys"))]
+mod layout_tests {
+    use super::*;
+    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn diff() {
+        let document = crate::utils::document();
+        let vref_node_1 = VNode::VRef(document.create_element("i").unwrap().into());
+        let vref_node_2 = VNode::VRef(document.create_element("b").unwrap().into());
+
+        let layout1 = TestLayout {
+            name: "1",
+            node: vref_node_1.into(),
+            expected: "<i></i>",
+        };
+
+        let layout2 = TestLayout {
+            name: "2",
+            node: vref_node_2.into(),
+            expected: "<b></b>",
+        };
+
+        diff_layouts(vec![layout1, layout2]);
     }
 }

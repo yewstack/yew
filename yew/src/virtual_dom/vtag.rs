@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{Attributes, Listener, Listeners, Patch, Reform, Transformer, VDiff, VList, VNode};
+use super::{Attributes, Key, Listener, Listeners, Patch, Transformer, VDiff, VList, VNode};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
@@ -16,13 +16,13 @@ cfg_if! {
         use stdweb::{_js_impl, js};
         use stdweb::unstable::TryFrom;
         use stdweb::web::html_element::{InputElement, TextAreaElement};
-        use stdweb::web::{Element, IElement, INode, Node};
+        use stdweb::web::{Element, IElement, INode};
     } else if #[cfg(feature = "web_sys")] {
         use gloo::events::EventListener;
         use std::ops::Deref;
         use wasm_bindgen::JsCast;
         use web_sys::{
-            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, Node, HtmlButtonElement
+            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, HtmlButtonElement
         };
     }
 }
@@ -33,6 +33,26 @@ pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
 /// Default namespace for html elements
 pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 
+/// Used to improve performance of runtime element checks
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum ElementType {
+    Input,
+    Textarea,
+    Button,
+    Other,
+}
+
+impl ElementType {
+    fn from_tag(tag: &str) -> Self {
+        match tag.to_ascii_lowercase().as_str() {
+            "input" => Self::Input,
+            "textarea" => Self::Textarea,
+            "button" => Self::Button,
+            _ => Self::Other,
+        }
+    }
+}
+
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
@@ -40,7 +60,9 @@ pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 pub struct VTag {
     /// A tag of the element.
     tag: Cow<'static, str>,
-    /// A reference to the `Element`.
+    /// Type of element.
+    element_type: ElementType,
+    /// A reference to the DOM `Element`.
     pub reference: Option<Element>,
     /// List of attached listeners.
     pub listeners: Listeners,
@@ -66,13 +88,14 @@ pub struct VTag {
     /// Keeps handler for attached listeners to have an opportunity to drop them later.
     captured: Vec<EventListener>,
 
-    pub key: Option<String>,
+    pub key: Option<Key>,
 }
 
 impl Clone for VTag {
     fn clone(&self) -> Self {
         VTag {
             tag: self.tag.clone(),
+            element_type: self.element_type,
             reference: None,
             listeners: self.listeners.clone(),
             attributes: self.attributes.clone(),
@@ -90,13 +113,16 @@ impl Clone for VTag {
 impl VTag {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
+        let tag: Cow<'static, str> = tag.into();
+        let element_type = ElementType::from_tag(&tag);
         VTag {
-            tag: tag.into(),
+            tag,
+            element_type,
             reference: None,
             attributes: Attributes::new(),
             listeners: Vec::new(),
             captured: Vec::new(),
-            children: VList::new_without_placeholder(),
+            children: VList::new(),
             node_ref: NodeRef::default(),
             key: None,
             value: None,
@@ -118,10 +144,8 @@ impl VTag {
     }
 
     /// Add multiple `VNode` children.
-    pub fn add_children(&mut self, children: Vec<VNode>) {
-        for child in children {
-            self.add_child(child);
-        }
+    pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
+        self.children.add_children(children);
     }
 
     /// Sets `value` for an
@@ -178,6 +202,48 @@ impl VTag {
         }
     }
 
+    /// Every render it removes all listeners and attach it back later
+    /// TODO(#943): Compare references of handler to do listeners update better
+    fn recreate_listeners(&mut self, ancestor: &mut Option<Box<Self>>) {
+        if let Some(ancestor) = ancestor.as_mut() {
+            ancestor.captured.clear();
+        }
+
+        let element = self.reference.clone().expect("element expected");
+
+        for listener in self.listeners.drain(..) {
+            let handle = listener.attach(&element);
+            self.captured.push(handle);
+        }
+    }
+
+    fn refresh_value(&mut self) {
+        if let Some(element) = self.reference.as_ref() {
+            if self.element_type == ElementType::Input {
+                let input_el = cfg_match! {
+                    feature = "std_web" => InputElement::try_from(element.clone()).ok(),
+                    feature = "web_sys" => element.dyn_ref::<InputElement>(),
+                };
+                if let Some(input) = input_el {
+                    let current_value = cfg_match! {
+                        feature = "std_web" => input.raw_value(),
+                        feature = "web_sys" => input.value(),
+                    };
+                    self.set_value(&current_value)
+                }
+            } else if self.element_type == ElementType::Textarea {
+                let textarea_el = cfg_match! {
+                    feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
+                    feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
+                };
+                if let Some(tae) = textarea_el {
+                    let current_value = &tae.value();
+                    self.set_value(&current_value)
+                }
+            }
+        }
+    }
+
     /// This handles patching of attributes when the keys are equal but
     /// the values are different.
     fn diff_attributes<'a>(
@@ -207,7 +273,7 @@ impl VTag {
         to_add_or_replace.chain(to_remove)
     }
 
-    /// Similar to `diff_attributers` except there is only a single `kind`.
+    /// Similar to `diff_attributes` except there is only a single `kind`.
     fn diff_kind<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
             self.kind.as_ref(),
@@ -272,13 +338,15 @@ impl VTag {
         // Check this out: https://github.com/yewstack/yew/pull/1033/commits/4b4e958bb1ccac0524eb20f63f06ae394c20553d
         #[cfg(feature = "web_sys")]
         {
-            if let Some(button) = element.dyn_ref::<HtmlButtonElement>() {
-                if let Some(change) = self.diff_kind(ancestor) {
-                    let kind = match change {
-                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                        Patch::Remove(_) => "",
-                    };
-                    button.set_type(kind);
+            if self.element_type == ElementType::Button {
+                if let Some(button) = element.dyn_ref::<HtmlButtonElement>() {
+                    if let Some(change) = self.diff_kind(ancestor) {
+                        let kind = match change {
+                            Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                            Patch::Remove(_) => "",
+                        };
+                        button.set_type(kind);
+                    }
                 }
             }
         }
@@ -287,64 +355,88 @@ impl VTag {
         // I override behavior of attributes to make it more clear
         // and useful in templates. For example I interpret `checked`
         // attribute as `checked` parameter, not `defaultChecked` as browsers do
-        if let Some(input) = {
-            cfg_match! {
-                feature = "std_web" => InputElement::try_from(element.clone()).ok(),
-                feature = "web_sys" => element.dyn_ref::<InputElement>(),
-            }
-        } {
-            if let Some(change) = self.diff_kind(ancestor) {
-                let kind = match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                    Patch::Remove(_) => "",
-                };
+        if self.element_type == ElementType::Input {
+            if let Some(input) = {
                 cfg_match! {
-                    feature = "std_web" => ({
-                        //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
-                        //input.set_kind(&kind);
-                        let input = &input;
-                        js! { @(no_return)
-                            @{input}.type = @{kind};
-                        }
-                    }),
-                    feature = "web_sys" => input.set_type(kind),
+                    feature = "std_web" => InputElement::try_from(element.clone()).ok(),
+                    feature = "web_sys" => element.dyn_ref::<InputElement>(),
+                }
+            } {
+                if let Some(change) = self.diff_kind(ancestor) {
+                    let kind = match change {
+                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                        Patch::Remove(_) => "",
+                    };
+                    cfg_match! {
+                        feature = "std_web" => ({
+                            //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
+                            //input.set_kind(&kind);
+                            let input = &input;
+                            js! { @(no_return)
+                                @{input}.type = @{kind};
+                            }
+                        }),
+                        feature = "web_sys" => input.set_type(kind),
+                    }
+                }
+
+                if let Some(change) = self.diff_value(ancestor) {
+                    let raw_value = match change {
+                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                        Patch::Remove(_) => "",
+                    };
+                    cfg_match! {
+                        feature = "std_web" => input.set_raw_value(raw_value),
+                        feature = "web_sys" => input.set_value(raw_value),
+                    };
+                }
+
+                // IMPORTANT! This parameter has to be set every time
+                // to prevent strange behaviour in the browser when the DOM changes
+                set_checked(&input, self.checked);
+            }
+        } else if self.element_type == ElementType::Textarea {
+            if let Some(tae) = {
+                cfg_match! {
+                    feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
+                    feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
+                }
+            } {
+                if let Some(change) = self.diff_value(ancestor) {
+                    let value = match change {
+                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                        Patch::Remove(_) => "",
+                    };
+                    tae.set_value(value);
                 }
             }
+        }
+    }
 
-            if let Some(change) = self.diff_value(ancestor) {
-                let raw_value = match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                    Patch::Remove(_) => "",
-                };
-                cfg_match! {
-                    feature = "std_web" => input.set_raw_value(raw_value),
-                    feature = "web_sys" => input.set_value(raw_value),
-                };
-            }
-
-            // IMPORTANT! This parameter has to be set every time
-            // to prevent strange behaviour in the browser when the DOM changes
-            set_checked(&input, self.checked);
-        } else if let Some(tae) = {
-            cfg_match! {
-                feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
-                feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
-            }
-        } {
-            if let Some(change) = self.diff_value(ancestor) {
-                let value = match change {
-                    Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                    Patch::Remove(_) => "",
-                };
-                tae.set_value(value);
-            }
+    fn create_element(&self, parent: &Element) -> Element {
+        if self.tag == "svg"
+            || parent
+                .namespace_uri()
+                .map_or(false, |ns| ns == SVG_NAMESPACE)
+        {
+            let namespace = cfg_match! {
+                feature = "std_web" => SVG_NAMESPACE,
+                feature = "web_sys" => Some(SVG_NAMESPACE),
+            };
+            document()
+                .create_element_ns(namespace, &self.tag)
+                .expect("can't create namespaced element for vtag")
+        } else {
+            document()
+                .create_element(&self.tag)
+                .expect("can't create element for vtag")
         }
     }
 }
 
 impl VDiff for VTag {
     /// Remove VTag from parent.
-    fn detach(&mut self, parent: &Element) -> Option<Node> {
+    fn detach(&mut self, parent: &Element) {
         let node = self
             .reference
             .take()
@@ -352,150 +444,69 @@ impl VDiff for VTag {
 
         // recursively remove its children
         self.children.detach(&node);
-
-        let next_sibling = node.next_sibling();
         if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VTag");
         }
-        next_sibling
     }
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an ancestor `VTag`
     /// to compute what to patch in the actual DOM nodes.
     fn apply(
         &mut self,
-        scope: &AnyScope,
+        parent_scope: &AnyScope,
         parent: &Element,
-        previous_sibling: Option<&Node>,
+        next_sibling: NodeRef,
         ancestor: Option<VNode>,
-    ) -> Option<Node> {
-        assert!(
-            self.reference.is_none(),
-            "reference is ignored so must not be set"
-        );
-        let (reform, mut ancestor) = {
+    ) -> NodeRef {
+        let mut ancestor_tag = ancestor.and_then(|mut ancestor| {
             match ancestor {
-                Some(VNode::VTag(mut vtag)) => {
-                    if self.tag == vtag.tag {
-                        // If tags are equal, preserve the reference that already exists.
-                        self.reference = vtag.reference.take();
-                        if let Some(element) = self.reference.as_ref() {
-                            if let Some(input) = {
-                                cfg_match! {
-                                    feature = "std_web" => InputElement::try_from(element.clone()).ok(),
-                                    feature = "web_sys" => element.dyn_ref::<InputElement>(),
-                                }
-                            } {
-                                let current_value = cfg_match! {
-                                    feature = "std_web" => input.raw_value(),
-                                    feature = "web_sys" => input.value(),
-                                };
-                                vtag.set_value(&current_value)
-                            } else if let Some(tae) = {
-                                cfg_match! {
-                                    feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
-                                    feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
-                                }
-                            } {
-                                vtag.set_value(&tae.value())
-                            }
-                        }
-                        (Reform::Keep, Some(vtag))
-                    } else {
-                        // We have to create a new reference, remove ancestor.
-                        (Reform::Before(vtag.detach(parent)), None)
-                    }
+                // If the ancestor is a tag of the same type, don't recreate, keep the
+                // old tag and update its attributes and children.
+                VNode::VTag(vtag) if self.tag == vtag.tag && self.key == vtag.key => Some(vtag),
+                _ => {
+                    let element = self.create_element(parent);
+                    super::insert_node(&element, parent, Some(ancestor.first_node()));
+                    self.reference = Some(element);
+                    ancestor.detach(parent);
+                    None
                 }
-                Some(mut vnode) => {
-                    // It is not a VTag variant we must remove the ancestor.
-                    (Reform::Before(vnode.detach(parent)), None)
-                }
-                None => (Reform::Before(None), None),
             }
-        };
+        });
 
-        // Ensure that `self.reference` exists.
-        //
-        // This can use the previous reference or create a new one.
-        // If we create a new one we must insert it in the correct
-        // place, which we use `next_sibling` or `previous_sibling` for.
-        match reform {
-            Reform::Keep => {}
-            Reform::Before(next_sibling) => {
-                let element = if self.tag == "svg"
-                    || parent
-                        .namespace_uri()
-                        .map_or(false, |ns| ns == SVG_NAMESPACE)
-                {
-                    let namespace = SVG_NAMESPACE;
-                    #[cfg(feature = "web_sys")]
-                    let namespace = Some(namespace);
-                    document()
-                        .create_element_ns(namespace, &self.tag)
-                        .expect("can't create namespaced element for vtag")
-                } else {
-                    document()
-                        .create_element(&self.tag)
-                        .expect("can't create element for vtag")
-                };
-
-                if let Some(next_sibling) = next_sibling {
-                    let next_sibling = &next_sibling;
-                    #[cfg(feature = "web_sys")]
-                    let next_sibling = Some(next_sibling);
-                    parent
-                        .insert_before(&element, next_sibling)
-                        .expect("can't insert tag before next sibling");
-                } else if let Some(next_sibling) = previous_sibling.and_then(|p| p.next_sibling()) {
-                    let next_sibling = &next_sibling;
-                    #[cfg(feature = "web_sys")]
-                    let next_sibling = Some(next_sibling);
-                    parent
-                        .insert_before(&element, next_sibling)
-                        .expect("can't insert tag before next sibling");
-                } else {
-                    #[cfg_attr(
-                        feature = "std_web",
-                        allow(clippy::let_unit_value, unused_variables)
-                    )]
-                    {
-                        let result = parent.append_child(&element);
-                        #[cfg(feature = "web_sys")]
-                        result.expect("can't append node to parent");
-                    }
-                }
-                self.reference = Some(element);
-            }
+        if let Some(ref mut ancestor_tag) = &mut ancestor_tag {
+            // Refresh the current value to later compare it against the desired value
+            // since it may have been changed since we last set it.
+            ancestor_tag.refresh_value();
+            // Preserve the reference that already exists.
+            self.reference = ancestor_tag.reference.take();
+        } else if self.reference.is_none() {
+            let element = self.create_element(parent);
+            super::insert_node(&element, parent, next_sibling.get());
+            self.reference = Some(element);
         }
 
-        self.apply_diffs(&ancestor);
-
-        // Every render it removes all listeners and attach it back later
-        // TODO(#943): Compare references of handler to do listeners update better
-        if let Some(ancestor) = ancestor.as_mut() {
-            ancestor.captured.clear();
-        }
-
-        let element = self.reference.clone().expect("element expected");
-
-        for listener in self.listeners.drain(..) {
-            let handle = listener.attach(&element);
-            self.captured.push(handle);
-        }
+        self.apply_diffs(&ancestor_tag);
+        self.recreate_listeners(&mut ancestor_tag);
 
         // Process children
-        self.children
-            .apply(scope, &element, None, ancestor.map(|a| a.children.into()));
+        let element = self.reference.as_ref().expect("Reference should be set");
+        if !self.children.is_empty() {
+            self.children.apply(
+                parent_scope,
+                element,
+                NodeRef::default(),
+                ancestor_tag.map(|a| a.children.into()),
+            );
+        } else if let Some(mut ancestor_tag) = ancestor_tag {
+            ancestor_tag.children.detach(element);
+        }
 
-        let node = self.reference.as_ref().map(|e| {
-            let node = cfg_match! {
-                feature = "std_web" => e.as_node(),
-                feature = "web_sys" => e.deref(),
-            };
-            node.to_owned()
-        });
-        self.node_ref.set(node.clone());
-        node
+        let node = cfg_match! {
+            feature = "std_web" => element.as_node(),
+            feature = "web_sys" => element.deref(),
+        };
+        self.node_ref.set(Some(node.clone()));
+        self.node_ref.clone()
     }
 }
 
@@ -542,7 +553,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{html, Component, ComponentLink, Html, ShouldRender};
+    use crate::html;
     use std::any::TypeId;
     #[cfg(feature = "std_web")]
     use stdweb::web::{document, IElement};
@@ -557,75 +568,6 @@ mod tests {
             type_id: TypeId::of::<()>(),
             parent: None,
             state: Rc::new(()),
-        }
-    }
-
-    struct Comp;
-
-    impl Component for Comp {
-        type Message = ();
-        type Properties = ();
-
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Comp
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn view(&self) -> Html {
-            unimplemented!();
-        }
-    }
-
-    struct CompInt;
-
-    impl Component for CompInt {
-        type Message = u32;
-        type Properties = ();
-
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            CompInt
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn view(&self) -> Html {
-            unimplemented!();
-        }
-    }
-
-    struct CompBool;
-
-    impl Component for CompBool {
-        type Message = bool;
-        type Properties = ();
-
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            CompBool
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn view(&self) -> Html {
-            unimplemented!();
         }
     }
 
@@ -896,17 +838,17 @@ mod tests {
         let mut svg_node = html! { <svg>{path_node}</svg> };
 
         let svg_tag = assert_vtag(&mut svg_node);
-        svg_tag.apply(&scope, &div_el, None, None);
+        svg_tag.apply(&scope, &div_el, NodeRef::default(), None);
         assert_namespace(svg_tag, SVG_NAMESPACE);
         let path_tag = assert_vtag(svg_tag.children.get_mut(0).unwrap());
         assert_namespace(path_tag, SVG_NAMESPACE);
 
         let g_tag = assert_vtag(&mut g_node);
-        g_tag.apply(&scope, &div_el, None, None);
+        g_tag.apply(&scope, &div_el, NodeRef::default(), None);
         assert_namespace(g_tag, HTML_NAMESPACE);
         g_tag.reference = None;
 
-        g_tag.apply(&scope, &svg_el, None, None);
+        g_tag.apply(&scope, &svg_el, NodeRef::default(), None);
         assert_namespace(g_tag, SVG_NAMESPACE);
     }
 
@@ -1036,7 +978,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=""></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1053,7 +995,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1070,7 +1012,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class="ferris the crab"></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has been set
         assert!(vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1126,7 +1068,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1152,7 +1094,12 @@ mod tests {
         } else {
             panic!("should be vtag")
         };
-        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
+        vtag.apply(
+            &scope,
+            &parent,
+            NodeRef::default(),
+            Some(VNode::VTag(ancestor)),
+        );
 
         let expected = "class-3 class-2 class-1";
         assert_eq!(get_class_str(&vtag), expected);
@@ -1177,7 +1124,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div class=("class-1", "class-3")></div> };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1203,7 +1150,12 @@ mod tests {
         } else {
             panic!("should be vtag")
         };
-        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
+        vtag.apply(
+            &scope,
+            &parent,
+            NodeRef::default(),
+            Some(VNode::VTag(ancestor)),
+        );
 
         let expected = "class-1 class-2 class-3";
         assert_eq!(get_class_str(&vtag), expected);
@@ -1233,7 +1185,7 @@ mod tests {
         let mut elem = html! {
             <input value=expected />
         };
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1264,7 +1216,12 @@ mod tests {
         };
 
         // Sync happens here
-        vtag.apply(&scope, &parent, None, Some(VNode::VTag(ancestor)));
+        vtag.apply(
+            &scope,
+            &parent,
+            NodeRef::default(),
+            Some(VNode::VTag(ancestor)),
+        );
 
         // Get new current value of the input element
         let input_ref = vtag.reference.as_ref().unwrap();
@@ -1299,7 +1256,7 @@ mod tests {
             builder
         }/> };
 
-        elem.apply(&scope, &parent, None, None);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // make sure the new tag name is used internally
         assert_eq!(vtag.tag, "a");
@@ -1336,5 +1293,98 @@ mod tests {
         };
         let vtag = assert_vtag(&mut el);
         assert_eq!(vtag.tag(), "textarea");
+    }
+}
+
+#[cfg(all(test, feature = "web_sys"))]
+mod layout_tests {
+    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn diff() {
+        let layout1 = TestLayout {
+            name: "1",
+            node: html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b</li></ul>",
+        };
+
+        let layout2 = TestLayout {
+            name: "2",
+            node: html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                    <li>
+                        {"d"}
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b</li><li>d</li></ul>",
+        };
+
+        let layout3 = TestLayout {
+            name: "3",
+            node: html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                    <li>
+                        {"c"}
+                    </li>
+                    <li>
+                        {"d"}
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>",
+        };
+
+        let layout4 = TestLayout {
+            name: "4",
+            node: html! {
+                <ul>
+                    <li>
+                        <>
+                            {"a"}
+                        </>
+                    </li>
+                    <li>
+                        {"b"}
+                        <li>
+                            {"c"}
+                        </li>
+                        <li>
+                            {"d"}
+                        </li>
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b<li>c</li><li>d</li></li></ul>",
+        };
+
+        diff_layouts(vec![layout1, layout2, layout3, layout4]);
     }
 }

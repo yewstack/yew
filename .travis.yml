@@ -19,10 +19,16 @@ rust:
   - stable
   - beta
 
+services:
+  - docker
+
 matrix:
   allow_failures:
     - rust: beta
   fast_finish: true
+
+before_install:
+  - docker run -d -p 8000:80 kennethreitz/httpbin@sha256:599fe5e5073102dbb0ee3dbb65f049dab44fa9fc251f6835c9990f8fb196a72b
 
 install:
   - nvm install 9

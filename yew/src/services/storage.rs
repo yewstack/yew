@@ -1,4 +1,4 @@
-//! This module contains the implementation of a service to
+//! This module contains Yew's implementation of a service to
 //! use local and session storage of a browser.
 
 use crate::format::Text;

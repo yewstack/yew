@@ -34,7 +34,7 @@ pub(crate) enum ComponentRunnableType {
     Destroy,
     Create,
     Update,
-    Rendered,
+    Render,
 }
 
 #[derive(Clone)]
@@ -45,7 +45,7 @@ struct ComponentScheduler {
     update: Shared<VecDeque<Box<dyn Runnable>>>,
 
     // Stack
-    rendered: Shared<Vec<Box<dyn Runnable>>>,
+    render: Shared<Vec<Box<dyn Runnable>>>,
 }
 
 impl ComponentScheduler {
@@ -54,7 +54,7 @@ impl ComponentScheduler {
             destroy: Rc::new(RefCell::new(VecDeque::new())),
             create: Rc::new(RefCell::new(VecDeque::new())),
             update: Rc::new(RefCell::new(VecDeque::new())),
-            rendered: Rc::new(RefCell::new(Vec::new())),
+            render: Rc::new(RefCell::new(Vec::new())),
         }
     }
 
@@ -62,7 +62,7 @@ impl ComponentScheduler {
         None.or_else(|| self.destroy.borrow_mut().pop_front())
             .or_else(|| self.create.borrow_mut().pop_front())
             .or_else(|| self.update.borrow_mut().pop_front())
-            .or_else(|| self.rendered.borrow_mut().pop())
+            .or_else(|| self.render.borrow_mut().pop())
     }
 }
 
@@ -82,7 +82,7 @@ impl Scheduler {
             }
             ComponentRunnableType::Create => self.component.create.borrow_mut().push_back(runnable),
             ComponentRunnableType::Update => self.component.update.borrow_mut().push_back(runnable),
-            ComponentRunnableType::Rendered => self.component.rendered.borrow_mut().push(runnable),
+            ComponentRunnableType::Render => self.component.render.borrow_mut().push(runnable),
         };
         self.start();
     }
@@ -98,9 +98,9 @@ impl Scheduler {
     }
 
     pub(crate) fn start(&self) {
-        // The lock here is used to prevent recursion. If the lock
-        // here fails to acquire, it is because this `start()` method
-        // is being called recursively in a `runnable.run()`.
+        // The lock is used to prevent recursion. If the lock
+        // cannot be acquired, it is because the `start()` method
+        // is being called recursively as part of a `runnable.run()`.
         if let Ok(_lock) = self.lock.try_borrow_mut() {
             while let Some(runnable) = self.next_runnable() {
                 runnable.run();
