@@ -21,7 +21,7 @@ fn obtain_result(id: &str) -> String {
 
 #[wasm_bindgen_test]
 fn use_context_scoping_works() {
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, PartialEq)]
     struct ExampleContext(String);
     struct UseContextFunctionOuter {}
     struct UseContextFunctionInner {}
@@ -178,7 +178,7 @@ fn use_context_works_with_multiple_types() {
 
 #[wasm_bindgen_test]
 fn use_context_update_works() {
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, PartialEq)]
     struct MyContext(String);
 
     #[derive(Clone, Debug, PartialEq, Properties)]
@@ -186,6 +186,7 @@ fn use_context_update_works() {
         id: String,
         children: Children,
     }
+
     struct RenderCounterFunction;
     impl FunctionProvider for RenderCounterFunction {
         type TProps = RenderCounterProps;
@@ -283,7 +284,12 @@ fn use_context_update_works() {
     let app: App<TestComponent> = yew::App::new();
     app.mount(yew::utils::document().get_element_by_id("output").unwrap());
 
-    assert_eq!(obtain_result("test-0"), "total: 1");
-    assert_eq!(obtain_result("test-1"), "current: hello world!, total: 1");
-    assert_eq!(obtain_result("test-2"), "current: hello world!, total: 1");
+    // 1 initial render + 3 update steps
+    assert_eq!(obtain_result("test-0"), "total: 4");
+
+    // 1 initial + 2 context update
+    assert_eq!(obtain_result("test-1"), "current: hello world!, total: 3");
+
+    // 1 initial + 1 context update + 1 magic update + 1 context update
+    assert_eq!(obtain_result("test-2"), "current: hello world!, total: 4");
 }
