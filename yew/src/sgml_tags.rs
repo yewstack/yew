@@ -143,16 +143,14 @@ fn is_valid_html_standard_ish_element_name(tag: &str) -> bool {
     let mut saw_non_hyphen = false;
     for c in tag.chars() {
         match c {
-            'a'..='z' |'A'..='Z' | '0'..='9' => {
-                saw_non_hyphen = true
-            }
+            'a'..='z' | 'A'..='Z' | '0'..='9' => saw_non_hyphen = true,
             '-' => {}
             _ => {
                 return false;
             }
         }
     }
-    
+
     saw_non_hyphen
 }
 
