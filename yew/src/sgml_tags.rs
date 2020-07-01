@@ -1,27 +1,6 @@
 //! This module contains utilities for parsing or validating strings relating
 //! to tags.
 
-use lazy_static::lazy_static;
-use std::collections::HashSet;
-use std::iter::FromIterator;
-
-lazy_static! {
-    static ref DISALLOWED_CUSTOM_ELEMENT_TAGS: HashSet<&'static str> = HashSet::from_iter(
-        vec![
-            "annotation-xml",
-            "color-profile",
-            "font-face",
-            "font-face-src",
-            "font-face-uri",
-            "font-face-format",
-            "font-face-name",
-            "missing-glyph",
-        ]
-        .iter()
-        .map(|tag| tag.clone())
-    );
-}
-
 /// Returns true when the character provided is a "control" as defined
 /// in [the WhatWG spec](https://infra.spec.whatwg.org/#control)
 fn is_control(c: char) -> bool {
@@ -97,12 +76,19 @@ fn is_pcen_char(c: char) -> bool {
 }
 
 /// Returns true when the tag name provided would be a valid "custom element" per
-/// [the WhatWG spec](https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name)
+/// [the WhatWG spec](https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name).
+/// Only technically returns correct results if called with a string that is not one of the following:
+///     - annotation-xml
+///     - color-profile
+///     - font-face
+///     - font-face-src
+///     - font-face-uri
+///     - font-face-format
+///     - font-face-name
+///     - missing-glyph
+/// But, given the way it is used in this file, as of this writing, this limitation does not affect the
+/// behavior of the program.
 fn is_valid_html_custom_element_name(tag: &str) -> bool {
-    if DISALLOWED_CUSTOM_ELEMENT_TAGS.contains(&tag) {
-        return false;
-    }
-
     let mut chars = tag.chars();
     let first_char = chars.next();
 
