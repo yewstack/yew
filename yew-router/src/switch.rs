@@ -241,10 +241,10 @@ mod test {
     fn permissive_and_allow_missing_can_get_same_option_string_from_same_str() {
         let same_str = "/test".to_string();
         let (s1, _state): (Option<Permissive<String>>, Option<()>) =
-            Permissive::from_route_part(same_str, Some(()));
+            Permissive::from_route_part(same_str.clone(), Some(()));
         let (s2, _state): (Option<AllowMissing<String>>, Option<()>) =
-            AllowMissing::from_route_part(same_str, Some(()));
-        assert_eq!(s1, Some(Permissive(Some(same_str))));
+            AllowMissing::from_route_part(same_str.clone(), Some(()));
+        assert_eq!(s1, Some(Permissive(Some(same_str.clone()))));
         assert_eq!(s2, Some(AllowMissing(Some(same_str))));
     }
 }
