@@ -127,7 +127,7 @@ impl<U: Switch> Switch for Permissive<U> {
 }
 
 /// Allows a section to match, providing a None value,
-/// if its contents are entirely missing, or ends with a '/' without any.
+/// if its contents are entirely missing, or ends with a '/' without any trailing matches.
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct AllowMissing<U: std::fmt::Debug>(pub Option<U>);
 impl<U: Switch + std::fmt::Debug> Switch for AllowMissing<U> {
