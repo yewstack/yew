@@ -244,7 +244,7 @@ mod test {
             Permissive::from_route_part(same_str, Some(()));
         let (s2, _state): (Option<AllowMissing<String>>, Option<()>) =
             AllowMissing::from_route_part(same_str, Some(()));
-        assert_eq!(s1, Some(Permissive(Some(&same_str))));
-        assert_eq!(s2, Some(AllowMissing(Some(&same_str))));
+        assert_eq!(s1, Some(Permissive(Some(same_str))));
+        assert_eq!(s2, Some(AllowMissing(Some(same_str))));
     }
 }
