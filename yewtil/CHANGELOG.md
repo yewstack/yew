@@ -25,6 +25,7 @@ END TEMPLATE-->
   - module `effect`
   - module `pure`
   - macro `function_component`
+  - struct `ptr::Lrc<T>`
 
 ## ✨ **v0.2.0** *11/18/19*
 - #### ⚡️ Features
