@@ -47,6 +47,7 @@
 
       Event propagation is usually stopped when you have event listeners attached to nested elements and do not want the event to bubble up from where it was first captured. If your app has this behavior, you can stop propagation by calling `stop_propagation()` on the desired event.
 
+  - The `onsubmit` listener now uses `FocusEvent` instead `Event` when using `web-sys`. [[@siku2], [#1244](https://github.com/yewstack/yew/pull/1244)]
   - The `onmousewheel` and `ontouchenter` listeners have been removed. [[@siku2], [#1244](https://github.com/yewstack/yew/pull/1244)]
   - The `ondoubleclick` listener is now named `ondblclick`. [[@siku2], [#1244](https://github.com/yewstack/yew/pull/1244)]
   - `FetchService` methods are now static. [[@teymour-aldridge], [#1235](https://github.com/yewstack/yew/pull/1235)]
