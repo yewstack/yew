@@ -284,6 +284,7 @@ struct ComponentState<COMP: Component> {
     placeholder: Option<VNode>,
     last_root: Option<VNode>,
     new_root: Option<VNode>,
+    has_rendered: bool,
 }
 
 impl<COMP: Component> ComponentState<COMP> {
@@ -307,6 +308,7 @@ impl<COMP: Component> ComponentState<COMP> {
             placeholder,
             last_root: None,
             new_root: None,
+            has_rendered: false,
         }
     }
 }
@@ -381,7 +383,7 @@ where
     }
 }
 
-/// A `Runnable` task which renders a `Component` and calls its `rendered()` method.
+/// A `Runnable` task which renders a `Component`.
 struct RenderComponent<COMP>
 where
     COMP: Component,
@@ -395,6 +397,7 @@ where
     COMP: Component,
 {
     fn run(self: Box<Self>) {
+        let state_clone = self.state.clone();
         if let Some(mut state) = self.state.borrow_mut().as_mut() {
             // Skip render if we haven't seen the "first render" yet
             if !self.first_render && state.last_root.is_none() {
@@ -408,8 +411,40 @@ where
                 let node = new_root.apply(&parent_scope, &state.parent, next_sibling, last_root);
                 state.node_ref.link(node);
                 state.last_root = Some(new_root);
-                state.component.rendered(self.first_render);
+                scheduler().push_comp(
+                    ComponentRunnableType::Rendered,
+                    Box::new(RenderedComponent {
+                        state: state_clone,
+                        first_render: self.first_render,
+                    }),
+                );
             }
+        }
+    }
+}
+
+/// A `Runnable` task which calls the `rendered()` method on a `Component`.
+struct RenderedComponent<COMP>
+where
+    COMP: Component,
+{
+    state: Shared<Option<ComponentState<COMP>>>,
+    first_render: bool,
+}
+
+impl<COMP> Runnable for RenderedComponent<COMP>
+where
+    COMP: Component,
+{
+    fn run(self: Box<Self>) {
+        if let Some(mut state) = self.state.borrow_mut().as_mut() {
+            // Don't call rendered if we haven't seen the "first render" yet
+            if !self.first_render && !state.has_rendered {
+                return;
+            }
+
+            state.has_rendered = true;
+            state.component.rendered(self.first_render);
         }
     }
 }
@@ -446,6 +481,43 @@ mod tests {
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
+
+    #[derive(Clone, Properties, Default)]
+    struct ChildProps {
+        lifecycle: Rc<RefCell<Vec<String>>>,
+    }
+
+    struct Child {
+        props: ChildProps,
+    }
+
+    impl Component for Child {
+        type Message = ();
+        type Properties = ChildProps;
+
+        fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+            Child { props }
+        }
+
+        fn rendered(&mut self, _first_render: bool) {
+            self.props
+                .lifecycle
+                .borrow_mut()
+                .push("child rendered".into());
+        }
+
+        fn update(&mut self, _: Self::Message) -> ShouldRender {
+            false
+        }
+
+        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+            false
+        }
+
+        fn view(&self) -> Html {
+            html! {}
+        }
+    }
 
     #[derive(Clone, Properties, Default)]
     struct Props {
@@ -500,7 +572,7 @@ mod tests {
                 self.link.send_message(msg);
             }
             self.props.lifecycle.borrow_mut().push("view".into());
-            html! {}
+            html! { <Child lifecycle=self.props.lifecycle.clone() /> }
         }
     }
 
@@ -534,6 +606,7 @@ mod tests {
             &vec![
                 "create".to_string(),
                 "view".to_string(),
+                "child rendered".to_string(),
                 "rendered(true)".to_string(),
             ],
         );
@@ -548,6 +621,7 @@ mod tests {
                 "create".to_string(),
                 "update(false)".to_string(),
                 "view".to_string(),
+                "child rendered".to_string(),
                 "rendered(true)".to_string(),
             ],
         );
@@ -563,6 +637,7 @@ mod tests {
                 "view".to_string(),
                 "update(true)".to_string(),
                 "view".to_string(),
+                "child rendered".to_string(),
                 "rendered(true)".to_string(),
             ],
         );
@@ -577,6 +652,7 @@ mod tests {
                 "create".to_string(),
                 "view".to_string(),
                 "update(false)".to_string(),
+                "child rendered".to_string(),
                 "rendered(true)".to_string(),
             ],
         );
@@ -590,6 +666,7 @@ mod tests {
             &vec![
                 "create".to_string(),
                 "view".to_string(),
+                "child rendered".to_string(),
                 "rendered(true)".to_string(),
                 "update(false)".to_string(),
             ],
@@ -604,6 +681,7 @@ mod tests {
             &vec![
                 "create".to_string(),
                 "view".to_string(),
+                "child rendered".to_string(),
                 "rendered(true)".to_string(),
                 "update(true)".to_string(),
                 "view".to_string(),
