@@ -1,0 +1,88 @@
+name: Benchmark
+
+on:
+  pull_request:
+    branches: [master]
+    types: [labeled, synchronize]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'performance') ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'performance'))
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: yewstack/js-framework-benchmark
+
+      - name: Configure benchmark
+        run: |
+          search="{ git = \"https://github.com/yewstack/yew\", branch = \"master\" }"
+          replace="{ git = \"${{ github.event.pull_request.head.repo.html_url }}\", branch = \"${{ github.event.pull_request.head.ref }}\" }"
+          input=$(cat frameworks/keyed/yew/Cargo.toml)
+          output=${input//"$search"/"$replace"}
+          if [[ "$input" == "$output" ]]; then
+            echo "ERROR: failed to configure Cargo.toml"
+            exit 1
+          fi
+          echo "$output" > frameworks/keyed/yew/Cargo.toml
+          echo "$output"
+
+      - name: Setup ChromeDriver
+        uses: nanasess/setup-chromedriver@master
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-bindgen-cli
+          version: latest
+          use-tool-cache: true
+
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-pack
+          version: latest
+          use-tool-cache: true
+
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: https
+          version: latest
+          use-tool-cache: true
+
+      - name: Start Server
+        run: http -p 8080 &
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: npm Install
+        run: |
+          npm install
+          (cd webdriver-ts && npm install)
+          (cd webdriver-ts-results && npm install)
+
+      - name: Build
+        run: |
+          npm run build-prod
+          (cd webdriver-ts && npm run build-prod)
+
+      - name: Benchmark
+        run: npm run bench -- --headless
+
+      - name: Results
+        run: npm run results
+
+      - name: Log results
+        run: |
+          msg=$(cd results_diff && cargo run)
+          echo "$msg"

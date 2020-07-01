@@ -18,7 +18,7 @@
   <h4>
     <a href="https://yew.rs/docs">Documentation</a>
     <span> | </span>
-    <a href="https://github.com/yewstack/yew/tree/v0.16.0/examples">Examples</a>
+    <a href="https://github.com/yewstack/yew/tree/v0.17/examples">Examples</a>
     <span> | </span>
     <a href="https://github.com/yewstack/yew/blob/master/CHANGELOG.md">Changelog</a>
     <span> | </span>
@@ -38,7 +38,7 @@
 * Achieves high performance by minimizing DOM API calls for each page render and by making it easy to offload processing to background web workers.
 * Supports JavaScript interoperability, allowing developers to leverage NPM packages and integrate with existing JavaScript applications.
 
-*Note: Yew is not (yet) production ready but is great for side projects and internal tools*
+*Note: Yew is not (yet) production ready but is great for side projects and internal tools.*
 
 ## Contributing
 

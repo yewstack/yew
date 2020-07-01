@@ -37,9 +37,9 @@ impl Component for AModel {
                 <div>
                     <RouterButton<AppRoute>
                         route=AppRoute::A(AllowMissing(Some(ARoute)))
-                    />
-                    // {"Go to a/c"}
-                    // </RouterButton<AppRoute>>
+                    >
+                        {"Go to a/c"}
+                    </RouterButton<AppRoute>>
                 </div>
                 <div>
                 {

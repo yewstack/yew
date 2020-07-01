@@ -1,4 +1,4 @@
-error: this opening tag has no corresponding closing tag
+error: this opening fragment has no corresponding closing fragment
  --> $DIR/html-list-fail.rs:4:13
   |
 4 |     html! { <> };
@@ -6,7 +6,7 @@ error: this opening tag has no corresponding closing tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this closing tag has no corresponding opening tag
+error: this closing fragment has no corresponding opening fragment
  --> $DIR/html-list-fail.rs:5:13
   |
 5 |     html! { </> };
@@ -14,7 +14,7 @@ error: this closing tag has no corresponding opening tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this opening tag has no corresponding closing tag
+error: this opening fragment has no corresponding closing fragment
  --> $DIR/html-list-fail.rs:6:13
   |
 6 |     html! { <><> };
@@ -22,7 +22,7 @@ error: this opening tag has no corresponding closing tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this closing tag has no corresponding opening tag
+error: this closing fragment has no corresponding opening fragment
  --> $DIR/html-list-fail.rs:7:13
   |
 7 |     html! { </></> };
@@ -30,7 +30,7 @@ error: this closing tag has no corresponding opening tag
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this opening tag has no corresponding closing tag
+error: this opening fragment has no corresponding closing fragment
  --> $DIR/html-list-fail.rs:8:13
   |
 8 |     html! { <><></> };
@@ -54,15 +54,15 @@ error: expected a valid html element
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected end of input, expected expression
-  --> $DIR/html-list-fail.rs:11:5
+error: expected an expression following this equals sign
+  --> $DIR/html-list-fail.rs:11:17
    |
 11 |     html! { <key=></>}
-   |     ^^^^^^^^^^^^^^^^^^
+   |                 ^^
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this opening tag has no corresponding closing tag
+error: this opening fragment has no corresponding closing fragment
   --> $DIR/html-list-fail.rs:12:13
    |
 12 |     html! { <key="key".to_string()>invalid</key>}

@@ -23,7 +23,7 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     Message(COMP::Message),
     /// Wraps batch of messages for a component.
     MessageBatch(Vec<COMP::Message>),
-    /// Wraps properties and new node ref for a component.
+    /// Wraps properties and next sibling for a component.
     Properties(COMP::Properties, NodeRef),
 }
 
@@ -66,6 +66,44 @@ impl AnyScope {
                 .expect("unexpected component type")
                 .clone(),
         }
+    }
+}
+
+pub(crate) trait Scoped {
+    fn to_any(&self) -> AnyScope;
+    fn root_vnode(&self) -> Option<Ref<'_, VNode>>;
+    fn destroy(&mut self);
+}
+
+impl<COMP: Component> Scoped for Scope<COMP> {
+    fn to_any(&self) -> AnyScope {
+        self.clone().into()
+    }
+
+    fn root_vnode(&self) -> Option<Ref<'_, VNode>> {
+        let state_ref = self.state.borrow();
+        state_ref.as_ref().and_then(|state| {
+            state
+                .last_root
+                .as_ref()
+                .or_else(|| state.placeholder.as_ref())
+        })?;
+
+        Some(Ref::map(state_ref, |state_ref| {
+            let state = state_ref.as_ref().unwrap();
+            state
+                .last_root
+                .as_ref()
+                .or_else(|| state.placeholder.as_ref())
+                .unwrap()
+        }))
+    }
+
+    /// Schedules a task to destroy a component
+    fn destroy(&mut self) {
+        let state = self.state.clone();
+        let destroy = DestroyComponent { state };
+        scheduler().push_comp(ComponentRunnableType::Destroy, Box::new(destroy));
     }
 }
 
@@ -115,8 +153,9 @@ impl<COMP: Component> Scope<COMP> {
     /// Mounts a component with `props` to the specified `element` in the DOM.
     pub(crate) fn mount_in_place(
         self,
-        element: Element,
-        ancestor: Option<VNode>,
+        parent: Element,
+        next_sibling: NodeRef,
+        placeholder: Option<VNode>,
         node_ref: NodeRef,
         props: COMP::Properties,
     ) -> Scope<COMP> {
@@ -124,8 +163,9 @@ impl<COMP: Component> Scope<COMP> {
             ComponentRunnableType::Create,
             Box::new(CreateComponent {
                 state: self.state.clone(),
-                element,
-                ancestor,
+                parent,
+                next_sibling,
+                placeholder,
                 node_ref,
                 scope: self.clone(),
                 props,
@@ -142,27 +182,23 @@ impl<COMP: Component> Scope<COMP> {
             update,
         };
         scheduler().push_comp(ComponentRunnableType::Update, Box::new(update));
-        self.rendered(first_update);
+        self.render(first_update);
     }
 
-    /// Schedules a task to call the rendered method on a component
-    pub(crate) fn rendered(&self, first_render: bool) {
+    /// Schedules a task to render the component and call its rendered method
+    pub(crate) fn render(&self, first_render: bool) {
         let state = self.state.clone();
-        let rendered = RenderedComponent {
+        let rendered = RenderComponent {
             state,
             first_render,
         };
-        scheduler().push_comp(ComponentRunnableType::Rendered, Box::new(rendered));
+        scheduler().push_comp(ComponentRunnableType::Render, Box::new(rendered));
     }
 
-    /// Schedules a task to destroy a component
-    pub(crate) fn destroy(&mut self) {
-        let state = self.state.clone();
-        let destroy = DestroyComponent { state };
-        scheduler().push_comp(ComponentRunnableType::Destroy, Box::new(destroy));
-    }
-
-    /// Send a message to the component
+    /// Send a message to the component.
+    ///
+    /// Please be aware that currently this method synchronously
+    /// schedules a call to the [Component](Component) interface.
     pub fn send_message<T>(&self, msg: T)
     where
         T: Into<COMP::Message>,
@@ -172,14 +208,22 @@ impl<COMP: Component> Scope<COMP> {
 
     /// Send a batch of messages to the component.
     ///
-    /// This is useful for reducing re-renders of the components because the messages are handled
-    /// together and the view function is called only once if needed.
+    /// This is useful for reducing re-renders of the components
+    /// because the messages are handled together and the view
+    /// function is called only once if needed.
+    ///
+    /// Please be aware that currently this method synchronously
+    /// schedules calls to the [Component](Component) interface.
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
         self.update(ComponentUpdate::MessageBatch(messages), false);
     }
 
-    /// Creates a `Callback` which will send a message to the linked component's
-    /// update method when invoked.
+    /// Creates a `Callback` which will send a message to the linked
+    /// component's update method when invoked.
+    ///
+    /// Please be aware that currently the result of this callback
+    /// synchronously schedules a call to the [Component](Component)
+    /// interface.
     pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
         M: Into<COMP::Message>,
@@ -193,8 +237,12 @@ impl<COMP: Component> Scope<COMP> {
         closure.into()
     }
 
-    /// Creates a `Callback` from a FnOnce which will send a message to the linked
-    /// component's update method when invoked.
+    /// Creates a `Callback` from a FnOnce which will send a message
+    /// to the linked component's update method when invoked.
+    ///
+    /// Please be aware that currently the result of this callback
+    /// will synchronously schedule calls to the
+    /// [Component](Component) interface.
     pub fn callback_once<F, IN, M>(&self, function: F) -> Callback<IN>
     where
         M: Into<COMP::Message>,
@@ -208,8 +256,12 @@ impl<COMP: Component> Scope<COMP> {
         Callback::once(closure)
     }
 
-    /// Creates a `Callback` which will send a batch of messages back to the linked
-    /// component's update method when invoked.
+    /// Creates a `Callback` which will send a batch of messages back
+    /// to the linked component's update method when invoked.
+    ///
+    /// Please be aware that currently the results of these callbacks
+    /// will synchronously schedule calls to the
+    /// [Component](Component) interface.
     pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> Vec<COMP::Message> + 'static,
@@ -223,45 +275,53 @@ impl<COMP: Component> Scope<COMP> {
     }
 }
 
-type Dirty = bool;
-const DIRTY: Dirty = true;
-
 struct ComponentState<COMP: Component> {
-    element: Element,
+    parent: Element,
+    next_sibling: NodeRef,
     node_ref: NodeRef,
     scope: Scope<COMP>,
     component: Box<COMP>,
+    placeholder: Option<VNode>,
     last_root: Option<VNode>,
-    render_status: Option<Dirty>,
+    new_root: Option<VNode>,
 }
 
 impl<COMP: Component> ComponentState<COMP> {
+    /// Creates a new `ComponentState`, also invokes the `create()`
+    /// method on component to create it.
     fn new(
-        element: Element,
-        ancestor: Option<VNode>,
+        parent: Element,
+        next_sibling: NodeRef,
+        placeholder: Option<VNode>,
         node_ref: NodeRef,
         scope: Scope<COMP>,
         props: COMP::Properties,
     ) -> Self {
         let component = Box::new(COMP::create(props, scope.clone()));
         Self {
-            element,
+            parent,
+            next_sibling,
             node_ref,
             scope,
             component,
-            last_root: ancestor,
-            render_status: None,
+            placeholder,
+            last_root: None,
+            new_root: None,
         }
     }
 }
 
+/// A `Runnable` task which creates the `ComponentState` (if there is
+/// none) and invokes the `create()` method on a `Component` to create
+/// it.
 struct CreateComponent<COMP>
 where
     COMP: Component,
 {
     state: Shared<Option<ComponentState<COMP>>>,
-    element: Element,
-    ancestor: Option<VNode>,
+    parent: Element,
+    next_sibling: NodeRef,
+    placeholder: Option<VNode>,
     node_ref: NodeRef,
     scope: Scope<COMP>,
     props: COMP::Properties,
@@ -275,8 +335,9 @@ where
         let mut current_state = self.state.borrow_mut();
         if current_state.is_none() {
             *current_state = Some(ComponentState::new(
-                self.element,
-                self.ancestor,
+                self.parent,
+                self.next_sibling,
+                self.placeholder,
                 self.node_ref,
                 self.scope,
                 self.props,
@@ -285,6 +346,7 @@ where
     }
 }
 
+/// A `Runnable` task which calls the `update()` method on a `Component`.
 struct UpdateComponent<COMP>
 where
     COMP: Component,
@@ -305,36 +367,22 @@ where
                 ComponentUpdate::MessageBatch(messages) => messages
                     .into_iter()
                     .fold(false, |acc, msg| state.component.update(msg) || acc),
-                ComponentUpdate::Properties(props, node_ref) => {
-                    // When components are updated, they receive a new node ref that
-                    // must be linked to previous one.
-                    node_ref.link(state.node_ref.clone());
+                ComponentUpdate::Properties(props, next_sibling) => {
+                    // When components are updated, their siblings were likely also updated
+                    state.next_sibling = next_sibling;
                     state.component.change(props)
                 }
             };
 
             if should_update {
-                state.render_status = state.render_status.map(|_| DIRTY);
-                let mut root = state.component.render();
-                let last_root = state.last_root.take();
-                if let Some(node) =
-                    root.apply(&state.scope.clone().into(), &state.element, None, last_root)
-                {
-                    state.node_ref.set(Some(node));
-                } else if let VNode::VComp(child) = &root {
-                    // If the root VNode is a VComp, we won't have access to the rendered DOM node
-                    // because components render asynchronously. In order to bubble up the DOM node
-                    // from the VComp, we need to link the currently rendering component with its
-                    // root child component.
-                    state.node_ref.link(child.node_ref.clone());
-                }
-                state.last_root = Some(root);
+                state.new_root = Some(state.component.render());
             };
         }
     }
 }
 
-struct RenderedComponent<COMP>
+/// A `Runnable` task which renders a `Component` and calls its `rendered()` method.
+struct RenderComponent<COMP>
 where
     COMP: Component,
 {
@@ -342,26 +390,31 @@ where
     first_render: bool,
 }
 
-impl<COMP> Runnable for RenderedComponent<COMP>
+impl<COMP> Runnable for RenderComponent<COMP>
 where
     COMP: Component,
 {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().as_mut() {
-            if self.first_render && state.render_status.is_some() {
+            // Skip render if we haven't seen the "first render" yet
+            if !self.first_render && state.last_root.is_none() {
                 return;
             }
 
-            if !self.first_render && state.render_status != Some(DIRTY) {
-                return;
+            if let Some(mut new_root) = state.new_root.take() {
+                let last_root = state.last_root.take().or_else(|| state.placeholder.take());
+                let parent_scope = state.scope.clone().into();
+                let next_sibling = state.next_sibling.clone();
+                let node = new_root.apply(&parent_scope, &state.parent, next_sibling, last_root);
+                state.node_ref.link(node);
+                state.last_root = Some(new_root);
+                state.component.rendered(self.first_render);
             }
-
-            state.render_status = Some(!DIRTY);
-            state.component.rendered(self.first_render);
         }
     }
 }
 
+/// A `Runnable` task which calls the `destroy()` method on a `Component`.
 struct DestroyComponent<COMP>
 where
     COMP: Component,
@@ -375,9 +428,9 @@ where
 {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
-            drop(state.component);
+            state.component.destroy();
             if let Some(last_frame) = &mut state.last_root {
-                last_frame.detach(&state.element);
+                last_frame.detach(&state.parent);
             }
         }
     }
@@ -394,14 +447,17 @@ mod tests {
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
-    #[derive(Clone, Properties)]
+    #[derive(Clone, Properties, Default)]
     struct Props {
         lifecycle: Rc<RefCell<Vec<String>>>,
         create_message: Option<bool>,
+        view_message: RefCell<Option<bool>>,
+        rendered_message: RefCell<Option<bool>>,
     }
 
     struct Comp {
         props: Props,
+        link: ComponentLink<Self>,
     }
 
     impl Component for Comp {
@@ -413,10 +469,13 @@ mod tests {
             if let Some(msg) = props.create_message {
                 link.send_message(msg);
             }
-            Comp { props }
+            Comp { props, link }
         }
 
         fn rendered(&mut self, first_render: bool) {
+            if let Some(msg) = self.props.rendered_message.borrow_mut().take() {
+                self.link.send_message(msg);
+            }
             self.props
                 .lifecycle
                 .borrow_mut()
@@ -437,6 +496,9 @@ mod tests {
         }
 
         fn view(&self) -> Html {
+            if let Some(msg) = self.props.view_message.borrow_mut().take() {
+                self.link.send_message(msg);
+            }
             self.props.lifecycle.borrow_mut().push("view".into());
             html! {}
         }
@@ -448,75 +510,105 @@ mod tests {
         }
     }
 
-    #[test]
-    fn mount() {
+    fn test_lifecycle(props: Props, expected: &[String]) {
         let document = crate::utils::document();
-        let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
-        let props = Props {
-            lifecycle: lifecycle.clone(),
-            create_message: None,
-        };
-
         let scope = Scope::<Comp>::new(None);
         let el = document.create_element("div").unwrap();
-        scope.mount_in_place(el, None, NodeRef::default(), props);
+        let lifecycle = props.lifecycle.clone();
 
-        assert_eq!(
-            lifecycle.borrow_mut().deref(),
-            &vec![
-                "create".to_string(),
-                "view".to_string(),
-                "rendered(true)".to_string()
-            ]
-        );
+        lifecycle.borrow_mut().clear();
+        scope.mount_in_place(el, NodeRef::default(), None, NodeRef::default(), props);
+
+        assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);
     }
 
     #[test]
-    fn mount_with_create_message() {
-        let document = crate::utils::document();
+    fn lifecyle_tests() {
         let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
-        let props = Props {
-            lifecycle: lifecycle.clone(),
-            create_message: Some(false),
-        };
 
-        let scope = Scope::<Comp>::new(None);
-        let el = document.create_element("div").unwrap();
-        scope.mount_in_place(el, None, NodeRef::default(), props);
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                ..Props::default()
+            },
+            &vec![
+                "create".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string(),
+            ],
+        );
 
-        assert_eq!(
-            lifecycle.borrow_mut().deref(),
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                create_message: Some(false),
+                ..Props::default()
+            },
             &vec![
                 "create".to_string(),
                 "update(false)".to_string(),
                 "view".to_string(),
-                "rendered(true)".to_string()
-            ]
+                "rendered(true)".to_string(),
+            ],
         );
-    }
 
-    #[test]
-    fn mount_with_create_render_message() {
-        let document = crate::utils::document();
-        let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
-        let props = Props {
-            lifecycle: lifecycle.clone(),
-            create_message: Some(true),
-        };
-
-        let scope = Scope::<Comp>::new(None);
-        let el = document.create_element("div").unwrap();
-        scope.mount_in_place(el, None, NodeRef::default(), props);
-
-        assert_eq!(
-            lifecycle.borrow_mut().deref(),
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                view_message: RefCell::new(Some(true)),
+                ..Props::default()
+            },
             &vec![
                 "create".to_string(),
+                "view".to_string(),
                 "update(true)".to_string(),
                 "view".to_string(),
+                "rendered(true)".to_string(),
+            ],
+        );
+
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                view_message: RefCell::new(Some(false)),
+                ..Props::default()
+            },
+            &vec![
+                "create".to_string(),
                 "view".to_string(),
-                "rendered(true)".to_string()
-            ]
+                "update(false)".to_string(),
+                "rendered(true)".to_string(),
+            ],
+        );
+
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                rendered_message: RefCell::new(Some(false)),
+                ..Props::default()
+            },
+            &vec![
+                "create".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string(),
+                "update(false)".to_string(),
+            ],
+        );
+
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                rendered_message: RefCell::new(Some(true)),
+                ..Props::default()
+            },
+            &vec![
+                "create".to_string(),
+                "view".to_string(),
+                "rendered(true)".to_string(),
+                "update(true)".to_string(),
+                "view".to_string(),
+                "rendered(false)".to_string(),
+            ],
         );
     }
 }

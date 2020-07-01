@@ -4,6 +4,10 @@ use yew::prelude::*;
 fn compile_pass() {
     let onclick = Callback::from(|_: MouseEvent| ());
     let parent_ref = NodeRef::default();
+
+    let dyn_tag = || String::from("test");
+    let mut extra_tags_iter = vec!["a", "b"].into_iter();
+
     html! {
         <div>
             <div data-key="abc"></div>
@@ -41,8 +45,27 @@ fn compile_pass() {
             <custom-tag-a>
                 <custom-tag-b />
             </custom-tag-a>
+            <@{dyn_tag()}>
+                <@{extra_tags_iter.next().unwrap()} class="extra-a"/>
+                <@{extra_tags_iter.next().unwrap()} class="extra-b"/>
+            </@>
+
+            <@{
+                let tag = dyn_tag();
+                if tag == "test" {
+                    "div"
+                } else {
+                    "a"
+                }
+            }/>
         </div>
     };
+
+    let children = vec![
+        html! { <span>{ "Hello" }</span> },
+        html! { <span>{ "World" }</span> },
+    ];
+    html! { <div>{children}</div> };
 }
 
 fn main() {}

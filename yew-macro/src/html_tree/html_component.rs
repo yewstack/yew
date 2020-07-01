@@ -1,6 +1,6 @@
+use super::HtmlChildrenTree;
 use super::HtmlProp;
 use super::HtmlPropSuffix;
-use super::HtmlTreeNested;
 use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::Span;
@@ -19,7 +19,7 @@ use syn::{
 pub struct HtmlComponent {
     ty: Type,
     props: Props,
-    children: Vec<HtmlTreeNested>,
+    children: HtmlChildrenTree,
 }
 
 impl PeekValue<()> for HtmlComponent {
@@ -48,11 +48,11 @@ impl Parse for HtmlComponent {
             return Ok(HtmlComponent {
                 ty: open.ty,
                 props: open.props,
-                children: Vec::new(),
+                children: HtmlChildrenTree::new(),
             });
         }
 
-        let mut children: Vec<HtmlTreeNested> = vec![];
+        let mut children = HtmlChildrenTree::new();
         loop {
             if input.is_empty() {
                 return Err(syn::Error::new_spanned(
@@ -66,7 +66,7 @@ impl Parse for HtmlComponent {
                 }
             }
 
-            children.push(input.parse()?);
+            children.parse_child(input)?;
         }
 
         input.parse::<HtmlComponentClose>()?;
@@ -87,8 +87,8 @@ impl ToTokens for HtmlComponent {
             children,
         } = self;
 
-        let validate_props = if let Props::List(list_props) = props {
-            let check_props = list_props.props.iter().map(|HtmlProp { label, .. }| {
+        let validate_props = if let PropType::List(list_props) = &props.prop_type {
+            let check_props = list_props.iter().map(|HtmlProp { label, .. }| {
                 quote! { props.#label; }
             });
 
@@ -110,19 +110,15 @@ impl ToTokens for HtmlComponent {
 
         let set_children = if !children.is_empty() {
             quote! {
-                .children(::yew::html::ChildrenRenderer::new({
-                    let mut v = ::std::vec::Vec::new();
-                    #(v.extend(::yew::utils::NodeSeq::from(#children));)*
-                    v
-                }))
+                .children(::yew::html::ChildrenRenderer::new(#children))
             }
         } else {
             quote! {}
         };
 
-        let init_props = match props {
-            Props::List(list_props) => {
-                let set_props = list_props.props.iter().map(|HtmlProp { label, value }| {
+        let init_props = match &props.prop_type {
+            PropType::List(list_props) => {
+                let set_props = list_props.iter().map(|HtmlProp { label, value }| {
                     quote_spanned! { value.span()=> .#label(
                         <::yew::virtual_dom::VComp as ::yew::virtual_dom::Transformer<_, _>>::transform(
                             #value
@@ -137,27 +133,26 @@ impl ToTokens for HtmlComponent {
                         .build()
                 }
             }
-            Props::With(with_props) => {
-                let props = &with_props.props;
+            PropType::With(props) => {
                 quote! { #props }
             }
-            Props::None => quote! {
+            PropType::None => quote! {
                 <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder()
                     #set_children
                     .build()
             },
         };
 
-        let node_ref = if let Some(node_ref) = props.node_ref() {
+        let node_ref = if let Some(node_ref) = &props.node_ref {
             quote_spanned! { node_ref.span()=> #node_ref }
         } else {
             quote! { ::yew::html::NodeRef::default() }
         };
 
-        let key = if let Some(key) = props.key() {
-            quote_spanned! { key.span() => Some(#key) }
+        let key = if let Some(key) = &props.key {
+            quote_spanned! { key.span()=> Some(::yew::virtual_dom::Key::from(#key)) }
         } else {
-            quote! {None }
+            quote! {None}
         };
 
         tokens.extend(quote! {{
@@ -340,70 +335,39 @@ impl ToTokens for HtmlComponentClose {
     }
 }
 
-enum Props {
-    List(Box<ListProps>),
-    With(Box<WithProps>),
+enum PropType {
+    List(Vec<HtmlProp>),
+    With(Ident),
     None,
 }
 
-struct ListProps {
-    props: Vec<HtmlProp>,
+struct Props {
     node_ref: Option<Expr>,
     key: Option<Expr>,
+    prop_type: PropType,
 }
 
-struct WithProps {
-    props: Ident,
-    node_ref: Option<Expr>,
-    key: Option<Expr>,
-}
-
-impl Props {
-    fn node_ref(&self) -> Option<&Expr> {
-        match self {
-            Props::List(list_props) => list_props.node_ref.as_ref(),
-            Props::With(with_props) => with_props.node_ref.as_ref(),
-            Props::None => None,
-        }
-    }
-
-    fn key(&self) -> Option<&Expr> {
-        match self {
-            Props::List(list_props) => list_props.key.as_ref(),
-            Props::With(with_props) => with_props.key.as_ref(),
-            Props::None => None,
-        }
-    }
-
-    fn collision_message() -> &'static str {
-        "Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to the `ref` prop)."
-    }
-}
+const COLLISION_MSG: &str = "Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to the `ref` prop).";
 
 impl Parse for Props {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let mut props = Props::None;
-        let mut node_ref: Option<Expr> = None;
-        let mut key: Option<Expr> = None;
-
+        let mut props = Props {
+            node_ref: None,
+            key: None,
+            prop_type: PropType::None,
+        };
         while let Some((token, _)) = input.cursor().ident() {
             if token == "with" {
-                match props {
-                    Props::None => Ok(()),
-                    Props::With(_) => Err(input.error("too many `with` tokens used")),
-                    Props::List(_) => {
-                        Err(syn::Error::new_spanned(&token, Props::collision_message()))
-                    }
+                match props.prop_type {
+                    PropType::None => Ok(()),
+                    PropType::With(_) => Err(input.error("too many `with` tokens used")),
+                    PropType::List(_) => Err(syn::Error::new_spanned(&token, COLLISION_MSG)),
                 }?;
 
                 input.parse::<Ident>()?;
-                props = Props::With(Box::new(WithProps {
-                    props: input.parse::<Ident>().map_err(|_| {
-                        syn::Error::new_spanned(&token, "`with` must be followed by an identifier")
-                    })?,
-                    node_ref: None,
-                    key: None,
-                }));
+                props.prop_type = PropType::With(input.parse::<Ident>().map_err(|_| {
+                    syn::Error::new_spanned(&token, "`with` must be followed by an identifier")
+                })?);
 
                 // Handle optional comma
                 let _ = input.parse::<Token![,]>();
@@ -416,21 +380,21 @@ impl Parse for Props {
 
             let prop = input.parse::<HtmlProp>()?;
             if prop.label.to_string() == "ref" {
-                match node_ref {
+                match props.node_ref {
                     None => Ok(()),
                     Some(_) => Err(syn::Error::new_spanned(&prop.label, "too many refs set")),
                 }?;
 
-                node_ref = Some(prop.value);
+                props.node_ref = Some(prop.value);
                 continue;
             }
             if prop.label.to_string() == "key" {
-                match key {
+                match props.key {
                     None => Ok(()),
                     Some(_) => Err(syn::Error::new_spanned(&prop.label, "too many keys set")),
                 }?;
 
-                key = Some(prop.value);
+                props.key = Some(prop.value);
                 continue;
             }
 
@@ -442,50 +406,34 @@ impl Parse for Props {
                 return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
             }
 
-            match props {
-                ref mut props @ Props::None => {
-                    *props = Props::List(Box::new(ListProps {
-                        props: vec![prop],
-                        node_ref: None,
-                        key: None,
-                    }));
+            match props.prop_type {
+                ref mut prop_type @ PropType::None => {
+                    *prop_type = PropType::List(vec![prop]);
                 }
-                Props::With(_) => {
-                    return Err(syn::Error::new_spanned(&token, Props::collision_message()))
-                }
-                Props::List(ref mut list) => {
-                    list.props.push(prop);
+                PropType::With(_) => return Err(syn::Error::new_spanned(&token, COLLISION_MSG)),
+                PropType::List(ref mut list) => {
+                    list.push(prop);
                 }
             };
         }
 
-        match props {
-            Props::None => {}
-            Props::With(ref mut p) => {
-                p.node_ref = node_ref;
-                p.key = key
-            }
-            Props::List(ref mut p) => {
-                p.node_ref = node_ref;
-                p.key = key;
-
-                // sort alphabetically
-                p.props.sort_by(|a, b| {
-                    if a.label == b.label {
-                        Ordering::Equal
-                    } else if a.label.to_string() == "children" {
-                        Ordering::Greater
-                    } else if b.label.to_string() == "children" {
-                        Ordering::Less
-                    } else {
-                        a.label
-                            .to_string()
-                            .partial_cmp(&b.label.to_string())
-                            .unwrap()
-                    }
-                });
-            }
-        };
+        if let PropType::List(list) = &mut props.prop_type {
+            // sort alphabetically
+            list.sort_by(|a, b| {
+                if a.label == b.label {
+                    Ordering::Equal
+                } else if a.label.to_string() == "children" {
+                    Ordering::Greater
+                } else if b.label.to_string() == "children" {
+                    Ordering::Less
+                } else {
+                    a.label
+                        .to_string()
+                        .partial_cmp(&b.label.to_string())
+                        .unwrap()
+                }
+            });
+        }
 
         Ok(props)
     }

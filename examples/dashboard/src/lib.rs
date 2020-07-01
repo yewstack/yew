@@ -55,7 +55,6 @@ pub struct WsResponse {
 }
 
 pub struct Model {
-    ws_service: WebSocketService,
     link: ComponentLink<Model>,
     fetching: bool,
     data: Option<u32>,
@@ -123,7 +122,6 @@ impl Component for Model {
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
-            ws_service: WebSocketService::new(),
             link,
             fetching: false,
             data: None,
@@ -149,10 +147,9 @@ impl Component for Model {
                         WebSocketStatus::Opened => Msg::Ignore,
                         WebSocketStatus::Closed | WebSocketStatus::Error => WsAction::Lost.into(),
                     });
-                    let task = self
-                        .ws_service
-                        .connect("ws://localhost:9001/", callback, notification)
-                        .unwrap();
+                    let task =
+                        WebSocketService::connect("ws://localhost:9001/", callback, notification)
+                            .unwrap();
                     self.ws = Some(task);
                 }
                 WsAction::SendData(binary) => {

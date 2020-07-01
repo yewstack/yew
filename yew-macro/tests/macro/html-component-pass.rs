@@ -300,9 +300,23 @@ fn compile_pass() {
         </ChildContainer>
     };
 
+    let children = vec![
+        html_nested! { <Child int=1 /> },
+        html_nested! { <Child int=2 /> },
+    ];
+    html! {
+        <ChildContainer int=1>
+            { children }
+        </ChildContainer>
+    };
+
     let variants = || -> Vec<ChildrenVariants> {
         vec![
-            ChildrenVariants::Child(VChild::new(ChildProperties::default(), NodeRef::default(), None)),
+            ChildrenVariants::Child(VChild::new(
+                ChildProperties::default(),
+                NodeRef::default(),
+                None,
+            )),
             ChildrenVariants::AltChild(VChild::new((), NodeRef::default(), None)),
         ]
     };
@@ -340,6 +354,8 @@ fn compile_pass() {
             <Generic<Vec<String>>></ Generic<Vec<String>>>
         </>
     };
+
+    html_nested! { 1 };
 }
 
 fn main() {}

@@ -1,4 +1,4 @@
-use super::HtmlTree;
+use super::HtmlChildrenTree;
 use crate::html_tree::{HtmlProp, HtmlPropSuffix};
 use crate::PeekValue;
 use boolinator::Boolinator;
@@ -10,8 +10,17 @@ use syn::spanned::Spanned;
 use syn::{Expr, Token};
 
 pub struct HtmlList {
-    pub children: Vec<HtmlTree>,
-    pub key: Option<Expr>,
+    children: HtmlChildrenTree,
+    key: Option<Expr>,
+}
+
+impl HtmlList {
+    pub fn empty() -> Self {
+        Self {
+            children: HtmlChildrenTree::new(),
+            key: None,
+        }
+    }
 }
 
 impl PeekValue<()> for HtmlList {
@@ -28,7 +37,7 @@ impl Parse for HtmlList {
             return match input.parse::<HtmlListClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
                     close,
-                    "this closing tag has no corresponding opening tag",
+                    "this closing fragment has no corresponding opening fragment",
                 )),
                 Err(err) => Err(err),
             };
@@ -38,13 +47,13 @@ impl Parse for HtmlList {
         if !HtmlList::verify_end(input.cursor()) {
             return Err(syn::Error::new_spanned(
                 open,
-                "this opening tag has no corresponding closing tag",
+                "this opening fragment has no corresponding closing fragment",
             ));
         }
 
-        let mut children: Vec<HtmlTree> = vec![];
+        let mut children = HtmlChildrenTree::new();
         while HtmlListClose::peek(input.cursor()).is_none() {
-            children.push(input.parse()?);
+            children.parse_child(input)?;
         }
 
         input.parse::<HtmlListClose>()?;
@@ -60,18 +69,13 @@ impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let children = &self.children;
         let key = if let Some(key) = &self.key {
-            quote_spanned! {key.span() => Some(#key)}
+            quote_spanned! {key.span()=> Some(::yew::virtual_dom::Key::from(#key))}
         } else {
-            quote! {None }
+            quote! {None}
         };
         tokens.extend(quote! {
             ::yew::virtual_dom::VNode::VList(
-                ::yew::virtual_dom::VList::new_with_children({
-                    let mut v = ::std::vec::Vec::new();
-                    #(v.extend(::yew::utils::NodeSeq::from(#children));)*
-                    v
-                },
-                #key)
+                ::yew::virtual_dom::VList::new_with_children(#children, #key)
             )
         });
     }

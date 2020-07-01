@@ -14,7 +14,7 @@
 END TEMPLATE-->
 
 
-## ✨ **0.13.0** *(TBD)*
+## ✨ **0.15.0** *(TBD)*
 
 - #### ⚡️ Features
   - None
@@ -22,10 +22,24 @@ END TEMPLATE-->
   - None
 - #### 🚨 Breaking changes
   - None
-  
-  
-## ✨ **0.12.1** *2020-4-26*
 
+## ✨ **0.14.0** *2020-6-30*
+
+- #### ⚡️ Features
+  - None 
+- #### 🛠 Fixes
+  - None 
+- #### 🚨 Breaking changes
+  - The `unit_state` module has been removed. 
+  - Bump `yew` version to `0.17`.
+
+
+## ✨ **0.13.0** *2020-5-12*
+
+- #### 🚨 Breaking changes
+  - Bump `yew` version to `0.16`.
+
+## ✨ **0.12.1** *2020-4-26*
 - #### 🛠 Fixes
   - Fix infinite rerender bug in 'Router' component. (Thanks @dancespiele)
 

@@ -9,7 +9,7 @@ cfg_if! {
         use stdweb::web::event::{ConcreteEvent, KeyDownEvent, KeyPressEvent, KeyUpEvent};
         use stdweb::web::{EventListenerHandle, IEventTarget};
     } else if #[cfg(feature = "web_sys")] {
-        use gloo::events::EventListener;
+        use gloo::events::{EventListener, EventListenerOptions};
         use wasm_bindgen::JsCast;
         use web_sys::{Event, EventTarget, KeyboardEvent};
     }
@@ -18,18 +18,18 @@ cfg_if! {
 /// Service for registering callbacks on elements to get keystrokes from the user.
 ///
 /// # Note
-/// Elements that natively support keyboard input (input or textarea) can set an
-/// `onkeypress` or `oninput` attribute within the html macro. You **should** use those events instead of
-/// locating the element and registering it with this service.
+/// Elements which natively support keyboard input (such as `<input/>` or `<textarea/>`) can use the
+/// `onkeypress` or `oninput` attributes from within the html macro. You **should use those events
+/// instead** of locating the element and registering an event listener using this service.
 ///
-/// This service is for adding key event listeners to elements that don't support these attributes,
-/// like the `document` or `<canvas>` elements for example.
+/// This service is for adding key event listeners to elements which don't support these attributes,
+/// (for example the `document` and `<canvas>` elements).
 #[derive(Debug)]
 pub struct KeyboardService {}
 
-/// Handle to the key event listener.
+/// Handle for the key event listener.
 ///
-/// When it goes out of scope, the listener will be removed from the element.
+/// When the handle goes out of scope, the listener will be removed from the element.
 pub struct KeyListenerHandle(
     #[cfg(feature = "std_web")] Option<EventListenerHandle>,
     #[cfg(feature = "web_sys")] EventListener,
@@ -42,14 +42,14 @@ impl fmt::Debug for KeyListenerHandle {
 }
 
 impl KeyboardService {
-    /// Registers a callback that listens to KeyPressEvents on a provided element.
+    /// Registers a callback which listens to KeyPressEvents on a provided element.
     ///
     /// # Documentation
     /// [keypress event](https://developer.mozilla.org/en-US/docs/Web/API/Document/keypress_event)
     ///
     /// # Warning
     /// This API has been deprecated in the HTML standard and it is not recommended for use in new projects.
-    /// Consult with the browser compatibility chart in the linked MDN documentation.
+    /// Consult the browser compatibility chart in the linked MDN documentation.
     pub fn register_key_press<
         #[cfg(feature = "std_web")] T: IEventTarget,
         #[cfg(feature = "web_sys")] T: AsRef<EventTarget>,
@@ -64,15 +64,15 @@ impl KeyboardService {
         }
     }
 
-    /// Registers a callback that listens to KeyDownEvents on a provided element.
+    /// Registers a callback which listens to KeyDownEvents on a provided element.
     ///
     /// # Documentation
     /// [keydown event](https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event)
     ///
     /// # Note
-    /// This browser feature is relatively new and is set to replace keypress events.
-    /// Not all browsers may support it completely.
-    /// Consult with the browser compatibility chart in the linked MDN documentation.
+    /// This browser feature is relatively new and is set to replace the `keypress` event.
+    /// It may not be fully supported in all browsers.
+    /// Consult the browser compatibility chart in the linked MDN documentation.
     pub fn register_key_down<
         #[cfg(feature = "std_web")] T: IEventTarget,
         #[cfg(feature = "web_sys")] T: AsRef<EventTarget>,
@@ -94,8 +94,8 @@ impl KeyboardService {
     ///
     /// # Note
     /// This browser feature is relatively new and is set to replace keypress events.
-    /// Not all browsers may support it completely.
-    /// Consult with the browser compatibility chart in the linked MDN documentation.
+    /// It may not be fully supported in all browsers.
+    /// Consult the browser compatibility chart in the linked MDN documentation.
     pub fn register_key_up<
         #[cfg(feature = "std_web")] T: IEventTarget,
         #[cfg(feature = "web_sys")] T: AsRef<EventTarget>,
@@ -138,8 +138,13 @@ fn register_key_impl<T: AsRef<EventTarget>>(
             .clone();
         callback.emit(event);
     };
-
-    KeyListenerHandle(EventListener::new(element.as_ref(), event, listener))
+    let options = EventListenerOptions::enable_prevent_default();
+    KeyListenerHandle(EventListener::new_with_options(
+        element.as_ref(),
+        event,
+        options,
+        listener,
+    ))
 }
 
 #[cfg(feature = "std_web")]

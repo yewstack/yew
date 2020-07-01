@@ -24,13 +24,13 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Environment:**
- - Yew version [e.g. v0.10, `master`]
- - Rust version [e.g. 1.43.0]
- - Target if relevant [e.g. `wasm32-unknown-emscripten`]
- - `stdweb` / `web-sys` version [e.g. web-sys v0.3.33]
- - OS: [e.g. macos]
- - Browser [e.g. chrome, safari]
- - Browser version [e.g. 22]
+ - Yew version: [e.g. v0.17, `master`]
+ - Rust version: [e.g. 1.43.0, `nightly`]
+ - Target, if relevant: [e.g. `wasm32-unknown-emscripten`]
+ - Build tool, if relevant: [e.g. `wasm-pack`, `cargo-web`]
+ - Web library: [`stdweb` OR `web-sys`]
+ - OS, if relevant: [e.g. MacOS]
+ - Browser and version, if relevant: [e.g. Chrome v83]
 
 **Questionnaire**
 <!-- Developing Yew is a community effort! -->
