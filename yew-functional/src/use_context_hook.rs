@@ -11,18 +11,18 @@ use yew::{Children, Component, ComponentLink, Html, Properties};
 type ConsumerCallback<T> = Box<dyn Fn(Rc<T>)>;
 
 #[derive(Clone, PartialEq, Properties)]
-pub struct ContextProviderProps<T: Clone> {
+pub struct ContextProviderProps<T: Clone + PartialEq> {
     pub context: T,
     pub children: Children,
 }
 
-pub struct ContextProvider<T: Clone + 'static> {
+pub struct ContextProvider<T: Clone + PartialEq + 'static> {
     context: Rc<T>,
     children: Children,
     consumers: RefCell<Vec<Weak<ConsumerCallback<T>>>>,
 }
 
-impl<T: Clone> ContextProvider<T> {
+impl<T: Clone + PartialEq> ContextProvider<T> {
     /// Add the callback to the subscriber list to be called whenever the context changes.
     /// The consumer is unsubscribed as soon as the callback is dropped.
     fn subscribe_consumer(&self, mut callback: Weak<ConsumerCallback<T>>) {
@@ -53,7 +53,7 @@ impl<T: Clone> ContextProvider<T> {
     }
 }
 
-impl<T: Clone + 'static> Component for ContextProvider<T> {
+impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
     type Message = ();
     type Properties = ContextProviderProps<T>;
 
@@ -77,8 +77,11 @@ impl<T: Clone + 'static> Component for ContextProvider<T> {
             false
         };
 
-        self.context = Rc::new(props.context);
-        self.notify_consumers();
+        let new_context = Rc::new(props.context);
+        if self.context != new_context {
+            self.context = new_context;
+            self.notify_consumers();
+        }
 
         should_render
     }
@@ -88,7 +91,7 @@ impl<T: Clone + 'static> Component for ContextProvider<T> {
     }
 }
 
-fn find_context_provider_scope<T: 'static + Clone>(
+fn find_context_provider_scope<T: Clone + PartialEq + 'static>(
     scope: &AnyScope,
 ) -> Option<Scope<ContextProvider<T>>> {
     let expected_type_id = TypeId::of::<ContextProvider<T>>();
@@ -104,7 +107,7 @@ fn with_provider_component<T, F, R>(
     f: F,
 ) -> Option<R>
 where
-    T: Clone,
+    T: Clone + PartialEq,
     F: FnOnce(&ContextProvider<T>) -> R,
 {
     provider_scope
@@ -112,16 +115,16 @@ where
         .and_then(|scope| scope.get_component().map(|comp| f(&*comp)))
 }
 
-pub fn use_context<T: 'static + Clone>() -> Option<Rc<T>> {
+pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<Rc<T>> {
     let scope = get_current_scope()
         .expect("No current Scope. `use_context` can only be called inside functional components");
 
-    struct UseContextState<T2: 'static + Clone> {
+    struct UseContextState<T2: Clone + PartialEq + 'static> {
         provider_scope: Option<Scope<ContextProvider<T2>>>,
         current_context: Option<Rc<T2>>,
         callback: Option<Rc<ConsumerCallback<T2>>>,
     }
-    impl<T: 'static + Clone> Hook for UseContextState<T> {
+    impl<T: Clone + PartialEq + 'static> Hook for UseContextState<T> {
         fn tear_down(&mut self) {
             if let Some(cb) = self.callback.take() {
                 drop(cb);
