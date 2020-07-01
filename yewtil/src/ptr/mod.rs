@@ -13,6 +13,7 @@ mod takeable;
 
 #[cfg(feature = "mrc_irc")]
 pub use irc::Irc;
+#[deprecated]
 #[cfg(feature = "lrc")]
 pub use lrc::Lrc;
 #[cfg(feature = "mrc_irc")]
