@@ -1,5 +1,13 @@
 # Changelog
 
+## ✨ **0.17.1** *(2020-07-01)*
+
+- #### 🛠 Fixes
+
+  - Fixed regression where component `rendered` lifecycle method was called before children components finish rendering. [[@jstarry], [#1360](https://github.com/yewstack/yew/pull/1360)]
+
+#### Changelog
+
 ## ✨ **0.17.0** *(2020-06-29)*
 
 #### Changelog
