@@ -27,7 +27,7 @@ together with the [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-pl
 Both a library and CLI tool and is also developed by the Rust / Wasm Working Group. It is a low level 
 tool \(used internally by `wasm-pack`\) which facilitates JS / WebAssembly interoperability. We don't 
 recommend using `wasm-bindgen`directly because it requires hand-writing some JavaScript to bootstrap 
-you WebAssembly binary. However, it is possible and more info can be found on the 
+your WebAssembly binary. However, it is possible and more info can be found on the 
 [**`wasm-bindgen` guide**](https://rustwasm.github.io/docs/wasm-bindgen/).
 
 {% page-ref page="using-wasm-bindgen.md" %}
