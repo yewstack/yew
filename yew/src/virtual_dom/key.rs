@@ -1,5 +1,6 @@
 //! This module contains the implementation yew's virtual nodes' keys.
 
+use std::ops::Deref;
 use std::rc::Rc;
 
 /// Represents the (optional) key of Yew's virtual nodes.
@@ -26,6 +27,15 @@ impl core::fmt::Debug for Key {
 impl From<Rc<String>> for Key {
     fn from(key: Rc<String>) -> Self {
         Key { key }
+    }
+}
+
+impl Deref for Key {
+    type Target = str;
+
+    #[inline]
+    fn deref(&self) -> &str {
+        self.key.as_ref()
     }
 }
 
