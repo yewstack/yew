@@ -218,6 +218,11 @@ impl VTag {
     }
 
     fn refresh_value(&mut self) {
+        // Don't refresh value if the element is not controlled
+        if self.value.is_none() {
+            return;
+        }
+
         if let Some(element) = self.reference.as_ref() {
             if self.element_type == ElementType::Input {
                 let input_el = cfg_match! {
@@ -1170,7 +1175,7 @@ mod tests {
     }
 
     #[test]
-    fn check_input_current_value_sync() {
+    fn controlled_input_synced() {
         let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
@@ -1182,11 +1187,8 @@ mod tests {
         let expected = "not_changed_value";
 
         // Initial state
-        let mut elem = html! {
-            <input value=expected />
-        };
+        let mut elem = html! { <input value=expected /> };
         elem.apply(&scope, &parent, NodeRef::default(), None);
-
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
         } else {
@@ -1205,15 +1207,8 @@ mod tests {
         };
 
         let ancestor = vtag;
-        // Same state after onInput or onChange event
-        let elem = html! {
-            <input value=expected />
-        };
-        let mut vtag = if let VNode::VTag(vtag) = elem {
-            vtag
-        } else {
-            panic!("should be vtag")
-        };
+        let mut elem = html! { <input value=expected /> };
+        let vtag = assert_vtag(&mut elem);
 
         // Sync happens here
         vtag.apply(
@@ -1238,6 +1233,65 @@ mod tests {
 
         // check whether not changed virtual dom value has been set to the input element
         assert_eq!(current_value, expected);
+    }
+
+    #[test]
+    fn uncontrolled_input_unsynced() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        // Initial state
+        let mut elem = html! { <input /> };
+        elem.apply(&scope, &parent, NodeRef::default(), None);
+        let vtag = if let VNode::VTag(vtag) = elem {
+            vtag
+        } else {
+            panic!("should be vtag")
+        };
+
+        // User input
+        let input_ref = vtag.reference.as_ref().unwrap();
+        let input = cfg_match! {
+            feature = "std_web" => InputElement::try_from(input_ref.clone()).ok(),
+            feature = "web_sys" => input_ref.dyn_ref::<InputElement>(),
+        };
+        cfg_match! {
+            feature = "std_web" => input.unwrap().set_raw_value("User input"),
+            feature = "web_sys" => input.unwrap().set_value("User input"),
+        };
+
+        let ancestor = vtag;
+        let mut elem = html! { <input /> };
+        let vtag = assert_vtag(&mut elem);
+
+        // Value should not be refreshed
+        vtag.apply(
+            &scope,
+            &parent,
+            NodeRef::default(),
+            Some(VNode::VTag(ancestor)),
+        );
+
+        // Get user value of the input element
+        let input_ref = vtag.reference.as_ref().unwrap();
+        let input = cfg_match! {
+            feature = "std_web" => InputElement::try_from(input_ref.clone()).ok(),
+            feature = "web_sys" => input_ref.dyn_ref::<InputElement>(),
+        }
+        .unwrap();
+
+        let current_value = cfg_match! {
+            feature = "std_web" => input.raw_value(),
+            feature = "web_sys" => input.value(),
+        };
+
+        // check whether not changed virtual dom value has been set to the input element
+        assert_eq!(current_value, "User input");
     }
 
     #[test]
