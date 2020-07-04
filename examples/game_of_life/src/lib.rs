@@ -156,8 +156,7 @@ impl Component for Model {
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.callback(|_| Msg::Tick);
-        let mut interval = IntervalService::new();
-        let handle = interval.spawn(Duration::from_millis(200), callback);
+        let handle = IntervalService::spawn(Duration::from_millis(200), callback);
 
         Model {
             link,
@@ -166,9 +165,9 @@ impl Component for Model {
                 Cellule {
                     life_state: LifeState::Dead
                 };
-                2000
+                53 * 40
             ],
-            cellules_width: 50,
+            cellules_width: 53,
             cellules_height: 40,
             job: Box::new(handle),
         }

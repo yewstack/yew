@@ -1,6 +1,6 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{VChild, VComp, VDiff, VList, VTag, VText};
+use super::{Key, VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{AnyScope, Component, NodeRef, Renderable};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
@@ -33,6 +33,16 @@ pub enum VNode {
 }
 
 impl VNode {
+    pub fn key(&self) -> Option<Key> {
+        match self {
+            VNode::VComp(vcomp) => vcomp.key.clone(),
+            VNode::VList(vlist) => vlist.key.clone(),
+            VNode::VRef(_) => None,
+            VNode::VTag(vtag) => vtag.key.clone(),
+            VNode::VText(_) => None,
+        }
+    }
+
     /// Returns the first DOM node that is used to designate the position of the virtual DOM node.
     pub(crate) fn first_node(&self) -> Node {
         match self {
@@ -59,14 +69,21 @@ impl VNode {
         }
     }
 
-    pub fn key(&self) -> &Option<String> {
+    pub(crate) fn move_before(&self, parent: &Element, next_sibling: Option<Node>) {
         match self {
-            VNode::VTag(vtag) => &vtag.key,
-            VNode::VText(_) => &None,
-            VNode::VComp(vcomp) => &vcomp.key,
-            VNode::VList(vlist) => &vlist.key,
-            VNode::VRef(_) => &None,
-        }
+            VNode::VList(vlist) => {
+                for node in vlist.children.iter() {
+                    node.move_before(parent, next_sibling.clone());
+                }
+            }
+            VNode::VComp(vcomp) => {
+                vcomp
+                    .root_vnode()
+                    .expect("VComp has no root vnode")
+                    .move_before(parent, next_sibling);
+            }
+            _ => super::insert_node(&self.first_node(), parent, next_sibling),
+        };
     }
 }
 
@@ -200,7 +217,7 @@ impl PartialEq for VNode {
             (VNode::VText(a), VNode::VText(b)) => a == b,
             (VNode::VList(a), VNode::VList(b)) => a == b,
             (VNode::VRef(a), VNode::VRef(b)) => a == b,
-            // Need to improve PartialEq for VComp before enabling
+            // TODO: Need to improve PartialEq for VComp before enabling.
             (VNode::VComp(_), VNode::VComp(_)) => false,
             _ => false,
         }
@@ -225,11 +242,13 @@ mod layout_tests {
         let vref_node_2 = VNode::VRef(document.create_element("b").unwrap().into());
 
         let layout1 = TestLayout {
+            name: "1",
             node: vref_node_1.into(),
             expected: "<i></i>",
         };
 
         let layout2 = TestLayout {
+            name: "2",
             node: vref_node_2.into(),
             expected: "<b></b>",
         };

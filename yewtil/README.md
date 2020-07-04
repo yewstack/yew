@@ -16,11 +16,13 @@ This should make it much easier to define simple components that don't hold stat
 * `Mrc`/`Irc` smart pointers - Rc-like pointers that are more ergonomic to use within Yew.
 * `History` - A wrapper that holds the history of values that have been assigned to it.
 * `Effect` - A way to update component state by defining what to change inside of `html!` callbacks
- instead of handling messages in `Component::update()`.
+ instead of handling messages in `Component::update()`. (Deprecated)
+
 
 This crate also has feature flags which will enable the following **experimental** features:
 * `Lrc` smart pointer - an Rc-like pointer implemented on top of a linked list which allows for novel state update mechanics 
 and traversal over linked shared pointers. <sup><sub>(This needs to be fuzz tested to make sure it doesn't leak.)</sub></sup>
+(Deprecated)
 
 These experimental features are either not sufficiently vetted and may change significantly or be removed.
 
@@ -94,6 +96,6 @@ Components are welcome as well, but they must not have external dependencies, sh
 Common UI elements like modals or dropdowns are best be left to component libraries, as they are often coupled to external CSS used to display them. The [Yewtify](https://github.com/yewstack/yewtify) crate is one such component library.
 
 ### Stability
-Since this crate aims to provide a variety of helper types, traits, and functions, where the utility of each may be unknown at the time the feature is added, newer additions may be not be included in the default feature set, and may be kept behind a feature flag. 
+Since this crate aims to provide a variety of helper types, traits, and functions, where the utility of each may be unknown at the time the feature is added, newer additions may be not be included in the default feature set, and may be kept behind a feature flag.
 
 While in early development, features marked as `experimental` may be changed frequently or even entirely removed, while those marked as `stable` will not be removed and can be relied upon to not change significantly.

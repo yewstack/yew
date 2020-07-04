@@ -55,7 +55,7 @@ impl Component for Model {
             // The callback to request animation frame is passed a time value which can be used for
             // rendering motion independent of the framerate which may vary.
             let render_frame = self.link.callback(Msg::Render);
-            let handle = RenderService::new().request_animation_frame(render_frame);
+            let handle = RenderService::request_animation_frame(render_frame);
 
             // A reference to the handle must be stored, otherwise it is dropped and the render won't
             // occur.
@@ -131,7 +131,7 @@ impl Model {
         gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
         let render_frame = self.link.callback(Msg::Render);
-        let handle = RenderService::new().request_animation_frame(render_frame);
+        let handle = RenderService::request_animation_frame(render_frame);
 
         // A reference to the new handle must be retained for the next render to run.
         self.render_loop = Some(Box::new(handle));

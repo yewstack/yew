@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
-use super::{Transformer, VDiff, VNode};
+use super::{Key, Transformer, VDiff, VNode};
 use crate::html::{AnyScope, Component, ComponentUpdate, NodeRef, Scope, Scoped};
 use crate::utils::document;
 use cfg_if::cfg_if;
@@ -22,7 +22,7 @@ pub struct VComp {
     scope: Option<Box<dyn Scoped>>,
     props: Option<Box<dyn Mountable>>,
     pub(crate) node_ref: NodeRef,
-    pub(crate) key: Option<String>,
+    pub(crate) key: Option<Key>,
 }
 
 impl Clone for VComp {
@@ -47,7 +47,7 @@ pub struct VChild<COMP: Component> {
     pub props: COMP::Properties,
     /// Reference to the mounted node
     node_ref: NodeRef,
-    key: Option<String>,
+    key: Option<Key>,
 }
 
 impl<COMP: Component> Clone for VChild<COMP> {
@@ -74,7 +74,7 @@ where
     COMP: Component,
 {
     /// Creates a child component that can be accessed and modified by its parent.
-    pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<String>) -> Self {
+    pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
         Self {
             props,
             node_ref,
@@ -94,7 +94,7 @@ where
 
 impl VComp {
     /// Creates a new `VComp` instance.
-    pub fn new<COMP>(props: COMP::Properties, node_ref: NodeRef, key: Option<String>) -> Self
+    pub fn new<COMP>(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self
     where
         COMP: Component,
     {
@@ -164,7 +164,7 @@ impl<COMP: Component> Mountable for PropsWrapper<COMP> {
 
     fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
         let scope: Scope<COMP> = scope.to_any().downcast();
-        scope.update(ComponentUpdate::Properties(self.props, next_sibling), false);
+        scope.update(ComponentUpdate::Properties(self.props, next_sibling));
     }
 }
 
@@ -185,7 +185,7 @@ impl VDiff for VComp {
         if let Some(mut ancestor) = ancestor {
             if let VNode::VComp(ref mut vcomp) = &mut ancestor {
                 // If the ancestor is the same type, reuse it and update its properties
-                if self.type_id == vcomp.type_id {
+                if self.type_id == vcomp.type_id && self.key == vcomp.key {
                     self.node_ref.link(vcomp.node_ref.clone());
                     let scope = vcomp.scope.take().expect("VComp is not mounted");
                     mountable.reuse(scope.borrow(), next_sibling);
@@ -349,7 +349,7 @@ mod tests {
 
     #[test]
     fn set_component_key() {
-        let test_key = "test".to_string();
+        let test_key: Key = "test".to_string().into();
         let check_key = |vnode: VNode| {
             assert_eq!(vnode.key().as_ref(), Some(&test_key));
         };
@@ -578,6 +578,7 @@ mod layout_tests {
     #[test]
     fn diff() {
         let layout1 = TestLayout {
+            name: "1",
             node: html! {
                 <Comp<A>>
                     <Comp<B>></Comp<B>>
@@ -588,6 +589,7 @@ mod layout_tests {
         };
 
         let layout2 = TestLayout {
+            name: "2",
             node: html! {
                 <Comp<A>>
                     {"A"}
@@ -597,6 +599,7 @@ mod layout_tests {
         };
 
         let layout3 = TestLayout {
+            name: "3",
             node: html! {
                 <Comp<B>>
                     <Comp<A>></Comp<A>>
@@ -607,6 +610,7 @@ mod layout_tests {
         };
 
         let layout4 = TestLayout {
+            name: "4",
             node: html! {
                 <Comp<B>>
                     <Comp<A>>{"A"}</Comp<A>>
@@ -617,6 +621,7 @@ mod layout_tests {
         };
 
         let layout5 = TestLayout {
+            name: "5",
             node: html! {
                 <Comp<B>>
                     <>
@@ -631,6 +636,7 @@ mod layout_tests {
         };
 
         let layout6 = TestLayout {
+            name: "6",
             node: html! {
                 <Comp<B>>
                     <>
@@ -646,6 +652,7 @@ mod layout_tests {
         };
 
         let layout7 = TestLayout {
+            name: "7",
             node: html! {
                 <Comp<B>>
                     <>
@@ -663,6 +670,7 @@ mod layout_tests {
         };
 
         let layout8 = TestLayout {
+            name: "8",
             node: html! {
                 <Comp<B>>
                     <>
@@ -682,6 +690,7 @@ mod layout_tests {
         };
 
         let layout9 = TestLayout {
+            name: "9",
             node: html! {
                 <Comp<B>>
                     <>
@@ -701,6 +710,7 @@ mod layout_tests {
         };
 
         let layout10 = TestLayout {
+            name: "10",
             node: html! {
                 <Comp<B>>
                     <>
@@ -720,6 +730,7 @@ mod layout_tests {
         };
 
         let layout11 = TestLayout {
+            name: "11",
             node: html! {
                 <Comp<B>>
                     <>
@@ -739,6 +750,7 @@ mod layout_tests {
         };
 
         let layout12 = TestLayout {
+            name: "12",
             node: html! {
                 <Comp<B>>
                     <>

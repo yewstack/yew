@@ -1,10 +1,9 @@
-#![recursion_limit = "128"]
+#![recursion_limit = "256"]
 
 #[macro_use]
 extern crate serde_derive;
 
-mod markdown;
-
+use common::markdown;
 use yew::format::Json;
 use yew::services::storage::Area;
 use yew::services::{DialogService, StorageService};
@@ -44,7 +43,6 @@ pub enum Scene {
 pub struct Model {
     link: ComponentLink<Self>,
     storage: StorageService,
-    dialog: DialogService,
     database: Database,
     scene: Scene,
 }
@@ -72,7 +70,6 @@ impl Component for Model {
         Model {
             link,
             storage,
-            dialog: DialogService::new(),
             database,
             scene: Scene::ClientsList,
         }
@@ -126,7 +123,7 @@ impl Component for Model {
             },
             Scene::Settings => match msg {
                 Msg::Clear => {
-                    let ok = { self.dialog.confirm("Do you really want to clear the data?") };
+                    let ok = { DialogService::confirm("Do you really want to clear the data?") };
                     if ok {
                         self.database.clients.clear();
                         self.storage.remove(KEY);
@@ -154,6 +151,7 @@ impl Component for Model {
         match self.scene {
             Scene::ClientsList => html! {
                 <div class="crm">
+                    <h1>{"List of clients"}</h1>
                     <div class="clients">
                         { for self.database.clients.iter().map(Renderable::render) }
                     </div>
@@ -163,10 +161,17 @@ impl Component for Model {
             },
             Scene::NewClientForm(ref client) => html! {
                 <div class="crm">
+                    <h1>{"Add a new client"}</h1>
                     <div class="names">
-                        { client.view_first_name_input(&self.link) }
-                        { client.view_last_name_input(&self.link) }
-                        { client.view_description_textarea(&self.link) }
+                        <div>
+                            { client.view_first_name_input(&self.link) }
+                        </div>
+                        <div>
+                            { client.view_last_name_input(&self.link) }
+                        </div>
+                        <div>
+                            { client.view_description_textarea(&self.link) }
+                        </div>
                     </div>
                     <button disabled=client.first_name.is_empty() || client.last_name.is_empty()
                             onclick=self.link.callback(|_| Msg::AddNew)>{ "Add New" }</button>
@@ -175,6 +180,7 @@ impl Component for Model {
             },
             Scene::Settings => html! {
                 <div>
+                    <h1>{"Settings"}</h1>
                     <button onclick=self.link.callback(|_| Msg::Clear)>{ "Clear Database" }</button>
                     <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::ClientsList))>{ "Go Back" }</button>
                 </div>
@@ -186,7 +192,7 @@ impl Component for Model {
 impl Renderable for Client {
     fn render(&self) -> Html {
         html! {
-            <div class="client">
+            <div class="client" style="margin-bottom: 50px">
                 <p>{ format!("First Name: {}", self.first_name) }</p>
                 <p>{ format!("Last Name: {}", self.last_name) }</p>
                 <p>{ "Description:" }</p>
@@ -217,7 +223,7 @@ impl Client {
     fn view_description_textarea(&self, link: &ComponentLink<Model>) -> Html {
         html! {
             <textarea class=("new-client", "description")
-               placeholder="Description"
+               placeholder="Description (can use Markdown)"
                value=&self.description
                oninput=link.callback(|e: InputData| Msg::UpdateDescription(e.value)) />
         }

@@ -3,6 +3,7 @@ use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     link: ComponentLink<Self>,
+    clicked: bool,
 }
 
 pub enum Msg {
@@ -14,7 +15,10 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Model { link }
+        Model {
+            link,
+            clicked: false,
+        }
     }
 
     fn change(&mut self, _: Self::Properties) -> bool {
@@ -23,7 +27,9 @@ impl Component for Model {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::Click => {}
+            Msg::Click => {
+                self.clicked = true;
+            }
         }
         true
     }
@@ -32,6 +38,7 @@ impl Component for Model {
         html! {
             <div>
                 <button onclick=self.link.callback(|_| Msg::Click)>{ "Click ( wasm-pack )" }</button>
+                <p>{format!("Has been clicked: {}", self.clicked)}</p>
             </div>
         }
     }

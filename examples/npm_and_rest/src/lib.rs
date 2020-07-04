@@ -34,8 +34,8 @@ impl Component for Model {
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
             link: link.clone(),
-            gravatar: GravatarService::new(),
-            ccxt: CcxtService::new(),
+            gravatar: GravatarService::default(),
+            ccxt: CcxtService::default(),
             callback: link.callback(Msg::GravatarReady),
             profile: None,
             exchanges: Vec::new(),

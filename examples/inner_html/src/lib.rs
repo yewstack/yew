@@ -4,13 +4,7 @@ use web_sys::{console, Node};
 use yew::virtual_dom::VNode;
 use yew::{Component, ComponentLink, Html, ShouldRender};
 
-const SVG: &str = r#"
-<h2>Inline SVG or <i>any</i> HTML:</h2>
-<svg height="250" width="500">
-  <polygon points="220,10 300,210 170,250 123,234" style="fill:lime;stroke:purple;stroke-width:1" />
-    Sorry, your browser does not support inline SVG.
-</svg>
-"#;
+const HTML: &str = include_str!("document.html");
 
 pub struct Model {
     pub value: i64,
@@ -42,7 +36,7 @@ impl Component for Model {
                 .unwrap()
                 .create_element("div")
                 .unwrap();
-            div.set_inner_html(SVG);
+            div.set_inner_html(HTML);
             console::log_1(&div);
             div
         };
