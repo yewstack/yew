@@ -23,10 +23,6 @@ pub struct Entry {
 pub struct GravatarService {}
 
 impl GravatarService {
-    pub fn new() -> Self {
-        Self {}
-    }
-
     pub fn profile(&mut self, hash: &str, callback: Callback<Result<Profile, Error>>) -> FetchTask {
         let url = format!("https://en.gravatar.com/{}.json", hash);
         let handler = move |response: Response<Json<Result<Profile, Error>>>| {

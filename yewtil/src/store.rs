@@ -41,7 +41,7 @@ pub trait Store: Sized + 'static {
 /// the boring data wrangling logic
 #[derive(Debug)]
 pub struct StoreWrapper<S: Store> {
-    /// Currently subscibed components and agents
+    /// Currently subscribed components and agents
     pub handlers: HashSet<HandlerId>,
     /// Link to itself so Store::handle_input can send actions to reducer
     pub link: AgentLink<Self>,
@@ -107,12 +107,12 @@ impl<S: Store> Agent for StoreWrapper<S> {
         }
     }
 
-    fn handle_input(&mut self, msg: Self::Input, _id: HandlerId) {
-        self.state.borrow().handle_input(self.link.clone(), msg);
-    }
-
     fn connected(&mut self, id: HandlerId) {
         self.handlers.insert(id);
+    }
+
+    fn handle_input(&mut self, msg: Self::Input, _id: HandlerId) {
+        self.state.borrow().handle_input(self.link.clone(), msg);
     }
 
     fn disconnected(&mut self, id: HandlerId) {

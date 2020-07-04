@@ -13,7 +13,7 @@
 
 END TEMPLATE-->
 
-## ✨ **0.3.0** *(DATE)*
+## ✨ **0.3.0** *6/30/20*
 
 - #### ⚡️ Features
   - Sample
@@ -21,6 +21,11 @@ END TEMPLATE-->
   - Sample
 - #### 🚨 Breaking changes
   - `FetchAction::Success` has been renamed to `FetchAction::Fetched`
+- #### Deprecations
+  - module `effect`
+  - module `pure`
+  - macro `function_component`
+  - struct `ptr::Lrc<T>`
 
 ## ✨ **v0.2.0** *11/18/19*
 - #### ⚡️ Features

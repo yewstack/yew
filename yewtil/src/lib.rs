@@ -12,9 +12,6 @@
 //! * "store" - Global state with easy binding
 // //! * "dsl" - Use functions instead of Yew's `html!` macro.
 
-//#[cfg(feature = "dsl")]
-//pub mod dsl;
-
 #[cfg(feature = "neq")]
 mod not_equal_assign;
 
@@ -33,9 +30,11 @@ pub use history::History;
 #[cfg(feature = "neq")]
 pub use not_equal_assign::NeqAssign;
 
+#[deprecated]
 #[cfg(feature = "pure")]
 pub use pure::{Pure, PureComponent};
 
+#[deprecated]
 #[cfg(feature = "pure")]
 pub use yewtil_macro::function_component;
 
@@ -44,6 +43,7 @@ pub mod fetch;
 
 #[cfg(feature = "effect")]
 mod effect;
+#[deprecated]
 #[cfg(feature = "effect")]
 pub use effect::{effect, Effect};
 

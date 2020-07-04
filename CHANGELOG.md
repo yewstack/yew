@@ -1,5 +1,91 @@
 # Changelog
 
+## ✨ **0.17.2** *(2020-07-04)*
+
+#### Changelog
+
+- #### ⚡️ Features
+
+  - `Key` now implements `Deref<Target = str>`. [[@faulesocke], [#1370](https://github.com/yewstack/yew/pull/1370)]
+
+- #### 🛠 Fixes
+
+  - Uncontrolled input values are no cleared when component renders. [[@jstarry], [#1374](https://github.com/yewstack/yew/pull/1374)]
+  - Revert lazy rendering behavior introduced in `0.17.0`. Yew will render the component between each update. [[@jstarry], [#1373](https://github.com/yewstack/yew/pull/1373)]
+
+## ✨ **0.17.1** *(2020-07-01)*
+
+#### Changelog
+
+- #### 🛠 Fixes
+
+  - Fixed regression where component `rendered` lifecycle method was called before children components finish rendering. [[@jstarry], [#1360](https://github.com/yewstack/yew/pull/1360)]
+
+## ✨ **0.17.0** *(2020-06-29)*
+
+#### Changelog
+
+- #### ⚡️ Features
+
+  - Allow agents to send input messages to themselves. [[@mkawalec], [#1278](https://github.com/yewstack/yew/pull/1278)]
+  - Rendering performance has been improved by [~20%](http://static.yew.rs/v0.17-benchmarks.png). [[@jstarry], [#1296](https://github.com/yewstack/yew/pull/1296), [#1309](https://github.com/yewstack/yew/pull/1309)]
+  - `html!`: Elements can be specified with dynamic tag names. [[@siku2], [#1266](https://github.com/yewstack/yew/pull/1266)]
+
+      In order to specify a dynamic tag name, wrap an expression with `@{..}`:
+
+      ```rust
+      let tag_name = "input";
+      html! { <@{tag_name} value="Hello" /> }
+      ```
+  - HTML button element `type` can now be specified (`"submit"`, `"reset"`, or `"button"`). [[@captain-yossarian], [#1033](https://github.com/yewstack/yew/pull/1033)]
+  - All global event listeners can be used as listeners (`onerror`, `onloadend`, and many more). [[@siku2], [#1244](https://github.com/yewstack/yew/pull/1242)]
+  - `PartialEq` is now implemented for `VChild` when properties also implement `PartialEq`. [[@kellpossible], [#1242](https://github.com/yewstack/yew/pull/1242)]
+  - Agent callbacks now accept `Into<Message>` to improve ergonomics. [[@totorigolo], [#1215](https://github.com/yewstack/yew/pull/1215)]
+  - Agents can now send messages to themselves. [[@totorigolo], [#1215](https://github.com/yewstack/yew/pull/1215)]
+
+- #### 🛠 Fixes
+
+  - Bincode dependency version has been loosened `1.2.1` -> `1`. [[@jstarry], [#1349](https://github.com/yewstack/yew/pull/1349)]
+  - Keyed list ordering algorithm has been fixed. [[@totorigolo] and [@jstarry], [#1231](https://github.com/yewstack/yew/pull/1231)]
+  - `html!`: `key` and `ref` are no longer ignored for components with no properties. [[@jstarry], [#1338](https://github.com/yewstack/yew/pull/1338)]
+  - `html!`: List rendering behavior is consistent no matter which syntax is chosen. [[@siku2], [#1275](https://github.com/yewstack/yew/pull/1275)]
+
+      `html! { for node_list }` is now equivalent to `html! { node_list }` when `node_list` is a `Vec<VNode>`.
+
+  - `KeyboardService` events can now have default behavior prevented. [[@ghpu], [#1286](https://github.com/yewstack/yew/pull/1286)]
+  - Yew will check the current DOM `input` value before comparing with the desired value. [[@ShadoySV], [#1268](https://github.com/yewstack/yew/pull/1268)]
+  - `html!`: Void elements (`<br/>`, `<input />`) are no longer allowed to have children. [[@kaoet], [#1217](https://github.com/yewstack/yew/pull/1217)]
+  - Local agents no longer require `Input` and `Output` to implement `Serializable`. [[@mkawalec], [#1195](https://github.com/yewstack/yew/pull/1195)]
+
+- #### 🚨 Breaking changes
+
+  - Renders are now done lazily and will not be executed until all updates have been processed. [[@jstarry], [#1309](https://github.com/yewstack/yew/pull/1309)]
+  - `ConsoleService`, `DialogService`, `IntervalService`, `RenderService`, `TimeoutService`, and `WebSocketService` methods are now static. [[@teymour-aldridge], [#1313](https://github.com/yewstack/yew/pull/1313)]
+  - `html!`: `Children` no longer implements `Renderable`. [[@siku2], [#1275](https://github.com/yewstack/yew/pull/1275)]
+
+      Replace instances of `self.props.children.render()` with `self.props.children.clone()`.
+
+  - Yew no longer stops propagation of events by default. [[@jstarry], [#1256](https://github.com/yewstack/yew/pull/1256)]
+
+      Event propagation is usually stopped when you have event listeners attached to nested elements and do not want the event to bubble up from where it was first captured. If your app has this behavior, you can stop propagation by calling `stop_propagation()` on the desired event.
+
+  - The `onsubmit` listener now uses `FocusEvent` instead `Event` when using `web-sys`. [[@siku2], [#1244](https://github.com/yewstack/yew/pull/1244)]
+  - The `onmousewheel` and `ontouchenter` listeners have been removed. [[@siku2], [#1244](https://github.com/yewstack/yew/pull/1244)]
+  - The `ondoubleclick` listener is now named `ondblclick`. [[@siku2], [#1244](https://github.com/yewstack/yew/pull/1244)]
+  - `FetchService` methods are now static. [[@teymour-aldridge], [#1235](https://github.com/yewstack/yew/pull/1235)]
+
+      Instead of `FetchService::new().fetch(..)` you should now use `FetchService::fetch(..)`
+
+  - The `send_message_batch` method has been removed from `AgentLink`. [[@totorigolo], [#1215](https://github.com/yewstack/yew/pull/1215)]
+  - Minimum supported rust version has been bumped from `1.40.0` to `1.42.0`. [[@mkawalec], [#1195](https://github.com/yewstack/yew/pull/1195)]
+  - Every agent `Reach` type is now generic. [[@mkawalec], [#1195](https://github.com/yewstack/yew/pull/1195)]
+
+      In order to fix your app, simply append `<Self>` to the reach:
+
+      `Reach = Context` -> `Reach = Context<Self>`
+  - Removed `Global` agent because it was never implemented. [[@jstarry], [#1202](https://github.com/yewstack/yew/pull/1202)]
+  - Reduced visibility of internal agent types that were not intended to be public. [[@jstarry], [#1202](https://github.com/yewstack/yew/pull/1202)]
+
 ## ✨ **0.16.2** *(2020-05-14)*
 
 #### Changelog
@@ -860,6 +946,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@dermetfan]: https://github.com/dermetfan
 [@detegr]: https://github.com/Detegr
 [@dunnock]: https://github.com/dunnock
+[@faulesocke]: https://github.com/faulesocke
 [@hgzimmerman]: https://github.com/hgzimmerman
 [@izissise]: https://github.com/izissise
 [@joaquindk]: https://github.com/joaquindk
@@ -875,10 +962,12 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@lukerandall]: https://github.com/lukerandall
 [@mankinskin]: https://github.com/mankinskin
 [@mdtusz]: https://github.com/mdtusz
+[@mkawalec]: https://github.com/mkawalec
 [@mrh0057]: https://github.com/mrh0057
 [@nicklaswj]: https://github.com/nicklaswj
 [@philip-peterson]: https://github.com/philip-peterson
 [@serzhiio]: https://github.com/serzhiio
+[@siku2]: https://github.com/siku2
 [@Stigjb]: https://github.com/Stigjb
 [@stkevintan]: https://github.com/stkevintan
 [@TheNeikos]: https://github.com/TheNeikos
