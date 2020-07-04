@@ -47,9 +47,10 @@ impl DialogService {
 
     /// Prompts the user to input a message. In most browsers this will open an alert box with
     /// an input field where the user can input a message.
-    ///
-    /// It is possible to supply a default value which will be used if the user does not provide
-    /// a value.
+    #[cfg_attr(
+        feature = "web_sys",
+        doc = "A default value can be supplied which will be returned if the user doesn't input anything."
+    )]
     ///
     /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Window/prompt)
     ///
@@ -59,10 +60,21 @@ impl DialogService {
     /// Note that this function is blocking; no other code can be run on the thread while
     /// the user inputs their message which means that the page will appear to have 'frozen'
     /// while the user types in their message.
+    ///
+    #[cfg_attr(
+        feature = "web_sys",
+        doc = "This function will return `None` if the value of `default` is `None` and the user \
+        cancels the operation. (normally a 'cancel' button will be displayed to the user, \
+        clicking which cancels the operation)."
+    )]
+    #[cfg_attr(
+        feature = "std_web",
+        doc = "This function will return `None` if the user cancels the operation (normally a \
+        'cancel' button will be displayed to the user, clicking which cancels the operation)."
+    )]
     pub fn prompt(
         message: &str,
         #[cfg(feature = "web_sys")] default: Option<&str>,
-        #[cfg(feature = "std_web")] _: Option<&str>,
     ) -> Option<String> {
         cfg_if! {
             if #[cfg(feature="web_sys")] {
