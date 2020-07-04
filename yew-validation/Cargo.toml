@@ -1,0 +1,20 @@
+[package]
+name = "yew-validation"
+version = "0.1.0"
+authors = ["Philip Peterson <pc.peterso@gmail.com>"]
+edition = "2018"
+license = "MIT/Apache-2.0"
+keywords = ["web", "yew", "validation"]
+categories = ["text-processing", "parsing", "web-programming"]
+description = "Utilities for Yew to validate tag names"
+repository = "https://github.com/yewstack/yew"
+
+[dependencies]
+wasm-bindgen = { version = "0.2.58", optional = true }
+
+# Compat with building yew with wasm-pack support.
+[target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]
+wasm-bindgen = "0.2.58"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.9"
