@@ -6,7 +6,6 @@
 //! *This module is only available if the `sans_mount_render` feature is enabled.*
 
 use super::{VComp, VList, VNode, VTag, VText};
-use yew_validation::{is_valid_html_attribute_name, is_valid_sgml_tag};
 use htmlescape;
 use std::convert::TryFrom;
 use std::fmt::{self, Display, Formatter};
