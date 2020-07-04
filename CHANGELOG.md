@@ -1,5 +1,18 @@
 # Changelog
 
+## ✨ **0.17.2** *(2020-07-04)*
+
+#### Changelog
+
+- #### ⚡️ Features
+
+  - `Key` now implements `Deref<Target = str>`. [[@faulesocke], [#1370](https://github.com/yewstack/yew/pull/1370)]
+
+- #### 🛠 Fixes
+
+  - Uncontrolled input values are no cleared when component renders. [[@jstarry], [#1374](https://github.com/yewstack/yew/pull/1374)]
+  - Revert lazy rendering behavior introduced in `0.17.0`. Yew will render the component between each update. [[@jstarry], [#1373](https://github.com/yewstack/yew/pull/1373)]
+
 ## ✨ **0.17.1** *(2020-07-01)*
 
 #### Changelog
@@ -46,6 +59,7 @@
 
 - #### 🚨 Breaking changes
 
+  - Renders are now done lazily and will not be executed until all updates have been processed. [[@jstarry], [#1309](https://github.com/yewstack/yew/pull/1309)]
   - `ConsoleService`, `DialogService`, `IntervalService`, `RenderService`, `TimeoutService`, and `WebSocketService` methods are now static. [[@teymour-aldridge], [#1313](https://github.com/yewstack/yew/pull/1313)]
   - `html!`: `Children` no longer implements `Renderable`. [[@siku2], [#1275](https://github.com/yewstack/yew/pull/1275)]
 
@@ -932,6 +946,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@dermetfan]: https://github.com/dermetfan
 [@detegr]: https://github.com/Detegr
 [@dunnock]: https://github.com/dunnock
+[@faulesocke]: https://github.com/faulesocke
 [@hgzimmerman]: https://github.com/hgzimmerman
 [@izissise]: https://github.com/izissise
 [@joaquindk]: https://github.com/joaquindk
