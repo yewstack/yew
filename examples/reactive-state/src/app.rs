@@ -121,7 +121,7 @@ impl App {
 
             // Local action -- needs a re-render
             Msg::DecSubs => {
-                if self.total_subs - 1 >= 1 {
+                if self.total_subs > 1 {
                     self.total_subs -= 1;
                 }
                 true
