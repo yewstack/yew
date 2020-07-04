@@ -6,7 +6,7 @@ edition = "2018"
 license = "MIT/Apache-2.0"
 keywords = ["web", "yew", "validation"]
 categories = ["text-processing", "parsing", "web-programming"]
-description = "Utilities for Yew to validate tag names"
+description = "Utilities for Yew to validate tag names and attributes"
 repository = "https://github.com/yewstack/yew"
 
 [dependencies]
