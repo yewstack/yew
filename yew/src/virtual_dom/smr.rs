@@ -65,7 +65,7 @@ impl TryFrom<VTag> for HtmlString {
     type Error = HtmlRenderError;
 
     fn try_from(value: VTag) -> Result<HtmlString, HtmlRenderError> {
-        let mut result: String = "".to_string();
+        let mut result = "".to_string();
         let tag_name = htmlescape::encode_minimal(&value.tag).to_lowercase();
 
         if !is_valid_sgml_tag(&tag_name) {
@@ -109,14 +109,14 @@ impl TryFrom<VTag> for HtmlString {
             }
         }
 
-        let children_html: HtmlString = match tag_name.as_ref() {
+        let children_html = match tag_name.as_ref() {
             "textarea" => {
                 let vtext = VText::new(value.value.clone().unwrap_or_else(String::new));
                 HtmlString::try_from(vtext)
             }
             _ => HtmlString::try_from(value.children),
-        }?;
-        let children_html = children_html.to_string();
+        }?.to_string();
+        
         if children_html == "" {
             result.push_str(&" />");
         } else {
@@ -142,7 +142,7 @@ impl TryFrom<VList> for HtmlString {
     type Error = HtmlRenderError;
 
     fn try_from(value: VList) -> Result<HtmlString, HtmlRenderError> {
-        let mut result: String = "".to_string();
+        let mut result = "".to_string();
         for child in value.children {
             let html = HtmlString::try_from(child)?.to_string();
             result.push_str(&html);

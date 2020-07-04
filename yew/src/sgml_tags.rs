@@ -120,7 +120,7 @@ fn is_valid_html_custom_element_name(tag: &str) -> bool {
 
 /// Returns true when the tag name provided looks like a valid non-custom HTML element or valid SVG element.
 /// There's no official spec here, it's just arbitrary.
-fn is_valid_html_standard_ish_element_name(tag: &str) -> bool {
+fn resembles_standard_html_element_name(tag: &str) -> bool {
     // must contain at least one character
     if tag.is_empty() {
         return false;
@@ -142,7 +142,7 @@ fn is_valid_html_standard_ish_element_name(tag: &str) -> bool {
 
 /// Returns true when you could validly construct a tag using this name in an HTML document
 pub fn is_valid_sgml_tag(tag: &str) -> bool {
-    is_valid_html_standard_ish_element_name(tag) || is_valid_html_custom_element_name(tag)
+    resembles_standard_html_element_name(tag) || is_valid_html_custom_element_name(tag)
 }
 
 #[cfg(test)]
@@ -174,20 +174,20 @@ mod tests {
 
     #[test]
     fn valid_html_element() {
-        assert_eq!(is_valid_html_standard_ish_element_name("section"), true);
-        assert_eq!(is_valid_html_standard_ish_element_name("h2"), true);
-        assert_eq!(is_valid_html_standard_ish_element_name("applet"), true);
-        assert_eq!(is_valid_html_standard_ish_element_name("appLET"), true);
-        assert_eq!(is_valid_html_standard_ish_element_name("aPPlet"), true);
-        assert_eq!(is_valid_html_standard_ish_element_name("foo-bar"), true);
+        assert_eq!(resembles_standard_html_element_name("section"), true);
+        assert_eq!(resembles_standard_html_element_name("h2"), true);
+        assert_eq!(resembles_standard_html_element_name("applet"), true);
+        assert_eq!(resembles_standard_html_element_name("appLET"), true);
+        assert_eq!(resembles_standard_html_element_name("aPPlet"), true);
+        assert_eq!(resembles_standard_html_element_name("foo-bar"), true);
     }
 
     #[test]
     fn invalid_html_element() {
-        assert_eq!(is_valid_html_standard_ish_element_name(" foo"), false);
-        assert_eq!(is_valid_html_standard_ish_element_name("foo "), false);
-        assert_eq!(is_valid_html_standard_ish_element_name("-"), false);
-        assert_eq!(is_valid_html_standard_ish_element_name("!doctype"), false);
+        assert_eq!(resembles_standard_html_element_name(" foo"), false);
+        assert_eq!(resembles_standard_html_element_name("foo "), false);
+        assert_eq!(resembles_standard_html_element_name("-"), false);
+        assert_eq!(resembles_standard_html_element_name("!doctype"), false);
     }
 
     #[test]
