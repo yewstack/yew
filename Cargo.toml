@@ -16,6 +16,7 @@ members = [
   # Utilities
   "yewtil",
   "yewtil-macro",
+  "yewtil-validation",
   "yewtil/examples/pure_component",
   # "yewtil/examples/dsl",
   "yewtil/examples/lrc",
