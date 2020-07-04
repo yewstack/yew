@@ -97,6 +97,10 @@ impl Scheduler {
         self.start();
     }
 
+    pub(crate) fn lock(&self) -> Option<std::cell::Ref<'_, ()>> {
+        self.lock.try_borrow().ok()
+    }
+
     fn next_runnable(&self) -> Option<Box<dyn Runnable>> {
         None.or_else(|| self.component.next_runnable())
             .or_else(|| self.main.borrow_mut().pop_front())
