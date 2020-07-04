@@ -17,8 +17,8 @@ cfg_if! {
 
 /// Updates for a `Component` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {
-    /// Force update
-    Force,
+    /// First update
+    First,
     /// Wraps messages for a component.
     Message(COMP::Message),
     /// Wraps batch of messages for a component.
@@ -159,7 +159,10 @@ impl<COMP: Component> Scope<COMP> {
         node_ref: NodeRef,
         props: COMP::Properties,
     ) -> Scope<COMP> {
-        scheduler().push_comp(
+        let scheduler = scheduler();
+        // Hold scheduler lock so that `create` doesn't run until `update` is scheduled
+        let lock = scheduler.lock();
+        scheduler.push_comp(
             ComponentRunnableType::Create,
             Box::new(CreateComponent {
                 state: self.state.clone(),
@@ -171,28 +174,19 @@ impl<COMP: Component> Scope<COMP> {
                 props,
             }),
         );
-        self.update(ComponentUpdate::Force, true);
+        self.update(ComponentUpdate::First);
+        drop(lock);
+        scheduler.start();
         self
     }
 
     /// Schedules a task to send an update to a component
-    pub(crate) fn update(&self, update: ComponentUpdate<COMP>, first_update: bool) {
+    pub(crate) fn update(&self, update: ComponentUpdate<COMP>) {
         let update = UpdateComponent {
             state: self.state.clone(),
             update,
         };
         scheduler().push_comp(ComponentRunnableType::Update, Box::new(update));
-        self.render(first_update);
-    }
-
-    /// Schedules a task to render the component and call its rendered method
-    pub(crate) fn render(&self, first_render: bool) {
-        let state = self.state.clone();
-        let rendered = RenderComponent {
-            state,
-            first_render,
-        };
-        scheduler().push_comp(ComponentRunnableType::Render, Box::new(rendered));
     }
 
     /// Send a message to the component.
@@ -203,7 +197,7 @@ impl<COMP: Component> Scope<COMP> {
     where
         T: Into<COMP::Message>,
     {
-        self.update(ComponentUpdate::Message(msg.into()), false);
+        self.update(ComponentUpdate::Message(msg.into()));
     }
 
     /// Send a batch of messages to the component.
@@ -215,7 +209,7 @@ impl<COMP: Component> Scope<COMP> {
     /// Please be aware that currently this method synchronously
     /// schedules calls to the [Component](Component) interface.
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
-        self.update(ComponentUpdate::MessageBatch(messages), false);
+        self.update(ComponentUpdate::MessageBatch(messages));
     }
 
     /// Creates a `Callback` which will send a message to the linked
@@ -285,6 +279,7 @@ struct ComponentState<COMP: Component> {
     last_root: Option<VNode>,
     new_root: Option<VNode>,
     has_rendered: bool,
+    pending_updates: Vec<Box<UpdateComponent<COMP>>>,
 }
 
 impl<COMP: Component> ComponentState<COMP> {
@@ -309,6 +304,7 @@ impl<COMP: Component> ComponentState<COMP> {
             last_root: None,
             new_root: None,
             has_rendered: false,
+            pending_updates: Vec::new(),
         }
     }
 }
@@ -362,9 +358,20 @@ where
     COMP: Component,
 {
     fn run(self: Box<Self>) {
-        if let Some(mut state) = self.state.borrow_mut().as_mut() {
+        let state_clone = self.state.clone();
+        if let Some(mut state) = state_clone.borrow_mut().as_mut() {
+            if state.new_root.is_some() {
+                state.pending_updates.push(self);
+                return;
+            }
+
+            let first_update = match self.update {
+                ComponentUpdate::First => true,
+                _ => false,
+            };
+
             let should_update = match self.update {
-                ComponentUpdate::Force => true,
+                ComponentUpdate::First => true,
                 ComponentUpdate::Message(message) => state.component.update(message),
                 ComponentUpdate::MessageBatch(messages) => messages
                     .into_iter()
@@ -378,8 +385,15 @@ where
 
             if should_update {
                 state.new_root = Some(state.component.render());
+                scheduler().push_comp(
+                    ComponentRunnableType::Render,
+                    Box::new(RenderComponent {
+                        state: self.state,
+                        first_render: first_update,
+                    }),
+                );
             };
-        }
+        };
     }
 }
 
@@ -445,6 +459,9 @@ where
 
             state.has_rendered = true;
             state.component.rendered(self.first_render);
+            for update in state.pending_updates.drain(..) {
+                scheduler().push_comp(ComponentRunnableType::Update, update);
+            }
         }
     }
 }
@@ -523,6 +540,7 @@ mod tests {
     struct Props {
         lifecycle: Rc<RefCell<Vec<String>>>,
         create_message: Option<bool>,
+        update_message: RefCell<Option<bool>>,
         view_message: RefCell<Option<bool>>,
         rendered_message: RefCell<Option<bool>>,
     }
@@ -555,6 +573,9 @@ mod tests {
         }
 
         fn update(&mut self, msg: Self::Message) -> ShouldRender {
+            if let Some(msg) = self.props.update_message.borrow_mut().take() {
+                self.link.send_message(msg);
+            }
             self.props
                 .lifecycle
                 .borrow_mut()
@@ -619,10 +640,10 @@ mod tests {
             },
             &vec![
                 "create".to_string(),
-                "update(false)".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
                 "rendered(true)".to_string(),
+                "update(false)".to_string(),
             ],
         );
 
@@ -635,10 +656,11 @@ mod tests {
             &vec![
                 "create".to_string(),
                 "view".to_string(),
-                "update(true)".to_string(),
-                "view".to_string(),
                 "child rendered".to_string(),
                 "rendered(true)".to_string(),
+                "update(true)".to_string(),
+                "view".to_string(),
+                "rendered(false)".to_string(),
             ],
         );
 
@@ -651,9 +673,9 @@ mod tests {
             &vec![
                 "create".to_string(),
                 "view".to_string(),
-                "update(false)".to_string(),
                 "child rendered".to_string(),
                 "rendered(true)".to_string(),
+                "update(false)".to_string(),
             ],
         );
 
@@ -683,6 +705,27 @@ mod tests {
                 "view".to_string(),
                 "child rendered".to_string(),
                 "rendered(true)".to_string(),
+                "update(true)".to_string(),
+                "view".to_string(),
+                "rendered(false)".to_string(),
+            ],
+        );
+
+        test_lifecycle(
+            Props {
+                lifecycle: lifecycle.clone(),
+                create_message: Some(true),
+                update_message: RefCell::new(Some(true)),
+                ..Props::default()
+            },
+            &vec![
+                "create".to_string(),
+                "view".to_string(),
+                "child rendered".to_string(),
+                "rendered(true)".to_string(),
+                "update(true)".to_string(),
+                "view".to_string(),
+                "rendered(false)".to_string(),
                 "update(true)".to_string(),
                 "view".to_string(),
                 "rendered(false)".to_string(),
