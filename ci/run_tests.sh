@@ -23,3 +23,6 @@ set -euxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_
 (cd yewtil && cargo test)
 
 (cd yew-components && cargo test)
+
+(cd yew-validation \
+  && cargo test --target wasm32-unknown-unknown --features wasm_test)
