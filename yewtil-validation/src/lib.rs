@@ -1,5 +1,5 @@
-//! This module contains utilities for parsing or validating strings relating
-//! to tags.
+//! Utility library for the Yew frontend web framework to handle validating strings relating
+//! to HTML/SVG/MathML tags.
 
 /// Returns true when the character provided is a "control" as defined
 /// in [the WhatWG spec](https://infra.spec.whatwg.org/#control)
