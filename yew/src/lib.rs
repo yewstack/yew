@@ -120,8 +120,6 @@ mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
 
-pub mod sgml_tags;
-
 #[cfg(feature = "agent")]
 pub mod agent;
 #[cfg(feature = "services")]

@@ -46,6 +46,7 @@ toml = { version = "0.5", optional = true }
 wasm-bindgen = { version = "0.2.60", optional = true }
 wasm-bindgen-futures = { version = "0.4", optional = true }
 yew-macro = { version = "0.16.1", path = "../yew-macro" }
+yew-validation = { version = "0.1.0", path = "../yew-validation" }
 
 [dependencies.web-sys]
 version = "0.3"
