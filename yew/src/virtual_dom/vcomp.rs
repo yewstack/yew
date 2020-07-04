@@ -164,7 +164,7 @@ impl<COMP: Component> Mountable for PropsWrapper<COMP> {
 
     fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
         let scope: Scope<COMP> = scope.to_any().downcast();
-        scope.update(ComponentUpdate::Properties(self.props, next_sibling), false);
+        scope.update(ComponentUpdate::Properties(self.props, next_sibling));
     }
 }
 
