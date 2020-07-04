@@ -19,7 +19,7 @@ impl ReaderService {
 
     /// Reads all bytes from a file and returns them with a callback.
     pub fn read_file(&mut self, file: File, callback: Callback<FileData>) -> Result<ReaderTask> {
-        let file_reader = FileReader::new().map_err(|_| anyhow!("couldn't aquire file reader"))?;
+        let file_reader = FileReader::new().map_err(|_| anyhow!("couldn't acquire file reader"))?;
         let reader = file_reader.clone();
         let name = file.name();
         let callback = move |_event: &Event| {

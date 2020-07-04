@@ -164,7 +164,7 @@ pub struct FetchService {}
 
 impl FetchService {
     /// Sends a request to a remote server given a Request object and a callback
-    /// fuction to convert a Response object into a loop's message.
+    /// function to convert a Response object into a loop's message.
     ///
     /// You may use a Request builder to build your request declaratively as on the
     /// following examples:
@@ -183,7 +183,7 @@ impl FetchService {
     ///     .expect("Failed to build request.");
     /// ```
     ///
-    /// The callback function can build a loop message by passing or analizing the
+    /// The callback function can build a loop message by passing or analyzing the
     /// response body and metadata.
     ///
     /// ```
@@ -220,8 +220,8 @@ impl FetchService {
     /// ```
     ///
     /// For a full example, you can specify that the response must be in the JSON format,
-    /// and be a specific serialized data type. If the mesage isn't Json, or isn't the specified
-    /// data type, then you will get a message indicating failure.
+    /// and be a specific serialized data type. If the message isn't JSON, or isn't the specified
+    /// data type, then you will get an error message.
     ///
     /// ```
     ///# use yew::format::{Json, Nothing, Format};
@@ -555,7 +555,9 @@ impl WindowOrWorker {
         } else if !global.worker().is_undefined() {
             Self::Worker(global.unchecked_into())
         } else {
-            panic!("Only supported in a browser or web worker");
+            panic!(
+                "Yew's `FetchService` only works when a `window` or `worker` object is available."
+            );
         }
     }
 }
