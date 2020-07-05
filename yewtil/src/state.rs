@@ -123,13 +123,13 @@ where
 }
 
 /// Provides shared state to isolated components.
-pub struct SharedStateComponent<STATE, COMP, PROPS>
+pub struct SharedStateComponent<STATE, COMP>
 where
-    COMP: Component<Properties = PROPS>,
+    COMP: Component,
     STATE: Default + Clone + 'static,
-    PROPS: Properties + SharedState<State = STATE>,
+    COMP::Properties: SharedState<State = STATE>,
 {
-    props: PROPS,
+    props: COMP::Properties,
     state: Rc<STATE>,
     cb_reduce: Callback<Reduction<STATE>>,
     bridge: Box<dyn Bridge<SharedStateService<STATE>>>,
@@ -144,14 +144,14 @@ pub enum SharedStateComponentMsg<STATE> {
     Apply(Reduction<STATE>),
 }
 
-impl<STATE, COMP, PROPS> Component for SharedStateComponent<STATE, COMP, PROPS>
+impl<STATE, COMP> Component for SharedStateComponent<STATE, COMP>
 where
-    COMP: Component<Properties = PROPS>,
+    COMP: Component,
     STATE: Default + Clone,
-    PROPS: Properties + SharedState<State = STATE> + 'static,
+    COMP::Properties: SharedState<State = STATE>,
 {
     type Message = SharedStateComponentMsg<STATE>;
-    type Properties = PROPS;
+    type Properties = COMP::Properties;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         use SharedStateComponentMsg::*;
@@ -200,11 +200,11 @@ where
     }
 }
 
-impl<STATE, COMP, PROPS> std::ops::Drop for SharedStateComponent<STATE, COMP, PROPS>
+impl<STATE, COMP> std::ops::Drop for SharedStateComponent<STATE, COMP>
 where
-    COMP: Component<Properties = PROPS>,
+    COMP: Component,
     STATE: Clone + Default,
-    PROPS: Properties + SharedState<State = STATE>,
+    COMP::Properties: SharedState<State = STATE>,
 {
     fn drop(&mut self) {
         self.bridge.send(Request::UnSubscribe);

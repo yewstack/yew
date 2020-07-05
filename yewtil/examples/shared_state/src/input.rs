@@ -44,9 +44,7 @@ impl Component for Model {
                 } else {
                     "your name is too long".to_string()
                 };
-                self.props
-                    .state
-                    .reduce(move |state| state.user.name = name);
+                self.props.state.reduce(move |state| state.user.name = name);
                 false
             }
             Msg::Clear => {
@@ -78,4 +76,4 @@ impl Component for Model {
     }
 }
 
-pub type Input = SharedStateComponent<AppState, Model, Props>;
+pub type Input = SharedStateComponent<AppState, Model>;

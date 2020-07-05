@@ -42,4 +42,4 @@ impl Component for Model {
     }
 }
 
-pub type Display = SharedStateComponent<AppState, Model, Shared<AppState>>;
+pub type Display = SharedStateComponent<AppState, Model>;
