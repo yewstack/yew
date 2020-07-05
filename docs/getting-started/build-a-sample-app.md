@@ -1,6 +1,6 @@
 # Build a Sample App
 
-First create a new Rust library (**important:** create a *library*, not a *binary* by passing the `--lib` flag):
+First create a new Rust library \(**important:** create a _library_, not a _binary_ by passing the `--lib` flag\):
 
 ```bash
 cargo new --lib yew-app && cd yew-app
@@ -20,7 +20,7 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-yew = "0.16"
+yew = "0.17"
 wasm-bindgen = "0.2"
 ```
 {% endcode %}
@@ -82,10 +82,7 @@ pub fn run_app() {
 ```
 {% endcode %}
 
-This template sets up your root `Component`, called `Model` which shows a button that updates itself when you click it. 
-Take special note of `App::<Model>::new().mount_to_body()` inside `main()` which starts your app and mounts it to the 
-page's `<body>` tag. If you would like to start your application with any dynamic properties, you can instead use 
-`App::<Model>::new().mount_to_body_with_props(..)`.
+This template sets up your root `Component`, called `Model` which shows a button that updates itself when you click it. Take special note of `App::<Model>::new().mount_to_body()` inside `main()` which starts your app and mounts it to the page's `<body>` tag. If you would like to start your application with any dynamic properties, you can instead use `App::<Model>::new().mount_to_body_with_props(..)`.
 
 Finally, add an `index.html` file into a new folder named `static` in your app.
 
@@ -112,16 +109,13 @@ mkdir static
 
 ## Run your App!
 
-Using [`wasm-pack`](https://rustwasm.github.io/docs/wasm-pack/) is the preferred way to get up and 
-running. If you haven't already, install `wasm-pack` with `cargo install wasm-pack` and then build 
-and start a development server by running:
+Using [`wasm-pack`](https://rustwasm.github.io/docs/wasm-pack/) is the preferred way to get up and running. If you haven't already, install `wasm-pack` with `cargo install wasm-pack` and then build and start a development server by running:
 
 ```bash
 wasm-pack build --target web --out-name wasm --out-dir ./static
 ```
 
-`wasm-pack` generates a bundle in the `./static` directory with your app's compiled WebAssembly along 
-with a JavaScript wrapper which will load your application's WebAssembly binary and run it.
+`wasm-pack` generates a bundle in the `./static` directory with your app's compiled WebAssembly along with a JavaScript wrapper which will load your application's WebAssembly binary and run it.
 
 Then, use your favorite web server to server the files under `./static`. For example:
 

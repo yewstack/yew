@@ -2,13 +2,11 @@
 
 ## Panics
 
-Please use the [`console_error_panic`](https://github.com/rustwasm/console_error_panic_hook) crate for nicer stacktraces
- with Rust symbols. Note, that it is not compatible with apps built with `cargo-web`.
+Please use the [`console_error_panic`](https://github.com/rustwasm/console_error_panic_hook) crate for nicer stacktraces with Rust symbols. Note, that it is not compatible with apps built with `cargo-web`.
 
 ## Console Logging
 
-In general, Wasm web apps are able to interact with Browser APIs, and the `console.log` api is no exception. There are 
-a few options available:
+In general, Wasm web apps are able to interact with Browser APIs, and the `console.log` api is no exception. There are a few options available:
 
 ### [`wasm-logger`](https://crates.io/crates/wasm-logger)
 
@@ -35,8 +33,7 @@ ConsoleService::new()::info(format!("Update: {:?}", msg));
 
 ## Source Maps
 
-There is currently no first-class support for source maps for Rust / Wasm web apps. This, of course, is subject to 
-change. If this is no longer true or if progress is made, please suggest a change!
+There is currently no first-class support for source maps for Rust / Wasm web apps. This, of course, is subject to change. If this is no longer true or if progress is made, please suggest a change!
 
 ### Latest Info
 
@@ -51,3 +48,4 @@ change. If this is no longer true or if progress is made, please suggest a chang
 \[2019\] [Rust Wasm roadmap](https://rustwasm.github.io/rfcs/007-2019-roadmap.html#debugging)
 
 > Debugging is tricky because much of the story is out of this working group's hands, and depends on both the WebAssembly standardization bodies and the folks implementing browser developer tools instead.
+
