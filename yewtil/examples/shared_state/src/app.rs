@@ -9,7 +9,7 @@ pub struct User {
 
 #[derive(Clone, Default)]
 pub struct AppState {
-    pub user: Option<User>,
+    pub user: User,
 }
 
 pub struct App;
@@ -26,19 +26,19 @@ impl Component for App {
         false
     }
 
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        false
+    }
+
     fn view(&self) -> Html {
         html! {
             <>
                 <display::Display />
-                // State-managed components can be anywhere!
+                // Components can share state from anywhere!
                 <div>
-                    <input::Input />
+                    <input::Input max_len = 60/>
                 </div>
             </>
         }
-    }
-
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
     }
 }

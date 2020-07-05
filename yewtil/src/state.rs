@@ -2,13 +2,58 @@ use std::collections::HashSet;
 use std::rc::Rc;
 
 use yew::{
-    html, worker::*, Callback, Children, Component, ComponentLink, Html, Properties, ShouldRender,
+    html,
+    worker::{Agent, AgentLink, Bridge, Bridged, Context, HandlerId},
+    Callback, Component, ComponentLink, Html, Properties, ShouldRender,
 };
 
-type Setter<STATE> = Box<dyn FnOnce(&mut STATE)>;
+type Reduction<STATE> = Box<dyn FnOnce(&mut STATE)>;
+
+/// Interface for implementing properties with shared state.
+pub trait SharedState {
+    type State: Clone + Default;
+    fn shared_state(&mut self) -> &mut Shared<Self::State>;
+}
+
+/// Wrapper for accessing shared state.
+#[derive(Default, Properties, Clone, PartialEq)]
+pub struct Shared<STATE>
+where
+    STATE: Clone + Default,
+{
+    #[prop_or_default]
+    state: Rc<STATE>,
+    #[prop_or_default]
+    cb_reduce: Callback<Reduction<STATE>>,
+}
+
+impl<STATE> Shared<STATE>
+where
+    STATE: Clone + Default,
+{
+    /// Apply changes to state.
+    pub fn reduce(&self, reduce: impl FnOnce(&mut STATE) + 'static) {
+        self.cb_reduce.emit(Box::new(reduce))
+    }
+
+    pub fn get(&self) -> &Rc<STATE> {
+        &self.state
+    }
+}
+
+impl<STATE> SharedState for Shared<STATE>
+where
+    STATE: Clone + Default,
+{
+    type State = STATE;
+
+    fn shared_state(&mut self) -> &mut Shared<Self::State> {
+        self
+    }
+}
 
 enum Request<STATE> {
-    SetState(Setter<STATE>),
+    Apply(Reduction<STATE>),
     Subscribe,
     UnSubscribe,
 }
@@ -21,9 +66,9 @@ struct SharedStateService<STATE>
 where
     STATE: Clone + Default + 'static,
 {
-    link: AgentLink<SharedStateService<STATE>>,
     state: Rc<STATE>,
     subscriptions: HashSet<HandlerId>,
+    link: AgentLink<SharedStateService<STATE>>,
 }
 
 impl<STATE> Agent for SharedStateService<STATE>
@@ -47,8 +92,8 @@ where
 
     fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
         match msg {
-            Request::SetState(setter) => {
-                self.set_state(setter);
+            Request::Apply(reduce) => {
+                self.apply(reduce);
                 // Will be notified if subscribed, only send here if it isn't.
                 if !self.subscriptions.contains(&who) {
                     self.link.respond(who, Response::State(self.state.clone()));
@@ -69,71 +114,70 @@ impl<STATE> SharedStateService<STATE>
 where
     STATE: Default + Clone,
 {
-    fn set_state(&mut self, setter: impl FnOnce(&mut STATE)) {
-        setter(Rc::make_mut(&mut self.state));
-        for who in self.subscriptions.iter() {
-            self.link
-                .respond(who.clone(), Response::State(self.state.clone()));
+    fn apply(&mut self, reduce: impl FnOnce(&mut STATE)) {
+        reduce(Rc::make_mut(&mut self.state));
+        for who in self.subscriptions.iter().cloned() {
+            self.link.respond(who, Response::State(self.state.clone()));
         }
     }
 }
 
 /// Provides shared state to isolated components.
-pub struct SharedState<STATE, COMP>
+pub struct SharedStateComponent<STATE, COMP, PROPS>
 where
-    COMP: Component<Properties = Shared<STATE>>,
+    COMP: Component<Properties = PROPS>,
     STATE: Default + Clone + 'static,
+    PROPS: Properties + SharedState<State = STATE>,
 {
+    props: PROPS,
     state: Rc<STATE>,
-    state_service: Box<dyn Bridge<SharedStateService<STATE>>>,
-    callback_setter: Callback<Setter<STATE>>,
-    props: SharedStateProps,
+    cb_reduce: Callback<Reduction<STATE>>,
+    bridge: Box<dyn Bridge<SharedStateService<STATE>>>,
     _mark: std::marker::PhantomData<COMP>,
 }
 
-pub enum SharedStateMsg<STATE> {
-    /// Recieve new local state. IMPORTANT: Changes will **not** be reflected in shared state.
-    SetStateLocal(Rc<STATE>),
+pub enum SharedStateComponentMsg<STATE> {
+    /// Recieve new local state.
+    /// IMPORTANT: Changes will **not** be reflected in shared state.
+    SetLocalState(Rc<STATE>),
     /// Update shared state.
-    SetState(Setter<STATE>),
+    Apply(Reduction<STATE>),
 }
 
-#[derive(Properties, Clone)]
-pub struct SharedStateProps {
-    #[prop_or_default]
-    children: Children,
-}
-
-impl<STATE, COMP> Component for SharedState<STATE, COMP>
+impl<STATE, COMP, PROPS> Component for SharedStateComponent<STATE, COMP, PROPS>
 where
-    COMP: Component<Properties = Shared<STATE>>,
+    COMP: Component<Properties = PROPS>,
     STATE: Default + Clone,
+    PROPS: Properties + SharedState<State = STATE> + 'static,
 {
-    type Message = SharedStateMsg<STATE>;
-    type Properties = SharedStateProps;
+    type Message = SharedStateComponentMsg<STATE>;
+    type Properties = PROPS;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let mut state_service = SharedStateService::bridge(link.callback(|msg| match msg {
-            Response::State(state) => SharedStateMsg::SetStateLocal(state),
-        }));
-        state_service.send(Request::Subscribe);
+        use SharedStateComponentMsg::*;
 
-        SharedState {
+        let mut bridge = SharedStateService::bridge(link.callback(|msg| match msg {
+            Response::State(state) => SetLocalState(state),
+        }));
+        bridge.send(Request::Subscribe);
+
+        SharedStateComponent {
             props,
-            state_service,
+            bridge,
             state: Default::default(),
-            callback_setter: link.callback(|setter| SharedStateMsg::SetState(setter)),
+            cb_reduce: link.callback(|reduce| Apply(reduce)),
             _mark: Default::default(),
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        use SharedStateComponentMsg::*;
         match msg {
-            SharedStateMsg::SetState(setter) => {
-                self.state_service.send(Request::SetState(setter));
+            Apply(reduce) => {
+                self.bridge.send(Request::Apply(reduce));
                 false
             }
-            SharedStateMsg::SetStateLocal(state) => {
+            SetLocalState(state) => {
                 self.state = state;
                 true
             }
@@ -145,46 +189,24 @@ where
     }
 
     fn view(&self) -> Html {
-        let props = Shared {
-            state: self.state.clone(),
-            callback_setter: self.callback_setter.clone(),
-            children: self.props.children.clone(),
-        };
+        let mut props = self.props.clone();
+        let local = props.shared_state();
+        local.state = self.state.clone();
+        local.cb_reduce = self.cb_reduce.clone();
+
         html! {
             <COMP with props />
         }
     }
 }
 
-impl<STATE, COMP> std::ops::Drop for SharedState<STATE, COMP>
+impl<STATE, COMP, PROPS> std::ops::Drop for SharedStateComponent<STATE, COMP, PROPS>
 where
-    COMP: Component<Properties = Shared<STATE>>,
+    COMP: Component<Properties = PROPS>,
     STATE: Clone + Default,
+    PROPS: Properties + SharedState<State = STATE>,
 {
     fn drop(&mut self) {
-        self.state_service.send(Request::UnSubscribe);
-    }
-}
-
-#[derive(Default, Properties, Clone, PartialEq)]
-pub struct Shared<STATE>
-where
-    STATE: Clone,
-{
-    state: Rc<STATE>,
-    callback_setter: Callback<Setter<STATE>>,
-    pub children: Children,
-}
-
-impl<STATE> Shared<STATE>
-where
-    STATE: Clone,
-{
-    pub fn set_with(&self, setter: impl FnOnce(&mut STATE) + 'static) {
-        self.callback_setter.emit(Box::new(setter))
-    }
-
-    pub fn get(&self) -> Rc<STATE> {
-        self.state.clone()
+        self.bridge.send(Request::UnSubscribe);
     }
 }

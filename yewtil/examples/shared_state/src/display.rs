@@ -1,5 +1,5 @@
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
-use yewtil::state::{Shared, SharedState};
+use yewtil::state::{Shared, SharedStateComponent};
 
 use crate::app::AppState;
 
@@ -29,21 +29,17 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
-        self.state
-            .get()
-            .user
-            .as_ref()
-            .map(|user| {
-                html! {
-                    <p>{ format!("Hi {}", user.name) }</p>
-                }
-            })
-            .unwrap_or_else(|| {
-                html! {
-                    <p>{"Please enter your name"}</p>
-                }
-            })
+        let name = &self.state.get().user.name;
+        let name = if name.is_empty() {
+            "Stranger".to_string()
+        } else {
+            name.clone()
+        };
+
+        html! {
+            <p>{ format!("Hello, {}!", name) }</p>
+        }
     }
 }
 
-pub type Display = SharedState<AppState, Model>;
+pub type Display = SharedStateComponent<AppState, Model, Shared<AppState>>;
