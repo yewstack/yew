@@ -63,14 +63,13 @@ impl Component for Container {
 ```
 {% endcode %}
 
-{% hint style="info" %} Types for which you derive `Properties` must also implement `Clone`. This can be done by either using `#[derive(Properties, Clone)]` or manually implementing `Clone` for your type. {% endhint %}
+{% hint style="info" %}
+Types for which you derive `Properties` must also implement `Clone`. This can be done by either using `#[derive(Properties, Clone)]` or manually implementing `Clone` for your type.
+{% endhint %}
 
 ## Nested Children with Props
 
-Nested component properties can be accessed and mutated if the containing component types its children.
-In the following example, the `List` component can wrap `ListItem` components. For a real world example
-of this pattern, check out the `yew-router` source code. For a more advanced example, check out the 
-`nested-list` example in the main yew repository.
+Nested component properties can be accessed and mutated if the containing component types its children. In the following example, the `List` component can wrap `ListItem` components. For a real world example of this pattern, check out the `yew-router` source code. For a more advanced example, check out the `nested-list` example in the main yew repository.
 
 {% code title="parent.rs" %}
 ```rust
@@ -109,3 +108,4 @@ impl Component for List {
 }
 ```
 {% endcode %}
+
