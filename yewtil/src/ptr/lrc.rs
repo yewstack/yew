@@ -716,6 +716,7 @@ mod test {
         assert_eq!(lrc.as_ref(), &25)
     }
 
+    #[allow(clippy::redundant_clone)]
     #[test]
     fn clone_lrc() {
         let lrc = Lrc::new(25);
