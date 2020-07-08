@@ -31,7 +31,7 @@
 
 ## Advanced Topics
 
-* [Optimizations & Best Practices](advanced-topics/optimizations.md)
+* [Optimisations & Best Practices](advanced-topics/optimizations.md)
 * [Low-level library internals](advanced-topics/how-it-works.md)
 
 ## More

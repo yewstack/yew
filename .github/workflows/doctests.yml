@@ -1,4 +1,4 @@
-name: Doctests
+name: Documentation tests
 on:
   push:
     paths:
@@ -18,4 +18,10 @@ jobs:
           toolchain: stable
           target: wasm32-unknown-unknown
       - name: Run tests
-        run: cargo test
+        run: cd docs && cargo test
+  check-spelling:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check spelling
+        run: bash ci/spellcheck.sh list

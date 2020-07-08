@@ -4,9 +4,16 @@ description: Yew's Actor System
 
 # Agents
 
-Agents are similar to Angular's [Services](https://angular.io/guide/architecture-services) \(but without dependency injection\), and provide a Yew with an [Actor Model](https://en.wikipedia.org/wiki/Actor_model). Agents can be used to route messages between components independently of where they sit in the component hierarchy, or they can be used to create a shared state, and they can also be used to offload computationally expensive tasks from the main thread which renders the UI. There is also planned support for using agents to allow Yew applications to communicate across tabs \(in the future\).
+Agents are similar to Angular's [Services](https://angular.io/guide/architecture-services) 
+\(but without dependency injection\), and provide a Yew with an 
+[Actor Model](https://en.wikipedia.org/wiki/Actor_model). Agents can be used to route messages 
+between components independently of where they sit in the component hierarchy, or they can be used 
+to create a shared state, and they can also be used to offload computationally expensive tasks from 
+the main thread which renders the UI. There is also planned support for using agents to allow Yew 
+applications to communicate across tabs \(in the future\).
 
-In order for agents to run concurrently, Yew uses [web-workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers).
+In order for agents to run concurrently, Yew uses 
+[web-workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers).
 
 ## Lifecycle
 
@@ -38,15 +45,21 @@ In order for agents to run concurrently, Yew uses [web-workers](https://develope
 
 ### Bridges
 
-A bridge allows bi-directional communication between an agent and a component. Bridges also allow agents to communicate with one another.
+A bridge allows bi-directional communication between an agent and a component. Bridges also allow 
+agents to communicate with one another.
 
 ### Dispatchers
 
-A dispatcher allows uni-directional communication between a component and an agent. A dispatcher allows a component to send messages to an agent.
+A dispatcher allows uni-directional communication between a component and an agent. A dispatcher 
+allows a component to send messages to an agent.
 
 ## Overhead
 
-Agents that live in their own separate web worker \(Private and Public\) incur serialization overhead on the messages they send and receive. They use [bincode](https://github.com/servo/bincode) to communicate with other threads, so the cost is substantially higher than just calling a function. Unless the cost of computation will outweigh the cost of message passing, you should contain your logic in the UI thread agents \(Job or Context\).
+Agents that live in their own separate web worker \(Private and Public\) incur serialization 
+overhead on the messages they send and receive. They use [bincode](https://github.com/servo/bincode) 
+to communicate with other threads, so the cost is substantially higher than just calling a function. 
+Unless the cost of computation will outweigh the cost of message passing, you should contain your 
+logic in the UI thread agents \(Job or Context\).
 
 ## Further reading
 
