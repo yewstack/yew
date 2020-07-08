@@ -198,7 +198,7 @@ mod test {
     fn isize_build_route() {
         let mut route = "/".to_string();
         let mut _state: Option<String> = None;
-        _state = _state.or((-432isize).build_route_section(&mut route));
+        _state = _state.or_else(|| (-432isize).build_route_section(&mut route));
         assert_eq!(route, "/-432".to_string());
     }
 
