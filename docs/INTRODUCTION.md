@@ -1,4 +1,7 @@
-# Introduction
+---
+id: intro
+title: Introduction
+---
 
 ## What is Yew?
 
@@ -11,10 +14,8 @@
 ### Join Us 😊
 
 * You can report bugs and discuss features on the [GitHub issues page](https://github.com/yewstack/yew/issues)
-* We ❤️pull requests. Check out [good first issues](https://github.com/yewstack/yew/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) if you'd like to help out!
+* We love pull requests. Check out [good first issues](https://github.com/yewstack/yew/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) if you'd like to help out!
 * Our [Discord chat](https://discord.gg/VQck8X4) is very active and is a great place to ask questions
-
-![Our community is thriving!](https://img.shields.io/github/stars/yewstack/yew?color=009A5B&label=Github%20stars)
 
 ### Ready to dive in?
 
@@ -22,11 +23,11 @@ Click the link below to learn how to build your first Yew app and learn from com
 
 {% page-ref page="getting-started/project-setup/" %}
 
-### **Still not convinced?**
+### Still not convinced?
 
 This project is built on cutting edge technology and is great for developers who like to develop the foundational projects of tomorrow. Here are some reasons why we believe that frameworks like Yew are the future of web development.
 
-#### **Wait, why WebAssembly?**
+#### Wait, why WebAssembly?
 
 WebAssembly _\(Wasm\)_ is a portable low-level language that Rust can compile into. It runs at native speeds in the browser and is interoperable with JavaScript and supported in all major browsers. For ideas on how to get the most out of WebAssembly for your app, check out this list of [Use Cases](https://webassembly.org/docs/use-cases/).
 
