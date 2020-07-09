@@ -12,13 +12,8 @@ use js_sys::Uint8Array;
 use std::cmp;
 
 impl ReaderService {
-    /// Creates a new service instance connected to `App` by provided `sender`.
-    pub fn new() -> Self {
-        Self {}
-    }
-
     /// Reads all bytes from a file and returns them with a callback.
-    pub fn read_file(&mut self, file: File, callback: Callback<FileData>) -> Result<ReaderTask> {
+    pub fn read_file(file: File, callback: Callback<FileData>) -> Result<ReaderTask> {
         let file_reader = FileReader::new().map_err(|_| anyhow!("couldn't acquire file reader"))?;
         let reader = file_reader.clone();
         let name = file.name();
@@ -42,7 +37,6 @@ impl ReaderService {
 
     /// Reads data chunks from a file and returns them with a callback.
     pub fn read_file_by_chunks(
-        &mut self,
         file: File,
         callback: Callback<Option<FileChunk>>,
         chunk_size: usize,
