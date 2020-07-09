@@ -57,13 +57,8 @@ impl WindowDimensions {
 }
 
 impl ResizeService {
-    /// Creates a new ResizeService.
-    pub fn new() -> ResizeService {
-        ResizeService {}
-    }
-
     /// Register a callback that will be called when the browser window resizes.
-    pub fn register(&mut self, callback: Callback<WindowDimensions>) -> ResizeTask {
+    pub fn register(callback: Callback<WindowDimensions>) -> ResizeTask {
         let callback =
             move |#[cfg(feature = "web_sys")] _event: &Event,
                   #[cfg(feature = "std_web")] _event: ResizeEvent| {
