@@ -29,7 +29,7 @@ const siteConfig = {
     {href: 'https://github.com/yewstack/yew/releases', label: 'Changelog'},
     {href: 'https://docs.rs/yew', label: 'API'},
     {href: 'https://discord.gg/VQck8X4', label: 'Discord'},
-    {search: true},
+    // {search: true}, Need to setup algolia
     {languages: true},
   ],
 
