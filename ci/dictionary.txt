@@ -50,8 +50,10 @@ enums
 favor
 html
 impl
+init
 interoperability
 interoperable
+INIT
 libs
 lifecycle
 memoized
@@ -75,9 +77,12 @@ structs
 thead
 tbody
 toml
+TryFrom
 unboxed
+usize
 vdom
 Vec
 VecDeque
 wasm
+WeeAlloc
 yewtil
