@@ -41,10 +41,8 @@ Rust also helps developers write safer code with its rich type system and owners
 
 #### Alternatives?
 
-We love to share ideas with other projects and believe we can all help each other reach the full potential of this exciting new technology. If you're not into Yew, you may like the following projects \(listed alphabetically\)
+We love to share ideas with other projects and believe we can all help each other reach the full potential of this exciting new technology. If you're not into Yew, you may like the following projects.
 
-* [Draco](https://github.com/utkarshkukreti/draco) - _"A Rust library for building client side web applications with Web Assembly"_
 * [Percy](https://github.com/chinedufn/percy) - _"A modular toolkit for building isomorphic web apps with Rust + WebAssembly"_
 * [Seed](https://github.com/seed-rs/seed) - _"A Rust framework for creating web apps"_
-* [Smithy](https://github.com/rbalicki2/smithy) - _"A framework for building WebAssembly apps in Rust"_
 
