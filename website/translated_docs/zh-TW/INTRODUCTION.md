@@ -1,4 +1,6 @@
-# 簡介
+---
+id: intro
+---
 
 ## 什麼是 Yew？
 
@@ -13,8 +15,6 @@
 * 你可以在 [GitHub issues page](https://github.com/yewstack/yew/issues) 回報 bugs 及針對功能進行討論
 * 我們歡迎大家多發 PR \(pull request\)。 如果你有興趣與我們一起開發，別忘了先閱讀 [good first issues](https://github.com/yewstack/yew/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) ！
 * 我們 [Gitter](https://gitter.im/yewframework/Lobby) 聊天室非常活躍，歡迎提問
-
-![&#x6211;&#x5011;&#x793E;&#x7FA4;&#x6B63;&#x5728;&#x84EC;&#x52C3;&#x767C;&#x5C55;&#xFF01;](https://img.shields.io/github/stars/yewstack/yew?color=009A5B&label=Github%20stars)
 
 ### 準備好「潛」入了嗎？
 
@@ -40,12 +40,7 @@ Rust 豐富的型別系統及所有權模型協助開發者撰寫更加安全的
 
 #### 有其他選擇嗎？
 
-我們喜愛跟其他專案分享點子而且相信在互相幫助之下可以激發這個最新科技的全部潛能。如果你不是 Yew 的一份子，那你或許會想要關注這些專案（以字母排序）
+我們喜愛跟其他專案分享點子而且相信在互相幫助之下可以激發這個最新科技的全部潛能。如果你不是 Yew 的一份子，那你或許會想要關注這些專案。
 
-1. [Draco](https://github.com/utkarshkukreti/draco) ——「結合 Web Assembly 並用於建立用戶端網路應用程式的 Rust 函式庫
-2. [Percy](https://github.com/chinedufn/percy) ——「_Rust + WebAssembly 的模組化工具組，用於建立同購的網路應用程式」_
-3. \_\_[_Seed_](https://github.com/seed-rs/seed) _——「建立網路應用程式的 Rust 框架」_
-4. \_\_[_Smithy_](https://github.com/rbalicki2/smithy) _——「建立 WebAssembly 應用程式的 Rust 框架」_
-
-
-
+* [Percy](https://github.com/chinedufn/percy) —_「 Rust + WebAssembly 的模組化工具組，用於建立同購的網路應用程式」_
+* [Seed](https://github.com/seed-rs/seed) —_「建立網路應用程式的 Rust 框架」_
