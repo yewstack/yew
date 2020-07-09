@@ -10,6 +10,7 @@
 //! * "lrc" - Linked-list Rc pointer.
 //! * "history" - History tracker
 //! * "store" - Global state with easy binding
+//! * "state" - Ergonomic shared state between components
 // //! * "dsl" - Use functions instead of Yew's `html!` macro.
 
 #[cfg(feature = "neq")]
@@ -53,4 +54,5 @@ pub mod future;
 #[cfg(feature = "store")]
 pub mod store;
 
+#[cfg(feature = "state")]
 pub mod state;
