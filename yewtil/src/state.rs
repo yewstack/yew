@@ -225,7 +225,7 @@ where
             props,
             bridge,
             state: Default::default(),
-            cb_reduce: link.callback(|reduce| Apply(reduce)),
+            cb_reduce: link.callback(Apply),
         }
     }
 
