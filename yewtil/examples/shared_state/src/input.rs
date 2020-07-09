@@ -71,4 +71,4 @@ impl Component for Model {
     }
 }
 
-pub type Input = SharedStateComponent<AppState, Model>;
+pub type Input = SharedStateComponent<Model>;
