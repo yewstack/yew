@@ -2,7 +2,7 @@
 
 * [簡介](README.md)
 
-## 從零開始 <a id="getting-started"></a>
+## 從零開始
 
 * [專案設定](getting-started/project-setup/README.md)
   * [使用 wasm-pack](getting-started/project-setup/using-wasm-pack.md)
@@ -20,7 +20,7 @@
   * [Elements](concepts/html/elements.md)
   * [Literals & Expressions](concepts/html/literals-and-expressions.md)
   * [Components](concepts/html/components.md)
-* [元件](concepts/components/README.md)
+* [Components](concepts/components/README.md)
   * [Properties](concepts/components/properties.md)
   * [Callbacks](concepts/components/callbacks.md)
   * [Refs](concepts/components/refs.md)
@@ -29,12 +29,12 @@
   * [Format](concepts/services/format.md)
 * [路由器](concepts/router.md)
 
-## 進階主題 <a id="advanced-topics"></a>
+## 進階主題
 
 * [優化與最佳實例](advanced-topics/optimizations.md)
 * [內部底層的 library](advanced-topics/how-it-works.md)
 
-## 更多 <a id="more"></a>
+## 更多
 
 * [CSS](more/css.md)
 * [Roadmap](more/roadmap.md)
