@@ -2,7 +2,7 @@
 
 * [简介](README.md)
 
-## 从零开始 <a id="getting-started"></a>
+## 从零开始
 
 * [项目设置](getting-started/project-setup/README.md)
   * [使用 wasm-pack](getting-started/project-setup/using-wasm-pack.md)
@@ -29,12 +29,12 @@
   * [Format](concepts/services/format.md)
 * [Router](concepts/router.md)
 
-## 高级主题 <a id="advanced-topics"></a>
+## 高级主题
 
 * [性能优化与最佳实践](advanced-topics/optimizations.md)
 * [底层库的内部细节](advanced-topics/how-it-works.md)
 
-## 更多 <a id="more"></a>
+## 更多
 
 * [CSS](more/css.md)
 * [路线图](more/roadmap.md)
