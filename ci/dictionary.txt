@@ -2,8 +2,14 @@ personal_ws-1.1 en 72 utf-8
 APIs
 AddOne
 Angular's
+Borrow
+BorrowMut
 ComponentLink
+Config
+ConsoleService
 DevTools
+Deref
+DerefMut
 ExampleProps
 Github
 HashMap
@@ -58,6 +64,7 @@ optimize
 optimizes
 proc
 roadmap
+rollup
 rustwasm
 serializing
 stacktraces
@@ -65,8 +72,12 @@ standardization
 stdweb
 struct
 structs
+thead
+tbody
 toml
 unboxed
 vdom
+Vec
+VecDeque
 wasm
 yewtil
