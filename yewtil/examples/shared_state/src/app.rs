@@ -7,7 +7,7 @@ pub struct User {
     pub name: String,
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, PartialEq, Default)]
 pub struct AppState {
     pub user: User,
 }

@@ -1,9 +1,10 @@
 use yew::{html, Component, ComponentLink, Html, InputData, Properties, ShouldRender};
 use yewtil::state::{Shared, SharedState, SharedStateComponent};
+use yewtil::NeqAssign;
 
 use crate::app::AppState;
 
-#[derive(Clone, Properties)]
+#[derive(Clone, Properties, PartialEq)]
 pub struct Props {
     #[prop_or_default]
     pub state: Shared<AppState>,
@@ -19,8 +20,7 @@ impl SharedState for Props {
 }
 
 pub enum Msg {
-    SetUser(String),
-    Clear,
+    SetName(String),
 }
 
 pub struct Model {
@@ -38,39 +38,34 @@ impl Component for Model {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::SetUser(name) => {
-                let name = if name.len() <= self.props.max_len {
-                    name
-                } else {
-                    "your name is too long".to_string()
-                };
-                self.props.state.reduce(move |state| state.user.name = name);
-                false
-            }
-            Msg::Clear => {
-                self.props
-                    .state
-                    .reduce(move |state| state.user.name.clear());
+            Msg::SetName(name) => {
+                self.props.state.reduce(|state| state.user.name = name);
                 false
             }
         }
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props.state.get().user != props.state.get().user {
-            self.props = props;
-            true
-        } else {
-            false
-        }
+        self.props.neq_assign(props)
     }
 
     fn view(&self) -> Html {
         let input_value = &self.props.state.get().user.name;
         html! {
             <>
-                <input type="text" value = input_value placeholder="Enter your name" oninput = self.link.callback(|data: InputData| Msg::SetUser(data.value)) />
-                <input type="button" value="Clear" onclick = self.link.callback(|_| Msg::Clear) />
+                <input
+                    type="text"
+                    value=input_value
+                    placeholder="Enter your name"
+                    // Using internal callback
+                    oninput = self.link.callback(|data: InputData| Msg::SetName(data.value))
+                    />
+                <input
+                    type="button"
+                    value="Clear"
+                    // Using provided callback
+                    onclick = self.props.state.reduce_callback(|_, state|  state.user.name.clear())
+                    />
             </>
         }
     }

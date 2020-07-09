@@ -1,5 +1,6 @@
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 use yewtil::state::{Shared, SharedStateComponent};
+use yewtil::NeqAssign;
 
 use crate::app::AppState;
 
@@ -20,12 +21,7 @@ impl Component for Model {
     }
 
     fn change(&mut self, state: Self::Properties) -> ShouldRender {
-        if self.state.get().user != state.get().user {
-            self.state = state;
-            true
-        } else {
-            false
-        }
+        self.state.neq_assign(state)
     }
 
     fn view(&self) -> Html {
