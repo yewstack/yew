@@ -6,7 +6,7 @@
 
 ## Running
 
-There are two ways to run, with Rust servers or with Python.
+To run the examples you'll need to spin up a web server; two possible ways of doing this are either using a Rust webserver or the built-in Python webserver (we suggest this because Python is installed by default on most systems).
 
 ### Running with Rust (warp / actix)
 Details on how to build and run these examples can be found in the `README.md` under `servers/`.
