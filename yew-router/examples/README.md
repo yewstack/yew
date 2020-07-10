@@ -14,5 +14,5 @@ Details on how to build and run these examples can be found in the `README.md` c
 Using the router in its expected use case (not fragment routing) requires that the server respond to requests for
 resources at URLs that are routes within the router with the index.html of the application.
 
-### Running with Python
+### Serving the files using Python
 In applicable directories, launch the `run.sh` shell script.
