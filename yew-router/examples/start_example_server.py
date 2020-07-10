@@ -40,7 +40,7 @@ def run(server_class=HTTPServer, handler_class=S, initial_url=''):
     logging.basicConfig(level=logging.INFO)
     server_address = ('', PORT)
     httpd = server_class(server_address, handler_class)
-    webbrowser.open(f"http://localhost:8080/{initial_url}")
+    webbrowser.open(f"http://localhost:{PORT}/{initial_url}")
     logging.info('Starting web server...\n')
     try:
         httpd.serve_forever()
