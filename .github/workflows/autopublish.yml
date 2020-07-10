@@ -4,8 +4,8 @@ on:
     branches:
       - master
     paths:
-        - "docs/**/*"
-        - "website/**/*"
+      - "docs/**/*"
+      - "website/**/*"
 
 jobs:
   publish_website:
