@@ -2,7 +2,7 @@ use actix_files::NamedFile;
 use actix_web::{get, middleware, web, App, Error, HttpResponse, HttpServer};
 
 // You will need to change this if you use this as a template for your application.
-const ASSETS_DIR: &str = "../../static";
+const ASSETS_DIR: &str = "../../_static";
 
 #[get("/api")]
 async fn api_404() -> HttpResponse {

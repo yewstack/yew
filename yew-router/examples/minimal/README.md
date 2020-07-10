@@ -1,5 +1,5 @@
 # Minimal Example
-Run with `cargo web start`.
+Run with `./run.sh`.
 
 This example shows how to use this library with only the "service" feature turned on.
 Without most of the features, you lack the `Router` component and `RouteAgent` and its associated bridges and dispatchers.
