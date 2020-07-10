@@ -1,11 +1,7 @@
 name: Publish website
 on:
   push:
-    branches:
-      - master
-    paths:
-      - "docs/**/*"
-      - "website/**/*"
+  pull_request:
 
 jobs:
   publish_website:
