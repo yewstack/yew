@@ -156,8 +156,8 @@ increasingly useful as your codebase gets larger and more people work on it.
 ## What is a virtual DOM?
 
 The DOM ("document object model") provides a representation of the HTML content on a web page in a
-way that programs can understand. Here "object" is a reference to Javascript, where every variable
-is an "object" (this isn't the case in Rust).
+way that programs can understand. "Object" is about representing the DOM as "objects" so that a web
+page can be modified by a programming language.
 
 A while ago, a development team at Facebook encountered a problem. Before frameworks like React
 existed, everyone built web applications by directly manipulating the DOM. This was error prone and

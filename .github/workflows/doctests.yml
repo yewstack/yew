@@ -2,11 +2,11 @@ name: Documentation tests
 on:
   push:
     paths:
-      - "./**/*.md"
+      - "docs/**/*"
       - "./ci/dictionary.txt"
   pull_request:
     paths:
-      - "./**/*.md"
+      - "docs/**/*"
       - "./ci/dictionary.txt"
 
 jobs:
