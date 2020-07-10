@@ -5,4 +5,4 @@ authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-yew-router = { path = "../..", default-features = false, features = ["web_sys"] }
+yew-router = { path = "../..", features = ["web_sys"], default-features = false }
