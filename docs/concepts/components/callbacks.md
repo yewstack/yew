@@ -1,5 +1,5 @@
 ---
-description: ComponentLink and Callbacks.
+description: ComponentLink and Callbacks
 ---
 
 # Callbacks

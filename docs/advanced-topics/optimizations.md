@@ -1,5 +1,5 @@
 ---
-description: Make your app faster.
+description: Make your app faster
 ---
 
 # Optimizations & Best Practices
@@ -48,7 +48,7 @@ For code readability reasons, it often makes sense to migrate sections of `html!
 
 ## Pure Components/Function Components
 
-Pure components are components that don't mutate their state, only displaying content and propagating messages up to normal, mutable components. They differ from view functions in that they can be used from within the `html!` macro using the component syntax \(`<SomePureComponent />`\) instead of expression syntax \(`{some_view_function()}`\), and that depending on their implementation, they can be memoized - preventing re-renders for identical props using aforementioned `neq_assign` logic.
+Pure components are components that don't mutate their state, only displaying content and propagating messages up to normal, mutable components. They differ from view functions in that they can be used from within the `html!` macro using the component syntax \(`<SomePureComponent />`\) instead of expression syntax \(`{some_view_function()}`\), and that depending on their implementation, they can be memoized - preventing re-renders for identical props using the aforementioned `neq_assign` logic.
 
 Yew doesn't natively support pure or function components, but they are available via external crates.
 
@@ -58,7 +58,7 @@ Function components don't exist yet, but in theory, pure components could be gen
 
 ## Compile speed optimizations using Cargo Workspaces
 
-Arguably, the largest drawback to using Yew is the long time it takes to compile. Compile time seems to correlate with the quantity of code found within `html!` macro blocks. This tends to not be a significant problem for smaller projects, but for web apps that span multiple pages, it makes sense to break apart your code across multiple crates to minimize the amount of work the compiler has to do.
+Arguably, the largest drawback to using Yew is the long time it takes to compile. Compile time seems to correlate with the quantity of code found within `html!` macro blocks. This tends to not be a significant problem for smaller projects, but for web apps that span multiple pages, it makes sense to break apart your code across multiple crates to minimize the amount of work the compiler has to do for each change made.
 
 You should try to make your main crate handle routing/page selection, move all commonly shared code to another crate, and then make a different crate for each page, where each page could be a different component, or just a big function that produces `Html`. In the best case scenario, you go from rebuilding all of your code on each compile to rebuilding only the main crate, and one of your page crates. In the worst case, where you edit something in the "common" crate, you will be right back to where you started: compiling all code that depends on that commonly shared crate, which is probably everything else.
 
@@ -122,7 +122,7 @@ wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 
 #### Build size of 'minimal' example in yew/examples/
 
-Note: `wasm-pack` combines optimization for Rust and wasm code. `wasm-bindgen` is in this example without any `Rust` size optimization.
+Note: `wasm-pack` combines optimization for Rust and Wasm code. `wasm-bindgen` is used in this example without any Rust size optimization.
 
 | used tool | size |
 | :--- | :--- |

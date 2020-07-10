@@ -16,7 +16,7 @@ Types for which you derive `Properties` must also implement `Clone`. This can be
 
 ### Required attributes
 
-The fields within a struct that derives `Properties` are required by default. When a field is missing and the component is created in the `html!` macro, a compiler error is returned. For fields with optional properties, use the `#[prop_or_default]` attribute to use the default value for that type when the prop is not specified. To specify a value, use the `#[prop_or_else(value)]` attribute where value is the default value for the property. For example, to default a boolean value as `true`, use the attribute `#[prop_or_else(true)]`. It is common for optional properties to use the `Option` enum which has the default value `None`.
+The fields within a struct that derives `Properties` are required by default. When a field is missing and the component is created in the `html!` macro, a compiler error is returned. For fields with optional properties, use the `#[prop_or_default]` attribute to use the default value for that type when the prop is not specified. To specify a value, use the `#[prop_or(value)]` attribute where value is the default value for the property or alternatively use `#[prop_or_else(function)]` where `function` returns the default value. For example, to default a boolean value as `true`, use the attribute `#[prop_or(true)]`. It is common for optional properties to use the `Option` enum which has the default value `None`.
 
 ### PartialEq
 
