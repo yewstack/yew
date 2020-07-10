@@ -15,4 +15,4 @@ Using the router in its expected use case (not fragment routing) requires that t
 resources at URLs that are routes within the router with the index.html of the application.
 
 ### Serving the files using Python
-In applicable directories, launch the `run.sh` shell script.
+In applicable directories, run the `run.sh` shell script.
