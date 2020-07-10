@@ -35,7 +35,7 @@ aspell --version
 shopt -s nullglob
 
 dict_filename=./ci/dictionary.txt
-markdown_sources=(./docs/**/*.md)
+markdown_sources=(./**/*.md)
 mode="check"
 
 # aspell repeatedly modifies the personal dictionary for some reason,

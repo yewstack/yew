@@ -68,12 +68,9 @@ impl
 init
 interoperability
 interoperable
-<<<<<<< HEAD
 INIT
-lang
-=======
 Javascript
->>>>>>> 25d08b9... Update dictionary.
+lang
 libs
 lifecycle
 memoized

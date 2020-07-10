@@ -2,10 +2,12 @@ name: Documentation tests
 on:
   push:
     paths:
-      - "docs/**/*"
+      - "./**/*.md"
+      - "./ci/dictionary.txt"
   pull_request:
     paths:
-      - "docs/**/*"
+      - "./**/*.md"
+      - "./ci/dictionary.txt"
 
 jobs:
   check-spelling:
