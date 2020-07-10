@@ -67,7 +67,7 @@ Yew  最大的缺點就是花太多時間在編譯上了。編譯時間似乎和
 ## 編譯大小的優化 <a id="build-size-optimization"></a>
 
 * 優化 Rust 的程式碼
-  * `wee_aloc` （使用輕量的分配器）
+  * `wee_alloc` （使用輕量的分配器）
   * `cargo.toml` （定義釋出的設定檔）
 * 使用 `wasm-opt` 優化 wasm 程式碼
 
