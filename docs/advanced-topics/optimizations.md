@@ -111,7 +111,8 @@ Further more it is possible to optimize size of `wasm` code.
 
 wasm-opt info: [binaryen project](https://github.com/WebAssembly/binaryen)
 
-The Rust Wasm book features a section about reducing the size of WASM binaries: [Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
+The Rust Wasm book has a section about reducing the size of Wasm binaries: 
+[Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
 * using `wasm-pack` which by default optimizes `wasm` code in release builds
 * using `wasm-opt` directly on `wasm` files.
