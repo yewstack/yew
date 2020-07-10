@@ -6,7 +6,7 @@
 
 ## Style frameworks:
 
-Currently our community members are developing theses style frameworks:
+Currently our community members are developing these style frameworks:
 
 * [yew_styles](https://github.com/spielrs/yew_styles) - A styling framework for Yew without any Javascript dependencies
 * [yew-mdc](https://github.com/Follpvosten/yew-mdc) - MUI CSS Components.
