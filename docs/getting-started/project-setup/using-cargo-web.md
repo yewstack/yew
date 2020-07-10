@@ -8,19 +8,19 @@ Cargo web is a cargo subcommand for building client web apps. It makes building 
 cargo install cargo-web
 ```
 
-### Build
+## Build
 
 ```bash
 cargo web build
 ```
 
-### Run
+## Run
 
 ```bash
 cargo web start
 ```
 
-### Supported Targets
+## Supported Targets
 
 * `wasm32-unknown-unknown`
 * `wasm32-unknown-emscripten`

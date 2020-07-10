@@ -28,7 +28,7 @@ mod history;
 pub use history::History;
 
 #[cfg(feature = "neq")]
-pub use not_equal_assign::NeqAssign;
+pub use not_equal_assign::{NeqAssign, NeqAssignBy};
 
 #[deprecated]
 #[cfg(feature = "pure")]

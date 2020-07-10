@@ -1,5 +1,5 @@
 ---
-description: Yew's glue to browser APIs.
+description: Yew's glue to browser APIs
 ---
 
 # Services

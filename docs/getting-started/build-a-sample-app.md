@@ -1,12 +1,12 @@
 # Build a Sample App
 
-First create a new binary project:
+First create a new Rust library \(**important:** create a _library_, not a _binary_ by passing the `--lib` flag\):
 
 ```bash
-cargo new --bin yew-app && cd yew-app
+cargo new --lib yew-app && cd yew-app
 ```
 
-Add `yew` to your dependencies \(refer [here](https://docs.rs/yew) for the latest version\)
+Add `yew` and `wasm-bindgen` to your dependencies \(refer [here](https://docs.rs/yew) for the latest version\)
 
 {% code title="Cargo.toml" %}
 ```text
@@ -16,15 +16,20 @@ version = "0.1.0"
 authors = ["Yew App Developer <name@example.com>"]
 edition = "2018"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
-yew = { version = "0.15", package = "yew-stdweb" }
+yew = "0.17"
+wasm-bindgen = "0.2"
 ```
 {% endcode %}
 
-Copy the following template into your `src/main.rs` file:
+Copy the following template into your `src/lib.rs` file:
 
-{% code title="src/main.rs" %}
+{% code title="src/lib.rs" %}
 ```rust
+use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
 struct Model {
@@ -70,8 +75,8 @@ impl Component for Model {
     }
 }
 
-fn main() {
-    yew::initialize();
+#[wasm_bindgen(start)]
+pub fn run_app() {
     App::<Model>::new().mount_to_body();
 }
 ```
@@ -79,13 +84,43 @@ fn main() {
 
 This template sets up your root `Component`, called `Model` which shows a button that updates itself when you click it. Take special note of `App::<Model>::new().mount_to_body()` inside `main()` which starts your app and mounts it to the page's `<body>` tag. If you would like to start your application with any dynamic properties, you can instead use `App::<Model>::new().mount_to_body_with_props(..)`.
 
-## Run your App!
-
-Using [`cargo-web`](https://github.com/koute/cargo-web) is the quickest way to get up and running. If you haven't already, install the tool with `cargo install cargo-web` and then build and start a development server by running:
+Finally, add an `index.html` file into a new folder named `static` in your app.
 
 ```bash
-cargo web start
+mkdir static
 ```
 
-`cargo-web` will automatically add the `wasm32-unknown-unknown` target for you, build your app, and finally make it available at [http://\[::1\]:8000](http://[::1]:8000) by default. Consult `cargo web start --help` for other options.
+{% code title="index.html" %}
+```markup
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Yew Sample App</title>
+        <script type="module">
+            import init from "./wasm.js"
+            init()
+        </script>
+    </head>
+    <body></body>
+</html>
+```
+{% endcode %}
+
+## Run your App!
+
+Using [`wasm-pack`](https://rustwasm.github.io/docs/wasm-pack/) is the preferred way to get up and running. If you haven't already, install `wasm-pack` with `cargo install wasm-pack` and then build and start a development server by running:
+
+```bash
+wasm-pack build --target web --out-name wasm --out-dir ./static
+```
+
+`wasm-pack` generates a bundle in the `./static` directory with your app's compiled WebAssembly along with a JavaScript wrapper which will load your application's WebAssembly binary and run it.
+
+Then, use your favorite web server to server the files under `./static`. For example:
+
+```bash
+cargo +nightly install miniserve
+miniserve ./static --index index.html
+```
 
