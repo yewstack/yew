@@ -1,16 +1,20 @@
-personal_ws-1.1 en 72 utf-8
+personal_ws-1.1 en 88 utf-8
 APIs
 AddOne
 Angular's
 AppRoute
+blogPostNode
+blogposts
 Borrow
 BorrowMut
 ComponentLink
 Config
 ConsoleService
 DevTools
+DOMs
 Deref
 DerefMut
+DevTools
 ExampleProps
 Github
 HashMap
@@ -29,10 +33,14 @@ ShouldRender
 SomePureComponent
 TODO
 Todo
+TryFrom
+Vec
+VecDeque
 ViewPost
 ViewPosts
 WebAssembly
 Webpack
+WeeAlloc
 Workspaces
 alloc
 allocator
@@ -60,11 +68,16 @@ impl
 init
 interoperability
 interoperable
+<<<<<<< HEAD
 INIT
 lang
+=======
+Javascript
+>>>>>>> 25d08b9... Update dictionary.
 libs
 lifecycle
 memoized
+metaprogramming
 minimising
 minimize
 miniserve
@@ -85,15 +98,11 @@ standardization
 stdweb
 struct
 structs
-thead
 tbody
+thead
 toml
-TryFrom
 unboxed
 usize
 vdom
-Vec
-VecDeque
 wasm
-WeeAlloc
 yewtil

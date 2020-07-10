@@ -45,10 +45,10 @@ Some things that might appear strange in this code are:
 Yew package is referenced correctly.
 2. All the variable names are prefixed with `__` – this is to ensure that they don't conflict with
 other names you might have defined.
-3. Instead of `Vec::new()` we're using `::alloc::vec::Vec::new()` – because the allocator (that's
-a bit of code which allocates and de-allocates in the computer's memory) can be customised, it's
-important that we use the specified allocator if the default allocator isn't being use rather than
-using the default allocator even if it the user doensn't want to use the default allocator.
+3. Instead of `Vec::new()` we're using `::alloc::vec::Vec::new()` and ```std::vec::Vec::new()``` –
+this is to properly handle scopes (ensuring that everything lines up in the output of a macro with
+what you want it to can be a bit fiddly, but as a general rule everything is specified relative to
+the crate root of the where the macro is called).
 4. `<identifier as TraitName>` – this is just a way to make sure that we're using items from the
 correct trait (and not a different trait, if a different trait with the same item has been defined).
 
@@ -200,3 +200,7 @@ the items which differ between the real and virtual DOMs. This gave birth to the
 ## Yew's virtual DOM demystified
 
 *Contribute to the docs – explain how `yew::virtual_dom` works in depth*
+
+## Further reading
+* [More information about macros from the Rust Book](https://doc.rust-lang.org/stable/book/ch19-06-macros.html)
+* [The API documentation for `yew::virtual_dom`](https://docs.rs/yew/*/yew/virtual_dom/index.html)
