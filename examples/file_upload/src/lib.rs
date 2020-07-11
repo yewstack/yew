@@ -5,7 +5,6 @@ use yew::{html, ChangeData, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     link: ComponentLink<Model>,
-    reader: ReaderService,
     tasks: Vec<ReaderTask>,
     files: Vec<String>,
     by_chunks: bool,
@@ -26,7 +25,6 @@ impl Component for Model {
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Model {
-            reader: ReaderService::new(),
             link,
             tasks: vec![],
             files: vec![],
@@ -49,10 +47,10 @@ impl Component for Model {
                     let task = {
                         if chunks {
                             let callback = self.link.callback(Msg::Chunk);
-                            self.reader.read_file_by_chunks(file, callback, 10).unwrap()
+                            ReaderService::read_file_by_chunks(file, callback, 10).unwrap()
                         } else {
                             let callback = self.link.callback(Msg::Loaded);
-                            self.reader.read_file(file, callback).unwrap()
+                            ReaderService::read_file(file, callback).unwrap()
                         }
                     };
                     self.tasks.push(task);

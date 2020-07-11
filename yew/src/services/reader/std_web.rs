@@ -25,17 +25,8 @@ fn new_file_reader() -> Result<FileReader, &'static str> {
 }
 
 impl ReaderService {
-    /// Creates a new service instance connected to `App` by provided `sender`.
-    pub fn new() -> Self {
-        Self {}
-    }
-
     /// Reads all bytes from a file and returns them with a callback.
-    pub fn read_file(
-        &mut self,
-        file: File,
-        callback: Callback<FileData>,
-    ) -> Result<ReaderTask, &str> {
+    pub fn read_file(file: File, callback: Callback<FileData>) -> Result<ReaderTask, &'static str> {
         let file_reader = new_file_reader()?;
         let reader = file_reader.clone();
         let name = file.name();
@@ -59,11 +50,10 @@ impl ReaderService {
 
     /// Reads data chunks from a file and returns them with a callback.
     pub fn read_file_by_chunks(
-        &mut self,
         file: File,
         callback: Callback<Option<FileChunk>>,
         chunk_size: usize,
-    ) -> Result<ReaderTask, &str> {
+    ) -> Result<ReaderTask, &'static str> {
         let file_reader = new_file_reader()?;
         let name = file.name();
         let mut position = 0;
