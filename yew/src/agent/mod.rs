@@ -93,6 +93,12 @@ pub trait Bridge<AGN: Agent> {
     fn send(&mut self, msg: AGN::Input);
 }
 
+/// Type alias for the boxed [`Bridge`] returned by [`Agent::bridge`][`bridge`]
+///
+/// [`Bridge`]: ./trait.Bridge.html
+/// [`bridge`]: ./trait.Bridged.html#tymethod.bridge
+pub type DynBridge<AGN> = Box<dyn Bridge<AGN>>;
+
 /// This trait allows registering or getting the address of a worker.
 pub trait Bridged: Agent + Sized + 'static {
     /// Creates a messaging bridge between a worker and the component.
