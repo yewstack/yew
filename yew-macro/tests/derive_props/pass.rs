@@ -169,4 +169,20 @@ mod t9 {
     }
 }
 
+mod t10 {
+    use super::*;
+
+    // this test makes sure that Yew handles generic params with default values properly.
+
+    #[derive(Clone, Properties)]
+    pub struct Foo<S, M = S>
+    where
+        S: Clone,
+        M: Clone,
+    {
+        bar: S,
+        baz: M,
+    }
+}
+
 fn main() {}

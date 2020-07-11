@@ -8,7 +8,16 @@ use syn::{
 /// Alias for a comma-separated list of `GenericArgument`
 pub type GenericArguments = Punctuated<GenericArgument, Token![,]>;
 
-/// Converts `GenericParams` into `GenericArguments` and adds `type_ident` as a type arg
+/// Finds the index of the first generic param with a default value.
+fn first_default_param_position(generics: &Generics) -> Option<usize> {
+    generics.params.iter().position(|param| match param {
+        GenericParam::Type(param) => param.default.is_some(),
+        _ => false,
+    })
+}
+
+/// Converts `GenericParams` into `GenericArguments` and adds `type_ident` as a type arg.
+/// `type_ident` is added at the end of the existing type arguments which don't have a default value.
 pub fn to_arguments(generics: &Generics, type_ident: Ident) -> GenericArguments {
     let mut args: GenericArguments = Punctuated::new();
     args.extend(generics.params.iter().map(|param| match param {
@@ -18,16 +27,29 @@ pub fn to_arguments(generics: &Generics, type_ident: Ident) -> GenericArguments 
         }
         _ => unimplemented!("const params are not supported in the derive macro"),
     }));
-    args.push(new_generic_type_arg(type_ident));
+
+    let new_arg = new_generic_type_arg(type_ident);
+    if let Some(index) = first_default_param_position(generics) {
+        args.insert(index, new_arg);
+    } else {
+        args.push(new_arg);
+    }
+
     args
 }
 
 /// Adds a new bounded `GenericParam` to a `Generics`
+/// The new param is added after the existing ones without a default value.
 pub fn with_param_bounds(generics: &Generics, param_ident: Ident, param_bounds: Ident) -> Generics {
     let mut new_generics = generics.clone();
-    new_generics
-        .params
-        .push(new_param_bounds(param_ident, param_bounds));
+    let params = &mut new_generics.params;
+    let new_param = new_param_bounds(param_ident, param_bounds);
+    if let Some(index) = first_default_param_position(generics) {
+        params.insert(index, new_param);
+    } else {
+        params.push(new_param);
+    }
+
     new_generics
 }
 
