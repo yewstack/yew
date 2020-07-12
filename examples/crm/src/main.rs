@@ -3,8 +3,8 @@
 mod lib;
 use lib::Model;
 
-extern crate serde_derive;
 extern crate common;
+extern crate serde_derive;
 
 fn main() {
     yew::start_app::<Model>();
