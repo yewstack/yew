@@ -1,9 +1,9 @@
 #![recursion_limit = "256"]
 
-#[macro_use]
-extern crate serde_derive;
+extern crate common;
 
 use common::markdown;
+use serde::{Deserialize, Serialize};
 use yew::format::Json;
 use yew::services::storage::Area;
 use yew::services::{DialogService, StorageService};
