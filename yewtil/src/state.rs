@@ -1,74 +1,166 @@
 //! Globally shared state between (potentially) isolated components.
 //!
-//! Shared state is accomplished through a component wrapper [SharedStateComponent](struct.SharedStateComponent.html),
+//! GlobalHandle state is accomplished through a component wrapper [SharedStateComponent](struct.SharedStateComponent.html),
 //! which take any component who's properties implements [SharedState](trait.SharedState.html).
-//! Shared state can then be handled normally, like any other properties.
+//! GlobalHandle state can then be handled normally, like any other properties.
 use std::collections::HashSet;
 use std::rc::Rc;
 
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 use yew::{
+    format::Json,
     html,
+    services::{storage::Area, StorageService},
     worker::{Agent, AgentLink, Bridge, Bridged, Context, HandlerId},
-    Callback, Component, ComponentLink, Html, Properties, ShouldRender,
+    Callback, Children, Component, ComponentLink, Html, Properties, ShouldRender,
 };
 
-type Reduction<STATE> = Box<dyn FnOnce(&mut STATE)>;
+type Reduction<T> = Box<dyn FnOnce(&mut T)>;
 
-/// Defines the local [Shared](struct.Shared.html) member to be managed by a [SharedStateComponent](struct.SharedStateComponent.html).
-///
-/// ## Usage
-/// ```
-/// #[derive(Clone, Default, PartialEq)]
-/// struct AppState {
-///     // ...
-/// }
-///
-/// #[derive(Clone, Properties)]
-/// pub struct Props {
-///     #[prop_or_default]
-///     pub state: Shared<AppState>,
-/// }
-///
-/// impl SharedState for Props {
-///     type State = AppState;
-///
-///     fn shared_state(&mut self) -> &mut Shared<Self::State> {
-///         &mut self.state
-///     }
-/// }
-/// ```
-pub trait SharedState {
-    type State: Clone + Default;
-    /// Return a mutable reference to the `Shared` member.
-    fn shared_state(&mut self) -> &mut Shared<Self::State>;
+/// Defines how state should be created, modified, and shared.
+pub trait StateHandler {
+    type Model;
+
+    fn new() -> Self;
+    fn apply(&mut self, f: Reduction<Self::Model>);
+    fn state(&self) -> Rc<Self::Model>;
 }
 
-/// Handle for accessing shared state.
-///
-/// `Properties` is implemented for convenience. It may also be used inside other properties that
-/// implement [SharedState](trait.SharedState.html).
-#[derive(Default, Properties, Clone, PartialEq)]
-pub struct Shared<STATE>
-where
-    STATE: Clone + Default + 'static,
-{
-    #[prop_or_default]
-    state: Rc<STATE>,
-    #[prop_or_default]
-    cb_reduce: Callback<Reduction<STATE>>,
+/// Default handler for shared state.
+#[derive(Default)]
+pub struct GlobalStateHandler<T> {
+    state: Rc<T>,
 }
 
-impl<STATE> Shared<STATE>
+impl<T> StateHandler for GlobalStateHandler<T>
 where
-    STATE: Clone + Default,
+    T: Clone + Default,
 {
-    /// Apply a function that may mutate shared state. Changes are not immediate, and must be handled
-    /// in the component's `change` method (like any other properties).
-    pub fn reduce(&self, f: impl FnOnce(&mut STATE) + 'static) {
-        self.cb_reduce.emit(Box::new(f))
+    type Model = T;
+
+    fn new() -> Self {
+        Default::default()
     }
 
-    /// Convenience method for modifying shared state directly from a callback. Similar to `reduce`
+    fn apply(&mut self, f: Reduction<Self::Model>) {
+        f(Rc::make_mut(&mut self.state));
+    }
+
+    fn state(&self) -> Rc<Self::Model> {
+        Rc::clone(&self.state)
+    }
+}
+
+/// The storage key for saving state to the current session. Used by `SessionStateHandler`.
+pub trait SessionStorageKey {
+    fn key() -> &'static str;
+}
+
+/// A state handler that syncs any changes to the current session.
+#[derive(Default)]
+pub struct SessionStateHandler<T> {
+    state: Rc<T>,
+    storage: Option<StorageService>,
+}
+
+impl<T> SessionStateHandler<T>
+where
+    T: SessionStorageKey + Serialize + DeserializeOwned,
+{
+    fn load_state(&mut self) {
+        if let Some(Json(Ok(state))) = self.storage.as_mut().map(|s| s.restore(T::key())) {
+            self.state = state;
+            log::trace!("Loaded state from storage");
+        } else {
+            log::error!("Error loading shared state from session storage");
+        }
+    }
+
+    fn save_state(&mut self) {
+        if let Some(storage) = &mut self.storage {
+            storage.store(T::key(), Json(&self.state));
+            log::trace!("Done saving storage");
+        } else {
+            log::error!("Error saving shared state to session storage");
+        }
+    }
+}
+
+impl<T> StateHandler for SessionStateHandler<T>
+where
+    T: Default + Clone + SessionStorageKey + Serialize + DeserializeOwned,
+{
+    type Model = T;
+
+    fn new() -> Self {
+        let mut this: Self = Default::default();
+        this.storage = StorageService::new(Area::Session)
+            .map_err(|err| {
+                log::error!("Error accessing session storage: {:?}", err);
+            })
+            .ok();
+        this.load_state();
+        this
+    }
+
+    fn apply(&mut self, f: Reduction<Self::Model>) {
+        f(Rc::make_mut(&mut self.state));
+        self.save_state();
+    }
+
+    fn state(&self) -> Rc<Self::Model> {
+        Rc::clone(&self.state)
+    }
+}
+
+type HandlerModel<T> = <T as StateHandler>::Model;
+
+pub trait SharedState {
+    type Handle: SharedHandle;
+    fn handle(&mut self) -> &mut Self::Handle;
+}
+
+pub trait SharedHandle {
+    type Handler: StateHandler;
+
+    fn state(&self) -> &HandlerModel<Self::Handler>;
+    fn callback(&self) -> &Callback<Reduction<HandlerModel<Self::Handler>>>;
+    fn __set_local(
+        &mut self,
+        state: &Rc<HandlerModel<Self::Handler>>,
+        callback: &Callback<Reduction<HandlerModel<Self::Handler>>>,
+    );
+
+    /// Apply a function that may mutate shared state. Changes are not immediate, and must be handled
+    /// in the component's `change` method (like any other properties).
+    fn reduce(&self, f: impl FnOnce(&mut HandlerModel<Self::Handler>) + 'static) {
+        self.callback().emit(Box::new(f))
+    }
+
+    /// Convenience method for modifying shared state directly from a callback.
+    /// ## Example
+    /// ```
+    /// html! {
+    ///   <input
+    ///     type="button"
+    ///     value="Clear"
+    ///     onclick = self.state.reduce_callback(|state|  state.user.name.clear())
+    ///     />
+    /// }
+    /// ```
+    fn reduce_callback<T: 'static>(
+        &self,
+        f: impl FnOnce(&mut HandlerModel<Self::Handler>) + Copy + 'static,
+    ) -> Callback<T>
+    where
+        HandlerModel<Self::Handler>: 'static,
+    {
+        self.callback()
+            .reform(move |_| Box::new(move |state| f(state)))
+    }
+
+    /// Convenience method for modifying shared state directly from a callback. Similar to `reduce_callback`
     /// but it also accepts the fired event.
     /// ## Example
     /// ```
@@ -80,68 +172,164 @@ where
     ///     />
     /// }
     /// ```
-    pub fn reduce_callback<T: 'static>(
+    fn reduce_callback_with<T: 'static>(
         &self,
-        f: impl FnOnce(T, &mut STATE) + Copy + 'static,
-    ) -> Callback<T> {
-        self.cb_reduce
+        f: impl FnOnce(T, &mut HandlerModel<Self::Handler>) + Copy + 'static,
+    ) -> Callback<T>
+    where
+        HandlerModel<Self::Handler>: 'static,
+    {
+        self.callback()
             .reform(move |e| Box::new(move |state| f(e, state)))
     }
+}
 
-    /// Get current state.
-    pub fn get(&self) -> &STATE {
+#[derive(Default)]
+pub struct StateHandle<T, H>
+where
+    T: 'static,
+    H: StateHandler,
+{
+    state: Rc<T>,
+    callback: Callback<Reduction<T>>,
+    _mark: std::marker::PhantomData<H>,
+}
+
+impl<T, H> Clone for StateHandle<T, H>
+where
+    T: Clone + 'static,
+    H: StateHandler,
+{
+    fn clone(&self) -> Self {
+        Self {
+            state: self.state.clone(),
+            callback: self.callback.clone(),
+            _mark: Default::default(),
+        }
+    }
+}
+
+impl<T, H> PartialEq for StateHandle<T, H>
+where
+    T: PartialEq + Clone + 'static,
+    H: StateHandler,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.state == other.state && self.callback == other.callback
+    }
+}
+
+impl<T, H> SharedHandle for StateHandle<T, H>
+where
+    T: Default + Clone,
+    H: StateHandler<Model = T>,
+{
+    type Handler = H;
+
+    fn callback(&self) -> &Callback<Reduction<T>> {
+        &self.callback
+    }
+
+    fn state(&self) -> &T {
         &self.state
     }
-}
 
-impl<STATE> SharedState for Shared<STATE>
-where
-    STATE: Clone + Default,
-{
-    type State = STATE;
-
-    fn shared_state(&mut self) -> &mut Shared<Self::State> {
-        self
+    #[doc(hidden)]
+    fn __set_local(&mut self, state: &Rc<T>, callback: &Callback<Reduction<T>>) {
+        self.state = state.clone();
+        self.callback = callback.clone();
     }
 }
 
-enum Request<STATE> {
+pub type GlobalHandle<T> = StateHandle<T, GlobalStateHandler<T>>;
+pub type SessionHandle<T> = StateHandle<T, SessionStateHandler<T>>;
+
+#[derive(Clone, Properties, PartialEq)]
+pub struct GlobalProps<T>
+where
+    T: Default + Clone + 'static,
+{
+    #[prop_or_default]
+    pub handle: GlobalHandle<T>,
+    #[prop_or_default]
+    pub children: Children,
+}
+
+impl<T> SharedState for GlobalProps<T>
+where
+    T: Clone + Default,
+{
+    type Handle = GlobalHandle<T>;
+
+    fn handle(&mut self) -> &mut Self::Handle {
+        &mut self.handle
+    }
+}
+
+#[derive(Clone, Properties, PartialEq)]
+pub struct SessionProps<T>
+where
+    T: Default + Clone + 'static,
+    T: Default + Clone + Serialize + DeserializeOwned + SessionStorageKey + 'static,
+{
+    #[prop_or_default]
+    pub handle: SessionHandle<T>,
+    #[prop_or_default]
+    pub children: Children,
+}
+
+impl<T> SharedState for SessionProps<T>
+where
+    T: Clone + Default + Serialize + DeserializeOwned + SessionStorageKey,
+{
+    type Handle = SessionHandle<T>;
+
+    fn handle(&mut self) -> &mut Self::Handle {
+        &mut self.handle
+    }
+}
+
+enum Request<T> {
     /// Apply a state change.
-    Apply(Reduction<STATE>),
+    Apply(Reduction<T>),
     /// Subscribe to be notified when state changes.
     Subscribe,
     /// Remove subscription.
     UnSubscribe,
 }
 
-enum Response<STATE> {
+enum Response<T> {
     /// Update subscribers with current state.
-    State(Rc<STATE>),
+    State(Rc<T>),
 }
+
+type SharedStateHandler<T> = <<T as SharedState>::Handle as SharedHandle>::Handler;
+type SharedStateModel<T> =
+    <<<T as SharedState>::Handle as SharedHandle>::Handler as StateHandler>::Model;
 
 /// Context agent for managing shared state. In charge of applying changes to state then notifying
 /// subscribers of new state.
-struct SharedStateService<STATE>
+struct SharedStateService<T>
 where
-    STATE: Clone + Default + 'static,
+    T: SharedState + Clone + 'static,
 {
-    state: Rc<STATE>,
+    handler: SharedStateHandler<T>,
     subscriptions: HashSet<HandlerId>,
-    link: AgentLink<SharedStateService<STATE>>,
+    link: AgentLink<SharedStateService<T>>,
 }
 
-impl<STATE> Agent for SharedStateService<STATE>
+impl<T> Agent for SharedStateService<T>
 where
-    STATE: Clone + Default + 'static,
+    T: SharedState + Clone + 'static,
 {
     type Message = ();
     type Reach = Context<Self>;
-    type Input = Request<STATE>;
-    type Output = Response<STATE>;
+    type Input = Request<SharedStateModel<T>>;
+    type Output = Response<SharedStateModel<T>>;
 
     fn create(link: AgentLink<Self>) -> Self {
         Self {
-            state: Default::default(),
+            handler: SharedStateHandler::<T>::new(),
             subscriptions: Default::default(),
             link,
         }
@@ -152,14 +340,16 @@ where
     fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
         match msg {
             Request::Apply(reduce) => {
-                reduce(Rc::make_mut(&mut self.state));
+                self.handler.apply(reduce);
                 for who in self.subscriptions.iter().cloned() {
-                    self.link.respond(who, Response::State(self.state.clone()));
+                    self.link
+                        .respond(who, Response::State(self.handler.state()));
                 }
             }
             Request::Subscribe => {
                 self.subscriptions.insert(who);
-                self.link.respond(who, Response::State(self.state.clone()));
+                self.link
+                    .respond(who, Response::State(self.handler.state()));
             }
             Request::UnSubscribe => {
                 self.subscriptions.remove(&who);
@@ -170,47 +360,48 @@ where
 
 /// Wrapper for a component with shared state.
 ///
-/// Manages the [Shared](struct.Shared.html) field of its wrapped component's
+/// Manages the [GlobalHandle](struct.GlobalHandle.html) field of its wrapped component's
 /// [SharedState](trait.SharedState.html) properties.
 /// ```
 /// pub struct Model {
-///     state: Shared<AppState>,
+///     state: GlobalHandle<AppState>,
 /// }
 ///
 /// impl Component for Model {
-///     type Properties = Shared<AppState>;
+///     type Properties = GlobalHandle<AppState>;
 ///     ...
 /// }
 ///
 /// pub type MyComponent = SharedStateComponent<Model>;
 /// ```
-pub struct SharedStateComponent<COMP>
+pub struct SharedStateComponent<C>
 where
-    COMP: Component,
-    COMP::Properties: SharedState,
+    C: Component,
+    C::Properties: SharedState + Clone,
 {
-    props: COMP::Properties,
-    bridge: Box<dyn Bridge<SharedStateService<<COMP::Properties as SharedState>::State>>>,
-    state: Rc<<COMP::Properties as SharedState>::State>,
-    cb_reduce: Callback<Reduction<<COMP::Properties as SharedState>::State>>,
+    props: C::Properties,
+    bridge: Box<dyn Bridge<SharedStateService<C::Properties>>>,
+    state: Rc<SharedStateModel<C::Properties>>,
+    callback: Callback<Reduction<SharedStateModel<C::Properties>>>,
 }
 
 /// Internal use only.
-pub enum SharedStateComponentMsg<STATE> {
+pub enum SharedStateComponentMsg<T> {
     /// Recieve new local state.
     /// IMPORTANT: Changes will **not** be reflected in shared state.
-    SetLocal(Rc<STATE>),
+    SetLocal(Rc<T>),
     /// Update shared state.
-    Apply(Reduction<STATE>),
+    Apply(Reduction<T>),
 }
 
-impl<COMP> Component for SharedStateComponent<COMP>
+impl<C> Component for SharedStateComponent<C>
 where
-    COMP: Component,
-    COMP::Properties: SharedState,
+    C: Component,
+    C::Properties: SharedState + Clone,
+    SharedStateModel<C::Properties>: Default,
 {
-    type Message = SharedStateComponentMsg<<COMP::Properties as SharedState>::State>;
-    type Properties = COMP::Properties;
+    type Message = SharedStateComponentMsg<SharedStateModel<C::Properties>>;
+    type Properties = C::Properties;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         use SharedStateComponentMsg::*;
@@ -225,7 +416,7 @@ where
             props,
             bridge,
             state: Default::default(),
-            cb_reduce: link.callback(Apply),
+            callback: link.callback(Apply),
         }
     }
 
@@ -250,20 +441,18 @@ where
 
     fn view(&self) -> Html {
         let mut props = self.props.clone();
-        let local = props.shared_state();
-        local.state = self.state.clone();
-        local.cb_reduce = self.cb_reduce.clone();
+        props.handle().__set_local(&self.state, &self.callback);
 
         html! {
-            <COMP with props />
+            <C with props />
         }
     }
 }
 
-impl<COMP> std::ops::Drop for SharedStateComponent<COMP>
+impl<C> std::ops::Drop for SharedStateComponent<C>
 where
-    COMP: Component,
-    COMP::Properties: SharedState,
+    C: Component,
+    C::Properties: SharedState + Clone,
 {
     fn drop(&mut self) {
         self.bridge.send(Request::UnSubscribe);

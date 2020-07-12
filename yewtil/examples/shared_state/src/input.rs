@@ -1,5 +1,5 @@
 use yew::{html, Component, ComponentLink, Html, InputData, Properties, ShouldRender};
-use yewtil::state::{Shared, SharedState, SharedStateComponent};
+use yewtil::state::{GlobalHandle, SharedHandle, SharedState, SharedStateComponent};
 use yewtil::NeqAssign;
 
 use crate::app::AppState;
@@ -7,15 +7,14 @@ use crate::app::AppState;
 #[derive(Clone, Properties, PartialEq)]
 pub struct Props {
     #[prop_or_default]
-    pub state: Shared<AppState>,
-    pub max_len: usize,
+    pub handle: GlobalHandle<AppState>,
 }
 
 impl SharedState for Props {
-    type State = AppState;
+    type Handle = GlobalHandle<AppState>;
 
-    fn shared_state(&mut self) -> &mut Shared<Self::State> {
-        &mut self.state
+    fn handle(&mut self) -> &mut Self::Handle {
+        &mut self.handle
     }
 }
 
@@ -39,7 +38,7 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::SetName(name) => {
-                self.props.state.reduce(|state| state.user.name = name);
+                self.props.handle.reduce(|state| state.user.name = name);
                 false
             }
         }
@@ -50,7 +49,7 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
-        let input_value = &self.props.state.get().user.name;
+        let input_value = &self.props.handle.state().user.name;
         html! {
             <>
                 <input
@@ -64,7 +63,7 @@ impl Component for Model {
                     type="button"
                     value="Clear"
                     // Using provided callback
-                    onclick = self.props.state.reduce_callback(|_, state|  state.user.name.clear())
+                    onclick = self.props.handle.reduce_callback(|state|  state.user.name.clear())
                     />
             </>
         }

@@ -36,7 +36,7 @@ impl Component for App {
                 <display::Display />
                 // Components can share state from anywhere!
                 <div>
-                    <input::Input max_len = 60/>
+                    <input::Input />
                 </div>
             </>
         }
