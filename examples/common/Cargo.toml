@@ -5,6 +5,10 @@ authors = ["Martin Matusiak <numerodix@gmail.com>"]
 edition = "2018"
 description="A useful utility for handing markdown which is used by other examples – not an example in itself!"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
-yew = { path = "../../yew" }
 pulldown-cmark = { version = "0.7.0", default-features = false }
+wasm-bindgen = "0.2.64"
+yew = { path = "../../yew" }
