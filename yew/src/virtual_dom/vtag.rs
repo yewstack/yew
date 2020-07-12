@@ -204,7 +204,7 @@ impl VTag {
 
     /// Every render it removes all listeners and attach it back later
     /// TODO(#943): Compare references of handler to do listeners update better
-    fn recreate_listeners(&mut self, ancestor: &mut Option<Box<Self>>) {
+    fn recreate_listeners(&mut self, ancestor: &mut Option<Self>) {
         if let Some(ancestor) = ancestor.as_mut() {
             ancestor.captured.clear();
         }
@@ -253,7 +253,7 @@ impl VTag {
     /// the values are different.
     fn diff_attributes<'a>(
         &'a self,
-        ancestor: &'a Option<Box<Self>>,
+        ancestor: &'a Option<Self>,
     ) -> impl Iterator<Item = Patch<&'a str, &'a str>> + 'a {
         // Only change what is necessary.
         let to_add_or_replace =
@@ -279,7 +279,7 @@ impl VTag {
     }
 
     /// Similar to `diff_attributes` except there is only a single `kind`.
-    fn diff_kind<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
+    fn diff_kind<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
         match (
             self.kind.as_ref(),
             ancestor.as_ref().and_then(|anc| anc.kind.as_ref()),
@@ -298,7 +298,7 @@ impl VTag {
     }
 
     /// Almost identical in spirit to `diff_kind`
-    fn diff_value<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
+    fn diff_value<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
         match (
             self.value.as_ref(),
             ancestor.as_ref().and_then(|anc| anc.value.as_ref()),
@@ -316,7 +316,7 @@ impl VTag {
         }
     }
 
-    fn apply_diffs(&mut self, ancestor: &Option<Box<Self>>) {
+    fn apply_diffs(&mut self, ancestor: &Option<Self>) {
         let element = self.reference.as_ref().expect("element expected");
 
         // Update parameters
@@ -845,7 +845,7 @@ mod tests {
         let svg_tag = assert_vtag(&mut svg_node);
         svg_tag.apply(&scope, &div_el, NodeRef::default(), None);
         assert_namespace(svg_tag, SVG_NAMESPACE);
-        let path_tag = assert_vtag(svg_tag.children.get_mut(0).unwrap());
+        let path_tag = assert_vtag(&mut svg_tag.children[0]);
         assert_namespace(path_tag, SVG_NAMESPACE);
 
         let g_tag = assert_vtag(&mut g_node);
