@@ -1,3 +1,6 @@
-fn main() {
-    yew::start_app::<minimal::Model>();
+mod lib;
+use lib::Model;
+
+pub fn main() {
+    yew::start_app::<Model>();
 }
