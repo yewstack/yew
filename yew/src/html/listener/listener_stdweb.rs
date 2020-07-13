@@ -28,7 +28,7 @@ impl_action! {
     onerror(event: ResourceErrorEvent) -> ResourceErrorEvent => |_, event| { event }
     onfocus(event: FocusEvent) -> FocusEvent => |_, event| { event }
     // onformdata not supported
-    oninput(event: InputEvent) -> InputData => |this: &Element, _| { oninput_handler(this) }
+    oninput(event: InputEvent) -> InputData => |this: &Element, event| { oninput_handler(this, event) }
     // oninvalid not supported
     onkeydown(event: KeyDownEvent) -> KeyDownEvent => |_, event| { event }
     onkeypress(event: KeyPressEvent) -> KeyPressEvent => |_, event| { event }
