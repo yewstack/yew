@@ -27,7 +27,7 @@ impl_action! {
     onfocus(name: "focus", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
     // web_sys doesn't have a struct for `FormDataEvent`
     onformdata(name: "formdata", event: Event) -> web_sys::Event => |_, event| { event }
-    oninput(name: "input", event: InputEvent) -> InputData => |this: &Element, _| { oninput_handler(this) }
+    oninput(name: "input", event: InputEvent) -> InputData => |this: &Element, event| { oninput_handler(this, event) }
     oninvalid(name: "invalid", event: Event) -> web_sys::Event => |_, event| { event }
     onkeydown(name: "keydown", event: KeyboardEvent) -> web_sys::KeyboardEvent => |_, event| { event }
     onkeypress(name: "keypress", event: KeyboardEvent) -> web_sys::KeyboardEvent => |_, event| { event }
