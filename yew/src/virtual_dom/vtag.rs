@@ -22,7 +22,7 @@ cfg_if! {
         use std::ops::Deref;
         use wasm_bindgen::JsCast;
         use web_sys::{
-            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, HtmlButtonElement
+            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement
         };
     }
 }
@@ -33,22 +33,146 @@ pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
 /// Default namespace for html elements
 pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 
-/// Used to improve performance of runtime element checks
-#[derive(Clone, Copy, Debug, PartialEq)]
-enum ElementType {
-    Input,
-    Textarea,
-    Button,
-    Other,
+/// Contains field only applicable to different Element types.
+/// Reduces the memory footprint by excluding impossible field combinations.
+/// Grouped partially in accordance to the
+/// [HTML spec](https://html.spec.whatwg.org/multipage/syntax.html#elements-2).
+#[derive(Debug, Clone)]
+enum VTagInner {
+    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
+    /// Is a [Void Element](https://html.spec.whatwg.org/multipage/syntax.html#void-elements).
+    Input {
+        /// Contains value property
+        value: Option<String>,
+        /// Represents `checked` attribute of
+        /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
+        /// It exists to override standard behavior of `checked` attribute, because
+        /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
+        /// frameworks it's more useful to control `checked` value of an `InputElement`.
+        checked: bool,
+    },
+
+    /// [TextAreaElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
+    TextArea {
+        /// Contains value property
+        ///
+        /// A
+        /// [TextAreaElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
+        /// can only contain a single text node so this doubles as the child list source.
+        value: Option<String>,
+    },
+
+    /// Neither of the above
+    Other {
+        /// A tag of the element.
+        tag: Cow<'static, str>,
+        /// List of children nodes
+        children: VList,
+    },
 }
 
-impl ElementType {
-    fn from_tag(tag: &str) -> Self {
-        match tag.to_ascii_lowercase().as_str() {
-            "input" => Self::Input,
-            "textarea" => Self::Textarea,
-            "button" => Self::Button,
-            _ => Self::Other,
+impl VTagInner {
+    /// Creates a new `VTagInner` instance with `tag` name (cannot be changed later in DOM).
+    fn new<S>(tag: S) -> Self
+    where
+        S: Into<Cow<'static, str>> + AsRef<str>,
+    {
+        match tag.as_ref() {
+            "input" => VTagInner::Input {
+                value: Default::default(),
+                // In HTML node `checked` attribute sets `defaultChecked` parameter,
+                // but we use own field to control real `checked` parameter
+                checked: false,
+            },
+            "textarea" => VTagInner::TextArea {
+                value: Default::default(),
+            },
+            _ => VTagInner::Other {
+                tag: tag.into(),
+                children: Default::default(),
+            },
+        }
+    }
+
+    /// Returns tag of an `Element` in lowercase
+    fn tag(&self) -> &str {
+        match self {
+            Self::Input { .. } => "input",
+            Self::TextArea { .. } => "textarea",
+            Self::Other { tag, .. } => &tag,
+        }
+    }
+
+    /// Returns reference to child list, if any
+    fn children(&self) -> Option<&VList> {
+        match self {
+            Self::Other { children, .. } => Some(children),
+            _ => None,
+        }
+    }
+
+    /// Returns mutable reference to child list, if any
+    fn children_mut(&mut self) -> Option<&mut VList> {
+        match self {
+            Self::Other { children, .. } => Some(children),
+            _ => None,
+        }
+    }
+
+    // Returns reference to the value field, if any
+    fn value(&self) -> &Option<String> {
+        use VTagInner::*;
+
+        // For flattening for convenience, as you can't mutate the returned
+        // value anyway
+        static NONE: Option<String> = None;
+
+        match self {
+            Input { value, .. } => &value,
+            TextArea { value } => &value,
+            _ => &NONE,
+        }
+    }
+
+    // Returns mutable reference to the value field, if any
+    fn value_mut(&mut self) -> Option<&mut Option<String>> {
+        use VTagInner::*;
+
+        match self {
+            Input { value, .. } => Some(value),
+            TextArea { value } => Some(value),
+            _ => None,
+        }
+    }
+
+    // Performs shallow equality comparison w/o comparing children
+    fn eq_shallow(&self, other: &Self) -> bool {
+        use VTagInner::*;
+
+        match (self, other) {
+            (
+                Input {
+                    value: v_s,
+                    checked: ch_s,
+                },
+                Input {
+                    value: v_o,
+                    checked: ch_o,
+                },
+            ) => ch_s == ch_o && v_s == v_o,
+            (TextArea { value: s }, TextArea { value: o }) => s == o,
+            (Other { tag: s, .. }, Other { tag: o, .. }) => s == o,
+            _ => false,
+        }
+    }
+
+    // Compares the children, if applicable
+    fn eq_children(&self, other: &Self) -> bool {
+        use VTagInner::*;
+
+        match (self, other) {
+            (Other { children: s, .. }, Other { children: o, .. }) => s == o,
+            _ => true,
         }
     }
 }
@@ -58,31 +182,14 @@ impl ElementType {
 /// representation.
 #[derive(Debug)]
 pub struct VTag {
-    /// A tag of the element.
-    tag: Cow<'static, str>,
-    /// Type of element.
-    element_type: ElementType,
+    // Properties exclusive to each Element type
+    inner: VTagInner,
     /// A reference to the DOM `Element`.
     pub reference: Option<Element>,
     /// List of attached listeners.
     pub listeners: Listeners,
     /// List of attributes.
     pub attributes: Attributes,
-    /// List of children nodes
-    pub children: VList,
-    /// Contains a value of an
-    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    pub value: Option<String>,
-    /// Contains
-    /// [kind](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types)
-    /// value of an `InputElement`.
-    pub kind: Option<String>,
-    /// Represents `checked` attribute of
-    /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
-    /// It exists to override standard behavior of `checked` attribute, because
-    /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
-    /// frameworks it's more useful to control `checked` value of an `InputElement`.
-    pub checked: bool,
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
     /// Keeps handler for attached listeners to have an opportunity to drop them later.
@@ -94,15 +201,10 @@ pub struct VTag {
 impl Clone for VTag {
     fn clone(&self) -> Self {
         VTag {
-            tag: self.tag.clone(),
-            element_type: self.element_type,
+            inner: self.inner.clone(),
             reference: None,
             listeners: self.listeners.clone(),
             attributes: self.attributes.clone(),
-            children: self.children.clone(),
-            value: self.value.clone(),
-            kind: self.kind.clone(),
-            checked: self.checked,
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
             captured: Vec::new(),
@@ -112,65 +214,120 @@ impl Clone for VTag {
 
 impl VTag {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
-    pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
-        let tag: Cow<'static, str> = tag.into();
-        let element_type = ElementType::from_tag(&tag);
+    pub fn new<S>(tag: S) -> Self
+    where
+        S: Into<Cow<'static, str>> + AsRef<str>,
+    {
         VTag {
-            tag,
-            element_type,
+            inner: VTagInner::new(tag),
             reference: None,
             attributes: Attributes::new(),
             listeners: Vec::new(),
             captured: Vec::new(),
-            children: VList::new(),
             node_ref: NodeRef::default(),
             key: None,
-            value: None,
-            kind: None,
-            // In HTML node `checked` attribute sets `defaultChecked` parameter,
-            // but we use own field to control real `checked` parameter
-            checked: false,
         }
     }
 
-    /// Returns tag of an `Element`. In HTML tags are always uppercase.
+    /// Returns tag of an `Element` in lowercase
     pub fn tag(&self) -> &str {
-        &self.tag
+        self.inner.tag()
+    }
+
+    // Returns reference to the value field, if any
+    pub fn value(&self) -> &Option<String> {
+        self.inner.value()
+    }
+
+    // Returns mutable reference to the value field, if any
+    pub fn value_mut(&mut self) -> Option<&mut Option<String>> {
+        self.inner.value_mut()
+    }
+
+    /// Returns reference to child list, if any
+    pub fn children(&self) -> Option<&VList> {
+        self.inner.children()
+    }
+
+    /// Returns mutable reference to child list, if any
+    pub fn children_mut(&mut self) -> Option<&mut VList> {
+        self.inner.children_mut()
     }
 
     /// Add `VNode` child.
     pub fn add_child(&mut self, child: VNode) {
-        self.children.add_child(child);
+        use VTagInner::*;
+
+        match &mut self.inner {
+            // Allow setting the value of a textarea as you would in HTML - a single text Node
+            TextArea { value } => {
+                if let VNode::VText(vt) = child {
+                    *value = vt.text.into();
+                }
+            }
+            Other { children, .. } => children.add_child(child),
+            _ => (),
+        };
     }
 
     /// Add multiple `VNode` children.
     pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
-        self.children.add_children(children);
+        use VTagInner::*;
+
+        match &mut self.inner {
+            // Allow setting the value of a textarea as you would in HTML - a single text Node
+            TextArea { value } => {
+                if let Some(VNode::VText(vt)) = children.into_iter().next() {
+                    *value = vt.text.into();
+                }
+            }
+            Other { children: ch, .. } => ch.add_children(children),
+            _ => (),
+        };
     }
 
     /// Sets `value` for an
-    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
+    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input),
+    /// /// [TextAreaElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
+    /// or [SelectElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select).
+    ///
+    /// In all other cases simply sets the "value" attribute.
     pub fn set_value<T: ToString>(&mut self, value: &T) {
-        self.value = Some(value.to_string());
-    }
+        use VTagInner::*;
 
-    /// Sets `kind` property of an
-    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    /// Same as set `type` attribute.
-    pub fn set_kind<T: ToString>(&mut self, value: &T) {
-        self.kind = Some(value.to_string());
+        let s = value.to_string();
+        match &mut self.inner {
+            Input { value, .. } | TextArea { value } => {
+                *value = Some(s);
+            }
+            Other { .. } => {
+                self.attributes.insert("value".into(), s);
+            }
+        };
     }
 
     /// Sets `checked` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// (Not a value of node's attribute).
+    ///
+    /// For non-[InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input)
+    /// elements simply sets the "checked" attribute.
     pub fn set_checked(&mut self, value: bool) {
-        self.checked = value;
+        use VTagInner::*;
+
+        match &mut self.inner {
+            Input { checked, .. } => {
+                *checked = value;
+            }
+            _ => {
+                self.attributes.insert("checked".into(), value.to_string());
+            }
+        };
     }
 
     /// Adds attribute to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
-    /// `type/kind`, `value` and `checked`.
+    /// `value` and `checked`.
     ///
     /// If this virtual node has this attribute present, the value is replaced.
     pub fn add_attribute<T: ToString>(&mut self, name: &str, value: &T) {
@@ -179,7 +336,7 @@ impl VTag {
 
     /// Adds attributes to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
-    /// `type/kind`, `value` and `checked`.
+    /// `value` and `checked`.
     pub fn add_attributes(&mut self, attrs: Vec<(String, String)>) {
         for (name, value) in attrs {
             self.attributes.insert(name, value);
@@ -218,39 +375,51 @@ impl VTag {
     }
 
     fn refresh_value(&mut self) {
-        // Don't refresh value if the element is not controlled
-        if self.value.is_none() {
-            return;
+        use VTagInner::*;
+
+        macro_rules! check_controlled {
+            ($value:expr) => {
+                // Don't refresh value if the element is not controlled
+                if $value.is_none() {
+                    return;
+                }
+            };
         }
 
-        if let Some(element) = self.reference.as_ref() {
-            if self.element_type == ElementType::Input {
+        match (&mut self.inner, self.reference.as_ref()) {
+            (_, None) => (),
+            (Input { value, .. }, Some(el)) => {
+                check_controlled!(value);
+
                 let input_el = cfg_match! {
-                    feature = "std_web" => InputElement::try_from(element.clone()).ok(),
-                    feature = "web_sys" => element.dyn_ref::<InputElement>(),
+                    feature = "std_web" => InputElement::try_from(el.clone()).ok(),
+                    feature = "web_sys" => el.dyn_ref::<InputElement>(),
                 };
                 if let Some(input) = input_el {
                     let current_value = cfg_match! {
                         feature = "std_web" => input.raw_value(),
                         feature = "web_sys" => input.value(),
                     };
-                    self.set_value(&current_value)
-                }
-            } else if self.element_type == ElementType::Textarea {
-                let textarea_el = cfg_match! {
-                    feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
-                    feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
-                };
-                if let Some(tae) = textarea_el {
-                    let current_value = &tae.value();
-                    self.set_value(&current_value)
+                    *value = current_value.into();
                 }
             }
-        }
+            (TextArea { value }, Some(el)) => {
+                check_controlled!(value);
+
+                if let Some(el) = cfg_match! {
+                    feature = "std_web" => TextAreaElement::try_from(el.clone()).ok(),
+                    feature = "web_sys" => el.dyn_ref::<TextAreaElement>(),
+                } {
+                    *value = el.value().into();
+                }
+            }
+            _ => (),
+        };
     }
 
     /// This handles patching of attributes when the keys are equal but
     /// the values are different.
+    // TODO: don't allocate any intermediate Patch iterator and patch on the fly
     fn diff_attributes<'a>(
         &'a self,
         ancestor: &'a Option<Self>,
@@ -278,30 +447,14 @@ impl VTag {
         to_add_or_replace.chain(to_remove)
     }
 
-    /// Similar to `diff_attributes` except there is only a single `kind`.
-    fn diff_kind<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
+    /// Similar to `diff_attributes` except there is only a single `value`.
+    fn diff_value<'a>(
+        new: &'a Option<String>,
+        ancestor: &'a Option<Self>,
+    ) -> Option<Patch<&'a str, ()>> {
         match (
-            self.kind.as_ref(),
-            ancestor.as_ref().and_then(|anc| anc.kind.as_ref()),
-        ) {
-            (Some(ref left), Some(ref right)) => {
-                if left != right {
-                    Some(Patch::Replace(&**left, ()))
-                } else {
-                    None
-                }
-            }
-            (Some(ref left), None) => Some(Patch::Add(&**left, ())),
-            (None, Some(right)) => Some(Patch::Remove(&**right)),
-            (None, None) => None,
-        }
-    }
-
-    /// Almost identical in spirit to `diff_kind`
-    fn diff_value<'a>(&'a self, ancestor: &'a Option<Self>) -> Option<Patch<&'a str, ()>> {
-        match (
-            self.value.as_ref(),
-            ancestor.as_ref().and_then(|anc| anc.value.as_ref()),
+            new.as_ref(),
+            ancestor.as_ref().and_then(|anc| anc.value().as_ref()),
         ) {
             (Some(ref left), Some(ref right)) => {
                 if left != right {
@@ -317,6 +470,8 @@ impl VTag {
     }
 
     fn apply_diffs(&mut self, ancestor: &Option<Self>) {
+        use VTagInner::*;
+
         let element = self.reference.as_ref().expect("element expected");
 
         // Update parameters
@@ -339,87 +494,57 @@ impl VTag {
             }
         }
 
-        // TODO: add std_web after https://github.com/koute/stdweb/issues/395 will be approved
-        // Check this out: https://github.com/yewstack/yew/pull/1033/commits/4b4e958bb1ccac0524eb20f63f06ae394c20553d
-        #[cfg(feature = "web_sys")]
-        {
-            if self.element_type == ElementType::Button {
-                if let Some(button) = element.dyn_ref::<HtmlButtonElement>() {
-                    if let Some(change) = self.diff_kind(ancestor) {
-                        let kind = match change {
+        match &mut self.inner {
+            // `input` element has extra parameters to control
+            // I override behavior of attributes to make it more clear
+            // and useful in templates. For example I interpret `checked`
+            // attribute as `checked` parameter, not `defaultChecked` as browsers do
+            Input { checked, value } => {
+                if let Some(input) = {
+                    cfg_match! {
+                        feature = "std_web" => InputElement::try_from(element.clone()).ok(),
+                        feature = "web_sys" => element.dyn_ref::<InputElement>(),
+                    }
+                } {
+                    if let Some(change) = Self::diff_value(value, ancestor) {
+                        let raw_value = match change {
                             Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
                             Patch::Remove(_) => "",
                         };
-                        button.set_type(kind);
+                        cfg_match! {
+                            feature = "std_web" => input.set_raw_value(raw_value),
+                            feature = "web_sys" => input.set_value(raw_value),
+                        };
+                    }
+
+                    // IMPORTANT! This parameter has to be set every time
+                    // to prevent strange behaviour in the browser when the DOM changes
+                    set_checked(&input, *checked);
+                }
+            }
+            TextArea { value } => {
+                if let Some(tae) = {
+                    cfg_match! {
+                        feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
+                        feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
+                    }
+                } {
+                    if let Some(change) = Self::diff_value(value, ancestor) {
+                        let value = match change {
+                            Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
+                            Patch::Remove(_) => "",
+                        };
+                        tae.set_value(value);
                     }
                 }
             }
-        }
-
-        // `input` element has extra parameters to control
-        // I override behavior of attributes to make it more clear
-        // and useful in templates. For example I interpret `checked`
-        // attribute as `checked` parameter, not `defaultChecked` as browsers do
-        if self.element_type == ElementType::Input {
-            if let Some(input) = {
-                cfg_match! {
-                    feature = "std_web" => InputElement::try_from(element.clone()).ok(),
-                    feature = "web_sys" => element.dyn_ref::<InputElement>(),
-                }
-            } {
-                if let Some(change) = self.diff_kind(ancestor) {
-                    let kind = match change {
-                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                        Patch::Remove(_) => "",
-                    };
-                    cfg_match! {
-                        feature = "std_web" => ({
-                            //https://github.com/koute/stdweb/commit/3b85c941db00b8e3c942624afd50c5929085fb08
-                            //input.set_kind(&kind);
-                            let input = &input;
-                            js! { @(no_return)
-                                @{input}.type = @{kind};
-                            }
-                        }),
-                        feature = "web_sys" => input.set_type(kind),
-                    }
-                }
-
-                if let Some(change) = self.diff_value(ancestor) {
-                    let raw_value = match change {
-                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                        Patch::Remove(_) => "",
-                    };
-                    cfg_match! {
-                        feature = "std_web" => input.set_raw_value(raw_value),
-                        feature = "web_sys" => input.set_value(raw_value),
-                    };
-                }
-
-                // IMPORTANT! This parameter has to be set every time
-                // to prevent strange behaviour in the browser when the DOM changes
-                set_checked(&input, self.checked);
-            }
-        } else if self.element_type == ElementType::Textarea {
-            if let Some(tae) = {
-                cfg_match! {
-                    feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
-                    feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
-                }
-            } {
-                if let Some(change) = self.diff_value(ancestor) {
-                    let value = match change {
-                        Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                        Patch::Remove(_) => "",
-                    };
-                    tae.set_value(value);
-                }
-            }
-        }
+            _ => (),
+        };
     }
 
     fn create_element(&self, parent: &Element) -> Element {
-        if self.tag == "svg"
+        let tag = self.tag();
+        if tag == "svg"
             || parent
                 .namespace_uri()
                 .map_or(false, |ns| ns == SVG_NAMESPACE)
@@ -429,11 +554,11 @@ impl VTag {
                 feature = "web_sys" => Some(SVG_NAMESPACE),
             };
             document()
-                .create_element_ns(namespace, &self.tag)
+                .create_element_ns(namespace, tag)
                 .expect("can't create namespaced element for vtag")
         } else {
             document()
-                .create_element(&self.tag)
+                .create_element(tag)
                 .expect("can't create element for vtag")
         }
     }
@@ -448,7 +573,9 @@ impl VDiff for VTag {
             .expect("tried to remove not rendered VTag from DOM");
 
         // recursively remove its children
-        self.children.detach(&node);
+        if let Some(ch) = self.inner.children_mut() {
+            ch.detach(&node);
+        }
         if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VTag");
         }
@@ -467,7 +594,7 @@ impl VDiff for VTag {
             match ancestor {
                 // If the ancestor is a tag of the same type, don't recreate, keep the
                 // old tag and update its attributes and children.
-                VNode::VTag(vtag) if self.tag == vtag.tag && self.key == vtag.key => Some(vtag),
+                VNode::VTag(vtag) if self.tag() == vtag.tag() && self.key == vtag.key => Some(vtag),
                 _ => {
                     let element = self.create_element(parent);
                     super::insert_node(&element, parent, Some(ancestor.first_node()));
@@ -495,16 +622,32 @@ impl VDiff for VTag {
 
         // Process children
         let element = self.reference.as_ref().expect("Reference should be set");
-        if !self.children.is_empty() {
-            self.children.apply(
-                parent_scope,
-                element,
-                NodeRef::default(),
-                ancestor_tag.map(|a| a.children.into()),
-            );
-        } else if let Some(mut ancestor_tag) = ancestor_tag {
-            ancestor_tag.children.detach(element);
-        }
+        match (
+            match &mut self.inner {
+                VTagInner::Other { children, .. } => Some(children),
+                _ => None,
+            },
+            ancestor_tag
+                .take()
+                .map(|a| match a.inner {
+                    VTagInner::Other { children, .. } => Some(children),
+                    _ => None,
+                })
+                .flatten(),
+        ) {
+            (Some(new), old @ _) if !new.is_empty() => {
+                new.apply(
+                    parent_scope,
+                    element,
+                    NodeRef::default(),
+                    old.map(|o| o.into()),
+                );
+            }
+            (_, Some(mut old)) => {
+                old.detach(element);
+            }
+            _ => (),
+        };
 
         let node = cfg_match! {
             feature = "std_web" => element.as_node(),
@@ -525,10 +668,7 @@ fn set_checked(input: &InputElement, value: bool) {
 
 impl PartialEq for VTag {
     fn eq(&self, other: &VTag) -> bool {
-        self.tag == other.tag
-            && self.value == other.value
-            && self.kind == other.kind
-            && self.checked == other.checked
+        self.inner.eq_shallow(&other.inner)
             && self.listeners.len() == other.listeners.len()
             && self
                 .listeners
@@ -536,7 +676,7 @@ impl PartialEq for VTag {
                 .map(|l| l.kind())
                 .eq(other.listeners.iter().map(|l| l.kind()))
             && self.attributes == other.attributes
-            && self.children == other.children
+            && self.inner.eq_children(&other.inner)
     }
 }
 
@@ -845,7 +985,7 @@ mod tests {
         let svg_tag = assert_vtag(&mut svg_node);
         svg_tag.apply(&scope, &div_el, NodeRef::default(), None);
         assert_namespace(svg_tag, SVG_NAMESPACE);
-        let path_tag = assert_vtag(&mut svg_tag.children[0]);
+        let path_tag = assert_vtag(svg_tag.children_mut().unwrap().get_mut(0).unwrap());
         assert_namespace(path_tag, SVG_NAMESPACE);
 
         let g_tag = assert_vtag(&mut g_node);
@@ -1313,7 +1453,7 @@ mod tests {
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // make sure the new tag name is used internally
-        assert_eq!(vtag.tag, "a");
+        assert_eq!(vtag.tag(), "a");
 
         #[cfg(feature = "web_sys")]
         // Element.tagName is always in the canonical upper-case form.
@@ -1326,7 +1466,7 @@ mod tests {
             <@{"div"} value="Hello"/>
         };
         let div_vtag = assert_vtag(&mut div_el);
-        assert!(div_vtag.value.is_none());
+        assert!(div_vtag.value().is_none());
         assert_eq!(
             div_vtag.attributes.get("value").map(String::as_str),
             Some("Hello")
@@ -1336,7 +1476,7 @@ mod tests {
             <@{"input"} value="World"/>
         };
         let input_vtag = assert_vtag(&mut input_el);
-        assert_eq!(input_vtag.value, Some("World".to_string()));
+        assert_eq!(input_vtag.value(), &Some("World".to_string()));
         assert!(!input_vtag.attributes.contains_key("value"));
     }
 

@@ -17,7 +17,6 @@ cfg_if! {
 pub struct VList {
     /// The list of children nodes.
     pub children: Vec<VNode>,
-    pub key: Option<Key>,
 }
 
 impl Deref for VList {
@@ -41,8 +40,8 @@ impl VList {
     }
 
     /// Creates a new `VList` instance with children.
-    pub fn new_with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
-        VList { children, key }
+    pub fn new_with_children(children: Vec<VNode>) -> Self {
+        VList { children }
     }
 
     /// Add `VNode` child.

@@ -54,18 +54,21 @@ error: expected a valid html element
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected an expression following this equals sign
-  --> $DIR/html-list-fail.rs:11:17
-   |
-11 |     html! { <key=></>}
-   |                 ^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
-
 error: this opening fragment has no corresponding closing fragment
   --> $DIR/html-list-fail.rs:12:13
    |
 12 |     html! { <key="key".to_string()>invalid</key>}
    |             ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-list-fail.rs:11:5
+   |
+11 |     html! { <key=></>}
+   |     ^^^^^^^^^^^^^^^^^^
+   |     |
+   |     expected `()`, found enum `yew::virtual_dom::vnode::VNode`
+   |     help: try adding a semicolon: `;`
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

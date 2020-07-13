@@ -1,24 +1,20 @@
 use super::HtmlChildrenTree;
-use crate::html_tree::{HtmlProp, HtmlPropSuffix};
+use crate::html_tree::HtmlPropSuffix;
 use crate::PeekValue;
 use boolinator::Boolinator;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
-use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::spanned::Spanned;
-use syn::{Expr, Token};
+use syn::Token;
 
 pub struct HtmlList {
     children: HtmlChildrenTree,
-    key: Option<Expr>,
 }
 
 impl HtmlList {
     pub fn empty() -> Self {
         Self {
             children: HtmlChildrenTree::new(),
-            key: None,
         }
     }
 }
@@ -58,24 +54,16 @@ impl Parse for HtmlList {
 
         input.parse::<HtmlListClose>()?;
 
-        Ok(HtmlList {
-            children,
-            key: open.key,
-        })
+        Ok(HtmlList { children })
     }
 }
 
 impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let children = &self.children;
-        let key = if let Some(key) = &self.key {
-            quote_spanned! {key.span()=> Some(::yew::virtual_dom::Key::from(#key))}
-        } else {
-            quote! {None}
-        };
         tokens.extend(quote! {
             ::yew::virtual_dom::VNode::VList(
-                ::yew::virtual_dom::VList::new_with_children(#children, #key)
+                ::yew::virtual_dom::VList::new_with_children(#children)
             )
         });
     }
@@ -106,7 +94,6 @@ impl HtmlList {
 
 struct HtmlListOpen {
     lt: Token![<],
-    key: Option<Expr>,
     gt: Token![>],
 }
 
@@ -127,31 +114,12 @@ impl Parse for HtmlListOpen {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let lt = input.parse()?;
         if input.cursor().ident().is_some() {
-            let HtmlPropSuffix { stream, gt, .. } = input.parse()?;
-            let props = parse::<ParseKey>(stream)?;
-            Ok(HtmlListOpen {
-                lt,
-                key: Some(props.key.value),
-                gt,
-            })
+            let HtmlPropSuffix { gt, .. } = input.parse()?;
+            Ok(HtmlListOpen { lt, gt })
         } else {
             let gt = input.parse()?;
-            Ok(HtmlListOpen { lt, key: None, gt })
+            Ok(HtmlListOpen { lt, gt })
         }
-    }
-}
-
-struct ParseKey {
-    key: HtmlProp,
-}
-
-impl Parse for ParseKey {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
-        let key = input.parse::<HtmlProp>()?;
-        if !input.is_empty() {
-            input.error("Only a single key element is allowed on a <></>");
-        }
-        Ok(ParseKey { key })
     }
 }
 

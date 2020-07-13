@@ -16,7 +16,6 @@ fn compile_fail() {
 
     html! { <input attr=1 attr=2 /> };
     html! { <input value="123" value="456" /> };
-    html! { <input kind="checkbox" kind="submit" /> };
     html! { <input checked=true checked=false /> };
     html! { <input disabled=true disabled=false /> };
     html! { <option selected=true selected=false /> };

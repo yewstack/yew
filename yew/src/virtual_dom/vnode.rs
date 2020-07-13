@@ -18,6 +18,9 @@ cfg_if! {
 }
 
 /// Bind virtual element to a DOM reference.
+// TODO: replace String (3 words) with an immutable string of 2 words (str?)
+// TODO: Use Cow pointers to either that string or a static string, where
+// applicable
 #[derive(Clone)]
 pub enum VNode {
     /// A bind between `VTag` and `Element`.
@@ -36,10 +39,13 @@ impl VNode {
     pub fn key(&self) -> Option<Key> {
         match self {
             VNode::VComp(vcomp) => vcomp.key.clone(),
-            VNode::VList(vlist) => vlist.key.clone(),
-            VNode::VRef(_) => None,
             VNode::VTag(vtag) => vtag.key.clone(),
+            VNode::VRef(_) => None,
             VNode::VText(_) => None,
+            // Putting a key on a list is likely very very niche.
+            // We can shave 3 words off of VList and anything that includes
+            // it by not supporting any.
+            VNode::VList(_) => None,
         }
     }
 

@@ -127,7 +127,6 @@ impl ToTokens for HtmlTag {
             classes,
             attributes,
             booleans,
-            kind,
             value,
             checked,
             node_ref,
@@ -148,9 +147,6 @@ impl ToTokens for HtmlTag {
                     #vtag.add_attribute(&#label_str, &#label_str);
                 }
             }
-        });
-        let set_kind = kind.iter().map(|kind| {
-            quote_spanned! {kind.span()=> #vtag.set_kind(&(#kind)); }
         });
         let set_value = value.iter().map(|value| {
             quote_spanned! {value.span()=> #vtag.set_value(&(#value)); }
@@ -208,13 +204,15 @@ impl ToTokens for HtmlTag {
             // we should expand the panic message to contain the exact location of the dynamic tag.
             Some(quote! {
                 // check void element
-                if !#vtag.children.is_empty() {
-                    match #vtag.tag() {
-                        "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
-                        | "meta" | "param" | "source" | "track" | "wbr" => {
-                            ::std::panic!("a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.", #vtag.tag());
+                if let Some(ch) = #vtag.children() {
+                    if !ch.is_empty() {
+                        match #vtag.tag() {
+                            "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
+                            | "meta" | "param" | "source" | "track" | "wbr" => {
+                                ::std::panic!("a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.", #vtag.tag());
+                            }
+                            _ => {}
                         }
-                        _ => {}
                     }
                 }
 
@@ -222,8 +220,10 @@ impl ToTokens for HtmlTag {
                 match #vtag.tag() {
                     "input" | "textarea" => {}
                     _ => {
-                        if let ::std::option::Option::Some(value) = #vtag.value.take() {
-                            #vtag.attributes.insert("value".to_string(), value);
+                        if let Some(v) = #vtag.value_mut() {
+                            if let ::std::option::Option::Some(value) = v.take() {
+                                #vtag.attributes.insert("value".to_string(), value);
+                            }
                         }
                     }
                 }
@@ -234,7 +234,6 @@ impl ToTokens for HtmlTag {
 
         tokens.extend(quote! {{
             let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
-            #(#set_kind)*
             #(#set_value)*
             #(#add_href)*
             #(#set_checked)*
