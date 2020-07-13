@@ -24,7 +24,7 @@ cfg_if! {
 #[derive(Clone)]
 pub enum VNode {
     /// A bind between `VTag` and `Element`.
-    VTag(VTag),
+    VTag(Box<VTag>),
     /// A bind between `VText` and `TextNode`.
     VText(VText),
     /// A bind between `VComp` and `Element`.
@@ -163,7 +163,7 @@ impl From<VList> for VNode {
 
 impl From<VTag> for VNode {
     fn from(vtag: VTag) -> Self {
-        VNode::VTag(vtag)
+        VNode::VTag(Box::new(vtag))
     }
 }
 

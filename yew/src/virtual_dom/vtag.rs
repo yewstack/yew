@@ -361,7 +361,7 @@ impl VTag {
 
     /// Every render it removes all listeners and attach it back later
     /// TODO(#943): Compare references of handler to do listeners update better
-    fn recreate_listeners(&mut self, ancestor: &mut Option<Self>) {
+    fn recreate_listeners(&mut self, ancestor: &mut Option<Box<Self>>) {
         if let Some(ancestor) = ancestor.as_mut() {
             ancestor.captured.clear();
         }
@@ -422,7 +422,7 @@ impl VTag {
     // TODO: don't allocate any intermediate Patch iterator and patch on the fly
     fn diff_attributes<'a>(
         &'a self,
-        ancestor: &'a Option<Self>,
+        ancestor: &'a Option<Box<Self>>,
     ) -> impl Iterator<Item = Patch<&'a str, &'a str>> + 'a {
         // Only change what is necessary.
         let to_add_or_replace =
@@ -450,7 +450,7 @@ impl VTag {
     /// Similar to `diff_attributes` except there is only a single `value`.
     fn diff_value<'a>(
         new: &'a Option<String>,
-        ancestor: &'a Option<Self>,
+        ancestor: &'a Option<Box<Self>>,
     ) -> Option<Patch<&'a str, ()>> {
         match (
             new.as_ref(),
@@ -469,7 +469,7 @@ impl VTag {
         }
     }
 
-    fn apply_diffs(&mut self, ancestor: &Option<Self>) {
+    fn apply_diffs(&mut self, ancestor: &Option<Box<Self>>) {
         use VTagInner::*;
 
         let element = self.reference.as_ref().expect("element expected");
