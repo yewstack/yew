@@ -77,6 +77,17 @@ impl Classes {
         }
     }
 
+    /// Creates new Classes from a Vec<ToString> without any conversion, adding prefix to each classes
+    pub fn prefixed_from<T: Into<Classes>, P:AsRef<str>>(t: T, prefix: P) -> Self {
+        t.into().prefixed(prefix)
+    }
+
+    /// Creates new Classes from a Vec<ToString> without any conversion, adding prefix to each classes
+    pub fn postfixed_from<T: Into<Classes>, P:AsRef<str>>(t: T, postfix:P) -> Self {
+        t.into().postfixed(postfix)
+    }
+
+
     /// Adds a class to a set.
     ///
     /// If the provided class has already been added, this method will ignore it.
@@ -102,6 +113,36 @@ impl Classes {
         self.set.extend(other.into().set.into_iter());
         self
     }
+
+    /// Return itself after setting prefix to all set of classes.
+    pub fn prefixed<P: AsRef<str>>(&self, prefix: P) -> Self {
+        if self.is_empty() { return self.clone() }
+        let set = self.set.iter().map(|s|format!("{}{}", prefix.as_ref(), s)).collect();
+        Self { set }
+    }
+
+    /// Return itself after setting postfix to all set of classes.
+    pub fn postfixed<P: AsRef<str>>(&self, postfix: P) -> Self {
+        if self.is_empty() { return self.clone() }
+        let set = self.set.iter().map(|s|format!("{}{}", s, postfix.as_ref())).collect();
+        Self { set }
+    }
+
+    /// Return Iter of inner IndexSet
+    pub fn iter(&self) -> indexmap::set::Iter<'_, String> {
+        self.set.iter()
+    }
+
+    /// Return IntoIter of cloned inner IndexSet
+    pub fn into_iter(&self) -> indexmap::set::IntoIter<String> {
+        self.set.clone().into_iter()
+    }
+}
+
+impl From<&Classes> for Classes {
+    fn from(other: &Classes) -> Self {
+        other.clone()
+    }
 }
 
 impl ToString for Classes {
@@ -124,6 +165,17 @@ impl From<&str> for Classes {
         Self { set }
     }
 }
+
+// impl<T: AsRef<str>> From<T> for Classes {
+//     fn from(t: T) -> Self {
+//         let set = t.as_ref()
+//             .split_whitespace()
+//             .map(String::from)
+//             .filter(|c| !c.is_empty())
+//             .collect();
+//         Self { set }
+//     }
+// }
 
 impl From<String> for Classes {
     fn from(t: String) -> Self {
@@ -153,22 +205,55 @@ impl<T: AsRef<str>> From<&Option<T>> for Classes {
     }
 }
 
-impl<T: AsRef<str>> From<Vec<T>> for Classes {
-    fn from(t: Vec<T>) -> Self {
-        let set = t
-            .iter()
-            .map(|x| x.as_ref())
-            .flat_map(|s| s.split_whitespace())
-            .map(String::from)
-            .filter(|c| !c.is_empty())
-            .collect();
+impl<T: AsRef<str>> From<&[T]> for Classes {
+    fn from(other: &[T]) -> Self {
+        let set = other.iter().map(|s| s.as_ref().to_string()).collect();
         Self { set }
     }
 }
 
+impl From<Vec<&str>> for Classes {
+    fn from(other: Vec<&str>) -> Self {
+        Self::from(&other[..])
+    }
+}
+
+// impl From<&[String]> for Classes {
+//     fn from(other: &[String]) -> Self {
+//         let set = other.iter().filter(|c| !c.is_empty()).map(ToOwned::to_owned).collect();
+//         Self { set }
+//     }
+// }
+
+impl From<Vec<String>> for Classes {
+    fn from(other: Vec<String>) -> Self {
+        Self::from(&other[..])
+    }
+}
+
+// impl<T: Iterator<Item=String>> From<T> for Classes {
+//     fn from(t: T) -> Self {
+//         let set = t
+//             .iter()
+//             .map(|x| x.as_ref())
+//             .flat_map(|s| s.split_whitespace())
+//             .map(String::from)
+//             .filter(|c| !c.is_empty())
+//             .collect();
+//         Self { set }
+//     }
+// }
+
 impl PartialEq for Classes {
     fn eq(&self, other: &Self) -> bool {
         self.set.len() == other.set.len() && self.set.iter().eq(other.set.iter())
+    }
+}
+
+
+impl<T:AsRef<str>> Transformer<T, Classes> for VComp {
+    fn transform(from: T) -> Classes {
+        Classes::from(from.as_ref())
     }
 }
 
