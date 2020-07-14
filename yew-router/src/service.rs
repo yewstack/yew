@@ -111,10 +111,11 @@ where
                 feature = "std_web" => String::try_from(state_value).unwrap_or_default(),
                 feature = "web_sys" => state_value.as_string().unwrap_or_default(),
             };
-            let state: STATE = serde_json::from_str(&state_string).unwrap_or_else(|_| {
-                log::error!("Could not deserialize state string");
-                STATE::default()
-            });
+            let state: STATE = if state_string.is_empty() { STATE::default() } else {
+                serde_json::from_str(&state_string).unwrap_or_else(|_| {
+                    log::error!("Could not deserialize state string : {}", &state_string);
+                    STATE::default()
+            })};
 
             // Can't use the existing location, because this is a callback, and can't move it in
             // here.
