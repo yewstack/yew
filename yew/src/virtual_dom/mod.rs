@@ -218,7 +218,13 @@ impl<T: AsRef<str>> From<&Option<T>> for Classes {
 
 impl<T: AsRef<str>> From<&[T]> for Classes {
     fn from(other: &[T]) -> Self {
-        let set = other.iter().map(|s| s.as_ref().to_string()).collect();
+        let set = other
+            .iter()
+            .map(|s| s.as_ref())
+            .flat_map(|s| s.split_whitespace())
+            .map(String::from)
+            .filter(|c| !c.is_empty())
+            .collect();
         Self { set }
     }
 }
