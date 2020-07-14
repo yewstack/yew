@@ -136,14 +136,7 @@ impl<U: Switch + std::fmt::Debug> Switch for AllowMissing<U> {
         let (inner, inner_state) = U::from_route_part(part, state);
 
         if inner.is_some() {
-            (
-                Some(AllowMissing(if route == "" || route == "/" {
-                    None
-                } else {
-                    inner
-                })),
-                inner_state,
-            )
+            (Some(AllowMissing( if route == "" || route == "/" {None} else { inner } ) ), inner_state)
         } else {
             (None, None)
         }
