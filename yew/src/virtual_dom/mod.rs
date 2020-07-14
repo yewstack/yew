@@ -78,15 +78,14 @@ impl Classes {
     }
 
     /// Creates new Classes from a Vec<ToString> without any conversion, adding prefix to each classes
-    pub fn prefixed_from<T: Into<Classes>, P:AsRef<str>>(t: T, prefix: P) -> Self {
+    pub fn prefixed_from<T: Into<Classes>, P: AsRef<str>>(t: T, prefix: P) -> Self {
         t.into().prefixed(prefix)
     }
 
     /// Creates new Classes from a Vec<ToString> without any conversion, adding prefix to each classes
-    pub fn postfixed_from<T: Into<Classes>, P:AsRef<str>>(t: T, postfix:P) -> Self {
+    pub fn postfixed_from<T: Into<Classes>, P: AsRef<str>>(t: T, postfix: P) -> Self {
         t.into().postfixed(postfix)
     }
-
 
     /// Adds a class to a set.
     ///
@@ -116,15 +115,27 @@ impl Classes {
 
     /// Return itself after setting prefix to all set of classes.
     pub fn prefixed<P: AsRef<str>>(&self, prefix: P) -> Self {
-        if self.is_empty() { return self.clone() }
-        let set = self.set.iter().map(|s|format!("{}{}", prefix.as_ref(), s)).collect();
+        if self.is_empty() {
+            return self.clone();
+        }
+        let set = self
+            .set
+            .iter()
+            .map(|s| format!("{}{}", prefix.as_ref(), s))
+            .collect();
         Self { set }
     }
 
     /// Return itself after setting postfix to all set of classes.
     pub fn postfixed<P: AsRef<str>>(&self, postfix: P) -> Self {
-        if self.is_empty() { return self.clone() }
-        let set = self.set.iter().map(|s|format!("{}{}", s, postfix.as_ref())).collect();
+        if self.is_empty() {
+            return self.clone();
+        }
+        let set = self
+            .set
+            .iter()
+            .map(|s| format!("{}{}", s, postfix.as_ref()))
+            .collect();
         Self { set }
     }
 
@@ -250,8 +261,7 @@ impl PartialEq for Classes {
     }
 }
 
-
-impl<T:AsRef<str>> Transformer<T, Classes> for VComp {
+impl<T: AsRef<str>> Transformer<T, Classes> for VComp {
     fn transform(from: T) -> Classes {
         Classes::from(from.as_ref())
     }
