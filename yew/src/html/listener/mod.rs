@@ -12,6 +12,7 @@ cfg_if! {
         use stdweb::unstable::{TryFrom, TryInto};
         use stdweb::web::html_element::{InputElement, SelectElement, TextAreaElement};
         use stdweb::web::{Element, EventListenerHandle, FileList, IElement, INode};
+        use stdweb::web::event::InputEvent;
 
         pub use listener_stdweb::*;
     } else if #[cfg(feature = "web_sys")] {
@@ -21,6 +22,7 @@ cfg_if! {
         use web_sys::{
             Element, FileList, HtmlInputElement as InputElement, HtmlSelectElement as SelectElement,
             HtmlTextAreaElement as TextAreaElement,
+            InputEvent
         };
 
         pub use listener_web_sys::*;
@@ -33,6 +35,8 @@ pub struct InputData {
     /// Inserted characters. Contains value from
     /// [InputEvent](https://developer.mozilla.org/en-US/docs/Web/API/InputEvent/data).
     pub value: String,
+    /// The InputEvent received.
+    pub event: InputEvent,
 }
 
 // There is no '.../Web/API/ChangeEvent/data' (for onchange) similar to
@@ -55,7 +59,7 @@ pub enum ChangeData {
     Files(FileList),
 }
 
-fn oninput_handler(this: &Element) -> InputData {
+fn oninput_handler(this: &Element, event: InputEvent) -> InputData {
     // Normally only InputElement or TextAreaElement can have an oninput event listener. In
     // practice though any element with `contenteditable=true` may generate such events,
     // therefore here we fall back to just returning the text content of the node.
@@ -83,7 +87,7 @@ fn oninput_handler(this: &Element) -> InputData {
     let v3 = this.text_content();
     let value = v1.or(v2).or(v3)
         .expect("only an InputElement or TextAreaElement or an element with contenteditable=true can have an oninput event listener");
-    InputData { value }
+    InputData { value, event }
 }
 
 fn onchange_handler(this: &Element) -> ChangeData {
