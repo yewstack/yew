@@ -61,7 +61,7 @@ impl fmt::Debug for dyn Listener {
 type Listeners = Vec<Rc<dyn Listener>>;
 
 /// A map of attributes.
-type Attributes = HashMap<String, String>;
+type Attributes = HashMap<&'static str, String>;
 
 /// A set of classes.
 #[derive(Debug, Clone, Default)]

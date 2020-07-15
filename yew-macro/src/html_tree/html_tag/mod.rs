@@ -136,10 +136,13 @@ impl ToTokens for HtmlTag {
         } = &attributes;
 
         let vtag = Ident::new("__yew_vtag", tag_name.span());
-        let attr_pairs = attributes.iter().map(|TagAttribute { label, value }| {
-            let label_str = label.to_string();
-            quote_spanned! {value.span()=> (#label_str.to_owned(), (#value).to_string()) }
-        });
+        let attr_pairs: Vec<_> = attributes
+            .iter()
+            .map(|TagAttribute { label, value }| {
+                let label_str = label.to_string();
+                quote_spanned! {value.span()=> (#label_str, (#value).to_string()) }
+            })
+            .collect();
         let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
             quote_spanned! {value.span()=>
@@ -184,18 +187,21 @@ impl ToTokens for HtmlTag {
                 #vtag.key = Some(::yew::virtual_dom::Key::from(#key));
             }
         });
-        let listeners = listeners.iter().map(|listener| {
-            let name = &listener.label.name;
-            let callback = &listener.value;
+        let listeners: Vec<_> = listeners
+            .iter()
+            .map(|listener| {
+                let name = &listener.label.name;
+                let callback = &listener.value;
 
-            quote_spanned! {name.span()=> {
-                ::yew::html::#name::Wrapper::new(
-                    <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
-                        #callback
+                quote_spanned! {name.span()=> {
+                    ::yew::html::#name::Wrapper::new(
+                        <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
+                            #callback
+                        )
                     )
-                )
-            }}
-        });
+                }}
+            })
+            .collect();
 
         // These are the runtime-checks exclusive to dynamic tags.
         // For literal tags this is already done at compile-time.
@@ -222,7 +228,7 @@ impl ToTokens for HtmlTag {
                     _ => {
                         if let Some(v) = #vtag.value_mut() {
                             if let ::std::option::Option::Some(value) = v.take() {
-                                #vtag.attributes.insert("value".to_string(), value);
+                                #vtag.attributes.insert("value", value);
                             }
                         }
                     }
@@ -232,6 +238,10 @@ impl ToTokens for HtmlTag {
             None
         };
 
+        // Constant ifs - easy for the compiler to optimise out
+        let has_attrs = !attr_pairs.is_empty();
+        let has_listeners = !listeners.is_empty();
+        let has_children = !children.is_empty();
         tokens.extend(quote! {{
             let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
             #(#set_value)*
@@ -241,9 +251,15 @@ impl ToTokens for HtmlTag {
             #(#set_classes)*
             #(#set_node_ref)*
             #(#set_key)*
-            #vtag.add_attributes(vec![#(#attr_pairs),*]);
-            #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
-            #vtag.add_children(#children);
+            if #has_attrs {
+                #vtag.add_attributes(vec![#(#attr_pairs),*]);
+            }
+            if #has_listeners {
+                #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
+            }
+            if #has_children {
+                #vtag.add_children(#children);
+            }
             #dyn_tag_runtime_checks
             ::yew::virtual_dom::VNode::from(#vtag)
         }});

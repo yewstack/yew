@@ -301,7 +301,7 @@ impl VTag {
                 *value = Some(s);
             }
             Other { .. } => {
-                self.attributes.insert("value".into(), s);
+                self.attributes.insert("value", s);
             }
         };
     }
@@ -320,7 +320,7 @@ impl VTag {
                 *checked = value;
             }
             _ => {
-                self.attributes.insert("checked".into(), value.to_string());
+                self.attributes.insert("checked", value.to_string());
             }
         };
     }
@@ -330,17 +330,15 @@ impl VTag {
     /// `value` and `checked`.
     ///
     /// If this virtual node has this attribute present, the value is replaced.
-    pub fn add_attribute<T: ToString>(&mut self, name: &str, value: &T) {
-        self.attributes.insert(name.to_owned(), value.to_string());
+    pub fn add_attribute<T: ToString>(&mut self, name: &'static str, value: &T) {
+        self.attributes.insert(name, value.to_string());
     }
 
     /// Adds attributes to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
     /// `value` and `checked`.
-    pub fn add_attributes(&mut self, attrs: Vec<(String, String)>) {
-        for (name, value) in attrs {
-            self.attributes.insert(name, value);
-        }
+    pub fn add_attributes(&mut self, attrs: Vec<(&'static str, String)>) {
+        self.attributes.extend(attrs);
     }
 
     /// Adds new listener to the node.
@@ -354,9 +352,7 @@ impl VTag {
     /// They are boxed because we want to keep them in a single list.
     /// Later `Listener::attach` will attach an actual listener to a DOM node.
     pub fn add_listeners(&mut self, listeners: Vec<Rc<dyn Listener>>) {
-        for listener in listeners {
-            self.listeners.push(listener);
-        }
+        self.listeners.extend(listeners);
     }
 
     /// Every render it removes all listeners and attach it back later

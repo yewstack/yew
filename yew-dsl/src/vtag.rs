@@ -36,9 +36,9 @@ impl<COMP: Component> VTagProducer<COMP> {
         self
     }
 
-    pub fn attribute(mut self, name: String, value: String) -> Self {
+    pub fn attribute(mut self, name: &'static str, value: String) -> Self {
         let effect = Effect::new(move |mut vtag: VTag, _scope: &ScopeHolder<COMP>| {
-            vtag.add_attribute(&name, &value);
+            vtag.add_attribute(name, &value);
             vtag
         });
         self.effects.push(effect);
