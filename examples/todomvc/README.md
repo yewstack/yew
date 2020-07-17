@@ -13,4 +13,4 @@ wasm-pack build --target web --out-name wasm --out-dir ./static && miniserve ./s
 ```
 This will compile the project, bundle the compiler output and static assets together, and start a HTTP server running locally on port 8080 (to access the example you can use your browser to navigate to [localhost:8080](http://127.0.0.1:8080)).
 
-It is expected that you have a setup with [wasm-pack9](https://github.com/rustwasm/wasm-pack) and [miniserve](https://github.com/svenstaro/miniserve) installed.
+To run this example you'll need to have [wasm-pack](https://github.com/rustwasm/wasm-pack) and [miniserve](https://github.com/svenstaro/miniserve) installed.
