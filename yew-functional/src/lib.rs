@@ -300,11 +300,10 @@ where
         }
     }
     use_hook(
-        move |state: &mut UseEffectState<Dependents, Destructor>, hook_callback| {
-            let mut should_update = *state.deps != *deps;
+        move |_state: &mut UseEffectState<Dependents, Destructor>, hook_callback| {
             hook_callback(
                 move |state: &mut UseEffectState<Dependents, Destructor>| {
-                    if should_update {
+                    if state.deps != deps {
                         if let Some(de) = state.destructor.take() {
                             de();
                         }
@@ -312,7 +311,6 @@ where
                         state.deps = deps;
                         state.destructor.replace(Box::new(new_destructor));
                     } else if state.destructor.is_none() {
-                        should_update = true;
                         state
                             .destructor
                             .replace(Box::new(callback(state.deps.borrow())));
