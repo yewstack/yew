@@ -55,7 +55,10 @@ Caused by: missing field `package`
 `wasm-pack` automatically downloads the selected webdriver for you.
 If desired, you can download it manually. For instructions, please consult the documentation of the webdriver you wish to install.
 
-You also might want to pass the argument `--mode no-install` to make sure that `wasm-pack` doesn't automatically install something.
+You might want to pass the argument `--mode no-install` to `wasm-pack` to make sure it doesn't try to install something.
+If the webdriver binary is in the path you can use the same command as above to run the tests.
+If not, you need to tell `wasm-pack test` where to find it using the `--geckodriver`, `--chromedriver`, or `--safaridriver` option.
+Run `wasm-pack test --help` to learn more.
 
 #### Running all tests
 
