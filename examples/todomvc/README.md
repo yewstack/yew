@@ -6,7 +6,7 @@ Unlike other implementations, this stores the full state of the model,
 including: all entries, entered text and chosen filter.
 
 ### How to run:
-This example requires rustc v1.39.0 or above to compile due to its use of async/.await syntax.
+This example requires rustc v1.39.0 or above to compile due to its use of the `async`/`await` syntax.
 
 ```sh
 wasm-pack build --target web --out-name wasm --out-dir ./static && miniserve ./static --index index.html
