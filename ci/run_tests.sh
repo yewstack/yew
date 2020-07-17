@@ -8,7 +8,7 @@ test_features="wasm_test"
 
 if [[ -z "${HTTPBIN_URL-}" ]]; then
   echo "INFO: HTTPBIN_URL isn't set, won't run fetch service tests"
-  echo "      please see the CONTRIBUTING.md files for instructions"
+  echo "      please see the CONTRIBUTING.md file for instructions"
 else
   echo "INFO: using '$HTTPBIN_URL' for fetch service tests"
   test_features+=",httpbin_test"
