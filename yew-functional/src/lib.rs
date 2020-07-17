@@ -60,11 +60,10 @@ where
     fn swap_hook_state(&self) {
         CURRENT_HOOK.with(|previous_hook| {
             std::mem::swap(
-                previous_hook
+                &mut *previous_hook
                     .try_borrow_mut()
-                    .expect("Previous hook still borrowed")
-                    .deref_mut(),
-                self.hook_state.borrow_mut().deref_mut(),
+                    .expect("Previous hook still borrowed"),
+                &mut *self.hook_state.borrow_mut(),
             );
         });
     }
@@ -80,7 +79,7 @@ where
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let scope = AnyScope::from(link.clone());
         let message_queue = MsgQueue::default();
-        FunctionComponent {
+        Self {
             _never: std::marker::PhantomData::default(),
             props,
             link: link.clone(),
@@ -138,7 +137,7 @@ where
     }
 
     fn destroy(&mut self) {
-        if let Some(hook_state) = self.hook_state.borrow_mut().deref_mut() {
+        if let Some(ref mut hook_state) = *self.hook_state.borrow_mut() {
             for hook in hook_state.destroy_listeners.drain(..) {
                 hook()
             }
@@ -250,7 +249,6 @@ where
     F: FnOnce() -> Destructor + 'static,
     Destructor: FnOnce() + 'static,
 {
-    let callback = Box::new(callback);
     struct UseEffectState<Destructor> {
         destructor: Option<Box<Destructor>>,
     }
@@ -261,6 +259,9 @@ where
             }
         }
     }
+
+    let callback = Box::new(callback);
+
     use_hook(
         |_: &mut UseEffectState<Destructor>, hook_callback| {
             hook_callback(
@@ -289,9 +290,6 @@ where
         deps: Rc<Dependents>,
         destructor: Option<Box<Destructor>>,
     }
-    let deps = Rc::new(deps);
-    let deps_c = deps.clone();
-
     impl<Dependents, Destructor: FnOnce() + 'static> Hook for UseEffectState<Dependents, Destructor> {
         fn tear_down(&mut self) {
             if let Some(destructor) = self.destructor.take() {
@@ -299,6 +297,10 @@ where
             }
         }
     }
+
+    let deps = Rc::new(deps);
+    let deps_c = deps.clone();
+
     use_hook(
         move |_state: &mut UseEffectState<Dependents, Destructor>, hook_callback| {
             hook_callback(
