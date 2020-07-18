@@ -5,6 +5,7 @@ EXAMPLE=${1%\/}
 # Optimization level. Can be either "--debug" or "--release". Defaults to debug.
 PROFILE=${2:---debug}
 
+
 # src: https://gist.github.com/fbucek/f986da3cc3a9bbbd1573bdcb23fed2e1
 set -e # error -> trap -> exit
 function info() { echo -e "[\033[0;34m $* \033[0m]"; } # blue: [ info message ]
@@ -38,11 +39,10 @@ cargo_build() {
 # wasm-pack build
 if [[ $EXAMPLE == *_wp ]]; then
     info "Building: $EXAMPLE using wasm-pack"
-    # wasm-pack overwrites .gitignore -> save -> restore
-    cp "$SRCDIR/static/.gitignore" "$SRCDIR/static/.gitignore.copy"
     wasm-pack build "$PROFILE" --target web --out-name wasm --out-dir "$SRCDIR/static/"
-    rm "$SRCDIR/static/.gitignore"; mv "$SRCDIR/static/.gitignore.copy" "$SRCDIR/static/.gitignore" # restore .gitignore
 
+    cd static
+    python3 ../start_example_server.py
 # multi_thread build -> two binary/wasm files
 elif [[ $EXAMPLE == multi_thread ]]; then
     info "Building: $EXAMPLE app using wasm-bindgen"
