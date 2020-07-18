@@ -39,22 +39,27 @@ cargo_build() {
 # wasm-pack build
 if [[ $EXAMPLE == *_wp ]]; then
     info "Building: $EXAMPLE using wasm-pack"
-    wasm-pack build "$PROFILE" --target web --out-name wasm --out-dir "$SRCDIR/static/"
+    wasm-pack build "$PROFILE" --target web --out-name wasm --out-dir "$SRCDIR/$EXAMPLE/static/"
 
     cd static
-    python3 ../start_example_server.py
+    python3 ../../start_example_server.py
 # multi_thread build -> two binary/wasm files
 elif [[ $EXAMPLE == multi_thread ]]; then
     info "Building: $EXAMPLE app using wasm-bindgen"
     cargo_build --bin multi_thread_app
-    wasm-bindgen --target web --no-typescript --out-dir "$SRCDIR/static/" --out-name wasm "$TARGET_DIR/multi_thread_app.wasm"
+    wasm-bindgen --target web --no-typescript --out-dir "$SRCDIR/$EXAMPLE/static/" --out-name wasm "$TARGET_DIR/multi_thread_app.wasm"
 
     info "Building: $EXAMPLE worker using wasm-bindgen"
     cargo_build --bin multi_thread_worker
-    wasm-bindgen --target no-modules --no-typescript --out-dir "$SRCDIR/static/" --out-name worker "$TARGET_DIR/multi_thread_worker.wasm"
+    wasm-bindgen --target no-modules --no-typescript --out-dir "$SRCDIR/$EXAMPLE/static/" --out-name worker "$TARGET_DIR/multi_thread_worker.wasm"
 
+    cd static
+    python3 ../../start_example_server.py
 else # Default wasm-bindgen build
     info "Building: $EXAMPLE using wasm-bindgen"
     cargo_build
-    wasm-bindgen --target web --no-typescript --out-dir "$SRCDIR/static/" --out-name wasm "$TARGET_DIR/$EXAMPLE.wasm"
+    wasm-bindgen --target web --no-typescript --out-dir "$SRCDIR/$EXAMPLE/static/" --out-name wasm "$TARGET_DIR/$EXAMPLE.wasm"
+
+    cd static
+    python3 ../../start_example_server.py
 fi
