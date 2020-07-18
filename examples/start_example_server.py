@@ -14,9 +14,9 @@ DEFAULT_INDEX_HTML = """<!doctype html>
         <meta charset="utf-8">
         <title>Yew example</title>
         <script type="module">
-			import init from "./wasm.js"
-			init()
-		</script>
+            import init from "./wasm.js"
+            init()
+        </script>
     </head>
     <body></body>
 </html>""".encode('utf-8')
