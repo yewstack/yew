@@ -21,11 +21,6 @@ DEFAULT_INDEX_HTML = """<!doctype html>
     <body></body>
 </html>""".encode('utf-8')
 
-class BasicResource(object):
-    def __init__(self, mime, content):
-        self.mime = mime
-        self.content = content
-
 class S(BaseHTTPRequestHandler):
     def _set_response(self, code, mime, charset='utf-8'):
         self.send_response(code)
@@ -37,9 +32,7 @@ class S(BaseHTTPRequestHandler):
         path = self.path
         if path in ('', '/'):
             path = '/index.html'
-
         relative_path = f'.{path}'
-        print(relative_path)
 
         if os.path.isfile(relative_path):
             print('is a file:', relative_path)
