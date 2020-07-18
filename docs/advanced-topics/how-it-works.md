@@ -8,6 +8,7 @@ Component-lifecycle state machine, vdom diff algorithm.
 
 ## Under the hood of the `html!` macro
 
+**A quick refresher on macros (feel free to skip this if you're confident with Rust's macros)**
 Rust's macros are an example of "metaprogramming" - the term is the Greek "meta" combined with 
 "programming", although the meaning of "meta" in this context is not the Greek one but rather its
 meaning in epistemology (the study of knowledge) which means about. Metaprogramming is "programming"
@@ -34,6 +35,13 @@ html! {
 }
 ```
 
+There's a useful tool called `cargo expand` which allows you to see the expansion of Rust macros.
+If you're confused as to why Yew is doing something, expanding the `html!` macro calls in your
+program can give you an insight into why something is happening. `cargo expand` isn't shipped with
+`cargo` by default so you'll need to install it with `cargo install cargo-expand` if you haven't
+already. We're going to give an example of what the output code might look like and how to navigate
+it.
+
 After expanding this macro we get an output which looks like this. Note that some additional code
 which the macro also outputs has been stripped out; that code is necessary because Rust only allows
 macros to be used in an item position but we're trying to output expressions – the code not shown 
@@ -42,14 +50,11 @@ make it display in a more readable format.
 
 Some things that might appear strange in this code are:
 1. Instead of using `yew::<whatever>` it uses `::yew::<whatever>` - this is to make sure that the
-Yew package is referenced correctly.
+Yew package is referenced correctly. This is also why `::alloc::vec::Vec::new()` is called instead
+of just `Vec::new()`.
 2. All the variable names are prefixed with `__` – this is to ensure that they don't conflict with
 other names you might have defined.
-3. Instead of `Vec::new()` we're using `::alloc::vec::Vec::new()` and ```std::vec::Vec::new()``` –
-this is to properly handle scopes (ensuring that everything lines up in the output of a macro with
-what you want it to can be a bit fiddly, but as a general rule everything is specified relative to
-the crate root of the where the macro is called).
-4. `<identifier as TraitName>` – this is just a way to make sure that we're using items from the
+3. `<identifier as TraitName>` – this is just a way to make sure that we're using items from the
 correct trait (and not a different trait, if a different trait with the same item has been defined).
 
 The explanation for what's going on is interwoven into the code as comments.
@@ -153,6 +158,10 @@ the end result should be) rather than writing code in an imperative style where 
 which specifies all the steps to get to the end result. Having tools like the `html!` macro becomes
 increasingly useful as your codebase gets larger and more people work on it.
 
+When looking through code output by the macro the [API documentation](https://docs.rs/yew) is a
+useful tool for working out what different items of code are doing. Protip: the documentation is
+searchable!
+
 ## What is a virtual DOM?
 
 The DOM ("document object model") provides a representation of the HTML content on a web page in a
@@ -170,7 +179,9 @@ function reloadBlogPosts() {
         if (request.ok) {
             // let's assume that there's already an element '#blogposts' in the DOM
             let blogPostNode = document.getElementById("#blogposts");
-            blogPostNode.childNodes.innerHTML = "";
+            // clear the existing contents of the node
+            blogPostNode.innerHTML = "";
+            // add the new data into the DOM
             request.json().then(data => {
                 data.map(blogPost => {
                        blogPostNode.appendChild(
@@ -203,4 +214,5 @@ the items which differ between the real and virtual DOMs. This gave birth to the
 
 ## Further reading
 * [More information about macros from the Rust Book](https://doc.rust-lang.org/stable/book/ch19-06-macros.html)
+* [More information about `cargo-expand`](https://github.com/dtolnay/cargo-expand)
 * [The API documentation for `yew::virtual_dom`](https://docs.rs/yew/*/yew/virtual_dom/index.html)
