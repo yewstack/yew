@@ -2,9 +2,34 @@
 
 # The example to build.
 EXAMPLE=${1%\/}
-# Optimization level. Can be either "--debug" or "--release". Defaults to debug.
-PROFILE=${2:---debug}
+shift
 
+# Optimization level. Can be either "--debug" or "--release". Defaults to debug.
+PROFILE="--debug"
+
+# Whether to open a browser window after building
+START_BROWSER=1
+
+while (( "$#" )); do
+  case "$1" in
+    --release)
+      PROFILE="--release"
+      shift
+      ;;
+    --debug)
+      PROFILE="--debug"
+      shift
+      ;;
+    --build-only)
+      START_BROWSER=0
+      shift
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      exit 1
+      ;;
+  esac
+done
 
 # src: https://gist.github.com/fbucek/f986da3cc3a9bbbd1573bdcb23fed2e1
 set -e # error -> trap -> exit
@@ -41,8 +66,6 @@ if [[ $EXAMPLE == *_wp ]]; then
     info "Building: $EXAMPLE using wasm-pack"
     wasm-pack build "$PROFILE" --target web --out-name wasm --out-dir "$SRCDIR/$EXAMPLE/static/"
 
-    cd static
-    python3 ../../start_example_server.py
 # multi_thread build -> two binary/wasm files
 elif [[ $EXAMPLE == multi_thread ]]; then
     info "Building: $EXAMPLE app using wasm-bindgen"
@@ -53,13 +76,13 @@ elif [[ $EXAMPLE == multi_thread ]]; then
     cargo_build --bin multi_thread_worker
     wasm-bindgen --target no-modules --no-typescript --out-dir "$SRCDIR/$EXAMPLE/static/" --out-name worker "$TARGET_DIR/multi_thread_worker.wasm"
 
-    cd static
-    python3 ../../start_example_server.py
 else # Default wasm-bindgen build
     info "Building: $EXAMPLE using wasm-bindgen"
     cargo_build
     wasm-bindgen --target web --no-typescript --out-dir "$SRCDIR/$EXAMPLE/static/" --out-name wasm "$TARGET_DIR/$EXAMPLE.wasm"
+fi
 
-    cd static
-    python3 ../../start_example_server.py
+cd static
+if [[ $START_BROWSER == 1 ]]; then
+    python3 ../../start_example_server.py $FLAGS
 fi
