@@ -42,6 +42,7 @@ class S(BaseHTTPRequestHandler):
         print(relative_path)
 
         if os.path.isfile(relative_path):
+            print('is a file:', relative_path)
             with open(relative_path, "rb") as f:
                 mime = 'text/plain'
                 if relative_path.endswith('.html'):
