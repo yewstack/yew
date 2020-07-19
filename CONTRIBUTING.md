@@ -32,7 +32,7 @@ This section will guide you through the process of running these tests locally.
 First, ensure that `wasm-pack` is installed.
 [Instructions](https://rustwasm.github.io/wasm-pack/installer/)
 
-`wasm-pack` automatically takes care of installing the correct `wasm-bindgen` version and downloading a webdriver for the browser.
+`wasm-pack` automatically takes care of installing the correct `wasm-bindgen` version and downloading a WebDriver for the browser.
 
 The following command is all you need to run the tests:
 
@@ -50,13 +50,13 @@ Error: failed to parse manifest: yew/Cargo.toml
 Caused by: missing field `package`
 ```
 
-#### Manually installing a webdriver
+#### Manually installing a WebDriver
 
-`wasm-pack` automatically downloads the selected webdriver for you.
-If desired, you can download a WebDriver manually. For instructions, please consult the documentation of the webdriver you wish to install.
+`wasm-pack` automatically downloads the selected WebDriver for you.
+If desired, you can download a WebDriver manually. For instructions, please consult the documentation of the WebDriver you wish to install.
 
 You might want to pass the argument `--mode no-install` to `wasm-pack` to make sure it doesn't try to install something.
-If the webdriver binary is in the path you can use the same command as above to run the tests.
+If the WebDriver binary is in the path you can use the same command as above to run the tests.
 If not, you need to tell `wasm-pack test` where to find it using the `--geckodriver`, `--chromedriver`, or `--safaridriver` option.
 Run `wasm-pack test --help` to learn more.
 
