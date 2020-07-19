@@ -41,8 +41,9 @@ fn main() {
                         .long("release")
                 )
                 .arg(
-                    Arg::with_name("PROJECT_DIR")
-                        .help("Path to the project directory for the Yew application that will be built")
+                    Arg::with_name("PROJECT_DIRS")
+                        .multiple(true)
+                        .help("Path(s) to the project directory(ies) for the Yew application(s) that will be built")
                         .required(true)
                 )
         )
@@ -57,13 +58,11 @@ fn main() {
 }
 
 fn cmd_run(matches: ArgMatches) {
+    cmd_build(matches);
 
+    // TODO: run
 }
 
-enum BuildType {
-    Build,
-    Run,
-}
 
 // build all examples
 // fs::read_dir(examples_path.as_path())
@@ -83,27 +82,32 @@ enum BuildType {
 
 fn cmd_build(matches: ArgMatches) {
     let has_run_flag = matches.is_present("run");
+    let has_release_flag = matches.is_present("release");
+    let has_release_flag = matches.is_present("release");
 
     let examples_path = cwd().join("examples");
+    let project_dirs = matches.values_of_os("PROJECT_DIRS").expect("No project directory specified");
 
-    // build single example
-    build_example(examples_path.as_path());
+    for project_dir in project_dirs {
+        build_example(has_release_flag, project_dir.as_ref());
+    }
 }
 
 fn cwd() -> PathBuf {
     env::current_dir().expect("couldnt resolve current working directory")
 }
 
-fn build_example(path: &Path) {
+fn build_example(has_release_flag: bool, path: &Path) {
     fn target_dir() -> PathBuf {
         cwd().join("target").join("wasm32-unknown-unknown")
     }
+
     let file_name = path.file_name().unwrap().to_str().unwrap();
     if file_name.ends_with("_wp") {
     } else if file_name == "multi_thread" {
     } else {
         let mut args = vec!["build"];
-        if *RELEASE.lock().unwrap() {
+        if has_release_flag {
             args.push("--release")
         }
         args.append(&mut vec!["--target", "wasm32-unknown-unknown"]);
