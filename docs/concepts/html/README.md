@@ -24,11 +24,3 @@ problem. See the
 [official documentation](https://doc.rust-lang.org/reference/attributes/limits.html#the-recursion_limit-attribute) and 
 [this Stack Overflow question](https://stackoverflow.com/questions/27454761/what-is-a-crate-attribute-and-where-do-i-add-it) for details.
 {% endhint %}
-
-{% page-ref page="lists.md" %}
-
-{% page-ref page="elements.md" %}
-
-{% page-ref page="literals-and-expressions.md" %}
-
-{% page-ref page="components.md" %}
