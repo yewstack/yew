@@ -8,7 +8,7 @@ use std::process::{exit, Command};
 use std::sync::Mutex;
 use std::{env, fs};
 
-use log::{info, warn, error};
+use log::{error, info, warn};
 
 lazy_static! {
     static ref RELEASE: Mutex<bool> = Mutex::new(false);
@@ -18,7 +18,7 @@ lazy_static! {
 //  yew run directory/
 //  yew build --run directory/ (same as above)
 //  yew build directory/ (only builds)
-//  yew build examples/* (to build all examples) 
+//  yew build examples/* (to build all examples)
 
 fn main() {
     let matches = App::new("Yew CLI")
@@ -48,12 +48,12 @@ fn main() {
                 )
         )
         .get_matches();
-    
+
     let subcommand = matches.subcommand_name().unwrap();
     match subcommand {
         "run" => cmd_run(matches),
         "build" => cmd_build(matches),
-        _ => panic!("unknown subcommand")
+        _ => panic!("unknown subcommand"),
     }
 }
 
@@ -62,7 +62,6 @@ fn cmd_run(matches: ArgMatches) {
 
     // TODO: run
 }
-
 
 // build all examples
 // fs::read_dir(examples_path.as_path())
@@ -86,7 +85,9 @@ fn cmd_build(matches: ArgMatches) {
     let has_release_flag = matches.is_present("release");
 
     let examples_path = cwd().join("examples");
-    let project_dirs = matches.values_of_os("PROJECT_DIRS").expect("No project directory specified");
+    let project_dirs = matches
+        .values_of_os("PROJECT_DIRS")
+        .expect("No project directory specified");
 
     for project_dir in project_dirs {
         build_example(has_release_flag, project_dir.as_ref());
