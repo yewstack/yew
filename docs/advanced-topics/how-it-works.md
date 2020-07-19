@@ -158,9 +158,9 @@ the end result should be) rather than writing code in an imperative style where 
 which specifies all the steps to get to the end result. Having tools like the `html!` macro becomes
 increasingly useful as your codebase gets larger and more people work on it.
 
-When looking through code output by the macro the [API documentation](https://docs.rs/yew) is a
-useful tool for working out what different items of code are doing. Protip: the documentation is
-searchable!
+When examining the code output of Yew's macros the [API documentation](https://docs.rs/yew) is a
+useful tool for working out what different items of code are doing (pro tip: the documentation is
+searchable!)
 
 ## What is a virtual DOM?
 
