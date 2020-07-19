@@ -44,7 +44,7 @@ smart pointers to only clone a reference to the data instead of the data itself.
 references to the relevant data in your props and child components instead of the actual data you 
 can avoid cloning any data until you need to modify the data in the child component, where you 
 use `Rc::make_mut` to clone and get a mutable reference to the data you want to alter. By avoiding
-cloning data until absolutely necessary, child components can choose not to rerender when supplied
+cloning data until absolutely necessary, child components can choose not to re-render when supplied
 with props identical to the local copies of props they possess  in `Component::change` calls while 
 incurring limited performance costs. The benefits are especially great when compared to a situation
 in which smart pointers are not used which would mean that the data itself would have to be copied 
