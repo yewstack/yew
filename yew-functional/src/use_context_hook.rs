@@ -44,7 +44,7 @@ impl<T: Clone + PartialEq> ContextProvider<T> {
         let context = &self.context;
         self.consumers.borrow_mut().retain(|cb| {
             if let Some(cb) = cb.upgrade() {
-                cb(Rc::clone(&context));
+                cb(Rc::clone(context));
                 true
             } else {
                 false
@@ -58,7 +58,7 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
     type Properties = ContextProviderProps<T>;
 
     fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        ContextProvider {
+        Self {
             children: props.children,
             context: Rc::new(props.context),
             consumers: RefCell::new(Vec::new()),
@@ -70,11 +70,11 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
     }
 
     fn change(&mut self, props: Self::Properties) -> bool {
-        let should_render = if self.children != props.children {
+        let should_render = if self.children == props.children {
+            false
+        } else {
             self.children = props.children;
             true
-        } else {
-            false
         };
 
         let new_context = Rc::new(props.context);
@@ -116,9 +116,6 @@ where
 }
 
 pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<Rc<T>> {
-    let scope = get_current_scope()
-        .expect("No current Scope. `use_context` can only be called inside functional components");
-
     struct UseContextState<T2: Clone + PartialEq + 'static> {
         provider_scope: Option<Scope<ContextProvider<T2>>>,
         current_context: Option<Rc<T2>>,
@@ -131,6 +128,10 @@ pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<Rc<T>> {
             }
         }
     }
+
+    let scope = get_current_scope()
+        .expect("No current Scope. `use_context` can only be called inside functional components");
+
     use_hook(
         |state: &mut UseContextState<T>, hook_callback| {
             state.callback = Some(Rc::new(Box::new(move |ctx: Rc<T>| {
