@@ -10,7 +10,7 @@ use std::{env, fs};
 
 use log::{error, info, warn};
 use std::io::{Stdin, Write};
-use std::fs::File;
+use std::fs::{File, remove_file};
 
 const STANDARD_HTML: &str = include_str!("standard_html.html");
 
@@ -98,11 +98,16 @@ fn cmd_build(matches: &ArgMatches) {
         }
         println!("starting building {}", path_str);
         execute_wasm_pack(has_release_flag, path.as_path());
-        let html_path = path.join("static").join("index.html");
+        let static_path = path.join("static");
+        let html_path = static_path.join("index.html");
         if !html_path.exists() {
             let mut file = File::create(html_path).expect("failed to make index.html file");
             file.write_all(STANDARD_HTML.as_bytes());
 
+        }
+        let gitignore_path = static_path.join(".gitignore");
+        if gitignore_path.exists() {
+            remove_file(gitignore_path).expect("failed to delete .gitignore");
         }
     })
 }
