@@ -11,6 +11,9 @@ use std::{env, fs};
 use log::{error, info, warn};
 use std::io::{Stdin, Write};
 use std::fs::{File, remove_file};
+use std::thread::sleep;
+use std::time::Duration;
+
 
 const STANDARD_HTML: &str = include_str!("standard_html.html");
 
@@ -20,7 +23,8 @@ const STANDARD_HTML: &str = include_str!("standard_html.html");
 //  yew build directory/ (only builds)
 //  yew build examples/* (to build all examples)
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let matches = App::new("Yew CLI")
         .version("0.1")
         .about("Builds and runs Yew application projects")
@@ -54,11 +58,20 @@ fn main() {
 
     let subcommand = matches.subcommand_name().unwrap();
     let matches = matches.subcommand().1.unwrap();
+    let matches = matches.clone();
     match subcommand {
-        "run" => cmd_run(matches),
-        "build" => if matches.is_present("run") { cmd_run(matches) } else { cmd_build(matches) }
+        "run" => {
+            cmd_run(matches).await;
+        },
+        "build" => {
+            if matches.is_present("run") {
+                cmd_run(matches).await;
+            } else {
+                cmd_build(matches);
+            };
+        }
         _ => panic!("unknown subcommand"),
-    }
+    };
 }
 
 fn canonicalize(path: &PathBuf) -> PathBuf {
@@ -68,28 +81,43 @@ fn canonicalize(path: &PathBuf) -> PathBuf {
         //dont know if its just windows, but it feels like one of those windows things
         let str = can.to_str().unwrap();
         PathBuf::from(String::from(&str[4..]))
-    }
-    else {
+    } else {
         can
     }
-
 }
 
-fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf>{
-    let paths = matches.values_of("project_dir").unwrap().map(|p|cwd().join(p)).collect::<Vec<PathBuf>>();
-    let paths = paths.iter().map(|p|canonicalize(p)).collect::<Vec<PathBuf>>();
+fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
+    let paths = matches.values_of("project_dir").unwrap().map(|p| cwd().join(p)).collect::<Vec<PathBuf>>();
+    let paths = paths.iter().map(|p| canonicalize(p)).collect::<Vec<PathBuf>>();
     paths
 }
 
-fn cmd_run(matches: &ArgMatches) {
-    cmd_build(matches);
-    let projects = unwrap_project_dir(matches);
-
+async fn cmd_run<'a>(matches: ArgMatches<'a>) {
+    cmd_build(matches.clone());
+    let projects = unwrap_project_dir(&matches);
+    let server = match projects.len() {
+        0 => panic!("this should never happen because projects are required by clap"),
+        1 => {
+            let project = &projects[0].join("static");
+            let project = project.clone();
+            let path = String::from(project.to_str().unwrap());
+            warp::serve(warp::fs::dir(path))
+                .run(([127, 0, 0, 1], 3030))
+        }
+        _ => {
+            let project = &projects[0].join("static");
+            let project = project.clone();
+            let path = String::from(project.to_str().unwrap());
+            warp::serve(warp::fs::dir(path))
+                .run(([127, 0, 0, 1], 3030))
+        }
+    };
+    server.await;
 }
 
-fn cmd_build(matches: &ArgMatches) {
+fn cmd_build(matches: ArgMatches) {
     let has_release_flag = matches.is_present("release");
-    let paths = unwrap_project_dir(matches);
+    let paths = unwrap_project_dir(&matches);
     paths.into_iter().for_each(|path| {
         let path_str = path.to_str().unwrap();
         if !path.join("Cargo.toml").exists() {
@@ -103,8 +131,8 @@ fn cmd_build(matches: &ArgMatches) {
         if !html_path.exists() {
             let mut file = File::create(html_path).expect("failed to make index.html file");
             file.write_all(STANDARD_HTML.as_bytes());
-
         }
+        //TODO: make this a flag
         let gitignore_path = static_path.join(".gitignore");
         if gitignore_path.exists() {
             remove_file(gitignore_path).expect("failed to delete .gitignore");
