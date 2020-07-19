@@ -9,7 +9,10 @@ use std::sync::Mutex;
 use std::{env, fs};
 
 use log::{error, info, warn};
-use std::io::Stdin;
+use std::io::{Stdin, Write};
+use std::fs::File;
+
+const STANDARD_HTML: &str = include_str!("standard_html.html");
 
 // Usages:
 //  yew run directory/
@@ -58,32 +61,35 @@ fn main() {
     }
 }
 
-fn cmd_run(matches: &ArgMatches) {
-    cmd_build(matches);
+fn canonicalize(path: &PathBuf) -> PathBuf {
+    let can = fs::canonicalize(path).unwrap();
+    if cfg!(target_os = "windows") {
+        //this is done cause on rust for some reason puts a \\?\ prefix before all paths, which fucks up
+        //dont know if its just windows, but it feels like one of those windows things
+        let str = can.to_str().unwrap();
+        PathBuf::from(String::from(&str[4..]))
+    }
+    else {
+        can
+    }
 
-    // TODO: run
 }
 
-// build all examples
-// fs::read_dir(examples_path.as_path())
-//     .expect("failed to read dir examples dir")
-//     .into_iter()
-//     .map(|dir| {
-//         dir.expect("failed to read individual example directory")
-//             .path()
-//     })
-//     .filter(|dir| {
-//         vec!["static", "server", "target"]
-//             .contains(&dir.as_path().file_name().unwrap().to_str().unwrap())
-//     })
-//     .for_each(|dir| {
-//         build_example(dir.as_path());
-//     });
+fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf>{
+    let paths = matches.values_of("project_dir").unwrap().map(|p|cwd().join(p)).collect::<Vec<PathBuf>>();
+    let paths = paths.iter().map(|p|canonicalize(p)).collect::<Vec<PathBuf>>();
+    paths
+}
+
+fn cmd_run(matches: &ArgMatches) {
+    cmd_build(matches);
+    let projects = unwrap_project_dir(matches);
+
+}
 
 fn cmd_build(matches: &ArgMatches) {
     let has_release_flag = matches.is_present("release");
-    let paths = matches.values_of("project_dir").unwrap().map(|p|cwd().join(p)).collect::<Vec<PathBuf>>();
-    let paths = paths.iter().map(|p|fs::canonicalize(p).unwrap()).collect::<Vec<PathBuf>>();
+    let paths = unwrap_project_dir(matches);
     paths.into_iter().for_each(|path| {
         let path_str = path.to_str().unwrap();
         if !path.join("Cargo.toml").exists() {
@@ -92,6 +98,12 @@ fn cmd_build(matches: &ArgMatches) {
         }
         println!("starting building {}", path_str);
         execute_wasm_pack(has_release_flag, path.as_path());
+        let html_path = path.join("static").join("index.html");
+        if !html_path.exists() {
+            let mut file = File::create(html_path).expect("failed to make index.html file");
+            file.write_all(STANDARD_HTML.as_bytes());
+
+        }
     })
 }
 
@@ -103,7 +115,7 @@ fn execute_wasm_pack(has_release_flag: bool, path: &Path) {
     let name = path.file_name().unwrap().to_str().unwrap();
     //wasm-pack build --target web --out-name wasm --out-dir ./static
     Command::new("wasm-pack")
-        .current_dir(&path.to_str().unwrap()[4..]) //this is done cause on rust for some reason puts a \\?\ prefix before all paths, which fucks up
+        .current_dir(path)
         .arg("build")
         .arg(if has_release_flag { "--release" } else { "--debug" })
         .arg("--target")
@@ -116,5 +128,5 @@ fn execute_wasm_pack(has_release_flag: bool, path: &Path) {
         .stdout(Stdio::inherit())
         .stdout(Stdio::inherit())
         .spawn()
-        .expect("failed to spawn wasm-pack");
+        .expect("failed to spawn wasm-pack").wait().unwrap();
 }
