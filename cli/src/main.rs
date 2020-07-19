@@ -10,10 +10,6 @@ use std::{env, fs};
 
 use log::{error, info, warn};
 
-lazy_static! {
-    static ref RELEASE: Mutex<bool> = Mutex::new(false);
-}
-
 // Usages:
 //  yew run directory/
 //  yew build --run directory/ (same as above)
