@@ -4,11 +4,12 @@ use maplit::hashmap;
 use rayon::prelude::IntoParallelIterator;
 use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
-use std::process::{exit, Command};
+use std::process::{exit, Command, Stdio};
 use std::sync::Mutex;
 use std::{env, fs};
 
 use log::{error, info, warn};
+use std::io::Stdin;
 
 // Usages:
 //  yew run directory/
@@ -28,7 +29,6 @@ fn main() {
                     Arg::with_name("run")
                         .help("Start a webserver for the built project and open it in a browser window")
                         .long("run")
-                        .required(true)
                         .short("r")
                 )
                 .arg(
@@ -37,8 +37,12 @@ fn main() {
                         .long("release")
                 )
                 .arg(
-                    Arg::with_name("PROJECT_DIRS")
+                    Arg::with_name("project_dir")
+                        .long("path")
+                        .short("p")
                         .multiple(true)
+                        .takes_value(true)
+                        .value_name("project directory")
                         .help("Path(s) to the project directory(ies) for the Yew application(s) that will be built")
                         .required(true)
                 )
@@ -46,14 +50,15 @@ fn main() {
         .get_matches();
 
     let subcommand = matches.subcommand_name().unwrap();
+    let matches = matches.subcommand().1.unwrap();
     match subcommand {
         "run" => cmd_run(matches),
-        "build" => cmd_build(matches),
+        "build" => if matches.is_present("run") { cmd_run(matches) } else { cmd_build(matches) }
         _ => panic!("unknown subcommand"),
     }
 }
 
-fn cmd_run(matches: ArgMatches) {
+fn cmd_run(matches: &ArgMatches) {
     cmd_build(matches);
 
     // TODO: run
@@ -75,68 +80,41 @@ fn cmd_run(matches: ArgMatches) {
 //         build_example(dir.as_path());
 //     });
 
-fn cmd_build(matches: ArgMatches) {
-    let has_run_flag = matches.is_present("run");
+fn cmd_build(matches: &ArgMatches) {
     let has_release_flag = matches.is_present("release");
-    let has_release_flag = matches.is_present("release");
-
-    let examples_path = cwd().join("examples");
-    let project_dirs = matches
-        .values_of_os("PROJECT_DIRS")
-        .expect("No project directory specified");
-
-    for project_dir in project_dirs {
-        build_example(has_release_flag, project_dir.as_ref());
-    }
+    let paths = matches.values_of("project_dir").unwrap().map(|p|cwd().join(p)).collect::<Vec<PathBuf>>();
+    let paths = paths.iter().map(|p|fs::canonicalize(p).unwrap()).collect::<Vec<PathBuf>>();
+    paths.into_iter().for_each(|path| {
+        let path_str = path.to_str().unwrap();
+        if !path.join("Cargo.toml").exists() {
+            println!("{} doesn have a Cargo.toml file", path_str);
+            return;
+        }
+        println!("starting building {}", path_str);
+        execute_wasm_pack(has_release_flag, path.as_path());
+    })
 }
 
 fn cwd() -> PathBuf {
     env::current_dir().expect("couldnt resolve current working directory")
 }
 
-fn build_example(has_release_flag: bool, path: &Path) {
-    fn target_dir() -> PathBuf {
-        cwd().join("target").join("wasm32-unknown-unknown")
-    }
-
-    let file_name = path.file_name().unwrap().to_str().unwrap();
-    if file_name.ends_with("_wp") {
-    } else if file_name == "multi_thread" {
-    } else {
-        let mut args = vec!["build"];
-        if has_release_flag {
-            args.push("--release")
-        }
-        args.append(&mut vec!["--target", "wasm32-unknown-unknown"]);
-        let output = Command::new("cargo")
-            .current_dir(path)
-            .args(&args[0..])
-            .output()
-            .expect("failed to execute cargo build process");
-        println!(
-            "{}",
-            String::from_utf8(output.stdout).expect("failed to pass stdout from cargo build")
-        );
-        let output = Command::new("wasm-bindgen")
-            .current_dir(path)
-            .args(&[
-                "--target",
-                "web",
-                "--no-typescript",
-                "--out-dir",
-                "static/",
-                "--out-name",
-                "wasm",
-                target_dir()
-                    .join(format!("{}.wasm", file_name))
-                    .to_str()
-                    .unwrap(),
-            ])
-            .output()
-            .expect("failed to execute wasm-bindgen process");
-        println!(
-            "{}",
-            String::from_utf8(output.stdout).expect("failed to pass stdout from cargo build")
-        );
-    }
+fn execute_wasm_pack(has_release_flag: bool, path: &Path) {
+    let name = path.file_name().unwrap().to_str().unwrap();
+    //wasm-pack build --target web --out-name wasm --out-dir ./static
+    Command::new("wasm-pack")
+        .current_dir(&path.to_str().unwrap()[4..]) //this is done cause on rust for some reason puts a \\?\ prefix before all paths, which fucks up
+        .arg("build")
+        .arg(if has_release_flag { "--release" } else { "--debug" })
+        .arg("--target")
+        .arg("web")
+        .arg("--out-name")
+        .arg("wasm")
+        .arg("--out-dir")
+        .arg("./static")
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .spawn()
+        .expect("failed to spawn wasm-pack");
 }
