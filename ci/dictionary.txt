@@ -79,6 +79,7 @@ href
 html
 impl
 init
+innerHTML
 interoperability
 interoperable
 lang
