@@ -1,4 +1,6 @@
 ---
+id: properties
+title: Properties
 description: Parent to child communication
 ---
 

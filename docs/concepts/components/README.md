@@ -1,4 +1,6 @@
 ---
+id: components-intro
+title: Introduction
 description: Components and their lifecycle hooks
 ---
 

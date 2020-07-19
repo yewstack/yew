@@ -1,4 +1,6 @@
 ---
+id: agents
+title: Agents
 description: Yew's Actor System
 ---
 

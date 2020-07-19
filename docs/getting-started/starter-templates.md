@@ -1,3 +1,8 @@
+---
+id: starter-templates
+title: Starter templates
+---
+
 # Starter Templates
 
 ## `wasm-pack`

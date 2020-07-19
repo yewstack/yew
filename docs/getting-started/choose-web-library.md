@@ -1,3 +1,7 @@
+---
+id: web-library
+title: Choosing a web library
+---
 # Choose web-sys or stdweb
 
 ## Introduction

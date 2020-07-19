@@ -1,4 +1,6 @@
 ---
+id: optimizations
+title: Optimizations
 description: Make your app faster
 ---
 
