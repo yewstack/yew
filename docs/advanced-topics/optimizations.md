@@ -46,10 +46,10 @@ can avoid cloning any data until you need to modify the data in the child compon
 use `Rc::make_mut` to clone and obtain a mutable reference to the data you want to alter. 
 
 This brings further benefits in `Component::change` when working out whether prop changes require 
-the component to rerender. This is because instead of comparing the value of the data the underlying 
-pointer addresses (i.e. the position in a machine's memory where the data is stored) can instead be 
-compared; if two pointers point to the same data then the value of the data they point to must be 
-the same. Note that the inverse might not be true! Even if two pointer addresses differ the 
+the component to re-render. This is because instead of comparing the value of the data the 
+underlying pointer addresses (i.e. the position in a machine's memory where the data is stored) can 
+instead be compared; if two pointers point to the same data then the value of the data they point to 
+must be the same. Note that the inverse might not be true! Even if two pointer addresses differ the 
 underlying data might still be the same - in this case you should compare the underlying data.
 
 To do this comparison you'll need to use `Rc::ptr_eq` instead of just using `PartialEq` (which is
