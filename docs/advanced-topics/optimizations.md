@@ -42,14 +42,19 @@ chapter which you can find at the bottom of this page (in the "further reading" 
 In an effort to avoid cloning large amounts of data to create props when re-rendering, we can use 
 smart pointers to only clone a reference to the data instead of the data itself. If you pass 
 references to the relevant data in your props and child components instead of the actual data you 
-can avoid cloning any data until you need to modify the data in the child component, where you 
-use `Rc::make_mut` to clone and get a mutable reference to the data you want to alter. By avoiding
-cloning data until absolutely necessary, child components can choose not to re-render when supplied
-with props identical to the local copies of props they possess  in `Component::change` calls while 
-incurring limited performance costs. The benefits are especially great when compared to a situation
-in which smart pointers are not used which would mean that the data itself would have to be copied 
-(so that child components could have ownership of the data) before passing the data from parent to 
-child; it would then have to further be compared against the child's local copy of the data. 
+can avoid cloning any data until you need to modify the data in the child component, where you can 
+use `Rc::make_mut` to clone and obtain a mutable reference to the data you want to alter. 
+
+This brings further benefits in `Component::change` when working out whether prop changes require 
+the component to rerender. This is because instead of comparing the value of the data the underlying 
+pointer addresses (i.e. the position in a machine's memory where the data is stored) can instead be 
+compared; if two pointers point to the same data then the value of the data they point to must be 
+the same. Note that the inverse might not be true! Even if two pointer addresses differ the 
+underlying data might still be the same - in this case you should compare the underlying data.
+
+To do this comparison you'll need to use `Rc::ptr_eq` instead of just using `PartialEq` (which is
+automatically used when comparing data using the equality operator `==`). The Rust documentation 
+has [more details about `Rc::ptr_eq`](https://doc.rust-lang.org/stable/std/rc/struct.Rc.html#method.ptr_eq).
 
 This optimization is most useful for data types that don't implement `Copy`. If you can copy your 
 data cheaply, then it probably isn't worth putting it behind a smart pointer. For structures that 
