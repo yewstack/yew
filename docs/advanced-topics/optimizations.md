@@ -42,7 +42,7 @@ But we can go further! This is six lines of boilerplate can be reduced down to o
 In an effort to avoid cloning large amounts of data to create props when re-rendering, we can use 
 smart pointers to only clone a reference to the data instead of the data itself. If you pass 
 references to the relevant data in your props and child components instead of the actual data you 
-can avoid cloning any data until you need to modify the data in the child component, where you can 
+can avoid cloning any data until you need to modify it in the child component, where you can 
 use `Rc::make_mut` to clone and obtain a mutable reference to the data you want to alter. 
 
 This brings further benefits in `Component::change` when working out whether prop changes require 
