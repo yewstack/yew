@@ -12,9 +12,9 @@ Components are the building blocks of Yew. They manage their own state and can r
 
 ## Lifecycle
 
-{% hint style="info" %}
+:::important contribute
 `Contribute to our docs:` [Add a diagram of the component lifecycle](https://github.com/yewstack/docs/issues/22)
-{% endhint %}
+:::
 
 ## Lifecycle Methods
 
@@ -59,9 +59,7 @@ impl Component for MyComponent {
 }
 ```
 
-For usage details, check out the `html!` guide:
-
-{% page-ref page="../html/" %}
+For usage details, check out [the `html!` guide](../html/README.md):
 
 ### Rendered
 
@@ -95,9 +93,9 @@ impl Component for MyComponent {
 }
 ```
 
-{% hint style="info" %}
+:::tip note
 Note that this lifecycle method does not require an implementation and will do nothing by default
-{% endhint %}
+:::
 
 ### Update
 

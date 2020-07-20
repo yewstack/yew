@@ -2,8 +2,6 @@
 id: expressions
 title: Literals and Expressions
 ---
-# Literals & Expressions
-
 ## Literals
 
 If expressions resolve to types that implement `Display`, they will be converted to strings and inserted into the DOM as a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node.
@@ -60,4 +58,3 @@ html! {
      <div>{maybe_display_link()}</div>
 }
 ```
-

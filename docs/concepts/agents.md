@@ -4,8 +4,6 @@ title: Agents
 description: Yew's Actor System
 ---
 
-# Agents
-
 Agents are similar to Angular's [Services](https://angular.io/guide/architecture-services) \(but without dependency injection\), and provide a Yew with an [Actor Model](https://en.wikipedia.org/wiki/Actor_model). Agents can be used to route messages between components independently of where they sit in the component hierarchy, or they can be used to create a shared state, and they can also be used to offload computationally expensive tasks from the main thread which renders the UI. There is also planned support for using agents to allow Yew applications to communicate across tabs \(in the future\).
 
 In order for agents to run concurrently, Yew uses [web-workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers).
@@ -52,7 +50,5 @@ Agents that live in their own separate web worker \(Private and Public\) incur s
 
 ## Further reading
 
-* The [pub\_sub](https://github.com/yewstack/yew/tree/master/examples/pub_sub) example shows how 
-
-  components can use agents to communicate with each other.
+* The [pub\_sub](https://github.com/yewstack/yew/tree/master/examples/pub_sub) example shows how components can use agents to communicate with each other.
 

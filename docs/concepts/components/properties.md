@@ -12,9 +12,9 @@ Properties enable child and parent components to communicate with each other.
 
 Don't try to implement `Properties` yourself, derive it by using `#[derive(Properties)]` instead.
 
-{% hint style="info" %}
+:::note
 Types for which you derive `Properties` must also implement `Clone`. This can be done by either using `#[derive(Properties, Clone)` or manually implementing `Clone` for your type.
-{% endhint %}
+:::
 
 ### Required attributes
 

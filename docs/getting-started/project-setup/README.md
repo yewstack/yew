@@ -1,4 +1,6 @@
 ---
+id: setup
+title: Introduction
 description: Set yourself up for success
 ---
 

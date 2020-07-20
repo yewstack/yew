@@ -45,9 +45,9 @@
         "title": "Router"
       },
       "concepts/services/format": {
-        "title": "concepts/services/format"
+        "title": "Format"
       },
-      "concepts/services/services": {
+      "concepts/services/services-intro": {
         "title": "Introduction"
       },
       "getting-started/sample-app": {
@@ -59,17 +59,17 @@
       "getting-started/examples": {
         "title": "Examples"
       },
-      "getting-started/project-setup/README": {
-        "title": "getting-started/project-setup/README"
+      "getting-started/project-setup/setup": {
+        "title": "Introduction"
       },
-      "getting-started/project-setup/using-cargo-web": {
-        "title": "getting-started/project-setup/using-cargo-web"
+      "getting-started/project-setup/cargo-web": {
+        "title": "Using cargo-web"
       },
-      "getting-started/project-setup/using-wasm-bindgen": {
-        "title": "getting-started/project-setup/using-wasm-bindgen"
+      "getting-started/project-setup/wasm-bindgen": {
+        "title": "Using wasm-bindgen"
       },
-      "getting-started/project-setup/using-wasm-pack": {
-        "title": "getting-started/project-setup/using-wasm-pack"
+      "getting-started/project-setup/wasm-pack": {
+        "title": "Using wasm-pack"
       },
       "getting-started/starter-templates": {
         "title": "Starter templates"

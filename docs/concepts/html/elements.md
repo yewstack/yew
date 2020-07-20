@@ -10,50 +10,46 @@ description: Both HTML and SVG elements are supported
 
 Element tags must either self-close `<... />` or have a corresponding close tag for each open tag
 
-{% tabs %}
-{% tab title="Open - Close" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Open - Close-->
 ```rust
 html! {
   <div id="my_div"></div>
 }
 ```
-{% endtab %}
-
-{% tab title="INVALID" %}
+<!--Invalid-->
 ```rust
 html! {
   <div id="my_div"> // <- MISSING CLOSE TAG
 }
 ```
-{% endtab %}
 
-{% tab title="Self-Closing" %}
+<!--Self-closing-->
 ```rust
 html! {
   <input id="my_input" />
 }
 ```
-{% endtab %}
 
-{% tab title="INVALID" %}
+<!--Invalid-->
 ```rust
 html! {
   <input id="my_input"> // <- MISSING SELF-CLOSE
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
-{% hint style="info" %}
+:::note
 For convenience, elements which _usually_ require a closing tag are **allowed** to self-close. For example, writing `html! { <div class="placeholder" /> }` is valid.
-{% endhint %}
+:::
 
 ## Children
 
 Create complex nested HTML and SVG layouts with ease:
 
-{% tabs %}
-{% tab title="HTML" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--HTML-->
+
 ```rust
 html! {
     <div>
@@ -72,9 +68,9 @@ html! {
     </div>
 }
 ```
-{% endtab %}
 
-{% tab title="SVG" %}
+<!--SVG-->
+
 ```rust
 html! {
     <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -94,69 +90,62 @@ html! {
     </svg>
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Classes
 
-There are a number of convenient options for specifying classes for an element:
+There are a number of convenient ways to specify classes for an element:
 
-{% tabs %}
-{% tab title="Literal" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Literal-->
 ```rust
 html! {
   <div class="container"></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Multiple" %}
+<!--Multiple-->
 ```rust
 html! {
   <div class="container center-align"></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Interpolated" %}
+<!--Interpolated-->
 ```rust
 html! {
   <div class=format!("{}-container", size)></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Expression" %}
+<!--Expression-->
 ```rust
 html! {
   <div class=self.classes()></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Tuple" %}
+<!--Tuple-->
 ```rust
 html! {
   <div class=("class-1", "class-2")></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Vector" %}
+<!--Vector-->
 ```rust
 html! {
   <div class=vec!["class-1", "class-2"]></div>
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Listeners
 
 Listener attributes need to be passed a `Callback` which is a wrapper around a closure. How you create your callback depends on how you wish your app to react to a listener event:
 
-{% tabs %}
-{% tab title="Component Handler" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Component handler-->
 ```rust
 struct MyComponent {
     link: ComponentLink<Self>,
@@ -193,9 +182,9 @@ impl Component for MyComponent {
     }
 }
 ```
-{% endtab %}
 
-{% tab title="Agent Handler" %}
+<!--Agent Handler-->
+
 ```rust
 struct MyComponent {
     worker: Dispatcher<MyWorker>,
@@ -226,9 +215,8 @@ impl Component for MyComponent {
     }
 }
 ```
-{% endtab %}
 
-{% tab title="Other Cases" %}
+<!--Other Cases-->
 ```rust
 struct MyComponent;
 
@@ -258,6 +246,4 @@ impl Component for MyComponent {
     }
 }
 ```
-{% endtab %}
-{% endtabs %}
-
+<!--END_DOCUSAURUS_CODE_TABS-->
