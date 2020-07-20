@@ -6,6 +6,7 @@ AppRoute
 Borrow
 BorrowMut
 ComponentLink
+composable
 Config
 ConsoleService
 DevTools
@@ -98,4 +99,6 @@ Vec
 VecDeque
 wasm
 WeeAlloc
+workspaces
 yewtil
+Yewtil
