@@ -57,7 +57,7 @@ automatically used when comparing data using the equality operator `==`). The Ru
 has [more details about `Rc::ptr_eq`](https://doc.rust-lang.org/stable/std/rc/struct.Rc.html#method.ptr_eq).
 
 This optimization is most useful for data types that don't implement `Copy`. If you can copy your 
-data cheaply, then it probably isn't worth putting it behind a smart pointer. For structures that 
+data cheaply, then it isn't worth putting it behind a smart pointer. For structures that 
 can be data-heavy like `Vec`s, `HashMap`s, and `String`s using smart pointers is likely to bring
 performance improvements.
 

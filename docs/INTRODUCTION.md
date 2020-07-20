@@ -9,7 +9,7 @@ title: Introduction
 
 * It features a **component-based** framework which makes it easy to create interactive UIs. Developers who have experience with frameworks like [React](https://reactjs.org/) and [Elm](https://elm-lang.org/) should feel quite at home when using Yew.
 * It achieves **great performance** by minimizing DOM API calls and by helping developers easily 
-offload processing to background web workers.
+offload processing to the background using web workers.
 * It supports **JavaScript interoperability**, allowing developers to leverage NPM packages and 
 integrate with existing JavaScript applications.
 
@@ -42,9 +42,7 @@ It should be noted that using Wasm is not \(yet\) a silver bullet for improving 
 web apps. As of the present, using DOM APIs from WebAssembly is still slower than calling them 
 directly from JavaScript. This is a temporary issue which the 
 [WebAssembly Interface Types](https://github.com/WebAssembly/interface-types/blob/master/proposals/interface-types/Explainer.md) proposal aims to resolve. If you would like to learn more, check out this 
-[excellent article](https://hacks.mozilla.org/2019/08/webassembly-interface-types/) describing the
-the proposal from Mozilla.
-
+[excellent article](https://hacks.mozilla.org/2019/08/webassembly-interface-types/) describing the proposal from Mozilla.
 #### Ok, but why Rust?
 
 Rust is blazing fast and reliable with its rich type system and ownership model. It has a tough learning curve but is well worth the effort. Rust has been voted the most loved programming language in Stack Overflow's Developer Survey five years in a row: [2016](https://insights.stackoverflow.com/survey/2016#technology-most-loved-dreaded-and-wanted), [2017](https://insights.stackoverflow.com/survey/2017#most-loved-dreaded-and-wanted), [2018](https://insights.stackoverflow.com/survey/2018#technology-_-most-loved-dreaded-and-wanted-languages), [2019](https://insights.stackoverflow.com/survey/2019#technology-_-most-loved-dreaded-and-wanted-languages) and [2020](https://insights.stackoverflow.com/survey/2020#most-loved-dreaded-and-wanted).
@@ -57,4 +55,3 @@ We love to share ideas with other projects and believe we can all help each othe
 
 * [Percy](https://github.com/chinedufn/percy) - _"A modular toolkit for building isomorphic web apps with Rust + WebAssembly"_
 * [Seed](https://github.com/seed-rs/seed) - _"A Rust framework for creating web apps"_
-
