@@ -37,7 +37,7 @@ But we can go further! This is six lines of boilerplate can be reduced down to o
 ## Using smart pointers effectively
 
 **Note: if you're unsure about some of the terms used in this section, the Rust Book has a useful
-chapter which you can find at the bottom of this page (in the "further reading" section).** 
+[chapter about smart pointers](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html).** 
 
 In an effort to avoid cloning large amounts of data to create props when re-rendering, we can use 
 smart pointers to only clone a reference to the data instead of the data itself. If you pass 
@@ -121,8 +121,8 @@ implementation of the main page and render the component you are working on on t
   * `cargo.toml` \( defining release profile \)
 * optimize wasm code using `wasm-opt`
 
-**Note: more information about reducing binary sizes can be found in the Rust Wasm Book (a link is
-given in the "further reading" section of this page).**
+**Note: more information about reducing binary sizes can be found in the 
+[Rust Wasm Book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size).**
 
 ### wee\_alloc
 
