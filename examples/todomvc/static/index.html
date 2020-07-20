@@ -7,6 +7,9 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/todomvc-app-css@2.1.2/index.css" />
     </head>
     <body>
-        <script src="/todomvc.js"></script>
+        <script type="module">
+            import init from "./wasm.js"
+            init()
+        </script>
     </body>
 </html>

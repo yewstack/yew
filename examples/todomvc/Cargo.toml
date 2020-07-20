@@ -9,4 +9,8 @@ strum = "0.18"
 strum_macros = "0.18"
 serde = "1"
 serde_derive = "1"
+wasm-bindgen = "0.2.60"
 yew = { path = "../../yew" }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
