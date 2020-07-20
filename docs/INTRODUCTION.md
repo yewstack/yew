@@ -21,7 +21,7 @@ title: Introduction
 
 Click the link below to learn how to build your first Yew app and learn from community example projects
 
-{% page-ref page="getting-started/project-setup/" %}
+[Getting started](getting-started/project-setup/README.md)
 
 ### Still not convinced?
 
