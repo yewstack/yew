@@ -64,7 +64,7 @@ fn compile_pass() {
 
             <a href?=Some("http://google.com") media?=none_str />
             <a media?=Some(5) />
-            <track kind?=Some("subtitles") srd?=None::<String> />
+            <track kind?=Some("subtitles") src?=None::<String> />
             <track kind?=Some(5) />
             <input disabled?=Some(true) value?=Some("value") onfocus?=none_callback onblur?=Some(Callback::from(|_| ())) />
             <input disabled?=None checked?=None />

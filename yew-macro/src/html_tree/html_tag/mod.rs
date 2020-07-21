@@ -140,7 +140,7 @@ impl ToTokens for HtmlTag {
         let attr_pairs = attributes.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
             if label.optional.is_some() {
-                quote_spanned! {value.span()=> (#label_str.to_owned(), if let Some(__yew_value) = #value { Some((__yew_value).to_string()) } else { None }) }
+                quote_spanned! {value.span() => (#label_str.to_owned(), if let Some(__yew_value) = #value { Some((__yew_value).to_string()) } else { None }) }
             } else {
                 quote_spanned! {value.span() => (#label_str.to_owned(), Some((#value).to_string())) }
             }
