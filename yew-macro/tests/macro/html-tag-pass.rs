@@ -1,4 +1,4 @@
-#![recursion_limit = "512"]
+#![recursion_limit = "768"]
 use yew::prelude::*;
 
 fn compile_pass() {
@@ -7,6 +7,9 @@ fn compile_pass() {
 
     let dyn_tag = || String::from("test");
     let mut extra_tags_iter = vec!["a", "b"].into_iter();
+
+    let none_str = None::<&'static str>;
+    let none_callback = None::<Callback<_>>;
 
     html! {
         <div>
@@ -58,6 +61,13 @@ fn compile_pass() {
                     "a"
                 }
             }/>
+
+            <a href?=Some("http://google.com") media?=none_str />
+            <a media?=Some(5) />
+            <track kind?=Some("subtitles") srd?=None::<String> />
+            <track kind?=Some(5) />
+            <input disabled?=Some(true) value?=Some("value") onfocus?=none_callback onblur?=Some(Callback::from(|_| ())) />
+            <input disabled?=None checked?=None />
         </div>
     };
 

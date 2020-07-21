@@ -44,6 +44,17 @@ fn compile_fail() {
     html! { <@{"test"}></@{"test"}> };
     html! { <@{55}></@> };
     html! { <@/> };
+
+    html! { <a href?=Some(5) /> };
+    html! { <a href?="href" /> };
+    html! { <a media?="media" /> };
+    html! { <track kind?="kind" /> };
+    html! { <input disabled?=Some(5) /> };
+    html! { <input disabled?=true /> };
+    html! { <input checked?=Some(5) /> };
+    html! { <input checked?=true /> };
+    html! { <input onfocus?=Some(5) /> };
+    html! { <input onfocus?=Callback::from(|_| ()) /> };
 }
 
 fn main() {}

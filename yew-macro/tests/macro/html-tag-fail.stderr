@@ -300,3 +300,121 @@ error[E0277]: the trait bound `std::borrow::Cow<'static, str>: std::convert::Fro
            and 11 others
    = note: required by `std::convert::From::from`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `yew::html::Href: std::convert::From<{integer}>` is not satisfied
+  --> $DIR/html-tag-fail.rs:48:22
+   |
+48 |     html! { <a href?=Some(5) /> };
+   |                      ^^^^ the trait `std::convert::From<{integer}>` is not implemented for `yew::html::Href`
+   |
+   = help: the following implementations were found:
+             <yew::html::Href as std::convert::From<&'a str>>
+             <yew::html::Href as std::convert::From<std::string::String>>
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::html::Href>` for `{integer}`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:49:22
+   |
+49 |     html! { <a href?="href" /> };
+   |                      ^^^^^^
+   |                      |
+   |                      expected `str`, found enum `std::option::Option`
+   |                      this expression has type `&str`
+   |
+   = note: expected type `str`
+              found enum `std::option::Option<_>`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:50:23
+   |
+50 |     html! { <a media?="media" /> };
+   |                       ^^^^^^^
+   |                       |
+   |                       expected `str`, found enum `std::option::Option`
+   |                       this expression has type `&str`
+   |
+   = note: expected type `str`
+              found enum `std::option::Option<_>`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:51:26
+   |
+51 |     html! { <track kind?="kind" /> };
+   |                          ^^^^^^
+   |                          |
+   |                          expected `str`, found enum `std::option::Option`
+   |                          this expression has type `&str`
+   |
+   = note: expected type `str`
+              found enum `std::option::Option<_>`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:52:30
+   |
+52 |     html! { <input disabled?=Some(5) /> };
+   |                              ^^^^---
+   |                              |
+   |                              expected integer, found `bool`
+   |                              this expression has type `std::option::Option<{integer}>`
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:53:30
+   |
+53 |     html! { <input disabled?=true /> };
+   |                              ^^^^
+   |                              |
+   |                              expected `bool`, found enum `std::option::Option`
+   |                              this expression has type `bool`
+   |
+   = note: expected type `bool`
+              found enum `std::option::Option<_>`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:54:29
+   |
+54 |     html! { <input checked?=Some(5) /> };
+   |                             ^^^^ expected `bool`, found integer
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:55:29
+   |
+55 |     html! { <input checked?=true /> };
+   |                             ^^^^
+   |                             |
+   |                             expected `bool`, found enum `std::option::Option`
+   |                             this expression has type `bool`
+   |
+   = note: expected type `bool`
+              found enum `std::option::Option<_>`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:56:20
+   |
+56 |     html! { <input onfocus?=Some(5) /> };
+   |                    ^^^^^^^ expected enum `yew::callback::Callback`, found integer
+   |
+   = note: expected enum `yew::callback::Callback<web_sys::features::gen_FocusEvent::FocusEvent>`
+              found type `{integer}`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:57:20
+   |
+57 |     html! { <input onfocus?=Callback::from(|_| ()) /> };
+   |                    ^^^^^^^  ---------------------- this expression has type `yew::callback::Callback<_>`
+   |                    |
+   |                    expected enum `yew::callback::Callback`, found enum `std::option::Option`
+   |
+   = note: expected enum `yew::callback::Callback<_>`
+              found enum `std::option::Option<_>`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
