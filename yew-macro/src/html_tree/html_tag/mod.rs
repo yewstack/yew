@@ -137,34 +137,81 @@ impl ToTokens for HtmlTag {
         } = &attributes;
 
         let vtag = Ident::new("__yew_vtag", tag_name.span());
-        let mut attr_pairs: Vec<_> = attributes
-            .iter()
-            .map(|TagAttribute { label, value }| {
-                let label_str = label.to_string();
-                let sr = stringify::Constructor::from(value);
-                quote! { (#label_str, #sr) }
-            })
-            .collect();
+        let attr_pairs = attributes.iter().map(|TagAttribute { label, value }| {
+            let label_str = label.to_string();
+            if label.optional.is_some() {
+                quote_spanned! {value.span()=> (#label_str.to_owned(), if let Some(__yew_value) = #value { Some((__yew_value).to_string()) } else { None }) }
+            } else {
+                quote_spanned! {value.span() => (#label_str.to_owned(), Some((#value).to_string())) }
+            }
+        });
         let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
-            quote_spanned! {value.span()=> {
-                if #value {
-                    #vtag.push_attribute(
-                        #label_str,
-                        ::std::borrow::Cow::<'static, str>::Borrowed(#label_str),
-                    );
-                };
-            }}
+            if label.optional.is_some() {
+                quote_spanned! {value.span() =>
+                    if let Some(true) = #value {
+                        #vtag.add_attribute(&#label_str, &#label_str);
+                    }
+                }
+            } else {
+                quote_spanned! {value.span() =>
+                    if #value {
+                        #vtag.add_attribute(&#label_str, &#label_str);
+                    }
+                }
+            }
         });
         let set_kind = kind.iter().map(|kind| {
-            let sr = stringify::Constructor::from(kind);
-            quote_spanned! {kind.span()=> #vtag.set_kind(#sr); }
+            let value = &kind.value;
+            if kind.label.optional.is_some() {
+                quote_spanned! {value.span() =>
+                    if let Some(__yew_kind) = #value {
+                        #vtag.set_kind(&(__yew_kind));
+                    }
+                }
+            } else {
+                quote_spanned! {value.span() => #vtag.set_kind(&(#value)); }
+            }
         });
         let set_value = value.iter().map(|value| {
-            quote_spanned! {value.span()=> #vtag.set_value(&(#value)); }
+            let value_value = &value.value;
+            if value.label.optional.is_some() {
+                quote_spanned! {value_value.span() =>
+                    if let Some(__yew_value) = #value_value {
+                        #vtag.set_value(&(__yew_value));
+                    }
+                }
+            } else {
+                quote_spanned! {value_value.span() => #vtag.set_value(&(#value_value)); }
+            }
+        });
+        let add_href = href.iter().map(|href| {
+            let value = &href.value;
+            if href.label.optional.is_some() {
+                quote_spanned! {value.span() =>
+                    if let Some(__yew_href) = #value {
+                        let __yew_href: ::yew::html::Href = (__yew_href).into();
+                        #vtag.add_attribute("href", &__yew_href);
+                    }
+                }
+            } else {
+                quote_spanned! {value.span() =>
+                    let __yew_href: ::yew::html::Href = (#value).into();
+                    #vtag.add_attribute("href", &__yew_href);
+                }
+            }
         });
         let set_checked = checked.iter().map(|checked| {
-            quote_spanned! {checked.span()=> #vtag.set_checked(#checked); }
+            let value = &checked.value;
+            if checked.label.optional.is_some() {
+                quote_spanned! {value.span() =>
+                    if let Some(__yew_checked) = #value {
+                        #vtag.set_checked(__yew_checked);
+                    }
+                }
+            } else {
+                quote_spanned! {value.span() => #vtag.set_checked(#value); }
+            }
         });
 
         let set_classes = match classes {
@@ -208,18 +255,32 @@ impl ToTokens for HtmlTag {
                 #vtag.key = Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key));
             }
         });
-        let listeners: Vec<_> = listeners
-            .iter()
-            .map(|listener| {
-                let name = &listener.label.name;
-                let callback = &listener.value;
+        let listeners = listeners.iter().map(|listener| {
+            let name = &listener.label.name;
+            let callback = &listener.value;
 
-                quote_spanned! {name.span()=> ::yew::html::#name::Wrapper::new(
-                    <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>
-                        ::transform(#callback),
-                )}
-            })
-            .collect();
+            if listener.label.optional.is_some() {
+                quote_spanned! {name.span() => {
+                    if let Some(__yew_callback) = #callback {
+                        Some(::yew::html::#name::Wrapper::new(
+                            <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
+                                __yew_callback
+                            )
+                        ))
+                    } else {
+                        None
+                    }
+                }}
+            } else {
+                quote_spanned! {name.span() => {
+                    Some(::yew::html::#name::Wrapper::new(
+                        <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
+                            #callback
+                        )
+                    ))
+                }}
+            }
+        });
 
         // These are the runtime-checks exclusive to dynamic tags.
         // For literal tags this is already done at compile-time.
@@ -252,40 +313,34 @@ impl ToTokens for HtmlTag {
             None
         };
 
-        // Constant ifs - easy for the compiler to optimise out
-        // Attribute setting ordered to reduce reallocation on collection expansion
-        let has_attrs = !attr_pairs.is_empty();
-        let has_listeners = !listeners.is_empty();
-        let has_children = !children.is_empty();
-        tokens.extend(quote_spanned! {tag_name.span()=>
-            {
-                #[allow(unused_braces)]
-                let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
-                #(#set_node_ref)*
-                #(#set_key)*
-                #(#set_kind)*
-
-                if #has_attrs {
-                    #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(vec![#(#attr_pairs),*]);
-                };
-                #(#set_booleans)*
-                #(#set_classes_it)*
-                #(#set_checked)*
-                #(#set_value)*
-
-                if #has_listeners {
-                    #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
-                };
-                if #has_children {
-                    #[allow(clippy::redundant_clone, unused_braces)]
-                    #vtag.add_children(#children);
-                };
-
-                #dyn_tag_runtime_checks
-                #[allow(unused_braces)]
-                ::yew::virtual_dom::VNode::from(#vtag)
-            }
-        });
+        tokens.extend(quote! {{
+            let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
+            #(#set_kind)*
+            #(#set_value)*
+            #(#add_href)*
+            #(#set_checked)*
+            #(#set_booleans)*
+            #(#set_classes)*
+            #(#set_node_ref)*
+            #(#set_key)*
+            #vtag.add_attributes({
+                let mut attributes = vec![];
+                #(if let (l, Some(v)) = #attr_pairs {
+                    attributes.push((l, v));
+                })*
+                attributes
+            });
+            #vtag.add_listeners({
+                let mut listeners: ::std::vec::Vec<::std::rc::Rc<dyn ::yew::virtual_dom::Listener>> = vec![];
+                #(if let Some(l) = #listeners {
+                    listeners.push(::std::rc::Rc::new(l));
+                })*
+                listeners
+            });
+            #vtag.add_children(#children);
+            #dyn_tag_runtime_checks
+            ::yew::virtual_dom::VNode::from(#vtag)
+        }});
     }
 }
 
@@ -422,10 +477,10 @@ impl Parse for HtmlTagOpen {
                 match name.to_ascii_lowercase_string().as_str() {
                     "input" | "textarea" => {}
                     _ => {
-                        if let Some(value) = attributes.value.take() {
+                        if let Some(attribute) = attributes.value.take() {
                             attributes.attributes.push(TagAttribute {
                                 label: HtmlDashedName::new(Ident::new("value", Span::call_site())),
-                                value,
+                                value: attribute.value,
                             });
                         }
                     }

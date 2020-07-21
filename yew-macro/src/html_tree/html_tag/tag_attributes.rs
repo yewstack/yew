@@ -11,9 +11,9 @@ pub struct TagAttributes {
     pub listeners: Vec<TagAttribute>,
     pub classes: Option<ClassesForm>,
     pub booleans: Vec<TagAttribute>,
-    pub value: Option<Expr>,
-    pub kind: Option<Expr>,
-    pub checked: Option<Expr>,
+    pub value: Option<TagAttribute>,
+    pub kind: Option<TagAttribute>,
+    pub checked: Option<TagAttribute>,
     pub node_ref: Option<Expr>,
     pub key: Option<Expr>,
 }
@@ -241,11 +241,11 @@ impl TagAttributes {
         drained
     }
 
-    fn remove_attr(attrs: &mut Vec<TagAttribute>, name: &str) -> Option<Expr> {
+    fn remove_attr(attrs: &mut Vec<TagAttribute>, name: &str) -> Option<TagAttribute> {
         let mut i = 0;
         while i < attrs.len() {
             if attrs[i].label.to_string() == name {
-                return Some(attrs.remove(i).value);
+                return Some(attrs.remove(i));
             } else {
                 i += 1;
             }
@@ -307,13 +307,13 @@ impl Parse for TagAttributes {
         }
         let booleans = TagAttributes::drain_boolean(&mut attributes);
 
-        let classes =
-            TagAttributes::remove_attr(&mut attributes, "class").map(TagAttributes::map_classes);
+        let classes = TagAttributes::remove_attr(&mut attributes, "class")
+            .map(|a| TagAttributes::map_classes(a.value));
         let value = TagAttributes::remove_attr(&mut attributes, "value");
         let kind = TagAttributes::remove_attr(&mut attributes, "type");
         let checked = TagAttributes::remove_attr(&mut attributes, "checked");
-        let node_ref = TagAttributes::remove_attr(&mut attributes, "ref");
-        let key = TagAttributes::remove_attr(&mut attributes, "key");
+        let node_ref = TagAttributes::remove_attr(&mut attributes, "ref").map(|n| n.value);
+        let key = TagAttributes::remove_attr(&mut attributes, "key").map(|k| k.value);
 
         Ok(TagAttributes {
             attributes,

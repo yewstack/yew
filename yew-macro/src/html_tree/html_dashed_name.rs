@@ -13,6 +13,7 @@ use syn::Token;
 pub struct HtmlDashedName {
     pub name: Ident,
     pub extended: Vec<(Token![-], Ident)>,
+    pub optional: Option<Token![?]>,
 }
 
 impl HtmlDashedName {
@@ -20,6 +21,7 @@ impl HtmlDashedName {
         HtmlDashedName {
             name,
             extended: Vec::new(),
+            optional: None,
         }
     }
 
@@ -47,6 +49,7 @@ impl Peek<'_, Self> for HtmlDashedName {
 
         let mut extended = Vec::new();
         let mut cursor = cursor;
+        let mut optional = None;
         loop {
             if let Some((punct, p_cursor)) = cursor.punct() {
                 if punct.as_char() == '-' {
@@ -54,12 +57,22 @@ impl Peek<'_, Self> for HtmlDashedName {
                     cursor = i_cursor;
                     extended.push((Token![-](Span::call_site()), ident));
                     continue;
+                } else if punct.as_char() == '?' {
+                    optional = Some(Token![?](Span::call_site()));
+                    break;
                 }
             }
             break;
         }
 
-        Some((HtmlDashedName { name, extended }, cursor))
+        Some((
+            HtmlDashedName {
+                name,
+                extended,
+                optional,
+            },
+            cursor,
+        ))
     }
 }
 
@@ -70,17 +83,30 @@ impl Parse for HtmlDashedName {
         while input.peek(Token![-]) {
             extended.push((input.parse::<Token![-]>()?, input.parse::<Ident>()?));
         }
+        let optional = if input.peek(Token![?]) {
+            Some(input.parse::<Token![?]>()?)
+        } else {
+            None
+        };
 
-        Ok(HtmlDashedName { name, extended })
+        Ok(HtmlDashedName {
+            name,
+            extended,
+            optional,
+        })
     }
 }
 
 impl ToTokens for HtmlDashedName {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlDashedName { name, extended } = self;
+        let HtmlDashedName {
+            name,
+            extended,
+            optional: _optional,
+        } = self;
         let dashes = extended.iter().map(|(dash, _)| quote! {#dash});
         let idents = extended.iter().map(|(_, ident)| quote! {#ident});
         let extended = quote! { #(#dashes#idents)* };
-        tokens.extend(quote! {#name#extended});
+        tokens.extend(quote! { #name#extended });
     }
 }

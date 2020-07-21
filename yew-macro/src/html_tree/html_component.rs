@@ -414,6 +414,13 @@ impl Parse for Props {
                 return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
             }
 
+            if prop.label.optional.is_some() {
+                return Err(syn::Error::new_spanned(
+                    &prop.label,
+                    "optional properties are only supported on HTML elements. Yew components can use `Option<T>` properties to accomplish the same thing.",
+                ));
+            }
+
             match props.prop_type {
                 ref mut prop_type @ PropType::None => {
                     *prop_type = PropType::List(vec![prop]);
