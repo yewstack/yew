@@ -30,14 +30,14 @@ pub struct Employee {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RequestBody {
     status: String,
-    data: Vec<Employee>
+    data: Vec<Employee>,
 }
 
 impl Default for RequestBody {
     fn default() -> RequestBody {
         RequestBody {
             status: String::from(""),
-            data: vec![]
+            data: vec![],
         }
     }
 }
