@@ -68,8 +68,8 @@ SRCDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)" # this so
 
 if [[ ! -d "$SRCDIR/$EXAMPLE" || "$EXAMPLE" = "common" || "$EXAMPLE" = "server" ]]; then
     fail "$EXAMPLE: no such example"
-    info "usage:\n$0 EXAMPLE"
-    exit 1
+    info "See the README.md file for help"
+    exit
 fi
 
 cd "$SRCDIR/$EXAMPLE" # "$SRCDIR" ensures that this script can be run from anywhere.
