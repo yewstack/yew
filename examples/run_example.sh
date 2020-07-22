@@ -58,7 +58,19 @@ on_exit() {
 
 trap on_exit EXIT
 
+if [[ -z "$EXAMPLE" ]]; then
+    fail "$0 requires an example name as argument"
+    info "usage:\n$0 EXAMPLE"
+    exit 1
+fi
+
 SRCDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)" # this source dir
+
+if [[ ! -d "$SRCDIR/$EXAMPLE" || "$EXAMPLE" = "common" || "$EXAMPLE" = "server" ]]; then
+    fail "$EXAMPLE: no such example"
+    info "usage:\n$0 EXAMPLE"
+    exit 1
+fi
 
 cd "$SRCDIR/$EXAMPLE" # "$SRCDIR" ensures that this script can be run from anywhere.
 
