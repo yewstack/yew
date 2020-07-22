@@ -2,10 +2,13 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>(Asynchronous) callback from JavaScript</title>
+        <title>Yew • (Asynchronous) callback from JavaScript</title>
     </head>
     <body>
-        <script src="/js_callback.js"></script>
+        <script type="module">
+            import init from "./wasm.js"
+            init()
+        </script>
         <script src="get-payload-script.js"></script>
     </body>
 </html>
