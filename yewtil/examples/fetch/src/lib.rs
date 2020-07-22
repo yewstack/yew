@@ -11,12 +11,13 @@ pub fn run_app() {
 }
 
 struct Model {
-    markdown: Fetch<Request, Vec<Employee>>,
+    markdown: Fetch<Request, RequestBody>,
     link: ComponentLink<Self>,
 }
 
 #[derive(Default, Debug, Clone)]
 pub struct Request;
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Employee {
     id: String,
@@ -26,9 +27,24 @@ pub struct Employee {
     profile_image: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct RequestBody {
+    status: String,
+    data: Vec<Employee>,
+}
+
+impl Default for RequestBody {
+    fn default() -> RequestBody {
+        RequestBody {
+            status: String::from(""),
+            data: vec![],
+        }
+    }
+}
+
 impl FetchRequest for Request {
     type RequestBody = ();
-    type ResponseBody = Vec<Employee>;
+    type ResponseBody = RequestBody;
     type Format = Json;
 
     fn url(&self) -> String {
@@ -51,7 +67,7 @@ impl FetchRequest for Request {
 }
 
 enum Msg {
-    SetMarkdownFetchState(FetchAction<Vec<Employee>>),
+    SetMarkdownFetchState(FetchAction<RequestBody>),
     GetMarkdown,
 }
 
@@ -94,7 +110,7 @@ impl Component for Model {
                 html! {<button onclick=self.link.callback(|_| Msg::GetMarkdown)>{"Get employees"}</button>}
             }
             FetchState::Fetching(_) => html! {"Fetching"},
-            FetchState::Fetched(data) => data.iter().map(render_employee).collect(),
+            FetchState::Fetched(body) => body.data.iter().map(render_employee).collect(),
             FetchState::Failed(_, err) => html! {&err},
         }
     }
