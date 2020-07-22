@@ -10,33 +10,55 @@ PROFILE="--debug"
 # Whether to open a browser window after building
 START_BROWSER=1
 
-while (( "$#" )); do
-  case "$1" in
+while (("$#")); do
+    case "$1" in
     --release)
-      PROFILE="--release"
-      shift
-      ;;
+        PROFILE="--release"
+        shift
+        ;;
     --debug)
-      PROFILE="--debug"
-      shift
-      ;;
+        PROFILE="--debug"
+        shift
+        ;;
     --build-only)
-      START_BROWSER=0
-      shift
-      ;;
+        START_BROWSER=0
+        shift
+        ;;
     -*) # unsupported flags
-      echo "Error: Unsupported flag $1" >&2
-      exit 1
-      ;;
-  esac
+        echo "Error: Unsupported flag $1" >&2
+        exit 1
+        ;;
+    esac
 done
 
 # src: https://gist.github.com/fbucek/f986da3cc3a9bbbd1573bdcb23fed2e1
 set -e # error -> trap -> exit
-function info() { echo -e "[\033[0;34m $* \033[0m]"; } # blue: [ info message ]
-function fail() { FAIL="true"; echo -e "[\033[0;31mFAIL\033[0m] $*"; } # red: [FAIL]
-trap 'LASTRES=$?; LAST=$BASH_COMMAND; if [[ LASTRES -ne 0 ]]; then fail "Command: \"$LAST\" exited with exit code: $LASTRES"; elif [ "$FAIL" == "true" ]; then fail finished with error; else echo -e "[\033[0;32m Finished! Run $EXAMPLE by serving the generated files in examples/static/ \033[0m]";fi' EXIT
-SRCDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )" # this source dir
+
+info() {
+    # blue: [ info message ]
+    echo -e "[\033[0;34m $* \033[0m]"
+}
+fail() {
+    FAIL="true"
+    # red: [FAIL]
+    echo -e "[\033[0;31mFAIL\033[0m] $*"
+}
+
+on_exit() {
+    LASTRES=$?
+    LAST=$BASH_COMMAND
+    if [[ LASTRES -ne 0 ]]; then
+        fail "Command: \"$LAST\" exited with exit code: $LASTRES"
+    elif [ "$FAIL" == "true" ]; then
+        fail finished with error
+    elif [[ $START_BROWSER != 1 ]]; then
+        echo -e "[\033[0;32m Finished! Run $EXAMPLE by serving the generated files in examples/static/ \033[0m]"
+    fi
+}
+
+trap on_exit EXIT
+
+SRCDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)" # this source dir
 
 cd "$SRCDIR/$EXAMPLE" # "$SRCDIR" ensures that this script can be run from anywhere.
 
