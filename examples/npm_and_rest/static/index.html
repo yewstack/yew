@@ -6,6 +6,9 @@
         <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
     </head>
     <body>
-        <script src="/npm_and_rest.js"></script>
+        <script type="module">
+            import init from "./wasm.js"
+            init()
+        </script>
     </body>
 </html>
