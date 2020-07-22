@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import os
@@ -7,7 +6,7 @@ import logging
 import webbrowser
 
 PORT = 8080
-STATIC_RESOURCES = { "/wasm.js", "/wasm_bg.wasm", "/favicon.ico" }
+STATIC_RESOURCES = {"/wasm.js", "/wasm_bg.wasm", "/favicon.ico"}
 DEFAULT_INDEX_HTML = b"""
 <!doctype html>
 <html lang="en">
@@ -23,11 +22,24 @@ DEFAULT_INDEX_HTML = b"""
 </html>
 """
 
+
+def build_content_type(mime: str, charset: str = None) -> str:
+    if not charset and mime.startswith("text/"):
+        charset = "UTF-8"
+
+    if charset:
+        return f"{mime};charset={charset}"
+    else:
+        return mime
+
+
 class S(BaseHTTPRequestHandler):
-    def _set_response(self, code, mime, charset="utf-8"):
+    def _set_response(self, code: int, mime: str, charset: str = None) -> None:
         self.send_response(code)
-        self.send_header("Content-type", f"{mime}; charset={charset}")
-        self.send_header("Cache-Control", "private, max-age=0, must-revalidate")
+        self.send_header(
+            "Content-type", build_content_type(mime, charset=charset))
+        self.send_header(
+            "Cache-Control", "private, max-age=0, must-revalidate")
         self.end_headers()
 
     def do_GET(self):
@@ -61,18 +73,22 @@ class S(BaseHTTPRequestHandler):
             self._set_response(404, mime="text/plain")
             self.wfile.write(b"404 file not found")
 
+
 def run(server_class=HTTPServer, handler_class=S):
     logging.basicConfig(level=logging.INFO)
     server_address = ("", PORT)
     httpd = server_class(server_address, handler_class)
-    webbrowser.open(f"http://localhost:{PORT}")
-    logging.info("Starting web server...\n")
+    url = f"http://localhost:{PORT}"
+    logging.info("Starting web server at %s", url)
+    logging.info("Use CTRL+C to stop\n")
+    webbrowser.open(url)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
     logging.info("Stopping web server...\n")
+
 
 if __name__ == "__main__":
     from sys import argv
