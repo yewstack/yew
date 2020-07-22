@@ -1,14 +1,11 @@
 # Yew Examples
 
-<!-- TODO: add a table explaining the purpose of each example -->
-
 In order to run the examples, we provide the `run_example.sh` script.
 This script takes care of compiling the example and runs a web server for you.
 All that's left for you to do is to play around with the examples :).
 
-> **A note for Windows users:**
->
-> Depending on how you installed `git` you will already have a bash emulator at your disposal. This allows you to run the `run_example.sh` script (and any other bash script) normally. <br>
+> **A note for Windows users:**<br>
+> Depending on how you installed `git` you will already have a bash emulator at your disposal. This allows you to run the `run_example.sh` script (and any other bash script) normally.<br>
 > See <https://gitforwindows.org/#bash> for more information.
 >
 > We're always trying to improve the developer experience for developers across all platforms.
@@ -29,11 +26,10 @@ cargo install wasm-pack wasm-bindgen-cli
 ### Optional dependencies
 
 There's an optional dependency for [Python](https://www.python.org/) (version 3.6 and up).
-Python is required to run the web server.
+Python is required to run the built-in web server.
 If you don't have it installed you will need to manually start a server for the generated files.
 
-> **Note:**
->
+> **Note:**<br>
 > Some examples don't have an `index.html` file in their static directory.
 > The python web server handles this by serving a default index file.
 > If you aren't using it, you will need to create the index file manually.
@@ -42,10 +38,10 @@ As an alternative to the built-in web server there is an extension for [Visual S
 This extension is used to serve static files.
 To do so, open the `index.html` file in the static directory of the example you wish to run and press "Open with Live Server" in the context menu.
 
-## Quickstart
+## Run an example
 
 ```bash
-# download the source code
+# download the source code.
 git clone https://github.com/yewstack/yew.git
 
 # move into the examples folder
@@ -57,12 +53,26 @@ cd yew/examples
 
 ## Script options
 
-The `run_example.sh` script understands a few options.
+The general structure of the command looks like this:<br>
+`./run_example.sh <example> [OPTIONS]`
+
+`<example>` is the name of the example (i.e. the name of the directory).
+
+The following table describes all possible options:
 
 | Option                   | Description                                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `--debug`<br>`--release` | Specifies which profile to use for `cargo build`. Defaults to `--debug`.                                              |
+| `--debug`<br>`--release` | Specifies which profile to use for `cargo build`. Defaults to `--debug`.                                            |
 | `--build-only`           | Disables the built-in server.<br>Use this if you don't have Python installed or if you want to use your own server. |
+
+## List of examples
+
+<!-- TODO: add a table explaining the purpose of each example -->
+
+The following directories aren't examples. Trying to run them with the script will cause an error.
+
+- `common`: Code shared between multiple examples.
+- `server`: Backend for the `dashboard` example.
 
 ## Next steps
 
