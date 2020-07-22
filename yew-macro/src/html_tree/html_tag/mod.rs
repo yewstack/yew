@@ -140,21 +140,21 @@ impl ToTokens for HtmlTag {
         let attr_pairs = attributes.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
             if label.optional.is_some() {
-                quote_spanned! {value.span() => (#label_str.to_owned(), if let Some(__yew_value) = #value { Some((__yew_value).to_string()) } else { None }) }
+                quote_spanned! {value.span()=> (#label_str.to_owned(), if let Some(__yew_value) = #value { Some((__yew_value).to_string()) } else { None }) }
             } else {
-                quote_spanned! {value.span() => (#label_str.to_owned(), Some((#value).to_string())) }
+                quote_spanned! {value.span()=> (#label_str.to_owned(), Some((#value).to_string())) }
             }
         });
         let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
             if label.optional.is_some() {
-                quote_spanned! {value.span() =>
+                quote_spanned! {value.span()=>
                     if let Some(true) = #value {
                         #vtag.add_attribute(&#label_str, &#label_str);
                     }
                 }
             } else {
-                quote_spanned! {value.span() =>
+                quote_spanned! {value.span()=>
                     if #value {
                         #vtag.add_attribute(&#label_str, &#label_str);
                     }
@@ -164,38 +164,38 @@ impl ToTokens for HtmlTag {
         let set_kind = kind.iter().map(|kind| {
             let value = &kind.value;
             if kind.label.optional.is_some() {
-                quote_spanned! {value.span() =>
+                quote_spanned! {value.span()=>
                     if let Some(__yew_kind) = #value {
                         #vtag.set_kind(&(__yew_kind));
                     }
                 }
             } else {
-                quote_spanned! {value.span() => #vtag.set_kind(&(#value)); }
+                quote_spanned! {value.span()=> #vtag.set_kind(&(#value)); }
             }
         });
         let set_value = value.iter().map(|value| {
             let value_value = &value.value;
             if value.label.optional.is_some() {
-                quote_spanned! {value_value.span() =>
+                quote_spanned! {value_value.span()=>
                     if let Some(__yew_value) = #value_value {
                         #vtag.set_value(&(__yew_value));
                     }
                 }
             } else {
-                quote_spanned! {value_value.span() => #vtag.set_value(&(#value_value)); }
+                quote_spanned! {value_value.span()=> #vtag.set_value(&(#value_value)); }
             }
         });
         let add_href = href.iter().map(|href| {
             let value = &href.value;
             if href.label.optional.is_some() {
-                quote_spanned! {value.span() =>
+                quote_spanned! {value.span()=>
                     if let Some(__yew_href) = #value {
                         let __yew_href: ::yew::html::Href = (__yew_href).into();
                         #vtag.add_attribute("href", &__yew_href);
                     }
                 }
             } else {
-                quote_spanned! {value.span() =>
+                quote_spanned! {value.span()=>
                     let __yew_href: ::yew::html::Href = (#value).into();
                     #vtag.add_attribute("href", &__yew_href);
                 }
@@ -204,13 +204,13 @@ impl ToTokens for HtmlTag {
         let set_checked = checked.iter().map(|checked| {
             let value = &checked.value;
             if checked.label.optional.is_some() {
-                quote_spanned! {value.span() =>
+                quote_spanned! {value.span()=>
                     if let Some(__yew_checked) = #value {
                         #vtag.set_checked(__yew_checked);
                     }
                 }
             } else {
-                quote_spanned! {value.span() => #vtag.set_checked(#value); }
+                quote_spanned! {value.span()=> #vtag.set_checked(#value); }
             }
         });
 
@@ -260,7 +260,7 @@ impl ToTokens for HtmlTag {
             let callback = &listener.value;
 
             if listener.label.optional.is_some() {
-                quote_spanned! {name.span() => {
+                quote_spanned! {name.span()=> {
                     if let Some(__yew_callback) = #callback {
                         Some(::yew::html::#name::Wrapper::new(
                             <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
@@ -272,7 +272,7 @@ impl ToTokens for HtmlTag {
                     }
                 }}
             } else {
-                quote_spanned! {name.span() => {
+                quote_spanned! {name.span()=> {
                     Some(::yew::html::#name::Wrapper::new(
                         <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
                             #callback
