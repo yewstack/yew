@@ -59,9 +59,9 @@ on_exit() {
 trap on_exit EXIT
 
 if [[ -z "$EXAMPLE" ]]; then
-    fail "$0 requires an example name as argument"
-    info "usage:\n$0 EXAMPLE"
-    exit 1
+    fail "$0 requires the name of the example as the first argument"
+    info "See the README.md file for help"
+    exit
 fi
 
 SRCDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)" # this source dir
