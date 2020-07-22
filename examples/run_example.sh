@@ -52,7 +52,7 @@ on_exit() {
     elif [ "$FAIL" == "true" ]; then
         fail finished with error
     elif [[ $START_BROWSER != 1 ]]; then
-        echo -e "[\033[0;32m Finished! Run $EXAMPLE by serving the generated files in examples/static/ \033[0m]"
+        echo -e "[\033[0;32m Finished! Run $EXAMPLE by serving the generated files in examples/$EXAMPLE/static/ \033[0m]"
     fi
 }
 
