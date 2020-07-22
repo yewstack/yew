@@ -24,7 +24,7 @@ while (( "$#" )); do
       START_BROWSER=0
       shift
       ;;
-    -*|--*=) # unsupported flags
+    -*) # unsupported flags
       echo "Error: Unsupported flag $1" >&2
       exit 1
       ;;
@@ -84,5 +84,10 @@ fi
 
 cd static
 if [[ $START_BROWSER == 1 ]]; then
+    if ! [ -x "$(command -v python3)" ]; then
+        echo "WARNING: python3 not found! Please manually start a web server for the $SRCDIR/$EXAMPLE/static directory."
+        echo "         Use '--build-only' to suppress this message."
+        exit 1
+    fi
     python3 ../../start_example_server.py $FLAGS
 fi
