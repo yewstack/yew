@@ -110,7 +110,7 @@ impl Component for Model {
                 html! {<button onclick=self.link.callback(|_| Msg::GetMarkdown)>{"Get employees"}</button>}
             }
             FetchState::Fetching(_) => html! {"Fetching"},
-            FetchState::Fetched(data) => data.data.iter().map(render_employee).collect(),
+            FetchState::Fetched(body) => body.data.iter().map(render_employee).collect(),
             FetchState::Failed(_, err) => html! {&err},
         }
     }
