@@ -50,7 +50,6 @@ members = [
   "examples/nested_list",
   "examples/node_refs",
   "examples/npm_and_rest",
-  "examples/optional_attribute",
   "examples/pub_sub",
   "examples/store",
   "examples/textarea",
