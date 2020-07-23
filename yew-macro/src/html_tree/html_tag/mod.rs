@@ -140,28 +140,31 @@ impl ToTokens for HtmlTag {
         let attr_pairs = attributes.iter().map(|TagAttribute { label, question_mark, value }| {
             let label_str = label.to_string();
             if question_mark.is_some() {
-                quote_spanned! {value.span()=> (#label_str.to_owned(), if let Some(__yew_value) = #value { Some((__yew_value).to_string()) } else { None }) }
+                quote_spanned! {value.span()=>
+                    {
+                        let __yew_value = ::std::option::Option::as_ref(&(#value)).map(::std::string::ToString::to_string);
+                        (::std::string::String::from(#label_str), __yew_value)
+                    }
+                }
             } else {
-                quote_spanned! {value.span()=> (#label_str.to_owned(), Some((#value).to_string())) }
+                quote_spanned! {value.span()=>
+                    {
+                        (::std::string::String::from(#label_str), ::std::option::Option::Some(::std::string::ToString::to_string(&#value)))
+                    }
+                }
             }
         });
         let set_booleans = booleans.iter().map(
             |TagAttribute {
                  label,
-                 question_mark,
+                 question_mark: _,
                  value,
              }| {
                 let label_str = label.to_string();
-                if question_mark.is_some() {
-                    quote_spanned! {value.span()=>
-                        if let Some(true) = #value {
-                            #vtag.add_attribute(&#label_str, &#label_str);
-                        }
-                    }
-                } else {
-                    quote_spanned! {value.span()=>
+                quote_spanned! {value.span()=>
+                    {
                         if #value {
-                            #vtag.add_attribute(&#label_str, &#label_str);
+                            #vtag.add_attribute(#label_str, &#label_str);
                         }
                     }
                 }
@@ -171,8 +174,10 @@ impl ToTokens for HtmlTag {
             let value = &kind.value;
             if kind.question_mark.is_some() {
                 quote_spanned! {value.span()=>
-                    if let Some(__yew_kind) = #value {
-                        #vtag.set_kind(&(__yew_kind));
+                    {
+                        if let ::std::option::Option::Some(__yew_kind) = ::std::option::Option::as_ref(&(#value)) {
+                            #vtag.set_kind(__yew_kind)
+                        }
                     }
                 }
             } else {
@@ -183,8 +188,10 @@ impl ToTokens for HtmlTag {
             let value_value = &value.value;
             if value.question_mark.is_some() {
                 quote_spanned! {value_value.span()=>
-                    if let Some(__yew_value) = #value_value {
-                        #vtag.set_value(&(__yew_value));
+                    {
+                        if let ::std::option::Option::Some(__yew_value) = ::std::option::Option::as_ref(&(#value_value)) {
+                            #vtag.set_value(__yew_value);
+                        }
                     }
                 }
             } else {
@@ -195,29 +202,25 @@ impl ToTokens for HtmlTag {
             let value = &href.value;
             if href.question_mark.is_some() {
                 quote_spanned! {value.span()=>
-                    if let Some(__yew_href) = #value {
-                        let __yew_href: ::yew::html::Href = (__yew_href).into();
-                        #vtag.add_attribute("href", &__yew_href);
+                    {
+                        if let ::std::option::Option::Some(__yew_href) = #value {
+                            let __yew_href: ::yew::html::Href = __yew_href.into();
+                            #vtag.add_attribute("href", &__yew_href);
+                        }
                     }
                 }
             } else {
                 quote_spanned! {value.span()=>
-                    let __yew_href: ::yew::html::Href = (#value).into();
-                    #vtag.add_attribute("href", &__yew_href);
+                    {
+                        let __yew_href: ::yew::html::Href = (#value).into();
+                        #vtag.add_attribute("href", &__yew_href);
+                    }
                 }
             }
         });
         let set_checked = checked.iter().map(|checked| {
             let value = &checked.value;
-            if checked.question_mark.is_some() {
-                quote_spanned! {value.span()=>
-                    if let Some(__yew_checked) = #value {
-                        #vtag.set_checked(__yew_checked);
-                    }
-                }
-            } else {
-                quote_spanned! {value.span()=> #vtag.set_checked(#value); }
-            }
+            quote_spanned! {value.span()=> #vtag.set_checked(#value); }
         });
         let set_classes = classes.iter().map(|classes_form| match classes_form {
             ClassesForm::Tuple(classes) => quote! {
@@ -248,20 +251,20 @@ impl ToTokens for HtmlTag {
             let callback = &listener.value;
 
             if listener.question_mark.is_some() {
-                quote_spanned! {name.span()=> {
-                    if let Some(__yew_callback) = #callback {
-                        Some(::yew::html::#name::Wrapper::new(
-                            <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
-                                __yew_callback
+                quote_spanned! {name.span()=>
+                    {
+                        ::std::option::Option::map(#callback, |__yew_callback| {
+                            ::yew::html::#name::Wrapper::new(
+                                <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
+                                    __yew_callback,
+                                ),
                             )
-                        ))
-                    } else {
-                        None
+                        })
                     }
-                }}
+                }
             } else {
                 quote_spanned! {name.span()=> {
-                    Some(::yew::html::#name::Wrapper::new(
+                    ::std::option::Option::Some(::yew::html::#name::Wrapper::new(
                         <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
                             #callback
                         )

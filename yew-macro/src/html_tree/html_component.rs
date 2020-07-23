@@ -409,7 +409,7 @@ impl Parse for Props {
             if prop.question_mark.is_some() {
                 return Err(syn::Error::new_spanned(
                     &prop.label,
-                    "optional properties are only supported on HTML tags. Yew components can use `Option<T>` properties to accomplish the same thing.",
+                    "optional attributes are only supported on HTML tags. Yew components can use `Option<T>` properties to accomplish the same thing.",
                 ));
             }
 
