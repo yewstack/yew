@@ -137,33 +137,39 @@ impl ToTokens for HtmlTag {
         } = &attributes;
 
         let vtag = Ident::new("__yew_vtag", tag_name.span());
-        let attr_pairs = attributes.iter().map(|TagAttribute { label, value }| {
+        let attr_pairs = attributes.iter().map(|TagAttribute { label, question_mark, value }| {
             let label_str = label.to_string();
-            if label.optional.is_some() {
+            if question_mark.is_some() {
                 quote_spanned! {value.span()=> (#label_str.to_owned(), if let Some(__yew_value) = #value { Some((__yew_value).to_string()) } else { None }) }
             } else {
                 quote_spanned! {value.span()=> (#label_str.to_owned(), Some((#value).to_string())) }
             }
         });
-        let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
-            let label_str = label.to_string();
-            if label.optional.is_some() {
-                quote_spanned! {value.span()=>
-                    if let Some(true) = #value {
-                        #vtag.add_attribute(&#label_str, &#label_str);
+        let set_booleans = booleans.iter().map(
+            |TagAttribute {
+                 label,
+                 question_mark,
+                 value,
+             }| {
+                let label_str = label.to_string();
+                if question_mark.is_some() {
+                    quote_spanned! {value.span()=>
+                        if let Some(true) = #value {
+                            #vtag.add_attribute(&#label_str, &#label_str);
+                        }
+                    }
+                } else {
+                    quote_spanned! {value.span()=>
+                        if #value {
+                            #vtag.add_attribute(&#label_str, &#label_str);
+                        }
                     }
                 }
-            } else {
-                quote_spanned! {value.span()=>
-                    if #value {
-                        #vtag.add_attribute(&#label_str, &#label_str);
-                    }
-                }
-            }
-        });
+            },
+        );
         let set_kind = kind.iter().map(|kind| {
             let value = &kind.value;
-            if kind.label.optional.is_some() {
+            if kind.question_mark.is_some() {
                 quote_spanned! {value.span()=>
                     if let Some(__yew_kind) = #value {
                         #vtag.set_kind(&(__yew_kind));
@@ -175,7 +181,7 @@ impl ToTokens for HtmlTag {
         });
         let set_value = value.iter().map(|value| {
             let value_value = &value.value;
-            if value.label.optional.is_some() {
+            if value.question_mark.is_some() {
                 quote_spanned! {value_value.span()=>
                     if let Some(__yew_value) = #value_value {
                         #vtag.set_value(&(__yew_value));
@@ -187,7 +193,7 @@ impl ToTokens for HtmlTag {
         });
         let add_href = href.iter().map(|href| {
             let value = &href.value;
-            if href.label.optional.is_some() {
+            if href.question_mark.is_some() {
                 quote_spanned! {value.span()=>
                     if let Some(__yew_href) = #value {
                         let __yew_href: ::yew::html::Href = (__yew_href).into();
@@ -203,7 +209,7 @@ impl ToTokens for HtmlTag {
         });
         let set_checked = checked.iter().map(|checked| {
             let value = &checked.value;
-            if checked.label.optional.is_some() {
+            if checked.question_mark.is_some() {
                 quote_spanned! {value.span()=>
                     if let Some(__yew_checked) = #value {
                         #vtag.set_checked(__yew_checked);
@@ -259,7 +265,7 @@ impl ToTokens for HtmlTag {
             let name = &listener.label.name;
             let callback = &listener.value;
 
-            if listener.label.optional.is_some() {
+            if listener.question_mark.is_some() {
                 quote_spanned! {name.span()=> {
                     if let Some(__yew_callback) = #callback {
                         Some(::yew::html::#name::Wrapper::new(
@@ -480,6 +486,7 @@ impl Parse for HtmlTagOpen {
                         if let Some(attribute) = attributes.value.take() {
                             attributes.attributes.push(TagAttribute {
                                 label: HtmlDashedName::new(Ident::new("value", Span::call_site())),
+                                question_mark: attribute.question_mark,
                                 value: attribute.value,
                             });
                         }

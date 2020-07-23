@@ -7,6 +7,7 @@ use syn::{Expr, Token};
 
 pub struct HtmlProp {
     pub label: HtmlPropLabel,
+    pub question_mark: Option<Token![?]>,
     pub value: Expr,
 }
 
@@ -19,6 +20,11 @@ impl PeekValue<()> for HtmlProp {
 impl Parse for HtmlProp {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let label = input.parse::<HtmlPropLabel>()?;
+        let question_mark = if input.peek(Token![?]) {
+            Some(input.parse::<Token![?]>()?)
+        } else {
+            None
+        };
         let equals = input
             .parse::<Token![=]>()
             .map_err(|_| syn::Error::new_spanned(&label, "this prop doesn't have a value"))?;
@@ -31,7 +37,11 @@ impl Parse for HtmlProp {
         let value = input.parse::<Expr>()?;
         // backwards compat
         let _ = input.parse::<Token![,]>();
-        Ok(HtmlProp { label, value })
+        Ok(HtmlProp {
+            label,
+            question_mark,
+            value,
+        })
     }
 }
 
