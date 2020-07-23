@@ -38,6 +38,7 @@ members = [
   "examples/fragments",
   "examples/futures_wp",
   "examples/game_of_life",
+  "examples/include_html",
   "examples/inner_html",
   "examples/js_callback",
   "examples/keyed_list",

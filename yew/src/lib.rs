@@ -101,6 +101,13 @@ use proc_macro_hack::proc_macro_hack;
 #[proc_macro_hack(support_nested)]
 pub use yew_macro::html;
 
+#[proc_macro_hack(support_nested)]
+/// Include code from an external file.
+/// ```rust
+/// include_html!("file_name.html")
+/// ```
+pub use yew_macro::include_html;
+
 #[doc(hidden)]
 #[proc_macro_hack(support_nested)]
 pub use yew_macro::html_nested;
@@ -109,6 +116,7 @@ pub use yew_macro::html_nested;
 pub mod macros {
     pub use crate::html;
     pub use crate::html_nested;
+    pub use crate::include_html;
     pub use yew_macro::Properties;
 }
 

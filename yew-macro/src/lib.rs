@@ -68,8 +68,11 @@ mod html_tree;
 use derive_props::DerivePropsInput;
 use html_tree::{HtmlRoot, HtmlRootVNode};
 use proc_macro::TokenStream;
+use proc_macro2::Span;
+use proc_macro2::TokenStream as TokenStream2;
 use proc_macro_hack::proc_macro_hack;
 use quote::{quote, ToTokens};
+use std::io::Read;
 use syn::buffer::Cursor;
 use syn::parse_macro_input;
 
@@ -107,4 +110,41 @@ pub fn html_nested(input: TokenStream) -> TokenStream {
 pub fn html(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRootVNode);
     TokenStream::from(quote! {#root})
+}
+
+#[proc_macro_hack]
+pub fn include_html(input: TokenStream) -> TokenStream {
+    return match parse_macro_input!(input as syn::Lit) {
+        syn::Lit::Str(path) => {
+            let mut file = match std::fs::File::open(path.value()) {
+                Ok(t) => t,
+                Err(_) => {
+                    return syn::Error::new_spanned(
+                        path,
+                        "Couldn't open the supplied file. Are you sure it exists?",
+                    )
+                    .to_compile_error()
+                    .into();
+                }
+            };
+            let mut code = String::new();
+            match file.read_to_string(&mut code) {
+                Ok(_) => {}
+                Err(_) => {
+                    return syn::Error::new_spanned(path, "Couldn't read the supplied file.")
+                        .to_compile_error()
+                        .into();
+                }
+            };
+            let span = Span::call_site();
+            let parsed_code = TokenStream2::from(html(code.parse::<TokenStream>().unwrap()));
+            let result = quote::quote_spanned! {span=>
+                #parsed_code
+            };
+            result.into()
+        }
+        _ => syn::Error::new(Span::call_site(), "Expected a string literal.")
+            .to_compile_error()
+            .into(),
+    };
 }
