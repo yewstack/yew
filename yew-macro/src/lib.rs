@@ -111,7 +111,7 @@ pub fn html(input: TokenStream) -> TokenStream {
     TokenStream::from(quote! {#root})
 }
 
-#[proc_macro_hack]
+#[proc_macro]
 pub fn include_html(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as IncludeHTML);
     TokenStream::from(input.into_token_stream())

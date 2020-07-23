@@ -1,13 +1,17 @@
 use yew::prelude::*;
 
-pub struct App {}
+pub struct App {
+    title: String,
+}
 
 impl Component for App {
-    type Properties = ();
     type Message = ();
+    type Properties = ();
 
     fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Self {}
+        Self {
+            title: "Hello World!".to_string(),
+        }
     }
     fn update(&mut self, _msg: Self::Message) -> bool {
         false

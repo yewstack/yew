@@ -101,11 +101,13 @@ use proc_macro_hack::proc_macro_hack;
 #[proc_macro_hack(support_nested)]
 pub use yew_macro::html;
 
-#[proc_macro_hack(support_nested)]
 /// Include code from an external file.
 /// ```rust
 /// include_html!("file_name.html")
 /// ```
+///
+/// Note: this is only available on Rust 1.45 or greater.
+#[rustversion::since(1.45)]
 pub use yew_macro::include_html;
 
 #[doc(hidden)]
