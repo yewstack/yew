@@ -2,7 +2,7 @@
 
 In order to run the examples, we provide the `run_example.sh` script.
 This script takes care of compiling the example and runs a web server for you.
-All that's left for you to do is to play around with the examples :).
+All that's left is for you to play around with the examples :).
 
 > **A note for Windows users:**<br>
 > Depending on how you installed `git` you will already have a bash emulator at your disposal. This allows you to run the `run_example.sh` script (and any other bash script) normally.<br>
