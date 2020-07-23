@@ -89,6 +89,21 @@ html! {
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
 
+## Optional attributes for HTML elements
+
+Most HTML attributes can be marked as optional by placing a `?` in front of
+the `=` sign. This makes them accept the same type of value as otherwise, but
+wrapped in an `Option<T>`:
+```rust
+let maybe_id = Some("foobar");
+
+html! {
+    <div id?=maybe_id></div>
+}
+```
+If the attribute is set to a `None` value, it will behave as though the
+attribute wasn't set.
+
 ## Classes
 
 There are a number of convenient ways to specify classes for an element:
