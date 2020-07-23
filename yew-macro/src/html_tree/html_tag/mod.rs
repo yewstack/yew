@@ -4,6 +4,7 @@ use super::HtmlChildrenTree;
 use super::HtmlDashedName;
 use super::HtmlProp as TagAttribute;
 use super::HtmlPropSuffix as TagSuffix;
+use crate::string_ref::StringRefConstructor;
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, Span};
@@ -112,13 +113,25 @@ impl ToTokens for HtmlTag {
                 let vtag_name = Ident::new("__yew_vtag_name", expr.span());
                 // this way we get a nice error message (with the correct span) when the expression doesn't return a valid value
                 quote_spanned! {expr.span()=> {
-                    let mut #vtag_name = ::std::borrow::Cow::<'static, str>::from(#expr);
+                    let mut #vtag_name = ::yew::StringRef::from(#expr);
                     if !#vtag_name.is_ascii() {
                         ::std::panic!("a dynamic tag returned a tag name containing non ASCII characters: `{}`", #vtag_name);
                     }
                     // convert to lowercase because the runtime checks rely on it.
-                    #vtag_name.to_mut().make_ascii_lowercase();
-                    #vtag_name
+                    if (#vtag_name.as_ref() as &str)
+                        .as_bytes()
+                        .iter()
+                        .any(|b| match b {
+                            b'a'..=b'z' | b'-' | b'_' => false,
+                            _ => true,
+                        })
+                    {
+                        let mut s: String = #vtag_name.into();
+                        s.make_ascii_lowercase();
+                        ::yew::StringRef::from(s)
+                    } else {
+                        #vtag_name
+                    }
                 }}
             }
         };
@@ -140,14 +153,15 @@ impl ToTokens for HtmlTag {
             .iter()
             .map(|TagAttribute { label, value }| {
                 let label_str = label.to_string();
-                quote_spanned! {value.span()=> (#label_str, (#value).to_string()) }
+                let val = StringRefConstructor::new(value.clone());
+                quote_spanned! {value.span()=> (#label_str,  #val) }
             })
             .collect();
         let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
             quote_spanned! {value.span()=>
                 if #value {
-                    #vtag.add_attribute(&#label_str, &#label_str);
+                    #vtag.add_attribute(#label_str, #label_str);
                 }
             }
         });
@@ -157,7 +171,7 @@ impl ToTokens for HtmlTag {
         let add_href = href.iter().map(|href| {
             quote_spanned! {href.span()=>
                 let __yew_href: ::yew::html::Href = (#href).into();
-                #vtag.add_attribute("href", &__yew_href);
+                #vtag.add_attribute("href", __yew_href);
             }
         });
         let set_checked = checked.iter().map(|checked| {
@@ -167,13 +181,22 @@ impl ToTokens for HtmlTag {
             ClassesForm::Tuple(classes) => quote! {
                 let __yew_classes = ::yew::virtual_dom::Classes::default()#(.extend(#classes))*;
                 if !__yew_classes.is_empty() {
-                    #vtag.add_attribute("class", &__yew_classes);
+                    #vtag.add_attribute("class", __yew_classes.to_string());
                 }
             },
-            ClassesForm::Single(classes) => quote! {
-                let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
-                if !__yew_classes.is_empty() {
-                    #vtag.add_attribute("class", &__yew_classes);
+            ClassesForm::Single(classes) => match StringRefConstructor::try_convert_literal(classes) {
+                Some(sr) => {
+                    if sr.is_empty() {
+                        Default::default()
+                    } else {
+                        quote!{ #vtag.add_attribute("class", #sr); }
+                    }
+                },
+                None => quote! {
+                    let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
+                    if !__yew_classes.is_empty() {
+                        #vtag.add_attribute("class", __yew_classes.to_string());
+                    }
                 }
             },
         });
@@ -228,7 +251,7 @@ impl ToTokens for HtmlTag {
                     _ => {
                         if let Some(v) = #vtag.value_mut() {
                             if let ::std::option::Option::Some(value) = v.take() {
-                                #vtag.attributes.insert("value", value);
+                                #vtag.attributes.insert("value", value.into());
                             }
                         }
                     }
@@ -242,18 +265,21 @@ impl ToTokens for HtmlTag {
         let has_attrs = !attr_pairs.is_empty();
         let has_listeners = !listeners.is_empty();
         let has_children = !children.is_empty();
+        // Attributes Ordered to reduce reallocation on collection expansion
         tokens.extend(quote! {{
             let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
-            #(#set_value)*
-            #(#add_href)*
-            #(#set_checked)*
-            #(#set_booleans)*
-            #(#set_classes)*
             #(#set_node_ref)*
             #(#set_key)*
+
             if #has_attrs {
                 #vtag.add_attributes(vec![#(#attr_pairs),*]);
             }
+            #(#set_booleans)*
+            #(#set_classes)*
+            #(#set_checked)*
+            #(#add_href)*
+            #(#set_value)*
+
             if #has_listeners {
                 #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
             }

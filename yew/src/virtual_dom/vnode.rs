@@ -18,9 +18,6 @@ cfg_if! {
 }
 
 /// Bind virtual element to a DOM reference.
-// TODO: replace String (3 words) with an immutable string of 2 words (str?)
-// TODO: Use Cow pointers to either that string or a static string, where
-// applicable
 #[derive(Clone)]
 pub enum VNode {
     /// A bind between `VTag` and `Element`.

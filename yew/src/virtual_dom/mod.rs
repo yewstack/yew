@@ -14,6 +14,7 @@ pub mod vtag;
 pub mod vtext;
 
 use crate::html::{AnyScope, NodeRef};
+use crate::utils::StringRef;
 use cfg_if::cfg_if;
 use indexmap::set::IndexSet;
 use std::collections::HashMap;
@@ -61,7 +62,7 @@ impl fmt::Debug for dyn Listener {
 type Listeners = Vec<Rc<dyn Listener>>;
 
 /// A map of attributes.
-type Attributes = HashMap<&'static str, String>;
+type Attributes = HashMap<&'static str, StringRef>;
 
 /// A set of classes.
 #[derive(Debug, Clone, Default)]

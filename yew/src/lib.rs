@@ -118,6 +118,7 @@ pub mod format;
 pub mod html;
 mod scheduler;
 pub mod utils;
+pub use utils::StringRef;
 pub mod virtual_dom;
 
 #[cfg(feature = "agent")]

@@ -199,10 +199,10 @@ error[E0308]: mismatched types
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `to_string` found for unit type `()` in the current scope
-  --> $DIR/html-tag-fail.rs:27:25
+  --> $DIR/html-tag-fail.rs:27:5
    |
 27 |     html! { <input type=() /> };
-   |                         ^^ method not found in `()`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `()`
    |
    = note: the method `to_string` exists but the following trait bounds were not satisfied:
            `(): std::fmt::Display`
@@ -217,7 +217,8 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+   = note: required because of the requirements on the impl of `std::fmt::Display` for `&()`
+   = note: required because of the requirements on the impl of `std::string::ToString` for `&()`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::html::Href: std::convert::From<()>` is not satisfied
@@ -227,8 +228,9 @@ error[E0277]: the trait bound `yew::html::Href: std::convert::From<()>` is not s
    |                     ^^ the trait `std::convert::From<()>` is not implemented for `yew::html::Href`
    |
    = help: the following implementations were found:
-             <yew::html::Href as std::convert::From<&'a str>>
+             <yew::html::Href as std::convert::From<&str>>
              <yew::html::Href as std::convert::From<std::string::String>>
+             <yew::html::Href as std::convert::From<yew::utils::StringRef>>
    = note: required because of the requirements on the impl of `std::convert::Into<yew::html::Href>` for `()`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -253,7 +255,7 @@ error[E0308]: mismatched types
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `to_string` found for struct `NotToString` in the current scope
-  --> $DIR/html-tag-fail.rs:34:27
+  --> $DIR/html-tag-fail.rs:34:5
    |
 3  | struct NotToString;
    | -------------------
@@ -263,7 +265,7 @@ error[E0599]: no method named `to_string` found for struct `NotToString` in the 
    | doesn't satisfy `NotToString: std::string::ToString`
 ...
 34 |     html! { <input string=NotToString /> };
-   |                           ^^^^^^^^^^^ method not found in `NotToString`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `NotToString`
    |
    = note: the method `to_string` exists but the following trait bounds were not satisfied:
            `NotToString: std::fmt::Display`
@@ -278,17 +280,17 @@ error[E0308]: mismatched types
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `std::borrow::Cow<'static, str>: std::convert::From<{integer}>` is not satisfied
+error[E0277]: the trait bound `yew::utils::StringRef: std::convert::From<{integer}>` is not satisfied
   --> $DIR/html-tag-fail.rs:44:15
    |
 44 |     html! { <@{55}></@> };
-   |               ^^^^ the trait `std::convert::From<{integer}>` is not implemented for `std::borrow::Cow<'static, str>`
+   |               ^^^^ the trait `std::convert::From<{integer}>` is not implemented for `yew::utils::StringRef`
    |
    = help: the following implementations were found:
-             <std::borrow::Cow<'a, [T]> as std::convert::From<&'a [T]>>
-             <std::borrow::Cow<'a, [T]> as std::convert::From<&'a std::vec::Vec<T>>>
-             <std::borrow::Cow<'a, [T]> as std::convert::From<std::vec::Vec<T>>>
-             <std::borrow::Cow<'a, std::ffi::CStr> as std::convert::From<&'a std::ffi::CStr>>
-           and 11 others
+             <yew::utils::StringRef as std::convert::From<&&str>>
+             <yew::utils::StringRef as std::convert::From<&std::string::String>>
+             <yew::utils::StringRef as std::convert::From<&str>>
+             <yew::utils::StringRef as std::convert::From<std::boxed::Box<str>>>
+             <yew::utils::StringRef as std::convert::From<std::string::String>>
    = note: required by `std::convert::From::from`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

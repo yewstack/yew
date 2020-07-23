@@ -2,11 +2,10 @@
 
 use super::{Attributes, Key, Listener, Listeners, Patch, Transformer, VDiff, VList, VNode};
 use crate::html::{AnyScope, NodeRef};
-use crate::utils::document;
+use crate::utils::{document, StringRef};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;
-use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::rc::Rc;
 cfg_if! {
@@ -43,7 +42,7 @@ enum VTagInner {
     /// Is a [Void Element](https://html.spec.whatwg.org/multipage/syntax.html#void-elements).
     Input {
         /// Contains value property
-        value: Option<String>,
+        value: Option<Box<str>>,
         /// Represents `checked` attribute of
         /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
         /// It exists to override standard behavior of `checked` attribute, because
@@ -59,13 +58,13 @@ enum VTagInner {
         /// A
         /// [TextAreaElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
         /// can only contain a single text node so this doubles as the child list source.
-        value: Option<String>,
+        value: Option<Box<str>>,
     },
 
     /// Neither of the above
     Other {
         /// A tag of the element.
-        tag: Cow<'static, str>,
+        tag: StringRef,
         /// List of children nodes
         children: VList,
     },
@@ -75,8 +74,9 @@ impl VTagInner {
     /// Creates a new `VTagInner` instance with `tag` name (cannot be changed later in DOM).
     fn new<S>(tag: S) -> Self
     where
-        S: Into<Cow<'static, str>> + AsRef<str>,
+        S: Into<StringRef>,
     {
+        let tag = tag.into();
         match tag.as_ref() {
             "input" => VTagInner::Input {
                 value: Default::default(),
@@ -88,7 +88,7 @@ impl VTagInner {
                 value: Default::default(),
             },
             _ => VTagInner::Other {
-                tag: tag.into(),
+                tag: tag,
                 children: Default::default(),
             },
         }
@@ -120,27 +120,25 @@ impl VTagInner {
     }
 
     // Returns reference to the value field, if any
-    fn value(&self) -> &Option<String> {
+    fn value(&self) -> &Option<Box<str>> {
         use VTagInner::*;
 
         // For flattening for convenience, as you can't mutate the returned
         // value anyway
-        static NONE: Option<String> = None;
+        static NONE: Option<Box<str>> = None;
 
         match self {
-            Input { value, .. } => &value,
-            TextArea { value } => &value,
+            Input { value, .. } | TextArea { value } => value,
             _ => &NONE,
         }
     }
 
     // Returns mutable reference to the value field, if any
-    fn value_mut(&mut self) -> Option<&mut Option<String>> {
+    fn value_mut(&mut self) -> Option<&mut Option<Box<str>>> {
         use VTagInner::*;
 
         match self {
-            Input { value, .. } => Some(value),
-            TextArea { value } => Some(value),
+            Input { value, .. } | TextArea { value } => Some(value),
             _ => None,
         }
     }
@@ -216,7 +214,7 @@ impl VTag {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new<S>(tag: S) -> Self
     where
-        S: Into<Cow<'static, str>> + AsRef<str>,
+        S: Into<StringRef>,
     {
         VTag {
             inner: VTagInner::new(tag),
@@ -235,12 +233,12 @@ impl VTag {
     }
 
     // Returns reference to the value field, if any
-    pub fn value(&self) -> &Option<String> {
+    pub fn value(&self) -> &Option<Box<str>> {
         self.inner.value()
     }
 
     // Returns mutable reference to the value field, if any
-    pub fn value_mut(&mut self) -> Option<&mut Option<String>> {
+    pub fn value_mut(&mut self) -> Option<&mut Option<Box<str>>> {
         self.inner.value_mut()
     }
 
@@ -262,7 +260,7 @@ impl VTag {
             // Allow setting the value of a textarea as you would in HTML - a single text Node
             TextArea { value } => {
                 if let VNode::VText(vt) = child {
-                    *value = vt.text.into();
+                    *value = Some(vt.text.into());
                 }
             }
             Other { children, .. } => children.add_child(child),
@@ -278,7 +276,7 @@ impl VTag {
             // Allow setting the value of a textarea as you would in HTML - a single text Node
             TextArea { value } => {
                 if let Some(VNode::VText(vt)) = children.into_iter().next() {
-                    *value = vt.text.into();
+                    *value = Some(vt.text.into());
                 }
             }
             Other { children: ch, .. } => ch.add_children(children),
@@ -292,16 +290,16 @@ impl VTag {
     /// or [SelectElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select).
     ///
     /// In all other cases simply sets the "value" attribute.
-    pub fn set_value<T: ToString>(&mut self, value: &T) {
+    pub fn set_value(&mut self, value: impl ToString) {
         use VTagInner::*;
 
         let s = value.to_string();
         match &mut self.inner {
             Input { value, .. } | TextArea { value } => {
-                *value = Some(s);
+                *value = Some(s.into());
             }
             Other { .. } => {
-                self.attributes.insert("value", s);
+                self.attributes.insert("value", s.into());
             }
         };
     }
@@ -320,7 +318,8 @@ impl VTag {
                 *checked = value;
             }
             _ => {
-                self.attributes.insert("checked", value.to_string());
+                self.attributes
+                    .insert("checked", if value { "true" } else { "false" }.into());
             }
         };
     }
@@ -330,14 +329,14 @@ impl VTag {
     /// `value` and `checked`.
     ///
     /// If this virtual node has this attribute present, the value is replaced.
-    pub fn add_attribute<T: ToString>(&mut self, name: &'static str, value: &T) {
-        self.attributes.insert(name, value.to_string());
+    pub fn add_attribute(&mut self, name: &'static str, value: impl Into<StringRef>) {
+        self.attributes.insert(name, value.into());
     }
 
     /// Adds attributes to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
     /// `value` and `checked`.
-    pub fn add_attributes(&mut self, attrs: Vec<(&'static str, String)>) {
+    pub fn add_attributes(&mut self, attrs: Vec<(&'static str, StringRef)>) {
         self.attributes.extend(attrs);
     }
 
@@ -396,7 +395,7 @@ impl VTag {
                         feature = "std_web" => input.raw_value(),
                         feature = "web_sys" => input.value(),
                     };
-                    *value = current_value.into();
+                    *value = Some(current_value.into());
                 }
             }
             (TextArea { value }, Some(el)) => {
@@ -406,7 +405,7 @@ impl VTag {
                     feature = "std_web" => TextAreaElement::try_from(el.clone()).ok(),
                     feature = "web_sys" => el.dyn_ref::<TextAreaElement>(),
                 } {
-                    *value = el.value().into();
+                    *value = Some(el.value().into());
                 }
             }
             _ => (),
@@ -445,21 +444,21 @@ impl VTag {
 
     /// Similar to `diff_attributes` except there is only a single `value`.
     fn diff_value<'a>(
-        new: &'a Option<String>,
+        new: &'a Option<Box<str>>,
         ancestor: &'a Option<Box<Self>>,
     ) -> Option<Patch<&'a str, ()>> {
         match (
             new.as_ref(),
             ancestor.as_ref().and_then(|anc| anc.value().as_ref()),
         ) {
-            (Some(ref left), Some(ref right)) => {
-                if left != right {
+            (Some(left), Some(right)) => {
+                if &**left as &str != right as &str {
                     Some(Patch::Replace(&**left, ()))
                 } else {
                     None
                 }
             }
-            (Some(ref left), None) => Some(Patch::Add(&**left, ())),
+            (Some(left), None) => Some(Patch::Add(&**left, ())),
             (None, Some(right)) => Some(Patch::Remove(&**right)),
             (None, None) => None,
         }
@@ -868,7 +867,7 @@ mod tests {
     #[test]
     fn supports_multiple_classes_string() {
         let a = html! {
-            <div class="class-1 class-2   class-3"></div>
+            <div class="class-1 class-2 class-3"></div>
         };
 
         let b = html! {
@@ -996,7 +995,7 @@ mod tests {
     #[test]
     fn keeps_order_of_classes() {
         let a = html! {
-            <div class="class-1 class-2   class-3",></div>
+            <div class=vec!["class-1", "class-2", "class-3"],></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -1463,16 +1462,14 @@ mod tests {
         };
         let div_vtag = assert_vtag(&mut div_el);
         assert!(div_vtag.value().is_none());
-        assert_eq!(
-            div_vtag.attributes.get("value").map(String::as_str),
-            Some("Hello")
-        );
+        let v: Option<&str> = div_vtag.attributes.get("value").map(|s| s.as_ref());
+        assert_eq!(v, Some("Hello"));
 
         let mut input_el = html! {
             <@{"input"} value="World"/>
         };
         let input_vtag = assert_vtag(&mut input_el);
-        assert_eq!(input_vtag.value(), &Some("World".to_string()));
+        assert_eq!(input_vtag.value(), &Some("World".to_string().into()));
         assert!(!input_vtag.attributes.contains_key("value"));
     }
 
