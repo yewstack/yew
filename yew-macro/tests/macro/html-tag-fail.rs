@@ -2,6 +2,28 @@ use yew::prelude::*;
 
 struct NotToString;
 
+struct TestComponent;
+impl Component for TestComponent {
+    type Message = ();
+    type Properties = ();
+
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        unimplemented!()
+    }
+
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
+}
+
 fn compile_fail() {
     html! { <div> };
     html! { <div><div> };
@@ -45,16 +67,23 @@ fn compile_fail() {
     html! { <@{55}></@> };
     html! { <@/> };
 
+    html! { <a media?="media" /> };
+    html! { <a media?=Some(NotToString) /> };
+    html! { <input disabled?=Some(true) /> };
+    html! { <input type?="kind" /> };
+    html! { <input type?=Some(NotToString) /> };
+    html! { <li value?="value" /> };
+    html! { <li value?=Some(NotToString) /> };
     html! { <a href?=Some(5) /> };
     html! { <a href?="href" /> };
-    html! { <a media?="media" /> };
-    html! { <track kind?="kind" /> };
-    html! { <input disabled?=Some(5) /> };
-    html! { <input disabled?=true /> };
-    html! { <input checked?=Some(5) /> };
-    html! { <input checked?=true /> };
+    html! { <a href?=Some(NotToString) /> };
+    html! { <input checked?=Some(false) /> };
+    html! { <input class?=() /> };
+    html! { <input ref?=() /> };
     html! { <input onfocus?=Some(5) /> };
     html! { <input onfocus?=Callback::from(|_| ()) /> };
+
+    html! { <TestComponent value?="not_supported" /> };
 }
 
 fn main() {}

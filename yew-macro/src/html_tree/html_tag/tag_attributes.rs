@@ -306,14 +306,59 @@ impl Parse for TagAttributes {
             i += 1;
         }
         let booleans = TagAttributes::drain_boolean(&mut attributes);
+        for boolean in &booleans {
+            if boolean.question_mark.is_some() {
+                return Err(syn::Error::new_spanned(
+                    &boolean.label,
+                    format!(
+                        "The '{}' attribute does not support being used as an optional attribute",
+                        boolean.label
+                    ),
+                ));
+            }
+        }
 
-        let classes = TagAttributes::remove_attr(&mut attributes, "class")
-            .map(|a| TagAttributes::map_classes(a.value));
+        let classes = TagAttributes::remove_attr(&mut attributes, "class");
+        if let Some(classes) = classes.as_ref() {
+            if classes.question_mark.is_some() {
+                return Err(syn::Error::new_spanned(
+                    &classes.label,
+                    "The 'class' attribute does not support being used as an optional attribute",
+                ));
+            }
+        }
+        let classes = classes.map(|a| TagAttributes::map_classes(a.value));
         let value = TagAttributes::remove_attr(&mut attributes, "value");
         let kind = TagAttributes::remove_attr(&mut attributes, "type");
         let checked = TagAttributes::remove_attr(&mut attributes, "checked");
-        let node_ref = TagAttributes::remove_attr(&mut attributes, "ref").map(|n| n.value);
-        let key = TagAttributes::remove_attr(&mut attributes, "key").map(|k| k.value);
+        if let Some(checked) = checked.as_ref() {
+            if checked.question_mark.is_some() {
+                return Err(syn::Error::new_spanned(
+                    &checked.label,
+                    "The 'checked' attribute does not support being used as an optional attribute",
+                ));
+            }
+        }
+        let node_ref = TagAttributes::remove_attr(&mut attributes, "ref");
+        if let Some(node_ref) = node_ref.as_ref() {
+            if node_ref.question_mark.is_some() {
+                return Err(syn::Error::new_spanned(
+                    &node_ref.label,
+                    "The 'ref' attribute does not support being used as an optional attribute",
+                ));
+            }
+        }
+        let node_ref = node_ref.map(|n| n.value);
+        let key = TagAttributes::remove_attr(&mut attributes, "key");
+        if let Some(key) = key.as_ref() {
+            if key.question_mark.is_some() {
+                return Err(syn::Error::new_spanned(
+                    &key.label,
+                    "The 'key' attribute does not support being used as an optional attribute",
+                ));
+            }
+        }
+        let key = key.map(|k| k.value);
 
         Ok(TagAttributes {
             attributes,

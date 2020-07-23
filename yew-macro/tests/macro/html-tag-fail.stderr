@@ -23,141 +23,181 @@ error: this opening tag has no corresponding closing tag
   |             ^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
-  --> $DIR/html-tag-fail.rs:10:24
+  --> $DIR/html-tag-fail.rs:32:24
    |
-10 |     html! { <div></div><div></div> };
+32 |     html! { <div></div><div></div> };
    |                        ^^^^^^^^^^^
 
 error: this closing tag has no corresponding opening tag
-  --> $DIR/html-tag-fail.rs:11:18
+  --> $DIR/html-tag-fail.rs:33:18
    |
-11 |     html! { <div></span> };
+33 |     html! { <div></span> };
    |                  ^^^^^^^
 
 error: this closing tag has no corresponding opening tag
-  --> $DIR/html-tag-fail.rs:12:20
+  --> $DIR/html-tag-fail.rs:34:20
    |
-12 |     html! { <tag-a></tag-b> };
+34 |     html! { <tag-a></tag-b> };
    |                    ^^^^^^^^
 
 error: this closing tag has no corresponding opening tag
-  --> $DIR/html-tag-fail.rs:13:18
+  --> $DIR/html-tag-fail.rs:35:18
    |
-13 |     html! { <div></span></div> };
+35 |     html! { <div></span></div> };
    |                  ^^^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
-  --> $DIR/html-tag-fail.rs:14:20
+  --> $DIR/html-tag-fail.rs:36:20
    |
-14 |     html! { <img /></img> };
+36 |     html! { <img /></img> };
    |                    ^^^^^^
 
 error: expected a valid html element
-  --> $DIR/html-tag-fail.rs:15:18
+  --> $DIR/html-tag-fail.rs:37:18
    |
-15 |     html! { <div>Invalid</div> };
+37 |     html! { <div>Invalid</div> };
    |                  ^^^^^^^
 
 error: the attribute `attr` can only be specified once
-  --> $DIR/html-tag-fail.rs:17:27
+  --> $DIR/html-tag-fail.rs:39:27
    |
-17 |     html! { <input attr=1 attr=2 /> };
+39 |     html! { <input attr=1 attr=2 /> };
    |                           ^^^^
 
 error: the attribute `value` can only be specified once
-  --> $DIR/html-tag-fail.rs:18:32
+  --> $DIR/html-tag-fail.rs:40:32
    |
-18 |     html! { <input value="123" value="456" /> };
+40 |     html! { <input value="123" value="456" /> };
    |                                ^^^^^
 
 error: the attribute `kind` can only be specified once
-  --> $DIR/html-tag-fail.rs:19:36
+  --> $DIR/html-tag-fail.rs:41:36
    |
-19 |     html! { <input kind="checkbox" kind="submit" /> };
+41 |     html! { <input kind="checkbox" kind="submit" /> };
    |                                    ^^^^
 
 error: the attribute `checked` can only be specified once
-  --> $DIR/html-tag-fail.rs:20:33
+  --> $DIR/html-tag-fail.rs:42:33
    |
-20 |     html! { <input checked=true checked=false /> };
+42 |     html! { <input checked=true checked=false /> };
    |                                 ^^^^^^^
 
 error: the attribute `disabled` can only be specified once
-  --> $DIR/html-tag-fail.rs:21:34
+  --> $DIR/html-tag-fail.rs:43:34
    |
-21 |     html! { <input disabled=true disabled=false /> };
+43 |     html! { <input disabled=true disabled=false /> };
    |                                  ^^^^^^^^
 
 error: the attribute `selected` can only be specified once
-  --> $DIR/html-tag-fail.rs:22:35
+  --> $DIR/html-tag-fail.rs:44:35
    |
-22 |     html! { <option selected=true selected=false /> };
+44 |     html! { <option selected=true selected=false /> };
    |                                   ^^^^^^^^
 
 error: the attribute `class` can only be specified once
-  --> $DIR/html-tag-fail.rs:23:32
+  --> $DIR/html-tag-fail.rs:45:32
    |
-23 |     html! { <div class="first" class="second" /> };
+45 |     html! { <div class="first" class="second" /> };
    |                                ^^^^^
 
 error: the attribute `ref` can only be specified once
-  --> $DIR/html-tag-fail.rs:38:27
+  --> $DIR/html-tag-fail.rs:60:27
    |
-38 |     html! { <input ref=() ref=() /> };
+60 |     html! { <input ref=() ref=() /> };
    |                           ^^^
 
 error: the tag `<input>` is a void element and cannot have children (hint: rewrite this as `<input/>`)
-  --> $DIR/html-tag-fail.rs:40:13
+  --> $DIR/html-tag-fail.rs:62:13
    |
-40 |     html! { <input type="text"></input> };
+62 |     html! { <input type="text"></input> };
    |             ^^^^^^^^^^^^^^^^^^^
 
 error: the tag `<iNpUt>` is a void element and cannot have children (hint: rewrite this as `<iNpUt/>`)
-  --> $DIR/html-tag-fail.rs:41:13
+  --> $DIR/html-tag-fail.rs:63:13
    |
-41 |     html! { <iNpUt type="text"></iNpUt> };
+63 |     html! { <iNpUt type="text"></iNpUt> };
    |             ^^^^^^^^^^^^^^^^^^^
 
 error: this dynamic tag is missing an expression block defining its value
-  --> $DIR/html-tag-fail.rs:43:14
+  --> $DIR/html-tag-fail.rs:65:14
    |
-43 |     html! { <@></@> };
+65 |     html! { <@></@> };
    |              ^
 
 error: dynamic closing tags must not have a body (hint: replace it with just `</@>`)
-  --> $DIR/html-tag-fail.rs:44:27
+  --> $DIR/html-tag-fail.rs:66:27
    |
-44 |     html! { <@{"test"}></@{"test"}> };
+66 |     html! { <@{"test"}></@{"test"}> };
    |                           ^^^^^^^^
 
 error: this dynamic tag is missing an expression block defining its value
-  --> $DIR/html-tag-fail.rs:46:14
+  --> $DIR/html-tag-fail.rs:68:14
    |
-46 |     html! { <@/> };
+68 |     html! { <@/> };
    |              ^
 
-error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:25:28
+error: The 'disabled' attribute does not support being used as an optional attribute
+  --> $DIR/html-tag-fail.rs:72:20
    |
-25 |     html! { <input checked=1 /> };
+72 |     html! { <input disabled?=Some(true) /> };
+   |                    ^^^^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: The 'checked' attribute does not support being used as an optional attribute
+  --> $DIR/html-tag-fail.rs:80:20
+   |
+80 |     html! { <input checked?=Some(false) /> };
+   |                    ^^^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: The 'class' attribute does not support being used as an optional attribute
+  --> $DIR/html-tag-fail.rs:81:20
+   |
+81 |     html! { <input class?=() /> };
+   |                    ^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: The 'ref' attribute does not support being used as an optional attribute
+  --> $DIR/html-tag-fail.rs:82:20
+   |
+82 |     html! { <input ref?=() /> };
+   |                    ^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: optional attributes are only supported on HTML tags. Yew components can use `Option<T>` properties to accomplish the same thing.
+  --> $DIR/html-tag-fail.rs:86:28
+   |
+86 |     html! { <TestComponent value?="not_supported" /> };
+   |                            ^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:47:28
+   |
+47 |     html! { <input checked=1 /> };
    |                            ^ expected `bool`, found integer
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:26:29
+  --> $DIR/html-tag-fail.rs:48:29
    |
-26 |     html! { <input disabled=1 /> };
+48 |     html! { <input disabled=1 /> };
    |                             ^ expected `bool`, found integer
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:27:30
+  --> $DIR/html-tag-fail.rs:49:30
    |
-27 |     html! { <option selected=1 /> };
+49 |     html! { <option selected=1 /> };
    |                              ^ expected `bool`, found integer
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-tag-fail.rs:28:25
+  --> $DIR/html-tag-fail.rs:50:25
    |
-28 |     html! { <input type=() /> };
+50 |     html! { <input type=() /> };
    |                         ^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
@@ -166,9 +206,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required by `std::string::ToString::to_string`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-tag-fail.rs:29:26
+  --> $DIR/html-tag-fail.rs:51:26
    |
-29 |     html! { <input value=() /> };
+51 |     html! { <input value=() /> };
    |                          ^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
@@ -187,18 +227,18 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required by `std::string::ToString::to_string`
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:32:20
+  --> $DIR/html-tag-fail.rs:54:20
    |
-32 |     html! { <input onclick=1 /> };
+54 |     html! { <input onclick=1 /> };
    |                    ^^^^^^^ expected enum `yew::callback::Callback`, found integer
    |
    = note: expected enum `yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>`
               found type `{integer}`
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:33:20
+  --> $DIR/html-tag-fail.rs:55:20
    |
-33 |     html! { <input onclick=Callback::from(|a: String| ()) /> };
+55 |     html! { <input onclick=Callback::from(|a: String| ()) /> };
    |                    ^^^^^^^ expected struct `web_sys::features::gen_MouseEvent::MouseEvent`, found struct `std::string::String`
    |
    = note: expected enum `yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>`
@@ -216,15 +256,15 @@ error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
    = note: required by `std::string::ToString::to_string`
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:37:24
+  --> $DIR/html-tag-fail.rs:59:24
    |
-37 |     html! { <input ref=() /> };
+59 |     html! { <input ref=() /> };
    |                        ^^ expected struct `yew::html::NodeRef`, found `()`
 
 error[E0277]: the trait bound `std::borrow::Cow<'static, str>: std::convert::From<{integer}>` is not satisfied
-  --> $DIR/html-tag-fail.rs:45:15
+  --> $DIR/html-tag-fail.rs:67:15
    |
-45 |     html! { <@{55}></@> };
+67 |     html! { <@{55}></@> };
    |               ^^^^ the trait `std::convert::From<{integer}>` is not implemented for `std::borrow::Cow<'static, str>`
    |
    = help: the following implementations were found:
@@ -236,10 +276,83 @@ error[E0277]: the trait bound `std::borrow::Cow<'static, str>: std::convert::Fro
    = note: required by `std::convert::From::from`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `yew::html::Href: std::convert::From<{integer}>` is not satisfied
-  --> $DIR/html-tag-fail.rs:48:22
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:70:23
    |
-48 |     html! { <a href?=Some(5) /> };
+70 |     html! { <a media?="media" /> };
+   |                       ^^^^^^^ expected enum `std::option::Option`, found `&str`
+   |
+   = note: expected reference `&std::option::Option<_>`
+              found reference `&&'static str`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
+    --> $DIR/html-tag-fail.rs:71:23
+     |
+71   |     html! { <a media?=Some(NotToString) /> };
+     |                       ^^^^ `NotToString` cannot be formatted with the default formatter
+     |
+    ::: $RUST/src/liballoc/string.rs:2158:1
+     |
+2158 | pub trait ToString {
+     | ------------------ required by this bound in `std::string::ToString::to_string`
+     |
+     = help: the trait `std::fmt::Display` is not implemented for `NotToString`
+     = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+     = note: required because of the requirements on the impl of `std::string::ToString` for `NotToString`
+     = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:73:26
+   |
+73 |     html! { <input type?="kind" /> };
+   |                          ^^^^^^ expected enum `std::option::Option`, found `&str`
+   |
+   = note: expected reference `&std::option::Option<_>`
+              found reference `&&'static str`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
+  --> $DIR/html-tag-fail.rs:74:26
+   |
+74 |     html! { <input type?=Some(NotToString) /> };
+   |                          ^^^^ `NotToString` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `NotToString`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `NotToString`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-tag-fail.rs:75:24
+   |
+75 |     html! { <li value?="value" /> };
+   |                        ^^^^^^^ expected enum `std::option::Option`, found `&str`
+   |
+   = note: expected reference `&std::option::Option<_>`
+              found reference `&&'static str`
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
+    --> $DIR/html-tag-fail.rs:76:24
+     |
+76   |     html! { <li value?=Some(NotToString) /> };
+     |                        ^^^^ `NotToString` cannot be formatted with the default formatter
+     |
+    ::: $RUST/src/liballoc/string.rs:2158:1
+     |
+2158 | pub trait ToString {
+     | ------------------ required by this bound in `std::string::ToString::to_string`
+     |
+     = help: the trait `std::fmt::Display` is not implemented for `NotToString`
+     = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+     = note: required because of the requirements on the impl of `std::string::ToString` for `NotToString`
+     = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `yew::html::Href: std::convert::From<{integer}>` is not satisfied
+  --> $DIR/html-tag-fail.rs:77:22
+   |
+77 |     html! { <a href?=Some(5) /> };
    |                      ^^^^ the trait `std::convert::From<{integer}>` is not implemented for `yew::html::Href`
    |
    = help: the following implementations were found:
@@ -249,9 +362,9 @@ error[E0277]: the trait bound `yew::html::Href: std::convert::From<{integer}>` i
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:49:22
+  --> $DIR/html-tag-fail.rs:78:22
    |
-49 |     html! { <a href?="href" /> };
+78 |     html! { <a href?="href" /> };
    |                      ^^^^^^
    |                      |
    |                      expected `str`, found enum `std::option::Option`
@@ -261,81 +374,22 @@ error[E0308]: mismatched types
               found enum `std::option::Option<_>`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:50:23
+error[E0277]: the trait bound `yew::html::Href: std::convert::From<NotToString>` is not satisfied
+  --> $DIR/html-tag-fail.rs:79:22
    |
-50 |     html! { <a media?="media" /> };
-   |                       ^^^^^^^
-   |                       |
-   |                       expected `str`, found enum `std::option::Option`
-   |                       this expression has type `&str`
+79 |     html! { <a href?=Some(NotToString) /> };
+   |                      ^^^^ the trait `std::convert::From<NotToString>` is not implemented for `yew::html::Href`
    |
-   = note: expected type `str`
-              found enum `std::option::Option<_>`
+   = help: the following implementations were found:
+             <yew::html::Href as std::convert::From<&'a str>>
+             <yew::html::Href as std::convert::From<std::string::String>>
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::html::Href>` for `NotToString`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:51:26
+  --> $DIR/html-tag-fail.rs:83:20
    |
-51 |     html! { <track kind?="kind" /> };
-   |                          ^^^^^^
-   |                          |
-   |                          expected `str`, found enum `std::option::Option`
-   |                          this expression has type `&str`
-   |
-   = note: expected type `str`
-              found enum `std::option::Option<_>`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:52:30
-   |
-52 |     html! { <input disabled?=Some(5) /> };
-   |                              ^^^^---
-   |                              |
-   |                              expected integer, found `bool`
-   |                              this expression has type `std::option::Option<{integer}>`
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:53:30
-   |
-53 |     html! { <input disabled?=true /> };
-   |                              ^^^^
-   |                              |
-   |                              expected `bool`, found enum `std::option::Option`
-   |                              this expression has type `bool`
-   |
-   = note: expected type `bool`
-              found enum `std::option::Option<_>`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:54:29
-   |
-54 |     html! { <input checked?=Some(5) /> };
-   |                             ^^^^ expected `bool`, found integer
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:55:29
-   |
-55 |     html! { <input checked?=true /> };
-   |                             ^^^^
-   |                             |
-   |                             expected `bool`, found enum `std::option::Option`
-   |                             this expression has type `bool`
-   |
-   = note: expected type `bool`
-              found enum `std::option::Option<_>`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:56:20
-   |
-56 |     html! { <input onfocus?=Some(5) /> };
+83 |     html! { <input onfocus?=Some(5) /> };
    |                    ^^^^^^^ expected enum `yew::callback::Callback`, found integer
    |
    = note: expected enum `yew::callback::Callback<web_sys::features::gen_FocusEvent::FocusEvent>`
@@ -343,13 +397,14 @@ error[E0308]: mismatched types
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:57:20
+  --> $DIR/html-tag-fail.rs:84:29
    |
-57 |     html! { <input onfocus?=Callback::from(|_| ()) /> };
-   |                    ^^^^^^^  ---------------------- this expression has type `yew::callback::Callback<_>`
-   |                    |
-   |                    expected enum `yew::callback::Callback`, found enum `std::option::Option`
+84 |     html! { <input onfocus?=Callback::from(|_| ()) /> };
+   |                             ^^^^^^^^^^^^^^^^^^^^^^
+   |                             |
+   |                             expected enum `std::option::Option`, found enum `yew::callback::Callback`
+   |                             help: try using a variant of the expected enum: `Some(Callback::from(|_| ()))`
    |
-   = note: expected enum `yew::callback::Callback<_>`
-              found enum `std::option::Option<_>`
+   = note: expected enum `std::option::Option<_>`
+              found enum `yew::callback::Callback<_>`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
