@@ -6,91 +6,94 @@
     "tagline": "Yew is a modern Rust framework for creating multi-threaded front-end web apps with WebAssembly.",
     "docs": {
       "advanced-topics/how-it-works": {
-        "title": "advanced-topics/how-it-works"
+        "title": "How it works"
       },
       "advanced-topics/optimizations": {
-        "title": "advanced-topics/optimizations"
+        "title": "Optimizations"
       },
       "concepts/agents": {
-        "title": "concepts/agents"
+        "title": "Agents"
       },
       "concepts/components/callbacks": {
-        "title": "concepts/components/callbacks"
+        "title": "Callbacks"
       },
       "concepts/components/properties": {
-        "title": "concepts/components/properties"
+        "title": "Properties"
       },
-      "concepts/components/README": {
-        "title": "concepts/components/README"
+      "concepts/components/components-intro": {
+        "title": "Introduction"
       },
       "concepts/components/refs": {
-        "title": "concepts/components/refs"
+        "title": "Refs"
       },
       "concepts/html/components": {
-        "title": "concepts/html/components"
+        "title": "Components"
       },
       "concepts/html/elements": {
-        "title": "concepts/html/elements"
+        "title": "Elements"
       },
       "concepts/html/lists": {
-        "title": "concepts/html/lists"
+        "title": "Lists"
       },
-      "concepts/html/literals-and-expressions": {
-        "title": "concepts/html/literals-and-expressions"
+      "concepts/html/expressions": {
+        "title": "Literals and Expressions"
       },
-      "concepts/html/README": {
-        "title": "concepts/html/README"
+      "concepts/html/html-intro": {
+        "title": "Introduction"
       },
       "concepts/router": {
-        "title": "concepts/router"
+        "title": "Router"
       },
       "concepts/services/format": {
-        "title": "concepts/services/format"
+        "title": "Format"
       },
-      "concepts/services/README": {
-        "title": "concepts/services/README"
+      "concepts/services/services-intro": {
+        "title": "Introduction"
       },
-      "getting-started/build-a-sample-app": {
-        "title": "getting-started/build-a-sample-app"
+      "getting-started/sample-app": {
+        "title": "Build a sample app"
       },
-      "getting-started/choose-web-library": {
-        "title": "getting-started/choose-web-library"
+      "getting-started/web-library": {
+        "title": "Choosing a web library"
       },
       "getting-started/examples": {
-        "title": "getting-started/examples"
+        "title": "Examples"
       },
-      "getting-started/project-setup/README": {
-        "title": "getting-started/project-setup/README"
+      "getting-started/project-setup/setup": {
+        "title": "Introduction"
       },
-      "getting-started/project-setup/using-cargo-web": {
-        "title": "getting-started/project-setup/using-cargo-web"
+      "getting-started/project-setup/cargo-web": {
+        "title": "Using cargo-web"
       },
-      "getting-started/project-setup/using-wasm-bindgen": {
-        "title": "getting-started/project-setup/using-wasm-bindgen"
+      "getting-started/project-setup/wasm-bindgen": {
+        "title": "Using wasm-bindgen"
       },
-      "getting-started/project-setup/using-wasm-pack": {
-        "title": "getting-started/project-setup/using-wasm-pack"
+      "getting-started/project-setup/wasm-pack": {
+        "title": "Using wasm-pack"
       },
       "getting-started/starter-templates": {
-        "title": "getting-started/starter-templates"
+        "title": "Starter templates"
       },
       "intro": {
         "title": "Introduction"
       },
       "more/css": {
-        "title": "more/css"
+        "title": "CSS"
       },
       "more/debugging": {
-        "title": "more/debugging"
+        "title": "Debugging"
       },
       "more/external-libs": {
-        "title": "more/external-libs"
+        "title": "External libraries"
       },
       "more/roadmap": {
-        "title": "more/roadmap"
+        "title": "Roadmap"
       },
       "more/testing": {
-        "title": "more/testing"
+        "title": "Testing apps"
+      },
+      "README": {
+        "title": "README"
       },
       "SUMMARY": {
         "title": "SUMMARY"
@@ -102,7 +105,10 @@
       "Discord": "Discord"
     },
     "categories": {
-      "Getting Started": "Getting Started"
+      "Getting Started": "Getting Started",
+      "Concepts": "Concepts",
+      "Advanced topics": "Advanced topics",
+      "More": "More"
     }
   },
   "pages-strings": {
