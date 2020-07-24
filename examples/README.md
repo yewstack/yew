@@ -25,16 +25,16 @@ cargo install wasm-pack wasm-bindgen-cli
 
 ### Optional dependencies
 
-There's an optional dependency for [Python](https://www.python.org/) (version 3.6 and up).
-Python is required to run the built-in web server.
-If you don't have it installed you will need to manually start a server for the generated files.
+We've written a small web server which you can use to serve the built examples. In order to
+use it, you'll need to have installed Python (3.6 or greater).
+You can also use a different web server, provided that it can serve static files from a directory.
 
 > **Note:**<br>
 > Some examples don't have an `index.html` file in their static directory.
 > The python web server handles this by serving a default index file.
 > If you aren't using it, you will need to create the index file manually.
 
-As an alternative to the built-in web server there is an extension for [Visual Studio Code](https://code.visualstudio.com/) called [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer).
+One alternative to the built-in web server there is an extension for [Visual Studio Code](https://code.visualstudio.com/) called [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer).
 This extension is used to serve static files.
 To do so, open the `index.html` file in the static directory of the example you wish to run and press "Open with Live Server" in the context menu.
 
