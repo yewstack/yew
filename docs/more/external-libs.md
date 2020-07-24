@@ -1,4 +1,6 @@
 ---
+id: external-libs
+title: External libraries
 description: Libraries that can help with yew development
 ---
 

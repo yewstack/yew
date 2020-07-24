@@ -1,4 +1,7 @@
-# Using wasm-bindgen
+---
+id: wasm-bindgen
+title: Using wasm-bindgen
+---
 
 ## Install
 

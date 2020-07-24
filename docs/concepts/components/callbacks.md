@@ -1,9 +1,8 @@
 ---
+id: callbacks
+title: Callbacks
 description: ComponentLink and Callbacks
 ---
-
-# Callbacks
-
 The component "link" is the mechanism through which components are able to register callbacks and update themselves.
 
 ## ComponentLink API

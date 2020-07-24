@@ -1,3 +1,8 @@
+---
+id: debugging
+title: Debugging
+---
+
 # Debugging
 
 ## Panics
