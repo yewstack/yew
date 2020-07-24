@@ -1,7 +1,6 @@
 use crate::html_tree::HtmlDashedName as HtmlPropLabel;
 use crate::{Peek, PeekValue};
-use proc_macro::TokenStream;
-use proc_macro2::TokenTree;
+use proc_macro2::{TokenStream, TokenTree};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::{Expr, Token};
@@ -79,8 +78,7 @@ impl Parse for HtmlPropSuffix {
         }
 
         let gt: Token![>] = gt.ok_or_else(|| input.error("missing tag close"))?;
-        let stream: proc_macro2::TokenStream = trees.into_iter().collect();
-        let stream = TokenStream::from(stream);
+        let stream: TokenStream = trees.into_iter().collect();
 
         Ok(HtmlPropSuffix { stream, div, gt })
     }

@@ -57,14 +57,14 @@ impl PeekValue<HtmlType> for HtmlTree {
     fn peek(cursor: Cursor) -> Option<HtmlType> {
         if cursor.eof() {
             Some(HtmlType::Empty)
+        } else if HtmlList::peek(cursor).is_some() {
+            Some(HtmlType::List)
         } else if HtmlComponent::peek(cursor).is_some() {
             Some(HtmlType::Component)
         } else if HtmlTag::peek(cursor).is_some() {
             Some(HtmlType::Tag)
         } else if HtmlBlock::peek(cursor).is_some() {
             Some(HtmlType::Block)
-        } else if HtmlList::peek(cursor).is_some() {
-            Some(HtmlType::List)
         } else {
             None
         }
