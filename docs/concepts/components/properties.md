@@ -3,9 +3,6 @@ id: properties
 title: Properties
 description: Parent to child communication
 ---
-
-# Properties
-
 Properties enable child and parent components to communicate with each other.
 
 ## Derive macro

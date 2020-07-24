@@ -3,9 +3,6 @@ id: elements
 title: Elements
 description: Both HTML and SVG elements are supported
 ---
-
-# Elements
-
 ## Tag Structure
 
 Element tags must either self-close `<... />` or have a corresponding close tag for each open tag

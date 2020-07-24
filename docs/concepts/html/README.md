@@ -3,9 +3,6 @@ id: html-intro
 title: Introduction
 description: The procedural macro for generating HTML and SVG
 ---
-
-# Using html!
-
 The `html!` macro allows you to write HTML and SVG code declaratively. It is similar to JSX 
 \(an extension to Javascript which allows you to write HTML-like code inside of Javascript\).
 

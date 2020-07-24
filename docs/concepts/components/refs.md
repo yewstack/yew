@@ -4,10 +4,6 @@ title: Refs
 description: Out-of-band DOM access
 ---
 
-# Refs
-
-## Refs
-
 The `ref` keyword can be used inside of any HTML element or component to get the DOM `Element` that the item is attached to. This can be used to make changes to the DOM outside of the `view` lifecycle method.
 
 This is useful for getting ahold of canvas elements, or scrolling to different sections of a page.

@@ -3,9 +3,6 @@ id: components
 title: Components
 description: Create complex layouts with component hierarchies
 ---
-
-# Components
-
 ## Basic
 
 Any type that implements `Component` can be used in the `html!` macro:
