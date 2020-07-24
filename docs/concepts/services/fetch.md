@@ -4,7 +4,7 @@ title: The fetch service
 ---
 ## Introduction
 The fetch service can be used to make HTTP requests to a server. This enables applications to
-communicate with external services and persist data.
+communicate with external services.
 
 :::note
 You might find it helpful to read the [documentation for the format module](format.md) before 
