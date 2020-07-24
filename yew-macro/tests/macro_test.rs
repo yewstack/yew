@@ -1,7 +1,7 @@
 use yew::html;
 
 #[allow(dead_code)]
-#[rustversion::attr(stable, test)]
+#[rustversion::attr(stable(1.45), test)]
 fn tests() {
     let t = trybuild::TestCases::new();
 
