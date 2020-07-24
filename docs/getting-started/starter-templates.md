@@ -3,8 +3,6 @@ id: starter-templates
 title: Starter templates
 ---
 
-# Starter Templates
-
 ## `wasm-pack`
 
 * [Minimal Template](https://github.com/yewstack/yew-wasm-pack-minimal) - Uses `wasm-pack` and 

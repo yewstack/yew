@@ -2,8 +2,6 @@
 id: web-library
 title: Choosing a web library
 ---
-# Choose web-sys or stdweb
-
 ## Introduction
 
 Yew apps can be built with either [`web-sys`](https://docs.rs/web-sys) or [`stdweb`](https://docs.rs/stdweb). These two crates provide the bindings between Rust and Web APIs. You'll need to choose one or the other when adding `yew` to your cargo dependencies:

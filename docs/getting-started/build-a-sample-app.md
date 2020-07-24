@@ -2,8 +2,6 @@
 id: sample-app
 title: Build a sample app
 ---
-# Build a Sample App
-
 First create a new Rust library \(**important:** create a _library_, not a _binary_ by passing the `--lib` flag\):
 
 ```bash
