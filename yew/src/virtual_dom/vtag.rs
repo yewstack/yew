@@ -414,7 +414,6 @@ impl VTag {
 
     /// This handles patching of attributes when the keys are equal but
     /// the values are different.
-    // TODO: don't allocate any intermediate Patch iterator and patch on the fly
     fn diff_attributes<'a>(
         &'a self,
         ancestor: &'a Option<Box<Self>>,

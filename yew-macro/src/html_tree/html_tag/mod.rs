@@ -4,7 +4,6 @@ use super::HtmlChildrenTree;
 use super::HtmlDashedName;
 use super::HtmlProp as TagAttribute;
 use super::HtmlPropSuffix as TagSuffix;
-use crate::string_ref::StringRefConstructor;
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, Span};
@@ -153,8 +152,8 @@ impl ToTokens for HtmlTag {
             .iter()
             .map(|TagAttribute { label, value }| {
                 let label_str = label.to_string();
-                let val = StringRefConstructor::new(value.clone());
-                quote_spanned! {value.span()=> (#label_str,  #val) }
+                let sr = crate::string_ref::Constructor::from(value);
+                quote_spanned! {value.span()=> (#label_str,  #sr) }
             })
             .collect();
         let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
@@ -184,7 +183,7 @@ impl ToTokens for HtmlTag {
                     #vtag.add_attribute("class", __yew_classes.to_string());
                 }
             },
-            ClassesForm::Single(classes) => match StringRefConstructor::try_convert_literal(classes) {
+            ClassesForm::Single(classes) => match crate::string_ref::try_stringify_expr(classes) {
                 Some(sr) => {
                     if sr.is_empty() {
                         Default::default()

@@ -347,13 +347,13 @@ error[E0599]: no method named `build` found for struct `ChildContainerProperties
             candidate #1: `proc_macro::bridge::server::TokenStreamBuilder`
     = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<&str>` is not satisfied
+error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vtext::VText>` is not satisfied
    --> $DIR/html-component-fail.rs:113:5
     |
 113 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<&str>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vtext::VText>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
     |
-    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `&str`
+    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vtext::VText`
     = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied

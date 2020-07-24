@@ -44,7 +44,10 @@ impl PeekValue<()> for HtmlNode {
 impl ToTokens for HtmlNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(match &self {
-            HtmlNode::Literal(lit) => quote! {#lit},
+            HtmlNode::Literal(lit) => {
+                let sr = crate::string_ref::Constructor::from(lit.as_ref());
+                quote! { ::yew::virtual_dom::VText::new(#sr) }
+            }
             HtmlNode::Expression(expr) => quote_spanned! {expr.span()=> {#expr}},
         });
     }

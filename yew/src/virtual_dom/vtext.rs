@@ -2,7 +2,7 @@
 
 use super::{VDiff, VNode};
 use crate::html::{AnyScope, NodeRef};
-use crate::utils::document;
+use crate::utils::{document, StringRef};
 use cfg_if::cfg_if;
 use log::warn;
 use std::cmp::PartialEq;
@@ -20,16 +20,24 @@ cfg_if! {
 #[derive(Clone, Debug)]
 pub struct VText {
     /// Contains a text of the node.
-    pub text: String,
+    pub text: StringRef,
     /// A reference to the `TextNode`.
     pub reference: Option<TextNode>,
 }
 
 impl VText {
     /// Creates new virtual text node with a content.
-    pub fn new(text: String) -> Self {
+    pub fn new(text: impl Into<StringRef>) -> Self {
         VText {
-            text,
+            text: text.into(),
+            reference: None,
+        }
+    }
+
+    /// Creates new virtual text node with static string contents.
+    pub const fn new_static(text: &'static str) -> Self {
+        VText {
+            text: StringRef::Static(text),
             reference: None,
         }
     }

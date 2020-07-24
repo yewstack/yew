@@ -89,7 +89,7 @@ pub fn render_markdown(src: &str) -> Html {
             }
             Event::Text(text) => add_child!(VText::new(text.to_string()).into()),
             Event::Rule => add_child!(VTag::new("hr").into()),
-            Event::SoftBreak => add_child!(VText::new("\n".to_string()).into()),
+            Event::SoftBreak => add_child!(VText::new_static("\n").into()),
             Event::HardBreak => add_child!(VTag::new("br").into()),
             _ => println!("Unknown event: {:#?}", ev),
         }

@@ -30,14 +30,6 @@ error: unsupported type
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: integer literal is too large
-  --> $DIR/html-node-fail.rs:12:14
-   |
-12 |     html! {  1111111111111111111111111111111111111111111111111111111111111111111111111111 };
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
-
 error: unsupported type
   --> $DIR/html-node-fail.rs:13:22
    |
@@ -51,14 +43,6 @@ error: unsupported type
    |
 14 |     html! {  <span>{ b"str" }</span> };
    |                      ^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error: integer literal is too large
-  --> $DIR/html-node-fail.rs:15:22
-   |
-15 |     html! {  <span>{ 1111111111111111111111111111111111111111111111111111111111111111111111111111 }</span> };
-   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
