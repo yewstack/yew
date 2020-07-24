@@ -25,7 +25,7 @@ questions
 
 Click the link below to learn how to build your first Yew app and learn from community example projects
 
-{% page-ref page="getting-started/project-setup/" %}
+[Getting started](getting-started/project-setup/README.md)
 
 ### Still not convinced?
 
@@ -45,13 +45,25 @@ directly from JavaScript. This is a temporary issue which the
 [excellent article](https://hacks.mozilla.org/2019/08/webassembly-interface-types/) describing the proposal from Mozilla.
 #### Ok, but why Rust?
 
-Rust is blazing fast and reliable with its rich type system and ownership model. It has a tough learning curve but is well worth the effort. Rust has been voted the most loved programming language in Stack Overflow's Developer Survey five years in a row: [2016](https://insights.stackoverflow.com/survey/2016#technology-most-loved-dreaded-and-wanted), [2017](https://insights.stackoverflow.com/survey/2017#most-loved-dreaded-and-wanted), [2018](https://insights.stackoverflow.com/survey/2018#technology-_-most-loved-dreaded-and-wanted-languages), [2019](https://insights.stackoverflow.com/survey/2019#technology-_-most-loved-dreaded-and-wanted-languages) and [2020](https://insights.stackoverflow.com/survey/2020#most-loved-dreaded-and-wanted).
+Rust is blazing fast and reliable with its rich type system and ownership model. It has a tough 
+learning curve but is well worth the effort. Rust has been voted the most loved programming 
+language in Stack Overflow's Developer Survey five years in a row: 
+[2016](https://insights.stackoverflow.com/survey/2016#technology-most-loved-dreaded-and-wanted), 
+[2017](https://insights.stackoverflow.com/survey/2017#most-loved-dreaded-and-wanted), 
+[2018](https://insights.stackoverflow.com/survey/2018#technology-_-most-loved-dreaded-and-wanted-languages), 
+[2019](https://insights.stackoverflow.com/survey/2019#technology-_-most-loved-dreaded-and-wanted-languages) 
+and [2020](https://insights.stackoverflow.com/survey/2020#most-loved-dreaded-and-wanted).
 
-Rust also helps developers write safer code with its rich type system and ownership model. Say goodbye to hard to track down race condition bugs in JavaScript! In fact, with Rust, most of your bugs will be caught by the compiler before your app even runs. And don't worry, when your app does run into an error, you can still get full stack-traces for your Rust code in the browser console.
+Rust also helps developers write safer code with its rich type system and ownership model. Say 
+goodbye to hard to track down race condition bugs in JavaScript! In fact, with Rust, most of your 
+bugs will be caught by the compiler before your app even runs. And don't worry, when your app does 
+run into an error, you can still get full stack-traces for your Rust code in the browser console.
 
 #### Alternatives?
 
-We love to share ideas with other projects and believe we can all help each other reach the full potential of this exciting new technology. If you're not into Yew, you may like the following projects.
+We love to share ideas with other projects and believe we can all help each other reach the full 
+potential of this exciting new technology. If you're not into Yew, you may like the following projects.
 
-* [Percy](https://github.com/chinedufn/percy) - _"A modular toolkit for building isomorphic web apps with Rust + WebAssembly"_
+* [Percy](https://github.com/chinedufn/percy) - _"A modular toolkit for building isomorphic web apps 
+with Rust + WebAssembly"_
 * [Seed](https://github.com/seed-rs/seed) - _"A Rust framework for creating web apps"_

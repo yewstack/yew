@@ -1,10 +1,13 @@
-# Literals & Expressions
-
+---
+id: expressions
+title: Literals and Expressions
+---
 ## Literals
 
 If expressions resolve to types that implement `Display`, they will be converted to strings and inserted into the DOM as a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node.
 
-All display text must be enclosed by `{}` blocks because text is handled like an expression. This is the largest deviation from normal HTML syntax that Yew makes.
+All display text must be enclosed by `{}` blocks because text is handled as an expression. This is 
+the largest deviation from normal HTML syntax that Yew makes.
 
 ```rust
 let text = "lorem ipsum";
@@ -55,4 +58,3 @@ html! {
      <div>{maybe_display_link()}</div>
 }
 ```
-
