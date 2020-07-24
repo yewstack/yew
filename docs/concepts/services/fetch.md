@@ -14,22 +14,28 @@ reading this page.
 ## Making requests
 ### Building requests
 Yew has a `Request` request (which comes from the `http` crate) that is used to 'build' requests 
-before they can be dispatched to a server. The type intended to be used as the request body must
-have an implementation of `Into<Text>`.
+before they can be dispatched to a server. The type supplied to the request body must have an
+implementation of `Into<Text>` or `Into<Binary>`. 
 ```rust
 use yew::services::fetch::Request;
 use yew::format::Nothing;
-let get_request = Request::get("https://example.com/api/v1/get/something").body(Nothing).expect("Could not build that request");
+let get_request = Request::get("https://example.com/api/v1/get/something")
+                            .body(Nothing)
+                            .expect("Could not build that request");
 ```
 ```rust
 use yew::services::fetch::Request;
 use yew::format::Json;
 use serde_json::json;
-let post_request = Request::post("https://example.com/api/v1/post/something").header("Content-Type", "application/json").body(Json(&json!({"key": "value"}))).expect("Could not build that request.");
+let post_request = Request::post("https://example.com/api/v1/post/something")
+                                .header("Content-Type", "application/json")
+                                .body(Json(&json!({"key": "value"})))
+                                .expect("Could not build that request.");
 ```
 
 :::note
-Note that the `Json` struct takes references to values instead of values (i.e. `&T` not `T`).
+Note that the structs in the format module take references to values instead of values 
+(i.e. `&T` not `T`).
 :::
 
 ### Dispatching requests
@@ -40,19 +46,20 @@ used where cookies need to be sent in a request).
 `FetchService::fetch` accepts two parameters: a `Request` object and a `Callback`. The `Callback` is
 called once the request has completed allowing you to handle the data returned from the request.
 The callback you pass needs to take a single parameter of type `Response<T>` where `T` is the body
-of the request. Yew needs to be able to parse the response body to create an instance of the data
-type `T` so `T` needs to implement `From<Text>`.
+of the response. Yew needs to be able to parse the response body to create an instance of the data
+type `T` so `T` needs to implement `From<Text>` or `From<Binary>`. To fetch data in a binary format
+you should use `FetchService::fetch_binary` rather than `FetchService::fetch`.
 
 :::note
 Because something could go wrong trying to deserialize data `From<Text>` and `From<Binary>` are only 
 implemented for `FormatDataType<Result<T, ::anyhow::Error>>` (not `FormatDataType<T>`) where 
 `FormatDataType` is used as a placeholder for any type in the format module (e.g. `Json`).
 
-This means that your callbacks should look like 
+This means that your callbacks should look like
 ```rust
 self.link.callback(|response: Json<Result<ResponseType, anyhow::Error>>|)
 ```
-instead of 
+rather than
 ```rust
 self.link.callback(|response: Json<ResponseType>|)
 ```
