@@ -3,34 +3,34 @@ id: fetch
 title: The fetch service
 ---
 ## Introduction
-The fetch module can be used to make HTTP requests to a server. This enables applications to
+The fetch service can be used to make HTTP requests to a server. This enables applications to
 communicate with external services and persist data.
 
 :::note
-You might find it helpful to read the [documentation about the format module](format.md) before 
+You might find it helpful to read the [documentation for the format module](format.md) before 
 reading this page.
 :::
 
 ## Making requests
 ### Building requests
-Yew has a `Request` request (which comes from the `http` crate) that is used to 'build' requests 
-before they can be dispatched to a server. The type supplied to the request body must have an
-implementation of `Into<Text>` or `Into<Binary>`. 
+Yew re-exports the `Request` struct from the `http` crate that is used to 'build' requests 
+before they can be dispatched to a server. The value of the request body must implement 
+`Into<Text>` or `Into<Binary>`. 
 ```rust
-use yew::services::fetch::Request;
 use yew::format::Nothing;
+use yew::services::fetch::Request;
 let get_request = Request::get("https://example.com/api/v1/get/something")
-                            .body(Nothing)
-                            .expect("Could not build that request");
+    .body(Nothing)
+    .expect("Could not build that request");
 ```
 ```rust
-use yew::services::fetch::Request;
-use yew::format::Json;
 use serde_json::json;
+use yew::format::Json;
+use yew::services::fetch::Request;
 let post_request = Request::post("https://example.com/api/v1/post/something")
-                                .header("Content-Type", "application/json")
-                                .body(Json(&json!({"key": "value"})))
-                                .expect("Could not build that request.");
+    .header("Content-Type", "application/json")
+    .body(Json(&json!({"key": "value"})))
+    .expect("Could not build that request.");
 ```
 
 :::note
@@ -47,7 +47,7 @@ used where cookies need to be sent in a request).
 called once the request has completed allowing you to handle the data returned from the request.
 The callback you pass needs to take a single parameter of type `Response<T>` where `T` is the body
 of the response. Yew needs to be able to parse the response body to create an instance of the data
-type `T` so `T` needs to implement `From<Text>` or `From<Binary>`. To fetch data in a binary format
+type `T` so it needs to implement `From<Text>` or `From<Binary>`. To fetch data in a binary format
 you should use `FetchService::fetch_binary` rather than `FetchService::fetch`.
 
 :::note
@@ -57,7 +57,7 @@ implemented for `FormatDataType<Result<T, ::anyhow::Error>>` (not `FormatDataTyp
 
 This means that your callbacks should look like
 ```rust
-self.link.callback(|response: Json<Result<ResponseType, anyhow::Error>>|)
+self.link.callback(|response: Json<anyhow::Result<ResponseType>>|)
 ```
 rather than
 ```rust
@@ -66,15 +66,14 @@ self.link.callback(|response: Json<ResponseType>|)
 :::
 
 :::danger
-It's important that the `FetchTask` returned is kept alive until the request has finished – i.e. it 
-should not be dropped until the request has finished and a response has been obtained. If the 
+It's important that the `FetchTask` isn't dropped until the request has completed. If the 
 `FetchTask` is dropped before the request has finished then the request will be cancelled.
 :::
 
 :::important info
 If you keep getting an error saying that "the operation was aborted" or "Error 408" this might be 
 because the [CORS headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) of the website 
-you are trying to access are not set correctly. Please see the linked to article from Mozilla about
+you are trying to access are not set correctly. Please see the linked article from Mozilla about
 how to resolve these errors.
 :::
 
@@ -221,10 +220,9 @@ impl Component for FetchServiceExample {
 
 ## Debugging the `FetchService`
 
-Most browsers' developer tools have a "network" pane which can be used to inspect and view requests 
-browsers have made, including data such as request headers and the contents of responses. This can 
-be a useful way to gain an insight into what requests are being made, the data being sent to the 
-server as well as the return data from the server.
+Most browsers' developer tools have a "network" panel which can be used to inspect HTTP requests. 
+This can be used to gain insight into what requests are being made, the data being sent to the 
+server, as well as the response.
 
 The Rust Wasm Book also contains [useful debugging tips](https://rustwasm.github.io/book/reference/debugging.html)
 for Wasm applications.
