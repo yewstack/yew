@@ -290,7 +290,6 @@ error[E0277]: the trait bound `yew::utils::StringRef: std::convert::From<{intege
              <yew::utils::StringRef as std::convert::From<&&str>>
              <yew::utils::StringRef as std::convert::From<&std::string::String>>
              <yew::utils::StringRef as std::convert::From<&str>>
-             <yew::utils::StringRef as std::convert::From<std::boxed::Box<str>>>
              <yew::utils::StringRef as std::convert::From<std::string::String>>
    = note: required by `std::convert::From::from`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

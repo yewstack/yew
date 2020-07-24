@@ -42,7 +42,7 @@ enum VTagInner {
     /// Is a [Void Element](https://html.spec.whatwg.org/multipage/syntax.html#void-elements).
     Input {
         /// Contains value property
-        value: Option<Box<str>>,
+        value: Option<String>,
         /// Represents `checked` attribute of
         /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
         /// It exists to override standard behavior of `checked` attribute, because
@@ -58,7 +58,7 @@ enum VTagInner {
         /// A
         /// [TextAreaElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
         /// can only contain a single text node so this doubles as the child list source.
-        value: Option<Box<str>>,
+        value: Option<String>,
     },
 
     /// Neither of the above
@@ -120,12 +120,12 @@ impl VTagInner {
     }
 
     // Returns reference to the value field, if any
-    fn value(&self) -> &Option<Box<str>> {
+    fn value(&self) -> &Option<String> {
         use VTagInner::*;
 
         // For flattening for convenience, as you can't mutate the returned
         // value anyway
-        static NONE: Option<Box<str>> = None;
+        static NONE: Option<String> = None;
 
         match self {
             Input { value, .. } | TextArea { value } => value,
@@ -134,7 +134,7 @@ impl VTagInner {
     }
 
     // Returns mutable reference to the value field, if any
-    fn value_mut(&mut self) -> Option<&mut Option<Box<str>>> {
+    fn value_mut(&mut self) -> Option<&mut Option<String>> {
         use VTagInner::*;
 
         match self {
@@ -233,12 +233,12 @@ impl VTag {
     }
 
     // Returns reference to the value field, if any
-    pub fn value(&self) -> &Option<Box<str>> {
+    pub fn value(&self) -> &Option<String> {
         self.inner.value()
     }
 
     // Returns mutable reference to the value field, if any
-    pub fn value_mut(&mut self) -> Option<&mut Option<Box<str>>> {
+    pub fn value_mut(&mut self) -> Option<&mut Option<String>> {
         self.inner.value_mut()
     }
 
@@ -296,7 +296,7 @@ impl VTag {
         let s = value.to_string();
         match &mut self.inner {
             Input { value, .. } | TextArea { value } => {
-                *value = Some(s.into());
+                *value = Some(s);
             }
             Other { .. } => {
                 self.attributes.insert("value", s.into());
@@ -443,7 +443,7 @@ impl VTag {
 
     /// Similar to `diff_attributes` except there is only a single `value`.
     fn diff_value<'a>(
-        new: &'a Option<Box<str>>,
+        new: &'a Option<String>,
         ancestor: &'a Option<Box<Self>>,
     ) -> Option<Patch<&'a str, ()>> {
         match (

@@ -125,12 +125,10 @@ impl ToTokens for HtmlTag {
                             _ => true,
                         })
                     {
-                        let mut s: String = #vtag_name.into();
-                        s.make_ascii_lowercase();
-                        ::yew::StringRef::from(s)
-                    } else {
-                        #vtag_name
+                        (#vtag_name.as_mut() as &mut String)
+                            .make_ascii_lowercase();
                     }
+                    #vtag_name
                 }}
             }
         };

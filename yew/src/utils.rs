@@ -107,15 +107,14 @@ impl<IN, OUT> IntoIterator for NodeSeq<IN, OUT> {
     }
 }
 
-/// Reference to either a &'static str or an owned Box<str>.
-/// Essentially a more compact variant of Cow<'static, str> (1 word less).
+/// Reference to either a &'static str or an owned String
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum StringRef {
     /// Reference to a static string
     Static(&'static str),
 
-    /// Boxed immutable string
-    Owned(Box<str>),
+    /// Owned String
+    Owned(String),
 }
 
 impl StringRef {
@@ -150,11 +149,23 @@ impl std::ops::Deref for StringRef {
     }
 }
 
+impl AsMut<String> for StringRef {
+    fn as_mut(&mut self) -> &mut String {
+        if let Self::Static(s) = self {
+            *self = Self::Owned(s.to_owned())
+        }
+        match self {
+            Self::Static(_) => unreachable!(),
+            Self::Owned(s) => s,
+        }
+    }
+}
+
 impl Into<String> for StringRef {
     fn into(self) -> String {
         match self {
             Self::Static(s) => s.into(),
-            Self::Owned(s) => s.into(),
+            Self::Owned(s) => s,
         }
     }
 }
@@ -173,28 +184,13 @@ impl From<&&str> for StringRef {
 
 impl From<String> for StringRef {
     fn from(val: String) -> Self {
-        Self::from(val.into_boxed_str())
+        Self::Owned(val)
     }
 }
 
 impl From<&String> for StringRef {
     fn from(val: &String) -> Self {
         Self::from(val.clone())
-    }
-}
-
-impl From<Box<str>> for StringRef {
-    fn from(val: Box<str>) -> Self {
-        Self::Owned(val)
-    }
-}
-
-impl Into<Box<str>> for StringRef {
-    fn into(self) -> Box<str> {
-        match self {
-            Self::Owned(s) => s,
-            Self::Static(s) => s.to_owned().into_boxed_str(),
-        }
     }
 }
 
