@@ -768,6 +768,22 @@ mod tests {
     }
 
     #[test]
+    fn supports_multiple_classes_slice() {
+        let classes = ["class-1", "class-2"];
+        let a = html! {
+            <div class=&classes[..]></div>
+        };
+
+        if let VNode::VTag(vtag) = a {
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(!get_class_str(&vtag).contains("class-3"));
+        } else {
+            panic!("vtag expected");
+        }
+    }
+
+    #[test]
     fn supports_multiple_classes_one_value_vec() {
         let classes = vec!["class-1 class-2", "class-1"];
         let a = html! {
