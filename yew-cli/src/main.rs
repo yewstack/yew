@@ -5,6 +5,7 @@ use maplit::hashmap;
 use rayon::prelude::IntoParallelIterator;
 use log::{error, info, warn};
 
+use std::ffi::{OsString, OsStr};
 use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command, Stdio};
@@ -15,6 +16,8 @@ use std::io::{Stdin, Write};
 use std::fs::{File, remove_file};
 use std::thread::sleep;
 use std::time::Duration;
+
+use std::slice::Iter;
 
 mod error;
 
@@ -28,13 +31,19 @@ const STANDARD_HTML: &str = include_str!("standard_html.html");
 //  yew build directory/ (only builds)
 //  yew build examples/* (to build all examples)
 
+// it was way easier to define a macro here than to try to deal with Clap's weird lifetime issues
 macro_rules! common_flags {
     ($subcommand:expr) => (
         $subcommand
             .arg(
-                Arg::with_name("release")
-                    .help("Whether to invoke `cargo build` using the --release flag")
-                    .long("release")
+                Arg::with_name("cargo_flags")
+                    .help("List of flags, terminated by semicolon, to pass to `cargo build`")
+                    .takes_value(true)
+                    .value_terminator(";")
+                    .multiple(true)
+                    .min_values(1)
+                    .value_name("flags")
+                    .long("cargo-flags")
             )
             .arg(
                 Arg::with_name("project_dir")
@@ -124,27 +133,32 @@ fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
 }
 
 async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
-    cmd_build(matches.clone());
     let projects = unwrap_project_dir(&matches);
-    let server = match projects.len() {
-        0 => panic!("this should never happen because projects are required by clap"),
+    let project_count = projects.len();
+    if project_count > 1 {
+        Err(RunError::MultipleProjects)?
+    }
+    cmd_build(matches.clone());
+    let server = match project_count {
         1 => {
             let project = &projects[0].join("static");
             let project = project.clone();
             let path = String::from(project.to_str().unwrap());
             warp::serve(warp::fs::dir(path))
                 .run(([127, 0, 0, 1], 3030))
-        }
-        _ => {
-            Err(RunError::MultipleProjects)?
-        }
+        },
+        0 => panic!("this should never happen because projects are required by clap"),
+        _ => panic!("this should never happen because the multiple projects case is handled elsewhere in the code")
     };
     server.await;
     Ok(())
 }
 
 fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
-    let has_release_flag = matches.is_present("release");
+    let cargo_flags: Vec<OsString> = match matches.values_of_os("cargo_flags") {
+        Some(flags) => flags.map(|flag| flag.to_os_string()).collect(),
+        None => vec![],
+    };
     let paths = unwrap_project_dir(&matches);
 
     for path in paths {
@@ -154,7 +168,7 @@ fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
             Err(BuildError::NoCargoToml(path_str.to_string()))?
         }
         println!("starting building {}", path_str);
-        execute_wasm_pack(has_release_flag, path.as_path());
+        execute_wasm_pack(&cargo_flags, path.as_path());
         let static_path = path.join("static");
         let html_path = static_path.join("index.html");
         if !html_path.exists() {
@@ -175,13 +189,14 @@ fn cwd() -> PathBuf {
     env::current_dir().expect("couldnt resolve current working directory")
 }
 
-fn execute_wasm_pack(has_release_flag: bool, path: &Path) {
+fn execute_wasm_pack(cargo_flags: &Vec<OsString>, path: &Path) {
     let name = path.file_name().unwrap().to_str().unwrap();
     //wasm-pack build --target web --out-name wasm --out-dir ./static
-    Command::new("wasm-pack")
+    let command = Command::new("wasm-pack")
         .current_dir(path)
         .arg("build")
-        .arg(if has_release_flag { "--release" } else { "--debug" })
+        .args(cargo_flags)
+        // TODO scrub the following flags if anything has been specified in cargo_flags?
         .arg("--target")
         .arg("web")
         .arg("--out-name")
