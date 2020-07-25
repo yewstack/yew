@@ -209,16 +209,15 @@ error[E0599]: no method named `to_string` found for unit type `()` in the curren
            which is required by `(): std::string::ToString`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-tag-fail.rs:28:26
+error[E0599]: no method named `to_string` found for unit type `()` in the current scope
+  --> $DIR/html-tag-fail.rs:28:5
    |
 28 |     html! { <input value=() /> };
-   |                          ^^ `()` cannot be formatted with the default formatter
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `()`
    |
-   = help: the trait `std::fmt::Display` is not implemented for `()`
-   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::fmt::Display` for `&()`
-   = note: required because of the requirements on the impl of `std::string::ToString` for `&()`
+   = note: the method `to_string` exists but the following trait bounds were not satisfied:
+           `(): std::fmt::Display`
+           which is required by `(): std::string::ToString`
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::html::Href: std::convert::From<()>` is not satisfied

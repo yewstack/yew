@@ -170,11 +170,12 @@ impl Component for Model {
 impl Model {
     fn view_filter(&self, filter: Filter) -> Html {
         let flt = filter.clone();
+        let flt2 = filter.clone();
         html! {
             <li>
                 <a class=if self.state.filter == flt { "selected" } else { "not-selected" }
                    href=&flt
-                   onclick=self.link.callback(move |_| Msg::SetFilter(flt.clone()))>
+                   onclick=self.link.callback(move |_| Msg::SetFilter(flt2.clone()))>
                     { filter }
                 </a>
             </li>

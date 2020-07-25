@@ -37,7 +37,7 @@ pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 /// Grouped partially in accordance to the
 /// [HTML spec](https://html.spec.whatwg.org/multipage/syntax.html#elements-2).
 #[derive(Debug, Clone)]
-enum VTagInner {
+pub enum VTagInner {
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// Is a [Void Element](https://html.spec.whatwg.org/multipage/syntax.html#void-elements).
     Input {
@@ -72,10 +72,7 @@ enum VTagInner {
 
 impl VTagInner {
     /// Creates a new `VTagInner` instance with `tag` name (cannot be changed later in DOM).
-    fn new<S>(tag: S) -> Self
-    where
-        S: Into<StringRef>,
-    {
+    fn new(tag: impl Into<StringRef>) -> Self {
         let tag = tag.into();
         match tag.as_ref() {
             "input" => VTagInner::Input {
@@ -95,7 +92,7 @@ impl VTagInner {
     }
 
     /// Returns tag of an `Element` in lowercase
-    fn tag(&self) -> &str {
+    pub fn tag(&self) -> &str {
         match self {
             Self::Input { .. } => "input",
             Self::TextArea { .. } => "textarea",
@@ -104,7 +101,7 @@ impl VTagInner {
     }
 
     /// Returns reference to child list, if any
-    fn children(&self) -> Option<&VList> {
+    pub fn children(&self) -> Option<&VList> {
         match self {
             Self::Other { children, .. } => Some(children),
             _ => None,
@@ -112,7 +109,7 @@ impl VTagInner {
     }
 
     /// Returns mutable reference to child list, if any
-    fn children_mut(&mut self) -> Option<&mut VList> {
+    pub fn children_mut(&mut self) -> Option<&mut VList> {
         match self {
             Self::Other { children, .. } => Some(children),
             _ => None,
@@ -120,7 +117,7 @@ impl VTagInner {
     }
 
     // Returns reference to the value field, if any
-    fn value(&self) -> &Option<String> {
+    pub fn value(&self) -> &Option<String> {
         use VTagInner::*;
 
         // For flattening for convenience, as you can't mutate the returned
@@ -134,7 +131,7 @@ impl VTagInner {
     }
 
     // Returns mutable reference to the value field, if any
-    fn value_mut(&mut self) -> Option<&mut Option<String>> {
+    pub fn value_mut(&mut self) -> Option<&mut Option<String>> {
         use VTagInner::*;
 
         match self {
@@ -144,7 +141,7 @@ impl VTagInner {
     }
 
     // Performs shallow equality comparison w/o comparing children
-    fn eq_shallow(&self, other: &Self) -> bool {
+    pub fn eq_shallow(&self, other: &Self) -> bool {
         use VTagInner::*;
 
         match (self, other) {
@@ -165,7 +162,7 @@ impl VTagInner {
     }
 
     // Compares the children, if applicable
-    fn eq_children(&self, other: &Self) -> bool {
+    pub fn eq_children(&self, other: &Self) -> bool {
         use VTagInner::*;
 
         match (self, other) {
@@ -181,7 +178,7 @@ impl VTagInner {
 #[derive(Debug)]
 pub struct VTag {
     // Properties exclusive to each Element type
-    inner: VTagInner,
+    pub inner: VTagInner,
     /// A reference to the DOM `Element`.
     pub reference: Option<Element>,
     /// List of attached listeners.
@@ -191,7 +188,7 @@ pub struct VTag {
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
     /// Keeps handler for attached listeners to have an opportunity to drop them later.
-    captured: Vec<EventListener>,
+    pub captured: Vec<EventListener>,
 
     pub key: Option<Key>,
 }
@@ -212,10 +209,7 @@ impl Clone for VTag {
 
 impl VTag {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
-    pub fn new<S>(tag: S) -> Self
-    where
-        S: Into<StringRef>,
-    {
+    pub fn new(tag: impl Into<StringRef>) -> Self {
         VTag {
             inner: VTagInner::new(tag),
             reference: None,
