@@ -5,7 +5,7 @@ use maplit::hashmap;
 use rayon::prelude::IntoParallelIterator;
 use log::{error, info, warn};
 
-use std::ffi::{OsString, OsStr};
+use std::ffi::OsString;
 use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command, Stdio};
@@ -104,9 +104,9 @@ async fn exec_subcommand(subcommand: &str, matches: ArgMatches<'_>) -> Result<()
         },
         "build" => {
             if matches.is_present("run") {
-                cmd_run(matches).await.map_err(|e| SubcommandError::RunError(e))?;
+                cmd_run(matches).await.map_err(SubcommandError::RunError)?;
             } else {
-                cmd_build(matches);
+                cmd_build(matches).map_err(SubcommandError::BuildError)?;
             };
         }
         _ => panic!("unknown subcommand"),
@@ -138,7 +138,7 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
     if project_count > 1 {
         Err(RunError::MultipleProjects)?
     }
-    cmd_build(matches.clone());
+    cmd_build(matches.clone()).map_err(RunError::BuildError)?;
     let server = match project_count {
         1 => {
             let project = &projects[0].join("static");
@@ -173,7 +173,7 @@ fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
         let html_path = static_path.join("index.html");
         if !html_path.exists() {
             let mut file = File::create(html_path).expect("failed to make index.html file");
-            file.write_all(STANDARD_HTML.as_bytes());
+            file.write_all(STANDARD_HTML.as_bytes()).expect("failed to write index.html file");
         }
         //TODO: make this a flag
         let gitignore_path = static_path.join(".gitignore");
@@ -190,9 +190,8 @@ fn cwd() -> PathBuf {
 }
 
 fn execute_wasm_pack(cargo_flags: &Vec<OsString>, path: &Path) {
-    let name = path.file_name().unwrap().to_str().unwrap();
     //wasm-pack build --target web --out-name wasm --out-dir ./static
-    let command = Command::new("wasm-pack")
+    Command::new("wasm-pack")
         .current_dir(path)
         .arg("build")
         .args(cargo_flags)
