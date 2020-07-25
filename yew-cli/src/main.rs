@@ -1,19 +1,19 @@
 use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches, SubCommand};
 use exitcode;
 use lazy_static::lazy_static;
+use log::{error, info, warn};
 use maplit::hashmap;
 use rayon::prelude::IntoParallelIterator;
-use log::{error, info, warn};
 
-use std::ffi::OsString;
 use std::collections::{HashMap, VecDeque};
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command, Stdio};
 use std::sync::Mutex;
 use std::{env, fs};
 
+use std::fs::{remove_file, File};
 use std::io::{Stdin, Write};
-use std::fs::{File, remove_file};
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -21,7 +21,7 @@ use std::slice::Iter;
 
 mod error;
 
-use crate::error::{SubcommandError, RunError, BuildError};
+use crate::error::{BuildError, RunError, SubcommandError};
 
 const STANDARD_HTML: &str = include_str!("standard_html.html");
 
@@ -100,8 +100,10 @@ async fn main() {
 async fn exec_subcommand(subcommand: &str, matches: ArgMatches<'_>) -> Result<(), SubcommandError> {
     match subcommand {
         "run" => {
-            cmd_run(matches).await.map_err(|e| SubcommandError::RunError(e))?;
-        },
+            cmd_run(matches)
+                .await
+                .map_err(|e| SubcommandError::RunError(e))?;
+        }
         "build" => {
             if matches.is_present("run") {
                 cmd_run(matches).await.map_err(SubcommandError::RunError)?;
@@ -127,8 +129,15 @@ fn canonicalize(path: &PathBuf) -> PathBuf {
 }
 
 fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
-    let paths = matches.values_of("project_dir").unwrap().map(|p| cwd().join(p)).collect::<Vec<PathBuf>>();
-    let paths = paths.iter().map(|p| canonicalize(p)).collect::<Vec<PathBuf>>();
+    let paths = matches
+        .values_of("project_dir")
+        .unwrap()
+        .map(|p| cwd().join(p))
+        .collect::<Vec<PathBuf>>();
+    let paths = paths
+        .iter()
+        .map(|p| canonicalize(p))
+        .collect::<Vec<PathBuf>>();
     paths
 }
 
@@ -173,7 +182,8 @@ fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
         let html_path = static_path.join("index.html");
         if !html_path.exists() {
             let mut file = File::create(html_path).expect("failed to make index.html file");
-            file.write_all(STANDARD_HTML.as_bytes()).expect("failed to write index.html file");
+            file.write_all(STANDARD_HTML.as_bytes())
+                .expect("failed to write index.html file");
         }
         //TODO: make this a flag
         let gitignore_path = static_path.join(".gitignore");
@@ -206,5 +216,7 @@ fn execute_wasm_pack(cargo_flags: &Vec<OsString>, path: &Path) {
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .spawn()
-        .expect("failed to spawn wasm-pack").wait().unwrap();
+        .expect("failed to spawn wasm-pack")
+        .wait()
+        .unwrap();
 }

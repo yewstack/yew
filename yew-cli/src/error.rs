@@ -9,7 +9,7 @@ pub enum RunError {
     MultipleProjects,
 
     #[error("{0}")]
-    BuildError(BuildError)
+    BuildError(BuildError),
 }
 
 impl From<RunError> for i32 {
@@ -30,7 +30,7 @@ pub enum BuildError {
 impl From<BuildError> for i32 {
     fn from(error: BuildError) -> i32 {
         match error {
-            BuildError::NoCargoToml(_) => exitcode::NOINPUT
+            BuildError::NoCargoToml(_) => exitcode::NOINPUT,
         }
     }
 }
