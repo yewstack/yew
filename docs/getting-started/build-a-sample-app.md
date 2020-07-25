@@ -1,5 +1,7 @@
-# Build a Sample App
-
+---
+id: sample-app
+title: Build a sample app
+---
 First create a new Rust library \(**important:** create a _library_, not a _binary_ by passing the `--lib` flag\):
 
 ```bash
@@ -8,8 +10,7 @@ cargo new --lib yew-app && cd yew-app
 
 Add `yew` and `wasm-bindgen` to your dependencies \(refer [here](https://docs.rs/yew) for the latest version\)
 
-{% code title="Cargo.toml" %}
-```text
+```toml title="Cargo.toml"
 [package]
 name = "yew-app"
 version = "0.1.0"
@@ -23,12 +24,10 @@ crate-type = ["cdylib", "rlib"]
 yew = "0.17"
 wasm-bindgen = "0.2"
 ```
-{% endcode %}
 
 Copy the following template into your `src/lib.rs` file:
 
-{% code title="src/lib.rs" %}
-```rust
+```rust title="src/lib.rs"
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
@@ -80,7 +79,6 @@ pub fn run_app() {
     App::<Model>::new().mount_to_body();
 }
 ```
-{% endcode %}
 
 This template sets up your root `Component`, called `Model` which shows a button that updates itself when you click it. Take special note of `App::<Model>::new().mount_to_body()` inside `main()` which starts your app and mounts it to the page's `<body>` tag. If you would like to start your application with any dynamic properties, you can instead use `App::<Model>::new().mount_to_body_with_props(..)`.
 
@@ -90,8 +88,7 @@ Finally, add an `index.html` file into a new folder named `static` in your app.
 mkdir static
 ```
 
-{% code title="index.html" %}
-```markup
+```markup title="index.html"
 <!doctype html>
 <html lang="en">
     <head>
@@ -105,7 +102,6 @@ mkdir static
     <body></body>
 </html>
 ```
-{% endcode %}
 
 ## Run your App!
 
