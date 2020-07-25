@@ -305,10 +305,7 @@ impl VTag {
             Input { checked, .. } => {
                 *checked = value;
             }
-            _ => {
-                self.attributes
-                    .insert("checked", if value { "true" } else { "false" }.into());
-            }
+            _ => (),
         };
     }
 

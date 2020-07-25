@@ -526,7 +526,7 @@ impl From<&str> for Href {
 
 impl ToString for Href {
     fn to_string(&self) -> String {
-        self.link.clone().into()
+        self.link.to_string()
     }
 }
 
