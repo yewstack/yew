@@ -28,6 +28,27 @@ const STANDARD_HTML: &str = include_str!("standard_html.html");
 //  yew build directory/ (only builds)
 //  yew build examples/* (to build all examples)
 
+macro_rules! common_flags {
+    ($subcommand:expr) => (
+        $subcommand
+            .arg(
+                Arg::with_name("release")
+                    .help("Whether to invoke `cargo build` using the --release flag")
+                    .long("release")
+            )
+            .arg(
+                Arg::with_name("project_dir")
+                    .long("path")
+                    .short("p")
+                    .multiple(true)
+                    .takes_value(true)
+                    .value_name("project directory")
+                    .help("Path(s) to the project directory(ies) for the Yew application(s) that will be built")
+                    .required(true)
+            )
+    );
+}
+
 #[tokio::main]
 async fn main() {
     let matches = App::new("Yew CLI")
@@ -35,29 +56,22 @@ async fn main() {
         .about("Builds and runs Yew application projects")
         .setting(AppSettings::SubcommandRequired)
         .subcommand(
-            SubCommand::with_name("build")
-                .about("compiles a Yew application")
-                .arg(
-                    Arg::with_name("run")
-                        .help("Start a webserver for the built project and open it in a browser window")
-                        .long("run")
-                        .short("r")
-                )
-                .arg(
-                    Arg::with_name("release")
-                        .help("Whether to invoke `cargo build` using the --release flag")
-                        .long("release")
-                )
-                .arg(
-                    Arg::with_name("project_dir")
-                        .long("path")
-                        .short("p")
-                        .multiple(true)
-                        .takes_value(true)
-                        .value_name("project directory")
-                        .help("Path(s) to the project directory(ies) for the Yew application(s) that will be built")
-                        .required(true)
-                )
+            common_flags!(
+                SubCommand::with_name("build")
+                    .about("Compile a Yew application")
+                    .arg(
+                        Arg::with_name("run")
+                            .help("Start a web server for the built project and open it in a browser window (equivalent to `yew-cli run`)")
+                            .long("run")
+                            .short("r")
+                    )
+            )
+        )
+        .subcommand(
+            common_flags!(
+                SubCommand::with_name("run")
+                    .about("Compile and start serving a Yew application in the browser (equivalent to `yew-cli build --run`)")
+            )
         )
         .get_matches();
 
