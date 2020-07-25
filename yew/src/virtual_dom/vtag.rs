@@ -751,6 +751,38 @@ mod tests {
     }
 
     #[test]
+    fn supports_multiple_classes_slice() {
+        let classes = ["class-1", "class-2"];
+        let a = html! {
+            <div class=&classes[..]></div>
+        };
+
+        if let VNode::VTag(vtag) = a {
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(!get_class_str(&vtag).contains("class-3"));
+        } else {
+            panic!("vtag expected");
+        }
+    }
+
+    #[test]
+    fn supports_multiple_classes_one_value_slice() {
+        let classes = ["class-1 class-2", "class-1"];
+        let a = html! {
+            <div class=&classes[..]></div>
+        };
+
+        if let VNode::VTag(vtag) = a {
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(!get_class_str(&vtag).contains("class-3"));
+        } else {
+            panic!("vtag expected");
+        }
+    }
+
+    #[test]
     fn supports_multiple_classes_vec() {
         let mut classes = vec!["class-1"];
         classes.push("class-2");
@@ -784,12 +816,12 @@ mod tests {
     }
 
     #[test]
-    fn filter_empty_string_classes_vec() {
-        let mut classes = vec![""];
-        classes.push("class-2");
+    fn filter_empty_string_classes() {
         let a = html! { <div class=vec![""]></div> };
         let b = html! { <div class=("")></div> };
         let c = html! { <div class=""></div> };
+        let d_arr = [""];
+        let d = html! { <div class=&d_arr[..]></div> };
 
         if let VNode::VTag(vtag) = a {
             assert!(!vtag.attributes.contains_key("class"));
@@ -804,6 +836,12 @@ mod tests {
         }
 
         if let VNode::VTag(vtag) = c {
+            assert!(!vtag.attributes.contains_key("class"));
+        } else {
+            panic!("vtag expected");
+        }
+
+        if let VNode::VTag(vtag) = d {
             assert!(!vtag.attributes.contains_key("class"));
         } else {
             panic!("vtag expected");
