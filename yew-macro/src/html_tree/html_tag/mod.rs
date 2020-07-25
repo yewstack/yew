@@ -116,11 +116,12 @@ impl ToTokens for HtmlTag {
         } = &attributes;
 
         let vtag = Ident::new("__yew_vtag", tag_name.span());
-        let attr_pairs: Vec<_> = attributes
+
+        let mut attr_pairs: Vec<_> = attributes
             .iter()
             .map(|TagAttribute { label, value }| {
                 let label_str = label.to_string();
-                let sr = crate::string_ref::Constructor::from(value);
+                let sr = string_ref::Constructor::from(value);
                 quote! { (#label_str, #sr) }
             })
             .collect();
@@ -128,40 +129,50 @@ impl ToTokens for HtmlTag {
             let label_str = label.to_string();
             quote_spanned! {value.span()=>
                 if #value {
-                    #vtag.add_attribute(#label_str, #label_str);
+                    #vtag.add_attribute(
+                        #label_str,
+                        ::yew::StringRef::Static(#label_str),
+                    );
                 }
             }
         });
-        let add_href = href.iter().map(|href| {
-            quote_spanned! {href.span()=>
-                let __yew_href: ::yew::html::Href = (#href).into();
-                #vtag.add_attribute("href", __yew_href);
-            }
-        });
-        let set_classes = classes.iter().map(|classes_form| match classes_form {
-            ClassesForm::Tuple(classes) => quote! {
-                let __yew_classes = ::yew::virtual_dom::Classes::default()#(.extend(#classes))*;
+
+        if let Some(href) = href {
+            let sr = string_ref::Constructor::from(href);
+            attr_pairs.push(quote! { ("href", #sr) });
+        }
+
+        let set_classes = match classes {
+            Some(ClassesForm::Tuple(classes)) => Some(quote! {
+                let __yew_classes
+                    = ::yew::virtual_dom::Classes::default()#(.extend(#classes))*;
                 if !__yew_classes.is_empty() {
                     #vtag.add_attribute("class", __yew_classes.to_string());
                 }
-            },
-            ClassesForm::Single(classes) => match string_ref::try_stringify_expr(classes) {
+            }),
+            Some(ClassesForm::Single(classes)) => match string_ref::try_stringify_expr(classes) {
                 Some(s) => {
-                    if s.is_empty() {
-                        Default::default()
-                    } else {
+                    if !s.is_empty() {
                         let sr = string_ref::Constructor::from(s);
-                        quote!{ #vtag.add_attribute("class", #sr); }
+                        attr_pairs.push(quote! { ("class", #sr) });
                     }
-                },
-                None => quote! {
-                    let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
-                    if !__yew_classes.is_empty() {
-                        #vtag.add_attribute("class", __yew_classes.to_string());
-                    }
+                    None
                 }
+                None => Some(quote! {
+                    let __yew_classes
+                        = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
+                    if !__yew_classes.is_empty() {
+                        #vtag.add_attribute(
+                            "class",
+                            __yew_classes.to_string(),
+                        );
+                    }
+                }),
             },
-        });
+            None => None,
+        };
+        let set_classes_it = set_classes.iter();
+
         let listeners: Vec<_> = listeners
             .iter()
             .map(|listener| {
@@ -202,7 +213,7 @@ impl ToTokens for HtmlTag {
                             value: #val,
                         }
                     },
-                    name @ _ => {
+                    name => {
                         let children = if !children.is_empty() {
                             quote! { ::yew::virtual_dom::VList{ children: #children } }
                         } else {
@@ -244,8 +255,7 @@ impl ToTokens for HtmlTag {
                     };
 
                     #(#set_booleans)*
-                    #(#set_classes)*
-                    #(#add_href)*
+                    #(#set_classes_it)*
 
                     ::yew::virtual_dom::VNode::from(#vtag)
                 }}
@@ -299,9 +309,8 @@ impl ToTokens for HtmlTag {
                         #vtag.add_attributes(vec![#(#attr_pairs),*]);
                     }
                     #(#set_booleans)*
-                    #(#set_classes)*
+                    #(#set_classes_it)*
                     #(#set_checked)*
-                    #(#add_href)*
                     #(#set_value)*
 
                     if #has_listeners {
@@ -320,9 +329,13 @@ impl ToTokens for HtmlTag {
                     if let Some(ch) = #vtag.children() {
                         if !ch.is_empty() {
                             match #vtag.tag() {
-                                "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
-                                | "meta" | "param" | "source" | "track" | "wbr" => {
-                                    ::std::panic!("a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.", #vtag.tag());
+                                "area" | "base" | "br" | "col" | "embed" | "hr"
+                                | "img" | "input" | "link" | "meta" | "param"
+                                | "source" | "track" | "wbr" => {
+                                    ::std::panic!(
+                                        "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.",
+                                        #vtag.tag()
+                                    );
                                 }
                                 _ => {}
                             }
