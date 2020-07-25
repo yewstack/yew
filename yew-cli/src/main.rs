@@ -8,6 +8,7 @@ use std::{env, fs};
 
 use std::fs::{remove_file, File};
 use std::io::{Write};
+use webbrowser;
 
 mod error;
 
@@ -138,18 +139,23 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
         Err(RunError::MultipleProjects)?
     }
     cmd_build(matches.clone()).map_err(RunError::BuildError)?;
-    let server = match project_count {
+    match project_count {
         1 => {
             let project = &projects[0].join("static");
             let project = project.clone();
             let path = String::from(project.to_str().unwrap());
-            warp::serve(warp::fs::dir(path))
-                .run(([127, 0, 0, 1], 3030))
+            let future = warp::serve(warp::fs::dir(path))
+                .run(([127, 0, 0, 1], 3030));
+            println("");
+            if webbrowser::open("http://127.0.0.1:3030/").is_err() {
+                eprintln("Could not open web browser");
+            }
+            println("Server running at http://127.0.0.1:3030/");
+            future.await
         },
         0 => panic!("this should never happen because projects are required by clap"),
         _ => panic!("this should never happen because the multiple projects case is handled elsewhere in the code")
     };
-    server.await;
     Ok(())
 }
 
