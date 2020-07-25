@@ -58,5 +58,5 @@ members = [
   "examples/webgl",
 
   # cli
-  "cli"
+  "yew-cli"
 ]
