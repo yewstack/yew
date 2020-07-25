@@ -146,11 +146,11 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
             let path = String::from(project.to_str().unwrap());
             let future = warp::serve(warp::fs::dir(path))
                 .run(([127, 0, 0, 1], 3030));
-            println("");
+            println!("");
             if webbrowser::open("http://127.0.0.1:3030/").is_err() {
-                eprintln("Could not open web browser");
+                eprintln!("Could not open web browser");
             }
-            println("Server running at http://127.0.0.1:3030/");
+            println!("Server running at http://127.0.0.1:3030/");
             future.await
         },
         0 => panic!("this should never happen because projects are required by clap"),
