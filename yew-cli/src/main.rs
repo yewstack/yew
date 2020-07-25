@@ -1,19 +1,24 @@
 use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches, SubCommand};
+use exitcode;
 use lazy_static::lazy_static;
 use maplit::hashmap;
 use rayon::prelude::IntoParallelIterator;
+use log::{error, info, warn};
+
 use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command, Stdio};
 use std::sync::Mutex;
 use std::{env, fs};
 
-use log::{error, info, warn};
 use std::io::{Stdin, Write};
 use std::fs::{File, remove_file};
 use std::thread::sleep;
 use std::time::Duration;
 
+mod error;
+
+use crate::error::{SubcommandError, RunError, BuildError};
 
 const STANDARD_HTML: &str = include_str!("standard_html.html");
 
@@ -59,19 +64,31 @@ async fn main() {
     let subcommand = matches.subcommand_name().unwrap();
     let matches = matches.subcommand().1.unwrap();
     let matches = matches.clone();
+
+    if let Err(err) = exec_subcommand(subcommand, matches).await {
+        eprintln!("Fatal error: {}", err);
+        let exit_code: i32 = err.into();
+        exit(exit_code)
+    }
+
+    exit(exitcode::OK)
+}
+
+async fn exec_subcommand(subcommand: &str, matches: ArgMatches<'_>) -> Result<(), SubcommandError> {
     match subcommand {
         "run" => {
-            cmd_run(matches).await;
+            cmd_run(matches).await.map_err(|e| SubcommandError::RunError(e))?;
         },
         "build" => {
             if matches.is_present("run") {
-                cmd_run(matches).await;
+                cmd_run(matches).await.map_err(|e| SubcommandError::RunError(e))?;
             } else {
                 cmd_build(matches);
             };
         }
         _ => panic!("unknown subcommand"),
     };
+    Ok(())
 }
 
 fn canonicalize(path: &PathBuf) -> PathBuf {
@@ -92,7 +109,7 @@ fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
     paths
 }
 
-async fn cmd_run<'a>(matches: ArgMatches<'a>) {
+async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
     cmd_build(matches.clone());
     let projects = unwrap_project_dir(&matches);
     let server = match projects.len() {
@@ -105,24 +122,22 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) {
                 .run(([127, 0, 0, 1], 3030))
         }
         _ => {
-            let project = &projects[0].join("static");
-            let project = project.clone();
-            let path = String::from(project.to_str().unwrap());
-            warp::serve(warp::fs::dir(path))
-                .run(([127, 0, 0, 1], 3030))
+            Err(RunError::MultipleProjects)?
         }
     };
     server.await;
+    Ok(())
 }
 
-fn cmd_build(matches: ArgMatches) {
+fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
     let has_release_flag = matches.is_present("release");
     let paths = unwrap_project_dir(&matches);
-    paths.into_iter().for_each(|path| {
+
+    for path in paths {
         let path_str = path.to_str().unwrap();
         if !path.join("Cargo.toml").exists() {
-            println!("{} doesn have a Cargo.toml file", path_str);
-            return;
+            println!("{} doesn't have a Cargo.toml file", path_str);
+            Err(BuildError::NoCargoToml(path_str.to_string()))?
         }
         println!("starting building {}", path_str);
         execute_wasm_pack(has_release_flag, path.as_path());
@@ -137,7 +152,9 @@ fn cmd_build(matches: ArgMatches) {
         if gitignore_path.exists() {
             remove_file(gitignore_path).expect("failed to delete .gitignore");
         }
-    })
+    }
+
+    Ok(())
 }
 
 fn cwd() -> PathBuf {
@@ -159,7 +176,7 @@ fn execute_wasm_pack(has_release_flag: bool, path: &Path) {
         .arg("./static")
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
-        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
         .spawn()
         .expect("failed to spawn wasm-pack").wait().unwrap();
 }
