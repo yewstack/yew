@@ -13,8 +13,9 @@ use yew::{html, Html};
 fn add_class(vtag: &mut VTag, class: &str) {
     let mut classes: Classes = vtag
         .attributes
-        .get("class")
-        .map(AsRef::as_ref)
+        .iter()
+        .find(|(k, _)| k == &"class")
+        .map(|(_, v)| v.as_ref())
         .unwrap_or("")
         .into();
     classes.push(class);

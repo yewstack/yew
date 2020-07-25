@@ -275,7 +275,7 @@ impl VTag {
                 *value = Some(s);
             }
             Other { .. } => {
-                self.attributes.insert("value", s.into());
+                self.attributes.push(("value", s.into()));
             }
         };
     }
@@ -298,7 +298,7 @@ impl VTag {
     ///
     /// If this virtual node has this attribute present, the value is replaced.
     pub fn add_attribute(&mut self, name: &'static str, value: impl Into<StringRef>) {
-        self.attributes.insert(name, value.into());
+        self.attributes.push((name, value.into()));
     }
 
     /// Adds attributes to a virtual node. Not every attribute works when
@@ -380,36 +380,81 @@ impl VTag {
         };
     }
 
-    /// This handles patching of attributes when the keys are equal but
-    /// the values are different.
-    fn diff_attributes<'a>(
-        &'a self,
-        ancestor: &'a Option<Box<Self>>,
-    ) -> impl Iterator<Item = Patch<&'a str, &'a str>> + 'a {
-        // Only change what is necessary.
-        let to_add_or_replace =
-            self.attributes.iter().filter_map(move |(key, value)| {
-                match ancestor
-                    .as_ref()
-                    .and_then(|ancestor| ancestor.attributes.get(&**key))
-                {
-                    None => Some(Patch::Add(&**key, &**value)),
-                    Some(ancestor_value) if value != ancestor_value => {
-                        Some(Patch::Replace(&**key, &**value))
-                    }
-                    _ => None,
-                }
-            });
-        let to_remove = ancestor
-            .iter()
-            .flat_map(|ancestor| ancestor.attributes.keys())
-            .filter(move |key| !self.attributes.contains_key(&**key))
-            .map(|key| Patch::Remove(&**key));
+    /// Diffs and patches changes in attributes between the old and new list.
+    ///
+    /// This method optimises for the lists being the same length, having the
+    /// same keys in the same order - most common case.
+    fn patch_attributes(
+        el: &Element,
+        new: &[(&'static str, StringRef)],
+        old: &[(&'static str, StringRef)],
+    ) {
+        let mut new_i = new.iter().peekable();
+        let mut old_i = old.iter().peekable();
+        if new.len() != old.len() {
+            patch_incompatible(el, new_i, old_i);
+            return;
+        }
 
-        to_add_or_replace.chain(to_remove)
+        while let (Some(n), Some(o)) = (new_i.peek(), old_i.peek()) {
+            if n.0 != o.0 {
+                patch_incompatible(el, new_i, old_i);
+                break;
+            }
+
+            if n.1 != o.1 {
+                set_attribute(el, n.0, &n.1);
+            }
+
+            new_i.next();
+            old_i.next();
+        }
+
+        fn set_attribute(el: &Element, k: &str, v: &str) {
+            el.set_attribute(&k, &v).expect("invalid attribute key");
+        }
+
+        /// Diffs and patches attribute lists that do not contain the same set
+        /// of keys
+        fn patch_incompatible<'n, 'o, N, O>(el: &Element, new: N, old: O)
+        where
+            N: Iterator<Item = &'n (&'static str, StringRef)>,
+            O: Iterator<Item = &'o (&'static str, StringRef)>,
+        {
+            use std::collections::HashMap;
+
+            macro_rules! collect {
+                ($src:expr) => {
+                    $src.map(|(k, v)| (*k, v))
+                        .collect::<HashMap<&'static str, &StringRef>>()
+                };
+            }
+
+            let new = collect!(new);
+            let old = collect!(old);
+
+            for (k, n_v) in new.iter() {
+                if match old.get(k) {
+                    Some(o_v) => n_v != o_v,
+                    None => true,
+                } {
+                    set_attribute(el, k, &n_v)
+                }
+            }
+
+            for k in old.keys() {
+                if !new.contains_key(k) {
+                    cfg_match! {
+                        feature = "std_web" => el.remove_attribute(k),
+                        feature = "web_sys" => el.remove_attribute(k)
+                                                 .expect("could not remove attribute"),
+                    }
+                }
+            }
+        }
     }
 
-    /// Similar to `diff_attributes` except there is only a single `value`.
+    /// Compares new value with ancestor and produces a patch to apply, if any
     fn diff_value<'a>(
         new: &'a Option<String>,
         ancestor: &'a Option<Box<Self>>,
@@ -436,25 +481,13 @@ impl VTag {
 
         let element = self.reference.as_ref().expect("element expected");
 
-        // Update parameters
-        let changes = self.diff_attributes(ancestor);
-
-        // apply attribute patches including an optional "class"-attribute patch
-        for change in changes {
-            match change {
-                Patch::Add(key, value) | Patch::Replace(key, value) => {
-                    element
-                        .set_attribute(&key, &value)
-                        .expect("invalid attribute key");
-                }
-                Patch::Remove(key) => {
-                    cfg_match! {
-                        feature = "std_web" => element.remove_attribute(&key),
-                        feature = "web_sys" => element.remove_attribute(&key).expect("could not remove attribute"),
-                    };
-                }
-            }
-        }
+        // Update and apply attribute patches including an optional
+        // "class"-attribute patch
+        Self::patch_attributes(
+            &element,
+            &self.attributes,
+            &ancestor.as_ref().map(|a| &a.attributes).unwrap_or(&vec![]),
+        );
 
         match &mut self.inner {
             // `input` element has extra parameters to control
@@ -802,8 +835,9 @@ mod tests {
     /// Returns the class attribute as str reference, or "" if the attribute is not set.
     fn get_class_str(vtag: &VTag) -> &str {
         vtag.attributes
-            .get("class")
-            .map(AsRef::as_ref)
+            .iter()
+            .find(|(k, _)| k == &"class")
+            .map(|(_, v)| v.as_ref())
             .unwrap_or("")
     }
 
@@ -893,20 +927,26 @@ mod tests {
         let b = html! { <div class=("")></div> };
         let c = html! { <div class=""></div> };
 
+        macro_rules! has_class {
+            ($vtag:expr) => {
+                $vtag.attributes.iter().any(|(k, _)| k == &"class")
+            };
+        }
+
         if let VNode::VTag(vtag) = a {
-            assert!(!vtag.attributes.contains_key("class"));
+            assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = b {
-            assert!(!vtag.attributes.contains_key("class"));
+            assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = c {
-            assert!(!vtag.attributes.contains_key("class"));
+            assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
@@ -1048,9 +1088,11 @@ mod tests {
             </p>
         };
         if let VNode::VTag(vtag) = a {
-            assert!(vtag.attributes.contains_key("aria-controls"));
             assert_eq!(
-                vtag.attributes.get("aria-controls"),
+                vtag.attributes
+                    .iter()
+                    .find(|(k, _)| k == &"aria-controls")
+                    .map(|(_, v)| v),
                 Some(&"it-works".into())
             );
         } else {
@@ -1429,7 +1471,11 @@ mod tests {
         };
         let div_vtag = assert_vtag(&mut div_el);
         assert!(div_vtag.value().is_none());
-        let v: Option<&str> = div_vtag.attributes.get("value").map(|s| s.as_ref());
+        let v: Option<&str> = div_vtag
+            .attributes
+            .iter()
+            .find(|(k, _)| k == &"value")
+            .map(|(_, v)| v.as_ref());
         assert_eq!(v, Some("Hello"));
 
         let mut input_el = html! {
@@ -1437,7 +1483,7 @@ mod tests {
         };
         let input_vtag = assert_vtag(&mut input_el);
         assert_eq!(input_vtag.value(), &Some("World".to_string().into()));
-        assert!(!input_vtag.attributes.contains_key("value"));
+        assert!(!input_vtag.attributes.iter().any(|(k, _)| k == &"value"));
     }
 
     #[test]

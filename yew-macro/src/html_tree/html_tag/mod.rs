@@ -228,18 +228,8 @@ impl ToTokens for HtmlTag {
                     },
                 };
 
-                let attributes = if !attr_pairs.is_empty() {
-                    quote! { vec![#(#attr_pairs),*].into_iter().collect() }
-                } else {
-                    default.clone()
-                };
                 let node_ref = node_ref.clone().map(|e| quote! { #e } )
                     .unwrap_or_else(|| default.clone());
-                let listeners = if !listeners.is_empty() {
-                    quote! { vec![#(::std::rc::Rc::new(#listeners)),*] }
-                } else {
-                    default.clone()
-                };
                 let key = key.clone().map(|e|
                     quote! { Some(::yew::virtual_dom::Key::from(#e)) })
                     .unwrap_or_else(|| default.clone());
@@ -247,8 +237,8 @@ impl ToTokens for HtmlTag {
                     let mut #vtag = ::yew::virtual_dom::VTag{
                         inner: #inner,
                         reference: None,
-                        attributes: #attributes,
-                        listeners: #listeners,
+                        attributes: vec![#(#attr_pairs),*],
+                        listeners: vec![#(::std::rc::Rc::new(#listeners)),*],
                         captured: Default::default(),
                         node_ref: #node_ref,
                         key: #key,
@@ -347,8 +337,8 @@ impl ToTokens for HtmlTag {
                         "input" | "textarea" => {}
                         _ => {
                             if let Some(v) = #vtag.value_mut() {
-                                if let ::std::option::Option::Some(value) = v.take() {
-                                    #vtag.attributes.insert("value", value.into());
+                                if let ::std::option::Option::Some(v) = v.take() {
+                                    #vtag.attributes.push(("value", v.into()));
                                 }
                             }
                         }

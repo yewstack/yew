@@ -37,12 +37,10 @@ impl VNode {
         match self {
             VNode::VComp(vcomp) => vcomp.key.clone(),
             VNode::VTag(vtag) => vtag.key.clone(),
-            VNode::VRef(_) => None,
-            VNode::VText(_) => None,
             // Putting a key on a list is likely very very niche.
             // We can shave 3 words off of VList and anything that includes
             // it by not supporting any.
-            VNode::VList(_) => None,
+            _ => None,
         }
     }
 

@@ -17,7 +17,6 @@ use crate::html::{AnyScope, NodeRef};
 use crate::utils::StringRef;
 use cfg_if::cfg_if;
 use indexmap::set::IndexSet;
-use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 cfg_if! {
@@ -63,8 +62,11 @@ impl fmt::Debug for dyn Listener {
 /// A list of event listeners.
 type Listeners = Vec<Rc<dyn Listener>>;
 
-/// A map of attributes.
-type Attributes = HashMap<&'static str, StringRef>;
+/// A vector of attribute key-value pairs.
+///
+/// A vector is ideal because most of the time the list will neither change
+/// length nor key order.
+type Attributes = Vec<(&'static str, StringRef)>;
 
 /// A set of classes.
 #[derive(Debug, Clone, Default)]
