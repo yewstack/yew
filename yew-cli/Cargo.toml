@@ -1,5 +1,5 @@
 [package]
-name = "cli"
+name = "yew-cli"
 version = "0.1.0"
 authors = ["Alexandra Østermark <alex.cramt@gmail.com>"]
 edition = "2018"
