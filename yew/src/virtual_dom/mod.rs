@@ -155,6 +155,12 @@ impl<T: AsRef<str>> From<&Option<T>> for Classes {
 
 impl<T: AsRef<str>> From<Vec<T>> for Classes {
     fn from(t: Vec<T>) -> Self {
+        Classes::from(t.as_slice())
+    }
+}
+
+impl<T: AsRef<str>> From<&[T]> for Classes {
+    fn from(t: &[T]) -> Self {
         let set = t
             .iter()
             .map(|x| x.as_ref())
