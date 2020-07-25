@@ -1,23 +1,13 @@
-use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches, SubCommand};
+use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use exitcode;
-use lazy_static::lazy_static;
-use log::{error, info, warn};
-use maplit::hashmap;
-use rayon::prelude::IntoParallelIterator;
 
-use std::collections::{HashMap, VecDeque};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command, Stdio};
-use std::sync::Mutex;
 use std::{env, fs};
 
 use std::fs::{remove_file, File};
-use std::io::{Stdin, Write};
-use std::thread::sleep;
-use std::time::Duration;
-
-use std::slice::Iter;
+use std::io::{Write};
 
 mod error;
 
