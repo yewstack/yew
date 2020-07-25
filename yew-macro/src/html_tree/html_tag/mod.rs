@@ -172,10 +172,11 @@ impl ToTokens for HtmlTag {
                 }
             },
             ClassesForm::Single(classes) => match crate::string_ref::try_stringify_expr(classes) {
-                Some(sr) => {
-                    if sr.is_empty() {
+                Some(s) => {
+                    if s.is_empty() {
                         Default::default()
                     } else {
+                        let sr = crate::string_ref::Constructor::from(s);
                         quote!{ #vtag.add_attribute("class", #sr); }
                     }
                 },
