@@ -85,7 +85,7 @@ impl VTagInner {
                 value: Default::default(),
             },
             _ => VTagInner::Other {
-                tag: tag,
+                tag,
                 children: Default::default(),
             },
         }
@@ -248,22 +248,16 @@ impl VTag {
 
     /// Add `VNode` child.
     pub fn add_child(&mut self, child: VNode) {
-        use VTagInner::*;
-
-        match &mut self.inner {
-            Other { children, .. } => children.add_child(child),
-            _ => (),
-        };
+        if let VTagInner::Other { children, .. } = &mut self.inner {
+            children.add_child(child)
+        }
     }
 
     /// Add multiple `VNode` children.
     pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
-        use VTagInner::*;
-
-        match &mut self.inner {
-            Other { children: ch, .. } => ch.add_children(children),
-            _ => (),
-        };
+        if let VTagInner::Other { children: ch, .. } = &mut self.inner {
+            ch.add_children(children);
+        }
     }
 
     /// Sets `value` for an
@@ -293,14 +287,9 @@ impl VTag {
     /// For non-[InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input)
     /// elements simply sets the "checked" attribute.
     pub fn set_checked(&mut self, value: bool) {
-        use VTagInner::*;
-
-        match &mut self.inner {
-            Input { checked, .. } => {
-                *checked = value;
-            }
-            _ => (),
-        };
+        if let VTagInner::Input { checked, .. } = &mut self.inner {
+            *checked = value;
+        }
     }
 
     /// Adds attribute to a virtual node. Not every attribute works when
@@ -374,7 +363,7 @@ impl VTag {
                         feature = "std_web" => input.raw_value(),
                         feature = "web_sys" => input.value(),
                     };
-                    *value = Some(current_value.into());
+                    *value = Some(current_value);
                 }
             }
             (TextArea { value }, Some(el)) => {
@@ -384,7 +373,7 @@ impl VTag {
                     feature = "std_web" => TextAreaElement::try_from(el.clone()).ok(),
                     feature = "web_sys" => el.dyn_ref::<TextAreaElement>(),
                 } {
-                    *value = Some(el.value().into());
+                    *value = Some(el.value());
                 }
             }
             _ => (),
@@ -608,7 +597,7 @@ impl VDiff for VTag {
                 })
                 .flatten(),
         ) {
-            (Some(new), old @ _) if !new.is_empty() => {
+            (Some(new), old) if !new.is_empty() => {
                 new.apply(
                     parent_scope,
                     element,
