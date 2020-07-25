@@ -117,17 +117,7 @@ impl ToTokens for HtmlTag {
                         ::std::panic!("a dynamic tag returned a tag name containing non ASCII characters: `{}`", #vtag_name);
                     }
                     // convert to lowercase because the runtime checks rely on it.
-                    if (#vtag_name.as_ref() as &str)
-                        .as_bytes()
-                        .iter()
-                        .any(|b| match b {
-                            b'a'..=b'z' | b'-' | b'_' => false,
-                            _ => true,
-                        })
-                    {
-                        (#vtag_name.as_mut() as &mut String)
-                            .make_ascii_lowercase();
-                    }
+                    #vtag_name.to_mut().make_ascii_lowercase();
                     #vtag_name
                 }}
             }

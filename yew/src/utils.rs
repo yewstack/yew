@@ -130,6 +130,11 @@ impl StringRef {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
+
+    /// Returns mutable reference to contents
+    pub fn to_mut(&mut self) -> &mut String {
+        self.as_mut()
+    }
 }
 
 impl AsRef<str> for StringRef {
