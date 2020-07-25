@@ -257,12 +257,6 @@ impl VTag {
         use VTagInner::*;
 
         match &mut self.inner {
-            // Allow setting the value of a textarea as you would in HTML - a single text Node
-            TextArea { value } => {
-                if let VNode::VText(vt) = child {
-                    *value = Some(vt.text.into());
-                }
-            }
             Other { children, .. } => children.add_child(child),
             _ => (),
         };
@@ -273,12 +267,6 @@ impl VTag {
         use VTagInner::*;
 
         match &mut self.inner {
-            // Allow setting the value of a textarea as you would in HTML - a single text Node
-            TextArea { value } => {
-                if let Some(VNode::VText(vt)) = children.into_iter().next() {
-                    *value = Some(vt.text.into());
-                }
-            }
             Other { children: ch, .. } => ch.add_children(children),
             _ => (),
         };
