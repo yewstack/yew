@@ -217,7 +217,12 @@ impl ToTokens for HtmlTag {
                     },
                     name => {
                         let children = if !children.is_empty() {
-                            quote! { ::yew::virtual_dom::VList{ children: #children } }
+                            quote! {
+                                ::yew::virtual_dom::VList{
+                                    children: #children,
+                                    key: None,
+                                }
+                            }
                         } else {
                             default.clone()
                         };

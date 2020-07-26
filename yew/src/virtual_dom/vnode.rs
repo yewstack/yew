@@ -36,11 +36,10 @@ impl VNode {
     pub fn key(&self) -> Option<Key> {
         match self {
             VNode::VComp(vcomp) => vcomp.key.clone(),
+            VNode::VList(vlist) => vlist.key.clone(),
+            VNode::VRef(_) => None,
             VNode::VTag(vtag) => vtag.key.clone(),
-            // Putting a key on a list is likely very very niche.
-            // We can shave 3 words off of VList and anything that includes
-            // it by not supporting any.
-            _ => None,
+            VNode::VText(_) => None,
         }
     }
 
