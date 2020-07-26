@@ -14,10 +14,10 @@ pub fn try_stringify_expr(src: &Expr) -> Option<String> {
 fn try_stringify_lit(src: &Lit) -> Option<String> {
     match src {
         Lit::Str(v) => Some(v.value()),
-        Lit::Char(v) => Some(v.value().to_string()),
-        Lit::Int(v) => Some(v.base10_digits().to_string()),
-        Lit::Float(v) => Some(v.base10_digits().to_string()),
-        Lit::Bool(v) => Some(v.value.to_string()),
+        Lit::Char(v) => Some(::std::string::ToString::to_string(&v.value())),
+        Lit::Int(v) => Some(::std::string::ToString::to_string(&v.base10_digits())),
+        Lit::Float(v) => Some(::std::string::ToString::to_string(&v.base10_digits())),
+        Lit::Bool(v) => Some(::std::string::ToString::to_string(&v.value)),
         _ => None,
     }
 }

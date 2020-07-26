@@ -15,11 +15,11 @@ fn add_class(vtag: &mut VTag, class: &str) {
         .attributes
         .iter()
         .find(|(k, _)| k == &"class")
-        .map(|(_, v)| v.as_ref())
+        .map(|(_, v)| AsRef::as_ref(v))
         .unwrap_or("")
         .into();
     classes.push(class);
-    vtag.add_attribute("class", classes.to_string());
+    vtag.add_attribute("class", ToString::to_string(&classes));
 }
 
 /// Renders a string of Markdown to HTML with the default options (footnotes
@@ -141,7 +141,7 @@ fn make_tag(t: Tag) -> VTag {
         Tag::List(Some(1)) => VTag::new("ol"),
         Tag::List(Some(ref start)) => {
             let mut el = VTag::new("ol");
-            el.add_attribute("start", start.to_string());
+            el.add_attribute("start", ToString::to_string(start));
             el
         }
         Tag::Item => VTag::new("li"),
@@ -165,7 +165,7 @@ fn make_tag(t: Tag) -> VTag {
         }
         Tag::Link(_link_type, ref href, ref title) => {
             let mut el = VTag::new("a");
-            el.add_attribute("href", href.to_string());
+            el.add_attribute("href", ToString::to_string(href));
             let title = title.clone().into_string();
             if title != "" {
                 el.add_attribute("title", &title);
@@ -174,7 +174,7 @@ fn make_tag(t: Tag) -> VTag {
         }
         Tag::Image(_link_type, ref src, ref title) => {
             let mut el = VTag::new("img");
-            el.add_attribute("src", src.to_string());
+            el.add_attribute("src", ToString::to_string(src));
             let title = title.clone().into_string();
             if title != "" {
                 el.add_attribute("title", &title);

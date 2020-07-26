@@ -147,7 +147,7 @@ impl ToTokens for HtmlTag {
                 let __yew_classes
                     = ::yew::virtual_dom::Classes::default()#(.extend(#classes))*;
                 if !__yew_classes.is_empty() {
-                    #vtag.add_attribute("class", __yew_classes.to_string());
+                    #vtag.add_attribute("class", ::std::string::ToString::to_string(&__yew_classes));
                 }
             }),
             Some(ClassesForm::Single(classes)) => match string_ref::try_stringify_expr(classes) {
@@ -164,7 +164,7 @@ impl ToTokens for HtmlTag {
                     if !__yew_classes.is_empty() {
                         #vtag.add_attribute(
                             "class",
-                            __yew_classes.to_string(),
+                            ::std::string::ToString::to_string(&__yew_classes),
                         );
                     }
                 }),
@@ -193,11 +193,13 @@ impl ToTokens for HtmlTag {
         // collection extension
         tokens.extend(match &tag_name {
             TagName::Lit(name) => {
-                let default = quote! { Default::default() };
+                let default = quote! { ::std::default::Default::default() };
 
-                let val = value.clone().map(|v| quote! { Some((#v).to_string()) })
+                let val = value.clone().map(|v| quote! { Some( ::std::string::ToString::to_string(&#v)) })
                     .unwrap_or_else(|| default.clone());
-                let inner = match name.to_string().as_ref() {
+                let inner = match ::std::convert::AsRef::as_ref(
+                        &::std::string::ToString::to_string(&name),
+                    ) {
                     "input" => {
                         let checked = checked.clone().map(|v| quote!{ #v })
                             .unwrap_or_else(|| default.clone());
@@ -239,7 +241,7 @@ impl ToTokens for HtmlTag {
                         reference: None,
                         attributes: vec![#(#attr_pairs),*],
                         listeners: vec![#(::std::rc::Rc::new(#listeners)),*],
-                        captured: Default::default(),
+                        captured: ::std::default::Default::default(),
                         node_ref: #node_ref,
                         key: #key,
                     };

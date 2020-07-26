@@ -116,7 +116,7 @@ impl VTagInner {
         }
     }
 
-    // Returns reference to the value field, if any
+    /// Returns reference to the value field, if any
     pub fn value(&self) -> &Option<String> {
         use VTagInner::*;
 
@@ -130,7 +130,7 @@ impl VTagInner {
         }
     }
 
-    // Returns mutable reference to the value field, if any
+    /// Returns mutable reference to the value field, if any
     pub fn value_mut(&mut self) -> Option<&mut Option<String>> {
         use VTagInner::*;
 
@@ -140,7 +140,7 @@ impl VTagInner {
         }
     }
 
-    // Performs shallow equality comparison w/o comparing children
+    /// Performs shallow equality comparison w/o comparing children
     pub fn eq_shallow(&self, other: &Self) -> bool {
         use VTagInner::*;
 
@@ -161,7 +161,7 @@ impl VTagInner {
         }
     }
 
-    // Compares the children, if applicable
+    /// Compares the children, if applicable
     pub fn eq_children(&self, other: &Self) -> bool {
         use VTagInner::*;
 
@@ -269,13 +269,13 @@ impl VTag {
     pub fn set_value(&mut self, value: impl ToString) {
         use VTagInner::*;
 
-        let s = value.to_string();
+        let s = ::std::string::ToString::to_string(&value);
         match &mut self.inner {
             Input { value, .. } | TextArea { value } => {
                 *value = Some(s);
             }
             Other { .. } => {
-                self.attributes.push(("value", s.into()));
+                self.attributes.push(("value", StringRef::Owned(s)));
             }
         };
     }
@@ -837,7 +837,7 @@ mod tests {
         vtag.attributes
             .iter()
             .find(|(k, _)| k == &"class")
-            .map(|(_, v)| v.as_ref())
+            .map(|(_, v)| AsRef::as_ref(v))
             .unwrap_or("")
     }
 
@@ -1475,14 +1475,14 @@ mod tests {
             .attributes
             .iter()
             .find(|(k, _)| k == &"value")
-            .map(|(_, v)| v.as_ref());
+            .map(|(_, v)| AsRef::as_ref(v));
         assert_eq!(v, Some("Hello"));
 
         let mut input_el = html! {
             <@{"input"} value="World"/>
         };
         let input_vtag = assert_vtag(&mut input_el);
-        assert_eq!(input_vtag.value(), &Some("World".to_string().into()));
+        assert_eq!(input_vtag.value(), &Some("World".to_string()));
         assert!(!input_vtag.attributes.iter().any(|(k, _)| k == &"value"));
     }
 
