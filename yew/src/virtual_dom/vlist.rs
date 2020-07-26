@@ -40,6 +40,7 @@ impl VList {
         Self::default()
     }
 
+    /// Creates a new `VList` instance with children.
     pub fn new_with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
         VList { children, key }
     }

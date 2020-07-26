@@ -12,6 +12,7 @@ pub struct TagAttributes {
     pub classes: Option<ClassesForm>,
     pub booleans: Vec<TagAttribute>,
     pub value: Option<Expr>,
+    pub kind: Option<Expr>,
     pub checked: Option<Expr>,
     pub node_ref: Option<Expr>,
     pub key: Option<Expr>,
@@ -310,6 +311,7 @@ impl Parse for TagAttributes {
         let classes =
             TagAttributes::remove_attr(&mut attributes, "class").map(TagAttributes::map_classes);
         let value = TagAttributes::remove_attr(&mut attributes, "value");
+        let kind = TagAttributes::remove_attr(&mut attributes, "type");
         let checked = TagAttributes::remove_attr(&mut attributes, "checked");
         let node_ref = TagAttributes::remove_attr(&mut attributes, "ref");
         let key = TagAttributes::remove_attr(&mut attributes, "key");
@@ -323,6 +325,7 @@ impl Parse for TagAttributes {
             checked,
             booleans,
             value,
+            kind,
             node_ref,
             href,
             key,

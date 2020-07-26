@@ -40,8 +40,6 @@ pub use self::vnode::VNode;
 #[doc(inline)]
 pub use self::vtag::VTag;
 #[doc(inline)]
-pub use self::vtag::VTagInner;
-#[doc(inline)]
 pub use self::vtext::VText;
 
 /// The `Listener` trait is an universal implementation of an event listener
