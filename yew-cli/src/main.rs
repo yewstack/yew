@@ -13,6 +13,8 @@ use webbrowser;
 mod error;
 
 use crate::error::{BuildError, RunError, SubcommandError};
+use std::collections::VecDeque;
+use actix_web::HttpServer;
 
 const STANDARD_HTML: &str = include_str!("standard_html.html");
 
@@ -49,7 +51,7 @@ macro_rules! common_flags {
     );
 }
 
-#[tokio::main]
+#[actix_rt::main]
 async fn main() {
     let matches = App::new("Yew CLI")
         .version("0.1")
@@ -132,29 +134,41 @@ fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
     paths
 }
 
+
 async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
     let projects = unwrap_project_dir(&matches);
     let project_count = projects.len();
-    if project_count > 1 {
-        Err(RunError::MultipleProjects)?
-    }
     cmd_build(matches.clone()).map_err(RunError::BuildError)?;
     match project_count {
         1 => {
             let project = &projects[0].join("static");
             let project = project.clone();
             let path = String::from(project.to_str().unwrap());
-            let future = warp::serve(warp::fs::dir(path))
-                .run(([127, 0, 0, 1], 3030));
+            let future = HttpServer::new(move || {
+                actix_web::App::new().service(
+                    actix_files::Files::new("/", path.as_str())
+                        .use_last_modified(true)
+                )
+            }).bind("127.0.0.1:3030").unwrap().run();
             println!("");
             if webbrowser::open("http://127.0.0.1:3030/").is_err() {
                 eprintln!("Could not open web browser");
             }
             println!("Server running at http://127.0.0.1:3030/");
             future.await
-        },
+        }
         0 => panic!("this should never happen because projects are required by clap"),
-        _ => panic!("this should never happen because the multiple projects case is handled elsewhere in the code")
+        _ => {
+            let future = HttpServer::new(move || {
+                projects.iter().map(|x|
+                    (String::from(x.file_name().unwrap().to_str().unwrap()),
+                     String::from(x.join("static").to_str().unwrap())))
+                    .fold(actix_web::App::new(), |acc, (name, path)| {
+                        acc.service(actix_files::Files::new(format!("/{}", name).as_str(), path.as_str()))
+                    })
+            }).bind("127.0.0.1:3030").unwrap().run();
+            future.await
+        }
     };
     Ok(())
 }
