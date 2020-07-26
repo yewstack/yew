@@ -108,7 +108,8 @@ impl VTagInner {
         }
     }
 
-    /// Returns mutable reference to child list, if any
+    /// Returns a mutable reference to a list of the node's children.
+    /// If the node has no children then this method will return `None`.
     pub fn children_mut(&mut self) -> Option<&mut VList> {
         match self {
             Self::Other { children, .. } => Some(children),
