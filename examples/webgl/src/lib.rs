@@ -78,7 +78,7 @@ impl Component for Model {
 
     fn view(&self) -> Html {
         html! {
-            <canvas ref={self.node_ref.clone()} />
+            <canvas ref=self.node_ref.clone() />
         }
     }
 

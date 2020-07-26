@@ -191,13 +191,11 @@ impl ToTokens for HtmlTag {
             let name = &listener.label.name;
             let callback = &listener.value;
 
-            quote_spanned! {name.span()=> {
-                ::yew::html::#name::Wrapper::new(
-                    <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
-                        #callback
-                    )
+            quote_spanned! {name.span()=> ::yew::html::#name::Wrapper::new(
+                <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
+                    #callback
                 )
-            }}
+            )}
         });
 
         // These are the runtime-checks exclusive to dynamic tags.
