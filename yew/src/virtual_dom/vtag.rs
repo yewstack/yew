@@ -985,7 +985,7 @@ mod tests {
         }
 
         if let VNode::VTag(vtag) = d {
-            assert!(!vtag.attributes.contains_key("class"));
+            assert!(!vtag.attributes.iter().any(|(k, _)| k == &"class"));
         } else {
             panic!("vtag expected");
         }
