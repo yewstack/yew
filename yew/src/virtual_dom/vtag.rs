@@ -116,7 +116,8 @@ impl VTagInner {
         }
     }
 
-    /// Returns reference to the value field, if any
+    /// Returns a reference to the node's `value` field if it exists.
+    /// If the node lacks a `value` field this method will return `None`.
     pub fn value(&self) -> &Option<String> {
         use VTagInner::*;
 
@@ -140,7 +141,7 @@ impl VTagInner {
         }
     }
 
-    /// Performs shallow equality comparison w/o comparing children
+    /// Performs shallow equality comparison without comparing children
     pub fn eq_shallow(&self, other: &Self) -> bool {
         use VTagInner::*;
 
