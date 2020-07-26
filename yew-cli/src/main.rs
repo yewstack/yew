@@ -15,6 +15,7 @@ mod error;
 use crate::error::{BuildError, RunError, SubcommandError};
 use std::collections::VecDeque;
 use actix_web::HttpServer;
+use crate::error::RunError::SpawnServerError;
 
 const STANDARD_HTML: &str = include_str!("standard_html.html");
 
@@ -139,7 +140,7 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
     let projects = unwrap_project_dir(&matches);
     let project_count = projects.len();
     cmd_build(matches.clone()).map_err(RunError::BuildError)?;
-    match project_count {
+    let run = match project_count {
         1 => {
             let project = &projects[0].join("static");
             let project = project.clone();
@@ -170,7 +171,10 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
             future.await
         }
     };
-    Ok(())
+    match run {
+        Ok(_) => Ok(()),
+        Err(_) => Err(SpawnServerError)
+    }
 }
 
 fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {

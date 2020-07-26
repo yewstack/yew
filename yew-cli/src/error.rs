@@ -6,7 +6,7 @@ use std::convert::From;
 #[derive(Debug, Error)]
 pub enum RunError {
     #[error("cannot run multiple projects at once")]
-    MultipleProjects,
+    SpawnServerError,
 
     #[error("{0}")]
     BuildError(BuildError),
@@ -15,7 +15,7 @@ pub enum RunError {
 impl From<RunError> for i32 {
     fn from(error: RunError) -> i32 {
         match error {
-            RunError::MultipleProjects => exitcode::USAGE,
+            RunError::SpawnServerError => exitcode::USAGE,
             RunError::BuildError(e) => e.into(),
         }
     }
