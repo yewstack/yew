@@ -7,7 +7,6 @@ use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
 use std::cmp::Ordering;
 use syn::buffer::Cursor;
-use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -275,7 +274,7 @@ impl Parse for HtmlComponentOpen {
         // backwards compat
         let _ = input.parse::<Token![:]>();
         let HtmlPropSuffix { stream, div, gt } = input.parse()?;
-        let props = parse(stream)?;
+        let props = syn::parse2(stream)?;
 
         Ok(HtmlComponentOpen {
             lt,
