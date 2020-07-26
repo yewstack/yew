@@ -177,6 +177,18 @@ impl VTag {
         self.attributes.insert(name.to_owned(), value.to_string());
     }
 
+    /// Set boolean attribute if value is true. Unset if value is false. The name
+    /// of the attribute will be used as the value.
+    ///
+    /// Example: `<button disabled="disabled">`
+    pub fn set_boolean_attribute(&mut self, name: &str, value: bool) {
+        if value {
+            self.attributes.insert(name.to_owned(), name.to_owned());
+        } else {
+            self.attributes.remove(name);
+        }
+    }
+
     /// Adds attributes to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
     /// `type/kind`, `value` and `checked`.

@@ -142,11 +142,7 @@ impl ToTokens for HtmlTag {
         });
         let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
-            quote_spanned! {value.span()=>
-                if #value {
-                    #vtag.add_attribute(&#label_str, &#label_str);
-                }
-            }
+            quote_spanned! {value.span()=> #vtag.set_boolean_attribute(&#label_str, #value); }
         });
         let set_kind = kind.iter().map(|kind| {
             quote_spanned! {kind.span()=> #vtag.set_kind(&(#kind)); }
