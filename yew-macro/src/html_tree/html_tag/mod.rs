@@ -10,7 +10,6 @@ use boolinator::Boolinator;
 use proc_macro2::{Delimiter, Span};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
-use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
 use syn::{Block, Ident, Token};
@@ -416,7 +415,7 @@ impl Parse for HtmlTagOpen {
         let lt = input.parse::<Token![<]>()?;
         let tag_name = input.parse::<TagName>()?;
         let TagSuffix { stream, div, gt } = input.parse()?;
-        let mut attributes: TagAttributes = parse(stream)?;
+        let mut attributes: TagAttributes = syn::parse2(stream)?;
 
         match &tag_name {
             TagName::Lit(name) => {

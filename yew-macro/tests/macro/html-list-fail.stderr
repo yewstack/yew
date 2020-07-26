@@ -15,10 +15,10 @@ error: this closing fragment has no corresponding opening fragment
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this opening fragment has no corresponding closing fragment
- --> $DIR/html-list-fail.rs:6:13
+ --> $DIR/html-list-fail.rs:6:15
   |
 6 |     html! { <><> };
-  |             ^^
+  |               ^^
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -54,21 +54,34 @@ error: expected a valid html element
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: this opening fragment has no corresponding closing fragment
-  --> $DIR/html-list-fail.rs:12:13
+error: expected an expression following this equals sign
+  --> $DIR/html-list-fail.rs:11:17
    |
-12 |     html! { <key="key".to_string()>invalid</key>}
-   |             ^^^^^^^^^^^^^^^^^^^^^^^
+11 |     html! { <key=></> };
+   |                 ^^
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0308]: mismatched types
-  --> $DIR/html-list-fail.rs:11:5
+error: this closing tag has no corresponding opening tag
+  --> $DIR/html-list-fail.rs:12:36
    |
-11 |     html! { <key=></>}
-   |     ^^^^^^^^^^^^^^^^^^
-   |     |
-   |     expected `()`, found enum `yew::virtual_dom::vnode::VNode`
-   |     help: try adding a semicolon: `;`
+12 |     html! { <key="key".to_string()></key> };
+   |                                    ^^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: only a single `key` prop is allowed on a fragment
+  --> $DIR/html-list-fail.rs:14:30
+   |
+14 |     html! { <key="first key" key="second key" /> };
+   |                              ^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: fragments only accept the `key` prop
+  --> $DIR/html-list-fail.rs:15:14
+   |
+15 |     html! { <some_attr="test"></> };
+   |              ^^^^^^^^^
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
