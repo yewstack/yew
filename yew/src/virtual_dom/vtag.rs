@@ -57,7 +57,7 @@ pub enum VTagInner {
         ///
         /// A
         /// [TextAreaElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
-        /// can only contain a single text node so this doubles as the child list source.
+        /// A textarea can only contain a single text node so this doubles as the child list source.
         value: Option<String>,
     },
 
