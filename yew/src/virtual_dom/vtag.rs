@@ -32,7 +32,7 @@ pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
 /// Default namespace for html elements
 pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 
-/// Contains field only applicable to different Element types.
+/// Contains fields only available for specific HTML tags (e.g. `textarea)`.
 /// This enum reduces Yew's memory footprint by excluding impossible field combinations.
 /// Grouped partially in accordance to the
 /// [HTML spec](https://html.spec.whatwg.org/multipage/syntax.html#elements-2).
