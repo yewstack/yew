@@ -510,6 +510,9 @@ where
 
 #[cfg(test)]
 mod tests {
+    extern crate self as yew;
+
+    use crate::html;
     use crate::html::*;
     use crate::Properties;
     use std::ops::Deref;
@@ -636,7 +639,7 @@ mod tests {
     }
 
     #[test]
-    fn lifecyle_tests() {
+    fn lifecycle_tests() {
         let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
 
         test_lifecycle(

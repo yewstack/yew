@@ -816,6 +816,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(unused_parens)]
     fn filter_empty_string_classes() {
         let a = html! { <div class=vec![""]></div> };
         let b = html! { <div class=("")></div> };
@@ -1390,6 +1391,9 @@ mod tests {
 
 #[cfg(all(test, feature = "web_sys"))]
 mod layout_tests {
+    extern crate self as yew;
+
+    use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]

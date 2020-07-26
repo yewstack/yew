@@ -10,6 +10,7 @@
 ///
 /// # Example
 /// ```
+/// # use yew_router::define_router_state;
 /// define_router_state!(Option<String>);
 /// use router_state::Route; // alias to Route<Option<String>>
 /// # fn main() {}
