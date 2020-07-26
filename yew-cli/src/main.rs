@@ -152,7 +152,7 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
                 )
             }).bind("127.0.0.1:3030").unwrap().run();
             println!("");
-            if webbrowser::open("http://127.0.0.1:3030/").is_err() {
+            if webbrowser::open("http://127.0.0.1:3030/index.html").is_err() {
                 eprintln!("Could not open web browser");
             }
             println!("Server running at http://127.0.0.1:3030/");
