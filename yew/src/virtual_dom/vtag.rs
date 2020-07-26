@@ -90,7 +90,7 @@ impl VTagInner {
         }
     }
 
-    /// Returns tag of an `Element` in lowercase
+    /// Returns the (lowercase) tag name of an `Element`.
     pub fn tag(&self) -> &str {
         match self {
             Self::Input { .. } => "input",
