@@ -121,6 +121,8 @@ fn compile_fail() {
         <span>{ 1 }</span>
         <span>{ 2 }</span>
     };
+
+    html! { <TestComponent value?="not_supported" /> };
 }
 
 fn main() {}

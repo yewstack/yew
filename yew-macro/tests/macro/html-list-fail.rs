@@ -13,6 +13,8 @@ fn compile_fail() {
 
     html! { <key="first key" key="second key" /> };
     html! { <some_attr="test"></> };
+
+    html! { <key?=None></> };
 }
 
 fn main() {}

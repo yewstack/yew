@@ -92,7 +92,7 @@ impl PeekValue<()> for HtmlListOpen {
         // make sure it's either a property (key=value) or it's immediately closed
         if let Some((_, cursor)) = HtmlDashedName::peek(cursor) {
             let (punct, _) = cursor.punct()?;
-            (punct.as_char() == '=').as_option()
+            (punct.as_char() == '=' || punct.as_char() == '?').as_option()
         } else {
             let (punct, _) = cursor.punct()?;
             (punct.as_char() == '>').as_option()
@@ -133,6 +133,13 @@ impl Parse for HtmlListProps {
                 return Err(syn::Error::new_spanned(
                     prop.label,
                     "fragments only accept the `key` prop",
+                ));
+            }
+
+            if prop.question_mark.is_some() {
+                return Err(syn::Error::new_spanned(
+                    prop.label,
+                    "The 'key' attribute does not support being used as an optional attribute",
                 ));
             }
 
