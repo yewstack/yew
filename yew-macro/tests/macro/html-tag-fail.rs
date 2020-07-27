@@ -2,28 +2,6 @@ use yew::prelude::*;
 
 struct NotToString;
 
-struct TestComponent;
-impl Component for TestComponent {
-    type Message = ();
-    type Properties = ();
-
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        unimplemented!()
-    }
-
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
-}
-
 fn compile_fail() {
     html! { <div> };
     html! { <div><div> };
@@ -82,8 +60,6 @@ fn compile_fail() {
     html! { <input ref?=() /> };
     html! { <input onfocus?=Some(5) /> };
     html! { <input onfocus?=Callback::from(|_| ()) /> };
-
-    html! { <TestComponent value?="not_supported" /> };
 }
 
 fn main() {}

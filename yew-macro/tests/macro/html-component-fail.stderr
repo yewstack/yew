@@ -198,6 +198,14 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
     |
     = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
+error: optional attributes are only supported on HTML tags. Yew components can use `Option<T>` properties to accomplish the same thing.
+   --> $DIR/html-component-fail.rs:125:28
+    |
+125 |     html! { <TestComponent value?="not_supported" /> };
+    |                            ^^^^^
+    |
+    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
 error[E0425]: cannot find value `blah` in this scope
   --> $DIR/html-component-fail.rs:91:25
    |
