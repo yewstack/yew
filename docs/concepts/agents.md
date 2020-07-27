@@ -14,24 +14,21 @@ In order for agents to run concurrently, Yew uses [web-workers](https://develope
 
 ## Types of Agents
 
-#### Reaches
+### Reaches
 
-* Context - There will exist at most one instance of a Context Agent at any given time. Bridges will 
+* Context - There will exist at most one instance of a Context Agent at any given time. Bridges will
+  spawn or connect to an already spawned agent on the UI thread. This can be used to coordinate
+  state between components or other agents. When no bridges are connected to this agent, the agent
+  will disappear.
 
-  spawn or connect to an already spawned agent on the UI thread. This can be used to coordinate state 
-
-  between components or other agents. When no bridges are connected to this agent, the agent will 
-
-  disappear.
-
-* Job - Spawn a new agent on the UI thread for every new bridge. This is good for moving shared but 
-
-  independent behavior that communicates with the browser out of components. \(TODO verify\) When the 
-
-  task is done, the agent will disappear.
+* Job - Spawn a new agent on the UI thread for every new bridge. This is good for moving shared but
+  independent behavior that communicates with the browser out of components. \(TODO verify\) When
+  the task is done, the agent will disappear.
 
 * Public - Same as Context, but runs on its own web worker.
+
 * Private - Same as Job, but runs on its own web worker.
+
 * Global \(WIP\)
 
 ## Communication between Agents and Components
@@ -51,4 +48,3 @@ Agents that live in their own separate web worker \(Private and Public\) incur s
 ## Further reading
 
 * The [pub\_sub](https://github.com/yewstack/yew/tree/master/examples/pub_sub) example shows how components can use agents to communicate with each other.
-
