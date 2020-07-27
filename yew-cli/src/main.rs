@@ -149,10 +149,12 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
                 actix_web::App::new().service(
                     actix_files::Files::new("/", path.as_str())
                         .use_last_modified(true)
+                        .index_file("index.html")
                 )
             }).bind("127.0.0.1:3030").unwrap().run();
-            println!("");
-            if webbrowser::open("http://127.0.0.1:3030/index.html").is_err() {
+            println!();
+            //TODO: make this a flag
+            if webbrowser::open("http://127.0.0.1:3030/").is_err() {
                 eprintln!("Could not open web browser");
             }
             println!("Server running at http://127.0.0.1:3030/");
@@ -165,7 +167,11 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
                     (String::from(x.file_name().unwrap().to_str().unwrap()),
                      String::from(x.join("static").to_str().unwrap())))
                     .fold(actix_web::App::new(), |acc, (name, path)| {
-                        acc.service(actix_files::Files::new(format!("/{}", name).as_str(), path.as_str()))
+                        acc.service(
+                            actix_files::Files::new(format!("/{}", name).as_str(), path.as_str())
+                                .use_last_modified(true)
+                                .index_file("index.html")
+                        )
                     })
             }).bind("127.0.0.1:3030").unwrap().run();
             future.await
