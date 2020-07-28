@@ -247,6 +247,14 @@ impl Component for MyComponent {
 
 ## Event Types
 
+:::note
+In the following table, "`web-sys` Event Type" should be considered if you're using `yew` with `web-sys` (default); `stdweb` if you use `yew-stdweb`. See [Choose web-sys or stdweb](https://yew.rs/docs/getting-started/choose-web-library) for more information.
+:::
+
+:::note
+All the event types mentioned in the following table are re-exported under `yew::events`.
+:::
+
 | Event name  | `web_sys` Event Type | `stdweb` Event Type |
 | ----------- | -------------------- |  ------------------ |
 | `onabort` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [ResourceAbortEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ResourceAbortEvent.html) |
