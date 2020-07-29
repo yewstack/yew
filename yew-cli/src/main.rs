@@ -7,15 +7,15 @@ use std::process::{exit, Command, Stdio};
 use std::{env, fs};
 
 use std::fs::{remove_file, File};
-use std::io::{Write};
+use std::io::Write;
 use webbrowser;
 
 mod error;
 
-use crate::error::{BuildError, RunError, SubcommandError};
-use std::collections::VecDeque;
-use actix_web::HttpServer;
 use crate::error::RunError::SpawnServerError;
+use crate::error::{BuildError, RunError, SubcommandError};
+use actix_web::HttpServer;
+use std::collections::VecDeque;
 
 const STANDARD_HTML: &str = include_str!("standard_html.html");
 
@@ -161,7 +161,6 @@ fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
     paths
 }
 
-
 async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
     let projects = unwrap_project_dir(&matches);
     let project_count = projects.len();
@@ -175,9 +174,12 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
                 actix_web::App::new().service(
                     actix_files::Files::new("/", path.as_str())
                         .use_last_modified(true)
-                        .index_file("index.html")
+                        .index_file("index.html"),
                 )
-            }).bind("127.0.0.1:3030").unwrap().run();
+            })
+            .bind("127.0.0.1:3030")
+            .unwrap()
+            .run();
             println!();
             //TODO: make this a flag
             if webbrowser::open("http://127.0.0.1:3030/").is_err() {
@@ -189,23 +191,31 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
         0 => panic!("this should never happen because projects are required by clap"),
         _ => {
             let future = HttpServer::new(move || {
-                projects.iter().map(|x|
-                    (String::from(x.file_name().unwrap().to_str().unwrap()),
-                     String::from(x.join("static").to_str().unwrap())))
+                projects
+                    .iter()
+                    .map(|x| {
+                        (
+                            String::from(x.file_name().unwrap().to_str().unwrap()),
+                            String::from(x.join("static").to_str().unwrap()),
+                        )
+                    })
                     .fold(actix_web::App::new(), |acc, (name, path)| {
                         acc.service(
                             actix_files::Files::new(format!("/{}", name).as_str(), path.as_str())
                                 .use_last_modified(true)
-                                .index_file("index.html")
+                                .index_file("index.html"),
                         )
                     })
-            }).bind("127.0.0.1:3030").unwrap().run();
+            })
+            .bind("127.0.0.1:3030")
+            .unwrap()
+            .run();
             future.await
         }
     };
     match run {
         Ok(_) => Ok(()),
-        Err(_) => Err(SpawnServerError)
+        Err(_) => Err(SpawnServerError),
     }
 }
 
@@ -216,7 +226,10 @@ fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
     };
     let paths = unwrap_project_dir(&matches);
     let is_wasm_pack = {
-        let scheme = matches.value_of("scheme").unwrap_or("wasm-bindgen").to_string();
+        let scheme = matches
+            .value_of("scheme")
+            .unwrap_or("wasm-bindgen")
+            .to_string();
         if &scheme != "wasm-bindgen" && &scheme != "wasm-pack" {
             Err(BuildError::InvalidScheme(scheme.clone()))?
         }
@@ -264,7 +277,11 @@ fn cwd() -> PathBuf {
     env::current_dir().expect("couldnt resolve current working directory")
 }
 
-fn execute_wasm_bindgen(cargo_flags: &Vec<OsString>, wasm_bindgen_flags: &Vec<OsString>, path: &Path) {
+fn execute_wasm_bindgen(
+    cargo_flags: &Vec<OsString>,
+    wasm_bindgen_flags: &Vec<OsString>,
+    path: &Path,
+) {
     // TODO: first run cargo build [--release] --target wasm32-unknown-unknown, then
     // wasm-bindgen --target web --no-typescript --out-dir ./static/ --out-name wasm "$TARGET_DIR/$EXAMPLE.wasm"
     eprintln!("wasm-bindgen support is TODO");
