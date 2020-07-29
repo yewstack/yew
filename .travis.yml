@@ -41,4 +41,4 @@ install:
 
 script:
   - ./ci/run_stable_checks.sh
-  - GECKODRIVER="$(pwd)/geckodriver" HTTPBIN_URL="http://localhost:8000" ./ci/run_tests.sh
+  - HTTPBIN_URL="http://localhost:8000" ./ci/run_tests.sh
