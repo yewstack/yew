@@ -252,7 +252,10 @@ In the following table, "`web-sys` Event Type" should be considered if you're us
 :::
 
 :::note
-All the event types mentioned in the following table are re-exported under `yew::events`.
+All the event types mentioned in the following table are re-exported under `yew::events`. Using the types from
+`yew::events` makes it easier to ensure version compatibility than if you were to manually include `web-sys` 
+or `stdweb` as dependencies in your crate because you won't end up using a version which conflicts with
+the version Yew specifies. 
 :::
 
 | Event name  | `web_sys` Event Type | `stdweb` Event Type |
