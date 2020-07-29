@@ -137,20 +137,12 @@ async fn exec_subcommand(subcommand: &str, matches: ArgMatches<'_>) -> Result<()
 }
 
 fn canonicalize(path: &PathBuf) -> PathBuf {
-    let can = fs::canonicalize(path).unwrap();
-    if cfg!(target_os = "windows") {
-        //this is done cause on rust for some reason puts a \\?\ prefix before all paths, which fucks up
-        //dont know if its just windows, but it feels like one of those windows things
-        let str = can.to_str().unwrap();
-        PathBuf::from(String::from(&str[4..]))
-    } else {
-        can
-    }
+    fs::canonicalize(path).unwrap()
 }
 
 fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
     let paths = matches
-        .values_of("project_dir")
+        .values_of_os("project_dir")
         .unwrap()
         .map(|p| cwd().join(p))
         .collect::<Vec<PathBuf>>();
@@ -167,12 +159,10 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
     cmd_build(matches.clone()).map_err(RunError::BuildError)?;
     let run = match project_count {
         1 => {
-            let project = &projects[0].join("static");
-            let project = project.clone();
-            let path = String::from(project.to_str().unwrap());
             let future = HttpServer::new(move || {
+                let project = &projects[0].join("static");
                 actix_web::App::new().service(
-                    actix_files::Files::new("/", path.as_str())
+                    actix_files::Files::new("/", project)
                         .use_last_modified(true)
                         .index_file("index.html"),
                 )
