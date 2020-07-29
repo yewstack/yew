@@ -266,7 +266,7 @@ the version Yew specifies.
 | `oncancel` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
 | `oncanplay` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
 | `oncanplaythrough` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
-| `onchange` | [ChangeData](https://docs.rs/yew/latest/yew/events/enum.ChangeData.html) | [ChangeEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ChangeEvent.html) |
+| `onchange` | [ChangeData](https://docs.rs/yew/latest/yew/events/enum.ChangeData.html) | [ChangeEvent](https://docs.rs/yew/latest/yew/events/enum.ChangeData.html) |
 | `onclick` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [ClickEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ClickEvent.html) |
 | `onclose` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
 | `oncontextmenu` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [ContextMenuEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ContextMenuEvent.html) |
@@ -286,7 +286,7 @@ the version Yew specifies.
 | `onerror` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [ResourceErrorEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ResourceErrorEvent.html) |
 | `onfocus` | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html) | [FocusEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.FocusEvent.html) |
 | `onformdata` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
-| `oninput` | [ChangeData](https://docs.rs/yew/latest/yew/events/struct.InputData.html) | [InputEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.InputEvent.html) |
+| `oninput` | [ChangeData](https://docs.rs/yew/latest/yew/events/struct.InputData.html) | [InputEvent](https://docs.rs/yew/latest/yew/events/struct.InputData.html) |
 | `oninvalid` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
 | `onkeydown` | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html) | [KeyDownEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.KeyDownEvent.html) |
 | `onkeypress` | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html) | [KeyPressEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.KeyPressEvent.html) |
