@@ -1,4 +1,4 @@
-use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
+use clap::{App, AppSettings, Arg, ArgMatches, SubCommand, arg_enum};
 use exitcode;
 
 use std::ffi::OsString;
@@ -30,24 +30,50 @@ macro_rules! common_flags {
     ($subcommand:expr) => (
         $subcommand
             .arg(
+                Arg::from_usage("<scheme> 'The scheme for which to build (\"wasm-pack\" or \"wasm-bindgen\"). Default: wasm-bindgen'")
+                    .possible_values(&["wasm-pack", "wasm-bindgen"])
+                    .long("scheme")
+                    .short("s")
+                    .required(false)
+                    .takes_value(true)
+            )
+            .arg(
+                Arg::with_name("project_dir")
+                    .multiple(true)
+                    .takes_value(true)
+                    .value_name("project directory")
+                    .help("Path(s) to the project directory(ies) for the Yew application(s) that will be built")
+                    .required(true)
+            )
+            .arg(
                 Arg::with_name("cargo_flags")
                     .help("List of flags, terminated by semicolon, to pass to `cargo build`")
                     .takes_value(true)
                     .value_terminator(";")
                     .multiple(true)
                     .min_values(1)
-                    .value_name("flags")
+                    .value_name("cargo_flags")
                     .long("cargo-flags")
             )
             .arg(
-                Arg::with_name("project_dir")
-                    .long("path")
-                    .short("p")
-                    .multiple(true)
+                Arg::with_name("wasm_bindgen_flags")
+                    .help("List of flags, terminated by semicolon, to pass to `wasm-bindgen`")
                     .takes_value(true)
-                    .value_name("project directory")
-                    .help("Path(s) to the project directory(ies) for the Yew application(s) that will be built")
-                    .required(true)
+                    .value_terminator(";")
+                    .multiple(true)
+                    .min_values(1)
+                    .value_name("wb_flags")
+                    .long("wb-flags")
+            )
+            .arg(
+                Arg::with_name("wasm_pack_flags")
+                    .help("List of flags, terminated by semicolon, to pass to `wasm-pack`")
+                    .takes_value(true)
+                    .value_terminator(";")
+                    .multiple(true)
+                    .min_values(1)
+                    .value_name("wp_flags")
+                    .long("wp-flags")
             )
     );
 }
@@ -55,7 +81,7 @@ macro_rules! common_flags {
 #[actix_rt::main]
 async fn main() {
     let matches = App::new("Yew CLI")
-        .version("0.1")
+        .version("0.2")
         .about("Builds and runs Yew application projects")
         .setting(AppSettings::SubcommandRequired)
         .subcommand(
@@ -128,6 +154,7 @@ fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
         .unwrap()
         .map(|p| cwd().join(p))
         .collect::<Vec<PathBuf>>();
+    println!("PATH: {:?}", paths[0]);
     let paths = paths
         .iter()
         .map(|p| canonicalize(p))
@@ -189,6 +216,13 @@ fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
         None => vec![],
     };
     let paths = unwrap_project_dir(&matches);
+    let is_wasm_pack = {
+        let scheme = matches.value_of("scheme").unwrap_or("wasm-bindgen").to_string();
+        if &scheme != "wasm-bindgen" && &scheme != "wasm-pack" {
+            Err(BuildError::InvalidScheme(scheme.clone()))?
+        }
+        scheme == "wasm-pack"
+    };
 
     for path in paths {
         let path_str = path.to_str().unwrap();
@@ -197,7 +231,19 @@ fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
             Err(BuildError::NoCargoToml(path_str.to_string()))?
         }
         println!("starting building {}", path_str);
-        execute_wasm_pack(&cargo_flags, path.as_path());
+        if is_wasm_pack {
+            let wasm_pack_flags: Vec<OsString> = match matches.values_of_os("wp_flags") {
+                Some(flags) => flags.map(|flag| flag.to_os_string()).collect(),
+                None => vec![],
+            };
+            execute_wasm_pack(&cargo_flags, &wasm_pack_flags, path.as_path());
+        } else {
+            let wasm_bindgen_flags: Vec<OsString> = match matches.values_of_os("wb_flags") {
+                Some(flags) => flags.map(|flag| flag.to_os_string()).collect(),
+                None => vec![],
+            };
+            execute_wasm_bindgen(&cargo_flags, &wasm_bindgen_flags, path.as_path());
+        }
         let static_path = path.join("static");
         let html_path = static_path.join("index.html");
         if !html_path.exists() {
@@ -219,12 +265,19 @@ fn cwd() -> PathBuf {
     env::current_dir().expect("couldnt resolve current working directory")
 }
 
-fn execute_wasm_pack(cargo_flags: &Vec<OsString>, path: &Path) {
+fn execute_wasm_bindgen(cargo_flags: &Vec<OsString>, wasm_bindgen_flags: &Vec<OsString>, path: &Path) {
+    // TODO: first run cargo build [--release] --target wasm32-unknown-unknown, then
+    // wasm-bindgen --target web --no-typescript --out-dir ./static/ --out-name wasm "$TARGET_DIR/$EXAMPLE.wasm"
+    eprintln!("wasm-bindgen support is TODO");
+    exit(1);
+}
+
+fn execute_wasm_pack(cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString>, path: &Path) {
     //wasm-pack build --target web --out-name wasm --out-dir ./static
     Command::new("wasm-pack")
         .current_dir(path)
         .arg("build")
-        .args(cargo_flags)
+        .args(wasm_pack_flags)
         // TODO scrub the following flags if anything has been specified in cargo_flags?
         .arg("--target")
         .arg("web")
@@ -232,6 +285,8 @@ fn execute_wasm_pack(cargo_flags: &Vec<OsString>, path: &Path) {
         .arg("wasm")
         .arg("--out-dir")
         .arg("./static")
+        .arg("--")
+        .args(wasm_pack_flags)
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())

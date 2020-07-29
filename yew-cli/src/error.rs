@@ -25,12 +25,16 @@ impl From<RunError> for i32 {
 pub enum BuildError {
     #[error("{0} doesn't have a Cargo.toml file")]
     NoCargoToml(String),
+
+    #[error("invalid scheme: {0}")]
+    InvalidScheme(String),
 }
 
 impl From<BuildError> for i32 {
     fn from(error: BuildError) -> i32 {
         match error {
             BuildError::NoCargoToml(_) => exitcode::NOINPUT,
+            BuildError::InvalidScheme(_) => exitcode::USAGE,
         }
     }
 }
