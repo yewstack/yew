@@ -1,4 +1,4 @@
-use clap::{App, AppSettings, Arg, ArgMatches, SubCommand, arg_enum};
+use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use exitcode;
 
 use std::ffi::OsString;
@@ -154,7 +154,6 @@ fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
         .unwrap()
         .map(|p| cwd().join(p))
         .collect::<Vec<PathBuf>>();
-    println!("PATH: {:?}", paths[0]);
     let paths = paths
         .iter()
         .map(|p| canonicalize(p))
@@ -286,7 +285,7 @@ fn execute_wasm_pack(cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString
         .arg("--out-dir")
         .arg("./static")
         .arg("--")
-        .args(wasm_pack_flags)
+        .args(cargo_flags)
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
