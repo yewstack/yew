@@ -248,7 +248,9 @@ impl Component for MyComponent {
 ## Event Types
 
 :::note
-In the following table, "`web-sys` Event Type" should be considered if you're using `yew` with `web-sys` (default); `stdweb` if you use `yew-stdweb`. See [Choose web-sys or stdweb](https://yew.rs/docs/getting-started/choose-web-library) for more information.
+In the following table `web-sys`'s event types should only be used if you're using `yew` with `web-sys`
+(this is enabled by default). Use `stdweb`'s event types if you're using the `yew-stdweb` crate. See 
+[the documentation page about whether to choose `web-sys` or `stdweb`](https://yew.rs/docs/getting-started/choose-web-library) for more information.
 :::
 
 :::note
