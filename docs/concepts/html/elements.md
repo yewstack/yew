@@ -101,8 +101,7 @@ html! {
     <div id?=maybe_id></div>
 }
 ```
-If the attribute is set to a `None` value, it will behave as though the
-attribute wasn't set.
+If the attribute is set to `None`, it will behave as though it wasn't set.
 
 ## Classes
 

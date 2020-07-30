@@ -119,7 +119,7 @@ impl ToTokens for HtmlComponent {
 
         let init_props = match &props.prop_type {
             PropType::List(list_props) => {
-                let set_props = list_props.iter().map(|HtmlProp { label, question_mark: _, value }| {
+                let set_props = list_props.iter().map(|HtmlProp { label, value, .. }| {
                     quote_spanned! { value.span()=> .#label(
                         <::yew::virtual_dom::VComp as ::yew::virtual_dom::Transformer<_, _>>::transform(
                             #value

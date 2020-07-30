@@ -155,11 +155,7 @@ impl ToTokens for HtmlTag {
             }
         });
         let set_booleans = booleans.iter().map(
-            |TagAttribute {
-                 label,
-                 question_mark: _,
-                 value,
-             }| {
+            |TagAttribute { label, value, .. }| {
                 let label_str = label.to_string();
                 quote_spanned! {value.span()=>
                     {
