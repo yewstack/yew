@@ -86,7 +86,7 @@ error: fragments only accept the `key` prop
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: The 'key' attribute does not support being used as an optional attribute
+error: the 'key' attribute does not support being used as an optional attribute
   --> $DIR/html-list-fail.rs:17:14
    |
 17 |     html! { <key?=None></> };

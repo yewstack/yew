@@ -153,18 +153,16 @@ impl ToTokens for HtmlTag {
                 }
             }
         });
-        let set_booleans = booleans.iter().map(
-            |TagAttribute { label, value, .. }| {
-                let label_str = label.to_string();
-                quote_spanned! {value.span()=>
-                    {
-                        if #value {
-                            #vtag.add_attribute(#label_str, &#label_str);
-                        }
+        let set_booleans = booleans.iter().map(|TagAttribute { label, value, .. }| {
+            let label_str = label.to_string();
+            quote_spanned! {value.span()=>
+                {
+                    if #value {
+                        #vtag.add_attribute(#label_str, &#label_str);
                     }
                 }
-            },
-        );
+            }
+        });
         let set_kind = kind.iter().map(|kind| {
             let value = &kind.value;
             if kind.question_mark.is_some() {
@@ -198,8 +196,8 @@ impl ToTokens for HtmlTag {
             if href.question_mark.is_some() {
                 quote_spanned! {value.span()=>
                     {
-                        if let ::std::option::Option::Some(__yew_href) = #value {
-                            let __yew_href: ::yew::html::Href = __yew_href.into();
+                        let __yew_href = ::std::option::Option::map(#value, ::yew::html::Href::from);
+                        if let ::std::option::Option::Some(__yew_href) = __yew_href {
                             #vtag.add_attribute("href", &__yew_href);
                         }
                     }
@@ -207,7 +205,7 @@ impl ToTokens for HtmlTag {
             } else {
                 quote_spanned! {value.span()=>
                     {
-                        let __yew_href: ::yew::html::Href = (#value).into();
+                        let __yew_href = ::yew::html::Href::from(#value);
                         #vtag.add_attribute("href", &__yew_href);
                     }
                 }
@@ -225,7 +223,7 @@ impl ToTokens for HtmlTag {
                 }
             },
             ClassesForm::Single(classes) => quote! {
-                let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
+                let __yew_classes = ::yew::virtual_dom::Classes::from(#classes);
                 if !__yew_classes.is_empty() {
                     #vtag.add_attribute("class", &__yew_classes);
                 }
