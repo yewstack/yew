@@ -310,16 +310,13 @@ impl Parse for TagAttributes {
             if boolean.question_mark.is_some() {
                 return Err(syn::Error::new_spanned(
                     &boolean.label,
-                    format!(
-                        "The '{}' attribute does not support being used as an optional attribute",
-                        boolean.label
-                    ),
+                        "boolean attributes don't support being used as an option attribute (hint: a value of false results in the attribute not being set)"
                 ));
             }
         }
 
         let classes = TagAttributes::remove_attr(&mut attributes, "class");
-        if let Some(classes) = classes.as_ref() {
+        if let Some(classes) = &classes {
             if classes.question_mark.is_some() {
                 return Err(syn::Error::new_spanned(
                     &classes.label,
@@ -331,16 +328,16 @@ impl Parse for TagAttributes {
         let value = TagAttributes::remove_attr(&mut attributes, "value");
         let kind = TagAttributes::remove_attr(&mut attributes, "type");
         let checked = TagAttributes::remove_attr(&mut attributes, "checked");
-        if let Some(checked) = checked.as_ref() {
+        if let Some(checked) = &checked {
             if checked.question_mark.is_some() {
                 return Err(syn::Error::new_spanned(
                     &checked.label,
-                    "the 'checked' attribute does not support being used as an optional attribute",
+                    "boolean attributes don't support being used as an option attribute (hint: a value of false results in the attribute not being set)",
                 ));
             }
         }
         let node_ref = TagAttributes::remove_attr(&mut attributes, "ref");
-        if let Some(node_ref) = node_ref.as_ref() {
+        if let Some(node_ref) = &node_ref {
             if node_ref.question_mark.is_some() {
                 return Err(syn::Error::new_spanned(
                     &node_ref.label,
@@ -350,7 +347,7 @@ impl Parse for TagAttributes {
         }
         let node_ref = node_ref.map(|n| n.value);
         let key = TagAttributes::remove_attr(&mut attributes, "key");
-        if let Some(key) = key.as_ref() {
+        if let Some(key) = &key {
             if key.question_mark.is_some() {
                 return Err(syn::Error::new_spanned(
                     &key.label,
