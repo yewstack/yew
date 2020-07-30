@@ -324,7 +324,7 @@ impl Parse for TagAttributes {
             if classes.question_mark.is_some() {
                 return Err(syn::Error::new_spanned(
                     &classes.label,
-                    "The 'class' attribute does not support being used as an optional attribute",
+                    "the 'class' attribute does not support being used as an optional attribute",
                 ));
             }
         }
@@ -336,7 +336,7 @@ impl Parse for TagAttributes {
             if checked.question_mark.is_some() {
                 return Err(syn::Error::new_spanned(
                     &checked.label,
-                    "The 'checked' attribute does not support being used as an optional attribute",
+                    "the 'checked' attribute does not support being used as an optional attribute",
                 ));
             }
         }
@@ -345,7 +345,7 @@ impl Parse for TagAttributes {
             if node_ref.question_mark.is_some() {
                 return Err(syn::Error::new_spanned(
                     &node_ref.label,
-                    "The 'ref' attribute does not support being used as an optional attribute",
+                    "the 'ref' attribute does not support being used as an optional attribute",
                 ));
             }
         }
@@ -355,7 +355,7 @@ impl Parse for TagAttributes {
             if key.question_mark.is_some() {
                 return Err(syn::Error::new_spanned(
                     &key.label,
-                    "The 'key' attribute does not support being used as an optional attribute",
+                    "the 'key' attribute does not support being used as an optional attribute",
                 ));
             }
         }
