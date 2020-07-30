@@ -38,8 +38,10 @@ install:
   - rustup target add wasm32-unknown-unknown
   - cargo +stable install wasm-pack
   - curl --retry 5 -LO https://github.com/mozilla/geckodriver/releases/download/v0.27.0/geckodriver-v0.27.0-linux64.tar.gz
-  - tar -xzf geckodriver-v0.27.0-linux64.tar.gz
+  - mkdir geckodriver
+  - tar -xzf geckodriver-v0.27.0-linux64.tar.gz -C geckodriver
   - export PATH="$PATH:$PWD/geckodriver"
+  - geckodriver --version
   - ./ci/install_cargo_web.sh
 
 script:
