@@ -277,6 +277,14 @@ fn cwd() -> PathBuf {
     env::current_dir().expect("couldnt resolve current working directory")
 }
 
+fn print_args(binary: &str, args: Vec<OsString>) {
+    let mut output_str = String::from(binary);
+    for arg in args.clone() {
+        output_str.push_str(format!(" {}", arg.to_string_lossy()).as_ref());
+    }
+    println!("{}", output_str);
+}
+
 fn execute_wasm_bindgen(
     cargo_flags: &Vec<OsString>,
     wasm_bindgen_flags: &Vec<OsString>,
@@ -290,19 +298,28 @@ fn execute_wasm_bindgen(
 
 fn execute_wasm_pack(cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString>, path: &Path) {
     //wasm-pack build --target web --out-name wasm --out-dir ./static
-    Command::new("wasm-pack")
+
+    let binary = "wasm-pack";
+
+    let mut args: Vec<OsString> = Vec::new();
+    args.push("build".into());
+    args.extend(wasm_pack_flags.iter().cloned());
+    args.push("--target".into());
+    args.push("web".into());
+    args.push("--out-name".into());
+    args.push("wasm".into());
+    args.push("--out-dir".into());
+    args.push("static".into());
+    if cargo_flags.len() > 0 {
+        args.push("--".into());
+        args.extend(cargo_flags.clone());
+    }
+
+    print_args(binary, args.clone());
+
+    Command::new(binary)
         .current_dir(path)
-        .arg("build")
-        .args(wasm_pack_flags)
-        // TODO scrub the following flags if anything has been specified in cargo_flags?
-        .arg("--target")
-        .arg("web")
-        .arg("--out-name")
-        .arg("wasm")
-        .arg("--out-dir")
-        .arg("./static")
-        .arg("--")
-        .args(cargo_flags)
+        .args(args)
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
