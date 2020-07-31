@@ -296,9 +296,7 @@ fn execute_wasm_bindgen(
     exit(1);
 }
 
-fn execute_wasm_pack(cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString>, path: &Path) {
-    //wasm-pack build --target web --out-name wasm --out-dir ./static
-
+fn execute_wasm_pack(cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString>, path: &Path) -> Result<(), i32> {
     let binary = "wasm-pack";
 
     let mut args: Vec<OsString> = Vec::new();
@@ -322,14 +320,24 @@ fn execute_wasm_pack(cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString
 
     print_args(binary, args.clone());
 
-    Command::new(binary)
+    let status = Command::new(binary)
         .current_dir(path)
         .args(args)
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
-        .spawn()
-        .expect("failed to spawn wasm-pack")
-        .wait()
-        .unwrap();
+        .status()
+        .expect("failed to spawn wasm-pack");
+
+    let code = status.code();
+
+    if !status.success() {
+        if let Some(code) = code {
+            return Err(code)
+        } else {
+            panic!("Killed by signal");
+        }
+    } else {
+        return Ok(())
+    }
 }
