@@ -310,6 +310,11 @@ fn execute_wasm_pack(cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString
     args.push("wasm".into());
     args.push("--out-dir".into());
     args.push("static".into());
+
+    if wasm_pack_flags.len() > 0 {
+        args.extend(wasm_pack_flags.clone());
+    }
+
     if cargo_flags.len() > 0 {
         args.push("--".into());
         args.extend(cargo_flags.clone());
