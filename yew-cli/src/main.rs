@@ -248,7 +248,9 @@ fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
                 Some(flags) => flags.map(|flag| flag.to_os_string()).collect(),
                 None => vec![],
             };
-            execute_wasm_pack(&cargo_flags, &wasm_pack_flags, path.as_path());
+            if let Err(exit_code) = execute_wasm_pack(&cargo_flags, &wasm_pack_flags, path.as_path()) {
+                Err(BuildError::BuildExitCode(exit_code))?
+            }
         } else {
             let wasm_bindgen_flags: Vec<OsString> = match matches.values_of_os("wb_flags") {
                 Some(flags) => flags.map(|flag| flag.to_os_string()).collect(),
