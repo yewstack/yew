@@ -28,6 +28,9 @@ pub enum BuildError {
 
     #[error("invalid scheme: {0}")]
     InvalidScheme(String),
+
+    #[error("build failed with error code: {0}")]
+    BuildExitCode(i32)
 }
 
 impl From<BuildError> for i32 {
@@ -35,6 +38,7 @@ impl From<BuildError> for i32 {
         match error {
             BuildError::NoCargoToml(_) => exitcode::NOINPUT,
             BuildError::InvalidScheme(_) => exitcode::USAGE,
+            BuildError::BuildExitCode(_) => exitcode::DATAERR,
         }
     }
 }
