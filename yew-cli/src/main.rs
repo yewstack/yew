@@ -286,6 +286,19 @@ fn execute_wasm_bindgen(
     // wasm-bindgen --target web --no-typescript --out-dir ./static/ --out-name wasm "$TARGET_DIR/$EXAMPLE.wasm"
     eprintln!("wasm-bindgen support is TODO");
     exit(1);
+
+    let mut args: Vec<OsString> = Vec::new();
+    args.extend(wasm_bindgen_flags.iter().cloned());
+    args.push("--target".into());
+    args.push("web".into());
+    args.push("--no-typescript".into());
+    args.push("--out-dir".into());
+    args.push("static".into());
+    args.push("--out-name".into());
+    args.push("wasm".into());
+    args.push(wasm_path);
+
+    run_command_get_result(path, "wasm-bindgen", args)
 }
 
 fn execute_wasm_pack(cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString>, path: &Path) -> Result<(), i32> {
