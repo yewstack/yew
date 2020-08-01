@@ -132,7 +132,6 @@ impl ToTokens for HtmlTag {
             checked,
             node_ref,
             key,
-            href,
             listeners,
         } = &attributes;
 
@@ -163,10 +162,6 @@ impl ToTokens for HtmlTag {
         let set_value = value.iter().map(|value| {
             quote_spanned! {value.span()=> #vtag.set_value(&(#value)); }
         });
-        if let Some(href) = href {
-            let sr = string_ref::Constructor::from(href);
-            attr_pairs.push(quote! { ("href", #sr) });
-        }
         let set_checked = checked.iter().map(|checked| {
             quote_spanned! {checked.span()=> #vtag.set_checked(#checked); }
         });

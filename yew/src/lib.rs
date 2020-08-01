@@ -210,7 +210,7 @@ pub mod prelude {
     pub use crate::callback::Callback;
     pub use crate::events::*;
     pub use crate::html::{
-        Children, ChildrenWithProps, Component, ComponentLink, Href, Html, NodeRef, Properties,
+        Children, ChildrenWithProps, Component, ComponentLink, Html, NodeRef, Properties,
         Renderable, ShouldRender,
     };
     pub use crate::macros::*;

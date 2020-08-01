@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::*;
 use yew::events::KeyboardEvent;
 use yew::format::Json;
 use yew::services::storage::{Area, StorageService};
-use yew::{html, Component, ComponentLink, Href, Html, InputData, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, InputData, ShouldRender};
 
 const KEY: &str = "yew.todomvc.self";
 
@@ -254,8 +254,8 @@ pub enum Filter {
     Completed,
 }
 
-impl<'a> Into<Href> for &'a Filter {
-    fn into(self) -> Href {
+impl<'a> yew::StringRef for &'a Filter {
+    fn into(self) -> yew::StringRef {
         match *self {
             Filter::All => "#/".into(),
             Filter::Active => "#/active".into(),

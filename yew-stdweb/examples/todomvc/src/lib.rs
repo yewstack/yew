@@ -6,7 +6,7 @@ use strum_macros::{EnumIter, ToString};
 use yew::events::IKeyboardEvent;
 use yew::format::Json;
 use yew::services::storage::{Area, StorageService};
-use yew::{html, Component, ComponentLink, Href, Html, InputData, KeyPressEvent, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, InputData, KeyPressEvent, ShouldRender};
 
 const KEY: &str = "yew.todomvc.self";
 
@@ -253,8 +253,8 @@ pub enum Filter {
     Completed,
 }
 
-impl<'a> Into<Href> for &'a Filter {
-    fn into(self) -> Href {
+impl<'a> Into<yew::StringRef> for &'a Filter {
+    fn into(self) -> yew::StringRef {
         match *self {
             Filter::All => "#/".into(),
             Filter::Active => "#/active".into(),

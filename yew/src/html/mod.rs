@@ -11,7 +11,6 @@ pub use scope::{AnyScope, Scope};
 pub(crate) use scope::{ComponentUpdate, Scoped};
 
 use crate::callback::Callback;
-use crate::utils::StringRef;
 use crate::virtual_dom::{VChild, VNode};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
@@ -499,48 +498,6 @@ impl EmptyBuilder {
 
 /// Link to component's scope for creating callbacks.
 pub type ComponentLink<COMP> = Scope<COMP>;
-
-/// A bridging type for checking `href` attribute value.
-#[derive(Debug)]
-pub struct Href {
-    link: StringRef,
-}
-
-impl From<String> for Href {
-    fn from(link: String) -> Self {
-        Href { link: link.into() }
-    }
-}
-
-impl From<StringRef> for Href {
-    fn from(link: StringRef) -> Self {
-        Href { link }
-    }
-}
-
-impl From<&str> for Href {
-    fn from(link: &str) -> Self {
-        Href { link: link.into() }
-    }
-}
-
-impl ToString for Href {
-    fn to_string(&self) -> String {
-        self.link.to_string()
-    }
-}
-
-impl Into<StringRef> for Href {
-    fn into(self) -> StringRef {
-        self.link
-    }
-}
-
-impl Into<StringRef> for &Href {
-    fn into(self) -> StringRef {
-        self.link.clone()
-    }
-}
 
 #[cfg(test)]
 mod tests {
