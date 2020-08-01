@@ -5,3 +5,7 @@ orig.*
 /.idea
 /.vscode
 /cmake-build-debug
+examples/*/static/wasm_bg.d.ts
+examples/*/static/wasm_bg.wasm
+examples/*/static/wasm.d.ts
+examples/*/static/wasm.js
