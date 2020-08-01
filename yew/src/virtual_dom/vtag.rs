@@ -168,8 +168,8 @@ impl VTag {
     }
 
     /// Adds attribute to a virtual node. Not every attribute works when
-    /// it set as attribute. We use workarounds for:
-    /// `value` and `checked`.
+    /// it is set as an attribute. We use workarounds for:
+    /// `type/kind`, `value` and `checked`.
     ///
     /// If this virtual node has this attribute present, the value is replaced.
     pub fn add_attribute(&mut self, name: &'static str, value: impl Into<StringRef>) {
@@ -177,8 +177,8 @@ impl VTag {
     }
 
     /// Adds attributes to a virtual node. Not every attribute works when
-    /// it set as attribute. We use workarounds for:
-    /// `value` and `checked`.
+    /// it set as  an attribute. We use workarounds for:
+    /// `type/kind`, `value` and `checked`.
     pub fn add_attributes(&mut self, attrs: Vec<(&'static str, StringRef)>) {
         self.attributes.extend(attrs);
     }
