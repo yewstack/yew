@@ -254,7 +254,7 @@ pub enum Filter {
     Completed,
 }
 
-impl<'a> yew::StringRef for &'a Filter {
+impl<'a> Into<yew::StringRef> for &'a Filter {
     fn into(self) -> yew::StringRef {
         match *self {
             Filter::All => "#/".into(),
