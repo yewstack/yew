@@ -272,7 +272,7 @@ fn cwd() -> PathBuf {
 fn print_args(binary: &str, args: Vec<OsString>) {
     let mut output_str = String::from(binary);
     for arg in args.clone() {
-        output_str.push_str(format!(" {}", arg.to_string_lossy()).as_ref());
+        output_str.push_str(&format!(" {}", arg.to_string_lossy()));
     }
     println!("{}", output_str);
 }
@@ -289,8 +289,6 @@ fn execute_wasm_bindgen(
 }
 
 fn execute_wasm_pack(cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString>, path: &Path) -> Result<(), i32> {
-    let binary = "wasm-pack";
-
     let mut args: Vec<OsString> = Vec::new();
     args.push("build".into());
     args.extend(wasm_pack_flags.iter().cloned());
@@ -310,16 +308,20 @@ fn execute_wasm_pack(cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString
         args.extend(cargo_flags.clone());
     }
 
+    run_command_get_result(path, "wasm-pack", args)
+}
+
+fn run_command_get_result(cwd: &Path, binary: &str, args: Vec<OsString>) -> Result<(), i32> {
     print_args(binary, args.clone());
 
     let status = Command::new(binary)
-        .current_dir(path)
+        .current_dir(cwd)
         .args(args)
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .status()
-        .expect("failed to spawn wasm-pack");
+        .expect(&format!("failed to spawn {}", binary));
 
     let code = status.code();
 
