@@ -244,52 +244,46 @@ impl VTag {
         }
     }
 
-    /// Diffs and patches changes in attributes between the old and new list.
+    /// Diffs attributes between the old and new list.
     ///
     /// This method optimises for the lists being the same length, having the
     /// same keys in the same order - most common case.
-    fn patch_attributes(
-        el: &Element,
-        new: &[(&'static str, StringRef)],
-        old: &[(&'static str, StringRef)],
-    ) {
-        let mut new_i = new.iter().peekable();
-        let mut old_i = old.iter().peekable();
+    fn diff_attributes<'a>(
+        new: &'a [(&'static str, StringRef)],
+        old: &'a [(&'static str, StringRef)],
+    ) -> Vec<Patch<&'static str, &'a str>> {
+        let mut out = Vec::new();
+
         if new.len() != old.len() {
-            patch_incompatible(el, new_i, old_i);
-            return;
+            diff_incompatible(&mut out, new, old);
+            return out;
         }
 
-        while let (Some(n), Some(o)) = (new_i.peek(), old_i.peek()) {
+        for (i, (n, o)) in new.iter().zip(old).enumerate() {
             if n.0 != o.0 {
-                patch_incompatible(el, new_i, old_i);
+                diff_incompatible(&mut out, &new[i..], &old[i..]);
                 break;
             }
-
             if n.1 != o.1 {
-                set_attribute(el, n.0, &n.1);
+                out.push(Patch::Replace(n.0, &n.1));
             }
-
-            new_i.next();
-            old_i.next();
         }
 
-        fn set_attribute(el: &Element, k: &str, v: &str) {
-            el.set_attribute(&k, &v).expect("invalid attribute key");
-        }
+        return out;
 
-        /// Diffs and patches attribute lists that do not contain the same set
-        /// of keys in the same order
-        fn patch_incompatible<'n, 'o, N, O>(el: &Element, new: N, old: O)
-        where
-            N: Iterator<Item = &'n (&'static str, StringRef)>,
-            O: Iterator<Item = &'o (&'static str, StringRef)>,
-        {
+        /// Diffs attribute lists that do not contain the same set of keys in
+        /// the same order
+        fn diff_incompatible<'a>(
+            dst: &mut Vec<Patch<&'static str, &'a str>>,
+            new: &'a [(&'static str, StringRef)],
+            old: &'a [(&'static str, StringRef)],
+        ) {
             use std::collections::HashMap;
 
             macro_rules! collect {
                 ($src:expr) => {
-                    $src.map(|(k, v)| (*k, v))
+                    $src.iter()
+                        .map(|(k, v)| (*k, v))
                         .collect::<HashMap<&'static str, &StringRef>>()
                 };
             }
@@ -298,21 +292,19 @@ impl VTag {
             let old = collect!(old);
 
             for (k, n_v) in new.iter() {
-                if match old.get(k) {
-                    Some(o_v) => n_v != o_v,
-                    None => true,
-                } {
-                    set_attribute(el, k, &n_v)
-                }
+                match old.get(k) {
+                    Some(o_v) => {
+                        if n_v != o_v {
+                            dst.push(Patch::Replace(k, n_v));
+                        }
+                    }
+                    None => dst.push(Patch::Add(k, n_v)),
+                };
             }
 
             for k in old.keys() {
                 if !new.contains_key(k) {
-                    cfg_match! {
-                        feature = "std_web" => el.remove_attribute(k),
-                        feature = "web_sys" => el.remove_attribute(k)
-                                                 .expect("could not remove attribute"),
-                    }
+                    dst.push(Patch::Remove(k));
                 }
             }
         }
@@ -359,13 +351,25 @@ impl VTag {
     fn apply_diffs(&mut self, ancestor: &Option<Box<Self>>) {
         let element = self.reference.as_ref().expect("element expected");
 
-        // Update and apply attribute patches including an optional
-        // "class"-attribute patch
-        Self::patch_attributes(
-            &element,
+        // apply attribute patches including an optional "class"-attribute patch
+        for change in Self::diff_attributes(
             &self.attributes,
             &ancestor.as_ref().map(|a| &a.attributes).unwrap_or(&vec![]),
-        );
+        ) {
+            match change {
+                Patch::Add(key, value) | Patch::Replace(key, value) => {
+                    element
+                        .set_attribute(&key, &value)
+                        .expect("invalid attribute key");
+                }
+                Patch::Remove(key) => {
+                    cfg_match! {
+                        feature = "std_web" => element.remove_attribute(&key),
+                        feature = "web_sys" => element.remove_attribute(&key).expect("could not remove attribute"),
+                    };
+                }
+            }
+        }
 
         // TODO: add std_web after https://github.com/koute/stdweb/issues/395 will be approved
         // Check this out: https://github.com/yewstack/yew/pull/1033/commits/4b4e958bb1ccac0524eb20f63f06ae394c20553d
@@ -1518,5 +1522,161 @@ mod layout_tests {
         };
 
         diff_layouts(vec![layout1, layout2, layout3, layout4]);
+    }
+}
+
+#[cfg(test)]
+mod benchmarks {
+    use super::{Patch, VTag};
+    use crate::StringRef;
+    use easybench_wasm::bench_env_limit;
+    use std::collections::HashMap;
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    // In seconds
+    const BENCHMARK_DURATION: f64 = 1.0;
+
+    fn diff_attributes_hashmap<'a>(
+        new: &'a HashMap<&'static str, StringRef>,
+        old: &'a HashMap<&'static str, StringRef>,
+    ) -> Vec<Patch<&'static str, &'a str>> {
+        // Only change what is necessary.
+        let to_add_or_replace = new
+            .iter()
+            .filter_map(move |(key, value)| match old.get(key) {
+                None => Some(Patch::Add(&**key, &**value)),
+                Some(ancestor_value) if value != ancestor_value => {
+                    Some(Patch::Replace(&**key, &**value))
+                }
+                _ => None,
+            });
+        let to_remove = old
+            .keys()
+            .filter(move |key| !new.contains_key(&**key))
+            .map(|key| Patch::Remove(&**key));
+
+        to_add_or_replace.chain(to_remove).collect()
+    }
+
+    macro_rules! bench_attrs {
+        ($name:ident, $args:expr) => {
+            #[test]
+            fn $name() {
+                let env = $args;
+
+                wasm_bindgen_test::console_log!(
+                    "{}: hashmaps: {}",
+                    stringify!($name),
+                    bench_env_limit(BENCHMARK_DURATION, env.clone(), |(a, b)| {
+                        let a: HashMap<&'static str, StringRef> = a.into_iter().collect();
+                        let b: HashMap<&'static str, StringRef> = b.into_iter().collect();
+                        format!("{:?}", diff_attributes_hashmap(&a, &b))
+                    })
+                );
+                wasm_bindgen_test::console_log!(
+                    "{}: vectors: {}",
+                    stringify!($name),
+                    bench_env_limit(BENCHMARK_DURATION, env.clone(), |(a, b)| format!(
+                        "{:?}",
+                        VTag::diff_attributes(&a, &b)
+                    ))
+                );
+            }
+        };
+    }
+
+    // Fill vector wit more attributes
+    fn extend_attrs(dst: &mut Vec<(&'static str, StringRef)>) {
+        dst.extend(vec![
+            ("oh", StringRef::Static("danny")),
+            ("boy", StringRef::Static("the")),
+            ("pipes", StringRef::Static("the")),
+            ("are", StringRef::Static("calling")),
+            ("from", StringRef::Static("glen")),
+            ("to", StringRef::Static("glen")),
+            ("and", StringRef::Static("down")),
+            ("the", StringRef::Static("mountain")),
+            ("side", StringRef::Static("")),
+        ]);
+    }
+
+    bench_attrs! {
+        bench_diff_attributes_same,
+        {
+            let mut old: Vec<(&'static str, StringRef)> = vec![
+                ("disable", StringRef::Static("disable")),
+                ("style", StringRef::Static("display: none;")),
+                ("class", StringRef::Static("lass")),
+            ];
+            extend_attrs(&mut old);
+            (old.clone(), old)
+        }
+    }
+
+    bench_attrs! {
+        bench_diff_attributes_append,
+        {
+            let mut old = vec![
+                ("disable", StringRef::Static("disable")),
+                ("style", StringRef::Static("display: none;")),
+                ("class", StringRef::Static("lass")),
+            ];
+            extend_attrs(&mut old);
+            let mut new = old.clone();
+            new.push(("hidden", StringRef::Static("hidden")));
+            (new, old)
+        }
+    }
+
+    bench_attrs! {
+        bench_diff_attributes_change_first,
+        {
+            let mut old = vec![
+                ("disable", StringRef::Static("disable")),
+                ("style", StringRef::Static("display: none;")),
+                ("class", StringRef::Static("lass")),
+            ];
+            extend_attrs(&mut old);
+            let mut new = old.clone();
+            new[0] = ("disable", StringRef::Static("enable"));
+            (new, old)
+        }
+    }
+
+    bench_attrs! {
+        bench_diff_attributes_change_middle,
+        {
+            let mut old = vec![
+                ("disable", StringRef::Static("disable")),
+                ("style", StringRef::Static("display: none;")),
+                ("class", StringRef::Static("lass")),
+            ];
+            extend_attrs(&mut old);
+            let mut new = old.clone();
+            let mid = &mut new.get_mut(old.len()/2).unwrap();
+            mid.1 = StringRef::Static("changed");
+            (new, old)
+        }
+    }
+
+    bench_attrs! {
+        bench_diff_attributes_change_last,
+        {
+            let mut old = vec![
+                ("disable", StringRef::Static("disable")),
+                ("style", StringRef::Static("display: none;")),
+                ("class", StringRef::Static("lass")),
+            ];
+            extend_attrs(&mut old);
+            let mut new = old.clone();
+            let last = &mut new.get_mut(old.len()-1).unwrap();
+            last.1 = StringRef::Static("changed");
+            (new, old)
+        }
     }
 }
