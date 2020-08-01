@@ -1525,7 +1525,7 @@ mod layout_tests {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "web_sys"))]
 mod benchmarks {
     use super::{Patch, VTag};
     use crate::StringRef;
