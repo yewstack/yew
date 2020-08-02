@@ -1,5 +1,65 @@
 {
   "docs": {
-    "Getting Started": ["intro"]
+    "Getting Started": [
+      "intro",
+      {
+        "type": "subcategory",
+        "label": "Project setup",
+        "ids": [
+          "getting-started/project-setup/setup",
+          "getting-started/project-setup/cargo-web",
+          "getting-started/project-setup/wasm-bindgen",
+          "getting-started/project-setup/wasm-pack"
+        ]
+      },
+      "getting-started/sample-app",
+      "getting-started/web-library",
+      "getting-started/examples",
+      "getting-started/starter-templates"
+    ],
+    "Concepts": [
+      {
+        "type": "subcategory",
+        "label": "Components",
+        "ids": [
+          "concepts/components/components-intro",
+          "concepts/components/callbacks",
+          "concepts/components/properties",
+          "concepts/components/refs"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "The HTML macro",
+        "ids": [
+          "concepts/html/html-intro",
+          "concepts/html/components",
+          "concepts/html/elements",
+          "concepts/html/lists",
+          "concepts/html/expressions"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Services",
+        "ids": [
+          "concepts/services/services-intro",
+          "concepts/services/format"
+        ]
+      },
+      "concepts/router",
+      "concepts/agents",
+      "concepts/services/services"
+    ],
+    "Advanced topics": [
+      "advanced-topics/how-it-works",
+      "advanced-topics/optimizations"
+    ],
+    "More": [
+      "more/debugging",
+      "more/css",
+      "more/testing",
+      "more/roadmap"
+    ]
   }
 }

@@ -3,6 +3,7 @@
 use serde_derive::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, ToString};
+use wasm_bindgen::prelude::*;
 use yew::events::KeyboardEvent;
 use yew::format::Json;
 use yew::services::storage::{Area, StorageService};
@@ -359,4 +360,9 @@ impl State {
         };
         self.entries.remove(idx);
     }
+}
+
+#[wasm_bindgen(start)]
+pub fn run_app() {
+    yew::start_app::<Model>();
 }

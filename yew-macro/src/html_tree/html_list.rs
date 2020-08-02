@@ -1,10 +1,9 @@
-use super::HtmlChildrenTree;
+use super::{html_dashed_name::HtmlDashedName, HtmlChildrenTree};
 use crate::html_tree::{HtmlProp, HtmlPropSuffix};
-use crate::PeekValue;
+use crate::{Peek, PeekValue};
 use boolinator::Boolinator;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
-use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
 use syn::{Expr, Token};
@@ -44,23 +43,22 @@ impl Parse for HtmlList {
         }
 
         let open = input.parse::<HtmlListOpen>()?;
-        if !HtmlList::verify_end(input.cursor()) {
-            return Err(syn::Error::new_spanned(
-                open,
-                "this opening fragment has no corresponding closing fragment",
-            ));
-        }
-
         let mut children = HtmlChildrenTree::new();
         while HtmlListClose::peek(input.cursor()).is_none() {
             children.parse_child(input)?;
+            if input.is_empty() {
+                return Err(syn::Error::new_spanned(
+                    open,
+                    "this opening fragment has no corresponding closing fragment",
+                ));
+            }
         }
 
         input.parse::<HtmlListClose>()?;
 
         Ok(HtmlList {
             children,
-            key: open.key,
+            key: open.props.key,
         })
     }
 }
@@ -81,32 +79,9 @@ impl ToTokens for HtmlList {
     }
 }
 
-impl HtmlList {
-    fn verify_end(mut cursor: Cursor) -> bool {
-        let mut list_stack_count = 1;
-        loop {
-            if HtmlListOpen::peek(cursor).is_some() {
-                list_stack_count += 1;
-            } else if HtmlListClose::peek(cursor).is_some() {
-                list_stack_count -= 1;
-                if list_stack_count == 0 {
-                    break;
-                }
-            }
-            if let Some((_, next)) = cursor.token_tree() {
-                cursor = next;
-            } else {
-                break;
-            }
-        }
-
-        list_stack_count == 0
-    }
-}
-
 struct HtmlListOpen {
     lt: Token![<],
-    key: Option<Expr>,
+    props: HtmlListProps,
     gt: Token![>],
 }
 
@@ -114,8 +89,10 @@ impl PeekValue<()> for HtmlListOpen {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
-        if let Some((ident, _)) = cursor.ident() {
-            (ident == "key").as_option()
+        // make sure it's either a property (key=value) or it's immediately closed
+        if let Some((_, cursor)) = HtmlDashedName::peek(cursor) {
+            let (punct, _) = cursor.punct()?;
+            (punct.as_char() == '=').as_option()
         } else {
             let (punct, _) = cursor.punct()?;
             (punct.as_char() == '>').as_option()
@@ -126,32 +103,9 @@ impl PeekValue<()> for HtmlListOpen {
 impl Parse for HtmlListOpen {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let lt = input.parse()?;
-        if input.cursor().ident().is_some() {
-            let HtmlPropSuffix { stream, gt, .. } = input.parse()?;
-            let props = parse::<ParseKey>(stream)?;
-            Ok(HtmlListOpen {
-                lt,
-                key: Some(props.key.value),
-                gt,
-            })
-        } else {
-            let gt = input.parse()?;
-            Ok(HtmlListOpen { lt, key: None, gt })
-        }
-    }
-}
-
-struct ParseKey {
-    key: HtmlProp,
-}
-
-impl Parse for ParseKey {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
-        let key = input.parse::<HtmlProp>()?;
-        if !input.is_empty() {
-            input.error("Only a single key element is allowed on a <></>");
-        }
-        Ok(ParseKey { key })
+        let HtmlPropSuffix { stream, gt, .. } = input.parse()?;
+        let props = syn::parse2(stream)?;
+        Ok(Self { lt, props, gt })
     }
 }
 
@@ -159,6 +113,33 @@ impl ToTokens for HtmlListOpen {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let HtmlListOpen { lt, gt, .. } = self;
         tokens.extend(quote! {#lt#gt});
+    }
+}
+
+struct HtmlListProps {
+    key: Option<Expr>,
+}
+impl Parse for HtmlListProps {
+    fn parse(input: ParseStream) -> ParseResult<Self> {
+        let key = if input.is_empty() {
+            None
+        } else {
+            let prop: HtmlProp = input.parse()?;
+            if !input.is_empty() {
+                return Err(input.error("only a single `key` prop is allowed on a fragment"));
+            }
+
+            if prop.label.to_ascii_lowercase_string() != "key" {
+                return Err(syn::Error::new_spanned(
+                    prop.label,
+                    "fragments only accept the `key` prop",
+                ));
+            }
+
+            Some(prop.value)
+        };
+
+        Ok(Self { key })
     }
 }
 

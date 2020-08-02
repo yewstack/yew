@@ -2,10 +2,13 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Table100x100 Test</title>
+        <title>Yew • Table 100x100</title>
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <script src="/large_table.js"></script>
+        <script type="module">
+            import init from "./wasm.js"
+            init()
+        </script>
     </body>
 </html>

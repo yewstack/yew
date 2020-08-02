@@ -1,4 +1,6 @@
 ---
+id: setup
+title: Introduction
 description: Set yourself up for success
 ---
 
@@ -16,19 +18,19 @@ Extra tooling is needed to facilitate the interop between WebAssembly and JavaSc
 
 A CLI tool developed by the Rust / Wasm Working Group for packaging up WebAssembly. Best used together with the [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin) for Webpack.
 
-{% page-ref page="using-wasm-pack.md" %}
+[Get started with `wasm-pack`](using-wasm-pack.md)
 
 ### [**`wasm-bindgen`**](https://rustwasm.github.io/docs/wasm-bindgen/)
 
 Both a library and CLI tool and is also developed by the Rust / Wasm Working Group. It is a low level tool \(used internally by `wasm-pack`\) which facilitates JS / WebAssembly interoperability. We don't recommend using `wasm-bindgen`directly because it requires hand-writing some JavaScript to bootstrap your WebAssembly binary. However, it is possible and more info can be found on the [**`wasm-bindgen` guide**](https://rustwasm.github.io/docs/wasm-bindgen/).
 
-{% page-ref page="using-wasm-bindgen.md" %}
+[Get started with `wasm-bindgen`](using-wasm-bindgen.md)
 
 ### [**`cargo-web`**](https://github.com/koute/cargo-web)
 
 The preferred web workflow tool before the introduction of `wasm-pack` and `wasm-bindgen`. It is still the **quickest** way to get up and running and worth installing to run examples that haven't been migrated to support `wasm-pack` yet.
 
-{% page-ref page="using-cargo-web.md" %}
+[Getting started with `cargo web`](using-cargo-web.md)
 
 ### Comparison
 

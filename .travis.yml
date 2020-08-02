@@ -36,11 +36,14 @@ install:
   - rustup component add clippy
   - rustup install stable
   - rustup target add wasm32-unknown-unknown
-  - cargo +stable install wasm-bindgen-cli
+  - cargo +stable install wasm-pack
   - curl --retry 5 -LO https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz
-  - tar -xzf geckodriver-v0.26.0-linux64.tar.gz
+  - mkdir geckodriver
+  - tar -xzf geckodriver-v0.26.0-linux64.tar.gz -C geckodriver
+  - export PATH="$PATH:$PWD/geckodriver"
+  - geckodriver --version
   - ./ci/install_cargo_web.sh
 
 script:
   - ./ci/run_stable_checks.sh
-  - GECKODRIVER=$(pwd)/geckodriver ./ci/run_tests.sh
+  - HTTPBIN_URL="http://localhost:8000" ./ci/run_tests.sh

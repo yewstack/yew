@@ -1,27 +1,26 @@
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use exitcode;
 
+use std::env::current_dir;
 use std::ffi::OsString;
-use std::path::{Path, PathBuf};
-use std::process::{exit, Command, Stdio};
-use std::{env, fs};
+use std::path::PathBuf;
+use std::process::{exit};
 
-use std::fs::{remove_file, File, create_dir_all};
+use std::fs::{remove_file, File};
 use std::io::{Write};
 use webbrowser;
 
+mod env;
 mod error;
+mod execute;
 
 use crate::error::{BuildError, RunError, SubcommandError};
-use std::collections::VecDeque;
+use crate::execute::{execute_wasm_pack, execute_wasm_bindgen};
+use actix_rt::System;
 use actix_web::HttpServer;
 use crate::error::RunError::SpawnServerError;
-use include_dir::{include_dir, Dir};
-use handlebars::Handlebars;
-use serde_json::Value;
 
 const STANDARD_HTML: &str = include_str!("standard_html.html");
-const STANDARD_YEW_PROJECT: Dir = include_dir!("./standard_yew_project");
 
 // Usages:
 //  yew run directory/
@@ -34,32 +33,70 @@ macro_rules! common_flags {
     ($subcommand:expr) => (
         $subcommand
             .arg(
-                Arg::with_name("cargo_flags")
-                    .help("List of flags, terminated by semicolon, to pass to `cargo build`")
+                Arg::from_usage("<scheme> 'The scheme for which to build (\"wasm-pack\" or \"wasm-bindgen\"). Default: wasm-bindgen'")
+                    .possible_values(&["wasm-pack", "wasm-bindgen"])
+                    .long("scheme")
+                    .short("s")
+                    .required(false)
                     .takes_value(true)
-                    .value_terminator(";")
-                    .multiple(true)
-                    .min_values(1)
-                    .value_name("flags")
-                    .long("cargo-flags")
             )
             .arg(
                 Arg::with_name("project_dir")
-                    .long("path")
-                    .short("p")
                     .multiple(true)
                     .takes_value(true)
                     .value_name("project directory")
                     .help("Path(s) to the project directory(ies) for the Yew application(s) that will be built")
                     .required(true)
             )
+            .arg(
+                Arg::with_name("release")
+                    .long("release")
+                    .takes_value(false)
+                    .help("Create a release build. Enable optimizations and disable debug info.")
+            )
+            .arg(
+                Arg::with_name("cargo_flags")
+                    .help("(Advanced) List of flags, terminated by semicolon, to pass to `cargo build`")
+                    .takes_value(true)
+                    .value_terminator(";")
+                    .multiple(true)
+                    .min_values(1)
+                    .value_name("cargo_flags")
+                    .long("cargo-flags")
+            )
+            .arg(
+                Arg::with_name("wasm_bindgen_flags")
+                    .help("(Advanced) List of flags, terminated by semicolon, to pass to `wasm-bindgen`")
+                    .takes_value(true)
+                    .value_terminator(";")
+                    .multiple(true)
+                    .min_values(1)
+                    .value_name("wb_flags")
+                    .long("wb-flags")
+            )
+            .arg(
+                Arg::with_name("wasm_pack_flags")
+                    .help("(Advanced) List of flags, terminated by semicolon, to pass to `wasm-pack`")
+                    .takes_value(true)
+                    .value_terminator(";")
+                    .multiple(true)
+                    .min_values(1)
+                    .value_name("wp_flags")
+                    .long("wp-flags")
+            )
     );
 }
 
 #[actix_rt::main]
 async fn main() {
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        System::with_current(|sys| sys.stop_with_code(1));
+        default_hook(info);
+    }));
+
     let matches = App::new("Yew CLI")
-        .version("0.1")
+        .version("0.2")
         .about("Builds and runs Yew application projects")
         .setting(AppSettings::SubcommandRequired)
         .subcommand(
@@ -80,18 +117,6 @@ async fn main() {
                     .about("Compile and start serving a Yew application in the browser (equivalent to `yew-cli build --run`)")
             )
         )
-        .subcommand(
-            SubCommand::with_name("new")
-                .about("Creates a new yew project")
-                .arg(
-                    Arg::with_name("name")
-                        .help("The name of the project being created")
-                        .required(true)
-                        .long("name")
-                        .short("n")
-                        .takes_value(true)
-                )
-        )
         .get_matches();
 
     let subcommand = matches.subcommand_name().unwrap();
@@ -101,7 +126,8 @@ async fn main() {
     if let Err(err) = exec_subcommand(subcommand, matches).await {
         eprintln!("Fatal error: {}", err);
         let exit_code: i32 = err.into();
-        exit(exit_code)
+
+        System::with_current(|sys| sys.stop_with_code(exit_code));
     }
 
     exit(exitcode::OK)
@@ -153,20 +179,12 @@ fn create_new_project(path: PathBuf) {
 }
 
 fn canonicalize(path: &PathBuf) -> PathBuf {
-    let can = fs::canonicalize(path).unwrap();
-    if cfg!(target_os = "windows") {
-        //this is done cause on rust for some reason puts a \\?\ prefix before all paths, which fucks up
-        //dont know if its just windows, but it feels like one of those windows things
-        let str = can.to_str().unwrap();
-        PathBuf::from(String::from(&str[4..]))
-    } else {
-        can
-    }
+    fs::canonicalize(path).unwrap()
 }
 
 fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
     let paths = matches
-        .values_of("project_dir")
+        .values_of_os("project_dir")
         .unwrap()
         .map(|p| cwd().join(p))
         .collect::<Vec<PathBuf>>();
@@ -179,6 +197,10 @@ fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
 
 
 async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
+    let is_release = matches.is_present("release");
+    if is_release {
+        eprintln!("WARNING: `yew run` is not a substitute for a production HTTP server; use it for development purposes only!");
+    }
     //TODO: make the port of the webserver a flag
     let projects = unwrap_project_dir(&matches);
     let project_count = projects.len();
@@ -189,12 +211,16 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
             let project = project.clone();
             let path = String::from(project.to_str().unwrap());
             let future = HttpServer::new(move || {
+                let project = &projects[0].join("static");
                 actix_web::App::new().service(
-                    actix_files::Files::new("/", path.as_str())
+                    actix_files::Files::new("/", project)
                         .use_last_modified(true)
-                        .index_file("index.html")
+                        .index_file("index.html"),
                 )
-            }).bind("127.0.0.1:3030").unwrap().run();
+            })
+            .bind("127.0.0.1:3030")
+            .unwrap()
+            .run();
             println!();
             //TODO: make this a flag
             if webbrowser::open("http://127.0.0.1:3030/").is_err() {
@@ -206,41 +232,84 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
         0 => panic!("this should never happen because projects are required by clap"),
         _ => {
             let future = HttpServer::new(move || {
-                projects.iter().map(|x|
-                    (String::from(x.file_name().unwrap().to_str().unwrap()),
-                     String::from(x.join("static").to_str().unwrap())))
+                projects
+                    .iter()
+                    .map(|x| {
+                        (
+                            String::from(x.file_name().unwrap().to_str().unwrap()),
+                            String::from(x.join("static").to_str().unwrap()),
+                        )
+                    })
                     .fold(actix_web::App::new(), |acc, (name, path)| {
                         acc.service(
                             actix_files::Files::new(format!("/{}", name).as_str(), path.as_str())
                                 .use_last_modified(true)
-                                .index_file("index.html")
+                                .index_file("index.html"),
                         )
                     })
-            }).bind("127.0.0.1:3030").unwrap().run();
+            })
+            .bind("127.0.0.1:3030")
+            .unwrap()
+            .run();
             future.await
         }
     };
     match run {
         Ok(_) => Ok(()),
-        Err(_) => Err(SpawnServerError)
+        Err(_) => Err(RunError::SpawnServerError),
     }
 }
 
 fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
+    let is_release = matches.is_present("release");
     let cargo_flags: Vec<OsString> = match matches.values_of_os("cargo_flags") {
         Some(flags) => flags.map(|flag| flag.to_os_string()).collect(),
         None => vec![],
     };
     let paths = unwrap_project_dir(&matches);
+    let is_wasm_pack = {
+        let scheme = matches
+            .value_of("scheme")
+            .unwrap_or("wasm-bindgen")
+            .to_string();
+        if &scheme != "wasm-bindgen" && &scheme != "wasm-pack" {
+            Err(BuildError::InvalidScheme(scheme.clone()))?
+        }
+        scheme == "wasm-pack"
+    };
 
     for path in paths {
-        let path_str = path.to_str().unwrap();
-        if !path.join("Cargo.toml").exists() {
-            println!("{} doesn't have a Cargo.toml file", path_str);
+        let path_str = path.to_string_lossy();
+        let cargo_toml = path.join("Cargo.toml");
+        if !cargo_toml.exists() {
             Err(BuildError::NoCargoToml(path_str.to_string()))?
         }
+
         println!("starting building {}", path_str);
-        execute_wasm_pack(&cargo_flags, path.as_path());
+
+        let task = if is_wasm_pack {
+            let wasm_pack_flags: Vec<OsString> = match matches.values_of_os("wp_flags") {
+                Some(flags) => flags.map(|flag| flag.to_os_string()).collect(),
+                None => vec![],
+            };
+            execute_wasm_pack(is_release, &cargo_flags, &wasm_pack_flags, path.as_path())
+        } else {
+            let wasm_bindgen_flags: Vec<OsString> = match matches.values_of_os("wb_flags") {
+                Some(flags) => flags.map(|flag| flag.to_os_string()).collect(),
+                None => vec![],
+            };
+            execute_wasm_bindgen(
+                is_release,
+                &cargo_flags,
+                &wasm_bindgen_flags,
+                path.as_path(),
+            )
+        };
+
+        if let Err(exit_code) = task {
+            Err(BuildError::BuildExitCode(exit_code))?
+        }
+
         let static_path = path.join("static");
         let html_path = static_path.join("index.html");
         if !html_path.exists() {
