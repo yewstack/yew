@@ -231,7 +231,7 @@ impl<COMP: Component> Scope<COMP> {
         closure.into()
     }
 
-    /// Creates a `Callback` from a FnOnce which will send a message
+    /// Creates a `Callback` from an `FnOnce` which will send a message
     /// to the linked component's update method when invoked.
     ///
     /// Please be aware that currently the result of this callback
@@ -266,6 +266,24 @@ impl<COMP: Component> Scope<COMP> {
             scope.send_message_batch(messages);
         };
         closure.into()
+    }
+
+    /// Creates a `Callback` from an `FnOnce` which will send a batch of messages back
+    /// to the linked component's update method when invoked.
+    ///
+    /// Please be aware that currently the results of these callbacks
+    /// will synchronously schedule calls to the
+    /// [Component](Component) interface.
+    pub fn batch_callback_once<F, IN>(&self, function: F) -> Callback<IN>
+    where
+        F: FnOnce(IN) -> Vec<COMP::Message> + 'static,
+    {
+        let scope = self.clone();
+        let closure = move |input| {
+            let messages = function(input);
+            scope.send_message_batch(messages);
+        };
+        Callback::once(closure)
     }
 }
 
