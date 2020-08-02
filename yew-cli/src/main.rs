@@ -23,12 +23,6 @@ use std::collections::VecDeque;
 const STANDARD_HTML: &str = include_str!("standard_html.html");
 const WASM32_TARGET_NAME: &str = "wasm32-unknown-unknown";
 
-// Usages:
-//  yew run directory/
-//  yew build --run directory/ (same as above)
-//  yew build directory/ (only builds)
-//  yew build examples/* (to build all examples)
-
 // it was way easier to define a macro here than to try to deal with Clap's weird lifetime issues
 macro_rules! common_flags {
     ($subcommand:expr) => (
