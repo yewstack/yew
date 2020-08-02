@@ -4,7 +4,7 @@ use std::process::{Command, Stdio};
 
 use crate::env::BuildEnv;
 
-use super::WASM32_TARGET_NAME;
+use crate::WASM32_TARGET_NAME::WASM32_TARGET_NAME;
 
 pub fn print_args(binary: &str, args: Vec<OsString>) {
     let mut output_str = String::from(binary);

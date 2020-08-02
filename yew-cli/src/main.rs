@@ -1,3 +1,5 @@
+mod WASM32_TARGET_NAME;
+
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use exitcode;
 
@@ -131,7 +133,7 @@ async fn main() {
     let matches = matches.clone();
 
     if let Err(err) = exec_subcommand(subcommand, matches).await {
-        eprintln!("Fatal error: {}", err);
+        eprintln!("Fatal error: {:?}", err);
         let exit_code: i32 = err.into();
 
         System::with_current(|sys| sys.stop_with_code(exit_code));
@@ -167,6 +169,7 @@ fn create_new_project(path: PathBuf) {
     let json_data = serde_json::json!({
         "project_name": path.file_name().unwrap().to_str().unwrap(),
         "username": whoami::realname()
+        //add email
     });
     fn create(path: PathBuf, dir: Dir, values: &Value) {
         create_dir_all(path.join(dir.path()).clone()).expect("failed to create dir");

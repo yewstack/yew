@@ -1,7 +1,7 @@
 use std::env;
 use std::path::{Path, PathBuf};
 
-use super::WASM32_TARGET_NAME;
+use crate::WASM32_TARGET_NAME::WASM32_TARGET_NAME;
 
 pub(crate) struct BuildEnv {
     pub generated_wasm: PathBuf,
