@@ -127,13 +127,6 @@ async fn main() {
     if let Err(err) = exec_subcommand(subcommand, matches).await {
         eprintln!("Fatal error: {}", err);
         let exit_code: i32 = err.into();
-
-        // TODO fix this bug that occurs when running the following code (output below):
-        // Fatal error: build failed with error code: 1
-        // 
-        // thread 'main' has overflowed its stack
-        // fatal runtime error: stack overflow
-        // zsh: abort (core dumped)  yew run -s wasm-bindgen .
         
         System::with_current(|sys| sys.stop_with_code(exit_code));
     }
@@ -313,20 +306,25 @@ struct BuildEnv {
 }
 
 fn get_build_env(project_root: &Path, is_release: bool) -> BuildEnv {
-    let base_target = (match env::var_os("CARGO_TARGET_DIR") {
-        Some(provided_target) => Path::new(&provided_target).join(WASM32_TARGET_NAME),
-        None => project_root.clone().join("target").join(WASM32_TARGET_NAME)
-    }).join(if is_release { "release" } else { "debug" });
-
     let cargo_toml = project_root.join("Cargo.toml");
     let metadata = cargo_metadata::MetadataCommand::new().manifest_path(cargo_toml).exec().expect("Failed to get crate metadata");
+    
+    let workspace_root = metadata.workspace_root;
+
+    let base_target = (match env::var_os("CARGO_TARGET_DIR") {
+        Some(provided_target) => Path::new(&provided_target).join(WASM32_TARGET_NAME),
+        None => workspace_root.clone().join("target").join(WASM32_TARGET_NAME)
+    }).join(if is_release { "release" } else { "debug" });
     
 
     let all_wspace_members: HashSet<cargo_metadata::PackageId> = HashSet::from_iter(metadata.workspace_members.iter().cloned());
 
     // TODO use metadata.resolve.root instead of the following:
     // there is no "canonical" package defined by cargo_metadata, so just use the first one in the workspace
-    let package = metadata.packages.iter().find(|pkg| all_wspace_members.contains(&pkg.id)).expect("No packages defined in the workspace");
+
+    let package_id: cargo_metadata::PackageId = metadata.resolve.and_then(|resolve| resolve.root).expect("No root package found");
+
+    let package = metadata.packages.iter().find(|pkg| pkg.id == package_id).expect("Could not access root package");
     let crate_name = &package.name.replace("-", "_"); // TODO test this on Windows; may not have underscores
 
     return BuildEnv {
