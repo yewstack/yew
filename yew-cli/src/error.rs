@@ -30,7 +30,7 @@ pub enum BuildError {
     InvalidScheme(String),
 
     #[error("build failed with error code: {0}")]
-    BuildExitCode(i32)
+    BuildExitCode(i32),
 }
 
 impl From<BuildError> for i32 {

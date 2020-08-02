@@ -1,27 +1,26 @@
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use exitcode;
 
+use std::env::current_dir;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command, Stdio};
-use std::{env, fs};
 
-use std::fs::{remove_file, File};
+use std::fs::{self, remove_file, File};
 use std::io::Write;
-use std::collections::HashSet;
-use std::iter::FromIterator;
 use webbrowser;
 
+mod env;
 mod error;
 
+use crate::env::BuildEnv;
 use crate::error::RunError::SpawnServerError;
 use crate::error::{BuildError, RunError, SubcommandError};
 use actix_rt::System;
 use actix_web::HttpServer;
-use std::collections::VecDeque;
 
 const STANDARD_HTML: &str = include_str!("standard_html.html");
-const WASM32_TARGET_NAME: &str = "wasm32-unknown-unknown";
+pub(crate) const WASM32_TARGET_NAME: &str = "wasm32-unknown-unknown";
 
 // it was way easier to define a macro here than to try to deal with Clap's weird lifetime issues
 macro_rules! common_flags {
@@ -121,7 +120,7 @@ async fn main() {
     if let Err(err) = exec_subcommand(subcommand, matches).await {
         eprintln!("Fatal error: {}", err);
         let exit_code: i32 = err.into();
-        
+
         System::with_current(|sys| sys.stop_with_code(exit_code));
     }
 
@@ -248,7 +247,7 @@ fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
         if !cargo_toml.exists() {
             Err(BuildError::NoCargoToml(path_str.to_string()))?
         }
-        
+
         println!("starting building {}", path_str);
 
         let task = if is_wasm_pack {
@@ -262,7 +261,12 @@ fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
                 Some(flags) => flags.map(|flag| flag.to_os_string()).collect(),
                 None => vec![],
             };
-            execute_wasm_bindgen(is_release, &cargo_flags, &wasm_bindgen_flags, path.as_path())
+            execute_wasm_bindgen(
+                is_release,
+                &cargo_flags,
+                &wasm_bindgen_flags,
+                path.as_path(),
+            )
         };
 
         if let Err(exit_code) = task {
@@ -287,7 +291,7 @@ fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
 }
 
 fn cwd() -> PathBuf {
-    env::current_dir().expect("couldnt resolve current working directory")
+    current_dir().expect("couldnt resolve current working directory")
 }
 
 fn print_args(binary: &str, args: Vec<OsString>) {
@@ -299,43 +303,22 @@ fn print_args(binary: &str, args: Vec<OsString>) {
     println!("{}", output_str);
 }
 
-struct BuildEnv {
-    generated_wasm: PathBuf,
-}
-
-fn get_build_env(project_root: &Path, is_release: bool) -> BuildEnv {
-    let cargo_toml = project_root.join("Cargo.toml");
-    let metadata = cargo_metadata::MetadataCommand::new().manifest_path(cargo_toml).exec().expect("Failed to get crate metadata");
-    
-    let workspace_root = metadata.workspace_root;
-
-    let base_target = (match env::var_os("CARGO_TARGET_DIR") {
-        Some(provided_target) => Path::new(&provided_target).join(WASM32_TARGET_NAME),
-        None => workspace_root.clone().join("target").join(WASM32_TARGET_NAME)
-    }).join(if is_release { "release" } else { "debug" });
-    
-    let all_wspace_members: HashSet<cargo_metadata::PackageId> = HashSet::from_iter(metadata.workspace_members.iter().cloned());
-    let package_id: cargo_metadata::PackageId = metadata.resolve.and_then(|resolve| resolve.root).expect("No root package found");
-    let package = metadata.packages.iter().find(|pkg| pkg.id == package_id).expect("Could not access root package");
-    let crate_name = &package.name.replace("-", "_"); // TODO test this on Windows; may not have underscores
-
-    return BuildEnv {
-        generated_wasm: base_target.join(format!("{}.wasm", crate_name))
-    };
-}
-
 fn execute_wasm_bindgen(
     is_release: bool,
     cargo_flags: &Vec<OsString>,
     wasm_bindgen_flags: &Vec<OsString>,
     project_root: &Path,
 ) -> Result<(), i32> {
-
-    execute_cargo_build(is_release, cargo_flags, WASM32_TARGET_NAME.to_string(), project_root)?;
+    execute_cargo_build(
+        is_release,
+        cargo_flags,
+        WASM32_TARGET_NAME.to_string(),
+        project_root,
+    )?;
     // TODO: first run cargo build [--release] --target wasm32-unknown-unknown, then
     // wasm-bindgen --target web --no-typescript --out-dir ./static/ --out-name wasm "$TARGET_DIR/$EXAMPLE.wasm"
-    
-    let wasm_env = get_build_env(project_root, is_release);
+
+    let wasm_env = BuildEnv::new(project_root, is_release);
     let wasm_path = wasm_env.generated_wasm.as_path();
 
     let mut args: Vec<OsString> = Vec::new();
@@ -352,8 +335,11 @@ fn execute_wasm_bindgen(
     run_command_get_result(project_root, "wasm-bindgen", args)
 }
 
-fn execute_cargo_build(is_release: bool, cargo_flags: &Vec<OsString>, target: String,
-    project_root: &Path
+fn execute_cargo_build(
+    is_release: bool,
+    cargo_flags: &Vec<OsString>,
+    target: String,
+    project_root: &Path,
 ) -> Result<(), i32> {
     let mut args: Vec<OsString> = Vec::new();
     args.push("build".into());
@@ -368,7 +354,12 @@ fn execute_cargo_build(is_release: bool, cargo_flags: &Vec<OsString>, target: St
     run_command_get_result(project_root, "cargo", args)
 }
 
-fn execute_wasm_pack(is_release: bool, cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString>, project_root: &Path) -> Result<(), i32> {
+fn execute_wasm_pack(
+    is_release: bool,
+    cargo_flags: &Vec<OsString>,
+    wasm_pack_flags: &Vec<OsString>,
+    project_root: &Path,
+) -> Result<(), i32> {
     let mut args: Vec<OsString> = Vec::new();
     args.push("build".into());
 
@@ -412,11 +403,11 @@ fn run_command_get_result(cwd: &Path, binary: &str, args: Vec<OsString>) -> Resu
 
     if !status.success() {
         if let Some(code) = code {
-            return Err(code)
+            return Err(code);
         } else {
             panic!("Killed by signal");
         }
     } else {
-        return Ok(())
+        return Ok(());
     }
 }
