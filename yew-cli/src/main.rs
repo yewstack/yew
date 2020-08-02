@@ -8,16 +8,20 @@ use std::{env, fs};
 
 use std::fs::{remove_file, File};
 use std::io::Write;
+use std::collections::HashSet;
+use std::iter::FromIterator;
 use webbrowser;
 
 mod error;
 
 use crate::error::RunError::SpawnServerError;
 use crate::error::{BuildError, RunError, SubcommandError};
+use actix_rt::System;
 use actix_web::HttpServer;
 use std::collections::VecDeque;
 
 const STANDARD_HTML: &str = include_str!("standard_html.html");
+const WASM32_TARGET_NAME: &str = "wasm32-unknown-unknown";
 
 // Usages:
 //  yew run directory/
@@ -46,8 +50,14 @@ macro_rules! common_flags {
                     .required(true)
             )
             .arg(
+                Arg::with_name("release")
+                    .long("release")
+                    .takes_value(false)
+                    .help("Create a release build. Enable optimizations and disable debug info.")
+            )
+            .arg(
                 Arg::with_name("cargo_flags")
-                    .help("List of flags, terminated by semicolon, to pass to `cargo build`")
+                    .help("(Advanced) List of flags, terminated by semicolon, to pass to `cargo build`")
                     .takes_value(true)
                     .value_terminator(";")
                     .multiple(true)
@@ -57,7 +67,7 @@ macro_rules! common_flags {
             )
             .arg(
                 Arg::with_name("wasm_bindgen_flags")
-                    .help("List of flags, terminated by semicolon, to pass to `wasm-bindgen`")
+                    .help("(Advanced) List of flags, terminated by semicolon, to pass to `wasm-bindgen`")
                     .takes_value(true)
                     .value_terminator(";")
                     .multiple(true)
@@ -67,7 +77,7 @@ macro_rules! common_flags {
             )
             .arg(
                 Arg::with_name("wasm_pack_flags")
-                    .help("List of flags, terminated by semicolon, to pass to `wasm-pack`")
+                    .help("(Advanced) List of flags, terminated by semicolon, to pass to `wasm-pack`")
                     .takes_value(true)
                     .value_terminator(";")
                     .multiple(true)
@@ -80,6 +90,12 @@ macro_rules! common_flags {
 
 #[actix_rt::main]
 async fn main() {
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        System::with_current(|sys| sys.stop_with_code(1));
+        default_hook(info);
+    }));
+
     let matches = App::new("Yew CLI")
         .version("0.2")
         .about("Builds and runs Yew application projects")
@@ -111,7 +127,15 @@ async fn main() {
     if let Err(err) = exec_subcommand(subcommand, matches).await {
         eprintln!("Fatal error: {}", err);
         let exit_code: i32 = err.into();
-        exit(exit_code)
+
+        // TODO fix this bug that occurs when running the following code (output below):
+        // Fatal error: build failed with error code: 1
+        // 
+        // thread 'main' has overflowed its stack
+        // fatal runtime error: stack overflow
+        // zsh: abort (core dumped)  yew run -s wasm-bindgen .
+        
+        System::with_current(|sys| sys.stop_with_code(exit_code));
     }
 
     exit(exitcode::OK)
@@ -210,6 +234,7 @@ async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
 }
 
 fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
+    let is_release = matches.is_present("release");
     let cargo_flags: Vec<OsString> = match matches.values_of_os("cargo_flags") {
         Some(flags) => flags.map(|flag| flag.to_os_string()).collect(),
         None => vec![],
@@ -227,27 +252,32 @@ fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
     };
 
     for path in paths {
-        let path_str = path.to_str().unwrap();
-        if !path.join("Cargo.toml").exists() {
-            println!("{} doesn't have a Cargo.toml file", path_str);
+        let path_str = path.to_string_lossy();
+        let cargo_toml = path.join("Cargo.toml");
+        if !cargo_toml.exists() {
             Err(BuildError::NoCargoToml(path_str.to_string()))?
         }
+        
         println!("starting building {}", path_str);
-        if is_wasm_pack {
+
+        let task = if is_wasm_pack {
             let wasm_pack_flags: Vec<OsString> = match matches.values_of_os("wp_flags") {
                 Some(flags) => flags.map(|flag| flag.to_os_string()).collect(),
                 None => vec![],
             };
-            if let Err(exit_code) = execute_wasm_pack(&cargo_flags, &wasm_pack_flags, path.as_path()) {
-                Err(BuildError::BuildExitCode(exit_code))?
-            }
+            execute_wasm_pack(is_release, &cargo_flags, &wasm_pack_flags, path.as_path())
         } else {
             let wasm_bindgen_flags: Vec<OsString> = match matches.values_of_os("wb_flags") {
                 Some(flags) => flags.map(|flag| flag.to_os_string()).collect(),
                 None => vec![],
             };
-            execute_wasm_bindgen(&cargo_flags, &wasm_bindgen_flags, path.as_path());
+            execute_wasm_bindgen(is_release, &cargo_flags, &wasm_bindgen_flags, path.as_path())
+        };
+
+        if let Err(exit_code) = task {
+            Err(BuildError::BuildExitCode(exit_code))?
         }
+
         let static_path = path.join("static");
         let html_path = static_path.join("index.html");
         if !html_path.exists() {
@@ -272,20 +302,51 @@ fn cwd() -> PathBuf {
 fn print_args(binary: &str, args: Vec<OsString>) {
     let mut output_str = String::from(binary);
     for arg in args.clone() {
+        // TODO use shell escape
         output_str.push_str(&format!(" {}", arg.to_string_lossy()));
     }
     println!("{}", output_str);
 }
 
+struct BuildEnv {
+    generated_wasm: PathBuf,
+}
+
+fn get_build_env(project_root: &Path, is_release: bool) -> BuildEnv {
+    let base_target = (match env::var_os("CARGO_TARGET_DIR") {
+        Some(provided_target) => Path::new(&provided_target).join(WASM32_TARGET_NAME),
+        None => project_root.clone().join("target").join(WASM32_TARGET_NAME)
+    }).join(if is_release { "release" } else { "debug" });
+
+    let cargo_toml = project_root.join("Cargo.toml");
+    let metadata = cargo_metadata::MetadataCommand::new().manifest_path(cargo_toml).exec().expect("Failed to get crate metadata");
+    
+
+    let all_wspace_members: HashSet<cargo_metadata::PackageId> = HashSet::from_iter(metadata.workspace_members.iter().cloned());
+
+    // TODO use metadata.resolve.root instead of the following:
+    // there is no "canonical" package defined by cargo_metadata, so just use the first one in the workspace
+    let package = metadata.packages.iter().find(|pkg| all_wspace_members.contains(&pkg.id)).expect("No packages defined in the workspace");
+    let crate_name = &package.name.replace("-", "_"); // TODO test this on Windows; may not have underscores
+
+    return BuildEnv {
+        generated_wasm: base_target.join(format!("{}.wasm", crate_name))
+    };
+}
+
 fn execute_wasm_bindgen(
+    is_release: bool,
     cargo_flags: &Vec<OsString>,
     wasm_bindgen_flags: &Vec<OsString>,
-    path: &Path,
-) {
+    project_root: &Path,
+) -> Result<(), i32> {
+
+    execute_cargo_build(is_release, cargo_flags, WASM32_TARGET_NAME.to_string(), project_root)?;
     // TODO: first run cargo build [--release] --target wasm32-unknown-unknown, then
     // wasm-bindgen --target web --no-typescript --out-dir ./static/ --out-name wasm "$TARGET_DIR/$EXAMPLE.wasm"
-    eprintln!("wasm-bindgen support is TODO");
-    exit(1);
+    
+    let wasm_env = get_build_env(project_root, is_release);
+    let wasm_path = wasm_env.generated_wasm.as_path();
 
     let mut args: Vec<OsString> = Vec::new();
     args.extend(wasm_bindgen_flags.iter().cloned());
@@ -296,15 +357,35 @@ fn execute_wasm_bindgen(
     args.push("static".into());
     args.push("--out-name".into());
     args.push("wasm".into());
-    args.push(wasm_path);
+    args.push(wasm_path.into());
 
-    run_command_get_result(path, "wasm-bindgen", args)
+    run_command_get_result(project_root, "wasm-bindgen", args)
 }
 
-fn execute_wasm_pack(cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString>, path: &Path) -> Result<(), i32> {
+fn execute_cargo_build(is_release: bool, cargo_flags: &Vec<OsString>, target: String,
+    project_root: &Path
+) -> Result<(), i32> {
     let mut args: Vec<OsString> = Vec::new();
     args.push("build".into());
+
+    args.extend(cargo_flags.iter().cloned());
+    if is_release {
+        args.push("--release".into());
+    }
+    args.push("--target".into());
+    args.push(target.into());
+
+    run_command_get_result(project_root, "cargo", args)
+}
+
+fn execute_wasm_pack(is_release: bool, cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString>, project_root: &Path) -> Result<(), i32> {
+    let mut args: Vec<OsString> = Vec::new();
+    args.push("build".into());
+
     args.extend(wasm_pack_flags.iter().cloned());
+    if is_release {
+        args.push("--release".into());
+    }
     args.push("--target".into());
     args.push("web".into());
     args.push("--out-name".into());
@@ -321,10 +402,11 @@ fn execute_wasm_pack(cargo_flags: &Vec<OsString>, wasm_pack_flags: &Vec<OsString
         args.extend(cargo_flags.clone());
     }
 
-    run_command_get_result(path, "wasm-pack", args)
+    run_command_get_result(project_root, "wasm-pack", args)
 }
 
 fn run_command_get_result(cwd: &Path, binary: &str, args: Vec<OsString>) -> Result<(), i32> {
+    // TODO print cd to move into directory
     print_args(binary, args.clone());
 
     let status = Command::new(binary)
