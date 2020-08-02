@@ -1,6 +1,4 @@
-use std::collections::HashSet;
 use std::env;
-use std::iter::FromIterator;
 use std::path::{Path, PathBuf};
 
 use super::WASM32_TARGET_NAME;
