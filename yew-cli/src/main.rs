@@ -165,6 +165,10 @@ fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
 }
 
 async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
+    let is_release = matches.is_present("release");
+    if is_release {
+        eprintln!("WARNING: `yew run` is not a substitute for a production HTTP server; use it for development purposes only!");
+    }
     let projects = unwrap_project_dir(&matches);
     let project_count = projects.len();
     cmd_build(matches.clone()).map_err(RunError::BuildError)?;
@@ -310,14 +314,8 @@ fn get_build_env(project_root: &Path, is_release: bool) -> BuildEnv {
         None => workspace_root.clone().join("target").join(WASM32_TARGET_NAME)
     }).join(if is_release { "release" } else { "debug" });
     
-
     let all_wspace_members: HashSet<cargo_metadata::PackageId> = HashSet::from_iter(metadata.workspace_members.iter().cloned());
-
-    // TODO use metadata.resolve.root instead of the following:
-    // there is no "canonical" package defined by cargo_metadata, so just use the first one in the workspace
-
     let package_id: cargo_metadata::PackageId = metadata.resolve.and_then(|resolve| resolve.root).expect("No root package found");
-
     let package = metadata.packages.iter().find(|pkg| pkg.id == package_id).expect("Could not access root package");
     let crate_name = &package.name.replace("-", "_"); // TODO test this on Windows; may not have underscores
 
