@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::{exit, Command, Stdio};
 use std::{env, fs};
 
-use std::fs::{remove_file, File};
+use std::fs::{remove_file, File, create_dir_all};
 use std::io::{Write};
 use webbrowser;
 
@@ -16,8 +16,12 @@ use crate::error::{BuildError, RunError, SubcommandError};
 use std::collections::VecDeque;
 use actix_web::HttpServer;
 use crate::error::RunError::SpawnServerError;
+use include_dir::{include_dir, Dir};
+use handlebars::Handlebars;
+use serde_json::Value;
 
 const STANDARD_HTML: &str = include_str!("standard_html.html");
+const STANDARD_YEW_PROJECT: Dir = include_dir!("./standard_yew_project");
 
 // Usages:
 //  yew run directory/
@@ -76,6 +80,18 @@ async fn main() {
                     .about("Compile and start serving a Yew application in the browser (equivalent to `yew-cli build --run`)")
             )
         )
+        .subcommand(
+            SubCommand::with_name("new")
+                .about("Creates a new yew project")
+                .arg(
+                    Arg::with_name("name")
+                        .help("The name of the project being created")
+                        .required(true)
+                        .long("name")
+                        .short("n")
+                        .takes_value(true)
+                )
+        )
         .get_matches();
 
     let subcommand = matches.subcommand_name().unwrap();
@@ -105,9 +121,35 @@ async fn exec_subcommand(subcommand: &str, matches: ArgMatches<'_>) -> Result<()
                 cmd_build(matches).map_err(SubcommandError::BuildError)?;
             };
         }
+        "new" => {
+            let path = cwd().join(matches.value_of_os("name").unwrap());
+            create_new_project(path);
+        }
         _ => panic!("unknown subcommand"),
     };
     Ok(())
+}
+
+fn create_new_project(path: PathBuf) {
+    let json_data = serde_json::json!({
+        "project_name": path.file_name().unwrap().to_str().unwrap(),
+        "username": whoami::realname()
+    });
+    fn create(path: PathBuf, dir: Dir, values: &Value) {
+        create_dir_all(path.join(dir.path()).clone()).expect("failed to create dir");
+        for dir in dir.dirs().to_vec() {
+            create(path.clone(), dir, values);
+        }
+        for file in dir.files().to_vec() {
+            let file_contents = file.contents_utf8().expect("counldnt unwrap file contents");
+            let file_contents = Handlebars::new()
+                .render_template(file_contents, values).expect("couldnt use templating engine");
+            let mut file = File::create(path.join(file.path())).expect("couldnt create file");
+            file.write_all(file_contents.as_bytes());
+        }
+    }
+    create_dir_all(path.clone()).expect("failed to create project dir");
+    create(path.clone(), STANDARD_YEW_PROJECT, &json_data);
 }
 
 fn canonicalize(path: &PathBuf) -> PathBuf {
@@ -137,6 +179,7 @@ fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
 
 
 async fn cmd_run<'a>(matches: ArgMatches<'a>) -> Result<(), RunError> {
+    //TODO: make the port of the webserver a flag
     let projects = unwrap_project_dir(&matches);
     let project_count = projects.len();
     cmd_build(matches.clone()).map_err(RunError::BuildError)?;
