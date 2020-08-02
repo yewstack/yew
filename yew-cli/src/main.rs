@@ -6,7 +6,7 @@ use std::ffi::OsString;
 use std::path::PathBuf;
 use std::process::{exit};
 
-use std::fs::{remove_file, File};
+use std::fs::{remove_file, File, create_dir_all};
 use std::io::{Write};
 use webbrowser;
 
@@ -19,8 +19,14 @@ use crate::execute::{execute_wasm_pack, execute_wasm_bindgen};
 use actix_rt::System;
 use actix_web::HttpServer;
 use crate::error::RunError::SpawnServerError;
+use include_dir::Dir;
+use serde_json::Value;
+use std::fs;
+use include_dir::{include_dir};
+use handlebars::Handlebars;
 
 const STANDARD_HTML: &str = include_str!("standard_html.html");
+const STANDARD_YEW_PROJECT: Dir = include_dir!("./standard_yew_project");
 
 // Usages:
 //  yew run directory/
@@ -84,6 +90,7 @@ macro_rules! common_flags {
                     .value_name("wp_flags")
                     .long("wp-flags")
             )
+
     );
 }
 
@@ -328,27 +335,5 @@ fn cmd_build(matches: ArgMatches) -> Result<(), BuildError> {
 }
 
 fn cwd() -> PathBuf {
-    env::current_dir().expect("couldnt resolve current working directory")
-}
-
-fn execute_wasm_pack(cargo_flags: &Vec<OsString>, path: &Path) {
-    //wasm-pack build --target web --out-name wasm --out-dir ./static
-    Command::new("wasm-pack")
-        .current_dir(path)
-        .arg("build")
-        .args(cargo_flags)
-        // TODO scrub the following flags if anything has been specified in cargo_flags?
-        .arg("--target")
-        .arg("web")
-        .arg("--out-name")
-        .arg("wasm")
-        .arg("--out-dir")
-        .arg("./static")
-        .stdin(Stdio::inherit())
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .spawn()
-        .expect("failed to spawn wasm-pack")
-        .wait()
-        .unwrap();
+    std::env::current_dir().expect("couldnt resolve current working directory")
 }
