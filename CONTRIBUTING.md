@@ -67,7 +67,7 @@ The script currently always runs the tests in Firefox.
 
 #### Fetch service tests
 
-That only applies to the `yew` (and `yew-stdweb`) crate.
+The following only applies to the `yew` (and `yew-stdweb`) crate.
 
 The tests for the fetch service require a local httpbin server. We recommend running this with [Docker](https://www.docker.com/):
 
