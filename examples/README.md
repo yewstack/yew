@@ -16,6 +16,7 @@ Have a look at Yew's [starter templates](https://yew.rs/docs/getting-started/sta
 ```sh
 git clone https://github.com/yewstack/yew.git
 cd yew/examples
+git checkout v0.17 # switch to current version branch
 ./build.sh minimal # example subfolder
 cd static && python3 -m http.server  # open localhost:8000 in browser
 ```
