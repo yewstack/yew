@@ -35,6 +35,7 @@ members = [
   "examples/custom_components",
   "examples/dashboard",
   "examples/file_upload",
+  "examples/form",
   "examples/fragments",
   "examples/futures_wp",
   "examples/game_of_life",
