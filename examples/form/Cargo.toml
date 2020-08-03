@@ -1,0 +1,8 @@
+[package]
+name = "form"
+version = "0.1.0"
+authors = ["Philip Peterson <pc.peterso@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+yew = { path = "../../yew" }
