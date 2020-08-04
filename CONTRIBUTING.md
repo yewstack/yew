@@ -1,6 +1,6 @@
 # Contribution Guide
 
-## Settting up your local development environment
+## Setting up your local development environment
 
 ### Add the wasm target
 
@@ -16,7 +16,7 @@ cargo build --target wasm32-unknown-unknown
 
 #### stdweb
 
-In order to run the examples in `./yew-stdweb`, you may wish to install [cargo-web](https://github.com/koute/cargo-web):
+To run the examples in `./yew-stdweb`, you may wish to install [cargo-web](https://github.com/koute/cargo-web):
 
 ```bash
 cargo install cargo-web
@@ -24,12 +24,12 @@ cargo install cargo-web
 
 ## Tests
 
-Yew has unit tests which can be run with `cargo test`. However, a large portion of the tests need to be run in a browser.
+Yew has unit tests which run via `cargo test`. However, a browser is required to run a large portion of the tests.
 This section will guide you through the process of running these tests locally.
 
 ### Integration Tests
 
-First, ensure that `wasm-pack` is installed.
+First, install `wasm-pack`.
 [Instructions](https://rustwasm.github.io/wasm-pack/installer/)
 
 `wasm-pack` automatically takes care of installing the correct `wasm-bindgen` version and downloading a WebDriver for the browser.
@@ -40,7 +40,7 @@ The following command is all you need to run the tests:
 wasm-pack test --firefox --headless -- --features wasm_test
 ```
 
-You can replace `--firefox` with `--chrome` or `--safari` if you want to run the tests in a different browser. Currently Yew's CI tests use Firefox.
+You can replace `--firefox` with `--chrome` or `--safari` if you want to run the tests in a different browser. Currently, Yew's CI tests use Firefox.
 
 Make sure to run the command in the directory of the crate you wish to test (e.g. `yew` or `yewtil`).
 If you run the command in the repository root you will get an error like this:
@@ -56,18 +56,18 @@ Caused by: missing field `package`
 If desired, you can download a WebDriver manually. For instructions, please consult the documentation of the WebDriver you wish to install.
 
 You might want to pass the argument `--mode no-install` to `wasm-pack` to make sure it doesn't try to install something.
-If the WebDriver binary is in the path you can use the same command as above to run the tests.
+If the WebDriver binary is in the path, you can use the same command as above to run the tests.
 If not, you need to tell `wasm-pack test` where to find it using the `--geckodriver`, `--chromedriver`, or `--safaridriver` option.
 Run `wasm-pack test --help` to learn more.
 
 #### Running all tests
 
-You can use the `/ci/run_tests.sh` script to run all tests. This is the same script that is used by Yew's CI to run the whole test suite.
+You can use the `/ci/run_tests.sh` script to run all tests, which is the same script that is used by Yew's CI to run the whole test suite.
 The script currently always runs the tests in Firefox.
 
 #### Fetch service tests
 
-This only applies to the `yew` (and `yew-stdweb`) crate.
+The following only applies to the `yew` (and `yew-stdweb`) crate.
 
 The tests for the fetch service require a local httpbin server. We recommend running this with [Docker](https://www.docker.com/):
 
@@ -75,8 +75,8 @@ The tests for the fetch service require a local httpbin server. We recommend run
 docker run -p 8000:80 kennethreitz/httpbin
 ```
 
-Before running the tests you need to set the `HTTPBIN_URL` environment variable to the url of your httpbin instance.
-If you used the previous command to start the server the value should be "http://localhost:8000" (It's important that you don't add a trailing slash).
+Before running the tests, you need to set the `HTTPBIN_URL` environment variable to the URL of your httpbin instance.
+If you used the previous command to start the server the value should be "http://localhost:8000" (You mustn't add a trailing slash).
 
 ```shell
 # Unix-like
@@ -86,7 +86,7 @@ export HTTPBIN_URL="http://localhost:8000"
 set HTTPBIN_URL=http://localhost:8000
 ```
 
-You also need to activate the `httpbin_test` feature in order for the tests to run:
+You also need to activate the `httpbin_test` feature for the tests to run:
 
 ```bash
 wasm-pack test --firefox --headless -- --features wasm_test,httpbin_test
@@ -114,7 +114,7 @@ Feel free to add new benchmark tests if the current benchmark coverage is insuff
 
 When building new APIs, think about what it would be like to use them. Would this API cause confusing and hard to pin error mesages? Would this API integrate well with other APIs? Is it intuitive to use this API?
 
-There are many resources which provide good guidance on how to write APIs, a few of which are given below. These are only _guidelines_ and while they are useful and should be followed where possible, in some cases it may not be possible to do so.
+Below, you can find some useful guidance and best practices on how to write APIs. These are only _guidelines_ and while they are helpful and should be followed where possible, in some cases, it may not be possible to do so.
 
 - [The Rust API Guidelines](https://rust-lang.github.io/api-guidelines/)
 - [Elegant Library APIs in Rust](https://deterministic.space/elegant-apis-in-rust.html)
