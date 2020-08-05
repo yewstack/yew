@@ -14,7 +14,6 @@ pub mod vtag;
 pub mod vtext;
 
 use crate::html::{AnyScope, NodeRef};
-use crate::utils::StringRef;
 use cfg_if::cfg_if;
 use indexmap::set::IndexSet;
 use std::fmt;
@@ -64,7 +63,7 @@ type Listeners = Vec<Rc<dyn Listener>>;
 ///
 /// A vector is ideal because most of the time the list will neither change
 /// length nor key order.
-type Attributes = Vec<(&'static str, StringRef)>;
+type Attributes = Vec<(&'static str, std::borrow::Cow<'static, str>)>;
 
 /// A set of classes.
 #[derive(Debug, Clone, Default)]

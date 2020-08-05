@@ -64,7 +64,7 @@ extern crate proc_macro;
 
 mod derive_props;
 mod html_tree;
-mod string_ref;
+mod stringify;
 
 use derive_props::DerivePropsInput;
 use html_tree::{HtmlRoot, HtmlRootVNode};

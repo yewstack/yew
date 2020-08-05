@@ -1,6 +1,7 @@
 #![recursion_limit = "512"]
 
 use serde_derive::{Deserialize, Serialize};
+use std::borrow::Cow;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, ToString};
 use wasm_bindgen::prelude::*;
@@ -178,7 +179,7 @@ impl Model {
         html! {
             <li>
                 <a class=cls
-                   href=&flt
+                   href=flt
                    onclick=self.link.callback(move |_| Msg::SetFilter(flt.clone()))>
                     { filter }
                 </a>
@@ -254,8 +255,8 @@ pub enum Filter {
     Completed,
 }
 
-impl<'a> Into<yew::StringRef> for &'a Filter {
-    fn into(self) -> yew::StringRef {
+impl<'a> Into<Cow<'static, str>> for &'a Filter {
+    fn into(self) -> Cow<'static, str> {
         match *self {
             Filter::All => "#/".into(),
             Filter::Active => "#/active".into(),

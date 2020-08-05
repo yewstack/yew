@@ -1,6 +1,7 @@
 /// Original author of this code is [Nathan Ringo](https://github.com/remexre)
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
 use pulldown_cmark::{Alignment, CodeBlockKind, Event, Options, Parser, Tag};
+use std::borrow::Cow;
 use yew::virtual_dom::{Classes, VNode, VTag, VText};
 use yew::{html, Html};
 
@@ -73,7 +74,7 @@ pub fn render_markdown(src: &str) -> Html {
                         if let VNode::VTag(ref mut vtag) = c {
                             // TODO
                             //                            vtag.tag = "th".into();
-                            vtag.add_attribute("scope", &"col");
+                            vtag.add_attribute("scope", Cow::Borrowed("col"));
                         }
                     }
                 }
@@ -110,7 +111,7 @@ fn make_tag(t: Tag) -> VTag {
         }
         Tag::BlockQuote => {
             let mut el = VTag::new("blockquote");
-            el.add_attribute("class", &"blockquote");
+            el.add_attribute("class", Cow::Borrowed("blockquote"));
             el
         }
         Tag::CodeBlock(code_block_kind) => {
@@ -122,10 +123,10 @@ fn make_tag(t: Tag) -> VTag {
                 // highlighting support by locating the language classes and applying dom transforms
                 // on their contents.
                 match lang.as_ref() {
-                    "html" => el.add_attribute("class", &"html-language"),
-                    "rust" => el.add_attribute("class", &"rust-language"),
-                    "java" => el.add_attribute("class", &"java-language"),
-                    "c" => el.add_attribute("class", &"c-language"),
+                    "html" => el.add_attribute("class", Cow::Borrowed("html-language")),
+                    "rust" => el.add_attribute("class", Cow::Borrowed("rust-language")),
+                    "java" => el.add_attribute("class", Cow::Borrowed("java-language")),
+                    "c" => el.add_attribute("class", Cow::Borrowed("c-language")),
                     _ => {} // Add your own language highlighting support
                 };
             }
@@ -142,7 +143,7 @@ fn make_tag(t: Tag) -> VTag {
         Tag::Item => VTag::new("li"),
         Tag::Table(_) => {
             let mut el = VTag::new("table");
-            el.add_attribute("class", &"table");
+            el.add_attribute("class", Cow::Borrowed("table"));
             el
         }
         Tag::TableHead => VTag::new("th"),
@@ -150,12 +151,12 @@ fn make_tag(t: Tag) -> VTag {
         Tag::TableCell => VTag::new("td"),
         Tag::Emphasis => {
             let mut el = VTag::new("span");
-            el.add_attribute("class", &"font-italic");
+            el.add_attribute("class", Cow::Borrowed("font-italic"));
             el
         }
         Tag::Strong => {
             let mut el = VTag::new("span");
-            el.add_attribute("class", &"font-weight-bold");
+            el.add_attribute("class", Cow::Borrowed("font-weight-bold"));
             el
         }
         Tag::Link(_link_type, ref href, ref title) => {
@@ -163,7 +164,7 @@ fn make_tag(t: Tag) -> VTag {
             el.add_attribute("href", ToString::to_string(href));
             let title = title.clone().into_string();
             if title != "" {
-                el.add_attribute("title", &title);
+                el.add_attribute("title", title.clone());
             }
             el
         }
@@ -172,14 +173,14 @@ fn make_tag(t: Tag) -> VTag {
             el.add_attribute("src", ToString::to_string(src));
             let title = title.clone().into_string();
             if title != "" {
-                el.add_attribute("title", &title);
+                el.add_attribute("title", title.clone());
             }
             el
         }
         Tag::FootnoteDefinition(ref _footnote_id) => VTag::new("span"), // Footnotes are not rendered as anything special
         Tag::Strikethrough => {
             let mut el = VTag::new("span");
-            el.add_attribute("class", &"text-decoration-strikethrough");
+            el.add_attribute("class", Cow::Borrowed("text-decoration-strikethrough"));
             el
         }
     }

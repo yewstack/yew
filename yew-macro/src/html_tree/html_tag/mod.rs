@@ -4,7 +4,7 @@ use super::HtmlChildrenTree;
 use super::HtmlDashedName;
 use super::HtmlProp as TagAttribute;
 use super::HtmlPropSuffix as TagSuffix;
-use crate::string_ref;
+use crate::stringify;
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, Span};
@@ -105,14 +105,16 @@ impl ToTokens for HtmlTag {
         let name = match &tag_name {
             TagName::Lit(name) => {
                 let name_str = name.to_string();
-                quote! { ::yew::StringRef::Static(#name_str) }
+                quote! { ::std::borrow::Cow::<'static, str>::Borrowed(#name_str) }
             }
             TagName::Expr(name) => {
                 let expr = &name.expr;
                 let vtag_name = Ident::new("__yew_vtag_name", expr.span());
                 // this way we get a nice error message (with the correct span) when the expression doesn't return a valid value
                 quote_spanned! {expr.span()=> {
-                    let mut #vtag_name = ::yew::StringRef::from(#expr);
+                    let mut #vtag_name = ::std::borrow::Cow::<'static, str>::Owned(
+                        ::std::convert::Into::<String>::into(#expr),
+                    );
                     if !#vtag_name.is_ascii() {
                         ::std::panic!("a dynamic tag returned a tag name containing non ASCII characters: `{}`", #vtag_name);
                     }
@@ -140,7 +142,7 @@ impl ToTokens for HtmlTag {
             .iter()
             .map(|TagAttribute { label, value }| {
                 let label_str = label.to_string();
-                let sr = string_ref::Constructor::from(value);
+                let sr = stringify::Constructor::from(value);
                 quote! { (#label_str, #sr) }
             })
             .collect();
@@ -150,13 +152,13 @@ impl ToTokens for HtmlTag {
                 if #value {
                     #vtag.add_attribute(
                         #label_str,
-                        ::yew::StringRef::Static(#label_str),
+                        ::std::borrow::Cow::<'static, str>::Borrowed(#label_str),
                     );
                 }
             }
         });
         let set_kind = kind.iter().map(|kind| {
-            let sr = string_ref::Constructor::from(kind);
+            let sr = stringify::Constructor::from(kind);
             quote_spanned! {kind.span()=> #vtag.set_kind(#sr); }
         });
         let set_value = value.iter().map(|value| {
@@ -174,10 +176,10 @@ impl ToTokens for HtmlTag {
                     #vtag.add_attribute("class", ::std::string::ToString::to_string(&__yew_classes));
                 }
             }),
-            Some(ClassesForm::Single(classes)) => match string_ref::try_stringify_expr(classes) {
+            Some(ClassesForm::Single(classes)) => match stringify::try_stringify_expr(classes) {
                 Some(s) => {
                     if !s.is_empty() {
-                        let sr = string_ref::Constructor::from(s);
+                        let sr = stringify::Constructor::from(s);
                         attr_pairs.push(quote! { ("class", #sr) });
                     }
                     None

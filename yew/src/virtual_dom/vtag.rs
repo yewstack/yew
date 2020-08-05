@@ -2,10 +2,11 @@
 
 use super::{Attributes, Key, Listener, Listeners, Patch, Transformer, VDiff, VList, VNode};
 use crate::html::{AnyScope, NodeRef};
-use crate::utils::{document, StringRef};
+use crate::utils::document;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;
+use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::rc::Rc;
 cfg_if! {
@@ -58,7 +59,7 @@ impl ElementType {
 #[derive(Debug)]
 pub struct VTag {
     /// A tag of the element.
-    tag: StringRef,
+    tag: Cow<'static, str>,
     /// Type of element.
     element_type: ElementType,
     /// A reference to the DOM `Element`.
@@ -75,7 +76,7 @@ pub struct VTag {
     /// Contains
     /// [kind](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types)
     /// value of an `InputElement`.
-    pub kind: Option<StringRef>,
+    pub kind: Option<Cow<'static, str>>,
     /// Represents `checked` attribute of
     /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
     /// It exists to override standard behavior of `checked` attribute, because
@@ -111,8 +112,8 @@ impl Clone for VTag {
 
 impl VTag {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
-    pub fn new(tag: impl Into<StringRef>) -> Self {
-        let tag: StringRef = tag.into();
+    pub fn new(tag: impl Into<Cow<'static, str>>) -> Self {
+        let tag: Cow<'static, str> = tag.into();
         let element_type = ElementType::from_tag(&tag);
         VTag {
             tag,
@@ -156,7 +157,7 @@ impl VTag {
     /// Sets `kind` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// Same as set `type` attribute.
-    pub fn set_kind(&mut self, value: impl Into<StringRef>) {
+    pub fn set_kind(&mut self, value: impl Into<Cow<'static, str>>) {
         self.kind = Some(value.into());
     }
 
@@ -172,14 +173,14 @@ impl VTag {
     /// `type/kind`, `value` and `checked`.
     ///
     /// If this virtual node has this attribute present, the value is replaced.
-    pub fn add_attribute(&mut self, name: &'static str, value: impl Into<StringRef>) {
+    pub fn add_attribute(&mut self, name: &'static str, value: impl Into<Cow<'static, str>>) {
         self.attributes.push((name, value.into()));
     }
 
     /// Adds attributes to a virtual node. Not every attribute works when
     /// it set as  an attribute. We use workarounds for:
     /// `type/kind`, `value` and `checked`.
-    pub fn add_attributes(&mut self, attrs: Vec<(&'static str, StringRef)>) {
+    pub fn add_attributes(&mut self, attrs: Vec<(&'static str, Cow<'static, str>)>) {
         self.attributes.extend(attrs);
     }
 
@@ -249,8 +250,8 @@ impl VTag {
     /// This method optimises for the lists being the same length, having the
     /// same keys in the same order - most common case.
     fn diff_attributes<'a>(
-        new: &'a [(&'static str, StringRef)],
-        old: &'a [(&'static str, StringRef)],
+        new: &'a [(&'static str, Cow<'static, str>)],
+        old: &'a [(&'static str, Cow<'static, str>)],
     ) -> Vec<Patch<&'static str, &'a str>> {
         let mut out = Vec::new();
 
@@ -275,8 +276,8 @@ impl VTag {
         /// the same order
         fn diff_incompatible<'a>(
             dst: &mut Vec<Patch<&'static str, &'a str>>,
-            new: &'a [(&'static str, StringRef)],
-            old: &'a [(&'static str, StringRef)],
+            new: &'a [(&'static str, Cow<'static, str>)],
+            old: &'a [(&'static str, Cow<'static, str>)],
         ) {
             use std::collections::HashMap;
 
@@ -284,7 +285,7 @@ impl VTag {
                 ($src:expr) => {
                     $src.iter()
                         .map(|(k, v)| (*k, v))
-                        .collect::<HashMap<&'static str, &StringRef>>()
+                        .collect::<HashMap<&'static str, &Cow<'static, str>>>()
                 };
             }
 
@@ -1528,8 +1529,8 @@ mod layout_tests {
 #[cfg(all(test, feature = "web_sys"))]
 mod benchmarks {
     use super::{Patch, VTag};
-    use crate::StringRef;
     use easybench_wasm::bench_env_limit;
+    use std::borrow::Cow;
     use std::collections::HashMap;
 
     #[cfg(feature = "wasm_test")]
@@ -1542,8 +1543,8 @@ mod benchmarks {
     const BENCHMARK_DURATION: f64 = 1.0;
 
     fn diff_attributes_hashmap<'a>(
-        new: &'a HashMap<&'static str, StringRef>,
-        old: &'a HashMap<&'static str, StringRef>,
+        new: &'a HashMap<&'static str, Cow<'static, str>>,
+        old: &'a HashMap<&'static str, Cow<'static, str>>,
     ) -> Vec<Patch<&'static str, &'a str>> {
         // Only change what is necessary.
         let to_add_or_replace = new
@@ -1573,8 +1574,8 @@ mod benchmarks {
                     "{}: hashmaps: {}",
                     stringify!($name),
                     bench_env_limit(BENCHMARK_DURATION, env.clone(), |(a, b)| {
-                        let a: HashMap<&'static str, StringRef> = a.into_iter().collect();
-                        let b: HashMap<&'static str, StringRef> = b.into_iter().collect();
+                        let a: HashMap<&'static str, Cow<'static, str>> = a.into_iter().collect();
+                        let b: HashMap<&'static str, Cow<'static, str>> = b.into_iter().collect();
                         format!("{:?}", diff_attributes_hashmap(&a, &b))
                     })
                 );
@@ -1591,27 +1592,27 @@ mod benchmarks {
     }
 
     // Fill vector wit more attributes
-    fn extend_attrs(dst: &mut Vec<(&'static str, StringRef)>) {
+    fn extend_attrs(dst: &mut Vec<(&'static str, Cow<'static, str>)>) {
         dst.extend(vec![
-            ("oh", StringRef::Static("danny")),
-            ("boy", StringRef::Static("the")),
-            ("pipes", StringRef::Static("the")),
-            ("are", StringRef::Static("calling")),
-            ("from", StringRef::Static("glen")),
-            ("to", StringRef::Static("glen")),
-            ("and", StringRef::Static("down")),
-            ("the", StringRef::Static("mountain")),
-            ("side", StringRef::Static("")),
+            ("oh", Cow::Borrowed("danny")),
+            ("boy", Cow::Borrowed("the")),
+            ("pipes", Cow::Borrowed("the")),
+            ("are", Cow::Borrowed("calling")),
+            ("from", Cow::Borrowed("glen")),
+            ("to", Cow::Borrowed("glen")),
+            ("and", Cow::Borrowed("down")),
+            ("the", Cow::Borrowed("mountain")),
+            ("side", Cow::Borrowed("")),
         ]);
     }
 
     bench_attrs! {
         bench_diff_attributes_same,
         {
-            let mut old: Vec<(&'static str, StringRef)> = vec![
-                ("disable", StringRef::Static("disable")),
-                ("style", StringRef::Static("display: none;")),
-                ("class", StringRef::Static("lass")),
+            let mut old: Vec<(&'static str, Cow<'static, str>)> = vec![
+                ("disable", Cow::Borrowed("disable")),
+                ("style", Cow::Borrowed("display: none;")),
+                ("class", Cow::Borrowed("lass")),
             ];
             extend_attrs(&mut old);
             (old.clone(), old)
@@ -1622,13 +1623,13 @@ mod benchmarks {
         bench_diff_attributes_append,
         {
             let mut old = vec![
-                ("disable", StringRef::Static("disable")),
-                ("style", StringRef::Static("display: none;")),
-                ("class", StringRef::Static("lass")),
+                ("disable", Cow::Borrowed("disable")),
+                ("style", Cow::Borrowed("display: none;")),
+                ("class", Cow::Borrowed("lass")),
             ];
             extend_attrs(&mut old);
             let mut new = old.clone();
-            new.push(("hidden", StringRef::Static("hidden")));
+            new.push(("hidden", Cow::Borrowed("hidden")));
             (new, old)
         }
     }
@@ -1637,13 +1638,13 @@ mod benchmarks {
         bench_diff_attributes_change_first,
         {
             let mut old = vec![
-                ("disable", StringRef::Static("disable")),
-                ("style", StringRef::Static("display: none;")),
-                ("class", StringRef::Static("lass")),
+                ("disable", Cow::Borrowed("disable")),
+                ("style", Cow::Borrowed("display: none;")),
+                ("class", Cow::Borrowed("lass")),
             ];
             extend_attrs(&mut old);
             let mut new = old.clone();
-            new[0] = ("disable", StringRef::Static("enable"));
+            new[0] = ("disable", Cow::Borrowed("enable"));
             (new, old)
         }
     }
@@ -1652,14 +1653,14 @@ mod benchmarks {
         bench_diff_attributes_change_middle,
         {
             let mut old = vec![
-                ("disable", StringRef::Static("disable")),
-                ("style", StringRef::Static("display: none;")),
-                ("class", StringRef::Static("lass")),
+                ("disable", Cow::Borrowed("disable")),
+                ("style", Cow::Borrowed("display: none;")),
+                ("class", Cow::Borrowed("lass")),
             ];
             extend_attrs(&mut old);
             let mut new = old.clone();
             let mid = &mut new.get_mut(old.len()/2).unwrap();
-            mid.1 = StringRef::Static("changed");
+            mid.1 = Cow::Borrowed("changed");
             (new, old)
         }
     }
@@ -1668,14 +1669,14 @@ mod benchmarks {
         bench_diff_attributes_change_last,
         {
             let mut old = vec![
-                ("disable", StringRef::Static("disable")),
-                ("style", StringRef::Static("display: none;")),
-                ("class", StringRef::Static("lass")),
+                ("disable", Cow::Borrowed("disable")),
+                ("style", Cow::Borrowed("display: none;")),
+                ("class", Cow::Borrowed("lass")),
             ];
             extend_attrs(&mut old);
             let mut new = old.clone();
             let last = &mut new.get_mut(old.len()-1).unwrap();
-            last.1 = StringRef::Static("changed");
+            last.1 = Cow::Borrowed("changed");
             (new, old)
         }
     }

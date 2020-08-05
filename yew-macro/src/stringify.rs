@@ -22,14 +22,14 @@ fn try_stringify_lit(src: &Lit) -> Option<String> {
     }
 }
 
-/// Converts literals and expressions to yew::StringRef construction calls
+/// Converts literals and expressions to Cow<'static, str> construction calls
 pub struct Constructor(TokenStream);
 
 impl From<&Expr> for Constructor {
     fn from(src: &Expr) -> Self {
         match try_stringify_expr(src) {
             Some(s) => Self::from(s),
-            None => Self(quote! { ::yew::StringRef::from(#src.to_string()) }),
+            None => Self(quote! { ::std::borrow::Cow::<'static, str>::Owned(#src.to_string()) }),
         }
     }
 }
@@ -38,14 +38,14 @@ impl From<&Lit> for Constructor {
     fn from(src: &Lit) -> Self {
         match try_stringify_lit(src) {
             Some(s) => Self::from(s),
-            None => Self(quote! { ::yew::StringRef::from(#src.to_string()) }),
+            None => Self(quote! { ::std::borrow::Cow::<'static, str>::Owned(#src.to_string()) }),
         }
     }
 }
 
 impl From<String> for Constructor {
     fn from(src: String) -> Self {
-        Self(quote! { ::yew::StringRef::Static(#src) })
+        Self(quote! { ::std::borrow::Cow::<'static, str>::Borrowed(#src) })
     }
 }
 
