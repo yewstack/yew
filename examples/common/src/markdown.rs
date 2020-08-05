@@ -164,7 +164,7 @@ fn make_tag(t: Tag) -> VTag {
             el.add_attribute("href", ToString::to_string(href));
             let title = title.clone().into_string();
             if title != "" {
-                el.add_attribute("title", title.clone());
+                el.add_attribute("title", title);
             }
             el
         }
@@ -173,7 +173,7 @@ fn make_tag(t: Tag) -> VTag {
             el.add_attribute("src", ToString::to_string(src));
             let title = title.clone().into_string();
             if title != "" {
-                el.add_attribute("title", title.clone());
+                el.add_attribute("title", title);
             }
             el
         }
