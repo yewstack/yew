@@ -84,7 +84,7 @@ impl Component for MyComponent {
     }
 
     fn mounted(&mut self) -> ShouldRender {
-        if let Some(input) = self.node_ref.try_into::<InputElement>() {
+        if let Some(input) = self.node_ref.cast::<InputElement>() {
             input.focus();
         }
         false
