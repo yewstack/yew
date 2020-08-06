@@ -434,8 +434,7 @@ mod layout_tests {
         }
 
         // Detach last layout
-        empty_node
-            .apply(&parent_scope, &parent_element, next_sibling, ancestor);
+        empty_node.apply(&parent_scope, &parent_element, next_sibling, ancestor);
         assert_eq!(
             parent_element.inner_html(),
             "END",
