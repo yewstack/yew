@@ -20,6 +20,5 @@ html! {
 }
 
 // In update
-let has_attributes = self.node_ref.try_into::<Element>().has_attributes();
+let has_attributes = self.node_ref.cast::<Element>().has_attributes();
 ```
-
