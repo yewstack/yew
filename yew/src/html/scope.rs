@@ -477,8 +477,13 @@ where
 
             state.has_rendered = true;
             state.component.rendered(self.first_render);
-            for update in state.pending_updates.drain(..) {
-                scheduler().push_comp(ComponentRunnableType::Update, update);
+            if !state.pending_updates.is_empty() {
+                scheduler().push_comp_update_batch(
+                    state
+                        .pending_updates
+                        .drain(..)
+                        .map(|u| u as Box<dyn Runnable>),
+                );
             }
         }
     }
