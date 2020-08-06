@@ -156,7 +156,7 @@ pub(crate) mod test_util {
 
     impl<T> Future for CallbackFuture<T> {
         type Output = T;
-        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
             if let Some(output) = self.ready() {
                 Poll::Ready(output)
             } else {
