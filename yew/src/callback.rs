@@ -156,11 +156,11 @@ pub(crate) mod test_util {
 
     impl<T> Future for CallbackFuture<T> {
         type Output = T;
-        fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
             if let Some(output) = self.ready() {
                 Poll::Ready(output)
             } else {
-                self.0.borrow_mut().waker = Some(cx.waker().clone());
+                (&*self).0.borrow_mut().waker = Some(cx.waker().clone());
                 Poll::Pending
             }
         }
