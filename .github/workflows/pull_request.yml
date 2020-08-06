@@ -100,14 +100,14 @@ jobs:
 
       - name: Run tests - yew
         env:
-          HTTPBIN_URL: "http://localhost:8000"
+          HTTPBIN_URL: "http://localhost:8080"
         run: |
           cd yew
           wasm-pack test --${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
 
       - name: Run tests - yew-stdweb
         env:
-          HTTPBIN_URL: "http://localhost:8000"
+          HTTPBIN_URL: "http://localhost:8080"
         run: |
           cd yew-stdweb
           wasm-pack test --${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
@@ -137,7 +137,8 @@ jobs:
           profile: minimal
 
       - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --target wasm32-unknown-unknown
+        run: |
+          packages=("yew-components" "yew-functional" "yew-macro" "yew-router" "yew-router-macro" "yew-router-route-parser" "yewtil")
+          for package in "${packages[@]}"; do
+            cargo test
+          done
