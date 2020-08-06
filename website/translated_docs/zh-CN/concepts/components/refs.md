@@ -22,6 +22,5 @@ html! {
 }
 
 // 在 update 中
-let has_attributes = self.node_ref.try_into::<Element>().has_attributes();
+let has_attributes = self.node_ref.cast::<Element>().unwrap().has_attributes();
 ```
-
