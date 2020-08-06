@@ -49,7 +49,6 @@ jobs:
           cargo clippy --tests --features "cbor msgpack toml yaml" -- -D warnings
 
   # TODO build all examples
-  # TODO install geckodriver 0.26 for test
 
   doc_tests:
     name: Documentation Tests
@@ -113,11 +112,7 @@ jobs:
           override: true
           profile: minimal
 
-      - uses: actions-rs/install@v0.1
-        with:
-          crate: wasm-pack
-          version: latest
-          use-tool-cache: true
+      - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - uses: actions/cache@v2
         with:
@@ -129,6 +124,7 @@ jobs:
           restore-keys: |
             cargo-${{ runner.os }}-
 
+      # FIXME: Only needed because of <https://github.com/rustwasm/wasm-bindgen/issues/2261>
       - name: Install geckodriver
         if: matrix.browser_flag == 'firefox'
         run: |
