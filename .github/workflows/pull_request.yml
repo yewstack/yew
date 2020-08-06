@@ -132,7 +132,6 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.toolchain }}
-          target: wasm32-unknown-unknown
           override: true
           profile: minimal
 
@@ -140,5 +139,5 @@ jobs:
         run: |
           packages=("yew-components" "yew-functional" "yew-macro" "yew-router" "yew-router-macro" "yew-router-route-parser" "yewtil")
           for package in "${packages[@]}"; do
-            cargo test
+            (cd "$package" && cargo test)
           done
