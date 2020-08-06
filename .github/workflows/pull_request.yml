@@ -16,6 +16,16 @@ jobs:
           profile: minimal
           components: rustfmt, clippy
 
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+
       - name: Run fmt
         uses: actions-rs/cargo@v1
         with:
@@ -39,6 +49,7 @@ jobs:
           cargo clippy --tests --features "cbor msgpack toml yaml" -- -D warnings
 
   # TODO build all examples
+  # TODO install geckodriver 0.26 for test
 
   doc_tests:
     name: Documentation Tests
@@ -51,6 +62,16 @@ jobs:
           target: wasm32-unknown-unknown
           override: true
           profile: minimal
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
 
       - name: Run doctest
         uses: actions-rs/cargo@v1
@@ -98,6 +119,16 @@ jobs:
           version: latest
           use-tool-cache: true
 
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+
       - name: Run tests - yew
         env:
           HTTPBIN_URL: "http://localhost:8080"
@@ -134,6 +165,16 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           override: true
           profile: minimal
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
 
       - name: Run tests
         run: |
