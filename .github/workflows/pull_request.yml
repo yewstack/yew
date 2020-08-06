@@ -16,12 +16,14 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - uses: actions-rs/cargo@v1
+      - name: fmt
+        uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
 
-      - uses: actions-rs/cargo@v1
+      - name: clippy
+        uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --workspace --examples --tests -- -D warnings
@@ -51,7 +53,8 @@ jobs:
           toolchain: stable
           override: true
 
-      - uses: actions-rs/cargo@v1
+      - name: test
+        uses: actions-rs/cargo@v1
         with:
           command: test
           args: --doc --workspace
@@ -101,10 +104,12 @@ jobs:
           version: latest
           use-tool-cache: true
 
-      - run: cd ${{ matrix.package }}
-      - run: wasm-pack test ${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
+      - name: test
         env:
           HTTPBIN_URL: "http://localhost:8000"
+        run: |
+          cd ${{ matrix.package }}
+          wasm-pack test ${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
 
   unit_tests:
     name: Unit Tests
