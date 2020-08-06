@@ -55,7 +55,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --doc --workspace
+          args: --doc --workspace --target wasm32-unknown-unknown
 
       - name: Run doctest - yew with features
         run: |
@@ -82,11 +82,6 @@ jobs:
           - firefox
           # - chrome
 
-        package:
-          - yew
-          - yew-stdweb
-          - yew-functional
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -101,12 +96,24 @@ jobs:
           version: latest
           use-tool-cache: true
 
-      - name: Run tests
+      - name: Run tests - yew
         env:
           HTTPBIN_URL: "http://localhost:8000"
         run: |
-          cd ${{ matrix.package }}
+          cd yew
           wasm-pack test --${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
+
+      - name: Run tests - yew-stdweb
+        env:
+          HTTPBIN_URL: "http://localhost:8000"
+        run: |
+          cd yew-stdweb
+          wasm-pack test --${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
+
+      - name: Run tests - yew-functional
+        run: |
+          cd yew-functional
+          wasm-pack test --${{ matrix.browser_flag }} --headless
 
   unit_tests:
     name: Unit Tests
@@ -130,4 +137,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace
+          args: --workspace --target wasm32-unknown-unknown
