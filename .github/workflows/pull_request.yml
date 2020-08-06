@@ -11,9 +11,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
           toolchain: nightly
+          target: wasm32-unknown-unknown
           override: true
+          profile: minimal
           components: rustfmt, clippy
 
       - name: Run fmt
@@ -47,9 +48,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
           toolchain: stable
+          target: wasm32-unknown-unknown
           override: true
+          profile: minimal
 
       - name: Run doctest
         uses: actions-rs/cargo@v1
@@ -60,7 +62,7 @@ jobs:
       - name: Run doctest - yew with features
         run: |
           cd yew
-          cargo test --doc --features "doc_test wasm_test yaml msgpack cbor toml"
+          cargo test --doc --target wasm32-unknown-unknown --features "doc_test wasm_test yaml msgpack cbor toml"
 
   integration_tests:
     name: Test ${{ matrix.package }} with ${{ matrix.browser_flag }} on ${{ matrix.toolchain }}
@@ -86,9 +88,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
           toolchain: ${{ matrix.toolchain }}
+          target: wasm32-unknown-unknown
           override: true
+          profile: minimal
 
       - uses: actions-rs/install@v0.1
         with:
@@ -129,9 +132,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
           toolchain: ${{ matrix.toolchain }}
+          target: wasm32-unknown-unknown
           override: true
+          profile: minimal
 
       - name: Run tests
         uses: actions-rs/cargo@v1
