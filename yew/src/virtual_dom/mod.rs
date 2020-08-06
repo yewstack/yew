@@ -343,13 +343,14 @@ mod layout_tests {
         let parent_node: Node = parent_element.clone().into();
         let end_node = document.create_text_node("END");
         parent_node.append_child(&end_node).unwrap();
-        let empty_node: VNode = VText::new("".into()).into();
+        let mut empty_node: VNode = VText::new("".into()).into();
 
         // Tests each layout independently
         let next_sibling = NodeRef::new(end_node.into());
         for layout in layouts.iter() {
             // Apply the layout
             let mut node = layout.node.clone();
+            #[cfg(feature = "wasm_test")]
             wasm_bindgen_test::console_log!("Independently apply layout '{}'", layout.name);
             node.apply(&parent_scope, &parent_element, next_sibling.clone(), None);
             assert_eq!(
@@ -361,6 +362,7 @@ mod layout_tests {
 
             // Diff with no changes
             let mut node_clone = layout.node.clone();
+            #[cfg(feature = "wasm_test")]
             wasm_bindgen_test::console_log!("Independently reapply layout '{}'", layout.name);
             node_clone.apply(
                 &parent_scope,
@@ -394,6 +396,7 @@ mod layout_tests {
         let mut ancestor: Option<VNode> = None;
         for layout in layouts.iter() {
             let mut next_node = layout.node.clone();
+            #[cfg(feature = "wasm_test")]
             wasm_bindgen_test::console_log!("Sequentially apply layout '{}'", layout.name);
             next_node.apply(
                 &parent_scope,
@@ -413,6 +416,7 @@ mod layout_tests {
         // Sequentially detach each layout
         for layout in layouts.into_iter().rev() {
             let mut next_node = layout.node.clone();
+            #[cfg(feature = "wasm_test")]
             wasm_bindgen_test::console_log!("Sequentially detach layout '{}'", layout.name);
             next_node.apply(
                 &parent_scope,
@@ -431,7 +435,6 @@ mod layout_tests {
 
         // Detach last layout
         empty_node
-            .clone()
             .apply(&parent_scope, &parent_element, next_sibling, ancestor);
         assert_eq!(
             parent_element.inner_html(),
