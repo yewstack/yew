@@ -158,6 +158,8 @@ impl Component for Model {
         let callback = link.callback(|_| Msg::Tick);
         let handle = IntervalService::spawn(Duration::from_millis(200), callback);
 
+        let (cellules_width, cellules_height) = (53, 40);
+
         Model {
             link,
             active: false,
@@ -165,10 +167,10 @@ impl Component for Model {
                 Cellule {
                     life_state: LifeState::Dead
                 };
-                53 * 40
+                cellules_width * cellules_height
             ],
-            cellules_width: 53,
-            cellules_height: 40,
+            cellules_width,
+            cellules_height,
             job: Box::new(handle),
         }
     }
@@ -211,6 +213,24 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
+        let cell_rows =
+            self.cellules
+                .chunks(self.cellules_width)
+                .enumerate()
+                .map(|(y, cellules)| {
+                    let idx_offset = y * self.cellules_width;
+
+                    let cells = cellules
+                        .iter()
+                        .enumerate()
+                        .map(|(x, cell)| self.view_cellule(idx_offset + x, cell));
+                    html! {
+                        <div key=y class="game-row">
+                            { for cells }
+                        </div>
+                    }
+                });
+
         html! {
             <div>
                 <section class="game-container">
@@ -220,7 +240,7 @@ impl Component for Model {
                     </header>
                     <section class="game-area">
                         <div class="game-of-life">
-                            { for self.cellules.iter().enumerate().map(|c| self.view_cellule(c)) }
+                            { for cell_rows }
                         </div>
                         <div class="game-buttons">
                             <button class="game-button" onclick=self.link.callback(|_| Msg::Random)>{ "Random" }</button>
@@ -243,7 +263,7 @@ impl Component for Model {
 }
 
 impl Model {
-    fn view_cellule(&self, (idx, cellule): (usize, &Cellule)) -> Html {
+    fn view_cellule(&self, idx: usize, cellule: &Cellule) -> Html {
         let cellule_status = {
             if cellule.life_state == LifeState::Alive {
                 "cellule-live"
@@ -252,7 +272,7 @@ impl Model {
             }
         };
         html! {
-            <div class=("game-cellule", cellule_status)
+            <div key=idx class=("game-cellule", cellule_status)
                 onclick=self.link.callback(move |_| Msg::ToggleCellule(idx))>
             </div>
         }
