@@ -1,0 +1,130 @@
+name: Pull Request
+
+# TODO push is just for testing
+on: [pull_request, push]
+
+jobs:
+  lint:
+    name: Format & Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --workspace --examples --tests -- -D warnings
+
+      - name: clippy - yew with all features
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --package yew --tests --features "cbor msgpack toml yaml" -- -D warnings
+
+      - name: clippy - yew-stdweb with all features
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --package yew-stdweb --tests --features "cbor msgpack toml yaml" -- -D warnings
+
+  # TODO build all examples
+
+  doc_tests:
+    name: Documentation Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --doc --workspace
+
+      - name: test - yew with features
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --package yew --doc --features "doc_test wasm_test yaml msgpack cbor toml"
+
+  integration_tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      httpbin:
+        image: kennethreitz/httpbin@sha256:599fe5e5073102dbb0ee3dbb65f049dab44fa9fc251f6835c9990f8fb196a72b
+        ports:
+          - 8080:80
+
+    strategy:
+      matrix:
+        toolchain:
+          - 1.45.0 # MSRV
+          - stable
+          - nightly
+
+        browser_flag:
+          - "--firefox"
+          - "--chrome"
+
+        package:
+          - yew
+          - yew-stdweb
+          - yew-functional
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-pack
+          version: latest
+          use-tool-cache: true
+
+      - run: cd ${{ matrix.package }}
+      - run: wasm-pack test ${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
+        env:
+          HTTPBIN_URL: "http://localhost:8000"
+
+  unit_tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain:
+          - 1.45.0 # MSRV
+          - stable
+          - nightly
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --workspace
