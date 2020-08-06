@@ -160,7 +160,8 @@ pub(crate) mod test_util {
             if let Some(output) = self.ready() {
                 Poll::Ready(output)
             } else {
-                (&*self).0.borrow_mut().waker = Some(cx.waker().clone());
+                let handle = &self.0;
+                handle.borrow_mut().waker = Some(cx.waker().clone());
                 Poll::Pending
             }
         }

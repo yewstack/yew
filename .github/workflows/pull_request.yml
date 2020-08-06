@@ -80,8 +80,8 @@ jobs:
           - nightly
 
         browser_flag:
-          - firefox
-          # - chrome
+          # - firefox
+          - chrome
 
     steps:
       - uses: actions/checkout@v2
