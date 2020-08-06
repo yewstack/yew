@@ -66,7 +66,7 @@ jobs:
           args: --package yew --doc --features "doc_test wasm_test yaml msgpack cbor toml"
 
   integration_tests:
-    name: Integration Tests
+    name: Test ${{ matrix.package }} with ${{ matrix.browser_flag }}
     runs-on: ubuntu-latest
     services:
       httpbin:
@@ -82,8 +82,8 @@ jobs:
           - nightly
 
         browser_flag:
-          - "--firefox"
-          - "--chrome"
+          - firefox
+          - chrome
 
         package:
           - yew
@@ -109,7 +109,7 @@ jobs:
           HTTPBIN_URL: "http://localhost:8000"
         run: |
           cd ${{ matrix.package }}
-          wasm-pack test ${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
+          wasm-pack test --${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
 
   unit_tests:
     name: Unit Tests

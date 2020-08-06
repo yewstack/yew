@@ -383,10 +383,7 @@ where
                 return;
             }
 
-            let first_update = match self.update {
-                ComponentUpdate::First => true,
-                _ => false,
-            };
+            let first_update = matches!(self.update, ComponentUpdate::First);
 
             let should_update = match self.update {
                 ComponentUpdate::First => true,
