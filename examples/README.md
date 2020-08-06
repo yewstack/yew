@@ -98,7 +98,6 @@ The following table describes all possible options:
 
 The following directories aren't examples. Trying to run them with the script will cause an error.
 
-- `common`: Code shared between multiple examples.
 - `server`: Backend for the `dashboard` example.
 
 ## Next steps
