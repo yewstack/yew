@@ -7,7 +7,8 @@ use wasm_bindgen::prelude::*;
 use yew::events::KeyboardEvent;
 use yew::format::Json;
 use yew::services::storage::{Area, StorageService};
-use yew::{html, Component, ComponentLink, Href, Html, InputData, ShouldRender};
+use yew::web_sys::HtmlInputElement as InputElement;
+use yew::{html, Component, ComponentLink, Href, Html, InputData, NodeRef, ShouldRender};
 
 const KEY: &str = "yew.todomvc.self";
 
@@ -15,6 +16,7 @@ pub struct Model {
     link: ComponentLink<Self>,
     storage: StorageService,
     state: State,
+    focus_ref: NodeRef,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -43,6 +45,7 @@ pub enum Msg {
     ToggleEdit(usize),
     Toggle(usize),
     ClearCompleted,
+    Focus,
     Nope,
 }
 
@@ -65,22 +68,26 @@ impl Component for Model {
             value: "".into(),
             edit_value: "".into(),
         };
+        let focus_ref = NodeRef::default();
         Model {
             link,
             storage,
             state,
+            focus_ref,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Add => {
-                let entry = Entry {
-                    description: self.state.value.clone(),
-                    completed: false,
-                    editing: false,
-                };
-                self.state.entries.push(entry);
+                if self.state.value.trim() != "" {
+                    let entry = Entry {
+                        description: self.state.value.trim().to_string(),
+                        completed: false,
+                        editing: false,
+                    };
+                    self.state.entries.push(entry);
+                }
                 self.state.value = "".to_string();
             }
             Msg::Edit(idx) => {
@@ -116,6 +123,11 @@ impl Component for Model {
             }
             Msg::ClearCompleted => {
                 self.state.clear_completed();
+            }
+            Msg::Focus => {
+                if let Some(input) = self.focus_ref.cast::<InputElement>() {
+                    input.focus().unwrap();
+                }
             }
             Msg::Nope => {}
         }
@@ -230,12 +242,14 @@ impl Model {
             html! {
                 <input class="edit"
                        type="text"
+                       ref= self.focus_ref.clone()
                        value=&self.state.edit_value
+                       onmouseover=self.link.callback(|_| Msg::Focus)
                        oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
                        onblur=self.link.callback(move |_| Msg::Edit(idx))
                        onkeypress=self.link.callback(move |e: KeyboardEvent| {
                           if e.key() == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
-                       }) />
+                       })/>
             }
         } else {
             html! { <input type="hidden" /> }
