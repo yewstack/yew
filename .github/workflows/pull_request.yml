@@ -24,7 +24,8 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+            yew-stdweb/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
             cargo-${{ runner.os }}-
 
@@ -67,7 +68,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
             cargo-${{ runner.os }}-
 
@@ -94,7 +95,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
             cargo-${{ runner.os }}-
 
@@ -110,7 +111,7 @@ jobs:
           cargo test --doc --target wasm32-unknown-unknown --features "doc_test wasm_test yaml msgpack cbor toml"
 
   integration_tests:
-    name: Integration Test ${{ matrix.package }} on ${{ matrix.toolchain }}
+    name: Integration Tests for ${{ matrix.package }} on ${{ matrix.toolchain }}
     runs-on: ubuntu-latest
     services:
       httpbin:
@@ -142,7 +143,8 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+            yew-stdweb/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
             cargo-${{ runner.os }}-
 
@@ -175,7 +177,7 @@ jobs:
           wasm-pack test --chrome --firefox --headless
 
   unit_tests:
-    name: Unit Tests
+    name: Unit Tests on ${{ matrix.toolchain }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -198,7 +200,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
             cargo-${{ runner.os }}-
 
