@@ -108,7 +108,7 @@ jobs:
           cargo test --doc --target wasm32-unknown-unknown --features "doc_test wasm_test yaml msgpack cbor toml"
 
   integration_tests:
-    name: Test ${{ matrix.package }} with ${{ matrix.browser_flag }} on ${{ matrix.toolchain }}
+    name: Integration Test ${{ matrix.package }} on ${{ matrix.toolchain }}
     runs-on: ubuntu-latest
     services:
       httpbin:
@@ -121,10 +121,6 @@ jobs:
         toolchain:
           - 1.45.0 # MSRV
           - stable
-
-        browser_flag:
-          - firefox
-          - chrome
 
     steps:
       - uses: actions/checkout@v2
@@ -150,7 +146,6 @@ jobs:
 
       # FIXME: Only needed because of <https://github.com/rustwasm/wasm-bindgen/issues/2261>
       - name: Install geckodriver
-        if: matrix.browser_flag == 'firefox'
         run: |
           cd ~
           mkdir geckodriver
@@ -164,7 +159,7 @@ jobs:
           WASM_BINDGEN_TEST_TIMEOUT: 120
         run: |
           cd yew
-          wasm-pack test --${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
+          wasm-pack test --chrome --firefox --headless -- --features "wasm_test httpbin_test"
 
       - name: Run tests - yew-stdweb
         env:
@@ -172,12 +167,12 @@ jobs:
           WASM_BINDGEN_TEST_TIMEOUT: 120
         run: |
           cd yew-stdweb
-          wasm-pack test --${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
+          wasm-pack test --chrome --firefox --headless -- --features "wasm_test httpbin_test"
 
       - name: Run tests - yew-functional
         run: |
           cd yew-functional
-          wasm-pack test --${{ matrix.browser_flag }} --headless
+          wasm-pack test --chrome --firefox --headless
 
   unit_tests:
     name: Unit Tests
