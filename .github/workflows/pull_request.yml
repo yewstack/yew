@@ -69,7 +69,7 @@ jobs:
           restore-keys: |
             cargo-${{ runner.os }}-
 
-      - name: Run build
+      - name: Run check
         run: |
           cd examples
           cargo check
@@ -135,7 +135,8 @@ jobs:
           override: true
           profile: minimal
 
-      - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - uses: actions/cache@v2
         with:
@@ -160,6 +161,7 @@ jobs:
       - name: Run tests - yew
         env:
           HTTPBIN_URL: "http://localhost:8080"
+          WASM_BINDGEN_TEST_TIMEOUT: 120
         run: |
           cd yew
           wasm-pack test --${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
@@ -167,6 +169,7 @@ jobs:
       - name: Run tests - yew-stdweb
         env:
           HTTPBIN_URL: "http://localhost:8080"
+          WASM_BINDGEN_TEST_TIMEOUT: 120
         run: |
           cd yew-stdweb
           wasm-pack test --${{ matrix.browser_flag }} --headless -- --features "wasm_test httpbin_test"
