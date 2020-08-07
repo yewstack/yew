@@ -39,17 +39,17 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --workspace --examples --tests -- -D warnings
+          args: --all-targets -- -D warnings
 
       - name: Run clippy - yew with all features
         run: |
           cd yew
-          cargo clippy --tests --features "cbor msgpack toml yaml" -- -D warnings
+          cargo clippy --all-targets --features "cbor msgpack toml yaml" -- -D warnings
 
       - name: Run clippy - yew-stdweb with all features
         run: |
           cd yew-stdweb
-          cargo clippy --examples --tests --features "cbor msgpack toml yaml" -- -D warnings
+          cargo clippy --all-targets --features "cbor msgpack toml yaml" -- -D warnings
 
   check_examples:
     name: Check Examples
@@ -75,7 +75,7 @@ jobs:
       - name: Run check
         run: |
           cd examples
-          cargo check
+          cargo check --all-targets
 
   doc_tests:
     name: Documentation Tests
@@ -103,7 +103,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --doc --workspace --target wasm32-unknown-unknown
+          args: --workspace --doc --target wasm32-unknown-unknown
 
       - name: Run doctest - yew with features
         run: |
