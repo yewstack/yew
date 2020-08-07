@@ -11,9 +11,6 @@ keywords = ["web", "wasm", "frontend", "webasm", "webassembly"]
 categories = ["gui", "web-programming", "wasm"]
 description = "A framework for making client-side single-page apps"
 
-[badges]
-travis-ci = { repository = "yewstack/yew" }
-
 [lib]
 proc-macro = true
 
