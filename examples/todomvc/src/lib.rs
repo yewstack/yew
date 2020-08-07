@@ -80,9 +80,10 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Add => {
-                if self.state.value.trim() != "" {
+                let description = self.state.value.trim();
+                if !description.is_empty() {
                     let entry = Entry {
-                        description: self.state.value.trim().to_string(),
+                        description: description.to_string(),
                         completed: false,
                         editing: false,
                     };
