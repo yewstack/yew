@@ -1,7 +1,6 @@
 name: Pull Request
 
-# TODO push is just for testing
-on: [pull_request, push]
+on: [pull_request]
 
 jobs:
   lint:
@@ -46,7 +45,7 @@ jobs:
       - name: Run clippy - yew-stdweb with all features
         run: |
           cd yew-stdweb
-          cargo clippy --tests --features "cbor msgpack toml yaml" -- -D warnings
+          cargo clippy --examples --tests --features "cbor msgpack toml yaml" -- -D warnings
 
   check_examples:
     name: Check Examples
