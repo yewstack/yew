@@ -249,7 +249,7 @@ impl Model {
                        onblur=self.link.callback(move |_| Msg::Edit(idx))
                        onkeypress=self.link.callback(move |e: KeyboardEvent| {
                           if e.key() == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
-                       })/>
+                       }) />
             }
         } else {
             html! { <input type="hidden" /> }
