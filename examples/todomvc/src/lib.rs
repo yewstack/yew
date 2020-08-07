@@ -242,7 +242,7 @@ impl Model {
             html! {
                 <input class="edit"
                        type="text"
-                       ref= self.focus_ref.clone()
+                       ref=self.focus_ref.clone()
                        value=&self.state.edit_value
                        onmouseover=self.link.callback(|_| Msg::Focus)
                        oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
