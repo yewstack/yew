@@ -156,7 +156,6 @@ jobs:
       - name: Run tests - yew
         env:
           HTTPBIN_URL: "http://localhost:8080"
-          WASM_BINDGEN_TEST_TIMEOUT: 120
         run: |
           cd yew
           wasm-pack test --chrome --firefox --headless -- --features "wasm_test httpbin_test"
@@ -164,10 +163,9 @@ jobs:
       - name: Run tests - yew-stdweb
         env:
           HTTPBIN_URL: "http://localhost:8080"
-          WASM_BINDGEN_TEST_TIMEOUT: 120
         run: |
           cd yew-stdweb
-          wasm-pack test --chrome --firefox --headless -- --features "wasm_test httpbin_test"
+          wasm-pack test --firefox --headless -- --features "wasm_test httpbin_test"
 
       - name: Run tests - yew-functional
         run: |
