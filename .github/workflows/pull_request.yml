@@ -48,7 +48,31 @@ jobs:
           cd yew-stdweb
           cargo clippy --tests --features "cbor msgpack toml yaml" -- -D warnings
 
-  # TODO build all examples
+  check_examples:
+    name: Check Examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+
+      - name: Run build
+        run: |
+          cd examples
+          cargo check
 
   doc_tests:
     name: Documentation Tests
@@ -97,7 +121,6 @@ jobs:
         toolchain:
           - 1.45.0 # MSRV
           - stable
-          - nightly
 
         browser_flag:
           - firefox
