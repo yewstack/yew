@@ -141,6 +141,11 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
+        let hidden_class = if self.state.entries.is_empty() {
+            "hidden"
+        } else {
+            ""
+        };
         html! {
             <div class="todomvc-wrapper">
                 <section class="todoapp">
@@ -148,18 +153,19 @@ impl Component for Model {
                         <h1>{ "todos" }</h1>
                         { self.view_input() }
                     </header>
-                    <section class="main">
+                    <section class=("main", hidden_class)>
                         <input
                             type="checkbox"
                             class="toggle-all"
+                            id="toggle-all"
                             checked=self.state.is_all_completed()
                             onclick=self.link.callback(|_| Msg::ToggleAll) />
-                        <label />
+                        <label for="toggle-all" />
                         <ul class="todo-list">
                             { for self.state.entries.iter().filter(|e| self.state.filter.fit(e)).enumerate().map(|e| self.view_entry(e)) }
                         </ul>
                     </section>
-                    <footer class="footer">
+                    <footer class=("footer", hidden_class)>
                         <span class="todo-count">
                             <strong>{ self.state.total() }</strong>
                             { " item(s) left" }
