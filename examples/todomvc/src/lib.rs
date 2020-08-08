@@ -92,7 +92,7 @@ impl Component for Model {
                 self.state.value = "".to_string();
             }
             Msg::Edit(idx) => {
-                let edit_value = self.state.edit_value.clone();
+                let edit_value = self.state.edit_value.trim().to_string();
                 self.state.complete_edit(idx, edit_value);
                 self.state.edit_value = "".to_string();
             }
@@ -154,6 +154,7 @@ impl Component for Model {
                             class="toggle-all"
                             checked=self.state.is_all_completed()
                             onclick=self.link.callback(|_| Msg::ToggleAll) />
+                        <label />
                         <ul class="todo-list">
                             { for self.state.entries.iter().filter(|e| self.state.filter.fit(e)).enumerate().map(|e| self.view_entry(e)) }
                         </ul>
@@ -355,6 +356,7 @@ impl State {
             entry.editing = false;
         }
     }
+
     fn complete_edit(&mut self, idx: usize, val: String) {
         let filter = self.filter.clone();
         let mut entries = self
@@ -362,9 +364,13 @@ impl State {
             .iter_mut()
             .filter(|e| filter.fit(e))
             .collect::<Vec<_>>();
-        let entry = entries.get_mut(idx).unwrap();
-        entry.description = val;
-        entry.editing = !entry.editing;
+        if !val.is_empty() {
+            let entry = entries.get_mut(idx).unwrap();
+            entry.description = val;
+            entry.editing = !entry.editing;
+        } else {
+            self.remove(idx);
+        }
     }
 
     fn remove(&mut self, idx: usize) {
