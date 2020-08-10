@@ -1530,6 +1530,7 @@ mod layout_tests {
 mod benchmarks {
     use super::{Patch, VTag};
     use easybench_wasm::bench_env_limit;
+    use indexmap::map::IndexMap;
     use std::borrow::Cow;
     use std::collections::HashMap;
 
@@ -1564,19 +1565,63 @@ mod benchmarks {
         to_add_or_replace.chain(to_remove).collect()
     }
 
+    fn diff_attributes_indexmap<'a>(
+        new: &'a IndexMap<&'static str, Cow<'static, str>>,
+        old: &'a IndexMap<&'static str, Cow<'static, str>>,
+    ) -> Vec<Patch<&'static str, &'a str>> {
+        // Only change what is necessary.
+        let to_add_or_replace = new
+            .iter()
+            .filter_map(move |(key, value)| match old.get(key) {
+                None => Some(Patch::Add(&**key, &**value)),
+                Some(ancestor_value) if value != ancestor_value => {
+                    Some(Patch::Replace(&**key, &**value))
+                }
+                _ => None,
+            });
+        let to_remove = old
+            .keys()
+            .filter(move |key| !new.contains_key(&**key))
+            .map(|key| Patch::Remove(&**key));
+
+        to_add_or_replace.chain(to_remove).collect()
+    }
+
     macro_rules! bench_attrs {
         ($name:ident, $args:expr) => {
             #[test]
             fn $name() {
                 let env = $args;
 
+                macro_rules! build_map {
+                    ($type:ident, $src:expr) => {
+                        &$src
+                            .into_iter()
+                            .collect::<$type<&'static str, Cow<'static, str>>>();
+                    };
+                }
+
                 wasm_bindgen_test::console_log!(
                     "{}: hashmaps: {}",
                     stringify!($name),
                     bench_env_limit(BENCHMARK_DURATION, env.clone(), |(a, b)| {
-                        let a: HashMap<&'static str, Cow<'static, str>> = a.into_iter().collect();
-                        let b: HashMap<&'static str, Cow<'static, str>> = b.into_iter().collect();
-                        format!("{:?}", diff_attributes_hashmap(&a, &b))
+                        format!(
+                            "{:?}",
+                            diff_attributes_hashmap(build_map!(HashMap, a), build_map!(HashMap, b))
+                        )
+                    })
+                );
+                wasm_bindgen_test::console_log!(
+                    "{}: indexmap: {}",
+                    stringify!($name),
+                    bench_env_limit(BENCHMARK_DURATION, env.clone(), |(a, b)| {
+                        format!(
+                            "{:?}",
+                            diff_attributes_indexmap(
+                                build_map!(IndexMap, a),
+                                build_map!(IndexMap, b)
+                            )
+                        )
                     })
                 );
                 wasm_bindgen_test::console_log!(
