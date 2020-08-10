@@ -105,6 +105,7 @@ impl Component for Model {
             }
             Msg::ToggleEdit(idx) => {
                 self.state.edit_value = self.state.entries[idx].description.clone();
+                self.state.clear_all_edit();
                 self.state.toggle_edit(idx);
             }
             Msg::ToggleAll => {
@@ -235,7 +236,7 @@ impl Model {
             html! {
                 <input class="edit"
                        type="text"
-                       value=&entry.description
+                       value=&self.state.edit_value
                        oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
                        onblur=self.link.callback(move |_| Msg::Edit(idx))
                        onkeypress=self.link.callback(move |e: KeyboardEvent| {
@@ -340,6 +341,11 @@ impl State {
         entry.editing = !entry.editing;
     }
 
+    fn clear_all_edit(&mut self) {
+        for entry in self.entries.iter_mut() {
+            entry.editing = false;
+        }
+    }
     fn complete_edit(&mut self, idx: usize, val: String) {
         let filter = self.filter.clone();
         let mut entries = self
