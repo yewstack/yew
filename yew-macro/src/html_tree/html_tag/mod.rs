@@ -173,7 +173,7 @@ impl ToTokens for HtmlTag {
                 let __yew_classes
                     = ::yew::virtual_dom::Classes::default()#(.extend(#classes))*;
                 if !__yew_classes.is_empty() {
-                    #vtag.add_attribute("class", ::std::string::ToString::to_string(&__yew_classes));
+                    #vtag.add_attribute("class", __yew_classes.to_string());
                 }
             }),
             Some(ClassesForm::Single(classes)) => match stringify::try_stringify_expr(classes) {
