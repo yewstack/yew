@@ -34,14 +34,6 @@ impl VText {
             reference: None,
         }
     }
-
-    /// Creates new virtual text node with static string contents.
-    pub const fn new_static(text: &'static str) -> Self {
-        VText {
-            text: Cow::Borrowed(text),
-            reference: None,
-        }
-    }
 }
 
 impl VDiff for VText {

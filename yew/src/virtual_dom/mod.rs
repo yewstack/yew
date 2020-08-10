@@ -345,7 +345,7 @@ mod layout_tests {
         let parent_node: Node = parent_element.clone().into();
         let end_node = document.create_text_node("END");
         parent_node.append_child(&end_node).unwrap();
-        let empty_node: VNode = VText::new_static("").into();
+        let empty_node: VNode = VText::new("").into();
 
         // Tests each layout independently
         let next_sibling = NodeRef::new(end_node.into());

@@ -95,7 +95,7 @@ impl VDiff for VList {
             // Without a placeholder the next element becomes first
             // and corrupts the order of rendering
             // We use empty text element to stake out a place
-            let placeholder = VText::new_static("");
+            let placeholder = VText::new("");
             self.children.push(placeholder.into());
         }
 
