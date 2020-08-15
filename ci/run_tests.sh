@@ -42,3 +42,6 @@ set -x
 (cd yewtil && cargo test)
 
 (cd yew-components && cargo test)
+
+(cd yew-validation \
+  && cargo test --target wasm32-unknown-unknown --features wasm_test)

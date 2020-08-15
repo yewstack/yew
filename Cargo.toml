@@ -4,6 +4,7 @@ members = [
   "yew-components",
   "yew-functional",
   "yew-macro",
+  "yew-validation",
 
   # Router
   "yew-router",
