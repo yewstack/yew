@@ -270,7 +270,7 @@ fn use_context_update_works() {
             });
 
             return html! {
-                <MyContextProvider context=ctx.clone()>
+                <MyContextProvider context=ctx>
                     <RenderCounter id="test-0">
                         <ContextOutlet id="test-1"/>
                         <ContextOutlet id="test-2" magic=magic/>

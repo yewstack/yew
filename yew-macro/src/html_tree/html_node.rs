@@ -45,7 +45,7 @@ impl ToTokens for HtmlNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(match &self {
             HtmlNode::Literal(lit) => quote! {#lit},
-            HtmlNode::Expression(expr) => quote_spanned! {expr.span()=> {#expr}},
+            HtmlNode::Expression(expr) => quote_spanned! {expr.span()=> #expr},
         });
     }
 }

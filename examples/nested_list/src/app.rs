@@ -46,7 +46,7 @@ impl Component for App {
                 <List on_hover=on_hover weak_link=list_link>
                     <ListHeader text="Calling all Rusties!" on_hover=on_hover list_link=list_link />
                     <ListItem name="Rustin" on_hover=on_hover />
-                    <ListItem hide={true} name="Rustaroo" on_hover=on_hover />
+                    <ListItem hide=true name="Rustaroo" on_hover=on_hover />
                     <ListItem name="Rustifer" on_hover=on_hover>
                         <div class="sublist">{"Sublist!"}</div>
                         {
@@ -54,7 +54,7 @@ impl Component for App {
                                 <List on_hover=on_hover weak_link=sub_list_link>
                                     <ListHeader text="Sub Rusties!" on_hover=on_hover list_link=sub_list_link/>
                                     <ListItem name="Sub Rustin" on_hover=on_hover />
-                                    <ListItem hide={true} name="Sub Rustaroo" on_hover=on_hover />
+                                    <ListItem hide=true name="Sub Rustaroo" on_hover=on_hover />
                                     <ListItem name="Sub Rustifer" on_hover=on_hover />
                                 </List>
                             }

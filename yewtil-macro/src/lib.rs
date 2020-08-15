@@ -1,4 +1,3 @@
-extern crate proc_macro;
 use proc_macro::TokenStream;
 
 use crate::function_component::function_component_handler;
