@@ -7,24 +7,13 @@ on:
 
 jobs:
   lint:
-    name: Format & Clippy (${{ matrix.toolchain }})
+    name: Format & Clippy
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - toolchain: stable
-            allow_failure: false
-
-          - toolchain: nightly
-            allow_failure: true
-
-    continue-on-error: ${{ matrix.allow_failure }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.toolchain }}
+          toolchain: stable
           override: true
           profile: minimal
           components: rustfmt, clippy

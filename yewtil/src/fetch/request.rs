@@ -79,7 +79,7 @@ impl Format for Json {
 /// per request.
 ///
 /// # Simplifying Example
-/// ```
+/// ```ignore
 /// use yewtil::fetch::{FetchRequest, MethodBody, Json, Fetch};
 /// use serde::Serialize;
 /// use serde::de::DeserializeOwned;
@@ -129,9 +129,7 @@ impl Format for Json {
 ///     Variant
 /// }
 ///
-/// # #[cfg(target_arch = "wasm32")]
 /// let fetch_wrapper = Fetch::new(LocalWrapper(ApplesRequest));
-/// # #[cfg(target_arch = "wasm32")]
 /// fetch_wrapper.fetch(|_| Msg::Variant); // Kicks off an async request.
 /// ```
 pub trait FetchRequest {
