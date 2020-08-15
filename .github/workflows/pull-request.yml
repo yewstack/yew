@@ -103,12 +103,12 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --doc --target wasm32-unknown-unknown
+          args: --workspace --doc
 
       - name: Run doctest - yew with features
         run: |
           cd yew
-          cargo test --doc --target wasm32-unknown-unknown --features "doc_test wasm_test yaml msgpack cbor toml"
+          cargo test --doc --features "doc_test wasm_test yaml msgpack cbor toml"
 
   integration_tests:
     name: Integration Tests for ${{ matrix.package }} on ${{ matrix.toolchain }}
