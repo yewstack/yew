@@ -103,11 +103,10 @@ pub struct ISS {
     iss_position: ISSPosition,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum Msg {
     GetLocation,
-    ReceiveLocation(ISS),
-    FetchError(String),
+    ReceiveResponse(Result<ISS, anyhow::Error>),
 }
 
 #[derive(Debug)]
@@ -188,10 +187,7 @@ impl Component for FetchServiceExample {
                             let (_, Json(data)) = response.into_parts();
                             // the condition `data.message == "success" is specific to this API which
                             // returns a JSON object with a "message" key – not all APIs will do this!
-                            match data {
-                                Ok(d) => Msg::ReceiveLocation(d),
-                                Err(e) => Msg::FetchError(e.to_string()),
-                            }
+                            Msg::ReceiveResponse(data)
                         });
                 // 3. pass the request and callback to the fetch service
                 let task = FetchService::fetch(request, callback).expect("failed to start request");
@@ -201,17 +197,18 @@ impl Component for FetchServiceExample {
                 // so return 'true'
                 true
             }
-            ReceiveLocation(location) => {
-                self.iss = Some(location);
+            ReceiveResponse(response) => {
+                match response {
+                    Ok(location) => {
+                        self.iss = Some(location);
+                    }
+                    Err(error) => {
+                        self.error = Some(error.to_string())
+                    }
+                }
                 self.ft = None;
                 // we want to redraw so that the page displays the location of the ISS instead of
                 // 'fetching...'
-                true
-            }
-            FetchError(error) => {
-                self.error = Some(error);
-                self.ft = None;
-                // redraw to show the error
                 true
             }
         }
