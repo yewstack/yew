@@ -52,7 +52,7 @@ impl ToNodeIterator for HtmlIterable {
     fn to_node_iterator_stream(&self) -> Option<TokenStream> {
         let Self(expr) = self;
         // #expr can return anything that implements IntoIterator<Item=Into<T>>
-        // We use a util method to avoid clippy warnings and cut down on generated code size
+        // We use a util method to avoid clippy warnings and reduce generated code size
         Some(quote_spanned! {expr.span()=>
             ::yew::utils::into_node_iter(#expr)
         })

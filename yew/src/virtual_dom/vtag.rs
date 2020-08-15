@@ -177,7 +177,7 @@ impl VTag {
         self.attributes.insert(name.to_owned(), value.to_string());
     }
 
-    /// Set boolean attribute if value is true. Unset if value is false. The name
+    /// Sets a boolean attribute if `value` is true. Removes if `value` is false. The name
     /// of the attribute will be used as the value.
     ///
     /// Example: `<button disabled="disabled">`
