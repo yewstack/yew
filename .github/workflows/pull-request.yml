@@ -47,17 +47,20 @@ jobs:
           args: --all -- --check
 
       - name: Run clippy
+        if: always()
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-targets -- -D warnings
 
       - name: Run clippy - yew with all features
+        if: always()
         run: |
           cd yew
           cargo clippy --all-targets --features "cbor msgpack toml yaml" -- -D warnings
 
       - name: Run clippy - yew-stdweb with all features
+        if: always()
         run: |
           cd yew-stdweb
           cargo clippy --all-targets --features "cbor msgpack toml yaml" -- -D warnings
