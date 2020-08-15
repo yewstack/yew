@@ -29,9 +29,14 @@ const siteConfig = {
     {href: 'https://github.com/yewstack/yew/releases', label: 'Changelog'},
     {href: 'https://docs.rs/yew', label: 'API'},
     {href: 'https://discord.gg/VQck8X4', label: 'Discord'},
-    // {search: true}, Need to setup algolia
+    {search: true},
     {languages: true},
   ],
+
+  algolia: {
+    apiKey: "bbaacf676920f3836ccab85fb87dd37c",
+    indexName: "yew",
+  },
 
   /* path to images for header/footer */
   headerIcon: 'img/logo.png',
