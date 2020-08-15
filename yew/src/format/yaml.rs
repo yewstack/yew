@@ -1,7 +1,5 @@
 //! Contains an implementation of YAML serialization format.
 
-use serde_yaml;
-
 /// A representation of a YAML data. Use it as wrapper to
 /// set a format you want to use for conversion:
 ///

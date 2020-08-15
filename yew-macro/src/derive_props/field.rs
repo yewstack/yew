@@ -26,10 +26,7 @@ pub struct PropField {
 impl PropField {
     /// All required property fields are wrapped in an `Option`
     pub fn is_required(&self) -> bool {
-        match self.attr {
-            PropAttr::Required { .. } => true,
-            _ => false,
-        }
+        matches!(self.attr, PropAttr::Required { .. })
     }
 
     /// This step name is descriptive to help a developer realize they missed a required prop
