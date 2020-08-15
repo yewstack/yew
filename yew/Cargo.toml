@@ -3,8 +3,8 @@ name = "yew"
 version = "0.17.2"
 edition = "2018"
 authors = [
-    "Denis Kolodin <deniskolodin@gmail.com>",
-    "Justin Starry <justin@yew.rs>",
+  "Denis Kolodin <deniskolodin@gmail.com>",
+  "Justin Starry <justin@yew.rs>",
 ]
 repository = "https://github.com/yewstack/yew"
 homepage = "https://github.com/yewstack/yew"
@@ -14,9 +14,6 @@ readme = "../README.md"
 keywords = ["web", "asmjs", "webasm", "javascript"]
 categories = ["gui", "web-programming"]
 description = "A framework for making client-side single-page apps"
-
-[badges]
-travis-ci = { repository = "yewstack/yew" }
 
 [dependencies]
 anyhow = "1"
@@ -130,7 +127,15 @@ bincode = "1"
 [features]
 default = ["services", "agent", "web_sys"]
 std_web = ["stdweb", "yew-macro/std_web"]
-web_sys = ["console_error_panic_hook", "futures", "gloo", "js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
+web_sys = [
+  "console_error_panic_hook",
+  "futures",
+  "gloo",
+  "js-sys",
+  "web-sys",
+  "wasm-bindgen",
+  "wasm-bindgen-futures"
+]
 doc_test = []
 wasm_test = []
 httpbin_test = []

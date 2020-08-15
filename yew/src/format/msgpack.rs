@@ -1,7 +1,5 @@
 //! Contains an implementation of MessagePack serialization format.
 
-use rmp_serde;
-
 /// A representation of a MessagePack data. Use it as wrapper to
 /// set a format you want to use for conversion:
 ///
