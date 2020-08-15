@@ -9,11 +9,18 @@ jobs:
   lint:
     name: Format & Clippy
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain:
+          - stable
+          - nightly
+
+    continue-on-error: ${{ matrix.toolchain == 'nightly' }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: ${{ matrix.toolchain }}
           override: true
           profile: minimal
           components: rustfmt, clippy
@@ -169,6 +176,7 @@ jobs:
           HTTPBIN_URL: "http://localhost:8080"
         run: |
           cd yew-stdweb
+          # FIXME: Chrome really doesn't seem to like yew-stdweb
           wasm-pack test --firefox --headless -- --features "wasm_test httpbin_test"
 
       - name: Run tests - yew-functional
