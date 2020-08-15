@@ -79,7 +79,7 @@ impl Format for Json {
 /// per request.
 ///
 /// # Simplifying Example
-/// ```ignore
+/// ```no_run
 /// use yewtil::fetch::{FetchRequest, MethodBody, Json, Fetch};
 /// use serde::Serialize;
 /// use serde::de::DeserializeOwned;
