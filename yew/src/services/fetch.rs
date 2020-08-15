@@ -262,10 +262,12 @@ mod tests {
         #[cfg(feature = "std_web")]
         assert!(resp.body().is_err());
         #[cfg(feature = "web_sys")]
-        assert_eq!(
-            "TypeError: NetworkError when attempting to fetch resource.",
-            resp.body().as_ref().unwrap_err().to_string()
-        );
+        assert!(resp
+            .body()
+            .as_ref()
+            .unwrap_err()
+            .to_string()
+            .starts_with("TypeError:"));
     }
 
     #[test]

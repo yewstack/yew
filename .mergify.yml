@@ -2,14 +2,14 @@ pull_request_rules:
   - name: automatic merge on CI success - admin
     conditions:
       - author=@yewstack/maintainers
-      - status-success=Travis CI - Pull Request
+      - status-success~=Pull Request
       - label=automerge
     actions:
       merge:
         method: squash
   - name: remove automerge label on CI failure
     conditions:
-      - status-failure=Travis CI - Pull Request
+      - status-failure~=Pull Request
       - label=automerge
     actions:
       label:

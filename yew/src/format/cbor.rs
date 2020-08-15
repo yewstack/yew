@@ -1,7 +1,5 @@
 //! Contains an implementation of CBOR serialization format.
 
-use serde_cbor;
-
 /// A representation of a CBOR data. Use it as wrapper to
 /// set a format you want to use for conversion:
 ///
