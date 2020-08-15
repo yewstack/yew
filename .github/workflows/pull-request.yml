@@ -7,7 +7,7 @@ on:
 
 jobs:
   lint:
-    name: Format & Clippy
+    name: Format & Clippy (${{ matrix.toolchain }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -19,6 +19,7 @@ jobs:
           - toolchain: nightly
             allow_failure: true
 
+    continue-on-error: ${{ matrix.allow_failure }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -46,20 +47,17 @@ jobs:
           args: --all -- --check
 
       - name: Run clippy
-        continue-on-error: ${{ matrix.allow_failure }}
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-targets -- -D warnings
 
       - name: Run clippy - yew with all features
-        continue-on-error: ${{ matrix.allow_failure }}
         run: |
           cd yew
           cargo clippy --all-targets --features "cbor msgpack toml yaml" -- -D warnings
 
       - name: Run clippy - yew-stdweb with all features
-        continue-on-error: ${{ matrix.allow_failure }}
         run: |
           cd yew-stdweb
           cargo clippy --all-targets --features "cbor msgpack toml yaml" -- -D warnings
