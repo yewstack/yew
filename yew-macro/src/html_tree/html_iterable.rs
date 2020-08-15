@@ -41,6 +41,7 @@ impl ToTokens for HtmlIterable {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let expr = &self.0;
         let new_tokens = quote_spanned! {expr.span()=>
+            #[allow(unused_braces)]
             ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(::std::iter::IntoIterator::into_iter(#expr))
         };
 

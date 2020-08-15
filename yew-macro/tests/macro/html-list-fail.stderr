@@ -3,85 +3,63 @@ error: this opening fragment has no corresponding closing fragment
   |
 4 |     html! { <> };
   |             ^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this closing fragment has no corresponding opening fragment
  --> $DIR/html-list-fail.rs:5:13
   |
 5 |     html! { </> };
   |             ^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this opening fragment has no corresponding closing fragment
  --> $DIR/html-list-fail.rs:6:15
   |
 6 |     html! { <><> };
   |               ^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this closing fragment has no corresponding opening fragment
  --> $DIR/html-list-fail.rs:7:13
   |
 7 |     html! { </></> };
   |             ^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this opening fragment has no corresponding closing fragment
  --> $DIR/html-list-fail.rs:8:13
   |
 8 |     html! { <><></> };
   |             ^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
  --> $DIR/html-list-fail.rs:9:18
   |
 9 |     html! { <></><></> };
   |                  ^^^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected a valid html element
   --> $DIR/html-list-fail.rs:10:15
    |
 10 |     html! { <>invalid</> };
    |               ^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected an expression following this equals sign
   --> $DIR/html-list-fail.rs:11:17
    |
 11 |     html! { <key=></> };
    |                 ^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this closing tag has no corresponding opening tag
   --> $DIR/html-list-fail.rs:12:36
    |
 12 |     html! { <key="key".to_string()></key> };
    |                                    ^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: only a single `key` prop is allowed on a fragment
   --> $DIR/html-list-fail.rs:14:30
    |
 14 |     html! { <key="first key" key="second key" /> };
    |                              ^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: fragments only accept the `key` prop
   --> $DIR/html-list-fail.rs:15:14
    |
 15 |     html! { <some_attr="test"></> };
    |              ^^^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -828,10 +828,9 @@ mod tests {
     }
 
     #[test]
-    #[allow(unused_parens)]
     fn filter_empty_string_classes() {
         let a = html! { <div class=vec![""]></div> };
-        let b = html! { <div class=("")></div> };
+        let b = html! { <div class=("", "")></div> };
         let c = html! { <div class=""></div> };
         let d_arr = [""];
         let d = html! { <div class=&d_arr[..]></div> };
