@@ -21,7 +21,7 @@ END TEMPLATE-->
 - #### 🛠 Fixes
   - None
 - #### 🚨 Breaking changes
-  - None
+  - `RouterButton` now prevents default events per default @TheNeikos
 
 ## ✨ **0.14.0** *2020-6-30*
 
