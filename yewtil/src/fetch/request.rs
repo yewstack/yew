@@ -129,7 +129,9 @@ impl Format for Json {
 ///     Variant
 /// }
 ///
+/// # #[cfg(target_arch = "wasm32")]
 /// let fetch_wrapper = Fetch::new(LocalWrapper(ApplesRequest));
+/// # #[cfg(target_arch = "wasm32")]
 /// fetch_wrapper.fetch(|_| Msg::Variant); // Kicks off an async request.
 /// ```
 pub trait FetchRequest {
