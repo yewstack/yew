@@ -681,7 +681,7 @@ mod tests {
         };
 
         let d = html! {
-            <div class=format!("fail")></div>
+            <div class=format!("fail{}", "")></div>
         };
 
         assert_eq!(a, b);

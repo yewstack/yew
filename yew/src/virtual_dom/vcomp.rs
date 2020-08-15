@@ -498,7 +498,7 @@ mod tests {
 
         let children_renderer_method = html! {
             <List>
-                { children_renderer.clone() }
+                { children_renderer }
             </List>
         };
         assert_eq!(
