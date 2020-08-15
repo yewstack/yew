@@ -218,8 +218,7 @@ jobs:
             cargo-${{ runner.os }}-
 
       - name: Run tests
-        run: |
-          packages=("yew-components" "yew-functional" "yew-macro" "yew-router" "yew-router-macro" "yew-router-route-parser" "yewtil")
-          for package in "${packages[@]}"; do
-            (cd "$package" && cargo test)
-          done
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --workspace --exclude yew --exclude yew-stdweb
