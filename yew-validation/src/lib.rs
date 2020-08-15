@@ -149,12 +149,6 @@ pub fn is_valid_sgml_tag(tag: &str) -> bool {
 mod tests {
     use super::*;
 
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
-    wasm_bindgen_test_configure!(run_in_browser);
-
     #[test]
     fn valid_custom_element() {
         assert_eq!(is_valid_html_custom_element_name("foo-bar"), true);
