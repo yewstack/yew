@@ -21,7 +21,7 @@ END TEMPLATE-->
 - #### 🛠 Fixes
   - None
 - #### 🚨 Breaking changes
-  - `AnchorButton` now prevents default events per default @TheNeikos
+  - `RouterButton` now prevents default events per default @TheNeikos
 
 ## ✨ **0.14.0** *2020-6-30*
 
