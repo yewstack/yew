@@ -22,7 +22,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 yew = "0.17"
-wasm-bindgen = "0.2"
+wasm-bindgen = "0.2.67"
 ```
 
 Copy the following template into your `src/lib.rs` file:
