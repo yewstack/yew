@@ -221,4 +221,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --exclude yew --exclude yew-stdweb
+          args: --all-targets --workspace --exclude yew
