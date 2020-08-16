@@ -38,6 +38,8 @@ const siteConfig = {
     indexName: "yew",
   },
 
+  gaTrackingId: 'UA-175524777-1',
+
   /* path to images for header/footer */
   headerIcon: 'img/logo.png',
   // footerIcon: 'img/logo.png',
