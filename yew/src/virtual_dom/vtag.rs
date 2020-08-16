@@ -5,6 +5,7 @@ use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
+use indexmap::IndexMap;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
@@ -168,38 +169,41 @@ impl VTag {
         self.checked = value;
     }
 
-    /// Adds attribute to a virtual node. Not every attribute works when
-    /// it is set as an attribute. We use workarounds for:
+    /// Pushes a key-value pair to the Vec variant of attributes.
+    ///
+    /// It is the responsibility of the caller to ensure the attribute list does not contain
+    /// duplicate keys.
+    ///
+    /// Not every attribute works when it set as an attribute. We use workarounds for:
     /// `type/kind`, `value` and `checked`.
-    ///
-    /// If this virtual node has this attribute present, the value is replaced.
-    pub fn add_attribute(&mut self, name: &'static str, value: impl Into<Cow<'static, str>>) {
-        self.attributes.push((name, value.into()));
-    }
-
-    /// Sets a boolean attribute if `value` is true. Removes if `value` is false. The name
-    /// of the attribute will be used as the value.
-    ///
-    /// Example: `<button disabled="disabled">`
-    pub fn set_boolean_attribute(&mut self, name: &'static str, value: bool) {
-        // TODO: adapt to enum Attributes
-        if value {
-            if !self.attributes.iter().any(|pair| pair.0 == name) {
-                self.attributes.push((name, name.into()));
-            }
-        } else {
-            self.attributes = std::mem::take(&mut self.attributes)
-                .into_iter()
-                .filter(|pair| pair.0 == name)
-                .collect();
+    pub fn push_attribute(&mut self, key: &'static str, value: impl Into<Cow<'static, str>>) {
+        if let Attributes::Vec(v) = &mut self.attributes {
+            v.push((key, value.into()));
         }
     }
 
-    /// Adds attributes to a virtual node. Not every attribute works when
-    /// it set as  an attribute. We use workarounds for:
+    /// Adds a key-value pair to attributes
+    ///
+    /// Not every attribute works when it set as an attribute. We use workarounds for:
     /// `type/kind`, `value` and `checked`.
-    pub fn add_attributes(&mut self, attrs: Vec<(&'static str, Cow<'static, str>)>) {
-        self.attributes.extend(attrs);
+    pub fn add_attribute(&mut self, key: &'static str, value: impl Into<Cow<'static, str>>) {
+        self.attributes_mut().insert(key, value.into());
+    }
+
+    /// Returns a mutable reference to the IndexMap variant of attributes.
+    ///
+    /// Not every attribute works when it set as an attribute. We use workarounds for:
+    /// `type/kind`, `value` and `checked`.
+    pub fn attributes_mut(&mut self) -> &mut IndexMap<&'static str, Cow<'static, str>> {
+        self.attributes.as_mut()
+    }
+
+    /// Sets attributes to a virtual node.
+    ///
+    /// Not every attribute works when it set as an attribute. We use workarounds for:
+    /// `type/kind`, `value` and `checked`.
+    pub fn set_attributes(&mut self, attrs: impl Into<Attributes>) {
+        self.attributes = attrs.into();
     }
 
     /// Adds new listener to the node.
@@ -263,11 +267,11 @@ impl VTag {
         }
     }
 
-    /// Diffs attributes between the old and new list.
+    /// Diffs attributes between the old and new lists.
     ///
     /// This method optimises for the lists being the same length, having the
     /// same keys in the same order - most common case.
-    fn diff_attributes<'a>(
+    fn diff_attributes_vectors<'a>(
         new: &'a [(&'static str, Cow<'static, str>)],
         old: &'a [(&'static str, Cow<'static, str>)],
     ) -> Vec<Patch<&'static str, &'a str>> {
@@ -329,6 +333,65 @@ impl VTag {
         }
     }
 
+    /// Diffs attributes between the old and new IndexMaps.
+    ///
+    /// This method must be used, if either the new or old node were created without using the html!
+    /// macro, that provides compile-time attribute deduplication.
+    fn diff_attributes_indexmaps<'a>(
+        new: &'a IndexMap<&'static str, Cow<'static, str>>,
+        old: &'a IndexMap<&'static str, Cow<'static, str>>,
+    ) -> Vec<Patch<&'static str, &'a str>> {
+        use indexmap::map::Iter;
+        use std::iter::Peekable;
+
+        let mut out = Vec::new();
+        let mut new_iter = new.iter().peekable();
+        let mut old_iter = old.iter().peekable();
+        loop {
+            if new_iter.peek().is_none() || old_iter.peek().is_none() {
+                break;
+            }
+            match (new_iter.next(), old_iter.next()) {
+                (Some(n), Some(o)) => {
+                    if n.0 != o.0 {
+                        break;
+                    }
+                    if n.1 != o.1 {
+                        out.push(Patch::Replace(*n.0, n.1.as_ref()));
+                    }
+                }
+                _ => break,
+            }
+        }
+        diff_incompatible(&mut out, new_iter, old_iter, &new, &old);
+        return out;
+
+        fn diff_incompatible<'a>(
+            dst: &mut Vec<Patch<&'static str, &'a str>>,
+            new_keys: Peekable<Iter<'a, &'static str, Cow<'static, str>>>,
+            old_keys: Peekable<Iter<'a, &'static str, Cow<'static, str>>>,
+            new_map: &'a IndexMap<&'static str, Cow<'static, str>>,
+            old_map: &'a IndexMap<&'static str, Cow<'static, str>>,
+        ) {
+            for (k, n_v) in new_keys {
+                match old_map.get(k) {
+                    Some(o_v) => {
+                        if n_v != o_v {
+                            dst.push(Patch::Replace(k, n_v));
+                        }
+                    }
+                    None => dst.push(Patch::Add(k, n_v)),
+                };
+            }
+
+            for (k, _) in old_keys {
+                if !new_map.contains_key(k) {
+                    dst.push(Patch::Remove(k));
+                }
+            }
+        }
+    }
+
     /// Compares new kind with ancestor and produces a patch to apply, if any
     fn diff_kind<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
@@ -367,14 +430,43 @@ impl VTag {
         }
     }
 
-    fn apply_diffs(&mut self, ancestor: &Option<Box<Self>>) {
+    fn apply_diffs(&mut self, ancestor: &mut Option<Box<Self>>) {
         let element = self.reference.as_ref().expect("element expected");
 
         // apply attribute patches including an optional "class"-attribute patch
-        for change in Self::diff_attributes(
-            &self.attributes,
-            &ancestor.as_ref().map(|a| &a.attributes).unwrap_or(&vec![]),
+        match (
+            &mut self.attributes,
+            &mut ancestor.as_mut().map(|a| &mut a.attributes),
         ) {
+            (Attributes::Vec(new), Some(Attributes::IndexMap(_))) => {
+                self.attributes = Attributes::new_indexmap(std::mem::take(new));
+            }
+            (Attributes::IndexMap(_), Some(Attributes::Vec(old))) => {
+                let old = std::mem::take(old);
+                match ancestor.as_mut() {
+                    Some(a) => {
+                        a.attributes = Attributes::new_indexmap(old);
+                    }
+                    None => unreachable!(),
+                };
+            }
+            _ => (),
+        };
+        for change in match (
+            &self.attributes,
+            &ancestor
+                .as_ref()
+                .map(|a| &a.attributes)
+                .unwrap_or(&Attributes::default()),
+        ) {
+            (Attributes::Vec(new), Attributes::Vec(old)) => {
+                Self::diff_attributes_vectors(new, &old)
+            }
+            (Attributes::IndexMap(new), Attributes::IndexMap(old)) => {
+                Self::diff_attributes_indexmaps(new, old)
+            }
+            _ => unreachable!(),
+        } {
             match change {
                 Patch::Add(key, value) | Patch::Replace(key, value) => {
                     element
@@ -384,7 +476,8 @@ impl VTag {
                 Patch::Remove(key) => {
                     cfg_match! {
                         feature = "std_web" => element.remove_attribute(&key),
-                        feature = "web_sys" => element.remove_attribute(&key).expect("could not remove attribute"),
+                        feature = "web_sys" => element.remove_attribute(&key)
+                                                      .expect("could not remove attribute"),
                     };
                 }
             }
@@ -542,7 +635,7 @@ impl VDiff for VTag {
             self.reference = Some(element);
         }
 
-        self.apply_diffs(&ancestor_tag);
+        self.apply_diffs(&mut ancestor_tag);
         self.recreate_listeners(&mut ancestor_tag);
 
         // Process children
@@ -878,7 +971,7 @@ mod tests {
 
         macro_rules! has_class {
             ($vtag:expr) => {
-                $vtag.attributes.iter().any(|(k, _)| k == &"class")
+                $vtag.attributes.iter().any(|(k, _)| k == "class")
             };
         }
 
@@ -901,7 +994,7 @@ mod tests {
         }
 
         if let VNode::VTag(vtag) = d {
-            assert!(!vtag.attributes.iter().any(|(k, _)| k == &"class"));
+            assert!(!vtag.attributes.iter().any(|(k, _)| k == "class"));
         } else {
             panic!("vtag expected");
         }
@@ -1048,7 +1141,7 @@ mod tests {
                     .iter()
                     .find(|(k, _)| k == &"aria-controls")
                     .map(|(_, v)| v),
-                Some(&"it-works".into())
+                Some("it-works")
             );
         } else {
             panic!("vtag expected");
@@ -1438,7 +1531,7 @@ mod tests {
         };
         let input_vtag = assert_vtag(&mut input_el);
         assert_eq!(input_vtag.value, Some("World".to_string()));
-        assert!(!input_vtag.attributes.iter().any(|(k, _)| k == &"value"));
+        assert!(!input_vtag.attributes.iter().any(|(k, _)| k == "value"));
     }
 
     #[test]
@@ -1551,7 +1644,6 @@ mod layout_tests {
 mod benchmarks {
     use super::{Patch, VTag};
     use easybench_wasm::bench_env_limit;
-    use indexmap::map::IndexMap;
     use std::borrow::Cow;
     use std::collections::HashMap;
 
@@ -1567,28 +1659,6 @@ mod benchmarks {
     fn diff_attributes_hashmap<'a>(
         new: &'a HashMap<&'static str, Cow<'static, str>>,
         old: &'a HashMap<&'static str, Cow<'static, str>>,
-    ) -> Vec<Patch<&'static str, &'a str>> {
-        // Only change what is necessary.
-        let to_add_or_replace = new
-            .iter()
-            .filter_map(move |(key, value)| match old.get(key) {
-                None => Some(Patch::Add(&**key, &**value)),
-                Some(ancestor_value) if value != ancestor_value => {
-                    Some(Patch::Replace(&**key, &**value))
-                }
-                _ => None,
-            });
-        let to_remove = old
-            .keys()
-            .filter(move |key| !new.contains_key(&**key))
-            .map(|key| Patch::Remove(&**key));
-
-        to_add_or_replace.chain(to_remove).collect()
-    }
-
-    fn diff_attributes_indexmap<'a>(
-        new: &'a IndexMap<&'static str, Cow<'static, str>>,
-        old: &'a IndexMap<&'static str, Cow<'static, str>>,
     ) -> Vec<Patch<&'static str, &'a str>> {
         // Only change what is necessary.
         let to_add_or_replace = new
@@ -1633,12 +1703,14 @@ mod benchmarks {
                     })
                 );
                 wasm_bindgen_test::console_log!(
-                    "{}: indexmap: {}",
+                    "{}: indexmaps: {}",
                     stringify!($name),
                     bench_env_limit(BENCHMARK_DURATION, env.clone(), |(a, b)| {
+                        use indexmap::IndexMap;
+
                         format!(
                             "{:?}",
-                            diff_attributes_indexmap(
+                            VTag::diff_attributes_indexmaps(
                                 build_map!(IndexMap, a),
                                 build_map!(IndexMap, b)
                             )
@@ -1650,7 +1722,7 @@ mod benchmarks {
                     stringify!($name),
                     bench_env_limit(BENCHMARK_DURATION, env.clone(), |(a, b)| format!(
                         "{:?}",
-                        VTag::diff_attributes(&a, &b)
+                        VTag::diff_attributes_vectors(&a, &b)
                     ))
                 );
             }

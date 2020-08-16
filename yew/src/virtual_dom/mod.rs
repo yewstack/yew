@@ -15,7 +15,8 @@ pub mod vtext;
 
 use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
-use indexmap::set::IndexSet;
+use indexmap::{IndexMap, IndexSet};
+use std::borrow::Cow;
 use std::fmt;
 use std::rc::Rc;
 cfg_if! {
@@ -59,11 +60,77 @@ impl fmt::Debug for dyn Listener {
 /// A list of event listeners.
 type Listeners = Vec<Rc<dyn Listener>>;
 
-/// A vector of attribute key-value pairs.
-///
-/// A vector is ideal because most of the time the list will neither change
-/// length nor key order.
-type Attributes = Vec<(&'static str, std::borrow::Cow<'static, str>)>;
+/// A collection of attributes for an element
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum Attributes {
+    /// A vector is ideal because most of the time the list will neither change
+    /// length nor key order.
+    Vec(Vec<(&'static str, Cow<'static, str>)>),
+
+    /// IndexMap is used to provide runtime attribute deduplication in cases where the html! macro
+    /// was not used to guarantee it.
+    IndexMap(IndexMap<&'static str, Cow<'static, str>>),
+}
+
+impl Attributes {
+    /// Construct a default Attributes instance
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Construct new IndexMap variant from Vec variant
+    pub(crate) fn new_indexmap(v: Vec<(&'static str, Cow<'static, str>)>) -> Self {
+        Self::IndexMap(v.into_iter().collect())
+    }
+
+    /// Return iterator over attribute key-value pairs
+    pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'static str, &'a str)> + 'a> {
+        macro_rules! pack {
+            ($src:expr) => {
+                Box::new($src.iter().map(|(k, v)| (*k, v.as_ref())))
+            };
+        }
+
+        match self {
+            Self::Vec(v) => pack!(v),
+            Self::IndexMap(m) => pack!(m),
+        }
+    }
+}
+
+impl AsMut<IndexMap<&'static str, Cow<'static, str>>> for Attributes {
+    fn as_mut(&mut self) -> &mut IndexMap<&'static str, Cow<'static, str>> {
+        match self {
+            Self::IndexMap(m) => m,
+            Self::Vec(v) => {
+                *self = Self::new_indexmap(std::mem::take(v));
+                self.as_mut()
+            }
+        }
+    }
+}
+
+macro_rules! impl_attrs_from {
+    ($($from:path => $variant:ident)*) => {
+        $(
+            impl From<$from> for Attributes {
+                fn from(v: $from) -> Self {
+                    Self::$variant(v)
+                }
+            }
+        )*
+    };
+}
+impl_attrs_from! {
+    Vec<(&'static str, Cow<'static, str>)> => Vec
+    IndexMap<&'static str, Cow<'static, str>> => IndexMap
+}
+
+impl Default for Attributes {
+    fn default() -> Self {
+        Self::Vec(Default::default())
+    }
+}
 
 /// A set of classes.
 #[derive(Debug, Clone, Default)]

@@ -152,7 +152,7 @@ impl ToTokens for HtmlTag {
             quote_spanned! {value.span()=> {
                 #[allow(clippy::suspicious_else_formatting)]
                 if #value {
-                    #vtag.add_attribute(
+                    #vtag.push_attribute(
                         #label_str,
                         ::std::borrow::Cow::<'static, str>::Borrowed(#label_str),
                     );
@@ -175,7 +175,7 @@ impl ToTokens for HtmlTag {
                 let __yew_classes
                     = ::yew::virtual_dom::Classes::default()#(.extend(#classes))*;
                 if !__yew_classes.is_empty() {
-                    #vtag.add_attribute("class", __yew_classes.to_string());
+                    #vtag.push_attribute("class", __yew_classes.to_string());
                 }
             }),
             Some(ClassesForm::Single(classes)) => match stringify::try_stringify_expr(classes) {
@@ -190,7 +190,7 @@ impl ToTokens for HtmlTag {
                     let __yew_classes
                         = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
                     if !__yew_classes.is_empty() {
-                        #vtag.add_attribute(
+                        #vtag.push_attribute(
                             "class",
                             ::std::string::ToString::to_string(&__yew_classes),
                         );
@@ -248,7 +248,7 @@ impl ToTokens for HtmlTag {
                     "input" | "textarea" => {}
                     _ => {
                         if let ::std::option::Option::Some(value) = #vtag.value.take() {
-                            #vtag.attributes.push(("value", value.into()));
+                            #vtag.push_attribute("value", value);
                         }
                     }
                 }
@@ -271,7 +271,7 @@ impl ToTokens for HtmlTag {
 
             #[allow(clippy::suspicious_else_formatting)]
             if #has_attrs {
-                #vtag.attributes = vec![#(#attr_pairs),*];
+                #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(vec![#(#attr_pairs),*]);
             }
             #(#set_booleans)*
             #(#set_classes_it)*
