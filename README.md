@@ -11,8 +11,8 @@
     <a href="https://crates.io/crates/yew"><img alt="Crate Info" src="https://img.shields.io/crates/v/yew.svg"/></a>
     <a href="https://docs.rs/yew/"><img alt="API Docs" src="https://img.shields.io/badge/docs.rs-yew-green"/></a>
     <a href="https://discord.gg/VQck8X4"><img alt="Discord Chat" src="https://img.shields.io/discord/701068342760570933"/></a>
+    <a href="https://gitlocalize.com/repo/4999/whole_project?utm_source=badge"> <img src="https://gitlocalize.com/repo/4999/whole_project/badge.svg" /> </a>
     <a href="https://blog.rust-lang.org/2020/03/12/Rust-1.42.html"><img alt="Rustc Version 1.42+" src="https://img.shields.io/badge/rustc-1.42%2B-lightgrey.svg"/></a>
-    <a href="https://github.com/jetli/awesome-yew"><img alt="Yew Awesome" src="https://raw.githubusercontent.com/sindresorhus/awesome/master/media/badge.svg"/></a>
   </p>
 
   <h4>
@@ -24,9 +24,9 @@
     <span> | </span>
     <a href="https://yew.rs/docs/more/roadmap">Roadmap</a>
     <span> | </span>
-    <a href="https://yew.rs/docs/v/zh_cn/">简体中文文档</a>
+    <a href="https://yew.rs/docs/zh-CN/">简体中文文档</a>
     <span> | </span>
-    <a href="https://yew.rs/docs/v/zh_tw/">繁體中文文檔</a>
+    <a href="https://yew.rs/docs/zh-TW/">繁體中文文檔</a>
   </h4>
 </div>
 
@@ -44,7 +44,7 @@
 
 Yew is a community effort and we welcome all kinds of contributions, big or small, from developers of all backgrounds. We want the Yew community to be a fun and friendly place, so please review our [Code of Conduct](CODE_OF_CONDUCT.md) to learn what behavior will not be tolerated.
 
-#### 🤓 New to Yew?
+#### 🤠 New to Yew?
 
 Start learning about the framework by helping us improve our [documentation](https://github.com/yewstack/yew/tree/master/docs). Pull requests which improve test coverage are also very welcome.
 
@@ -64,10 +64,13 @@ After reviewing the [Contribution Guide](CONTRIBUTING.md), check out the ["Good 
 
 Come help us on the [issues that matter that the most](https://github.com/yewstack/yew/labels/%3Adollar%3A%20Funded%20on%20Issuehunt) and receive a small cash reward for your troubles. We use [Issuehunt](https://issuehunt.io/r/yewstack/yew/) to fund issues from our Open Collective funds. If you really care about an issue, you can choose to add funds yourself! 
 
-
 #### 😱 Found a bug?
 
 Please [report all bugs!](https://github.com/yewstack/yew/issues/new/choose) We are happy to help support developers fix the bugs they find if they are interested and have the time.
+
+#### 🤓 Want to help translate?
+
+Translations can be submitted on the [Yew GitLocalize Repo](https://gitlocalize.com/repo/4999). If you are interested in being the official moderator for a language, please reach out on Discord.
 
 ## Contributors
 
