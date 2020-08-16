@@ -33,6 +33,8 @@ const siteConfig = {
     {languages: true},
   ],
 
+  translationRecruitingLink: 'https://gitlocalize.com/repo/4999',
+
   algolia: {
     apiKey: "bbaacf676920f3836ccab85fb87dd37c",
     indexName: "yew",
