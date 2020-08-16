@@ -1,5 +1,4 @@
 ---
-id: wasm-bindgen
 title: Using wasm-bindgen
 ---
 

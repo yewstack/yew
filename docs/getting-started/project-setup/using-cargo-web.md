@@ -1,5 +1,4 @@
 ---
-id: cargo-web
 title: Using cargo-web
 ---
 

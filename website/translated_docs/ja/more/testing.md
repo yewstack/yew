@@ -1,5 +1,4 @@
 ---
-id: testing
 title: Testing apps
 description: Testing your app
 ---

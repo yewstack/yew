@@ -1,5 +1,4 @@
 ---
-id: intro
 title: Introduction
 ---
 
@@ -25,7 +24,7 @@ questions
 
 Click the link below to learn how to build your first Yew app and learn from community example projects
 
-[Getting started](getting-started/project-setup/README.md)
+[Getting started](getting-started/project-setup.md)
 
 ### Still not convinced?
 

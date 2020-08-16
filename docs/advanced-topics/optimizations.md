@@ -1,10 +1,8 @@
 ---
-id: optimizations
-title: Optimizations
+title: Optimizations & Best Practices
+sidebar_label: Optimizations
 description: Make your app faster
 ---
-
-# Optimizations & Best Practices
 
 ## neq\_assign
 

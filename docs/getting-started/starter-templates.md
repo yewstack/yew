@@ -1,5 +1,4 @@
 ---
-id: starter-templates
 title: Starter templates
 ---
 

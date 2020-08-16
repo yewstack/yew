@@ -1,5 +1,4 @@
 ---
-id: callbacks
 title: Callbacks
 description: ComponentLink and Callbacks
 ---
