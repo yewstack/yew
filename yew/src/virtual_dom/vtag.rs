@@ -1640,17 +1640,14 @@ mod layout_tests {
     }
 }
 
-#[cfg(all(test, feature = "web_sys"))]
+#[cfg(all(test, feature = "web_sys", feature = "wasm_test"))]
 mod benchmarks {
     use super::{Patch, VTag};
     use easybench_wasm::bench_env_limit;
     use std::borrow::Cow;
     use std::collections::HashMap;
-
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     // In seconds
