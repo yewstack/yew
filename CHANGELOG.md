@@ -1,5 +1,21 @@
 # Changelog
 
+## ✨ **0.17.3** *(2020-08-16)*
+
+#### Changelog
+
+- #### ⚡️ Features
+
+  - Added `prompt` function to `DialogService`. [[@teymour-aldridge], [#1350](https://github.com/yewstack/yew/pull/1350)]
+  - Implement `From<&[T]>` where `T: AsRef<str>` for `Classes`. [[@alexschrod], [#1448](https://github.com/yewstack/yew/pull/1448)]
+  - Added `batch_callback_once` to `ComponentLink`. [[@ctron], [#1463](https://github.com/yewstack/yew/pull/1463)]
+
+- #### 🛠 Fixes
+
+  - Properties with default type params can now have `Properties` trait derived. [[@siku2], [#1408](https://github.com/yewstack/yew/pull/1408)]
+  - `html!`: Improved compile error messages for invalid list fragments. [[@siku2], [#1445](https://github.com/yewstack/yew/pull/1445)]
+  - Batch component updates are processed more efficiently. [[@bakape], [#1470](https://github.com/yewstack/yew/pull/1470)]
+
 ## ✨ **0.17.2** *(2020-07-04)*
 
 #### Changelog
@@ -928,8 +944,10 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 ## ✨ **0.1** *(2017-12-31)*
 
 [Web Workers API]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
+[@alexschrod]: https://github.com/alexschrod
 [@AlephAlpha]: https://github.com/AlephAlpha
 [@astraw]: https://github.com/astraw
+[@bakape]: https://github.com/bakape
 [@bryanjswift]: https://github.com/bryanjswift
 [@boydjohnson]: https://github.com/boydjohnson
 [@captain-yossarian]: https://github.com/captain-yossarian
@@ -937,6 +955,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
 [@charvp]: https://github.com/charvp
 [@ctaggart]: https://github.com/ctaggart
 [@ctm]: https://github.com/ctm
+[@ctron]: https://github.com/ctron
 [@domdir]: https://github.com/domdir
 [@D4nte]: https://github.com/D4nte
 [@dancespiele]: https://github.com/dancespiele
