@@ -1,5 +1,4 @@
 ---
-id: format
 title: Format
 ---
 

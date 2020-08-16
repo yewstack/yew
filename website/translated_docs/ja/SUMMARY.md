@@ -1,10 +1,10 @@
 # Table of contents
 
-* [はじめに](README.md)
+* [はじめに](intro.md)
 
 ## 始める
 
-* [プロジェクトの準備](getting-started/project-setup/README.md)
+* [プロジェクトの準備](getting-started/project-setup.md)
   * [wasm-packを使う](getting-started/project-setup/using-wasm-pack.md)
   * [wasm-bindgenを使う](getting-started/project-setup/using-wasm-bindgen.md)
   * [cargo-webを使う](getting-started/project-setup/using-cargo-web.md)
@@ -15,17 +15,17 @@
 
 ## 基本となる概念 <a id="concepts"></a>
 
-* [html!を使う](concepts/html/README.md)
+* [html!を使う](concepts/html.md)
   * [リスト](concepts/html/lists.md)
   * [要素](concepts/html/elements.md)
   * [リテラルと式](concepts/html/literals-and-expressions.md)
   * [コンポーネント](concepts/html/components.md)
-* [コンポーネント (Components)](concepts/components/README.md)
+* [コンポーネント (Components)](concepts/components.md)
   * [属性 (Properties)](concepts/components/properties.md)
   * [コールバック (Callbacks)](concepts/components/callbacks.md)
   * [参照 (Refs)](concepts/components/refs.md)
 * [Agents](concepts/agents.md)
-* [Services](concepts/services/README.md)
+* [Services](concepts/services.md)
   * [Format](concepts/services/format.md)
 * [ルータ](concepts/router.md)
 

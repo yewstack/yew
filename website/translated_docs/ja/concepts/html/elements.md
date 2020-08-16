@@ -1,5 +1,4 @@
 ---
-id: elements
 title: Elements
 description: Both HTML and SVG elements are supported
 ---

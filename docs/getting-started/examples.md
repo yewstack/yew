@@ -1,5 +1,4 @@
 ---
-id: examples
 title: Examples
 ---
 The Yew repository is chock-full of [examples](https://github.com/yewstack/yew/tree/v0.17/examples) 

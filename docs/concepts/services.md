@@ -1,10 +1,9 @@
 ---
-id: services-intro
-title: Introduction
+title: Services
+sidebar_label: Overview
 description: Yew's glue to browser APIs
 ---
 
-# Services
 :::note
 This section is still a work in progress.
 :::
