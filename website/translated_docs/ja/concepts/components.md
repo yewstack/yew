@@ -1,5 +1,4 @@
 ---
-id: components-intro
 title: Introduction
 description: Components and their lifecycle hooks
 ---
@@ -62,7 +61,7 @@ impl Component for MyComponent {
 }
 ```
 
-使い方については[`html!`ガイド](../html/README.md)をご確認ください。
+使い方については[`html!`ガイド](html.md)をご確認ください。
 
 ### Rendered
 

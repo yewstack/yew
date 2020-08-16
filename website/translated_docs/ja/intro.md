@@ -1,5 +1,4 @@
 ---
-id: intro
 title: Introduction
 ---
 
@@ -21,7 +20,7 @@ title: Introduction
 
 以下のリンクをクリックして初めてのYewアプリの作り方を学び、コミュニティのプロジェクト例を見てみましょう。
 
-[始める](getting-started/project-setup/README.md)
+[始める](getting-started/project-setup.md)
 
 ### まだ満足していませんか?
 

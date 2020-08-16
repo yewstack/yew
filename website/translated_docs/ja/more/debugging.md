@@ -1,5 +1,4 @@
 ---
-id: debugging
 title: Debugging
 ---
 

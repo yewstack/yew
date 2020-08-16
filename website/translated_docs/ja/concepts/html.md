@@ -1,5 +1,4 @@
 ---
-id: html-intro
 title: Introduction
 description: The procedural macro for generating HTML and SVG
 ---
@@ -9,7 +8,7 @@ JSX \(HTMLのようなコードをJavaScript内部に書くことができるJav
 
 **重要な注意**
 
-1. `html!`マクロはルートのHTMLノードのみ受け付けます \([フラグメントかイテレータを使う](lists.md)ことでやり取りできます\)
+1. `html!`マクロはルートのHTMLノードのみ受け付けます \([フラグメントかイテレータを使う](html/lists.md)ことでやり取りできます\)
 2. 空の`html! {}`の呼び出しは可能ですが何もレンダリングしません
 3. リテラルはクオーテーションがつけられ、ブレースで囲う必要があります: `html! { "Hello, World" }`
 

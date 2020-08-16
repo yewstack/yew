@@ -1,5 +1,4 @@
 ---
-id: sample-app
 title: Build a sample app
 ---
 

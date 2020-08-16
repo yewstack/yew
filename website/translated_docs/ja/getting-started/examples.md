@@ -1,5 +1,4 @@
 ---
-id: examples
 title: Examples
 ---
 

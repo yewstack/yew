@@ -1,5 +1,4 @@
 ---
-id: expressions
 title: Literals and Expressions
 ---
 ## リテラル
