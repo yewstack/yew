@@ -26,7 +26,7 @@ cargo web start
 * `wasm32-unknown-emscripten`
 * `asmjs-unknown-emscripten`
 
-{% hint style="info" %}
+:::note
 更多關於 `*-emscripten` targets 的資訊，請自行安裝 Emscripten SDK。
-{% endhint %}
+:::
 

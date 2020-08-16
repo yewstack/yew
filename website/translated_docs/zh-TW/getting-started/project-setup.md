@@ -16,19 +16,19 @@ description: Set yourself up for success
 
 一套 CLI 工具，由 Rust/Wasm Working Group 為了編譯並打包 WebAssembly 所開發的。最好與 Webpack 的 [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin) 搭配使用。
 
-{% page-ref page="using-wasm-pack.md" %}
+[開始使用 wasm-pack](project-setup/using-wasm-pack.md)
 
 ### [**`wasm-bindgen`**](https://rustwasm.github.io/docs/wasm-bindgen/)
 
 同時是套件，也是 CLI 工具，並由 Rust / Wasm Working Group 開發。他是一套較底層的工具（通常是 `wasm-pack` 內部使用），用以增加 JavaScript 與 WebAssembly 的互操作性。我們不建議直接使用 `wasm-bindgen`，因為你需要多寫一些 JavaScript 的程式碼來引入你的 WebAssembly 二進位檔案。雖然如此，你仍然可以使用 wasm-bindgen，更多資訊請參考 [**`wasm-bindgen` guide**](https://rustwasm.github.io/docs/wasm-bindgen/)**。**
 
-{% page-ref page="using-wasm-bindgen.md" %}
+[開始使用 wasm-bindgen](project-setup/using-wasm-bindgen.md)
 
 ### [**`cargo-web`**](https://github.com/koute/cargo-web)
 
 在 `wasm-pack` 與 `wasm-bindgen` 出來之前，這是我們的首選工具。在安裝與執行方面，他的速度仍是最快的，我們推薦你安裝他去執行我們的那些還沒有使用 `wasm-pack` 的範例。
 
-{% page-ref page="using-cargo-web.md" %}
+[開始使用 cargo-web](project-setup/using-cargo-web.md)
 
 ### 比較
 

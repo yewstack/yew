@@ -1,6 +1,6 @@
 # Format
 
-{% hint style="info" %}
+:::note
 `Contribute to our docs:` [Explain the format module in depth](https://github.com/yewstack/docs/issues/24)
-{% endhint %}
+:::
 

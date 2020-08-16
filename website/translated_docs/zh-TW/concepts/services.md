@@ -6,7 +6,4 @@ description: Yew 與瀏覽器的 API 的接合劑
 
 這個區塊有的文章：
 
-{% page-ref page="format.md" %}
-
-
-
+- [Format](services/format.md)

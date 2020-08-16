@@ -9,9 +9,9 @@ description: The planned feature roadmap for the Yew framework
 
 フレームワークの今後の機能やフォーカスの優先順位は、コミュニティによって決定されます。2020年の春には、プロジェクトの方向性についてのフィードバックを集めるために開発者アンケートが行われました。その概要は [Yew Wiki](https://github.com/yewstack/yew/wiki/Dev-Survey-%5BSpring-2020%5D) で見ることができます。
 
-{% hint style="info" %}
+:::note
 主要な取り組みの状況は、YewのGithubの[Project board](https://github.com/yewstack/yew/projects)で確認できます。 
-{% endhint %}
+:::
 
 ## 焦点
 

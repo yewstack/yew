@@ -13,6 +13,7 @@ html! {
   <div id="my_div"></div>
 }
 ```
+
 <!--Invalid-->
 ```rust
 html! {
