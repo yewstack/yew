@@ -1,5 +1,4 @@
 ---
-id: setup
 title: Introduction
 description: Set yourself up for success
 ---
@@ -21,7 +20,7 @@ WebAssemblyとJavaScriptの互換を持たせるために他にツールが必�
 Rust / Wasm活動チームによって開発されているCLIツールで、WebAssemblyをパッケージ化することができます。
 Webpackには[`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin)が最もよく使われています。
 
-[`wasm-pack`で始める](using-wasm-pack.md)
+[`wasm-pack`で始める](project-setup/using-wasm-pack.md)
 
 ### [**`wasm-bindgen`**](https://rustwasm.github.io/docs/wasm-bindgen/)
 
@@ -30,14 +29,14 @@ Rust/Wasm活動チームによって開発されているライブラリとCLI�
 `wasm-bindgen`は手書きのJavaScriptでWebAssemblyのバイナリを使う必要があるため、直接使うのは非推奨です。
 しかし、詳細な情報については[**`wasm-bindgen` ガイド**](https://rustwasm.github.io/docs/wasm-bindgen/)から得られます。
 
-[`wasm-bindgen`で始める。](using-wasm-bindgen.md)
+[`wasm-bindgen`で始める。](project-setup/using-wasm-bindgen.md)
 
 ### [**`cargo-web`**](https://github.com/koute/cargo-web)
 
 `wasm-pack`と`wasm-bindgen`を導入する前は好まれたWebワークフローツールです。
 `wasm-pack`がサポートされていないサンプルを動かすのにインストールする価値があり、依然として**最もお手軽に**始められる方法です。
 
-[`cargo web`で始める](using-cargo-web.md)
+[`cargo web`で始める](project-setup/using-cargo-web.md)
 
 ### 比較
 

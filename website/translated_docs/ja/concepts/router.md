@@ -1,5 +1,4 @@
 ---
-id: router
 title: Router
 description: Yew's official router
 ---

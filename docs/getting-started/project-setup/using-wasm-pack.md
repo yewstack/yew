@@ -1,5 +1,4 @@
 ---
-id: wasm-pack
 title: Using wasm-pack
 ---
 

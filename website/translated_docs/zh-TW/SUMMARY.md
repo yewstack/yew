@@ -4,7 +4,7 @@
 
 ## 從零開始 <a id="getting-started"></a>
 
-* [專案設定](getting-started/project-setup/README.md)
+* [專案設定](getting-started/project-setup.md)
   * [使用 wasm-pack](getting-started/project-setup/using-wasm-pack.md)
   * [使用 wasm-bindgen](getting-started/project-setup/using-wasm-bindgen.md)
   * [使用 cargo-web](getting-started/project-setup/using-cargo-web.md)
@@ -15,17 +15,17 @@
 
 ## 核心觀念 <a id="concepts"></a>
 
-* [使用 html!](concepts/html/README.md)
+* [使用 html!](concepts/html.md)
   * [Lists](concepts/html/lists.md)
   * [Elements](concepts/html/elements.md)
   * [Literals & Expressions](concepts/html/literals-and-expressions.md)
   * [Components](concepts/html/components.md)
-* [元件](concepts/components/README.md)
+* [元件](concepts/components.md)
   * [Properties](concepts/components/properties.md)
   * [Callbacks](concepts/components/callbacks.md)
   * [Refs](concepts/components/refs.md)
 * [Agents](concepts/agents.md)
-* [Services](concepts/services/README.md)
+* [Services](concepts/services.md)
   * [Format](concepts/services/format.md)
 * [路由器](concepts/router.md)
 

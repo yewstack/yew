@@ -1,5 +1,4 @@
 ---
-id: refs
 title: Refs
 description: Out-of-band DOM access
 ---
