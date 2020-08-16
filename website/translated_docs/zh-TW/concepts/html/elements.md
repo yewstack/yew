@@ -8,50 +8,46 @@ description: HTML 與 SVG 元件都支援
 
  元件標籤都必須要是自封閉的標籤 `<... />` 或是跟開啟標籤對應的關閉標籤。
 
-{% tabs %}
-{% tab title="Open - Close" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Open - Close-->
 ```rust
 html! {
   <div id="my_div"></div>
 }
 ```
-{% endtab %}
 
-{% tab title="INVALID" %}
+<!--INVALID-->
 ```rust
 html! {
   <div id="my_div"> // <- 缺少關閉標籤
 }
 ```
-{% endtab %}
 
-{% tab title="Self-Closing" %}
+<!--Self-Closing-->
 ```rust
 html! {
   <input id="my_input" />
 }
 ```
-{% endtab %}
 
-{% tab title="INVALID" %}
+<!--INVALID-->
 ```rust
 html! {
   <input id="my_input"> // <- 缺少自封閉標籤語法
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
-{% hint style="info" %}
+:::note
 為了方便起見，通常需要關閉標籤的元件，也都可以用自封閉標籤表示。例如，寫 `html! { <div class="placeholder" /> }` 是合法的。
-{% endhint %}
+:::
 
 ## 子結點
 
 輕鬆寫出複雜巢狀的 HTML 與 SVG 架構：
 
-{% tabs %}
-{% tab title="HTML" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--HTML-->
 ```rust
 html! {
     <div>
@@ -70,9 +66,8 @@ html! {
     </div>
 }
 ```
-{% endtab %}
 
-{% tab title="SVG" %}
+<!--SVG-->
 ```rust
 html! {
     <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -92,69 +87,62 @@ html! {
     </svg>
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Classes
 
 你很多方便的選項可以寫元件裡的 class：
 
-{% tabs %}
-{% tab title="Literal" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Literal-->
 ```rust
 html! {
   <div class="container"></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Multiple" %}
+<!--Multiple-->
 ```rust
 html! {
   <div class="container center-align"></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Interpolated" %}
+<!--Interpolated-->
 ```rust
 html! {
   <div class=format!("{}-container", size)></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Expression" %}
+<!--Expression-->
 ```rust
 html! {
   <div class=self.classes()></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Tuple" %}
+<!--Tuple-->
 ```rust
 html! {
   <div class=("class-1", "class-2")></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Vector" %}
+<!--Vector-->
 ```rust
 html! {
   <div class=vec!["class-1", "class-2"]></div>
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## 監聽
 
 監聽器的屬性必須要傳入一個 `Callback` ，他封裝了閉包。callback 的內容取決於，當觸發監聽事件時，你希望應用程式有什麼反應：
 
-{% tabs %}
-{% tab title="Component Handler" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Component Handler-->
 ```rust
 struct MyComponent {
     link: ComponentLink<Self>,
@@ -191,9 +179,8 @@ impl Component for MyComponent {
     }
 }
 ```
-{% endtab %}
 
-{% tab title="Agent Handler" %}
+<!--Agent Handler-->
 ```rust
 struct MyComponent {
     worker: Dispatcher<MyWorker>,
@@ -224,9 +211,8 @@ impl Component for MyComponent {
     }
 }
 ```
-{% endtab %}
 
-{% tab title="Other Cases" %}
+<!--Other Cases-->
 ```rust
 struct MyComponent;
 
@@ -256,6 +242,5 @@ impl Component for MyComponent {
     }
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 

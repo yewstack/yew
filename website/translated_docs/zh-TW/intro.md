@@ -1,5 +1,5 @@
 ---
-id: intro
+title: 簡介
 ---
 
 ## 什麼是 Yew？
@@ -20,7 +20,7 @@ id: intro
 
 點選下列的連結學習如何建立一個 Yew 應用程式並且從社群的範例專案中學習
 
-{% page-ref page="getting-started/project-setup/" %}
+[專案設定](getting-started/project-setup.md)
 
 ### 還在猶豫嗎？
 

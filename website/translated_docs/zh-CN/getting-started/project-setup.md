@@ -16,19 +16,19 @@ description: 为成功做好准备
 
 一个由 Rust / Wasm 工作组开发的用于打包 WebAssembly 的 CLI 工具。与 Webpack 的 [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin) 插件搭配使用最佳。
 
-{% page-ref page="using-wasm-pack.md" %}
+[开始使用 wasm-pack](project-setup/using-wasm-pack.md)
 
 ### [**`wasm-bindgen`**](https://rustwasm.github.io/docs/wasm-bindgen/)
 
 同时是一个库和一个 CLI 工具，也是由 Rust / Wasm 工作组开发。它是一个促进 JS 和 WebAssembly 之间互操作性的底层工具（在 `wasm-pack` 内部被用到）。我们不建议直接使用 `wasm-bindgen` 因为它需要手写一些 JavaScript 代码来引导你的 WebAssembly 二进制程序。但是，直接使用它也是可能的并且可以在 [**`wasm-bindgen` 指南**](https://rustwasm.github.io/docs/wasm-bindgen/) 上找到更多信息。
 
-{% page-ref page="using-wasm-bindgen.md" %}
+[开始使用 wasm-bindgen](project-setup/using-wasm-bindgen.md)
 
 ### [**`cargo-web`**](https://github.com/koute/cargo-web)
 
 在 `wasm-pack` 和 `wasm-bindgen` 被介绍前的首选 web 工作流工具。它仍然是**最快捷**的启动和运行方式，值得安装以运行尚未迁移到支持 `wasm-pack` 的示例程序。
 
-{% page-ref page="using-cargo-web.md" %}
+[开始使用 cargo-web](project-setup/using-cargo-web.md)
 
 ### 对比
 
