@@ -37,5 +37,5 @@ Agents 通过使用二进制码 bincode 序列化其消息来进行通信。因�
 
 ## Further reading
 
-* The [pub\_sub](https://github.com/yewstack/yew/tree/master/examples/pub_sub) example shows how components can use agents to communicate with each other.
+* The [pub\_sub](https://github.com/yewstack/yew/tree/v0.17/examples/pub_sub) example shows how components can use agents to communicate with each other.
 

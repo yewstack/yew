@@ -38,5 +38,5 @@ Agents 透過使用 [bincode](https://github.com/servo/bincode) 序列化他們�
 
 ## 延伸閱讀
 
-* [pub\_sub](https://github.com/yewstack/yew/tree/master/examples/pub_sub) 範例顯示了如何在 agnets 之間溝通。
+* [pub\_sub](https://github.com/yewstack/yew/tree/v0.17/examples/pub_sub) 範例顯示了如何在 agnets 之間溝通。
 

@@ -53,4 +53,4 @@ Dispatcherは、コンポーネントがエージェントにメッセージを�
 
 ## 参考資料
 
-* [pub\_sub](https://github.com/yewstack/yew/tree/master/examples/pub_sub)の例でコンポーネントがどのようにエージェントと通信させているかがわかります。
+* [pub\_sub](https://github.com/yewstack/yew/tree/v0.17/examples/pub_sub)の例でコンポーネントがどのようにエージェントと通信させているかがわかります。

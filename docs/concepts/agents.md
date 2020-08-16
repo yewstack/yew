@@ -46,4 +46,4 @@ Agents that live in their own separate web worker \(Private and Public\) incur s
 
 ## Further reading
 
-* The [pub\_sub](https://github.com/yewstack/yew/tree/master/examples/pub_sub) example shows how components can use agents to communicate with each other.
+* The [pub\_sub](https://github.com/yewstack/yew/tree/v0.17/examples/pub_sub) example shows how components can use agents to communicate with each other.
