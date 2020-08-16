@@ -1,5 +1,5 @@
 ---
-id: web-library
+id: choose-web-library
 title: Choosing a web library
 ---
 ## Introduction
