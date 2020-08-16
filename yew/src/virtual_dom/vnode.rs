@@ -243,13 +243,13 @@ mod layout_tests {
 
         let layout1 = TestLayout {
             name: "1",
-            node: vref_node_1.into(),
+            node: vref_node_1,
             expected: "<i></i>",
         };
 
         let layout2 = TestLayout {
             name: "2",
-            node: vref_node_2.into(),
+            node: vref_node_2,
             expected: "<b></b>",
         };
 

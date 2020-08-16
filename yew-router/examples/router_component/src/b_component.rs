@@ -171,7 +171,7 @@ impl BModel {
         html! {
             <input
                 placeholder="subpath",
-                value=sub_path.unwrap_or("".into()),
+                value=sub_path.unwrap_or_else(|| "".into()),
                 oninput=&self.update_subpath
                 />
         }

@@ -383,10 +383,7 @@ where
                 return;
             }
 
-            let first_update = match self.update {
-                ComponentUpdate::First => true,
-                _ => false,
-            };
+            let first_update = matches!(self.update, ComponentUpdate::First);
 
             let should_update = match self.update {
                 ComponentUpdate::First => true,
@@ -513,6 +510,9 @@ where
 
 #[cfg(test)]
 mod tests {
+    extern crate self as yew;
+
+    use crate::html;
     use crate::html::*;
     use crate::Properties;
     use std::ops::Deref;
@@ -639,7 +639,7 @@ mod tests {
     }
 
     #[test]
-    fn lifecyle_tests() {
+    fn lifecycle_tests() {
         let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
 
         test_lifecycle(
@@ -647,7 +647,7 @@ mod tests {
                 lifecycle: lifecycle.clone(),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -661,7 +661,7 @@ mod tests {
                 create_message: Some(false),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -676,7 +676,7 @@ mod tests {
                 view_message: RefCell::new(Some(true)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -693,7 +693,7 @@ mod tests {
                 view_message: RefCell::new(Some(false)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -708,7 +708,7 @@ mod tests {
                 rendered_message: RefCell::new(Some(false)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -723,7 +723,7 @@ mod tests {
                 rendered_message: RefCell::new(Some(true)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -736,12 +736,12 @@ mod tests {
 
         test_lifecycle(
             Props {
-                lifecycle: lifecycle.clone(),
+                lifecycle,
                 create_message: Some(true),
                 update_message: RefCell::new(Some(true)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),

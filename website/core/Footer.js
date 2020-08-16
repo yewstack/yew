@@ -67,7 +67,7 @@ class Footer extends React.Component {
               Discord
             </a>
             <a
-              href="https://twitter.com/"
+              href={`https://twitter.com/${this.props.config.twitterUsername}`}
               target="_blank"
               rel="noreferrer noopener">
               Twitter

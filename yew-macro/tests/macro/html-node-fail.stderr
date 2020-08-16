@@ -3,56 +3,42 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
   |
 4 |     html! { "valid" "invalid" };
   |                     ^^^^^^^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unexpected token
  --> $DIR/html-node-fail.rs:5:29
   |
 5 |     html! { <span>{ "valid" "invalid" }</span> };
   |                             ^^^^^^^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unsupported type
   --> $DIR/html-node-fail.rs:10:14
    |
 10 |     html! {  b'a' };
    |              ^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unsupported type
   --> $DIR/html-node-fail.rs:11:14
    |
 11 |     html! {  b"str" };
    |              ^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unsupported type
   --> $DIR/html-node-fail.rs:13:22
    |
 13 |     html! {  <span>{ b'a' }</span> };
    |                      ^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unsupported type
   --> $DIR/html-node-fail.rs:14:22
    |
 14 |     html! {  <span>{ b"str" }</span> };
    |                      ^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0425]: cannot find value `invalid` in this scope
  --> $DIR/html-node-fail.rs:7:13
   |
 7 |     html! { invalid };
   |             ^^^^^^^ not found in this scope
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
  --> $DIR/html-node-fail.rs:6:13
@@ -65,7 +51,6 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
   = note: required by `std::convert::From::from`
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-node-fail.rs:19:9
@@ -78,4 +63,3 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
    = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
    = note: required by `std::convert::From::from`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

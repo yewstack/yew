@@ -237,6 +237,9 @@ impl VDiff for VList {
 
 #[cfg(all(test, feature = "web_sys"))]
 mod layout_tests {
+    extern crate self as yew;
+
+    use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]
@@ -312,6 +315,9 @@ mod layout_tests {
 
 #[cfg(all(test, feature = "web_sys"))]
 mod layout_tests_keys {
+    extern crate self as yew;
+
+    use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
     use crate::{Children, Component, ComponentLink, Html, Properties, ShouldRender};

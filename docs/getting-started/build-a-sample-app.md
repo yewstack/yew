@@ -1,5 +1,4 @@
 ---
-id: sample-app
 title: Build a sample app
 ---
 First create a new Rust library \(**important:** create a _library_, not a _binary_ by passing the `--lib` flag\):
@@ -22,7 +21,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 yew = "0.17"
-wasm-bindgen = "0.2"
+wasm-bindgen = "0.2.67"
 ```
 
 Copy the following template into your `src/lib.rs` file:

@@ -4,7 +4,7 @@
 
 ## Getting Started
 
-* [Project Setup](getting-started/project-setup/README.md)
+* [Project Setup](getting-started/project-setup.md)
   * [Using wasm-pack](getting-started/project-setup/using-wasm-pack.md)
   * [Using wasm-bindgen](getting-started/project-setup/using-wasm-bindgen.md)
   * [Using cargo-web](getting-started/project-setup/using-cargo-web.md)
@@ -15,17 +15,17 @@
 
 ## Core Concepts <a id="concepts"></a>
 
-* [Using html!](concepts/html/README.md)
+* [Using html!](concepts/html.md)
   * [Lists](concepts/html/lists.md)
   * [Elements](concepts/html/elements.md)
   * [Literals & Expressions](concepts/html/literals-and-expressions.md)
   * [Components](concepts/html/components.md)
-* [Components](concepts/components/README.md)
+* [Components](concepts/components.md)
   * [Properties](concepts/components/properties.md)
   * [Callbacks](concepts/components/callbacks.md)
   * [Refs](concepts/components/refs.md)
 * [Agents](concepts/agents.md)
-* [Services](concepts/services/README.md)
+* [Services](concepts/services.md)
   * [Format](concepts/services/format.md)
 * [Router](concepts/router.md)
 

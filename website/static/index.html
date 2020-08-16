@@ -4,15 +4,37 @@
     <meta charset="UTF-8" />
     <meta
       http-equiv="refresh"
-      content="0; url=docs"
+      content="0; url=/docs/en/intro"
     />
     <script type="text/javascript">
-      window.location.href = 'docs';
+      // Redirect old translated paths
+      if (window.location.pathname.includes('/v/')) {
+        var pathname = window.location.pathname.replace('/v/zh_cn', '/zh-CN').replace('/v/zh_tw', '/zh-TW');
+        if (pathname === window.location.pathname) {
+          window.location.href = '/docs/en/intro';
+        } else {
+          if (pathname.endsWith('/')) {
+            pathname = pathname.substring(0, pathname.length - 1);
+          }
+          if (pathname.endsWith('zh-CN') || pathname.endsWith('zh-TW')) {
+            pathname += '/intro';
+          }
+          window.location.href = pathname;
+        }
+      // Redirect broken links
+      } else if (window.location.pathname.includes('/zh-TW')) {
+        window.location.href = '/docs/zh-TW/intro';
+      // Redirect broken links
+      } else if (window.location.pathname.includes('/zh-CN')) {
+        window.location.href = '/docs/zh-CN/intro';
+      } else {
+        window.location.href = '/docs/en/intro';
+      }
     </script>
     <title>Yew Docs</title>
   </head>
   <body>
     If you are not redirected automatically, follow this
-    <a href="docs">link</a>.
+    <a href="/docs/en/intro">link</a>.
   </body>
 </html>

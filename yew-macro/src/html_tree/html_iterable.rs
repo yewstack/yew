@@ -41,6 +41,7 @@ impl ToTokens for HtmlIterable {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let expr = &self.0;
         let new_tokens = quote_spanned! {expr.span()=>
+            #[allow(unused_braces)]
             ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(::std::iter::IntoIterator::into_iter(#expr))
         };
 
@@ -52,9 +53,9 @@ impl ToNodeIterator for HtmlIterable {
     fn to_node_iterator_stream(&self) -> Option<TokenStream> {
         let Self(expr) = self;
         // #expr can return anything that implements IntoIterator<Item=Into<T>>
-        // so we generate some extra code to turn it into IntoIterator<Item=T>
+        // We use a util method to avoid clippy warnings and reduce generated code size
         Some(quote_spanned! {expr.span()=>
-            ::std::iter::Iterator::map(::std::iter::IntoIterator::into_iter(#expr), |n| n.into())
+            ::yew::utils::into_node_iter(#expr)
         })
     }
 }

@@ -112,6 +112,7 @@ impl ToTokens for HtmlTag {
                 let vtag_name = Ident::new("__yew_vtag_name", expr.span());
                 // this way we get a nice error message (with the correct span) when the expression doesn't return a valid value
                 quote_spanned! {expr.span()=> {
+                    #[allow(unused_braces)]
                     let mut #vtag_name = ::std::borrow::Cow::<'static, str>::Owned(
                         ::std::convert::Into::<String>::into(#expr),
                     );
@@ -148,14 +149,15 @@ impl ToTokens for HtmlTag {
             .collect();
         let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
-            quote_spanned! {value.span()=>
+            quote_spanned! {value.span()=> {
+                #[allow(clippy::suspicious_else_formatting)]
                 if #value {
                     #vtag.add_attribute(
                         #label_str,
                         ::std::borrow::Cow::<'static, str>::Borrowed(#label_str),
                     );
                 }
-            }
+            }}
         });
         let set_kind = kind.iter().map(|kind| {
             let sr = stringify::Constructor::from(kind);
@@ -217,9 +219,8 @@ impl ToTokens for HtmlTag {
 
                 quote_spanned! {name.span()=> {
                     ::yew::html::#name::Wrapper::new(
-                        <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
-                            #callback
-                        )
+                        <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>
+                            ::transform(#callback),
                     )
                 }}
             })
@@ -262,11 +263,13 @@ impl ToTokens for HtmlTag {
         let has_listeners = !listeners.is_empty();
         let has_children = !children.is_empty();
         tokens.extend(quote! {{
+            #[allow(unused_braces)]
             let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
             #(#set_node_ref)*
             #(#set_key)*
             #(#set_kind)*
 
+            #[allow(clippy::suspicious_else_formatting)]
             if #has_attrs {
                 #vtag.attributes = vec![#(#attr_pairs),*];
             }
@@ -279,10 +282,12 @@ impl ToTokens for HtmlTag {
                 #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
             }
             if #has_children {
+                #[allow(redundant_clone, unused_braces)]
                 #vtag.add_children(#children);
             }
 
             #dyn_tag_runtime_checks
+            #[allow(unused_braces)]
             ::yew::virtual_dom::VNode::from(#vtag)
         }});
     }

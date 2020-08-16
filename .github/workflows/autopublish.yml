@@ -15,13 +15,14 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v1
         with:
-          node-version: '12.x'
+          node-version: "12.x"
       - name: Install dependencies
         run: cd website && yarn install && cd ../
       - name: Build site
         run: cd website && yarn run build && cd ../
-      - name: Publish website
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy to Firebase
+        uses: w9jds/firebase-action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./website/build/docs
+          args: deploy --only hosting --public website/build/docs
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

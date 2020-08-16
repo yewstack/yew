@@ -2,11 +2,7 @@
 //! for generating html and the `Properties` derive macro for deriving the `Properties` trait
 //! for components.
 //!
-//! The `html!` macro uses [proc_macro_hack](https://github.com/dtolnay/proc-macro-hack) in order
-//! to be used in the expression position.
-//!
 //! ```
-//! # #[macro_use] extern crate yew;
 //! use yew::prelude::*;
 //!
 //! struct Component {
@@ -60,7 +56,6 @@
 //! Please refer to [https://github.com/yewstack/yew](https://github.com/yewstack/yew) for how to set this up.
 
 #![recursion_limit = "128"]
-extern crate proc_macro;
 
 mod derive_props;
 mod html_tree;
@@ -69,7 +64,6 @@ mod stringify;
 use derive_props::DerivePropsInput;
 use html_tree::{HtmlRoot, HtmlRootVNode};
 use proc_macro::TokenStream;
-use proc_macro_hack::proc_macro_hack;
 use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse_macro_input;
@@ -98,13 +92,13 @@ pub fn derive_props(input: TokenStream) -> TokenStream {
     TokenStream::from(input.into_token_stream())
 }
 
-#[proc_macro_hack]
+#[proc_macro]
 pub fn html_nested(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRoot);
     TokenStream::from(quote! {#root})
 }
 
-#[proc_macro_hack]
+#[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRootVNode);
     TokenStream::from(quote! {#root})

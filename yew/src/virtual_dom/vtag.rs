@@ -177,6 +177,24 @@ impl VTag {
         self.attributes.push((name, value.into()));
     }
 
+    /// Sets a boolean attribute if `value` is true. Removes if `value` is false. The name
+    /// of the attribute will be used as the value.
+    ///
+    /// Example: `<button disabled="disabled">`
+    pub fn set_boolean_attribute(&mut self, name: &'static str, value: bool) {
+        // TODO: adapt to enum Attributes
+        if value {
+            if !self.attributes.iter().any(|pair| pair.0 == name) {
+                self.attributes.push((name, name.into()));
+            }
+        } else {
+            self.attributes = std::mem::take(&mut self.attributes)
+                .into_iter()
+                .filter(|pair| pair.0 == name)
+                .collect();
+        }
+    }
+
     /// Adds attributes to a virtual node. Not every attribute works when
     /// it set as  an attribute. We use workarounds for:
     /// `type/kind`, `value` and `checked`.
@@ -703,7 +721,7 @@ mod tests {
         };
 
         let d = html! {
-            <div class=format!("fail")></div>
+            <div class=format!("fail{}", "")></div>
         };
 
         assert_eq!(a, b);
@@ -853,7 +871,7 @@ mod tests {
     #[test]
     fn filter_empty_string_classes() {
         let a = html! { <div class=vec![""]></div> };
-        let b = html! { <div class=("")></div> };
+        let b = html! { <div class=("", "")></div> };
         let c = html! { <div class=""></div> };
         let d_arr = [""];
         let d = html! { <div class=&d_arr[..]></div> };
@@ -1435,6 +1453,9 @@ mod tests {
 
 #[cfg(all(test, feature = "web_sys"))]
 mod layout_tests {
+    extern crate self as yew;
+
+    use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]
