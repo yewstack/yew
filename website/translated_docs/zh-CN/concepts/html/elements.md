@@ -8,50 +8,46 @@ description: HTML 和 SVG 元素均受支持
 
 元素标签必须是自闭合的 `<... />`，或是每个标签都有一个对应的闭合标签。
 
-{% tabs %}
-{% tab title="标签 - 闭合标签" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--标签 - 闭合标签-->
 ```rust
 html! {
   <div id="my_div"></div>
 }
 ```
-{% endtab %}
 
-{% tab title="无效" %}
+<!--无效-->
 ```rust
 html! {
   <div id="my_div"> // <- 缺少闭合标签
 }
 ```
-{% endtab %}
 
-{% tab title="自闭合" %}
+<!--自闭合-->
 ```rust
 html! {
   <input id="my_input" />
 }
 ```
-{% endtab %}
 
-{% tab title="无效" %}
+<!--无效-->
 ```rust
 html! {
   <input id="my_input"> // <- 没有自闭合
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
-{% hint style="info" %}
+:::note
 为方便起见，一些 _通常_ 需要闭合标签的元素是被**允许**自闭合的。例如，`html! { <div class="placeholder" /> }` 这样写是有效的。
-{% endhint %}
+:::
 
 ## Children
 
 轻松创建复杂的嵌套 HTML 和 SVG 布局：
 
-{% tabs %}
-{% tab title="HTML" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--HTML-->
 ```rust
 html! {
     <div>
@@ -70,9 +66,8 @@ html! {
     </div>
 }
 ```
-{% endtab %}
 
-{% tab title="SVG" %}
+<!--SVG-->
 ```rust
 html! {
     <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -92,69 +87,62 @@ html! {
     </svg>
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Classes
 
 有许多方便的选项可用于元素指定 classes：
 
-{% tabs %}
-{% tab title="常量" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--常量-->
 ```rust
 html! {
   <div class="container"></div>
 }
 ```
-{% endtab %}
 
-{% tab title="多个属性" %}
+<!--多个属性-->
 ```rust
 html! {
   <div class="container center-align"></div>
 }
 ```
-{% endtab %}
 
-{% tab title="插值" %}
+<!--插值-->
 ```rust
 html! {
   <div class=format!("{}-container", size)></div>
 }
 ```
-{% endtab %}
 
-{% tab title="表达式" %}
+<!--表达式-->
 ```rust
 html! {
   <div class=self.classes()></div>
 }
 ```
-{% endtab %}
 
-{% tab title="元组" %}
+<!--元组-->
 ```rust
 html! {
   <div class=("class-1", "class-2")></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Vector" %}
+<!--Vector-->
 ```rust
 html! {
   <div class=vec!["class-1", "class-2"]></div>
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## 监听器
 
 监听器属性需要传递一个由闭包包裹的 `Callback`。创建回调的方式取决于你希望你的应用程序如何响应监听器事件：
 
-{% tabs %}
-{% tab title="Component 处理器" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Component 处理器-->
 ```rust
 struct MyComponent {
     link: ComponentLink<Self>,
@@ -191,9 +179,8 @@ impl Component for MyComponent {
     }
 }
 ```
-{% endtab %}
 
-{% tab title="Agent 处理器" %}
+<!--Agent 处理器-->
 ```rust
 struct MyComponent {
     worker: Dispatcher<MyWorker>,
@@ -224,9 +211,8 @@ impl Component for MyComponent {
     }
 }
 ```
-{% endtab %}
 
-{% tab title="其他情况" %}
+<!--其他情况-->
 ```rust
 struct MyComponent;
 
@@ -256,6 +242,5 @@ impl Component for MyComponent {
     }
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 

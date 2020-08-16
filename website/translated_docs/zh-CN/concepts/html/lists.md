@@ -4,8 +4,8 @@
 
 `html!` 宏总是要求一个单一的根节点。为了绕开这个限制，把内容包裹在一个空标签内是有效的：
 
-{% tabs %}
-{% tab title="有效" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--有效-->
 ```rust
 html! {
     <>
@@ -14,9 +14,8 @@ html! {
     </>
 }
 ```
-{% endtab %}
 
-{% tab title="无效" %}
+<!--无效-->
 ```rust
 /* 错误：只允许一个 html 根元素 */
 
@@ -25,15 +24,14 @@ html! {
     <p></p>
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## 迭代器
 
 Yew 支持两种从迭代器构建 html 的语法：
 
-{% tabs %}
-{% tab title="语法类型 1" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--语法类型 1-->
 ```rust
 html! {
     <ul class="item-list">
@@ -41,9 +39,8 @@ html! {
     </ul>
 }
 ```
-{% endtab %}
 
-{% tab title="语法类型 2" %}
+<!--语法类型 2-->
 ```rust
 html! {
     <ul class="item-list">
@@ -51,6 +48,5 @@ html! {
     </ul>
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 

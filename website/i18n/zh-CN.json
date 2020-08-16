@@ -6,76 +6,80 @@
     "tagline": "Yew is a modern Rust framework for creating multi-threaded front-end web apps with WebAssembly.",
     "docs": {
       "advanced-topics/how-it-works": {
-        "title": "How it works"
+        "title": "底层库的内部细节"
       },
       "advanced-topics/optimizations": {
-        "title": "Optimizations"
+        "title": "性能优化与最佳实践",
+        "sidebar_label": "性能优化"
       },
       "concepts/agents": {
         "title": "Agents"
       },
+      "concepts/components": {
+        "title": "组件（Components）"
+      },
       "concepts/components/callbacks": {
-        "title": "Callbacks"
+        "title": "回调（Callbacks）"
       },
       "concepts/components/properties": {
-        "title": "Properties"
-      },
-      "concepts/components/components-intro": {
-        "title": "Introduction"
+        "title": "属性（Properties）"
       },
       "concepts/components/refs": {
         "title": "Refs"
       },
+      "concepts/html": {
+        "title": "使用 html! 宏",
+        "sidebar_label": "html!"
+      },
       "concepts/html/components": {
-        "title": "Components"
+        "title": "组件"
       },
       "concepts/html/elements": {
-        "title": "Elements"
+        "title": "元素"
       },
       "concepts/html/lists": {
-        "title": "Lists"
+        "title": "列表"
       },
-      "concepts/html/expressions": {
-        "title": "Literals and Expressions"
-      },
-      "concepts/html/html-intro": {
-        "title": "Introduction"
+      "concepts/html/literals-and-expressions": {
+        "title": "常量和表达式"
       },
       "concepts/router": {
         "title": "Router"
       },
+      "concepts/services": {
+        "title": "Services",
+        "sidebar_label": "Overview"
+      },
       "concepts/services/format": {
         "title": "Format"
       },
-      "concepts/services/services-intro": {
-        "title": "Introduction"
-      },
-      "getting-started/sample-app": {
-        "title": "Build a sample app"
+      "getting-started/build-a-sample-app": {
+        "title": "第一个简单的 App"
       },
       "getting-started/choose-web-library": {
-        "title": "Choosing a web library"
+        "title": "选择 web-sys 还是 stdweb"
       },
       "getting-started/examples": {
-        "title": "Examples"
+        "title": "例子"
       },
-      "getting-started/project-setup/setup": {
-        "title": "Introduction"
+      "getting-started/project-setup": {
+        "title": "项目设置",
+        "sidebar_label": "简介"
       },
-      "getting-started/project-setup/cargo-web": {
-        "title": "Using cargo-web"
+      "getting-started/project-setup/using-cargo-web": {
+        "title": "使用 cargo-web"
       },
-      "getting-started/project-setup/wasm-bindgen": {
-        "title": "Using wasm-bindgen"
+      "getting-started/project-setup/using-wasm-bindgen": {
+        "title": "使用 wasm-bindgen"
       },
-      "getting-started/project-setup/wasm-pack": {
-        "title": "Using wasm-pack"
+      "getting-started/project-setup/using-wasm-pack": {
+        "title": "使用 wasm-pack"
       },
       "getting-started/starter-templates": {
-        "title": "Starter templates"
+        "title": "新手模板"
       },
       "intro": {
-        "title": "Introduction"
+        "title": "简介"
       },
       "more/css": {
         "title": "CSS"
@@ -84,19 +88,13 @@
         "title": "Debugging"
       },
       "more/external-libs": {
-        "title": "External libraries"
+        "title": "外部库"
       },
       "more/roadmap": {
-        "title": "Roadmap"
+        "title": "路线图"
       },
       "more/testing": {
-        "title": "Testing apps"
-      },
-      "README": {
-        "title": "README"
-      },
-      "SUMMARY": {
-        "title": "SUMMARY"
+        "title": "测试"
       }
     },
     "links": {
@@ -105,10 +103,10 @@
       "Discord": "Discord"
     },
     "categories": {
-      "Getting Started": "Getting Started",
-      "Concepts": "Concepts",
-      "Advanced topics": "Advanced topics",
-      "More": "More"
+      "Getting Started": "从零开始",
+      "Concepts": "核心概念",
+      "Advanced topics": "高级主题",
+      "More": "更多"
     }
   },
   "pages-strings": {

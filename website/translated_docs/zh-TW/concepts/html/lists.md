@@ -4,8 +4,8 @@
 
 `html!` 巨集裡必須只有一個根結點。為了可以繞過這個限制，將兩個以上的結點，用空的標籤包裹起來，是合法的：
 
-{% tabs %}
-{% tab title="Valid" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Valid-->
 ```rust
 html! {
     <>
@@ -14,9 +14,8 @@ html! {
     </>
 }
 ```
-{% endtab %}
 
-{% tab title="Invalid" %}
+<!--Invalid-->
 ```rust
 /* error: only one root html element allowed */
 
@@ -25,15 +24,14 @@ html! {
     <p></p>
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Iterators
 
 Yew 支援兩種不同的方式，從 iterator 建構 html：
 
-{% tabs %}
-{% tab title="Syntax Type 1" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Syntax Type 1-->
 ```rust
 html! {
     <ul class="item-list">
@@ -41,9 +39,8 @@ html! {
     </ul>
 }
 ```
-{% endtab %}
 
-{% tab title="Syntax Type 2" %}
+<!--Syntax Type 2-->
 ```rust
 html! {
     <ul class="item-list">
@@ -51,6 +48,5 @@ html! {
     </ul>
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 

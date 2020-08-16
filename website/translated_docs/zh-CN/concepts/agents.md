@@ -1,8 +1,7 @@
 ---
+title: Agents
 description: Yew 的 Actor 系统
 ---
-
-# Agents
 
 Agents 和 Angular 的 [Services](https://angular.io/guide/architecture-services) 相似（但没有依赖注入），给 Yew 提供了 [Actor 模型](https://en.wikipedia.org/wiki/Actor_model)。Agents 可以用于在组件之间路由消息，而与它们在组件层次结构中的位置无关，或者可以用于协调全局状态，或者可以用于从主 UI 线程上卸载计算密集型任务，或者在不同的标签页间通信（在未来）。
 

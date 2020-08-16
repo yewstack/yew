@@ -10,9 +10,9 @@ description: 组件及其生命周期钩子
 
 ## 生命周期
 
-{% hint style="info" %}
+:::note
 `为我们的文档做出贡献：`[添加组件的生命周期图示](https://github.com/yewstack/docs/issues/22)
-{% endhint %}
+:::
 
 ## 生命周期方法
 
@@ -57,9 +57,7 @@ impl Component for MyComponent {
 }
 ```
 
-有关用法的详细信息，请查看 `html!` 宏指南：
-
-{% page-ref page="../html/" %}
+有关用法的详细信息，请查看 [`html!` 宏指南](html.md)]
 
 ### Mounted
 
@@ -92,9 +90,9 @@ impl Component for MyComponent {
 }
 ```
 
-{% hint style="info" %}
+:::note
 请注意，此生命周期方法不要求必须实现，默认情况下不会执行任何操作。
-{% endhint %}
+:::
 
 ### Update
 
