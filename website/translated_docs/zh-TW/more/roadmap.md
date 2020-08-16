@@ -8,9 +8,9 @@ description: Yew 的版本紀錄
 
 即將推出的新功能和重點開發方向的優先順序將由社群決定。在 2020 的春季，我們會發出一個開發者調查，收集專案方向的回饋。你可以在 [Yew Wiki](https://github.com/yewstack/yew/wiki/Dev-Survey-%5BSpring-2020%5D) 中找到結果。
 
-{% hint style="info" %}
+:::note
 你可以在 Yew GitHub 追蹤我們主要的開發方向 [Project board](https://github.com/yewstack/yew/projects)
-{% endhint %}
+:::
 
 ### 重點 <a id="focuses"></a>
 

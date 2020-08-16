@@ -9,10 +9,14 @@
         "title": "How it works"
       },
       "advanced-topics/optimizations": {
-        "title": "Optimizations"
+        "title": "Optimizations & Best Practices",
+        "sidebar_label": "Optimizations"
       },
       "concepts/agents": {
         "title": "Agents"
+      },
+      "concepts/components": {
+        "title": "Introduction"
       },
       "concepts/components/callbacks": {
         "title": "Callbacks"
@@ -20,11 +24,12 @@
       "concepts/components/properties": {
         "title": "Properties"
       },
-      "concepts/components/components-intro": {
-        "title": "Introduction"
-      },
       "concepts/components/refs": {
         "title": "Refs"
+      },
+      "concepts/html": {
+        "title": "html!",
+        "sidebar_label": "Introduction"
       },
       "concepts/html/components": {
         "title": "Components"
@@ -35,22 +40,20 @@
       "concepts/html/lists": {
         "title": "Lists"
       },
-      "concepts/html/expressions": {
+      "concepts/html/literals-and-expressions": {
         "title": "Literals and Expressions"
-      },
-      "concepts/html/html-intro": {
-        "title": "Introduction"
       },
       "concepts/router": {
         "title": "Router"
       },
+      "concepts/services": {
+        "title": "Services",
+        "sidebar_label": "Overview"
+      },
       "concepts/services/format": {
         "title": "Format"
       },
-      "concepts/services/services-intro": {
-        "title": "Introduction"
-      },
-      "getting-started/sample-app": {
+      "getting-started/build-a-sample-app": {
         "title": "Build a sample app"
       },
       "getting-started/choose-web-library": {
@@ -59,16 +62,17 @@
       "getting-started/examples": {
         "title": "Examples"
       },
-      "getting-started/project-setup/setup": {
-        "title": "Introduction"
+      "getting-started/project-setup": {
+        "title": "Project Setup",
+        "sidebar_label": "Introduction"
       },
-      "getting-started/project-setup/cargo-web": {
+      "getting-started/project-setup/using-cargo-web": {
         "title": "Using cargo-web"
       },
-      "getting-started/project-setup/wasm-bindgen": {
+      "getting-started/project-setup/using-wasm-bindgen": {
         "title": "Using wasm-bindgen"
       },
-      "getting-started/project-setup/wasm-pack": {
+      "getting-started/project-setup/using-wasm-pack": {
         "title": "Using wasm-pack"
       },
       "getting-started/starter-templates": {

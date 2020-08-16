@@ -10,9 +10,9 @@ description: 元件，以及生命周期鉤子
 
 ## 生命周期
 
-{% hint style="info" %}
+:::note
 `歡迎來貢獻我們的文件：` [Add a diagram of the component lifecycle](https://github.com/yewstack/docs/issues/22)
-{% endhint %}
+:::
 
 ## 生命周期的方法
 
@@ -57,9 +57,7 @@ impl Component for MyComponent {
 }
 ```
 
-更多使用細節，請參考 `html!` 教學：
-
-{% page-ref page="../html/" %}
+更多使用細節，請參考 [`html!` 教學](html.md)。
 
 ### Rendered
 
@@ -93,9 +91,9 @@ impl Component for MyComponent {
 }
 ```
 
-{% hint style="info" %}
+:::note
 注意，這個生命周期方法，不是一定要被實作，預設的行為是不做任何事情。
-{% endhint %}
+:::
 
 ### Update
 

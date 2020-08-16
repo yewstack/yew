@@ -1,5 +1,4 @@
 ---
-id: intro
 title: Introduction
 ---
 
@@ -21,7 +20,7 @@ title: Introduction
 
 点击下面的链接，来学习并编写你的第一个 Yew 前端 App ， 并通过丰富的社区示例项目来学习。
 
-{% page-ref page="getting-started/project-setup/" %}
+[项目设置](getting-started/project-setup.md)
 
 ### 还没有完全信服？
 
