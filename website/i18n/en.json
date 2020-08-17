@@ -101,6 +101,97 @@
       },
       "SUMMARY": {
         "title": "SUMMARY"
+      },
+      "version-0.17.3/advanced-topics/version-0.17.3-how-it-works": {
+        "title": "How it works"
+      },
+      "version-0.17.3/advanced-topics/version-0.17.3-optimizations": {
+        "title": "Optimizations & Best Practices",
+        "sidebar_label": "Optimizations"
+      },
+      "version-0.17.3/concepts/version-0.17.3-agents": {
+        "title": "Agents"
+      },
+      "version-0.17.3/concepts/version-0.17.3-components": {
+        "title": "Introduction"
+      },
+      "version-0.17.3/concepts/components/version-0.17.3-callbacks": {
+        "title": "Callbacks"
+      },
+      "version-0.17.3/concepts/components/version-0.17.3-properties": {
+        "title": "Properties"
+      },
+      "version-0.17.3/concepts/components/version-0.17.3-refs": {
+        "title": "Refs"
+      },
+      "version-0.17.3/concepts/version-0.17.3-html": {
+        "title": "html!",
+        "sidebar_label": "Introduction"
+      },
+      "version-0.17.3/concepts/html/version-0.17.3-components": {
+        "title": "Components"
+      },
+      "version-0.17.3/concepts/html/version-0.17.3-elements": {
+        "title": "Elements"
+      },
+      "version-0.17.3/concepts/html/version-0.17.3-lists": {
+        "title": "Lists"
+      },
+      "version-0.17.3/concepts/html/version-0.17.3-literals-and-expressions": {
+        "title": "Literals and Expressions"
+      },
+      "version-0.17.3/concepts/version-0.17.3-router": {
+        "title": "Router"
+      },
+      "version-0.17.3/concepts/version-0.17.3-services": {
+        "title": "Services",
+        "sidebar_label": "Overview"
+      },
+      "version-0.17.3/concepts/services/version-0.17.3-format": {
+        "title": "Format"
+      },
+      "version-0.17.3/getting-started/version-0.17.3-build-a-sample-app": {
+        "title": "Build a sample app"
+      },
+      "version-0.17.3/getting-started/version-0.17.3-choose-web-library": {
+        "title": "Choosing a web library"
+      },
+      "version-0.17.3/getting-started/version-0.17.3-examples": {
+        "title": "Examples"
+      },
+      "version-0.17.3/getting-started/version-0.17.3-project-setup": {
+        "title": "Project Setup",
+        "sidebar_label": "Introduction"
+      },
+      "version-0.17.3/getting-started/project-setup/version-0.17.3-using-cargo-web": {
+        "title": "Using cargo-web"
+      },
+      "version-0.17.3/getting-started/project-setup/version-0.17.3-using-wasm-bindgen": {
+        "title": "Using wasm-bindgen"
+      },
+      "version-0.17.3/getting-started/project-setup/version-0.17.3-using-wasm-pack": {
+        "title": "Using wasm-pack"
+      },
+      "version-0.17.3/getting-started/version-0.17.3-starter-templates": {
+        "title": "Starter templates"
+      },
+      "version-0.17.3/version-0.17.3-intro": {
+        "title": "Introduction"
+      },
+      "version-0.17.3/more/version-0.17.3-css": {
+        "title": "CSS"
+      },
+      "version-0.17.3/more/version-0.17.3-debugging": {
+        "title": "Debugging"
+      },
+      "version-0.17.3/more/version-0.17.3-external-libs": {
+        "title": "External libraries"
+      },
+      "version-0.17.3/more/version-0.17.3-roadmap": {
+        "title": "Roadmap"
+      },
+      "version-0.17.3/more/version-0.17.3-testing": {
+        "title": "Testing apps"
       }
     },
     "links": {
