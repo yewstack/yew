@@ -7,6 +7,8 @@ use yew::prelude::*;
 pub struct App {
     link: ComponentLink<Self>,
     hovered: Hovered,
+    list_link: WeakComponentLink<List>,
+    sub_list_link: WeakComponentLink<List>,
 }
 
 pub enum Msg {
@@ -21,6 +23,8 @@ impl Component for App {
         App {
             link,
             hovered: Hovered::None,
+            list_link: WeakComponentLink::<List>::default(),
+            sub_list_link: WeakComponentLink::<List>::default(),
         }
     }
 
@@ -38,8 +42,8 @@ impl Component for App {
     fn view(&self) -> Html {
         let on_hover = &self.link.callback(Msg::Hover);
         let onmouseenter = &self.link.callback(|_| Msg::Hover(Hovered::None));
-        let list_link = &WeakComponentLink::<List>::default();
-        let sub_list_link = &WeakComponentLink::<List>::default();
+        let list_link = &self.list_link;
+        let sub_list_link = &self.sub_list_link;
         html! {
             <div class="main" onmouseenter=onmouseenter>
                 <h1>{ "Nested List Demo" }</h1>
