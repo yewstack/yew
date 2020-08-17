@@ -42,7 +42,10 @@ impl Component for ListItem {
         let onmouseover = self
             .props
             .on_hover
-            .reform(move |_| Hovered::Item(name.clone()));
+            .reform(move |e: MouseEvent| {
+                e.stop_propagation();
+                Hovered::Item(name.clone())
+            });
         html! {
             <div class="list-item" onmouseover=onmouseover>
                 { &self.props.name }
