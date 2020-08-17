@@ -504,6 +504,7 @@ where
             if let Some(last_frame) = &mut state.last_root {
                 last_frame.detach(&state.parent);
             }
+            state.node_ref.set(None);
         }
     }
 }
