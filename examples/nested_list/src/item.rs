@@ -39,13 +39,10 @@ impl Component for ListItem {
 
     fn view(&self) -> Html {
         let name = self.props.name.clone();
-        let onmouseover = self
-            .props
-            .on_hover
-            .reform(move |e: MouseEvent| {
-                e.stop_propagation();
-                Hovered::Item(name.clone())
-            });
+        let onmouseover = self.props.on_hover.reform(move |e: MouseEvent| {
+            e.stop_propagation();
+            Hovered::Item(name.clone())
+        });
         html! {
             <div class="list-item" onmouseover=onmouseover>
                 { &self.props.name }

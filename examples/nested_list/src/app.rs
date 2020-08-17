@@ -7,8 +7,8 @@ use yew::prelude::*;
 pub struct App {
     link: ComponentLink<Self>,
     hovered: Hovered,
-    list_link: WeakComponentLink::<List>,
-    sub_list_link: WeakComponentLink::<List>,
+    list_link: WeakComponentLink<List>,
+    sub_list_link: WeakComponentLink<List>,
 }
 
 pub enum Msg {
