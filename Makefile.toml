@@ -13,18 +13,14 @@ namespace = "default"
 description = "Runs all validations for both workspaces on rust stable only."
 workspace = false
 condition = { channels = [ "stable" ] }
-run_task = { name = [ "stable-checks-workspace", "stable-checks-stdweb-workspace" ], fork = true }
+run_task = { name = [ "stable-checks-flow", "stable-checks-stdweb" ], fork = true }
 
-[tasks.stable-checks-workspace]
-private = true
-run_task = "stable-checks-flow"
-
-[tasks.stable-checks-stdweb-workspace]
+[tasks.stable-checks-stdweb]
 private = true
 workspace = false
 cwd = "yew-stdweb"
 command = "cargo"
-args = ["make", "stable-checks-workspace"]
+args = ["make", "stable-checks-flow"]
 
 [tasks.stable-checks-flow]
 private = true
