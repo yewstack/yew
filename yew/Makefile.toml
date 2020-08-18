@@ -1,0 +1,6 @@
+
+[env]
+CARGO_MAKE_CLIPPY_ARGS = "--features cbor,msgpack,toml,yaml -- --deny=warnings"
+
+[tasks."default::check"]
+args = ["check", "--features", "cbor,msgpack,toml,yaml"]
