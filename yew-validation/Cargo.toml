@@ -1,0 +1,12 @@
+[package]
+name = "yew-validation"
+version = "0.1.0"
+authors = ["Philip Peterson <pc.peterso@gmail.com>"]
+edition = "2018"
+license = "MIT/Apache-2.0"
+keywords = ["web", "yew", "validation"]
+categories = ["text-processing", "parsing", "web-programming"]
+description = "Utilities for Yew to validate tag names and attributes"
+repository = "https://github.com/yewstack/yew"
+
+[dependencies]

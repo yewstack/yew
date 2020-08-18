@@ -1,18 +1,17 @@
-# Choose web-sys or stdweb
-
+---
+title: Choosing a web library
+---
 ## Introduction
 
 Yew apps can be built with either [`web-sys`](https://docs.rs/web-sys) or [`stdweb`](https://docs.rs/stdweb). These two crates provide the bindings between Rust and Web APIs. You'll need to choose one or the other when adding `yew` to your cargo dependencies:
 
-{% code title="Cargo.toml" %}
-```rust
+```toml
 # Choose `web-sys`
 yew = "0.17"
 
 # Choose `stdweb`
 yew = { version = "0.17", package = "yew-stdweb" }
 ```
-{% endcode %}
 
 We recommend using `web-sys` due to its support from the [Rust / Wasm Working Group](https://rustwasm.github.io/).
 

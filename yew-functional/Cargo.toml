@@ -10,10 +10,6 @@ keywords = ["web", "wasm", "frontend", "webasm", "webassembly"]
 categories = ["gui", "web-programming", "wasm"]
 description = "A framework for making client-side single-page apps"
 
-
-[badges]
-travis-ci = { repository = "yewstack/yew" }
-
 [dev-dependencies]
 wasm-bindgen-test = "0.3.9"
 web-sys = "0.3.36"

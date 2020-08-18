@@ -18,7 +18,7 @@ const siteConfig = {
   //   baseUrl: '/test-site/',
 
   // Used for publishing and more
-  projectName: 'docs',
+  projectName: 'yew',
   organizationName: 'yewstack',
   // For top-level user or org sites, the organization is still the same.
   // e.g., for the https://JoelMarcey.github.io site, it would be set like...
@@ -29,9 +29,18 @@ const siteConfig = {
     {href: 'https://github.com/yewstack/yew/releases', label: 'Changelog'},
     {href: 'https://docs.rs/yew', label: 'API'},
     {href: 'https://discord.gg/VQck8X4', label: 'Discord'},
-    // {search: true}, Need to setup algolia
+    {search: true},
     {languages: true},
   ],
+
+  translationRecruitingLink: 'https://gitlocalize.com/repo/4999',
+
+  algolia: {
+    apiKey: "bbaacf676920f3836ccab85fb87dd37c",
+    indexName: "yew",
+  },
+
+  gaTrackingId: 'UA-175524777-1',
 
   /* path to images for header/footer */
   headerIcon: 'img/logo.png',
@@ -93,6 +102,10 @@ const siteConfig = {
   // You may provide arbitrary config keys to be used as needed by your
   // template. For example, if you need your repo's URL...
   repoUrl: 'https://github.com/yewstack/yew',
+  markdownPlugins: [
+    // Highlight admonitions.
+    require('remarkable-admonitions')({icon: 'svg-inline'})
+  ]
 };
 
 module.exports = siteConfig;

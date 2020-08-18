@@ -9,7 +9,6 @@ use boolinator::Boolinator;
 use proc_macro2::{Delimiter, Span};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
-use syn::parse;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
 use syn::{Block, Ident, Token};
@@ -112,6 +111,7 @@ impl ToTokens for HtmlTag {
                 let vtag_name = Ident::new("__yew_vtag_name", expr.span());
                 // this way we get a nice error message (with the correct span) when the expression doesn't return a valid value
                 quote_spanned! {expr.span()=> {
+                    #[allow(unused_braces)]
                     let mut #vtag_name = ::std::borrow::Cow::<'static, str>::from(#expr);
                     if !#vtag_name.is_ascii() {
                         ::std::panic!("a dynamic tag returned a tag name containing non ASCII characters: `{}`", #vtag_name);
@@ -143,11 +143,9 @@ impl ToTokens for HtmlTag {
         });
         let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
-            quote_spanned! {value.span()=>
-                if #value {
-                    #vtag.add_attribute(&#label_str, &#label_str);
-                }
-            }
+            // We use `set_boolean_attribute` instead of inlining an if statement to avoid
+            // the `suspicious_else_formatting` clippy warning.
+            quote_spanned! {value.span()=> #vtag.set_boolean_attribute(&#label_str, #value); }
         });
         let set_kind = kind.iter().map(|kind| {
             quote_spanned! {kind.span()=> #vtag.set_kind(&(#kind)); }
@@ -192,13 +190,11 @@ impl ToTokens for HtmlTag {
             let name = &listener.label.name;
             let callback = &listener.value;
 
-            quote_spanned! {name.span()=> {
-                ::yew::html::#name::Wrapper::new(
-                    <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
-                        #callback
-                    )
+            quote_spanned! {name.span()=> ::yew::html::#name::Wrapper::new(
+                <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
+                    #callback
                 )
-            }}
+            )}
         });
 
         // These are the runtime-checks exclusive to dynamic tags.
@@ -242,6 +238,7 @@ impl ToTokens for HtmlTag {
             #(#set_classes)*
             #(#set_node_ref)*
             #(#set_key)*
+            #[allow(redundant_clone, unused_braces)]
             #vtag.add_attributes(vec![#(#attr_pairs),*]);
             #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
             #vtag.add_children(#children);
@@ -375,7 +372,7 @@ impl Parse for HtmlTagOpen {
         let lt = input.parse::<Token![<]>()?;
         let tag_name = input.parse::<TagName>()?;
         let TagSuffix { stream, div, gt } = input.parse()?;
-        let mut attributes: TagAttributes = parse(stream)?;
+        let mut attributes: TagAttributes = syn::parse2(stream)?;
 
         match &tag_name {
             TagName::Lit(name) => {

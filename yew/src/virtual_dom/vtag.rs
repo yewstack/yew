@@ -177,6 +177,18 @@ impl VTag {
         self.attributes.insert(name.to_owned(), value.to_string());
     }
 
+    /// Sets a boolean attribute if `value` is true. Removes if `value` is false. The name
+    /// of the attribute will be used as the value.
+    ///
+    /// Example: `<button disabled="disabled">`
+    pub fn set_boolean_attribute(&mut self, name: &str, value: bool) {
+        if value {
+            self.attributes.insert(name.to_owned(), name.to_owned());
+        } else {
+            self.attributes.remove(name);
+        }
+    }
+
     /// Adds attributes to a virtual node. Not every attribute works when
     /// it set as attribute. We use workarounds for:
     /// `type/kind`, `value` and `checked`.
@@ -669,7 +681,7 @@ mod tests {
         };
 
         let d = html! {
-            <div class=format!("fail")></div>
+            <div class=format!("fail{}", "")></div>
         };
 
         assert_eq!(a, b);
@@ -751,6 +763,38 @@ mod tests {
     }
 
     #[test]
+    fn supports_multiple_classes_slice() {
+        let classes = ["class-1", "class-2"];
+        let a = html! {
+            <div class=&classes[..]></div>
+        };
+
+        if let VNode::VTag(vtag) = a {
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(!get_class_str(&vtag).contains("class-3"));
+        } else {
+            panic!("vtag expected");
+        }
+    }
+
+    #[test]
+    fn supports_multiple_classes_one_value_slice() {
+        let classes = ["class-1 class-2", "class-1"];
+        let a = html! {
+            <div class=&classes[..]></div>
+        };
+
+        if let VNode::VTag(vtag) = a {
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(!get_class_str(&vtag).contains("class-3"));
+        } else {
+            panic!("vtag expected");
+        }
+    }
+
+    #[test]
     fn supports_multiple_classes_vec() {
         let mut classes = vec!["class-1"];
         classes.push("class-2");
@@ -784,12 +828,12 @@ mod tests {
     }
 
     #[test]
-    fn filter_empty_string_classes_vec() {
-        let mut classes = vec![""];
-        classes.push("class-2");
+    fn filter_empty_string_classes() {
         let a = html! { <div class=vec![""]></div> };
-        let b = html! { <div class=("")></div> };
+        let b = html! { <div class=("", "")></div> };
         let c = html! { <div class=""></div> };
+        let d_arr = [""];
+        let d = html! { <div class=&d_arr[..]></div> };
 
         if let VNode::VTag(vtag) = a {
             assert!(!vtag.attributes.contains_key("class"));
@@ -804,6 +848,12 @@ mod tests {
         }
 
         if let VNode::VTag(vtag) = c {
+            assert!(!vtag.attributes.contains_key("class"));
+        } else {
+            panic!("vtag expected");
+        }
+
+        if let VNode::VTag(vtag) = d {
             assert!(!vtag.attributes.contains_key("class"));
         } else {
             panic!("vtag expected");
@@ -1352,6 +1402,9 @@ mod tests {
 
 #[cfg(all(test, feature = "web_sys"))]
 mod layout_tests {
+    extern crate self as yew;
+
+    use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]

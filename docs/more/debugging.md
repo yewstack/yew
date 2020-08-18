@@ -1,4 +1,6 @@
-# Debugging
+---
+title: Debugging
+---
 
 ## Panics
 

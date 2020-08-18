@@ -231,7 +231,7 @@ impl<COMP: Component> Scope<COMP> {
         closure.into()
     }
 
-    /// Creates a `Callback` from a FnOnce which will send a message
+    /// Creates a `Callback` from an `FnOnce` which will send a message
     /// to the linked component's update method when invoked.
     ///
     /// Please be aware that currently the result of this callback
@@ -266,6 +266,24 @@ impl<COMP: Component> Scope<COMP> {
             scope.send_message_batch(messages);
         };
         closure.into()
+    }
+
+    /// Creates a `Callback` from an `FnOnce` which will send a batch of messages back
+    /// to the linked component's update method when invoked.
+    ///
+    /// Please be aware that currently the results of these callbacks
+    /// will synchronously schedule calls to the
+    /// [Component](Component) interface.
+    pub fn batch_callback_once<F, IN>(&self, function: F) -> Callback<IN>
+    where
+        F: FnOnce(IN) -> Vec<COMP::Message> + 'static,
+    {
+        let scope = self.clone();
+        let closure = move |input| {
+            let messages = function(input);
+            scope.send_message_batch(messages);
+        };
+        Callback::once(closure)
     }
 }
 
@@ -365,10 +383,7 @@ where
                 return;
             }
 
-            let first_update = match self.update {
-                ComponentUpdate::First => true,
-                _ => false,
-            };
+            let first_update = matches!(self.update, ComponentUpdate::First);
 
             let should_update = match self.update {
                 ComponentUpdate::First => true,
@@ -459,8 +474,13 @@ where
 
             state.has_rendered = true;
             state.component.rendered(self.first_render);
-            for update in state.pending_updates.drain(..) {
-                scheduler().push_comp(ComponentRunnableType::Update, update);
+            if !state.pending_updates.is_empty() {
+                scheduler().push_comp_update_batch(
+                    state
+                        .pending_updates
+                        .drain(..)
+                        .map(|u| u as Box<dyn Runnable>),
+                );
             }
         }
     }
@@ -490,6 +510,9 @@ where
 
 #[cfg(test)]
 mod tests {
+    extern crate self as yew;
+
+    use crate::html;
     use crate::html::*;
     use crate::Properties;
     use std::ops::Deref;
@@ -616,7 +639,7 @@ mod tests {
     }
 
     #[test]
-    fn lifecyle_tests() {
+    fn lifecycle_tests() {
         let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
 
         test_lifecycle(
@@ -624,7 +647,7 @@ mod tests {
                 lifecycle: lifecycle.clone(),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -638,7 +661,7 @@ mod tests {
                 create_message: Some(false),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -653,7 +676,7 @@ mod tests {
                 view_message: RefCell::new(Some(true)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -670,7 +693,7 @@ mod tests {
                 view_message: RefCell::new(Some(false)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -685,7 +708,7 @@ mod tests {
                 rendered_message: RefCell::new(Some(false)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -700,7 +723,7 @@ mod tests {
                 rendered_message: RefCell::new(Some(true)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -713,12 +736,12 @@ mod tests {
 
         test_lifecycle(
             Props {
-                lifecycle: lifecycle.clone(),
+                lifecycle,
                 create_message: Some(true),
                 update_message: RefCell::new(Some(true)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),

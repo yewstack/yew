@@ -1,4 +1,6 @@
-# Starter Templates
+---
+title: Starter templates
+---
 
 ## `wasm-pack`
 
@@ -14,8 +16,7 @@ The important distinction between these templates and using `cargo-web` is that 
 
 Your `Cargo.toml` also should specify that your crate's type is a "cdylib".
 
-{% code title="Cargo.toml" %}
-```text
+```text title="Cargo.toml"
 [package]
 name = "yew-app"
 version = "0.1.0"
@@ -32,11 +33,9 @@ yew = "0.17"
 # yew = { version = "0.17", package = "yew-stdweb" }
 wasm-bindgen = "0.2"
 ```
-{% endcode %}
 
 ## Other templates
 
 * [Parcel Template](https://github.com/spielrs/yew-parcel-template) - Created by a community member 
-
-  and uses [Parcel](https://parceljs.org/)
+and uses [Parcel](https://parceljs.org/)
 

@@ -16,7 +16,7 @@ error[E0425]: cannot find value `foo` in this scope
 87 |         #[prop_or_else(foo)]
    |                        ^^^ not found in this scope
    |
-help: possible candidates are found in other modules, you can import them into scope
+help: consider importing one of these items
    |
 83 |     use crate::t10::foo;
    |

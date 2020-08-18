@@ -1,24 +1,22 @@
 ---
+title: Callbacks
 description: ComponentLink and Callbacks
 ---
-
-# Callbacks
-
 The component "link" is the mechanism through which components are able to register callbacks and update themselves.
 
 ## ComponentLink API
 
 ### callback
 
-Registers a callback that will send a message to the component's update mechanism when it is executed. Under the hood, it will call `send_self` with the message that is returned by the provided closure. A `Fn(IN) -> Vec<COMP::Message>` is provided and a `Callback<IN>` is returned.
+Registers a callback that will send a message to the component's update mechanism when it is executed. Under the hood, it will call `send_self` with the message that is returned by the provided closure. A `Fn(IN) -> COMP::Message` is provided and a `Callback<IN>` is returned.
 
 ### send\_message
 
 Sends a message to the component immediately after the current loop finishes, causing another update loop to initiate.
 
-### send\_message\_batch
+### batch\_callback
 
-Registers a callback that sends a batch of many messages at once when it is executed. If any of the messages cause the component to re-render, the component will re-render after all messages in the batch have been processed. A `Fn(IN) -> COMP::Message` is provided and a `Callback<IN>` is returned.
+Registers a callback that sends a batch of many messages at once when it is executed. If any of the messages cause the component to re-render, the component will re-render after all messages in the batch have been processed. A `Fn(IN) -> Vec<COMP::Message>` is provided and a `Callback<IN>` is returned.
 
 ## Callbacks
 

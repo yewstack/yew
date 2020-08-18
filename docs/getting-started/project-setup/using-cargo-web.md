@@ -1,6 +1,10 @@
-# Using cargo-web
+---
+title: Using cargo-web
+---
 
-Cargo web is a cargo subcommand for building client web apps. It makes building and deploying web applications incredibly easy. It is also the only toolchain that supports Emscripten targets. Read more [here](https://github.com/koute/cargo-web).
+Cargo web is a cargo subcommand for building client web apps. It makes building and deploying web 
+applications incredibly easy. It is also the only toolchain that supports Emscripten targets. Read 
+more [here](https://github.com/koute/cargo-web).
 
 **Install**
 
@@ -26,7 +30,6 @@ cargo web start
 * `wasm32-unknown-emscripten`
 * `asmjs-unknown-emscripten`
 
-{% hint style="info" %}
+:::note
 For `*-emscripten` targets, you'll need to install the Emscripten SDK
-{% endhint %}
-
+:::

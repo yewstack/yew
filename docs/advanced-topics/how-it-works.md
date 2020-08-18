@@ -1,4 +1,5 @@
 ---
+title: How it works
 description: Low level details about the framework
 ---
 

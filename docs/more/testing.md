@@ -1,8 +1,7 @@
 ---
+title: Testing apps
 description: Testing your app
 ---
-
-# Testing
 
 &lt;TODO&gt;
 

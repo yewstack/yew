@@ -1,57 +1,52 @@
 ---
+title: Elements
 description: Both HTML and SVG elements are supported
 ---
-
-# Elements
-
 ## Tag Structure
 
 Element tags must either self-close `<... />` or have a corresponding close tag for each open tag
 
-{% tabs %}
-{% tab title="Open - Close" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Open - Close-->
 ```rust
 html! {
   <div id="my_div"></div>
 }
 ```
-{% endtab %}
 
-{% tab title="INVALID" %}
+<!--Invalid-->
 ```rust
 html! {
   <div id="my_div"> // <- MISSING CLOSE TAG
 }
 ```
-{% endtab %}
 
-{% tab title="Self-Closing" %}
+<!--Self-closing-->
 ```rust
 html! {
   <input id="my_input" />
 }
 ```
-{% endtab %}
 
-{% tab title="INVALID" %}
+<!--Invalid-->
 ```rust
 html! {
   <input id="my_input"> // <- MISSING SELF-CLOSE
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
-{% hint style="info" %}
+:::note
 For convenience, elements which _usually_ require a closing tag are **allowed** to self-close. For example, writing `html! { <div class="placeholder" /> }` is valid.
-{% endhint %}
+:::
 
 ## Children
 
 Create complex nested HTML and SVG layouts with ease:
 
-{% tabs %}
-{% tab title="HTML" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--HTML-->
+
 ```rust
 html! {
     <div>
@@ -70,9 +65,9 @@ html! {
     </div>
 }
 ```
-{% endtab %}
 
-{% tab title="SVG" %}
+<!--SVG-->
+
 ```rust
 html! {
     <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -92,69 +87,62 @@ html! {
     </svg>
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Classes
 
-There are a number of convenient options for specifying classes for an element:
+There are a number of convenient ways to specify classes for an element:
 
-{% tabs %}
-{% tab title="Literal" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Literal-->
 ```rust
 html! {
   <div class="container"></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Multiple" %}
+<!--Multiple-->
 ```rust
 html! {
   <div class="container center-align"></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Interpolated" %}
+<!--Interpolated-->
 ```rust
 html! {
   <div class=format!("{}-container", size)></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Expression" %}
+<!--Expression-->
 ```rust
 html! {
   <div class=self.classes()></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Tuple" %}
+<!--Tuple-->
 ```rust
 html! {
   <div class=("class-1", "class-2")></div>
 }
 ```
-{% endtab %}
 
-{% tab title="Vector" %}
+<!--Vector-->
 ```rust
 html! {
   <div class=vec!["class-1", "class-2"]></div>
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Listeners
 
 Listener attributes need to be passed a `Callback` which is a wrapper around a closure. How you create your callback depends on how you wish your app to react to a listener event:
 
-{% tabs %}
-{% tab title="Component Handler" %}
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Component handler-->
 ```rust
 struct MyComponent {
     link: ComponentLink<Self>,
@@ -191,9 +179,9 @@ impl Component for MyComponent {
     }
 }
 ```
-{% endtab %}
 
-{% tab title="Agent Handler" %}
+<!--Agent Handler-->
+
 ```rust
 struct MyComponent {
     worker: Dispatcher<MyWorker>,
@@ -224,9 +212,8 @@ impl Component for MyComponent {
     }
 }
 ```
-{% endtab %}
 
-{% tab title="Other Cases" %}
+<!--Other Cases-->
 ```rust
 struct MyComponent;
 
@@ -256,6 +243,116 @@ impl Component for MyComponent {
     }
 }
 ```
-{% endtab %}
-{% endtabs %}
+<!--END_DOCUSAURUS_CODE_TABS-->
 
+## Event Types
+
+:::note
+In the following table `web-sys`'s event types should only be used if you're using `yew` with `web-sys`
+(this is enabled by default). Use `stdweb`'s event types if you're using the `yew-stdweb` crate. See 
+[the documentation page about whether to choose `web-sys` or `stdweb`](https://yew.rs/docs/getting-started/choose-web-library) for more information.
+:::
+
+:::note
+All the event types mentioned in the following table are re-exported under `yew::events`. Using the types from
+`yew::events` makes it easier to ensure version compatibility than if you were to manually include `web-sys` 
+or `stdweb` as dependencies in your crate because you won't end up using a version which conflicts with
+the version Yew specifies. 
+:::
+
+| Event name  | `web_sys` Event Type | `stdweb` Event Type |
+| ----------- | -------------------- |  ------------------ |
+| `onabort` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [ResourceAbortEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ResourceAbortEvent.html) |
+| `onauxclick` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [AuxClickEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.AuxClickEvent.html) |
+| `onblur` | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html) | [BlurEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.BlurEvent.html) |
+| `oncancel` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `oncanplay` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `oncanplaythrough` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onchange` | [ChangeData](https://docs.rs/yew/latest/yew/events/enum.ChangeData.html) | [ChangeData](https://docs.rs/yew-stdweb/latest/yew_stdweb/events/enum.ChangeData.html) |
+| `onclick` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [ClickEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ClickEvent.html) |
+| `onclose` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `oncontextmenu` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [ContextMenuEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ContextMenuEvent.html) |
+| `oncuechange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `ondblclick` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [DoubleClickEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DoubleClickEvent.html) |
+| `ondrag` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragEvent.html) |
+| `ondragend` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragEndEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragEndEvent.html) |
+| `ondragenter` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragEnterEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragEnterEvent.html) |
+| `ondragexit` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragExitEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragExitEvent.html) |
+| `ondragleave` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.htmk) | [DragLeaveEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragLeaveEvent.html) |
+| `ondragover` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragOverEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragOverEvent.html) |
+| `ondragstart` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragStartEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragStartEvent.html) |
+| `ondrop` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragDropEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragDropEvent.html) |
+| `ondurationchange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onemptied` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onended` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onerror` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [ResourceErrorEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ResourceErrorEvent.html) |
+| `onfocus` | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html) | [FocusEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.FocusEvent.html) |
+| `onformdata` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `oninput` | [InputData](https://docs.rs/yew/latest/yew/events/struct.InputData.html) | [InputData](https://docs.rs/yew-stdweb/latest/yew_stdweb/events/struct.InputData.html) |
+| `oninvalid` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onkeydown` | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html) | [KeyDownEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.KeyDownEvent.html) |
+| `onkeypress` | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html) | [KeyPressEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.KeyPressEvent.html) |
+| `onkeyup` | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html) | [KeyUpEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.KeyUpEvent.html) |
+| `onload` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [ResourceLoadEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ResourceLoadEvent.html) |
+| `onloadeddata` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onloadedmetadata` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onloadstart` | [ProgressEvent](https://docs.rs/web-sys/latest/web_sys/struct.ProgressEvent.html) | [LoadStartEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.LoadStartEvent.html) |
+| `onmousedown` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseDownEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseDownEvent.html) |
+| `onmouseenter` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseEnterEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseEnterEvent.html) |
+| `onmouseleave` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseLeaveEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseLeaveEvent.html) |
+| `onmousemove` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseMoveEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseMoveEvent.html) |
+| `onmouseout` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseOutEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseOutEvent.html) |
+| `onmouseover` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseOverEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseOverEvent.html) |
+| `onmouseup` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseUpEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseUpEvent.html) |
+| `onpause` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onplay` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onplaying` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onprogress` | [ProgressEvent](https://docs.rs/web-sys/latest/web_sys/struct.ProgressEvent.html) | [ProgressEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ProgressEvent.html) |
+| `onratechange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onreset` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onresize` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [ResizeEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ResizeEvent.html) |
+| `onscroll` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [ScrollEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ScrollEvent.html) |
+| `onsecuritypolicyviolation` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onseeked` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onseeking` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onselect` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onslotchange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [SlotChangeEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.SlotChangeEvent.html) |
+| `onstalled` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onsubmit` | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html) | [SubmitEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.SubmitEvent.html) |
+| `onsuspend` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `ontimeupdate` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `ontoggle` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onvolumechange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onwaiting` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onwheel` | [WheelEvent](https://docs.rs/web-sys/latest/web_sys/struct.WheelEvent.html) | [MouseWheelEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseWheelEvent.html) |
+| `oncopy` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `oncut` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onpaste` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onanimationcancel` | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html) | Unsupported |
+| `onanimationend` | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html) | Unsupported |
+| `onanimationiteration` | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html) | Unsupported |
+| `onanimationstart` | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html) | Unsupported |
+| `ongotpointercapture` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [GotPointerCaptureEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.GotPointerCaptureEvent.html) |
+| `onloadend` | [ProgressEvent](https://docs.rs/web-sys/latest/web_sys/struct.ProgressEvent.html) | [LoadEndEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.LoadEndEvent.html) |
+| `onlostpointercapture` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [LostPointerCaptureEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.LostPointerCaptureEvent.html) |
+| `onpointercancel` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerCancelEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerCancelEvent.html) |
+| `onpointerdown` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerDownEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerDownEvent.html) |
+| `onpointerenter` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerEnterEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerEnterEvent.html) |
+| `onpointerleave` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerLeaveEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerLeaveEvent.html) |
+| `onpointerlockchange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [PointerLockChangeEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerLockChangeEvent.html) |
+| `onpointerlockerror` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [PointerLockErrorEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerLockErrorEvent.html) |
+| `onpointermove` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerMoveEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerMoveEvent.html) |
+| `onpointerout` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerOutEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerOutEvent.html) |
+| `onpointerover` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerOverEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerOverEvent.html) |
+| `onpointerup` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerUpEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerUpEvent.html) |
+| `onselectionchange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [SelectionChangeEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.SelectionChangeEvent.html) |
+| `onselectstart` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `onshow` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | Unsupported |
+| `ontouchcancel` | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html) | [TouchCancel](https://docs.rs/stdweb/latest/stdweb/web/event/struct.TouchCancel.html) |
+| `ontouchend` | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html) | [TouchEnd](https://docs.rs/stdweb/latest/stdweb/web/event/struct.TouchEnd.html) |
+| `ontouchmove` | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html) | [TouchMove](https://docs.rs/stdweb/latest/stdweb/web/event/struct.TouchMove.html) |
+| `ontouchstart` | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html) | [TouchStart](https://docs.rs/stdweb/latest/stdweb/web/event/struct.TouchStart.html) |
+| `ontransitioncancel` | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | Unsupported |
+| `ontransitionend` | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | Unsupported |
+| `ontransitionrun` | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | Unsupported |
+| `ontransitionstart` | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | Unsupported |

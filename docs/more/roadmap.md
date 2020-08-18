@@ -1,16 +1,17 @@
 ---
+title: Roadmap
 description: The planned feature roadmap for the Yew framework
 ---
 
-# Roadmap
-
 ## Prioritization
 
-The prioritization of upcoming features and focuses of the framework are determined by the community. In Spring 2020, a developer survey was sent out to collect feedback on the direction of the project. You can find the summary in the [Yew Wiki](https://github.com/yewstack/yew/wiki/Dev-Survey-%5BSpring-2020%5D).
+The prioritization of upcoming features and focuses of the framework is determined by the community. 
+In Spring 2020, a developer survey was sent out to collect feedback on the direction of the project. 
+You can find the summary in the [Yew Wiki](https://github.com/yewstack/yew/wiki/Dev-Survey-%5BSpring-2020%5D).
 
-{% hint style="info" %}
+:::note
 Status of all major initiatives can be tracked on the Yew Github [Project board](https://github.com/yewstack/yew/projects)
-{% endhint %}
+:::
 
 ## Focuses
 

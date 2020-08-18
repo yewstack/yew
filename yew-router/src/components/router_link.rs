@@ -58,6 +58,7 @@ impl<SW: Switch + Clone + 'static, STATE: RouterState> Component for RouterAncho
 
         let route: Route<STATE> = Route::from(self.props.route.clone());
         let target: &str = route.as_str();
+
         #[cfg(feature = "std_web")]
         let cb = self.link.callback(|event: ClickEvent| {
             event.prevent_default();

@@ -76,7 +76,6 @@ impl Component for Model {
                                 let files = js_sys::try_iter(&files)
                                     .unwrap()
                                     .unwrap()
-                                    .into_iter()
                                     .map(|v| File::from(v.unwrap()));
                                 result.extend(files);
                             }

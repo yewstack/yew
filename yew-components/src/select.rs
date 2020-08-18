@@ -137,14 +137,14 @@ where
         let view_option = |value: &T| {
             let flag = selected == Some(value);
             html! {
-                <option value=value.to_string() selected=flag>{ value.to_string() }</option>
+                <option value=value selected=flag>{ value.to_string() }</option>
             }
         };
 
         html! {
             <select
                 ref=self.select_ref.clone()
-                id=self.props.id.clone()
+                id=self.props.id
                 class=self.props.class.clone()
                 disabled=self.props.disabled
                 onchange=self.on_change()

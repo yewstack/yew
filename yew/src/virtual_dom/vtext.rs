@@ -87,6 +87,8 @@ impl PartialEq for VText {
 
 #[cfg(test)]
 mod test {
+    extern crate self as yew;
+
     use crate::html;
 
     #[cfg(feature = "wasm_test")]
@@ -109,6 +111,9 @@ mod test {
 
 #[cfg(all(test, feature = "web_sys"))]
 mod layout_tests {
+    extern crate self as yew;
+
+    use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]

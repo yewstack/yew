@@ -1,10 +1,12 @@
-# Using wasm-pack
+---
+title: Using wasm-pack
+---
 
 This tool was created by the Rust / Wasm Working Group and is the most actively developed tool for building WebAssembly applications. It supports packaging code into `npm` modules and has an accompanying [Webpack plugin](https://github.com/wasm-tool/wasm-pack-plugin) for easy integration with an existing JavaScript application. More information is given in [the `wasm-pack` documentation](https://rustwasm.github.io/docs/wasm-pack/introduction.html).
 
-{% hint style="info" %}
+:::note
 Note that the crate-type in your `Cargo.toml` will need to be `cdylib` when using `wasm-pack`
-{% endhint %}
+:::
 
 ## Install
 
@@ -14,7 +16,8 @@ cargo install wasm-pack
 
 ## Build
 
-This command will produce a bundle in the `./pkg` directory with your app's compiled WebAssembly along with a JavaScript wrapper which can be used to start your application.
+This command will produce a bundle in the `./pkg` directory with your app's compiled WebAssembly 
+along with a JavaScript wrapper which can be used to start your application.
 
 ```bash
 wasm-pack build --target web
@@ -30,7 +33,7 @@ rollup ./main.js --format iife --file ./pkg/bundle.js
 
 ## Serve
 
-Feel free to use your preferred server. Here we use a simple python server to serve to
+Feel free to use your preferred server. Here we use a simple Python server to serve the built app.
 
 ```bash
 python -m http.server 8000
@@ -39,4 +42,3 @@ python -m http.server 8000
 ## Supported Targets
 
 * `wasm32-unknown-unknown`
-
