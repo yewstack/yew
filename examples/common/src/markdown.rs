@@ -137,7 +137,7 @@ fn make_tag(t: Tag) -> VTag {
         Tag::List(Some(1)) => VTag::new("ol"),
         Tag::List(Some(ref start)) => {
             let mut el = VTag::new("ol");
-            el.add_attribute("start", ToString::to_string(start));
+            el.add_attribute("start", start.to_string());
             el
         }
         Tag::Item => VTag::new("li"),
