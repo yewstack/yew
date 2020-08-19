@@ -113,9 +113,7 @@ impl ToTokens for HtmlTag {
                 // this way we get a nice error message (with the correct span) when the expression doesn't return a valid value
                 quote_spanned! {expr.span()=> {
                     #[allow(unused_braces)]
-                    let mut #vtag_name = ::std::borrow::Cow::<'static, str>::Owned(
-                        ::std::convert::Into::<String>::into(#expr),
-                    );
+                    let mut #vtag_name = ::std::convert::Into::<::std::borrow::Cow::<'static, str>>::into(#expr);
                     if !#vtag_name.is_ascii() {
                         ::std::panic!("a dynamic tag returned a tag name containing non ASCII characters: `{}`", #vtag_name);
                     }

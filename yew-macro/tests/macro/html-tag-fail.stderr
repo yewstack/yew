@@ -224,17 +224,17 @@ error[E0308]: mismatched types
 37 |     html! { <input ref=() /> };
    |                        ^^ expected struct `yew::html::NodeRef`, found `()`
 
-error[E0277]: the trait bound `std::string::String: std::convert::From<{integer}>` is not satisfied
+error[E0277]: the trait bound `std::borrow::Cow<'static, str>: std::convert::From<{integer}>` is not satisfied
   --> $DIR/html-tag-fail.rs:45:15
    |
 45 |     html! { <@{55}></@> };
-   |               ^^^^ the trait `std::convert::From<{integer}>` is not implemented for `std::string::String`
+   |               ^^^^ the trait `std::convert::From<{integer}>` is not implemented for `std::borrow::Cow<'static, str>`
    |
    = help: the following implementations were found:
-             <std::string::String as std::convert::From<&'a js_sys::JsString>>
-             <std::string::String as std::convert::From<&mut str>>
-             <std::string::String as std::convert::From<&std::string::String>>
-             <std::string::String as std::convert::From<&str>>
-           and 3 others
-   = note: required because of the requirements on the impl of `std::convert::Into<std::string::String>` for `{integer}`
+             <std::borrow::Cow<'a, [T]> as std::convert::From<&'a [T]>>
+             <std::borrow::Cow<'a, [T]> as std::convert::From<&'a std::vec::Vec<T>>>
+             <std::borrow::Cow<'a, [T]> as std::convert::From<std::vec::Vec<T>>>
+             <std::borrow::Cow<'a, std::ffi::CStr> as std::convert::From<&'a std::ffi::CStr>>
+           and 11 others
+   = note: required because of the requirements on the impl of `std::convert::Into<std::borrow::Cow<'static, str>>` for `{integer}`
    = note: required by `std::convert::Into::into`
