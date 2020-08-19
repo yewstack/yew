@@ -1,7 +1,6 @@
 /// Original author of this code is [Nathan Ringo](https://github.com/remexre)
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
 use pulldown_cmark::{Alignment, CodeBlockKind, Event, Options, Parser, Tag};
-use std::borrow::Cow;
 use yew::virtual_dom::{Classes, VNode, VTag, VText};
 use yew::{html, Html};
 
