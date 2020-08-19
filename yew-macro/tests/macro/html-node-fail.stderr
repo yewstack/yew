@@ -23,15 +23,15 @@ error: unsupported type
    |              ^^^^^^
 
 error: unsupported type
-  --> $DIR/html-node-fail.rs:13:22
+  --> $DIR/html-node-fail.rs:12:22
    |
-13 |     html! {  <span>{ b'a' }</span> };
+12 |     html! {  <span>{ b'a' }</span> };
    |                      ^^^^
 
 error: unsupported type
-  --> $DIR/html-node-fail.rs:14:22
+  --> $DIR/html-node-fail.rs:13:22
    |
-14 |     html! {  <span>{ b"str" }</span> };
+13 |     html! {  <span>{ b"str" }</span> };
    |                      ^^^^^^
 
 error[E0425]: cannot find value `invalid` in this scope
@@ -53,9 +53,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: required by `std::convert::From::from`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-node-fail.rs:19:9
+  --> $DIR/html-node-fail.rs:17:9
    |
-19 |         not_node()
+17 |         not_node()
    |         ^^^^^^^^^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
