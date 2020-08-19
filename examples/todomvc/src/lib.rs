@@ -200,7 +200,7 @@ impl Model {
         html! {
             <li>
                 <a class=cls
-                   href=flt
+                   href=filter
                    onclick=self.link.callback(move |_| Msg::SetFilter(flt.clone()))>
                     { filter }
                 </a>

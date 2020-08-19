@@ -48,7 +48,7 @@ impl ToTokens for HtmlNode {
                 let sr = crate::stringify::Constructor::from(lit.as_ref());
                 quote! { ::yew::virtual_dom::VText::new(#sr) }
             }
-            HtmlNode::Expression(expr) => quote_spanned! {expr.span()=> {#expr}},
+            HtmlNode::Expression(expr) => quote_spanned! {expr.span()=> #expr},
         });
     }
 }
