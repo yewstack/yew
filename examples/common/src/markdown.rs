@@ -20,7 +20,7 @@ fn add_class(vtag: &mut VTag, class: &str) {
         .unwrap_or("")
         .into();
     classes.push(class);
-    vtag.add_attribute("class", ToString::to_string(&classes));
+    vtag.add_attribute("class", classes.to_string());
 }
 
 /// Renders a string of Markdown to HTML with the default options (footnotes
