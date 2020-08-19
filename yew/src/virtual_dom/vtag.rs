@@ -433,39 +433,41 @@ impl VTag {
     fn apply_diffs(&mut self, ancestor: &mut Option<Box<Self>>) {
         let element = self.reference.as_ref().expect("element expected");
 
-        // apply attribute patches including an optional "class"-attribute patch
-        match (
+        // Apply attribute patches including an optional "class"-attribute patch.
+        macro_rules! add_all {
+            ($src:expr) => {
+                $src.iter()
+                    .map(|(k, v)| Patch::Add(*k, v.as_ref()))
+                    .collect()
+            };
+        }
+        for change in match (
             &mut self.attributes,
             &mut ancestor.as_mut().map(|a| &mut a.attributes),
         ) {
-            (Attributes::Vec(new), Some(Attributes::IndexMap(_))) => {
-                self.attributes = Attributes::new_indexmap(std::mem::take(new));
+            (Attributes::Vec(new), Some(Attributes::Vec(old))) => {
+                Self::diff_attributes_vectors(new, old)
             }
-            (Attributes::IndexMap(_), Some(Attributes::Vec(old))) => {
-                let old = std::mem::take(old);
-                match ancestor.as_mut() {
-                    Some(a) => {
-                        a.attributes = Attributes::new_indexmap(old);
-                    }
-                    None => unreachable!(),
-                };
-            }
-            _ => (),
-        };
-        for change in match (
-            &self.attributes,
-            &ancestor
-                .as_ref()
-                .map(|a| &a.attributes)
-                .unwrap_or(&Attributes::default()),
-        ) {
-            (Attributes::Vec(new), Attributes::Vec(old)) => {
-                Self::diff_attributes_vectors(new, &old)
-            }
-            (Attributes::IndexMap(new), Attributes::IndexMap(old)) => {
+            (Attributes::IndexMap(new), Some(Attributes::IndexMap(old))) => {
                 Self::diff_attributes_indexmaps(new, old)
             }
-            _ => unreachable!(),
+            (Attributes::Vec(new), None) => add_all!(new),
+            (Attributes::IndexMap(new), None) => add_all!(new),
+            (Attributes::Vec(new), Some(Attributes::IndexMap(old))) => {
+                self.attributes = Attributes::new_indexmap(std::mem::take(new));
+                match &self.attributes {
+                    Attributes::IndexMap(new) => Self::diff_attributes_indexmaps(new, old),
+                    _ => unreachable!(),
+                }
+            }
+            (Attributes::IndexMap(new), Some(Attributes::Vec(old))) => {
+                ancestor.as_mut().unwrap().attributes =
+                    Attributes::new_indexmap(std::mem::take(old));
+                match &ancestor.as_ref().map(|a| &a.attributes) {
+                    Some(Attributes::IndexMap(old)) => Self::diff_attributes_indexmaps(new, old),
+                    _ => unreachable!(),
+                }
+            }
         } {
             match change {
                 Patch::Add(key, value) | Patch::Replace(key, value) => {
