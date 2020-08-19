@@ -74,7 +74,7 @@ pub fn render_markdown(src: &str) -> Html {
                         if let VNode::VTag(ref mut vtag) = c {
                             // TODO
                             //                            vtag.tag = "th".into();
-                            vtag.add_attribute("scope", Cow::Borrowed("col"));
+                            vtag.add_attribute("scope", "col");
                         }
                     }
                 }
