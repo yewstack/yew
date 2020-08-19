@@ -132,11 +132,19 @@ impl<U: Switch> Switch for Permissive<U> {
 pub struct AllowMissing<U: std::fmt::Debug>(pub Option<U>);
 impl<U: Switch + std::fmt::Debug> Switch for AllowMissing<U> {
     fn from_route_part<STATE>(part: String, state: Option<STATE>) -> (Option<Self>, Option<STATE>) {
-        let route = part.clone();
+        let part = if part.starts_with("/") {
+            part[1..].to_string()
+        } else {
+            part
+        };
+        let is_empty = part.is_empty();
         let (inner, inner_state) = U::from_route_part(part, state);
 
         if inner.is_some() {
-            (Some(AllowMissing( if route == "" || route == "/" {None} else { inner } ) ), inner_state)
+            (
+                Some(AllowMissing(if is_empty { None } else { inner })),
+                inner_state,
+            )
         } else {
             (None, None)
         }
