@@ -1,37 +1,46 @@
 
+[config]
+min_version = "0.32.1" # todo 0.32.2
+default_to_workspace = false
+
 [env]
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
 CARGO_MAKE_CLIPPY_ARGS = "-- --deny=warnings"
-RUST_RECURSION_COUNT = { unset = true } # todo remove as its fixed in 0.32.2
-min_version = "0.32.1" # todo 0.32.2
 
 [config.modify_core_tasks]
 private = true
-namespace = "default"
+namespace = "core"
 
 [tasks.stable-checks]
 description = "Runs all validations for both workspaces on rust stable only."
-workspace = false
 condition = { channels = [ "stable" ] }
 run_task = { name = [ "stable-checks-flow", "stable-checks-stdweb" ], fork = true }
 
 [tasks.stable-checks-stdweb]
 private = true
-workspace = false
 cwd = "yew-stdweb"
 command = "cargo"
-args = ["make", "stable-checks-flow"]
+args = [
+    "make",
+    "--loglevel",
+    "${CARGO_MAKE_LOG_LEVEL}",
+    "--profile",
+    "${CARGO_MAKE_PROFILE}",
+    "stable-checks-flow"
+]
 
 [tasks.stable-checks-flow]
 private = true
+workspace = true
 dependencies = [
-    "default::check-format-flow",
-    "default::check-flow",
-    "default::clippy-flow",
-    "web-check"
+    "core::check-format-flow",
+    "core::check-flow",
+    "core::clippy-flow",
+    "post-stable-checks"
 ]
 
+[tasks.post-stable-checks]
+
 [tasks.web-check]
-condition = { env_true = [ "YEW_WEB_CHECK" ] }
 command = "cargo"
 args = ["web", "check", "--target", "wasm32-unknown-unknown"]
