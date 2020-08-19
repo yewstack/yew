@@ -134,7 +134,7 @@ impl VTag {
         }
     }
 
-    /// Returns tag of an `Element` in lowercase
+    /// Returns tag of an `Element`. In HTML tags are always uppercase.
     pub fn tag(&self) -> &str {
         &self.tag
     }
