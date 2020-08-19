@@ -1404,6 +1404,10 @@ mod tests {
     fn reset_node_ref() {
         let scope = test_scope();
         let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref = NodeRef::default();
