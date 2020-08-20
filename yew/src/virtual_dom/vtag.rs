@@ -464,6 +464,7 @@ impl VDiff for VTag {
         if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VTag");
         }
+        self.node_ref.set(None);
     }
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an ancestor `VTag`
@@ -1397,6 +1398,29 @@ mod tests {
         };
         let vtag = assert_vtag(&mut el);
         assert_eq!(vtag.tag(), "textarea");
+    }
+
+    #[test]
+    fn reset_node_ref() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let node_ref = NodeRef::default();
+        let mut elem: VNode = html! { <div ref=node_ref.clone()></div> };
+        assert_vtag(&mut elem);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
+        let parent_node = cfg_match! {
+            feature = "std_web" => parent.as_node(),
+            feature = "web_sys" => parent.deref(),
+        };
+        assert_eq!(node_ref.get(), parent_node.first_child());
+        elem.detach(&parent);
+        assert!(node_ref.get().is_none());
     }
 }
 
