@@ -121,6 +121,7 @@ pub trait Component: Sized + 'static {
     ///    }
     /// }
     ///# }
+    /// ```
     fn rendered(&mut self, _first_render: bool) {}
 
     /// The `destroy` method is called right before a Component is unmounted.
