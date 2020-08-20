@@ -1,4 +1,12 @@
 
+######################
+#
+# public tasks:
+# * stable-checks
+# * run-tests
+#
+######################
+
 [config]
 min_version = "0.32.1" # todo 0.32.2
 default_to_workspace = false
@@ -6,6 +14,7 @@ default_to_workspace = false
 [env]
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
 CARGO_MAKE_CLIPPY_ARGS = "-- --deny=warnings"
+CARGO_MAKE_CARGO_BUILD_TEST_FLAGS = ""
 
 [config.modify_core_tasks]
 private = true
@@ -15,6 +24,10 @@ namespace = "core"
 description = "Runs all validations for both workspaces on rust stable only."
 condition = { channels = [ "stable" ] }
 run_task = { name = [ "stable-checks-flow", "stable-checks-stdweb" ], fork = true }
+
+[tasks.run-tests]
+dependencies = ["tests-setup"]
+run_task = { name = [ "run-tests-flow", "run-tests-stdweb" ], fork = true }
 
 [tasks.stable-checks-stdweb]
 private = true
@@ -44,3 +57,46 @@ dependencies = [
 [tasks.web-check]
 command = "cargo"
 args = ["web", "check", "--target", "wasm32-unknown-unknown"]
+
+[tasks.tests-setup]
+script = [
+'''
+#!@duckscript
+test_flags= array --headless --firefox
+yew_test_features= set wasm_test
+
+if is_defined HTTPBIN_URL
+    echo INFO: using ${HTTPBIN_URL} for fetch service tests
+    yew_test_features = set "${yew_test_features},httpbin_test"
+else
+  echo INFO: HTTPBIN_URL isn't set, won't run fetch service tests
+  echo "      please see the CONTRIBUTING.md file for instructions"
+end
+
+yew_test_flags = array_join ${test_flags} " "
+echo "running tests with flags: ${yew_test_flags} and features: ${yew_test_features}"
+
+set_env YEW_TEST_FLAGS ${yew_test_flags}
+set_env YEW_TEST_FEATURES ${yew_test_features}
+'''
+]
+
+[tasks.run-tests-flow]
+workspace = true
+dependencies = [ "test" ]
+
+[tasks.run-tests-stdweb]
+private = true
+extend = "core::wasm-pack-base"
+cwd = "yew-stdweb"
+args = [
+    "test",
+    "@@split(YEW_TEST_FLAGS, )",
+    "--",
+    "--features",
+    "${YEW_TEST_FEATURES}"
+]
+
+[tasks.test]
+command = "cargo"
+args = ["test"]
