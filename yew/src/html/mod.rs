@@ -11,9 +11,10 @@ pub use scope::{AnyScope, Scope};
 pub(crate) use scope::{ComponentUpdate, Scoped};
 
 use crate::callback::Callback;
-use crate::virtual_dom::{VChild, VNode};
+use crate::virtual_dom::{VChild, VNode, VText};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
@@ -470,6 +471,35 @@ impl<COMP: Component> Renderable for COMP {
     }
 }
 
+macro_rules! impl_renderable {
+    ($type:ty) => {
+        impl Renderable for $type {
+            fn render(&self) -> Html {
+                VNode::VText(VText::new(self.to_string()))
+            }
+        }
+        impl<'a> Renderable for &'a $type {
+            fn render(&self) -> Html {
+                VNode::VText(VText::new(self.to_string()))
+            }
+        }
+        impl<'a> Renderable for Cow<'a, $type> where $type: Renderable {
+            fn render(&self) -> Html {
+                use std::borrow::Borrow;
+
+                let x: &$type = self.borrow();
+                x.render()
+            }
+        }
+    };
+    ($($type:ty),+) => {
+        $(
+            impl_renderable!($type);
+        )*
+    };
+}
+impl_renderable!(String, str, u8, i8, u16, i16, u32, i32, u64, i64, u128, i128, f32, f64, bool);
+
 /// Trait for building properties for a component
 pub trait Properties: Clone {
     /// Builder that will be used to construct properties
@@ -551,5 +581,22 @@ mod tests {
         node_ref.link(node_ref_2.clone());
         node_ref_2.link(node_ref);
         assert_eq!(node, node_ref_2.get().unwrap());
+    }
+
+    #[test]
+    fn primitives_is_renderable() {
+        fn is_renderable<T: Renderable>() {}
+        macro_rules! impl_is_renderable {
+            ($($type:ty),+) => {
+                $(
+                    is_renderable::<$type>();
+                    is_renderable::<&$type>();
+                )*
+            };
+        }
+        impl_is_renderable!(
+            String, u8, i8, u16, i16, u32, i32, u64, i64, u128, i128, f32, f64, bool
+        );
+        is_renderable::<&str>();
     }
 }
