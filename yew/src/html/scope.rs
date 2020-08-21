@@ -1,4 +1,4 @@
-use super::{Callback, Component, NodeRef, Renderable};
+use super::{Callback, Component, NodeRef};
 use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use cfg_if::cfg_if;
@@ -399,7 +399,7 @@ where
             };
 
             if should_update {
-                state.new_root = Some(state.component.render());
+                state.new_root = Some(state.component.view());
                 scheduler().push_comp(
                     ComponentRunnableType::Render,
                     Box::new(RenderComponent {
