@@ -65,7 +65,7 @@ impl ToTokens for HtmlList {
         } = &self;
 
         let key = if let Some(key) = &open.props.key {
-            quote_spanned! {key.span()=> Some(::yew::virtual_dom::Key::from(#key))}
+            quote_spanned! {key.span()=> Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))}
         } else {
             quote! {None}
         };
