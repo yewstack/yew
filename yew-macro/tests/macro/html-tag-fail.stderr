@@ -155,16 +155,15 @@ error[E0308]: mismatched types
    |                              ^ expected `bool`, found integer
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-tag-fail.rs:28:5
+  --> $DIR/html-tag-fail.rs:28:25
    |
 28 |     html! { <input type=() /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `()` cannot be formatted with the default formatter
+   |                         ^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
    = note: required by `std::string::ToString::to_string`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-tag-fail.rs:29:26
@@ -177,16 +176,15 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-tag-fail.rs:30:5
+  --> $DIR/html-tag-fail.rs:30:21
    |
 30 |     html! { <a href=() /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^ `()` cannot be formatted with the default formatter
+   |                     ^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
    = note: required by `std::string::ToString::to_string`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:32:20
@@ -207,16 +205,15 @@ error[E0308]: mismatched types
               found enum `yew::callback::Callback<std::string::String>`
 
 error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
-  --> $DIR/html-tag-fail.rs:35:5
+  --> $DIR/html-tag-fail.rs:35:27
    |
 35 |     html! { <input string=NotToString /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `NotToString` cannot be formatted with the default formatter
+   |                           ^^^^^^^^^^^ `NotToString` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `NotToString`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required because of the requirements on the impl of `std::string::ToString` for `NotToString`
    = note: required by `std::string::ToString::to_string`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:37:24

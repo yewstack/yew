@@ -13,10 +13,7 @@ fn is_control(c: char) -> bool {
 /// Returns true when the character provided is a "c0 control" as defined
 /// in [the WhatWG spec](https://infra.spec.whatwg.org/#c0-control)
 fn is_c0_control(c: char) -> bool {
-    match c {
-        '\u{0000}'..='\u{001F}' => true,
-        _ => false,
-    }
+    matches!(c, '\u{0000}'..='\u{001F}')
 }
 
 /// Returns true when the string provided is a "noncharacter" as defined

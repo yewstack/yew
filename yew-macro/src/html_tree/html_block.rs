@@ -41,13 +41,13 @@ impl Parse for HtmlBlock {
 
 impl ToTokens for HtmlBlock {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlBlock { content, brace } = self;
+        let HtmlBlock { content, .. } = self;
         let new_tokens = match content {
             BlockContent::Iterable(html_iterable) => quote! {#html_iterable},
             BlockContent::Node(html_node) => quote! {#html_node},
         };
 
-        tokens.extend(quote_spanned! {brace.span=> #new_tokens});
+        tokens.extend(quote! {#new_tokens});
     }
 }
 
