@@ -75,7 +75,7 @@ The following table describes all possible options:
 | [dashboard](dashboard)                 | Uses the `fetch` and `websocket` services to load external data                                                                    |     ✔      |
 | [file_upload](file_upload)             | Uses the `reader` service to read the content of user uploaded files                                                               |     ✖      |
 | [fragments](fragments)                 | Similar to the counter example but demonstrating the use of [fragments](https://yew.rs/docs/concepts/html/lists#fragments)         |     ✖      |
-| [futures_wp](futures_wp)               | Demonstrates how you can use futures and async code with Yew                                                                       |     ✔      |
+| [futures_wp](futures_wp)               | Demonstrates how you can use futures and async code with Yew. Features a Markdown renderer.                                        |     ✔      |
 | [game_of_life](game_of_life)           | Implementation of [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)                                   |     ✖      |
 | [inner_html](inner_html)               | Embeds an external document as raw HTML by manually managing the element                                                           |     ✖      |
 | [js_callback](js_callback)             | Interacts with JavaScript code                                                                                                     |     ✔      |
