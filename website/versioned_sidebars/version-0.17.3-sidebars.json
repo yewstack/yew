@@ -15,6 +15,13 @@
       "version-0.17.3-getting-started/build-a-sample-app",
       "version-0.17.3-getting-started/choose-web-library",
       "version-0.17.3-getting-started/examples",
+      {
+        "type": "subcategory",
+        "label": "Tutorials",
+        "ids": [
+          "version-0.17.3-getting-started/tutorials/single-page-application"
+        ]
+      },
       "version-0.17.3-getting-started/starter-templates"
     ],
     "Concepts": [

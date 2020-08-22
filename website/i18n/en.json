@@ -175,6 +175,10 @@
       "version-0.17.3/getting-started/version-0.17.3-starter-templates": {
         "title": "Starter templates"
       },
+      "version-0.17.3/getting-started/tutorials/version-0.17.3-single-page-application": {
+        "title": "Single page application",
+        "sidebar_label": "Single page application"
+      },
       "version-0.17.3/version-0.17.3-intro": {
         "title": "Introduction"
       },
