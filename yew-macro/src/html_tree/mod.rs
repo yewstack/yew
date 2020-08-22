@@ -131,9 +131,10 @@ impl Parse for HtmlRootVNode {
 impl ToTokens for HtmlRootVNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let new_tokens = self.0.to_token_stream();
-        tokens.extend(quote! {
+        tokens.extend(quote! {{
+            #[allow(unused_braces)]
             ::yew::virtual_dom::VNode::from(#new_tokens)
-        });
+        }});
     }
 }
 

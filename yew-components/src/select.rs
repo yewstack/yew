@@ -137,7 +137,7 @@ where
         let view_option = |value: &T| {
             let flag = selected == Some(value);
             html! {
-                <option value=value selected=flag>{ value.to_string() }</option>
+                <option value=value.to_string() selected=flag>{ value.to_string() }</option>
             }
         };
 

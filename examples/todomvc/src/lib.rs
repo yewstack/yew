@@ -1,6 +1,7 @@
 #![recursion_limit = "512"]
 
 use serde_derive::{Deserialize, Serialize};
+use std::borrow::Cow;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, ToString};
 use wasm_bindgen::prelude::*;
@@ -8,7 +9,7 @@ use yew::events::KeyboardEvent;
 use yew::format::Json;
 use yew::services::storage::{Area, StorageService};
 use yew::web_sys::HtmlInputElement as InputElement;
-use yew::{html, Component, ComponentLink, Href, Html, InputData, NodeRef, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, InputData, NodeRef, ShouldRender};
 
 const KEY: &str = "yew.todomvc.self";
 
@@ -190,11 +191,16 @@ impl Component for Model {
 
 impl Model {
     fn view_filter(&self, filter: Filter) -> Html {
+        let cls = if self.state.filter == filter {
+            "selected"
+        } else {
+            "not-selected"
+        };
         let flt = filter.clone();
         html! {
             <li>
-                <a class=if self.state.filter == flt { "selected" } else { "not-selected" }
-                   href=&flt
+                <a class=cls
+                   href=filter
                    onclick=self.link.callback(move |_| Msg::SetFilter(flt.clone()))>
                     { filter }
                 </a>
@@ -272,8 +278,8 @@ pub enum Filter {
     Completed,
 }
 
-impl<'a> Into<Href> for &'a Filter {
-    fn into(self) -> Href {
+impl<'a> Into<Cow<'static, str>> for &'a Filter {
+    fn into(self) -> Cow<'static, str> {
         match *self {
             Filter::All => "#/".into(),
             Filter::Active => "#/active".into(),

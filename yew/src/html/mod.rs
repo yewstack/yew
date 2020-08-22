@@ -500,32 +500,6 @@ impl EmptyBuilder {
 /// Link to component's scope for creating callbacks.
 pub type ComponentLink<COMP> = Scope<COMP>;
 
-/// A bridging type for checking `href` attribute value.
-#[derive(Debug)]
-pub struct Href {
-    link: String,
-}
-
-impl From<String> for Href {
-    fn from(link: String) -> Self {
-        Href { link }
-    }
-}
-
-impl<'a> From<&'a str> for Href {
-    fn from(link: &'a str) -> Self {
-        Href {
-            link: link.to_owned(),
-        }
-    }
-}
-
-impl ToString for Href {
-    fn to_string(&self) -> String {
-        self.link.to_owned()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
