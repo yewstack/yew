@@ -205,7 +205,7 @@ impl ToTokens for HtmlTag {
         });
         let set_key = key.iter().map(|key| {
             quote! {
-                #vtag.key = Some(::yew::virtual_dom::Key::from(#key));
+                #vtag.key = Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key));
             }
         });
         let listeners: Vec<_> = listeners
