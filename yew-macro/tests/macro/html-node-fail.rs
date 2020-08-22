@@ -9,10 +9,8 @@ fn compile_fail() {
     // unsupported literals
     html! {  b'a' };
     html! {  b"str" };
-    html! {  1111111111111111111111111111111111111111111111111111111111111111111111111111 };
     html! {  <span>{ b'a' }</span> };
     html! {  <span>{ b"str" }</span> };
-    html! {  <span>{ 1111111111111111111111111111111111111111111111111111111111111111111111111111 }</span> };
 
     let not_node = || ();
     html! {

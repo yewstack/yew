@@ -59,6 +59,7 @@
 
 mod derive_props;
 mod html_tree;
+mod stringify;
 
 use derive_props::DerivePropsInput;
 use html_tree::{HtmlRoot, HtmlRootVNode};

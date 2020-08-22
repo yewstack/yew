@@ -4,6 +4,7 @@ use super::HtmlChildrenTree;
 use super::HtmlDashedName;
 use super::HtmlProp as TagAttribute;
 use super::HtmlPropSuffix as TagSuffix;
+use crate::stringify;
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, Span};
@@ -104,7 +105,7 @@ impl ToTokens for HtmlTag {
         let name = match &tag_name {
             TagName::Lit(name) => {
                 let name_str = name.to_string();
-                quote! {#name_str}
+                quote! { ::std::borrow::Cow::<'static, str>::Borrowed(#name_str) }
             }
             TagName::Expr(name) => {
                 let expr = &name.expr;
@@ -112,7 +113,7 @@ impl ToTokens for HtmlTag {
                 // this way we get a nice error message (with the correct span) when the expression doesn't return a valid value
                 quote_spanned! {expr.span()=> {
                     #[allow(unused_braces)]
-                    let mut #vtag_name = ::std::borrow::Cow::<'static, str>::from(#expr);
+                    let mut #vtag_name = ::std::convert::Into::<::std::borrow::Cow::<'static, str>>::into(#expr);
                     if !#vtag_name.is_ascii() {
                         ::std::panic!("a dynamic tag returned a tag name containing non ASCII characters: `{}`", #vtag_name);
                     }
@@ -132,50 +133,72 @@ impl ToTokens for HtmlTag {
             checked,
             node_ref,
             key,
-            href,
             listeners,
         } = &attributes;
 
         let vtag = Ident::new("__yew_vtag", tag_name.span());
-        let attr_pairs = attributes.iter().map(|TagAttribute { label, value }| {
-            let label_str = label.to_string();
-            quote_spanned! {value.span()=> (#label_str.to_owned(), (#value).to_string()) }
-        });
+        let mut attr_pairs: Vec<_> = attributes
+            .iter()
+            .map(|TagAttribute { label, value }| {
+                let label_str = label.to_string();
+                let sr = stringify::Constructor::from(value);
+                quote! { (#label_str, #sr) }
+            })
+            .collect();
         let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
-            // We use `set_boolean_attribute` instead of inlining an if statement to avoid
-            // the `suspicious_else_formatting` clippy warning.
-            quote_spanned! {value.span()=> #vtag.set_boolean_attribute(&#label_str, #value); }
+            quote_spanned! {value.span()=> {
+                #[allow(clippy::suspicious_else_formatting)]
+                if #value {
+                    #vtag.push_attribute(
+                        #label_str,
+                        ::std::borrow::Cow::<'static, str>::Borrowed(#label_str),
+                    );
+                }
+            }}
         });
         let set_kind = kind.iter().map(|kind| {
-            quote_spanned! {kind.span()=> #vtag.set_kind(&(#kind)); }
+            let sr = stringify::Constructor::from(kind);
+            quote_spanned! {kind.span()=> #vtag.set_kind(#sr); }
         });
         let set_value = value.iter().map(|value| {
             quote_spanned! {value.span()=> #vtag.set_value(&(#value)); }
         });
-        let add_href = href.iter().map(|href| {
-            quote_spanned! {href.span()=>
-                let __yew_href: ::yew::html::Href = (#href).into();
-                #vtag.add_attribute("href", &__yew_href);
-            }
-        });
         let set_checked = checked.iter().map(|checked| {
             quote_spanned! {checked.span()=> #vtag.set_checked(#checked); }
         });
-        let set_classes = classes.iter().map(|classes_form| match classes_form {
-            ClassesForm::Tuple(classes) => quote! {
-                let __yew_classes = ::yew::virtual_dom::Classes::default()#(.extend(#classes))*;
+
+        let set_classes = match classes {
+            Some(ClassesForm::Tuple(classes)) => Some(quote! {
+                let __yew_classes
+                    = ::yew::virtual_dom::Classes::default()#(.extend(#classes))*;
                 if !__yew_classes.is_empty() {
-                    #vtag.add_attribute("class", &__yew_classes);
+                    #vtag.push_attribute("class", __yew_classes.to_string());
                 }
-            },
-            ClassesForm::Single(classes) => quote! {
-                let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
-                if !__yew_classes.is_empty() {
-                    #vtag.add_attribute("class", &__yew_classes);
+            }),
+            Some(ClassesForm::Single(classes)) => match stringify::try_stringify_expr(classes) {
+                Some(s) => {
+                    if !s.is_empty() {
+                        let sr = stringify::Constructor::from(s);
+                        attr_pairs.push(quote! { ("class", #sr) });
+                    }
+                    None
                 }
+                None => Some(quote! {
+                    let __yew_classes
+                        = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
+                    if !__yew_classes.is_empty() {
+                        #vtag.push_attribute(
+                            "class",
+                            ::std::string::ToString::to_string(&__yew_classes),
+                        );
+                    }
+                }),
             },
-        });
+            None => None,
+        };
+        let set_classes_it = set_classes.iter();
+
         let set_node_ref = node_ref.iter().map(|node_ref| {
             quote! {
                 #vtag.node_ref = #node_ref;
@@ -186,16 +209,18 @@ impl ToTokens for HtmlTag {
                 #vtag.key = Some(::yew::virtual_dom::Key::from(#key));
             }
         });
-        let listeners = listeners.iter().map(|listener| {
-            let name = &listener.label.name;
-            let callback = &listener.value;
+        let listeners: Vec<_> = listeners
+            .iter()
+            .map(|listener| {
+                let name = &listener.label.name;
+                let callback = &listener.value;
 
-            quote_spanned! {name.span()=> ::yew::html::#name::Wrapper::new(
-                <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(
-                    #callback
-                )
-            )}
-        });
+                quote_spanned! {name.span()=> ::yew::html::#name::Wrapper::new(
+                    <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>
+                        ::transform(#callback),
+                )}
+            })
+            .collect();
 
         // These are the runtime-checks exclusive to dynamic tags.
         // For literal tags this is already done at compile-time.
@@ -219,7 +244,7 @@ impl ToTokens for HtmlTag {
                     "input" | "textarea" => {}
                     _ => {
                         if let ::std::option::Option::Some(value) = #vtag.value.take() {
-                            #vtag.attributes.insert("value".to_string(), value);
+                            #vtag.push_attribute("value", value);
                         }
                     }
                 }
@@ -228,21 +253,37 @@ impl ToTokens for HtmlTag {
             None
         };
 
+        // Constant ifs - easy for the compiler to optimise out
+        // Attribute setting ordered to reduce reallocation on collection expansion
+        let has_attrs = !attr_pairs.is_empty();
+        let has_listeners = !listeners.is_empty();
+        let has_children = !children.is_empty();
         tokens.extend(quote! {{
+            #[allow(unused_braces)]
             let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
-            #(#set_kind)*
-            #(#set_value)*
-            #(#add_href)*
-            #(#set_checked)*
-            #(#set_booleans)*
-            #(#set_classes)*
             #(#set_node_ref)*
             #(#set_key)*
-            #[allow(redundant_clone, unused_braces)]
-            #vtag.add_attributes(vec![#(#attr_pairs),*]);
-            #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
-            #vtag.add_children(#children);
+            #(#set_kind)*
+
+            #[allow(clippy::suspicious_else_formatting)]
+            if #has_attrs {
+                #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(vec![#(#attr_pairs),*]);
+            }
+            #(#set_booleans)*
+            #(#set_classes_it)*
+            #(#set_checked)*
+            #(#set_value)*
+
+            if #has_listeners {
+                #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
+            }
+            if #has_children {
+                #[allow(redundant_clone, unused_braces)]
+                #vtag.add_children(#children);
+            }
+
             #dyn_tag_runtime_checks
+            #[allow(unused_braces)]
             ::yew::virtual_dom::VNode::from(#vtag)
         }});
     }

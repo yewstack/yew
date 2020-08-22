@@ -13,12 +13,13 @@ use yew::{html, Html};
 fn add_class(vtag: &mut VTag, class: &str) {
     let mut classes: Classes = vtag
         .attributes
-        .get("class")
-        .map(AsRef::as_ref)
+        .iter()
+        .find(|(k, _)| k == &"class")
+        .map(|(_, v)| AsRef::as_ref(v))
         .unwrap_or("")
         .into();
     classes.push(class);
-    vtag.add_attribute("class", &classes);
+    vtag.add_attribute("class", classes.to_string());
 }
 
 /// Renders a string of Markdown to HTML with the default options (footnotes
@@ -72,7 +73,7 @@ pub fn render_markdown(src: &str) -> Html {
                         if let VNode::VTag(ref mut vtag) = c {
                             // TODO
                             //                            vtag.tag = "th".into();
-                            vtag.add_attribute("scope", &"col");
+                            vtag.add_attribute("scope", "col");
                         }
                     }
                 }
@@ -84,7 +85,7 @@ pub fn render_markdown(src: &str) -> Html {
             }
             Event::Text(text) => add_child!(VText::new(text.to_string()).into()),
             Event::Rule => add_child!(VTag::new("hr").into()),
-            Event::SoftBreak => add_child!(VText::new("\n".to_string()).into()),
+            Event::SoftBreak => add_child!(VText::new("\n").into()),
             Event::HardBreak => add_child!(VTag::new("br").into()),
             _ => println!("Unknown event: {:#?}", ev),
         }
@@ -109,7 +110,7 @@ fn make_tag(t: Tag) -> VTag {
         }
         Tag::BlockQuote => {
             let mut el = VTag::new("blockquote");
-            el.add_attribute("class", &"blockquote");
+            el.add_attribute("class", "blockquote");
             el
         }
         Tag::CodeBlock(code_block_kind) => {
@@ -121,10 +122,10 @@ fn make_tag(t: Tag) -> VTag {
                 // highlighting support by locating the language classes and applying dom transforms
                 // on their contents.
                 match lang.as_ref() {
-                    "html" => el.add_attribute("class", &"html-language"),
-                    "rust" => el.add_attribute("class", &"rust-language"),
-                    "java" => el.add_attribute("class", &"java-language"),
-                    "c" => el.add_attribute("class", &"c-language"),
+                    "html" => el.add_attribute("class", "html-language"),
+                    "rust" => el.add_attribute("class", "rust-language"),
+                    "java" => el.add_attribute("class", "java-language"),
+                    "c" => el.add_attribute("class", "c-language"),
                     _ => {} // Add your own language highlighting support
                 };
             }
@@ -135,13 +136,13 @@ fn make_tag(t: Tag) -> VTag {
         Tag::List(Some(1)) => VTag::new("ol"),
         Tag::List(Some(ref start)) => {
             let mut el = VTag::new("ol");
-            el.add_attribute("start", start);
+            el.add_attribute("start", start.to_string());
             el
         }
         Tag::Item => VTag::new("li"),
         Tag::Table(_) => {
             let mut el = VTag::new("table");
-            el.add_attribute("class", &"table");
+            el.add_attribute("class", "table");
             el
         }
         Tag::TableHead => VTag::new("th"),
@@ -149,36 +150,36 @@ fn make_tag(t: Tag) -> VTag {
         Tag::TableCell => VTag::new("td"),
         Tag::Emphasis => {
             let mut el = VTag::new("span");
-            el.add_attribute("class", &"font-italic");
+            el.add_attribute("class", "font-italic");
             el
         }
         Tag::Strong => {
             let mut el = VTag::new("span");
-            el.add_attribute("class", &"font-weight-bold");
+            el.add_attribute("class", "font-weight-bold");
             el
         }
         Tag::Link(_link_type, ref href, ref title) => {
             let mut el = VTag::new("a");
-            el.add_attribute("href", href);
+            el.add_attribute("href", href.to_string());
             let title = title.clone().into_string();
             if title != "" {
-                el.add_attribute("title", &title);
+                el.add_attribute("title", title);
             }
             el
         }
         Tag::Image(_link_type, ref src, ref title) => {
             let mut el = VTag::new("img");
-            el.add_attribute("src", src);
+            el.add_attribute("src", src.to_string());
             let title = title.clone().into_string();
             if title != "" {
-                el.add_attribute("title", &title);
+                el.add_attribute("title", title);
             }
             el
         }
         Tag::FootnoteDefinition(ref _footnote_id) => VTag::new("span"), // Footnotes are not rendered as anything special
         Tag::Strikethrough => {
             let mut el = VTag::new("span");
-            el.add_attribute("class", &"text-decoration-strikethrough");
+            el.add_attribute("class", "text-decoration-strikethrough");
             el
         }
     }
