@@ -258,34 +258,36 @@ impl ToTokens for HtmlTag {
         let has_attrs = !attr_pairs.is_empty();
         let has_listeners = !listeners.is_empty();
         let has_children = !children.is_empty();
-        tokens.extend(quote! {{
-            #[allow(unused_braces)]
-            let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
-            #(#set_node_ref)*
-            #(#set_key)*
-            #(#set_kind)*
+        tokens.extend(quote_spanned! {tag_name.span()=>
+            {
+                #[allow(unused_braces)]
+                let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
+                #(#set_node_ref)*
+                #(#set_key)*
+                #(#set_kind)*
 
-            #[allow(clippy::suspicious_else_formatting)]
-            if #has_attrs {
-                #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(vec![#(#attr_pairs),*]);
-            }
-            #(#set_booleans)*
-            #(#set_classes_it)*
-            #(#set_checked)*
-            #(#set_value)*
+                #[allow(clippy::suspicious_else_formatting)]
+                if #has_attrs {
+                    #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(vec![#(#attr_pairs),*]);
+                }
+                #(#set_booleans)*
+                #(#set_classes_it)*
+                #(#set_checked)*
+                #(#set_value)*
 
-            if #has_listeners {
-                #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
-            }
-            if #has_children {
-                #[allow(redundant_clone, unused_braces)]
-                #vtag.add_children(#children);
-            }
+                if #has_listeners {
+                    #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
+                }
+                if #has_children {
+                    #[allow(redundant_clone, unused_braces)]
+                    #vtag.add_children(#children);
+                }
 
-            #dyn_tag_runtime_checks
-            #[allow(unused_braces)]
-            ::yew::virtual_dom::VNode::from(#vtag)
-        }});
+                #dyn_tag_runtime_checks
+                #[allow(unused_braces)]
+                ::yew::virtual_dom::VNode::from(#vtag)
+            }
+        });
     }
 }
 

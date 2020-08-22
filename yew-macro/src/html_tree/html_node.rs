@@ -1,7 +1,7 @@
 use super::ToNodeIterator;
 use crate::{stringify, PeekValue};
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
@@ -46,7 +46,7 @@ impl ToTokens for HtmlNode {
         tokens.extend(match &self {
             HtmlNode::Literal(lit) => {
                 let sr = stringify::Constructor::from(lit.as_ref());
-                quote! { ::yew::virtual_dom::VText::new(#sr) }
+                quote_spanned! {lit.span()=> ::yew::virtual_dom::VText::new(#sr) }
             }
             HtmlNode::Expression(expr) => quote_spanned! {expr.span()=> #expr},
         });
