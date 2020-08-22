@@ -66,7 +66,7 @@ fi
 
 SRCDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)" # this source dir
 
-if [[ ! -d "$SRCDIR/$EXAMPLE" || "$EXAMPLE" = "server" ]]; then
+if [[ ! -d "$SRCDIR/$EXAMPLE" ]]; then
     fail "$EXAMPLE: no such example"
     info "See the README.md file for help"
     exit

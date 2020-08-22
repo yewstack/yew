@@ -72,7 +72,7 @@ The following table describes all possible options:
 | [counter](counter)                     | A single component which displays a stateful number. The number can be incremented and decremented using buttons                   |     ✖      |
 | [crm](crm)                             | See the `README` file for details                                                                                                  |     ✔      |
 | [custom_components](custom_components) | Demonstrates the use of components                                                                                                 |     ✔      |
-| [dashboard](dashboard)                 | Uses the `fetch` and `websocket` services to load external data                                                                    |     ✖      |
+| [dashboard](dashboard)                 | Uses the `fetch` and `websocket` services to load external data                                                                    |     ✔      |
 | [file_upload](file_upload)             | Uses the `reader` service to read the content of user uploaded files                                                               |     ✖      |
 | [fragments](fragments)                 | Similar to the counter example but demonstrating the use of [fragments](https://yew.rs/docs/concepts/html/lists#fragments)         |     ✖      |
 | [futures_wp](futures_wp)               | Demonstrates how you can use futures and async code with Yew                                                                       |     ✔      |
@@ -95,10 +95,6 @@ The following table describes all possible options:
 | [todomvc](todomvc)                     | Implementation of the [TodoMVC](http://todomvc.com/) app                                                                           |     ✔      |
 | [two_apps](two_apps)                   | Runs two separate Yew apps at the same time                                                                                        |     ✖      |
 | [webgl](webgl)                         | Controls a [WebGL canvas](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Getting_started_with_WebGL) from Yew |     ✔      |
-
-The following directories aren't examples. Trying to run them with the script will cause an error.
-
-- `server`: Backend for the `dashboard` example.
 
 ## Next steps
 
