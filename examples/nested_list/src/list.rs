@@ -93,12 +93,9 @@ impl Component for List {
 
 impl List {
     fn view_header(&self) -> Html {
-        html! {{
-            for self.props.children.iter().filter(|c| match c.props {
-                Variants::Header(_) => true,
-                _ => false
-            })
-        }}
+        html! {
+            { for self.props.children.iter().filter(|c| matches!(c.props, Variants::Header(_))) }
+        }
     }
 
     fn view_items(&self) -> Html {
