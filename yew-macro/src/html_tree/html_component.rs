@@ -108,7 +108,9 @@ impl ToTokens for HtmlComponent {
         };
 
         let set_children = if !children.is_empty() {
-            quote! {
+            // using span of type because the error message goes something like "children method not found".
+            // If we could control the message, it should say "component X doesn't accept children" and point at the children.
+            quote_spanned! {ty.span()=>
                 .children(::yew::html::ChildrenRenderer::new(#children))
             }
         } else {
@@ -118,7 +120,7 @@ impl ToTokens for HtmlComponent {
         let init_props = match &props.prop_type {
             PropType::List(list_props) => {
                 let set_props = list_props.iter().map(|HtmlProp { label, value }| {
-                    quote_spanned! { value.span()=> .#label(
+                    quote_spanned! {value.span()=> .#label(
                         #[allow(unused_braces)]
                         <::yew::virtual_dom::VComp as ::yew::virtual_dom::Transformer<_, _>>::transform(
                             #value
@@ -126,7 +128,7 @@ impl ToTokens for HtmlComponent {
                     )}
                 });
 
-                quote! {
+                quote_spanned! {ty.span()=>
                     <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder()
                         #(#set_props)*
                         #set_children
@@ -136,7 +138,7 @@ impl ToTokens for HtmlComponent {
             PropType::With(props) => {
                 quote! { #props }
             }
-            PropType::None => quote! {
+            PropType::None => quote_spanned! {ty.span()=>
                 <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder()
                     #set_children
                     .build()
@@ -144,29 +146,32 @@ impl ToTokens for HtmlComponent {
         };
 
         let node_ref = if let Some(node_ref) = &props.node_ref {
-            quote_spanned! { node_ref.span()=> #node_ref }
+            quote_spanned! {node_ref.span()=> #node_ref }
         } else {
             quote! { ::yew::html::NodeRef::default() }
         };
 
         let key = if let Some(key) = &props.key {
-            quote_spanned! { key.span()=>
+            quote_spanned! {key.span()=>
                 #[allow(clippy::useless_conversion)]
-                Some(::yew::virtual_dom::Key::from(#key))
+                Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))
             }
         } else {
             quote! {None}
         };
 
-        tokens.extend(quote! {{
-            // These validation checks show a nice error message to the user.
-            // They do not execute at runtime
-            if false {
-                #validate_props
-            }
+        tokens.extend(quote_spanned! {ty.span()=>
+            {
+                // These validation checks show a nice error message to the user.
+                // They do not execute at runtime
+                if false {
+                    #validate_props
+                }
 
-            ::yew::virtual_dom::VChild::<#ty>::new(#init_props, #node_ref, #key)
-        }});
+                #[allow(clippy::unit_arg)]
+                ::yew::virtual_dom::VChild::<#ty>::new(#init_props, #node_ref, #key)
+            }
+        });
     }
 }
 

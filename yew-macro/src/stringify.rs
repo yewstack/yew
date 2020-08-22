@@ -1,5 +1,6 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
+use syn::spanned::Spanned;
 use syn::{Expr, Lit};
 
 /// Attempt converting expression to str, if it's a literal
@@ -28,7 +29,7 @@ pub struct Constructor(TokenStream);
 macro_rules! stringify_at_runtime {
     ($src:expr) => {{
         let src = $src;
-        Self(quote! {
+        Self(quote_spanned! {src.span()=>
             ::std::borrow::Cow::<'static, str>::Owned(
                 ::std::string::ToString::to_string(&#src),
             )

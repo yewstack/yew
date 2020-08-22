@@ -247,67 +247,63 @@ error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<
             candidate #1: `proc_macro::bridge::server::Literal`
 
 error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-   --> $DIR/html-component-fail.rs:109:5
+   --> $DIR/html-component-fail.rs:109:14
     |
 6   | #[derive(Clone, Properties, PartialEq)]
     |                 ---------- method `children` not found for this
 ...
 109 |     html! { <Child>{ "Not allowed" }</Child> };
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
-    |
-    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+    |              ^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
-   --> $DIR/html-component-fail.rs:111:5
+   --> $DIR/html-component-fail.rs:111:14
     |
 32  | #[derive(Clone, Properties)]
     |                 ---------- method `build` not found for this
 ...
 111 |     html! { <ChildContainer /> };
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
+    |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
     |
     = help: items from traits can only be used if the trait is implemented and in scope
     = note: the following trait defines an item `build`, perhaps you need to implement it:
             candidate #1: `proc_macro::bridge::server::TokenStreamBuilder`
-    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
-   --> $DIR/html-component-fail.rs:112:5
+   --> $DIR/html-component-fail.rs:112:14
     |
 32  | #[derive(Clone, Properties)]
     |                 ---------- method `build` not found for this
 ...
 112 |     html! { <ChildContainer></ChildContainer> };
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
+    |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
     |
     = help: items from traits can only be used if the trait is implemented and in scope
     = note: the following trait defines an item `build`, perhaps you need to implement it:
             candidate #1: `proc_macro::bridge::server::TokenStreamBuilder`
-    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vtext::VText>` is not satisfied
-   --> $DIR/html-component-fail.rs:113:5
+   --> $DIR/html-component-fail.rs:113:31
     |
 113 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vtext::VText>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
+    |                               ^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vtext::VText>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
     |
     = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vtext::VText`
-    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+    = note: required by `std::convert::Into::into`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
-   --> $DIR/html-component-fail.rs:114:5
+   --> $DIR/html-component-fail.rs:114:29
     |
 114 |     html! { <ChildContainer><></></ChildContainer> };
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
+    |                             ^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
     |
     = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
-    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+    = note: required by `std::convert::Into::into`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
-   --> $DIR/html-component-fail.rs:115:5
+   --> $DIR/html-component-fail.rs:115:30
     |
 115 |     html! { <ChildContainer><other /></ChildContainer> };
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
+    |                              ^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
     |
     = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
-    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+    = note: required by `std::convert::Into::into`
