@@ -5,3 +5,6 @@ orig.*
 /.idea
 /.vscode
 /cmake-build-debug
+/website/package-lock.json
+/website/yarn.lock
+/website/node_modules
