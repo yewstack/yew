@@ -1,7 +1,7 @@
 ---
 title: Single page application
 sidebar_label: Single page application
-description: Set yourself up for success
+description: Learn to write a SPA
 id: version-0.17.3-single-page-application
 original_id: single-page-application
 ---
