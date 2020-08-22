@@ -6,7 +6,7 @@ id: version-0.17.3-single-page-application
 original_id: single-page-application
 ---
 
-This tutorial is based on an tutorial by [Sheshbabu](https://github.com/sheshbabu). The original article can be found [here.](http://www.sheshbabu.com/posts/rust-wasm-yew-single-page-application/).
+This tutorial is based on an tutorial by [Sheshbabu](https://github.com/sheshbabu). The original article can be found [here.](http://www.sheshbabu.com/posts/rust-wasm-yew-single-page-application/). It has been slightly reworked and should give a pretty good understanding of Yew and how to build single pages Application. Still, if you see a way in which it can improve this tutorial to do reach the Yew community. Contributions are welcome.
 
 In this tutorial, We will learn to build a simple ecommerce site called "RustMart" that will have 2 pages:
 
@@ -1380,8 +1380,7 @@ This is the problem the global state solves. here is how it would look like:
 
 Notice how there is a direct link between the components that need this state and the global state.
 
-Unfortunately, Yew doesn't seem to have a [good solution](https://github.com/yewstack/yew/issues/576) for this. The recommended solution is to use `Agents` for broadcasting state changes via pubsub. This is something I stay away from as it gets messy fast. I hope in future we see something similar to React's [Context](https://reactjs.org/docs/context.html), Redux or Mobx etc.
-
+Unfortunately, Yew doesn't seem to have a [good solution](https://github.com/yewstack/yew/issues/576) for this. Today, the recommended solution is to use `Agents` for broadcasting state changes via pubsub. Yet, this approach might be hard to reason around. The story around state management in Yew is far from definitive and solutions to this problem may appear in the future.
 Let's solve our problem by hoisting the state.
 
 ## Hoisting State
@@ -1841,5 +1840,3 @@ Now we can finally add to cart from `ProductDetail` page and we can also see the
 ![](/img/tutorials/single-page-application/image-4.png)
 
 We have successfully built a SPA fully in Rust! From now on you can try building your own SPA application.
-
-Feel free to reach the Yew community if you encounter rough edge along the way.
