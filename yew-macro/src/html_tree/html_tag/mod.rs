@@ -116,7 +116,7 @@ impl ToTokens for HtmlTag {
                     let mut #vtag_name = ::std::convert::Into::<::std::borrow::Cow::<'static, str>>::into(#expr);
                     if !#vtag_name.is_ascii() {
                         ::std::panic!("a dynamic tag returned a tag name containing non ASCII characters: `{}`", #vtag_name);
-                    }
+                    };
                     // convert to lowercase because the runtime checks rely on it.
                     #vtag_name.to_mut().make_ascii_lowercase();
                     #vtag_name
@@ -148,13 +148,12 @@ impl ToTokens for HtmlTag {
         let set_booleans = booleans.iter().map(|TagAttribute { label, value }| {
             let label_str = label.to_string();
             quote_spanned! {value.span()=> {
-                #[allow(clippy::suspicious_else_formatting)]
                 if #value {
                     #vtag.push_attribute(
                         #label_str,
                         ::std::borrow::Cow::<'static, str>::Borrowed(#label_str),
                     );
-                }
+                };
             }}
         });
         let set_kind = kind.iter().map(|kind| {
@@ -174,7 +173,7 @@ impl ToTokens for HtmlTag {
                     = ::yew::virtual_dom::Classes::default()#(.extend(#classes))*;
                 if !__yew_classes.is_empty() {
                     #vtag.push_attribute("class", __yew_classes.to_string());
-                }
+                };
             }),
             Some(ClassesForm::Single(classes)) => match stringify::try_stringify_expr(classes) {
                 Some(s) => {
@@ -192,7 +191,7 @@ impl ToTokens for HtmlTag {
                             "class",
                             ::std::string::ToString::to_string(&__yew_classes),
                         );
-                    }
+                    };
                 }),
             },
             None => None,
@@ -237,7 +236,7 @@ impl ToTokens for HtmlTag {
                         }
                         _ => {}
                     }
-                }
+                };
 
                 // handle special attribute value
                 match #vtag.tag() {
@@ -245,7 +244,7 @@ impl ToTokens for HtmlTag {
                     _ => {
                         if let ::std::option::Option::Some(value) = #vtag.value.take() {
                             #vtag.push_attribute("value", value);
-                        }
+                        };
                     }
                 }
             })
@@ -266,10 +265,9 @@ impl ToTokens for HtmlTag {
                 #(#set_key)*
                 #(#set_kind)*
 
-                #[allow(clippy::suspicious_else_formatting)]
                 if #has_attrs {
                     #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(vec![#(#attr_pairs),*]);
-                }
+                };
                 #(#set_booleans)*
                 #(#set_classes_it)*
                 #(#set_checked)*
@@ -277,11 +275,11 @@ impl ToTokens for HtmlTag {
 
                 if #has_listeners {
                     #vtag.add_listeners(vec![#(::std::rc::Rc::new(#listeners)),*]);
-                }
+                };
                 if #has_children {
-                    #[allow(redundant_clone, unused_braces)]
+                    #[allow(clippy::redundant_clone, unused_braces)]
                     #vtag.add_children(#children);
-                }
+                };
 
                 #dyn_tag_runtime_checks
                 #[allow(unused_braces)]

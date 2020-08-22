@@ -135,7 +135,7 @@ impl ToTokens for HtmlRootVNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let new_tokens = self.0.to_token_stream();
         tokens.extend(quote! {{
-            #[allow(unused_braces)]
+            #[allow(clippy::useless_conversion, unused_braces)]
             ::yew::virtual_dom::VNode::from(#new_tokens)
         }});
     }
@@ -191,7 +191,7 @@ impl HtmlChildrenTree {
             // optimize for the common case where all children are single nodes (only using literal html).
             let children_into = children
                 .iter()
-                .map(|child| quote_spanned! {child.span()=> (#child).into() });
+                .map(|child| quote_spanned! {child.span()=> ::std::convert::Into::into(#child) });
             return quote! {
                 vec![#(#children_into),*]
             };
@@ -205,7 +205,7 @@ impl HtmlChildrenTree {
                 }
             } else {
                 quote_spanned! {child.span()=>
-                    #vec_ident.push((#child).into());
+                    #vec_ident.push(::std::convert::Into::into(#child));
                 }
             }
         });

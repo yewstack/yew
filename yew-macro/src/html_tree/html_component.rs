@@ -168,6 +168,7 @@ impl ToTokens for HtmlComponent {
                     #validate_props
                 }
 
+                #[allow(clippy::unit_arg)]
                 ::yew::virtual_dom::VChild::<#ty>::new(#init_props, #node_ref, #key)
             }
         });
