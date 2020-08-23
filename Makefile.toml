@@ -28,7 +28,7 @@ run_task = { name = [ "stable-checks-flow", "stable-checks-stdweb" ], fork = tru
 [tasks.run-tests]
 dependencies = ["tests-setup"]
 env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["examples/*", "yewtil/examples/*"] }
-run_task = { name = [ "run-tests-flow", "run-tests-stdweb" ], fork = true }
+run_task = { name = [ "run-tests-flow", "run-tests-stdweb", "tests-cleanup" ], fork = true }
 
 [tasks.stable-checks-stdweb]
 private = true
@@ -66,12 +66,57 @@ script = [
 test_flags= array --headless --firefox
 yew_test_features= set wasm_test
 
-if is_defined HTTPBIN_URL
+fn set_httpbin_test_features
+    HTTPBIN_URL = get_env HTTPBIN_URL
     echo INFO: using ${HTTPBIN_URL} for fetch service tests
     yew_test_features = set "${yew_test_features},httpbin_test"
+end
+
+if is_defined HTTPBIN_URL
+    set_httpbin_test_features
 else
-  echo INFO: HTTPBIN_URL isn't set, won't run fetch service tests
-  echo "      please see the CONTRIBUTING.md file for instructions"
+    start_docker = set true
+    args_provided = not is_empty ${CARGO_MAKE_TASK_ARGS}
+    if ${args_provided}
+        args = split ${CARGO_MAKE_TASK_ARGS} ;
+        for arg in ${args}
+            if eq ${arg} --skip-httpbin
+                start_docker = set false
+                release ${args}
+            end
+        end
+    end
+
+    if ${start_docker}
+        echo Starting httpbin docker image...
+        mkdir ./target
+        cidfile = set ./target/httpbin_container.cid
+
+        # if container already running, stop it
+        if is_file ${cidfile}
+            container_id = readfile ${cidfile}
+            rm ${cidfile}
+            set_env HTTPBIN_CONTAINER_ID ${container_id}
+            cm_run_task tests-cleanup
+        end
+
+        exec docker run -d --cidfile ${cidfile} -p 8080:8080 kennethreitz/httpbin
+        container_id = readfile ${cidfile}
+        container_id = trim ${container_id}
+        set_env HTTPBIN_CONTAINER_ID ${container_id}
+        set_env HTTPBIN_URL http://localhost:8080
+        set_httpbin_test_features
+
+        # wait for docker container to boot before running tests
+        if is_defined HTTPBIN_WAIT
+            sleep ${HTTPBIN_WAIT}
+        else
+            sleep 500
+        end
+    else
+        echo INFO: HTTPBIN_URL isn't set, won't run fetch service tests
+        echo "      please see the CONTRIBUTING.md file for instructions"
+    end
 end
 
 yew_test_flags = array_join ${test_flags} " "
@@ -81,6 +126,12 @@ set_env YEW_TEST_FLAGS ${yew_test_flags}
 set_env YEW_TEST_FEATURES ${yew_test_features}
 '''
 ]
+
+[tasks.tests-cleanup]
+condition = { env_set = ["HTTPBIN_CONTAINER_ID"] }
+ignore_errors = true
+command = "docker"
+args = ["stop", "${HTTPBIN_CONTAINER_ID}"]
 
 [tasks.run-tests-flow]
 workspace = true
