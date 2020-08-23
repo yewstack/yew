@@ -1,9 +1,6 @@
 #![recursion_limit = "256"]
 
-#[macro_use]
-extern crate serde_derive;
-
-use common::markdown;
+use serde::{Deserialize, Serialize};
 use yew::format::Json;
 use yew::services::storage::Area;
 use yew::services::{DialogService, StorageService};
@@ -196,7 +193,7 @@ impl Renderable for Client {
                 <p>{ format!("First Name: {}", self.first_name) }</p>
                 <p>{ format!("Last Name: {}", self.last_name) }</p>
                 <p>{ "Description:" }</p>
-                { markdown::render_markdown(&self.description) }
+                { &self.description }
             </div>
         }
     }
@@ -223,7 +220,7 @@ impl Client {
     fn view_description_textarea(&self, link: &ComponentLink<Model>) -> Html {
         html! {
             <textarea class=("new-client", "description")
-               placeholder="Description (can use Markdown)"
+               placeholder="Description"
                value=&self.description
                oninput=link.callback(|e: InputData| Msg::UpdateDescription(e.value)) />
         }
