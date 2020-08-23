@@ -8,7 +8,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response, Window};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
-use common::markdown;
+mod markdown;
 
 /// This method processes a Future that returns a message and sends it back to the component's
 /// loop.
