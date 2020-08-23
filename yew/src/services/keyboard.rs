@@ -30,6 +30,7 @@ pub struct KeyboardService {}
 /// Handle for the key event listener.
 ///
 /// When the handle goes out of scope, the listener will be removed from the element.
+#[must_use = "the listener is only active until the handle is dropped"]
 pub struct KeyListenerHandle(
     #[cfg(feature = "std_web")] Option<EventListenerHandle>,
     #[cfg(feature = "web_sys")] EventListener,

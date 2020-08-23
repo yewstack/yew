@@ -20,7 +20,7 @@ cfg_if! {
 }
 
 /// A handle to cancel a render task.
-#[must_use]
+#[must_use = "the task will be cancelled when the task is dropped"]
 pub struct RenderTask(
     #[cfg(feature = "std_web")] Value,
     #[cfg(feature = "web_sys")] RenderTaskInner,
