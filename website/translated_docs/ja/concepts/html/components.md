@@ -50,7 +50,7 @@ impl Component for Container {
     fn view(&self) -> Html {
        html! {
            <div id="container">
-               { self.0.children.render() }
+               { self.0.children.clone() }
            </div>
        }
     }

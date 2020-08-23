@@ -1,7 +1,7 @@
 //! This module contains the implementation of abstract virtual node.
 
 use super::{Key, VChild, VComp, VDiff, VList, VTag, VText};
-use crate::html::{AnyScope, Component, NodeRef, Renderable};
+use crate::html::{AnyScope, Component, NodeRef};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;
@@ -179,12 +179,6 @@ where
 impl<T: ToString> From<T> for VNode {
     fn from(value: T) -> Self {
         VNode::VText(VText::new(value.to_string()))
-    }
-}
-
-impl<'a> From<&'a dyn Renderable> for VNode {
-    fn from(value: &'a dyn Renderable) -> Self {
-        value.render()
     }
 }
 

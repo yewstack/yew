@@ -199,7 +199,7 @@ pub type Children = ChildrenRenderer<Html>;
 ///
 /// In this example, the `List` component can wrap `ListItem` components.
 /// ```
-///# use yew::{html, Component, Renderable, Html, ComponentLink, ChildrenWithProps, Properties};
+///# use yew::{html, Component, Html, ComponentLink, ChildrenWithProps, Properties};
 ///#
 ///# #[derive(Clone, Properties)]
 ///# struct ListProps {
@@ -455,18 +455,6 @@ impl NodeRef {
         let mut this = self.0.borrow_mut();
         this.node = None;
         this.link = Some(node_ref);
-    }
-}
-
-/// Trait for rendering virtual DOM elements
-pub trait Renderable {
-    /// Called by rendering loop.
-    fn render(&self) -> Html;
-}
-
-impl<COMP: Component> Renderable for COMP {
-    fn render(&self) -> Html {
-        self.view()
     }
 }
 

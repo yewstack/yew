@@ -207,7 +207,7 @@ pub mod prelude {
     pub use crate::events::*;
     pub use crate::html::{
         Children, ChildrenWithProps, Component, ComponentLink, Html, NodeRef, Properties,
-        Renderable, ShouldRender,
+        ShouldRender,
     };
     pub use crate::macros::*;
     pub use crate::virtual_dom::Classes;

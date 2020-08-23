@@ -71,7 +71,6 @@ where
     STATE: RouterState,
     SW: Switch + Clone + 'static,
 {
-    // TODO render fn name is overloaded now with that of the trait: Renderable<_> this should be changed. Maybe: display, show, switch, inner...
     /// Wrap a render closure so that it can be used by the Router.
     /// # Example
     /// ```
