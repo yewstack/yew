@@ -189,7 +189,17 @@ fn create_new_project(path: PathBuf) {
 }
 
 fn canonicalize(path: &PathBuf) -> PathBuf {
-    fs::canonicalize(path).unwrap()
+    let can = fs::canonicalize(path).unwrap();
+    if cfg!(target_os = "windows") {
+        // The \\?\ prefix on Windows is not compatible with cargo metadata, which is used
+        // by wasm-bindgen and wasm-pack:
+        //      https://github.com/rust-lang/cargo/issues/8626
+        // So, we remove the prefix and hope that the path is not too long.
+        let str = can.to_str().expect("Malformed path");
+        PathBuf::from(String::from(&str[4..]))
+    } else {
+        can
+    }
 }
 
 fn unwrap_project_dir(matches: &ArgMatches) -> Vec<PathBuf> {
