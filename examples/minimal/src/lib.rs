@@ -1,5 +1,6 @@
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
-use yew_config::{YewConfig};
+mod config;
+pub use config::yew_config;
 
 pub struct Model {
     link: ComponentLink<Self>,
@@ -42,10 +43,4 @@ impl Component for Model {
             </div>
         }
     }
-}
-
-pub fn yew_config() -> YewConfig {
-    YewConfig::new(
-        "minimal".to_string(),
-    )
 }

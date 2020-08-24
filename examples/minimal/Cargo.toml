@@ -8,3 +8,5 @@ edition = "2018"
 yew = { path = "../../yew" }
 yew-config = { path = "../../yew-config" }
 
+[lib]
+crate-type = ["cdylib", "rlib"]

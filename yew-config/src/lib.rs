@@ -1,5 +1,4 @@
 use paste::paste;
-use quote::quote;
 use std::convert::TryFrom;
 use tt_call::{tt_call, tt_replace, tt_return};
 
