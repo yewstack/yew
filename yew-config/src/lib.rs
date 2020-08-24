@@ -46,7 +46,7 @@ macro_rules! declare_yew_config_versions {
                     $($type_decls:item)*
                 })?
 
-                fn new( $( $new_arg:ident : $new_ty:ty ),* ) {
+                fn new( $( $new_arg:ident : $new_ty:ty ),* ) -> ConfigBody {
                     $($new_impl:tt)*
                 }
             }
@@ -134,7 +134,7 @@ declare_yew_config_versions!(
             pub app_name: String,
         }
 
-        fn new(app_name: String) {
+        fn new(app_name: String) -> ConfigBody {
             ConfigBody {
                 app_name,
             }
