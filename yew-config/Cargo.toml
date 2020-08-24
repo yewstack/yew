@@ -1,0 +1,21 @@
+[package]
+name = "yew-config"
+version = "0.2.0"
+edition = "2018"
+authors = [
+    "Philip Peterson <pc.peterso@gmail.com>"
+]
+repository = "https://github.com/yewstack/yew"
+homepage = "https://github.com/yewstack/yew"
+license = "MIT/Apache-2.0"
+keywords = ["web", "asmjs", "webasm", "javascript"]
+categories = ["gui", "web-programming"]
+description = "A framework for describing Yew applications' resource configurations"
+
+[dependencies]
+yew = { version = "0.17", path = "../yew" }
+static_assertions = "1.1.0"
+lazy_static = "1.4.0"
+paste = "1.0.0"
+tt-call = "1.0.7"
+quote = "1.0.7"
