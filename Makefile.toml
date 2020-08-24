@@ -139,7 +139,7 @@ set_env YEW_TEST_FEATURES ${yew_test_features}
 condition = { env_set = ["HTTPBIN_CONTAINER_ID"] }
 ignore_errors = true
 command = "docker"
-args = ["stop", "${HTTPBIN_CONTAINER_ID}"]
+args = ["rm", "--force", "${HTTPBIN_CONTAINER_ID}"]
 
 [tasks.run-tests-flow]
 workspace = true
