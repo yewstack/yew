@@ -121,7 +121,7 @@ macro_rules! declare_yew_config_version {
                     }
                 )*
                 // TODO make into a real error
-                Err("Unknown schema of loaded Yew project configuration. The `yew-config` crate is most likely out of date.")?
+                Err("Unknown schema of loaded Yew project configuration. Either the `yew-cli` or `yew-config` crate is most likely out of date.")?
             }
         }
     }
