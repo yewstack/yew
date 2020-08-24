@@ -3,7 +3,7 @@ use quote::quote;
 use std::convert::TryFrom;
 use tt_call::{tt_call, tt_replace, tt_return};
 
-pub struct YewConfig {
+pub struct YewConfigUnknownVersion {
     pub version: String,
 
     // this actually points to a YewConfigBody, but we need to manually cast based on
@@ -41,6 +41,12 @@ macro_rules! declare_yew_config_version {
                 struct {
                     $($struct:tt)*
                 }
+
+                // TODO might be able to define schema-specific types inside modules
+                $(types {
+                    $($type_decls:item)*
+                })?
+
                 fn new( $( $new_arg:ident : $new_ty:ty ),* ) {
                     $($new_impl:tt)*
                 }
@@ -96,10 +102,10 @@ macro_rules! declare_yew_config_version {
             }
         }
 
-        impl TryFrom<YewConfig> for YewVersionedConfig {
+        impl TryFrom<YewConfigUnknownVersion> for YewVersionedConfig {
             type Error = &'static str;
 
-            fn try_from(config: YewConfig) -> Result<YewVersionedConfig, Self::Error> {
+            fn try_from(config: YewConfigUnknownVersion) -> Result<YewVersionedConfig, Self::Error> {
                 $(
                     if (config.version == format!("{}.{}.{}", $maj, $min, $pat)) {
                         return Ok(
@@ -107,7 +113,7 @@ macro_rules! declare_yew_config_version {
                                 YewVersionedConfig::[<Version $maj _ $min _ $pat>](
                                     unsafe {
                                         std::mem::transmute::<
-                                            YewConfig, [<YewConfig $maj _ $min _ $pat>]
+                                            YewConfigUnknownVersion, [<YewConfig $maj _ $min _ $pat>]
                                         >(config)
                                     }
                                 )
@@ -115,6 +121,7 @@ macro_rules! declare_yew_config_version {
                         )
                     }
                 )*
+                // TODO make into a real error
                 Err("Unknown schema of loaded Yew project configuration. The `yew-config` crate is most likely out of date.")?
             }
         }
@@ -122,20 +129,7 @@ macro_rules! declare_yew_config_version {
 }
 
 declare_yew_config_version!(
-    #[version(0,0,2)]
-    {
-        struct {
-            pub app_name: String,
-        }
-
-        fn new(app_name: String) {
-            ConfigBody {
-                app_name,
-            }
-        }
-    }
-
-    #[version(0,0,3)]
+    #[version(0, 2, 0)]
     {
         struct {
             pub app_name: String,
@@ -148,3 +142,6 @@ declare_yew_config_version!(
         }
     }
 );
+
+// Latest schema is available under YewConfig alias
+pub type YewConfig = YewConfig0_2_0;
