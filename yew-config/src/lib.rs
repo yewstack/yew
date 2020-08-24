@@ -2,6 +2,14 @@ use paste::paste;
 use tt_call::{tt_call, tt_replace, tt_return};
 use quote::quote;
 
+pub struct YewConfigNonspecific {
+    pub version: String,
+
+    // this actually points to a YewConfigBody, but we need to manually cast based on
+    // the version string.
+    pub body: Box<()>,
+}
+
 macro_rules! is_body_placeholder {
     {
         $caller:tt
@@ -24,99 +32,66 @@ macro_rules! is_body_placeholder {
     };
 }
 
-macro_rules! extract_arg_names {
-    ( $ident_first:ident : $type_first:ty, $ident_rest:ident : $type_rest:ty ) => {
-        paste! {
-            <$ident_first , $ident_rest>
-        }
-    };
-}
-
 macro_rules! declare_yew_config_version {
     (
         #[version($maj:expr, $min:expr, $pat:expr)]
         struct {
             $($struct:tt)*
         }
-        fn new($($new_args:tt)*) {
+        fn new( $( $new_arg:ident : $new_ty:ty ),* ) {
             $($new_impl:tt)*
         }
     ) => {
         paste! {
-            pub struct [<YewConfigBody_ $maj _ $min _ $pat>] {
+            pub struct [<YewConfigBody $maj _ $min _ $pat>] {
                 $($struct)*
             }
 
-            pub struct [<YewConfig_ $maj _ $min _ $pat>] {
-                version: String,
-                body: Box<[<YewConfigBody_ $maj _ $min _ $pat>]>
+            pub struct [<YewConfig $maj _ $min _ $pat>] {
+                pub version: String,
+                pub body: Box<[<YewConfigBody $maj _ $min _ $pat>]>
             }
 
-            // impl [<YewConfigBody_ $maj _ $min _ $pat>] {
-            //     fn new($($new_args)*) -> [<YewConfigBody_ $maj _ $min _ $pat>] {
-            //         tt_call! {
-            //             macro = [{ tt_replace }]
-            //             condition = [{ is_body_placeholder }]
-            //             replace_with = [{ [<YewConfigBody_ $maj _ $min _ $pat>] }]
-            //             input = [{ $($new_impl)* }]
-            //         }
-            //     }
-            // }
+            impl [<YewConfigBody $maj _ $min _ $pat>] {
+                fn new(
+                    $( $new_arg: $new_ty ),*
+                ) -> [<YewConfigBody $maj _ $min _ $pat>] {
+                    tt_call! {
+                        macro = [{ tt_replace }]
+                        condition = [{ is_body_placeholder }]
+                        replace_with = [{ [<YewConfigBody $maj _ $min _ $pat>] }]
+                        input = [{ $($new_impl)* }]
+                    }
+                }
+            }
 
-            // impl [<YewConfig_ $maj _ $min _ $pat>] {
-            //     pub fn new($($new_args)*) -> [<YewConfig_ $maj _ $min _ $pat>] {
-            //         let body = [<YewConfigBody_ $maj _ $min _ $pat>]::new(
-            //             extract_arg_names!($($new_args)*)
-            //         );
+            impl [<YewConfig $maj _ $min _ $pat>] {
+                pub fn new(
+                    $( $new_arg: $new_ty ),*
+                ) -> [<YewConfig $maj _ $min _ $pat>] {
+                    let body = [<YewConfigBody $maj _ $min _ $pat>]::new(
+                        $( $new_arg ),*
+                    );
 
-            //         [<YewConfig_ $maj _ $min _ $pat>] {
-            //             version: format!("{}.{}.{}", quote!($maj), quote!($min), quote!($pat)).to_string(),
-            //             body: Box::new(body),
-            //         }
-            //     }
-            // }
+                    [<YewConfig $maj _ $min _ $pat>] {
+                        version: format!("{}.{}.{}", quote!($maj), quote!($min), quote!($pat)).to_string(),
+                        body: Box::new(body),
+                    }
+                }
+            }
         }
     }
 }
 
 declare_yew_config_version!(
-    #[version(1,2,3)]
+    #[version(0,0,2)]
     struct {
-        name: String,
+        pub app_name: String,
     }
 
-    fn new(foo: i32, bar: i32) {
+    fn new(app_name: String) {
         ConfigBody {
-            name: "foo".to_string()
+            app_name,
         }
     }
 );
-
-/*
-
-
-    fn new(foo: i32, bar: i32) -> Self {
-        Self {
-            foo,
-            bar
-        }
-    }
-
-
-    fn new($($new_args:tt)*) -> Self {
-        $($new_impl:tt)*
-    }
-    */
-
-pub struct YewConfig_UnknownVersion {
-    version: String,
-    body: Box<()>, // this actually points to a YewConfigBody, but we don't know what type.
-}
-
-// impl YewConfig {
-//     fn new() -> Self {
-//         YewConfig {
-//             version: "0.2.0",
-//         }
-//     }
-// }
