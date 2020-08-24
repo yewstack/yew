@@ -100,11 +100,19 @@ else
             cm_run_task tests-cleanup
         end
 
-        exec docker run -d --cidfile ${cidfile} -p 8080:8080 kennethreitz/httpbin
+        # bind to a random free port
+        exec docker run -d --cidfile ${cidfile} -p 80 kennethreitz/httpbin
         container_id = readfile ${cidfile}
         container_id = trim ${container_id}
         set_env HTTPBIN_CONTAINER_ID ${container_id}
-        set_env HTTPBIN_URL http://localhost:8080
+
+        docker_port = exec docker port ${container_id}
+        # format is `80/tcp -> 0.0.0.0:<PORT>`
+        docker_port = split ${docker_port.stdout} :
+        docker_port = array_pop ${docker_port}
+        docker_port = trim ${docker_port}
+
+        set_env HTTPBIN_URL http://localhost:${docker_port}
         set_httpbin_test_features
 
         # wait for docker container to boot before running tests
