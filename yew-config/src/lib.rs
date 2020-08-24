@@ -37,7 +37,7 @@ macro_rules! declare_yew_config_versions {
         $(
             #[version($maj:expr, $min:expr, $pat:expr)]
             {
-                struct {
+                struct ConfigBody {
                     $($struct:tt)*
                 }
 
@@ -130,7 +130,7 @@ macro_rules! declare_yew_config_versions {
 declare_yew_config_versions!(
     #[version(0, 2, 0)]
     {
-        struct {
+        struct ConfigBody {
             pub app_name: String,
         }
 
