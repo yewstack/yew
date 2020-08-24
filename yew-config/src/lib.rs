@@ -32,7 +32,7 @@ macro_rules! is_body_placeholder {
     };
 }
 
-macro_rules! declare_yew_config_version {
+macro_rules! declare_yew_config_versions {
     (
         $(
             #[version($maj:expr, $min:expr, $pat:expr)]
@@ -127,7 +127,7 @@ macro_rules! declare_yew_config_version {
     }
 }
 
-declare_yew_config_version!(
+declare_yew_config_versions!(
     #[version(0, 2, 0)]
     {
         struct {
