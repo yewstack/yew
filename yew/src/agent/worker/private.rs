@@ -2,6 +2,8 @@ use super::*;
 use crate::callback::Callback;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
+use queue::Queue;
+use std::any::TypeId;
 use std::fmt;
 use std::marker::PhantomData;
 cfg_if! {
@@ -12,6 +14,10 @@ cfg_if! {
     } else if #[cfg(feature = "web_sys")] {
         use web_sys::{Worker};
     }
+}
+
+thread_local! {
+    static QUEUE: Queue = Queue::new();
 }
 
 const SINGLETON_ID: HandlerId = HandlerId(0, true);
@@ -38,6 +44,22 @@ where
             let msg = FromWorker::<AGN::Output>::unpack(&data);
             match msg {
                 FromWorker::WorkerLoaded => {
+                    QUEUE.with(|queue| {
+                        queue.insert_loaded(TypeId::of::<AGN>());
+
+                        let mut msg_queue = queue.borrow_msg_queue_mut();
+                        if let Some(msgs) = msg_queue.get_mut(&TypeId::of::<AGN>()) {
+                            for msg in msgs.drain(..) {
+                                cfg_match! {
+                                    feature = "std_web" => ({
+                                        let worker = &worker;
+                                        js! {@{worker}.postMessage(@{msg});};
+                                    }),
+                                    feature = "web_sys" => worker.post_message_vec(msg),
+                                }
+                            }
+                        }
+                    });
                     send_to_remote::<AGN>(&worker, ToWorker::Connected(SINGLETON_ID));
                 }
                 FromWorker::ProcessOutput(id, output) => {
@@ -87,6 +109,23 @@ where
     _agent: PhantomData<AGN>,
 }
 
+impl<AGN> PrivateBridge<AGN>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
+    /// Send a message to the worker, queuing it up if necessary
+    fn send_message(&self, msg: ToWorker<AGN::Input>) {
+        QUEUE.with(|queue| {
+            if queue.is_worker_loaded(&TypeId::of::<AGN>()) {
+                send_to_remote::<AGN>(&self.worker, msg);
+            } else {
+                queue.msg_to_queue(msg.pack(), TypeId::of::<AGN>());
+            }
+        });
+    }
+}
 impl<AGN> fmt::Debug for PrivateBridge<AGN>
 where
     AGN: Agent,
@@ -105,21 +144,8 @@ where
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     fn send(&mut self, msg: AGN::Input) {
-        // TODO(#937): Important! Implement.
-        // Use a queue to collect a messages if an instance is not ready
-        // and send them to an agent when it will reported readiness.
-        let msg = ToWorker::ProcessInput(SINGLETON_ID, msg).pack();
-        cfg_match! {
-            feature = "std_web" => ({
-                let worker = &self.worker;
-                js! {
-                    var worker = @{worker};
-                    var bytes = @{msg};
-                    worker.postMessage(bytes);
-                };
-            }),
-            feature = "web_sys" => self.worker.post_message_vec(msg),
-        }
+        let msg = ToWorker::ProcessInput(SINGLETON_ID, msg);
+        self.send_message(msg);
     }
 }
 
@@ -135,5 +161,9 @@ where
 
         let destroy = ToWorker::Destroy;
         send_to_remote::<AGN>(&self.worker, destroy);
+
+        QUEUE.with(|queue| {
+            queue.remove_from_queue(&TypeId::of::<AGN>());
+        });
     }
 }
