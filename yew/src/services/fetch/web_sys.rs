@@ -149,7 +149,7 @@ struct Handle {
 }
 
 /// A handle to control sent requests.
-#[must_use]
+#[must_use = "the request will be cancelled when the task is dropped"]
 pub struct FetchTask(Handle);
 
 impl fmt::Debug for FetchTask {

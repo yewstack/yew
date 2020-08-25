@@ -110,7 +110,7 @@ impl ReaderService {
 }
 
 /// A handle to control reading.
-#[must_use]
+#[must_use = "the reader will abort when the task is dropped"]
 pub struct ReaderTask {
     pub(super) file_reader: FileReader,
 }

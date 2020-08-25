@@ -18,7 +18,7 @@ cfg_if! {
 }
 
 /// A handle to cancel a timeout task.
-#[must_use]
+#[must_use = "the timeout will be cleared when the task is dropped"]
 pub struct TimeoutTask(
     #[cfg(feature = "std_web")] Option<Value>,
     #[cfg(feature = "web_sys")] Option<Timeout>,
