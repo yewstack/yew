@@ -1,9 +1,10 @@
-use super::{*, queue::Queue};
+use super::*;
 use crate::callback::Callback;
 use crate::scheduler::Shared;
 use anymap;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
+use queue::Queue;
 use slab::Slab;
 use std::any::TypeId;
 use std::cell::RefCell;
@@ -146,7 +147,6 @@ where
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
- 
     /// Send a message to the worker, queuing it up if necessary
     fn send_message(&self, msg: ToWorker<AGN::Input>) {
         QUEUE.with(|queue| {
@@ -179,26 +179,26 @@ where
 {
     fn drop(&mut self) {
         QUEUE.with(|queue| {
-        let terminate_worker = {
-            if let Some(mut launched) = queue.get_from_pool_mut::<RemoteAgent<AGN>>() {
-                launched.remove_bridge(self)
-            } else {
-                false
+            let terminate_worker = {
+                if let Some(mut launched) = queue.get_from_pool_mut::<RemoteAgent<AGN>>() {
+                    launched.remove_bridge(self)
+                } else {
+                    false
+                }
+            };
+
+            if terminate_worker {
+                queue.remove_from_pool::<RemoteAgent<AGN>>();
             }
-        };
 
-        if terminate_worker {
-            queue.remove_from_pool::<RemoteAgent<AGN>>();
-        }
+            let disconnected = ToWorker::Disconnected(self.id);
+            self.send_message(disconnected);
 
-        let disconnected = ToWorker::Disconnected(self.id);
-        self.send_message(disconnected);
+            if terminate_worker {
+                let destroy = ToWorker::Destroy;
+                self.send_message(destroy);
 
-        if terminate_worker {
-            let destroy = ToWorker::Destroy;
-            self.send_message(destroy);
-            
-            queue.remove_from_queue(&TypeId::of::<AGN>());
+                queue.remove_from_queue(&TypeId::of::<AGN>());
             }
         });
     }

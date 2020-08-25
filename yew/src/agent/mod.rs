@@ -4,7 +4,6 @@ mod link;
 mod local;
 mod pool;
 mod worker;
-mod queue;
 
 pub use link::AgentLink;
 pub(crate) use link::*;
