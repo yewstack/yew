@@ -1,7 +1,6 @@
 use super::*;
 use crate::callback::Callback;
 use crate::scheduler::Shared;
-use anymap;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use queue::Queue;
