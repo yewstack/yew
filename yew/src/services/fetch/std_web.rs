@@ -147,7 +147,7 @@ enum FetchError {
 }
 
 /// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
-#[must_use]
+#[must_use = "the request will be cancelled when the task is dropped"]
 pub struct FetchTask(Option<Value>);
 
 impl fmt::Debug for FetchTask {
