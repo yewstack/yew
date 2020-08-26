@@ -1444,7 +1444,8 @@ impl Component for Navbar {
 }
 ```
 
-Notice how we started using the `change` lifecycle methods in the `Navbar` component. When the props sent from parent changes, we need to update the props inside the component so the UI re-renders.
+Notice how we started using the `change` lifecycle methods in the `Navbar` component. When the props sent from the parent change, we need to update the props inside the component so that the UI re-renders.
+
 
 ```rust
 // src/components/atc_button.rs
