@@ -1843,7 +1843,8 @@ Finally, move the `cart_products` state from `Home` to `App`:
   }
 ```
 
-Now we can finally add to cart from `ProductDetail` page and we can also see the navbar in all pages
+Now we can finally add a link to the "add to cart" component from the `ProductDetail` page and we can also see the navbar on all pages
+
 
 ![](/img/tutorials/single-page-application/image-6.png)
 ![](/img/tutorials/single-page-application/image-4.png)
