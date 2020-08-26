@@ -1,6 +1,7 @@
 use super::*;
 use crate::callback::Callback;
 use crate::scheduler::Shared;
+use anymap::{self, AnyMap};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use queue::Queue;
@@ -22,6 +23,7 @@ cfg_if! {
 }
 
 thread_local! {
+    static REMOTE_AGENTS_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());
     static QUEUE: Queue = Queue::new();
 }
 
@@ -40,8 +42,8 @@ where
     type Agent = AGN;
 
     fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
-        let bridge = QUEUE.with(|queue| {
-            let mut pool = queue.borrow_pool_mut();
+        let bridge = REMOTE_AGENTS_POOL.with(|pool| {
+            let mut pool = pool.borrow_mut();
             match pool.entry::<RemoteAgent<AGN>>() {
                 anymap::Entry::Occupied(mut entry) => entry.get_mut().create_bridge(callback),
                 anymap::Entry::Vacant(entry) => {
@@ -177,9 +179,10 @@ where
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     fn drop(&mut self) {
-        QUEUE.with(|queue| {
+        let terminate_worker = REMOTE_AGENTS_POOL.with(|pool| {
+            let mut pool = pool.borrow_mut();
             let terminate_worker = {
-                if let Some(mut launched) = queue.get_from_pool_mut::<RemoteAgent<AGN>>() {
+                if let Some(launched) = pool.get_mut::<RemoteAgent<AGN>>() {
                     launched.remove_bridge(self)
                 } else {
                     false
@@ -187,19 +190,23 @@ where
             };
 
             if terminate_worker {
-                queue.remove_from_pool::<RemoteAgent<AGN>>();
+                pool.remove::<RemoteAgent<AGN>>();
             }
 
             let disconnected = ToWorker::Disconnected(self.id);
             self.send_message(disconnected);
 
-            if terminate_worker {
-                let destroy = ToWorker::Destroy;
-                self.send_message(destroy);
-
-                queue.remove_from_queue(&TypeId::of::<AGN>());
-            }
+            terminate_worker
         });
+
+        if terminate_worker {
+            let destroy = ToWorker::Destroy;
+            self.send_message(destroy);
+
+            QUEUE.with(|queue| {
+                queue.remove_from_queue(&TypeId::of::<AGN>());
+            });
+        }
     }
 }
 
