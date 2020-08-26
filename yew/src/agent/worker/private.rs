@@ -45,7 +45,7 @@ where
             match msg {
                 FromWorker::WorkerLoaded => {
                     QUEUE.with(|queue| {
-                        queue.insert_loaded(TypeId::of::<AGN>());
+                        queue.insert_loaded_agent(TypeId::of::<AGN>());
 
                         let mut msg_queue = queue.borrow_msg_queue_mut();
                         if let Some(msgs) = msg_queue.get_mut(&TypeId::of::<AGN>()) {
@@ -163,7 +163,7 @@ where
         send_to_remote::<AGN>(&self.worker, destroy);
 
         QUEUE.with(|queue| {
-            queue.remove_from_queue(&TypeId::of::<AGN>());
+            queue.remove_agent(&TypeId::of::<AGN>());
         });
     }
 }

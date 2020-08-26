@@ -2,6 +2,7 @@ use std::any::TypeId;
 use std::cell::{RefCell, RefMut};
 use std::collections::{hash_map, HashMap, HashSet};
 
+/// Thread-local instance used to queue worker messages
 pub struct Queue {
     loaded_agents: RefCell<HashSet<TypeId>>,
     msgs_queue: RefCell<HashMap<TypeId, Vec<Vec<u8>>>>,
@@ -19,7 +20,7 @@ impl Queue {
         self.msgs_queue.borrow_mut()
     }
 
-    pub fn insert_loaded(&self, type_id: TypeId) {
+    pub fn insert_loaded_agent(&self, type_id: TypeId) {
         self.loaded_agents.borrow_mut().insert(type_id);
     }
 
@@ -39,7 +40,8 @@ impl Queue {
         }
     }
 
-    pub fn remove_from_queue(&self, type_id: &TypeId) {
+    /// called by worker's Drop function
+    pub fn remove_agent(&self, type_id: &TypeId) {
         self.loaded_agents.borrow_mut().remove(type_id);
         self.msgs_queue.borrow_mut().remove(type_id);
     }
