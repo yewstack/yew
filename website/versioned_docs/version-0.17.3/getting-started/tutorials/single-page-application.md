@@ -1375,7 +1375,8 @@ The `App` component is a common ancestor to both `ProductDetail` and `Home`. We 
 
 ![](/img/tutorials/single-page-application/rust-wasm-yew-single-page-application-7.png)
 
-This works fine for shallow component hierarchies but when you have a deep component hierarchy (which is common in larger SPAs), you will need to pass this state through multiple layers of components (which might not have use for this prop) to reach the desired node. This is called "Prop Drilling".
+This works fine for shallow component hierarchies but when you have a deep component hierarchy (which is common in larger SPAs), you will need to pass this state through multiple layers of components (which might not have use for this prop) to reach the desired node. This is called "prop drilling".
+
 
 You can see that `cart_products` is now passed from `App` to `AddToCart` component via `ProductDetail` and `Home` even though they have no use for this state. Imagine the same scenario with components many layers deep.
 
