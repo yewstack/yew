@@ -35,7 +35,8 @@ $ cargo install cargo-make         # Task runner
 $ cargo install simple-http-server # Simple server to serve assets
 ```
 
-Note, that here we chose to use `wasm-pack` over `cargo-web` and `wasm-bindgen`.
+Note, that here we've chosen to use `wasm-pack` over `cargo-web` and `wasm-bindgen`.
+
 
 Then, we will create a new project:
 
