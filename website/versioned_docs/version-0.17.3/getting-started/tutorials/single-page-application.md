@@ -77,7 +77,8 @@ $ cargo make build
 
 Let's start with a simple "hello world" example:
 
-We will put the following html content in `static/index.html`:
+We will put the following HTML content in `static/index.html`:
+
 
 ```html
 <!DOCTYPE html>
