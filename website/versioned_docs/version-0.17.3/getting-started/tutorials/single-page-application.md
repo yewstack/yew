@@ -12,7 +12,8 @@ This tutorial is based on a tutorial by [Sheshbabu](https://github.com/sheshbabu
 In this tutorial, We will learn to build a simple ecommerce site called "RustMart" that will have 2 pages:
 
 - HomePage - list all the products that the customer can add to cart
-- ProductDetailPage - show the product details when a product card is clicked
+- ProductDetailPage - show the product details when a product's card is clicked
+
 
 ![](/img/tutorials/single-page-application/rust-wasm-yew-single-page-application-1.png)
 
