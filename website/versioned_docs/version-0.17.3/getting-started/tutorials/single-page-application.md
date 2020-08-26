@@ -9,7 +9,8 @@ original_id: single-page-application
 This tutorial is based on a tutorial by [Sheshbabu](https://github.com/sheshbabu). The original article can be found [here.](http://www.sheshbabu.com/posts/rust-wasm-yew-single-page-application/). It has been slightly reworked and should give a pretty good understanding of Yew and how to build single page applications. Still, if you see a way in which it can improve this tutorial to do reach the Yew community. Contributions are welcome.
 
 
-In this tutorial, We will learn to build a simple ecommerce site called "RustMart" that will have 2 pages:
+In this tutorial, We will learn to build a simple ecommerce site called "RustMart" that will have two pages:
+
 
 - HomePage - list all the products that the customer can add to cart
 - ProductDetailPage - show the product details when a product's card is clicked
