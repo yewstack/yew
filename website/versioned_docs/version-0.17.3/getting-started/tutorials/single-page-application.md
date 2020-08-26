@@ -1384,7 +1384,8 @@ This is the problem the global state solves. here is how it would look like:
 
 Notice how there is a direct link between the components that need this state and the global state.
 
-Unfortunately, Yew doesn't seem to have a [good solution](https://github.com/yewstack/yew/issues/576) for this. Today, the recommended solution is to use `Agents` for broadcasting state changes via pubsub. Yet, this approach might be hard to reason around. The story around state management in Yew is far from definitive and solutions to this problem may appear in the future.
+Unfortunately, Yew doesn't seem to have a [good solution](https://github.com/yewstack/yew/issues/576) for this. Today, the recommended solution is to use `Agents` for broadcasting state changes via pubsub. Yet, this approach might be hard to reason about. The story around state management in Yew is far from definitive and solutions to this problem may appear in the future.
+
 Let's solve our problem by hoisting the state.
 
 ## Hoisting State
