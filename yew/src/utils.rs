@@ -5,7 +5,6 @@ use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::marker::PhantomData;
 use yew::html::ChildrenRenderer;
-use yew::virtual_dom::VNode;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::{Document, Window};
@@ -70,13 +69,13 @@ pub fn origin() -> Result<String, Error> {
     Ok(origin)
 }
 
-/// Map IntoIterator<Item=Into<VNode>> to Iterator<Item=VNode>
-pub fn into_node_iter<T, U>(into_node_iter: T) -> impl Iterator<Item = VNode>
+/// Map IntoIterator<Item=Into<T>> to Iterator<Item=T>
+pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>
 where
-    T: IntoIterator<Item = U>,
-    U: Into<VNode>,
+    IT: IntoIterator<Item = T>,
+    T: Into<R>,
 {
-    into_node_iter.into_iter().map(|n| n.into())
+    it.into_iter().map(|n| n.into())
 }
 
 /// A special type necessary for flattening components returned from nested html macros.
