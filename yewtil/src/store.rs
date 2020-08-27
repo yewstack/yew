@@ -109,6 +109,12 @@ impl<S: Store> Agent for StoreWrapper<S> {
 
     fn connected(&mut self, id: HandlerId) {
         self.handlers.insert(id);
+        self.link.respond(
+            id,
+            ReadOnly {
+                state: self.state.clone(),
+            },
+        );
     }
 
     fn handle_input(&mut self, msg: Self::Input, _id: HandlerId) {
