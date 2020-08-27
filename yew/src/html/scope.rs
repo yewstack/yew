@@ -260,8 +260,8 @@ impl<COMP: Component> Scope<COMP> {
     /// to the linked component's update method when invoked.
     ///
     /// The callback function's return type is generic to allow for dealing with both
-    /// Options and Vecs nicely. Option can be used when dealing with a callback that
-    /// might not need to cause an update.
+    /// `Option` and `Vec` nicely. `Option` can be used when dealing with a callback that
+    /// might not need to send an update.
     ///
     /// ```ignore
     /// link.batch_callback(|_| vec![Msg::A, Msg::B]);
@@ -288,12 +288,12 @@ impl<COMP: Component> Scope<COMP> {
     /// to the linked component's update method when invoked.
     ///
     /// The callback function's return type is generic to allow for dealing with both
-    /// Options and Vecs nicely. Option can be used when dealing with a callback that
-    /// might not need to cause an update.
+    /// `Option` and `Vec` nicely. `Option` can be used when dealing with a callback that
+    /// might not need to send an update.
     ///
     /// ```ignore
-    /// link.batch_callback(|_| vec![Msg::A, Msg::B]);
-    /// link.batch_callback(|_| Some(Msg::A));
+    /// link.batch_callback_once(|_| vec![Msg::A, Msg::B]);
+    /// link.batch_callback_once(|_| Some(Msg::A));
     /// ```
     ///
     /// Please be aware that currently the results of these callbacks
