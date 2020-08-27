@@ -4,11 +4,14 @@ title: Debugging
 
 ## Panics
 
-Please use the [`console_error_panic`](https://github.com/rustwasm/console_error_panic_hook) crate for nicer stacktraces with Rust symbols. Note, that it is not compatible with apps built with `cargo-web`.
+We **strongly recommend** the [`console_error_panic`](https://github.com/rustwasm/console_error_panic_hook) 
+which catches `panic!`s and outputs them to the console. Unfortunately this is not compatible with 
+apps built using `cargo-web`.
 
 ## Console Logging
 
-In general, Wasm web apps are able to interact with Browser APIs, and the `console.log` api is no exception. There are a few options available:
+In general, Wasm web apps are able to interact with Browser APIs, and the `console.log` API is no 
+exception. There are a few options available:
 
 ### [`wasm-logger`](https://crates.io/crates/wasm-logger)
 
@@ -26,7 +29,8 @@ log::info!("Update: {:?}", msg);
 
 ### [`ConsoleService`](https://docs.rs/yew/latest/yew/services/console/struct.ConsoleService.html)
 
-This service is included within yew and is available when the `"services"` feature is enabled:
+This service is included within Yew and is available when the `"services"` feature is enabled 
+(the `services` feature is enabled by default):
 
 ```rust
 // usage

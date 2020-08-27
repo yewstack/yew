@@ -10,7 +10,7 @@ In Spring 2020, a developer survey was sent out to collect feedback on the direc
 You can find the summary in the [Yew Wiki](https://github.com/yewstack/yew/wiki/Dev-Survey-%5BSpring-2020%5D).
 
 :::note
-Status of all major initiatives can be tracked on the Yew Github [Project board](https://github.com/yewstack/yew/projects)
+Status of all major initiatives can be tracked on the Yew Github [project board](https://github.com/yewstack/yew/projects)
 :::
 
 ## Focuses
@@ -20,14 +20,14 @@ Status of all major initiatives can be tracked on the Yew Github [Project board]
 3. Documentation
 4. Pain Points
 
-### Top Requested Features
+### Most requested features
 
 1. [Functional Components](https://github.com/yewstack/yew/projects/3)
 2. [Component Library](https://github.com/yewstack/yew/projects/4)
 3. Better state management
 4. [Server side rendering](https://github.com/yewstack/yew/projects/5)
 
-### Production Readiness
+### Issues needed for production readiness
 
 * Improve Yew test coverage
 * Reduce binary size
@@ -38,7 +38,7 @@ Status of all major initiatives can be tracked on the Yew Github [Project board]
 * Create tutorial
 * Simplify project setup
 
-### Pain Points
+### Pain points
 
 * [Component boilerplate](https://github.com/yewstack/yew/issues/830)
 * Fetch API

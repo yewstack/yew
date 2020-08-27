@@ -6,9 +6,13 @@ description: Make your app faster
 
 ## neq\_assign
 
-When a component receives props from its parent component, the `change` method is called. This, in addition to allowing you to update the component's state, also allows you to return a `ShouldRender` boolean value that indicates if the component should re-render itself in response to the prop changes.
+When a component receives props from its parent component, the `change` method is called. This, in 
+addition to allowing you to update the component's state, also allows you to return a `ShouldRender` 
+boolean value that indicates if the component should re-render itself in response to the prop changes.
 
-Re-rendering is expensive, and if you can avoid it, you should. As a general rule, you only want to re-render when the props actually changed. The following block of code represents this rule, returning `true` if the props differed from the previous props:
+Re-rendering is expensive, and if you can avoid it, you should. As a general rule, you only want to 
+re-render when the props actually changed. The following block of code represents this rule, returning 
+`true` if the props differed from the previous props:
 
 ```rust
 use yew::ShouldRender;
@@ -32,7 +36,10 @@ impl Example {
 }
 ```
 
-But we can go further! This is six lines of boilerplate can be reduced down to one by using a trait and a blanket implementation for anything that implements `PartialEq`. Check out the `yewtil` crate's `NeqAssign` trait [here](https://docs.rs/yewtil/*/yewtil/trait.NeqAssign.html).
+But we can go further! This is six lines of boilerplate can be reduced down to one by using a trait 
+and a blanket implementation for anything that implements `PartialEq`. Check out the [`yewtil` 
+crate's `NeqAssign` trait](https://docs.rs/yewtil/*/yewtil/trait.NeqAssign.html) which implements
+this.
 
 ## Using smart pointers effectively
 
