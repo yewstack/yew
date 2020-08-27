@@ -9,7 +9,7 @@ Yewtil is a collection of common utilities that help you build applications usin
 
 * NeqAssign - This is described in more detail in the section on 
 [optimisations and best practices](../advanced-topics/optimizations.md) and ensures that identical
-sets of props don't cause a component to rerender.
+sets of props don't cause a component to re-render.
 
 * PureComponents - Components that don't update any of their state. Using NeqAssign under the hood, they act as memoized 
   functions that are called from inside the `html!` macro like normal components are.
@@ -24,7 +24,7 @@ sets of props don't cause a component to rerender.
 * History - A history tracking wrapper that uses a `VecDeque` to hold on to previous values that it 
 has represented.
 * Futures - Support for running futures that send messages to component update loops.
-* Fetch - Abstractions for handling fetch requests made using `web_sys` in conjuction with the  
+* Fetch - Abstractions for handling fetch requests made using `web_sys` in conjunction with the  
 futures feature.
 
 ## Looking For
