@@ -15,6 +15,7 @@ DevTools
 ExampleProps
 Github
 HashMap
+IHtmlElement
 INIT
 InputElement
 Javascript
@@ -29,6 +30,7 @@ PartialEq
 PureComponents
 README
 React
+React's
 RouteAgent
 RouteService
 Routeservice
