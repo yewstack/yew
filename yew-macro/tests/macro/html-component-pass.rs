@@ -306,7 +306,13 @@ fn compile_pass() {
     ];
     html! {
         <ChildContainer int=1>
-            { children }
+            { children.clone() }
+        </ChildContainer>
+    };
+    // https://github.com/yewstack/yew/issues/1527
+    html! {
+        <ChildContainer int=1>
+            { for children }
         </ChildContainer>
     };
 
