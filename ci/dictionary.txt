@@ -3,6 +3,7 @@ APIs
 AddOne
 Angular's
 AppRoute
+Barebones
 Borrow
 BorrowMut
 ComponentLink
@@ -15,19 +16,23 @@ ExampleProps
 Github
 HashMap
 INIT
+InputElement
 Javascript
 Lifecycle
 MaterialUi
 MyComponent
 NeqAssign
+NodeRef
 Optimisations
 Optimizations
 PartialEq
 PureComponents
 README
+React
 RouteAgent
 RouteService
 Routeservice
+SetInputEnabled
 ShouldRender
 SomePureComponent
 TODO
@@ -51,6 +56,7 @@ behavior
 binaryen
 bincode
 bindgen
+bool
 boolean
 cdylib
 charset
@@ -81,6 +87,7 @@ minimize
 miniserve
 mkdir
 natively
+onclick
 optimisations
 optimization
 optimizations
