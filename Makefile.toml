@@ -28,7 +28,7 @@ run_task = { name = [ "stable-checks-flow", "stable-checks-stdweb" ], fork = tru
 [tasks.run-tests]
 dependencies = ["tests-setup"]
 env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["examples/*", "yewtil/examples/*"] }
-run_task = { name = [ "run-tests-flow", "run-tests-stdweb", "tests-cleanup" ], fork = true }
+run_task = { name = [ "run-tests-flow", "run-tests-stdweb" ], fork = true, cleanup_task = "tests-cleanup" }
 
 [tasks.stable-checks-stdweb]
 private = true
