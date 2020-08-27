@@ -10,7 +10,7 @@ The component "link" is the mechanism through which components are able to creat
 ### send_message
 
 Sends a message to the component.
-Messages are handled by the `update` method which decides whether the component should re-render.
+Messages are handled by the `update` method which determines whether the component should re-render.
 
 ### send_message_batch
 
@@ -23,7 +23,7 @@ If the given vector is empty, this function doesn't do anything.
 ### callback
 
 Create a callback that will send a message to the component when it is executed.
-Under the hood, it will call `send_message` with the message that is returned by the provided closure.
+Under the hood, it will call `send_message` with the message returned by the provided closure.
 
 This method has a version that accepts an `FnOnce` instead, `callback_once`.
 You should use this with care though, as the resulting callback will panic if executed more than once.
@@ -65,7 +65,7 @@ Callbacks are used to communicate with services, agents, and parent components w
 
 They have an `emit` function that takes their `<IN>` type as an argument and converts that to a message expected by its destination. If a callback from a parent is provided in props to a child component, the child can call `emit` on the callback in its `update` lifecycle hook to send a message back to its parent. Closures or Functions provided as props inside the `html!` macro are automatically converted to Callbacks.
 
-Simple usage of callbacks can look something like this:
+A simple use of a callback might look something like this:
 
 ```rust
 let onclick = self.link.callback(|_| Msg::Clicked);
