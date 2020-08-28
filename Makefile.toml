@@ -115,7 +115,7 @@ else
         container_id = trim ${container_id}
         set_env HTTPBIN_CONTAINER_ID ${container_id}
 
-        echo Using HTTPBIN_URL: http://localhost:${docker_port}
+        set_env HTTPBIN_URL http://localhost:${docker_port}
         set_httpbin_test_features
 
         # wait for docker container to boot before running tests
