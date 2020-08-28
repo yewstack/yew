@@ -1,0 +1,3 @@
+
+[tasks.post-stable-checks]
+alias = "web-check"
