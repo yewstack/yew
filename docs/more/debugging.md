@@ -29,8 +29,8 @@ log::info!("Update: {:?}", msg);
 
 ### [`ConsoleService`](https://docs.rs/yew/latest/yew/services/console/struct.ConsoleService.html)
 
-This service is included within Yew and is available when the `"services"` feature is enabled 
-(the `services` feature is enabled by default):
+This service is included within Yew and is available when the "services" feature is enabled 
+(the "services" feature is enabled by default):
 
 ```rust
 // usage
@@ -54,4 +54,3 @@ There is currently no first-class support for source maps for Rust / Wasm web ap
 \[2019\] [Rust Wasm roadmap](https://rustwasm.github.io/rfcs/007-2019-roadmap.html#debugging)
 
 > Debugging is tricky because much of the story is out of this working group's hands, and depends on both the WebAssembly standardization bodies and the folks implementing browser developer tools instead.
-
