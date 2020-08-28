@@ -97,15 +97,28 @@
 extern crate self as yew;
 
 /// This macro implements JSX-like templates.
+///
+/// This macro erases the component type and always returns [`Html`].
+/// If you want non-erased type, look at [`html_nested!`] macro.
+///
+/// More information about using the `html!` macro can be found in yew's [manual].
+///
+/// [`Html`]: ./html/type.Html.html
+/// [`html_nested!`]: ./macro.html_nested.html
+/// [manual]: https://yew.rs/docs/en/concepts/html/
 pub use yew_macro::html;
 
 /// This macro is similar to [`html!`], but returns actual component type instead
-/// of generic [`Html`].
+/// of a generic [`Html`].
 ///
-/// That macro is useful when, for example, in typical implementation of `List`
-/// component. In the typical implementation you have two connected components --
-/// `List` and `ListItem`, and `List` allowing only `ListItem`s inside them.
-/// Example of such component you can find in the [`nested_list`] example.
+/// That macro is useful when, for example, in a typical implementation of a list
+/// component (let's assume it's called `List`). In a typical implementation you
+/// would have two connected components -- `List` and `ListItem`, and `List`'s
+/// children would be a number of `ListItem`s.
+///
+/// You can find an example implementation of this in the [`nested_list`] example.
+/// That example shows, how to create static lists with their children, but in
+/// most use cases the contents of a list is dynamic and thus known only at runtime.
 ///
 /// ```
 /// # use yew::prelude::*;
@@ -143,8 +156,8 @@ pub use yew_macro::html;
 ///   fn from(child: VChild<ListItem>) -> Self { Self }
 /// }
 ///
-/// impl From<ListItem> for Html {
-///   fn from(item: ListItem) -> Html { item.view() }
+/// impl Into<Html> for ListItem {
+///   fn into(self) -> Html { self.view() }
 /// }
 ///
 /// // Manually you create list by just nesting `ListItem`'s into `List`:
@@ -157,7 +170,7 @@ pub use yew_macro::html;
 ///   </List>
 /// }
 /// # }
-/// /// # fn test_iter() -> Html {
+/// # fn test_iter() -> Html {
 /// # let some_iter = (0..10);
 /// // In many cases you might want to create the content dynamically.
 /// // To do this, you can use the following code:
@@ -170,9 +183,9 @@ pub use yew_macro::html;
 /// ```
 ///
 /// If you used the [`html!`] macro instead of `html_nested!`, the code would
-/// not be compiled because we explicitly indicated to the compiler that `List`
+/// not compile because we explicitly indicated to the compiler that `List`
 /// can only contain elements of type `ListItem` using [`ChildrenRenderer<ListItem>`],
-/// while [`html!`] wraps their contents into [`Html`].
+/// while [`html!`] creates items of type [`Html`].
 ///
 ///
 /// [`html!`]: ./macro.html.html
