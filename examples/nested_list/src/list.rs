@@ -1,6 +1,6 @@
 use super::{Hovered, WeakComponentLink};
-use crate::{header::ListHeader, header::Props as HeaderProps};
-use crate::{item::ListItem, item::Props as ItemProps};
+use crate::header::{ListHeader, Props as HeaderProps};
+use crate::item::{ListItem, Props as ItemProps};
 use yew::html::{ChildrenRenderer, NodeRef};
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VComp, VNode};
