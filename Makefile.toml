@@ -8,7 +8,7 @@
 ######################
 
 [config]
-min_version = "0.32.3"
+min_version = "0.32.4"
 default_to_workspace = false
 
 [env]
