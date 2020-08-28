@@ -75,7 +75,10 @@ end
 if is_defined HTTPBIN_URL
     set_httpbin_test_features
 else
-    start_docker = set true
+    # only enable docker is docker executable is available
+    # and --skip-httpbin cli argument not provided to cargo make
+    docker_path = which docker
+    start_docker = is_defined docker_path
     args_provided = not is_empty ${CARGO_MAKE_TASK_ARGS}
     if ${args_provided}
         args = split ${CARGO_MAKE_TASK_ARGS} ;
@@ -100,19 +103,19 @@ else
             cm_run_task tests-cleanup
         end
 
+        # get local port
+        docker_port = get_env YEW_HTTPBIN_PORT
+        if not is_defined docker_port
+            docker_port = set 7117
+        end
+
         # bind to a random free port
-        exec docker run -d --cidfile ${cidfile} -p 80 kennethreitz/httpbin
+        exec docker run -d --cidfile ${cidfile} -p "${docker_port}:80" kennethreitz/httpbin
         container_id = readfile ${cidfile}
         container_id = trim ${container_id}
         set_env HTTPBIN_CONTAINER_ID ${container_id}
 
-        docker_port = exec docker port ${container_id}
-        # format is `80/tcp -> 0.0.0.0:<PORT>`
-        docker_port = split ${docker_port.stdout} :
-        docker_port = array_pop ${docker_port}
-        docker_port = trim ${docker_port}
-
-        set_env HTTPBIN_URL http://localhost:${docker_port}
+        echo Using HTTPBIN_URL: http://localhost:${docker_port}
         set_httpbin_test_features
 
         # wait for docker container to boot before running tests
