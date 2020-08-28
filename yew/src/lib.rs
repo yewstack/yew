@@ -107,8 +107,6 @@ pub use yew_macro::html;
 /// `List` and `ListItem`, and `List` allowing only `ListItem`s inside them.
 /// Example of such component you can find in the [`nested_list`] example.
 ///
-/// Manually you create list by just nesting `ListItem`'s into `List`:
-///
 /// ```
 /// # use yew::prelude::*;
 /// use yew::html::ChildrenRenderer;
@@ -119,9 +117,9 @@ pub use yew_macro::html;
 ///   children: ChildrenRenderer<ListItem>,
 /// }
 /// impl Component for List {
-///   // ...
 /// #   type Message = ();
-/// #   type Properties = Self;
+///   type Properties = Self;
+///   // ...
 /// #   fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self { props }
 /// #   fn update(&mut self, _: Self::Message) -> ShouldRender { false }
 /// #   fn change(&mut self, _: Self::Properties) -> ShouldRender { false }
@@ -132,7 +130,7 @@ pub use yew_macro::html;
 /// struct ListItem;
 /// impl Component for ListItem {
 /// #   type Message = ();
-///   type Properties = ();
+/// #   type Properties = ();
 ///   // ...
 /// #   fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { Self }
 /// #   fn update(&mut self, _: Self::Message) -> ShouldRender { false }
@@ -149,6 +147,7 @@ pub use yew_macro::html;
 ///   fn from(item: ListItem) -> Html { item.view() }
 /// }
 ///
+/// // Manually you create list by just nesting `ListItem`'s into `List`:
 /// # fn test() -> Html {
 /// html! {
 ///   <List>
@@ -158,42 +157,10 @@ pub use yew_macro::html;
 ///   </List>
 /// }
 /// # }
-/// ```
-///
-/// But in most real cases you need to forming content of you list programmatically.
-/// That's mean, that you would write code like this:
-/// ```
-/// # use yew::prelude::*;
-/// # use yew::html::ChildrenRenderer;
-/// # use yew::virtual_dom::VChild;
-/// # #[derive(Clone, Properties)]
-/// # struct List { children: ChildrenRenderer<ListItem> }
-/// # impl Component for List {
-/// #   type Message = ();
-/// #   type Properties = Self;
-/// #   fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self { props }
-/// #   fn update(&mut self, _: Self::Message) -> ShouldRender { false }
-/// #   fn change(&mut self, _: Self::Properties) -> ShouldRender { false }
-/// #   fn view(&self) -> Html { unimplemented!() }
-/// # }
-/// # #[derive(Clone)]
-/// # struct ListItem;
-/// # impl Component for ListItem {
-/// #   type Message = ();
-/// #   type Properties = ();
-/// #   fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { Self }
-/// #   fn update(&mut self, _: Self::Message) -> ShouldRender { false }
-/// #   fn change(&mut self, _: Self::Properties) -> ShouldRender { false }
-/// #   fn view(&self) -> Html { unimplemented!() }
-/// # }
-/// # impl From<VChild<ListItem>> for ListItem {
-/// #   fn from(child: VChild<ListItem>) -> Self { Self }
-/// # }
-/// # impl From<ListItem> for Html {
-/// #   fn from(item: ListItem) -> Html { item.view() }
-/// # }
-/// # fn test() -> Html {
+/// /// # fn test_iter() -> Html {
 /// # let some_iter = (0..10);
+/// // In many cases you might want to create the content dynamically.
+/// // To do this, you can use the following code:
 /// html! {
 ///   <List>
 ///     { for some_iter.map(|_| html_nested!{ <ListItem/> }) }
