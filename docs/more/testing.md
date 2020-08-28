@@ -10,7 +10,7 @@ progress.
 
 Support for [shallow rendering](https://github.com/yewstack/yew/issues/1413) and a proposal to
 [expose the code Yew uses internally for testing components](https://github.com/yewstack/yew/issues/1413)
-can be found on our Github repository.
+can be found in the GitHub repository.
 :::
 
 ## wasm\_bindgen\_test
