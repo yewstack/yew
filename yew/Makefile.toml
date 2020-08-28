@@ -1,0 +1,29 @@
+
+[env]
+CARGO_MAKE_CLIPPY_ARGS = "--features cbor,msgpack,toml,yaml -- --deny=warnings"
+
+[tasks."core::check"]
+args = ["check", "--features", "cbor,msgpack,toml,yaml"]
+
+[tasks.test]
+clear = true
+dependencies = ["test-wasm", "test-doc-partial-features", "test-doc-all-features"]
+
+[tasks.test-wasm]
+private = true
+extend = "core::wasm-pack-base"
+args = [
+    "test",
+    "@@split(YEW_TEST_FLAGS, )",
+    "--",
+    "--features",
+    "${YEW_TEST_FEATURES}"
+]
+
+[tasks.test-doc-partial-features]
+command = "cargo"
+args = ["test", "--doc", "--features", "doc_test,wasm_test,yaml,msgpack,cbor,toml"]
+
+[tasks.test-doc-all-features]
+command = "cargo"
+args = ["test", "--doc", "--features", "doc_test,wasm_test,yaml,msgpack,cbor,toml,std_web,agent,services", "--no-default-features"]
