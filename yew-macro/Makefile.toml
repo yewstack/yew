@@ -1,4 +1,3 @@
-
 [tasks.test]
 clear = true
 dependencies = ["test-macro", "test-derive-props", "test-doc"]

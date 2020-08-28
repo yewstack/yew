@@ -1,4 +1,3 @@
-
 ######################
 #
 # public tasks:
@@ -6,7 +5,6 @@
 # * run-tests
 #
 ######################
-
 [config]
 min_version = "0.32.4"
 default_to_workspace = false
@@ -20,15 +18,25 @@ CARGO_MAKE_CARGO_BUILD_TEST_FLAGS = ""
 private = true
 namespace = "core"
 
+# FIXME run on MSRV version
 [tasks.stable-checks]
 description = "Runs all validations for both workspaces on rust stable only."
-condition = { channels = [ "stable" ] }
-run_task = { name = [ "stable-checks-flow", "stable-checks-stdweb" ], fork = true }
+condition = { channels = ["stable"] }
+run_task = { name = [
+    "stable-checks-flow",
+    "stable-checks-stdweb"
+], fork = true }
 
 [tasks.run-tests]
 dependencies = ["tests-setup"]
-env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["examples/*", "yewtil/examples/*"] }
-run_task = { name = [ "run-tests-flow", "run-tests-stdweb" ], fork = true, cleanup_task = "tests-cleanup" }
+env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = [
+    "examples/*",
+    "yewtil/examples/*"
+] }
+run_task = { name = [
+    "run-tests-flow",
+    "run-tests-stdweb"
+], fork = true, cleanup_task = "tests-cleanup" }
 
 [tasks.stable-checks-stdweb]
 private = true
@@ -55,87 +63,82 @@ dependencies = [
 
 [tasks.post-stable-checks]
 
-[tasks.web-check]
-command = "cargo"
-args = ["web", "check", "--target", "wasm32-unknown-unknown"]
-
 [tasks.tests-setup]
+script_runner = "@duckscript"
 script = [
-'''
-#!@duckscript
-test_flags= array --headless --firefox
-yew_test_features= set wasm_test
+    """
+    test_flags = array --headless --firefox
+    yew_test_features = set wasm_test
 
-fn set_httpbin_test_features
-    HTTPBIN_URL = get_env HTTPBIN_URL
-    echo INFO: using ${HTTPBIN_URL} for fetch service tests
-    yew_test_features = set "${yew_test_features},httpbin_test"
-end
+    fn set_httpbin_test_features
+        HTTPBIN_URL = get_env HTTPBIN_URL
+        echo INFO: using ${HTTPBIN_URL} for fetch service tests
+        yew_test_features = set "${yew_test_features},httpbin_test"
+    end
 
-if is_defined HTTPBIN_URL
-    set_httpbin_test_features
-else
-    # only enable docker if docker executable is available
-    # and --skip-httpbin cli argument not provided to cargo make
-    docker_path = which docker
-    start_docker = is_defined docker_path
-    args_provided = not is_empty ${CARGO_MAKE_TASK_ARGS}
-    if ${args_provided}
-        args = split ${CARGO_MAKE_TASK_ARGS} ;
-        for arg in ${args}
-            if eq ${arg} --skip-httpbin
-                start_docker = set false
-                release ${args}
+    if is_defined HTTPBIN_URL
+        set_httpbin_test_features
+    else
+        # only enable docker if docker executable is available
+        # and --skip-httpbin cli argument not provided to cargo make
+        docker_path = which docker
+        start_docker = is_defined docker_path
+        args_provided = not is_empty ${CARGO_MAKE_TASK_ARGS}
+        if ${args_provided}
+            args = split ${CARGO_MAKE_TASK_ARGS} ;
+            for arg in ${args}
+                if eq ${arg} --skip-httpbin
+                    start_docker = set false
+                    release ${args}
+                end
             end
         end
-    end
 
-    if ${start_docker}
-        echo Starting httpbin docker image...
-        mkdir ./target
-        cidfile = set ./target/httpbin_container.cid
+        if ${start_docker}
+            echo Starting httpbin docker image...
+            mkdir ./target
+            cidfile = set ./target/httpbin_container.cid
 
-        # if container already running, stop it
-        if is_file ${cidfile}
+            # if container already running, stop it
+            if is_file ${cidfile}
+                container_id = readfile ${cidfile}
+                rm ${cidfile}
+                set_env HTTPBIN_CONTAINER_ID ${container_id}
+                cm_run_task tests-cleanup
+            end
+
+            # get local port
+            docker_port = get_env YEW_HTTPBIN_PORT
+            if not is_defined docker_port
+                docker_port = set 7117
+            end
+
+            exec docker run -d --cidfile ${cidfile} -p "${docker_port}:80" kennethreitz/httpbin
             container_id = readfile ${cidfile}
-            rm ${cidfile}
+            container_id = trim ${container_id}
             set_env HTTPBIN_CONTAINER_ID ${container_id}
-            cm_run_task tests-cleanup
-        end
 
-        # get local port
-        docker_port = get_env YEW_HTTPBIN_PORT
-        if not is_defined docker_port
-            docker_port = set 7117
-        end
+            set_env HTTPBIN_URL http://localhost:${docker_port}
+            set_httpbin_test_features
 
-        # bind to a random free port
-        exec docker run -d --cidfile ${cidfile} -p "${docker_port}:80" kennethreitz/httpbin
-        container_id = readfile ${cidfile}
-        container_id = trim ${container_id}
-        set_env HTTPBIN_CONTAINER_ID ${container_id}
-
-        set_env HTTPBIN_URL http://localhost:${docker_port}
-        set_httpbin_test_features
-
-        # wait for docker container to boot before running tests
-        if is_defined HTTPBIN_WAIT
-            sleep ${HTTPBIN_WAIT}
+            # wait for docker container to boot before running tests
+            if is_defined HTTPBIN_WAIT
+                sleep ${HTTPBIN_WAIT}
+            else
+                sleep 500
+            end
         else
-            sleep 500
+            echo "INFO: HTTPBIN_URL isn't set, won't run fetch service tests"
+            echo "      please see the CONTRIBUTING.md file for instructions"
         end
-    else
-        echo INFO: HTTPBIN_URL isn't set, won't run fetch service tests
-        echo "      please see the CONTRIBUTING.md file for instructions"
     end
-end
 
-yew_test_flags = array_join ${test_flags} " "
-echo "running tests with flags: ${yew_test_flags} and features: ${yew_test_features}"
+    yew_test_flags = array_join ${test_flags} " "
+    echo "running tests with flags: ${yew_test_flags} and features: ${yew_test_features}"
 
-set_env YEW_TEST_FLAGS ${yew_test_flags}
-set_env YEW_TEST_FEATURES ${yew_test_features}
-'''
+    set_env YEW_TEST_FLAGS ${yew_test_flags}
+    set_env YEW_TEST_FEATURES ${yew_test_features}
+    """
 ]
 
 [tasks.tests-cleanup]
@@ -146,7 +149,7 @@ args = ["rm", "--force", "${HTTPBIN_CONTAINER_ID}"]
 
 [tasks.run-tests-flow]
 workspace = true
-dependencies = [ "test" ]
+dependencies = ["test"]
 
 [tasks.run-tests-stdweb]
 private = true
