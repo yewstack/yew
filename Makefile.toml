@@ -75,7 +75,7 @@ end
 if is_defined HTTPBIN_URL
     set_httpbin_test_features
 else
-    # only enable docker is docker executable is available
+    # only enable docker if docker executable is available
     # and --skip-httpbin cli argument not provided to cargo make
     docker_path = which docker
     start_docker = is_defined docker_path
