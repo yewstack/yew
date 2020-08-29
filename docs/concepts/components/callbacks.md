@@ -25,7 +25,7 @@ If the given vector is empty, this function doesn't do anything.
 Create a callback that will send a message to the component when it is executed.
 Under the hood, it will call `send_message` with the message returned by the provided closure.
 
-This method has a version that accepts an `FnOnce` instead, `callback_once`.
+There is a different method called `callback_once` which accepts a `FnOnce` instead of a `Fn`.
 You should use this with care though, as the resulting callback will panic if executed more than once.
 
 ```rust
@@ -61,7 +61,8 @@ The same restrictions apply as for `callback_once`.
 
 _\(This might need its own short page.\)_
 
-Callbacks are used to communicate with services, agents, and parent components within Yew. They are just an `Fn` wrapped by an `Rc` to allow them to be cloned.
+Callbacks are used to communicate with services, agents, and parent components within Yew.
+Internally their type is just `Fn` wrapped in `Rc` to allow them to be cloned.
 
 They have an `emit` function that takes their `<IN>` type as an argument and converts that to a message expected by its destination. If a callback from a parent is provided in props to a child component, the child can call `emit` on the callback in its `update` lifecycle hook to send a message back to its parent. Closures or Functions provided as props inside the `html!` macro are automatically converted to Callbacks.
 
@@ -74,7 +75,7 @@ html! {
 }
 ```
 
-The callback is always given some value. For example, the `onclick` handler will pass a `MouseEvent`. The handler can then decide what kind of message the event should resolve to. This message is scheduled for the next update loop unconditionally.
+The function passed to `callback` must always take a parameter. For example, the `onclick` handler requires a function which takes a parameter of type `MouseEvent`. The handler can then decide what kind of message should be sent to the component. This message is scheduled for the next update loop unconditionally.
 
 If you need a callback that might not need to cause an update, use `batch_callback`.
 
