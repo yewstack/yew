@@ -97,9 +97,101 @@
 extern crate self as yew;
 
 /// This macro implements JSX-like templates.
+///
+/// This macro always returns [`Html`].
+/// If you need to preserve the type of a component, use the [`html_nested!`] macro instead.
+///
+/// More information about using the `html!` macro can be found in the [Yew Docs]
+///
+/// [`Html`]: ./html/type.Html.html
+/// [`html_nested!`]: ./macro.html_nested.html
+/// [Yew Docs]: https://yew.rs/docs/en/concepts/html/
 pub use yew_macro::html;
 
-#[doc(hidden)]
+/// This macro is similar to [`html!`], but preserves the component type instead
+/// of wrapping it in [`Html`].
+///
+/// That macro is useful when, for example, in a typical implementation of a list
+/// component (let's assume it's called `List`).
+/// In a typical implementation you might find two component types -- `List` and `ListItem`.
+/// Only `ListItem` components are allowed to be children of List`.
+///
+/// You can find an example implementation of this in the [`nested_list`] example.
+/// That example shows, how to create static lists with their children.
+///
+/// ```
+/// # use yew::prelude::*;
+/// use yew::html::ChildrenRenderer;
+/// use yew::virtual_dom::VChild;
+///
+/// #[derive(Clone, Properties)]
+/// struct List {
+///   children: ChildrenRenderer<ListItem>,
+/// }
+/// impl Component for List {
+/// #   type Message = ();
+///   type Properties = Self;
+///   // ...
+/// #   fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self { props }
+/// #   fn update(&mut self, _: Self::Message) -> ShouldRender { false }
+/// #   fn change(&mut self, _: Self::Properties) -> ShouldRender { false }
+/// #   fn view(&self) -> Html { unimplemented!() }
+/// }
+///
+/// #[derive(Clone)]
+/// struct ListItem;
+/// impl Component for ListItem {
+/// #   type Message = ();
+/// #   type Properties = ();
+///   // ...
+/// #   fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { Self }
+/// #   fn update(&mut self, _: Self::Message) -> ShouldRender { false }
+/// #   fn change(&mut self, _: Self::Properties) -> ShouldRender { false }
+/// #   fn view(&self) -> Html { unimplemented!() }
+/// }
+///
+/// // Required for ChildrenRenderer
+/// impl From<VChild<ListItem>> for ListItem {
+///   fn from(child: VChild<ListItem>) -> Self { Self }
+/// }
+///
+/// impl Into<Html> for ListItem {
+///   fn into(self) -> Html { self.view() }
+/// }
+///
+/// // You can use `List` with nested `ListItem` components.
+/// // Using any other kind of element would result in a compile error.
+/// # fn test() -> Html {
+/// html! {
+///   <List>
+///     <ListItem/>
+///     <ListItem/>
+///     <ListItem/>
+///   </List>
+/// }
+/// # }
+/// # fn test_iter() -> Html {
+/// # let some_iter = (0..10);
+/// // In many cases you might want to create the content dynamically.
+/// // To do this, you can use the following code:
+/// html! {
+///   <List>
+///     { for some_iter.map(|_| html_nested!{ <ListItem/> }) }
+///   </List>
+/// }
+/// # }
+/// ```
+///
+/// If you used the [`html!`] macro instead of `html_nested!`, the code would
+/// not compile because we explicitly indicated to the compiler that `List`
+/// can only contain elements of type `ListItem` using [`ChildrenRenderer<ListItem>`],
+/// while [`html!`] creates items of type [`Html`].
+///
+///
+/// [`html!`]: ./macro.html.html
+/// [`Html`]: ./html/type.Html.html
+/// [`nested_list`]: https://github.com/yewstack/yew/tree/master/examples/nested_list
+/// [`ChildrenRenderer<ListItem>`]: ./html/struct.ChildrenRenderer.html
 pub use yew_macro::html_nested;
 
 /// This module contains macros which implements html! macro and JSX-like templates
