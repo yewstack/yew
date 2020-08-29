@@ -98,27 +98,26 @@ extern crate self as yew;
 
 /// This macro implements JSX-like templates.
 ///
-/// This macro erases the component type and always returns [`Html`].
-/// If you want non-erased type, look at [`html_nested!`] macro.
+/// This macro always returns [`Html`].
+/// If you need to preserve the type of a component, use the [`html_nested!`] macro instead.
 ///
-/// More information about using the `html!` macro can be found in yew's [manual].
+/// More information about using the `html!` macro can be found in the [Yew Docs]
 ///
 /// [`Html`]: ./html/type.Html.html
 /// [`html_nested!`]: ./macro.html_nested.html
-/// [manual]: https://yew.rs/docs/en/concepts/html/
+/// [Yew Docs]: https://yew.rs/docs/en/concepts/html/
 pub use yew_macro::html;
 
-/// This macro is similar to [`html!`], but returns actual component type instead
-/// of a generic [`Html`].
+/// This macro is similar to [`html!`], but preserves the component type instead
+/// of wrapping it in [`Html`].
 ///
 /// That macro is useful when, for example, in a typical implementation of a list
-/// component (let's assume it's called `List`). In a typical implementation you
-/// would have two connected components -- `List` and `ListItem`, and `List`'s
-/// children would be a number of `ListItem`s.
+/// component (let's assume it's called `List`).
+/// In a typical implementation you might find two component types -- `List` and `ListItem`.
+/// Only `ListItem` components are allowed to be children of List`.
 ///
 /// You can find an example implementation of this in the [`nested_list`] example.
-/// That example shows, how to create static lists with their children, but in
-/// most use cases the contents of a list is dynamic and thus known only at runtime.
+/// That example shows, how to create static lists with their children.
 ///
 /// ```
 /// # use yew::prelude::*;
@@ -160,7 +159,8 @@ pub use yew_macro::html;
 ///   fn into(self) -> Html { self.view() }
 /// }
 ///
-/// // Manually you create list by just nesting `ListItem`'s into `List`:
+/// // You can use `List` with nested `ListItem` components.
+/// // Using any other kind of element would result in a compile error.
 /// # fn test() -> Html {
 /// html! {
 ///   <List>
