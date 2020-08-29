@@ -47,7 +47,6 @@ pub enum Msg {
     Toggle(usize),
     ClearCompleted,
     Focus,
-    Nope,
 }
 
 impl Component for Model {
@@ -131,7 +130,6 @@ impl Component for Model {
                     input.focus().unwrap();
                 }
             }
-            Msg::Nope => {}
         }
         self.storage.store(KEY, Json(&self.state.entries));
         true
@@ -216,8 +214,8 @@ impl Model {
                    placeholder="What needs to be done?"
                    value=&self.state.value
                    oninput=self.link.callback(|e: InputData| Msg::Update(e.value))
-                   onkeypress=self.link.callback(|e: KeyboardEvent| {
-                       if e.key() == "Enter" { Msg::Add } else { Msg::Nope }
+                   onkeypress=self.link.batch_callback(|e: KeyboardEvent| {
+                       if e.key() == "Enter" { Some(Msg::Add) } else { None }
                    }) />
             /* Or multiline:
             <ul>
@@ -261,8 +259,8 @@ impl Model {
                        onmouseover=self.link.callback(|_| Msg::Focus)
                        oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
                        onblur=self.link.callback(move |_| Msg::Edit(idx))
-                       onkeypress=self.link.callback(move |e: KeyboardEvent| {
-                          if e.key() == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
+                       onkeypress=self.link.batch_callback(move |e: KeyboardEvent| {
+                          if e.key() == "Enter" { Some(Msg::Edit(idx)) } else { None }
                        }) />
             }
         } else {
