@@ -148,13 +148,13 @@ where
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
-    /// Send a message to the worker, queuing it up if necessary
+    /// Send a message to the worker, queuing the message if necessary
     fn send_message(&self, msg: ToWorker<AGN::Input>) {
         QUEUE.with(|queue| {
             if queue.is_worker_loaded(&TypeId::of::<AGN>()) {
                 send_to_remote::<AGN>(&self.worker, msg);
             } else {
-                queue.msg_to_queue(msg.pack(), TypeId::of::<AGN>());
+                queue.add_msg_to_queue(msg.pack(), TypeId::of::<AGN>());
             }
         });
     }
