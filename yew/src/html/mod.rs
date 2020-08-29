@@ -7,7 +7,7 @@ mod listener;
 mod scope;
 
 pub use listener::*;
-pub use scope::{AnyScope, Scope};
+pub use scope::{AnyScope, Scope, SendAsMessage};
 pub(crate) use scope::{ComponentUpdate, Scoped};
 
 use crate::callback::Callback;

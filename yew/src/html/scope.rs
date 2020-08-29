@@ -209,6 +209,12 @@ impl<COMP: Component> Scope<COMP> {
     /// Please be aware that currently this method synchronously
     /// schedules calls to the [Component](Component) interface.
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
+        // There is no reason to schedule empty batches.
+        // This check is especially handy for the batch_callback method.
+        if messages.is_empty() {
+            return;
+        }
+
         self.update(ComponentUpdate::MessageBatch(messages));
     }
 
@@ -253,17 +259,27 @@ impl<COMP: Component> Scope<COMP> {
     /// Creates a `Callback` which will send a batch of messages back
     /// to the linked component's update method when invoked.
     ///
+    /// The callback function's return type is generic to allow for dealing with both
+    /// `Option` and `Vec` nicely. `Option` can be used when dealing with a callback that
+    /// might not need to send an update.
+    ///
+    /// ```ignore
+    /// link.batch_callback(|_| vec![Msg::A, Msg::B]);
+    /// link.batch_callback(|_| Some(Msg::A));
+    /// ```
+    ///
     /// Please be aware that currently the results of these callbacks
     /// will synchronously schedule calls to the
     /// [Component](Component) interface.
-    pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
+    pub fn batch_callback<F, IN, OUT>(&self, function: F) -> Callback<IN>
     where
-        F: Fn(IN) -> Vec<COMP::Message> + 'static,
+        F: Fn(IN) -> OUT + 'static,
+        OUT: SendAsMessage<COMP>,
     {
         let scope = self.clone();
         let closure = move |input| {
             let messages = function(input);
-            scope.send_message_batch(messages);
+            messages.send(&scope);
         };
         closure.into()
     }
@@ -271,19 +287,57 @@ impl<COMP: Component> Scope<COMP> {
     /// Creates a `Callback` from an `FnOnce` which will send a batch of messages back
     /// to the linked component's update method when invoked.
     ///
+    /// The callback function's return type is generic to allow for dealing with both
+    /// `Option` and `Vec` nicely. `Option` can be used when dealing with a callback that
+    /// might not need to send an update.
+    ///
+    /// ```ignore
+    /// link.batch_callback_once(|_| vec![Msg::A, Msg::B]);
+    /// link.batch_callback_once(|_| Some(Msg::A));
+    /// ```
+    ///
     /// Please be aware that currently the results of these callbacks
     /// will synchronously schedule calls to the
     /// [Component](Component) interface.
-    pub fn batch_callback_once<F, IN>(&self, function: F) -> Callback<IN>
+    pub fn batch_callback_once<F, IN, OUT>(&self, function: F) -> Callback<IN>
     where
-        F: FnOnce(IN) -> Vec<COMP::Message> + 'static,
+        F: FnOnce(IN) -> OUT + 'static,
+        OUT: SendAsMessage<COMP>,
     {
         let scope = self.clone();
         let closure = move |input| {
             let messages = function(input);
-            scope.send_message_batch(messages);
+            messages.send(&scope);
         };
         Callback::once(closure)
+    }
+}
+
+/// Defines a message type that can be sent to a component.
+/// Used for the return value of closure given to [Scope::batch_callback](struct.Scope.html#method.batch_callback).
+pub trait SendAsMessage<COMP: Component> {
+    /// Sends the message to the given component's scope.
+    /// See [Scope::batch_callback](struct.Scope.html#method.batch_callback).
+    fn send(self, scope: &Scope<COMP>);
+}
+
+impl<COMP> SendAsMessage<COMP> for Option<COMP::Message>
+where
+    COMP: Component,
+{
+    fn send(self, scope: &Scope<COMP>) {
+        if let Some(msg) = self {
+            scope.send_message(msg);
+        }
+    }
+}
+
+impl<COMP> SendAsMessage<COMP> for Vec<COMP::Message>
+where
+    COMP: Component,
+{
+    fn send(self, scope: &Scope<COMP>) {
+        scope.send_message_batch(self);
     }
 }
 
