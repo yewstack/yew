@@ -1,5 +1,7 @@
 #[macro_use]
-mod macros;
+pub(crate) mod macros;
+mod registry;
+pub(crate) use registry::*;
 
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
@@ -8,11 +10,12 @@ cfg_if! {
     if #[cfg(feature = "std_web")] {
         mod listener_stdweb;
 
+        use stdweb::Reference as Event;
         use stdweb::js;
-        use stdweb::unstable::{TryFrom, TryInto};
         use stdweb::web::html_element::{InputElement, SelectElement, TextAreaElement};
-        use stdweb::web::{Element, EventListenerHandle, FileList, IElement, INode};
+        use stdweb::web::{Element, FileList, IElement, INode};
         use stdweb::web::event::InputEvent;
+        use std::convert::{TryInto, TryFrom};
 
         pub use listener_stdweb::*;
     } else if #[cfg(feature = "web_sys")] {
@@ -22,7 +25,8 @@ cfg_if! {
         use web_sys::{
             Element, FileList, HtmlInputElement as InputElement, HtmlSelectElement as SelectElement,
             HtmlTextAreaElement as TextAreaElement,
-            InputEvent
+            InputEvent,
+            Event,
         };
 
         pub use listener_web_sys::*;
@@ -59,7 +63,39 @@ pub enum ChangeData {
     Files(FileList),
 }
 
-fn oninput_handler(this: &Element, event: InputEvent) -> InputData {
+/// Covert reference to target event type and element
+#[cfg(feature = "std_web")]
+pub(crate) fn convert_reference<E>(obj: stdweb::Reference) -> (E, Element)
+where
+    E: TryFrom<stdweb::Reference>,
+{
+    let event = E::try_from(obj).unwrap();
+    (event, event.target().expect("no target on event"))
+}
+
+/// Extract target as Element from event
+#[cfg(feature = "web_sys")]
+fn extract_target(event: &web_sys::Event) -> Element {
+    event
+        .target()
+        .expect("no target on event")
+        .dyn_into()
+        .unwrap()
+}
+
+/// Covert reference to target event type and element
+#[cfg(feature = "web_sys")]
+pub(crate) fn convert_reference<E>(event: web_sys::Event) -> (E, Element)
+where
+    E: wasm_bindgen::JsCast,
+{
+    let target = extract_target(&event);
+    (event.dyn_into::<E>().unwrap(), target)
+}
+
+fn oninput_handler(event: Event) -> InputData {
+    let (event, this) = convert_reference::<InputEvent>(event);
+
     // Normally only InputElement or TextAreaElement can have an oninput event listener. In
     // practice though any element with `contenteditable=true` may generate such events,
     // therefore here we fall back to just returning the text content of the node.
@@ -67,12 +103,10 @@ fn oninput_handler(this: &Element, event: InputEvent) -> InputData {
     let (v1, v2) = cfg_match! {
         feature = "std_web" => ({
             (
-                this.clone()
-                    .try_into()
+                this.try_into()
                     .map(|input: InputElement| input.raw_value())
                     .ok(),
-                this.clone()
-                    .try_into()
+                this.try_into()
                     .map(|input: TextAreaElement| input.value())
                     .ok(),
             )
@@ -90,12 +124,18 @@ fn oninput_handler(this: &Element, event: InputEvent) -> InputData {
     InputData { value, event }
 }
 
-fn onchange_handler(this: &Element) -> ChangeData {
+fn onchange_handler(event: Event) -> ChangeData {
+    #[cfg(feature = "std_web")]
+    let this = convert_reference::<stdweb::web::event::ChangeEvent>(event).1;
+
+    #[cfg(feature = "web_sys")]
+    let this = extract_target(&event);
+
     match this.node_name().as_ref() {
         "INPUT" => {
             let input = cfg_match! {
-                feature = "std_web" => InputElement::try_from(this.clone()).unwrap(),
-                feature = "web_sys" => this.dyn_ref::<InputElement>().unwrap(),
+                feature = "std_web" => InputElement::try_from(this).unwrap(),
+                feature = "web_sys" => this.dyn_into::<InputElement>().unwrap(),
             };
             let is_file = input
                 .get_attribute("type")
@@ -116,34 +156,20 @@ fn onchange_handler(this: &Element) -> ChangeData {
         }
         "TEXTAREA" => {
             let tae = cfg_match! {
-                feature = "std_web" => TextAreaElement::try_from(this.clone()).unwrap(),
-                feature = "web_sys" => this.dyn_ref::<TextAreaElement>().unwrap(),
+                feature = "std_web" => TextAreaElement::try_from(this).unwrap(),
+                feature = "web_sys" => this.dyn_into::<TextAreaElement>().unwrap(),
             };
             ChangeData::Value(tae.value())
         }
         "SELECT" => {
             let se = cfg_match! {
-                feature = "std_web" => SelectElement::try_from(this.clone()).unwrap(),
-                feature = "web_sys" => this.dyn_ref::<SelectElement>().unwrap().clone(),
+                feature = "std_web" => SelectElement::try_from(this).unwrap(),
+                feature = "web_sys" => this.dyn_into::<SelectElement>().unwrap(),
             };
             ChangeData::Select(se)
         }
         _ => {
             panic!("only an InputElement, TextAreaElement or SelectElement can have an onchange event listener");
-        }
-    }
-}
-
-/// Handler to an event listener, only use is to cancel the event.
-#[cfg(feature = "std_web")]
-#[derive(Debug)]
-pub struct EventListener(Option<EventListenerHandle>);
-
-#[cfg(feature = "std_web")]
-impl Drop for EventListener {
-    fn drop(&mut self) {
-        if let Some(event) = self.0.take() {
-            event.remove()
         }
     }
 }

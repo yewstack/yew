@@ -21,11 +21,10 @@ use std::fmt;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use crate::html::EventListener;
+        use stdweb::Reference as Event;
         use stdweb::web::{Element, INode, Node};
     } else if #[cfg(feature = "web_sys")] {
-        use gloo::events::EventListener;
-        use web_sys::{Element, Node};
+        use web_sys::{Element, Event, Node};
     }
 }
 
@@ -47,18 +46,86 @@ pub use self::vtext::VText;
 pub trait Listener {
     /// Returns the name of the event
     fn kind(&self) -> &'static str;
-    /// Attaches a listener to the element.
-    fn attach(&self, element: &Element) -> EventListener;
+
+    /// Attaches a listener to the document body
+    fn attach(&self, body: &Element, handler: Box<dyn Fn(Event)>);
+
+    /// Handles an event firing
+    fn handle(&self, event: Event);
+
+    /// Defines the event listener as passive.
+    /// See [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEvent.
+    #[cfg(feature = "web_sys")]
+    fn passive(&self) -> bool;
+
+    /// Defines event listener to also listen to events in the child tree that bubbled up to
+    /// the target element
+    fn handle_bubbled(&self) -> bool;
 }
 
 impl fmt::Debug for dyn Listener {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Listener {{ kind: {} }}", self.kind())
+        write!(
+            f,
+            "Listener {{ kind: {}, passive: {}, handle_bubbled: {} }}",
+            self.kind(),
+            self.passive(),
+            self.handle_bubbled()
+        )
     }
 }
 
-/// A list of event listeners.
-type Listeners = Vec<Rc<dyn Listener>>;
+/// A list of event listeners, either registered or pending registration
+#[derive(Debug, Clone)]
+pub enum Listeners {
+    /// Added to global registry by ID
+    Registered(u64),
+
+    /// Not yet added to global registry
+    Pending(Vec<Rc<dyn Listener>>),
+}
+
+impl Default for Listeners {
+    fn default() -> Self {
+        Self::Pending(Default::default())
+    }
+}
+
+impl PartialEq for Listeners {
+    fn eq(&self, rhs: &Self) -> bool {
+        use crate::html::compare_listeners;
+        use Listeners::*;
+
+        match (self, rhs) {
+            (Registered(lhs), Registered(rhs)) => lhs == rhs,
+            (Registered(lhs), Pending(rhs)) => compare_listeners(*lhs, &rhs),
+            (Pending(lhs), Pending(rhs)) => {
+                if lhs.len() != rhs.len() {
+                    return false;
+                }
+
+                let mut lhs_it = lhs.iter();
+                let mut rhs_it = rhs.iter();
+                loop {
+                    match (lhs_it.next(), rhs_it.next()) {
+                        (Some(lhs), Some(rhs)) =>
+                        {
+                            #[allow(clippy::vtable_address_comparisons)]
+                            if !Rc::ptr_eq(lhs, rhs) {
+                                return false;
+                            }
+                        }
+                        (None, None) => return true,
+                        _ => return false,
+                    };
+                }
+            }
+            (Pending(lhs), Registered(rhs)) => compare_listeners(*rhs, &lhs),
+        }
+    }
+}
+
+impl Eq for Listeners {}
 
 /// A map of attributes.
 type Attributes = HashMap<String, String>;

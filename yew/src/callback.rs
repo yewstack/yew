@@ -14,6 +14,23 @@ use std::rc::Rc;
 pub enum Callback<IN> {
     /// A callback which can be called multiple times
     Callback(Rc<dyn Fn(IN)>),
+
+    /// A callback which can be called multiple times and has additional options for DOM
+    /// event listeners
+    CallbackWithOpts {
+        /// A callback which can be called multiple times
+        cb: Rc<dyn Fn(IN)>,
+
+        /// Defines the event listener as passive.
+        /// Yew sets sane defaults depending on the type of the listener.
+        /// See [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEvent.
+        passive: bool,
+
+        /// Defines event listener to also listen to events in the child tree that bubbled up to
+        /// the target element
+        handle_bubbled: bool,
+    },
+
     /// A callback which can only be called once. The callback will panic if it is
     /// called more than once.
     CallbackOnce(Rc<CallbackOnce<IN>>),
@@ -31,6 +48,15 @@ impl<IN> Clone for Callback<IN> {
     fn clone(&self) -> Self {
         match self {
             Callback::Callback(cb) => Callback::Callback(cb.clone()),
+            Callback::CallbackWithOpts {
+                cb,
+                passive,
+                handle_bubbled,
+            } => Callback::CallbackWithOpts {
+                cb: cb.clone(),
+                passive: *passive,
+                handle_bubbled: *handle_bubbled,
+            },
             Callback::CallbackOnce(cb) => Callback::CallbackOnce(cb.clone()),
         }
     }
@@ -53,6 +79,7 @@ impl<IN> fmt::Debug for Callback<IN> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let data = match self {
             Callback::Callback(_) => "Callback<_>",
+            Callback::CallbackWithOpts { .. } => "CallbackWithOpts<_>",
             Callback::CallbackOnce(_) => "CallbackOnce<_>",
         };
 
@@ -64,7 +91,7 @@ impl<IN> Callback<IN> {
     /// This method calls the callback's function.
     pub fn emit(&self, value: IN) {
         match self {
-            Callback::Callback(cb) => cb(value),
+            Callback::Callback(cb) | Callback::CallbackWithOpts { cb, .. } => cb(value),
             Callback::CallbackOnce(rc) => {
                 let cb = rc.replace(None);
                 let f = cb.expect("callback in CallbackOnce has already been used");

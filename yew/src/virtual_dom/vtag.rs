@@ -11,14 +11,12 @@ use std::cmp::PartialEq;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use crate::html::EventListener;
         #[allow(unused_imports)]
         use stdweb::{_js_impl, js};
         use stdweb::unstable::TryFrom;
         use stdweb::web::html_element::{InputElement, TextAreaElement};
         use stdweb::web::{Element, IElement, INode};
     } else if #[cfg(feature = "web_sys")] {
-        use gloo::events::EventListener;
         use std::ops::Deref;
         use wasm_bindgen::JsCast;
         use web_sys::{
@@ -64,7 +62,7 @@ pub struct VTag {
     element_type: ElementType,
     /// A reference to the DOM `Element`.
     pub reference: Option<Element>,
-    /// List of attached listeners.
+    /// Either registered or pending event listeners
     pub listeners: Listeners,
     /// List of attributes.
     pub attributes: Attributes,
@@ -85,8 +83,6 @@ pub struct VTag {
     pub checked: bool,
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
-    /// Keeps handler for attached listeners to have an opportunity to drop them later.
-    captured: Vec<EventListener>,
 
     pub key: Option<Key>,
 }
@@ -105,7 +101,6 @@ impl Clone for VTag {
             checked: self.checked,
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
-            captured: Vec::new(),
         }
     }
 }
@@ -120,8 +115,7 @@ impl VTag {
             element_type,
             reference: None,
             attributes: Attributes::new(),
-            listeners: Vec::new(),
-            captured: Vec::new(),
+            listeners: Default::default(),
             children: VList::new(),
             node_ref: NodeRef::default(),
             key: None,
@@ -186,34 +180,17 @@ impl VTag {
         }
     }
 
-    /// Adds new listener to the node.
-    /// It's boxed because we want to keep it in a single list.
-    /// Later `Listener::attach` will attach an actual listener to a DOM node.
+    /// Adds a new listener to the node
     pub fn add_listener(&mut self, listener: Rc<dyn Listener>) {
-        self.listeners.push(listener);
+        if let Listeners::Pending(p) = &mut self.listeners {
+            p.push(listener)
+        }
     }
 
-    /// Adds new listeners to the node.
-    /// They are boxed because we want to keep them in a single list.
-    /// Later `Listener::attach` will attach an actual listener to a DOM node.
+    /// Adds new listeners to the node
     pub fn add_listeners(&mut self, listeners: Vec<Rc<dyn Listener>>) {
-        for listener in listeners {
-            self.listeners.push(listener);
-        }
-    }
-
-    /// Every render it removes all listeners and attach it back later
-    /// TODO(#943): Compare references of handler to do listeners update better
-    fn recreate_listeners(&mut self, ancestor: &mut Option<Box<Self>>) {
-        if let Some(ancestor) = ancestor.as_mut() {
-            ancestor.captured.clear();
-        }
-
-        let element = self.reference.clone().expect("element expected");
-
-        for listener in self.listeners.drain(..) {
-            let handle = listener.attach(&element);
-            self.captured.push(handle);
+        if let Listeners::Pending(p) = &mut self.listeners {
+            p.extend(listeners)
         }
     }
 
@@ -447,6 +424,8 @@ impl VDiff for VTag {
             .take()
             .expect("tried to remove not rendered VTag from DOM");
 
+        crate::html::remove_listeners(&self.listeners);
+
         // recursively remove its children
         self.children.detach(&node);
         if parent.remove_child(&node).is_err() {
@@ -463,6 +442,8 @@ impl VDiff for VTag {
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
     ) -> NodeRef {
+        use crate::html::{patch_listeners, set_listeners};
+
         let mut ancestor_tag = ancestor.and_then(|mut ancestor| {
             match ancestor {
                 // If the ancestor is a tag of the same type, don't recreate, keep the
@@ -471,6 +452,7 @@ impl VDiff for VTag {
                 _ => {
                     let element = self.create_element(parent);
                     super::insert_node(&element, parent, Some(ancestor.first_node()));
+                    set_listeners(&element, &mut self.listeners);
                     self.reference = Some(element);
                     ancestor.detach(parent);
                     None
@@ -482,16 +464,18 @@ impl VDiff for VTag {
             // Refresh the current value to later compare it against the desired value
             // since it may have been changed since we last set it.
             ancestor_tag.refresh_value();
+
             // Preserve the reference that already exists.
             self.reference = ancestor_tag.reference.take();
+            patch_listeners(&mut self.listeners, &ancestor_tag.listeners);
         } else if self.reference.is_none() {
             let element = self.create_element(parent);
             super::insert_node(&element, parent, next_sibling.get());
+            set_listeners(&element, &mut self.listeners);
             self.reference = Some(element);
         }
 
         self.apply_diffs(&ancestor_tag);
-        self.recreate_listeners(&mut ancestor_tag);
 
         // Process children
         let element = self.reference.as_ref().expect("Reference should be set");
@@ -529,13 +513,8 @@ impl PartialEq for VTag {
             && self.value == other.value
             && self.kind == other.kind
             && self.checked == other.checked
-            && self.listeners.len() == other.listeners.len()
-            && self
-                .listeners
-                .iter()
-                .map(|l| l.kind())
-                .eq(other.listeners.iter().map(|l| l.kind()))
             && self.attributes == other.attributes
+            && self.listeners == other.listeners
             && self.children == other.children
     }
 }
