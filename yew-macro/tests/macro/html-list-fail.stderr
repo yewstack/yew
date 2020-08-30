@@ -63,3 +63,9 @@ error: fragments only accept the `key` prop
    |
 15 |     html! { <some_attr="test"></> };
    |              ^^^^^^^^^
+
+error: the `key` attribute does not support being used as an optional attribute
+  --> $DIR/html-list-fail.rs:17:14
+   |
+17 |     html! { <key?=None></> };
+   |              ^^^

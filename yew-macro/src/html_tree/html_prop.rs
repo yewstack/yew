@@ -10,6 +10,21 @@ pub struct HtmlProp {
     pub question_mark: Option<Token![?]>,
     pub value: Expr,
 }
+impl HtmlProp {
+    /// Checks if the prop uses the optional attribute syntax.
+    /// If it does, an error is returned.
+    pub fn ensure_not_optional(&self) -> syn::Result<()> {
+        if self.question_mark.is_some() {
+            let msg = format!(
+                "the `{}` attribute does not support being used as an optional attribute",
+                self.label
+            );
+            Err(syn::Error::new_spanned(&self.label, msg))
+        } else {
+            Ok(())
+        }
+    }
+}
 
 impl PeekValue<()> for HtmlProp {
     fn peek(cursor: Cursor) -> Option<()> {

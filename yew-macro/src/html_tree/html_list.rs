@@ -136,12 +136,7 @@ impl Parse for HtmlListProps {
                 ));
             }
 
-            if prop.question_mark.is_some() {
-                return Err(syn::Error::new_spanned(
-                    prop.label,
-                    "the 'key' attribute does not support being used as an optional attribute",
-                ));
-            }
+            prop.ensure_not_optional()?;
 
             Some(prop.value)
         };

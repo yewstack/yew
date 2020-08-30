@@ -153,8 +153,6 @@ error: optional attributes are only supported on HTML tags. Yew components can u
     |
 125 |     html! { <TestComponent value?="not_supported" /> };
     |                            ^^^^^
-    |
-    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0425]: cannot find value `blah` in this scope
   --> $DIR/html-component-fail.rs:91:25

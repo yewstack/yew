@@ -8,9 +8,6 @@ fn compile_pass() {
     let dyn_tag = || String::from("test");
     let mut extra_tags_iter = vec!["a", "b"].into_iter();
 
-    let none_str = None::<&'static str>;
-    let none_callback = None::<Callback<_>>;
-
     html! {
         <div>
             <div data-key="abc"></div>
@@ -62,10 +59,10 @@ fn compile_pass() {
                 }
             }/>
 
-            <a href?=Some("http://google.com") media?=none_str />
-            <track kind?=Some("subtitles") src?=None::<String> />
-            <track kind?=Some(5) />
-            <input value?=Some("value") onfocus?=none_callback onblur?=Some(Callback::from(|_| ())) />
+            <a href?=Some("http://google.com") media?=Option::<&str>::None />
+            <track kind?=Some("subtitles") src?=Option::<&str>::None />
+            <track kind?=Some(5) mixed="works" />
+            <input value?=Some("value") onblur?=Some(Callback::from(|_| ())) />
         </div>
     };
 
