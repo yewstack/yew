@@ -11,6 +11,10 @@ use yew::prelude::*;
 /// `handle_input` receives incoming messages from components,
 /// `reduce` applies changes to the state
 ///
+/// The state is sent once whenever a bridge is opened and then once
+/// for each `Action` sent by the `handle_input` function. This means
+/// the initial state of the store must be valid for the consumers.
+///
 /// Once created with a first bridge, a Store will never be destroyed
 /// for the lifetime of the application.
 pub trait Store: Sized + 'static {

@@ -43,6 +43,8 @@ impl Component for App {
                     console::log_2(&"We have a stream".into(), &stream);
                 }
 
+                // We can see this is logged once before we click any button.
+                // The state of the store is sent when we open a bridge.
                 console::log_1(&"Received update".into());
             }
         }
