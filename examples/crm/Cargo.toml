@@ -8,4 +8,3 @@ edition = "2018"
 serde = "1"
 serde_derive = "1"
 yew = { path = "../../yew" }
-common = { path = "../common" }

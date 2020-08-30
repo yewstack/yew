@@ -1,7 +1,7 @@
 use super::ToNodeIterator;
-use crate::PeekValue;
+use crate::{stringify, PeekValue};
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
@@ -44,8 +44,11 @@ impl PeekValue<()> for HtmlNode {
 impl ToTokens for HtmlNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(match &self {
-            HtmlNode::Literal(lit) => quote! {#lit},
-            HtmlNode::Expression(expr) => quote_spanned! {expr.span()=> {#expr}},
+            HtmlNode::Literal(lit) => {
+                let sr = stringify::Constructor::from(lit.as_ref());
+                quote_spanned! {lit.span()=> ::yew::virtual_dom::VText::new(#sr) }
+            }
+            HtmlNode::Expression(expr) => quote_spanned! {expr.span()=> #expr},
         });
     }
 }
@@ -56,7 +59,9 @@ impl ToNodeIterator for HtmlNode {
             HtmlNode::Literal(_) => None,
             HtmlNode::Expression(expr) => {
                 // NodeSeq turns both Into<T> and Vec<Into<T>> into IntoIterator<Item = T>
-                Some(quote_spanned! {expr.span()=> ::yew::utils::NodeSeq::from(#expr)})
+                Some(
+                    quote_spanned! {expr.span()=> ::std::convert::Into::<::yew::utils::NodeSeq<_, _>>::into(#expr)},
+                )
             }
         }
     }

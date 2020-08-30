@@ -1,13 +1,10 @@
 #![recursion_limit = "256"]
 
-#[macro_use]
-extern crate serde_derive;
-
-use common::markdown;
+use serde::{Deserialize, Serialize};
 use yew::format::Json;
 use yew::services::storage::Area;
 use yew::services::{DialogService, StorageService};
-use yew::{html, Component, ComponentLink, Html, InputData, Renderable, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, InputData, ShouldRender};
 
 const KEY: &str = "yew.crm.database";
 
@@ -153,7 +150,7 @@ impl Component for Model {
                 <div class="crm">
                     <h1>{"List of clients"}</h1>
                     <div class="clients">
-                        { for self.database.clients.iter().map(Renderable::render) }
+                        { for self.database.clients.iter().map(Client::render) }
                     </div>
                     <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::NewClientForm(Client::empty())))>{ "Add New" }</button>
                     <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::Settings))>{ "Settings" }</button>
@@ -189,20 +186,18 @@ impl Component for Model {
     }
 }
 
-impl Renderable for Client {
+impl Client {
     fn render(&self) -> Html {
         html! {
             <div class="client" style="margin-bottom: 50px">
                 <p>{ format!("First Name: {}", self.first_name) }</p>
                 <p>{ format!("Last Name: {}", self.last_name) }</p>
                 <p>{ "Description:" }</p>
-                { markdown::render_markdown(&self.description) }
+                { &self.description }
             </div>
         }
     }
-}
 
-impl Client {
     fn view_first_name_input(&self, link: &ComponentLink<Model>) -> Html {
         html! {
             <input class="new-client firstname"
@@ -223,7 +218,7 @@ impl Client {
     fn view_description_textarea(&self, link: &ComponentLink<Model>) -> Html {
         html! {
             <textarea class=("new-client", "description")
-               placeholder="Description (can use Markdown)"
+               placeholder="Description"
                value=&self.description
                oninput=link.callback(|e: InputData| Msg::UpdateDescription(e.value)) />
         }

@@ -3,208 +3,156 @@ error: this opening tag has no corresponding closing tag
   |
 6 |     html! { <div> };
   |             ^^^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this opening tag has no corresponding closing tag
  --> $DIR/html-tag-fail.rs:7:18
   |
 7 |     html! { <div><div> };
   |                  ^^^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this closing tag has no corresponding opening tag
  --> $DIR/html-tag-fail.rs:8:13
   |
 8 |     html! { </div> };
   |             ^^^^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this opening tag has no corresponding closing tag
  --> $DIR/html-tag-fail.rs:9:13
   |
 9 |     html! { <div><div></div> };
   |             ^^^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
   --> $DIR/html-tag-fail.rs:10:24
    |
 10 |     html! { <div></div><div></div> };
    |                        ^^^^^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this closing tag has no corresponding opening tag
   --> $DIR/html-tag-fail.rs:11:18
    |
 11 |     html! { <div></span> };
    |                  ^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this closing tag has no corresponding opening tag
   --> $DIR/html-tag-fail.rs:12:20
    |
 12 |     html! { <tag-a></tag-b> };
    |                    ^^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this closing tag has no corresponding opening tag
   --> $DIR/html-tag-fail.rs:13:18
    |
 13 |     html! { <div></span></div> };
    |                  ^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
   --> $DIR/html-tag-fail.rs:14:20
    |
 14 |     html! { <img /></img> };
    |                    ^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected a valid html element
   --> $DIR/html-tag-fail.rs:15:18
    |
 15 |     html! { <div>Invalid</div> };
    |                  ^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: the attribute `attr` can only be specified once
   --> $DIR/html-tag-fail.rs:17:27
    |
 17 |     html! { <input attr=1 attr=2 /> };
    |                           ^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: the attribute `value` can only be specified once
   --> $DIR/html-tag-fail.rs:18:32
    |
 18 |     html! { <input value="123" value="456" /> };
    |                                ^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: the attribute `kind` can only be specified once
   --> $DIR/html-tag-fail.rs:19:36
    |
 19 |     html! { <input kind="checkbox" kind="submit" /> };
    |                                    ^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: the attribute `checked` can only be specified once
   --> $DIR/html-tag-fail.rs:20:33
    |
 20 |     html! { <input checked=true checked=false /> };
    |                                 ^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: the attribute `disabled` can only be specified once
   --> $DIR/html-tag-fail.rs:21:34
    |
 21 |     html! { <input disabled=true disabled=false /> };
    |                                  ^^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: the attribute `selected` can only be specified once
   --> $DIR/html-tag-fail.rs:22:35
    |
 22 |     html! { <option selected=true selected=false /> };
    |                                   ^^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: the attribute `class` can only be specified once
   --> $DIR/html-tag-fail.rs:23:32
    |
 23 |     html! { <div class="first" class="second" /> };
    |                                ^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: the attribute `ref` can only be specified once
   --> $DIR/html-tag-fail.rs:38:27
    |
 38 |     html! { <input ref=() ref=() /> };
    |                           ^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: the tag `<input>` is a void element and cannot have children (hint: rewrite this as `<input/>`)
   --> $DIR/html-tag-fail.rs:40:13
    |
 40 |     html! { <input type="text"></input> };
    |             ^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: the tag `<iNpUt>` is a void element and cannot have children (hint: rewrite this as `<iNpUt/>`)
   --> $DIR/html-tag-fail.rs:41:13
    |
 41 |     html! { <iNpUt type="text"></iNpUt> };
    |             ^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this dynamic tag is missing an expression block defining its value
   --> $DIR/html-tag-fail.rs:43:14
    |
 43 |     html! { <@></@> };
    |              ^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: dynamic closing tags must not have a body (hint: replace it with just `</@>`)
   --> $DIR/html-tag-fail.rs:44:27
    |
 44 |     html! { <@{"test"}></@{"test"}> };
    |                           ^^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this dynamic tag is missing an expression block defining its value
   --> $DIR/html-tag-fail.rs:46:14
    |
 46 |     html! { <@/> };
    |              ^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:25:28
    |
 25 |     html! { <input checked=1 /> };
    |                            ^ expected `bool`, found integer
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:26:29
    |
 26 |     html! { <input disabled=1 /> };
    |                             ^ expected `bool`, found integer
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:27:30
    |
 27 |     html! { <option selected=1 /> };
    |                              ^ expected `bool`, found integer
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-tag-fail.rs:28:25
@@ -215,7 +163,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: required by `std::string::ToString::to_string`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-tag-fail.rs:29:26
@@ -226,19 +174,17 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required because of the requirements on the impl of `std::string::ToString` for `()`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `yew::html::Href: std::convert::From<()>` is not satisfied
+error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-tag-fail.rs:30:21
    |
 30 |     html! { <a href=() /> };
-   |                     ^^ the trait `std::convert::From<()>` is not implemented for `yew::html::Href`
+   |                     ^^ `()` cannot be formatted with the default formatter
    |
-   = help: the following implementations were found:
-             <yew::html::Href as std::convert::From<&'a str>>
-             <yew::html::Href as std::convert::From<std::string::String>>
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::html::Href>` for `()`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+   = note: required by `std::string::ToString::to_string`
 
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:32:20
@@ -248,7 +194,6 @@ error[E0308]: mismatched types
    |
    = note: expected enum `yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>`
               found type `{integer}`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:33:20
@@ -258,33 +203,23 @@ error[E0308]: mismatched types
    |
    = note: expected enum `yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>`
               found enum `yew::callback::Callback<std::string::String>`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0599]: no method named `to_string` found for struct `NotToString` in the current scope
+error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
   --> $DIR/html-tag-fail.rs:35:27
    |
-3  | struct NotToString;
-   | -------------------
-   | |
-   | method `to_string` not found for this
-   | doesn't satisfy `NotToString: std::fmt::Display`
-   | doesn't satisfy `NotToString: std::string::ToString`
-...
 35 |     html! { <input string=NotToString /> };
-   |                           ^^^^^^^^^^^ method not found in `NotToString`
+   |                           ^^^^^^^^^^^ `NotToString` cannot be formatted with the default formatter
    |
-   = note: the method `to_string` exists but the following trait bounds were not satisfied:
-           `NotToString: std::fmt::Display`
-           which is required by `NotToString: std::string::ToString`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+   = help: the trait `std::fmt::Display` is not implemented for `NotToString`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `NotToString`
+   = note: required by `std::string::ToString::to_string`
 
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:37:24
    |
 37 |     html! { <input ref=() /> };
    |                        ^^ expected struct `yew::html::NodeRef`, found `()`
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `std::borrow::Cow<'static, str>: std::convert::From<{integer}>` is not satisfied
   --> $DIR/html-tag-fail.rs:45:15
@@ -298,5 +233,5 @@ error[E0277]: the trait bound `std::borrow::Cow<'static, str>: std::convert::Fro
              <std::borrow::Cow<'a, [T]> as std::convert::From<std::vec::Vec<T>>>
              <std::borrow::Cow<'a, std::ffi::CStr> as std::convert::From<&'a std::ffi::CStr>>
            and 11 others
-   = note: required by `std::convert::From::from`
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: required because of the requirements on the impl of `std::convert::Into<std::borrow::Cow<'static, str>>` for `{integer}`
+   = note: required by `std::convert::Into::into`

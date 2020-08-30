@@ -380,7 +380,6 @@ mod integration_test {
         .expect("Should parse");
         let settings = MatcherSettings {
             case_insensitive: true,
-            ..Default::default()
         };
         matcher_impl::<Captures>(&x, settings, "/HeLLo").expect("should match");
     }

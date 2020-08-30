@@ -7,6 +7,8 @@ use yew::prelude::*;
 pub struct App {
     link: ComponentLink<Self>,
     hovered: Hovered,
+    list_link: WeakComponentLink<List>,
+    sub_list_link: WeakComponentLink<List>,
 }
 
 pub enum Msg {
@@ -21,6 +23,8 @@ impl Component for App {
         App {
             link,
             hovered: Hovered::None,
+            list_link: WeakComponentLink::<List>::default(),
+            sub_list_link: WeakComponentLink::<List>::default(),
         }
     }
 
@@ -38,15 +42,15 @@ impl Component for App {
     fn view(&self) -> Html {
         let on_hover = &self.link.callback(Msg::Hover);
         let onmouseenter = &self.link.callback(|_| Msg::Hover(Hovered::None));
-        let list_link = &WeakComponentLink::<List>::default();
-        let sub_list_link = &WeakComponentLink::<List>::default();
+        let list_link = &self.list_link;
+        let sub_list_link = &self.sub_list_link;
         html! {
             <div class="main" onmouseenter=onmouseenter>
                 <h1>{ "Nested List Demo" }</h1>
                 <List on_hover=on_hover weak_link=list_link>
                     <ListHeader text="Calling all Rusties!" on_hover=on_hover list_link=list_link />
                     <ListItem name="Rustin" on_hover=on_hover />
-                    <ListItem hide={true} name="Rustaroo" on_hover=on_hover />
+                    <ListItem hide=true name="Rustaroo" on_hover=on_hover />
                     <ListItem name="Rustifer" on_hover=on_hover>
                         <div class="sublist">{"Sublist!"}</div>
                         {
@@ -54,7 +58,7 @@ impl Component for App {
                                 <List on_hover=on_hover weak_link=sub_list_link>
                                     <ListHeader text="Sub Rusties!" on_hover=on_hover list_link=sub_list_link/>
                                     <ListItem name="Sub Rustin" on_hover=on_hover />
-                                    <ListItem hide={true} name="Sub Rustaroo" on_hover=on_hover />
+                                    <ListItem hide=true name="Sub Rustaroo" on_hover=on_hover />
                                     <ListItem name="Sub Rustifer" on_hover=on_hover />
                                 </List>
                             }

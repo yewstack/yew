@@ -1,0 +1,16 @@
+
+[tasks.test]
+clear = true
+dependencies = ["test-macro", "test-derive-props", "test-doc"]
+
+[tasks.test-macro]
+command = "cargo"
+args = ["test", "--test", "macro_test"]
+
+[tasks.test-derive-props]
+command = "cargo"
+args = ["test", "--test", "derive_props_test"]
+
+[tasks.test-doc]
+command = "cargo"
+args = ["test", "--doc"]

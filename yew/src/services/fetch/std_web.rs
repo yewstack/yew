@@ -147,7 +147,7 @@ enum FetchError {
 }
 
 /// A handle to control sent requests. Can be canceled with a `Task::cancel` call.
-#[must_use]
+#[must_use = "the request will be cancelled when the task is dropped"]
 pub struct FetchTask(Option<Value>);
 
 impl fmt::Debug for FetchTask {
@@ -185,7 +185,7 @@ impl FetchService {
     /// response body and metadata.
     ///
     /// ```
-    ///# use yew::{Component, ComponentLink, Html, Renderable};
+    ///# use yew::{Component, ComponentLink, Html};
     ///# use yew::services::FetchService;
     ///# use yew::services::fetch::{Response, Request};
     ///# struct Comp;
@@ -225,7 +225,7 @@ impl FetchService {
     ///# use yew::services::FetchService;
     ///# use http::Request;
     ///# use yew::services::fetch::Response;
-    ///# use yew::{Component, ComponentLink, Renderable, Html};
+    ///# use yew::{Component, ComponentLink, Html};
     ///# use serde_derive::Deserialize;
     ///# struct Comp;
     ///# impl Component for Comp {
@@ -276,7 +276,7 @@ impl FetchService {
     /// ```
     ///# use yew::format::Nothing;
     ///# use yew::services::fetch::{self, FetchOptions, Credentials};
-    ///# use yew::{Renderable, Html, Component, ComponentLink};
+    ///# use yew::{Html, Component, ComponentLink};
     ///# use yew::services::FetchService;
     ///# use http::Response;
     ///# struct Comp;

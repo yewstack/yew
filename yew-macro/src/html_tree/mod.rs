@@ -18,9 +18,10 @@ use html_prop::HtmlProp;
 use html_prop::HtmlPropSuffix;
 use html_tag::HtmlTag;
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
+use syn::spanned::Spanned;
 
 pub enum HtmlType {
     Block,
@@ -74,7 +75,9 @@ impl PeekValue<HtmlType> for HtmlTree {
 impl ToTokens for HtmlTree {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         match self {
-            HtmlTree::Empty => HtmlList::empty().to_tokens(tokens),
+            HtmlTree::Empty => tokens.extend(quote! {
+                ::yew::virtual_dom::VNode::VList(::yew::virtual_dom::VList::new())
+            }),
             HtmlTree::Component(comp) => comp.to_tokens(tokens),
             HtmlTree::Tag(tag) => tag.to_tokens(tokens),
             HtmlTree::List(list) => list.to_tokens(tokens),
@@ -131,9 +134,10 @@ impl Parse for HtmlRootVNode {
 impl ToTokens for HtmlRootVNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let new_tokens = self.0.to_token_stream();
-        tokens.extend(quote! {
+        tokens.extend(quote! {{
+            #[allow(clippy::useless_conversion, unused_braces)]
             ::yew::virtual_dom::VNode::from(#new_tokens)
-        });
+        }});
     }
 }
 
@@ -185,8 +189,11 @@ impl HtmlChildrenTree {
 
         if self.only_single_node_children() {
             // optimize for the common case where all children are single nodes (only using literal html).
+            let children_into = children
+                .iter()
+                .map(|child| quote_spanned! {child.span()=> ::std::convert::Into::into(#child) });
             return quote! {
-                vec![#((#children).into()),*]
+                vec![#(#children_into),*]
             };
         }
 
@@ -197,8 +204,8 @@ impl HtmlChildrenTree {
                     #vec_ident.extend(#node_iterator_stream);
                 }
             } else {
-                quote! {
-                    #vec_ident.push((#child).into());
+                quote_spanned! {child.span()=>
+                    #vec_ident.push(::std::convert::Into::into(#child));
                 }
             }
         });

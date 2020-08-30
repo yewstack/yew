@@ -19,7 +19,7 @@ cfg_if! {
 pub struct ResizeService {}
 
 /// A handle for the event listener listening for resize events.
-#[must_use]
+#[must_use = "the listener is only active until the task is dropped"]
 pub struct ResizeTask(
     #[cfg(feature = "std_web")] Value,
     #[cfg(feature = "web_sys")] EventListener,

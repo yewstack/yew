@@ -69,6 +69,15 @@ pub fn origin() -> Result<String, Error> {
     Ok(origin)
 }
 
+/// Map IntoIterator<Item=Into<T>> to Iterator<Item=T>
+pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>
+where
+    IT: IntoIterator<Item = T>,
+    T: Into<R>,
+{
+    it.into_iter().map(|n| n.into())
+}
+
 /// A special type necessary for flattening components returned from nested html macros.
 #[derive(Debug)]
 pub struct NodeSeq<IN, OUT>(Vec<OUT>, PhantomData<IN>);

@@ -92,6 +92,11 @@ impl Scheduler {
         self.start();
     }
 
+    pub(crate) fn push_comp_update_batch(&self, it: impl IntoIterator<Item = Box<dyn Runnable>>) {
+        self.component.update.borrow_mut().extend(it);
+        self.start();
+    }
+
     pub(crate) fn push(&self, runnable: Box<dyn Runnable>) {
         self.main.borrow_mut().push_back(runnable);
         self.start();

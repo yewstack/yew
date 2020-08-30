@@ -19,7 +19,7 @@ cfg_if! {
 
 /// A handle which helps to cancel interval. Uses
 /// [clearInterval](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearInterval).
-#[must_use]
+#[must_use = "the interval is only active until the handle is dropped"]
 pub struct IntervalTask(
     #[cfg(feature = "std_web")] Value,
     #[cfg(feature = "web_sys")] Interval,

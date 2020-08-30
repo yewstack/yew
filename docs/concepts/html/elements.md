@@ -1,5 +1,4 @@
 ---
-id: elements
 title: Elements
 description: Both HTML and SVG elements are supported
 ---
@@ -14,6 +13,7 @@ html! {
   <div id="my_div"></div>
 }
 ```
+
 <!--Invalid-->
 ```rust
 html! {

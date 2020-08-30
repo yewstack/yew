@@ -1,6 +1,6 @@
 use super::{Hovered, WeakComponentLink};
-use crate::{header::ListHeader, header::Props as HeaderProps};
-use crate::{item::ListItem, item::Props as ItemProps};
+use crate::header::{ListHeader, Props as HeaderProps};
+use crate::item::{ListItem, Props as ItemProps};
 use yew::html::{ChildrenRenderer, NodeRef};
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VComp, VNode};
@@ -93,12 +93,9 @@ impl Component for List {
 
 impl List {
     fn view_header(&self) -> Html {
-        html! {{
-            for self.props.children.iter().filter(|c| match c.props {
-                Variants::Header(_) => true,
-                _ => false
-            })
-        }}
+        html! {
+            { for self.props.children.iter().filter(|c| matches!(c.props, Variants::Header(_))) }
+        }
     }
 
     fn view_items(&self) -> Html {

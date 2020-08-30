@@ -5,6 +5,7 @@ use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
+use indexmap::IndexMap;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
@@ -74,7 +75,7 @@ pub struct VTag {
     /// Contains
     /// [kind](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types)
     /// value of an `InputElement`.
-    pub kind: Option<String>,
+    pub kind: Option<Cow<'static, str>>,
     /// Represents `checked` attribute of
     /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
     /// It exists to override standard behavior of `checked` attribute, because
@@ -107,7 +108,7 @@ impl Clone for VTag {
 
 impl VTag {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
-    pub fn new<S: Into<Cow<'static, str>>>(tag: S) -> Self {
+    pub fn new(tag: impl Into<Cow<'static, str>>) -> Self {
         let tag: Cow<'static, str> = tag.into();
         let element_type = ElementType::from_tag(&tag);
         VTag {
@@ -151,8 +152,8 @@ impl VTag {
     /// Sets `kind` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// Same as set `type` attribute.
-    pub fn set_kind<T: ToString>(&mut self, value: &T) {
-        self.kind = Some(value.to_string());
+    pub fn set_kind(&mut self, value: impl Into<Cow<'static, str>>) {
+        self.kind = Some(value.into());
     }
 
     /// Sets `checked` property of an
@@ -162,22 +163,41 @@ impl VTag {
         self.checked = value;
     }
 
-    /// Adds attribute to a virtual node. Not every attribute works when
-    /// it set as attribute. We use workarounds for:
-    /// `type/kind`, `value` and `checked`.
+    /// Pushes a key-value pair to the Vec variant of attributes.
     ///
-    /// If this virtual node has this attribute present, the value is replaced.
-    pub fn add_attribute<T: ToString>(&mut self, name: &str, value: &T) {
-        self.attributes.insert(name.to_owned(), value.to_string());
+    /// It is the responsibility of the caller to ensure the attribute list does not contain
+    /// duplicate keys.
+    ///
+    /// Not every attribute works when it set as an attribute. We use workarounds for:
+    /// `type/kind`, `value` and `checked`.
+    pub fn push_attribute(&mut self, key: &'static str, value: impl Into<Cow<'static, str>>) {
+        if let Attributes::Vec(v) = &mut self.attributes {
+            v.push((key, value.into()));
+        }
     }
 
-    /// Adds attributes to a virtual node. Not every attribute works when
-    /// it set as attribute. We use workarounds for:
+    /// Adds a key-value pair to attributes
+    ///
+    /// Not every attribute works when it set as an attribute. We use workarounds for:
     /// `type/kind`, `value` and `checked`.
-    pub fn add_attributes(&mut self, attrs: Vec<(String, String)>) {
-        for (name, value) in attrs {
-            self.attributes.insert(name, value);
-        }
+    pub fn add_attribute(&mut self, key: &'static str, value: impl Into<Cow<'static, str>>) {
+        self.attributes_mut().insert(key, value.into());
+    }
+
+    /// Returns a mutable reference to the IndexMap variant of attributes.
+    ///
+    /// Not every attribute works when it set as an attribute. We use workarounds for:
+    /// `type/kind`, `value` and `checked`.
+    pub fn attributes_mut(&mut self) -> &mut IndexMap<&'static str, Cow<'static, str>> {
+        self.attributes.as_mut()
+    }
+
+    /// Sets attributes to a virtual node.
+    ///
+    /// Not every attribute works when it set as an attribute. We use workarounds for:
+    /// `type/kind`, `value` and `checked`.
+    pub fn set_attributes(&mut self, attrs: impl Into<Attributes>) {
+        self.attributes = attrs.into();
     }
 
     /// Adds a new listener to the node
@@ -226,36 +246,132 @@ impl VTag {
         }
     }
 
-    /// This handles patching of attributes when the keys are equal but
-    /// the values are different.
-    fn diff_attributes<'a>(
-        &'a self,
-        ancestor: &'a Option<Box<Self>>,
-    ) -> impl Iterator<Item = Patch<&'a str, &'a str>> + 'a {
-        // Only change what is necessary.
-        let to_add_or_replace =
-            self.attributes.iter().filter_map(move |(key, value)| {
-                match ancestor
-                    .as_ref()
-                    .and_then(|ancestor| ancestor.attributes.get(&**key))
-                {
-                    None => Some(Patch::Add(&**key, &**value)),
-                    Some(ancestor_value) if value != ancestor_value => {
-                        Some(Patch::Replace(&**key, &**value))
-                    }
-                    _ => None,
-                }
-            });
-        let to_remove = ancestor
-            .iter()
-            .flat_map(|ancestor| ancestor.attributes.keys())
-            .filter(move |key| !self.attributes.contains_key(&**key))
-            .map(|key| Patch::Remove(&**key));
+    /// Diffs attributes between the old and new lists.
+    ///
+    /// This method optimises for the lists being the same length, having the
+    /// same keys in the same order - most common case.
+    fn diff_attributes_vectors<'a>(
+        new: &'a [(&'static str, Cow<'static, str>)],
+        old: &'a [(&'static str, Cow<'static, str>)],
+    ) -> Vec<Patch<&'static str, &'a str>> {
+        let mut out = Vec::new();
 
-        to_add_or_replace.chain(to_remove)
+        if new.len() != old.len() {
+            diff_incompatible(&mut out, new, old);
+            return out;
+        }
+
+        for (i, (n, o)) in new.iter().zip(old).enumerate() {
+            if n.0 != o.0 {
+                diff_incompatible(&mut out, &new[i..], &old[i..]);
+                break;
+            }
+            if n.1 != o.1 {
+                out.push(Patch::Replace(n.0, &n.1));
+            }
+        }
+
+        return out;
+
+        /// Diffs attribute lists that do not contain the same set of keys in
+        /// the same order
+        fn diff_incompatible<'a>(
+            dst: &mut Vec<Patch<&'static str, &'a str>>,
+            new: &'a [(&'static str, Cow<'static, str>)],
+            old: &'a [(&'static str, Cow<'static, str>)],
+        ) {
+            use std::collections::HashMap;
+
+            macro_rules! collect {
+                ($src:expr) => {
+                    $src.iter()
+                        .map(|(k, v)| (*k, v))
+                        .collect::<HashMap<&'static str, &Cow<'static, str>>>()
+                };
+            }
+
+            let new = collect!(new);
+            let old = collect!(old);
+
+            for (k, n_v) in new.iter() {
+                match old.get(k) {
+                    Some(o_v) => {
+                        if n_v != o_v {
+                            dst.push(Patch::Replace(k, n_v));
+                        }
+                    }
+                    None => dst.push(Patch::Add(k, n_v)),
+                };
+            }
+
+            for k in old.keys() {
+                if !new.contains_key(k) {
+                    dst.push(Patch::Remove(k));
+                }
+            }
+        }
     }
 
-    /// Similar to `diff_attributes` except there is only a single `kind`.
+    /// Diffs attributes between the old and new IndexMaps.
+    ///
+    /// This method must be used, if either the new or old node were created without using the html!
+    /// macro, that provides compile-time attribute deduplication.
+    fn diff_attributes_indexmaps<'a>(
+        new: &'a IndexMap<&'static str, Cow<'static, str>>,
+        old: &'a IndexMap<&'static str, Cow<'static, str>>,
+    ) -> Vec<Patch<&'static str, &'a str>> {
+        use indexmap::map::Iter;
+        use std::iter::Peekable;
+
+        let mut out = Vec::new();
+        let mut new_iter = new.iter().peekable();
+        let mut old_iter = old.iter().peekable();
+        loop {
+            if new_iter.peek().is_none() || old_iter.peek().is_none() {
+                break;
+            }
+            match (new_iter.next(), old_iter.next()) {
+                (Some(n), Some(o)) => {
+                    if n.0 != o.0 {
+                        break;
+                    }
+                    if n.1 != o.1 {
+                        out.push(Patch::Replace(*n.0, n.1.as_ref()));
+                    }
+                }
+                _ => break,
+            }
+        }
+        diff_incompatible(&mut out, new_iter, old_iter, &new, &old);
+        return out;
+
+        fn diff_incompatible<'a>(
+            dst: &mut Vec<Patch<&'static str, &'a str>>,
+            new_keys: Peekable<Iter<'a, &'static str, Cow<'static, str>>>,
+            old_keys: Peekable<Iter<'a, &'static str, Cow<'static, str>>>,
+            new_map: &'a IndexMap<&'static str, Cow<'static, str>>,
+            old_map: &'a IndexMap<&'static str, Cow<'static, str>>,
+        ) {
+            for (k, n_v) in new_keys {
+                match old_map.get(k) {
+                    Some(o_v) => {
+                        if n_v != o_v {
+                            dst.push(Patch::Replace(k, n_v));
+                        }
+                    }
+                    None => dst.push(Patch::Add(k, n_v)),
+                };
+            }
+
+            for (k, _) in old_keys {
+                if !new_map.contains_key(k) {
+                    dst.push(Patch::Remove(k));
+                }
+            }
+        }
+    }
+
+    /// Compares new kind with ancestor and produces a patch to apply, if any
     fn diff_kind<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
             self.kind.as_ref(),
@@ -274,7 +390,7 @@ impl VTag {
         }
     }
 
-    /// Almost identical in spirit to `diff_kind`
+    /// Compares new value with ancestor and produces a patch to apply, if any
     fn diff_value<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
             self.value.as_ref(),
@@ -293,14 +409,45 @@ impl VTag {
         }
     }
 
-    fn apply_diffs(&mut self, ancestor: &Option<Box<Self>>) {
+    fn apply_diffs(&mut self, ancestor: &mut Option<Box<Self>>) {
         let element = self.reference.as_ref().expect("element expected");
 
-        // Update parameters
-        let changes = self.diff_attributes(ancestor);
-
-        // apply attribute patches including an optional "class"-attribute patch
-        for change in changes {
+        // Apply attribute patches including an optional "class"-attribute patch.
+        macro_rules! add_all {
+            ($src:expr) => {
+                $src.iter()
+                    .map(|(k, v)| Patch::Add(*k, v.as_ref()))
+                    .collect()
+            };
+        }
+        for change in match (
+            &mut self.attributes,
+            &mut ancestor.as_mut().map(|a| &mut a.attributes),
+        ) {
+            (Attributes::Vec(new), Some(Attributes::Vec(old))) => {
+                Self::diff_attributes_vectors(new, old)
+            }
+            (Attributes::IndexMap(new), Some(Attributes::IndexMap(old))) => {
+                Self::diff_attributes_indexmaps(new, old)
+            }
+            (Attributes::Vec(new), None) => add_all!(new),
+            (Attributes::IndexMap(new), None) => add_all!(new),
+            (Attributes::Vec(new), Some(Attributes::IndexMap(old))) => {
+                self.attributes = Attributes::new_indexmap(std::mem::take(new));
+                match &self.attributes {
+                    Attributes::IndexMap(new) => Self::diff_attributes_indexmaps(new, old),
+                    _ => unreachable!(),
+                }
+            }
+            (Attributes::IndexMap(new), Some(Attributes::Vec(old))) => {
+                ancestor.as_mut().unwrap().attributes =
+                    Attributes::new_indexmap(std::mem::take(old));
+                match &ancestor.as_ref().map(|a| &a.attributes) {
+                    Some(Attributes::IndexMap(old)) => Self::diff_attributes_indexmaps(new, old),
+                    _ => unreachable!(),
+                }
+            }
+        } {
             match change {
                 Patch::Add(key, value) | Patch::Replace(key, value) => {
                     element
@@ -310,7 +457,8 @@ impl VTag {
                 Patch::Remove(key) => {
                     cfg_match! {
                         feature = "std_web" => element.remove_attribute(&key),
-                        feature = "web_sys" => element.remove_attribute(&key).expect("could not remove attribute"),
+                        feature = "web_sys" => element.remove_attribute(&key)
+                                                      .expect("could not remove attribute"),
                     };
                 }
             }
@@ -396,7 +544,8 @@ impl VTag {
     }
 
     fn create_element(&self, parent: &Element) -> Element {
-        if self.tag == "svg"
+        let tag = self.tag();
+        if tag == "svg"
             || parent
                 .namespace_uri()
                 .map_or(false, |ns| ns == SVG_NAMESPACE)
@@ -406,11 +555,11 @@ impl VTag {
                 feature = "web_sys" => Some(SVG_NAMESPACE),
             };
             document()
-                .create_element_ns(namespace, &self.tag)
+                .create_element_ns(namespace, tag)
                 .expect("can't create namespaced element for vtag")
         } else {
             document()
-                .create_element(&self.tag)
+                .create_element(tag)
                 .expect("can't create element for vtag")
         }
     }
@@ -431,6 +580,7 @@ impl VDiff for VTag {
         if parent.remove_child(&node).is_err() {
             warn!("Node not found to remove VTag");
         }
+        self.node_ref.set(None);
     }
 
     /// Renders virtual tag over DOM `Element`, but it also compares this with an ancestor `VTag`
@@ -448,7 +598,7 @@ impl VDiff for VTag {
             match ancestor {
                 // If the ancestor is a tag of the same type, don't recreate, keep the
                 // old tag and update its attributes and children.
-                VNode::VTag(vtag) if self.tag == vtag.tag && self.key == vtag.key => Some(vtag),
+                VNode::VTag(vtag) if self.tag() == vtag.tag() && self.key == vtag.key => Some(vtag),
                 _ => {
                     let element = self.create_element(parent);
                     super::insert_node(&element, parent, Some(ancestor.first_node()));
@@ -475,7 +625,7 @@ impl VDiff for VTag {
             self.reference = Some(element);
         }
 
-        self.apply_diffs(&ancestor_tag);
+        self.apply_diffs(&mut ancestor_tag);
 
         // Process children
         let element = self.reference.as_ref().expect("Reference should be set");
@@ -648,7 +798,7 @@ mod tests {
         };
 
         let d = html! {
-            <div class=format!("fail")></div>
+            <div class=format!("fail{}", "")></div>
         };
 
         assert_eq!(a, b);
@@ -679,8 +829,9 @@ mod tests {
     /// Returns the class attribute as str reference, or "" if the attribute is not set.
     fn get_class_str(vtag: &VTag) -> &str {
         vtag.attributes
-            .get("class")
-            .map(AsRef::as_ref)
+            .iter()
+            .find(|(k, _)| k == &"class")
+            .map(|(_, v)| AsRef::as_ref(v))
             .unwrap_or("")
     }
 
@@ -711,7 +862,7 @@ mod tests {
     #[test]
     fn supports_multiple_classes_string() {
         let a = html! {
-            <div class="class-1 class-2   class-3"></div>
+            <div class="class-1 class-2 class-3"></div>
         };
 
         let b = html! {
@@ -797,31 +948,37 @@ mod tests {
     #[test]
     fn filter_empty_string_classes() {
         let a = html! { <div class=vec![""]></div> };
-        let b = html! { <div class=("")></div> };
+        let b = html! { <div class=("", "")></div> };
         let c = html! { <div class=""></div> };
         let d_arr = [""];
         let d = html! { <div class=&d_arr[..]></div> };
 
+        macro_rules! has_class {
+            ($vtag:expr) => {
+                $vtag.attributes.iter().any(|(k, _)| k == "class")
+            };
+        }
+
         if let VNode::VTag(vtag) = a {
-            assert!(!vtag.attributes.contains_key("class"));
+            assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = b {
-            assert!(!vtag.attributes.contains_key("class"));
+            assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = c {
-            assert!(!vtag.attributes.contains_key("class"));
+            assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = d {
-            assert!(!vtag.attributes.contains_key("class"));
+            assert!(!vtag.attributes.iter().any(|(k, _)| k == "class"));
         } else {
             panic!("vtag expected");
         }
@@ -877,7 +1034,7 @@ mod tests {
     #[test]
     fn keeps_order_of_classes() {
         let a = html! {
-            <div class="class-1 class-2   class-3",></div>
+            <div class=vec!["class-1", "class-2", "class-3"],></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -963,10 +1120,12 @@ mod tests {
             </p>
         };
         if let VNode::VTag(vtag) = a {
-            assert!(vtag.attributes.contains_key("aria-controls"));
             assert_eq!(
-                vtag.attributes.get("aria-controls"),
-                Some(&"it-works".into())
+                vtag.attributes
+                    .iter()
+                    .find(|(k, _)| k == &"aria-controls")
+                    .map(|(_, v)| v),
+                Some("it-works")
             );
         } else {
             panic!("vtag expected");
@@ -1330,7 +1489,7 @@ mod tests {
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // make sure the new tag name is used internally
-        assert_eq!(vtag.tag, "a");
+        assert_eq!(vtag.tag(), "a");
 
         #[cfg(feature = "web_sys")]
         // Element.tagName is always in the canonical upper-case form.
@@ -1344,17 +1503,19 @@ mod tests {
         };
         let div_vtag = assert_vtag(&mut div_el);
         assert!(div_vtag.value.is_none());
-        assert_eq!(
-            div_vtag.attributes.get("value").map(String::as_str),
-            Some("Hello")
-        );
+        let v: Option<&str> = div_vtag
+            .attributes
+            .iter()
+            .find(|(k, _)| k == &"value")
+            .map(|(_, v)| AsRef::as_ref(v));
+        assert_eq!(v, Some("Hello"));
 
         let mut input_el = html! {
             <@{"input"} value="World"/>
         };
         let input_vtag = assert_vtag(&mut input_el);
         assert_eq!(input_vtag.value, Some("World".to_string()));
-        assert!(!input_vtag.attributes.contains_key("value"));
+        assert!(!input_vtag.attributes.iter().any(|(k, _)| k == "value"));
     }
 
     #[test]
@@ -1365,10 +1526,36 @@ mod tests {
         let vtag = assert_vtag(&mut el);
         assert_eq!(vtag.tag(), "textarea");
     }
+
+    #[test]
+    fn reset_node_ref() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let node_ref = NodeRef::default();
+        let mut elem: VNode = html! { <div ref=node_ref.clone()></div> };
+        assert_vtag(&mut elem);
+        elem.apply(&scope, &parent, NodeRef::default(), None);
+        let parent_node = cfg_match! {
+            feature = "std_web" => parent.as_node(),
+            feature = "web_sys" => parent.deref(),
+        };
+        assert_eq!(node_ref.get(), parent_node.first_child());
+        elem.detach(&parent);
+        assert!(node_ref.get().is_none());
+    }
 }
 
 #[cfg(all(test, feature = "web_sys"))]
 mod layout_tests {
+    extern crate self as yew;
+
+    use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]
@@ -1457,5 +1644,182 @@ mod layout_tests {
         };
 
         diff_layouts(vec![layout1, layout2, layout3, layout4]);
+    }
+}
+
+#[cfg(all(test, feature = "web_sys", feature = "wasm_test"))]
+mod benchmarks {
+    use super::{Patch, VTag};
+    use easybench_wasm::bench_env_limit;
+    use std::borrow::Cow;
+    use std::collections::HashMap;
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    // In seconds
+    const BENCHMARK_DURATION: f64 = 1.0;
+
+    fn diff_attributes_hashmap<'a>(
+        new: &'a HashMap<&'static str, Cow<'static, str>>,
+        old: &'a HashMap<&'static str, Cow<'static, str>>,
+    ) -> Vec<Patch<&'static str, &'a str>> {
+        // Only change what is necessary.
+        let to_add_or_replace = new
+            .iter()
+            .filter_map(move |(key, value)| match old.get(key) {
+                None => Some(Patch::Add(&**key, &**value)),
+                Some(ancestor_value) if value != ancestor_value => {
+                    Some(Patch::Replace(&**key, &**value))
+                }
+                _ => None,
+            });
+        let to_remove = old
+            .keys()
+            .filter(move |key| !new.contains_key(&**key))
+            .map(|key| Patch::Remove(&**key));
+
+        to_add_or_replace.chain(to_remove).collect()
+    }
+
+    macro_rules! bench_attrs {
+        ($name:ident, $args:expr) => {
+            #[test]
+            fn $name() {
+                let env = $args;
+
+                macro_rules! build_map {
+                    ($type:ident, $src:expr) => {
+                        &$src
+                            .into_iter()
+                            .collect::<$type<&'static str, Cow<'static, str>>>();
+                    };
+                }
+
+                wasm_bindgen_test::console_log!(
+                    "{}: hashmaps: {}",
+                    stringify!($name),
+                    bench_env_limit(BENCHMARK_DURATION, env.clone(), |(a, b)| {
+                        format!(
+                            "{:?}",
+                            diff_attributes_hashmap(build_map!(HashMap, a), build_map!(HashMap, b))
+                        )
+                    })
+                );
+                wasm_bindgen_test::console_log!(
+                    "{}: indexmaps: {}",
+                    stringify!($name),
+                    bench_env_limit(BENCHMARK_DURATION, env.clone(), |(a, b)| {
+                        use indexmap::IndexMap;
+
+                        format!(
+                            "{:?}",
+                            VTag::diff_attributes_indexmaps(
+                                build_map!(IndexMap, a),
+                                build_map!(IndexMap, b)
+                            )
+                        )
+                    })
+                );
+                wasm_bindgen_test::console_log!(
+                    "{}: vectors: {}",
+                    stringify!($name),
+                    bench_env_limit(BENCHMARK_DURATION, env.clone(), |(a, b)| format!(
+                        "{:?}",
+                        VTag::diff_attributes_vectors(&a, &b)
+                    ))
+                );
+            }
+        };
+    }
+
+    // Fill vector wit more attributes
+    fn extend_attrs(dst: &mut Vec<(&'static str, Cow<'static, str>)>) {
+        dst.extend(vec![
+            ("oh", Cow::Borrowed("danny")),
+            ("boy", Cow::Borrowed("the")),
+            ("pipes", Cow::Borrowed("the")),
+            ("are", Cow::Borrowed("calling")),
+            ("from", Cow::Borrowed("glen")),
+            ("to", Cow::Borrowed("glen")),
+            ("and", Cow::Borrowed("down")),
+            ("the", Cow::Borrowed("mountain")),
+            ("side", Cow::Borrowed("")),
+        ]);
+    }
+
+    bench_attrs! {
+        bench_diff_attributes_same,
+        {
+            let mut old: Vec<(&'static str, Cow<'static, str>)> = vec![
+                ("disable", Cow::Borrowed("disable")),
+                ("style", Cow::Borrowed("display: none;")),
+                ("class", Cow::Borrowed("lass")),
+            ];
+            extend_attrs(&mut old);
+            (old.clone(), old)
+        }
+    }
+
+    bench_attrs! {
+        bench_diff_attributes_append,
+        {
+            let mut old = vec![
+                ("disable", Cow::Borrowed("disable")),
+                ("style", Cow::Borrowed("display: none;")),
+                ("class", Cow::Borrowed("lass")),
+            ];
+            extend_attrs(&mut old);
+            let mut new = old.clone();
+            new.push(("hidden", Cow::Borrowed("hidden")));
+            (new, old)
+        }
+    }
+
+    bench_attrs! {
+        bench_diff_attributes_change_first,
+        {
+            let mut old = vec![
+                ("disable", Cow::Borrowed("disable")),
+                ("style", Cow::Borrowed("display: none;")),
+                ("class", Cow::Borrowed("lass")),
+            ];
+            extend_attrs(&mut old);
+            let mut new = old.clone();
+            new[0] = ("disable", Cow::Borrowed("enable"));
+            (new, old)
+        }
+    }
+
+    bench_attrs! {
+        bench_diff_attributes_change_middle,
+        {
+            let mut old = vec![
+                ("disable", Cow::Borrowed("disable")),
+                ("style", Cow::Borrowed("display: none;")),
+                ("class", Cow::Borrowed("lass")),
+            ];
+            extend_attrs(&mut old);
+            let mut new = old.clone();
+            let mid = &mut new.get_mut(old.len()/2).unwrap();
+            mid.1 = Cow::Borrowed("changed");
+            (new, old)
+        }
+    }
+
+    bench_attrs! {
+        bench_diff_attributes_change_last,
+        {
+            let mut old = vec![
+                ("disable", Cow::Borrowed("disable")),
+                ("style", Cow::Borrowed("display: none;")),
+                ("class", Cow::Borrowed("lass")),
+            ];
+            extend_attrs(&mut old);
+            let mut new = old.clone();
+            let last = &mut new.get_mut(old.len()-1).unwrap();
+            last.1 = Cow::Borrowed("changed");
+            (new, old)
+        }
     }
 }

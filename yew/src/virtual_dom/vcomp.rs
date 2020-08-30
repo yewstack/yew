@@ -282,6 +282,11 @@ mod tests {
     use super::*;
     use crate::macros::Properties;
     use crate::{html, Children, Component, ComponentLink, Html, NodeRef, ShouldRender};
+    use cfg_match::cfg_match;
+
+    #[cfg(feature = "std_web")]
+    use stdweb::web::INode;
+
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
@@ -315,7 +320,7 @@ mod tests {
         }
 
         fn view(&self) -> Html {
-            unimplemented!();
+            html! { <div/> }
         }
     }
 
@@ -498,7 +503,7 @@ mod tests {
 
         let children_renderer_method = html! {
             <List>
-                { children_renderer.clone() }
+                { children_renderer }
             </List>
         };
         assert_eq!(
@@ -520,10 +525,39 @@ mod tests {
         };
         assert_eq!(get_html(for_method, &scope, &parent), expected_html);
     }
+
+    #[test]
+    fn reset_node_ref() {
+        let scope = AnyScope {
+            type_id: std::any::TypeId::of::<()>(),
+            parent: None,
+            state: std::rc::Rc::new(()),
+        };
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let node_ref = NodeRef::default();
+        let mut elem: VNode = html! { <Comp ref=node_ref.clone()></Comp> };
+        elem.apply(&scope, &parent, NodeRef::default(), None);
+        let parent_node = cfg_match! {
+            feature = "std_web" => parent.as_node(),
+            feature = "web_sys" => parent.deref(),
+        };
+        assert_eq!(node_ref.get(), parent_node.first_child());
+        elem.detach(&parent);
+        assert!(node_ref.get().is_none());
+    }
 }
 
 #[cfg(all(test, feature = "web_sys"))]
 mod layout_tests {
+    extern crate self as yew;
+
+    use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
     use crate::{Children, Component, ComponentLink, Html, Properties, ShouldRender};
     use std::marker::PhantomData;

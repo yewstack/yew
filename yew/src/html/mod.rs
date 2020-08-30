@@ -7,7 +7,7 @@ mod listener;
 mod scope;
 
 pub use listener::*;
-pub use scope::{AnyScope, Scope};
+pub use scope::{AnyScope, Scope, SendAsMessage};
 pub(crate) use scope::{ComponentUpdate, Scoped};
 
 use crate::callback::Callback;
@@ -121,6 +121,7 @@ pub trait Component: Sized + 'static {
     ///    }
     /// }
     ///# }
+    /// ```
     fn rendered(&mut self, _first_render: bool) {}
 
     /// The `destroy` method is called right before a Component is unmounted.
@@ -198,7 +199,7 @@ pub type Children = ChildrenRenderer<Html>;
 ///
 /// In this example, the `List` component can wrap `ListItem` components.
 /// ```
-///# use yew::{html, Component, Renderable, Html, ComponentLink, ChildrenWithProps, Properties};
+///# use yew::{html, Component, Html, ComponentLink, ChildrenWithProps, Properties};
 ///#
 ///# #[derive(Clone, Properties)]
 ///# struct ListProps {
@@ -457,18 +458,6 @@ impl NodeRef {
     }
 }
 
-/// Trait for rendering virtual DOM elements
-pub trait Renderable {
-    /// Called by rendering loop.
-    fn render(&self) -> Html;
-}
-
-impl<COMP: Component> Renderable for COMP {
-    fn render(&self) -> Html {
-        self.view()
-    }
-}
-
 /// Trait for building properties for a component
 pub trait Properties: Clone {
     /// Builder that will be used to construct properties
@@ -498,32 +487,6 @@ impl EmptyBuilder {
 
 /// Link to component's scope for creating callbacks.
 pub type ComponentLink<COMP> = Scope<COMP>;
-
-/// A bridging type for checking `href` attribute value.
-#[derive(Debug)]
-pub struct Href {
-    link: String,
-}
-
-impl From<String> for Href {
-    fn from(link: String) -> Self {
-        Href { link }
-    }
-}
-
-impl<'a> From<&'a str> for Href {
-    fn from(link: &'a str) -> Self {
-        Href {
-            link: link.to_owned(),
-        }
-    }
-}
-
-impl ToString for Href {
-    fn to_string(&self) -> String {
-        self.link.to_owned()
-    }
-}
 
 #[cfg(test)]
 mod tests {

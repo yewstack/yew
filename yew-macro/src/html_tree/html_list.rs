@@ -9,17 +9,9 @@ use syn::spanned::Spanned;
 use syn::{Expr, Token};
 
 pub struct HtmlList {
+    open: HtmlListOpen,
     children: HtmlChildrenTree,
-    key: Option<Expr>,
-}
-
-impl HtmlList {
-    pub fn empty() -> Self {
-        Self {
-            children: HtmlChildrenTree::new(),
-            key: None,
-        }
-    }
+    close: HtmlListClose,
 }
 
 impl PeekValue<()> for HtmlList {
@@ -54,24 +46,32 @@ impl Parse for HtmlList {
             }
         }
 
-        input.parse::<HtmlListClose>()?;
+        let close = input.parse::<HtmlListClose>()?;
 
         Ok(HtmlList {
+            open,
             children,
-            key: open.props.key,
+            close,
         })
     }
 }
 
 impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let children = &self.children;
-        let key = if let Some(key) = &self.key {
-            quote_spanned! {key.span()=> Some(::yew::virtual_dom::Key::from(#key))}
+        let Self {
+            open,
+            children,
+            close,
+        } = &self;
+
+        let key = if let Some(key) = &open.props.key {
+            quote_spanned! {key.span()=> Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))}
         } else {
             quote! {None}
         };
-        tokens.extend(quote! {
+
+        let open_close_tokens = quote! {#open#close};
+        tokens.extend(quote_spanned! {open_close_tokens.span()=>
             ::yew::virtual_dom::VNode::VList(
                 ::yew::virtual_dom::VList::new_with_children(#children, #key)
             )

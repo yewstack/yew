@@ -1,7 +1,7 @@
 //! This module contains the implementation of abstract virtual node.
 
 use super::{Key, VChild, VComp, VDiff, VList, VTag, VText};
-use crate::html::{AnyScope, Component, NodeRef, Renderable};
+use crate::html::{AnyScope, Component, NodeRef};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;
@@ -182,12 +182,6 @@ impl<T: ToString> From<T> for VNode {
     }
 }
 
-impl<'a> From<&'a dyn Renderable> for VNode {
-    fn from(value: &'a dyn Renderable) -> Self {
-        value.render()
-    }
-}
-
 impl<A: Into<VNode>> FromIterator<A> for VNode {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
         let vlist = iter.into_iter().fold(VList::default(), |mut acc, x| {
@@ -243,13 +237,13 @@ mod layout_tests {
 
         let layout1 = TestLayout {
             name: "1",
-            node: vref_node_1.into(),
+            node: vref_node_1,
             expected: "<i></i>",
         };
 
         let layout2 = TestLayout {
             name: "2",
-            node: vref_node_2.into(),
+            node: vref_node_2,
             expected: "<b></b>",
         };
 

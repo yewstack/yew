@@ -1,4 +1,4 @@
-use super::{Callback, Component, NodeRef, Renderable};
+use super::{Callback, Component, NodeRef};
 use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use cfg_if::cfg_if;
@@ -209,6 +209,12 @@ impl<COMP: Component> Scope<COMP> {
     /// Please be aware that currently this method synchronously
     /// schedules calls to the [Component](Component) interface.
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
+        // There is no reason to schedule empty batches.
+        // This check is especially handy for the batch_callback method.
+        if messages.is_empty() {
+            return;
+        }
+
         self.update(ComponentUpdate::MessageBatch(messages));
     }
 
@@ -291,17 +297,27 @@ impl<COMP: Component> Scope<COMP> {
     /// Creates a `Callback` which will send a batch of messages back
     /// to the linked component's update method when invoked.
     ///
+    /// The callback function's return type is generic to allow for dealing with both
+    /// `Option` and `Vec` nicely. `Option` can be used when dealing with a callback that
+    /// might not need to send an update.
+    ///
+    /// ```ignore
+    /// link.batch_callback(|_| vec![Msg::A, Msg::B]);
+    /// link.batch_callback(|_| Some(Msg::A));
+    /// ```
+    ///
     /// Please be aware that currently the results of these callbacks
     /// will synchronously schedule calls to the
     /// [Component](Component) interface.
-    pub fn batch_callback<F, IN>(&self, function: F) -> Callback<IN>
+    pub fn batch_callback<F, IN, OUT>(&self, function: F) -> Callback<IN>
     where
-        F: Fn(IN) -> Vec<COMP::Message> + 'static,
+        F: Fn(IN) -> OUT + 'static,
+        OUT: SendAsMessage<COMP>,
     {
         let scope = self.clone();
         let closure = move |input| {
             let messages = function(input);
-            scope.send_message_batch(messages);
+            messages.send(&scope);
         };
         closure.into()
     }
@@ -309,19 +325,57 @@ impl<COMP: Component> Scope<COMP> {
     /// Creates a `Callback` from an `FnOnce` which will send a batch of messages back
     /// to the linked component's update method when invoked.
     ///
+    /// The callback function's return type is generic to allow for dealing with both
+    /// `Option` and `Vec` nicely. `Option` can be used when dealing with a callback that
+    /// might not need to send an update.
+    ///
+    /// ```ignore
+    /// link.batch_callback_once(|_| vec![Msg::A, Msg::B]);
+    /// link.batch_callback_once(|_| Some(Msg::A));
+    /// ```
+    ///
     /// Please be aware that currently the results of these callbacks
     /// will synchronously schedule calls to the
     /// [Component](Component) interface.
-    pub fn batch_callback_once<F, IN>(&self, function: F) -> Callback<IN>
+    pub fn batch_callback_once<F, IN, OUT>(&self, function: F) -> Callback<IN>
     where
-        F: FnOnce(IN) -> Vec<COMP::Message> + 'static,
+        F: FnOnce(IN) -> OUT + 'static,
+        OUT: SendAsMessage<COMP>,
     {
         let scope = self.clone();
         let closure = move |input| {
             let messages = function(input);
-            scope.send_message_batch(messages);
+            messages.send(&scope);
         };
         Callback::once(closure)
+    }
+}
+
+/// Defines a message type that can be sent to a component.
+/// Used for the return value of closure given to [Scope::batch_callback](struct.Scope.html#method.batch_callback).
+pub trait SendAsMessage<COMP: Component> {
+    /// Sends the message to the given component's scope.
+    /// See [Scope::batch_callback](struct.Scope.html#method.batch_callback).
+    fn send(self, scope: &Scope<COMP>);
+}
+
+impl<COMP> SendAsMessage<COMP> for Option<COMP::Message>
+where
+    COMP: Component,
+{
+    fn send(self, scope: &Scope<COMP>) {
+        if let Some(msg) = self {
+            scope.send_message(msg);
+        }
+    }
+}
+
+impl<COMP> SendAsMessage<COMP> for Vec<COMP::Message>
+where
+    COMP: Component,
+{
+    fn send(self, scope: &Scope<COMP>) {
+        scope.send_message_batch(self);
     }
 }
 
@@ -421,10 +475,7 @@ where
                 return;
             }
 
-            let first_update = match self.update {
-                ComponentUpdate::First => true,
-                _ => false,
-            };
+            let first_update = matches!(self.update, ComponentUpdate::First);
 
             let should_update = match self.update {
                 ComponentUpdate::First => true,
@@ -440,7 +491,7 @@ where
             };
 
             if should_update {
-                state.new_root = Some(state.component.render());
+                state.new_root = Some(state.component.view());
                 scheduler().push_comp(
                     ComponentRunnableType::Render,
                     Box::new(RenderComponent {
@@ -515,8 +566,13 @@ where
 
             state.has_rendered = true;
             state.component.rendered(self.first_render);
-            for update in state.pending_updates.drain(..) {
-                scheduler().push_comp(ComponentRunnableType::Update, update);
+            if !state.pending_updates.is_empty() {
+                scheduler().push_comp_update_batch(
+                    state
+                        .pending_updates
+                        .drain(..)
+                        .map(|u| u as Box<dyn Runnable>),
+                );
             }
         }
     }
@@ -540,12 +596,16 @@ where
             if let Some(last_frame) = &mut state.last_root {
                 last_frame.detach(&state.parent);
             }
+            state.node_ref.set(None);
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    extern crate self as yew;
+
+    use crate::html;
     use crate::html::*;
     use crate::Properties;
     use std::ops::Deref;
@@ -672,7 +732,7 @@ mod tests {
     }
 
     #[test]
-    fn lifecyle_tests() {
+    fn lifecycle_tests() {
         let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
 
         test_lifecycle(
@@ -680,7 +740,7 @@ mod tests {
                 lifecycle: lifecycle.clone(),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -694,7 +754,7 @@ mod tests {
                 create_message: Some(false),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -709,7 +769,7 @@ mod tests {
                 view_message: RefCell::new(Some(true)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -726,7 +786,7 @@ mod tests {
                 view_message: RefCell::new(Some(false)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -741,7 +801,7 @@ mod tests {
                 rendered_message: RefCell::new(Some(false)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -756,7 +816,7 @@ mod tests {
                 rendered_message: RefCell::new(Some(true)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),
@@ -769,12 +829,12 @@ mod tests {
 
         test_lifecycle(
             Props {
-                lifecycle: lifecycle.clone(),
+                lifecycle,
                 create_message: Some(true),
                 update_message: RefCell::new(Some(true)),
                 ..Props::default()
             },
-            &vec![
+            &[
                 "create".to_string(),
                 "view".to_string(),
                 "child rendered".to_string(),

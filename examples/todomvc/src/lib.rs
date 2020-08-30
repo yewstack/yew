@@ -1,13 +1,15 @@
 #![recursion_limit = "512"]
 
 use serde_derive::{Deserialize, Serialize};
+use std::borrow::Cow;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, ToString};
 use wasm_bindgen::prelude::*;
 use yew::events::KeyboardEvent;
 use yew::format::Json;
 use yew::services::storage::{Area, StorageService};
-use yew::{html, Component, ComponentLink, Href, Html, InputData, ShouldRender};
+use yew::web_sys::HtmlInputElement as InputElement;
+use yew::{html, Component, ComponentLink, Html, InputData, NodeRef, ShouldRender};
 
 const KEY: &str = "yew.todomvc.self";
 
@@ -15,6 +17,7 @@ pub struct Model {
     link: ComponentLink<Self>,
     storage: StorageService,
     state: State,
+    focus_ref: NodeRef,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -43,7 +46,7 @@ pub enum Msg {
     ToggleEdit(usize),
     Toggle(usize),
     ClearCompleted,
-    Nope,
+    Focus,
 }
 
 impl Component for Model {
@@ -65,26 +68,31 @@ impl Component for Model {
             value: "".into(),
             edit_value: "".into(),
         };
+        let focus_ref = NodeRef::default();
         Model {
             link,
             storage,
             state,
+            focus_ref,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Add => {
-                let entry = Entry {
-                    description: self.state.value.clone(),
-                    completed: false,
-                    editing: false,
-                };
-                self.state.entries.push(entry);
+                let description = self.state.value.trim();
+                if !description.is_empty() {
+                    let entry = Entry {
+                        description: description.to_string(),
+                        completed: false,
+                        editing: false,
+                    };
+                    self.state.entries.push(entry);
+                }
                 self.state.value = "".to_string();
             }
             Msg::Edit(idx) => {
-                let edit_value = self.state.edit_value.clone();
+                let edit_value = self.state.edit_value.trim().to_string();
                 self.state.complete_edit(idx, edit_value);
                 self.state.edit_value = "".to_string();
             }
@@ -117,7 +125,11 @@ impl Component for Model {
             Msg::ClearCompleted => {
                 self.state.clear_completed();
             }
-            Msg::Nope => {}
+            Msg::Focus => {
+                if let Some(input) = self.focus_ref.cast::<InputElement>() {
+                    input.focus().unwrap();
+                }
+            }
         }
         self.storage.store(KEY, Json(&self.state.entries));
         true
@@ -128,6 +140,11 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
+        let hidden_class = if self.state.entries.is_empty() {
+            "hidden"
+        } else {
+            ""
+        };
         html! {
             <div class="todomvc-wrapper">
                 <section class="todoapp">
@@ -135,17 +152,19 @@ impl Component for Model {
                         <h1>{ "todos" }</h1>
                         { self.view_input() }
                     </header>
-                    <section class="main">
+                    <section class=("main", hidden_class)>
                         <input
                             type="checkbox"
                             class="toggle-all"
+                            id="toggle-all"
                             checked=self.state.is_all_completed()
                             onclick=self.link.callback(|_| Msg::ToggleAll) />
+                        <label for="toggle-all" />
                         <ul class="todo-list">
                             { for self.state.entries.iter().filter(|e| self.state.filter.fit(e)).enumerate().map(|e| self.view_entry(e)) }
                         </ul>
                     </section>
-                    <footer class="footer">
+                    <footer class=("footer", hidden_class)>
                         <span class="todo-count">
                             <strong>{ self.state.total() }</strong>
                             { " item(s) left" }
@@ -170,11 +189,16 @@ impl Component for Model {
 
 impl Model {
     fn view_filter(&self, filter: Filter) -> Html {
+        let cls = if self.state.filter == filter {
+            "selected"
+        } else {
+            "not-selected"
+        };
         let flt = filter.clone();
         html! {
             <li>
-                <a class=if self.state.filter == flt { "selected" } else { "not-selected" }
-                   href=&flt
+                <a class=cls
+                   href=filter
                    onclick=self.link.callback(move |_| Msg::SetFilter(flt.clone()))>
                     { filter }
                 </a>
@@ -190,8 +214,8 @@ impl Model {
                    placeholder="What needs to be done?"
                    value=&self.state.value
                    oninput=self.link.callback(|e: InputData| Msg::Update(e.value))
-                   onkeypress=self.link.callback(|e: KeyboardEvent| {
-                       if e.key() == "Enter" { Msg::Add } else { Msg::Nope }
+                   onkeypress=self.link.batch_callback(|e: KeyboardEvent| {
+                       if e.key() == "Enter" { Some(Msg::Add) } else { None }
                    }) />
             /* Or multiline:
             <ul>
@@ -230,11 +254,13 @@ impl Model {
             html! {
                 <input class="edit"
                        type="text"
+                       ref=self.focus_ref.clone()
                        value=&self.state.edit_value
+                       onmouseover=self.link.callback(|_| Msg::Focus)
                        oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
                        onblur=self.link.callback(move |_| Msg::Edit(idx))
-                       onkeypress=self.link.callback(move |e: KeyboardEvent| {
-                          if e.key() == "Enter" { Msg::Edit(idx) } else { Msg::Nope }
+                       onkeypress=self.link.batch_callback(move |e: KeyboardEvent| {
+                          if e.key() == "Enter" { Some(Msg::Edit(idx)) } else { None }
                        }) />
             }
         } else {
@@ -250,8 +276,8 @@ pub enum Filter {
     Completed,
 }
 
-impl<'a> Into<Href> for &'a Filter {
-    fn into(self) -> Href {
+impl<'a> Into<Cow<'static, str>> for &'a Filter {
+    fn into(self) -> Cow<'static, str> {
         match *self {
             Filter::All => "#/".into(),
             Filter::Active => "#/active".into(),
@@ -340,6 +366,7 @@ impl State {
             entry.editing = false;
         }
     }
+
     fn complete_edit(&mut self, idx: usize, val: String) {
         let filter = self.filter.clone();
         let mut entries = self
@@ -347,9 +374,13 @@ impl State {
             .iter_mut()
             .filter(|e| filter.fit(e))
             .collect::<Vec<_>>();
-        let entry = entries.get_mut(idx).unwrap();
-        entry.description = val;
-        entry.editing = !entry.editing;
+        if !val.is_empty() {
+            let entry = entries.get_mut(idx).unwrap();
+            entry.description = val;
+            entry.editing = !entry.editing;
+        } else {
+            self.remove(idx);
+        }
     }
 
     fn remove(&mut self, idx: usize) {

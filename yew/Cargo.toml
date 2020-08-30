@@ -1,10 +1,10 @@
 [package]
 name = "yew"
-version = "0.17.2"
+version = "0.17.3"
 edition = "2018"
 authors = [
-    "Denis Kolodin <deniskolodin@gmail.com>",
-    "Justin Starry <justin@yew.rs>",
+  "Denis Kolodin <deniskolodin@gmail.com>",
+  "Justin Starry <justin@yew.rs>",
 ]
 repository = "https://github.com/yewstack/yew"
 homepage = "https://github.com/yewstack/yew"
@@ -14,9 +14,6 @@ readme = "../README.md"
 keywords = ["web", "asmjs", "webasm", "javascript"]
 categories = ["gui", "web-programming"]
 description = "A framework for making client-side single-page apps"
-
-[badges]
-travis-ci = { repository = "yewstack/yew" }
 
 [dependencies]
 anyhow = "1"
@@ -31,8 +28,6 @@ http = "0.2"
 indexmap = "1.0.2"
 js-sys = { version = "0.3", optional = true }
 log = "0.4"
-proc-macro-hack = "0.5"
-proc-macro-nested = "0.1"
 rmp-serde = { version = "0.14.0", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_cbor = { version = "0.11.1", optional = true }
@@ -114,7 +109,8 @@ wasm-bindgen = "0.2.60"
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dev-dependencies]
 wasm-bindgen-test = "0.3.4"
 base64 = "0.12.0"
-ssri = "5.0.0"
+ssri = "6.0.0"
+easybench-wasm = "0.2.1"
 
 [target.'cfg(target_os = "emscripten")'.dependencies]
 ryu = "1.0.2" # 1.0.1 breaks emscripten
@@ -129,7 +125,15 @@ bincode = "1"
 [features]
 default = ["services", "agent", "web_sys"]
 std_web = ["stdweb", "yew-macro/std_web"]
-web_sys = ["console_error_panic_hook", "futures", "gloo", "js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
+web_sys = [
+  "console_error_panic_hook",
+  "futures",
+  "gloo",
+  "js-sys",
+  "web-sys",
+  "wasm-bindgen",
+  "wasm-bindgen-futures"
+]
 doc_test = []
 wasm_test = []
 httpbin_test = []

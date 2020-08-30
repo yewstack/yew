@@ -16,7 +16,6 @@ pub struct TagAttributes {
     pub checked: Option<Expr>,
     pub node_ref: Option<Expr>,
     pub key: Option<Expr>,
-    pub href: Option<Expr>,
 }
 
 pub enum ClassesForm {
@@ -316,8 +315,6 @@ impl Parse for TagAttributes {
         let node_ref = TagAttributes::remove_attr(&mut attributes, "ref");
         let key = TagAttributes::remove_attr(&mut attributes, "key");
 
-        let href = TagAttributes::remove_attr(&mut attributes, "href");
-
         Ok(TagAttributes {
             attributes,
             classes,
@@ -327,7 +324,6 @@ impl Parse for TagAttributes {
             value,
             kind,
             node_ref,
-            href,
             key,
         })
     }
