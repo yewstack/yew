@@ -4,6 +4,24 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
+/// Defines the event listener as passive.
+/// Yew sets sane defaults depending on the type of the listener.
+/// See [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEvent).
+pub const PASSIVE: u8 = 1;
+/// Causes the event handler to not fire until the next animation frame
+/// Implies `PASSIVE`.
+// TODO: this flag can apply to Agent event handling as well
+pub const DEFER: u8 = 1 << 1 | PASSIVE;
+/// Causes the event handler to not fire until the next animation frame and be called with the last
+/// fired event.
+/// Implies `PASSIVE` and `DEFER`.
+// TODO: this flag can apply to Agent event handling as well
+pub const DEBOUNCE: u8 = 1 << 2 | DEFER;
+/// Defines event listener to also listen to events in the child tree that bubbled up to the target
+/// element
+#[cfg(feature = "web_sys")]
+pub const HANDLE_BUBBLED: u8 = 1 << 3;
+
 /// Universal callback wrapper.
 /// <aside class="warning">
 /// Use callbacks carefully, because if you call one from the `update` loop
@@ -12,52 +30,45 @@ use std::rc::Rc;
 /// </aside>
 /// An `Rc` wrapper is used to make it cloneable.
 pub enum Callback<IN> {
-    /// A callback which can be called multiple times
-    Callback(Rc<dyn Fn(IN)>),
-
-    /// A callback which can be called multiple times and has additional options for DOM
-    /// event listeners
-    CallbackWithOpts {
+    /// A callback which can be called multiple times with optional flags
+    Callback {
         /// A callback which can be called multiple times
         cb: Rc<dyn Fn(IN)>,
 
-        /// Defines the event listener as passive.
-        /// Yew sets sane defaults depending on the type of the listener.
-        /// See [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEvent.
-        passive: bool,
-
-        /// Defines event listener to also listen to events in the child tree that bubbled up to
-        /// the target element
-        handle_bubbled: bool,
+        /// Sets flags for event listening. A combination of `PASSIVE`, `DEBOUNCE`, `DEFER` and
+        /// `HANDLE_BUBBLED`.
+        ///
+        /// `DEFER` implies `PASSIVE`.
+        /// `DEBOUNCE` implies `PASSIVE` and `DEFER`.
+        ///
+        /// Currently only used with `feature = "web_sys"`.
+        flags: u8,
     },
 
     /// A callback which can only be called once. The callback will panic if it is
     /// called more than once.
-    CallbackOnce(Rc<CallbackOnce<IN>>),
+    Once(Rc<Once<IN>>),
 }
 
-type CallbackOnce<IN> = RefCell<Option<Box<dyn FnOnce(IN)>>>;
+type Once<IN> = RefCell<Option<Box<dyn FnOnce(IN)>>>;
 
 impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
     fn from(func: F) -> Self {
-        Callback::Callback(Rc::new(func))
+        Callback::Callback {
+            cb: Rc::new(func),
+            flags: 0,
+        }
     }
 }
 
 impl<IN> Clone for Callback<IN> {
     fn clone(&self) -> Self {
         match self {
-            Callback::Callback(cb) => Callback::Callback(cb.clone()),
-            Callback::CallbackWithOpts {
-                cb,
-                passive,
-                handle_bubbled,
-            } => Callback::CallbackWithOpts {
+            Callback::Callback { cb, flags } => Callback::Callback {
                 cb: cb.clone(),
-                passive: *passive,
-                handle_bubbled: *handle_bubbled,
+                flags: *flags,
             },
-            Callback::CallbackOnce(cb) => Callback::CallbackOnce(cb.clone()),
+            Callback::Once(cb) => Callback::Once(cb.clone()),
         }
     }
 }
@@ -66,10 +77,14 @@ impl<IN> Clone for Callback<IN> {
 impl<IN> PartialEq for Callback<IN> {
     fn eq(&self, other: &Callback<IN>) -> bool {
         match (&self, &other) {
-            (Callback::Callback(cb), Callback::Callback(other_cb)) => Rc::ptr_eq(cb, other_cb),
-            (Callback::CallbackOnce(cb), Callback::CallbackOnce(other_cb)) => {
-                Rc::ptr_eq(cb, other_cb)
-            }
+            (Callback::Once(cb), Callback::Once(other_cb)) => Rc::ptr_eq(cb, other_cb),
+            (
+                Callback::Callback { cb, flags },
+                Callback::Callback {
+                    cb: rhs_cb,
+                    flags: rhs_flags,
+                },
+            ) => Rc::ptr_eq(cb, rhs_cb) && flags == rhs_flags,
             _ => false,
         }
     }
@@ -78,9 +93,8 @@ impl<IN> PartialEq for Callback<IN> {
 impl<IN> fmt::Debug for Callback<IN> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let data = match self {
-            Callback::Callback(_) => "Callback<_>",
-            Callback::CallbackWithOpts { .. } => "CallbackWithOpts<_>",
-            Callback::CallbackOnce(_) => "CallbackOnce<_>",
+            Callback::Callback { .. } => "Callback<_>",
+            Callback::Once(_) => "Once<_>",
         };
 
         f.write_str(data)
@@ -91,10 +105,10 @@ impl<IN> Callback<IN> {
     /// This method calls the callback's function.
     pub fn emit(&self, value: IN) {
         match self {
-            Callback::Callback(cb) | Callback::CallbackWithOpts { cb, .. } => cb(value),
-            Callback::CallbackOnce(rc) => {
+            Callback::Callback { cb, .. } => cb(value),
+            Callback::Once(rc) => {
                 let cb = rc.replace(None);
-                let f = cb.expect("callback in CallbackOnce has already been used");
+                let f = cb.expect("callback in Once has already been used");
                 f(value)
             }
         };
@@ -107,7 +121,7 @@ impl<IN> Callback<IN> {
     where
         F: FnOnce(IN) + 'static,
     {
-        Callback::CallbackOnce(Rc::new(RefCell::new(Some(Box::new(func)))))
+        Callback::Once(Rc::new(RefCell::new(Some(Box::new(func)))))
     }
 
     /// Creates a "no-op" callback which can be used when it is not suitable to use an

@@ -15,13 +15,14 @@ pub mod vtext;
 
 use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
+use cfg_match::cfg_match;
 use indexmap::{IndexMap, IndexSet};
 use std::borrow::Cow;
 use std::fmt;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use stdweb::Reference as Event;
+        use crate::html::EventListener;
         use stdweb::web::{Element, INode, Node};
     } else if #[cfg(feature = "web_sys")] {
         use web_sys::{Element, Event, Node};
@@ -47,41 +48,49 @@ pub trait Listener {
     /// Returns the name of the event
     fn kind(&self) -> &'static str;
 
-    /// Attaches a listener to the document body
-    fn attach(&self, body: &Element, handler: Box<dyn Fn(Event)>);
+    /// Attaches a listener to the Element
+    #[cfg(feature = "std_web")]
+    fn attach(&self, element: &Element) -> EventListener;
 
     /// Handles an event firing
+    #[cfg(feature = "web_sys")]
     fn handle(&self, event: Event);
 
-    /// Defines the event listener as passive.
-    /// See [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEvent.
+    /// Defines flags toi modify the handling of the event. See yew::callback for more details.
     #[cfg(feature = "web_sys")]
-    fn passive(&self) -> bool;
-
-    /// Defines event listener to also listen to events in the child tree that bubbled up to
-    /// the target element
-    fn handle_bubbled(&self) -> bool;
+    fn flags(&self) -> u8;
 }
 
 impl fmt::Debug for dyn Listener {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Listener {{ kind: {}, passive: {}, handle_bubbled: {} }}",
-            self.kind(),
-            self.passive(),
-            self.handle_bubbled()
-        )
+        cfg_match! {
+            feature = "web_sys" => write!(
+                f,
+                "Listener {{ kind: {}, flags: {:#X} }}",
+                self.kind(),
+                self.flags()
+            ),
+            feature = "stdweb" => write!(
+                f,
+                "Listener {{ kind: {} }}",
+                self.kind()
+            ),
+        }
     }
 }
 
-/// A list of event listeners, either registered or pending registration
+/// A list of event listeners
 #[derive(Debug, Clone)]
 pub enum Listeners {
     /// Added to global registry by ID
+    #[cfg(feature = "web_sys")]
     Registered(u64),
 
-    /// Not yet added to global registry
+    /// Added to the Element. Stored so they are removed on VTag drop.
+    #[cfg(feature = "std_web")]
+    Registered(Rc<Vec<EventListener>>),
+
+    /// Not yet added to the element
     Pending(Vec<Rc<dyn Listener>>),
 }
 
@@ -92,6 +101,7 @@ impl Default for Listeners {
 }
 
 impl PartialEq for Listeners {
+    #[cfg(feature = "web_sys")]
     fn eq(&self, rhs: &Self) -> bool {
         use crate::html::compare_listeners;
         use Listeners::*;
@@ -99,29 +109,42 @@ impl PartialEq for Listeners {
         match (self, rhs) {
             (Registered(lhs), Registered(rhs)) => lhs == rhs,
             (Registered(lhs), Pending(rhs)) => compare_listeners(*lhs, &rhs),
-            (Pending(lhs), Pending(rhs)) => {
-                if lhs.len() != rhs.len() {
-                    return false;
-                }
-
-                let mut lhs_it = lhs.iter();
-                let mut rhs_it = rhs.iter();
-                loop {
-                    match (lhs_it.next(), rhs_it.next()) {
-                        (Some(lhs), Some(rhs)) =>
-                        {
-                            #[allow(clippy::vtable_address_comparisons)]
-                            if !Rc::ptr_eq(lhs, rhs) {
-                                return false;
-                            }
-                        }
-                        (None, None) => return true,
-                        _ => return false,
-                    };
-                }
-            }
+            (Pending(lhs), Pending(rhs)) => compare_listener_slices(&lhs, &rhs),
             (Pending(lhs), Registered(rhs)) => compare_listeners(*rhs, &lhs),
         }
+    }
+
+    #[cfg(feature = "std_web")]
+    fn eq(&self, rhs: &Self) -> bool {
+        use Listeners::*;
+
+        match (self, rhs) {
+            (Registered(lhs), Registered(rhs)) => Rc::ptr_eq(lhs, rhs),
+            (Pending(lhs), Pending(rhs)) => compare_listener_slices(&lhs, &rhs),
+            _ => false,
+        }
+    }
+}
+
+fn compare_listener_slices(lhs: &[Rc<dyn Listener>], rhs: &[Rc<dyn Listener>]) -> bool {
+    if lhs.len() != rhs.len() {
+        return false;
+    }
+
+    let mut lhs_it = lhs.iter();
+    let mut rhs_it = rhs.iter();
+    loop {
+        match (lhs_it.next(), rhs_it.next()) {
+            (Some(lhs), Some(rhs)) =>
+            {
+                #[allow(clippy::vtable_address_comparisons)]
+                if !Rc::ptr_eq(lhs, rhs) {
+                    return false;
+                }
+            }
+            (None, None) => return true,
+            _ => return false,
+        };
     }
 }
 

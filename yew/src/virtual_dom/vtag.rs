@@ -214,6 +214,20 @@ impl VTag {
         }
     }
 
+    /// Every render it removes all listeners and attaches them back later
+    #[cfg(feature = "std_web")]
+    fn recreate_listeners(&mut self, ancestor: &mut Option<Box<Self>>) {
+        if let Some(ancestor) = ancestor.as_mut() {
+            ancestor.listeners = Default::default();
+        }
+
+        if let Listeners::Pending(l) = std::mem::take(&mut self.listeners) {
+            let element = self.reference.clone().expect("element expected");
+            self.listeners =
+                Listeners::Registered(Rc::new(l.into_iter().map(|l| l.attach(&element)).collect()))
+        }
+    }
+
     fn refresh_value(&mut self) {
         // Don't refresh value if the element is not controlled
         if self.value.is_none() {
@@ -573,6 +587,7 @@ impl VDiff for VTag {
             .take()
             .expect("tried to remove not rendered VTag from DOM");
 
+        #[cfg(feature = "web_sys")]
         crate::html::remove_listeners(&self.listeners);
 
         // recursively remove its children
@@ -592,6 +607,7 @@ impl VDiff for VTag {
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
     ) -> NodeRef {
+        #[cfg(feature = "web_sys")]
         use crate::html::{patch_listeners, set_listeners};
 
         let mut ancestor_tag = ancestor.and_then(|mut ancestor| {
@@ -602,7 +618,10 @@ impl VDiff for VTag {
                 _ => {
                     let element = self.create_element(parent);
                     super::insert_node(&element, parent, Some(ancestor.first_node()));
+
+                    #[cfg(feature = "web_sys")]
                     set_listeners(&element, &mut self.listeners);
+
                     self.reference = Some(element);
                     ancestor.detach(parent);
                     None
@@ -617,15 +636,23 @@ impl VDiff for VTag {
 
             // Preserve the reference that already exists.
             self.reference = ancestor_tag.reference.take();
+
+            #[cfg(feature = "web_sys")]
             patch_listeners(&mut self.listeners, &ancestor_tag.listeners);
         } else if self.reference.is_none() {
             let element = self.create_element(parent);
             super::insert_node(&element, parent, next_sibling.get());
+
+            #[cfg(feature = "web_sys")]
             set_listeners(&element, &mut self.listeners);
+
             self.reference = Some(element);
         }
 
         self.apply_diffs(&mut ancestor_tag);
+
+        #[cfg(feature = "std_web")]
+        self.recreate_listeners(&mut ancestor_tag);
 
         // Process children
         let element = self.reference.as_ref().expect("Reference should be set");

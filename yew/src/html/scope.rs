@@ -218,18 +218,6 @@ impl<COMP: Component> Scope<COMP> {
         self.update(ComponentUpdate::MessageBatch(messages));
     }
 
-    fn wrap_closure<F, IN, M>(&self, function: F) -> Rc<dyn Fn(IN)>
-    where
-        M: Into<COMP::Message>,
-        F: Fn(IN) -> M + 'static,
-    {
-        let scope = self.clone();
-        Rc::new(move |input| {
-            let output = function(input);
-            scope.send_message(output);
-        })
-    }
-
     /// Creates a `Callback` which will send a message to the linked
     /// component's update method when invoked.
     ///
@@ -241,37 +229,30 @@ impl<COMP: Component> Scope<COMP> {
         M: Into<COMP::Message>,
         F: Fn(IN) -> M + 'static,
     {
-        Callback::Callback(self.wrap_closure(function))
+        self.callback_with_flags(0, function)
     }
 
     /// Creates a `Callback` which will send a message to the linked
-    /// component's update method when invoked with additional options for DOM event
-    /// listeners,
-    ///
-    /// `passive` specifies a passive event listener to be created. Does nothing with
-    /// `feature = "std_web"` as std_web does not support passive listeners. Only kept to retain
-    /// some API coherence.
-    ///
-    /// `handle_bubble` specifies the event listener to also listen to events in the child
-    /// tree that bubbled up to the target element.
+    /// component's update method when invoked with additional flags for DOM event listeners.
+    /// See `yew::callback` for flag descriptions.
     ///
     /// Please be aware that currently the result of this callback
     /// synchronously schedules a call to the [Component](Component)
     /// interface.
-    pub fn callback_with_opts<F, IN, M>(
-        &self,
-        passive: bool,
-        handle_bubbled: bool,
-        function: F,
-    ) -> Callback<IN>
+    pub fn callback_with_flags<F, IN, M>(&self, flags: u8, function: F) -> Callback<IN>
     where
         M: Into<COMP::Message>,
         F: Fn(IN) -> M + 'static,
     {
-        Callback::CallbackWithOpts {
-            passive,
-            handle_bubbled,
-            cb: self.wrap_closure(function),
+        Callback::Callback {
+            flags,
+            cb: {
+                let scope = self.clone();
+                Rc::new(move |input| {
+                    let output = function(input);
+                    scope.send_message(output);
+                })
+            },
         }
     }
 

@@ -5,43 +5,27 @@ use std::{
     rc::Rc,
 };
 
-use cfg_if::cfg_if;
-use cfg_match::cfg_match;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::Reference as Event;
-        use stdweb::web::Element;
-    } else if #[cfg(feature = "web_sys")] {
-        use wasm_bindgen::JsCast;
-        use web_sys::{Event, Element};
-    }
-}
+use wasm_bindgen::JsCast;
+use web_sys::{Element, Event};
 
 thread_local! {
     static REGISTRY: Rc<RefCell<Registry>> = Default::default();
 
     /// Key used to store listener id on element
-    #[cfg(feature = "web_sys")]
     static LISTENER_ID_PROP: wasm_bindgen::JsValue = "__yew_listener_id".into();
 }
-
-#[cfg(feature = "std_web")]
-const LISTENER_ID_PROP: &str = "data-yew-listener-id";
 
 #[derive(Clone, Copy, std::hash::Hash, Eq, PartialEq)]
 struct EventDescriptor {
     kind: &'static str,
-    passive: bool,
+    flags: u8,
 }
 
 impl From<&dyn Listener> for EventDescriptor {
     fn from(l: &dyn Listener) -> Self {
         Self {
             kind: l.kind(),
-            passive: cfg_match! {
-                feature = "std_web" => false,
-                feature = "web_sys" => l.passive(),
-            },
+            flags: l.flags(),
         }
     }
 }
@@ -76,31 +60,42 @@ impl Registry {
             let key = EventDescriptor::from(&*l);
 
             if !self.handling.contains(&key) {
-                let cl = Box::new(move |e: Event| {
-                    Registry::with(move |reg| reg.handle(&key, e.clone()))
-                }) as Box<dyn Fn(Event)>;
+                thread_local! {
+                    static BODY: web_sys::HtmlElement = web_sys::window()
+                        .expect("no window global")
+                        .document()
+                        .expect("no document on window")
+                        .body()
+                        .expect("no body on document");
+                };
+                BODY.with(|body| {
+                    use wasm_bindgen::prelude::*;
+                    use wasm_bindgen::JsCast;
 
-                #[cfg(feature = "web_sys")]
-                {
-                    thread_local! {
-                        static BODY: web_sys::HtmlElement = web_sys::window()
-                            .expect("no window global")
-                            .document()
-                            .expect("no document on window")
-                            .body()
-                            .expect("no body on document");
-                    };
-
-                    BODY.with(|b| l.attach(b, cl));
-                }
-
-                #[cfg(feature = "std_web")]
-                l.attach(&stdweb::web::document().body().unwrap().into(), cl);
+                    let cl = Closure::wrap(Box::new(move |e: Event| {
+                        Registry::with(move |reg| reg.handle(&key, e.clone()))
+                    }) as Box<dyn Fn(Event)>);
+                    AsRef::<web_sys::EventTarget>::as_ref(body)
+                        .add_event_listener_with_callback_and_add_event_listener_options(
+                            &key.kind[2..],
+                            cl.as_ref().unchecked_ref(),
+                            &{
+                                let mut opts = web_sys::AddEventListenerOptions::new();
+                                if key.flags & crate::callback::PASSIVE != 0 {
+                                    opts.passive(true);
+                                }
+                                opts
+                            },
+                        )
+                        .map_err(|e| format!("could not register global listener: {:?}", e))
+                        .unwrap();
+                    cl.forget(); // Never drop the closure as this event handler is static
+                });
 
                 self.handling.insert(key);
             }
 
-            if l.handle_bubbled() {
+            if key.flags & crate::callback::HANDLE_BUBBLED != 0 {
                 self.bubbling.insert(key);
             }
 
@@ -119,17 +114,11 @@ impl Registry {
         let id = self.id_counter;
         self.id_counter += 1;
 
-        #[cfg(feature = "web_sys")]
         LISTENER_ID_PROP.with(|prop| {
             if !js_sys::Reflect::set(el, &prop, &js_sys::JsString::from(id.to_string())).unwrap() {
                 panic!("failed to set listener ID property");
             }
         });
-
-        // std_web does not support reflection so we have little choice but to pollute the
-        // attributes
-        #[cfg(feature = "std_web")]
-        el.set_attribute(LISTENER_ID_PROP, &id.to_string()).unwrap();
 
         id
     }
@@ -138,33 +127,21 @@ impl Registry {
     fn handle(&self, desc: &EventDescriptor, event: Event) {
         if let Some(l) = event
             .target()
-            .map(|el| {
-                cfg_match! {
-                    feature = "std_web" => el.try_into::<Element>().ok(),
-                    feature = "web_sys" => el.dyn_into::<web_sys::Element>().ok(),
-                }
-            })
+            .map(|el| el.dyn_into::<web_sys::Element>().ok())
             .flatten()
-            .map(|el| {
-                cfg_match! {
-                    feature = "std_web" => el.get_attribute(LISTENER_ID_PROP),
-                    feature = "web_sys" => LISTENER_ID_PROP
-                        .with(|prop| js_sys::Reflect::get(&el, &prop).ok()),
-                }
-            })
+            .map(|el| LISTENER_ID_PROP.with(|prop| js_sys::Reflect::get(&el, &prop).ok()))
             .flatten()
-            .map(|v| {
-                cfg_match! {
-                    feature = "std_web" => v.parse().ok(),
-                    feature = "web_sys" => v.dyn_into().ok()
-                        .map(|v: js_sys::JsString| String::from(v).parse().ok()),
-                }
-            })
+            .map(|v| v.dyn_into().ok())
             .flatten()
+            .map(|v: js_sys::JsString| String::from(v).parse().ok())
             .flatten()
             .map(|id: u64| self.by_id.get(&id).map(|s| s.get(desc)).flatten())
             .flatten()
         {
+            // TODO: DEFER + tests
+            // TODO: DEBOUNCE + tests
+            // TODO: HANDLE_BUBBLED + tests
+
             l.handle(event);
 
             if self.bubbling.contains(desc) {
