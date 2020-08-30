@@ -18,7 +18,6 @@ CARGO_MAKE_CARGO_BUILD_TEST_FLAGS = ""
 private = true
 namespace = "core"
 
-# FIXME run on MSRV version
 [tasks.stable-checks]
 description = "Runs all validations for both workspaces on rust stable only."
 condition = { channels = ["stable"] }
@@ -31,7 +30,8 @@ run_task = { name = [
 dependencies = ["tests-setup"]
 env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = [
     "examples/*",
-    "yewtil/examples/*"
+    "yew-router/examples/*",
+    "yewtil/examples/*",
 ] }
 run_task = { name = [
     "run-tests-flow",
