@@ -59,7 +59,7 @@ The preferred web workflow tool before the introduction of `wasm-pack` and `wasm
       <td style="text-align:left">Dev Experience</td>
       <td style="text-align:left">Almost there! Requires <code>webpack</code> for best experience.</td>
       <td
-      style="text-align:left">Barebones. You&apos;ll need to write some scripts to streamline your dev
+      style="text-align:left">Barebones. You'll need to write some scripts to streamline your dev
         experience.</td>
         <td style="text-align:left">Just works! Batteries included, no external dependencies needed.</td>
     </tr>

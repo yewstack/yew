@@ -12,7 +12,9 @@ title: Starter templates
 
   [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin) for Webpack to streamline development.
 
-The important distinction between these templates and using `cargo-web` is that this approach uses a `lib`, not a `bin` crate, and the entry-point to your program is annotated with a `#[wasm_bindgen]` annotation.
+The important distinction between these templates and using `cargo-web` is that this approach uses a 
+`lib`, not a `bin` crate, and the entry-point to your program is annotated with a `#[wasm_bindgen]` 
+annotation.
 
 Your `Cargo.toml` also should specify that your crate's type is a "cdylib".
 
@@ -38,4 +40,3 @@ wasm-bindgen = "0.2"
 
 * [Parcel Template](https://github.com/spielrs/yew-parcel-template) - Created by a community member 
 and uses [Parcel](https://parceljs.org/)
-
