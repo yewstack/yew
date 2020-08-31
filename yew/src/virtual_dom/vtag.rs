@@ -169,16 +169,18 @@ impl VTag {
         self.checked = value;
     }
 
-    /// Pushes a key-value pair to the Vec variant of attributes.
-    ///
-    /// It is the responsibility of the caller to ensure the attribute list does not contain
-    /// duplicate keys.
-    ///
-    /// Not every attribute works when it set as an attribute. We use workarounds for:
-    /// `type/kind`, `value` and `checked`.
-    pub fn push_attribute(&mut self, key: &'static str, value: impl Into<Cow<'static, str>>) {
-        if let Attributes::Vec(v) = &mut self.attributes {
-            v.push((key, value.into()));
+    /// Pushes a key-value pair to the attributes without ensuring uniqueness.
+    #[doc(hidden)]
+    pub fn __macro_push_attribute(
+        &mut self,
+        key: &'static str,
+        value: impl Into<Cow<'static, str>>,
+    ) {
+        match &mut self.attributes {
+            Attributes::Vec(v) => v.push((key, value.into())),
+            Attributes::IndexMap(m) => {
+                m.insert(key, value.into());
+            }
         }
     }
 
@@ -187,16 +189,9 @@ impl VTag {
     /// Not every attribute works when it set as an attribute. We use workarounds for:
     /// `type/kind`, `value` and `checked`.
     pub fn add_attribute(&mut self, key: &'static str, value: impl Into<Cow<'static, str>>) {
-        self.attributes_mut().insert(key, value.into());
+        self.attributes.as_mut().insert(key, value.into());
     }
-
-    /// Returns a mutable reference to the IndexMap variant of attributes.
-    ///
-    /// Not every attribute works when it set as an attribute. We use workarounds for:
-    /// `type/kind`, `value` and `checked`.
-    pub fn attributes_mut(&mut self) -> &mut IndexMap<&'static str, Cow<'static, str>> {
-        self.attributes.as_mut()
-    }
+    
 
     /// Sets attributes to a virtual node.
     ///

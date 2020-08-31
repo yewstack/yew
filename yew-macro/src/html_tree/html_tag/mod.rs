@@ -190,7 +190,7 @@ impl ToTokens for HtmlTag {
                     let sr = stringify::stringify_static(&label_str);
                     quote_spanned! {value.span()=> {
                         if #value {
-                            #vtag.push_attribute(#label_str, #sr);
+                            #vtag.__macro_push_attribute(#label_str, #sr);
                         };
                     }}
                 })
@@ -201,7 +201,7 @@ impl ToTokens for HtmlTag {
         let set_kind = kind.as_ref().map(|attr| {
             let value = &attr.value;
             if attr.question_mark.is_some() {
-                let ident = Ident::new("__yew_v", value.span());
+                let ident = Ident::new("__yew_kind", value.span());
                 with_optional_attr_runtime_value(&ident, value, &quote! { #vtag.set_kind(#ident); })
             } else {
                 let sr = Stringify::from(value);
@@ -236,7 +236,7 @@ impl ToTokens for HtmlTag {
                     #(.extend(#classes))*;
 
                 if !__yew_classes.is_empty() {
-                    #vtag.push_attribute("class", __yew_classes.to_string());
+                    #vtag.__macro_push_attribute("class", __yew_classes.to_string());
                 };
             }),
             Some(ClassesForm::Single(classes)) => match stringify::try_stringify_expr(classes) {
@@ -246,14 +246,14 @@ impl ToTokens for HtmlTag {
                     } else {
                         let sr = Stringify::from(&s);
                         Some(quote! {
-                            #vtag.push_attribute("class", #sr);
+                            #vtag.__macro_push_attribute("class", #sr);
                         })
                     }
                 }
                 None => Some(quote! {
                     let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
                     if !__yew_classes.is_empty() {
-                        #vtag.push_attribute(
+                        #vtag.__macro_push_attribute(
                             "class",
                             ::std::string::ToString::to_string(&__yew_classes),
                         );
@@ -350,7 +350,7 @@ impl ToTokens for HtmlTag {
                     "input" | "textarea" => {}
                     _ => {
                         if let ::std::option::Option::Some(value) = #vtag.value.take() {
-                            #vtag.push_attribute("value", value);
+                            #vtag.__macro_push_attribute("value", value);
                         };
                     }
                 }
