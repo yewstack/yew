@@ -24,8 +24,7 @@ sets of props don't cause a component to re-render.
 * History - A history tracking wrapper that uses a `VecDeque` to hold on to previous values that it 
 has represented.
 * Futures - Support for running futures that send messages to component update loops.
-* Fetch - Abstractions for handling fetch requests made using `web_sys` in conjunction with the  
-futures feature.
+* Fetch - An a wrapper `web_sys` to make HTTP requests.
 
 ## Looking For
 
