@@ -103,7 +103,7 @@ html! {
 }
 ```
 
-If the attribute is set to `None`, it will behave as though it wasn't set.
+If the attribute is set to `None`, the attribute won't be set in the DOM.
 
 ## Classes
 
