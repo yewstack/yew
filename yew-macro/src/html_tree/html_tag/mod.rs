@@ -277,49 +277,41 @@ impl ToTokens for HtmlTag {
         let add_listeners = if listeners.is_empty() {
             None
         } else if listeners.iter().any(|attr| attr.question_mark.is_some()) {
-            let add_listeners = listeners.iter().map(
-                |TagAttribute {
-                     label,
-                     question_mark,
-                     value,
-                 }| {
-                    let name = &label.name;
+            let add_listeners = listeners
+                .iter()
+                .map(
+                    |TagAttribute {
+                         label,
+                         question_mark,
+                         value,
+                     }| {
+                        let name = &label.name;
 
-                    if question_mark.is_some() {
-                        let ident = Ident::new("__yew_listener", name.span());
-                        quote_spanned! {value.span()=>
-                            let #ident = ::std::option::Option::map(#value, |#ident| {
-                                ::std::rc::Rc::new(::yew::html::#name::Wrapper::new(
-                                    <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(#ident)
-                                ))
-                            });
-                            if let ::std::option::Option::Some(#ident) = #ident {
-                                #vtag.add_listener(#ident);
-                            };
+                        if question_mark.is_some() {
+                            let ident = Ident::new("__yew_listener", name.span());
+                            let listener = generate_listener_code(name, &ident);
+                            quote_spanned! {value.span()=>
+                                let #ident = ::std::option::Option::map(#value, |#ident| {
+                                    #listener
+                                });
+                                if let ::std::option::Option::Some(#ident) = #ident {
+                                    #vtag.add_listener(#ident);
+                                };
+                            }
+                        } else {
+                            let listener = generate_listener_code(name, value);
+                            quote_spanned! {value.span()=>
+                                #vtag.add_listener(#listener);
+                            }
                         }
-                    } else {
-                        quote_spanned! {name.span()=>
-                            #vtag.add_listener(::std::rc::Rc::new(::yew::html::#name::Wrapper::new(
-                                <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(#value),
-                            )));
-                        }
-                    }
-                },
-            ).collect();
+                    },
+                )
+                .collect();
 
             Some(add_listeners)
         } else {
-            let listeners_it = listeners.iter().map(|TagAttribute {
-                label,
-                value,
-                ..
-            }| {
-                let name = &label.name;
-                quote_spanned! {label.span()=>
-                    ::std::rc::Rc::new(::yew::html::#name::Wrapper::new(
-                        <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(#value)
-                    ))
-                }
+            let listeners_it = listeners.iter().map(|TagAttribute { label, value, .. }| {
+                generate_listener_code(&label.name, value)
             });
 
             Some(quote! {
@@ -405,6 +397,14 @@ fn with_optional_attr_runtime_value(
         if let ::std::option::Option::Some(#ident) = #ident {
             #tokens
         };
+    }
+}
+
+fn generate_listener_code(name: &Ident, value: impl ToTokens) -> TokenStream {
+    quote_spanned! {value.span()=>
+        ::std::rc::Rc::new(::yew::html::#name::Wrapper::new(
+            <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(#value),
+        ))
     }
 }
 
