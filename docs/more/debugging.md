@@ -6,8 +6,12 @@ title: Debugging
 
 We **strongly recommend** the [`console_error_panic`](https://github.com/rustwasm/console_error_panic_hook) 
 which catches `panic!`s and outputs them to the console. Unfortunately this is not compatible with 
-apps built using `cargo-web`. If you call `yew::initialize()` before mounting your root component,
-this will automatically be done for you.
+apps built using `cargo-web`. **You probably don't need to enable this manually.** If you mount your
+application using `yew::start_app()`, Yew will automatically catch `panic!`s and log them to your 
+browser's console. In some situations you might not be able to use `yew::start_app()` to mount your 
+application, in which case you can call `yew::initialize()` before starting your application to
+configure this. Under the hood `yew::start_app()` will `yew::initialize()` (which will enable the 
+`panic!` hook).
 
 ## Console Logging
 
