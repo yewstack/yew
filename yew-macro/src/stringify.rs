@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote_spanned, ToTokens};
 use syn::spanned::Spanned;
 use syn::{Expr, Lit};
 
@@ -23,46 +23,59 @@ fn try_stringify_lit(src: &Lit) -> Option<String> {
     }
 }
 
-/// Converts literals and expressions to Cow<'static, str> construction calls
-pub struct Constructor(TokenStream);
-
-macro_rules! stringify_at_runtime {
-    ($src:expr) => {{
-        let src = $src;
-        Self(quote_spanned! {src.span()=>
-            ::std::borrow::Cow::<'static, str>::Owned(
-                ::std::string::ToString::to_string(&#src),
-            )
-        })
-    }};
+pub fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
+    quote_spanned! {src.span()=>
+        ::std::borrow::Cow::<'static, str>::Owned(
+            ::std::string::ToString::to_string(&(#src)),
+        )
+    }
 }
 
-impl From<&Expr> for Constructor {
+pub fn stringify_static(src: impl ToTokens) -> TokenStream {
+    quote_spanned! {src.span()=>
+        ::std::borrow::Cow::<'static, str>::Borrowed(#src)
+    }
+}
+
+/// Converts literals and expressions to Cow<'static, str> construction calls
+pub struct Stringify(TokenStream);
+
+impl From<&Expr> for Stringify {
     fn from(src: &Expr) -> Self {
         match try_stringify_expr(src) {
-            Some(s) => Self::from(s),
-            None => stringify_at_runtime!(src),
+            Some(s) => Self::from(&s),
+            None => Self(stringify_at_runtime(src)),
         }
     }
 }
-
-impl From<&Lit> for Constructor {
+impl From<&Lit> for Stringify {
     fn from(src: &Lit) -> Self {
         match try_stringify_lit(src) {
-            Some(s) => Self::from(s),
-            None => stringify_at_runtime!(src),
+            Some(s) => Self::from(&s),
+            None => Self(stringify_at_runtime(src)),
         }
     }
 }
-
-impl From<String> for Constructor {
-    fn from(src: String) -> Self {
-        Self(quote! { ::std::borrow::Cow::<'static, str>::Borrowed(#src) })
+impl From<&String> for Stringify {
+    fn from(src: &String) -> Self {
+        Self(stringify_static(src))
+    }
+}
+impl From<&str> for Stringify {
+    fn from(src: &str) -> Self {
+        Self(stringify_static(src))
     }
 }
 
-impl ToTokens for Constructor {
+impl ToTokens for Stringify {
+    fn into_token_stream(self) -> TokenStream
+    where
+        Self: Sized,
+    {
+        self.0
+    }
+
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(std::iter::once(self.0.clone()));
+        self.0.to_tokens(tokens)
     }
 }

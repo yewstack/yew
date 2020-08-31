@@ -1,14 +1,13 @@
 mod tag_attributes;
 
-use super::HtmlChildrenTree;
-use super::HtmlDashedName;
-use super::HtmlProp as TagAttribute;
-use super::HtmlPropSuffix as TagSuffix;
-use crate::stringify;
-use crate::{non_capitalized_ascii, Peek, PeekValue};
+use super::{
+    HtmlChildrenTree, HtmlDashedName, HtmlProp as TagAttribute, HtmlPropSuffix as TagSuffix,
+};
+use crate::{non_capitalized_ascii, stringify, Peek, PeekValue};
 use boolinator::Boolinator;
-use proc_macro2::{Delimiter, Span};
+use proc_macro2::{Delimiter, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
+use stringify::Stringify;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
@@ -95,7 +94,7 @@ impl Parse for HtmlTag {
 
 impl ToTokens for HtmlTag {
     #[allow(clippy::cognitive_complexity)]
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self {
             tag_name,
             attributes,
@@ -103,10 +102,7 @@ impl ToTokens for HtmlTag {
         } = self;
 
         let name = match &tag_name {
-            TagName::Lit(name) => {
-                let name_str = name.to_string();
-                quote! { ::std::borrow::Cow::<'static, str>::Borrowed(#name_str) }
-            }
+            TagName::Lit(name) => Stringify::from(&name.to_string()).into_token_stream(),
             TagName::Expr(name) => {
                 let expr = &name.expr;
                 let vtag_name = Ident::new("__yew_vtag_name", expr.span());
@@ -159,7 +155,7 @@ impl ToTokens for HtmlTag {
                             &quote! { #map.insert(#label, #ident); },
                         )
                     } else {
-                        let sr = stringify::Constructor::from(value);
+                        let sr = Stringify::from(value);
                         quote_spanned! {value.span()=>
                             #map.insert(#label, #sr);
                         }
@@ -176,7 +172,7 @@ impl ToTokens for HtmlTag {
         } else {
             let attr_pairs = attributes.iter().map(|TagAttribute { label, value, .. }| {
                 let label = label.to_string();
-                let sr = stringify::Constructor::from(value);
+                let sr = Stringify::from(value);
                 quote! { (#label, #sr) }
             });
             Some(quote! {
@@ -191,16 +187,14 @@ impl ToTokens for HtmlTag {
                 .iter()
                 .map(|TagAttribute { label, value, .. }| {
                     let label_str = label.to_string();
+                    let sr = stringify::stringify_static(&label_str);
                     quote_spanned! {value.span()=> {
                         if #value {
-                            #vtag.push_attribute(
-                                #label_str,
-                                ::std::borrow::Cow::<'static, str>::Borrowed(#label_str),
-                            );
+                            #vtag.push_attribute(#label_str, #sr);
                         };
                     }}
                 })
-                .collect::<proc_macro2::TokenStream>();
+                .collect::<TokenStream>();
             Some(tokens)
         };
 
@@ -210,7 +204,7 @@ impl ToTokens for HtmlTag {
                 let ident = Ident::new("__yew_v", value.span());
                 with_optional_attr_runtime_value(&ident, value, &quote! { #vtag.set_kind(#ident); })
             } else {
-                let sr = stringify::Constructor::from(value);
+                let sr = Stringify::from(value);
                 quote_spanned! {value.span()=>
                     #vtag.set_kind(#sr);
                 }
@@ -250,7 +244,7 @@ impl ToTokens for HtmlTag {
                     if s.is_empty() {
                         None
                     } else {
-                        let sr = stringify::Constructor::from(s);
+                        let sr = Stringify::from(&s);
                         Some(quote! {
                             #vtag.push_attribute("class", #sr);
                         })
@@ -401,13 +395,12 @@ impl ToTokens for HtmlTag {
 fn with_optional_attr_runtime_value(
     ident: &Ident,
     value: &Expr,
-    tokens: &proc_macro2::TokenStream,
-) -> proc_macro2::TokenStream {
+    tokens: &TokenStream,
+) -> TokenStream {
+    let sr = stringify::stringify_at_runtime(&ident);
     quote_spanned! {value.span()=>
         let #ident = ::std::option::Option::map(#value, |#ident| {
-            ::std::borrow::Cow::<'static, str>::Owned(
-                ::std::string::ToString::to_string(&#ident),
-            )
+            #sr
         });
         if let ::std::option::Option::Some(#ident) = #ident {
             #tokens
@@ -450,7 +443,7 @@ impl Parse for DynamicName {
 }
 
 impl ToTokens for DynamicName {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self { at, expr } = self;
         tokens.extend(quote! {#at#expr});
     }
@@ -497,7 +490,7 @@ impl Parse for TagName {
 }
 
 impl ToTokens for TagName {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         match self {
             TagName::Lit(name) => name.to_tokens(tokens),
             TagName::Expr(name) => name.to_tokens(tokens),
@@ -579,7 +572,7 @@ impl Parse for HtmlTagOpen {
 }
 
 impl ToTokens for HtmlTagOpen {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let HtmlTagOpen { lt, gt, .. } = self;
         tokens.extend(quote! {#lt#gt});
     }
@@ -638,7 +631,7 @@ impl Parse for HtmlTagClose {
 }
 
 impl ToTokens for HtmlTagClose {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let HtmlTagClose {
             lt,
             div,
