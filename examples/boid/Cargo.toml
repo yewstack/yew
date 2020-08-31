@@ -1,0 +1,15 @@
+[package]
+name = "boid"
+version = "0.1.0"
+authors = ["斎藤基樹 <stmtk13044032@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+log = "0.4.8"
+wasm-logger = "0.2.0"
+yew = { path = "../../yew" }
