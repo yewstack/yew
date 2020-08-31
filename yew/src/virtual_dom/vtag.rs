@@ -191,7 +191,6 @@ impl VTag {
     pub fn add_attribute(&mut self, key: &'static str, value: impl Into<Cow<'static, str>>) {
         self.attributes.as_mut().insert(key, value.into());
     }
-    
 
     /// Sets attributes to a virtual node.
     ///
