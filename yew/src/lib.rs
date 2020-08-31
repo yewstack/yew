@@ -314,8 +314,3 @@ pub mod prelude {
 }
 
 pub use self::prelude::*;
-
-#[doc(hidden)]
-pub mod __macro {
-    pub use indexmap::IndexMap;
-}

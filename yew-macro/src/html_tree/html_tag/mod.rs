@@ -164,10 +164,8 @@ impl ToTokens for HtmlTag {
             );
 
             Some(quote! {
-                let mut #map = ::yew::__macro::IndexMap::default();
+                let #map = #vtag.attributes.as_mut();
                 #(#insert_attr_it)*
-
-                #vtag.attributes = ::yew::virtual_dom::Attributes::IndexMap(#map);
             })
         } else {
             let attr_pairs = attributes.iter().map(|TagAttribute { label, value, .. }| {
