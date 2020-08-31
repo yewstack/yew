@@ -1,8 +1,10 @@
 ######################
 #
 # public tasks:
-# * stable-checks
-# * run-tests
+# * pr-flow
+# * lint
+# * tests
+# * doc-test
 #
 ######################
 [config]
@@ -18,27 +20,14 @@ CARGO_MAKE_CARGO_BUILD_TEST_FLAGS = ""
 private = true
 namespace = "core"
 
-[tasks.stable-checks]
-description = "Runs all validations for both workspaces on rust stable only."
-condition = { channels = ["stable"] }
-run_task = { name = [
-    "stable-checks-flow",
-    "stable-checks-stdweb"
-], fork = true }
+[tasks.pr-flow]
+run_task = { name = ["lint", "tests"], fork = true }
 
-[tasks.run-tests]
-dependencies = ["tests-setup"]
-env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = [
-    "examples/*",
-    "yew-router/examples/*",
-    "yewtil/examples/*",
-] }
-run_task = { name = [
-    "run-tests-flow",
-    "run-tests-stdweb"
-], fork = true, cleanup_task = "tests-cleanup" }
+[tasks.lint]
+description = "Runs all validations"
+run_task = { name = ["lint-flow", "lint-stdweb"], fork = true }
 
-[tasks.stable-checks-stdweb]
+[tasks.lint-stdweb]
 private = true
 cwd = "yew-stdweb"
 command = "cargo"
@@ -48,20 +37,26 @@ args = [
     "${CARGO_MAKE_LOG_LEVEL}",
     "--profile",
     "${CARGO_MAKE_PROFILE}",
-    "stable-checks-flow"
+    "lint-flow",
 ]
 
-[tasks.stable-checks-flow]
+[tasks.lint-flow]
 private = true
 workspace = true
-dependencies = [
-    "core::check-format-flow",
-    "core::check-flow",
-    "core::clippy-flow",
-    "post-stable-checks"
-]
+dependencies = ["core::check-format-flow", "core::clippy-flow"]
 
-[tasks.post-stable-checks]
+[tasks.tests]
+dependencies = ["tests-setup"]
+env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = [
+    "examples/*",
+    "yew-router/examples/*",
+    "yewtil/examples/*",
+] }
+run_task = { name = [
+    "tests-flow",
+    "tests-stdweb",
+    "doc-test",
+], fork = true, cleanup_task = "tests-cleanup" }
 
 [tasks.tests-setup]
 script_runner = "@duckscript"
@@ -138,7 +133,7 @@ script = [
 
     set_env YEW_TEST_FLAGS ${yew_test_flags}
     set_env YEW_TEST_FEATURES ${yew_test_features}
-    """
+    """,
 ]
 
 [tasks.tests-cleanup]
@@ -147,11 +142,11 @@ ignore_errors = true
 command = "docker"
 args = ["rm", "--force", "${HTTPBIN_CONTAINER_ID}"]
 
-[tasks.run-tests-flow]
+[tasks.tests-flow]
 workspace = true
 dependencies = ["test"]
 
-[tasks.run-tests-stdweb]
+[tasks.tests-stdweb]
 private = true
 extend = "core::wasm-pack-base"
 cwd = "yew-stdweb"
@@ -160,9 +155,13 @@ args = [
     "@@split(YEW_TEST_FLAGS, )",
     "--",
     "--features",
-    "${YEW_TEST_FEATURES}"
+    "${YEW_TEST_FEATURES}",
 ]
 
 [tasks.test]
 command = "cargo"
-args = ["test"]
+args = ["test", "--all-targets"]
+
+[tasks.doc-test]
+command = "cargo"
+args = ["test", "--doc"]
