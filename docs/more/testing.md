@@ -5,8 +5,7 @@ description: Testing your app
 
 &lt;TODO&gt;
 :::info
-Yew is currently working on making it easy to test components, but this is currently a work in
-progress.
+We're working on making it easy to test components, but this is currently a work in progress.
 
 Support for [shallow rendering](https://github.com/yewstack/yew/issues/1413) and a proposal to
 [expose the code Yew uses internally for testing components](https://github.com/yewstack/yew/issues/1413)
