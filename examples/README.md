@@ -89,7 +89,7 @@ The following table describes all possible options:
 | [node_refs](node_refs)                 | Uses a [`NodeRef`](https://yew.rs/docs/concepts/components/refs) to focus the input element under the cursor                       |     ✖      |
 | [npm_and_rest](npm_and_rest)           | A more elaborate demonstration of the `fetch` service                                                                              |     ✖      |
 | [pub_sub](pub_sub)                     | Cross-component communication using [Agents](https://yew.rs/docs/concepts/agents)                                                  |     ✔      |
-| [store](store)                         | Interacts with the [MediaDevices](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices) API                               |     ✖      |
+| [store](store)                         | Showcases the `yewtil::store` API                                                                                                  |     ✔      |
 | [textarea](textarea)                   | Shows how to use the value of a textarea or input tag                                                                              |     ✖      |
 | [timer](timer)                         | Demonstrates the use of the interval and timeout services                                                                          |     ✖      |
 | [todomvc](todomvc)                     | Implementation of the [TodoMVC](http://todomvc.com/) app                                                                           |     ✔      |
