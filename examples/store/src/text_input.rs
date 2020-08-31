@@ -62,7 +62,7 @@ impl Component for TextInput {
                     e.stop_propagation();
                     if e.key() == "Enter" { TextInputMsg::Submit } else { TextInputMsg::None }
                 })
-                />
+            />
         }
     }
 }
