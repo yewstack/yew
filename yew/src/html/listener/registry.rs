@@ -58,10 +58,12 @@ where
     synchronous: RefCell<B>,
 
     /// Buffer for jobs to be executed on the next animation frame
+    // TODO: exec all sync jobs after this completes
     deferred: RefCell<B>,
     //
     // TODO: debounce using (EventDescriptor, listenerID). Need to figure out how to make this
     // generic.
+    // TODO: exec all sync jobs after this completes
 }
 
 impl<B> Scheduler<B>
@@ -454,4 +456,6 @@ mod tests {
     }
 
     // TODO: PASSIVE tests
+    // TODO: oninput tests
+    // TODO: onchange tests
 }
