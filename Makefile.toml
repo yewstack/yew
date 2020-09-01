@@ -4,7 +4,7 @@
 # * pr-flow
 # * lint
 # * tests
-# * doc-test
+# * benchmarks
 #
 ######################
 [config]
@@ -27,6 +27,27 @@ run_task = { name = ["lint", "tests"], fork = true }
 description = "Runs all validations"
 run_task = { name = ["lint-flow", "lint-stdweb"], fork = true }
 
+[tasks.tests]
+dependencies = ["tests-setup"]
+env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = [
+    "examples/*",
+    "yew-router/examples/*",
+    "yewtil/examples/*",
+] }
+run_task = { name = [
+    "test-flow",
+    "tests-stdweb",
+    "doc-test-flow",
+], fork = true, cleanup_task = "tests-cleanup" }
+
+[tasks.benchmarks]
+run_task = { name = "bench-flow" }
+
+[tasks.lint-flow]
+private = true
+workspace = true
+dependencies = ["core::check-format-flow", "core::clippy-flow"]
+
 [tasks.lint-stdweb]
 private = true
 cwd = "yew-stdweb"
@@ -40,25 +61,8 @@ args = [
     "lint-flow",
 ]
 
-[tasks.lint-flow]
-private = true
-workspace = true
-dependencies = ["core::check-format-flow", "core::clippy-flow"]
-
-[tasks.tests]
-dependencies = ["tests-setup"]
-env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = [
-    "examples/*",
-    "yew-router/examples/*",
-    "yewtil/examples/*",
-] }
-run_task = { name = [
-    "tests-flow",
-    "tests-stdweb",
-    "doc-test",
-], fork = true, cleanup_task = "tests-cleanup" }
-
 [tasks.tests-setup]
+private = true
 script_runner = "@duckscript"
 script = [
     """
@@ -137,14 +141,11 @@ script = [
 ]
 
 [tasks.tests-cleanup]
+private = true
 condition = { env_set = ["HTTPBIN_CONTAINER_ID"] }
 ignore_errors = true
 command = "docker"
 args = ["rm", "--force", "${HTTPBIN_CONTAINER_ID}"]
-
-[tasks.tests-flow]
-workspace = true
-dependencies = ["test"]
 
 [tasks.tests-stdweb]
 private = true
@@ -158,10 +159,37 @@ args = [
     "${YEW_TEST_FEATURES}",
 ]
 
+[tasks.test-flow]
+private = true
+workspace = true
+dependencies = ["test"]
+
 [tasks.test]
+private = true
 command = "cargo"
 args = ["test", "--all-targets"]
 
+[tasks.doc-test-flow]
+private = true
+workspace = true
+dependencies = ["doc-test"]
+
 [tasks.doc-test]
+private = true
 command = "cargo"
 args = ["test", "--doc"]
+
+[tasks.bench-flow]
+private = true
+workspace = true
+dependencies = ["bench"]
+
+[tasks.bench]
+private = true
+env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = [
+    "examples/*",
+    "yew-router/examples/*",
+    "yewtil/examples/*",
+] }
+command = "cargo"
+args = ["bench"]

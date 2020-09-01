@@ -34,3 +34,17 @@ args = [
     "doc_test,wasm_test,yaml,msgpack,cbor,toml,std_web,agent,services",
     "--no-default-features",
 ]
+
+# FIXME this also doesn't seem to work
+[tasks.bench]
+clear = true
+extend = "core::wasm-pack-base"
+args = [
+    "test",
+    "--release",
+    "@@split(YEW_TEST_FLAGS, )",
+    "--",
+    "--features",
+    "${YEW_TEST_FEATURES}",
+    "bench",
+]
