@@ -1,5 +1,5 @@
-use crate::vector::Vector;
 use crate::rand::Rand;
+use crate::vector::Vector;
 use std::f64::consts::PI;
 
 const HEIGHT: f64 = 400.0;
@@ -27,7 +27,7 @@ impl Boid {
         }
     }
 
-    fn calc_alignment(&self, boids: &Vec<Boid>) -> Vector {
+    fn calc_alignment(&self, boids: &[Boid]) -> Vector {
         let mut ret = Vector::new(0.0, 0.0);
         for other in boids {
             let mut position = other.position.clone();
@@ -49,7 +49,7 @@ impl Boid {
         ret
     }
 
-    fn calc_cohension(&self, boids: &Vec<Boid>) -> Vector {
+    fn calc_cohension(&self, boids: &[Boid]) -> Vector {
         let mut ret = Vector::new(0.0, 0.0);
         for other in boids {
             let mut position = other.position.clone();
@@ -67,7 +67,7 @@ impl Boid {
         ret
     }
 
-    fn calc_separation(&self, boids: &Vec<Boid>) -> Vector {
+    fn calc_separation(&self, boids: &[Boid]) -> Vector {
         let mut ret = Vector::new(0.0, 0.0);
         for other in boids {
             let mut position = other.position.clone();
@@ -103,7 +103,7 @@ impl Boid {
         }
     }
 
-    pub fn next_state(&mut self, boids: &Vec<Boid>) {
+    pub fn next_state(&mut self, boids: &[Boid]) {
         let mut acceleration = Vector::new(0.0, 0.0);
         acceleration.add(&self.calc_separation(boids));
         acceleration.add(&self.calc_cohension(boids));

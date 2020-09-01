@@ -7,11 +7,8 @@ pub struct Rand {
 
 impl Rand {
     pub fn new() -> Rand {
-        //let seed = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("can not get system time").as_secs();
         let seed = 100;
-        Rand {
-            seed
-        }
+        Rand { seed }
     }
 
     fn next_seed(&mut self) -> u64 {

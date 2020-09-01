@@ -1,14 +1,14 @@
-mod vector;
-mod rand;
 mod boid;
+mod rand;
 mod triangle;
+mod vector;
 
-use std::time::Duration;
-use yew::prelude::{ ComponentLink, Component, html, ShouldRender, Html };
-use yew::services::{ IntervalService, Task };
-use crate::rand::Rand;
 use crate::boid::Boid;
+use crate::rand::Rand;
 use crate::triangle::Triangle;
+use std::time::Duration;
+use yew::prelude::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::services::{IntervalService, Task};
 
 pub struct Model {
     boids: Vec<Boid>,
@@ -45,7 +45,7 @@ impl Component for Model {
                 for boid in &mut self.boids {
                     boid.next_state(&boids);
                 }
-            },
+            }
         }
         true
     }
@@ -55,7 +55,7 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
-        let boids = (&self.boids).into_iter().map(|boid| boid2triangle(&boid));
+        let boids = (&self.boids).iter().map(|boid| boid2triangle(&boid));
         html! {
             <svg width=WIDTH height=HEIGHT viewBox={ format!("0 0 {} {}", WIDTH, HEIGHT) } xmlns={ "http://www.w3.org/2000/svg" }>
                 { for boids }

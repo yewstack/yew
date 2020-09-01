@@ -1,6 +1,6 @@
-use yew::prelude::{ ComponentLink, Component, html, ShouldRender, Html, Properties };
 use crate::vector::Vector;
 use std::f64::consts::PI;
+use yew::prelude::{html, Component, ComponentLink, Html, Properties, ShouldRender};
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
@@ -34,11 +34,11 @@ impl Component for Triangle {
         }
 
         if prop.velocity != self.velocity {
-            self.velocity = prop.velocity.clone();
+            self.velocity = prop.velocity;
         }
 
         if prop.position != self.position {
-            self.position = prop.position.clone();
+            self.position = prop.position;
         }
         true
     }
@@ -54,11 +54,15 @@ impl Component for Triangle {
 fn get_points_str(position: &Vector, velocity: &Vector) -> String {
     let direction = velocity.y.atan2(velocity.x);
     let size = 10.0;
-    let convert_position = |i: usize| (position.x + size * (direction + ((i as f64) * 2.0 * PI / 3.0)).cos(), position.y + size * (direction + ((i as f64) * 2.0 * PI / 3.0)).sin());
+    let convert_position = |i: usize| {
+        (
+            position.x + size * (direction + ((i as f64) * 2.0 * PI / 3.0)).cos(),
+            position.y + size * (direction + ((i as f64) * 2.0 * PI / 3.0)).sin(),
+        )
+    };
     (0..3)
         .map(convert_position)
         .map(|(x, y): (f64, f64)| format!("{},{}", x, y))
         .collect::<Vec<String>>()
         .join(" ")
 }
-
