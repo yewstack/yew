@@ -21,7 +21,7 @@ pub enum ComponentEvent {
     /// Sent when a component updates itself
     Updated,
     /// Sent when a component is created
-    Created,
+    Created { serialized_props: String },
     /// Sent when a component is destroyed
     Destroyed,
 }
@@ -47,13 +47,13 @@ pub fn selector(dom_node: &Node) -> String {
 
 /// Stores data about a component (currently only the name of the struct).
 #[derive(Serialize, Debug)]
-pub struct DebugComponent {
+pub struct ComponentMetadata {
     /// The name of the component
     name: String,
     selector: Option<String>,
 }
 
-impl DebugComponent {
+impl ComponentMetadata {
     /// Creates a new instance of `DebugComponent`
     pub fn new(name: String, selector: Option<String>) -> Self {
         Self { name, selector }
@@ -64,15 +64,18 @@ impl DebugComponent {
 #[derive(Serialize, Debug)]
 pub struct ComponentMessage {
     /// The event which is to be logged.
-    event: ComponentEvent,
+    eventdata: ComponentEvent,
     /// Optional additional data about the event (e.g. the component's location in the DOM).
-    data: Option<DebugComponent>,
+    metadata: Option<ComponentMetadata>,
 }
 
 impl ComponentMessage {
     /// Creates a new instance of `ComponentMessage`
-    pub fn new(event: ComponentEvent, data: Option<DebugComponent>) -> Self {
-        Self { event, data }
+    pub fn new(eventdata: ComponentEvent, metadata: Option<ComponentMetadata>) -> Self {
+        Self {
+            eventdata,
+            metadata,
+        }
     }
 }
 

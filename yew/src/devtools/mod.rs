@@ -4,8 +4,8 @@
 use serde::Serialize;
 
 thread_local! {
-    /// A global debugger object.
-    pub static DEBUGGER_CONNECTION: std::cell::RefCell<DebuggerConnection>
+    /// The global debugger object.
+    pub(crate) static DEBUGGER_CONNECTION: std::cell::RefCell<DebuggerConnection>
     = std::cell::RefCell::new(DebuggerConnection::new());
 }
 
@@ -16,14 +16,14 @@ pub mod messages;
 
 /// Stores a connection to the DevTools server.
 #[derive(Debug, Clone)]
-pub struct DebuggerConnection {
+pub(crate) struct DebuggerConnection {
     /// Public only for testing.
     pub ws: web_sys::WebSocket,
     message_queue: Vec<String>,
     created_listener: bool,
 }
 
-/// A debugger is capable of sending messages over a WebSocket connection.
+/// A message queue which is used to send messages over a WebSocket connection.
 pub trait DebuggerMessageQueue<T>
 where
     T: Serialize,
@@ -85,7 +85,11 @@ impl DebuggerMessageFlush for DebuggerConnection {
                 2 | 3 => {
                     #[cfg(feature = "web_sys")]
                     {
-                        web_sys::console::error_1(&"Error: could not open a connection to the DevTools WebSocket. Are you sure the DevTools backend is running?".into());
+                        web_sys::console::error_1(
+                            &"Error: could not open a connection to 
+                        the DevTools WebSocket. Are you sure the DevTools backend is running?"
+                                .into(),
+                        );
                         panic!("Could not open a connection to the DevTools WebSocket.");
                     };
                 }
@@ -130,8 +134,11 @@ impl<T: Serialize> DebuggerMessageSend<T> for DebuggerConnection {
 }
 
 impl DebuggerConnection {
-    /// Creates a new connection to the debugger.
-    /// The URL to which the debugger attempts to connect can be configured by setting some environment variables at compile time.
+    /// Creates a new connection to the developer tools server.
+    ///
+    /// The URL to which the debugger attempts to connect can be configured by setting some
+    /// environment variables at compile time.
+    ///
     /// If you do not set any of these environment variables, the default values are used.
     /// The following variables are accepted: `YEW_DEBUGGER_CONNECTION_TYPE`, `YEW_DEBUGGER_HOST` and `YEW_DEBUGGER_PORT`.
     /// * `YEW_DEBUGGER_CONNECTION_TYPE` – either `ws` or `wss`. `ws` is an insecure WebSocket (but this is fine for local development) and `wss` creates a secure WebSocket which can be used for remote debugging. If you choose `wss` you will need to ensure that your server is configured correctly.
@@ -146,7 +153,12 @@ impl DebuggerConnection {
                         "ws" => "ws",
                         "wss" => "wss",
                         _ => {
-                            panic!("`{}` is not a valid option for the `YEW_DEBUGGER_SECURE_CONNECTION` environment variable. Use either `ws` for an insecure connection or `wss` for a secure connection.", ws_mode);
+                            panic!(
+                                "`{}` is not a valid option for the 
+                            `YEW_DEBUGGER_SECURE_CONNECTION` environment variable. Use either `ws` 
+                            for an insecure connection or `wss` for a secure connection.",
+                                ws_mode
+                            );
                         }
                     }
                 }
@@ -185,21 +197,21 @@ pub mod tests {
 
     #[wasm_bindgen_test]
     fn test_message_queuing() {
-        crate::dev::DEBUGGER_CONNECTION.with(|debugger| {
+        crate::devtools::DEBUGGER_CONNECTION.with(|debugger| {
             assert_eq!(debugger.borrow_mut().message_queue.len(), 0);
         });
-        crate::dev::DEBUGGER_CONNECTION.with(|debugger| {
+        crate::devtools::DEBUGGER_CONNECTION.with(|debugger| {
             debugger.borrow_mut().queue_message("A message");
         });
-        crate::dev::DEBUGGER_CONNECTION.with(|debugger| {
+        crate::devtools::DEBUGGER_CONNECTION.with(|debugger| {
             assert_eq!(debugger.borrow().message_queue.len(), 1);
         });
-        crate::dev::DEBUGGER_CONNECTION.with(|debugger| {
+        crate::devtools::DEBUGGER_CONNECTION.with(|debugger| {
             std::mem::forget(gloo::events::EventListener::new(
                 &debugger.borrow().ws,
                 "open",
                 |_: &web_sys::Event| {
-                    crate::dev::DEBUGGER_CONNECTION.with(|d| {
+                    crate::devtools::DEBUGGER_CONNECTION.with(|d| {
                         d.borrow_mut().send_messages();
                         assert_eq!(d.borrow().message_queue.len(), 0);
                     })

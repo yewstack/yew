@@ -14,6 +14,8 @@ use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VNode};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
+#[cfg(feature="devtools")]
+use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
@@ -458,6 +460,17 @@ impl NodeRef {
     }
 }
 
+#[cfg(feature = "devtools")]
+/// Trait for building properties for a component
+pub trait Properties: Clone + Serialize + Deserialize {
+    /// Builder that will be used to construct properties
+    type Builder;
+
+    /// Entrypoint for building properties
+    fn builder() -> Self::Builder;
+}
+
+#[cfg(not(feature = "devtools"))]
 /// Trait for building properties for a component
 pub trait Properties: Clone {
     /// Builder that will be used to construct properties

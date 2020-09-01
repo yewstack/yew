@@ -1,6 +1,10 @@
 use super::{Callback, Component, NodeRef};
 use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
-use crate::virtual_dom::{VDiff, VNode};
+#[cfg(feature = "devtools")]
+use crate::{
+    devtools::DebuggerMessageSend,
+    virtual_dom::{VDiff, VNode},
+};
 use cfg_if::cfg_if;
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
@@ -148,6 +152,18 @@ impl<COMP: Component> Scope<COMP> {
     pub(crate) fn new(parent: Option<AnyScope>) -> Self {
         let parent = parent.map(Rc::new);
         let state = Rc::new(RefCell::new(None));
+        #[cfg(feature = "devtools")]
+        {
+            let serialized_props =
+                serde_json::to_string(COMP::Properties).expect("failed to serialize properties");
+            crate::devtools::DEBUGGER_CONNECTION.with(|debugger| {
+                let debug = debugger.borrow_mut();
+                debug.send_message(crate::devtools::messages::ComponentMessage::new(
+                    crate::devtools::messages::ComponentEvent::Created { serialized_props },
+                    None,
+                ));
+            });
+        }
         Scope { parent, state }
     }
 
