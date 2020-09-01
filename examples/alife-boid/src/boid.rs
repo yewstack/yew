@@ -5,12 +5,12 @@ use std::f64::consts::PI;
 const HEIGHT: f64 = 400.0;
 const WIDTH: f64 = 600.0;
 const VELOCITY_SIZE: f64 = 5.0;
-const ALIGNMENT_RADIOUS: f64 = 50.0;
-const ALIGNMENT_WEIGHT: f64 = 2.0;
-const COHENSION_RADIOUS: f64 = 100.0;
-const COHENSION_WEIGHT: f64 = 2.0;
-const SEPARATION_RADIOUS: f64 = 20.0;
-const SEPRATION_WEIGHT: f64 = 2.0;
+const ALIGNMENT_RADIOUS: f64 = 100.0;
+const ALIGNMENT_WEIGHT: f64 = 3.0;
+const COHENSION_RADIOUS: f64 = 200.0;
+const COHENSION_WEIGHT: f64 = 1.0;
+const SEPARATION_RADIOUS: f64 = 50.0;
+const SEPARATION_WEIGHT: f64 = 1.0;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct Boid {
@@ -37,9 +37,11 @@ impl Boid {
                 continue;
             }
 
+            /*
             let mut velocity = other.velocity.clone();
             velocity.sub(&self.velocity);
-            ret.add(&velocity);
+            */
+            ret.add(&other.velocity);
         }
 
         ret.normalize();
@@ -75,11 +77,41 @@ impl Boid {
                 continue;
             }
 
+            let size = position.size();
+            position.div(size * size);
+
             ret.sub(&position);
         }
 
         ret.normalize();
-        ret.mul(SEPRATION_WEIGHT);
+        ret.mul(SEPARATION_WEIGHT);
         ret
+    }
+
+    fn move_self(&mut self) {
+        self.position.add(&self.velocity);
+        if self.position.x < 0.0 {
+            self.position.x += WIDTH;
+        } else if self.position.x > WIDTH {
+            self.position.x -= WIDTH;
+        }
+
+        if self.position.y < 0.0 {
+            self.position.y += HEIGHT;
+        } else if self.position.y > HEIGHT {
+            self.position.y -= HEIGHT;
+        }
+    }
+
+    pub fn next_state(&mut self, boids: &Vec<Boid>) {
+        let mut acceleration = Vector::new(0.0, 0.0);
+        acceleration.add(&self.calc_separation(boids));
+        acceleration.add(&self.calc_cohension(boids));
+        acceleration.add(&self.calc_alignment(boids));
+        self.velocity.add(&acceleration);
+        self.velocity.normalize();
+        self.velocity.mul(VELOCITY_SIZE);
+
+        self.move_self();
     }
 }

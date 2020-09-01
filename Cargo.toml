@@ -57,5 +57,5 @@ members = [
   "examples/todomvc",
   "examples/two_apps",
   "examples/webgl",
-  "examples/boid",
+  "examples/alife-boid",
 ]

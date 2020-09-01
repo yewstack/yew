@@ -1,7 +1,7 @@
 [package]
-name = "boid"
+name = "alife-boid"
 version = "0.1.0"
-authors = ["斎藤基樹 <stmtk13044032@gmail.com>"]
+authors = ["motoki saito <stmtk13044032@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
