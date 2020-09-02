@@ -1,6 +1,3 @@
-// TODO: remove this
-#![allow(dead_code)]
-
 use crate::virtual_dom::{Listener, Listeners};
 use std::{
     cell::RefCell,
@@ -11,8 +8,9 @@ use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{Element, Event};
 
 thread_local! {
-    /// Dedicated scheduler for all Registry operations to make their execution more compact
-    #[allow(unused)]
+    /// Dedicated scheduler for all Registry operations
+    // TODO: Replace yew::scheduler and integrate with that
+    #[allow(unused)] // TODO: remove this
     static SCHEDULER: RefCell<Scheduler<FIFO>> = Default::default();
 
     /// Global event listener registry
@@ -47,6 +45,7 @@ impl From<&dyn Listener> for EventDescriptor {
 /// Prevents recursion by buffering calls in B
 // TODO: Reuse this on yew::scheduler to reduce Rc and RefCell spam overhead + enable defer to RAF
 #[derive(Default)]
+#[allow(dead_code)] // TODO: remove this
 pub struct Scheduler<B>
 where
     B: Buffer,
@@ -66,6 +65,7 @@ where
     // TODO: exec all sync jobs after this completes
 }
 
+#[allow(dead_code)] // TODO: remove this
 impl<B> Scheduler<B>
 where
     B: Buffer,
@@ -335,14 +335,18 @@ pub(crate) fn compare_listeners(registered_id: u64, rhs: &[Rc<dyn Listener>]) ->
     })
 }
 
-#[cfg(all(test, feature = "wasm_test", feature = "listener_tests"))]
+#[cfg(all(
+    test,
+    feature = "wasm_test",
+    any(feature = "listener_tests", feature = "listener_benchmarks")
+))]
 mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     wasm_bindgen_test_configure!(run_in_browser);
 
-    use crate::{html, utils::document, App, Callback, Component, ComponentLink};
+    use crate::{html, utils::document, App, Component, ComponentLink};
     use wasm_bindgen::JsCast;
-    use web_sys::MouseEvent;
+    use wasm_bindgen_futures::JsFuture;
 
     #[derive(Copy, Clone)]
     enum Message {
@@ -350,25 +354,22 @@ mod tests {
         StopClicking,
     }
 
-    trait MakeCallback {
-        fn make_callback<C, M>(l: &ComponentLink<C>, msg: M) -> Callback<MouseEvent>
-        where
-            C: Component<Message = M>,
-            M: Copy + 'static;
+    trait Flag {
+        fn flag() -> u8;
     }
 
-    struct Comp<MC>
+    struct Comp<F>
     where
-        MC: MakeCallback + 'static,
+        F: Flag + 'static,
     {
         stop_clicking: bool,
         clicked: u32,
         link: ComponentLink<Self>,
     }
 
-    impl<MC> Component for Comp<MC>
+    impl<F> Component for Comp<F>
     where
-        MC: MakeCallback + 'static,
+        F: Flag + 'static,
     {
         type Message = Message;
         type Properties = ();
@@ -404,7 +405,7 @@ mod tests {
                 }
             } else {
                 html! {
-                    <a onclick=MC::make_callback(&self.link, Message::Click)>
+                    <a onclick=self.link.callback_with_flags(F::flag(), |_| Message::Click)>
                         {self.clicked}
                     </a>
                 }
@@ -412,50 +413,104 @@ mod tests {
         }
     }
 
-    #[test]
-    fn synchronous() {
+    fn assert_count(el: &web_sys::HtmlElement, count: isize) {
+        assert_eq!(el.text_content(), Some(count.to_string()))
+    }
+
+    fn init<F>() -> (ComponentLink<Comp<F>>, web_sys::HtmlElement)
+    where
+        F: Flag,
+    {
+        // Remove any existing listeners and elements
         super::Registry::with(|r| *r = Default::default());
-
-        struct MC();
-
-        impl MakeCallback for MC {
-            fn make_callback<C, M>(l: &ComponentLink<C>, msg: M) -> Callback<MouseEvent>
-            where
-                C: Component<Message = M>,
-                M: Copy + 'static,
-            {
-                l.callback(move |_| msg)
-            }
+        if let Some(el) = document().query_selector("a").unwrap() {
+            el.parent_element().unwrap().remove();
         }
 
         let root = document().create_element("div").unwrap();
         document().body().unwrap().append_child(&root).unwrap();
-        let link = App::<Comp<MC>>::new().mount(root);
+        let link = App::<Comp<F>>::new().mount(root);
 
-        let el = document()
-            .query_selector("a")
-            .unwrap()
-            .unwrap()
-            .dyn_into::<web_sys::HtmlElement>()
-            .unwrap();
+        (
+            link,
+            document()
+                .query_selector("a")
+                .unwrap()
+                .unwrap()
+                .dyn_into::<web_sys::HtmlElement>()
+                .unwrap(),
+        )
+    }
 
-        macro_rules! assert_count {
+    #[test]
+    #[cfg(not(feature = "listener_benchmarks"))]
+    fn synchronous() {
+        struct Synchronous();
+
+        impl Flag for Synchronous {
+            fn flag() -> u8 {
+                0
+            }
+        }
+
+        let (link, el) = init::<Synchronous>();
+
+        assert_count(&el, 0);
+
+        el.click();
+        assert_count(&el, 1);
+
+        el.click();
+        assert_count(&el, 2);
+
+        link.send_message(Message::StopClicking);
+        el.click();
+        assert_count(&el, 2);
+    }
+
+    async fn await_animation_frame() {
+        JsFuture::from(js_sys::Promise::new(&mut |resolve, _| {
+            crate::utils::window()
+                .request_animation_frame(&resolve)
+                .unwrap();
+        }))
+        .await
+        .unwrap();
+    }
+
+    #[test]
+    #[cfg(not(feature = "listener_benchmarks"))]
+    async fn passive() {
+        struct Passive();
+
+        impl Flag for Passive {
+            fn flag() -> u8 {
+                crate::callback::PASSIVE
+            }
+        }
+
+        let (link, el) = init::<Passive>();
+
+        macro_rules! assert_after_click {
             ($c:expr) => {
-                assert_eq!(el.text_content(), Some($c.to_string()));
+                el.click();
+                await_animation_frame().await;
+                assert_count(&el, $c);
             };
         }
 
-        assert_count!(0);
-        el.click();
-        assert_count!(1);
-        el.click();
-        assert_count!(2);
+        assert_count(&el, 0);
+
+        assert_after_click!(1);
+
+        assert_after_click!(2);
+
         link.send_message(Message::StopClicking);
-        el.click();
-        assert_count!(2);
+        assert_after_click!(2);
     }
 
-    // TODO: PASSIVE tests
     // TODO: oninput tests
     // TODO: onchange tests
+
+    // TODO: sync vs passive vs deferred benchmark
 }
