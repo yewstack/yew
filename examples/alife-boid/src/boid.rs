@@ -1,15 +1,15 @@
-use crate::rand::Rand;
+use rand::{ Rng };
 use crate::vector::Vector;
 use std::f64::consts::PI;
 
 const HEIGHT: f64 = 400.0;
 const WIDTH: f64 = 600.0;
 const VELOCITY_SIZE: f64 = 5.0;
-const ALIGNMENT_RADIOUS: f64 = 100.0;
+const ALIGNMENT_RADIUS: f64 = 100.0;
 const ALIGNMENT_WEIGHT: f64 = 3.0;
-const COHENSION_RADIOUS: f64 = 200.0;
-const COHENSION_WEIGHT: f64 = 1.0;
-const SEPARATION_RADIOUS: f64 = 50.0;
+const COHESION_RADIUS: f64 = 200.0;
+const COHESION_WEIGHT: f64 = 1.0;
+const SEPARATION_RADIUS: f64 = 50.0;
 const SEPARATION_WEIGHT: f64 = 1.0;
 
 #[derive(Clone, PartialEq, Eq)]
@@ -19,10 +19,10 @@ pub struct Boid {
 }
 
 impl Boid {
-    pub fn new(rng: &mut Rand) -> Boid {
-        let theta = rng.next_f64() * PI * 2.0;
+    pub fn new(rng: &mut rand::rngs::ThreadRng) -> Boid {
+        let theta = rng.gen::<f64>() * PI * 2.0;
         Boid {
-            position: Vector::new(WIDTH * rng.next_f64(), HEIGHT * rng.next_f64()),
+            position: Vector::new(WIDTH * rng.gen::<f64>(), HEIGHT * rng.gen::<f64>()),
             velocity: Vector::new(theta.cos() * VELOCITY_SIZE, theta.sin() * VELOCITY_SIZE),
         }
     }
@@ -31,9 +31,9 @@ impl Boid {
         let mut ret = Vector::new(0.0, 0.0);
         for other in boids {
             let mut position = other.position.clone();
-            position.sub(&self.position);
+            position -= self.position.clone();
             let position_size = position.size();
-            if position_size == 0.0 || position_size > ALIGNMENT_RADIOUS {
+            if position_size == 0.0 || position_size > ALIGNMENT_RADIUS {
                 continue;
             }
 
@@ -41,29 +41,29 @@ impl Boid {
             let mut velocity = other.velocity.clone();
             velocity.sub(&self.velocity);
             */
-            ret.add(&other.velocity);
+            ret += other.velocity.clone();
         }
 
         ret.normalize();
-        ret.mul(ALIGNMENT_WEIGHT);
+        ret *= ALIGNMENT_WEIGHT;
         ret
     }
 
-    fn calc_cohension(&self, boids: &[Boid]) -> Vector {
+    fn calc_cohesion(&self, boids: &[Boid]) -> Vector {
         let mut ret = Vector::new(0.0, 0.0);
         for other in boids {
             let mut position = other.position.clone();
-            position.sub(&self.position);
+            position -= self.position.clone();
             let position_size = position.size();
-            if position_size == 0.0 || position_size > COHENSION_RADIOUS {
+            if position_size == 0.0 || position_size > COHESION_RADIUS {
                 continue;
             }
 
-            ret.add(&position);
+            ret += position;
         }
 
         ret.normalize();
-        ret.mul(COHENSION_WEIGHT);
+        ret *= COHESION_WEIGHT;
         ret
     }
 
@@ -71,25 +71,25 @@ impl Boid {
         let mut ret = Vector::new(0.0, 0.0);
         for other in boids {
             let mut position = other.position.clone();
-            position.sub(&self.position);
+            position -= self.position.clone();
             let position_size = position.size();
-            if position_size == 0.0 || position_size > SEPARATION_RADIOUS {
+            if position_size == 0.0 || position_size > SEPARATION_RADIUS {
                 continue;
             }
 
             let size = position.size();
-            position.div(size * size);
+            position /= size * size;
 
-            ret.sub(&position);
+            ret -= position;
         }
 
         ret.normalize();
-        ret.mul(SEPARATION_WEIGHT);
+        ret *= SEPARATION_WEIGHT;
         ret
     }
 
     fn move_self(&mut self) {
-        self.position.add(&self.velocity);
+        self.position += self.velocity.clone();
         if self.position.x < 0.0 {
             self.position.x += WIDTH;
         } else if self.position.x > WIDTH {
@@ -105,12 +105,12 @@ impl Boid {
 
     pub fn next_state(&mut self, boids: &[Boid]) {
         let mut acceleration = Vector::new(0.0, 0.0);
-        acceleration.add(&self.calc_separation(boids));
-        acceleration.add(&self.calc_cohension(boids));
-        acceleration.add(&self.calc_alignment(boids));
-        self.velocity.add(&acceleration);
+        acceleration += self.calc_separation(boids);
+        acceleration += self.calc_cohesion(boids);
+        acceleration += self.calc_alignment(boids);
+        self.velocity += acceleration;
         self.velocity.normalize();
-        self.velocity.mul(VELOCITY_SIZE);
+        self.velocity *= VELOCITY_SIZE;
 
         self.move_self();
     }

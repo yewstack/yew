@@ -1,7 +1,37 @@
+use std::ops::{AddAssign, SubAssign, MulAssign, DivAssign};
+
 #[derive(Clone, PartialEq)]
 pub struct Vector {
     pub x: f64,
     pub y: f64,
+}
+
+impl AddAssign for Vector {
+    fn add_assign(&mut self, other: Vector) {
+        self.x += other.x;
+        self.y += other.y;
+    }
+}
+
+impl SubAssign for Vector {
+    fn sub_assign(&mut self, other: Vector) {
+        self.x -= other.x;
+        self.y -= other.y;
+    }
+}
+
+impl MulAssign<f64> for Vector {
+    fn mul_assign(&mut self, scalar: f64) {
+        self.x *= scalar;
+        self.y *= scalar;
+    }
+}
+
+impl DivAssign<f64> for Vector {
+    fn div_assign(&mut self, scalar: f64) {
+        self.x /= scalar;
+        self.y /= scalar;
+    }
 }
 
 impl Vector {
@@ -9,22 +39,7 @@ impl Vector {
         Vector { x, y }
     }
 
-    pub fn add(&mut self, other: &Vector) {
-        self.x += other.x;
-        self.y += other.y;
-    }
-
-    pub fn sub(&mut self, other: &Vector) {
-        self.x -= other.x;
-        self.y -= other.y;
-    }
-
-    pub fn mul(&mut self, scalar: f64) {
-        self.x *= scalar;
-        self.y *= scalar;
-    }
-
-    pub fn div(&mut self, scalar: f64) {
+    fn div(&mut self, scalar: f64) {
         self.x /= scalar;
         self.y /= scalar;
     }

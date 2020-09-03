@@ -1,12 +1,11 @@
 mod boid;
-mod rand;
 mod triangle;
 mod vector;
 
 use crate::boid::Boid;
-use crate::rand::Rand;
 use crate::triangle::Triangle;
 use std::time::Duration;
+use rand::prelude::thread_rng;
 use yew::prelude::{html, Component, ComponentLink, Html, ShouldRender};
 use yew::services::{IntervalService, Task};
 
@@ -31,7 +30,7 @@ impl Component for Model {
         let callback = link.callback(|_| Msg::Tick);
         let handle = IntervalService::spawn(Duration::from_millis(50), callback);
 
-        let mut rng = Rand::new();
+        let mut rng = thread_rng();
         Self {
             boids: (0..100).map(|_| Boid::new(&mut rng)).collect(),
             job: Box::new(handle),
