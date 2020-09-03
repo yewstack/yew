@@ -10,12 +10,12 @@ use std::rc::Rc;
 pub const PASSIVE: u8 = 1;
 /// Causes the event handler to not fire until the next animation frame
 /// Implies `PASSIVE`.
-// TODO: this flag can apply to Agent event handling as well
+// TODO: this flag can apply to Agents and Components as well
 pub const DEFER: u8 = 1 << 1 | PASSIVE;
 /// Causes the event handler to not fire until the next animation frame and be called with the last
 /// fired event.
 /// Implies `PASSIVE` and `DEFER`.
-// TODO: this flag can apply to Agent event handling as well
+// TODO: this flag can apply to Agents and Components as well
 pub const DEBOUNCE: u8 = 1 << 2 | DEFER;
 /// Defines event listener to also listen to events in the child tree that bubbled up to the target
 /// element
@@ -30,19 +30,20 @@ pub const HANDLE_BUBBLED: u8 = 1 << 3;
 /// </aside>
 /// An `Rc` wrapper is used to make it cloneable.
 pub enum Callback<IN> {
-    /// A callback which can be called multiple times with optional flags
+    /// A callback which can be called multiple times with optional modifier flags
     Callback {
         /// A callback which can be called multiple times
         cb: Rc<dyn Fn(IN)>,
 
-        /// Sets flags for event listening. A combination of `PASSIVE`, `DEBOUNCE`, `DEFER` and
-        /// `HANDLE_BUBBLED`.
+        /// Sets flags for event listening. A combination of `PASSIVE`, and `HANDLE_BUBBLED`.
+        ///
+        /// If None, the default flags for the callback event source are used.
         ///
         /// `DEFER` implies `PASSIVE`.
         /// `DEBOUNCE` implies `PASSIVE` and `DEFER`.
         ///
         /// Currently only used with `feature = "web_sys"`.
-        flags: u8,
+        flags: Option<u8>,
     },
 
     /// A callback which can only be called once. The callback will panic if it is
@@ -56,7 +57,7 @@ impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
     fn from(func: F) -> Self {
         Callback::Callback {
             cb: Rc::new(func),
-            flags: 0,
+            flags: None,
         }
     }
 }

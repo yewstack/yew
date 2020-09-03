@@ -41,7 +41,7 @@ macro_rules! impl_action {
 
                 fn flags(&self) -> u8 {
                     match &self.callback {
-                        Callback::Callback{flags, ..} => *flags,
+                        Callback::Callback{flags, ..} => (*flags).unwrap_or($flags),
                         _ => $flags,
                     }
                 }

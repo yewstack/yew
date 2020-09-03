@@ -9,8 +9,8 @@ cfg_if! {
         use stdweb::web::event::InputEvent;
         use stdweb::web::html_element::SelectElement;
     } else if #[cfg(feature = "web_sys")] {
-        mod listener_websys;
-        pub use listener_websys::*;
+        mod listener_web_sys;
+        pub use listener_web_sys::*;
 
         mod registry;
         pub(crate) use registry::*;

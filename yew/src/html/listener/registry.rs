@@ -1,18 +1,13 @@
 use crate::virtual_dom::{Listener, Listeners};
 use std::{
     cell::RefCell,
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{HashMap, HashSet},
     rc::Rc,
 };
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{Element, Event};
 
 thread_local! {
-    /// Dedicated scheduler for all Registry operations
-    // TODO: Replace yew::scheduler and integrate with that
-    #[allow(unused)] // TODO: remove this
-    static SCHEDULER: RefCell<Scheduler<FIFO>> = Default::default();
-
     /// Global event listener registry
     static REGISTRY: RefCell<Registry> = Default::default();
 
@@ -39,95 +34,6 @@ impl From<&dyn Listener> for EventDescriptor {
             kind: l.kind(),
             flags: l.flags(),
         }
-    }
-}
-
-/// Prevents recursion by buffering calls in B
-// TODO: Reuse this on yew::scheduler to reduce Rc and RefCell spam overhead + enable defer to RAF
-#[derive(Default)]
-#[allow(dead_code)] // TODO: remove this
-pub struct Scheduler<B>
-where
-    B: Buffer,
-{
-    /// Prevents job recursion
-    lock: RefCell<()>,
-
-    /// Buffer for jobs that can not be executed at once but should be executed as soon as possible.
-    synchronous: RefCell<B>,
-
-    /// Buffer for jobs to be executed on the next animation frame
-    // TODO: exec all sync jobs after this completes
-    deferred: RefCell<B>,
-    //
-    // TODO: debounce using (EventDescriptor, listenerID). Need to figure out how to make this
-    // generic.
-    // TODO: exec all sync jobs after this completes
-}
-
-#[allow(dead_code)] // TODO: remove this
-impl<B> Scheduler<B>
-where
-    B: Buffer,
-{
-    /// Schedule job with priority p for ASAP execution
-    pub fn schedule(&self, p: B::Priority, job: impl FnOnce() + 'static) {
-        // Allow only one job to run at a time
-        match self.lock.try_borrow_mut() {
-            Ok(_) => {
-                job();
-                Self::run_buffered(&self.synchronous);
-            }
-            _ => {
-                Self::buffer(&self.synchronous, p, job);
-            }
-        }
-    }
-
-    /// Schedule job with priority p to be executed on the next animation frame
-    pub fn schedule_deferred(&self, p: B::Priority, job: impl FnOnce() + 'static) {
-        Self::buffer(&self.deferred, p, job);
-
-        // TODO: Schedule render task, if none
-    }
-
-    fn buffer(dst: &RefCell<B>, p: B::Priority, job: impl FnOnce() + 'static) {
-        dst.borrow_mut()
-            .buffer(p, Box::new(job) as Box<dyn FnOnce()>);
-    }
-
-    /// Run any buffered jobs from src
-    fn run_buffered(src: &RefCell<B>) {
-        while let Some(job) = src.borrow_mut().next() {
-            job();
-        }
-    }
-}
-
-/// Buffers incoming work and instructs Scheduler what to run next
-pub trait Buffer: Default {
-    /// Enables prioritizing some jobs over others
-    type Priority;
-
-    /// Buffer job with priority p for later execution
-    fn buffer(&mut self, p: Self::Priority, job: Box<dyn FnOnce()>);
-
-    /// Return next job to execute, if any
-    fn next(&mut self) -> Option<Box<dyn FnOnce()>>;
-}
-
-#[derive(Default)]
-struct FIFO(VecDeque<Box<dyn FnOnce()>>);
-
-impl Buffer for FIFO {
-    type Priority = ();
-
-    fn buffer(&mut self, _: Self::Priority, job: Box<dyn FnOnce()>) {
-        self.0.push_back(job);
-    }
-
-    fn next(&mut self) -> Option<Box<dyn FnOnce()>> {
-        self.0.pop_front()
     }
 }
 

@@ -229,23 +229,30 @@ impl<COMP: Component> Scope<COMP> {
         M: Into<COMP::Message>,
         F: Fn(IN) -> M + 'static,
     {
-        self.callback_with_flags(0, function)
+        self.callback_with_flags(None, function)
     }
 
     /// Creates a `Callback` which will send a message to the linked
-    /// component's update method when invoked with additional flags for DOM event listeners.
+    /// component's update method when invoked.
+    ///
+    /// `flags` specifies additional optional `flags` for event handling.
     /// See `yew::callback` for flag descriptions.
+    /// If `flags` is None, the default flags for the callback event source are used.
     ///
     /// Please be aware that currently the result of this callback
     /// synchronously schedules a call to the [Component](Component)
     /// interface.
-    pub fn callback_with_flags<F, IN, M>(&self, flags: u8, function: F) -> Callback<IN>
+    pub fn callback_with_flags<F, IN, M>(
+        &self,
+        flags: impl Into<Option<u8>>,
+        function: F,
+    ) -> Callback<IN>
     where
         M: Into<COMP::Message>,
         F: Fn(IN) -> M + 'static,
     {
         Callback::Callback {
-            flags,
+            flags: flags.into(),
             cb: {
                 let scope = self.clone();
                 Rc::new(move |input| {
@@ -295,12 +302,47 @@ impl<COMP: Component> Scope<COMP> {
         F: Fn(IN) -> OUT + 'static,
         OUT: SendAsMessage<COMP>,
     {
-        let scope = self.clone();
-        let closure = move |input| {
-            let messages = function(input);
-            messages.send(&scope);
-        };
-        closure.into()
+        self.batch_callback_with_flags(None, function)
+    }
+
+    /// Creates a `Callback` which will send a batch of messages back
+    /// to the linked component's update method when invoked.
+    ///
+    /// The callback function's return type is generic to allow for dealing with both
+    /// `Option` and `Vec` nicely. `Option` can be used when dealing with a callback that
+    /// might not need to send an update.
+    ///
+    /// `flags` specifies additional optional `flags` for event handling.
+    /// See `yew::callback` for flag descriptions.
+    /// If `flags` is None, the default flags for the callback event source are used.
+    ///
+    /// ```ignore
+    /// link.batch_callback(|_| vec![Msg::A, Msg::B]);
+    /// link.batch_callback(|_| Some(Msg::A));
+    /// ```
+    ///
+    /// Please be aware that currently the results of these callbacks
+    /// will synchronously schedule calls to the
+    /// [Component](Component) interface.
+    pub fn batch_callback_with_flags<F, IN, OUT>(
+        &self,
+        flags: impl Into<Option<u8>>,
+        function: F,
+    ) -> Callback<IN>
+    where
+        F: Fn(IN) -> OUT + 'static,
+        OUT: SendAsMessage<COMP>,
+    {
+        Callback::Callback {
+            flags: flags.into(),
+            cb: {
+                let scope = self.clone();
+                Rc::new(move |input| {
+                    let messages = function(input);
+                    messages.send(&scope);
+                })
+            },
+        }
     }
 
     /// Creates a `Callback` from an `FnOnce` which will send a batch of messages back
