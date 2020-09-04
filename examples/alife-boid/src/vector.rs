@@ -39,11 +39,6 @@ impl Vector {
         Vector { x, y }
     }
 
-    fn div(&mut self, scalar: f64) {
-        self.x /= scalar;
-        self.y /= scalar;
-    }
-
     pub fn size(&mut self) -> f64 {
         (self.x * self.x + self.y * self.y).sqrt()
     }
@@ -53,7 +48,15 @@ impl Vector {
         if size == 0.0 {
             return;
         }
-        self.div(size)
+        *self /= size;
+    }
+
+    pub fn size_square(&mut self) {
+        let size = self.size();
+        if size == 0.0 {
+            return;
+        }
+        *self /= size * size;
     }
 }
 

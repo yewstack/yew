@@ -37,10 +37,6 @@ impl Boid {
                 continue;
             }
 
-            /*
-            let mut velocity = other.velocity.clone();
-            velocity.sub(&self.velocity);
-            */
             ret += other.velocity.clone();
         }
 
@@ -77,9 +73,7 @@ impl Boid {
                 continue;
             }
 
-            let size = position.size();
-            position /= size * size;
-
+            position.size_square();
             ret -= position;
         }
 

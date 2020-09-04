@@ -1,10 +1,10 @@
 mod boid;
-mod triangle;
 mod vector;
 
 use crate::boid::Boid;
-use crate::triangle::Triangle;
+use crate::vector::Vector;
 use std::time::Duration;
+use std::f64::consts::PI;
 use rand::prelude::thread_rng;
 use yew::prelude::{html, Component, ComponentLink, Html, ShouldRender};
 use yew::services::{IntervalService, Task};
@@ -64,7 +64,24 @@ impl Component for Model {
 }
 
 fn boid2triangle(boid: &Boid) -> Html {
+    let points = get_points_str(&boid.position, &boid.velocity);
     html! {
-        <Triangle position=boid.position.clone() velocity=boid.velocity.clone() />
+        <polygon points=points />
     }
+}
+
+fn get_points_str(position: &Vector, velocity: &Vector) -> String {
+    let direction = velocity.y.atan2(velocity.x);
+    let size = 10.0;
+    let convert_position = |i: usize| {
+        (
+            position.x + size * (direction + ((i as f64) * 2.0 * PI / 3.0)).cos(),
+            position.y + size * (direction + ((i as f64) * 2.0 * PI / 3.0)).sin(),
+        )
+    };
+    (0..3)
+        .map(convert_position)
+        .map(|(x, y): (f64, f64)| format!("{},{}", x, y))
+        .collect::<Vec<String>>()
+        .join(" ")
 }
