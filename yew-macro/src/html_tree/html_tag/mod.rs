@@ -11,7 +11,7 @@ use stringify::Stringify;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
-use syn::{Block, Expr, Ident, Token};
+use syn::{Block, Ident, Token};
 use tag_attributes::{ClassesForm, TagAttributes};
 
 pub struct HtmlTag {
@@ -134,78 +134,16 @@ impl ToTokens for HtmlTag {
 
         let vtag = Ident::new("__yew_vtag", tag_name.span());
 
-        let set_attributes = if attributes.is_empty() {
-            None
-        } else if attributes.iter().any(|attr| attr.question_mark.is_some()) {
-            let map = Ident::new("__yew_map", tag_name.span());
+        // attributes with special treatment
 
-            let insert_attr_it = attributes.iter().map(
-                |TagAttribute {
-                     label,
-                     value,
-                     question_mark,
-                 }| {
-                    let label = label.to_string();
-
-                    if question_mark.is_some() {
-                        let ident = Ident::new("__yew_attr", value.span());
-                        with_optional_attr_runtime_value(
-                            &ident,
-                            value,
-                            &quote! { #map.insert(#label, #ident); },
-                        )
-                    } else {
-                        let sr = Stringify::from(value);
-                        quote_spanned! {value.span()=>
-                            #map.insert(#label, #sr);
-                        }
-                    }
-                },
-            );
-
-            Some(quote! {
-                let #map = #vtag.attributes.as_mut();
-                #(#insert_attr_it)*
-            })
-        } else {
-            let attr_pairs = attributes.iter().map(|TagAttribute { label, value, .. }| {
-                let label = label.to_string();
-                let sr = Stringify::from(value);
-                quote! { (#label, #sr) }
-            });
-            Some(quote! {
-                #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(::std::vec![#(#attr_pairs),*]);
-            })
-        };
-
-        let set_booleans = if booleans.is_empty() {
-            None
-        } else {
-            let tokens = booleans
-                .iter()
-                .map(|TagAttribute { label, value, .. }| {
-                    let label_str = label.to_string();
-                    let sr = stringify::stringify_static(&label_str);
-                    quote_spanned! {value.span()=> {
-                        if #value {
-                            #vtag.__macro_push_attribute(#label_str, #sr);
-                        };
-                    }}
-                })
-                .collect::<TokenStream>();
-            Some(tokens)
-        };
-
-        let set_kind = kind.as_ref().map(|attr| {
-            let value = &attr.value;
-            if attr.question_mark.is_some() {
-                let ident = Ident::new("__yew_kind", value.span());
-                with_optional_attr_runtime_value(&ident, value, &quote! { #vtag.set_kind(#ident); })
-            } else {
-                let sr = Stringify::from(value);
-                quote_spanned! {value.span()=>
-                    #vtag.set_kind(#sr);
-                }
+        let set_node_ref = node_ref.as_ref().map(|node_ref| {
+            quote! {
+                #vtag.node_ref = #node_ref;
+            }
+        });
+        let set_key = key.as_ref().map(|key| {
+            quote! {
+                #vtag.key = ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key));
             }
         });
         let set_value = value.as_ref().map(|attr| {
@@ -222,55 +160,104 @@ impl ToTokens for HtmlTag {
                 }
             }
         });
+        let set_kind = kind.as_ref().map(|attr| {
+            let value = &attr.value;
+            if attr.question_mark.is_some() {
+                let sr = stringify::stringify_option_at_runtime(value);
+                quote_spanned! {value.span()=>
+                    if let ::std::option::Option::Some(__yew_v) = #sr {
+                        #vtag.set_kind(__yew_v);
+                    };
+                }
+            } else {
+                let sr = Stringify::from(value);
+                quote_spanned! {value.span()=>
+                    #vtag.set_kind(#sr);
+                }
+            }
+        });
         let set_checked = checked.as_ref().map(|value| {
             quote_spanned! {value.span()=>
                 #vtag.set_checked(#value);
             }
         });
 
-        let set_classes = match classes {
-            Some(ClassesForm::Tuple(classes)) => Some(quote! {
-                let __yew_classes = ::yew::virtual_dom::Classes::default()
-                    #(.extend(#classes))*;
+        // normal attributes
 
-                if !__yew_classes.is_empty() {
-                    #vtag.__macro_push_attribute("class", __yew_classes.to_string());
-                };
-            }),
+        let set_attributes = if attributes.is_empty() {
+            None
+        } else {
+            let attrs = attributes.iter().map(
+                |TagAttribute {
+                     label,
+                     question_mark,
+                     value,
+                 }| {
+                    generate_optional_attribute_code(
+                        label.to_string(),
+                        value,
+                        question_mark.is_some(),
+                    )
+                },
+            );
+            Some(quote! {
+                #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(::std::vec![#(#attrs),*]);
+            })
+        };
+
+        let set_booleans = if booleans.is_empty() {
+            None
+        } else {
+            let tokens = booleans
+                .iter()
+                .map(|TagAttribute { label, value, .. }| {
+                    let label_str = label.to_string();
+                    let sr = stringify::stringify_static(&label_str);
+                    quote_spanned! {value.span()=> {
+                        if #value {
+                            #vtag.__macro_push_attribute(::yew::virtual_dom::PositionalAttr::new(#label_str, #sr));
+                        };
+                    }}
+                })
+                .collect::<TokenStream>();
+            Some(tokens)
+        };
+
+        let set_classes = match classes {
+            Some(ClassesForm::Tuple(classes)) => {
+                let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
+                Some(quote! {
+                    let __yew_classes = ::yew::virtual_dom::Classes::default()
+                        #(.extend(#classes))*;
+
+                    if !__yew_classes.is_empty() {
+                        #vtag.__macro_push_attribute(::yew::virtual_dom::PositionalAttr::new("class", #sr));
+                    };
+                })
+            }
             Some(ClassesForm::Single(classes)) => match stringify::try_stringify_expr(classes) {
                 Some(s) => {
                     if s.is_empty() {
                         None
                     } else {
-                        let sr = Stringify::from(&s);
+                        let sr = stringify::stringify_static(s);
                         Some(quote! {
-                            #vtag.__macro_push_attribute("class", #sr);
+                            #vtag.__macro_push_attribute(::yew::virtual_dom::PositionalAttr::new("class", #sr));
                         })
                     }
                 }
-                None => Some(quote! {
-                    let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
-                    if !__yew_classes.is_empty() {
-                        #vtag.__macro_push_attribute(
-                            "class",
-                            ::std::string::ToString::to_string(&__yew_classes),
-                        );
-                    };
-                }),
+                None => {
+                    let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
+                    Some(quote! {
+                        let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
+                        if !__yew_classes.is_empty() {
+                            #vtag.__macro_push_attribute(::yew::virtual_dom::PositionalAttr::new("class", #sr));
+                        };
+                    })
+                }
             },
             None => None,
         };
-
-        let set_node_ref = node_ref.as_ref().map(|node_ref| {
-            quote! {
-                #vtag.node_ref = #node_ref;
-            }
-        });
-        let set_key = key.as_ref().map(|key| {
-            quote! {
-                #vtag.key = Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key));
-            }
-        });
 
         let add_listeners = if listeners.is_empty() {
             None
@@ -331,6 +318,7 @@ impl ToTokens for HtmlTag {
         let dyn_tag_runtime_checks = if matches!(&tag_name, TagName::Expr(_)) {
             // when Span::source_file Span::start get stabilised or yew-macro introduces a nightly feature flag
             // we should expand the panic message to contain the exact location of the dynamic tag.
+            let sr = stringify::stringify_at_runtime(quote! { __yew_v });
             Some(quote! {
                 // check void element
                 if !#vtag.children.is_empty() {
@@ -347,8 +335,8 @@ impl ToTokens for HtmlTag {
                 match #vtag.tag() {
                     "input" | "textarea" => {}
                     _ => {
-                        if let ::std::option::Option::Some(value) = #vtag.value.take() {
-                            #vtag.__macro_push_attribute("value", value);
+                        if let ::std::option::Option::Some(__yew_v) = #vtag.value.take() {
+                            #vtag.__macro_push_attribute(::yew::virtual_dom::PositionalAttr::new("value", #sr));
                         };
                     }
                 }
@@ -364,12 +352,13 @@ impl ToTokens for HtmlTag {
 
                 #set_node_ref
                 #set_key
+                #set_value
                 #set_kind
+                #set_checked
+
                 #set_attributes
                 #set_booleans
                 #set_classes
-                #set_checked
-                #set_value
 
                 #add_listeners
                 #add_children
@@ -382,27 +371,29 @@ impl ToTokens for HtmlTag {
     }
 }
 
-fn with_optional_attr_runtime_value(
-    ident: &Ident,
-    value: &Expr,
-    tokens: &TokenStream,
-) -> TokenStream {
-    let sr = stringify::stringify_at_runtime(&ident);
-    quote_spanned! {value.span()=>
-        let #ident = ::std::option::Option::map(#value, |#ident| {
-            #sr
-        });
-        if let ::std::option::Option::Some(#ident) = #ident {
-            #tokens
-        };
-    }
-}
-
 fn generate_listener_code(name: &Ident, value: impl ToTokens) -> TokenStream {
     quote_spanned! {value.span()=>
         ::std::rc::Rc::new(::yew::html::#name::Wrapper::new(
             <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(#value),
         ))
+    }
+}
+
+fn generate_optional_attribute_code(
+    key: impl ToTokens,
+    value: impl Into<Stringify> + ToTokens,
+    optional: bool,
+) -> TokenStream {
+    if optional {
+        let sr = stringify::stringify_option_at_runtime(value);
+        quote! {
+            ::yew::virtual_dom::PositionalAttr(#key, #sr)
+        }
+    } else {
+        let sr = value.into();
+        quote! {
+            ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
+        }
     }
 }
 

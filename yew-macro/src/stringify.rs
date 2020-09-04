@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
-use quote::{quote_spanned, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
-use syn::{Expr, Lit};
+use syn::{Expr, Ident, Lit};
 
 /// Attempt converting expression to str, if it's a literal
 pub fn try_stringify_expr(src: &Expr) -> Option<String> {
@@ -28,6 +28,16 @@ pub fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
         ::std::borrow::Cow::<'static, str>::Owned(
             ::std::string::ToString::to_string(&(#src)),
         )
+    }
+}
+
+pub fn stringify_option_at_runtime(src: impl ToTokens) -> TokenStream {
+    let ident = Ident::new("__yew_str", src.span());
+    let sr = stringify_at_runtime(&ident);
+    quote! {
+        ::std::option::Option::map(#src, |#ident| {
+            #sr
+        })
     }
 }
 

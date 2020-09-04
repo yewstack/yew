@@ -1,11 +1,12 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
-use super::{Attributes, Key, Listener, Listeners, Patch, Transformer, VDiff, VList, VNode};
+use super::{
+    Attributes, Key, Listener, Listeners, Patch, PositionalAttr, Transformer, VDiff, VList, VNode,
+};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
-use indexmap::IndexMap;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
@@ -171,15 +172,14 @@ impl VTag {
 
     /// Pushes a key-value pair to the attributes without ensuring uniqueness.
     #[doc(hidden)]
-    pub fn __macro_push_attribute(
-        &mut self,
-        key: &'static str,
-        value: impl Into<Cow<'static, str>>,
-    ) {
+    pub fn __macro_push_attribute(&mut self, attr: PositionalAttr) {
         match &mut self.attributes {
-            Attributes::Vec(v) => v.push((key, value.into())),
+            Attributes::Vec(v) => v.push(attr),
             Attributes::IndexMap(m) => {
-                m.insert(key, value.into());
+                let PositionalAttr(key, value) = attr;
+                if let Some(value) = value {
+                    m.insert(key, value);
+                }
             }
         }
     }
@@ -261,131 +261,6 @@ impl VTag {
         }
     }
 
-    /// Diffs attributes between the old and new lists.
-    ///
-    /// This method optimises for the lists being the same length, having the
-    /// same keys in the same order - most common case.
-    fn diff_attributes_vectors<'a>(
-        new: &'a [(&'static str, Cow<'static, str>)],
-        old: &'a [(&'static str, Cow<'static, str>)],
-    ) -> Vec<Patch<&'static str, &'a str>> {
-        let mut out = Vec::new();
-
-        if new.len() != old.len() {
-            diff_incompatible(&mut out, new, old);
-            return out;
-        }
-
-        for (i, (n, o)) in new.iter().zip(old).enumerate() {
-            if n.0 != o.0 {
-                diff_incompatible(&mut out, &new[i..], &old[i..]);
-                break;
-            }
-            if n.1 != o.1 {
-                out.push(Patch::Replace(n.0, &n.1));
-            }
-        }
-
-        return out;
-
-        /// Diffs attribute lists that do not contain the same set of keys in
-        /// the same order
-        fn diff_incompatible<'a>(
-            dst: &mut Vec<Patch<&'static str, &'a str>>,
-            new: &'a [(&'static str, Cow<'static, str>)],
-            old: &'a [(&'static str, Cow<'static, str>)],
-        ) {
-            use std::collections::HashMap;
-
-            macro_rules! collect {
-                ($src:expr) => {
-                    $src.iter()
-                        .map(|(k, v)| (*k, v))
-                        .collect::<HashMap<&'static str, &Cow<'static, str>>>()
-                };
-            }
-
-            let new = collect!(new);
-            let old = collect!(old);
-
-            for (k, n_v) in new.iter() {
-                match old.get(k) {
-                    Some(o_v) => {
-                        if n_v != o_v {
-                            dst.push(Patch::Replace(k, n_v));
-                        }
-                    }
-                    None => dst.push(Patch::Add(k, n_v)),
-                };
-            }
-
-            for k in old.keys() {
-                if !new.contains_key(k) {
-                    dst.push(Patch::Remove(k));
-                }
-            }
-        }
-    }
-
-    /// Diffs attributes between the old and new IndexMaps.
-    ///
-    /// This method must be used, if either the new or old node were created without using the html!
-    /// macro, that provides compile-time attribute deduplication.
-    fn diff_attributes_indexmaps<'a>(
-        new: &'a IndexMap<&'static str, Cow<'static, str>>,
-        old: &'a IndexMap<&'static str, Cow<'static, str>>,
-    ) -> Vec<Patch<&'static str, &'a str>> {
-        use indexmap::map::Iter;
-        use std::iter::Peekable;
-
-        let mut out = Vec::new();
-        let mut new_iter = new.iter().peekable();
-        let mut old_iter = old.iter().peekable();
-        loop {
-            if new_iter.peek().is_none() || old_iter.peek().is_none() {
-                break;
-            }
-            match (new_iter.next(), old_iter.next()) {
-                (Some(n), Some(o)) => {
-                    if n.0 != o.0 {
-                        break;
-                    }
-                    if n.1 != o.1 {
-                        out.push(Patch::Replace(*n.0, n.1.as_ref()));
-                    }
-                }
-                _ => break,
-            }
-        }
-        diff_incompatible(&mut out, new_iter, old_iter, &new, &old);
-        return out;
-
-        fn diff_incompatible<'a>(
-            dst: &mut Vec<Patch<&'static str, &'a str>>,
-            new_keys: Peekable<Iter<'a, &'static str, Cow<'static, str>>>,
-            old_keys: Peekable<Iter<'a, &'static str, Cow<'static, str>>>,
-            new_map: &'a IndexMap<&'static str, Cow<'static, str>>,
-            old_map: &'a IndexMap<&'static str, Cow<'static, str>>,
-        ) {
-            for (k, n_v) in new_keys {
-                match old_map.get(k) {
-                    Some(o_v) => {
-                        if n_v != o_v {
-                            dst.push(Patch::Replace(k, n_v));
-                        }
-                    }
-                    None => dst.push(Patch::Add(k, n_v)),
-                };
-            }
-
-            for (k, _) in old_keys {
-                if !new_map.contains_key(k) {
-                    dst.push(Patch::Remove(k));
-                }
-            }
-        }
-    }
-
     /// Compares new kind with ancestor and produces a patch to apply, if any
     fn diff_kind<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
         match (
@@ -425,44 +300,18 @@ impl VTag {
     }
 
     fn apply_diffs(&mut self, ancestor: &mut Option<Box<Self>>) {
+        let changes = if let Some(old_attributes) = ancestor.as_mut().map(|a| &mut a.attributes) {
+            Attributes::diff(&mut self.attributes, old_attributes)
+        } else {
+            self.attributes
+                .iter()
+                .map(|(k, v)| Patch::Add(k, v))
+                .collect()
+        };
+
         let element = self.reference.as_ref().expect("element expected");
 
-        // Apply attribute patches including an optional "class"-attribute patch.
-        macro_rules! add_all {
-            ($src:expr) => {
-                $src.iter()
-                    .map(|(k, v)| Patch::Add(*k, v.as_ref()))
-                    .collect()
-            };
-        }
-        for change in match (
-            &mut self.attributes,
-            &mut ancestor.as_mut().map(|a| &mut a.attributes),
-        ) {
-            (Attributes::Vec(new), Some(Attributes::Vec(old))) => {
-                Self::diff_attributes_vectors(new, old)
-            }
-            (Attributes::IndexMap(new), Some(Attributes::IndexMap(old))) => {
-                Self::diff_attributes_indexmaps(new, old)
-            }
-            (Attributes::Vec(new), None) => add_all!(new),
-            (Attributes::IndexMap(new), None) => add_all!(new),
-            (Attributes::Vec(new), Some(Attributes::IndexMap(old))) => {
-                self.attributes = Attributes::new_indexmap(std::mem::take(new));
-                match &self.attributes {
-                    Attributes::IndexMap(new) => Self::diff_attributes_indexmaps(new, old),
-                    _ => unreachable!(),
-                }
-            }
-            (Attributes::IndexMap(new), Some(Attributes::Vec(old))) => {
-                ancestor.as_mut().unwrap().attributes =
-                    Attributes::new_indexmap(std::mem::take(old));
-                match &ancestor.as_ref().map(|a| &a.attributes) {
-                    Some(Attributes::IndexMap(old)) => Self::diff_attributes_indexmaps(new, old),
-                    _ => unreachable!(),
-                }
-            }
-        } {
+        for change in changes {
             match change {
                 Patch::Add(key, value) | Patch::Replace(key, value) => {
                     element
@@ -1662,7 +1511,7 @@ mod layout_tests {
 
 #[cfg(all(test, feature = "web_sys", feature = "wasm_test"))]
 mod benchmarks {
-    use super::{Patch, VTag};
+    use super::{Attributes, Patch, PositionalAttr};
     use easybench_wasm::bench_env_limit;
     use std::borrow::Cow;
     use std::collections::HashMap;
@@ -1705,6 +1554,7 @@ mod benchmarks {
                     ($type:ident, $src:expr) => {
                         &$src
                             .into_iter()
+                            .filter_map(PositionalAttr::transpose)
                             .collect::<$type<&'static str, Cow<'static, str>>>();
                     };
                 }
@@ -1727,7 +1577,7 @@ mod benchmarks {
 
                         format!(
                             "{:?}",
-                            VTag::diff_attributes_indexmaps(
+                            Attributes::diff_index_map(
                                 build_map!(IndexMap, a),
                                 build_map!(IndexMap, b)
                             )
@@ -1739,7 +1589,7 @@ mod benchmarks {
                     stringify!($name),
                     bench_env_limit(BENCHMARK_DURATION, env.clone(), |(a, b)| format!(
                         "{:?}",
-                        VTag::diff_attributes_vectors(&a, &b)
+                        Attributes::diff_vec(&a, &b)
                     ))
                 );
             }
@@ -1747,27 +1597,27 @@ mod benchmarks {
     }
 
     // Fill vector wit more attributes
-    fn extend_attrs(dst: &mut Vec<(&'static str, Cow<'static, str>)>) {
+    fn extend_attrs(dst: &mut Vec<PositionalAttr>) {
         dst.extend(vec![
-            ("oh", Cow::Borrowed("danny")),
-            ("boy", Cow::Borrowed("the")),
-            ("pipes", Cow::Borrowed("the")),
-            ("are", Cow::Borrowed("calling")),
-            ("from", Cow::Borrowed("glen")),
-            ("to", Cow::Borrowed("glen")),
-            ("and", Cow::Borrowed("down")),
-            ("the", Cow::Borrowed("mountain")),
-            ("side", Cow::Borrowed("")),
+            PositionalAttr::new("oh", Cow::Borrowed("danny")),
+            PositionalAttr::new("boy", Cow::Borrowed("the")),
+            PositionalAttr::new("pipes", Cow::Borrowed("the")),
+            PositionalAttr::new("are", Cow::Borrowed("calling")),
+            PositionalAttr::new("from", Cow::Borrowed("glen")),
+            PositionalAttr::new("to", Cow::Borrowed("glen")),
+            PositionalAttr::new("and", Cow::Borrowed("down")),
+            PositionalAttr::new("the", Cow::Borrowed("mountain")),
+            PositionalAttr::new("side", Cow::Borrowed("")),
         ]);
     }
 
     bench_attrs! {
         bench_diff_attributes_same,
         {
-            let mut old: Vec<(&'static str, Cow<'static, str>)> = vec![
-                ("disable", Cow::Borrowed("disable")),
-                ("style", Cow::Borrowed("display: none;")),
-                ("class", Cow::Borrowed("lass")),
+            let mut old: Vec<PositionalAttr> = vec![
+                PositionalAttr::new("disable", Cow::Borrowed("disable")),
+                PositionalAttr::new("style", Cow::Borrowed("display: none;")),
+                PositionalAttr::new("class", Cow::Borrowed("lass")),
             ];
             extend_attrs(&mut old);
             (old.clone(), old)
@@ -1778,13 +1628,13 @@ mod benchmarks {
         bench_diff_attributes_append,
         {
             let mut old = vec![
-                ("disable", Cow::Borrowed("disable")),
-                ("style", Cow::Borrowed("display: none;")),
-                ("class", Cow::Borrowed("lass")),
+                PositionalAttr::new("disable", Cow::Borrowed("disable")),
+                PositionalAttr::new("style", Cow::Borrowed("display: none;")),
+                PositionalAttr::new("class", Cow::Borrowed("lass")),
             ];
             extend_attrs(&mut old);
             let mut new = old.clone();
-            new.push(("hidden", Cow::Borrowed("hidden")));
+            new.push(PositionalAttr::new("hidden", Cow::Borrowed("hidden")));
             (new, old)
         }
     }
@@ -1793,13 +1643,13 @@ mod benchmarks {
         bench_diff_attributes_change_first,
         {
             let mut old = vec![
-                ("disable", Cow::Borrowed("disable")),
-                ("style", Cow::Borrowed("display: none;")),
-                ("class", Cow::Borrowed("lass")),
+                PositionalAttr::new("disable", Cow::Borrowed("disable")),
+                PositionalAttr::new("style", Cow::Borrowed("display: none;")),
+                PositionalAttr::new("class", Cow::Borrowed("lass")),
             ];
             extend_attrs(&mut old);
             let mut new = old.clone();
-            new[0] = ("disable", Cow::Borrowed("enable"));
+            new[0] = PositionalAttr::new("disable", Cow::Borrowed("enable"));
             (new, old)
         }
     }
@@ -1808,14 +1658,14 @@ mod benchmarks {
         bench_diff_attributes_change_middle,
         {
             let mut old = vec![
-                ("disable", Cow::Borrowed("disable")),
-                ("style", Cow::Borrowed("display: none;")),
-                ("class", Cow::Borrowed("lass")),
+                PositionalAttr::new("disable", Cow::Borrowed("disable")),
+                PositionalAttr::new("style", Cow::Borrowed("display: none;")),
+                PositionalAttr::new("class", Cow::Borrowed("lass")),
             ];
             extend_attrs(&mut old);
             let mut new = old.clone();
             let mid = &mut new.get_mut(old.len()/2).unwrap();
-            mid.1 = Cow::Borrowed("changed");
+            mid.1 = Some(Cow::Borrowed("changed"));
             (new, old)
         }
     }
@@ -1824,14 +1674,14 @@ mod benchmarks {
         bench_diff_attributes_change_last,
         {
             let mut old = vec![
-                ("disable", Cow::Borrowed("disable")),
-                ("style", Cow::Borrowed("display: none;")),
-                ("class", Cow::Borrowed("lass")),
+                PositionalAttr::new("disable", Cow::Borrowed("disable")),
+                PositionalAttr::new("style", Cow::Borrowed("display: none;")),
+                PositionalAttr::new("class", Cow::Borrowed("lass")),
             ];
             extend_attrs(&mut old);
             let mut new = old.clone();
             let last = &mut new.get_mut(old.len()-1).unwrap();
-            last.1 = Cow::Borrowed("changed");
+            last.1 = Some(Cow::Borrowed("changed"));
             (new, old)
         }
     }

@@ -18,7 +18,7 @@ use cfg_if::cfg_if;
 use indexmap::{IndexMap, IndexSet};
 use std::borrow::Cow;
 use std::fmt;
-use std::rc::Rc;
+use std::{collections::HashMap, hint::unreachable_unchecked, iter, mem, rc::Rc};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use crate::html::EventListener;
@@ -60,40 +60,211 @@ impl fmt::Debug for dyn Listener {
 /// A list of event listeners.
 type Listeners = Vec<Rc<dyn Listener>>;
 
+/// Key-value tuple which makes up an item of the [`Attributes::Vec`] variant.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PositionalAttr(pub &'static str, pub Option<Cow<'static, str>>);
+impl PositionalAttr {
+    /// Create a positional attribute
+    pub fn new(key: &'static str, value: Cow<'static, str>) -> Self {
+        Self(key, Some(value))
+    }
+    /// Create a placeholder for removed attributes
+    pub fn new_placeholder(key: &'static str) -> Self {
+        Self(key, None)
+    }
+
+    fn transpose(self) -> Option<(&'static str, Cow<'static, str>)> {
+        let Self(key, value) = self;
+        value.map(|v| (key, v))
+    }
+
+    fn transposed<'a>(&'a self) -> Option<(&'static str, &'a Cow<'static, str>)> {
+        let Self(key, value) = self;
+        value.as_ref().map(|v| (*key, v))
+    }
+}
+
 /// A collection of attributes for an element
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Attributes {
     /// A vector is ideal because most of the time the list will neither change
     /// length nor key order.
-    Vec(Vec<(&'static str, Cow<'static, str>)>),
+    Vec(Vec<PositionalAttr>),
 
     /// IndexMap is used to provide runtime attribute deduplication in cases where the html! macro
     /// was not used to guarantee it.
     IndexMap(IndexMap<&'static str, Cow<'static, str>>),
 }
-
 impl Attributes {
     /// Construct a default Attributes instance
     pub fn new() -> Self {
         Default::default()
     }
 
-    /// Construct new IndexMap variant from Vec variant
-    pub(crate) fn new_indexmap(v: Vec<(&'static str, Cow<'static, str>)>) -> Self {
-        Self::IndexMap(v.into_iter().collect())
-    }
-
     /// Return iterator over attribute key-value pairs
     pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'static str, &'a str)> + 'a> {
-        macro_rules! pack {
-            ($src:expr) => {
-                Box::new($src.iter().map(|(k, v)| (*k, v.as_ref())))
-            };
+        match self {
+            Self::Vec(v) => Box::new(
+                v.iter()
+                    .filter_map(PositionalAttr::transposed)
+                    .map(|(k, v)| (k, v.as_ref())),
+            ),
+            Self::IndexMap(m) => Box::new(m.iter().map(|(k, v)| (*k, v.as_ref()))),
+        }
+    }
+
+    fn diff_vec<'a>(
+        new: &'a [PositionalAttr],
+        old: &[PositionalAttr],
+    ) -> Vec<Patch<&'static str, &'a str>> {
+        let mut out = Vec::new();
+        let mut new_iter = new.iter();
+        let mut old_iter = old.iter();
+
+        loop {
+            match (new_iter.next(), old_iter.next()) {
+                (
+                    Some(PositionalAttr(key, new_value)),
+                    Some(PositionalAttr(old_key, old_value)),
+                ) if key == old_key => match (new_value, old_value) {
+                    (Some(new), Some(old)) => {
+                        if new != old {
+                            out.push(Patch::Replace(*key, new.as_ref()));
+                        }
+                    }
+                    (Some(value), None) => out.push(Patch::Add(*key, value.as_ref())),
+                    (None, Some(_)) => out.push(Patch::Remove(*key)),
+                    (None, None) => {}
+                },
+                // keys don't match, we can no longer compare linearly from here on out
+                (Some(_), Some(_)) => {
+                    let new = new_iter
+                        .filter_map(PositionalAttr::transposed)
+                        .collect::<HashMap<_, _>>();
+                    let old = old_iter
+                        .filter_map(PositionalAttr::transposed)
+                        .collect::<HashMap<_, _>>();
+
+                    for (key, value) in new.iter() {
+                        match old.get(key) {
+                            Some(old_value) => {
+                                if value != old_value {
+                                    out.push(Patch::Replace(*key, (*value).as_ref()));
+                                }
+                            }
+                            None => out.push(Patch::Add(*key, (*value).as_ref())),
+                        };
+                    }
+
+                    for key in old.keys() {
+                        if !new.contains_key(key) {
+                            out.push(Patch::Remove(*key));
+                        }
+                    }
+                    break;
+                }
+                // added attributes
+                (Some(attr), None) => {
+                    for PositionalAttr(key, value) in new_iter.chain(iter::once(attr)) {
+                        // only add value if it has a value
+                        if let Some(value) = value {
+                            out.push(Patch::Add(*key, value));
+                        }
+                    }
+                    break;
+                }
+                // removed attributes
+                (None, Some(attr)) => {
+                    for PositionalAttr(key, value) in old_iter.chain(iter::once(attr)) {
+                        // only remove the attribute if it had a value before
+                        if value.is_some() {
+                            out.push(Patch::Remove(*key));
+                        }
+                    }
+                    break;
+                }
+                (None, None) => break,
+            }
         }
 
-        match self {
-            Self::Vec(v) => pack!(v),
-            Self::IndexMap(m) => pack!(m),
+        out
+    }
+
+    fn diff_index_map<'a, A, B>(
+        new: &'a IndexMap<&'static str, A>,
+        old: &IndexMap<&'static str, B>,
+    ) -> Vec<Patch<&'static str, &'a str>>
+    where
+        A: AsRef<str>,
+        B: AsRef<str>,
+    {
+        let mut out = Vec::new();
+        let mut new_iter = new.iter();
+        let mut old_iter = old.iter();
+        loop {
+            match (new_iter.next(), old_iter.next()) {
+                (Some((new_key, new_value)), Some((old_key, old_value))) => {
+                    if new_key != old_key {
+                        break;
+                    }
+                    let (new_value, old_value) = (new_value.as_ref(), old_value.as_ref());
+                    if new_value != old_value {
+                        out.push(Patch::Replace(*new_key, new_value));
+                    }
+                }
+                // new attributes
+                (Some(attr), None) => {
+                    for (key, value) in new_iter.chain(iter::once(attr)) {
+                        let value = value.as_ref();
+                        match old.get(key) {
+                            Some(old_value) => {
+                                let old_value = old_value.as_ref();
+                                if value != old_value {
+                                    out.push(Patch::Replace(*key, value));
+                                }
+                            }
+                            None => out.push(Patch::Add(*key, value)),
+                        }
+                    }
+                    break;
+                }
+                // removed attributes
+                (None, Some(attr)) => {
+                    for (key, _) in old_iter.chain(iter::once(attr)) {
+                        if !new.contains_key(key) {
+                            out.push(Patch::Remove(*key));
+                        }
+                    }
+                    break;
+                }
+                (None, None) => break,
+            }
+        }
+
+        out
+    }
+
+    fn diff<'a>(new: &'a mut Self, old: &'a Self) -> Vec<Patch<&'static str, &'a str>> {
+        match (new, old) {
+            // both vectors
+            (Self::Vec(new), Self::Vec(old)) => Self::diff_vec(new, old),
+            // mixed -> mutate `new` to be an indexmap
+            // TODO update when "move_ref_pattern" lands (<https://github.com/rust-lang/rust/issues/68354>)
+            (new @ Self::Vec(_), old @ Self::IndexMap(_)) => {
+                if let Self::IndexMap(old) = old {
+                    Self::diff_index_map(new.as_mut(), old)
+                } else {
+                    // SAFETY: we already know `old` is an `IndexMap` because of the pattern,
+                    //         but we can't mix by-move and by-ref patterns until 'move_ref_pattern' lands
+                    unsafe { unreachable_unchecked() }
+                }
+            }
+            (Self::IndexMap(new), Self::Vec(old)) => Self::diff_index_map(
+                new,
+                &old.iter().filter_map(PositionalAttr::transposed).collect(),
+            ),
+            // both indexmap
+            (Self::IndexMap(new), Self::IndexMap(old)) => Self::diff_index_map(new, old),
         }
     }
 }
@@ -103,27 +274,31 @@ impl AsMut<IndexMap<&'static str, Cow<'static, str>>> for Attributes {
         match self {
             Self::IndexMap(m) => m,
             Self::Vec(v) => {
-                *self = Self::new_indexmap(std::mem::take(v));
-                self.as_mut()
+                *self = Self::IndexMap(
+                    mem::take(v)
+                        .into_iter()
+                        .filter_map(PositionalAttr::transpose)
+                        .collect(),
+                );
+                match self {
+                    Self::IndexMap(m) => m,
+                    // SAFETY: unreachable because we set the value to the `IndexMap` variant above.
+                    _ => unsafe { unreachable_unchecked() },
+                }
             }
         }
     }
 }
 
-macro_rules! impl_attrs_from {
-    ($($from:path => $variant:ident)*) => {
-        $(
-            impl From<$from> for Attributes {
-                fn from(v: $from) -> Self {
-                    Self::$variant(v)
-                }
-            }
-        )*
-    };
+impl From<Vec<PositionalAttr>> for Attributes {
+    fn from(v: Vec<PositionalAttr>) -> Self {
+        Self::Vec(v)
+    }
 }
-impl_attrs_from! {
-    Vec<(&'static str, Cow<'static, str>)> => Vec
-    IndexMap<&'static str, Cow<'static, str>> => IndexMap
+impl From<IndexMap<&'static str, Cow<'static, str>>> for Attributes {
+    fn from(v: IndexMap<&'static str, Cow<'static, str>>) -> Self {
+        Self::IndexMap(v)
+    }
 }
 
 impl Default for Attributes {
