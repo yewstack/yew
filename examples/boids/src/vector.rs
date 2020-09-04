@@ -1,4 +1,4 @@
-use std::ops::{AddAssign, SubAssign, MulAssign, DivAssign};
+use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
 #[derive(Clone, PartialEq)]
 pub struct Vector {

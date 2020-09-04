@@ -1,5 +1,5 @@
-use rand::{ Rng };
 use crate::vector::Vector;
+use rand::Rng;
 use std::f64::consts::PI;
 
 const HEIGHT: f64 = 400.0;

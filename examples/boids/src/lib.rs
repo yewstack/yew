@@ -3,9 +3,9 @@ mod vector;
 
 use crate::boid::Boid;
 use crate::vector::Vector;
-use std::time::Duration;
-use std::f64::consts::PI;
 use rand::prelude::thread_rng;
+use std::f64::consts::PI;
+use std::time::Duration;
 use yew::prelude::{html, Component, ComponentLink, Html, ShouldRender};
 use yew::services::{IntervalService, Task};
 
