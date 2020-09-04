@@ -46,7 +46,7 @@ impl ToTokens for HtmlNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(match &self {
             HtmlNode::Literal(lit) => {
-                let sr = Stringify::from(lit.as_ref());
+                let sr = lit.stringify();
                 quote_spanned! {lit.span()=> ::yew::virtual_dom::VText::new(#sr) }
             }
             HtmlNode::Expression(expr) => quote_spanned! {expr.span()=> #expr},

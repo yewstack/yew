@@ -1,29 +1,10 @@
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
-use syn::{Expr, Ident, Lit};
+use syn::{Expr, Ident, Lit, LitStr};
 
-/// Attempt converting expression to str, if it's a literal
-pub fn try_stringify_expr(src: &Expr) -> Option<String> {
-    match src {
-        Expr::Lit(l) => try_stringify_lit(&l.lit),
-        _ => None,
-    }
-}
-
-/// Attempt converting literal to str literal
-fn try_stringify_lit(src: &Lit) -> Option<String> {
-    match src {
-        Lit::Str(v) => Some(v.value()),
-        Lit::Char(v) => Some(v.value().to_string()),
-        Lit::Int(v) => Some(v.base10_digits().to_string()),
-        Lit::Float(v) => Some(v.base10_digits().to_string()),
-        Lit::Bool(v) => Some(v.value.to_string()),
-        _ => None,
-    }
-}
-
-pub fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
+/// Stringify a dynamic value at runtime.
+pub fn stringify_dynamic(src: impl ToTokens) -> TokenStream {
     quote_spanned! {src.span()=>
         ::std::borrow::Cow::<'static, str>::Owned(
             ::std::string::ToString::to_string(&(#src)),
@@ -31,9 +12,10 @@ pub fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
     }
 }
 
+/// Map an `Option` type such that it turns into `Cow<'static, str>`.
 pub fn stringify_option_at_runtime(src: impl ToTokens) -> TokenStream {
     let ident = Ident::new("__yew_str", src.span());
-    let sr = stringify_at_runtime(&ident);
+    let sr = stringify_dynamic(&ident);
     quote! {
         ::std::option::Option::map(#src, |#ident| {
             #sr
@@ -41,51 +23,69 @@ pub fn stringify_option_at_runtime(src: impl ToTokens) -> TokenStream {
     }
 }
 
-pub fn stringify_static(src: impl ToTokens) -> TokenStream {
-    quote_spanned! {src.span()=>
-        ::std::borrow::Cow::<'static, str>::Borrowed(#src)
+/// Create `Cow<'static, str>` construction calls.
+///
+/// This is deliberately not implemented for strings to preserve spans.
+pub trait Stringify {
+    /// Try to turn the value into a string literal.
+    fn try_into_lit(&self) -> Option<LitStr>;
+    /// Create `Cow<'static, str>` however possible.
+    fn stringify(&self) -> TokenStream;
+}
+impl<T: Stringify + ?Sized> Stringify for &T {
+    fn try_into_lit(&self) -> Option<LitStr> {
+        (*self).try_into_lit()
+    }
+
+    fn stringify(&self) -> TokenStream {
+        (*self).stringify()
     }
 }
 
-/// Converts literals and expressions to Cow<'static, str> construction calls
-pub struct Stringify(TokenStream);
+impl Stringify for LitStr {
+    fn try_into_lit(&self) -> Option<LitStr> {
+        Some(self.clone())
+    }
 
-impl From<&Expr> for Stringify {
-    fn from(src: &Expr) -> Self {
-        match try_stringify_expr(src) {
-            Some(s) => Self::from(&s),
-            None => Self(stringify_at_runtime(src)),
+    fn stringify(&self) -> TokenStream {
+        quote_spanned! {self.span()=>
+            ::std::borrow::Cow::<'static, str>::Borrowed(#self)
         }
     }
 }
-impl From<&Lit> for Stringify {
-    fn from(src: &Lit) -> Self {
-        match try_stringify_lit(src) {
-            Some(s) => Self::from(&s),
-            None => Self(stringify_at_runtime(src)),
+impl Stringify for Lit {
+    fn try_into_lit(&self) -> Option<LitStr> {
+        let s = match self {
+            Lit::Str(v) => v.value(),
+            Lit::Char(v) => v.value().to_string(),
+            Lit::Int(v) => v.base10_digits().to_string(),
+            Lit::Float(v) => v.base10_digits().to_string(),
+            Lit::Bool(v) => v.value.to_string(),
+            _ => return None,
+        };
+        Some(LitStr::new(&s, self.span()))
+    }
+
+    fn stringify(&self) -> TokenStream {
+        self.try_into_lit()
+            .as_ref()
+            .map(Stringify::stringify)
+            .unwrap_or_else(|| stringify_dynamic(self))
+    }
+}
+impl Stringify for Expr {
+    fn try_into_lit(&self) -> Option<LitStr> {
+        if let Expr::Lit(v) = self {
+            v.lit.try_into_lit()
+        } else {
+            None
         }
     }
-}
-impl From<&String> for Stringify {
-    fn from(src: &String) -> Self {
-        Self(stringify_static(src))
-    }
-}
-impl From<&str> for Stringify {
-    fn from(src: &str) -> Self {
-        Self(stringify_static(src))
-    }
-}
 
-impl ToTokens for Stringify {
-    fn into_token_stream(self) -> TokenStream
-    where
-        Self: Sized,
-    {
-        self.0
-    }
-
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.0.to_tokens(tokens)
+    fn stringify(&self) -> TokenStream {
+        self.try_into_lit()
+            .as_ref()
+            .map(Stringify::stringify)
+            .unwrap_or_else(|| stringify_dynamic(self))
     }
 }

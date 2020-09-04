@@ -102,7 +102,7 @@ impl ToTokens for HtmlTag {
         } = self;
 
         let name = match &tag_name {
-            TagName::Lit(name) => Stringify::from(&name.to_string()).into_token_stream(),
+            TagName::Lit(name) => name.stringify(),
             TagName::Expr(name) => {
                 let expr = &name.expr;
                 let vtag_name = Ident::new("__yew_vtag_name", expr.span());
@@ -170,7 +170,7 @@ impl ToTokens for HtmlTag {
                     };
                 }
             } else {
-                let sr = Stringify::from(value);
+                let sr = value.stringify();
                 quote_spanned! {value.span()=>
                     #vtag.set_kind(#sr);
                 }
@@ -212,7 +212,7 @@ impl ToTokens for HtmlTag {
                 .iter()
                 .map(|TagAttribute { label, value, .. }| {
                     let label_str = label.to_string();
-                    let sr = stringify::stringify_static(&label_str);
+                    let sr = label.stringify();
                     quote_spanned! {value.span()=> {
                         if #value {
                             #vtag.__macro_push_attribute(::yew::virtual_dom::PositionalAttr::new(#label_str, #sr));
@@ -225,7 +225,7 @@ impl ToTokens for HtmlTag {
 
         let set_classes = match classes {
             Some(ClassesForm::Tuple(classes)) => {
-                let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
+                let sr = stringify::stringify_dynamic(quote! { __yew_classes });
                 Some(quote! {
                     let __yew_classes = ::yew::virtual_dom::Classes::default()
                         #(.extend(#classes))*;
@@ -235,19 +235,19 @@ impl ToTokens for HtmlTag {
                     };
                 })
             }
-            Some(ClassesForm::Single(classes)) => match stringify::try_stringify_expr(classes) {
-                Some(s) => {
-                    if s.is_empty() {
+            Some(ClassesForm::Single(classes)) => match classes.try_into_lit() {
+                Some(lit) => {
+                    if lit.value().is_empty() {
                         None
                     } else {
-                        let sr = stringify::stringify_static(s);
+                        let sr = lit.stringify();
                         Some(quote! {
                             #vtag.__macro_push_attribute(::yew::virtual_dom::PositionalAttr::new("class", #sr));
                         })
                     }
                 }
                 None => {
-                    let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
+                    let sr = stringify::stringify_dynamic(quote! { __yew_classes });
                     Some(quote! {
                         let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
                         if !__yew_classes.is_empty() {
@@ -318,7 +318,7 @@ impl ToTokens for HtmlTag {
         let dyn_tag_runtime_checks = if matches!(&tag_name, TagName::Expr(_)) {
             // when Span::source_file Span::start get stabilised or yew-macro introduces a nightly feature flag
             // we should expand the panic message to contain the exact location of the dynamic tag.
-            let sr = stringify::stringify_at_runtime(quote! { __yew_v });
+            let sr = stringify::stringify_dynamic(quote! { __yew_v });
             Some(quote! {
                 // check void element
                 if !#vtag.children.is_empty() {
@@ -381,7 +381,7 @@ fn generate_listener_code(name: &Ident, value: impl ToTokens) -> TokenStream {
 
 fn generate_optional_attribute_code(
     key: impl ToTokens,
-    value: impl Into<Stringify> + ToTokens,
+    value: impl Stringify + ToTokens,
     optional: bool,
 ) -> TokenStream {
     if optional {
@@ -390,7 +390,7 @@ fn generate_optional_attribute_code(
             ::yew::virtual_dom::PositionalAttr(#key, #sr)
         }
     } else {
-        let sr = value.into();
+        let sr = value.stringify();
         quote! {
             ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
         }
