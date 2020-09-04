@@ -1,5 +1,5 @@
 [package]
-name = "alife-boid"
+name = "boids"
 version = "0.1.0"
 authors = ["motoki saito <stmtk13044032@gmail.com>"]
 edition = "2018"
