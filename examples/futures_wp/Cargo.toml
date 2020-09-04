@@ -11,7 +11,7 @@ repository = "https://github.com/yewstack/yew"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-pulldown-cmark = { version = "0.7.0", default-features = false }
+pulldown-cmark = { version = "0.8.0", default-features = false }
 yew = { path = "../../yew" }
 wasm-bindgen = "0.2.60"
 wasm-bindgen-futures = "0.4.3"
