@@ -55,6 +55,7 @@ struct Registry {
     /// Keep track of all listeners to drop them on registry drop.
     /// The registry is never dropped in production.
     #[cfg(test)]
+    #[allow(clippy::type_complexity)]
     registered: Vec<(&'static str, Closure<dyn std::ops::Fn(web_sys::Event)>)>,
 }
 
