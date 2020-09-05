@@ -73,7 +73,7 @@ impl Boid {
                 continue;
             }
 
-            position.size_square();
+            position /= position.size_square();
             ret -= position;
         }
 

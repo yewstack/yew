@@ -39,7 +39,7 @@ impl Vector {
         Vector { x, y }
     }
 
-    pub fn size(&mut self) -> f64 {
+    pub fn size(&self) -> f64 {
         (self.x * self.x + self.y * self.y).sqrt()
     }
 
@@ -51,12 +51,8 @@ impl Vector {
         *self /= size;
     }
 
-    pub fn size_square(&mut self) {
-        let size = self.size();
-        if size == 0.0 {
-            return;
-        }
-        *self /= size * size;
+    pub fn size_square(&self) -> f64 {
+        self.x * self.x + self.y * self.y
     }
 }
 
