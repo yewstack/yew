@@ -131,31 +131,45 @@ impl Registry {
 
     /// Handle a global event firing
     fn handle(desc: &EventDescriptor, event: Event) {
-        if let Some(l) = event
+        // TODO: DEFER + tests
+        // TODO: DEBOUNCE + tests
+
+        let target = match event
             .target()
             .map(|el| el.dyn_into::<web_sys::Element>().ok())
             .flatten()
-            .map(|el| LISTENER_ID_PROP.with(|prop| js_sys::Reflect::get(&el, &prop).ok()))
-            .flatten()
-            .map(|v| v.dyn_into().ok())
-            .flatten()
-            .map(|v: js_sys::JsString| String::from(v).parse().ok())
-            .flatten()
-            .map(|id: u64| {
-                Registry::with(|r| r.by_id.get(&id).map(|s| s.get(desc)).flatten().cloned())
-            })
-            .flatten()
         {
-            // TODO: DEFER + tests
-            // TODO: DEBOUNCE + tests
-            // TODO: HANDLE_BUBBLED + tests
+            Some(el) => el,
+            None => return,
+        };
 
-            l.handle(event);
+        // Run event handler for target element, if any registered
+        let run_handler = |el: &web_sys::Element| {
+            if let Some(l) = LISTENER_ID_PROP
+                .with(|prop| js_sys::Reflect::get(el, &prop).ok())
+                .map(|v| v.dyn_into().ok())
+                .flatten()
+                .map(|v: js_sys::JsString| String::from(v).parse().ok())
+                .flatten()
+                .map(|id: u64| {
+                    Registry::with(|r| r.by_id.get(&id).map(|s| s.get(desc)).flatten().cloned())
+                })
+                .flatten()
+            {
+                l.handle(event.clone());
+            }
+        };
 
-            if Registry::with(|r| r.bubbling.contains(desc)) {
-                // TODO: if not passive, check if default was prevented after each call
-                // (including the first call above)
-                // TODO: travel up the parents for event bubbling
+        run_handler(&target);
+
+        if Registry::with(|r| r.bubbling.contains(desc)) {
+            let mut el = target;
+            loop {
+                el = match el.parent_element() {
+                    Some(el) => el,
+                    None => break,
+                };
+                run_handler(&el);
             }
         }
     }
@@ -250,7 +264,12 @@ mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     wasm_bindgen_test_configure!(run_in_browser);
 
-    use crate::{html, utils::document, App, Component, ComponentLink};
+    use crate::{
+        callback::{HANDLE_BUBBLED, PASSIVE},
+        html,
+        utils::document,
+        App, Component, ComponentLink, Html,
+    };
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::JsFuture;
 
@@ -260,22 +279,44 @@ mod tests {
         StopClicking,
     }
 
-    trait Flag {
-        fn flag() -> u8;
-    }
-
-    struct Comp<F>
-    where
-        F: Flag + 'static,
-    {
+    #[derive(Default)]
+    struct State {
         stop_clicking: bool,
         clicked: u32,
+    }
+
+    trait Mixin {
+        fn flag() -> u8;
+
+        fn view<C>(link: &ComponentLink<C>, state: &State) -> Html
+        where
+            C: Component<Message = Message>,
+        {
+            if state.stop_clicking {
+                html! {
+                    <a>{state.clicked}</a>
+                }
+            } else {
+                html! {
+                    <a onclick=link.callback_with_flags(Self::flag(), |_| Message::Click)>
+                        {state.clicked}
+                    </a>
+                }
+            }
+        }
+    }
+
+    struct Comp<M>
+    where
+        M: Mixin + 'static,
+    {
+        state: State,
         link: ComponentLink<Self>,
     }
 
-    impl<F> Component for Comp<F>
+    impl<M> Component for Comp<M>
     where
-        F: Flag + 'static,
+        M: Mixin + 'static,
     {
         type Message = Message;
         type Properties = ();
@@ -283,18 +324,17 @@ mod tests {
         fn create(_: Self::Properties, link: crate::ComponentLink<Self>) -> Self {
             Comp {
                 link,
-                stop_clicking: false,
-                clicked: 0,
+                state: Default::default(),
             }
         }
 
         fn update(&mut self, msg: Self::Message) -> bool {
             match msg {
                 Message::Click => {
-                    self.clicked += 1;
+                    self.state.clicked += 1;
                 }
                 Message::StopClicking => {
-                    self.stop_clicking = true;
+                    self.state.stop_clicking = true;
                 }
             };
             true
@@ -305,17 +345,7 @@ mod tests {
         }
 
         fn view(&self) -> crate::Html {
-            if self.stop_clicking {
-                html! {
-                    <a>{self.clicked}</a>
-                }
-            } else {
-                html! {
-                    <a onclick=self.link.callback_with_flags(F::flag(), |_| Message::Click)>
-                        {self.clicked}
-                    </a>
-                }
-            }
+            M::view(&self.link, &self.state)
         }
     }
 
@@ -323,9 +353,9 @@ mod tests {
         assert_eq!(el.text_content(), Some(count.to_string()))
     }
 
-    fn init<F>() -> (ComponentLink<Comp<F>>, web_sys::HtmlElement)
+    fn init<M>() -> (ComponentLink<Comp<M>>, web_sys::HtmlElement)
     where
-        F: Flag,
+        M: Mixin,
     {
         // Remove any existing listeners and elements
         super::Registry::with(|r| *r = Default::default());
@@ -335,7 +365,7 @@ mod tests {
 
         let root = document().create_element("div").unwrap();
         document().body().unwrap().append_child(&root).unwrap();
-        let link = App::<Comp<F>>::new().mount(root);
+        let link = App::<Comp<M>>::new().mount(root);
 
         (
             link,
@@ -353,7 +383,7 @@ mod tests {
     fn synchronous() {
         struct Synchronous();
 
-        impl Flag for Synchronous {
+        impl Mixin for Synchronous {
             fn flag() -> u8 {
                 0
             }
@@ -389,9 +419,9 @@ mod tests {
     async fn passive() {
         struct Passive();
 
-        impl Flag for Passive {
+        impl Mixin for Passive {
             fn flag() -> u8 {
-                crate::callback::PASSIVE
+                PASSIVE
             }
         }
 
@@ -413,6 +443,56 @@ mod tests {
 
         link.send_message(Message::StopClicking);
         assert_after_click!(2);
+    }
+
+    #[test]
+    #[cfg(not(feature = "listener_benchmarks"))]
+    fn bubbling() {
+        struct Bubbling();
+
+        impl Mixin for Bubbling {
+            fn flag() -> u8 {
+                HANDLE_BUBBLED
+            }
+
+            fn view<C>(link: &ComponentLink<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message>,
+            {
+                if state.stop_clicking {
+                    html! {
+                        <div>
+                            <a>
+                                {state.clicked}
+                            </a>
+                        </div>
+                    }
+                } else {
+                    let cb = link.callback_with_flags(Self::flag(), |_| Message::Click);
+                    html! {
+                        <div onclick=cb.clone()>
+                            <a onclick=cb>
+                                {state.clicked}
+                            </a>
+                        </div>
+                    }
+                }
+            }
+        }
+
+        let (link, el) = init::<Bubbling>();
+
+        assert_count(&el, 0);
+
+        el.click();
+        assert_count(&el, 2);
+
+        el.click();
+        assert_count(&el, 4);
+
+        link.send_message(Message::StopClicking);
+        el.click();
+        assert_count(&el, 4);
     }
 
     // TODO: oninput tests
