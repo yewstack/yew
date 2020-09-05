@@ -12,7 +12,7 @@ documentation = "https://docs.rs/yew/"
 license = "MIT/Apache-2.0"
 readme = "../README.md"
 keywords = ["web", "asmjs", "webasm", "javascript"]
-categories = ["gui", "web-programming"]
+categories = ["gui", "wasm", "web-programming"]
 description = "A framework for making client-side single-page apps"
 
 [dependencies]
@@ -25,7 +25,7 @@ console_error_panic_hook = { version = "0.1", optional = true }
 futures = { version = "0.3", optional = true }
 gloo = { version = "0.2.1", optional = true }
 http = "0.2"
-indexmap = "1.0.2"
+indexmap = "1.5"
 js-sys = { version = "0.3", optional = true }
 log = "0.4"
 rmp-serde = { version = "0.14.0", optional = true }
