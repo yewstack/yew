@@ -115,7 +115,7 @@ impl Attributes {
 
     /// Get a mutable reference to the underlying `IndexMap`.
     /// If the attributes are stored in the `Vec` variant, it will be converted.
-    pub fn to_index_map(&mut self) -> &mut IndexMap<&'static str, Cow<'static, str>> {
+    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<&'static str, Cow<'static, str>> {
         match self {
             Self::IndexMap(m) => m,
             Self::Vec(v) => {
@@ -716,9 +716,9 @@ mod benchmarks {
         let old_vec = Attributes::from(old);
 
         let mut new_map = new_vec.clone();
-        let _ = new_map.to_index_map();
+        let _ = new_map.get_mut_index_map();
         let mut old_map = old_vec.clone();
-        let _ = old_map.to_index_map();
+        let _ = old_map.get_mut_index_map();
 
         let vv = easybench_wasm::bench_env((&new_vec, &old_vec), |(new, old)| {
             format!("{:?}", Attributes::diff(&new, &old))

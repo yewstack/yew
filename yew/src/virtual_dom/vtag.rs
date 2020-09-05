@@ -189,7 +189,9 @@ impl VTag {
     /// Not every attribute works when it set as an attribute. We use workarounds for:
     /// `type/kind`, `value` and `checked`.
     pub fn add_attribute(&mut self, key: &'static str, value: impl Into<Cow<'static, str>>) {
-        self.attributes.to_index_map().insert(key, value.into());
+        self.attributes
+            .get_mut_index_map()
+            .insert(key, value.into());
     }
 
     /// Sets attributes to a virtual node.
