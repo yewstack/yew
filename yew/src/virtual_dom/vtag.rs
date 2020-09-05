@@ -189,7 +189,7 @@ impl VTag {
     /// Not every attribute works when it set as an attribute. We use workarounds for:
     /// `type/kind`, `value` and `checked`.
     pub fn add_attribute(&mut self, key: &'static str, value: impl Into<Cow<'static, str>>) {
-        self.attributes.as_mut().insert(key, value.into());
+        self.attributes.to_index_map().insert(key, value.into());
     }
 
     /// Sets attributes to a virtual node.
@@ -301,7 +301,7 @@ impl VTag {
 
     fn apply_diffs(&mut self, ancestor: &mut Option<Box<Self>>) {
         let changes = if let Some(old_attributes) = ancestor.as_mut().map(|a| &mut a.attributes) {
-            Attributes::diff(&mut self.attributes, old_attributes)
+            Attributes::diff(&self.attributes, old_attributes)
         } else {
             self.attributes
                 .iter()

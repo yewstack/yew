@@ -113,6 +113,27 @@ impl Attributes {
         }
     }
 
+    /// Get a mutable reference to the underlying `IndexMap`.
+    /// If the attributes are stored in the `Vec` variant, it will be converted.
+    pub fn to_index_map(&mut self) -> &mut IndexMap<&'static str, Cow<'static, str>> {
+        match self {
+            Self::IndexMap(m) => m,
+            Self::Vec(v) => {
+                *self = Self::IndexMap(
+                    mem::take(v)
+                        .into_iter()
+                        .filter_map(PositionalAttr::transpose)
+                        .collect(),
+                );
+                match self {
+                    Self::IndexMap(m) => m,
+                    // SAFETY: unreachable because we set the value to the `IndexMap` variant above.
+                    _ => unsafe { unreachable_unchecked() },
+                }
+            }
+        }
+    }
+
     fn diff_vec<'a>(
         new: &'a [PositionalAttr],
         old: &[PositionalAttr],
@@ -191,7 +212,8 @@ impl Attributes {
     }
 
     fn diff_index_map<'a, A, B>(
-        new: &'a IndexMap<&'static str, A>,
+        mut new_iter: impl Iterator<Item = (&'static str, &'a str)>,
+        new: &IndexMap<&'static str, A>,
         old: &IndexMap<&'static str, B>,
     ) -> Vec<Patch<&'static str, &'a str>>
     where
@@ -199,31 +221,27 @@ impl Attributes {
         B: AsRef<str>,
     {
         let mut out = Vec::new();
-        let mut new_iter = new.iter();
         let mut old_iter = old.iter();
         loop {
             match (new_iter.next(), old_iter.next()) {
                 (Some((new_key, new_value)), Some((old_key, old_value))) => {
-                    if new_key != old_key {
+                    if new_key != *old_key {
                         break;
                     }
-                    let (new_value, old_value) = (new_value.as_ref(), old_value.as_ref());
-                    if new_value != old_value {
-                        out.push(Patch::Replace(*new_key, new_value));
+                    if new_value != old_value.as_ref() {
+                        out.push(Patch::Replace(new_key, new_value));
                     }
                 }
                 // new attributes
                 (Some(attr), None) => {
                     for (key, value) in new_iter.chain(iter::once(attr)) {
-                        let value = value.as_ref();
                         match old.get(key) {
                             Some(old_value) => {
-                                let old_value = old_value.as_ref();
-                                if value != old_value {
-                                    out.push(Patch::Replace(*key, value));
+                                if value != old_value.as_ref() {
+                                    out.push(Patch::Replace(key, value));
                                 }
                             }
-                            None => out.push(Patch::Add(*key, value)),
+                            None => out.push(Patch::Add(key, value)),
                         }
                     }
                     break;
@@ -244,47 +262,31 @@ impl Attributes {
         out
     }
 
-    fn diff<'a>(new: &'a mut Self, old: &'a Self) -> Vec<Patch<&'static str, &'a str>> {
+    fn diff<'a>(new: &'a Self, old: &'a Self) -> Vec<Patch<&'static str, &'a str>> {
         match (new, old) {
-            // both vectors
             (Self::Vec(new), Self::Vec(old)) => Self::diff_vec(new, old),
-            // mixed -> mutate `new` to be an indexmap
-            // TODO update when "move_ref_pattern" lands (<https://github.com/rust-lang/rust/issues/68354>)
-            (new @ Self::Vec(_), old @ Self::IndexMap(_)) => {
-                if let Self::IndexMap(old) = old {
-                    Self::diff_index_map(new.as_mut(), old)
-                } else {
-                    // SAFETY: we already know `old` is an `IndexMap` because of the pattern,
-                    //         but we can't mix by-move and by-ref patterns until 'move_ref_pattern' lands
-                    unsafe { unreachable_unchecked() }
-                }
+            (Self::Vec(new), Self::IndexMap(old)) => {
+                // this case is somewhat tricky because we need to return references to the values in `new`
+                // but we also want to turn `new` into a hash map for performance reasons
+                let new_iter = new
+                    .iter()
+                    .filter_map(PositionalAttr::transposed)
+                    .map(|(k, v)| (k, v.as_ref()));
+                // create a "view" over references to the actual data in `new`.
+                let new = new.iter().filter_map(PositionalAttr::transposed).collect();
+                Self::diff_index_map(new_iter, &new, old)
             }
-            (Self::IndexMap(new), Self::Vec(old)) => Self::diff_index_map(
-                new,
-                &old.iter().filter_map(PositionalAttr::transposed).collect(),
-            ),
-            // both indexmap
-            (Self::IndexMap(new), Self::IndexMap(old)) => Self::diff_index_map(new, old),
-        }
-    }
-}
-
-impl AsMut<IndexMap<&'static str, Cow<'static, str>>> for Attributes {
-    fn as_mut(&mut self) -> &mut IndexMap<&'static str, Cow<'static, str>> {
-        match self {
-            Self::IndexMap(m) => m,
-            Self::Vec(v) => {
-                *self = Self::IndexMap(
-                    mem::take(v)
-                        .into_iter()
-                        .filter_map(PositionalAttr::transpose)
-                        .collect(),
-                );
-                match self {
-                    Self::IndexMap(m) => m,
-                    // SAFETY: unreachable because we set the value to the `IndexMap` variant above.
-                    _ => unsafe { unreachable_unchecked() },
-                }
+            (Self::IndexMap(new), Self::Vec(old)) => {
+                let new_iter = new.iter().map(|(k, v)| (*k, v.as_ref()));
+                Self::diff_index_map(
+                    new_iter,
+                    new,
+                    &old.iter().filter_map(PositionalAttr::transposed).collect(),
+                )
+            }
+            (Self::IndexMap(new), Self::IndexMap(old)) => {
+                let new_iter = new.iter().map(|(k, v)| (*k, v.as_ref()));
+                Self::diff_index_map(new_iter, new, old)
             }
         }
     }
