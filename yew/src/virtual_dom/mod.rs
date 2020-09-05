@@ -689,11 +689,11 @@ mod layout_tests {
     }
 }
 
-#[cfg(all(test, feature = "web_sys", feature = "wasm_test"))]
+#[cfg(all(test, feature = "web_sys", feature = "wasm_bench"))]
 mod benchmarks {
     use super::{Attributes, PositionalAttr};
     use std::borrow::Cow;
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use wasm_bindgen_test::{wasm_bindgen_test, wasm_bindgen_test_configure};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -744,7 +744,7 @@ mod benchmarks {
         );
     }
 
-    #[test]
+    #[wasm_bindgen_test]
     fn bench_diff_attributes_equal() {
         let old = create_pos_attrs();
         let new = old.clone();
@@ -752,7 +752,7 @@ mod benchmarks {
         run_benchmarks("equal", new, old);
     }
 
-    #[test]
+    #[wasm_bindgen_test]
     fn bench_diff_attributes_length_end() {
         let old = create_pos_attrs();
         let mut new = old.clone();
@@ -761,7 +761,7 @@ mod benchmarks {
         run_benchmarks("added to end", new.clone(), old.clone());
         run_benchmarks("removed from end", old, new);
     }
-    #[test]
+    #[wasm_bindgen_test]
     fn bench_diff_attributes_length_start() {
         let old = create_pos_attrs();
         let mut new = old.clone();
@@ -771,7 +771,7 @@ mod benchmarks {
         run_benchmarks("removed from start", old, new);
     }
 
-    #[test]
+    #[wasm_bindgen_test]
     fn bench_diff_attributes_reorder() {
         let old = create_pos_attrs();
         let new = old.clone().into_iter().rev().collect();
@@ -779,7 +779,7 @@ mod benchmarks {
         run_benchmarks("reordered", new, old);
     }
 
-    #[test]
+    #[wasm_bindgen_test]
     fn bench_diff_attributes_change_first() {
         let old = create_pos_attrs();
         let mut new = old.clone();
@@ -788,7 +788,7 @@ mod benchmarks {
         run_benchmarks("changed first", new, old);
     }
 
-    #[test]
+    #[wasm_bindgen_test]
     fn bench_diff_attributes_change_middle() {
         let old = create_pos_attrs();
         let mut new = old.clone();
@@ -797,7 +797,7 @@ mod benchmarks {
         run_benchmarks("changed middle", new, old);
     }
 
-    #[test]
+    #[wasm_bindgen_test]
     fn bench_diff_attributes_change_last() {
         let old = create_pos_attrs();
         let mut new = old.clone();

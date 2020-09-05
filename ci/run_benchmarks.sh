@@ -4,7 +4,7 @@ set -euo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_p
 # SETUP
 
 test_flags=("--headless" "--firefox")
-test_features="wasm_test"
+test_features="wasm_bench"
 
 echo "running benchmarks with flags: ${test_flags[*]} and features: ${test_features}"
 

@@ -137,6 +137,7 @@ web_sys = [
 doc_test = []
 wasm_test = []
 httpbin_test = []
+wasm_bench = []
 services = []
 agent = ["bincode"]
 yaml = ["serde_yaml"]
