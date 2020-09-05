@@ -22,7 +22,7 @@ thread_local! {
         .expect("no body on document")
 }
 
-#[derive(Clone, Copy, std::hash::Hash, Eq, PartialEq, Debug)]
+#[derive(Clone, Copy, Hash, Eq, PartialEq, Debug)]
 struct EventDescriptor {
     kind: &'static str,
     flags: u8,
