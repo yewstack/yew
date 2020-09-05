@@ -65,8 +65,8 @@ type Listeners = Vec<Rc<dyn Listener>>;
 pub struct PositionalAttr(pub &'static str, pub Option<Cow<'static, str>>);
 impl PositionalAttr {
     /// Create a positional attribute
-    pub fn new(key: &'static str, value: Cow<'static, str>) -> Self {
-        Self(key, Some(value))
+    pub fn new(key: &'static str, value: impl Into<Cow<'static, str>>) -> Self {
+        Self(key, Some(value.into()))
     }
     /// Create a placeholder for removed attributes
     pub fn new_placeholder(key: &'static str) -> Self {
@@ -686,5 +686,123 @@ mod layout_tests {
             "END",
             "Failed to detach last layout"
         );
+    }
+}
+
+#[cfg(all(test, feature = "web_sys", feature = "wasm_test"))]
+mod benchmarks {
+    use super::{Attributes, PositionalAttr};
+    use std::borrow::Cow;
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    fn create_pos_attrs() -> Vec<PositionalAttr> {
+        vec![
+            PositionalAttr::new("oh", Cow::Borrowed("danny")),
+            PositionalAttr::new("boy", Cow::Borrowed("the")),
+            PositionalAttr::new("pipes", Cow::Borrowed("the")),
+            PositionalAttr::new("are", Cow::Borrowed("calling")),
+            PositionalAttr::new("from", Cow::Borrowed("glen")),
+            PositionalAttr::new("to", Cow::Borrowed("glen")),
+            PositionalAttr::new("and", Cow::Borrowed("down")),
+            PositionalAttr::new("the", Cow::Borrowed("mountain")),
+            PositionalAttr::new("side", Cow::Borrowed("")),
+        ]
+    }
+
+    fn run_benchmarks(name: &str, new: Vec<PositionalAttr>, old: Vec<PositionalAttr>) {
+        let new_vec = Attributes::from(new);
+        let old_vec = Attributes::from(old);
+
+        let mut new_map = new_vec.clone();
+        let _ = new_map.to_index_map();
+        let mut old_map = old_vec.clone();
+        let _ = old_map.to_index_map();
+
+        let vv = easybench_wasm::bench_env((&new_vec, &old_vec), |(new, old)| {
+            format!("{:?}", Attributes::diff(&new, &old))
+        });
+        let mm = easybench_wasm::bench_env((&new_map, &old_map), |(new, old)| {
+            format!("{:?}", Attributes::diff(&new, &old))
+        });
+
+        let vm = easybench_wasm::bench_env((&new_vec, &old_map), |(new, old)| {
+            format!("{:?}", Attributes::diff(&new, &old))
+        });
+        let mv = easybench_wasm::bench_env((&new_map, &old_vec), |(new, old)| {
+            format!("{:?}", Attributes::diff(&new, &old))
+        });
+
+        wasm_bindgen_test::console_log!(
+            "{}:\n\tvec-vec: {}\n\tmap-map: {}\n\tvec-map: {}\n\tmap-vec: {}",
+            name,
+            vv,
+            mm,
+            vm,
+            mv
+        );
+    }
+
+    #[test]
+    fn bench_diff_attributes_equal() {
+        let old = create_pos_attrs();
+        let new = old.clone();
+
+        run_benchmarks("equal", new, old);
+    }
+
+    #[test]
+    fn bench_diff_attributes_length_end() {
+        let old = create_pos_attrs();
+        let mut new = old.clone();
+        new.push(PositionalAttr::new("hidden", Cow::Borrowed("hidden")));
+
+        run_benchmarks("added to end", new.clone(), old.clone());
+        run_benchmarks("removed from end", old, new);
+    }
+    #[test]
+    fn bench_diff_attributes_length_start() {
+        let old = create_pos_attrs();
+        let mut new = old.clone();
+        new.insert(0, PositionalAttr::new("hidden", Cow::Borrowed("hidden")));
+
+        run_benchmarks("added to start", new.clone(), old.clone());
+        run_benchmarks("removed from start", old, new);
+    }
+
+    #[test]
+    fn bench_diff_attributes_reorder() {
+        let old = create_pos_attrs();
+        let new = old.clone().into_iter().rev().collect();
+
+        run_benchmarks("reordered", new, old);
+    }
+
+    #[test]
+    fn bench_diff_attributes_change_first() {
+        let old = create_pos_attrs();
+        let mut new = old.clone();
+        new[0].1 = Some(Cow::Borrowed("changed"));
+
+        run_benchmarks("changed first", new, old);
+    }
+
+    #[test]
+    fn bench_diff_attributes_change_middle() {
+        let old = create_pos_attrs();
+        let mut new = old.clone();
+        new[old.len() / 2].1 = Some(Cow::Borrowed("changed"));
+
+        run_benchmarks("changed middle", new, old);
+    }
+
+    #[test]
+    fn bench_diff_attributes_change_last() {
+        let old = create_pos_attrs();
+        let mut new = old.clone();
+        new[old.len() - 1].1 = Some(Cow::Borrowed("changed"));
+
+        run_benchmarks("changed last", new, old);
     }
 }
