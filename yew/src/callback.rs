@@ -109,7 +109,7 @@ impl<IN> Callback<IN> {
             Callback::Callback { cb, .. } => cb(value),
             Callback::Once(rc) => {
                 let cb = rc.replace(None);
-                let f = cb.expect("callback in Once has already been used");
+                let f = cb.expect("callback contains `FnOnce` which has already been used");
                 f(value)
             }
         };
