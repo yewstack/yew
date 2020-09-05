@@ -96,7 +96,7 @@ pub enum Listeners {
 
 impl Default for Listeners {
     fn default() -> Self {
-        Self::Pending(Default::default())
+        Self::Pending(Vec::new())
     }
 }
 

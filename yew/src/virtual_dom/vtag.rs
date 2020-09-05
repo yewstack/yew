@@ -116,7 +116,7 @@ impl VTag {
             element_type,
             reference: None,
             attributes: Attributes::new(),
-            listeners: Default::default(),
+            listeners: Listeners::default(),
             children: VList::new(),
             node_ref: NodeRef::default(),
             key: None,
