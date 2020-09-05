@@ -27,7 +27,7 @@ pub(crate) fn oninput_handler(this: &Element, event: InputEvent) -> InputData {
         })
         .or_else(|| this.text_content())
         .expect(concat!(
-            "only an InputElement or TextAreaElement or an element with contenteditable=true ",
+            "only an InputElement, TextAreaElement, or an element with contenteditable=true ",
             "can have an oninput event listener"
         ));
     InputData { value, event }
