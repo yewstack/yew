@@ -1,10 +1,11 @@
 use crate::{
-    callback::{Flags, HANDLE_BUBBLED, NO_FLAGS, PASSIVE},
+    callback::{Callback, Flags, DEFER, HANDLE_BUBBLED, PASSIVE},
+    services::render::{RenderService, RenderTask},
     virtual_dom::{Listener, Listeners},
 };
 use std::{
     cell::RefCell,
-    collections::{HashMap, HashSet},
+    collections::{HashMap, HashSet, VecDeque},
     rc::Rc,
 };
 use wasm_bindgen::{prelude::*, JsCast};
@@ -50,6 +51,11 @@ struct Registry {
     /// Contains all registered event listeners by listener ID
     by_id: HashMap<u64, HashMap<EventDescriptor, Rc<dyn Listener>>>,
 
+    /// Event handling deferred until the next animation frame
+    deferred: VecDeque<(EventDescriptor, Event, web_sys::Element)>,
+
+    render_task: Option<RenderTask>,
+
     /// Keep track of all listeners to drop them on registry drop.
     /// The registry is never dropped in production.
     #[cfg(test)]
@@ -59,7 +65,7 @@ struct Registry {
 
 impl Registry {
     /// Run f with access to global Registry
-    fn with<R>(mut f: impl FnMut(&mut Registry) -> R) -> R {
+    fn with<R>(f: impl FnOnce(&mut Registry) -> R) -> R {
         REGISTRY.with(|r| f(&mut *r.borrow_mut()))
     }
 
@@ -73,7 +79,7 @@ impl Registry {
             if !self.handling.contains(&key) {
                 BODY.with(|body| {
                     let cl =
-                        Closure::wrap(Box::new(move |e: Event| Registry::handle(&key, e))
+                        Closure::wrap(Box::new(move |e: Event| Registry::handle(key, e))
                             as Box<dyn Fn(Event)>);
                     AsRef::<web_sys::EventTarget>::as_ref(body)
                         .add_event_listener_with_callback_and_add_event_listener_options(
@@ -81,7 +87,7 @@ impl Registry {
                             cl.as_ref().unchecked_ref(),
                             &{
                                 let mut opts = web_sys::AddEventListenerOptions::new();
-                                if key.flags & PASSIVE != NO_FLAGS {
+                                if key.flags.has_set(PASSIVE) {
                                     opts.passive(true);
                                 }
                                 opts
@@ -100,7 +106,7 @@ impl Registry {
                 self.handling.insert(key);
             }
 
-            if key.flags & HANDLE_BUBBLED != NO_FLAGS {
+            if key.flags.has_set(HANDLE_BUBBLED) {
                 self.bubbling.insert(key);
             }
 
@@ -128,11 +134,28 @@ impl Registry {
         id
     }
 
-    /// Handle a global event firing
-    fn handle(desc: &EventDescriptor, event: Event) {
-        // TODO: DEFER + tests
-        // TODO: DEBOUNCE + tests
+    /// Ensure a render task is create
+    fn ensure_render_task(&mut self) {
+        if self.render_task.is_none() {
+            self.render_task = RenderService::request_animation_frame(Callback::from(|_: f64| {
+                Registry::handle_deferred()
+            }))
+            .into();
+        }
+    }
 
+    /// Handle any deferred or debounced events
+    fn handle_deferred() {
+        for (desc, event, target) in Registry::with(|r| {
+            r.render_task = None;
+            std::mem::take(&mut r.deferred)
+        }) {
+            Self::run_handlers(desc, event, target);
+        }
+    }
+
+    /// Handle a global event firing
+    fn handle(desc: EventDescriptor, event: Event) {
         let target = match event
             .target()
             .map(|el| el.dyn_into::<web_sys::Element>().ok())
@@ -142,7 +165,18 @@ impl Registry {
             None => return,
         };
 
-        // Run event handler for target element, if any registered
+        if desc.flags.has_set(DEFER) {
+            Registry::with(move |r| {
+                r.deferred.push_back((desc, event, target));
+                r.ensure_render_task();
+            });
+            return;
+        }
+
+        Self::run_handlers(desc, event, target);
+    }
+
+    fn run_handlers(desc: EventDescriptor, event: Event, target: web_sys::Element) {
         let run_handler = |el: &web_sys::Element| {
             if let Some(l) = LISTENER_ID_PROP
                 .with(|prop| js_sys::Reflect::get(el, &prop).ok())
@@ -151,7 +185,7 @@ impl Registry {
                 .map(|v: js_sys::JsString| String::from(v).parse().ok())
                 .flatten()
                 .map(|id: u64| {
-                    Registry::with(|r| r.by_id.get(&id).map(|s| s.get(desc)).flatten().cloned())
+                    Registry::with(|r| r.by_id.get(&id).map(|s| s.get(&desc)).flatten().cloned())
                 })
                 .flatten()
             {
@@ -161,7 +195,7 @@ impl Registry {
 
         run_handler(&target);
 
-        if Registry::with(|r| r.bubbling.contains(desc)) {
+        if Registry::with(|r| r.bubbling.contains(&desc)) {
             let mut el = target;
             loop {
                 el = match el.parent_element() {
@@ -264,7 +298,7 @@ mod tests {
     wasm_bindgen_test_configure!(run_in_browser);
 
     use crate::{
-        callback::{Flags, HANDLE_BUBBLED, NO_FLAGS, PASSIVE},
+        callback::{Flags, DEFER, HANDLE_BUBBLED, NO_FLAGS, PASSIVE},
         html,
         utils::document,
         App, Component, ComponentLink, Html,
@@ -424,7 +458,11 @@ mod tests {
             }
         }
 
-        let (link, el) = init::<Passive>();
+        assert_async::<Passive>().await;
+    }
+
+    async fn assert_async<M: Mixin + 'static>() {
+        let (link, el) = init::<M>();
 
         macro_rules! assert_after_click {
             ($c:expr) => {
@@ -492,6 +530,20 @@ mod tests {
         link.send_message(Message::StopClicking);
         el.click();
         assert_count(&el, 4);
+    }
+
+    #[test]
+    #[cfg(not(feature = "listener_benchmarks"))]
+    async fn deferred() {
+        struct Deferred();
+
+        impl Mixin for Deferred {
+            fn flag() -> Flags {
+                DEFER
+            }
+        }
+
+        assert_async::<Deferred>().await;
     }
 
     // TODO: oninput tests

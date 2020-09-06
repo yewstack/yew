@@ -36,6 +36,13 @@ impl std::ops::BitOrAssign for Flags {
     }
 }
 
+impl Flags {
+    /// Return, if self hash f set inside of it
+    pub fn has_set(&self, f: Flags) -> bool {
+        *self & f != NO_FLAGS
+    }
+}
+
 /// Apply no Flags to callback. This is different from constructing a callback with None flags as it
 /// overrides the defaults for the callback type.
 pub const NO_FLAGS: Flags = Flags(0);
@@ -47,15 +54,10 @@ pub const PASSIVE: Flags = Flags(1);
 /// Implies `PASSIVE`.
 // TODO: this flag can apply to Agents and Components as well
 pub const DEFER: Flags = Flags(1 << 1 | PASSIVE.0);
-/// Causes the event handler to not fire until the next animation frame and be called with the last
-/// fired event.
-/// Implies `PASSIVE` and `DEFER`.
-// TODO: this flag can apply to Agents and Components as well
-pub const DEBOUNCE: Flags = Flags(1 << 2 | DEFER.0);
 /// Defines event listener to also listen to events in the child tree that bubbled up to the target
 /// element
 #[cfg(feature = "web_sys")]
-pub const HANDLE_BUBBLED: Flags = Flags(1 << 3);
+pub const HANDLE_BUBBLED: Flags = Flags(1 << 2);
 
 /// Universal callback wrapper.
 /// <aside class="warning">
