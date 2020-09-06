@@ -5,13 +5,13 @@ use web_sys::{Element, Event, HtmlInputElement, HtmlSelectElement, HtmlTextAreaE
 
 macro_rules! impl_action {
     ($($action:ident($type:ident) -> $ret:path => $convert:path)*) => {$(
-        impl_action!($action($type, ::std::u8::MIN) -> $ret => $convert);
+        impl_action!($action($type, crate::callback::NO_FLAGS) -> $ret => $convert);
     )*};
     ($($action:ident($type:ident, $flags:path) -> $ret:path => $convert:path)*) => {$(
         /// An abstract implementation of a listener.
         #[doc(hidden)]
         pub mod $action {
-            use crate::callback::Callback;
+            use crate::callback::{Callback, Flags};
             use crate::virtual_dom::Listener;
 
             /// A wrapper for a callback which attaches event listeners to elements.
@@ -39,7 +39,7 @@ macro_rules! impl_action {
                     self.callback.emit($convert(event));
                 }
 
-                fn flags(&self) -> u8 {
+                fn flags(&self) -> Flags {
                     match &self.callback {
                         Callback::Callback{flags, ..} => (*flags).unwrap_or($flags),
                         _ => $flags,

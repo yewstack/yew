@@ -58,7 +58,7 @@ pub trait Listener {
 
     /// Defines flags toi modify the handling of the event. See yew::callback for more details.
     #[cfg(feature = "web_sys")]
-    fn flags(&self) -> u8;
+    fn flags(&self) -> crate::callback::Flags;
 }
 
 impl fmt::Debug for dyn Listener {
@@ -66,7 +66,7 @@ impl fmt::Debug for dyn Listener {
         cfg_match! {
             feature = "web_sys" => write!(
                 f,
-                "Listener {{ kind: {}, flags: {:#X} }}",
+                "Listener {{ kind: {}, flags: {:?} }}",
                 self.kind(),
                 self.flags()
             ),

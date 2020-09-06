@@ -1,4 +1,5 @@
 use super::{Callback, Component, NodeRef};
+use crate::callback::Flags;
 use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use cfg_if::cfg_if;
@@ -244,7 +245,7 @@ impl<COMP: Component> Scope<COMP> {
     /// interface.
     pub fn callback_with_flags<F, IN, M>(
         &self,
-        flags: impl Into<Option<u8>>,
+        flags: impl Into<Option<Flags>>,
         function: F,
     ) -> Callback<IN>
     where
@@ -326,7 +327,7 @@ impl<COMP: Component> Scope<COMP> {
     /// [Component](Component) interface.
     pub fn batch_callback_with_flags<F, IN, OUT>(
         &self,
-        flags: impl Into<Option<u8>>,
+        flags: impl Into<Option<Flags>>,
         function: F,
     ) -> Callback<IN>
     where

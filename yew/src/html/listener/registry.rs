@@ -1,4 +1,7 @@
-use crate::virtual_dom::{Listener, Listeners};
+use crate::{
+    callback::{Flags, HANDLE_BUBBLED, NO_FLAGS, PASSIVE},
+    virtual_dom::{Listener, Listeners},
+};
 use std::{
     cell::RefCell,
     collections::{HashMap, HashSet},
@@ -25,7 +28,7 @@ thread_local! {
 #[derive(Clone, Copy, Hash, Eq, PartialEq, Debug)]
 struct EventDescriptor {
     kind: &'static str,
-    flags: u8,
+    flags: Flags,
 }
 
 impl From<&dyn Listener> for EventDescriptor {
@@ -83,7 +86,7 @@ impl Registry {
                             cl.as_ref().unchecked_ref(),
                             &{
                                 let mut opts = web_sys::AddEventListenerOptions::new();
-                                if key.flags & crate::callback::PASSIVE != 0 {
+                                if key.flags & PASSIVE != NO_FLAGS {
                                     opts.passive(true);
                                 }
                                 opts
@@ -102,7 +105,7 @@ impl Registry {
                 self.handling.insert(key);
             }
 
-            if key.flags & crate::callback::HANDLE_BUBBLED != 0 {
+            if key.flags & HANDLE_BUBBLED != NO_FLAGS {
                 self.bubbling.insert(key);
             }
 
@@ -266,7 +269,7 @@ mod tests {
     wasm_bindgen_test_configure!(run_in_browser);
 
     use crate::{
-        callback::{HANDLE_BUBBLED, PASSIVE},
+        callback::{Flags, HANDLE_BUBBLED, NO_FLAGS, PASSIVE},
         html,
         utils::document,
         App, Component, ComponentLink, Html,
@@ -287,7 +290,7 @@ mod tests {
     }
 
     trait Mixin {
-        fn flag() -> u8;
+        fn flag() -> Flags;
 
         fn view<C>(link: &ComponentLink<C>, state: &State) -> Html
         where
@@ -385,8 +388,8 @@ mod tests {
         struct Synchronous();
 
         impl Mixin for Synchronous {
-            fn flag() -> u8 {
-                0
+            fn flag() -> Flags {
+                NO_FLAGS
             }
         }
 
@@ -421,7 +424,7 @@ mod tests {
         struct Passive();
 
         impl Mixin for Passive {
-            fn flag() -> u8 {
+            fn flag() -> Flags {
                 PASSIVE
             }
         }
@@ -452,7 +455,7 @@ mod tests {
         struct Bubbling();
 
         impl Mixin for Bubbling {
-            fn flag() -> u8 {
+            fn flag() -> Flags {
                 HANDLE_BUBBLED
             }
 

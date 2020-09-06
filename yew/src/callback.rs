@@ -4,23 +4,58 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
+/// Flags that modify default callback behaviour
+#[derive(Eq, PartialEq, Clone, Copy, std::hash::Hash, Debug)]
+pub struct Flags(u8);
+
+impl std::ops::BitAnd for Flags {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
+}
+
+impl std::ops::BitAndAssign for Flags {
+    fn bitand_assign(&mut self, rhs: Self) {
+        self.0 &= rhs.0;
+    }
+}
+
+impl std::ops::BitOr for Flags {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self {
+        Self(self.0 | rhs.0)
+    }
+}
+
+impl std::ops::BitOrAssign for Flags {
+    fn bitor_assign(&mut self, rhs: Self) {
+        self.0 |= rhs.0;
+    }
+}
+
+/// Apply no Flags to callback. This is different from constructing a callback with None flags as it
+/// overrides the defaults for the callback type.
+pub const NO_FLAGS: Flags = Flags(0);
 /// Defines the event listener as passive.
 /// Yew sets sane defaults depending on the type of the listener.
 /// See [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEvent).
-pub const PASSIVE: u8 = 1;
+pub const PASSIVE: Flags = Flags(1);
 /// Causes the event handler to not fire until the next animation frame
 /// Implies `PASSIVE`.
 // TODO: this flag can apply to Agents and Components as well
-pub const DEFER: u8 = 1 << 1 | PASSIVE;
+pub const DEFER: Flags = Flags(1 << 1 | PASSIVE.0);
 /// Causes the event handler to not fire until the next animation frame and be called with the last
 /// fired event.
 /// Implies `PASSIVE` and `DEFER`.
 // TODO: this flag can apply to Agents and Components as well
-pub const DEBOUNCE: u8 = 1 << 2 | DEFER;
+pub const DEBOUNCE: Flags = Flags(1 << 2 | DEFER.0);
 /// Defines event listener to also listen to events in the child tree that bubbled up to the target
 /// element
 #[cfg(feature = "web_sys")]
-pub const HANDLE_BUBBLED: u8 = 1 << 3;
+pub const HANDLE_BUBBLED: Flags = Flags(1 << 3);
 
 /// Universal callback wrapper.
 /// <aside class="warning">
@@ -35,15 +70,11 @@ pub enum Callback<IN> {
         /// A callback which can be called multiple times
         cb: Rc<dyn Fn(IN)>,
 
-        /// Sets flags for event listening. A combination of `PASSIVE`, and `HANDLE_BUBBLED`.
-        ///
+        /// Sets flags for event listening. A combination of any Flags.
         /// If None, the default flags for the callback event source are used.
         ///
-        /// `DEFER` implies `PASSIVE`.
-        /// `DEBOUNCE` implies `PASSIVE` and `DEFER`.
-        ///
         /// Currently only used with `feature = "web_sys"`.
-        flags: Option<u8>,
+        flags: Option<Flags>,
     },
 
     /// A callback which can only be called once. The callback will panic if it is
