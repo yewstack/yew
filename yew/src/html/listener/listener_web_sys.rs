@@ -50,10 +50,6 @@ macro_rules! impl_action {
     )*};
 }
 
-pub(crate) fn nop_convert<T>(t: T) -> T {
-    t
-}
-
 pub(crate) fn cast_event<T>(e: web_sys::Event) -> T
 where
     T: wasm_bindgen::JsCast,
@@ -66,7 +62,7 @@ macro_rules! impl_short {
     ($($action:ident)*) => {
         impl_action! {
             $(
-                $action(Event) -> web_sys::Event => crate::html::listener::nop_convert
+                $action(Event) -> web_sys::Event => std::convert::identity
             )*
         }
     };
@@ -179,7 +175,7 @@ macro_rules! impl_passive {
         impl_action! {
             $(
                 $action(Event, crate::callback::PASSIVE) -> web_sys::Event
-                    => crate::html::listener::nop_convert
+                    => std::convert::identity
             )*
         }
     };
