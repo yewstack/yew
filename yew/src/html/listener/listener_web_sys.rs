@@ -109,9 +109,11 @@ impl_short! {
     ontoggle
     onvolumechange
     onwaiting
+
     oncopy
     oncut
     onpaste
+
     onpointerlockchange
     onpointerlockerror
     onselectionchange
