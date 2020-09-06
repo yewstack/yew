@@ -17,12 +17,7 @@ thread_local! {
     /// Key used to store listener id on element
     static LISTENER_ID_PROP: wasm_bindgen::JsValue = "__yew_listener_id".into();
 
-    static BODY: web_sys::HtmlElement = web_sys::window()
-        .expect("no window global")
-        .document()
-        .expect("no document on window")
-        .body()
-        .expect("no body on document")
+    static BODY: web_sys::HtmlElement = crate::utils::document().body().unwrap();
 }
 
 #[derive(Clone, Copy, Hash, Eq, PartialEq, Debug)]
