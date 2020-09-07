@@ -731,17 +731,19 @@ mod benchmarks {
         let mut old_map = old_vec.clone();
         let _ = old_map.get_mut_index_map();
 
-        let vv = easybench_wasm::bench_env((&new_vec, &old_vec), |(new, old)| {
+        const TIME_LIMIT: f64 = 2.0;
+
+        let vv = easybench_wasm::bench_env_limit(TIME_LIMIT, (&new_vec, &old_vec), |(new, old)| {
             format!("{:?}", Attributes::diff(&new, &old))
         });
-        let mm = easybench_wasm::bench_env((&new_map, &old_map), |(new, old)| {
+        let mm = easybench_wasm::bench_env_limit(TIME_LIMIT, (&new_map, &old_map), |(new, old)| {
             format!("{:?}", Attributes::diff(&new, &old))
         });
 
-        let vm = easybench_wasm::bench_env((&new_vec, &old_map), |(new, old)| {
+        let vm = easybench_wasm::bench_env_limit(TIME_LIMIT, (&new_vec, &old_map), |(new, old)| {
             format!("{:?}", Attributes::diff(&new, &old))
         });
-        let mv = easybench_wasm::bench_env((&new_map, &old_vec), |(new, old)| {
+        let mv = easybench_wasm::bench_env_limit(TIME_LIMIT, (&new_map, &old_vec), |(new, old)| {
             format!("{:?}", Attributes::diff(&new, &old))
         });
 
