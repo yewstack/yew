@@ -158,35 +158,46 @@ impl Attributes {
                     (None, None) => {}
                 },
                 // keys don't match, we can no longer compare linearly from here on out
-                (Some(_), Some(_)) => {
-                    let new = new_iter
+                (Some(new_attr), Some(old_attr)) => {
+                    // assume that every attribute is new
+                    // create a map `key -> patch` for efficient lookup
+                    let mut patches = iter::once(new_attr)
+                        .chain(new_iter)
                         .filter_map(PositionalAttr::transposed)
-                        .collect::<HashMap<_, _>>();
-                    let old = old_iter
-                        .filter_map(PositionalAttr::transposed)
+                        .map(|(key, value)| (key, Patch::Add(key, value.as_ref())))
                         .collect::<HashMap<_, _>>();
 
-                    for (key, value) in new.iter() {
-                        match old.get(key) {
-                            Some(old_value) => {
-                                if value != old_value {
-                                    out.push(Patch::Replace(*key, (*value).as_ref()));
-                                }
+                    // now filter out all the attributes that aren't new
+                    for (key, old_value) in iter::once(old_attr)
+                        .chain(old_iter)
+                        .filter_map(PositionalAttr::transposed)
+                    {
+                        if let Some(patch) = patches.remove(key) {
+                            let new_value = match patch {
+                                Patch::Add(_, v) => v,
+                                // SAFETY: The variant is guaranteed to be `Add` because of how it was created
+                                _ => unsafe { unreachable_unchecked() },
+                            };
+
+                            // attribute still exists but changed value
+                            if new_value != old_value.as_ref() {
+                                out.push(Patch::Replace(key, new_value));
                             }
-                            None => out.push(Patch::Add(*key, (*value).as_ref())),
-                        };
-                    }
-
-                    for key in old.keys() {
-                        if !new.contains_key(key) {
-                            out.push(Patch::Remove(*key));
+                        } else {
+                            // attribute no longer exists
+                            out.push(Patch::Remove(key));
                         }
                     }
+
+                    // finally, we're left with the attributes that are actually new
+                    // Switch to `HashMap::into_values` when it hits stable.
+                    // See <https://github.com/rust-lang/rust/issues/75294>.
+                    out.extend(patches.into_iter().map(|(_, v)| v));
                     break;
                 }
                 // added attributes
                 (Some(attr), None) => {
-                    for PositionalAttr(key, value) in new_iter.chain(iter::once(attr)) {
+                    for PositionalAttr(key, value) in iter::once(attr).chain(new_iter) {
                         // only add value if it has a value
                         if let Some(value) = value {
                             out.push(Patch::Add(*key, value));
@@ -196,7 +207,7 @@ impl Attributes {
                 }
                 // removed attributes
                 (None, Some(attr)) => {
-                    for PositionalAttr(key, value) in old_iter.chain(iter::once(attr)) {
+                    for PositionalAttr(key, value) in iter::once(attr).chain(old_iter) {
                         // only remove the attribute if it had a value before
                         if value.is_some() {
                             out.push(Patch::Remove(*key));
@@ -234,7 +245,7 @@ impl Attributes {
                 }
                 // new attributes
                 (Some(attr), None) => {
-                    for (key, value) in new_iter.chain(iter::once(attr)) {
+                    for (key, value) in iter::once(attr).chain(new_iter) {
                         match old.get(key) {
                             Some(old_value) => {
                                 if value != old_value.as_ref() {
@@ -248,7 +259,7 @@ impl Attributes {
                 }
                 // removed attributes
                 (None, Some(attr)) => {
-                    for (key, _) in old_iter.chain(iter::once(attr)) {
+                    for (key, _) in iter::once(attr).chain(old_iter) {
                         if !new.contains_key(key) {
                             out.push(Patch::Remove(*key));
                         }
