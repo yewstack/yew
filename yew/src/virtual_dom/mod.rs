@@ -214,6 +214,7 @@ impl Attributes {
     }
 
     fn diff_index_map<'a, A, B>(
+        // this makes it possible to diff `&'a IndexMap<_, A>` and `IndexMap<_, &'a A>`.
         mut new_iter: impl Iterator<Item = (&'static str, &'a str)>,
         new: &IndexMap<&'static str, A>,
         old: &IndexMap<&'static str, B>,
