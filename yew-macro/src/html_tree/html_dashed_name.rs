@@ -29,7 +29,7 @@ impl HtmlDashedName {
         s
     }
 
-    fn to_lit_str(&self) -> LitStr {
+    pub fn to_lit_str(&self) -> LitStr {
         LitStr::new(&self.to_string(), self.span())
     }
 }

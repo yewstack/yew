@@ -1,8 +1,8 @@
 use super::ToNodeIterator;
-use crate::{stringify, PeekValue};
+use crate::stringify::Stringify;
+use crate::PeekValue;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
-use stringify::Stringify;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;

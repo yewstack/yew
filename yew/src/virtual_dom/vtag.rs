@@ -171,6 +171,9 @@ impl VTag {
     }
 
     /// Pushes a key-value pair to the attributes without ensuring uniqueness.
+    ///
+    /// Adding multiple attributes with the same key will cause unexpected behaviour
+    /// if the variant is `Attributes::Vec`.
     #[doc(hidden)]
     pub fn __macro_push_attribute(&mut self, attr: PositionalAttr) {
         match &mut self.attributes {

@@ -3,11 +3,11 @@ mod tag_attributes;
 use super::{
     HtmlChildrenTree, HtmlDashedName, HtmlProp as TagAttribute, HtmlPropSuffix as TagSuffix,
 };
+use crate::stringify::Stringify;
 use crate::{non_capitalized_ascii, stringify, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
-use stringify::Stringify;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
@@ -193,11 +193,18 @@ impl ToTokens for HtmlTag {
                      question_mark,
                      value,
                  }| {
-                    generate_optional_attribute_code(
-                        label.to_string(),
-                        value,
-                        question_mark.is_some(),
-                    )
+                    let key = label.to_lit_str();
+                    if question_mark.is_some() {
+                        let sr = stringify::stringify_option_at_runtime(value);
+                        quote! {
+                            ::yew::virtual_dom::PositionalAttr(#key, #sr)
+                        }
+                    } else {
+                        let sr = value.stringify();
+                        quote! {
+                            ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
+                        }
+                    }
                 },
             );
             Some(quote! {
@@ -205,13 +212,13 @@ impl ToTokens for HtmlTag {
             })
         };
 
-        let set_booleans = if booleans.is_empty() {
+        let push_booleans = if booleans.is_empty() {
             None
         } else {
             let tokens = booleans
                 .iter()
                 .map(|TagAttribute { label, value, .. }| {
-                    let label_str = label.to_string();
+                    let label_str = label.to_lit_str();
                     let sr = label.stringify();
                     quote_spanned! {value.span()=> {
                         if #value {
@@ -223,9 +230,9 @@ impl ToTokens for HtmlTag {
             Some(tokens)
         };
 
-        let set_classes = match classes {
+        let push_classes = match classes {
             Some(ClassesForm::Tuple(classes)) => {
-                let sr = stringify::stringify_dynamic(quote! { __yew_classes });
+                let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
                 Some(quote! {
                     let __yew_classes = ::yew::virtual_dom::Classes::default()
                         #(.extend(#classes))*;
@@ -247,7 +254,7 @@ impl ToTokens for HtmlTag {
                     }
                 }
                 None => {
-                    let sr = stringify::stringify_dynamic(quote! { __yew_classes });
+                    let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
                     Some(quote! {
                         let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
                         if !__yew_classes.is_empty() {
@@ -274,7 +281,7 @@ impl ToTokens for HtmlTag {
 
                         if question_mark.is_some() {
                             let ident = Ident::new("__yew_listener", name.span());
-                            let listener = generate_listener_code(name, &ident);
+                            let listener = to_wrapped_listener(name, &ident);
                             quote_spanned! {value.span()=>
                                 let #ident = ::std::option::Option::map(#value, |#ident| {
                                     #listener
@@ -284,7 +291,7 @@ impl ToTokens for HtmlTag {
                                 };
                             }
                         } else {
-                            let listener = generate_listener_code(name, value);
+                            let listener = to_wrapped_listener(name, value);
                             quote_spanned! {value.span()=>
                                 #vtag.add_listener(#listener);
                             }
@@ -295,9 +302,9 @@ impl ToTokens for HtmlTag {
 
             Some(add_listeners)
         } else {
-            let listeners_it = listeners.iter().map(|TagAttribute { label, value, .. }| {
-                generate_listener_code(&label.name, value)
-            });
+            let listeners_it = listeners
+                .iter()
+                .map(|TagAttribute { label, value, .. }| to_wrapped_listener(&label.name, value));
 
             Some(quote! {
                 #vtag.add_listeners(::std::vec![#(#listeners_it),*]);
@@ -318,7 +325,7 @@ impl ToTokens for HtmlTag {
         let dyn_tag_runtime_checks = if matches!(&tag_name, TagName::Expr(_)) {
             // when Span::source_file Span::start get stabilised or yew-macro introduces a nightly feature flag
             // we should expand the panic message to contain the exact location of the dynamic tag.
-            let sr = stringify::stringify_dynamic(quote! { __yew_v });
+            let sr = stringify::stringify_at_runtime(quote! { __yew_v });
             Some(quote! {
                 // check void element
                 if !#vtag.children.is_empty() {
@@ -357,8 +364,8 @@ impl ToTokens for HtmlTag {
                 #set_checked
 
                 #set_attributes
-                #set_booleans
-                #set_classes
+                #push_booleans
+                #push_classes
 
                 #add_listeners
                 #add_children
@@ -371,29 +378,11 @@ impl ToTokens for HtmlTag {
     }
 }
 
-fn generate_listener_code(name: &Ident, value: impl ToTokens) -> TokenStream {
+fn to_wrapped_listener(name: &Ident, value: impl ToTokens) -> TokenStream {
     quote_spanned! {value.span()=>
         ::std::rc::Rc::new(::yew::html::#name::Wrapper::new(
             <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(#value),
         ))
-    }
-}
-
-fn generate_optional_attribute_code(
-    key: impl ToTokens,
-    value: impl Stringify + ToTokens,
-    optional: bool,
-) -> TokenStream {
-    if optional {
-        let sr = stringify::stringify_option_at_runtime(value);
-        quote! {
-            ::yew::virtual_dom::PositionalAttr(#key, #sr)
-        }
-    } else {
-        let sr = value.stringify();
-        quote! {
-            ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
-        }
     }
 }
 

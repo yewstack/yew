@@ -3,8 +3,8 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
 use syn::{Expr, Ident, Lit, LitStr};
 
-/// Stringify a dynamic value at runtime.
-pub fn stringify_dynamic(src: impl ToTokens) -> TokenStream {
+/// Stringify a value at runtime.
+pub fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
     quote_spanned! {src.span()=>
         ::std::borrow::Cow::<'static, str>::Owned(
             ::std::string::ToString::to_string(&(#src)),
@@ -15,7 +15,7 @@ pub fn stringify_dynamic(src: impl ToTokens) -> TokenStream {
 /// Map an `Option` type such that it turns into `Cow<'static, str>`.
 pub fn stringify_option_at_runtime(src: impl ToTokens) -> TokenStream {
     let ident = Ident::new("__yew_str", src.span());
-    let sr = stringify_dynamic(&ident);
+    let sr = stringify_at_runtime(&ident);
     quote! {
         ::std::option::Option::map(#src, |#ident| {
             #sr
@@ -70,7 +70,7 @@ impl Stringify for Lit {
         self.try_into_lit()
             .as_ref()
             .map(Stringify::stringify)
-            .unwrap_or_else(|| stringify_dynamic(self))
+            .unwrap_or_else(|| stringify_at_runtime(self))
     }
 }
 impl Stringify for Expr {
@@ -86,6 +86,6 @@ impl Stringify for Expr {
         self.try_into_lit()
             .as_ref()
             .map(Stringify::stringify)
-            .unwrap_or_else(|| stringify_dynamic(self))
+            .unwrap_or_else(|| stringify_at_runtime(self))
     }
 }
