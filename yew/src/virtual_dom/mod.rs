@@ -159,12 +159,11 @@ impl Attributes {
                 },
                 // keys don't match, we can no longer compare linearly from here on out
                 (Some(new_attr), Some(old_attr)) => {
-                    // assume that every attribute is new
-                    // create a map `key -> patch` for efficient lookup
-                    let mut patches = iter::once(new_attr)
+                    // assume that every attribute is new.
+                    let mut added = iter::once(new_attr)
                         .chain(new_iter)
                         .filter_map(PositionalAttr::transposed)
-                        .map(|(key, value)| (key, Patch::Add(key, value.as_ref())))
+                        .map(|(key, value)| (key, value.as_ref()))
                         .collect::<HashMap<_, _>>();
 
                     // now filter out all the attributes that aren't new
@@ -172,13 +171,7 @@ impl Attributes {
                         .chain(old_iter)
                         .filter_map(PositionalAttr::transposed)
                     {
-                        if let Some(patch) = patches.remove(key) {
-                            let new_value = match patch {
-                                Patch::Add(_, v) => v,
-                                // SAFETY: The variant is guaranteed to be `Add` because of how it was created
-                                _ => unsafe { unreachable_unchecked() },
-                            };
-
+                        if let Some(new_value) = added.remove(key) {
                             // attribute still exists but changed value
                             if new_value != old_value.as_ref() {
                                 out.push(Patch::Replace(key, new_value));
@@ -189,10 +182,8 @@ impl Attributes {
                         }
                     }
 
-                    // finally, we're left with the attributes that are actually new
-                    // Switch to `HashMap::into_values` when it hits stable.
-                    // See <https://github.com/rust-lang/rust/issues/75294>.
-                    out.extend(patches.into_iter().map(|(_, v)| v));
+                    // finally, we're left with the attributes that are actually new.
+                    out.extend(added.into_iter().map(|(k, v)| Patch::Add(k, v)));
                     break;
                 }
                 // added attributes
