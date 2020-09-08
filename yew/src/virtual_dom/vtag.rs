@@ -175,15 +175,22 @@ impl VTag {
     /// Adding multiple attributes with the same key will cause unexpected behaviour
     /// if the variant is `Attributes::Vec`.
     #[doc(hidden)]
-    pub fn __macro_push_attribute(&mut self, attr: PositionalAttr) {
+    pub fn __macro_push_attribute(&mut self, key: &'static str, value: Cow<'static, str>) {
         match &mut self.attributes {
-            Attributes::Vec(v) => v.push(attr),
+            Attributes::Vec(v) => v.push(PositionalAttr::new(key, value)),
             Attributes::IndexMap(m) => {
-                let PositionalAttr(key, value) = attr;
-                if let Some(value) = value {
-                    m.insert(key, value);
-                }
+                m.insert(key, value);
             }
+        }
+    }
+
+    /// Pushes a placeholder to the attributes to preserve alignment.
+    /// This is only required for the `Attributes::Vec` variant.
+    #[doc(hidden)]
+    pub fn __macro_push_attribute_placeholder(&mut self, key: &'static str) {
+        // only the `Vec` variant needs placeholders
+        if let Attributes::Vec(v) = &mut self.attributes {
+            v.push(PositionalAttr::new_placeholder(key));
         }
     }
 

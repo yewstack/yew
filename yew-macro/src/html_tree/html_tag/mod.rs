@@ -222,7 +222,9 @@ impl ToTokens for HtmlTag {
                     let sr = label.stringify();
                     quote_spanned! {value.span()=> {
                         if #value {
-                            #vtag.__macro_push_attribute(::yew::virtual_dom::PositionalAttr::new(#label_str, #sr));
+                            #vtag.__macro_push_attribute(#label_str, #sr);
+                        } else {
+                            #vtag.__macro_push_attribute_placeholder(#label_str);
                         };
                     }}
                 })
@@ -238,7 +240,9 @@ impl ToTokens for HtmlTag {
                         #(.extend(#classes))*;
 
                     if !__yew_classes.is_empty() {
-                        #vtag.__macro_push_attribute(::yew::virtual_dom::PositionalAttr::new("class", #sr));
+                        #vtag.__macro_push_attribute("class", #sr);
+                    } else {
+                        #vtag.__macro_push_attribute_placeholder("class");
                     };
                 })
             }
@@ -249,7 +253,7 @@ impl ToTokens for HtmlTag {
                     } else {
                         let sr = lit.stringify();
                         Some(quote! {
-                            #vtag.__macro_push_attribute(::yew::virtual_dom::PositionalAttr::new("class", #sr));
+                            #vtag.__macro_push_attribute("class", #sr);
                         })
                     }
                 }
@@ -258,7 +262,9 @@ impl ToTokens for HtmlTag {
                     Some(quote! {
                         let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
                         if !__yew_classes.is_empty() {
-                            #vtag.__macro_push_attribute(::yew::virtual_dom::PositionalAttr::new("class", #sr));
+                            #vtag.__macro_push_attribute("class", #sr);
+                        } else {
+                            #vtag.__macro_push_attribute_placeholder("class");
                         };
                     })
                 }
@@ -343,7 +349,9 @@ impl ToTokens for HtmlTag {
                     "input" | "textarea" => {}
                     _ => {
                         if let ::std::option::Option::Some(__yew_v) = #vtag.value.take() {
-                            #vtag.__macro_push_attribute(::yew::virtual_dom::PositionalAttr::new("value", #sr));
+                            #vtag.__macro_push_attribute("value", #sr);
+                        } else {
+                            #vtag.__macro_push_attribute_placeholder("value");
                         };
                     }
                 }
