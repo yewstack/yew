@@ -1,4 +1,4 @@
 [tasks.test]
-clear = true
 extend = "core::wasm-pack-base"
+command = "wasm-pack"
 args = ["test", "@@split(YEW_TEST_FLAGS, )"]

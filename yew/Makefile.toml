@@ -2,8 +2,8 @@
 CARGO_MAKE_CLIPPY_ARGS = "--features cbor,msgpack,toml,yaml -- --deny=warnings"
 
 [tasks.test]
-clear = true
 extend = "core::wasm-pack-base"
+command = "wasm-pack"
 args = [
     "test",
     "@@split(YEW_TEST_FLAGS, )",
@@ -35,14 +35,14 @@ args = [
     "--no-default-features",
 ]
 
-# FIXME this also doesn't seem to work
 [tasks.bench]
-clear = true
 extend = "core::wasm-pack-base"
+command = "wasm-pack"
 args = [
     "test",
     "--release",
-    "@@split(YEW_TEST_FLAGS, )",
+    "--firefox",
+    "--headless",
     "--",
     "--features",
     "wasm_bench",
