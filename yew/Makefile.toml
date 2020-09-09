@@ -45,6 +45,6 @@ args = [
     "@@split(YEW_TEST_FLAGS, )",
     "--",
     "--features",
-    "${YEW_TEST_FEATURES}",
+    "wasm_bench",
     "bench",
 ]

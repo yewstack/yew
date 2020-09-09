@@ -34,15 +34,6 @@ cargo make tests
 
 `cargo make tests` will automatically download Geckodriver to a temporary location if it isn't in the PATH.
 
-> **NOTE:** `wasm-bindgen-test` currently doesn't work with Geckodriver version 0.27.
->
-> Use `geckodriver --version` to check which version you're running.
->
-> Unfortunately this is also the version that is automatically downloaded
-> so you may need to manually install version 0.26 for now.
->
-> See: [rustwasm/wasm-bindgen#2261](https://github.com/rustwasm/wasm-bindgen/issues/2261)
-
 ### Fetch service tests
 
 The tests for the fetch service require a local [httpbin](https://httpbin.org/) server.
