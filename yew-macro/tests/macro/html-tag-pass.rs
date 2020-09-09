@@ -1,4 +1,4 @@
-#![recursion_limit = "512"]
+#![recursion_limit = "768"]
 use yew::prelude::*;
 
 fn compile_pass() {
@@ -58,6 +58,11 @@ fn compile_pass() {
                     "a"
                 }
             }/>
+
+            <a href?=Some("http://google.com") media?=Option::<&str>::None />
+            <track kind?=Some("subtitles") src?=Option::<&str>::None />
+            <track kind?=Some(5) mixed="works" />
+            <input value?=Some("value") onblur?=Some(Callback::from(|_| ())) />
         </div>
     };
 

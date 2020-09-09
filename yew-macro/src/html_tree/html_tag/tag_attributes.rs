@@ -11,8 +11,8 @@ pub struct TagAttributes {
     pub listeners: Vec<TagAttribute>,
     pub classes: Option<ClassesForm>,
     pub booleans: Vec<TagAttribute>,
-    pub value: Option<Expr>,
-    pub kind: Option<Expr>,
+    pub value: Option<TagAttribute>,
+    pub kind: Option<TagAttribute>,
     pub checked: Option<Expr>,
     pub node_ref: Option<Expr>,
     pub key: Option<Expr>,
@@ -241,16 +241,26 @@ impl TagAttributes {
         drained
     }
 
-    fn remove_attr(attrs: &mut Vec<TagAttribute>, name: &str) -> Option<Expr> {
+    fn remove_attr(attrs: &mut Vec<TagAttribute>, name: &str) -> Option<TagAttribute> {
         let mut i = 0;
         while i < attrs.len() {
             if attrs[i].label.to_string() == name {
-                return Some(attrs.remove(i).value);
+                return Some(attrs.remove(i));
             } else {
                 i += 1;
             }
         }
         None
+    }
+
+    fn remove_attr_nonoptional(
+        attrs: &mut Vec<TagAttribute>,
+        name: &str,
+    ) -> syn::Result<Option<TagAttribute>> {
+        match Self::remove_attr(attrs, name) {
+            Some(attr) => attr.ensure_not_optional().map(|_| Some(attr)),
+            None => Ok(None),
+        }
     }
 
     fn map_classes(class_expr: Expr) -> ClassesForm {
@@ -269,7 +279,7 @@ impl Parse for TagAttributes {
         }
 
         let mut listeners = Vec::new();
-        for listener in TagAttributes::drain_listeners(&mut attributes) {
+        for listener in Self::drain_listeners(&mut attributes) {
             #[cfg(feature = "std_web")]
             {
                 let label = &listener.label;
@@ -305,17 +315,25 @@ impl Parse for TagAttributes {
             }
             i += 1;
         }
-        let booleans = TagAttributes::drain_boolean(&mut attributes);
+        let booleans = Self::drain_boolean(&mut attributes);
+        for attr in &booleans {
+            if attr.question_mark.is_some() {
+                return Err(syn::Error::new_spanned(
+                    &attr.label,
+                        "boolean attributes don't support being used as an optional attribute (hint: a value of false results in the attribute not being set)"
+                ));
+            }
+        }
 
-        let classes =
-            TagAttributes::remove_attr(&mut attributes, "class").map(TagAttributes::map_classes);
-        let value = TagAttributes::remove_attr(&mut attributes, "value");
-        let kind = TagAttributes::remove_attr(&mut attributes, "type");
-        let checked = TagAttributes::remove_attr(&mut attributes, "checked");
-        let node_ref = TagAttributes::remove_attr(&mut attributes, "ref");
-        let key = TagAttributes::remove_attr(&mut attributes, "key");
+        let classes = Self::remove_attr_nonoptional(&mut attributes, "class")?
+            .map(|a| Self::map_classes(a.value));
+        let value = Self::remove_attr(&mut attributes, "value");
+        let kind = Self::remove_attr(&mut attributes, "type");
+        let checked = Self::remove_attr_nonoptional(&mut attributes, "checked")?.map(|v| v.value);
+        let node_ref = Self::remove_attr_nonoptional(&mut attributes, "ref")?.map(|v| v.value);
+        let key = Self::remove_attr_nonoptional(&mut attributes, "key")?.map(|v| v.value);
 
-        Ok(TagAttributes {
+        Ok(Self {
             attributes,
             classes,
             listeners,
