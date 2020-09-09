@@ -300,38 +300,42 @@ mod tests {
     use crate::{
         callback::{Flags, DEFER, HANDLE_BUBBLED, NO_FLAGS, PASSIVE},
         html,
+        html::listener::{ChangeData, InputData},
         utils::document,
         App, Component, ComponentLink, Html,
     };
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::JsFuture;
 
-    #[derive(Copy, Clone)]
+    #[derive(Clone)]
     enum Message {
         Click,
-        StopClicking,
+        StopListening,
+        SetText(String),
+        NOP,
     }
 
     #[derive(Default)]
     struct State {
-        stop_clicking: bool,
+        stop_listening: bool,
         clicked: u32,
+        text: String,
     }
 
     trait Mixin {
-        fn flag() -> Flags;
+        fn flags() -> Flags;
 
         fn view<C>(link: &ComponentLink<C>, state: &State) -> Html
         where
             C: Component<Message = Message>,
         {
-            if state.stop_clicking {
+            if state.stop_listening {
                 html! {
                     <a>{state.clicked}</a>
                 }
             } else {
                 html! {
-                    <a onclick=link.callback_with_flags(Self::flag(), |_| Message::Click)>
+                    <a onclick=link.callback_with_flags(Self::flags(), |_| Message::Click)>
                         {state.clicked}
                     </a>
                 }
@@ -366,8 +370,14 @@ mod tests {
                 Message::Click => {
                     self.state.clicked += 1;
                 }
-                Message::StopClicking => {
-                    self.state.stop_clicking = true;
+                Message::StopListening => {
+                    self.state.stop_listening = true;
+                }
+                Message::SetText(s) => {
+                    self.state.text = s;
+                }
+                Message::NOP => {
+                    return false;
                 }
             };
             true
@@ -386,13 +396,22 @@ mod tests {
         assert_eq!(el.text_content(), Some(count.to_string()))
     }
 
-    fn init<M>() -> (ComponentLink<Comp<M>>, web_sys::HtmlElement)
+    fn get_el_by_tag(tag: &str) -> web_sys::HtmlElement {
+        document()
+            .query_selector(tag)
+            .unwrap()
+            .unwrap()
+            .dyn_into::<web_sys::HtmlElement>()
+            .unwrap()
+    }
+
+    fn init<M>(tag: &str) -> (ComponentLink<Comp<M>>, web_sys::HtmlElement)
     where
         M: Mixin,
     {
         // Remove any existing listeners and elements
         super::Registry::with(|r| *r = Default::default());
-        if let Some(el) = document().query_selector("a").unwrap() {
+        if let Some(el) = document().query_selector(tag).unwrap() {
             el.parent_element().unwrap().remove();
         }
 
@@ -400,15 +419,7 @@ mod tests {
         document().body().unwrap().append_child(&root).unwrap();
         let link = App::<Comp<M>>::new().mount(root);
 
-        (
-            link,
-            document()
-                .query_selector("a")
-                .unwrap()
-                .unwrap()
-                .dyn_into::<web_sys::HtmlElement>()
-                .unwrap(),
-        )
+        (link, get_el_by_tag(tag))
     }
 
     #[test]
@@ -417,12 +428,12 @@ mod tests {
         struct Synchronous();
 
         impl Mixin for Synchronous {
-            fn flag() -> Flags {
+            fn flags() -> Flags {
                 NO_FLAGS
             }
         }
 
-        let (link, el) = init::<Synchronous>();
+        let (link, el) = init::<Synchronous>("a");
 
         assert_count(&el, 0);
 
@@ -432,7 +443,7 @@ mod tests {
         el.click();
         assert_count(&el, 2);
 
-        link.send_message(Message::StopClicking);
+        link.send_message(Message::StopListening);
         el.click();
         assert_count(&el, 2);
     }
@@ -453,7 +464,7 @@ mod tests {
         struct Passive();
 
         impl Mixin for Passive {
-            fn flag() -> Flags {
+            fn flags() -> Flags {
                 PASSIVE
             }
         }
@@ -462,7 +473,7 @@ mod tests {
     }
 
     async fn assert_async<M: Mixin + 'static>() {
-        let (link, el) = init::<M>();
+        let (link, el) = init::<M>("a");
 
         macro_rules! assert_after_click {
             ($c:expr) => {
@@ -478,7 +489,7 @@ mod tests {
 
         assert_after_click!(2);
 
-        link.send_message(Message::StopClicking);
+        link.send_message(Message::StopListening);
         assert_after_click!(2);
     }
 
@@ -488,7 +499,7 @@ mod tests {
         struct Bubbling();
 
         impl Mixin for Bubbling {
-            fn flag() -> Flags {
+            fn flags() -> Flags {
                 HANDLE_BUBBLED
             }
 
@@ -496,7 +507,7 @@ mod tests {
             where
                 C: Component<Message = Message>,
             {
-                if state.stop_clicking {
+                if state.stop_listening {
                     html! {
                         <div>
                             <a>
@@ -505,7 +516,7 @@ mod tests {
                         </div>
                     }
                 } else {
-                    let cb = link.callback_with_flags(Self::flag(), |_| Message::Click);
+                    let cb = link.callback_with_flags(Self::flags(), |_| Message::Click);
                     html! {
                         <div onclick=cb.clone()>
                             <a onclick=cb>
@@ -517,7 +528,7 @@ mod tests {
             }
         }
 
-        let (link, el) = init::<Bubbling>();
+        let (link, el) = init::<Bubbling>("a");
 
         assert_count(&el, 0);
 
@@ -527,7 +538,7 @@ mod tests {
         el.click();
         assert_count(&el, 4);
 
-        link.send_message(Message::StopClicking);
+        link.send_message(Message::StopListening);
         el.click();
         assert_count(&el, 4);
     }
@@ -538,7 +549,7 @@ mod tests {
         struct Deferred();
 
         impl Mixin for Deferred {
-            fn flag() -> Flags {
+            fn flags() -> Flags {
                 DEFER
             }
         }
@@ -546,8 +557,94 @@ mod tests {
         assert_async::<Deferred>().await;
     }
 
-    // TODO: oninput tests
-    // TODO: onchange tests
+    #[cfg(not(feature = "listener_benchmarks"))]
+    fn test_input_listener<E>(make_event: impl Fn() -> E)
+    where
+        E: JsCast + std::fmt::Debug,
+    {
+        struct Input();
+
+        impl Mixin for Input {
+            fn flags() -> Flags {
+                NO_FLAGS
+            }
+
+            fn view<C>(link: &ComponentLink<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message>,
+            {
+                if state.stop_listening {
+                    html! {
+                        <div>
+                            <input type="text" />
+                            <p>{state.text.clone()}</p>
+                        </div>
+                    }
+                } else {
+                    html! {
+                        <div>
+                            <input
+                                type="text"
+                                onchange=link
+                                    .callback_with_flags(Self::flags(), |d: ChangeData| match d {
+                                        ChangeData::Value(s) => Message::SetText(s),
+                                        _ => Message::NOP,
+                                    })
+                                oninput=link
+                                    .callback_with_flags(Self::flags(), |InputData { value, .. }| {
+                                        Message::SetText(value)
+                                    })
+                                />
+                            <p>{state.text.clone()}</p>
+                        </div>
+                    }
+                }
+            }
+        }
+
+        let (link, input_el) = init::<Input>("input");
+        let input_el = input_el.dyn_into::<web_sys::HtmlInputElement>().unwrap();
+        let p_el = get_el_by_tag("p");
+
+        assert_eq!(&p_el.text_content().unwrap(), "");
+        for mut s in ["foo", "bar", "baz"].iter() {
+            input_el.set_value(s);
+            if s == &"baz" {
+                link.send_message(Message::StopListening);
+                s = &"bar";
+            }
+            input_el
+                .dyn_ref::<web_sys::EventTarget>()
+                .unwrap()
+                .dispatch_event(&make_event().dyn_into().unwrap())
+                .unwrap();
+            assert_eq!(&p_el.text_content().unwrap(), s);
+        }
+    }
+
+    #[test]
+    #[cfg(not(feature = "listener_benchmarks"))]
+    fn oninput() {
+        test_input_listener(|| {
+            web_sys::InputEvent::new_with_event_init_dict(
+                "input",
+                &web_sys::InputEventInit::new().bubbles(true),
+            )
+            .unwrap()
+        })
+    }
+
+    #[test]
+    #[cfg(not(feature = "listener_benchmarks"))]
+    fn onchange() {
+        test_input_listener(|| {
+            web_sys::Event::new_with_event_init_dict(
+                "change",
+                &web_sys::EventInit::new().bubbles(true),
+            )
+            .unwrap()
+        })
+    }
 
     // TODO: sync vs passive vs deferred benchmark
 }
