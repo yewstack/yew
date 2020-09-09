@@ -136,7 +136,7 @@ error: this dynamic tag is missing an expression block defining its value
 46 |     html! { <@/> };
    |              ^
 
-error: boolean attributes don't support being used as an option attribute (hint: a value of false results in the attribute not being set)
+error: boolean attributes don't support being used as an optional attribute (hint: a value of false results in the attribute not being set)
   --> $DIR/html-tag-fail.rs:50:20
    |
 50 |     html! { <input disabled?=Some(true) /> };

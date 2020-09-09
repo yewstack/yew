@@ -320,7 +320,7 @@ impl Parse for TagAttributes {
             if attr.question_mark.is_some() {
                 return Err(syn::Error::new_spanned(
                     &attr.label,
-                        "boolean attributes don't support being used as an option attribute (hint: a value of false results in the attribute not being set)"
+                        "boolean attributes don't support being used as an optional attribute (hint: a value of false results in the attribute not being set)"
                 ));
             }
         }
