@@ -16,7 +16,6 @@ default_to_workspace = false
 [env]
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
 CARGO_MAKE_CLIPPY_ARGS = "-- --deny=warnings"
-CARGO_MAKE_CARGO_BUILD_TEST_FLAGS = ""
 
 [config.modify_core_tasks]
 private = true
