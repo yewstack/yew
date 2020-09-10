@@ -109,7 +109,7 @@ script = [
                 docker_port = set 7117
             end
 
-            exec docker run -d --cidfile ${cidfile} -p "${docker_port}:80" kennethreitz/httpbin
+            exec --fail-on-error docker run -d --cidfile ${cidfile} -p "${docker_port}:80" kennethreitz/httpbin
             container_id = readfile ${cidfile}
             container_id = trim ${container_id}
             set_env HTTPBIN_CONTAINER_ID ${container_id}

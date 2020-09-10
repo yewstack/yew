@@ -1,3 +1,25 @@
-# FIXME: this doesn't work
+[env]
+MSRV = "1.45.2"
+
+[tasks.install-msrv-toolchain]
+script_runner = "@duckscript"
+script = [
+    """
+    output = exec --fail-on-error rustup toolchain list
+    stdout = set ${output.stdout}
+    already_installed = contains ${stdout} ${MSRV}
+    if not ${already_installed}
+        echo "Installing toolchain for ${MSRV} (Yew MSRV) to run macro compilation tests"
+        exec --fail-on-error rustup toolchain install --profile minimal ${MSRV}
+    end
+    """
+]
+
 [tasks.test]
-condition = { rust_version = { exact = "1.45.2" } }
+clear = true
+dependencies = ["install-msrv-toolchain"]
+script = [
+    """
+    cargo +${MSRV} test
+    """
+]
