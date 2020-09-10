@@ -6,6 +6,8 @@
 # * tests
 # * benchmarks
 #
+# Run `cargo make --list-all-steps` for more details.
+#
 ######################
 [config]
 min_version = "0.32.4"
@@ -21,13 +23,18 @@ private = true
 namespace = "core"
 
 [tasks.pr-flow]
+category = "Checks"
+description = "Lint and test"
 run_task = { name = ["lint", "tests"], fork = true }
 
 [tasks.lint]
-description = "Runs all validations"
+category = "Checks"
+description = "Check formatting and run Clippy"
 run_task = { name = ["lint-flow", "lint-stdweb"], fork = true }
 
 [tasks.tests]
+category = "Testing"
+description = "Run all tests"
 dependencies = ["tests-setup"]
 env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["**/examples/*"] }
 run_task = { name = [
@@ -37,6 +44,8 @@ run_task = { name = [
 ], fork = true, cleanup_task = "tests-cleanup" }
 
 [tasks.benchmarks]
+category = "Testing"
+description = "Run benchmarks"
 env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["**/examples/*"] }
 run_task = { name = "bench-flow", fork = true }
 

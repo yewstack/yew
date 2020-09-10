@@ -14,6 +14,14 @@ rustup target add wasm32-unknown-unknown
 cargo install cargo-make
 ```
 
+You can use the following command to list all available tasks for Yew:
+
+```bash
+cargo make --list-all-steps
+```
+
+The most important tasks are outlined below.
+
 #### stdweb
 
 To run the examples in `./yew-stdweb`, you may wish to install [cargo-web](https://github.com/koute/cargo-web):
@@ -64,11 +72,21 @@ cargo make lint
 
 If you wish to improve the performance of Yew, we ask you to prove the improvements of your changes through benchmarking.
 
+Some components of Yew have dedicated benchmarks which can be run with the following command:
+
+```bash
+cargo make benchmarks
+```
+
+There's also a benchmark for the framework as a whole. Running it is a bit more involved:
+
 1. Fork and clone [yewstack/js-framework-benchmark](https://github.com/yewstack/js-framework-benchmark)
 2. Update `frameworks/yew/Cargo.toml` with your fork of Yew and the branch for your changes
 3. Open a new PR with your `Cargo.toml` changes
 
 Feel free to add new benchmark tests if the current benchmark coverage is insufficient!
+
+> See #1453 for a discussion on how to make this easier.
 
 ## Writing APIs
 
