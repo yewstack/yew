@@ -1,13 +1,13 @@
-use crate::{non_capitalized_ascii, Peek};
+use crate::{non_capitalized_ascii, stringify::Stringify, Peek};
 use boolinator::Boolinator;
 use proc_macro2::Ident;
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use std::fmt;
 use syn::buffer::Cursor;
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::Token;
+use syn::{spanned::Spanned, LitStr, Token};
 
 #[derive(Clone, PartialEq)]
 pub struct HtmlDashedName {
@@ -27,6 +27,10 @@ impl HtmlDashedName {
         let mut s = self.to_string();
         s.make_ascii_lowercase();
         s
+    }
+
+    pub fn to_lit_str(&self) -> LitStr {
+        LitStr::new(&self.to_string(), self.span())
     }
 }
 
@@ -76,11 +80,20 @@ impl Parse for HtmlDashedName {
 }
 
 impl ToTokens for HtmlDashedName {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let HtmlDashedName { name, extended } = self;
         let dashes = extended.iter().map(|(dash, _)| quote! {#dash});
         let idents = extended.iter().map(|(_, ident)| quote! {#ident});
         let extended = quote! { #(#dashes#idents)* };
-        tokens.extend(quote! {#name#extended});
+        tokens.extend(quote! { #name#extended });
+    }
+}
+impl Stringify for HtmlDashedName {
+    fn try_into_lit(&self) -> Option<LitStr> {
+        Some(self.to_lit_str())
+    }
+
+    fn stringify(&self) -> TokenStream {
+        self.to_lit_str().stringify()
     }
 }

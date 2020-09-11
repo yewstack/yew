@@ -119,7 +119,7 @@ impl ToTokens for HtmlComponent {
 
         let init_props = match &props.prop_type {
             PropType::List(list_props) => {
-                let set_props = list_props.iter().map(|HtmlProp { label, value }| {
+                let set_props = list_props.iter().map(|HtmlProp { label, value, .. }| {
                     quote_spanned! {value.span()=> .#label(
                         #[allow(unused_braces)]
                         <::yew::virtual_dom::VComp as ::yew::virtual_dom::Transformer<_, _>>::transform(
@@ -412,6 +412,13 @@ impl Parse for Props {
 
             if !prop.label.extended.is_empty() {
                 return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
+            }
+
+            if prop.question_mark.is_some() {
+                return Err(syn::Error::new_spanned(
+                    &prop.label,
+                    "optional attributes are only supported on HTML tags. Yew components can use `Option<T>` properties to accomplish the same thing.",
+                ));
             }
 
             match props.prop_type {

@@ -7,7 +7,23 @@ use syn::{Expr, Token};
 
 pub struct HtmlProp {
     pub label: HtmlPropLabel,
+    pub question_mark: Option<Token![?]>,
     pub value: Expr,
+}
+impl HtmlProp {
+    /// Checks if the prop uses the optional attribute syntax.
+    /// If it does, an error is returned.
+    pub fn ensure_not_optional(&self) -> syn::Result<()> {
+        if self.question_mark.is_some() {
+            let msg = format!(
+                "the `{}` attribute does not support being used as an optional attribute",
+                self.label
+            );
+            Err(syn::Error::new_spanned(&self.label, msg))
+        } else {
+            Ok(())
+        }
+    }
 }
 
 impl PeekValue<()> for HtmlProp {
@@ -19,6 +35,7 @@ impl PeekValue<()> for HtmlProp {
 impl Parse for HtmlProp {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let label = input.parse::<HtmlPropLabel>()?;
+        let question_mark = input.parse::<Token![?]>().ok();
         let equals = input
             .parse::<Token![=]>()
             .map_err(|_| syn::Error::new_spanned(&label, "this prop doesn't have a value"))?;
@@ -31,7 +48,11 @@ impl Parse for HtmlProp {
         let value = input.parse::<Expr>()?;
         // backwards compat
         let _ = input.parse::<Token![,]>();
-        Ok(HtmlProp { label, value })
+        Ok(Self {
+            label,
+            question_mark,
+            value,
+        })
     }
 }
 

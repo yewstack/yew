@@ -44,6 +44,22 @@ fn compile_fail() {
     html! { <@{"test"}></@{"test"}> };
     html! { <@{55}></@> };
     html! { <@/> };
+
+    html! { <a media?="media" /> };
+    html! { <a media?=Some(NotToString) /> };
+    html! { <input disabled?=Some(true) /> };
+    html! { <input type?="kind" /> };
+    html! { <input type?=Some(NotToString) /> };
+    html! { <li value?="value" /> };
+    html! { <li value?=Some(NotToString) /> };
+    html! { <a href?=Some(5) /> };
+    html! { <a href?="href" /> };
+    html! { <a href?=Some(NotToString) /> };
+    html! { <input checked?=Some(false) /> };
+    html! { <input class?=() /> };
+    html! { <input ref?=() /> };
+    html! { <input onfocus?=Some(5) /> };
+    html! { <input onfocus?=Callback::from(|_| ()) /> };
 }
 
 fn main() {}

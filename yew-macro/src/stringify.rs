@@ -1,68 +1,91 @@
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
-use syn::{Expr, Lit};
+use syn::{Expr, Ident, Lit, LitStr};
 
-/// Attempt converting expression to str, if it's a literal
-pub fn try_stringify_expr(src: &Expr) -> Option<String> {
-    match src {
-        Expr::Lit(l) => try_stringify_lit(&l.lit),
-        _ => None,
+/// Stringify a value at runtime.
+pub fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
+    quote_spanned! {src.span()=>
+        ::std::borrow::Cow::<'static, str>::Owned(
+            ::std::string::ToString::to_string(&(#src)),
+        )
     }
 }
 
-/// Attempt converting literal to str literal
-fn try_stringify_lit(src: &Lit) -> Option<String> {
-    match src {
-        Lit::Str(v) => Some(v.value()),
-        Lit::Char(v) => Some(v.value().to_string()),
-        Lit::Int(v) => Some(v.base10_digits().to_string()),
-        Lit::Float(v) => Some(v.base10_digits().to_string()),
-        Lit::Bool(v) => Some(v.value.to_string()),
-        _ => None,
-    }
-}
-
-/// Converts literals and expressions to Cow<'static, str> construction calls
-pub struct Constructor(TokenStream);
-
-macro_rules! stringify_at_runtime {
-    ($src:expr) => {{
-        let src = $src;
-        Self(quote_spanned! {src.span()=>
-            ::std::borrow::Cow::<'static, str>::Owned(
-                ::std::string::ToString::to_string(&#src),
-            )
+/// Map an `Option` type such that it turns into `Cow<'static, str>`.
+pub fn stringify_option_at_runtime(src: impl ToTokens) -> TokenStream {
+    let ident = Ident::new("__yew_str", src.span());
+    let sr = stringify_at_runtime(&ident);
+    quote! {
+        ::std::option::Option::map(#src, |#ident| {
+            #sr
         })
-    }};
+    }
 }
 
-impl From<&Expr> for Constructor {
-    fn from(src: &Expr) -> Self {
-        match try_stringify_expr(src) {
-            Some(s) => Self::from(s),
-            None => stringify_at_runtime!(src),
+/// Create `Cow<'static, str>` construction calls.
+///
+/// This is deliberately not implemented for strings to preserve spans.
+pub trait Stringify {
+    /// Try to turn the value into a string literal.
+    fn try_into_lit(&self) -> Option<LitStr>;
+    /// Create `Cow<'static, str>` however possible.
+    fn stringify(&self) -> TokenStream;
+}
+impl<T: Stringify + ?Sized> Stringify for &T {
+    fn try_into_lit(&self) -> Option<LitStr> {
+        (*self).try_into_lit()
+    }
+
+    fn stringify(&self) -> TokenStream {
+        (*self).stringify()
+    }
+}
+
+impl Stringify for LitStr {
+    fn try_into_lit(&self) -> Option<LitStr> {
+        Some(self.clone())
+    }
+
+    fn stringify(&self) -> TokenStream {
+        quote_spanned! {self.span()=>
+            ::std::borrow::Cow::<'static, str>::Borrowed(#self)
         }
     }
 }
+impl Stringify for Lit {
+    fn try_into_lit(&self) -> Option<LitStr> {
+        let s = match self {
+            Lit::Str(v) => v.value(),
+            Lit::Char(v) => v.value().to_string(),
+            Lit::Int(v) => v.base10_digits().to_string(),
+            Lit::Float(v) => v.base10_digits().to_string(),
+            Lit::Bool(v) => v.value.to_string(),
+            _ => return None,
+        };
+        Some(LitStr::new(&s, self.span()))
+    }
 
-impl From<&Lit> for Constructor {
-    fn from(src: &Lit) -> Self {
-        match try_stringify_lit(src) {
-            Some(s) => Self::from(s),
-            None => stringify_at_runtime!(src),
+    fn stringify(&self) -> TokenStream {
+        self.try_into_lit()
+            .as_ref()
+            .map(Stringify::stringify)
+            .unwrap_or_else(|| stringify_at_runtime(self))
+    }
+}
+impl Stringify for Expr {
+    fn try_into_lit(&self) -> Option<LitStr> {
+        if let Expr::Lit(v) = self {
+            v.lit.try_into_lit()
+        } else {
+            None
         }
     }
-}
 
-impl From<String> for Constructor {
-    fn from(src: String) -> Self {
-        Self(quote! { ::std::borrow::Cow::<'static, str>::Borrowed(#src) })
-    }
-}
-
-impl ToTokens for Constructor {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(std::iter::once(self.0.clone()));
+    fn stringify(&self) -> TokenStream {
+        self.try_into_lit()
+            .as_ref()
+            .map(Stringify::stringify)
+            .unwrap_or_else(|| stringify_at_runtime(self))
     }
 }
