@@ -3,9 +3,9 @@ use crate::callback::Callback;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use queue::Queue;
-use std::any::TypeId;
 use std::fmt;
 use std::marker::PhantomData;
+use std::sync::atomic::{AtomicUsize, Ordering};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::Value;
@@ -17,9 +17,10 @@ cfg_if! {
 }
 
 thread_local! {
-    static QUEUE: Queue = Queue::new();
+    static QUEUE: Queue<usize> = Queue::new();
 }
 
+static PRIVATE_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 const SINGLETON_ID: HandlerId = HandlerId(0, true);
 
 /// Create a new instance for every bridge.
@@ -37,6 +38,7 @@ where
     type Agent = AGN;
 
     fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+        let id = PRIVATE_ID_COUNTER.fetch_add(1, Ordering::Relaxed);
         let callback = callback.expect("Callback required for Private agents");
         let handler = move |data: Vec<u8>,
                             #[cfg(feature = "std_web")] worker: Value,
@@ -45,10 +47,10 @@ where
             match msg {
                 FromWorker::WorkerLoaded => {
                     QUEUE.with(|queue| {
-                        queue.insert_loaded_agent(TypeId::of::<AGN>());
+                        queue.insert_loaded_agent(id);
 
                         let mut msg_queue = queue.borrow_msg_queue_mut();
-                        if let Some(msgs) = msg_queue.get_mut(&TypeId::of::<AGN>()) {
+                        if let Some(msgs) = msg_queue.get_mut(&id) {
                             for msg in msgs.drain(..) {
                                 cfg_match! {
                                     feature = "std_web" => ({
@@ -90,6 +92,7 @@ where
         let bridge = PrivateBridge {
             worker,
             _agent: PhantomData,
+            id,
         };
         Box::new(bridge)
     }
@@ -107,6 +110,7 @@ where
     #[cfg(feature = "web_sys")]
     worker: Worker,
     _agent: PhantomData<AGN>,
+    id: usize,
 }
 
 impl<AGN> PrivateBridge<AGN>
@@ -118,10 +122,10 @@ where
     /// Send a message to the worker, queuing the message if necessary
     fn send_message(&self, msg: ToWorker<AGN::Input>) {
         QUEUE.with(|queue| {
-            if queue.is_worker_loaded(&TypeId::of::<AGN>()) {
+            if queue.is_worker_loaded(&self.id) {
                 send_to_remote::<AGN>(&self.worker, msg);
             } else {
-                queue.add_msg_to_queue(msg.pack(), TypeId::of::<AGN>());
+                queue.add_msg_to_queue(msg.pack(), self.id);
             }
         });
     }
@@ -163,7 +167,7 @@ where
         send_to_remote::<AGN>(&self.worker, destroy);
 
         QUEUE.with(|queue| {
-            queue.remove_agent(&TypeId::of::<AGN>());
+            queue.remove_agent(&self.id);
         });
     }
 }

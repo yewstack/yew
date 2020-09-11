@@ -24,7 +24,7 @@ cfg_if! {
 
 thread_local! {
     static REMOTE_AGENTS_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());
-    static QUEUE: Queue = Queue::new();
+    static QUEUE: Queue<TypeId> = Queue::new();
 }
 
 /// Create a single instance in a tab.

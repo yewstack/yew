@@ -1,15 +1,15 @@
-use std::any::TypeId;
 use std::cell::{RefCell, RefMut};
 use std::collections::{hash_map, HashMap, HashSet};
+use std::hash::Hash;
 
 /// Thread-local instance used to queue worker messages
-pub struct Queue {
-    loaded_agents: RefCell<HashSet<TypeId>>,
-    msg_queue: RefCell<HashMap<TypeId, Vec<Vec<u8>>>>,
+pub struct Queue<T: Eq + Hash> {
+    loaded_agents: RefCell<HashSet<T>>,
+    msg_queue: RefCell<HashMap<T, Vec<Vec<u8>>>>,
 }
 
-impl Queue {
-    pub fn new() -> Queue {
+impl<T: Eq + Hash> Queue<T> {
+    pub fn new() -> Queue<T> {
         Queue {
             loaded_agents: RefCell::new(HashSet::new()),
             msg_queue: RefCell::new(HashMap::new()),
@@ -17,23 +17,23 @@ impl Queue {
     }
 
     #[inline]
-    pub fn borrow_msg_queue_mut(&self) -> RefMut<'_, HashMap<TypeId, Vec<Vec<u8>>>> {
+    pub fn borrow_msg_queue_mut(&self) -> RefMut<'_, HashMap<T, Vec<Vec<u8>>>> {
         self.msg_queue.borrow_mut()
     }
 
     #[inline]
-    pub fn insert_loaded_agent(&self, type_id: TypeId) {
-        self.loaded_agents.borrow_mut().insert(type_id);
+    pub fn insert_loaded_agent(&self, id: T) {
+        self.loaded_agents.borrow_mut().insert(id);
     }
 
     #[inline]
-    pub fn is_worker_loaded(&self, type_id: &TypeId) -> bool {
-        self.loaded_agents.borrow().contains(type_id)
+    pub fn is_worker_loaded(&self, id: &T) -> bool {
+        self.loaded_agents.borrow().contains(id)
     }
 
-    pub fn add_msg_to_queue(&self, msg: Vec<u8>, type_id: TypeId) {
+    pub fn add_msg_to_queue(&self, msg: Vec<u8>, id: T) {
         let mut queue = self.msg_queue.borrow_mut();
-        match queue.entry(type_id) {
+        match queue.entry(id) {
             hash_map::Entry::Vacant(record) => {
                 record.insert(vec![msg]);
             }
@@ -45,8 +45,8 @@ impl Queue {
 
     /// This is called by a worker's `Drop` implementation in order to remove the worker from the list
     /// of loaded workers.
-    pub fn remove_agent(&self, type_id: &TypeId) {
-        self.loaded_agents.borrow_mut().remove(type_id);
-        self.msg_queue.borrow_mut().remove(type_id);
+    pub fn remove_agent(&self, id: &T) {
+        self.loaded_agents.borrow_mut().remove(id);
+        self.msg_queue.borrow_mut().remove(id);
     }
 }
