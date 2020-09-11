@@ -85,7 +85,7 @@ macro_rules! impl_action {
         pub mod $action {
             use crate::callback::Callback;
             use crate::html::listener::EventListener;
-            use crate::virtual_dom::Listener;
+            use crate::virtual_dom::{Listener, ListenerKind};
             use stdweb::web::event::$type;
             use stdweb::web::{Element, IEventTarget};
 
@@ -106,8 +106,8 @@ macro_rules! impl_action {
             pub type Event = $ret;
 
             impl Listener for Wrapper {
-                fn kind(&self) -> &'static str {
-                    stringify!($action)
+                fn kind(&self) -> ListenerKind {
+                    ListenerKind::$action
                 }
 
                 fn attach(&self, element: &Element) -> EventListener {

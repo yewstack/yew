@@ -42,11 +42,130 @@ pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
 
+macro_rules! gen_listener_kinds {
+    ($($kind:ident)*) => {
+        /// Supported kinds of DOM event listeners
+        // Using instead of strings to optimise registry collection performance by simplifying
+        // hashmap hash calculation.
+        #[derive(Clone, Copy, PartialEq, Eq, std::hash::Hash, Debug)]
+        #[allow(non_camel_case_types)]
+        #[allow(missing_docs)]
+        pub enum ListenerKind {
+            $( $kind, )*
+        }
+
+        impl AsRef<str> for ListenerKind {
+            fn as_ref(&self) -> &str {
+                match self {
+                    $( Self::$kind => stringify!($kind), )*
+                }
+            }
+        }
+    };
+}
+
+gen_listener_kinds! {
+    onabort
+    onauxclick
+    onblur
+    oncancel
+    oncanplay
+    oncanplaythrough
+    onchange
+    onclick
+    onclose
+    oncontextmenu
+    oncuechange
+    ondblclick
+    ondrag
+    ondragend
+    ondragenter
+    ondragexit
+    ondragleave
+    ondragover
+    ondragstart
+    ondrop
+    ondurationchange
+    onemptied
+    onended
+    onerror
+    onfocus
+    onformdata
+    oninput
+    oninvalid
+    onkeydown
+    onkeypress
+    onkeyup
+    onload
+    onloadeddata
+    onloadedmetadata
+    onloadstart
+    onmousedown
+    onmouseenter
+    onmouseleave
+    onmousemove
+    onmouseout
+    onmouseover
+    onmouseup
+    onpause
+    onplay
+    onplaying
+    onprogress
+    onratechange
+    onreset
+    onresize
+    onscroll
+    onsecuritypolicyviolation
+    onseeked
+    onseeking
+    onselect
+    onslotchange
+    onstalled
+    onsubmit
+    onsuspend
+    ontimeupdate
+    ontoggle
+    onvolumechange
+    onwaiting
+    onwheel
+    oncopy
+    oncut
+    onpaste
+    onanimationcancel
+    onanimationend
+    onanimationiteration
+    onanimationstart
+    ongotpointercapture
+    onloadend
+    onlostpointercapture
+    onpointercancel
+    onpointerdown
+    onpointerenter
+    onpointerleave
+    onpointerlockchange
+    onpointerlockerror
+    onpointermove
+    onpointerout
+    onpointerover
+    onpointerup
+    onselectionchange
+    onselectstart
+    onshow
+    ontouchcancel
+    ontouchend
+    ontouchmove
+    ontouchstart
+    ontransitioncancel
+    ontransitionend
+    ontransitionrun
+    ontransitionstart
+}
+
 /// The `Listener` trait is an universal implementation of an event listener
 /// which is used to bind Rust-listener to JS-listener (DOM).
 pub trait Listener {
     /// Returns the name of the event
-    fn kind(&self) -> &'static str;
+    fn kind(&self) -> ListenerKind;
 
     /// Attaches a listener to the Element
     #[cfg(feature = "std_web")]
@@ -67,13 +186,13 @@ impl fmt::Debug for dyn Listener {
             feature = "web_sys" => write!(
                 f,
                 "Listener {{ kind: {}, flags: {:?} }}",
-                self.kind(),
+                self.kind().as_ref(),
                 self.flags()
             ),
             feature = "stdweb" => write!(
                 f,
                 "Listener {{ kind: {} }}",
-                self.kind()
+                self.kind().as_ref()
             ),
         }
     }
@@ -84,7 +203,7 @@ impl fmt::Debug for dyn Listener {
 pub enum Listeners {
     /// Added to global registry by ID
     #[cfg(feature = "web_sys")]
-    Registered(u64),
+    Registered(u32),
 
     /// Added to the Element. Stored so they are removed on VTag drop.
     #[cfg(feature = "std_web")]

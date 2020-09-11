@@ -1,7 +1,7 @@
 use crate::{
     callback::{Callback, Flags, DEFER, HANDLE_BUBBLED, PASSIVE},
     services::render::{RenderService, RenderTask},
-    virtual_dom::{Listener, Listeners},
+    virtual_dom::{Listener, ListenerKind, Listeners},
 };
 use std::{
     cell::RefCell,
@@ -23,7 +23,7 @@ thread_local! {
 
 #[derive(Clone, Copy, Hash, Eq, PartialEq, Debug)]
 struct EventDescriptor {
-    kind: &'static str,
+    kind: ListenerKind,
     flags: Flags,
 }
 
@@ -40,7 +40,7 @@ impl From<&dyn Listener> for EventDescriptor {
 #[derive(Default, Debug)]
 struct Registry {
     /// Counter for assigning new IDs
-    id_counter: u64,
+    id_counter: u32,
 
     /// Events with registered handlers that are possibly passive
     handling: HashSet<EventDescriptor>,
@@ -49,7 +49,7 @@ struct Registry {
     bubbling: HashSet<EventDescriptor>,
 
     /// Contains all registered event listeners by listener ID
-    by_id: HashMap<u64, HashMap<EventDescriptor, Rc<dyn Listener>>>,
+    by_id: HashMap<u32, HashMap<EventDescriptor, Rc<dyn Listener>>>,
 
     /// Event handling deferred until the next animation frame
     deferred: VecDeque<(EventDescriptor, Event, web_sys::Element)>,
@@ -60,7 +60,7 @@ struct Registry {
     /// The registry is never dropped in production.
     #[cfg(test)]
     #[allow(clippy::type_complexity)]
-    registered: Vec<(&'static str, Closure<dyn std::ops::Fn(web_sys::Event)>)>,
+    registered: Vec<(ListenerKind, Closure<dyn std::ops::Fn(web_sys::Event)>)>,
 }
 
 impl Registry {
@@ -70,7 +70,7 @@ impl Registry {
     }
 
     /// Register all passed listeners under ID
-    fn register(&mut self, id: u64, listeners: Vec<Rc<dyn Listener>>) {
+    fn register(&mut self, id: u32, listeners: Vec<Rc<dyn Listener>>) {
         let mut by_id = HashMap::with_capacity(listeners.len());
         for l in listeners.into_iter() {
             // Create global listener, if not yet created
@@ -83,7 +83,7 @@ impl Registry {
                             as Box<dyn Fn(Event)>);
                     AsRef::<web_sys::EventTarget>::as_ref(body)
                         .add_event_listener_with_callback_and_add_event_listener_options(
-                            &key.kind[2..],
+                            &key.kind.as_ref()[2..],
                             cl.as_ref().unchecked_ref(),
                             &{
                                 let mut opts = web_sys::AddEventListenerOptions::new();
@@ -100,7 +100,7 @@ impl Registry {
                     #[cfg(not(test))]
                     cl.forget();
                     #[cfg(test)]
-                    self.registered.push((&key.kind[2..], cl));
+                    self.registered.push((key.kind, cl));
                 });
 
                 self.handling.insert(key);
@@ -116,17 +116,17 @@ impl Registry {
     }
 
     /// Unregister any existing listeners for ID
-    fn unregister(&mut self, id: &u64) {
+    fn unregister(&mut self, id: &u32) {
         self.by_id.remove(id);
     }
 
     /// Set unique listener ID onto element and return it
-    fn set_listener_id(&mut self, el: &Element) -> u64 {
+    fn set_listener_id(&mut self, el: &Element) -> u32 {
         let id = self.id_counter;
         self.id_counter += 1;
 
         LISTENER_ID_PROP.with(|prop| {
-            if !js_sys::Reflect::set(el, &prop, &js_sys::JsString::from(id.to_string())).unwrap() {
+            if !js_sys::Reflect::set(el, &prop, &js_sys::Number::from(id)).unwrap() {
                 panic!("failed to set listener ID property");
             }
         });
@@ -182,10 +182,14 @@ impl Registry {
                 .with(|prop| js_sys::Reflect::get(el, &prop).ok())
                 .map(|v| v.dyn_into().ok())
                 .flatten()
-                .map(|v: js_sys::JsString| String::from(v).parse().ok())
-                .flatten()
-                .map(|id: u64| {
-                    Registry::with(|r| r.by_id.get(&id).map(|s| s.get(&desc)).flatten().cloned())
+                .map(|num: js_sys::Number| {
+                    Registry::with(|r| {
+                        r.by_id
+                            .get(&(num.value_of() as u32))
+                            .map(|s| s.get(&desc))
+                            .flatten()
+                            .cloned()
+                    })
                 })
                 .flatten()
             {
@@ -215,7 +219,10 @@ impl Drop for Registry {
         BODY.with(|body| {
             for (kind, cl) in std::mem::take(&mut self.registered) {
                 AsRef::<web_sys::EventTarget>::as_ref(body)
-                    .remove_event_listener_with_callback(kind, cl.as_ref().unchecked_ref())
+                    .remove_event_listener_with_callback(
+                        &kind.as_ref()[2..],
+                        cl.as_ref().unchecked_ref(),
+                    )
                     .unwrap();
             }
         });
@@ -262,7 +269,7 @@ pub(crate) fn remove_listeners(listeners: &Listeners) {
 }
 
 /// Compare passed listeners for equality with a registered set via pointer equality checks
-pub(crate) fn compare_listeners(registered_id: u64, rhs: &[Rc<dyn Listener>]) -> bool {
+pub(crate) fn compare_listeners(registered_id: u32, rhs: &[Rc<dyn Listener>]) -> bool {
     // Empty sets are not stored
     if rhs.is_empty() {
         return false;

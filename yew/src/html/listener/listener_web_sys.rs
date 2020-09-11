@@ -13,6 +13,7 @@ macro_rules! impl_action {
         pub mod $action {
             use crate::callback::{Callback, Flags};
             use crate::virtual_dom::Listener;
+            use crate::virtual_dom::ListenerKind;
 
             /// A wrapper for a callback which attaches event listeners to elements.
             #[derive(Clone, Debug)]
@@ -31,8 +32,8 @@ macro_rules! impl_action {
             pub type Event = $ret;
 
             impl Listener for Wrapper {
-                fn kind(&self) -> &'static str {
-                    stringify!($action)
+                fn kind(&self) -> ListenerKind {
+                    ListenerKind::$action
                 }
 
                 fn handle(&self, event: web_sys::Event) {
