@@ -295,11 +295,7 @@ pub(crate) fn compare_listeners(registered_id: u32, rhs: &[Rc<dyn Listener>]) ->
     })
 }
 
-#[cfg(all(
-    test,
-    feature = "wasm_test",
-    any(feature = "listener_tests", feature = "listener_benchmarks")
-))]
+#[cfg(all(test, feature = "wasm_test", feature = "listener_tests"))]
 mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     wasm_bindgen_test_configure!(run_in_browser);
@@ -430,7 +426,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "listener_benchmarks"))]
     fn synchronous() {
         struct Synchronous();
 
@@ -466,7 +461,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "listener_benchmarks"))]
     async fn passive() {
         struct Passive();
 
@@ -501,7 +495,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "listener_benchmarks"))]
     fn bubbling() {
         struct Bubbling();
 
@@ -551,7 +544,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "listener_benchmarks"))]
     async fn deferred() {
         struct Deferred();
 
@@ -564,7 +556,6 @@ mod tests {
         assert_async::<Deferred>().await;
     }
 
-    #[cfg(not(feature = "listener_benchmarks"))]
     fn test_input_listener<E>(make_event: impl Fn() -> E)
     where
         E: JsCast + std::fmt::Debug,
@@ -630,7 +621,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "listener_benchmarks"))]
     fn oninput() {
         test_input_listener(|| {
             web_sys::InputEvent::new_with_event_init_dict(
@@ -642,7 +632,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "listener_benchmarks"))]
     fn onchange() {
         test_input_listener(|| {
             web_sys::Event::new_with_event_init_dict(
@@ -652,6 +641,4 @@ mod tests {
             .unwrap()
         })
     }
-
-    // TODO: sync vs passive vs deferred benchmark
 }

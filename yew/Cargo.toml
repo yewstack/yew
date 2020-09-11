@@ -146,7 +146,6 @@ yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
 listener_tests = []
-listener_benchmarks = []
 
 [package.metadata.docs.rs]
 features = ["yaml", "cbor", "toml", "msgpack", "doc_test"]
