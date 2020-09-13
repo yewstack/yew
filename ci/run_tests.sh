@@ -16,17 +16,15 @@ fi
 
 echo "running tests with flags: ${test_flags[*]} and features: ${test_features}"
 
-# Event listener tests have to be run in their own `wasm-pack test` invocation or they won't work.
-test_features_listeners="${test_features},listener_tests"
-
 # TESTS
 
 set -x
 
 (cd yew &&
   wasm-pack test "${test_flags[@]}" -- --features "${test_features}" &&
-  wasm-pack test "${test_flags[@]}" -- --features "${test_features_listeners}" \
-    yew::html::listener::registry &&
+  # Event listener tests have to be run in their own `wasm-pack test` invocation or they won't work.
+  RUSTFLAGS="--cfg  listener_tests" wasm-pack test "${test_flags[@]}" -- \
+    --features "${test_features}" yew::html::listener::registry &&
   cargo test --doc --features doc_test,wasm_test,yaml,msgpack,cbor,toml &&
   cargo test --doc --features doc_test,wasm_test,yaml,msgpack,cbor,toml \
     --features std_web,agent,services --no-default-features)

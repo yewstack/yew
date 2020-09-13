@@ -295,7 +295,7 @@ pub(crate) fn compare_listeners(registered_id: u32, rhs: &[Rc<dyn Listener>]) ->
     })
 }
 
-#[cfg(all(test, feature = "wasm_test", feature = "listener_tests"))]
+#[cfg(all(test, feature = "wasm_test", listener_tests))]
 mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     wasm_bindgen_test_configure!(run_in_browser);
