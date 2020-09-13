@@ -69,11 +69,11 @@ impl VNode {
         }
     }
 
-    pub(crate) fn move_before(&self, parent: &Element, next_sibling: Option<Node>) {
+    pub(crate) fn move_before(&self, parent: &Element, next_sibling: &Option<Node>) {
         match self {
             VNode::VList(vlist) => {
                 for node in vlist.children.iter() {
-                    node.move_before(parent, next_sibling.clone());
+                    node.move_before(parent, next_sibling);
                 }
             }
             VNode::VComp(vcomp) => {
@@ -130,7 +130,7 @@ impl VDiff for VNode {
                     }
                     ancestor.detach(parent);
                 }
-                super::insert_node(node, parent, next_sibling.get());
+                super::insert_node(node, parent, &next_sibling.get());
                 NodeRef::new(node.clone())
             }
         }
@@ -199,7 +199,7 @@ impl fmt::Debug for VNode {
             VNode::VText(ref vtext) => vtext.fmt(f),
             VNode::VComp(ref vcomp) => vcomp.fmt(f),
             VNode::VList(ref vlist) => vlist.fmt(f),
-            VNode::VRef(ref vref) => vref.fmt(f),
+            VNode::VRef(ref vref) => write!(f, "VRef ( \"{}\" )", crate::utils::print_node(vref)),
         }
     }
 }

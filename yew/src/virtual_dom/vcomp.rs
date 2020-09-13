@@ -107,7 +107,6 @@ impl VComp {
         }
     }
 
-    #[allow(unused)]
     pub(crate) fn root_vnode(&self) -> Option<impl Deref<Target = VNode> + '_> {
         self.scope.as_ref().and_then(|scope| scope.root_vnode())
     }
@@ -198,7 +197,7 @@ impl VDiff for VComp {
         }
 
         let placeholder: Node = document().create_text_node("").into();
-        super::insert_node(&placeholder, parent, next_sibling.get());
+        super::insert_node(&placeholder, parent, &next_sibling.get());
         self.node_ref.set(Some(placeholder));
         let scope = mountable.mount(
             self.node_ref.clone(),
@@ -267,7 +266,7 @@ impl PartialEq for VComp {
 
 impl fmt::Debug for VComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("VComp")
+        write!(f, "VComp {{ root: {:?} }}", self.root_vnode().as_deref())
     }
 }
 

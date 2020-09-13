@@ -7,9 +7,10 @@ use std::marker::PhantomData;
 use yew::html::ChildrenRenderer;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Document, Window};
+        use stdweb::web::{Document, Window, Node};
     } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Document, Window};
+        use wasm_bindgen::JsCast;
+        use web_sys::{Document, Window, Node, Element};
     }
 }
 
@@ -112,5 +113,20 @@ impl<IN, OUT> IntoIterator for NodeSeq<IN, OUT> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
+    }
+}
+
+/// Print Node contents as a string for debugging purposes
+pub fn print_node(n: &Node) -> String {
+    #[cfg(feature = "std_web")]
+    {
+        format!("{:?}", n)
+    }
+    #[cfg(feature = "web_sys")]
+    {
+        match n.dyn_ref::<Element>() {
+            Some(el) => el.outer_html(),
+            None => n.text_content().unwrap_or_default(),
+        }
     }
 }

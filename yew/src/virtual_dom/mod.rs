@@ -479,20 +479,20 @@ pub(crate) trait VDiff {
 }
 
 #[cfg(feature = "web_sys")]
-fn insert_node(node: &Node, parent: &Element, next_sibling: Option<Node>) {
+fn insert_node(node: &Node, parent: &Element, next_sibling: &Option<Node>) {
     match next_sibling {
         Some(next_sibling) => parent
-            .insert_before(&node, Some(&next_sibling))
+            .insert_before(&node, Some(next_sibling))
             .expect("failed to insert tag before next sibling"),
         None => parent.append_child(node).expect("failed to append child"),
     };
 }
 
 #[cfg(feature = "std_web")]
-fn insert_node(node: &impl INode, parent: &impl INode, next_sibling: Option<Node>) {
+fn insert_node(node: &impl INode, parent: &impl INode, next_sibling: &Option<Node>) {
     if let Some(next_sibling) = next_sibling {
         parent
-            .insert_before(node, &next_sibling)
+            .insert_before(node, next_sibling)
             .expect("failed to insert tag before next sibling");
     } else {
         parent.append_child(node);

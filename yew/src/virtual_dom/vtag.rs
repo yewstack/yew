@@ -473,7 +473,7 @@ impl VDiff for VTag {
                 VNode::VTag(vtag) if self.tag() == vtag.tag() && self.key == vtag.key => Some(vtag),
                 _ => {
                     let element = self.create_element(parent);
-                    super::insert_node(&element, parent, Some(ancestor.first_node()));
+                    super::insert_node(&element, parent, &Some(ancestor.first_node()));
                     self.reference = Some(element);
                     ancestor.detach(parent);
                     None
@@ -489,7 +489,7 @@ impl VDiff for VTag {
             self.reference = ancestor_tag.reference.take();
         } else if self.reference.is_none() {
             let element = self.create_element(parent);
-            super::insert_node(&element, parent, next_sibling.get());
+            super::insert_node(&element, parent, &next_sibling.get());
             self.reference = Some(element);
         }
 

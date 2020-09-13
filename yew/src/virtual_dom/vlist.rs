@@ -2,7 +2,7 @@
 use super::{Key, VDiff, VNode, VText};
 use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
@@ -34,6 +34,27 @@ impl DerefMut for VList {
     }
 }
 
+/// Log an operation during tests for debugging purposes
+/// Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
+macro_rules! test_log {
+    ($fmt:literal, $($arg:expr),* $(,)?) => {
+        #[cfg(all(feature = "wasm_test", verbose_tests))]
+        ::wasm_bindgen_test::console_log!(concat!("\t  ", $fmt), $($arg),*);
+    };
+}
+
+/// Advance the next sibling reference (from right to left) and log it for testing purposes
+/// Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
+macro_rules! advance_next_sibling {
+    ($current:expr, $advance:expr) => {{
+        #[cfg(all(feature = "wasm_test", verbose_tests))]
+        let current = format!("{:?}", $current);
+        let next = $advance();
+        test_log!("advance next_sibling: {} -> {:?}", current, next);
+        next
+    }};
+}
+
 impl VList {
     /// Creates a new empty `VList` instance.
     pub fn new() -> Self {
@@ -55,16 +76,211 @@ impl VList {
         self.children.extend(children);
     }
 
-    fn children_keys(&self, warn: bool) -> HashSet<Key> {
-        let mut hash_set = HashSet::with_capacity(self.children.len());
-        for l in self.children.iter() {
-            if let Some(k) = l.key() {
-                if !hash_set.insert(k.clone()) && warn {
-                    log::warn!("Key '{}' is not unique in list but must be.", k);
+    /// Diff and patch unkeyed child lists
+    fn apply_unkeyed(
+        parent_scope: &AnyScope,
+        parent: &Element,
+        mut next_sibling: NodeRef,
+        lefts: &mut [VNode],
+        rights: Vec<VNode>,
+    ) -> NodeRef {
+        let mut diff = lefts.len() as isize - rights.len() as isize;
+        let mut lefts_it = lefts.iter_mut().rev();
+        let mut rights_it = rights.into_iter().rev();
+
+        macro_rules! apply {
+            ($l:expr, $r:expr) => {
+                test_log!("parent={:?}", parent.outer_html());
+                next_sibling = advance_next_sibling!(next_sibling, || $l.apply(
+                    parent_scope,
+                    parent,
+                    next_sibling,
+                    $r
+                ));
+            };
+        }
+
+        // Add missing nodes
+        while diff > 0 {
+            let l = lefts_it.next().unwrap();
+            test_log!("adding: {:?}", l);
+            apply!(l, None);
+            diff -= 1;
+        }
+        // Remove extra nodes
+        while diff < 0 {
+            let mut r = rights_it.next().unwrap();
+            test_log!("removing: {:?}", r);
+            r.detach(parent);
+            diff += 1;
+        }
+
+        for (l, r) in lefts_it.zip(rights_it) {
+            test_log!("patching: {:?} -> {:?}", r, l);
+            apply!(l, r.into());
+        }
+
+        next_sibling
+    }
+
+    /// Diff and patch fully keyed child lists.
+    ///
+    /// Optimized for node addition or removal from either end of the list and small changes in the
+    /// middle.
+    fn apply_keyed(
+        parent_scope: &AnyScope,
+        parent: &Element,
+        mut next_sibling: NodeRef,
+        lefts: &mut [VNode],
+        lefts_keys: &[Key],
+        mut rights: Vec<VNode>,
+        rights_keys: &[Key],
+    ) -> NodeRef {
+        /// Find the first differing key in 2 iterators
+        fn diff_i<'a, 'b>(
+            a: impl Iterator<Item = &'a Key>,
+            b: impl Iterator<Item = &'b Key>,
+        ) -> usize {
+            a.zip(b).filter(|(a, b)| a == b).count()
+        }
+
+        // Find first key mismatch from the front
+        let from_start = diff_i(lefts_keys.iter(), rights_keys.iter());
+
+        if from_start == std::cmp::min(lefts.len(), rights.len()) {
+            // No key changes
+            return Self::apply_unkeyed(parent_scope, parent, next_sibling, lefts, rights);
+        }
+
+        // Find first key mismatch from the back
+        let from_end = diff_i(
+            lefts_keys[from_start..].iter().rev(),
+            rights_keys[from_start..].iter().rev(),
+        );
+
+        macro_rules! apply {
+            ($l:expr, $r:expr) => {
+                test_log!("patching: {:?} -> {:?}", $r, $l);
+                apply!(std::mem::take($r).into() => $l);
+            };
+            ($l:expr) => {
+                test_log!("adding: {:?}", $l);
+                apply!(None => $l);
+            };
+            ($ancestor:expr => $l:expr) => {
+                test_log!("parent={:?}", parent.outer_html());
+                next_sibling = advance_next_sibling!(
+                    next_sibling,
+                    || $l.apply(parent_scope, parent, next_sibling, $ancestor)
+                );
+            };
+        }
+
+        // Diff matching children at the end
+        let lefts_to = lefts_keys.len() - from_end;
+        let rights_to = rights_keys.len() - from_end;
+        for (l, r) in lefts[lefts_to..]
+            .iter_mut()
+            .rev()
+            .zip(rights[rights_to..].iter_mut().rev())
+        {
+            apply!(l, r);
+        }
+
+        // Diff mismatched children in the middle
+        let mut rights_diff: HashMap<Key, &mut VNode> = rights_keys[from_start..rights_to]
+            .iter()
+            .zip(rights[from_start..rights_to].iter_mut())
+            .map(|(k, v)| (k.clone(), v))
+            .collect();
+        for (l_k, l) in lefts_keys[from_start..lefts_to]
+            .iter()
+            .rev()
+            .zip(lefts[from_start..lefts_to].iter_mut().rev())
+        {
+            match rights_diff.remove(l_k) {
+                // Reorder and diff any existing children
+                Some(r) => {
+                    test_log!("moving as next: {:?}", r);
+                    r.move_before(parent, &next_sibling.get());
+                    apply!(l, r);
+                }
+                // Add new children
+                None => {
+                    apply!(l);
                 }
             }
         }
-        hash_set
+
+        // Remove any extra rights
+        for (_, r) in rights_diff.drain() {
+            test_log!("removing: {:?}", r);
+            r.detach(parent);
+        }
+
+        // Diff matching children at the start
+        for (l, r) in lefts[..from_start]
+            .iter_mut()
+            .rev()
+            .zip(rights[..from_start].iter_mut().rev())
+        {
+            apply!(l, r);
+        }
+
+        next_sibling
+    }
+
+    /// Diff and patch child lists, if the are fully keyed.
+    /// Returns Err(rights, next_sibling) back, if diff and patch not performed.
+    fn try_apply_keyed(
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        lefts: &mut [VNode],
+        rights: Vec<VNode>,
+    ) -> Result<NodeRef, (Vec<VNode>, NodeRef)> {
+        macro_rules! fail {
+            () => {{
+                return Err((rights, next_sibling));
+            }};
+        }
+
+        /// First perform a cheap check on the first nodes to avoid allocations
+        macro_rules! no_key {
+            ($list:expr) => {
+                $list.get(0).map(|n| n.key().is_none()).unwrap_or(false)
+            };
+        }
+        if no_key!(lefts) || no_key!(rights) {
+            fail!();
+        }
+
+        // Build key vectors ahead of time to prevent heavy branching in keyed diffing, in case
+        // the child lists are not fully keyed, and to memoize key lookup
+        macro_rules! map_keys {
+            ($src:expr) => {
+                match $src
+                    .iter()
+                    .map(|v| v.key().ok_or(()))
+                    .collect::<Result<Vec<Key>, ()>>()
+                {
+                    Ok(vec) => vec,
+                    Err(_) => fail!(),
+                }
+            };
+        }
+        let lefts_keys = map_keys!(lefts);
+        let rights_keys = map_keys!(rights);
+
+        Ok(Self::apply_keyed(
+            parent_scope,
+            parent,
+            next_sibling,
+            lefts,
+            &lefts_keys,
+            rights,
+            &rights_keys,
+        ))
     }
 }
 
@@ -99,139 +315,27 @@ impl VDiff for VList {
             self.children.push(placeholder.into());
         }
 
-        let left_keys = self.children_keys(true);
-        let lefts_keyed = left_keys.len() == self.children.len();
-
-        let right_keys = if let Some(VNode::VList(vlist)) = &ancestor {
-            vlist.children_keys(false)
-        } else {
-            HashSet::new()
-        };
-
-        let mut right_children = match ancestor {
-            // If the ancestor is also a VList, then the "right" list is the
-            // previously rendered items.
-            Some(VNode::VList(vlist)) => vlist.children,
+        let lefts = &mut self.children;
+        let rights = match ancestor {
+            // If the ancestor is also a VList, then the "right" list is the previously
+            // rendered items.
+            Some(VNode::VList(v)) => v.children,
             // If the ancestor was not a VList, then the "right" list is a single node
-            Some(vnode) => vec![vnode],
-            None => vec![],
+            Some(v) => vec![v],
+            _ => vec![],
         };
-        let rights_keyed = right_keys.len() == right_children.len();
+        test_log!("lefts: {:?}", lefts);
+        test_log!("rights: {:?}", rights);
 
-        // If the existing list and the new list are both properly keyed,
-        // then move existing list nodes into the new list's order before diffing
-        if lefts_keyed && rights_keyed {
-            // Find the intersection of keys to determine which right nodes can be reused
-            let matched_keys: HashSet<_> = left_keys.intersection(&right_keys).collect();
-
-            // Detach any right nodes that were not matched with a left node
-            right_children = right_children
-                .into_iter()
-                .filter_map(|mut right| {
-                    if matched_keys.contains(right.key().as_ref().unwrap()) {
-                        Some(right)
-                    } else {
-                        right.detach(parent);
-                        None
-                    }
-                })
-                .collect();
-
-            // Determine which rights are already in correct order and which
-            // rights need to be moved in the DOM before being reused
-            let mut rights_to_move = HashMap::with_capacity(right_children.len());
-            let mut matched_lefts = self
-                .children
-                .iter()
-                .filter(|left| matched_keys.contains(left.key().as_ref().unwrap()))
-                .peekable();
-            let mut left = matched_lefts.next();
-
-            // Note: `filter_map` is used to move rights into `rights_to_move`
-            #[allow(clippy::unnecessary_filter_map)]
-            let rights_in_place: Vec<_> = right_children
-                .into_iter()
-                .filter_map(|right| {
-                    if right.key() == left.and_then(|l| l.key()) {
-                        left = matched_lefts.next();
-                        return Some(right);
-                    } else if right.key() == matched_lefts.peek().and_then(|l| l.key()) {
-                        matched_lefts.next();
-                        left = matched_lefts.next();
-                        return Some(right);
-                    }
-
-                    rights_to_move.insert(right.key().unwrap(), right);
-                    None
-                })
-                .collect();
-
-            // Move rights into correct order and build `right_children`
-            right_children = Vec::with_capacity(matched_keys.len());
-            let mut matched_lefts = self
-                .children
-                .iter()
-                .filter(|left| matched_keys.contains(left.key().as_ref().unwrap()));
-
-            for right in rights_in_place.into_iter() {
-                let mut left = matched_lefts.next().unwrap();
-                while right.key() != left.key() {
-                    let right_to_move = rights_to_move.remove(&left.key().unwrap()).unwrap();
-                    right_to_move.move_before(parent, Some(right.first_node()));
-                    right_children.push(right_to_move);
-                    left = matched_lefts.next().unwrap();
-                }
-                right_children.push(right);
+        #[allow(clippy::let_and_return)]
+        let first = match Self::try_apply_keyed(parent_scope, parent, next_sibling, lefts, rights) {
+            Ok(n) => n,
+            Err((rights, next_sibling)) => {
+                Self::apply_unkeyed(parent_scope, parent, next_sibling, lefts, rights)
             }
-
-            for left in matched_lefts {
-                let right_to_move = rights_to_move.remove(&left.key().unwrap()).unwrap();
-                right_to_move.move_before(parent, next_sibling.get());
-                right_children.push(right_to_move);
-            }
-
-            assert!(rights_to_move.is_empty())
-        }
-
-        let mut rights = right_children.into_iter().peekable();
-        let mut last_next_sibling = NodeRef::default();
-        let mut nodes: Vec<NodeRef> = self
-            .children
-            .iter_mut()
-            .map(|left| {
-                let ancestor = rights.next();
-
-                // Create a new `next_sibling` reference which points to the next `right` or
-                // the outer list's `next_sibling` if there are no more `rights`.
-                let new_next_sibling = NodeRef::default();
-                if let Some(next_right) = rights.peek() {
-                    new_next_sibling.set(Some(next_right.first_node()));
-                } else {
-                    new_next_sibling.link(next_sibling.clone());
-                }
-
-                // Update the next list item and then link the previous left's `next_sibling` to the
-                // returned `node` reference so that the previous left has an up-to-date `next_sibling`.
-                // This is important for rendering a `VComp` because each `VComp` keeps track of its
-                // `next_sibling` to properly render its children.
-                let node = left.apply(parent_scope, parent, new_next_sibling.clone(), ancestor);
-                last_next_sibling.link(node.clone());
-                last_next_sibling = new_next_sibling;
-                node
-            })
-            .collect();
-
-        // If there are more `rights` than `lefts`, we need to make sure to link the last left's `next_sibling`
-        // to the outer list's `next_sibling` so that it doesn't point at a `right` that is detached.
-        last_next_sibling.link(next_sibling);
-
-        // Detach all extra rights
-        for mut right in rights {
-            right.detach(parent);
-        }
-
-        assert!(!nodes.is_empty(), "VList should have at least one child");
-        nodes.swap_remove(0)
+        };
+        test_log!("result: {:?}", lefts);
+        first
     }
 }
 

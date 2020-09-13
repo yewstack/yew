@@ -395,7 +395,7 @@ impl<T> IntoIterator for ChildrenRenderer<T> {
 ///         }
 ///     }
 /// }
-#[derive(Debug, Default, Clone)]
+#[derive(Default, Clone)]
 pub struct NodeRef(Rc<RefCell<NodeRefInner>>);
 
 impl PartialEq for NodeRef {
@@ -404,10 +404,20 @@ impl PartialEq for NodeRef {
     }
 }
 
-#[derive(PartialEq, Debug, Default, Clone)]
+#[derive(PartialEq, Default, Clone)]
 struct NodeRefInner {
     node: Option<Node>,
     link: Option<NodeRef>,
+}
+
+impl std::fmt::Debug for NodeRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "NodeRef {{ references: {:?} }}",
+            self.get().map(|n| crate::utils::print_node(&n))
+        )
+    }
 }
 
 impl NodeRef {
