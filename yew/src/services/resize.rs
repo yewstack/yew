@@ -32,7 +32,7 @@ impl fmt::Debug for ResizeTask {
 }
 
 /// Dimensions of the window.
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct WindowDimensions {
     /// The width of the viewport of the browser window.
     pub width: i32,
