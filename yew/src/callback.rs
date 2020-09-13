@@ -81,10 +81,10 @@ pub enum Callback<IN> {
 
     /// A callback which can only be called once. The callback will panic if it is
     /// called more than once.
-    Once(Rc<Once<IN>>),
+    CallbackOnce(Rc<CallbackOnce<IN>>),
 }
 
-type Once<IN> = RefCell<Option<Box<dyn FnOnce(IN)>>>;
+type CallbackOnce<IN> = RefCell<Option<Box<dyn FnOnce(IN)>>>;
 
 impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
     fn from(func: F) -> Self {
@@ -102,7 +102,7 @@ impl<IN> Clone for Callback<IN> {
                 cb: cb.clone(),
                 flags: *flags,
             },
-            Callback::Once(cb) => Callback::Once(cb.clone()),
+            Callback::CallbackOnce(cb) => Callback::CallbackOnce(cb.clone()),
         }
     }
 }
@@ -111,7 +111,9 @@ impl<IN> Clone for Callback<IN> {
 impl<IN> PartialEq for Callback<IN> {
     fn eq(&self, other: &Callback<IN>) -> bool {
         match (&self, &other) {
-            (Callback::Once(cb), Callback::Once(other_cb)) => Rc::ptr_eq(cb, other_cb),
+            (Callback::CallbackOnce(cb), Callback::CallbackOnce(other_cb)) => {
+                Rc::ptr_eq(cb, other_cb)
+            }
             (
                 Callback::Callback { cb, flags },
                 Callback::Callback {
@@ -128,7 +130,7 @@ impl<IN> fmt::Debug for Callback<IN> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let data = match self {
             Callback::Callback { .. } => "Callback<_>",
-            Callback::Once(_) => "Once<_>",
+            Callback::CallbackOnce(_) => "CallbackOnce<_>",
         };
 
         f.write_str(data)
@@ -140,7 +142,7 @@ impl<IN> Callback<IN> {
     pub fn emit(&self, value: IN) {
         match self {
             Callback::Callback { cb, .. } => cb(value),
-            Callback::Once(rc) => {
+            Callback::CallbackOnce(rc) => {
                 let cb = rc.replace(None);
                 let f = cb.expect("callback contains `FnOnce` which has already been used");
                 f(value)
@@ -155,7 +157,7 @@ impl<IN> Callback<IN> {
     where
         F: FnOnce(IN) + 'static,
     {
-        Callback::Once(Rc::new(RefCell::new(Some(Box::new(func)))))
+        Callback::CallbackOnce(Rc::new(RefCell::new(Some(Box::new(func)))))
     }
 
     /// Creates a "no-op" callback which can be used when it is not suitable to use an
