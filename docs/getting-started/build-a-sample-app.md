@@ -115,7 +115,7 @@ wasm-pack build --target web --out-name wasm --out-dir ./static
 `wasm-pack` generates a bundle in the `./static` directory with your app's compiled WebAssembly 
 along with a JavaScript wrapper which will load your application's WebAssembly binary and run it.
 
-Then, use your favorite web server to server the files under `./static`. For example:
+Then, use your favorite web server to serve the files under `./static`. For example:
 
 ```bash
 cargo +nightly install miniserve
