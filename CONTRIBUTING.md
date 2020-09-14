@@ -68,6 +68,8 @@ The following command checks the code using Rustfmt and Clippy:
 cargo make lint
 ```
 
+To automatically fix formatting issues, run `cargo fmt` first.
+
 ## Benchmarks
 
 If you wish to improve the performance of Yew, we ask you to prove the improvements of your changes through benchmarking.

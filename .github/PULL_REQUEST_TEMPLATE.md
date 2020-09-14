@@ -1,8 +1,8 @@
 #### Description
 
-<!-- Please include a summary of the change and which issue is fixed. -->
+<!-- Please include a summary of the change. -->
 
-Fixes #0000
+Fixes #0000 <!-- replace with issue number or remove if not applicable -->
 
 #### Checklist
 
