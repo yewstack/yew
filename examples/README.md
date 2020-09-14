@@ -61,3 +61,9 @@ In those cases, instructions are placed in the example's README.md file.
 ## Next steps
 
 Have a look at Yew's [starter templates](https://yew.rs/docs/getting-started/starter-templates) when starting a project using Yew – they can significantly simplify things.
+
+## Help out
+
+Most examples have an "improvements" section in their README.md which lists ways to improve the example.
+
+The biggest point of improvement is the presentation of the examples (ex. styling).

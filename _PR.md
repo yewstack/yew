@@ -3,7 +3,8 @@
 ## TODO
 
 - update all examples
-- update the documentation to mention trunk
+- update examples for yew-router
+- update examples for yewtil
 
 ## Examples
 
@@ -21,6 +22,8 @@ What used to be a single component handling a lot of message spaghetti is now sp
 **Should be removed or updated**.
 
 ## 4. dashboard
+
+## 5. file_upload
 
 ## 16. multithread
 
