@@ -1356,7 +1356,7 @@ mod tests {
 
         let mut elem = html! { <@{
             let mut builder = String::new();
-            builder.push_str("a");
+            builder.push('a');
             builder
         }/> };
 
