@@ -1,11 +1,5 @@
 use yew::prelude::*;
 
-pub struct Button {
-    link: ComponentLink<Self>,
-    title: String,
-    onsignal: Callback<()>,
-}
-
 pub enum Msg {
     Clicked,
 }
@@ -17,12 +11,18 @@ pub struct Props {
     pub onsignal: Callback<()>,
 }
 
+pub struct Button {
+    link: ComponentLink<Self>,
+    title: String,
+    onsignal: Callback<()>,
+}
+
 impl Component for Button {
     type Message = Msg;
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Button {
+        Self {
             link,
             title: props.title,
             onsignal: props.onsignal,
@@ -33,9 +33,9 @@ impl Component for Button {
         match msg {
             Msg::Clicked => {
                 self.onsignal.emit(());
+                false
             }
         }
-        false
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {

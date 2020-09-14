@@ -1,13 +1,6 @@
 use crate::button::Button;
 use yew::prelude::*;
 
-pub struct Barrier {
-    link: ComponentLink<Self>,
-    limit: u32,
-    counter: u32,
-    onsignal: Callback<()>,
-}
-
 pub enum Msg {
     ChildClicked,
 }
@@ -19,12 +12,18 @@ pub struct Props {
     pub onsignal: Callback<()>,
 }
 
+pub struct Barrier {
+    link: ComponentLink<Self>,
+    limit: u32,
+    counter: u32,
+    onsignal: Callback<()>,
+}
 impl Component for Barrier {
     type Message = Msg;
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Barrier {
+        Self {
             link,
             limit: props.limit,
             counter: 0,
@@ -40,9 +39,9 @@ impl Component for Barrier {
                     self.onsignal.emit(());
                     self.counter = 0;
                 }
+                true
             }
         }
-        true
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {

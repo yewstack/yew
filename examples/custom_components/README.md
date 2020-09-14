@@ -1,4 +1,9 @@
-# Yew custom components demo
+# Custom Components Example
+
+A list of 1000 counters which can be increased individually.
+Also, you can change the color of these buttons from red to blue by pressing another button 10 times...
+
+## Concepts
 
 This example demonstrates how an application can be structured into
 components defined in separate modules, and how you can use callbacks to send
@@ -22,3 +27,8 @@ which is emitted if any of its child `Button`s is clicked.
 
 [counter.rs](src/counter.rs) defines a `Counter` component with several
 attributes that can be set using props.
+
+## Improvements
+
+This example needs to be reworked or removed.
+It doesn't do anything useful with the concept which is demonstrated by many other examples.

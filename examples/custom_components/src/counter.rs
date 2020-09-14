@@ -6,12 +6,14 @@ pub enum Color {
     Green,
     Blue,
 }
-
-pub struct Counter {
-    link: ComponentLink<Self>,
-    value: u32,
-    color: Color,
-    onclick: Callback<u32>,
+impl Color {
+    fn to_css(&self) -> &'static str {
+        match self {
+            Self::Red => "background: red;",
+            Self::Green => "background: green;",
+            Self::Blue => "background: blue;",
+        }
+    }
 }
 
 pub enum Msg {
@@ -27,12 +29,19 @@ pub struct Props {
     pub onclick: Callback<u32>,
 }
 
+pub struct Counter {
+    link: ComponentLink<Self>,
+    value: u32,
+    color: Color,
+    onclick: Callback<u32>,
+}
+
 impl Component for Counter {
     type Message = Msg;
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Counter {
+        Self {
             link,
             value: props.initial,
             color: props.color,
@@ -45,9 +54,9 @@ impl Component for Counter {
             Msg::Increase => {
                 self.value += 1;
                 self.onclick.emit(self.value);
+                true
             }
         }
-        true
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
@@ -57,17 +66,10 @@ impl Component for Counter {
     }
 
     fn view(&self) -> Html {
-        let colorize = {
-            match self.color {
-                Color::Red => "background: red;",
-                Color::Green => "background: green;",
-                Color::Blue => "background: blue;",
-            }
-        };
         html! {
             <div class="counter">
                 <p>{ self.value }</p>
-                <button style=colorize onclick=self.link.callback(|_| Msg::Increase)>
+                <button style=self.color.to_css() onclick=self.link.callback(|_| Msg::Increase)>
                     { "Increase internal counter" }
                 </button>
             </div>
