@@ -1,16 +1,25 @@
+[env]
+MSRV = "1.45.2"
+
+[tasks.install-msrv-toolchain]
+script_runner = "@duckscript"
+script = [
+    """
+    output = exec --fail-on-error rustup toolchain list
+    stdout = set ${output.stdout}
+    already_installed = contains ${stdout} ${MSRV}
+    if not ${already_installed}
+        echo "Installing toolchain for ${MSRV} (Yew MSRV) to run macro compilation tests"
+        exec --fail-on-error rustup toolchain install --profile minimal ${MSRV}
+    end
+    """
+]
 
 [tasks.test]
 clear = true
-dependencies = ["test-macro", "test-derive-props", "test-doc"]
-
-[tasks.test-macro]
-command = "cargo"
-args = ["test", "--test", "macro_test"]
-
-[tasks.test-derive-props]
-command = "cargo"
-args = ["test", "--test", "derive_props_test"]
-
-[tasks.test-doc]
-command = "cargo"
-args = ["test", "--doc"]
+dependencies = ["install-msrv-toolchain"]
+script = [
+    """
+    cargo +${MSRV} test
+    """
+]
