@@ -20,6 +20,8 @@ What used to be a single component handling a lot of message spaghetti is now sp
 
 **Should be removed or updated**.
 
+## 4. dashboard
+
 ## 16. multithread
 
 **TODO** this example is special!
