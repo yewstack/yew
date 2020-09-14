@@ -5,7 +5,7 @@ use std::fmt;
 use std::rc::Rc;
 
 /// Flags that modify default callback behaviour
-#[derive(Eq, PartialEq, Clone, Copy, std::hash::Hash, Debug)]
+#[derive(Eq, PartialEq, Clone, Copy, Hash, Debug)]
 pub struct Flags(u8);
 
 impl std::ops::BitAnd for Flags {

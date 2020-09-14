@@ -47,7 +47,7 @@ macro_rules! gen_listener_kinds {
         /// Supported kinds of DOM event listeners
         // Using instead of strings to optimise registry collection performance by simplifying
         // hashmap hash calculation.
-        #[derive(Clone, Copy, PartialEq, Eq, std::hash::Hash, Debug)]
+        #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
         #[allow(non_camel_case_types)]
         #[allow(missing_docs)]
         pub enum ListenerKind {

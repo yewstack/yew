@@ -60,7 +60,7 @@ struct Registry {
     /// The registry is never dropped in production.
     #[cfg(test)]
     #[allow(clippy::type_complexity)]
-    registered: Vec<(ListenerKind, Closure<dyn std::ops::Fn(web_sys::Event)>)>,
+    registered: Vec<(ListenerKind, Closure<dyn Fn(web_sys::Event)>)>,
 }
 
 impl Registry {
