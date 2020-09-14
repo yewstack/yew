@@ -29,6 +29,10 @@ What used to be a single component handling a lot of message spaghetti is now sp
 
 **Should be updated or removed**.
 
+## 6. futures
+
+Renamed from "futures_wp".
+
 ## 16. multithread
 
 **TODO** this example is special!
