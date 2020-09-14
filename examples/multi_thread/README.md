@@ -1,4 +1,4 @@
-### multi_thread
+# Multi-Thread Example
 
 First, build your web app
 
