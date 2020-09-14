@@ -19,11 +19,15 @@ What used to be a single component handling a lot of message spaghetti is now sp
 
 ## 3. custom_components
 
-**Should be removed or updated**.
+**Should be updated or removed**.
 
 ## 4. dashboard
 
 ## 5. file_upload
+
+## 5. fragments
+
+**Should be updated or removed**.
 
 ## 16. multithread
 
