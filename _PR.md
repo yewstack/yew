@@ -20,6 +20,11 @@ What used to be a single component handling a lot of message spaghetti is now sp
 
 **Should be removed or updated**.
 
+## 25. todomvc
+
+Split `State` into separate file to make the code more manageable.
+Update CSS to latest version.
+
 ## 26. two_apps
 
 ## 26. webgl
