@@ -85,6 +85,8 @@ Different approaches to building apps should be explored through templates, not 
 
 ### 18. node_refs
 
+### 24. timer
+
 ### 25. todomvc
 
 Split `State` into a separate file to make it more manageable.
