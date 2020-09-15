@@ -118,7 +118,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Model {
+        Self {
             link,
             fetching: false,
             data: None,

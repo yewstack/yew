@@ -70,6 +70,8 @@ A "minimal" example should either demonstrate every aspect of Yew's API in a sma
 This example was removed because it's the same as "minimal" but for wasm-pack.
 Different approaches to building apps should be explored through templates, not the examples.
 
+## 13. mount_point
+
 ## 16. multithread
 
 **TODO** this example is special!
