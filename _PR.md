@@ -44,6 +44,13 @@ Split code across two files.
 
 ## 8. inner_html
 
+## 9. js_callback
+
+Make use of wasm-bindgen's ability to automatically load js files without having to include them in the HTML.
+Split the bindings into a separate file for clarity.
+
+Trunk Issue: <https://github.com/thedodd/trunk/issues/40>
+
 ## 16. multithread
 
 **TODO** this example is special!
