@@ -1,6 +1,7 @@
-html, body {
+html,
+body {
   width: 100%;
-  background: #FAFAFA;
+  background: #fafafa;
   font-family: monospace;
 }
 
@@ -19,11 +20,11 @@ html, body {
   align-items: center;
   padding: 30px;
   border-radius: 4px;
-  background: #EEE;
-}
+  background: #eee;
 
-.list-container:hover {
-  background: #EAEAEA;
+  &:hover {
+    background: #eaeaea;
+  }
 }
 
 .list {
@@ -33,63 +34,63 @@ html, body {
   border-radius: 3px;
   border: 1px solid #666;
   min-width: 30vw;
-}
 
-.list.inactive {
-  opacity: 0.5;
+  &.inactive {
+    opacity: 0.5;
+  }
 }
 
 .list-header {
-  background: #FEECAA;
+  background: #feecaa;
   border-bottom: 1px solid #666;
   padding: 10px;
   cursor: pointer;
-}
 
-.list-header:hover {
-  background: #FEE3A0;
+  &:hover {
+    background: #fee3a0;
+  }
 }
 
 .list-item {
   background: white;
   border-bottom: 1px solid #666;
   padding: 10px;
-}
 
-.list-item:hover {
-  background: #FAFAFA;
-}
+  &:hover {
+    background: #fafafa;
+  }
 
-.list-item:last-child {
-  border-bottom: 0px;
-}
+  &:last-child {
+    border-bottom: 0px;
+  }
 
-.list-item-details {
-  background: #EEE;
-  border: 1px solid #666;
-  border-radius: 3px;
-  margin-top: 10px;
-  padding: 10px;
-  text-align: center;
+  &-details {
+    background: #eee;
+    border: 1px solid #666;
+    border-radius: 3px;
+    margin-top: 10px;
+    padding: 10px;
+    text-align: center;
+
+    &.list-container {
+      margin-top: 0px;
+      padding: 15px;
+    }
+  }
 }
 
 .last-hovered {
   margin-top: 20px;
-}
 
-.last-hovered-text {
-  color: #666;
-  margin-left: 5px;
-}
-
-.list-item-details .list-container {
-  margin-top: 0px;
-  padding: 15px;
+  &-text {
+    color: #666;
+    margin-left: 5px;
+  }
 }
 
 .sublist {
   display: inline-block;
-  background: #FFF;
+  background: #fff;
   border: 1px solid #666;
   border-radius: 3px;
   margin: 5px;
