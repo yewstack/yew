@@ -51,6 +51,10 @@ Split the bindings into a separate file for clarity.
 
 Trunk Issue: <https://github.com/thedodd/trunk/issues/40>
 
+## 10. keyed_list
+
+Split into multiple files for clarity.
+
 ## 16. multithread
 
 **TODO** this example is special!

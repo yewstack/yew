@@ -1,0 +1,61 @@
+use rand::{distributions, Rng};
+
+/// `0 <= ratio <= 1`
+pub fn chance(ratio: f64) -> bool {
+    let rnd: f64 = rand::thread_rng().gen();
+    rnd.rem_euclid(1.0) < ratio
+}
+
+/// half-open: [min, max)
+pub fn range_exclusive(min: usize, max: usize) -> usize {
+    let len: usize = rand::thread_rng().gen();
+    len % (max - min) + min
+}
+
+/// Choose two distinct indices `(a, b)` such that `a < b`.
+pub fn choose_two_distinct_indices<T>(items: &[T]) -> Option<(usize, usize)> {
+    match items.len() {
+        0 | 1 => None,
+        2 => Some((0, 1)),
+        n => {
+            let first = range_exclusive(0, n);
+            // find another index that isn't `first`
+            let second = loop {
+                let i = range_exclusive(0, n);
+                // this must be true at some point because there are at least three items
+                if i != first {
+                    break i;
+                }
+            };
+
+            // make sure that `a < b`
+            if first > second {
+                Some((second, first))
+            } else {
+                Some((first, second))
+            }
+        }
+    }
+}
+
+pub fn choose_two_distinct_mut<T>(items: &mut [T]) -> Option<(&mut T, &mut T)> {
+    let (lo, hi) = choose_two_distinct_indices(items)?;
+
+    // a = `items[0..hi]` which contains `lo` because `lo < hi`
+    // b = `items[hi..]` where `items[hi] == b[0]`
+    let (a, b) = items.split_at_mut(hi);
+    Some((&mut a[lo], &mut b[0]))
+}
+
+fn word(len: usize) -> String {
+    let mut rng = rand::thread_rng();
+    (0..len)
+        .map(|_| rng.sample(distributions::Alphanumeric))
+        .collect()
+}
+
+pub fn words(count: usize, min_len: usize, max_len: usize) -> Vec<String> {
+    (0..count)
+        .map(|_| word(range_exclusive(min_len, max_len)))
+        .collect()
+}
