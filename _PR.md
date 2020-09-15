@@ -30,49 +30,49 @@ What used to be a single component handling a lot of message spaghetti is now sp
 
 ## 5. file_upload
 
-## 5. fragments
+## 6. fragments
 
 **Should be updated or removed**.
 
-## 6. futures
+## 7. futures
 
 Renamed from "futures_wp".
 
-## 7. game_of_life
+## 8. game_of_life
 
 Split code across two files.
 
-## 8. inner_html
+## 9. inner_html
 
-## 9. js_callback
+## 10. js_callback
 
 Make use of wasm-bindgen's ability to automatically load js files without having to include them in the HTML.
 Split the bindings into a separate file for clarity.
 
 Trunk Issue: <https://github.com/thedodd/trunk/issues/40>
 
-## 10. keyed_list
+## 11. keyed_list
 
 Split into multiple files for clarity.
 
-## 11. large_table
+## 12. large_table
 
 This example was removed because it's quite literally just a large table...
 "game_of_life" is a far superior but not-quite-as-big table experience and "keyed_list" takes care of the large part.
 
-## 12. minimal
+## 13. minimal
 
 Removed because this example is very similar to "counter" but it can only count to one.
 A "minimal" example should either demonstrate every aspect of Yew's API in a small application or be a template.
 
-## 13. minimal_wp
+## 14. minimal_wp
 
 This example was removed because it's the same as "minimal" but for wasm-pack.
 Different approaches to building apps should be explored through templates, not the examples.
 
-## 13. mount_point
+## 15. mount_point
 
-## 16. multithread
+## 16. multi_thread
 
 **TODO** this example is special!
 
