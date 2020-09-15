@@ -15,8 +15,9 @@ This is just the file I'm using to keep track of everything. It won't be part of
 
 ## List of examples that I deem satisfactory
 
-- todomvc
+- game_of_life
 - nested_list
+- todomvc
 
 ## Examples
 
@@ -85,7 +86,14 @@ Different approaches to building apps should be explored through templates, not 
 
 ### 18. node_refs
 
-### 21. pub_sub
+### 19. npm_and_rest
+
+Renamed to "ccxt_and_gravatar" because it has nothing to do with NPM.
+Updated the services to be more ergonomic and added display for the Gravatar profile.
+
+Example should be updated or put out of its misery
+
+### 20. pub_sub
 
 Should be updated
 

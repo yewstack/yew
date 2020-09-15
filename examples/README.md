@@ -31,6 +31,7 @@ In those cases, instructions are placed in the example's README.md file.
 
 | Example                                | Description                                                                                                                        |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| [ccxt_and_gravatar](ccxt_and_gravatar) | Please see the `README`.                                                                                                           |
 | [counter](counter)                     | A single component which displays a stateful number. The number can be incremented and decremented using buttons                   |
 | [crm](crm)                             | See the `README` file for details                                                                                                  |
 | [custom_components](custom_components) | Demonstrates the use of components                                                                                                 |
@@ -46,7 +47,6 @@ In those cases, instructions are placed in the example's README.md file.
 | [multi_thread](multi_thread)           | Demonstrates the use of Web Workers to offload computation to the background                                                       |
 | [nested_list](nested_list)             | Renders a styled list which tracks hover events                                                                                    |
 | [node_refs](node_refs)                 | Uses a [`NodeRef`](https://yew.rs/docs/concepts/components/refs) to focus the input element under the cursor                       |
-| [npm_and_rest](npm_and_rest)           | A more elaborate demonstration of the `fetch` service                                                                              |
 | [pub_sub](pub_sub)                     | Cross-component communication using [Agents](https://yew.rs/docs/concepts/agents)                                                  |
 | [store](store)                         | Showcases the `yewtil::store` API                                                                                                  |
 | [timer](timer)                         | Demonstrates the use of the interval and timeout services                                                                          |

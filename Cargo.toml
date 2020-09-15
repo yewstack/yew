@@ -31,6 +31,7 @@ members = [
   "yew-dsl",
 
   # Examples
+  "examples/ccxt_and_gravatar",
   "examples/counter",
   "examples/crm",
   "examples/custom_components",
@@ -46,7 +47,6 @@ members = [
   "examples/multi_thread",
   "examples/nested_list",
   "examples/node_refs",
-  "examples/npm_and_rest",
   "examples/pub_sub",
   "examples/store",
   "examples/timer",
