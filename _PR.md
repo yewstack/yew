@@ -5,12 +5,15 @@ This is just the file I'm using to keep track of everything. It won't be part of
 ## TODO
 
 - update all examples
-- update examples for yew-router
+- update examples for yew-router (fix #1377)
 - update examples for yewtil
 
-## Examples
+## Somewhat related issues
 
-Fixes: #1368
+- #1073 (should probably be closed now)
+- #1016 (promises some good stylin' for the examples but it's been a while)
+
+## Examples
 
 ## 1. counter
 
@@ -37,7 +40,9 @@ Renamed from "futures_wp".
 
 ## 7. game_of_life
 
-Split into multiple files to clean up.
+Split code across two files.
+
+## 8. inner_html
 
 ## 16. multithread
 
@@ -45,8 +50,8 @@ Split into multiple files to clean up.
 
 ## 25. todomvc
 
-Split `State` into separate file to make the code more manageable.
-Update CSS to latest version.
+Split `State` into a separate file to make it more manageable.
+Updates TodoMVC CSS to latest version.
 
 ## 26. two_apps
 
