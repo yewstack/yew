@@ -83,10 +83,12 @@ Different approaches to building apps should be explored through templates, not 
 
 ### 17. nested_list
 
+### 18. node_refs
+
 ### 25. todomvc
 
 Split `State` into a separate file to make it more manageable.
-Updates TodoMVC CSS to latest version.
+Updated TodoMVC CSS to latest version.
 
 ### 26. two_apps
 
