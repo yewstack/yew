@@ -29,7 +29,7 @@ What used to be a single component handling a lot of message spaghetti is now sp
 
 ### 3. custom_components
 
-**Should be updated or removed**.
+Should be updated or removed
 
 ### 4. dashboard
 
@@ -37,7 +37,7 @@ What used to be a single component handling a lot of message spaghetti is now sp
 
 ### 6. fragments
 
-**Should be updated or removed**.
+Should be updated or removed
 
 ### 7. futures
 
@@ -84,6 +84,10 @@ Different approaches to building apps should be explored through templates, not 
 ### 17. nested_list
 
 ### 18. node_refs
+
+### 21. pub_sub
+
+Should be updated
 
 ### 21. store
 
