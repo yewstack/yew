@@ -1,5 +1,7 @@
 # Changes
 
+This is just the file I'm using to keep track of everything. It won't be part of the final PR.
+
 ## TODO
 
 - update all examples
@@ -32,6 +34,10 @@ What used to be a single component handling a lot of message spaghetti is now sp
 ## 6. futures
 
 Renamed from "futures_wp".
+
+## 7. game_of_life
+
+Split into multiple files to clean up.
 
 ## 16. multithread
 
