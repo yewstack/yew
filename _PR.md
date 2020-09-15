@@ -60,6 +60,16 @@ Split into multiple files for clarity.
 This example was removed because it's quite literally just a large table...
 "game_of_life" is a far superior but not-quite-as-big table experience and "keyed_list" takes care of the large part.
 
+## 12. minimal
+
+Removed because this example is very similar to "counter" but it can only count to one.
+A "minimal" example should either demonstrate every aspect of Yew's API in a small application or be a template.
+
+## 13. minimal_wp
+
+This example was removed because it's the same as "minimal" but for wasm-pack.
+Different approaches to building apps should be explored through templates, not the examples.
+
 ## 16. multithread
 
 **TODO** this example is special!

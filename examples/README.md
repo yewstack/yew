@@ -42,8 +42,6 @@ In those cases, instructions are placed in the example's README.md file.
 | [inner_html](inner_html)               | Embeds an external document as raw HTML by manually managing the element                                                           |
 | [js_callback](js_callback)             | Interacts with JavaScript code                                                                                                     |
 | [keyed_list](keyed_list)               | Demonstrates how to use keys to improve the performance of lists                                                                   |
-| [minimal](minimal)                     | A simple button that listens to click events                                                                                       |
-| [minimal_wp](minimal)                  | Same as the minimal example but using `wasm-pack`                                                                                  |
 | [mount_point](mount_point)             | Shows how to mount the root component to a custom element                                                                          |
 | [multi_thread](multi_thread)           | Demonstrates the use of Web Workers to offload computation to the background                                                       |
 | [nested_list](nested_list)             | Renders a styled list which tracks hover events                                                                                    |

@@ -42,8 +42,6 @@ members = [
   "examples/inner_html",
   "examples/js_callback",
   "examples/keyed_list",
-  "examples/minimal",
-  "examples/minimal_wp",
   "examples/mount_point",
   "examples/multi_thread",
   "examples/nested_list",
