@@ -55,6 +55,11 @@ Trunk Issue: <https://github.com/thedodd/trunk/issues/40>
 
 Split into multiple files for clarity.
 
+## 11. large_table
+
+This example was removed because it's quite literally just a large table...
+"game_of_life" is a far superior but not-quite-as-big table experience and "keyed_list" takes care of the large part.
+
 ## 16. multithread
 
 **TODO** this example is special!
