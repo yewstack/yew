@@ -85,13 +85,20 @@ Different approaches to building apps should be explored through templates, not 
 
 ### 18. node_refs
 
-### 24. timer
+### 21. store
 
-### 25. todomvc
+### 22. textarea
+
+Removed because it's literally just a textarea.
+Other examples like todomvc use similar concepts for something more useful.
+
+### 23. timer
+
+### 24. todomvc
 
 Split `State` into a separate file to make it more manageable.
 Updated TodoMVC CSS to latest version.
 
-### 26. two_apps
+### 25. two_apps
 
 ### 26. webgl

@@ -49,7 +49,6 @@ In those cases, instructions are placed in the example's README.md file.
 | [npm_and_rest](npm_and_rest)           | A more elaborate demonstration of the `fetch` service                                                                              |
 | [pub_sub](pub_sub)                     | Cross-component communication using [Agents](https://yew.rs/docs/concepts/agents)                                                  |
 | [store](store)                         | Showcases the `yewtil::store` API                                                                                                  |
-| [textarea](textarea)                   | Shows how to use the value of a textarea or input tag                                                                              |
 | [timer](timer)                         | Demonstrates the use of the interval and timeout services                                                                          |
 | [todomvc](todomvc)                     | Implementation of the [TodoMVC](http://todomvc.com/) app                                                                           |
 | [two_apps](two_apps)                   | Runs two separate Yew apps at the same time                                                                                        |

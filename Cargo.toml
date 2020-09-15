@@ -49,7 +49,6 @@ members = [
   "examples/npm_and_rest",
   "examples/pub_sub",
   "examples/store",
-  "examples/textarea",
   "examples/timer",
   "examples/todomvc",
   "examples/two_apps",
