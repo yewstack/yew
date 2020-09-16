@@ -49,9 +49,8 @@ where
                     QUEUE.with(|queue| {
                         queue.insert_loaded_agent(id);
 
-                        let mut msg_queue = queue.borrow_msg_queue_mut();
-                        if let Some(msgs) = msg_queue.get_mut(&id) {
-                            for msg in msgs.drain(..) {
+                        if let Some(msgs) = queue.remove_msg_queue(&id) {
+                            for msg in msgs {
                                 cfg_match! {
                                     feature = "std_web" => ({
                                         let worker = &worker;
@@ -62,7 +61,6 @@ where
                             }
                         }
                     });
-                    send_to_remote::<AGN>(&worker, ToWorker::Connected(SINGLETON_ID));
                 }
                 FromWorker::ProcessOutput(id, output) => {
                     assert_eq!(id.raw_id(), SINGLETON_ID.raw_id());
@@ -94,6 +92,7 @@ where
             _agent: PhantomData,
             id,
         };
+        bridge.send_message(ToWorker::Connected(SINGLETON_ID));
         Box::new(bridge)
     }
 }

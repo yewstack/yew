@@ -60,9 +60,8 @@ where
                                     QUEUE.with(|queue| {
                                         queue.insert_loaded_agent(TypeId::of::<AGN>());
 
-                                        let mut msg_queue = queue.borrow_msg_queue_mut();
-                                        if let Some(msgs) = msg_queue.get_mut(&TypeId::of::<AGN>()) {
-                                            for msg in msgs.drain(..) {
+                                        if let Some(msgs) = queue.remove_msg_queue(&TypeId::of::<AGN>()) {
+                                            for msg in msgs {
                                                 cfg_match! {
                                                     feature = "std_web" => ({
                                                         let worker = &worker;
@@ -193,11 +192,11 @@ where
                 pool.remove::<RemoteAgent<AGN>>();
             }
 
-            let disconnected = ToWorker::Disconnected(self.id);
-            self.send_message(disconnected);
-
             terminate_worker
         });
+
+        let disconnected = ToWorker::Disconnected(self.id);
+        self.send_message(disconnected);
 
         if terminate_worker {
             let destroy = ToWorker::Destroy;

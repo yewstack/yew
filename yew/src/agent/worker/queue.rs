@@ -1,4 +1,4 @@
-use std::cell::{RefCell, RefMut};
+use std::cell::RefCell;
 use std::collections::{hash_map, HashMap, HashSet};
 use std::hash::Hash;
 
@@ -17,8 +17,8 @@ impl<T: Eq + Hash> Queue<T> {
     }
 
     #[inline]
-    pub fn borrow_msg_queue_mut(&self) -> RefMut<'_, HashMap<T, Vec<Vec<u8>>>> {
-        self.msg_queue.borrow_mut()
+    pub fn remove_msg_queue(&self, id: &T) -> Option<Vec<Vec<u8>>> {
+        self.msg_queue.borrow_mut().remove(id)
     }
 
     #[inline]
