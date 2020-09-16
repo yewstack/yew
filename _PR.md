@@ -1,12 +1,12 @@
-# Changes
+# PR
 
 This is just the file I'm using to keep track of everything. It won't be part of the final PR.
 
 ## TODO
 
-- update all examples
-- update examples for yew-router (fix #1377)
-- update examples for yewtil
+- [ ] update all examples
+- [ ] update examples for yew-router (fix #1377)
+- [ ] update examples for yewtil
 
 ## Somewhat related issues
 
