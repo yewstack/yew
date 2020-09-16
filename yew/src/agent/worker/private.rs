@@ -2,8 +2,10 @@ use super::*;
 use crate::callback::Callback;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
+use queue::Queue;
 use std::fmt;
 use std::marker::PhantomData;
+use std::sync::atomic::{AtomicUsize, Ordering};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::Value;
@@ -14,6 +16,11 @@ cfg_if! {
     }
 }
 
+thread_local! {
+    static QUEUE: Queue<usize> = Queue::new();
+}
+
+static PRIVATE_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 const SINGLETON_ID: HandlerId = HandlerId(0, true);
 
 /// Create a new instance for every bridge.
@@ -31,6 +38,7 @@ where
     type Agent = AGN;
 
     fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
+        let id = PRIVATE_ID_COUNTER.fetch_add(1, Ordering::Relaxed);
         let callback = callback.expect("Callback required for Private agents");
         let handler = move |data: Vec<u8>,
                             #[cfg(feature = "std_web")] worker: Value,
@@ -38,7 +46,21 @@ where
             let msg = FromWorker::<AGN::Output>::unpack(&data);
             match msg {
                 FromWorker::WorkerLoaded => {
-                    send_to_remote::<AGN>(&worker, ToWorker::Connected(SINGLETON_ID));
+                    QUEUE.with(|queue| {
+                        queue.insert_loaded_agent(id);
+
+                        if let Some(msgs) = queue.remove_msg_queue(&id) {
+                            for msg in msgs {
+                                cfg_match! {
+                                    feature = "std_web" => ({
+                                        let worker = &worker;
+                                        js! {@{worker}.postMessage(@{msg});};
+                                    }),
+                                    feature = "web_sys" => worker.post_message_vec(msg),
+                                }
+                            }
+                        }
+                    });
                 }
                 FromWorker::ProcessOutput(id, output) => {
                     assert_eq!(id.raw_id(), SINGLETON_ID.raw_id());
@@ -68,7 +90,9 @@ where
         let bridge = PrivateBridge {
             worker,
             _agent: PhantomData,
+            id,
         };
+        bridge.send_message(ToWorker::Connected(SINGLETON_ID));
         Box::new(bridge)
     }
 }
@@ -85,8 +109,26 @@ where
     #[cfg(feature = "web_sys")]
     worker: Worker,
     _agent: PhantomData<AGN>,
+    id: usize,
 }
 
+impl<AGN> PrivateBridge<AGN>
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
+    /// Send a message to the worker, queuing the message if necessary
+    fn send_message(&self, msg: ToWorker<AGN::Input>) {
+        QUEUE.with(|queue| {
+            if queue.is_worker_loaded(&self.id) {
+                send_to_remote::<AGN>(&self.worker, msg);
+            } else {
+                queue.add_msg_to_queue(msg.pack(), self.id);
+            }
+        });
+    }
+}
 impl<AGN> fmt::Debug for PrivateBridge<AGN>
 where
     AGN: Agent,
@@ -105,21 +147,8 @@ where
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     fn send(&mut self, msg: AGN::Input) {
-        // TODO(#937): Important! Implement.
-        // Use a queue to collect a messages if an instance is not ready
-        // and send them to an agent when it will reported readiness.
-        let msg = ToWorker::ProcessInput(SINGLETON_ID, msg).pack();
-        cfg_match! {
-            feature = "std_web" => ({
-                let worker = &self.worker;
-                js! {
-                    var worker = @{worker};
-                    var bytes = @{msg};
-                    worker.postMessage(bytes);
-                };
-            }),
-            feature = "web_sys" => self.worker.post_message_vec(msg),
-        }
+        let msg = ToWorker::ProcessInput(SINGLETON_ID, msg);
+        self.send_message(msg);
     }
 }
 
@@ -135,5 +164,9 @@ where
 
         let destroy = ToWorker::Destroy;
         send_to_remote::<AGN>(&self.worker, destroy);
+
+        QUEUE.with(|queue| {
+            queue.remove_agent(&self.id);
+        });
     }
 }

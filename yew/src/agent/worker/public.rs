@@ -4,10 +4,10 @@ use crate::scheduler::Shared;
 use anymap::{self, AnyMap};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
+use queue::Queue;
 use slab::Slab;
 use std::any::TypeId;
 use std::cell::RefCell;
-use std::collections::{hash_map, HashMap, HashSet};
 use std::fmt;
 use std::marker::PhantomData;
 use std::rc::Rc;
@@ -24,8 +24,7 @@ cfg_if! {
 
 thread_local! {
     static REMOTE_AGENTS_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());
-    static REMOTE_AGENTS_LOADED: RefCell<HashSet<TypeId>> = RefCell::new(HashSet::new());
-    static REMOTE_AGENTS_EARLY_MSGS_QUEUE: RefCell<HashMap<TypeId, Vec<Vec<u8>>>> = RefCell::new(HashMap::new());
+    static QUEUE: Queue<TypeId> = Queue::new();
 }
 
 /// Create a single instance in a tab.
@@ -58,14 +57,11 @@ where
                             let msg = FromWorker::<AGN::Output>::unpack(&data);
                             match msg {
                                 FromWorker::WorkerLoaded => {
-                                    REMOTE_AGENTS_LOADED.with(|loaded| {
-                                        let _ = loaded.borrow_mut().insert(TypeId::of::<AGN>());
-                                    });
+                                    QUEUE.with(|queue| {
+                                        queue.insert_loaded_agent(TypeId::of::<AGN>());
 
-                                    REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|queue| {
-                                        let mut queue = queue.borrow_mut();
-                                        if let Some(msgs) = queue.get_mut(&TypeId::of::<AGN>()) {
-                                            for msg in msgs.drain(..) {
+                                        if let Some(msgs) = queue.remove_msg_queue(&TypeId::of::<AGN>()) {
+                                            for msg in msgs {
                                                 cfg_match! {
                                                     feature = "std_web" => ({
                                                         let worker = &worker;
@@ -151,31 +147,15 @@ where
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
-    fn worker_is_loaded(&self) -> bool {
-        REMOTE_AGENTS_LOADED.with(|loaded| loaded.borrow().contains(&TypeId::of::<AGN>()))
-    }
-
-    fn msg_to_queue(&self, msg: Vec<u8>) {
-        REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|queue| {
-            let mut queue = queue.borrow_mut();
-            match queue.entry(TypeId::of::<AGN>()) {
-                hash_map::Entry::Vacant(record) => {
-                    record.insert(vec![msg]);
-                }
-                hash_map::Entry::Occupied(ref mut record) => {
-                    record.get_mut().push(msg);
-                }
+    /// Send a message to the worker, queuing the message if necessary
+    fn send_message(&self, msg: ToWorker<AGN::Input>) {
+        QUEUE.with(|queue| {
+            if queue.is_worker_loaded(&TypeId::of::<AGN>()) {
+                send_to_remote::<AGN>(&self.worker, msg);
+            } else {
+                queue.add_msg_to_queue(msg.pack(), TypeId::of::<AGN>());
             }
         });
-    }
-
-    /// Send a message to the worker, queuing it up if necessary
-    fn send_message(&self, msg: ToWorker<AGN::Input>) {
-        if self.worker_is_loaded() {
-            send_to_remote::<AGN>(&self.worker, msg);
-        } else {
-            self.msg_to_queue(msg.pack());
-        }
     }
 }
 
@@ -222,12 +202,8 @@ where
             let destroy = ToWorker::Destroy;
             self.send_message(destroy);
 
-            REMOTE_AGENTS_LOADED.with(|loaded| {
-                loaded.borrow_mut().remove(&TypeId::of::<AGN>());
-            });
-
-            REMOTE_AGENTS_EARLY_MSGS_QUEUE.with(|queue| {
-                queue.borrow_mut().remove(&TypeId::of::<AGN>());
+            QUEUE.with(|queue| {
+                queue.remove_agent(&TypeId::of::<AGN>());
             });
         }
     }
