@@ -80,7 +80,7 @@ Different approaches to building apps should be explored through templates, not 
 
 ### 16. multi_thread
 
-**TODO** this example is special!
+Trunk Issue: <https://github.com/thedodd/trunk/issues/46>.
 
 ### 17. nested_list
 
