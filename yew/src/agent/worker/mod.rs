@@ -1,5 +1,6 @@
 mod private;
 mod public;
+mod queue;
 
 pub use private::Private;
 pub use public::Public;
