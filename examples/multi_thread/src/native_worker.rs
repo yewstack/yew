@@ -1,9 +1,7 @@
-use log::info;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use yew::services::interval::IntervalService;
-use yew::services::Task;
-use yew::worker::*;
+use yew::services::interval::{IntervalService, IntervalTask};
+use yew::worker::{Agent, AgentLink, HandlerId, Public};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request {
@@ -21,7 +19,7 @@ pub enum Msg {
 
 pub struct Worker {
     link: AgentLink<Worker>,
-    _task: Box<dyn Task>,
+    _task: IntervalTask,
 }
 
 impl Agent for Worker {
@@ -33,23 +31,22 @@ impl Agent for Worker {
     fn create(link: AgentLink<Self>) -> Self {
         let duration = Duration::from_secs(3);
         let callback = link.callback(|_| Msg::Updating);
-        let task = IntervalService::spawn(duration, callback);
-        Worker {
+        Self {
             link,
-            _task: Box::new(task),
+            _task: IntervalService::spawn(duration, callback),
         }
     }
 
     fn update(&mut self, msg: Self::Message) {
         match msg {
             Msg::Updating => {
-                info!("Tick...");
+                log::info!("Tick...");
             }
         }
     }
 
     fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
-        info!("Request: {:?}", msg);
+        log::info!("Request: {:?}", msg);
         match msg {
             Request::GetDataFromServer => {
                 // TODO fetch actual data
