@@ -6,6 +6,6 @@ edition = "2018"
 
 [dependencies]
 log = "0.4"
-serde = { version = "1.0", feature = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
 wasm-logger = "0.2"
 yew = { path = "../../yew" }

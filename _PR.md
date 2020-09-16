@@ -21,6 +21,18 @@ This is just the file I'm using to keep track of everything. It won't be part of
 
 ## Examples
 
+### 0.5 boids
+
+#### TODO
+
+- adjust settings on the go
+- pause simulation
+- calc min_radius based on boid size
+- give boids individual colours
+- make the speed dynamic instead of just max_speed again
+- store settings in local storage
+- give boids a pointy front instead of an equilateral triangle
+
 ### 1. counter
 
 ### 2. crm

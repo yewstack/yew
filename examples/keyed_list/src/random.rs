@@ -2,8 +2,9 @@ use rand::{distributions, Rng};
 
 /// `0 <= ratio <= 1`
 pub fn chance(ratio: f64) -> bool {
+    // rnd is in the half-open range `[0, 1)`
     let rnd: f64 = rand::thread_rng().gen();
-    rnd.rem_euclid(1.0) < ratio
+    rnd < ratio
 }
 
 /// half-open: [min, max)
