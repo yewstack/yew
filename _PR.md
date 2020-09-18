@@ -4,13 +4,12 @@ This is just the file I'm using to keep track of everything. It won't be part of
 
 ## TODO
 
-- [ ] update all examples
+- [x] update all examples
 - [ ] update examples for yew-router (fix #1377)
 - [ ] update examples for yewtil
 
 ## Somewhat related issues
 
-- #1073 (should probably be closed now)
 - #1016 (promises some good stylin' for the examples but it's been a while)
 
 ## List of examples that I deem satisfactory
