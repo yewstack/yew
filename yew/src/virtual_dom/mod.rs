@@ -247,23 +247,12 @@ impl PartialEq for Listeners {
 
 fn compare_listener_slices(lhs: &[Rc<dyn Listener>], rhs: &[Rc<dyn Listener>]) -> bool {
     if lhs.len() != rhs.len() {
-        return false;
-    }
-
-    let mut lhs_it = lhs.iter();
-    let mut rhs_it = rhs.iter();
-    loop {
-        match (lhs_it.next(), rhs_it.next()) {
-            (Some(lhs), Some(rhs)) =>
-            {
-                #[allow(clippy::vtable_address_comparisons)]
-                if !Rc::ptr_eq(lhs, rhs) {
-                    return false;
-                }
-            }
-            (None, None) => return true,
-            _ => return false,
-        };
+        false
+    } else {
+        lhs.iter().zip(rhs.iter()).all(|(lhs, rhs)| {
+            #[allow(clippy::vtable_address_comparisons)]
+            Rc::ptr_eq(lhs, rhs)
+        })
     }
 }
 
