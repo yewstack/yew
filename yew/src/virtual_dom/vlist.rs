@@ -141,7 +141,7 @@ impl VList {
             a: impl Iterator<Item = &'a Key>,
             b: impl Iterator<Item = &'b Key>,
         ) -> usize {
-            a.zip(b).filter(|(a, b)| a == b).count()
+            a.zip(b).take_while(|(a, b)| a == b).count()
         }
 
         // Find first key mismatch from the front
