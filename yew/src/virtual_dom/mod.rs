@@ -175,7 +175,7 @@ pub trait Listener {
     #[cfg(feature = "web_sys")]
     fn handle(&self, event: Event);
 
-    /// Defines flags toi modify the handling of the event. See yew::callback for more details.
+    /// Defines flags to modify the handling of the event. See yew::callback for more details.
     #[cfg(feature = "web_sys")]
     fn flags(&self) -> crate::callback::Flags;
 }
@@ -209,7 +209,7 @@ pub enum Listeners {
     #[cfg(feature = "std_web")]
     Registered(Rc<Vec<EventListener>>),
 
-    /// Not yet added to the element
+    /// Not yet added to the element or registry
     Pending(Vec<Rc<dyn Listener>>),
 }
 
