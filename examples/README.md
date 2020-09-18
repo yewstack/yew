@@ -21,7 +21,7 @@ cd yew/examples
 
 # run the "todomvc" example
 cd todomvc
-trunk serve
+trunk serve --release
 ```
 
 Some examples will may require additional steps.
@@ -31,7 +31,8 @@ In those cases, instructions are placed in the example's README.md file.
 
 | Example                                | Description                                                                                                                        |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| [ccxt_and_gravatar](ccxt_and_gravatar) | Please see the `README`.                                                                                                           |
+| [boids](boids)                         | Yew port of [Boids](https://en.wikipedia.org/wiki/Boids)                                                                           |
+| [ccxt_and_gravatar](ccxt_and_gravatar) | Please see the example's `README`.                                                                                                 |
 | [counter](counter)                     | A single component which displays a stateful number. The number can be incremented and decremented using buttons                   |
 | [crm](crm)                             | See the `README` file for details                                                                                                  |
 | [custom_components](custom_components) | Demonstrates the use of components                                                                                                 |
