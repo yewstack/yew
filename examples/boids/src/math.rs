@@ -1,5 +1,17 @@
+use std::f64::consts::{FRAC_PI_3, PI};
 use std::iter::Sum;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+
+// at the time of writing the TAU constant is still unstable
+pub const TAU: f64 = 2.0 * PI;
+pub const FRAC_TAU_3: f64 = 2.0 * FRAC_PI_3;
+
+/// Get the smaller signed angle from `source` to `target`.
+/// The result is in the range `[-PI, PI)`.
+pub fn smallest_angle_between(source: f64, target: f64) -> f64 {
+    let d = target - source;
+    (d + PI).rem_euclid(TAU) - PI
+}
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Vector2D {
@@ -11,7 +23,7 @@ impl Vector2D {
         Self { x, y }
     }
 
-    pub fn new_direction(angle: f64, radius: f64) -> Self {
+    pub fn from_polar(angle: f64, radius: f64) -> Self {
         let (sin, cos) = angle.sin_cos();
         Self::new(radius * cos, radius * sin)
     }
@@ -33,7 +45,8 @@ impl Vector2D {
         }
     }
 
-    pub fn direction(self) -> f64 {
+    /// Positive angles measured counter-clockwise from positive x axis.
+    pub fn angle(self) -> f64 {
         self.y.atan2(self.x)
     }
 }
@@ -109,5 +122,51 @@ impl Div<f64> for Vector2D {
 impl Sum for Vector2D {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.fold(Self::default(), |sum, v| sum + v)
+    }
+}
+
+pub trait WeightedMean<T = Self>: Sized {
+    fn weighted_mean(it: impl Iterator<Item = (T, f64)>) -> Option<Self>;
+}
+
+impl<T> WeightedMean for T
+where
+    T: AddAssign + Mul<f64, Output = T> + Div<f64, Output = T> + Copy + Default,
+{
+    fn weighted_mean(it: impl Iterator<Item = (T, f64)>) -> Option<T> {
+        let (sum, total_weight) = it.fold(
+            (T::default(), 0.0),
+            |(mut sum, total_weight), (value, weight)| {
+                sum += value * weight;
+                (sum, total_weight + weight)
+            },
+        );
+        if total_weight.is_normal() {
+            Some(sum / total_weight)
+        } else {
+            None
+        }
+    }
+}
+
+pub trait Mean<T = Self>: Sized {
+    fn mean(it: impl Iterator<Item = T>) -> Option<Self>;
+}
+
+impl<T> Mean for T
+where
+    T: AddAssign + Sub<Output = T> + Div<f64, Output = T> + Copy + Default,
+{
+    fn mean(it: impl Iterator<Item = T>) -> Option<T> {
+        let (avg, count) = it.fold((T::default(), 0.0), |(mut avg, mut count), value| {
+            count += 1.0;
+            avg += (value - avg) / count;
+            (avg, count)
+        });
+        if count.is_normal() {
+            Some(avg)
+        } else {
+            None
+        }
     }
 }

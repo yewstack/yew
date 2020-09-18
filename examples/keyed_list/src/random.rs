@@ -1,10 +1,10 @@
-use rand::{distributions, Rng};
+use rand::distributions::{Alphanumeric, Bernoulli};
+use rand::Rng;
 
-/// `0 <= ratio <= 1`
-pub fn chance(ratio: f64) -> bool {
-    // rnd is in the half-open range `[0, 1)`
-    let rnd: f64 = rand::thread_rng().gen();
-    rnd < ratio
+/// `0 <= p <= 1`
+pub fn chance(p: f64) -> bool {
+    let d = Bernoulli::new(p).unwrap();
+    rand::thread_rng().sample(d)
 }
 
 /// half-open: [min, max)
@@ -50,9 +50,7 @@ pub fn choose_two_distinct_mut<T>(items: &mut [T]) -> Option<(&mut T, &mut T)> {
 
 fn word(len: usize) -> String {
     let mut rng = rand::thread_rng();
-    (0..len)
-        .map(|_| rng.sample(distributions::Alphanumeric))
-        .collect()
+    (0..len).map(|_| rng.sample(Alphanumeric)).collect()
 }
 
 pub fn words(count: usize, min_len: usize, max_len: usize) -> Vec<String> {

@@ -1,5 +1,10 @@
 # Boids Example
 
+A version of [Boids](https://en.wikipedia.org/wiki/Boids) implemented in Yew.
+
+This example doesn't make use of a [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API),
+instead, each boid has its own element demonstrating the performance of Yew's virtual DOM.
+
 ## Running
 
 You should run this example with the `--release` flag:
@@ -7,3 +12,17 @@ You should run this example with the `--release` flag:
 ```bash
 trunk serve --release
 ```
+
+## Concepts
+
+The example uses [`IntervalService`] to drive the game loop.
+
+## Improvements
+
+- Add the possibility to switch the behaviour from flocking to scattering by inverting the cohesion rule so that boids avoid each other.
+  This should also invert the color adaption to restore some variety.
+  It would be nice to use a keyboard shortcut (using the `KeyboardService`) for this.
+- Make it possible to hide the settings panel entirely
+- Bigger boids should accelerate slower than smaller ones
+
+[`intervalservice`]: https://docs.rs/yew/latest/yew/services/struct.IntervalService.html

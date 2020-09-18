@@ -15,6 +15,7 @@ This is just the file I'm using to keep track of everything. It won't be part of
 
 ## List of examples that I deem satisfactory
 
+- boids
 - game_of_life
 - nested_list
 - todomvc
@@ -23,15 +24,8 @@ This is just the file I'm using to keep track of everything. It won't be part of
 
 ### 0.5 boids
 
-#### TODO
-
-- adjust settings on the go
-- pause simulation
-- calc min_radius based on boid size
-- give boids individual colours
-- make the speed dynamic instead of just max_speed again
-- store settings in local storage
-- give boids a pointy front instead of an equilateral triangle
+Made some significant changes to this one.
+The reason being that I wanted to have at least one more "finished" example.
 
 ### 1. counter
 

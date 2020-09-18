@@ -1,117 +1,82 @@
-use crate::linalg::Vector2D;
+use crate::math::{self, Mean, Vector2D, WeightedMean};
 use crate::settings::Settings;
+use crate::simulation::SIZE;
 use rand::Rng;
-use std::f64::consts::{FRAC_PI_3, PI};
-use std::ops::{AddAssign, DivAssign};
+use std::iter;
 use yew::{html, Html};
-
-// at the time of writing the TAU constant is still unstable
-const TAU: f64 = 2.0 * PI;
-const FRAC_TAU_3: f64 = 2.0 * FRAC_PI_3;
-
-struct Other<'a> {
-    boid: &'a Boid,
-    offset: Vector2D,
-    distance: f64,
-}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Boid {
     position: Vector2D,
     velocity: Vector2D,
+    radius: f64,
+    hue: f64,
 }
 
 impl Boid {
-    pub fn new_random(size: Vector2D, max_velocity: f64) -> Self {
+    pub fn new_random(settings: &Settings) -> Self {
         let mut rng = rand::thread_rng();
+
+        let max_radius = settings.min_distance / 2.0;
+        let min_radius = max_radius / 6.0;
+        // by using the third power large boids become rarer
+        let radius = min_radius + rng.gen::<f64>().powi(3) * (max_radius - min_radius);
+
         Self {
-            position: Vector2D::new(rng.gen::<f64>() * size.x, rng.gen::<f64>() * size.y),
-            velocity: Vector2D::new_direction(rng.gen::<f64>() * TAU, max_velocity),
+            position: Vector2D::new(rng.gen::<f64>() * SIZE.x, rng.gen::<f64>() * SIZE.y),
+            velocity: Vector2D::from_polar(rng.gen::<f64>() * math::TAU, settings.max_speed),
+            radius,
+            hue: rng.gen::<f64>() * math::TAU,
         }
     }
 
-    fn iter_visible_boids<'it, 'item: 'it>(
-        &'it self,
-        settings: &'it Settings,
-        boids: &'item [Self],
-    ) -> impl Iterator<Item = Other<'item>> + Clone + 'it {
-        boids
-            .iter()
-            .filter(move |boid| *boid != self)
-            .filter_map(move |boid| {
-                let offset = boid.position - self.position;
-                let distance = offset.magnitude();
-
-                if distance > settings.visible_range {
-                    None
-                } else {
-                    Some(Other {
-                        boid,
-                        offset,
-                        distance,
-                    })
-                }
-            })
+    fn coherence(&self, boids: VisibleBoidIter, factor: f64) -> Vector2D {
+        Vector2D::weighted_mean(
+            boids.map(|other| (other.boid.position, other.boid.radius * other.boid.radius)),
+        )
+        .map(|mean| (mean - self.position) * factor)
+        .unwrap_or_default()
     }
 
-    fn mean<T>(it: impl IntoIterator<Item = T>) -> T
-    where
-        T: AddAssign + Default + DivAssign<f64>,
-    {
-        let (mut avg, count) = it
-            .into_iter()
-            .fold((T::default(), 0), |(mut sum, count), value| {
-                sum += value;
-                (sum, count + 1)
-            });
-        if count > 0 {
-            avg /= count as f64;
-            avg
-        } else {
-            T::default()
-        }
-    }
-
-    fn coherence<'a>(
-        &self,
-        visible_boids: impl Iterator<Item = Other<'a>>,
-        factor: f64,
-    ) -> Vector2D {
-        let avg_pos = Self::mean(visible_boids.map(|other| other.boid.position));
-        (avg_pos - self.position) * factor
-    }
-
-    fn separation<'a>(
-        &self,
-        visible_boids: impl Iterator<Item = Other<'a>>,
-        min_distance: f64,
-        factor: f64,
-    ) -> Vector2D {
-        let accel = visible_boids
+    fn separation(&self, boids: VisibleBoidIter, settings: &Settings) -> Vector2D {
+        let accel = boids
             .filter_map(|other| {
-                if other.distance > min_distance {
+                if other.distance > settings.min_distance {
                     None
                 } else {
                     Some(-other.offset)
                 }
             })
             .sum::<Vector2D>();
-        accel * factor
+        accel * settings.separation_factor
     }
 
-    fn alignment<'a>(
-        &self,
-        visible_boids: impl Iterator<Item = Other<'a>>,
-        factor: f64,
-    ) -> Vector2D {
-        let avg_vel = Self::mean(visible_boids.map(|other| other.boid.velocity));
-        (avg_vel - self.velocity) * factor
+    fn alignment(&self, boids: VisibleBoidIter, factor: f64) -> Vector2D {
+        Vector2D::mean(boids.map(|other| other.boid.velocity))
+            .map(|mean| (mean - self.velocity) * factor)
+            .unwrap_or_default()
     }
 
-    fn keep_in_bounds(&self, min: Vector2D, max: Vector2D, turn_speed: f64) -> Vector2D {
+    fn adapt_color(&mut self, boids: VisibleBoidIter, factor: f64) {
+        let mean = f64::mean(boids.filter_map(|other| {
+            if other.boid.radius > self.radius {
+                Some(math::smallest_angle_between(self.hue, other.boid.hue))
+            } else {
+                None
+            }
+        }));
+        if let Some(avg_hue_offset) = mean {
+            self.hue += avg_hue_offset * factor;
+        }
+    }
+
+    fn keep_in_bounds(&mut self, settings: &Settings) {
+        let min = SIZE * settings.border_margin;
+        let max = SIZE - min;
+
         let mut v = Vector2D::default();
 
-        let turn_speed = self.velocity.magnitude() * turn_speed;
+        let turn_speed = self.velocity.magnitude() * settings.turn_speed_ratio;
         let pos = self.position;
         if pos.x < min.x {
             v.x += turn_speed;
@@ -127,45 +92,112 @@ impl Boid {
             v.y -= turn_speed;
         }
 
-        v
+        self.velocity += v;
     }
 
-    fn update_velocity(&mut self, settings: &Settings, size: Vector2D, boids: &[Self]) {
-        let visible_boids = self.iter_visible_boids(settings, boids);
+    fn update_velocity(&mut self, settings: &Settings, boids: VisibleBoidIter) {
         let v = self.velocity
-            + self.coherence(visible_boids.clone(), settings.cohesion_factor)
-            + self.separation(
-                visible_boids.clone(),
-                settings.min_distance,
-                settings.separation_factor,
-            )
-            + self.alignment(visible_boids, settings.alignment_factor);
-        // self.velocity = v.clamp_magnitude(settings.max_speed);
-        self.velocity = v / v.magnitude() * settings.max_speed;
-
-        let min = Vector2D::new(settings.border_margin, settings.border_margin);
-        let max = size - min;
-        self.velocity += self.keep_in_bounds(min, max, settings.turn_velocity_ratio);
+            + self.coherence(boids.clone(), settings.cohesion_factor)
+            + self.separation(boids.clone(), settings)
+            + self.alignment(boids, settings.alignment_factor);
+        self.velocity = v.clamp_magnitude(settings.max_speed);
     }
 
-    pub fn update(&mut self, settings: &Settings, size: Vector2D, boids: &[Self]) {
-        self.update_velocity(settings, size, boids);
+    fn update(&mut self, settings: &Settings, boids: VisibleBoidIter) {
+        self.adapt_color(boids.clone(), settings.color_adapt_factor);
+        self.update_velocity(settings, boids);
+        self.keep_in_bounds(settings);
         self.position += self.velocity;
     }
 
+    pub fn update_all(settings: &Settings, boids: &mut [Self]) {
+        for i in 0..boids.len() {
+            let (before, after) = boids.split_at_mut(i);
+            let (boid, after) = after.split_first_mut().unwrap();
+            let visible_boids =
+                VisibleBoidIter::new(before, after, boid.position, settings.visible_range);
+
+            boid.update(settings, visible_boids);
+        }
+    }
+
     pub fn render(&self) -> Html {
-        const SIZE: f64 = 10.0;
+        let color = format!("hsl({:.3}rad, 100%, 50%)", self.hue);
 
         let mut points = String::new();
-        for offset in triangle_offsets(SIZE, self.velocity.direction()) {
+        for offset in iter_shape_points(self.radius, self.velocity.angle()) {
             let Vector2D { x, y } = self.position + offset;
-            points.push_str(&format!("{},{} ", x, y));
+            points.push_str(&format!("{:.2},{:.2} ", x, y));
         }
 
-        html! { <polygon points=points /> }
+        html! { <polygon points=points fill=color /> }
     }
 }
 
-fn triangle_offsets(radius: f64, rotation: f64) -> impl Iterator<Item = Vector2D> {
-    (0..3).map(move |i| Vector2D::new_direction(rotation + i as f64 * FRAC_TAU_3, radius))
+fn iter_shape_points(radius: f64, rotation: f64) -> impl Iterator<Item = Vector2D> {
+    const SHAPE: [(f64, f64); 3] = [
+        (0. * math::FRAC_TAU_3, 2.0),
+        (1. * math::FRAC_TAU_3, 1.0),
+        (2. * math::FRAC_TAU_3, 1.0),
+    ];
+    SHAPE
+        .iter()
+        .copied()
+        .map(move |(angle, radius_mul)| Vector2D::from_polar(angle + rotation, radius_mul * radius))
+}
+
+#[derive(Debug)]
+struct VisibleBoid<'a> {
+    boid: &'a Boid,
+    offset: Vector2D,
+    distance: f64,
+}
+
+#[derive(Clone, Debug)]
+struct VisibleBoidIter<'boid> {
+    // Pay no mind to this mess of a type.
+    // It's just `before` and `after` joined together.
+    it: iter::Chain<std::slice::Iter<'boid, Boid>, std::slice::Iter<'boid, Boid>>,
+    position: Vector2D,
+    visible_range: f64,
+}
+impl<'boid> VisibleBoidIter<'boid> {
+    fn new(
+        before: &'boid [Boid],
+        after: &'boid [Boid],
+        position: Vector2D,
+        visible_range: f64,
+    ) -> Self {
+        Self {
+            it: before.iter().chain(after),
+            position,
+            visible_range,
+        }
+    }
+}
+impl<'boid> Iterator for VisibleBoidIter<'boid> {
+    type Item = VisibleBoid<'boid>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let Self {
+            ref mut it,
+            position,
+            visible_range,
+        } = *self;
+
+        it.find_map(move |other| {
+            let offset = other.position - position;
+            let distance = offset.magnitude();
+
+            if distance > visible_range {
+                None
+            } else {
+                Some(VisibleBoid {
+                    boid: other,
+                    offset,
+                    distance,
+                })
+            }
+        })
+    }
 }
