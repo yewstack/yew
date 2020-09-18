@@ -99,6 +99,7 @@ impl_short! {
     onratechange
     onreset
     onresize
+    onscroll
     onsecuritypolicyviolation
     onseeked
     onseeking
@@ -145,6 +146,7 @@ impl_short! {
     onmousedown(MouseEvent)
     onmouseenter(MouseEvent)
     onmouseleave(MouseEvent)
+    onmousemove(MouseEvent)
     onmouseout(MouseEvent)
     onmouseover(MouseEvent)
     onmouseup(MouseEvent)
@@ -162,6 +164,7 @@ impl_short! {
     onpointerdown(PointerEvent)
     onpointerenter(PointerEvent)
     onpointerleave(PointerEvent)
+    onpointermove(PointerEvent)
     onpointerout(PointerEvent)
     onpointerover(PointerEvent)
     onpointerup(PointerEvent)
@@ -174,14 +177,6 @@ impl_short! {
 }
 
 macro_rules! impl_passive {
-    ($($action:ident)*) => {
-        impl_action! {
-            $(
-                $action(Event, crate::callback::PASSIVE) -> web_sys::Event
-                    => std::convert::identity
-            )*
-        }
-    };
     ($($action:ident($type:ident))*) => {
         impl_action! {
             $(
@@ -192,13 +187,8 @@ macro_rules! impl_passive {
     };
 }
 
-// Best used with passive listeners, if you handle each and every event globally
+// Best used with passive listeners for responsiveness
 impl_passive! {
-    onscroll
-}
-impl_passive! {
-    onmousemove(MouseEvent)
-    onpointermove(PointerEvent)
     ontouchmove(TouchEvent)
     ontouchstart(TouchEvent)
 }
