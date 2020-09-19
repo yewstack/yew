@@ -1,11 +1,10 @@
 use std::{
     error::Error,
     fmt::{self, Debug, Display, Formatter},
-    future::Future,
 };
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use wasm_bindgen_futures::{spawn_local, JsFuture};
+use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 use yewtil::future::LinkFuture;
