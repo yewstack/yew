@@ -21,8 +21,11 @@ The example uses [`IntervalService`] to drive the game loop.
 
 - Add the possibility to switch the behaviour from flocking to scattering by inverting the cohesion rule so that boids avoid each other.
   This should also invert the color adaption to restore some variety.
-  It would be nice to use a keyboard shortcut (using the `KeyboardService`) for this.
+- Add keyboard shortcuts (using the `KeyboardService`) for the actions.
 - Make it possible to hide the settings panel entirely
 - Bigger boids should accelerate slower than smaller ones
+- Share settings by encoding them into the URL
+- Resize the boids when "Spacing" is changed.
+  The setting should then also be renamed to something like "Size".
 
 [`intervalservice`]: https://docs.rs/yew/latest/yew/services/struct.IntervalService.html

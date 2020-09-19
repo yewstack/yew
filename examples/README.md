@@ -24,8 +24,8 @@ cd todomvc
 trunk serve --release
 ```
 
-Some examples will may require additional steps.
-In those cases, instructions are placed in the example's README.md file.
+Some examples might require additional steps.
+In this case, instructions can be found in the example's `README` file.
 
 ## List of examples
 
