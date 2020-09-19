@@ -7,8 +7,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      PUBLIC_URL: /yew
-      EXAMPLES_DIR: examples
+      PUBLIC_URL: /
+      EXAMPLES_DIR: .
 
     steps:
       - uses: actions/checkout@v2
