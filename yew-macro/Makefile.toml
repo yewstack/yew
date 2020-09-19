@@ -23,3 +23,12 @@ script = [
     cargo +${MSRV} test
     """
 ]
+
+[tasks.test-overwrite]
+clear = true
+dependencies = ["install-msrv-toolchain"]
+script = [
+    """
+    TRYBUILD=overwrite cargo +${MSRV} test
+    """
+]
