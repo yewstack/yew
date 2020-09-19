@@ -17,15 +17,9 @@ members = [
   # Utilities
   "yewtil",
   "yewtil-macro",
-  "yewtil/examples/pure_component",
-  # "yewtil/examples/dsl",
-  "yewtil/examples/lrc",
-  "yewtil/examples/history",
-  "yewtil/examples/mrc_irc",
-  "yewtil/examples/effect",
   "yewtil/examples/fetch",
-  "yewtil/examples/futures",
-  "yewtil/examples/function_component",
+  "yewtil/examples/lrc",
+  "yewtil/examples/mrc_irc",
 
   # dsl
   "yew-dsl",

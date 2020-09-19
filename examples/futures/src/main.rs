@@ -8,25 +8,12 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::{spawn_local, JsFuture};
 use web_sys::{Request, RequestInit, RequestMode, Response};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yewtil::future::LinkFuture;
 
 mod markdown;
 
 const MARKDOWN_URL: &str = "https://raw.githubusercontent.com/yewstack/yew/master/README.md";
 const INCORRECT_URL: &str = "https://raw.githubusercontent.com/yewstack/yew/master/README.md.404";
-
-/// This method processes a Future that returns a message and sends it back to the component's
-/// loop.
-///
-/// # Panics
-/// If the future panics, then the promise will not resolve, and will leak.
-pub fn send_future<COMP: Component, F>(link: ComponentLink<COMP>, future: F)
-where
-    F: Future<Output = COMP::Message> + 'static,
-{
-    spawn_local(async move {
-        link.send_message(future.await);
-    });
-}
 
 /// Something wrong has occurred while fetching an external resource.
 #[derive(Debug, Clone, PartialEq)]
@@ -105,25 +92,23 @@ impl Component for Model {
                 true
             }
             Msg::GetMarkdown => {
-                let future = async {
+                self.link.send_future(async {
                     match fetch_markdown(MARKDOWN_URL).await {
                         Ok(md) => Msg::SetMarkdownFetchState(FetchState::Success(md)),
                         Err(err) => Msg::SetMarkdownFetchState(FetchState::Failed(err)),
                     }
-                };
-                send_future(self.link.clone(), future);
+                });
                 self.link
                     .send_message(Msg::SetMarkdownFetchState(FetchState::Fetching));
                 false
             }
             Msg::GetError => {
-                let future = async {
+                self.link.send_future(async {
                     match fetch_markdown(INCORRECT_URL).await {
                         Ok(md) => Msg::SetMarkdownFetchState(FetchState::Success(md)),
                         Err(err) => Msg::SetMarkdownFetchState(FetchState::Failed(err)),
                     }
-                };
-                send_future(self.link.clone(), future);
+                });
                 self.link
                     .send_message(Msg::SetMarkdownFetchState(FetchState::Fetching));
                 false
