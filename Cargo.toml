@@ -39,6 +39,7 @@ members = [
   "examples/nested_list",
   "examples/node_refs",
   "examples/pub_sub",
+  "examples/router",
   "examples/store",
   "examples/timer",
   "examples/todomvc",
