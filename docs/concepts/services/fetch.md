@@ -111,7 +111,7 @@ pub enum Msg {
 
 #[derive(Debug)]
 pub struct FetchServiceExample {
-    ft: Option<FetchTask>,
+    fetch_task: Option<FetchTask>,
     iss: Option<ISS>,
     link: ComponentLink<Self>,
     error: Option<String>,
@@ -140,7 +140,7 @@ impl FetchServiceExample {
         }
     }
     fn view_fetching(&self) -> Html {
-        if self.ft.is_some() {
+        if self.fetch_task.is_some() {
             html! { <p>{ "Fetching data..." }</p> }
         } else {
             html! { <p></p> }
@@ -160,7 +160,7 @@ impl Component for FetchServiceExample {
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
-            ft: None,
+            fetch_task: None,
             iss: None,
             link,
             error: None,
@@ -182,17 +182,13 @@ impl Component for FetchServiceExample {
                 let callback =
                     self.link
                         .callback(|response: Response<Json<Result<ISS, anyhow::Error>>>| {
-                            // split up the response into data about the request's status and the returned
-                            // data from the request
-                            let (_, Json(data)) = response.into_parts();
-                            // the condition `data.message == "success" is specific to this API which
-                            // returns a JSON object with a "message" key – not all APIs will do this!
+                            let Json(data) = response.into_body();
                             Msg::ReceiveResponse(data)
                         });
                 // 3. pass the request and callback to the fetch service
                 let task = FetchService::fetch(request, callback).expect("failed to start request");
-                // 4. store the task so it isn't cancelled immediately
-                self.ft = Some(task);
+                // 4. store the task so it isn't canceled immediately
+                self.fetch_task = Some(task);
                 // we want to redraw so that the page displays a 'fetching...' message to the user
                 // so return 'true'
                 true
@@ -206,7 +202,7 @@ impl Component for FetchServiceExample {
                         self.error = Some(error.to_string())
                     }
                 }
-                self.ft = None;
+                self.fetch_task = None;
                 // we want to redraw so that the page displays the location of the ISS instead of
                 // 'fetching...'
                 true
