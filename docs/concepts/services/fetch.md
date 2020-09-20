@@ -16,6 +16,14 @@ reading this page.
 Yew re-exports the `Request` struct from the `http` crate that is used to 'build' requests 
 before they can be dispatched to a server. The value of the request body must implement 
 `Into<Text>` or `Into<Binary>`. 
+
+`Text` and `Binary` are type aliases for the following `Result` types:
+```rust
+pub type Text = Result<String, Error>;
+pub type Binary = Result<Vec<u8>, Error>;
+```
+
+Here is what a typical GET request will look like:
 ```rust
 use yew::format::Nothing;
 use yew::services::fetch::Request;
@@ -23,6 +31,8 @@ let get_request = Request::get("https://example.com/api/v1/get/something")
     .body(Nothing)
     .expect("Could not build that request");
 ```
+
+Here is what a typical POST request will look like:
 ```rust
 use serde_json::json;
 use yew::format::Json;
@@ -41,7 +51,7 @@ Note that the structs in the format module take references to values instead of 
 ### Dispatching requests
 The `FetchService` provides a binding to the browser's `fetch` API. Requests can be sent using 
 either `FetchService::fetch` or `FetchService::fetch_with_options` (`fetch_with_options` should be 
-used where cookies need to be sent in a request).
+used when cookies need to be sent with a request).
 
 `FetchService::fetch` accepts two parameters: a `Request` object and a `Callback`. The `Callback` is
 called once the request has completed allowing you to handle the data returned from the request.
