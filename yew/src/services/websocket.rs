@@ -175,6 +175,8 @@ impl WebSocketService {
         let ws = WebSocket::new(url);
 
         let ws = ws.map_err(
+            #[cfg(feature = "std_web")]
+            |_| WebSocketError::CreationError("Error opening a WebSocket connection.".to_string()),
             #[cfg(feature = "web_sys")]
             |ws_error| {
                 WebSocketError::CreationError(
@@ -185,11 +187,7 @@ impl WebSocketService {
                         .unwrap(),
                 )
             },
-            #[cfg(feature = "std_web")]
-            |_| WebSocketError::CreationError("Error opening a WebSocket connection.".to_string()),
         )?;
-
-        #[cfg(feature = "std")]
 
         cfg_match! {
             feature = "std_web" => ws.set_binary_type(SocketBinaryType::ArrayBuffer),
@@ -417,17 +415,14 @@ mod tests {
         let url = "syntactically-invalid";
         let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
         let callback = cb_future.clone().into();
-        let mut ws = WebSocketService::new();
         let status_future = CallbackFuture::<WebSocketStatus>::default();
         let notification: Callback<_> = status_future.clone().into();
-        let task = ws.connect_text(url, callback, notification);
+        let task = WebSocketService::connect_text(url, callback, notification);
         assert!(task.is_err());
-        if let Err(task_err) = task {
-            if let WebSocketError::CreationError(some_error) = task_err {
-                assert_eq!(
-                    some_error,
-                    "SyntaxError: An invalid or illegal string was specified"
-                )
+        if let Err(err) = task {
+            #[allow(irrefutable_let_patterns)]
+            if let WebSocketError::CreationError(creation_err) = err {
+                assert!(creation_err.starts_with("SyntaxError:"));
             } else {
                 assert!(false);
             }
