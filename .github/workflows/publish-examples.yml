@@ -7,8 +7,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      PUBLIC_URL: /
-      EXAMPLES_DIR: .
+      # leave empty for /
+      PUBLIC_URL_PREFIX: ""
 
     steps:
       - uses: actions/checkout@v2
@@ -35,7 +35,6 @@ jobs:
       - name: Build examples
         run: |
           output="$(pwd)/dist"
-          public_url="$PUBLIC_URL/$EXAMPLES_DIR"
 
           for path in examples/*; do
               if [[ ! -d $path ]]; then
@@ -50,7 +49,7 @@ jobs:
               fi
 
               echo "building: $example"
-              (cd "$path" && trunk build --release --dist "$output/$example" --public-url "$public_url/$example")
+              (cd "$path" && trunk build --release --dist "$output/$example" --public-url "$PUBLIC_URL_PREFIX/$example")
           done
 
       - name: Deploy
@@ -58,4 +57,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          destination_dir: ${{ env.EXAMPLES_DIR }}

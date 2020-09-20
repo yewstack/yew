@@ -4,15 +4,18 @@ use crate::generator::{Generated, Generator};
 pub struct Author {
     pub seed: u64,
     pub name: String,
+    pub keywords: Vec<String>,
     pub image_url: String,
 }
 impl Generated for Author {
     fn generate(gen: &mut Generator) -> Self {
         let name = gen.human_name();
+        let keywords = gen.keywords();
         let image_url = gen.face_image_url((600, 600));
         Self {
             seed: gen.seed,
             name,
+            keywords,
             image_url,
         }
     }
@@ -24,7 +27,7 @@ struct Section {
     image_url: Option<String>,
 }
 impl Generated for Section {
-    fn generate(gen: &mut Generator) -> Self {
+    fn generate(_gen: &mut Generator) -> Self {
         todo!()
     }
 }

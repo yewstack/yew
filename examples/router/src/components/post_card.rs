@@ -1,5 +1,5 @@
 use crate::{
-    content,
+    content::Post,
     generator::Generated,
     switch::{AppAnchor, AppRoute},
 };
@@ -11,7 +11,7 @@ pub struct Props {
 }
 
 pub struct PostCard {
-    post: content::Post,
+    post: Post,
 }
 impl Component for PostCard {
     type Message = ();
@@ -19,7 +19,7 @@ impl Component for PostCard {
 
     fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
         Self {
-            post: content::Post::generate_from_seed(props.seed),
+            post: Post::generate_from_seed(props.seed),
         }
     }
 
@@ -31,7 +31,7 @@ impl Component for PostCard {
         if self.post.seed == props.seed {
             false
         } else {
-            self.post = content::Post::generate_from_seed(props.seed);
+            self.post = Post::generate_from_seed(props.seed);
             true
         }
     }
@@ -46,14 +46,13 @@ impl Component for PostCard {
                     </figure>
                 </div>
                 <div class="card-content">
-                    <p class="title">{ &post.title }</p>
-                    <p class="subtitle">{ &post.author.name }</p>
-                </div>
-                <footer class="card-footer">
-                    <AppAnchor classes="card-footer-item" route=AppRoute::Post(post.seed)>
-                        { "Read" }
+                    <AppAnchor classes="title is-block" route=AppRoute::Post(post.seed)>
+                        { &post.title }
                     </AppAnchor>
-                </footer>
+                    <AppAnchor classes="subtitle is-block" route=AppRoute::Author(post.author.seed)>
+                        { &post.author.name }
+                    </AppAnchor>
+                </div>
             </div>
         }
     }

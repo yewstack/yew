@@ -73,10 +73,10 @@ impl Component for PostList {
 impl PostList {
     fn view_posts(&self) -> Html {
         let start_seed = (self.props.page - 1) * ITEMS_PER_PAGE;
-        let mut cards = (start_seed..start_seed + ITEMS_PER_PAGE).map(|seed| {
+        let mut cards = (0..ITEMS_PER_PAGE).map(|seed_offset| {
             html! {
                 <li class="list-item mb-5">
-                    <PostCard seed=seed />
+                    <PostCard seed=start_seed + seed_offset />
                 </li>
             }
         });

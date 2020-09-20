@@ -32,7 +32,7 @@ impl Generator<'_> {
         let cache_buster = self.rng.gen::<u16>();
         let (width, height) = dimension;
         format!(
-            "https://source.unsplash.com/random/{}x{}?{}#{}",
+            "https://source.unsplash.com/random/{}x{}?{}&sig={}",
             width,
             height,
             keywords.join(","),

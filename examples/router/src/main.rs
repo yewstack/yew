@@ -6,7 +6,8 @@ mod content;
 mod generator;
 mod pages;
 use pages::{
-    author::Author, home::Home, page_not_found::PageNotFound, post::Post, post_list::PostList,
+    author::Author, author_list::AuthorList, home::Home, page_not_found::PageNotFound, post::Post,
+    post_list::PostList,
 };
 mod switch;
 use switch::{AppAnchor, AppRoute, AppRouter};
@@ -137,7 +138,7 @@ impl Model {
                 html! { <Author seed=id /> }
             }
             AppRoute::AuthorList => {
-                html! {}
+                html! { <AuthorList /> }
             }
             AppRoute::Home => {
                 html! { <Home /> }

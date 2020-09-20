@@ -1,10 +1,10 @@
 [package]
 name = "router"
 version = "0.1.0"
-authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+instant = { version = "0.1", features = ["wasm-bindgen"] }
 lipsum = "0.7"
 log = "0.4"
 rand = { version = "0.7", features = ["small_rng", "wasm-bindgen"] }
