@@ -8,7 +8,7 @@ description: Libraries that can help with Yew development
 Yewtil is a collection of common utilities that help you build applications using Yew. It includes:
 
 * NeqAssign - This is described in more detail in the section on 
-[optimisations and best practices](../advanced-topics/optimizations.md) and ensures that identical
+[optimizations and best practices](../advanced-topics/optimizations.md) and ensures that identical
 sets of props don't cause a component to re-render.
 
 * PureComponents - Components that don't update any of their state. Using NeqAssign under the hood, they act as memoized 

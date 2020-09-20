@@ -5,7 +5,7 @@ description: The procedural macro for generating HTML and SVG
 ---
 
 The `html!` macro allows you to write HTML and SVG code declaratively. It is similar to JSX 
-\(an extension to Javascript which allows you to write HTML-like code inside of Javascript\).
+\(an extension to JavaScript which allows you to write HTML-like code inside of JavaScript\).
 
 **Important notes**
 
