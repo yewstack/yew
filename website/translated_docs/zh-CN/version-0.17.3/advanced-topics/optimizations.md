@@ -62,7 +62,7 @@ fn change(&mut self, props: Self::Properties) -> ShouldRender {
 
 ## wee\_alloc
 
-[wee\_alloc](https://github.com/rustwasm/wee_alloc) 是一个比 Rust 二进制文件中通常使用的分配器还小得多的微型分配器。用这个分配器来替代默认的分配器将使 WASM 文件体积更小，但会牺牲速度和内存开销。
+[wee\_alloc](https://github.com/rustwasm/wee_alloc) 是一个比 Rust 二进制文件中通常使用的分配器还小得多的微型分配器。用这个分配器来替代默认的分配器将使 Wasm 文件体积更小，但会牺牲速度和内存开销。
 
 对比不包含默认分配器换取的体积大小，牺牲的速度和内存开销是微不足道的。较小的文件体积意味着你的页面将加载更快，因此通常建议使用此分配器而不是默认分配器，除非你的应用程序会执行一些繁重的内存分配任务。
 

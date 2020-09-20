@@ -46,7 +46,6 @@ mkdir
 natively
 onclick
 proc
-recognise
 rlib
 roadmap
 rollup
