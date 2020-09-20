@@ -69,6 +69,7 @@ The following table describes all possible options:
 
 | Example                                | Description                                                                                                                        | Has README |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | :--------: |
+| [boids](boids)                         | Boids, a computer simulation of animals that fly in flocks or swarms.                                                          |     ✖      |
 | [counter](counter)                     | A single component which displays a stateful number. The number can be incremented and decremented using buttons                   |     ✖      |
 | [crm](crm)                             | See the `README` file for details                                                                                                  |     ✔      |
 | [custom_components](custom_components) | Demonstrates the use of components                                                                                                 |     ✔      |
