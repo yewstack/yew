@@ -8,7 +8,7 @@ title: Introduction
 
 - **基于组件的框架**，可以轻松的创建交互式 UI。拥有 [React](https://reactjs.org/) 或 [Elm](https://elm-lang.org/) 等框架经验的开发人员在使用 Yew 时会感到得心应手。
 - **高性能** ，前端开发者可以轻易的将工作分流至后端来减少 DOM API 的调用，从而达到异常出色的性能。
-- **支持与 Javascript 交互** ，允许开发者使用 NPM 包，并与现有的 Javascript 应用程序结合。
+- **支持与 JavaScript 交互** ，允许开发者使用 NPM 包，并与现有的 JavaScript 应用程序结合。
 
 ### 加入我们 😊
 

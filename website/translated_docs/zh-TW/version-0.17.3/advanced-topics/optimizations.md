@@ -75,7 +75,7 @@ Yew  最大的缺點就是花太多時間在編譯上了。編譯時間似乎和
 
 ### wee\_alloc
 
-[wee\_alloc](https://github.com/rustwasm/wee_alloc) 是一個比一般用在 Rust 二進制檔中的分配器更輕量的分配器。用他取代預設的分配器，可以讓 WASM 的檔案大小更小，但是會造成速度和記憶體的開銷變大。
+[wee\_alloc](https://github.com/rustwasm/wee_alloc) 是一個比一般用在 Rust 二進制檔中的分配器更輕量的分配器。用他取代預設的分配器，可以讓 Wasm 的檔案大小更小，但是會造成速度和記憶體的開銷變大。
 
 但比起檔案大小，速度和記憶體的開銷比較次要。更小的檔案大小意味著你的頁面可以載入的更快，因此我們通常建議你使用這個分配器作為預設的分配器，除分你的專案有很多吃重的記憶體分配工作。
 
@@ -111,7 +111,7 @@ lto = true
 
 wasm-opt 資訊： [binaryen project](https://github.com/WebAssembly/binaryen)
 
-Rust Wasm 中有一個關於減少 WASM 二進位檔大小的章節：[Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
+Rust Wasm 中有一個關於減少 Wasm 二進位檔大小的章節：[Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
 * 使用`wasm-pack` 預設在發行版本編譯時優化 `wasm` 程式碼
 * 直接在 wasm 檔案上使用 `wasm-opt` 。

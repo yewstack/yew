@@ -32,7 +32,7 @@ This service is included within yew and is available when the `"services"` featu
 
 ```rust
 // usage
-ConsoleService::new()::info(format!("Update: {:?}", msg));
+ConsoleService::info(format!("Update: {:?}", msg));
 ```
 
 ## Source Maps

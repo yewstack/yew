@@ -102,6 +102,9 @@ jobs:
           restore-keys: |
             cargo-${{ runner.os }}-
 
+      - name: Check spelling
+        run: bash ci/spellcheck.sh list
+
       - name: Run doctest
         uses: actions-rs/cargo@v1
         with:
