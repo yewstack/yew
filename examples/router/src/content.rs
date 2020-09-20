@@ -19,6 +19,17 @@ impl Generated for Author {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+struct Section {
+    content: String,
+    image_url: Option<String>,
+}
+impl Generated for Section {
+    fn generate(gen: &mut Generator) -> Self {
+        todo!()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Post {
     pub seed: u64,
     pub title: String,

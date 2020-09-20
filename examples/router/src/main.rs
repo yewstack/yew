@@ -1,12 +1,15 @@
 use yew::prelude::*;
-use yew_router::{route::Route, switch::AllowMissing, switch::Permissive};
+use yew_router::{route::Route, switch::Permissive};
 
+mod components;
 mod content;
 mod generator;
 mod pages;
-use pages::{author::Author, home::Home, page_not_found::PageNotFound, post::Post};
+use pages::{
+    author::Author, home::Home, page_not_found::PageNotFound, post::Post, post_list::PostList,
+};
 mod switch;
-use switch::{AppAnchor, AppRoute, AppRouter, AuthorRoute, PostsRoute};
+use switch::{AppAnchor, AppRoute, AppRouter};
 
 pub enum Msg {
     ToggleNavbar,
@@ -78,7 +81,7 @@ impl Model {
         let active_class = if navbar_active { "is-active" } else { "" };
 
         html! {
-            <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
+            <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
                 <div class="navbar-brand">
                     <h1 class="navbar-item is-size-3">{ "Yew Blog" }</h1>
 
@@ -97,7 +100,7 @@ impl Model {
                         <AppAnchor classes="navbar-item" route=AppRoute::Home>
                             { "Home" }
                         </AppAnchor>
-                        <AppAnchor classes="navbar-item" route=AppRoute::Posts(PostsRoute::List)>
+                        <AppAnchor classes="navbar-item" route=AppRoute::PostList>
                             { "Posts" }
                         </AppAnchor>
 
@@ -107,7 +110,7 @@ impl Model {
                             </a>
                             <div class="navbar-dropdown">
                                 <a class="navbar-item">
-                                    <AppAnchor classes="navbar-item" route=AppRoute::Authors(AllowMissing(None))>
+                                    <AppAnchor classes="navbar-item" route=AppRoute::AuthorList>
                                         { "Meet the authors" }
                                     </AppAnchor>
                                 </a>
@@ -121,20 +124,20 @@ impl Model {
 
     fn switch(switch: AppRoute) -> Html {
         match switch {
-            AppRoute::Posts(route) => match route {
-                PostsRoute::Id(id) => {
-                    html! { <Post seed=id /> }
-                }
-                PostsRoute::List => {
-                    html! {}
-                }
-            },
-            AppRoute::Authors(AllowMissing(author)) => {
-                if let Some(AuthorRoute(id)) = author {
-                    html! { <Author seed=id /> }
-                } else {
-                    html! {}
-                }
+            AppRoute::Post(id) => {
+                html! { <Post seed=id /> }
+            }
+            AppRoute::PostListPage(page) => {
+                html! { <PostList page=page.max(1) /> }
+            }
+            AppRoute::PostList => {
+                html! { <PostList page=1 /> }
+            }
+            AppRoute::Author(id) => {
+                html! { <Author seed=id /> }
+            }
+            AppRoute::AuthorList => {
+                html! {}
             }
             AppRoute::Home => {
                 html! { <Home /> }

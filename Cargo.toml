@@ -14,9 +14,6 @@ members = [
   # Utilities
   "yewtil",
   "yewtil-macro",
-  "yewtil/examples/fetch",
-  "yewtil/examples/lrc",
-  "yewtil/examples/mrc_irc",
 
   # dsl
   "yew-dsl",

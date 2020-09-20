@@ -37,6 +37,7 @@ impl Component for Author {
 
         html! {
             <>
+                <h1>{ &author.name }</h1>
                 <figure class="image is-128x128">
                     <img class="is-rounded" src=author.image_url />
                 </figure>

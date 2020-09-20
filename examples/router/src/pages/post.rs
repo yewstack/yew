@@ -1,10 +1,9 @@
 use crate::{
     content,
     generator::Generated,
-    switch::{AppAnchor, AppRoute, AuthorRoute},
+    switch::{AppAnchor, AppRoute},
 };
 use yew::prelude::*;
-use yew_router::switch::AllowMissing;
 
 #[derive(Clone, Debug, Eq, PartialEq, Properties)]
 pub struct Props {
@@ -40,7 +39,7 @@ impl Component for Post {
     fn view(&self) -> Html {
         let Self { post } = self;
 
-        let author_route = AppRoute::Authors(AllowMissing(Some(AuthorRoute(post.author.seed))));
+        let author_route = AppRoute::Author(post.author.seed);
         let keywords = post
             .keywords
             .iter()
@@ -48,7 +47,7 @@ impl Component for Post {
 
         html! {
             <>
-                <section class="hero is-primary has-background">
+                <section class="hero is-medium is-light has-background">
                     <img class="hero-background is-transparent" src=post.image_url />
                     <div class="hero-body">
                         <div class="container">

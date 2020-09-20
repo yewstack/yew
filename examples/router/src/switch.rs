@@ -1,28 +1,17 @@
-use yew_router::{
-    components::RouterAnchor,
-    router::Router,
-    switch::{AllowMissing, Permissive},
-    Switch,
-};
-
-#[derive(Clone, Debug, Switch)]
-pub enum PostsRoute {
-    #[to = "/{num}"]
-    Id(u64),
-    #[to = "/"]
-    List,
-}
-
-#[derive(Clone, Debug, Switch)]
-#[to = "/{id}"]
-pub struct AuthorRoute(pub u64);
+use yew_router::{components::RouterAnchor, router::Router, switch::Permissive, Switch};
 
 #[derive(Clone, Debug, Switch)]
 pub enum AppRoute {
-    #[to = "/posts{*:inner}"]
-    Posts(PostsRoute),
-    #[to = "/authors{*:inner}"]
-    Authors(AllowMissing<AuthorRoute>),
+    #[to = "/posts/{}"]
+    Post(u64),
+    #[to = "/posts/?page={}"]
+    PostListPage(u64),
+    #[to = "/posts/"]
+    PostList,
+    #[to = "/authors/{id}"]
+    Author(u64),
+    #[to = "/authors"]
+    AuthorList,
     #[to = "/page-not-found"]
     PageNotFound(Permissive<String>),
     #[to = "/!"]

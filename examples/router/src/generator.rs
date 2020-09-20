@@ -2,25 +2,12 @@ use lipsum::MarkovChain;
 use rand::{rngs::SmallRng, seq::IteratorRandom, Rng, SeedableRng};
 
 const KEYWORDS: &str = include_str!("../data/keywords.txt");
+const SYLLABLES: &str = include_str!("../data/syllables.txt");
 const YEW_CONTENT: &str = include_str!("../data/yew.txt");
-
-const KEYWORDS_MIN: usize = 1;
-const KEYWORDS_MAX: usize = 4;
-
-const TITLE_MIN_WORDS: usize = 3;
-const TITLE_MAX_WORDS: usize = 8;
-const TITLE_SMALL_WORD: usize = 3;
-
-const SENTENCE_MIN_WORDS: usize = 7;
-const SENTENCE_MAX_WORDS: usize = 25;
-
-const PARAGRAPH_MIN_SENTENCES: usize = 3;
-const PARAGRAPH_MAX_SENTENCES: usize = 10;
 
 pub struct Generator<'a> {
     pub seed: u64,
     rng: SmallRng,
-    // TODO: store a version of this in a global variable
     yew_chain: MarkovChain<'a, SmallRng>,
 }
 impl Generator<'static> {
@@ -58,11 +45,28 @@ impl Generator<'_> {
     }
 
     pub fn human_name(&mut self) -> String {
-        // TODO
-        "Name in progress".to_owned()
+        const SYLLABLES_MIN: usize = 1;
+        const SYLLABLES_MAX: usize = 5;
+
+        let n_syllables = self.rng.gen_range(SYLLABLES_MIN, SYLLABLES_MAX);
+        let first_name = SYLLABLES
+            .split_whitespace()
+            .choose_multiple(&mut self.rng, n_syllables)
+            .join("");
+
+        let n_syllables = self.rng.gen_range(SYLLABLES_MIN, SYLLABLES_MAX);
+        let last_name = SYLLABLES
+            .split_whitespace()
+            .choose_multiple(&mut self.rng, n_syllables)
+            .join("");
+
+        format!("{} {}", title_case(&first_name), title_case(&last_name))
     }
 
     pub fn keywords(&mut self) -> Vec<String> {
+        const KEYWORDS_MIN: usize = 1;
+        const KEYWORDS_MAX: usize = 4;
+
         let n_keywords = self.rng.gen_range(KEYWORDS_MIN, KEYWORDS_MAX);
         KEYWORDS
             .split_whitespace()
@@ -71,7 +75,11 @@ impl Generator<'_> {
     }
 
     pub fn title(&mut self) -> String {
-        let n_words = self.rng.gen_range(TITLE_MIN_WORDS, TITLE_MAX_WORDS);
+        const WORDS_MIN: usize = 3;
+        const WORDS_MAX: usize = 8;
+        const SMALL_WORD_LEN: usize = 3;
+
+        let n_words = self.rng.gen_range(WORDS_MIN, WORDS_MAX);
         let mut title = String::new();
 
         let words = self
@@ -87,8 +95,8 @@ impl Generator<'_> {
             }
 
             // Capitalize the first word and all long words.
-            if i == 0 || word.len() > TITLE_SMALL_WORD {
-                title.push_str(&naive_title_case(word));
+            if i == 0 || word.len() > SMALL_WORD_LEN {
+                title.push_str(&title_case(word));
             } else {
                 title.push_str(word);
             }
@@ -97,14 +105,18 @@ impl Generator<'_> {
     }
 
     pub fn sentence(&mut self) -> String {
-        let n_words = self.rng.gen_range(SENTENCE_MIN_WORDS, SENTENCE_MAX_WORDS);
+        const WORDS_MIN: usize = 7;
+        const WORDS_MAX: usize = 25;
+
+        let n_words = self.rng.gen_range(WORDS_MIN, WORDS_MAX);
         self.yew_chain.generate(n_words)
     }
 
     pub fn paragraph(&mut self) -> String {
-        let n_sentences = self
-            .rng
-            .gen_range(PARAGRAPH_MIN_SENTENCES, PARAGRAPH_MAX_SENTENCES);
+        const SENTENCES_MIN: usize = 3;
+        const SENTENCES_MAX: usize = 20;
+
+        let n_sentences = self.rng.gen_range(SENTENCES_MIN, SENTENCES_MAX);
         let mut paragraph = String::new();
         for i in 0..n_sentences {
             if i > 0 {
@@ -117,7 +129,7 @@ impl Generator<'_> {
     }
 }
 
-fn naive_title_case(word: &str) -> String {
+fn title_case(word: &str) -> String {
     let idx = match word.chars().next() {
         Some(c) => c.len_utf8(),
         None => 0,
