@@ -23,7 +23,7 @@ impl Component for Producer {
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        unimplemented!()
+        false
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {

@@ -10,9 +10,6 @@ members = [
   "yew-router",
   "yew-router-macro",
   "yew-router-route-parser",
-  "yew-router/examples/minimal",
-  "yew-router/examples/router_component",
-  "yew-router/examples/switch",
 
   # Utilities
   "yewtil",
