@@ -25,7 +25,7 @@ cargo build --target wasm32-unknown-unknown
 Then, run wasm-bindgen's CLI. This command will produce a set of files in the `--out-dir` directory
 containing both your app's compiled WebAssembly and a JavaScript wrapper which will load 
 the Wasm binary and run it. This is necessary because browsers currently can't load WebAssembly files
-directly instead requiring them to be loaded via Javascript scripts. In the [build a sample app](../build-a-sample-app.md) example we want the files to be generated in the `static` folder (to do this you'll need
+directly instead requiring them to be loaded via JavaScript scripts. In the [build a sample app](../build-a-sample-app.md) example we want the files to be generated in the `static` folder (to do this you'll need
 to pass `--out-dir static` as  a flag to `wasm-bindgen`) and be called `wasm.js` and `wasm_bg.wasm` 
 (you can do this by passing `--out-name wasm` as a flag to `wasm-bindgen`).
 
