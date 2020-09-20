@@ -2,7 +2,7 @@
 
 ## Setting up your local development environment
 
-### Add the WASM target
+### Add the Wasm target
 
 ```bash
 rustup target add wasm32-unknown-unknown

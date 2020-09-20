@@ -20,7 +20,7 @@ If your PR is something bigger create an issue beforehand. This will save everyo
 
 ## Spelling and grammar
 
-We recognise that not everyone who contributes to Yew will have "perfect" grammar or be a native
+We recognize that not everyone who contributes to Yew will have "perfect" grammar or be a native
 English speaker. We're all human; everyone makes mistakes and nobody will look down on you if you 
 make typos or grammar mistakes (we'll just fix them, merge PRs and move on with life).
 
