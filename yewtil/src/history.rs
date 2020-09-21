@@ -14,6 +14,71 @@ use std::ops::Deref;
 /// or until they are dropped by calling `reset` or `forget`.
 ///
 /// Prior values can be iterated over as well.
+///
+/// # Example
+///
+/// ```
+/// # use yew::{html, Component, ComponentLink, Html, InputData, ShouldRender};
+/// use yewtil::History;
+///
+/// pub enum Msg {
+///     SetText(String),
+///     Reset,
+///     Forget,
+/// }
+///
+/// pub struct Model {
+///     link: ComponentLink<Self>,
+///     text: History<String>,
+/// }
+/// impl Component for Model {
+///     type Message = Msg;
+/// #    type Properties = ();
+///
+///     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+///         Self {
+///             link,
+///             text: History::new("Hello World!".to_string()),
+///         }
+///     }
+///
+///     fn update(&mut self, msg: Self::Message) -> ShouldRender {
+///         match msg {
+///             Msg::SetText(text) => self.text.neq_set(text),
+///             Msg::Reset => self.text.reset(),
+///             Msg::Forget => {
+///                 self.text.forget();
+///                 false
+///             }
+///         }
+///     }
+/// #
+/// #    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+/// #        unimplemented!()
+/// #    }
+///
+///     fn view(&self) -> Html {
+///         html! {
+///             <>
+///                 <span>{ &*self.text }</span>
+///                 <div>
+///                     <input
+///                         type="text"
+///                         value=&*self.text
+///                         oninput=self.link.callback(|data: InputData| Msg::SetText(data.value))
+///                     />
+///                     <button onclick=self.link.callback(|_| Msg::Reset)>{ "Reset to the oldest value" }</button>
+///                     <button onclick=self.link.callback(|_| Msg::Forget)>{ "Forget prior values" }</button>
+///                 </div>
+///                 <div>
+///                     <span>{ "History" }</span>
+///                     { for self.text.iter() }
+///                 </div>
+///             </>
+///         }
+///     }
+/// }
+/// ```
 pub struct History<T>(VecDeque<T>);
 
 impl<T> History<T> {

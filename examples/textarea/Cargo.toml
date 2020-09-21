@@ -1,8 +1,0 @@
-[package]
-name = "textarea"
-version = "0.1.0"
-authors = ["Andrew Straw <strawman@astraw.com>"]
-edition = "2018"
-
-[dependencies]
-yew = { path = "../../yew" }

@@ -1,12 +1,16 @@
-#![recursion_limit = "128"]
-
 pub mod context;
 pub mod job;
 pub mod native_worker;
 
-use log::info;
 use yew::worker::{Bridge, Bridged};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
+
+pub enum Msg {
+    SendToWorker,
+    SendToJob,
+    SendToContext,
+    DataReceived,
+}
 
 pub struct Model {
     link: ComponentLink<Self>,
@@ -16,18 +20,11 @@ pub struct Model {
     context_2: Box<dyn Bridge<context::Worker>>,
 }
 
-pub enum Msg {
-    SendToWorker,
-    SendToJob,
-    SendToContext,
-    DataReceived,
-}
-
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.callback(|_| Msg::DataReceived);
         let worker = native_worker::Worker::bridge(callback);
 
@@ -40,7 +37,7 @@ impl Component for Model {
         let callback = link.callback(|_| Msg::DataReceived);
         let context_2 = context::Worker::bridge(callback);
 
-        Model {
+        Self {
             link,
             worker,
             job,
@@ -53,19 +50,26 @@ impl Component for Model {
         match msg {
             Msg::SendToWorker => {
                 self.worker.send(native_worker::Request::GetDataFromServer);
+                false
             }
             Msg::SendToJob => {
                 self.job.send(job::Request::GetDataFromServer);
+                false
             }
             Msg::SendToContext => {
                 self.context.send(context::Request::GetDataFromServer);
                 self.context_2.send(context::Request::GetDataFromServer);
+                false
             }
             Msg::DataReceived => {
-                info!("DataReceived");
+                log::info!("DataReceived");
+                false
             }
         }
-        true
+    }
+
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        false
     }
 
     fn view(&self) -> Html {
@@ -78,9 +82,5 @@ impl Component for Model {
                 </nav>
             </div>
         }
-    }
-
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
     }
 }

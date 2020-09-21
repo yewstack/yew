@@ -1,3 +1,0 @@
-# Allow cargo-check to work as expected.
-[build]
-target = "wasm32-unknown-unknown"

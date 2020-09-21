@@ -1,0 +1,65 @@
+name: Publish Examples
+on:
+  push:
+    branches: [master]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      # leave empty for /
+      PUBLIC_URL_PREFIX: ""
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+
+      - name: Install trunk
+        run: cargo install trunk wasm-bindgen-cli
+
+      - name: Build examples
+        run: |
+          output="$(pwd)/dist"
+
+          for path in examples/*; do
+            if [[ ! -d $path ]]; then
+              continue
+            fi
+
+            example=$(basename "$path")
+
+            # multi_thread doesn't work yet. See <https://github.com/thedodd/trunk/issues/40>.
+            if [[ "$example" == "multi_thread" ]]; then
+              continue
+            fi
+
+            echo "building: $example"
+            (
+              cd "$path"
+              dist_dir="$output/$example"
+
+              export PUBLIC_URL="$PUBLIC_URL_PREFIX/$example"
+              trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL"
+            )
+          done
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3.7.0-8
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist

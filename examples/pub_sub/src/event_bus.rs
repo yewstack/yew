@@ -19,15 +19,15 @@ impl Agent for EventBus {
     type Output = String;
 
     fn create(link: AgentLink<Self>) -> Self {
-        EventBus {
+        Self {
             link,
             subscribers: HashSet::new(),
         }
     }
 
-    fn update(&mut self, _: Self::Message) {}
+    fn update(&mut self, _msg: Self::Message) {}
 
-    fn handle_input(&mut self, msg: Self::Input, _: HandlerId) {
+    fn handle_input(&mut self, msg: Self::Input, _id: HandlerId) {
         match msg {
             Request::EventBusMsg(s) => {
                 for sub in self.subscribers.iter() {

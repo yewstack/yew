@@ -4,6 +4,10 @@ use super::list::List;
 use super::{Hovered, WeakComponentLink};
 use yew::prelude::*;
 
+pub enum Msg {
+    Hover(Hovered),
+}
+
 pub struct App {
     link: ComponentLink<Self>,
     hovered: Hovered,
@@ -11,32 +15,30 @@ pub struct App {
     sub_list_link: WeakComponentLink<List>,
 }
 
-pub enum Msg {
-    Hover(Hovered),
-}
-
 impl Component for App {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        App {
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Self {
             link,
             hovered: Hovered::None,
-            list_link: WeakComponentLink::<List>::default(),
-            sub_list_link: WeakComponentLink::<List>::default(),
+            list_link: WeakComponentLink::default(),
+            sub_list_link: WeakComponentLink::default(),
         }
     }
 
-    fn change(&mut self, _: Self::Properties) -> bool {
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
         false
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::Hover(hovered) => self.hovered = hovered,
+            Msg::Hover(hovered) => {
+                self.hovered = hovered;
+                true
+            }
         }
-        true
     }
 
     fn view(&self) -> Html {
@@ -44,6 +46,11 @@ impl Component for App {
         let onmouseenter = &self.link.callback(|_| Msg::Hover(Hovered::None));
         let list_link = &self.list_link;
         let sub_list_link = &self.sub_list_link;
+
+        // note the use of `html_nested!` instead of `html!`.
+        let letters = ('A'..='C')
+            .map(|letter| html_nested! { <ListItem name=letter.to_string() on_hover=on_hover /> });
+
         html! {
             <div class="main" onmouseenter=onmouseenter>
                 <h1>{ "Nested List Demo" }</h1>
@@ -52,20 +59,15 @@ impl Component for App {
                     <ListItem name="Rustin" on_hover=on_hover />
                     <ListItem hide=true name="Rustaroo" on_hover=on_hover />
                     <ListItem name="Rustifer" on_hover=on_hover>
-                        <div class="sublist">{"Sublist!"}</div>
-                        {
-                            html! {
-                                <List on_hover=on_hover weak_link=sub_list_link>
-                                    <ListHeader text="Sub Rusties!" on_hover=on_hover list_link=sub_list_link/>
-                                    <ListItem name="Sub Rustin" on_hover=on_hover />
-                                    <ListItem hide=true name="Sub Rustaroo" on_hover=on_hover />
-                                    <ListItem name="Sub Rustifer" on_hover=on_hover />
-                                </List>
-                            }
-                        }
+                        <div class="sublist">{ "Sublist!" }</div>
+                        <List on_hover=on_hover weak_link=sub_list_link>
+                            <ListHeader text="Sub Rusties!" on_hover=on_hover list_link=sub_list_link/>
+                            <ListItem hide=true name="Hidden Sub" on_hover=on_hover />
+                            { for letters }
+                        </List>
                     </ListItem>
                 </List>
-                {self.view_last_hovered()}
+                { self.view_last_hovered() }
             </div>
         }
     }
