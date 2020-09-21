@@ -57,7 +57,7 @@ impl Component for PostList {
         let Props { page } = self.props;
 
         html! {
-            <div class="section">
+            <div class="section container">
                 <h1 class="title">{ "Posts" }</h1>
                 <h2 class="subtitle">{ "All of our quality writing in one place" }</h2>
                 { self.view_posts() }

@@ -22,7 +22,7 @@ impl Component for Home {
             <div class="tile is-ancestor is-vertical">
                 <div class="tile is-child hero">
                     <div class="hero-body container pb-0">
-                        <h1 class="title">{ "Welcome..." }</h1>
+                        <h1 class="title is-1">{ "Welcome..." }</h1>
                         <h2 class="subtitle">{ "...to the best yew content" }</h2>
                     </div>
                 </div>
@@ -33,7 +33,7 @@ impl Component for Home {
                     </figure>
                 </div>
 
-                <div class="tile is-parent">
+                <div class="tile is-parent container">
                     { self.view_info_tiles() }
                 </div>
             </div>

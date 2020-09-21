@@ -1,5 +1,5 @@
 use lipsum::MarkovChain;
-use rand::{rngs::SmallRng, seq::IteratorRandom, Rng, SeedableRng};
+use rand::{distributions::Bernoulli, rngs::SmallRng, seq::IteratorRandom, Rng, SeedableRng};
 
 const KEYWORDS: &str = include_str!("../data/keywords.txt");
 const SYLLABLES: &str = include_str!("../data/syllables.txt");
@@ -26,6 +26,16 @@ impl Generator<'static> {
 impl Generator<'_> {
     pub fn new_seed(&mut self) -> u64 {
         self.rng.gen()
+    }
+
+    /// [low, high)
+    pub fn range(&mut self, low: usize, high: usize) -> usize {
+        self.rng.gen_range(low, high)
+    }
+
+    /// `n / d` chance
+    pub fn chance(&mut self, n: u32, d: u32) -> bool {
+        self.rng.sample(Bernoulli::from_ratio(n, d).unwrap())
     }
 
     pub fn image_url(&mut self, dimension: (usize, usize), keywords: &[String]) -> String {

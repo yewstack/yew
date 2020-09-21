@@ -36,12 +36,40 @@ impl Component for Author {
         let Self { author } = self;
 
         html! {
-            <>
-                <h1>{ &author.name }</h1>
-                <figure class="image is-128x128">
-                    <img class="is-rounded" src=author.image_url />
-                </figure>
-            </>
+            <div class="section container">
+                <div class="tile is-ancestor is-vertical">
+                    <div class="tile is-parent">
+                        <article class="tile is-child notification is-light">
+                            <p class="title">{ &author.name }</p>
+                        </article>
+                    </div>
+                    <div class="tile">
+                        <div class="tile is-parent is-3">
+                            <article class="tile is-child notification">
+                                <p class="title">{ "Interests" }</p>
+                                <div class="tags">
+                                    { for author.keywords.iter().map(|tag| html! { <span class="tag is-info">{ tag }</span> }) }
+                                </div>
+                            </article>
+                        </div>
+                        <div class="tile is-parent">
+                            <figure class="tile is-child image is-square">
+                                <img src=author.image_url />
+                            </figure>
+                        </div>
+                        <div class="tile is-parent">
+                            <article class="tile is-child notification is-info">
+                                <div class="content">
+                                    <p class="title">{ "About me" }</p>
+                                    <div class="content">
+                                        { "This author has chosen not to reveal anything about themselves" }
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+            </div>
         }
     }
 }

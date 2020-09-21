@@ -49,7 +49,7 @@ impl Component for AuthorList {
         });
 
         html! {
-            <>
+            <div class="container">
                 <section class="hero">
                     <div class="hero-body">
                         <div class="container">
@@ -65,7 +65,7 @@ impl Component for AuthorList {
                     <i>{ "(or possible :P)" }</i>
                     {" to list each and every author in alphabetical order."}
                     <br />
-                    { "Instead, we choose to put more focus on the individuals by introducing you to two people at a time" }
+                    { "So instead we chose to put more focus on the individuals by introducing you to two people at a time" }
                 </p>
                 <div class="section">
                     <div class="tile is-ancestor">
@@ -73,7 +73,7 @@ impl Component for AuthorList {
                     </div>
                     <ProgressDelay duration_ms=CAROUSEL_DELAY_MS on_complete=self.link.callback(|_| Msg::NextAuthors) />
                 </div>
-            </>
+            </div>
         }
     }
 }

@@ -22,40 +22,90 @@ impl Generated for Author {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-struct Section {
-    content: String,
-    image_url: Option<String>,
-}
-impl Generated for Section {
-    fn generate(_gen: &mut Generator) -> Self {
-        todo!()
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Post {
     pub seed: u64,
     pub title: String,
     pub author: Author,
     pub keywords: Vec<String>,
-    pub content: String,
     pub image_url: String,
+    pub content: Vec<PostPart>,
 }
 impl Generated for Post {
     fn generate(gen: &mut Generator) -> Self {
+        const PARTS_MIN: usize = 1;
+        const PARTS_MAX: usize = 10;
+
         let title = gen.title();
         let author = Author::generate_from_seed(gen.new_seed());
         let keywords = gen.keywords();
-        let content = gen.paragraph();
         let image_url = gen.image_url((1000, 500), &keywords);
+
+        let n_parts = gen.range(PARTS_MIN, PARTS_MAX);
+        let content = (0..n_parts).map(|_| PostPart::generate(gen)).collect();
 
         Self {
             seed: gen.seed,
             title,
             author,
             keywords,
+            image_url,
             content,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PostPart {
+    Section(Section),
+    Quote(Quote),
+}
+impl Generated for PostPart {
+    fn generate(gen: &mut Generator) -> Self {
+        // Because we pass the same (already used) generator down,
+        // the resulting `Section` and `Quote` aren't be reproducible with just the seed.
+        // This doesn't matter here though, because we don't need it.
+        if gen.chance(1, 10) {
+            Self::Quote(Quote::generate(gen))
+        } else {
+            Self::Section(Section::generate(gen))
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Section {
+    pub title: String,
+    pub paragraphs: Vec<String>,
+    pub image_url: String,
+}
+impl Generated for Section {
+    fn generate(gen: &mut Generator) -> Self {
+        const PARAGRAPHS_MIN: usize = 1;
+        const PARAGRAPHS_MAX: usize = 8;
+
+        let title = gen.title();
+        let n_paragraphs = gen.range(PARAGRAPHS_MIN, PARAGRAPHS_MAX);
+        let paragraphs = (0..n_paragraphs).map(|_| gen.paragraph()).collect();
+        let image_url = gen.image_url((600, 300), &[]);
+
+        Self {
+            title,
+            paragraphs,
             image_url,
         }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Quote {
+    pub author: Author,
+    pub content: String,
+}
+impl Generated for Quote {
+    fn generate(gen: &mut Generator) -> Self {
+        // wouldn't it be funny if the author ended up quoting themselves?
+        let author = Author::generate_from_seed(gen.new_seed());
+        let content = gen.paragraph();
+        Self { author, content }
     }
 }
