@@ -10,7 +10,7 @@ use pages::{
     post_list::PostList,
 };
 mod switch;
-use switch::{AppAnchor, AppRoute, AppRouter};
+use switch::{AppAnchor, AppRoute, AppRouter, PublicUrlSwitch};
 
 pub enum Msg {
     ToggleNavbar,
@@ -53,7 +53,7 @@ impl Component for Model {
                     <AppRouter
                         render=AppRouter::render(Self::switch)
                         redirect=AppRouter::redirect(|route: Route| {
-                            AppRoute::PageNotFound(Permissive(Some(route.route)))
+                            AppRoute::PageNotFound(Permissive(Some(route.route))).into_public()
                         })
                     />
                 </main>
@@ -123,8 +123,8 @@ impl Model {
         }
     }
 
-    fn switch(switch: AppRoute) -> Html {
-        match switch {
+    fn switch(switch: PublicUrlSwitch) -> Html {
+        match switch.route() {
             AppRoute::Post(id) => {
                 html! { <Post seed=id /> }
             }
