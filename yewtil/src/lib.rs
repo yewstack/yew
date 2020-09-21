@@ -34,6 +34,28 @@ pub use not_equal_assign::{NeqAssign, NeqAssignBy};
 #[cfg(feature = "pure")]
 pub use pure::{Pure, PureComponent};
 
+/// Define a component with a function
+///
+/// # Example
+///
+/// ```
+/// # use yew::{html, Callback, Html, MouseEvent};
+///
+/// #[yewtil::function_component(Button)]
+/// pub fn button(
+///     callback: &Callback<MouseEvent>,
+///     #[prop_or_default] text: String,
+/// ) -> Html {
+///     html! {
+///         <button onclick=callback>{ text }</button>
+///     }
+/// }
+///
+/// # fn view() -> Html {
+/// // You can then use it like a normal component
+/// html! { <Button callback=Callback::from(|_| println!("Clicked")) text="Click me!" /> }
+/// # }
+/// ```
 #[deprecated]
 #[cfg(feature = "pure")]
 pub use yewtil_macro::function_component;

@@ -1,0 +1,14 @@
+# Mount Point Example
+
+This example displays a green square followed by an input box and a field
+which contains the contents of the input box in reverse.
+
+## Concepts
+
+- Using the Javascript APIs with web-sys
+- Taking control of the mounting process which is usually handled by `yew::start_app`
+
+## Improvements
+
+This example is very similar to [`two_apps`](../two_apps).
+The two should be merged into a single example.

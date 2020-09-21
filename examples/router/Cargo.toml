@@ -1,0 +1,15 @@
+[package]
+name = "router"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+default-env = "0.1"
+instant = { version = "0.1", features = ["wasm-bindgen"] }
+lipsum = "0.7"
+log = "0.4"
+rand = { version = "0.7", features = ["small_rng", "wasm-bindgen"] }
+wasm-logger = "0.2"
+yew = { path = "../../yew" }
+yew-router = { path = "../../yew-router" }
+yewtil = { path = "../../yewtil" }

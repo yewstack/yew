@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use yew::ShouldRender;
 
 /// Alternative to using Message enums.
@@ -26,39 +25,50 @@ impl<COMP> Effect<COMP> {
 }
 
 /// Terser wrapper function to be used instead of `Effect::new()`.
+///
+/// # Example
+///
+/// ```
+/// # use yew::prelude::*;
+/// use yewtil::{effect, Effect};
+///
+/// pub struct Model {
+///     link: ComponentLink<Self>,
+///     value: bool,
+/// }
+/// impl Component for Model {
+///     type Message = Effect<Self>;
+/// #     type Properties = ();
+///
+///     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+///         Self { link, value: false }
+///     }
+///
+///     fn update(&mut self, msg: Self::Message) -> ShouldRender {
+///         msg.call(self)
+///     }
+/// #
+/// #    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+/// #        unimplemented!()
+/// #    }
+///
+///     fn view(&self) -> Html {
+///         html! {
+///             <>
+///                 <span>{ self.value }</span>
+///                 <button
+///                     onclick=self.link.callback(|_| effect(|model: &mut Self| {
+///                         model.value = !model.value;
+///                         true
+///                     }))
+///                 >
+///                     { "Toggle" }
+///                 </button>
+///             </>
+///         }
+///     }
+/// }
+/// ```
 pub fn effect<COMP>(f: impl Fn(&mut COMP) -> ShouldRender + 'static) -> Effect<COMP> {
     Effect::new(f)
-}
-
-#[allow(dead_code)]
-mod wip {
-    use super::*;
-
-    // TODO, once function_traits stabalize, this `to_effect()` will be able to be replaced with just a () call, making this more ergonomic.
-    // https://github.com/rust-lang/rust/issues/29625
-    // TODO, change naming of this.
-
-    // TODO. Consider an arbitrary state holder: Hashmap<&str, Box<dyn Any + 'static>. It might be possible to write a function that returns a &T, and a StateHook<COMP, T>
-    // TODO for any given T that could be inserted into the holder. This might work well if the state holder itself is a component.
-    // Actually, as long as order is preserved, a Vec<Box<dyn Any + 'static>>, might work just as well.
-    // This would replicate the useState hook in react https://reactjs.org/docs/hooks-state.html
-
-    /// Wrapper around a mutable accessor to one of the component's (or another construct capabale of storing state's) fields.
-    pub struct StateHook<STORE, T>(Rc<dyn Fn(&mut STORE) -> &mut T>);
-
-    impl<STORE: 'static, T: 'static> StateHook<STORE, T> {
-        /// Creates a new state hook.
-        pub fn new(mutable_accessor: impl Fn(&mut STORE) -> &mut T + 'static) -> Self {
-            StateHook(Rc::new(mutable_accessor))
-        }
-
-        /// Creates an effect using the wrapped accessor and a mutation function for the `T`.
-        pub fn to_effect(&self, f: impl Fn(&mut T) -> ShouldRender + 'static) -> Effect<STORE> {
-            let mutable_accessor = self.0.clone();
-            Effect::new(move |comp| {
-                let t = (mutable_accessor)(comp);
-                f(t)
-            })
-        }
-    }
 }

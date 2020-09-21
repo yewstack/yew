@@ -1,8 +1,0 @@
-[package]
-name = "large_table"
-version = "0.1.0"
-authors = ["qthree <qthree3@gmail.com>"]
-edition = "2018"
-
-[dependencies]
-yew = { path = "../../yew" }

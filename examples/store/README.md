@@ -1,11 +1,14 @@
-# Store example
+# Store Example
 
-Showcases the `yewtil::store` API, using it to represent a timeline of posts that can be independently updated.
+A timeline of posts that can be independently updated.
 
-Run with
+## Concepts
 
-```
-cd examples/
-./run_example.sh store
-```
+Uses the [`yewtil::store`] API to keep track of posts.
 
+## Improvements
+
+- This example desperately needs some styling.
+- Posts should persist across sessions.
+
+[`yewtil::store`]: https://docs.rs/yewtil/latest/yewtil/store/index.html
