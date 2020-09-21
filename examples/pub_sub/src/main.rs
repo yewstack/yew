@@ -17,7 +17,7 @@ impl Component for Model {
     }
 
     fn change(&mut self, _msg: Self::Properties) -> ShouldRender {
-        unimplemented!()
+        false
     }
 
     fn update(&mut self, _props: Self::Message) -> ShouldRender {

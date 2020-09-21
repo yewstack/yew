@@ -41,7 +41,7 @@ impl Component for Model {
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        unimplemented!()
+        false
     }
 
     fn view(&self) -> Html {
