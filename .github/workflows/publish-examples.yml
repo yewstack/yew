@@ -55,8 +55,6 @@ jobs:
 
               export PUBLIC_URL="$PUBLIC_URL_PREFIX/$example"
               trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL"
-
-              cp "$dist_dir/index.html" "$dist_dir/404.html"
             )
           done
 
