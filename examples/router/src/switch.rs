@@ -1,6 +1,6 @@
 use default_env::default_env;
 use yew::virtual_dom::{Transformer, VComp};
-use yew_router::{components::RouterAnchor, router::Router, switch::Permissive, Switch};
+use yew_router::{components::RouterAnchor, prelude::*, switch::Permissive};
 
 #[derive(Clone, Debug, Switch)]
 pub enum AppRoute {
@@ -22,6 +22,10 @@ pub enum AppRoute {
 impl AppRoute {
     pub fn into_public(self) -> PublicUrlSwitch {
         PublicUrlSwitch(self)
+    }
+
+    pub fn into_route(self) -> Route {
+        Route::from(self.into_public())
     }
 }
 

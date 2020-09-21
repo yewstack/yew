@@ -3,10 +3,7 @@ use crate::{
     switch::AppRoute,
 };
 use yew::prelude::*;
-use yew_router::{
-    agent::{RouteAgentDispatcher, RouteRequest},
-    route::Route,
-};
+use yew_router::agent::{RouteAgentDispatcher, RouteRequest};
 use yewtil::NeqAssign;
 
 const ITEMS_PER_PAGE: u64 = 10;
@@ -43,7 +40,7 @@ impl Component for PostList {
             Msg::ShowPage(page) => {
                 let route = AppRoute::PostListPage(page);
                 self.route_dispatcher
-                    .send(RouteRequest::ChangeRoute(Route::from(route)));
+                    .send(RouteRequest::ChangeRoute(route.into_route()));
                 false
             }
         }
