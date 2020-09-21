@@ -37,20 +37,27 @@ jobs:
           output="$(pwd)/dist"
 
           for path in examples/*; do
-              if [[ ! -d $path ]]; then
-                  continue
-              fi
+            if [[ ! -d $path ]]; then
+              continue
+            fi
 
-              example=$(basename "$path")
+            example=$(basename "$path")
 
-              # multi_thread doesn't work yet. See <https://github.com/thedodd/trunk/issues/40>.
-              if [[ "$example" == "multi_thread" ]]; then
-                continue
-              fi
+            # multi_thread doesn't work yet. See <https://github.com/thedodd/trunk/issues/40>.
+            if [[ "$example" == "multi_thread" ]]; then
+              continue
+            fi
 
-              echo "building: $example"
+            echo "building: $example"
+            (
+              cd "$path"
+              dist_dir="$output/$example"
+
               export PUBLIC_URL="$PUBLIC_URL_PREFIX/$example"
-              (cd "$path" && trunk build --release --dist "$output/$example" --public-url "$PUBLIC_URL")
+              trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL"
+
+              cp "$dist_dir/index.html" "$dist_dir/404.html"
+            )
           done
 
       - name: Deploy
