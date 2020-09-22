@@ -1,8 +1,7 @@
 name: Publish website
 on:
   push:
-    branches:
-      - master
+    branches: [master]
     paths:
       - "docs/**/*"
       - "website/**/*"
@@ -16,13 +15,16 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "12.x"
-      - name: Install dependencies
-        run: cd website && yarn install && cd ../
-      - name: Build site
-        run: cd website && yarn run build && cd ../
+
+      - name: Build
+        run: |
+          cd website
+          yarn install
+          yarn run build
+
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master
         with:
-          args: deploy --only hosting
+          args: deploy --only hosting:website
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

@@ -58,9 +58,9 @@ jobs:
             )
           done
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3.7.0-8
+      - name: Deploy to Firebase
+        uses: w9jds/firebase-action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          cname: examples.yew.rs
+          args: deploy --only hosting:examples
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
