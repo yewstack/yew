@@ -1,48 +1,53 @@
 ---
 title: Build a sample app
 ---
-First create a new Rust library \(**important:** create a _library_, not a _binary_ by passing the `--lib` flag\):
+
+First, create a new Rust app:
 
 ```bash
-cargo new --lib yew-app && cd yew-app
+cargo new yew-app
 ```
 
-Add `yew` and `wasm-bindgen` to your dependencies \(refer [here](https://docs.rs/yew) for the latest version\)
+and let's move into the newly created directory:
 
-```toml title="Cargo.toml"
+```bash
+cd yew-app
+```
+
+Add `yew` to your dependencies in the `Cargo.toml` file:
+
+```toml
 [package]
 name = "yew-app"
 version = "0.1.0"
-authors = ["Yew App Developer <name@example.com>"]
 edition = "2018"
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
+# you can check the latest version here: https://crates.io/crates/yew
 yew = "0.17"
-wasm-bindgen = "0.2.67"
 ```
 
-Copy the following template into your `src/lib.rs` file:
+Copy the following template into your `src/main.rs` file:
 
-```rust title="src/lib.rs"
-use wasm_bindgen::prelude::*;
+```rust
 use yew::prelude::*;
-
-struct Model {
-    link: ComponentLink<Self>,
-    value: i64,
-}
 
 enum Msg {
     AddOne,
 }
 
+struct Model {
+    // `ComponentLink` is like a reference to a component.
+    // It can be used to send messages to the component
+    link: ComponentLink<Self>,
+    value: i64,
+}
+
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
             link,
             value: 0,
@@ -51,9 +56,13 @@ impl Component for Model {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::AddOne => self.value += 1
+            Msg::AddOne => {
+                self.value += 1;
+                // the value has changed so we need to
+                // re-render for it to appear on the page
+                true
+            }
         }
-        true
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
@@ -73,52 +82,40 @@ impl Component for Model {
     }
 }
 
-#[wasm_bindgen(start)]
-pub fn run_app() {
-    App::<Model>::new().mount_to_body();
+fn main() {
+    yew::start_app::<Model>();
 }
 ```
 
-This template sets up your root `Component`, called `Model` which shows a button that updates itself when you click it. Take special note of `App::<Model>::new().mount_to_body()` inside `main()` which starts your app and mounts it to the page's `<body>` tag. If you would like to start your application with any dynamic properties, you can instead use `App::<Model>::new().mount_to_body_with_props(..)`.
+This template sets up your root `Component`, called `Model` which shows a button that updates itself when you click it.
+Take special note of `yew::start_app::<Model>()` inside `main()` which starts your app and mounts it to the page's `<body>` tag.
+If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props::<Model>(..)`.
 
-Finally, add an `index.html` file into a new folder named `static` in your app.
+Finally, add an `index.html` file in the root directory of your app:
 
-```bash
-mkdir static
-```
-
-```markup title="index.html"
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>Yew Sample App</title>
-        <script type="module">
-            import init from "./wasm.js"
-            init()
-        </script>
-    </head>
-    <body></body>
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Yew App</title>
+  </head>
 </html>
 ```
 
-## Run your app!
+## Run your app
 
-Using [`wasm-pack`](https://rustwasm.github.io/docs/wasm-pack/) is the preferred way to get up and 
-running. If you haven't already, install `wasm-pack` with `cargo install wasm-pack` and then build 
-and start a development server by running:
+If you haven't already, install [Trunk](https://github.com/thedodd/trunk):
 
 ```bash
-wasm-pack build --target web --out-name wasm --out-dir ./static
+cargo install trunk wasm-bindgen-cli
 ```
 
-`wasm-pack` generates a bundle in the `./static` directory with your app's compiled WebAssembly 
-along with a JavaScript wrapper which will load your application's WebAssembly binary and run it.
-
-Then, use your favorite web server to serve the files under `./static`. For example:
+Now all you have to do is run the following:
 
 ```bash
-cargo +nightly install miniserve
-miniserve ./static --index index.html
+trunk serve
 ```
 
+This will start a development server which continually updates the app every time you change something.
+Trunk will output the URL where you can access your app.
