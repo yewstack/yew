@@ -10,7 +10,6 @@ edition = "2018"
 
 [dependencies]
 log = "0.4"
-rand = { version = "0.7", features = ["getrandom"] }
-getrandom = { version = "0.1", features = ["wasm-bindgen"] }
+rand = { version = "0.7", features = ["wasm-bindgen"] }
 wasm-logger = "0.2"
 yew = { path = "../../yew" }
