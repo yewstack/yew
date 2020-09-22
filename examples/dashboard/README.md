@@ -1,5 +1,7 @@
 # Dashboard Example
 
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fdashboard)](https://examples.yew.rs/dashboard)
+
 This example uses `FetchService` and `WebSocketService` to load external data.
 
 ## Special requirements for WebSocket

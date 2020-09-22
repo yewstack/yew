@@ -1,5 +1,7 @@
 # Timer Example
 
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Ftimer)](https://examples.yew.rs/timer)
+
 This is a technical demonstration for how to use timeouts and intervals.
 
 ## Concepts

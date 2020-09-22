@@ -1,5 +1,7 @@
 # Mount Point Example
 
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fmount_point)](https://examples.yew.rs/mount_point)
+
 This example displays a green square followed by an input box and a field
 which contains the contents of the input box in reverse.
 

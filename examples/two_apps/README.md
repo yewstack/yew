@@ -1,5 +1,7 @@
 # Two Apps Example
 
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Ftwo_apps)](https://examples.yew.rs/two_apps)
+
 This example runs two Yew apps which communicate with each other.
 
 ## Concepts

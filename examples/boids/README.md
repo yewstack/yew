@@ -1,5 +1,7 @@
 # Boids Example
 
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fboids)](https://examples.yew.rs/boids)
+
 A version of [Boids](https://en.wikipedia.org/wiki/Boids) implemented in Yew.
 
 This example doesn't make use of a [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API),

@@ -1,5 +1,7 @@
 # Nested List Example
 
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fnested_list)](https://examples.yew.rs/nested_list)
+
 This example shows a nested list and displays which item was last hovered.
 
 ## Concepts
