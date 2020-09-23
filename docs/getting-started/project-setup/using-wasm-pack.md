@@ -5,7 +5,7 @@ title: Using wasm-pack
 This tool was created by the Rust / Wasm Working Group for building WebAssembly applications. It supports packaging code into `npm` modules and has an accompanying [Webpack plugin](https://github.com/wasm-tool/wasm-pack-plugin) for easy integration with existing JavaScript applications. More information is given in [the `wasm-pack` documentation](https://rustwasm.github.io/docs/wasm-pack/introduction.html).
 
 :::note
-`wasm-pack` builds your library as a `cdylib` which requires that your crate-type includes it:
+`wasm-pack` requires that you set the crate-type explicitly to include `cdylib`:
 
 ```toml
 [lib]
@@ -37,7 +37,7 @@ For more information on rollup.js visit this [guide](https://rollupjs.org/guide/
 rollup ./main.js --format iife --file ./pkg/bundle.js
 ```
 
-When using a bundler you can omit `--target web`.
+When using a bundler like rollup.js you can omit `--target web`.
 
 ## Serve
 
@@ -47,4 +47,4 @@ Feel free to use your preferred server. Here we use a simple Python server to se
 python -m http.server 8000
 ```
 
-If you don't have Python installed, you can install the [`simple-http-server`](https://github.com/TheWaWaR/simple-http-server) crate.
+If you don't have Python installed, you can install and use the [`simple-http-server`](https://github.com/TheWaWaR/simple-http-server) crate instead.

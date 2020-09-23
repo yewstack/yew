@@ -2,19 +2,15 @@
 title: Build a sample app
 ---
 
-First, create a new Rust app:
+First, create a new cargo project:
 
 ```bash
 cargo new yew-app
 ```
 
-and let's move into the newly created directory:
+Open the newly created directory.
 
-```bash
-cd yew-app
-```
-
-Add `yew` to your dependencies in the `Cargo.toml` file:
+First, let's add `yew` as a dependencies in the `Cargo.toml` file:
 
 ```toml
 [package]
@@ -118,4 +114,3 @@ trunk serve
 ```
 
 This will start a development server which continually updates the app every time you change something.
-Trunk will output the URL where you can access your app.

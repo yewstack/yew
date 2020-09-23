@@ -10,13 +10,13 @@ cargo install trunk wasm-bindgen-cli
 
 ## Usage
 
-Check out [Build a sample app](../build-a-sample-app.md) for a short guide on how to build Yew apps with Trunk.
+Check out ["Build a sample app"](../build-a-sample-app.md) for a short guide on how to build Yew apps with Trunk.
 
 You can also see it in action by looking at our [examples](https://github.com/yewstack/yew/tree/master/examples),
 all of which are built with Trunk.
 
 Trunk builds your app based on the `index.html` file which serves as a config file of sorts.
-Unlike `wasm-pack` this tool is actually designed to build apps instead of libraries.
+Unlike `wasm-pack`, this tool is actually designed to build apps.
 This means you don't need to add `cdylib` as a library target and you can use the `main` function
 as an entry point.
 

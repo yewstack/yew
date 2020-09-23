@@ -28,7 +28,7 @@ edition = "2018"
 
 [lib]
 # You should include "rlib" (the default crate type) otherwise your crate can't be used as a Rust library
-# which among other things, breaks testing
+# which, among other things, breaks unit testing
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]

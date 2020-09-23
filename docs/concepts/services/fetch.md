@@ -76,7 +76,7 @@ self.link.callback(|response: Json<ResponseType>|)
 :::
 
 :::caution
-Dropping the `FetchTask` before the request has finished, the request will be cancelled.
+If the `FetchTask` is dropped before the request has finished, it will be cancelled.
 Make sure to keep it around!
 :::
 

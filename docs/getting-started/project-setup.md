@@ -8,7 +8,7 @@ description: Set yourself up for success
 
 First, you'll need Rust. To install Rust and the `cargo` build tool, follow the [official instructions](https://www.rust-lang.org/tools/install).
 
-You'll also want to install the `wasm32-unknown-unknown` target so you can compile Rust to Wasm.
+You also need to install the `wasm32-unknown-unknown` target to compile Rust to Wasm.
 If you're using rustup, you just need to run `rustup target add wasm32-unknown-unknown`.
 
 ## **Wasm Build Tools**
@@ -22,8 +22,8 @@ binary in a browser.
 
 A tool practically made for building Yew apps.
 It can build any `wasm-bindgen` based app and its design is inspired by rollup.js.
-With Trunk you don't need to have Node.js installed or touch any JavaScript code.
-It can automatically bundle assets with your app and even ships with a Sass compiler.
+With Trunk you don't need to have Node.js installed or touch any JavaScript code for that matter.
+It can bundle assets for your app and even ships with a Sass compiler.
 
 All of our examples are built with Trunk.
 
