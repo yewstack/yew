@@ -1,6 +1,6 @@
 ---
 id: fetch
-title: The fetch service
+title: Fetch
 ---
 ## Introduction
 The fetch service can be used to make HTTP requests to a server. This enables applications to
@@ -75,12 +75,12 @@ self.link.callback(|response: Json<ResponseType>|)
 ```
 :::
 
-:::danger
-It's important that the `FetchTask` isn't dropped until the request has completed. If the 
-`FetchTask` is dropped before the request has finished then the request will be cancelled.
+:::caution
+If the `FetchTask` is dropped before the request has finished, it will be cancelled.
+Make sure to keep it around!
 :::
 
-:::important info
+:::important
 If you keep getting an error saying that "the operation was aborted" or "Error 408" this might be 
 because the [CORS headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) of the website 
 you are trying to access are not set correctly. Please see the linked article from Mozilla about

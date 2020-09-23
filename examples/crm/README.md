@@ -1,5 +1,7 @@
 # CRM Example
 
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fcrm)](https://examples.yew.rs/crm)
+
 A very shallow customer relationship management tool.
 It consists of a list of clients with an associated name and description.
 It's possible to create new clients and clear the list entirely.

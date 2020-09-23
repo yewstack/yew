@@ -1,10 +1,11 @@
 ---
 title: Choosing a web library
 ---
+
 ## Introduction
 
-Yew apps can be built using either [`web-sys`](https://docs.rs/web-sys) or [`stdweb`](https://docs.rs/stdweb). 
-These two crates provide the bindings between Rust and Web APIs. You'll need to choose one or the other when adding 
+Yew apps can be built using either [`web-sys`](https://docs.rs/web-sys) or [`stdweb`](https://docs.rs/stdweb).
+These two crates provide the bindings between Rust and Web APIs. You'll need to choose one or the other when adding
 `yew` to your cargo dependencies:
 
 ```toml
@@ -17,7 +18,16 @@ yew = { version = "0.17", package = "yew-stdweb" }
 
 We recommend using `web-sys` due to its support from the [Rust / Wasm Working Group](https://rustwasm.github.io/).
 
+:::warning
+Yew will freeze support for `stdweb` at v0.18.
+It will still receive patch fixes, but no new features will be added.
+See [#1569](https://github.com/yewstack/yew/issues/1569)
+:::
+
 ## Example Usage
+
+This example illustrates the difference in how the two libraries are used.
+You don't need to run this yourself.
 
 ```rust
 // web-sys
@@ -38,11 +48,12 @@ let window = Window::try_from(window_val).expect("conversion to window failed");
 window.alert("hello from wasm!");
 ```
 
-The APIs for the two crates differ slightly but they serve roughly the same purpose with similar functionality.
+The APIs for the two crates differ slightly but they serve roughly the same purpose.
 
 ## Choosing One
 
-There are a few different angles to consider when choosing between using `web-sys` and `stdweb` for your app. Note that it's possible to use both in one app, but to minimize the binary size of your compiled crate it's best to use only one of the two.
+There are a few different angles to consider when choosing between using `web-sys` and `stdweb` for your app.
+Note that it's possible to use both in one app, but to minimize the binary size of your compiled crate it's best to use only one of the two.
 
 <table>
   <thead>
@@ -63,7 +74,7 @@ There are a few different angles to consider when choosing between using `web-sy
     </tr>
     <tr>
       <td style="text-align:left">Web API Coverage</td>
-      <td style="text-align:left">Rust APIs are auto-generated from the Web IDL spec</td>
+      <td style="text-align:left">Rust APIs are generated from the Web IDL spec</td>
       <td style="text-align:left">Browser APIs are added as needed by the community</td>
     </tr>
     <tr>
@@ -78,7 +89,7 @@ There are a few different angles to consider when choosing between using `web-sy
       <td style="text-align:left">
         <p></p>
         <ul>
-          <li><code>wasm-bindgen</code>
+          <li><code>trunk</code>
           </li>
           <li><code>wasm-pack</code>
           </li>
@@ -88,10 +99,6 @@ There are a few different angles to consider when choosing between using `web-sy
         <p></p>
         <ul>
           <li><code>cargo-web</code>
-          </li>
-          <li><code>wasm-bindgen</code>
-          </li>
-          <li><code>wasm-pack</code>
           </li>
         </ul>
       </td>
@@ -117,4 +124,3 @@ There are a few different angles to consider when choosing between using `web-sy
     </tr>
   </tbody>
 </table>
-

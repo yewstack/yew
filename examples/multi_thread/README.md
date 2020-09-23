@@ -1,5 +1,7 @@
 # Multi-Thread Example
 
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fmulti_thread)](https://examples.yew.rs/multi_thread)
+
 **WIP**: thedodd/trunk#46
 
 ## Concepts

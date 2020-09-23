@@ -1,5 +1,7 @@
 # Router Example
 
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Frouter)](https://examples.yew.rs/router)
+
 A blog all about yew.
 The best way to figure out what this example is about is to just open it up.
 It's mobile friendly too!

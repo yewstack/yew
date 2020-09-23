@@ -1,5 +1,7 @@
 # Keyed List Example
 
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fkeyed_list)](https://examples.yew.rs/keyed_list)
+
 This example consists of a list which can be manipulated in various ways.
 
 ## Running
