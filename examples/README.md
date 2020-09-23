@@ -1,31 +1,28 @@
 # Yew Examples
 
-## Dependencies
+## How to run
 
 The examples are built with [trunk](https://github.com/thedodd/trunk).
 You can install it with the following command:
 
 ```bash
-# at some point in the future, trunk should automatically download wasm-bindgen for you
+# at some point in the future, trunk will automatically download wasm-bindgen
 cargo install trunk wasm-bindgen-cli
 ```
 
-## Run an example
+Running an example is as easy as running a single command:
 
 ```bash
-# download the source code.
-git clone https://github.com/yewstack/yew.git
+# move into the directory of the example you want to run
+# In this case it's the todomvc example
+cd examples/todomvc
 
-# move into the examples folder
-cd yew/examples
-
-# run the "todomvc" example
-cd todomvc
+# build and serve the example
 trunk serve --release
 ```
 
-Some examples might require additional steps.
-In this case, instructions can be found in the example's `README` file.
+We're also publicly hosting the examples at `https://examples.yew.rs/<EXAMPLE>`.
+As an example, check out the TodoMVC example here: <https://examples.yew.rs/todomvc>
 
 ## List of examples
 
@@ -59,6 +56,9 @@ Have a look at Yew's [starter templates](https://yew.rs/docs/getting-started/sta
 
 ## Help out
 
-Most examples have an "improvements" section in their README.md which lists ways to improve the example.
+If one of the examples catches your interest, look for the "improvements" section in its `README` file.
+Most examples list a few ideas for how to improve them.
+Consider starting with those but don't hesitate to improve an example in other ways either.
 
-The biggest point of improvement is the presentation of the examples (ex. styling).
+One problem that currently plagues most examples is the lack of styling.
+Please help us make the examples look as flashy as possible!

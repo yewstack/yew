@@ -1,5 +1,7 @@
 # Js Callback Example
 
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fjs_callback)](https://examples.yew.rs/js_callback)
+
 ## Concepts
 
 The example uses wasm-bindgen to import functionality from Javascript.

@@ -177,12 +177,12 @@ impl Model {
         } else {
             "not-selected"
         };
-        let flt = filter.clone();
         html! {
             <li>
                 <a class=cls
-                   href=filter
-                   onclick=self.link.callback(move |_| Msg::SetFilter(flt.clone()))>
+                   href=filter.as_href()
+                   onclick=self.link.callback(move |_| Msg::SetFilter(filter))
+                >
                     { filter }
                 </a>
             </li>

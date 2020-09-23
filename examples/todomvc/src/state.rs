@@ -1,5 +1,4 @@
 use serde_derive::{Deserialize, Serialize};
-use std::borrow::Cow;
 use strum_macros::{EnumIter, ToString};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -46,13 +45,13 @@ impl State {
     }
 
     pub fn toggle(&mut self, idx: usize) {
-        let filter = self.filter.clone();
-        let mut entries = self
+        let filter = self.filter;
+        let entry = self
             .entries
             .iter_mut()
             .filter(|e| filter.fits(e))
-            .collect::<Vec<_>>();
-        let entry = entries.get_mut(idx).unwrap();
+            .nth(idx)
+            .unwrap();
         entry.completed = !entry.completed;
     }
 
@@ -65,13 +64,13 @@ impl State {
     }
 
     pub fn toggle_edit(&mut self, idx: usize) {
-        let filter = self.filter.clone();
-        let mut entries = self
+        let filter = self.filter;
+        let entry = self
             .entries
             .iter_mut()
             .filter(|e| filter.fits(e))
-            .collect::<Vec<_>>();
-        let entry = entries.get_mut(idx).unwrap();
+            .nth(idx)
+            .unwrap();
         entry.editing = !entry.editing;
     }
 
@@ -82,16 +81,16 @@ impl State {
     }
 
     pub fn complete_edit(&mut self, idx: usize, val: String) {
-        let filter = self.filter.clone();
-        let mut entries = self
-            .entries
-            .iter_mut()
-            .filter(|e| filter.fits(e))
-            .collect::<Vec<_>>();
         if val.is_empty() {
             self.remove(idx);
         } else {
-            let entry = entries.get_mut(idx).unwrap();
+            let filter = self.filter;
+            let entry = self
+                .entries
+                .iter_mut()
+                .filter(|e| filter.fits(e))
+                .nth(idx)
+                .unwrap();
             entry.description = val;
             entry.editing = !entry.editing;
         }
@@ -99,12 +98,11 @@ impl State {
 
     pub fn remove(&mut self, idx: usize) {
         let idx = {
-            let filter = self.filter.clone();
             let entries = self
                 .entries
                 .iter()
                 .enumerate()
-                .filter(|&(_, e)| filter.fits(e))
+                .filter(|&(_, e)| self.filter.fits(e))
                 .collect::<Vec<_>>();
             let &(idx, _) = entries.get(idx).unwrap();
             idx
@@ -120,7 +118,7 @@ pub struct Entry {
     pub editing: bool,
 }
 
-#[derive(Debug, EnumIter, ToString, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, EnumIter, ToString, PartialEq, Serialize, Deserialize)]
 pub enum Filter {
     All,
     Active,
@@ -134,14 +132,12 @@ impl Filter {
             Filter::Completed => entry.completed,
         }
     }
-}
 
-impl<'a> Into<Cow<'static, str>> for &'a Filter {
-    fn into(self) -> Cow<'static, str> {
-        match *self {
-            Filter::All => "#/".into(),
-            Filter::Active => "#/active".into(),
-            Filter::Completed => "#/completed".into(),
+    pub fn as_href(&self) -> &'static str {
+        match self {
+            Filter::All => "#/",
+            Filter::Active => "#/active",
+            Filter::Completed => "#/completed",
         }
     }
 }

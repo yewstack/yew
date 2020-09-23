@@ -1,5 +1,7 @@
 # Futures Example
 
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Ffutures)](https://examples.yew.rs/futures)
+
 Fetches Yew's README file and renders it to the page.
 
 ## Concepts
