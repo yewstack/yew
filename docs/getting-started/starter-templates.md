@@ -4,7 +4,7 @@ title: Starter templates
 
 ## `trunk`
 
-<!-- TODO!! -->
+- [Minimal Template](https://github.com/yewstack/yew-trunk-minimal-template) - A small application built with Trunk to get you started.
 
 ## `wasm-pack`
 
