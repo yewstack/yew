@@ -373,10 +373,7 @@ impl ToString for Classes {
     fn to_string(&self) -> String {
         self.set
             .iter()
-            .map(|x| match x {
-                Cow::Borrowed(s) => s,
-                Cow::Owned(s) => s.as_str(),
-            })
+            .map(Borrow::borrow)
             .collect::<Vec<_>>()
             .join(" ")
     }
