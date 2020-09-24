@@ -315,7 +315,7 @@ impl Default for Attributes {
 /// A set of classes.
 #[derive(Debug, Clone, Default)]
 pub struct Classes {
-    set: IndexSet<String>,
+    set: IndexSet<Cow<'static, str>>,
 }
 
 impl Classes {
@@ -356,13 +356,13 @@ impl Classes {
 impl<T: AsRef<str>> Extend<T> for Classes {
     fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
         self.set
-            .extend(iter.into_iter().map(|x| x.as_ref().to_string()));
+            .extend(iter.into_iter().map(|x| x.as_ref().to_string().into()));
     }
 }
 
 impl IntoIterator for Classes {
-    type Item = String;
-    type IntoIter = indexmap::set::IntoIter<String>;
+    type Item = Cow<'static, str>;
+    type IntoIter = indexmap::set::IntoIter<Cow<'static, str>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.set.into_iter()
@@ -373,8 +373,11 @@ impl ToString for Classes {
     fn to_string(&self) -> String {
         self.set
             .iter()
-            .map(String::as_str)
-            .collect::<Vec<&str>>()
+            .map(|x| match x {
+                Cow::Borrowed(s) => s,
+                Cow::Owned(s) => s.as_str(),
+            })
+            .collect::<Vec<_>>()
             .join(" ")
     }
 }
@@ -383,8 +386,8 @@ impl From<&str> for Classes {
     fn from(t: &str) -> Self {
         let set = t
             .split_whitespace()
-            .map(String::from)
             .filter(|c| !c.is_empty())
+            .map(|x| x.to_string().into())
             .collect();
         Self { set }
     }
@@ -430,8 +433,8 @@ impl<T: AsRef<str>> From<&[T]> for Classes {
             .iter()
             .map(|x| x.as_ref())
             .flat_map(|s| s.split_whitespace())
-            .map(String::from)
             .filter(|c| !c.is_empty())
+            .map(|x| x.to_string().into())
             .collect();
         Self { set }
     }
