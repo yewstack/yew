@@ -55,10 +55,9 @@
 //!
 //! Please refer to [https://github.com/yewstack/yew](https://github.com/yewstack/yew) for how to set this up.
 
-#![recursion_limit = "128"]
-
 mod derive_props;
 mod html_tree;
+mod props;
 mod stringify;
 
 use derive_props::DerivePropsInput;
@@ -101,5 +100,11 @@ pub fn html_nested(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRootVNode);
+    TokenStream::from(quote! {#root})
+}
+
+#[proc_macro]
+pub fn props(input: TokenStream) -> TokenStream {
+    let root = parse_macro_input!(input as props::ComponentProps);
     TokenStream::from(quote! {#root})
 }

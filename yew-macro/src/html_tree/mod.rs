@@ -10,7 +10,7 @@ mod html_tag;
 use crate::PeekValue;
 use html_block::HtmlBlock;
 use html_component::HtmlComponent;
-use html_dashed_name::HtmlDashedName;
+pub use html_dashed_name::HtmlDashedName;
 use html_iterable::HtmlIterable;
 use html_list::HtmlList;
 use html_node::HtmlNode;

@@ -194,6 +194,8 @@ pub use yew_macro::html;
 /// [`ChildrenRenderer<ListItem>`]: ./html/struct.ChildrenRenderer.html
 pub use yew_macro::html_nested;
 
+pub use yew_macro::props;
+
 /// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
     pub use crate::html;
