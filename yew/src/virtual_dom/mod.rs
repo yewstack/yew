@@ -347,7 +347,8 @@ impl Classes {
 
 impl<T: AsRef<str>> Extend<T> for Classes {
     fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
-        self.set.extend(iter.into_iter().map(|x| x.as_ref().to_string()));
+        self.set
+            .extend(iter.into_iter().map(|x| x.as_ref().to_string()));
     }
 }
 
