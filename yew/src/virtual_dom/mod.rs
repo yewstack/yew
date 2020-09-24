@@ -314,18 +314,32 @@ impl Default for Attributes {
 
 /// A set of classes.
 #[derive(Debug, Clone, Default)]
-pub struct Classes {
-    set: IndexSet<String>,
+pub struct Classes<T = String> {
+    set: IndexSet<T>,
 }
 
 impl Classes {
-    /// Creates an empty set of classes. (Does not allocate.)
+    /// Creates an empty set of `String` classes. (Does not allocate.)
     pub fn new() -> Self {
         Self {
             set: IndexSet::new(),
         }
     }
+}
 
+impl Classes<&'static str> {
+    /// Creates an empty set of `&'static str` classes. (Does not allocate.)
+    pub fn new_static() -> Self {
+        Self {
+            set: IndexSet::new(),
+        }
+    }
+}
+
+impl<T> Classes<T>
+where
+    T: core::hash::Hash + Eq + std::borrow::Borrow<str>,
+{
     /// Creates an empty set of classes with capacity for n elements. (Does not allocate if n is
     /// zero.)
     pub fn with_capacity(n: usize) -> Self {
@@ -337,13 +351,13 @@ impl Classes {
     /// Adds a class to a set.
     ///
     /// If the provided class has already been added, this method will ignore it.
-    pub fn push<T: Into<Self>>(&mut self, class: T) {
+    pub fn push<T2: Into<Self>>(&mut self, class: T2) {
         let classes_to_add: Self = class.into();
         self.set.extend(classes_to_add.set);
     }
 
     /// Check the set contains a class.
-    pub fn contains<T: AsRef<str>>(&self, class: T) -> bool {
+    pub fn contains<T2: AsRef<str>>(&self, class: T2) -> bool {
         self.set.contains(class.as_ref())
     }
 
@@ -360,9 +374,16 @@ impl<T: AsRef<str>> Extend<T> for Classes {
     }
 }
 
-impl IntoIterator for Classes {
-    type Item = String;
-    type IntoIter = indexmap::set::IntoIter<String>;
+impl Extend<&'static str> for Classes<&'static str> {
+    fn extend<I: IntoIterator<Item = &'static str>>(&mut self, iter: I) {
+        self.set
+            .extend(iter.into_iter());
+    }
+}
+
+impl<T> IntoIterator for Classes<T> {
+    type Item = T;
+    type IntoIter = indexmap::set::IntoIter<T>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.set.into_iter()
@@ -384,6 +405,16 @@ impl From<&str> for Classes {
         let set = t
             .split_whitespace()
             .map(String::from)
+            .filter(|c| !c.is_empty())
+            .collect();
+        Self { set }
+    }
+}
+
+impl From<&'static str> for Classes<&'static str> {
+    fn from(t: &'static str) -> Self {
+        let set = t
+            .split_whitespace()
             .filter(|c| !c.is_empty())
             .collect();
         Self { set }
@@ -565,6 +596,24 @@ mod tests {
     #[test]
     fn it_adds_values_via_extend() {
         let mut other = Classes::new();
+        other.push("bar");
+        let mut subject = Classes::new();
+        subject.extend(other);
+        assert!(subject.contains("bar"));
+    }
+
+    #[test]
+    fn it_adds_values_via_extend_and_push_using_static_str() {
+        let mut other = Classes::new_static();
+        other.push("bar");
+        let mut subject = Classes::new_static();
+        subject.extend(other);
+        assert!(subject.contains("bar"));
+    }
+
+    #[test]
+    fn classes_string_and_static_str_can_be_mixed() {
+        let mut other = Classes::new_static();
         other.push("bar");
         let mut subject = Classes::new();
         subject.extend(other);
