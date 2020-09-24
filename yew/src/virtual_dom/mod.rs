@@ -329,27 +329,34 @@ impl Classes {
     /// Adds a class to a set.
     ///
     /// If the provided class has already been added, this method will ignore it.
-    pub fn push(&mut self, class: &str) {
-        let classes_to_add: Classes = class.into();
+    pub fn push<T: Into<Self>>(&mut self, class: T) {
+        let classes_to_add: Self = class.into();
         self.set.extend(classes_to_add.set);
     }
 
     /// Check the set contains a class.
-    pub fn contains(&self, class: &str) -> bool {
-        self.set.contains(class)
+    pub fn contains<T: AsRef<str>>(&self, class: T) -> bool {
+        self.set.contains(class.as_ref())
     }
 
     /// Check the set is empty.
     pub fn is_empty(&self) -> bool {
         self.set.is_empty()
     }
+}
 
-    /// Adds other classes to this set of classes; returning itself.
-    ///
-    /// Takes the logical union of both `Classes`.
-    pub fn extend<T: Into<Classes>>(mut self, other: T) -> Self {
-        self.set.extend(other.into().set.into_iter());
-        self
+impl<T: AsRef<str>> Extend<T> for Classes {
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        self.set.extend(iter.into_iter().map(|x| x.as_ref().to_string()));
+    }
+}
+
+impl IntoIterator for Classes {
+    type Item = String;
+    type IntoIter = indexmap::set::IntoIter<String>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.set.into_iter()
     }
 }
 
@@ -509,6 +516,29 @@ pub trait Transformer<FROM, TO> {
 mod tests {
     use super::*;
 
+    struct TestClass;
+
+    impl AsRef<str> for TestClass {
+        fn as_ref(&self) -> &str {
+            "test-class"
+        }
+    }
+
+    // NOTE: I believe we will be able to remove this impl in the future using specialization
+    //
+    // See https://github.com/rust-lang/rust/issues/31844
+    //
+    // impl<T: AsRef<str>> From<T> for Classes {
+    //     fn from(other: T) -> Self {
+    //         Classes::from(other.as_ref())
+    //     }
+    // }
+    impl From<TestClass> for Classes {
+        fn from(test_class: TestClass) -> Self {
+            Classes::from(test_class.as_ref())
+        }
+    }
+
     #[test]
     fn it_is_initially_empty() {
         let subject = Classes::new();
@@ -527,7 +557,8 @@ mod tests {
     fn it_adds_values_via_extend() {
         let mut other = Classes::new();
         other.push("bar");
-        let subject = Classes::new().extend(other);
+        let mut subject = Classes::new();
+        subject.extend(other);
         assert!(subject.contains("bar"));
     }
 
@@ -535,7 +566,8 @@ mod tests {
     fn it_contains_both_values() {
         let mut other = Classes::new();
         other.push("bar");
-        let mut subject = Classes::new().extend(other);
+        let mut subject = Classes::new();
+        subject.extend(other);
         subject.push("foo");
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
@@ -545,6 +577,24 @@ mod tests {
     fn it_splits_class_with_spaces() {
         let mut subject = Classes::new();
         subject.push("foo bar");
+        assert!(subject.contains("foo"));
+        assert!(subject.contains("bar"));
+    }
+
+    #[test]
+    fn push_and_contains_can_be_used_with_other_objects() {
+        let mut subject = Classes::new();
+        subject.push(TestClass);
+        assert!(subject.contains(TestClass));
+    }
+
+    #[test]
+    fn can_be_extended_with_another_class() {
+        let mut other = Classes::new();
+        other.push("foo");
+        other.push("bar");
+        let mut subject = Classes::new();
+        subject.extend(other);
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
     }
