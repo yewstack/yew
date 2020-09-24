@@ -1,8 +1,6 @@
 mod tag_attributes;
 
-use super::{
-    HtmlChildrenTree, HtmlDashedName, HtmlProp as TagAttribute, HtmlPropSuffix as TagSuffix,
-};
+use super::{HtmlChildrenTree, HtmlDashedName, HtmlProp, HtmlPropSuffix};
 use crate::stringify::Stringify;
 use crate::{non_capitalized_ascii, stringify, Peek, PeekValue};
 use boolinator::Boolinator;
@@ -188,7 +186,7 @@ impl ToTokens for HtmlTag {
             None
         } else {
             let attrs = attributes.iter().map(
-                |TagAttribute {
+                |HtmlProp {
                      label,
                      question_mark,
                      value,
@@ -217,7 +215,7 @@ impl ToTokens for HtmlTag {
         } else {
             let tokens = booleans
                 .iter()
-                .map(|TagAttribute { label, value, .. }| {
+                .map(|HtmlProp { label, value, .. }| {
                     let label_str = label.to_lit_str();
                     let sr = label.stringify();
                     quote_spanned! {value.span()=> {
@@ -279,7 +277,7 @@ impl ToTokens for HtmlTag {
             let add_listeners = listeners
                 .iter()
                 .map(
-                    |TagAttribute {
+                    |HtmlProp {
                          label,
                          question_mark,
                          value,
@@ -311,7 +309,7 @@ impl ToTokens for HtmlTag {
         } else {
             let listeners_it = listeners
                 .iter()
-                .map(|TagAttribute { label, value, .. }| to_wrapped_listener(&label.name, value));
+                .map(|HtmlProp { label, value, .. }| to_wrapped_listener(&label.name, value));
 
             Some(quote! {
                 #vtag.add_listeners(::std::vec![#(#listeners_it),*]);
@@ -518,7 +516,7 @@ impl Parse for HtmlTagOpen {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let lt = input.parse::<Token![<]>()?;
         let tag_name = input.parse::<TagName>()?;
-        let TagSuffix { stream, div, gt } = input.parse()?;
+        let HtmlPropSuffix { stream, div, gt } = input.parse()?;
         let mut attributes: TagAttributes = syn::parse2(stream)?;
 
         match &tag_name {
@@ -529,7 +527,7 @@ impl Parse for HtmlTagOpen {
                     "input" | "textarea" => {}
                     _ => {
                         if let Some(attr) = attributes.value.take() {
-                            attributes.attributes.push(TagAttribute {
+                            attributes.attributes.push(HtmlProp {
                                 label: HtmlDashedName::new(Ident::new("value", Span::call_site())),
                                 question_mark: attr.question_mark,
                                 value: attr.value,

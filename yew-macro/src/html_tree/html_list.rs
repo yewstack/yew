@@ -4,7 +4,7 @@ use crate::{Peek, PeekValue};
 use boolinator::Boolinator;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result as ParseResult};
+use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{Expr, Token};
 
@@ -23,7 +23,7 @@ impl PeekValue<()> for HtmlList {
 }
 
 impl Parse for HtmlList {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         if HtmlListClose::peek(input.cursor()).is_some() {
             return match input.parse::<HtmlListClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
@@ -101,7 +101,7 @@ impl PeekValue<()> for HtmlListOpen {
 }
 
 impl Parse for HtmlListOpen {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let lt = input.parse()?;
         let HtmlPropSuffix { stream, gt, .. } = input.parse()?;
         let props = syn::parse2(stream)?;
@@ -120,7 +120,7 @@ struct HtmlListProps {
     key: Option<Expr>,
 }
 impl Parse for HtmlListProps {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let key = if input.is_empty() {
             None
         } else {
@@ -164,7 +164,7 @@ impl PeekValue<()> for HtmlListClose {
 }
 
 impl Parse for HtmlListClose {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(HtmlListClose {
             lt: input.parse()?,
             div: input.parse()?,

@@ -1,12 +1,12 @@
-use crate::html_tree::HtmlDashedName as HtmlPropLabel;
+use crate::html_tree::HtmlDashedName;
 use crate::{Peek, PeekValue};
 use proc_macro2::{TokenStream, TokenTree};
 use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result as ParseResult};
+use syn::parse::{Parse, ParseStream};
 use syn::{Expr, Token};
 
 pub struct HtmlProp {
-    pub label: HtmlPropLabel,
+    pub label: HtmlDashedName,
     pub question_mark: Option<Token![?]>,
     pub value: Expr,
 }
@@ -28,13 +28,13 @@ impl HtmlProp {
 
 impl PeekValue<()> for HtmlProp {
     fn peek(cursor: Cursor) -> Option<()> {
-        HtmlPropLabel::peek(cursor).map(|_| ())
+        HtmlDashedName::peek(cursor).map(|_| ())
     }
 }
 
 impl Parse for HtmlProp {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
-        let label = input.parse::<HtmlPropLabel>()?;
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let label = input.parse::<HtmlDashedName>()?;
         let question_mark = input.parse::<Token![?]>().ok();
         let equals = input
             .parse::<Token![=]>()
@@ -63,7 +63,7 @@ pub struct HtmlPropSuffix {
 }
 
 impl Parse for HtmlPropSuffix {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut trees: Vec<TokenTree> = vec![];
         let mut div: Option<Token![/]> = None;
         let mut angle_count = 1;

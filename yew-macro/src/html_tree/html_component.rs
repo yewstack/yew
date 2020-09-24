@@ -7,7 +7,7 @@ use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
 use std::cmp::Ordering;
 use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result as ParseResult};
+use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
@@ -30,7 +30,7 @@ impl PeekValue<()> for HtmlComponent {
 }
 
 impl Parse for HtmlComponent {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         if HtmlComponentClose::peek(input.cursor()).is_some() {
             return match input.parse::<HtmlComponentClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
@@ -277,7 +277,7 @@ impl PeekValue<Type> for HtmlComponentOpen {
 }
 
 impl Parse for HtmlComponentOpen {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let lt = input.parse::<Token![<]>()?;
         let ty = input.parse()?;
         // backwards compat
@@ -326,7 +326,7 @@ impl PeekValue<Type> for HtmlComponentClose {
     }
 }
 impl Parse for HtmlComponentClose {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(HtmlComponentClose {
             lt: input.parse()?,
             div: input.parse()?,
@@ -358,7 +358,7 @@ struct Props {
 const COLLISION_MSG: &str = "Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to the `ref` prop).";
 
 impl Parse for Props {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut props = Props {
             node_ref: None,
             key: None,

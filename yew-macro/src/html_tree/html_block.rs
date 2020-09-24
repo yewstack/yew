@@ -6,7 +6,7 @@ use proc_macro2::Delimiter;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::braced;
 use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result as ParseResult};
+use syn::parse::{Parse, ParseStream};
 use syn::token;
 
 pub struct HtmlBlock {
@@ -26,7 +26,7 @@ impl PeekValue<()> for HtmlBlock {
 }
 
 impl Parse for HtmlBlock {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let content;
         let brace = braced!(content in input);
         let content = if HtmlIterable::peek(content.cursor()).is_some() {

@@ -6,7 +6,7 @@ use quote::{quote, ToTokens};
 use std::fmt;
 use syn::buffer::Cursor;
 use syn::ext::IdentExt;
-use syn::parse::{Parse, ParseStream, Result as ParseResult};
+use syn::parse::{Parse, ParseStream};
 use syn::{spanned::Spanned, LitStr, Token};
 
 #[derive(Clone, PartialEq)]
@@ -68,7 +68,7 @@ impl Peek<'_, Self> for HtmlDashedName {
 }
 
 impl Parse for HtmlDashedName {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let name = input.call(Ident::parse_any)?;
         let mut extended = Vec::new();
         while input.peek(Token![-]) {

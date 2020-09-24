@@ -3,7 +3,7 @@ use crate::PeekValue;
 use lazy_static::lazy_static;
 use std::collections::HashSet;
 use std::iter::FromIterator;
-use syn::parse::{Parse, ParseStream, Result as ParseResult};
+use syn::parse::{Parse, ParseStream};
 use syn::{Expr, ExprTuple};
 
 pub struct TagAttributes {
@@ -272,7 +272,7 @@ impl TagAttributes {
 }
 
 impl Parse for TagAttributes {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut attributes: Vec<TagAttribute> = Vec::new();
         while TagAttribute::peek(input.cursor()).is_some() {
             attributes.push(input.parse::<TagAttribute>()?);
