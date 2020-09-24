@@ -585,6 +585,8 @@ mod tests {
     fn push_and_contains_can_be_used_with_other_objects() {
         let mut subject = Classes::new();
         subject.push(TestClass);
+        let other_class: Option<TestClass> = None;
+        subject.push(other_class);
         assert!(subject.contains(TestClass));
     }
 
