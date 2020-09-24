@@ -319,10 +319,18 @@ pub struct Classes {
 }
 
 impl Classes {
-    /// Creates an empty set of classes.
+    /// Creates an empty set of classes. (Does not allocate.)
     pub fn new() -> Self {
         Self {
             set: IndexSet::new(),
+        }
+    }
+
+    /// Creates an empty set of classes with capacity for n elements. (Does not allocate if n is
+    /// zero.)
+    pub fn with_capacity(n: usize) -> Self {
+        Self {
+            set: IndexSet::with_capacity(n),
         }
     }
 
