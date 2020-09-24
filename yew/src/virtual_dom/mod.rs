@@ -376,8 +376,7 @@ impl<T: AsRef<str>> Extend<T> for Classes {
 
 impl Extend<&'static str> for Classes<&'static str> {
     fn extend<I: IntoIterator<Item = &'static str>>(&mut self, iter: I) {
-        self.set
-            .extend(iter.into_iter());
+        self.set.extend(iter.into_iter());
     }
 }
 
@@ -413,10 +412,7 @@ impl From<&str> for Classes {
 
 impl From<&'static str> for Classes<&'static str> {
     fn from(t: &'static str) -> Self {
-        let set = t
-            .split_whitespace()
-            .filter(|c| !c.is_empty())
-            .collect();
+        let set = t.split_whitespace().filter(|c| !c.is_empty()).collect();
         Self { set }
     }
 }
