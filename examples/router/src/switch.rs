@@ -1,5 +1,7 @@
-use default_env::default_env;
-use yew::virtual_dom::{Transformer, VComp};
+use yew::{
+    virtual_dom::{Transformer, VComp},
+    web_sys::Url,
+};
 use yew_router::{components::RouterAnchor, prelude::*, switch::Permissive};
 
 #[derive(Clone, Debug, Switch)]
@@ -35,16 +37,24 @@ impl AppRoute {
 #[derive(Clone, Debug)]
 pub struct PublicUrlSwitch(AppRoute);
 impl PublicUrlSwitch {
-    // this variable is set by the build script
-    const PUBLIC_URL: &'static str = default_env!("PUBLIC_URL", "/");
+    fn base_url() -> Url {
+        if let Ok(Some(href)) = yew::utils::document().base_uri() {
+            // since this always returns an absolute URL we turn it into an `Url`
+            // so we can more easily get the path.
+            Url::new(&href).unwrap()
+        } else {
+            Url::new("/").unwrap()
+        }
+    }
 
-    /// Return `PUBLIC_URL` without a trailing slash.
-    /// This is required because `AppRoute` still expects paths to
-    /// start with a slash so we only want to strip away the parts before that.
-    fn public_url_no_trailing_slash() -> &'static str {
-        Self::PUBLIC_URL
-            .strip_suffix('/')
-            .unwrap_or(Self::PUBLIC_URL)
+    fn base_path() -> String {
+        let mut path = Self::base_url().pathname();
+        if path.ends_with('/') {
+            // pop the trailing slash because AppRoute already accounts for it
+            path.pop();
+        }
+
+        path
     }
 
     pub fn route(self) -> AppRoute {
@@ -53,7 +63,7 @@ impl PublicUrlSwitch {
 }
 impl Switch for PublicUrlSwitch {
     fn from_route_part<STATE>(part: String, state: Option<STATE>) -> (Option<Self>, Option<STATE>) {
-        if let Some(part) = part.strip_prefix(Self::public_url_no_trailing_slash()) {
+        if let Some(part) = part.strip_prefix(&Self::base_path()) {
             let (route, state) = AppRoute::from_route_part(part.to_owned(), state);
             (route.map(Self), state)
         } else {
@@ -62,7 +72,7 @@ impl Switch for PublicUrlSwitch {
     }
 
     fn build_route_section<STATE>(self, route: &mut String) -> Option<STATE> {
-        route.push_str(Self::public_url_no_trailing_slash());
+        route.push_str(&Self::base_path());
         self.0.build_route_section(route)
     }
 }
