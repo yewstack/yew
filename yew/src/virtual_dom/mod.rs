@@ -410,31 +410,25 @@ impl<T: Into<Classes>> From<Option<T>> for Classes {
     }
 }
 
-impl<T> From<&Option<T>> for Classes
-where
-    for<'a> &'a T: Into<Classes>,
-{
+impl<T: Into<Classes> + Clone> From<&Option<T>> for Classes {
     fn from(t: &Option<T>) -> Self {
-        t.as_ref().map(|x| x.into()).unwrap_or_default()
+        t.clone().into()
     }
 }
 
-impl<T: AsRef<str>> From<Vec<T>> for Classes {
+impl<T: Into<Classes> + Clone> From<Vec<T>> for Classes {
     fn from(t: Vec<T>) -> Self {
         Classes::from(t.as_slice())
     }
 }
 
-impl<T: AsRef<str>> From<&[T]> for Classes {
+impl<T: Into<Classes> + Clone> From<&[T]> for Classes {
     fn from(t: &[T]) -> Self {
-        let set = t
-            .iter()
-            .map(|x| x.as_ref())
-            .flat_map(|s| s.split_whitespace())
-            .filter(|c| !c.is_empty())
-            .map(|x| x.to_string().into())
-            .collect();
-        Self { set }
+        let mut classes = Classes::with_capacity(t.len());
+        for class_ref in t {
+            classes.push(class_ref.clone().into());
+        }
+        classes
     }
 }
 
@@ -528,12 +522,6 @@ mod tests {
 
     struct TestClass;
 
-    impl From<TestClass> for &'static str {
-        fn from(_: TestClass) -> Self {
-            "test-class"
-        }
-    }
-
     impl AsRef<str> for TestClass {
         fn as_ref(&self) -> &str {
             "test-class"
@@ -550,7 +538,7 @@ mod tests {
     //     }
     // }
     impl From<TestClass> for Classes {
-        fn from(test_class: TestClass) -> Self {
+        fn from(_: TestClass) -> Self {
             Classes::from("test-class")
         }
     }
