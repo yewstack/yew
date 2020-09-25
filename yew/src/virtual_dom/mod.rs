@@ -353,10 +353,21 @@ impl Classes {
     }
 }
 
-impl<T: AsRef<str>> Extend<T> for Classes {
+impl<T: Into<Classes>> Extend<T> for Classes {
     fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
-        self.set
-            .extend(iter.into_iter().map(|x| x.as_ref().to_string().into()));
+        let classes = iter
+            .into_iter()
+            .map(Into::into)
+            .flat_map(|classes| classes.set);
+        self.set.extend(classes);
+    }
+}
+
+impl<T: Into<Classes>> FromIterator<T> for Classes {
+    fn from_iter<IT: IntoIterator<Item = T>>(iter: IT) -> Self {
+        let mut classes = Self::new();
+        classes.extend(iter);
+        classes
     }
 }
 
@@ -391,15 +402,18 @@ impl From<&'static str> for Classes {
 
 impl From<String> for Classes {
     fn from(t: String) -> Self {
-        let mut set = IndexSet::new();
-        set.insert(t.into());
-        Self { set }
+        Self::from(&t)
     }
 }
 
 impl From<&String> for Classes {
     fn from(t: &String) -> Self {
-        Classes::from(t.clone())
+        let set = t
+            .split_whitespace()
+            .map(ToOwned::to_owned)
+            .map(Cow::Owned)
+            .collect();
+        Self { set }
     }
 }
 
@@ -411,23 +425,19 @@ impl<T: Into<Classes>> From<Option<T>> for Classes {
 
 impl<T: Into<Classes> + Clone> From<&Option<T>> for Classes {
     fn from(t: &Option<T>) -> Self {
-        t.clone().into()
+        Self::from(t.clone())
     }
 }
 
-impl<T: Into<Classes> + Clone> From<Vec<T>> for Classes {
+impl<T: Into<Classes>> From<Vec<T>> for Classes {
     fn from(t: Vec<T>) -> Self {
-        Classes::from(t.as_slice())
+        Self::from_iter(t)
     }
 }
 
 impl<T: Into<Classes> + Clone> From<&[T]> for Classes {
     fn from(t: &[T]) -> Self {
-        let mut classes = Classes::with_capacity(t.len());
-        for class_ref in t {
-            classes.push(class_ref.clone().into());
-        }
-        classes
+        Self::from_iter(t.iter().cloned())
     }
 }
 
