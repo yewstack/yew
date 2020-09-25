@@ -398,9 +398,10 @@ impl ToString for Classes {
 
 impl From<Cow<'static, str>> for Classes {
     fn from(t: Cow<'static, str>) -> Self {
-        let mut set = IndexSet::new();
-        set.insert(t);
-        Self { set }
+        match t {
+            Cow::Borrowed(x) => Self::from(x),
+            Cow::Owned(x) => Self::from(x),
+        }
     }
 }
 
