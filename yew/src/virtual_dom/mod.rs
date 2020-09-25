@@ -16,7 +16,7 @@ pub mod vtext;
 use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use indexmap::{IndexMap, IndexSet};
-use std::borrow::Cow;
+use std::borrow::{Borrow, Cow};
 use std::fmt;
 use std::{collections::HashMap, hint::unreachable_unchecked, iter, mem, rc::Rc};
 cfg_if! {
@@ -379,12 +379,12 @@ impl ToString for Classes {
     }
 }
 
-impl From<&str> for Classes {
-    fn from(t: &str) -> Self {
+impl From<&'static str> for Classes {
+    fn from(t: &'static str) -> Self {
         let set = t
             .split_whitespace()
             .filter(|c| !c.is_empty())
-            .map(|x| x.to_string().into())
+            .map(|x| x.into())
             .collect();
         Self { set }
     }
@@ -392,29 +392,30 @@ impl From<&str> for Classes {
 
 impl From<String> for Classes {
     fn from(t: String) -> Self {
-        Classes::from(t.as_str())
+        let mut set = IndexSet::new();
+        set.insert(t.into());
+        Self { set }
     }
 }
 
 impl From<&String> for Classes {
     fn from(t: &String) -> Self {
-        Classes::from(t.as_str())
+        Classes::from(t.clone())
     }
 }
 
-impl<T: AsRef<str>> From<Option<T>> for Classes {
+impl<T: Into<Classes>> From<Option<T>> for Classes {
     fn from(t: Option<T>) -> Self {
-        t.as_ref()
-            .map(|s| <Classes as From<&str>>::from(s.as_ref()))
-            .unwrap_or_default()
+        t.map(|x| x.into()).unwrap_or_default()
     }
 }
 
-impl<T: AsRef<str>> From<&Option<T>> for Classes {
+impl<T> From<&Option<T>> for Classes
+where
+    for<'a> &'a T: Into<Classes>,
+{
     fn from(t: &Option<T>) -> Self {
-        t.as_ref()
-            .map(|s| <Classes as From<&str>>::from(s.as_ref()))
-            .unwrap_or_default()
+        t.as_ref().map(|x| x.into()).unwrap_or_default()
     }
 }
 
@@ -527,6 +528,12 @@ mod tests {
 
     struct TestClass;
 
+    impl From<TestClass> for &'static str {
+        fn from(_: TestClass) -> Self {
+            "test-class"
+        }
+    }
+
     impl AsRef<str> for TestClass {
         fn as_ref(&self) -> &str {
             "test-class"
@@ -544,7 +551,7 @@ mod tests {
     // }
     impl From<TestClass> for Classes {
         fn from(test_class: TestClass) -> Self {
-            Classes::from(test_class.as_ref())
+            Classes::from("test-class")
         }
     }
 
