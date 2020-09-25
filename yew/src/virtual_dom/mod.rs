@@ -383,8 +383,7 @@ impl From<&'static str> for Classes {
     fn from(t: &'static str) -> Self {
         let set = t
             .split_whitespace()
-            .filter(|c| !c.is_empty())
-            .map(|x| x.into())
+            .map(Cow::Borrowed)
             .collect();
         Self { set }
     }
