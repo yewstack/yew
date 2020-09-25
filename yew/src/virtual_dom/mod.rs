@@ -16,9 +16,15 @@ pub mod vtext;
 use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use indexmap::{IndexMap, IndexSet};
-use std::borrow::{Borrow, Cow};
-use std::fmt;
-use std::{collections::HashMap, hint::unreachable_unchecked, iter, mem, rc::Rc};
+use std::{
+    borrow::{Borrow, Cow},
+    collections::HashMap,
+    fmt,
+    hint::unreachable_unchecked,
+    iter::{self, FromIterator},
+    mem,
+    rc::Rc,
+};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use crate::html::EventListener;
@@ -390,12 +396,17 @@ impl ToString for Classes {
     }
 }
 
+impl From<Cow<'static, str>> for Classes {
+    fn from(t: Cow<'static, str>) -> Self {
+        let mut set = IndexSet::new();
+        set.insert(t);
+        Self { set }
+    }
+}
+
 impl From<&'static str> for Classes {
     fn from(t: &'static str) -> Self {
-        let set = t
-            .split_whitespace()
-            .map(Cow::Borrowed)
-            .collect();
+        let set = t.split_whitespace().map(Cow::Borrowed).collect();
         Self { set }
     }
 }
