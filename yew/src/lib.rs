@@ -302,7 +302,7 @@ pub mod prelude {
         ShouldRender,
     };
     pub use crate::macros::*;
-    pub use crate::virtual_dom::Classes;
+    pub use crate::virtual_dom::HTMLClasses;
 
     /// Prelude module for creating worker.
     #[cfg(feature = "agent")]

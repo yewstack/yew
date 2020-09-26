@@ -320,11 +320,11 @@ impl Default for Attributes {
 
 /// A set of classes.
 #[derive(Debug, Clone, Default)]
-pub struct Classes {
+pub struct HTMLClasses {
     set: IndexSet<Cow<'static, str>>,
 }
 
-impl Classes {
+impl HTMLClasses {
     /// Creates an empty set of classes. (Does not allocate.)
     pub fn new() -> Self {
         Self {
@@ -359,7 +359,7 @@ impl Classes {
     }
 }
 
-impl<T: Into<Classes>> Extend<T> for Classes {
+impl<T: Into<HTMLClasses>> Extend<T> for HTMLClasses {
     fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
         let classes = iter
             .into_iter()
@@ -369,7 +369,7 @@ impl<T: Into<Classes>> Extend<T> for Classes {
     }
 }
 
-impl<T: Into<Classes>> FromIterator<T> for Classes {
+impl<T: Into<HTMLClasses>> FromIterator<T> for HTMLClasses {
     fn from_iter<IT: IntoIterator<Item = T>>(iter: IT) -> Self {
         let mut classes = Self::new();
         classes.extend(iter);
@@ -377,7 +377,7 @@ impl<T: Into<Classes>> FromIterator<T> for Classes {
     }
 }
 
-impl IntoIterator for Classes {
+impl IntoIterator for HTMLClasses {
     type Item = Cow<'static, str>;
     type IntoIter = indexmap::set::IntoIter<Cow<'static, str>>;
 
@@ -386,7 +386,7 @@ impl IntoIterator for Classes {
     }
 }
 
-impl ToString for Classes {
+impl ToString for HTMLClasses {
     fn to_string(&self) -> String {
         self.set
             .iter()
@@ -396,7 +396,7 @@ impl ToString for Classes {
     }
 }
 
-impl From<Cow<'static, str>> for Classes {
+impl From<Cow<'static, str>> for HTMLClasses {
     fn from(t: Cow<'static, str>) -> Self {
         match t {
             Cow::Borrowed(x) => Self::from(x),
@@ -405,20 +405,20 @@ impl From<Cow<'static, str>> for Classes {
     }
 }
 
-impl From<&'static str> for Classes {
+impl From<&'static str> for HTMLClasses {
     fn from(t: &'static str) -> Self {
         let set = t.split_whitespace().map(Cow::Borrowed).collect();
         Self { set }
     }
 }
 
-impl From<String> for Classes {
+impl From<String> for HTMLClasses {
     fn from(t: String) -> Self {
         Self::from(&t)
     }
 }
 
-impl From<&String> for Classes {
+impl From<&String> for HTMLClasses {
     fn from(t: &String) -> Self {
         let set = t
             .split_whitespace()
@@ -429,31 +429,31 @@ impl From<&String> for Classes {
     }
 }
 
-impl<T: Into<Classes>> From<Option<T>> for Classes {
+impl<T: Into<HTMLClasses>> From<Option<T>> for HTMLClasses {
     fn from(t: Option<T>) -> Self {
         t.map(|x| x.into()).unwrap_or_default()
     }
 }
 
-impl<T: Into<Classes> + Clone> From<&Option<T>> for Classes {
+impl<T: Into<HTMLClasses> + Clone> From<&Option<T>> for HTMLClasses {
     fn from(t: &Option<T>) -> Self {
         Self::from(t.clone())
     }
 }
 
-impl<T: Into<Classes>> From<Vec<T>> for Classes {
+impl<T: Into<HTMLClasses>> From<Vec<T>> for HTMLClasses {
     fn from(t: Vec<T>) -> Self {
         Self::from_iter(t)
     }
 }
 
-impl<T: Into<Classes> + Clone> From<&[T]> for Classes {
+impl<T: Into<HTMLClasses> + Clone> From<&[T]> for HTMLClasses {
     fn from(t: &[T]) -> Self {
         Self::from_iter(t.iter().cloned())
     }
 }
 
-impl PartialEq for Classes {
+impl PartialEq for HTMLClasses {
     fn eq(&self, other: &Self) -> bool {
         self.set.len() == other.set.len() && self.set.iter().eq(other.set.iter())
     }
@@ -553,26 +553,26 @@ mod tests {
     //
     // See https://github.com/rust-lang/rust/issues/31844
     //
-    // impl<T: AsRef<str>> From<T> for Classes {
+    // impl<T: AsRef<str>> From<T> for HTMLClasses {
     //     fn from(other: T) -> Self {
-    //         Classes::from(other.as_ref())
+    //         HTMLClasses::from(other.as_ref())
     //     }
     // }
-    impl From<TestClass> for Classes {
+    impl From<TestClass> for HTMLClasses {
         fn from(_: TestClass) -> Self {
-            Classes::from("test-class")
+            HTMLClasses::from("test-class")
         }
     }
 
     #[test]
     fn it_is_initially_empty() {
-        let subject = Classes::new();
+        let subject = HTMLClasses::new();
         assert!(subject.is_empty());
     }
 
     #[test]
     fn it_pushes_value() {
-        let mut subject = Classes::new();
+        let mut subject = HTMLClasses::new();
         subject.push("foo");
         assert!(!subject.is_empty());
         assert!(subject.contains("foo"));
@@ -580,18 +580,18 @@ mod tests {
 
     #[test]
     fn it_adds_values_via_extend() {
-        let mut other = Classes::new();
+        let mut other = HTMLClasses::new();
         other.push("bar");
-        let mut subject = Classes::new();
+        let mut subject = HTMLClasses::new();
         subject.extend(other);
         assert!(subject.contains("bar"));
     }
 
     #[test]
     fn it_contains_both_values() {
-        let mut other = Classes::new();
+        let mut other = HTMLClasses::new();
         other.push("bar");
-        let mut subject = Classes::new();
+        let mut subject = HTMLClasses::new();
         subject.extend(other);
         subject.push("foo");
         assert!(subject.contains("foo"));
@@ -600,7 +600,7 @@ mod tests {
 
     #[test]
     fn it_splits_class_with_spaces() {
-        let mut subject = Classes::new();
+        let mut subject = HTMLClasses::new();
         subject.push("foo bar");
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
@@ -608,7 +608,7 @@ mod tests {
 
     #[test]
     fn push_and_contains_can_be_used_with_other_objects() {
-        let mut subject = Classes::new();
+        let mut subject = HTMLClasses::new();
         subject.push(TestClass);
         let other_class: Option<TestClass> = None;
         subject.push(other_class);
@@ -617,10 +617,10 @@ mod tests {
 
     #[test]
     fn can_be_extended_with_another_class() {
-        let mut other = Classes::new();
+        let mut other = HTMLClasses::new();
         other.push("foo");
         other.push("bar");
-        let mut subject = Classes::new();
+        let mut subject = HTMLClasses::new();
         subject.extend(other);
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
