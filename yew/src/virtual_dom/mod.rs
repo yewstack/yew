@@ -606,7 +606,11 @@ impl<T: AsRef<str>> From<&[T]> for Classes<String> {
 // TODO: not sure if we need the same for Classes<String>
 impl<T: Into<&'static str>> From<T> for Classes<&'static str> {
     fn from(value: T) -> Self {
-        let set = value.into().split_whitespace().filter(|c| !c.is_empty()).collect();
+        let set = value
+            .into()
+            .split_whitespace()
+            .filter(|c| !c.is_empty())
+            .collect();
         Self { set }
     }
 }
