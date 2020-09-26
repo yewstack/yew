@@ -234,6 +234,7 @@ impl ToTokens for HtmlTag {
 
         let push_classes = match classes {
             Some(ClassesForm::Tuple(classes)) => {
+                // TODO: capacity n is probably not exact
                 let n = classes.len();
                 let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
                 Some(quote! {
