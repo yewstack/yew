@@ -1,7 +1,7 @@
 use crate::BoxedVNodeProducer;
 use crate::ScopeHolder;
-use yew::virtual_dom::{Listener, VTag};
-use yew::{Classes, Component};
+use yew::virtual_dom::{HTMLClasses, Listener, VTag};
+use yew::Component;
 
 pub struct Effect<T, COMP: Component>(Box<dyn FnOnce(T, &ScopeHolder<COMP>) -> T>);
 
@@ -54,7 +54,7 @@ impl<COMP: Component> VTagProducer<COMP> {
         self
     }
 
-    pub fn classes(mut self, classes: Classes) -> Self {
+    pub fn classes(mut self, classes: HTMLClasses) -> Self {
         let effect = Effect::new(move |mut vtag: VTag, _scope: &ScopeHolder<COMP>| {
             vtag.add_attribute("class", classes.to_string());
             vtag
