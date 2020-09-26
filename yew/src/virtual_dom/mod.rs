@@ -556,13 +556,6 @@ impl From<&str> for Classes<String> {
     }
 }
 
-impl From<&'static str> for Classes<&'static str> {
-    fn from(t: &'static str) -> Self {
-        let set = t.split_whitespace().filter(|c| !c.is_empty()).collect();
-        Self { set }
-    }
-}
-
 impl From<String> for Classes<String> {
     fn from(t: String) -> Self {
         Classes::from(t.as_str())
@@ -606,6 +599,14 @@ impl<T: AsRef<str>> From<&[T]> for Classes<String> {
             .map(String::from)
             .filter(|c| !c.is_empty())
             .collect();
+        Self { set }
+    }
+}
+
+// TODO: not sure if we need the same for Classes<String>
+impl<T: Into<&'static str>> From<T> for Classes<&'static str> {
+    fn from(value: T) -> Self {
+        let set = value.into().split_whitespace().filter(|c| !c.is_empty()).collect();
         Self { set }
     }
 }
@@ -705,22 +706,6 @@ mod tests {
     impl From<TestClass> for &'static str {
         fn from(_: TestClass) -> &'static str {
             "test-class"
-        }
-    }
-
-    // NOTE: I believe we will be able to remove this impl in the future using specialization
-    //
-    // See https://github.com/rust-lang/rust/issues/31844
-    //
-    // impl<T: AsRef<str>> From<T> for Classes {
-    //     fn from(other: T) -> Self {
-    //         Classes::from(other.as_ref())
-    //     }
-    // }
-    impl From<TestClass> for Classes<&'static str> {
-        fn from(test_class: TestClass) -> Self {
-            let class: &'static str = test_class.into();
-            Classes::from(class)
         }
     }
 
