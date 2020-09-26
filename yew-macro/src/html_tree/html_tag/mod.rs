@@ -238,7 +238,7 @@ impl ToTokens for HtmlTag {
                 let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
                 Some(quote! {
                     let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
-                    #(__yew_classes.push(#classes);)*
+                    #(__yew_classes.extend(::yew::virtual_dom::Classes::from(#classes));)*
 
                     if !__yew_classes.is_empty() {
                         #vtag.__macro_push_attribute("class", #sr);

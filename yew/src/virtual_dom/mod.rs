@@ -343,14 +343,13 @@ impl Classes {
     /// Adds a class to a set.
     ///
     /// If the provided class has already been added, this method will ignore it.
-    pub fn push<T: Into<Self>>(&mut self, class: T) {
-        let classes_to_add: Self = class.into();
-        self.set.extend(classes_to_add.set);
+    pub fn push<T: Into<Cow<'static, str>>>(&mut self, class: T) {
+        self.set.insert(class.into());
     }
 
     /// Check the set contains a class.
-    pub fn contains<T: AsRef<str>>(&self, class: T) -> bool {
-        self.set.contains(class.as_ref())
+    pub fn contains<T: Into<Cow<'static, str>>>(&self, class: T) -> bool {
+        self.set.contains(&class.into())
     }
 
     /// Check the set is empty.
@@ -543,24 +542,17 @@ mod tests {
 
     struct TestClass;
 
-    impl AsRef<str> for TestClass {
-        fn as_ref(&self) -> &str {
-            "test-class"
+    impl From<TestClass> for Cow<'static, str> {
+        fn from(_: TestClass) -> Self {
+            "test-class".into()
         }
     }
 
-    // NOTE: I believe we will be able to remove this impl in the future using specialization
-    //
-    // See https://github.com/rust-lang/rust/issues/31844
-    //
-    // impl<T: AsRef<str>> From<T> for Classes {
-    //     fn from(other: T) -> Self {
-    //         Classes::from(other.as_ref())
-    //     }
-    // }
     impl From<TestClass> for Classes {
-        fn from(_: TestClass) -> Self {
-            Classes::from("test-class")
+        fn from(x: TestClass) -> Self {
+            let mut classes = Classes::new();
+            classes.push(x);
+            classes
         }
     }
 
@@ -611,7 +603,7 @@ mod tests {
         let mut subject = Classes::new();
         subject.push(TestClass);
         let other_class: Option<TestClass> = None;
-        subject.push(other_class);
+        subject.extend(other_class);
         assert!(subject.contains(TestClass));
     }
 
