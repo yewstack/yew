@@ -318,7 +318,7 @@ impl Default for Attributes {
     }
 }
 
-/// A set of classes.
+/// A set of classes (used by the macro `html!()` to parse the classes).
 #[derive(Debug, Clone, Default)]
 pub struct HTMLClasses {
     set: IndexSet<Cow<'static, str>>,
@@ -346,11 +346,6 @@ impl HTMLClasses {
     pub fn push<T: Into<Self>>(&mut self, class: T) {
         let classes_to_add: Self = class.into();
         self.set.extend(classes_to_add.set);
-    }
-
-    /// Check the set contains a class.
-    pub fn contains<T: AsRef<str>>(&self, class: T) -> bool {
-        self.set.contains(class.as_ref())
     }
 
     /// Check the set is empty.
@@ -459,6 +454,170 @@ impl PartialEq for HTMLClasses {
     }
 }
 
+/// A set of classes (used to handle classes in components).
+///
+/// Use `new_static()` to manage classes based on `&'static str` or `new()` to manage classes based
+/// on `String`.
+#[derive(Debug, Clone, Default)]
+pub struct Classes<T> {
+    set: IndexSet<T>,
+}
+
+impl Classes<String> {
+    /// Creates an empty set of `String` classes. (Does not allocate.)
+    pub fn new() -> Self {
+        Self {
+            set: IndexSet::new(),
+        }
+    }
+}
+
+impl Classes<&'static str> {
+    /// Creates an empty set of `&'static str` classes. (Does not allocate.)
+    pub fn new_static() -> Self {
+        Self {
+            set: IndexSet::new(),
+        }
+    }
+}
+
+impl<T> Classes<T>
+where
+    T: core::hash::Hash + Eq + std::borrow::Borrow<str>,
+{
+    /// Creates an empty set of classes with capacity for n elements. (Does not allocate if n is
+    /// zero.)
+    pub fn with_capacity(n: usize) -> Self {
+        Self {
+            set: IndexSet::with_capacity(n),
+        }
+    }
+
+    /// Adds a class to a set.
+    ///
+    /// If the provided class has already been added, this method will ignore it.
+    pub fn push<T2: Into<T>>(&mut self, class: T2) {
+        self.set.insert(class.into());
+    }
+
+    /// Check the set contains a class.
+    pub fn contains<T2: Into<T>>(&self, class: T2) -> bool {
+        self.set.contains(&class.into())
+    }
+
+    /// Check the set is empty.
+    pub fn is_empty(&self) -> bool {
+        self.set.is_empty()
+    }
+}
+
+impl<T: AsRef<str>> Extend<T> for Classes<String> {
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        // TODO: split whitespaces
+        self.set
+            .extend(iter.into_iter().map(|x| x.as_ref().to_string()));
+    }
+}
+
+impl<T: Into<&'static str>> Extend<T> for Classes<&'static str> {
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        // TODO: split whitespaces
+        self.set.extend(iter.into_iter().map(|x| x.into()));
+    }
+}
+
+impl<T> IntoIterator for Classes<T> {
+    type Item = T;
+    type IntoIter = indexmap::set::IntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.set.into_iter()
+    }
+}
+
+impl ToString for Classes<String> {
+    fn to_string(&self) -> String {
+        self.set
+            .iter()
+            .map(String::as_str)
+            .collect::<Vec<&str>>()
+            .join(" ")
+    }
+}
+
+impl From<&str> for Classes<String> {
+    fn from(t: &str) -> Self {
+        let set = t
+            .split_whitespace()
+            .map(String::from)
+            .filter(|c| !c.is_empty())
+            .collect();
+        Self { set }
+    }
+}
+
+impl From<&'static str> for Classes<&'static str> {
+    fn from(t: &'static str) -> Self {
+        let set = t.split_whitespace().filter(|c| !c.is_empty()).collect();
+        Self { set }
+    }
+}
+
+impl From<String> for Classes<String> {
+    fn from(t: String) -> Self {
+        Classes::from(t.as_str())
+    }
+}
+
+impl From<&String> for Classes<String> {
+    fn from(t: &String) -> Self {
+        Classes::from(t.as_str())
+    }
+}
+
+impl<T: AsRef<str>> From<Option<T>> for Classes<String> {
+    fn from(t: Option<T>) -> Self {
+        t.as_ref()
+            .map(|s| <Classes<String> as From<&str>>::from(s.as_ref()))
+            .unwrap_or_default()
+    }
+}
+
+impl<T: AsRef<str>> From<&Option<T>> for Classes<String> {
+    fn from(t: &Option<T>) -> Self {
+        t.as_ref()
+            .map(|s| <Classes<String> as From<&str>>::from(s.as_ref()))
+            .unwrap_or_default()
+    }
+}
+
+impl<T: AsRef<str>> From<Vec<T>> for Classes<String> {
+    fn from(t: Vec<T>) -> Self {
+        Classes::from(t.as_slice())
+    }
+}
+
+impl<T: AsRef<str>> From<&[T]> for Classes<String> {
+    fn from(t: &[T]) -> Self {
+        let set = t
+            .iter()
+            .map(|x| x.as_ref())
+            .flat_map(|s| s.split_whitespace())
+            .map(String::from)
+            .filter(|c| !c.is_empty())
+            .collect();
+        Self { set }
+    }
+}
+
+impl<T: PartialEq> PartialEq for Classes<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.set.len() == other.set.len() && self.set.iter().eq(other.set.iter())
+    }
+}
+
+// TODO: impl Transformer for &str, String, Vec<&str>, Vec<String>
+
 /// Patch for DOM node modification.
 #[derive(Debug, PartialEq)]
 enum Patch<ID, T> {
@@ -543,8 +702,8 @@ mod tests {
 
     struct TestClass;
 
-    impl AsRef<str> for TestClass {
-        fn as_ref(&self) -> &str {
+    impl From<TestClass> for &'static str {
+        fn from(_: TestClass) -> &'static str {
             "test-class"
         }
     }
@@ -553,26 +712,27 @@ mod tests {
     //
     // See https://github.com/rust-lang/rust/issues/31844
     //
-    // impl<T: AsRef<str>> From<T> for HTMLClasses {
+    // impl<T: AsRef<str>> From<T> for Classes {
     //     fn from(other: T) -> Self {
-    //         HTMLClasses::from(other.as_ref())
+    //         Classes::from(other.as_ref())
     //     }
     // }
-    impl From<TestClass> for HTMLClasses {
-        fn from(_: TestClass) -> Self {
-            HTMLClasses::from("test-class")
+    impl From<TestClass> for Classes<&'static str> {
+        fn from(test_class: TestClass) -> Self {
+            let class: &'static str = test_class.into();
+            Classes::from(class)
         }
     }
 
     #[test]
     fn it_is_initially_empty() {
-        let subject = HTMLClasses::new();
+        let subject = Classes::new();
         assert!(subject.is_empty());
     }
 
     #[test]
     fn it_pushes_value() {
-        let mut subject = HTMLClasses::new();
+        let mut subject = Classes::new();
         subject.push("foo");
         assert!(!subject.is_empty());
         assert!(subject.contains("foo"));
@@ -580,18 +740,36 @@ mod tests {
 
     #[test]
     fn it_adds_values_via_extend() {
-        let mut other = HTMLClasses::new();
+        let mut other = Classes::new();
         other.push("bar");
-        let mut subject = HTMLClasses::new();
+        let mut subject = Classes::new();
+        subject.extend(other);
+        assert!(subject.contains("bar"));
+    }
+
+    #[test]
+    fn it_adds_values_via_extend_and_push_using_static_str() {
+        let mut other = Classes::new_static();
+        other.push("bar");
+        let mut subject = Classes::new_static();
+        subject.extend(other);
+        assert!(subject.contains("bar"));
+    }
+
+    #[test]
+    fn classes_string_and_static_str_can_be_mixed() {
+        let mut other = Classes::new_static();
+        other.push("bar");
+        let mut subject = Classes::new();
         subject.extend(other);
         assert!(subject.contains("bar"));
     }
 
     #[test]
     fn it_contains_both_values() {
-        let mut other = HTMLClasses::new();
+        let mut other = Classes::new();
         other.push("bar");
-        let mut subject = HTMLClasses::new();
+        let mut subject = Classes::new();
         subject.extend(other);
         subject.push("foo");
         assert!(subject.contains("foo"));
@@ -600,27 +778,26 @@ mod tests {
 
     #[test]
     fn it_splits_class_with_spaces() {
-        let mut subject = HTMLClasses::new();
-        subject.push("foo bar");
+        let subject = Classes::<String>::from("foo bar");
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
     }
 
     #[test]
     fn push_and_contains_can_be_used_with_other_objects() {
-        let mut subject = HTMLClasses::new();
+        let mut subject = Classes::new_static();
         subject.push(TestClass);
         let other_class: Option<TestClass> = None;
-        subject.push(other_class);
+        subject.extend(other_class);
         assert!(subject.contains(TestClass));
     }
 
     #[test]
     fn can_be_extended_with_another_class() {
-        let mut other = HTMLClasses::new();
+        let mut other = Classes::new();
         other.push("foo");
         other.push("bar");
-        let mut subject = HTMLClasses::new();
+        let mut subject = Classes::new();
         subject.extend(other);
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
