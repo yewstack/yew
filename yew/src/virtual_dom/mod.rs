@@ -459,6 +459,12 @@ impl PartialEq for Classes {
     }
 }
 
+impl<T: Into<Classes>> Transformer<T, Classes> for VComp {
+    fn transform(from: T) -> Classes {
+        from.into()
+    }
+}
+
 /// Patch for DOM node modification.
 #[derive(Debug, PartialEq)]
 enum Patch<ID, T> {
