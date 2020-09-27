@@ -543,24 +543,15 @@ mod tests {
 
     struct TestClass;
 
-    impl AsRef<str> for TestClass {
-        fn as_ref(&self) -> &str {
+    impl TestClass {
+        fn as_class(&self) -> &'static str {
             "test-class"
         }
     }
 
-    // NOTE: I believe we will be able to remove this impl in the future using specialization
-    //
-    // See https://github.com/rust-lang/rust/issues/31844
-    //
-    // impl<T: AsRef<str>> From<T> for Classes {
-    //     fn from(other: T) -> Self {
-    //         Classes::from(other.as_ref())
-    //     }
-    // }
     impl From<TestClass> for Classes {
-        fn from(_: TestClass) -> Self {
-            Classes::from("test-class")
+        fn from(x: TestClass) -> Self {
+            Classes::from(x.as_class())
         }
     }
 
@@ -612,7 +603,7 @@ mod tests {
         subject.push(TestClass);
         let other_class: Option<TestClass> = None;
         subject.push(other_class);
-        assert!(subject.contains(TestClass));
+        assert!(subject.contains(TestClass.as_class()));
     }
 
     #[test]
