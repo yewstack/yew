@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-#[rustversion::attr(since(1.45), test)]
+#[rustversion::attr(all(since(1.45), not(any(nightly, beta))), test)]
 fn tests() {
     let t = trybuild::TestCases::new();
     t.pass("tests/derive_props/pass.rs");
