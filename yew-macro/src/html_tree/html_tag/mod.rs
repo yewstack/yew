@@ -234,11 +234,10 @@ impl ToTokens for HtmlTag {
 
         let push_classes = match classes {
             Some(ClassesForm::Tuple(classes)) => {
-                // TODO: capacity n is probably not exact
                 let n = classes.len();
                 let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
                 Some(quote! {
-                    let mut __yew_classes = ::yew::virtual_dom::HTMLClasses::with_capacity(#n);
+                    let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
                     #(__yew_classes.push(#classes);)*
 
                     if !__yew_classes.is_empty() {
@@ -262,7 +261,7 @@ impl ToTokens for HtmlTag {
                 None => {
                     let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
                     Some(quote! {
-                        let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::HTMLClasses>::into(#classes);
+                        let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
                         if !__yew_classes.is_empty() {
                             #vtag.__macro_push_attribute("class", #sr);
                         } else {
