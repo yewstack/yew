@@ -9,8 +9,8 @@ repository = "https://github.com/yewstack/yew"
 readme = "README.md"
 
 [features]
-default = ["stable"] # Only stable is included by default.
-all = ["stable", "experimental"]
+default = ["web_sys", "stable"] # Only stable is included by default.
+all = ["web_sys", "stable", "experimental"]
 
 # Broad features
 ## All features MUST be stable or experimental or soft_depricated
@@ -35,22 +35,27 @@ store = []
 lrc = []
 mrc_irc = []
 
+std_web = [
+  "yew/std_web",
+]
+web_sys = [
+  "yew/web_sys",
+  "web-sys"
+]
+
 [dependencies]
 log = "0.4.8"
 serde = {version= "1.0.102", optional = true}
 serde_json = { version = "1.0.41", optional = true }
 wasm-bindgen = {version = "0.2.51", features=["serde-serialize"], optional = true}
 wasm-bindgen-futures = {version = "0.4.3", optional = true}
-yew = { version = "0.17.0", path = "../yew" }
 yewtil-macro = { version = "0.2.0", path = "../yewtil-macro", optional = true }
 
-[dependencies.stdweb]
-version = "0.4.20"
-optional = true
-features = [
-  "futures-support",
-  "experimental_features_which_may_break_on_minor_version_bumps",
-]
+[dependencies.yew]
+path = "../yew"
+version = "0.17.0"
+default-features = false
+features = ["agent"]
 
 [dependencies.web-sys]
 version = "0.3.31"
