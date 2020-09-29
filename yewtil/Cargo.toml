@@ -37,7 +37,6 @@ mrc_irc = []
 
 std_web = [
   "yew/std_web",
-  "stdweb"
 ]
 web_sys = [
   "yew/web_sys",
@@ -57,14 +56,6 @@ path = "../yew"
 version = "0.17.0"
 default-features = false
 features = ["agent"]
-
-[dependencies.stdweb]
-version = "0.4.20"
-optional = true
-features = [
-  "futures-support",
-  "experimental_features_which_may_break_on_minor_version_bumps",
-]
 
 [dependencies.web-sys]
 version = "0.3.31"
