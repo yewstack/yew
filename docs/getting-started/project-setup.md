@@ -46,95 +46,15 @@ This was the best preferred tool to use before the creation of `wasm-bindgen`.
 
 ### Comparison
 
-<table>
-  <thead>
-    <tr>
-      <th style="text-align:left"></th>
-      <th style="text-align:left"><code>trunk</code></th>
-      <th style="text-align:left"><code>wasm-pack</code></th>
-      <th style="text-align:left"><code>cargo-web</code></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align:left">Project Status</td>
-      <td style="text-align:left">Actively maintained</td>
-      <td style="text-align:left">Actively maintained by the <a href="https://rustwasm.github.io/">Rust / Wasm Working Group</a></td>
-      <td style="text-align:left">No Github activity for over 6 months</td>
-    </tr>
-    <tr>
-      <td style="text-align:left">Dev Experience</td>
-      <td style="text-align:left">Just works! Batteries included, no external dependencies needed.</td>
-      <td style="text-align:left">Barebones. You'll need to write some scripts to streamline the experience or use the webpack plugin.</td>
-      <td style="text-align:left">Works great for code but needs separate asset pipeline.</td>
-    </tr>
-    <tr>
-      <td style="text-align:left">Local Server</td>
-      <td style="text-align:left">Supported</td>
-      <td style="text-align:left">Only with webpack plugin</td>
-      <td style="text-align:left">Supported</td>
-    </tr>
-    <tr>
-      <td style="text-align:left">Auto rebuild on local changes</td>
-      <td style="text-align:left">Supported</td>
-      <td style="text-align:left">Only with webpack plugin</td>
-      <td style="text-align:left">Supported</td>
-    </tr>
-    <tr>
-      <td style="text-align:left">Asset handling</td>
-      <td style="text-align:left">Supported</td>
-      <td style="text-align:left">Only with webpack plugin</td>
-      <td style="text-align:left">Static assets only</td>
-    </tr>
-    <tr>
-      <td style="text-align:left">Headless Browser Testing</td>
-      <td style="text-align:left"><a href="https://github.com/thedodd/trunk/issues/20">In Progress</a></td>
-      <td style="text-align:left"><a href="https://rustwasm.github.io/wasm-pack/book/commands/test.html">Supported</a></td>
-      <td style="text-align:left"><a href="https://github.com/koute/cargo-web#features">Supported</a></td>
-    </tr>
-    <tr>
-      <td style="text-align:left">Supported Targets</td>
-      <td style="text-align:left">
-        <ul>
-          <li><code>wasm32-unknown-unknown</code></li>
-        </ul>
-      </td>
-      <td style="text-align:left">
-        <ul>
-          <li><code>wasm32-unknown-unknown</code></li>
-        </ul>
-      </td>
-      <td style="text-align:left">
-        <ul>
-          <li><code>wasm32-unknown-unknown</code></li>
-          <li><code>wasm32-unknown-emscripten</code></li>
-          <li><code>asmjs-unknown-emscripten</code></li>
-        </ul>
-      </td>
-    </tr>
-    <tr>
-      <td style="text-align:left"><code>web-sys</code></td>
-      <td style="text-align:left">Compatible</td>
-      <td style="text-align:left">Compatible</td>
-      <td style="text-align:left">Incompatible</td>
-    </tr>
-    <tr>
-      <td style="text-align:left"><code>stdweb</code></td>
-      <td style="text-align:left">Incompatible</td>
-      <td style="text-align:left">Compatible</td>
-      <td style="text-align:left">Compatible</td>
-    </tr>
-    <tr>
-      <td style="text-align:left">Example Usage</td>
-      <td style="text-align:left">
-        <a href="build-a-sample-app">Sample app</a>
-      </td>
-      <td style="text-align:left">
-        <a href="https://github.com/yewstack/yew-wasm-pack-minimal">Starter template</a>
-      </td>
-      <td style="text-align:left">
-        <a href="https://www.github.com/yewstack/yew/tree/master/yew-stdweb/examples">Build script</a> for Yew examples
-      </td>
-    </tr>
-  </tbody>
-</table>
+|                               | `trunk`                                                          | `wasm-pack`                                                                                          | `cargo-web`                                                                                                                                            |
+| ----------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Project Status                | Actively maintained                                              | Actively maintained by the [Rust / Wasm Working Group](https://rustwasm.github.io)                   | No Github activity for over 6 months                                                                                                                   |
+| Dev Experience                | Just works! Batteries included, no external dependencies needed. | Barebones. You'll need to write some scripts to streamline the experience or use the webpack plugin. | Works great for code but needs separate asset pipeline.                                                                                                |
+| Local Server                  | Supported                                                        | Only with webpack plugin                                                                             | Supported                                                                                                                                              |
+| Auto rebuild on local changes | Supported                                                        | Only with webpack plugin                                                                             | Supported                                                                                                                                              |
+| Asset handling                | Supported                                                        | Only with webpack plugin                                                                             | Static assets only                                                                                                                                     |
+| Headless Browser Testing      | [In Progress](https://github.com/thedodd/trunk/issues/20)        | [Supported](https://rustwasm.github.io/wasm-pack/book/commands/test.html)                            | [Supported](https://github.com/koute/cargo-web#features)                                                                                               |
+| Supported Targets             | <ul><li><code>wasm32-unknown-unknown</code></li></ul>            | <ul><li><code>wasm32-unknown-unknown</code></li></ul>                                                | <ul> <li><code>wasm32-unknown-unknown</code></li> <li><code>wasm32-unknown-emscripten</code></li> <li><code>asmjs-unknown-emscripten</code></li> </ul> |
+| `web-sys`                     | Compatible                                                       | Compatible                                                                                           | Incompatible                                                                                                                                           |
+| `stdweb`                      | Incompatible                                                     | Compatible                                                                                           | Compatible                                                                                                                                             |
+| Example Usage                 | [Sample app](./build-a-sample-app.md)                            | [Starter template](https://github.com/yewstack/yew-wasm-pack-minimal)                                | [Build script](https://www.github.com/yewstack/yew/tree/master/yew-stdweb/examples) for `yew-stdweb` examples                                          |
