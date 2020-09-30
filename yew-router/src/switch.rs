@@ -82,9 +82,8 @@ pub trait Switch: Sized {
 pub struct LeadingSlash<T>(pub T);
 impl<U: Switch> Switch for LeadingSlash<U> {
     fn from_route_part<STATE>(part: String, state: Option<STATE>) -> (Option<Self>, Option<STATE>) {
-        if part.starts_with('/') {
-            let part = part[1..].to_string();
-            let (inner, state) = U::from_route_part(part, state);
+        if let Some(part) = part.strip_prefix('/') {
+            let (inner, state) = U::from_route_part(part.to_owned(), state);
             (inner.map(LeadingSlash), state)
         } else {
             (None, None)
