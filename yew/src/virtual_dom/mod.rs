@@ -16,9 +16,15 @@ pub mod vtext;
 use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use indexmap::{IndexMap, IndexSet};
-use std::borrow::Cow;
-use std::fmt;
-use std::{collections::HashMap, hint::unreachable_unchecked, iter, mem, rc::Rc};
+use std::{
+    borrow::{Borrow, Cow},
+    collections::HashMap,
+    fmt,
+    hint::unreachable_unchecked,
+    iter::{self, FromIterator},
+    mem,
+    rc::Rc,
+};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use crate::html::EventListener;
@@ -315,41 +321,68 @@ impl Default for Attributes {
 /// A set of classes.
 #[derive(Debug, Clone, Default)]
 pub struct Classes {
-    set: IndexSet<String>,
+    set: IndexSet<Cow<'static, str>>,
 }
 
 impl Classes {
-    /// Creates an empty set of classes.
+    /// Creates an empty set of classes. (Does not allocate.)
     pub fn new() -> Self {
         Self {
             set: IndexSet::new(),
         }
     }
 
+    /// Creates an empty set of classes with capacity for n elements. (Does not allocate if n is
+    /// zero.)
+    pub fn with_capacity(n: usize) -> Self {
+        Self {
+            set: IndexSet::with_capacity(n),
+        }
+    }
+
     /// Adds a class to a set.
     ///
     /// If the provided class has already been added, this method will ignore it.
-    pub fn push(&mut self, class: &str) {
-        let classes_to_add: Classes = class.into();
+    pub fn push<T: Into<Self>>(&mut self, class: T) {
+        let classes_to_add: Self = class.into();
         self.set.extend(classes_to_add.set);
     }
 
     /// Check the set contains a class.
-    pub fn contains(&self, class: &str) -> bool {
-        self.set.contains(class)
+    pub fn contains<T: AsRef<str>>(&self, class: T) -> bool {
+        self.set.contains(class.as_ref())
     }
 
     /// Check the set is empty.
     pub fn is_empty(&self) -> bool {
         self.set.is_empty()
     }
+}
 
-    /// Adds other classes to this set of classes; returning itself.
-    ///
-    /// Takes the logical union of both `Classes`.
-    pub fn extend<T: Into<Classes>>(mut self, other: T) -> Self {
-        self.set.extend(other.into().set.into_iter());
-        self
+impl<T: Into<Classes>> Extend<T> for Classes {
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        let classes = iter
+            .into_iter()
+            .map(Into::into)
+            .flat_map(|classes| classes.set);
+        self.set.extend(classes);
+    }
+}
+
+impl<T: Into<Classes>> FromIterator<T> for Classes {
+    fn from_iter<IT: IntoIterator<Item = T>>(iter: IT) -> Self {
+        let mut classes = Self::new();
+        classes.extend(iter);
+        classes
+    }
+}
+
+impl IntoIterator for Classes {
+    type Item = Cow<'static, str>;
+    type IntoIter = indexmap::set::IntoIter<Cow<'static, str>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.set.into_iter()
     }
 }
 
@@ -357,67 +390,66 @@ impl ToString for Classes {
     fn to_string(&self) -> String {
         self.set
             .iter()
-            .map(String::as_str)
-            .collect::<Vec<&str>>()
+            .map(Borrow::borrow)
+            .collect::<Vec<_>>()
             .join(" ")
     }
 }
 
-impl From<&str> for Classes {
-    fn from(t: &str) -> Self {
-        let set = t
-            .split_whitespace()
-            .map(String::from)
-            .filter(|c| !c.is_empty())
-            .collect();
+impl From<Cow<'static, str>> for Classes {
+    fn from(t: Cow<'static, str>) -> Self {
+        match t {
+            Cow::Borrowed(x) => Self::from(x),
+            Cow::Owned(x) => Self::from(x),
+        }
+    }
+}
+
+impl From<&'static str> for Classes {
+    fn from(t: &'static str) -> Self {
+        let set = t.split_whitespace().map(Cow::Borrowed).collect();
         Self { set }
     }
 }
 
 impl From<String> for Classes {
     fn from(t: String) -> Self {
-        Classes::from(t.as_str())
+        Self::from(&t)
     }
 }
 
 impl From<&String> for Classes {
     fn from(t: &String) -> Self {
-        Classes::from(t.as_str())
-    }
-}
-
-impl<T: AsRef<str>> From<Option<T>> for Classes {
-    fn from(t: Option<T>) -> Self {
-        t.as_ref()
-            .map(|s| <Classes as From<&str>>::from(s.as_ref()))
-            .unwrap_or_default()
-    }
-}
-
-impl<T: AsRef<str>> From<&Option<T>> for Classes {
-    fn from(t: &Option<T>) -> Self {
-        t.as_ref()
-            .map(|s| <Classes as From<&str>>::from(s.as_ref()))
-            .unwrap_or_default()
-    }
-}
-
-impl<T: AsRef<str>> From<Vec<T>> for Classes {
-    fn from(t: Vec<T>) -> Self {
-        Classes::from(t.as_slice())
-    }
-}
-
-impl<T: AsRef<str>> From<&[T]> for Classes {
-    fn from(t: &[T]) -> Self {
         let set = t
-            .iter()
-            .map(|x| x.as_ref())
-            .flat_map(|s| s.split_whitespace())
-            .map(String::from)
-            .filter(|c| !c.is_empty())
+            .split_whitespace()
+            .map(ToOwned::to_owned)
+            .map(Cow::Owned)
             .collect();
         Self { set }
+    }
+}
+
+impl<T: Into<Classes>> From<Option<T>> for Classes {
+    fn from(t: Option<T>) -> Self {
+        t.map(|x| x.into()).unwrap_or_default()
+    }
+}
+
+impl<T: Into<Classes> + Clone> From<&Option<T>> for Classes {
+    fn from(t: &Option<T>) -> Self {
+        Self::from(t.clone())
+    }
+}
+
+impl<T: Into<Classes>> From<Vec<T>> for Classes {
+    fn from(t: Vec<T>) -> Self {
+        Self::from_iter(t)
+    }
+}
+
+impl<T: Into<Classes> + Clone> From<&[T]> for Classes {
+    fn from(t: &[T]) -> Self {
+        Self::from_iter(t.iter().cloned())
     }
 }
 
@@ -509,6 +541,20 @@ pub trait Transformer<FROM, TO> {
 mod tests {
     use super::*;
 
+    struct TestClass;
+
+    impl TestClass {
+        fn as_class(&self) -> &'static str {
+            "test-class"
+        }
+    }
+
+    impl From<TestClass> for Classes {
+        fn from(x: TestClass) -> Self {
+            Classes::from(x.as_class())
+        }
+    }
+
     #[test]
     fn it_is_initially_empty() {
         let subject = Classes::new();
@@ -527,7 +573,8 @@ mod tests {
     fn it_adds_values_via_extend() {
         let mut other = Classes::new();
         other.push("bar");
-        let subject = Classes::new().extend(other);
+        let mut subject = Classes::new();
+        subject.extend(other);
         assert!(subject.contains("bar"));
     }
 
@@ -535,7 +582,8 @@ mod tests {
     fn it_contains_both_values() {
         let mut other = Classes::new();
         other.push("bar");
-        let mut subject = Classes::new().extend(other);
+        let mut subject = Classes::new();
+        subject.extend(other);
         subject.push("foo");
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
@@ -545,6 +593,26 @@ mod tests {
     fn it_splits_class_with_spaces() {
         let mut subject = Classes::new();
         subject.push("foo bar");
+        assert!(subject.contains("foo"));
+        assert!(subject.contains("bar"));
+    }
+
+    #[test]
+    fn push_and_contains_can_be_used_with_other_objects() {
+        let mut subject = Classes::new();
+        subject.push(TestClass);
+        let other_class: Option<TestClass> = None;
+        subject.push(other_class);
+        assert!(subject.contains(TestClass.as_class()));
+    }
+
+    #[test]
+    fn can_be_extended_with_another_class() {
+        let mut other = Classes::new();
+        other.push("foo");
+        other.push("bar");
+        let mut subject = Classes::new();
+        subject.extend(other);
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
     }
