@@ -10,14 +10,13 @@ use yew::{html, Html};
 /// Note that this has a complexity of O(n),
 /// where n is the number of classes already in VTag plus
 /// the number of classes to be added.
-fn add_class(vtag: &mut VTag, class: &str) {
+fn add_class(vtag: &mut VTag, class: impl Into<Classes>) {
     let mut classes: Classes = vtag
         .attributes
         .iter()
-        .find(|(k, _)| k == &"class")
-        .map(|(_, v)| AsRef::as_ref(v))
-        .unwrap_or("")
-        .into();
+        .find(|(k, _)| *k == "class")
+        .map(|(_, v)| Classes::from(v.to_owned()))
+        .unwrap_or_default();
     classes.push(class);
     vtag.add_attribute("class", classes.to_string());
 }
