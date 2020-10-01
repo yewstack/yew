@@ -63,7 +63,7 @@ mod stringify;
 use derive_props::DerivePropsInput;
 use html_tree::{HtmlRoot, HtmlRootVNode};
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens};
+use quote::ToTokens;
 use syn::buffer::Cursor;
 use syn::parse_macro_input;
 
@@ -94,17 +94,17 @@ pub fn derive_props(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn html_nested(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRoot);
-    TokenStream::from(quote! {#root})
+    TokenStream::from(root.into_token_stream())
 }
 
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRootVNode);
-    TokenStream::from(quote! {#root})
+    TokenStream::from(root.into_token_stream())
 }
 
 #[proc_macro]
 pub fn props(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as props::ComponentProps);
-    TokenStream::from(quote! {#root})
+    TokenStream::from(root.into_token_stream())
 }
