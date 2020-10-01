@@ -53,8 +53,7 @@ jobs:
               cd "$path"
               dist_dir="$output/$example"
 
-              export PUBLIC_URL="$PUBLIC_URL_PREFIX/$example"
-              trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL"
+              trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL_PREFIX/$example"
             )
           done
 

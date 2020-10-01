@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-default-env = "0.1"
 instant = { version = "0.1", features = ["wasm-bindgen"] }
 lipsum = "0.7"
 log = "0.4"
