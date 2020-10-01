@@ -39,7 +39,7 @@ pub struct PublicUrlSwitch(AppRoute);
 impl PublicUrlSwitch {
     fn base_url() -> Url {
         if let Ok(Some(href)) = yew::utils::document().base_uri() {
-            // since this always returns an absolute URL we turn it into an `Url`
+            // since this always returns an absolute URL we turn it into `Url`
             // so we can more easily get the path.
             Url::new(&href).unwrap()
         } else {
