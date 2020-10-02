@@ -4,7 +4,7 @@ description: Components and their lifecycle hooks
 ---
 ## What are Components?
 
-Components are the building blocks of Yew. They manage their own state and can render themselves to the DOM. Components are created by implementing the `Component` trait on object (e.g. structs or enums). The `Component`
+Components are the building blocks of Yew. They manage their own state and can render themselves to the DOM. Components are created by implementing the `Component` trait for a type. The `Component`
 trait has a number of methods which need to be implemented; Yew will call these at different stages
 in the lifecycle of a component.
 
@@ -106,10 +106,10 @@ Note that this lifecycle method does not require an implementation and will do n
 
 ### Update
 
-Components are dynamic and can register to receive messages which are passed asynchronously. The 
-`update` lifecycle method is called for each message. This allows the component to update itself 
+Communication with components happens primarily through messages which are handled by the
+`update` lifecycle method. This allows the component to update itself 
 based on what the message was, and determine if it needs to re-render itself. Messages can be sent 
-from HTML elements listeners or be sent by child components, Agents, Services, or Futures.
+by event listeners, child components, Agents, Services, or Futures.
 
 Here's an example of what an implementation of `update` could look like:
 
@@ -183,7 +183,7 @@ impl Component for MyComponent {
 The `Message` type is used to send messages to a component after an event has taken place; for 
 example you might want to undertake some action when a user clicks a button or scrolls down the 
 page. Because components tend to have to respond to more than one event, the `Message` type will
-normally be an enum, where each member of the enumeration is an event to be handled.
+normally be an enum, where each variant is an event to be handled.
 
 When organising your codebase, it is sensible to include the definition of the `Message` type in the 
 same module in which your component is defined. You may find it helpful to adopt a consistent naming 
@@ -199,4 +199,3 @@ enum Msg {
 ```
 
 `Properties` represents the information passed to a component from its parent. This type must implements the `Properties` trait \(usually by deriving it\) and can specify whether certain properties are required or optional. This type is used when creating and updating a component. It is common practice to create a struct called `Props` in your component's module and use that as the component's `Properties` type. It is common to shorten "properties" to "props". Since props are handed down from parent components, the root component of your application typically has a `Properties` type of `()`. If you wish to specify properties for your root component, use the `App::mount_with_props` method.
-
