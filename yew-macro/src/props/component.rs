@@ -41,6 +41,21 @@ pub struct ComponentProps {
     ty: TypePath,
     props: HtmlPropList,
 }
+impl ComponentProps {
+    pub fn parse_for_properties(input: ParseStream, ty: TypePath) -> syn::Result<Self> {
+        let props: HtmlPropList = input.parse()?;
+        for prop in props.iter() {
+            if prop.question_mark.is_some() {
+                return Err(syn::Error::new_spanned(
+                    &prop.label,
+                    "optional attributes are only supported on HTML tags. Yew components can use `Option<T>` properties to accomplish the same thing.",
+                ));
+            }
+        }
+
+        Ok(Self { ty, props })
+    }
+}
 impl Parse for ComponentProps {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut ty: TypePath = input.parse()?;
@@ -54,17 +69,7 @@ impl Parse for ComponentProps {
             })?;
         }
 
-        let props: HtmlPropList = input.parse()?;
-        for prop in props.iter() {
-            if prop.question_mark.is_some() {
-                return Err(syn::Error::new_spanned(
-                    &prop.label,
-                    "optional attributes are only supported on HTML tags. Yew components can use `Option<T>` properties to accomplish the same thing.",
-                ));
-            }
-        }
-
-        Ok(Self { ty, props })
+        Self::parse_for_properties(input, ty)
     }
 }
 impl ToTokens for ComponentProps {

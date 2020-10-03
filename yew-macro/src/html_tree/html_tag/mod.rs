@@ -1,15 +1,16 @@
-mod tag_attributes;
-
-use super::{HtmlChildrenTree, HtmlDashedName, HtmlProp, HtmlPropSuffix};
+use super::{HtmlChildrenTree, HtmlDashedName, HtmlPropSuffix};
+use crate::props::HtmlProp;
 use crate::stringify::Stringify;
 use crate::{non_capitalized_ascii, stringify, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result as ParseResult};
+use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{Block, Ident, Token};
+
+mod tag_attributes;
 use tag_attributes::{ClassesForm, TagAttributes};
 
 pub struct HtmlTag {
@@ -27,7 +28,7 @@ impl PeekValue<()> for HtmlTag {
 }
 
 impl Parse for HtmlTag {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         if HtmlTagClose::peek(input.cursor()).is_some() {
             return match input.parse::<HtmlTagClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
@@ -414,7 +415,7 @@ impl Peek<'_, ()> for DynamicName {
 }
 
 impl Parse for DynamicName {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let at = input.parse()?;
         // the expression block is optional, closing tags don't have it.
         let expr = if input.cursor().group(Delimiter::Brace).is_some() {
@@ -465,7 +466,7 @@ impl Peek<'_, TagKey> for TagName {
 }
 
 impl Parse for TagName {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         if DynamicName::peek(input.cursor()).is_some() {
             DynamicName::parse(input).map(Self::Expr)
         } else {
@@ -513,7 +514,7 @@ impl PeekValue<TagKey> for HtmlTagOpen {
 }
 
 impl Parse for HtmlTagOpen {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let lt = input.parse::<Token![<]>()?;
         let tag_name = input.parse::<TagName>()?;
         let HtmlPropSuffix { stream, div, gt } = input.parse()?;
@@ -591,7 +592,7 @@ impl PeekValue<TagKey> for HtmlTagClose {
 }
 
 impl Parse for HtmlTagClose {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let lt = input.parse()?;
         let div = input.parse()?;
         let tag_name = input.parse()?;

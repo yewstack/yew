@@ -1,6 +1,5 @@
-use super::{html_dashed_name::HtmlDashedName, HtmlChildrenTree};
-use crate::html_tree::{HtmlProp, HtmlPropSuffix};
-use crate::{Peek, PeekValue};
+use super::{html_dashed_name::HtmlDashedName, HtmlChildrenTree, HtmlPropSuffix};
+use crate::{props::HtmlProp, Peek, PeekValue};
 use boolinator::Boolinator;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;

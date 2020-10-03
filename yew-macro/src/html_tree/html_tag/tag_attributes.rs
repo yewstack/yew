@@ -1,5 +1,4 @@
-use crate::html_tree::HtmlProp as TagAttribute;
-use crate::PeekValue;
+use crate::props::{HtmlProp, HtmlPropList};
 use lazy_static::lazy_static;
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -7,12 +6,12 @@ use syn::parse::{Parse, ParseStream};
 use syn::{Expr, ExprTuple};
 
 pub struct TagAttributes {
-    pub attributes: Vec<TagAttribute>,
-    pub listeners: Vec<TagAttribute>,
+    pub attributes: Vec<HtmlProp>,
+    pub listeners: Vec<HtmlProp>,
     pub classes: Option<ClassesForm>,
-    pub booleans: Vec<TagAttribute>,
-    pub value: Option<TagAttribute>,
-    pub kind: Option<TagAttribute>,
+    pub booleans: Vec<HtmlProp>,
+    pub value: Option<HtmlProp>,
+    pub kind: Option<HtmlProp>,
     pub checked: Option<Expr>,
     pub node_ref: Option<Expr>,
     pub key: Option<Expr>,
@@ -213,7 +212,7 @@ lazy_static! {
 }
 
 impl TagAttributes {
-    fn drain_listeners(attrs: &mut Vec<TagAttribute>) -> Vec<TagAttribute> {
+    fn drain_listeners(attrs: &mut Vec<HtmlProp>) -> Vec<HtmlProp> {
         let mut i = 0;
         let mut drained = Vec::new();
         while i < attrs.len() {
@@ -227,7 +226,7 @@ impl TagAttributes {
         drained
     }
 
-    fn drain_boolean(attrs: &mut Vec<TagAttribute>) -> Vec<TagAttribute> {
+    fn drain_boolean(attrs: &mut Vec<HtmlProp>) -> Vec<HtmlProp> {
         let mut i = 0;
         let mut drained = Vec::new();
         while i < attrs.len() {
@@ -241,7 +240,7 @@ impl TagAttributes {
         drained
     }
 
-    fn remove_attr(attrs: &mut Vec<TagAttribute>, name: &str) -> Option<TagAttribute> {
+    fn remove_attr(attrs: &mut Vec<HtmlProp>, name: &str) -> Option<HtmlProp> {
         let mut i = 0;
         while i < attrs.len() {
             if attrs[i].label.to_string() == name {
@@ -254,9 +253,9 @@ impl TagAttributes {
     }
 
     fn remove_attr_nonoptional(
-        attrs: &mut Vec<TagAttribute>,
+        attrs: &mut Vec<HtmlProp>,
         name: &str,
-    ) -> syn::Result<Option<TagAttribute>> {
+    ) -> syn::Result<Option<HtmlProp>> {
         match Self::remove_attr(attrs, name) {
             Some(attr) => attr.ensure_not_optional().map(|_| Some(attr)),
             None => Ok(None),
@@ -273,10 +272,7 @@ impl TagAttributes {
 
 impl Parse for TagAttributes {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut attributes: Vec<TagAttribute> = Vec::new();
-        while TagAttribute::peek(input.cursor()).is_some() {
-            attributes.push(input.parse::<TagAttribute>()?);
-        }
+        let mut attributes = input.parse::<HtmlPropList>()?.into_inner();
 
         let mut listeners = Vec::new();
         for listener in Self::drain_listeners(&mut attributes) {
@@ -298,23 +294,19 @@ impl Parse for TagAttributes {
         }
 
         // Multiple listener attributes are allowed, but no others
-        attributes.sort_by(|a, b| {
-            a.label
-                .to_string()
-                .partial_cmp(&b.label.to_string())
-                .unwrap()
-        });
-        let mut i = 0;
-        while i + 1 < attributes.len() {
-            if attributes[i].label.to_string() == attributes[i + 1].label.to_string() {
-                let label = &attributes[i + 1].label;
+        for pair in attributes.windows(2) {
+            let (label_a, label_b) = (pair[0].label.to_lit_str(), pair[1].label.to_lit_str());
+            if label_a == label_b {
                 return Err(syn::Error::new_spanned(
-                    label,
-                    format!("the attribute `{}` can only be specified once", label),
+                    label_b,
+                    format!(
+                        "the attribute `{}` can only be specified once",
+                        label_b.value()
+                    ),
                 ));
             }
-            i += 1;
         }
+
         let booleans = Self::drain_boolean(&mut attributes);
         for attr in &booleans {
             if attr.question_mark.is_some() {

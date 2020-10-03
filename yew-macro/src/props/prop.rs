@@ -51,6 +51,10 @@ impl Parse for HtmlProp {
 
 pub struct HtmlPropList(Vec<HtmlProp>);
 impl HtmlPropList {
+    pub fn into_inner(self) -> Vec<HtmlProp> {
+        self.0
+    }
+
     pub fn iter(&self) -> std::slice::Iter<HtmlProp> {
         self.0.iter()
     }
