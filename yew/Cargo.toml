@@ -122,7 +122,7 @@ rmp-serde = "0.14.0"
 bincode = "1"
 
 [features]
-default = ["services", "agent", "web_sys"]
+default = ["services", "agent", "web_sys", "class_macro"]
 std_web = ["stdweb", "yew-macro/std_web"]
 web_sys = [
   "console_error_panic_hook",
