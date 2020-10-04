@@ -87,7 +87,7 @@ impl Model {
                     <h1 class="navbar-item is-size-3">{ "Yew Blog" }</h1>
 
                     <a role="button"
-                        class=("navbar-burger", "burger", active_class)
+                        class=classes!("navbar-burger", "burger", active_class)
                         aria-label="menu" aria-expanded="false"
                         onclick=link.callback(|_| Msg::ToggleNavbar)
                     >
@@ -96,7 +96,7 @@ impl Model {
                         <span aria-hidden="true"></span>
                     </a>
                 </div>
-                <div class=("navbar-menu", active_class)>
+                <div class=classes!("navbar-menu", active_class)>
                     <div class="navbar-start">
                         <AppAnchor classes="navbar-item" route=AppRoute::Home>
                             { "Home" }
