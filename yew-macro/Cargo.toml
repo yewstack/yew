@@ -32,3 +32,4 @@ yew = { path = "../yew" }
 [features]
 doc_test = []
 std_web = []
+class_macro = []

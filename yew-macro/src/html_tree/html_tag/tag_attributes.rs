@@ -325,8 +325,11 @@ impl Parse for TagAttributes {
             }
         }
 
+        #[cfg(not(feature = "class_macro"))]
         let classes = Self::remove_attr_nonoptional(&mut attributes, "class")?
             .map(|a| Self::map_classes(a.value));
+        #[cfg(feature = "class_macro")]
+        let classes = None;
         let value = Self::remove_attr(&mut attributes, "value");
         let kind = Self::remove_attr(&mut attributes, "type");
         let checked = Self::remove_attr_nonoptional(&mut attributes, "checked")?.map(|v| v.value);
