@@ -843,24 +843,28 @@ mod tests {
         }
 
         if let VNode::VTag(vtag) = a {
+            // TODO: empty classes should leave class unset
             assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = b {
+            // TODO: empty classes should leave class unset
             assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = c {
+            // TODO: empty classes should leave class unset
             assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = d {
+            // TODO: empty classes should leave class unset
             assert!(!vtag.attributes.iter().any(|(k, _)| k == "class"));
         } else {
             panic!("vtag expected");
@@ -1041,7 +1045,8 @@ mod tests {
         #[cfg(feature = "web_sys")]
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut elem = html! { <div class=""></div> };
+        // TODO: should accept only a literal
+        let mut elem = html! { <div class=classes!((""))></div> };
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag(&mut elem);
         // test if the className has not been set

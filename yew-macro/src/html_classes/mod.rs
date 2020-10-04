@@ -42,11 +42,9 @@ impl ToTokens for HtmlClasses {
             },
         };
 
-        if let Some(new_tokens) = new_tokens {
-            tokens.extend(quote! {{
-                #[allow(clippy::useless_conversion, unused_braces)]
-                #new_tokens
-            }});
-        }
+        tokens.extend(quote! {{
+            #[allow(clippy::useless_conversion, unused_braces)]
+            #new_tokens
+        }});
     }
 }
