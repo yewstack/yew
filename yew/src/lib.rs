@@ -196,6 +196,7 @@ pub use yew_macro::html_nested;
 
 /// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
+    pub use crate::classes;
     pub use crate::html;
     pub use crate::html_nested;
     pub use yew_macro::Properties;
