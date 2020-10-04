@@ -1,4 +1,4 @@
-mod tag_attributes;
+pub(crate) mod tag_attributes;
 
 use super::{
     HtmlChildrenTree, HtmlDashedName, HtmlProp as TagAttribute, HtmlPropSuffix as TagSuffix,

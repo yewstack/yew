@@ -5,7 +5,7 @@ mod html_iterable;
 mod html_list;
 mod html_node;
 mod html_prop;
-mod html_tag;
+pub(crate) mod html_tag;
 
 use crate::PeekValue;
 use html_block::HtmlBlock;

@@ -58,10 +58,12 @@
 #![recursion_limit = "128"]
 
 mod derive_props;
+mod html_classes;
 mod html_tree;
 mod stringify;
 
 use derive_props::DerivePropsInput;
+use html_classes::HtmlClasses;
 use html_tree::{HtmlRoot, HtmlRootVNode};
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
@@ -101,5 +103,11 @@ pub fn html_nested(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRootVNode);
+    TokenStream::from(quote! {#root})
+}
+
+#[proc_macro]
+pub fn classes(input: TokenStream) -> TokenStream {
+    let root = parse_macro_input!(input as HtmlClasses);
     TokenStream::from(quote! {#root})
 }
