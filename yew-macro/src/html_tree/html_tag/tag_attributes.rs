@@ -263,7 +263,6 @@ impl TagAttributes {
         }
     }
 
-    #[cfg(not(feature = "class_macro"))]
     fn map_classes(class_expr: Expr) -> ClassesForm {
         match class_expr {
             Expr::Tuple(ExprTuple { elems, .. }) => ClassesForm::Tuple(elems.into_iter().collect()),
