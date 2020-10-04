@@ -1,4 +1,4 @@
-use proc_macro2::{TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Punctuated;
@@ -6,11 +6,13 @@ use syn::token::Comma;
 use syn::Expr;
 
 /// List of HTML classes.
-pub struct HtmlClasses(Punctuated::<Expr, Comma>);
+pub struct HtmlClasses(Punctuated<Expr, Comma>);
 
 impl Parse for HtmlClasses {
     fn parse(input: ParseStream) -> Result<Self> {
-        Ok(HtmlClasses(Punctuated::<Expr, Comma>::parse_terminated(input)?))
+        Ok(HtmlClasses(Punctuated::<Expr, Comma>::parse_terminated(
+            input,
+        )?))
     }
 }
 
