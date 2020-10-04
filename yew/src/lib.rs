@@ -106,7 +106,7 @@ extern crate self as yew;
 /// [`Html`]: ./html/type.Html.html
 /// [`html_nested!`]: ./macro.html_nested.html
 /// [Yew Docs]: https://yew.rs/docs/en/concepts/html/
-pub use yew_macro::{html, classes};
+pub use yew_macro::{classes, html};
 
 /// This macro is similar to [`html!`], but preserves the component type instead
 /// of wrapping it in [`Html`].

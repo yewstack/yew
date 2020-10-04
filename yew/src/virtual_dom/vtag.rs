@@ -561,7 +561,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{html, classes};
+    use crate::{classes, html};
     use std::any::TypeId;
     #[cfg(feature = "std_web")]
     use stdweb::web::{document, IElement};
@@ -682,21 +682,18 @@ mod tests {
 
     #[test]
     fn classes_from_local_variables() {
-        let classes = classes!(("class-1", "class-2"));
         let a = html! {
-            <div class=classes></div>
+            <div class=classes!("class-1", "class-2")></div>
         };
 
         let class_2 = "class-2";
-        let classes = classes!(("class-1", class_2));
         let b = html! {
-            <div class=classes></div>
+            <div class=classes!("class-1", class_2)></div>
         };
 
         let class_2_fmt = format!("class-{}", 2);
-        let classes = classes!(("class-1", class_2_fmt));
         let c = html! {
-            <div class=classes></div>
+            <div class=classes!("class-1", class_2_fmt)></div>
         };
 
         assert_eq!(a, b);
@@ -723,9 +720,8 @@ mod tests {
 
     #[test]
     fn supports_multiple_non_unique_classes_tuple() {
-        let classes = classes!(("class-1", "class-1 class-2"));
         let a = html! {
-            <div class=classes></div>
+            <div class=classes!("class-1", "class-1 class-2")></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -739,15 +735,11 @@ mod tests {
 
     #[test]
     fn supports_multiple_classes_string() {
-        // TODO double parenthesis
-        let classes = classes!(("class-1 class-2 class-3"));
         let a = html! {
-            <div class=classes></div>
+            <div class=classes!("class-1 class-2 class-3")></div>
         };
-
-        let classes = classes!(("class-2 class-3 class-1"));
         let b = html! {
-            <div class=classes></div>
+            <div class=classes!("class-2 class-3 class-1")></div>
         };
 
         assert_ne!(a, b);
@@ -831,41 +823,40 @@ mod tests {
     #[test]
     fn filter_empty_string_classes() {
         let a = html! { <div class=classes!(vec![""])></div> };
-        let b = html! { <div class=classes!(("", ""))></div> };
+        let b = html! { <div class=classes!("", "")></div> };
         let c = html! { <div class=""></div> };
         let d_arr = [""];
         let d = html! { <div class=classes!(&d_arr[..])></div> };
 
-        macro_rules! has_class {
+        macro_rules! get_class {
             ($vtag:expr) => {
-                $vtag.attributes.iter().any(|(k, _)| k == "class")
+                $vtag
+                    .attributes
+                    .iter()
+                    .find_map(|(k, v)| if k == "class" { Some(v) } else { None })
             };
         }
 
         if let VNode::VTag(vtag) = a {
-            // TODO: empty classes should leave class unset
-            assert!(!has_class!(vtag));
+            assert_eq!(get_class!(vtag), Some(""));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = b {
-            // TODO: empty classes should leave class unset
-            assert!(!has_class!(vtag));
+            assert_eq!(get_class!(vtag), Some(""));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = c {
-            // TODO: empty classes should leave class unset
-            assert!(!has_class!(vtag));
+            assert_eq!(get_class!(vtag), Some(""));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = d {
-            // TODO: empty classes should leave class unset
-            assert!(!vtag.attributes.iter().any(|(k, _)| k == "class"));
+            assert_eq!(get_class!(vtag), Some(""));
         } else {
             panic!("vtag expected");
         }
@@ -1036,24 +1027,6 @@ mod tests {
     }
 
     #[test]
-    fn it_does_not_set_empty_class_name() {
-        let scope = test_scope();
-        let parent = document().create_element("div").unwrap();
-
-        #[cfg(feature = "std_web")]
-        document().body().unwrap().append_child(&parent);
-        #[cfg(feature = "web_sys")]
-        document().body().unwrap().append_child(&parent).unwrap();
-
-        // TODO: should accept only a literal
-        let mut elem = html! { <div class=classes!((""))></div> };
-        elem.apply(&scope, &parent, NodeRef::default(), None);
-        let vtag = assert_vtag(&mut elem);
-        // test if the className has not been set
-        assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
-    }
-
-    #[test]
     fn it_does_not_set_missing_class_name() {
         let scope = test_scope();
         let parent = document().create_element("div").unwrap();
@@ -1091,11 +1064,11 @@ mod tests {
     fn tuple_different_types() {
         // check if tuples containing different types are compiling
         assert_class(
-            html! { <div class=classes!(("class-1", "class-2".to_string(), vec!["class-3", "class-4"]))></div> },
+            html! { <div class=classes!("class-1", "class-2".to_string(), vec!["class-3", "class-4"])></div> },
             "class-1 class-2 class-3 class-4",
         );
         assert_class(
-            html! { <div class=classes!(("class-1", Some("class-2"), "class-3", Some("class-4".to_string())))></div> },
+            html! { <div class=classes!("class-1", Some("class-2"), "class-3", Some("class-4".to_string()))></div> },
             "class-1 class-2 class-3 class-4",
         );
         // check different string references
@@ -1107,10 +1080,22 @@ mod tests {
         assert_class(html! { <p class=classes!(&Some(str)) /> }, "some-class");
         assert_class(html! { <p class=classes!(string_ref) /> }, "some-class");
         assert_class(html! { <p class=classes!(Some(str)) /> }, "some-class");
-        assert_class(html! { <p class=classes!(Some(string.clone())) /> }, "some-class");
-        assert_class(html! { <p class=classes!(Some(string_ref)) /> }, "some-class");
-        assert_class(html! { <p class=classes!(&Some(string.clone())) /> }, "some-class");
-        assert_class(html! { <p class=classes!(&Some(string_ref)) /> }, "some-class");
+        assert_class(
+            html! { <p class=classes!(Some(string.clone())) /> },
+            "some-class",
+        );
+        assert_class(
+            html! { <p class=classes!(Some(string_ref)) /> },
+            "some-class",
+        );
+        assert_class(
+            html! { <p class=classes!(&Some(string.clone())) /> },
+            "some-class",
+        );
+        assert_class(
+            html! { <p class=classes!(&Some(string_ref)) /> },
+            "some-class",
+        );
         // check with None
         assert_class(html! { <p class=classes!(&Option::<&str>::None) /> }, "");
         assert_class(html! { <p class=classes!(Option::<String>::None) /> }, "");
@@ -1122,8 +1107,14 @@ mod tests {
         // check with variables of different type
         let some: Option<bool> = Some(false);
         let none: Option<bool> = None;
-        assert_class(html! { <p class=classes!(some.map(|i| i.to_string())) /> }, "false");
-        assert_class(html! { <p class=classes!(none.map(|i| i.to_string())) /> }, "");
+        assert_class(
+            html! { <p class=classes!(some.map(|i| i.to_string())) /> },
+            "false",
+        );
+        assert_class(
+            html! { <p class=classes!(none.map(|i| i.to_string())) /> },
+            "",
+        );
     }
 
     #[test]
@@ -1136,8 +1127,7 @@ mod tests {
         #[cfg(feature = "web_sys")]
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let classes = classes!(("class-1", "class-2", "class-3"));
-        let mut elem = html! { <div class=classes></div> };
+        let mut elem = html! { <div class=classes!("class-1", "class-2", "class-3")></div> };
         elem.apply(&scope, &parent, NodeRef::default(), None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
@@ -1158,8 +1148,7 @@ mod tests {
         );
 
         let ancestor = vtag;
-        let classes = classes!(("class-3", "class-2", "class-1"));
-        let elem = html! { <div class=classes></div> };
+        let elem = html! { <div class=classes!("class-3", "class-2", "class-1")></div> };
         let mut vtag = if let VNode::VTag(vtag) = elem {
             vtag
         } else {
@@ -1194,8 +1183,7 @@ mod tests {
         #[cfg(feature = "web_sys")]
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let classes = classes!(("class-1", "class-3"));
-        let mut elem = html! { <div class=classes></div> };
+        let mut elem = html! { <div class=classes!("class-1", "class-3")></div> };
         elem.apply(&scope, &parent, NodeRef::default(), None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
@@ -1216,8 +1204,7 @@ mod tests {
         );
 
         let ancestor = vtag;
-        let classes = classes!(("class-1", "class-2", "class-3"));
-        let elem = html! { <div class=classes></div> };
+        let elem = html! { <div class=classes!("class-1", "class-2", "class-3")></div> };
         let mut vtag = if let VNode::VTag(vtag) = elem {
             vtag
         } else {
