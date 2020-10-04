@@ -148,16 +148,10 @@ error: the `checked` attribute does not support being used as an optional attrib
 58 |     html! { <input checked?=Some(false) /> };
    |                    ^^^^^^^
 
-error: the `class` attribute does not support being used as an optional attribute
+error: the `ref` attribute does not support being used as an optional attribute
   --> $DIR/html-tag-fail.rs:59:20
    |
-59 |     html! { <input class?=() /> };
-   |                    ^^^^^
-
-error: the `ref` attribute does not support being used as an optional attribute
-  --> $DIR/html-tag-fail.rs:60:20
-   |
-60 |     html! { <input ref?=() /> };
+59 |     html! { <input ref?=() /> };
    |                    ^^^
 
 error[E0308]: mismatched types
@@ -353,18 +347,18 @@ error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
    = note: required by `std::string::ToString::to_string`
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:61:20
+  --> $DIR/html-tag-fail.rs:60:20
    |
-61 |     html! { <input onfocus?=Some(5) /> };
+60 |     html! { <input onfocus?=Some(5) /> };
    |                    ^^^^^^^ expected enum `yew::callback::Callback`, found integer
    |
    = note: expected enum `yew::callback::Callback<web_sys::features::gen_FocusEvent::FocusEvent>`
               found type `{integer}`
 
 error[E0308]: mismatched types
-  --> $DIR/html-tag-fail.rs:62:29
+  --> $DIR/html-tag-fail.rs:61:29
    |
-62 |     html! { <input onfocus?=Callback::from(|_| ()) /> };
+61 |     html! { <input onfocus?=Callback::from(|_| ()) /> };
    |                             ^^^^^^^^^^^^^^^^^^^^^^
    |                             |
    |                             expected enum `std::option::Option`, found enum `yew::callback::Callback`
