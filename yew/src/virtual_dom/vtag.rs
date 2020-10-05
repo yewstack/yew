@@ -755,9 +755,9 @@ mod tests {
 
     #[test]
     fn supports_multiple_classes_slice() {
-        let classes = classes!(&["class-1", "class-2"][..]);
+        let classes = &["class-1", "class-2"][..];
         let a = html! {
-            <div class=classes></div>
+            <div class=classes!(classes)></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -771,9 +771,9 @@ mod tests {
 
     #[test]
     fn supports_multiple_classes_one_value_slice() {
-        let classes = classes!(&["class-1 class-2", "class-1"][..]);
+        let classes = &["class-1 class-2", "class-1"][..];
         let a = html! {
-            <div class=classes></div>
+            <div class=classes!(classes)></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -789,9 +789,8 @@ mod tests {
     fn supports_multiple_classes_vec() {
         let mut classes = vec!["class-1"];
         classes.push("class-2");
-        let classes = classes!(classes);
         let a = html! {
-            <div class=classes></div>
+            <div class=classes!(classes)></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -806,9 +805,8 @@ mod tests {
     #[test]
     fn supports_multiple_classes_one_value_vec() {
         let classes = vec!["class-1 class-2", "class-1"];
-        let classes = classes!(classes);
         let a = html! {
-            <div class=classes></div>
+            <div class=classes!(classes)></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -822,11 +820,11 @@ mod tests {
 
     #[test]
     fn filter_empty_string_classes() {
-        let a = html! { <div class=classes!(vec![""])></div> };
+        let a = html! { <div class=(vec![""])></div> };
         let b = html! { <div class=("", "")></div> };
         let c = html! { <div class=""></div> };
         let d_arr = [""];
-        let d = html! { <div class=classes!(&d_arr[..])></div> };
+        let d = html! { <div class=(&d_arr[..])></div> };
 
         macro_rules! get_class {
             ($vtag:expr) => {
@@ -912,7 +910,7 @@ mod tests {
     #[test]
     fn keeps_order_of_classes() {
         let a = html! {
-            <div class=classes!(vec!["class-1", "class-2", "class-3"])></div>
+            <div class=(vec!["class-1", "class-2", "class-3"])></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -1077,44 +1075,26 @@ mod tests {
         let string_ref = &string;
         assert_class(html! { <p class=str /> }, "some-class");
         assert_class(html! { <p class=string.clone() /> }, "some-class");
-        assert_class(html! { <p class=classes!(&Some(str)) /> }, "some-class");
+        assert_class(html! { <p class=(&Some(str)) /> }, "some-class");
         assert_class(html! { <p class=string_ref /> }, "some-class");
-        assert_class(html! { <p class=classes!(Some(str)) /> }, "some-class");
-        assert_class(
-            html! { <p class=classes!(Some(string.clone())) /> },
-            "some-class",
-        );
-        assert_class(
-            html! { <p class=classes!(Some(string_ref)) /> },
-            "some-class",
-        );
-        assert_class(
-            html! { <p class=classes!(&Some(string.clone())) /> },
-            "some-class",
-        );
-        assert_class(
-            html! { <p class=classes!(&Some(string_ref)) /> },
-            "some-class",
-        );
+        assert_class(html! { <p class=(Some(str)) /> }, "some-class");
+        assert_class(html! { <p class=(Some(string.clone())) /> }, "some-class");
+        assert_class(html! { <p class=(Some(string_ref)) /> }, "some-class");
+        assert_class(html! { <p class=(&Some(string.clone())) /> }, "some-class");
+        assert_class(html! { <p class=(&Some(string_ref)) /> }, "some-class");
         // check with None
-        assert_class(html! { <p class=classes!(&Option::<&str>::None) /> }, "");
-        assert_class(html! { <p class=classes!(Option::<String>::None) /> }, "");
+        assert_class(html! { <p class=(&Option::<&str>::None) /> }, "");
+        assert_class(html! { <p class=(Option::<String>::None) /> }, "");
         // check with variables
         let some: Option<&'static str> = Some("some");
         let none: Option<&'static str> = None;
-        assert_class(html! { <p class=classes!(some) /> }, "some");
-        assert_class(html! { <p class=classes!(none) /> }, "");
+        assert_class(html! { <p class=(some) /> }, "some");
+        assert_class(html! { <p class=(none) /> }, "");
         // check with variables of different type
         let some: Option<bool> = Some(false);
         let none: Option<bool> = None;
-        assert_class(
-            html! { <p class=classes!(some.map(|i| i.to_string())) /> },
-            "false",
-        );
-        assert_class(
-            html! { <p class=classes!(none.map(|i| i.to_string())) /> },
-            "",
-        );
+        assert_class(html! { <p class=(some.map(|i| i.to_string())) /> }, "false");
+        assert_class(html! { <p class=(none.map(|i| i.to_string())) /> }, "");
     }
 
     #[test]

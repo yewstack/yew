@@ -14,6 +14,14 @@ impl From<Punctuated<Expr, Comma>> for HtmlClasses {
     }
 }
 
+impl From<Expr> for HtmlClasses {
+    fn from(value: Expr) -> Self {
+        let mut punctuated = Punctuated::<Expr, Comma>::new();
+        punctuated.push(value);
+        HtmlClasses(punctuated)
+    }
+}
+
 impl Parse for HtmlClasses {
     fn parse(input: ParseStream) -> Result<Self> {
         Ok(Punctuated::<Expr, Comma>::parse_terminated(input)?.into())

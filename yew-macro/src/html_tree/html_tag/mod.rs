@@ -12,7 +12,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
-use syn::{Block, Expr, ExprTuple, Ident, Token};
+use syn::{Block, Expr, ExprParen, ExprTuple, Ident, Token};
 use tag_attributes::TagAttributes;
 
 pub struct HtmlTag {
@@ -195,6 +195,12 @@ impl ToTokens for HtmlTag {
                  }| {
                     let key = label.to_lit_str();
                     match value {
+                        Expr::Paren(ExprParen { expr, .. }) => {
+                            let sr = HtmlClasses::from((**expr).clone());
+                            quote! {
+                                ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
+                            }
+                        }
                         Expr::Tuple(ExprTuple { elems, .. }) => {
                             let sr = HtmlClasses::from(elems.clone());
                             quote! {
