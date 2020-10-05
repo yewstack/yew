@@ -250,7 +250,7 @@ error[E0277]: the trait bound `std::borrow::Cow<'static, str>: std::convert::Fro
              <std::borrow::Cow<'a, [T]> as std::convert::From<&'a std::vec::Vec<T>>>
              <std::borrow::Cow<'a, [T]> as std::convert::From<std::vec::Vec<T>>>
              <std::borrow::Cow<'a, std::ffi::CStr> as std::convert::From<&'a std::ffi::CStr>>
-           and 11 others
+           and 12 others
    = note: required because of the requirements on the impl of `std::convert::Into<std::borrow::Cow<'static, str>>` for `{integer}`
    = note: required by `std::convert::Into::into`
 

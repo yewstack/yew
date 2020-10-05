@@ -195,13 +195,13 @@ impl ToTokens for HtmlTag {
                  }| {
                     let key = label.to_lit_str();
                     match value {
-                        Expr::Paren(ExprParen { expr, .. }) => {
+                        Expr::Paren(ExprParen { expr, .. }) if label.name == "class" => {
                             let sr = HtmlClasses::from((**expr).clone());
                             quote! {
                                 ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
                             }
                         }
-                        Expr::Tuple(ExprTuple { elems, .. }) => {
+                        Expr::Tuple(ExprTuple { elems, .. }) if label.name == "class" => {
                             let sr = HtmlClasses::from(elems.clone());
                             quote! {
                                 ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
