@@ -1,7 +1,5 @@
 use crate::Client;
-use yew::{
-    classes, html, Callback, Component, ComponentLink, Html, InputData, Properties, ShouldRender,
-};
+use yew::{html, Callback, Component, ComponentLink, Html, InputData, Properties, ShouldRender};
 
 #[derive(Debug)]
 pub enum Msg {
@@ -76,19 +74,19 @@ impl Component for AddClientForm {
             <>
                 <div class="names">
                     <input
-                        class=classes!("new-client", "firstname")
+                        class=("new-client", "firstname")
                         placeholder="First name"
                         value=&client.first_name
                         oninput=link.callback(|e: InputData| Msg::UpdateFirstName(e.value))
                     />
                     <input
-                        class=classes!("new-client", "lastname")
+                        class=("new-client", "lastname")
                         placeholder="Last name"
                         value=&client.last_name
                         oninput=link.callback(|e: InputData| Msg::UpdateLastName(e.value))
                     />
                     <textarea
-                        class=classes!("new-client", "description")
+                        class=("new-client", "description")
                         placeholder="Description"
                         value=&client.description
                         oninput=link.callback(|e: InputData| Msg::UpdateDescription(e.value))
