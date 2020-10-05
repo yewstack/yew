@@ -561,7 +561,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{classes, html};
+    use crate::html;
     use std::any::TypeId;
     #[cfg(feature = "std_web")]
     use stdweb::web::{document, IElement};
@@ -757,7 +757,7 @@ mod tests {
     fn supports_multiple_classes_slice() {
         let classes = &["class-1", "class-2"][..];
         let a = html! {
-            <div class=classes!(classes)></div>
+            <div class=(classes)></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -773,7 +773,7 @@ mod tests {
     fn supports_multiple_classes_one_value_slice() {
         let classes = &["class-1 class-2", "class-1"][..];
         let a = html! {
-            <div class=classes!(classes)></div>
+            <div class=(classes)></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -790,7 +790,7 @@ mod tests {
         let mut classes = vec!["class-1"];
         classes.push("class-2");
         let a = html! {
-            <div class=classes!(classes)></div>
+            <div class=(classes)></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -806,7 +806,7 @@ mod tests {
     fn supports_multiple_classes_one_value_vec() {
         let classes = vec!["class-1 class-2", "class-1"];
         let a = html! {
-            <div class=classes!(classes)></div>
+            <div class=(classes)></div>
         };
 
         if let VNode::VTag(vtag) = a {
