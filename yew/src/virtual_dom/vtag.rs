@@ -683,17 +683,17 @@ mod tests {
     #[test]
     fn classes_from_local_variables() {
         let a = html! {
-            <div class=classes!("class-1", "class-2")></div>
+            <div class=("class-1", "class-2")></div>
         };
 
         let class_2 = "class-2";
         let b = html! {
-            <div class=classes!("class-1", class_2)></div>
+            <div class=("class-1", class_2)></div>
         };
 
         let class_2_fmt = format!("class-{}", 2);
         let c = html! {
-            <div class=classes!("class-1", class_2_fmt)></div>
+            <div class=("class-1", class_2_fmt)></div>
         };
 
         assert_eq!(a, b);
@@ -721,7 +721,7 @@ mod tests {
     #[test]
     fn supports_multiple_non_unique_classes_tuple() {
         let a = html! {
-            <div class=classes!("class-1", "class-1 class-2")></div>
+            <div class=("class-1", "class-1 class-2")></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -736,10 +736,10 @@ mod tests {
     #[test]
     fn supports_multiple_classes_string() {
         let a = html! {
-            <div class=classes!("class-1 class-2 class-3")></div>
+            <div class=("class-1 class-2 class-3")></div>
         };
         let b = html! {
-            <div class=classes!("class-2 class-3 class-1")></div>
+            <div class=("class-2 class-3 class-1")></div>
         };
 
         assert_ne!(a, b);
@@ -1064,21 +1064,21 @@ mod tests {
     fn tuple_different_types() {
         // check if tuples containing different types are compiling
         assert_class(
-            html! { <div class=classes!("class-1", "class-2".to_string(), vec!["class-3", "class-4"])></div> },
+            html! { <div class=("class-1", "class-2".to_string(), vec!["class-3", "class-4"])></div> },
             "class-1 class-2 class-3 class-4",
         );
         assert_class(
-            html! { <div class=classes!("class-1", Some("class-2"), "class-3", Some("class-4".to_string()))></div> },
+            html! { <div class=("class-1", Some("class-2"), "class-3", Some("class-4".to_string()))></div> },
             "class-1 class-2 class-3 class-4",
         );
         // check different string references
         let str = "some-class";
         let string = str.to_string();
         let string_ref = &string;
-        assert_class(html! { <p class=classes!(str) /> }, "some-class");
-        assert_class(html! { <p class=classes!(string.clone()) /> }, "some-class");
+        assert_class(html! { <p class=str /> }, "some-class");
+        assert_class(html! { <p class=string.clone() /> }, "some-class");
         assert_class(html! { <p class=classes!(&Some(str)) /> }, "some-class");
-        assert_class(html! { <p class=classes!(string_ref) /> }, "some-class");
+        assert_class(html! { <p class=string_ref /> }, "some-class");
         assert_class(html! { <p class=classes!(Some(str)) /> }, "some-class");
         assert_class(
             html! { <p class=classes!(Some(string.clone())) /> },
@@ -1127,7 +1127,7 @@ mod tests {
         #[cfg(feature = "web_sys")]
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut elem = html! { <div class=classes!("class-1", "class-2", "class-3")></div> };
+        let mut elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
         elem.apply(&scope, &parent, NodeRef::default(), None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
@@ -1148,7 +1148,7 @@ mod tests {
         );
 
         let ancestor = vtag;
-        let elem = html! { <div class=classes!("class-3", "class-2", "class-1")></div> };
+        let elem = html! { <div class=("class-3", "class-2", "class-1")></div> };
         let mut vtag = if let VNode::VTag(vtag) = elem {
             vtag
         } else {
@@ -1183,7 +1183,7 @@ mod tests {
         #[cfg(feature = "web_sys")]
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut elem = html! { <div class=classes!("class-1", "class-3")></div> };
+        let mut elem = html! { <div class=("class-1", "class-3")></div> };
         elem.apply(&scope, &parent, NodeRef::default(), None);
 
         let vtag = if let VNode::VTag(vtag) = elem {
@@ -1204,7 +1204,7 @@ mod tests {
         );
 
         let ancestor = vtag;
-        let elem = html! { <div class=classes!("class-1", "class-2", "class-3")></div> };
+        let elem = html! { <div class=("class-1", "class-2", "class-3")></div> };
         let mut vtag = if let VNode::VTag(vtag) = elem {
             vtag
         } else {
