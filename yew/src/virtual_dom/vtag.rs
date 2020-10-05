@@ -826,35 +826,32 @@ mod tests {
         let d_arr = [""];
         let d = html! { <div class?=(&d_arr[..])></div> };
 
-        macro_rules! get_class {
+        macro_rules! has_class {
             ($vtag:expr) => {
-                $vtag
-                    .attributes
-                    .iter()
-                    .find_map(|(k, v)| if k == "class" { Some(v) } else { None })
+                $vtag.attributes.iter().any(|(k, _)| k == "class")
             };
         }
 
         if let VNode::VTag(vtag) = a {
-            assert_eq!(get_class!(vtag), None);
+            assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = b {
-            assert_eq!(get_class!(vtag), None);
+            assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = c {
-            assert_eq!(get_class!(vtag), None);
+            assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = d {
-            assert_eq!(get_class!(vtag), None);
+            assert!(!has_class!(vtag));
         } else {
             panic!("vtag expected");
         }
