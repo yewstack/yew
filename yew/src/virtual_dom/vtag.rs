@@ -1022,6 +1022,23 @@ mod tests {
     }
 
     #[test]
+    fn it_does_not_set_empty_class_name() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+
+        #[cfg(feature = "std_web")]
+        document().body().unwrap().append_child(&parent);
+        #[cfg(feature = "web_sys")]
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let mut elem = html! { <div class?=("")></div> };
+        elem.apply(&scope, &parent, NodeRef::default(), None);
+        let vtag = assert_vtag(&mut elem);
+        // test if the className has not been set
+        assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
+    }
+
+    #[test]
     fn it_does_not_set_missing_class_name() {
         let scope = test_scope();
         let parent = document().create_element("div").unwrap();
