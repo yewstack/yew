@@ -3,6 +3,7 @@ pub(crate) mod tag_attributes;
 use super::{
     HtmlChildrenTree, HtmlDashedName, HtmlProp as TagAttribute, HtmlPropSuffix as TagSuffix,
 };
+use crate::html_classes::HtmlClasses;
 use crate::stringify::Stringify;
 use crate::{non_capitalized_ascii, stringify, Peek, PeekValue};
 use boolinator::Boolinator;
@@ -11,7 +12,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
-use syn::{Block, Ident, Token};
+use syn::{Block, Expr, ExprTuple, Ident, Token};
 use tag_attributes::TagAttributes;
 
 pub struct HtmlTag {
@@ -193,15 +194,24 @@ impl ToTokens for HtmlTag {
                      value,
                  }| {
                     let key = label.to_lit_str();
-                    if question_mark.is_some() {
-                        let sr = stringify::stringify_option_at_runtime(value);
-                        quote! {
-                            ::yew::virtual_dom::PositionalAttr(#key, #sr)
+                    match value {
+                        Expr::Tuple(ExprTuple { elems, .. }) => {
+                            let sr = HtmlClasses::from(elems.clone()); // TODO probably no need to clone
+                            quote! {
+                                ::yew::virtual_dom::PositionalAttr(#key, Some(#sr.into()))
+                            }
                         }
-                    } else {
-                        let sr = value.stringify();
-                        quote! {
-                            ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
+                        expr if question_mark.is_some() => {
+                            let sr = stringify::stringify_option_at_runtime(expr);
+                            quote! {
+                                ::yew::virtual_dom::PositionalAttr(#key, #sr)
+                            }
+                        }
+                        expr => {
+                            let sr = expr.stringify();
+                            quote! {
+                                ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
+                            }
                         }
                     }
                 },

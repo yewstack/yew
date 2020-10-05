@@ -8,11 +8,15 @@ use syn::Expr;
 /// List of HTML classes.
 pub struct HtmlClasses(Punctuated<Expr, Comma>);
 
+impl From<Punctuated<Expr, Comma>> for HtmlClasses {
+    fn from(value: Punctuated<Expr, Comma>) -> Self {
+        HtmlClasses(value)
+    }
+}
+
 impl Parse for HtmlClasses {
     fn parse(input: ParseStream) -> Result<Self> {
-        Ok(HtmlClasses(Punctuated::<Expr, Comma>::parse_terminated(
-            input,
-        )?))
+        Ok(Punctuated::<Expr, Comma>::parse_terminated(input)?.into())
     }
 }
 

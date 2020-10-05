@@ -823,7 +823,7 @@ mod tests {
     #[test]
     fn filter_empty_string_classes() {
         let a = html! { <div class=classes!(vec![""])></div> };
-        let b = html! { <div class=classes!("", "")></div> };
+        let b = html! { <div class=("", "")></div> };
         let c = html! { <div class=""></div> };
         let d_arr = [""];
         let d = html! { <div class=classes!(&d_arr[..])></div> };

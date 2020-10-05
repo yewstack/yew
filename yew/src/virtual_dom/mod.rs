@@ -324,6 +324,16 @@ pub struct Classes {
     set: IndexSet<Cow<'static, str>>,
 }
 
+impl From<Classes> for Cow<'static, str> {
+    fn from(value: Classes) -> Self {
+        if value.set.len() == 1 {
+            value.set.into_iter().next().unwrap()
+        } else {
+            value.to_string().into()
+        }
+    }
+}
+
 impl Classes {
     /// Creates an empty set of classes. (Does not allocate.)
     pub fn new() -> Self {
