@@ -755,9 +755,9 @@ mod tests {
 
     #[test]
     fn supports_multiple_classes_slice() {
-        let classes = &["class-1", "class-2"][..];
+        let classes = ["class-1", "class-2"];
         let a = html! {
-            <div class=(classes)></div>
+            <div class=(&classes[..])></div>
         };
 
         if let VNode::VTag(vtag) = a {
