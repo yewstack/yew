@@ -44,3 +44,24 @@ impl ToTokens for HtmlClasses {
         }});
     }
 }
+
+impl HtmlClasses {
+    pub fn to_tokens_with_option(&self) -> TokenStream {
+        let n = self.0.len();
+        let classes = self.0.iter();
+        let new_tokens = quote! {
+            let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
+            #(__yew_classes.push(#classes);)*
+            if __yew_classes.is_empty() {
+                None
+            } else {
+                Some(__yew_classes.into())
+            }
+        };
+
+        quote! {{
+            #[allow(clippy::useless_conversion, unused_braces)]
+            #new_tokens
+        }}
+    }
+}

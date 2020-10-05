@@ -626,6 +626,14 @@ mod tests {
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
     }
+
+    #[test]
+    fn multiple_empty_string_is_empty() {
+        let mut subject = Classes::new();
+        subject.push("");
+        subject.push("");
+        assert!(subject.is_empty());
+    }
 }
 
 // stdweb lacks the `inner_html` method

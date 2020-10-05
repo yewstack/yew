@@ -820,11 +820,11 @@ mod tests {
 
     #[test]
     fn filter_empty_string_classes() {
-        let a = html! { <div class=(vec![""])></div> };
-        let b = html! { <div class=("", "")></div> };
-        let c = html! { <div class=""></div> };
+        let a = html! { <div class?=(vec![""])></div> };
+        let b = html! { <div class?=("", "")></div> };
+        let c = html! { <div class?=("")></div> };
         let d_arr = [""];
-        let d = html! { <div class=(&d_arr[..])></div> };
+        let d = html! { <div class?=(&d_arr[..])></div> };
 
         macro_rules! get_class {
             ($vtag:expr) => {
@@ -836,25 +836,25 @@ mod tests {
         }
 
         if let VNode::VTag(vtag) = a {
-            assert_eq!(get_class!(vtag), Some(""));
+            assert_eq!(get_class!(vtag), None);
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = b {
-            assert_eq!(get_class!(vtag), Some(""));
+            assert_eq!(get_class!(vtag), None);
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = c {
-            assert_eq!(get_class!(vtag), Some(""));
+            assert_eq!(get_class!(vtag), None);
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = d {
-            assert_eq!(get_class!(vtag), Some(""));
+            assert_eq!(get_class!(vtag), None);
         } else {
             panic!("vtag expected");
         }

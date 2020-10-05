@@ -197,14 +197,28 @@ impl ToTokens for HtmlTag {
                     match value {
                         Expr::Paren(ExprParen { expr, .. }) if label.name == "class" => {
                             let sr = HtmlClasses::from((**expr).clone());
-                            quote! {
-                                ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
+                            if question_mark.is_some() {
+                                let sr = sr.to_tokens_with_option();
+                                quote! {
+                                    ::yew::virtual_dom::PositionalAttr(#key, #sr)
+                                }
+                            } else {
+                                quote! {
+                                    ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
+                                }
                             }
                         }
                         Expr::Tuple(ExprTuple { elems, .. }) if label.name == "class" => {
                             let sr = HtmlClasses::from(elems.clone());
-                            quote! {
-                                ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
+                            if question_mark.is_some() {
+                                let sr = sr.to_tokens_with_option();
+                                quote! {
+                                    ::yew::virtual_dom::PositionalAttr(#key, #sr)
+                                }
+                            } else {
+                                quote! {
+                                    ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
+                                }
                             }
                         }
                         expr if question_mark.is_some() => {
