@@ -196,9 +196,9 @@ impl ToTokens for HtmlTag {
                     let key = label.to_lit_str();
                     match value {
                         Expr::Tuple(ExprTuple { elems, .. }) => {
-                            let sr = HtmlClasses::from(elems.clone()); // TODO probably no need to clone
+                            let sr = HtmlClasses::from(elems.clone());
                             quote! {
-                                ::yew::virtual_dom::PositionalAttr(#key, Some(#sr.into()))
+                                ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
                             }
                         }
                         expr if question_mark.is_some() => {
