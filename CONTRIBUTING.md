@@ -38,6 +38,13 @@ To run all tests, use the following command:
 cargo make tests
 ```
 
+<small>
+Note: On Arch Linux (and presumably a few other Linux Distros), the package for
+Firefox Developer Edition does _not_ create a `firefox` alias, which causes the
+tests to fail unless you also have Firefox installed. To fix this, run
+`sudo ln -s /usr/bin/firefox-developer-edition /usr/bin/firefox`.
+</small>
+
 ### Browser tests
 
 `cargo make tests` will automatically download Geckodriver to a temporary location if it isn't in the PATH.
