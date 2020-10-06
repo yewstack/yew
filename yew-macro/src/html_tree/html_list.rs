@@ -1,5 +1,5 @@
 use super::{html_dashed_name::HtmlDashedName, HtmlChildrenTree, TagTokens};
-use crate::{props::HtmlProp, Peek, PeekValue};
+use crate::{props::Prop, Peek, PeekValue};
 use boolinator::Boolinator;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
@@ -125,7 +125,7 @@ impl Parse for HtmlListProps {
         let key = if input.is_empty() {
             None
         } else {
-            let prop: HtmlProp = input.parse()?;
+            let prop: Prop = input.parse()?;
             if !input.is_empty() {
                 return Err(input.error("only a single `key` prop is allowed on a fragment"));
             }

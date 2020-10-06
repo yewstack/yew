@@ -1,4 +1,4 @@
-use super::{HtmlProp, HtmlPropList};
+use super::{Prop, PropList};
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
 use syn::{
@@ -39,11 +39,11 @@ fn is_associated_properties(ty: &TypePath) -> bool {
 
 pub struct ComponentProps {
     ty: TypePath,
-    props: HtmlPropList,
+    props: PropList,
 }
 impl ComponentProps {
     pub fn parse_for_properties(input: ParseStream, ty: TypePath) -> syn::Result<Self> {
-        let props: HtmlPropList = input.parse()?;
+        let props: PropList = input.parse()?;
         for prop in props.iter() {
             if prop.question_mark.is_some() {
                 return Err(syn::Error::new_spanned(
@@ -76,7 +76,7 @@ impl Parse for ComponentProps {
 impl ToTokens for ComponentProps {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self { ty, props } = self;
-        let set_props = props.iter().map(|HtmlProp { label, value, .. }| {
+        let set_props = props.iter().map(|Prop { label, value, .. }| {
             quote_spanned! {value.span()=>
                 .#label(<::yew::virtual_dom::VComp as ::yew::virtual_dom::Transformer<_, _>>::transform(#value))
             }

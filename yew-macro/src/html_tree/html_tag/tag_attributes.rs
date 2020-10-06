@@ -1,4 +1,4 @@
-use crate::props::{HtmlProp, HtmlPropList};
+use crate::props::{Prop, PropList};
 use lazy_static::lazy_static;
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -6,12 +6,12 @@ use syn::parse::{Parse, ParseStream};
 use syn::{Expr, ExprTuple};
 
 pub struct TagAttributes {
-    pub attributes: Vec<HtmlProp>,
-    pub listeners: Vec<HtmlProp>,
+    pub attributes: Vec<Prop>,
+    pub listeners: Vec<Prop>,
     pub classes: Option<ClassesForm>,
-    pub booleans: Vec<HtmlProp>,
-    pub value: Option<HtmlProp>,
-    pub kind: Option<HtmlProp>,
+    pub booleans: Vec<Prop>,
+    pub value: Option<Prop>,
+    pub kind: Option<Prop>,
     pub checked: Option<Expr>,
     pub node_ref: Option<Expr>,
     pub key: Option<Expr>,
@@ -212,7 +212,7 @@ lazy_static! {
 }
 
 impl TagAttributes {
-    fn drain_listeners(attrs: &mut Vec<HtmlProp>) -> Vec<HtmlProp> {
+    fn drain_listeners(attrs: &mut Vec<Prop>) -> Vec<Prop> {
         let mut i = 0;
         let mut drained = Vec::new();
         while i < attrs.len() {
@@ -226,7 +226,7 @@ impl TagAttributes {
         drained
     }
 
-    fn drain_boolean(attrs: &mut Vec<HtmlProp>) -> Vec<HtmlProp> {
+    fn drain_boolean(attrs: &mut Vec<Prop>) -> Vec<Prop> {
         let mut i = 0;
         let mut drained = Vec::new();
         while i < attrs.len() {
@@ -240,7 +240,7 @@ impl TagAttributes {
         drained
     }
 
-    fn remove_attr(attrs: &mut Vec<HtmlProp>, name: &str) -> Option<HtmlProp> {
+    fn remove_attr(attrs: &mut Vec<Prop>, name: &str) -> Option<Prop> {
         let mut i = 0;
         while i < attrs.len() {
             if attrs[i].label.to_string() == name {
@@ -252,10 +252,7 @@ impl TagAttributes {
         None
     }
 
-    fn remove_attr_nonoptional(
-        attrs: &mut Vec<HtmlProp>,
-        name: &str,
-    ) -> syn::Result<Option<HtmlProp>> {
+    fn remove_attr_nonoptional(attrs: &mut Vec<Prop>, name: &str) -> syn::Result<Option<Prop>> {
         match Self::remove_attr(attrs, name) {
             Some(attr) => attr.ensure_not_optional().map(|_| Some(attr)),
             None => Ok(None),
@@ -272,7 +269,7 @@ impl TagAttributes {
 
 impl Parse for TagAttributes {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut attributes = input.parse::<HtmlPropList>()?.into_inner();
+        let mut attributes = input.parse::<PropList>()?.into_inner();
 
         let mut listeners = Vec::new();
         for listener in Self::drain_listeners(&mut attributes) {

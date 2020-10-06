@@ -1,21 +1,23 @@
 use super::{HtmlChildrenTree, TagTokens};
-use crate::{props::HtmlProp, PeekValue};
+use crate::{
+    props::{Prop, Props, SpecialProps},
+    PeekValue,
+};
 use boolinator::Boolinator;
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
-use std::cmp::Ordering;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
-    AngleBracketedGenericArguments, Expr, GenericArgument, Ident, Path, PathArguments, PathSegment,
-    Token, Type, TypePath,
+    AngleBracketedGenericArguments, Expr, GenericArgument, Path, PathArguments, PathSegment, Token,
+    Type, TypePath,
 };
 
 pub struct HtmlComponent {
     ty: Type,
-    props: Props,
+    props: ComponentProps,
     children: HtmlChildrenTree,
 }
 
@@ -84,22 +86,25 @@ impl ToTokens for HtmlComponent {
             children,
         } = self;
 
-        let validate_props = if let PropType::List(list_props) = &props.prop_type {
-            let check_props = list_props.iter().map(|HtmlProp { label, .. }| {
-                quote! { props.#label; }
+        let validate_props = if let ComponentProps::List(props) = props {
+            let check_props = props.props.iter().map(|Prop { label, .. }| {
+                quote_spanned! {label.span()=> props.#label; }
             });
 
             let check_children = if !children.is_empty() {
-                quote! { props.children; }
+                quote_spanned! {ty.span()=> props.children; }
             } else {
                 quote! {}
             };
 
-            quote! {
-                let _ = |props: <#ty as ::yew::html::Component>::Properties| {
-                    #check_children
-                    #(#check_props)*
-                };
+            quote_spanned! {ty.span()=>
+                #[allow(clippy::no-effect)]
+                {
+                    let _ = |props: <#ty as ::yew::html::Component>::Properties| {
+                        #check_children
+                        #(#check_props)*
+                    };
+                }
             }
         } else {
             quote! {}
@@ -115,9 +120,9 @@ impl ToTokens for HtmlComponent {
             quote! {}
         };
 
-        let init_props = match &props.prop_type {
-            PropType::List(list_props) => {
-                let set_props = list_props.iter().map(|HtmlProp { label, value, .. }| {
+        let init_props = match props {
+            ComponentProps::List(props) => {
+                let set_props = props.props.iter().map(|Prop { label, value, .. }| {
                     quote_spanned! {value.span()=> .#label(
                         #[allow(unused_braces)]
                         <::yew::virtual_dom::VComp as ::yew::virtual_dom::Transformer<_, _>>::transform(
@@ -133,26 +138,25 @@ impl ToTokens for HtmlComponent {
                         .build()
                 }
             }
-            PropType::With(props) => {
-                quote! { #props }
+            ComponentProps::With(props) => {
+                let expr = &props.expr;
+                quote! { #expr }
             }
-            PropType::None => quote_spanned! {ty.span()=>
-                <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder()
-                    #set_children
-                    .build()
-            },
         };
 
-        let node_ref = if let Some(node_ref) = &props.node_ref {
-            quote_spanned! {node_ref.span()=> #node_ref }
+        let special_props = props.get_special();
+        let node_ref = if let Some(node_ref) = &special_props.node_ref {
+            let value = &node_ref.value;
+            quote_spanned! {value.span()=> #value }
         } else {
             quote! { ::yew::html::NodeRef::default() }
         };
 
-        let key = if let Some(key) = &props.key {
-            quote_spanned! {key.span()=>
+        let key = if let Some(key) = &special_props.key {
+            let value = &key.value;
+            quote_spanned! {value.span()=>
                 #[allow(clippy::useless_conversion)]
-                Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))
+                Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value))
             }
         } else {
             quote! {None}
@@ -260,7 +264,7 @@ impl HtmlComponent {
 struct HtmlComponentOpen {
     tag: TagTokens,
     ty: Type,
-    props: Props,
+    props: ComponentProps,
 }
 impl HtmlComponentOpen {
     fn is_self_closing(&self) -> bool {
@@ -327,113 +331,108 @@ impl Parse for HtmlComponentClose {
     }
 }
 
-enum PropType {
-    List(Vec<HtmlProp>),
-    With(Ident),
-    None,
+mod kw {
+    syn::custom_keyword!(with);
 }
 
-struct Props {
-    node_ref: Option<Expr>,
-    key: Option<Expr>,
-    prop_type: PropType,
+struct WithProps {
+    special: SpecialProps,
+    _with: kw::with,
+    expr: Expr,
 }
+impl WithProps {
+    fn contains_with_expr(input: ParseStream) -> bool {
+        while !input.is_empty() {
+            if input.peek(kw::with) && !input.peek2(Token![=]) {
+                return true;
+            }
 
-const COLLISION_MSG: &str = "Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to the `ref` prop).";
+            input.parse::<TokenTree>().ok();
+        }
 
-impl Parse for Props {
+        false
+    }
+}
+impl Parse for WithProps {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut props = Self {
-            node_ref: None,
-            key: None,
-            prop_type: PropType::None,
-        };
-        while let Some((token, _)) = input.cursor().ident() {
-            if token == "with" {
-                match props.prop_type {
-                    PropType::None => Ok(()),
-                    PropType::With(_) => Err(input.error("too many `with` tokens used")),
-                    PropType::List(_) => Err(syn::Error::new_spanned(&token, COLLISION_MSG)),
-                }?;
-
-                input.parse::<Ident>()?;
-                props.prop_type = PropType::With(input.parse::<Ident>().map_err(|_| {
-                    syn::Error::new_spanned(&token, "`with` must be followed by an identifier")
-                })?);
-
-                // Handle optional comma
-                let _ = input.parse::<Token![,]>();
-                continue;
-            }
-
-            if input.is_empty() {
-                break;
-            }
-
-            let prop = input.parse::<HtmlProp>()?;
-            if prop.label.to_string() == "ref" {
-                match props.node_ref {
-                    None => Ok(()),
-                    Some(_) => Err(syn::Error::new_spanned(&prop.label, "too many refs set")),
-                }?;
-
-                props.node_ref = Some(prop.value);
-                continue;
-            }
-            if prop.label.to_string() == "key" {
-                match props.key {
-                    None => Ok(()),
-                    Some(_) => Err(syn::Error::new_spanned(&prop.label, "too many keys set")),
-                }?;
-
-                props.key = Some(prop.value);
-                continue;
-            }
-
-            if prop.label.to_string() == "type" {
-                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
-            }
-
-            if !prop.label.extended.is_empty() {
-                return Err(syn::Error::new_spanned(&prop.label, "expected identifier"));
-            }
-
-            if prop.question_mark.is_some() {
-                return Err(syn::Error::new_spanned(
-                    &prop.label,
-                    "optional attributes are only supported on HTML tags. Yew components can use `Option<T>` properties to accomplish the same thing.",
-                ));
-            }
-
-            match props.prop_type {
-                ref mut prop_type @ PropType::None => {
-                    *prop_type = PropType::List(vec![prop]);
+        let mut special = SpecialProps::default();
+        let mut with_expr: Option<(kw::with, Expr)> = None;
+        while !input.is_empty() {
+            if input.peek(kw::with) {
+                let with = input.parse::<kw::with>()?;
+                if input.is_empty() {
+                    return Err(syn::Error::new_spanned(
+                        with,
+                        "expected expression following this `with`",
+                    ));
                 }
-                PropType::With(_) => return Err(syn::Error::new_spanned(&token, COLLISION_MSG)),
-                PropType::List(ref mut list) => {
-                    list.push(prop);
-                }
-            };
-        }
+                with_expr = Some((with, input.parse()?));
+            } else {
+                let prop = input.parse::<Prop>()?;
 
-        if let PropType::List(list) = &mut props.prop_type {
-            // sort alphabetically
-            list.sort_by(|a, b| {
-                if a.label == b.label {
-                    Ordering::Equal
-                } else if a.label.to_string() == "children" {
-                    Ordering::Greater
-                } else if b.label.to_string() == "children" {
-                    Ordering::Less
+                if let Some(slot) = special.get_slot_mut(&prop.label.to_string()) {
+                    if slot.is_some() {
+                        return Err(syn::Error::new_spanned(
+                            &prop.label,
+                            &format!("`{}` can only be set once", prop.label),
+                        ));
+                    }
+                    slot.replace(prop);
                 } else {
-                    a.label
-                        .to_string()
-                        .partial_cmp(&b.label.to_string())
-                        .unwrap()
+                    return Err(syn::Error::new_spanned(
+                prop.label,
+                "Using the `with props` syntax in combination with named props is not allowed \
+                            (note: this does not apply to special props like `ref` and `key`)"
+                    ));
                 }
-            });
+            }
         }
 
-        Ok(props)
+        let (with, expr) =
+            with_expr.ok_or_else(|| input.error("missing `with props` expression"))?;
+
+        Ok(Self {
+            special,
+            _with: with,
+            expr,
+        })
+    }
+}
+
+enum ComponentProps {
+    List(Props),
+    With(Box<WithProps>),
+}
+impl ComponentProps {
+    fn get_special(&self) -> &SpecialProps {
+        match self {
+            Self::List(props) => &props.special,
+            Self::With(props) => &props.special,
+        }
+    }
+}
+impl Parse for ComponentProps {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        if WithProps::contains_with_expr(&input.fork()) {
+            input.parse().map(Self::With)
+        } else {
+            let props = input.parse::<Props>()?;
+            for prop in props.props.iter() {
+                if prop.question_mark.is_some() {
+                    return Err(syn::Error::new_spanned(
+                        &prop.label,
+                        "optional attributes are only supported on HTML tags. Components can use `Option<T>` properties to accomplish the same thing.",
+                    ));
+                }
+                if !prop.label.extended.is_empty() {
+                    return Err(syn::Error::new_spanned(
+                        &prop.label,
+                        "expected a valid Rust identifier",
+                    ));
+                }
+            }
+
+            Ok(Self::List(props))
+        }
     }
 }

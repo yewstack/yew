@@ -12,7 +12,7 @@ error: unexpected end of input, expected identifier
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: `with` must be followed by an identifier
+error: expected expression following this `with`
   --> $DIR/html-component-fail.rs:81:20
    |
 81 |     html! { <Child with /> };
@@ -30,73 +30,72 @@ error: this opening tag has no corresponding closing tag
 83 |     html! { <Child with props > };
    |             ^^^^^^^^^^^^^^^^^^^
 
-error: too many refs set
+error: `ref` can only be set once
   --> $DIR/html-component-fail.rs:84:38
    |
 84 |     html! { <Child with props ref=() ref=() /> };
    |                                      ^^^
 
-error: too many refs set
+error: `ref` can only be set once
   --> $DIR/html-component-fail.rs:85:38
    |
 85 |     html! { <Child with props ref=() ref=() value=1 /> };
    |                                      ^^^
 
-error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to the `ref` prop).
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
   --> $DIR/html-component-fail.rs:86:38
    |
 86 |     html! { <Child with props ref=() value=1 ref=() /> };
    |                                      ^^^^^
 
-error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to the `ref` prop).
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
   --> $DIR/html-component-fail.rs:87:31
    |
 87 |     html! { <Child with props value=1 ref=()  ref=() /> };
    |                               ^^^^^
 
-error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to the `ref` prop).
-  --> $DIR/html-component-fail.rs:88:28
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
+  --> $DIR/html-component-fail.rs:88:20
    |
 88 |     html! { <Child value=1 with props  ref=()  ref=() /> };
-   |                            ^^^^
+   |                    ^^^^^
 
-error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to the `ref` prop).
-  --> $DIR/html-component-fail.rs:89:35
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
+  --> $DIR/html-component-fail.rs:89:20
    |
 89 |     html! { <Child value=1 ref=() with props ref=() /> };
-   |                                   ^^^^
+   |                    ^^^^^
 
-error: too many refs set
+error: `ref` can only be set once
   --> $DIR/html-component-fail.rs:90:27
    |
 90 |     html! { <Child ref=() ref=() value=1  with props  /> };
    |                           ^^^
 
-error: unexpected token
-  --> $DIR/html-component-fail.rs:92:31
-   |
-92 |     html! { <Child with props () /> };
-   |                               ^^
-
-error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to the `ref` prop).
-  --> $DIR/html-component-fail.rs:93:28
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
+  --> $DIR/html-component-fail.rs:93:20
    |
 93 |     html! { <Child value=1 with props /> };
-   |                            ^^^^
+   |                    ^^^^^
 
-error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to the `ref` prop).
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
   --> $DIR/html-component-fail.rs:94:31
    |
 94 |     html! { <Child with props value=1 /> };
    |                               ^^^^^
 
-error: expected identifier
+error: expected identifier, found keyword `type`
   --> $DIR/html-component-fail.rs:95:20
    |
 95 |     html! { <Child type=0 /> };
-   |                    ^^^^
+   |                    ^^^^ expected identifier, found keyword
+   |
+help: you can escape reserved keywords to use them as identifiers
+   |
+95 |     html! { <Child r#type=0 /> };
+   |                    ^^^^^^
 
-error: expected identifier
+error: expected a valid Rust identifier
   --> $DIR/html-component-fail.rs:96:20
    |
 96 |     html! { <Child invalid-prop-name=0 /> };
@@ -108,11 +107,11 @@ error: expected an expression following this equals sign
 98 |     html! { <Child string= /> };
    |                          ^
 
-error: too many refs set
-   --> $DIR/html-component-fail.rs:103:33
+error: `ref` can only be set once
+   --> $DIR/html-component-fail.rs:103:26
     |
 103 |     html! { <Child int=1 ref=() ref=() /> };
-    |                                 ^^^
+    |                          ^^^
 
 error: this closing tag has no corresponding opening tag
    --> $DIR/html-component-fail.rs:106:13
@@ -150,7 +149,7 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
 122 |         <span>{ 2 }</span>
     |         ^^^^^^^^^^^^^^^^^^
 
-error: optional attributes are only supported on HTML tags. Yew components can use `Option<T>` properties to accomplish the same thing.
+error: optional attributes are only supported on HTML tags. Components can use `Option<T>` properties to accomplish the same thing.
    --> $DIR/html-component-fail.rs:125:28
     |
 125 |     html! { <TestComponent value?="not_supported" /> };
@@ -161,6 +160,29 @@ error[E0425]: cannot find value `blah` in this scope
    |
 91 |     html! { <Child with blah /> };
    |                         ^^^^ not found in this scope
+
+error[E0425]: cannot find function `props` in this scope
+  --> $DIR/html-component-fail.rs:92:25
+   |
+92 |     html! { <Child with props() /> };
+   |                         ^^^^^ not found in this scope
+
+error[E0609]: no field `r#type` on type `ChildProperties`
+  --> $DIR/html-component-fail.rs:95:20
+   |
+95 |     html! { <Child type=0 /> };
+   |                    ^^^^ unknown field
+   |
+   = note: available fields are: `string`, `int`
+
+error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+  --> $DIR/html-component-fail.rs:95:20
+   |
+6  | #[derive(Clone, Properties, PartialEq)]
+   |                 ---------- method `r#type` not found for this
+...
+95 |     html! { <Child type=0 /> };
+   |                    ^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0609]: no field `unknown` on type `ChildProperties`
   --> $DIR/html-component-fail.rs:97:20
@@ -253,6 +275,14 @@ error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<
     = help: items from traits can only be used if the trait is implemented and in scope
     = note: the following trait defines an item `string`, perhaps you need to implement it:
             candidate #1: `proc_macro::bridge::server::Literal`
+
+error[E0609]: no field `children` on type `ChildProperties`
+   --> $DIR/html-component-fail.rs:109:14
+    |
+109 |     html! { <Child>{ "Not allowed" }</Child> };
+    |              ^^^^^ unknown field
+    |
+    = note: available fields are: `string`, `int`
 
 error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
    --> $DIR/html-component-fail.rs:109:14
