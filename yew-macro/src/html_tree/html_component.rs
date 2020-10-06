@@ -4,10 +4,10 @@ use boolinator::Boolinator;
 use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
 use std::cmp::Ordering;
+use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{buffer::Cursor, parse::Parser};
 use syn::{
     AngleBracketedGenericArguments, Expr, GenericArgument, Ident, Path, PathArguments, PathSegment,
     Token, Type, TypePath,
@@ -283,16 +283,12 @@ impl PeekValue<Type> for HtmlComponentOpen {
 
 impl Parse for HtmlComponentOpen {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let (tokens, content) = TagTokens::parse_start(input)?;
-
-        let content_parser = |input: ParseStream| -> syn::Result<Self> {
+        TagTokens::parse_start_content(input, |input, tokens| {
             let ty = input.parse()?;
             let props = input.parse()?;
 
             Ok(Self { tokens, ty, props })
-        };
-
-        content_parser.parse2(content)
+        })
     }
 }
 
@@ -324,9 +320,10 @@ impl PeekValue<Type> for HtmlComponentClose {
 }
 impl Parse for HtmlComponentClose {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let (tokens, content) = TagTokens::parse_end(input)?;
-        let ty = syn::parse2(content)?;
-        Ok(Self { tokens, _ty: ty })
+        TagTokens::parse_end_content(input, |input, tokens| {
+            let ty = input.parse()?;
+            Ok(Self { tokens, _ty: ty })
+        })
     }
 }
 

@@ -4,11 +4,13 @@ error: this opening tag has no corresponding closing tag
 79 |     html! { <Child> };
    |             ^^^^^^^
 
-error: expected identifier
-  --> $DIR/html-component-fail.rs:80:22
+error: unexpected end of input, expected identifier
+  --> $DIR/html-component-fail.rs:80:5
    |
 80 |     html! { <Child:: /> };
-   |                      ^
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: `with` must be followed by an identifier
   --> $DIR/html-component-fail.rs:81:20
@@ -16,7 +18,7 @@ error: `with` must be followed by an identifier
 81 |     html! { <Child with /> };
    |                    ^^^^
 
-error: this prop doesn't have a value
+error: this prop doesn't have a value. Set the value to `true` or `false` for boolean attributes
   --> $DIR/html-component-fail.rs:82:20
    |
 82 |     html! { <Child props /> };
@@ -297,13 +299,14 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::conv
     = note: required by `std::convert::Into::into`
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
-   --> $DIR/html-component-fail.rs:114:29
+   --> $DIR/html-component-fail.rs:114:5
     |
 114 |     html! { <ChildContainer><></></ChildContainer> };
-    |                             ^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
     |
     = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
     = note: required by `std::convert::Into::into`
+    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
    --> $DIR/html-component-fail.rs:115:30

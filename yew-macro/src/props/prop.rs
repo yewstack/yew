@@ -30,8 +30,7 @@ impl Parse for HtmlProp {
             syn::Error::new_spanned(
                 &label,
                 "this prop doesn't have a value. \
-                          In case of boolean attributes, set the value to `true` or `false` \
-                          to control whether or not it will be present",
+                          Set the value to `true` or `false` for boolean attributes",
             )
         })?;
         if input.is_empty() {

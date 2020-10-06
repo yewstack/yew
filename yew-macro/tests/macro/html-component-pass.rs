@@ -183,17 +183,10 @@ mod scoped {
 fn compile_pass() {
     html! { <Child int=1 /> };
 
-    // backwards compat
-    html! { <Child: int=1 /> };
-
     html! {
         <>
             <Child int=1 />
             <scoped::Child int=1 />
-
-            // backwards compat
-            <Child: int=1 />
-            <scoped::Child: int=1 />
         </>
     };
 
@@ -205,7 +198,6 @@ fn compile_pass() {
     html! {
         <>
             <Child with props />
-            <Child: with props2, /> // backwards compat
             <Child ref=node_ref.clone() with props3 />
             <Child with props4 ref=node_ref />
         </>
@@ -223,9 +215,6 @@ fn compile_pass() {
             <Child opt_str=String::from("child") int=1 />
             <Child opt_str=Some("child") int=1 />
             <Child opt_str=Some(String::from("child")) int=1 />
-
-            // backwards compat
-            <Child: string="child", int=3, />
         </>
     };
 

@@ -1,7 +1,9 @@
 use proc_macro2::{TokenStream, TokenTree};
 use quote::{quote, ToTokens};
-use syn::parse::ParseStream;
-use syn::Token;
+use syn::{
+    parse::{ParseStream, Parser},
+    Token,
+};
 
 pub struct TagTokens {
     pub lt: Token![<],
@@ -9,8 +11,32 @@ pub struct TagTokens {
     pub gt: Token![>],
 }
 impl TagTokens {
+    /// Parse the content of a start tag
+    pub fn parse_start_content<T>(
+        input: ParseStream,
+        parse: impl FnOnce(ParseStream, Self) -> syn::Result<T>,
+    ) -> syn::Result<T> {
+        Self::parse_content(Self::parse_start(input)?, parse)
+    }
+
+    /// Parse the content of an end tag
+    pub fn parse_end_content<T>(
+        input: ParseStream,
+        parse: impl FnOnce(ParseStream, Self) -> syn::Result<T>,
+    ) -> syn::Result<T> {
+        Self::parse_content(Self::parse_end(input)?, parse)
+    }
+
+    fn parse_content<T>(
+        (tokens, content): (Self, TokenStream),
+        parse: impl FnOnce(ParseStream, Self) -> syn::Result<T>,
+    ) -> syn::Result<T> {
+        let content_parser = |input: ParseStream| parse(input, tokens);
+        content_parser.parse2(content)
+    }
+
     /// Parse a start tag
-    pub fn parse_start(input: ParseStream) -> syn::Result<(Self, TokenStream)> {
+    fn parse_start(input: ParseStream) -> syn::Result<(Self, TokenStream)> {
         let lt = input.parse()?;
         let (content, div, gt) = Self::parse_until_end(input)?;
 
@@ -19,7 +45,7 @@ impl TagTokens {
 
     /// Parse an end tag.
     /// `div` will always be `Some` for end tags.
-    pub fn parse_end(input: ParseStream) -> syn::Result<(Self, TokenStream)> {
+    fn parse_end(input: ParseStream) -> syn::Result<(Self, TokenStream)> {
         let lt = input.parse()?;
         let div = Some(input.parse()?);
 
@@ -37,7 +63,7 @@ impl TagTokens {
     fn parse_until_end(
         input: ParseStream,
     ) -> syn::Result<(TokenStream, Option<Token![/]>, Token![>])> {
-        let mut trees = Vec::new();
+        let mut inner_trees = Vec::new();
         let mut angle_count: usize = 1;
         let mut div: Option<Token![/]> = None;
         let gt: Token![>];
@@ -74,10 +100,10 @@ impl TagTokens {
                 };
             }
 
-            trees.push(next);
+            inner_trees.push(next);
         }
 
-        Ok((trees.into_iter().collect(), div, gt))
+        Ok((inner_trees.into_iter().collect(), div, gt))
     }
 
     /// Generate tokens which can be used in `syn::Error::new_spanned` to span the entire tag.

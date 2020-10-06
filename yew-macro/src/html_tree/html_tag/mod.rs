@@ -5,9 +5,9 @@ use crate::{non_capitalized_ascii, stringify, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
+use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{buffer::Cursor, parse::Parser};
 use syn::{Block, Ident, Token};
 
 mod tag_attributes;
@@ -522,9 +522,7 @@ impl PeekValue<TagKey> for HtmlTagOpen {
 
 impl Parse for HtmlTagOpen {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let (tokens, content) = TagTokens::parse_start(input)?;
-
-        let content_parser = |input: ParseStream| -> syn::Result<Self> {
+        TagTokens::parse_start_content(input, |input, tokens| {
             let tag_name = input.parse::<TagName>()?;
             let mut attributes = input.parse::<TagAttributes>()?;
 
@@ -563,9 +561,7 @@ impl Parse for HtmlTagOpen {
                 tag_name,
                 attributes,
             })
-        };
-
-        content_parser.parse2(content)
+        })
     }
 }
 
@@ -601,21 +597,22 @@ impl PeekValue<TagKey> for HtmlTagClose {
 
 impl Parse for HtmlTagClose {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let (tokens, content) = TagTokens::parse_end(input)?;
-        let tag_name = syn::parse2(content)?;
+        TagTokens::parse_end_content(input, |input, tokens| {
+            let tag_name = input.parse()?;
 
-        if let TagName::Expr(name) = &tag_name {
-            if let Some(expr) = &name.expr {
-                return Err(syn::Error::new_spanned(
+            if let TagName::Expr(name) = &tag_name {
+                if let Some(expr) = &name.expr {
+                    return Err(syn::Error::new_spanned(
                     expr,
                     "dynamic closing tags must not have a body (hint: replace it with just `</@>`)",
                 ));
+                }
             }
-        }
 
-        Ok(Self {
-            tokens,
-            _tag_name: tag_name,
+            Ok(Self {
+                tokens,
+                _tag_name: tag_name,
+            })
         })
     }
 }

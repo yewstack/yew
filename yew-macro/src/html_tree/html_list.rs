@@ -100,9 +100,10 @@ impl PeekValue<()> for HtmlListOpen {
 
 impl Parse for HtmlListOpen {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let (tokens, content) = TagTokens::parse_start(input)?;
-        let props = syn::parse2(content)?;
-        Ok(Self { tokens, props })
+        TagTokens::parse_start_content(input, |input, tokens| {
+            let props = input.parse()?;
+            Ok(Self { tokens, props })
+        })
     }
 }
 
@@ -154,14 +155,12 @@ impl PeekValue<()> for HtmlListClose {
 }
 impl Parse for HtmlListClose {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let (tokens, content) = TagTokens::parse_end(input)?;
-        if !content.is_empty() {
-            Err(syn::Error::new_spanned(
-                content,
-                "unexpected content in list close",
-            ))
-        } else {
-            Ok(Self(tokens))
-        }
+        TagTokens::parse_end_content(input, |input, tokens| {
+            if !input.is_empty() {
+                Err(input.error("unexpected content in list close"))
+            } else {
+                Ok(Self(tokens))
+            }
+        })
     }
 }
