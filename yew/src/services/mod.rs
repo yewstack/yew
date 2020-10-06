@@ -41,6 +41,7 @@ use std::time::Duration;
 ///
 /// All tasks must be handled when they are cancelled, which is why the `Drop` trait is required.
 /// Tasks should cancel themselves in their implementation of the `Drop` trait.
+#[allow(clippy::drop_bounds)]
 pub trait Task: Drop {
     /// Returns `true` if task is active.
     fn is_active(&self) -> bool;
