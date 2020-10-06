@@ -191,7 +191,6 @@ fn compile_pass() {
     };
 
     let props = <Child as Component>::Properties::default();
-    let props2 = <Child as Component>::Properties::default();
     let props3 = <Child as Component>::Properties::default();
     let props4 = <Child as Component>::Properties::default();
     let node_ref = NodeRef::default();

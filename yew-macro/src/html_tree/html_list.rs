@@ -10,7 +10,7 @@ use syn::Expr;
 pub struct HtmlList {
     open: HtmlListOpen,
     children: HtmlChildrenTree,
-    _close: HtmlListClose,
+    close: HtmlListClose,
 }
 
 impl PeekValue<()> for HtmlList {
@@ -50,14 +50,18 @@ impl Parse for HtmlList {
         Ok(Self {
             open,
             children,
-            _close: close,
+            close,
         })
     }
 }
 
 impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let Self { open, children, .. } = &self;
+        let Self {
+            open,
+            children,
+            close,
+        } = &self;
 
         let key = if let Some(key) = &open.props.key {
             quote_spanned! {key.span()=> Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))}
@@ -65,7 +69,13 @@ impl ToTokens for HtmlList {
             quote! {None}
         };
 
-        tokens.extend(quote_spanned! {children.span()=>
+        let spanned = {
+            let open = open.to_spanned();
+            let close = close.to_spanned();
+            quote! { #open#close }
+        };
+
+        tokens.extend(quote_spanned! {spanned.span()=>
             ::yew::virtual_dom::VNode::VList(
                 ::yew::virtual_dom::VList::new_with_children(#children, #key)
             )
