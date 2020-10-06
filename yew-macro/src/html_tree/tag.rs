@@ -5,13 +5,17 @@ use syn::{
     Token,
 };
 
+/// Helper type for parsing HTML tags.
+/// The struct only stores the associated tokens similar to how delimiters work in `syn`.
 pub struct TagTokens {
     pub lt: Token![<],
     pub div: Option<Token![/]>,
     pub gt: Token![>],
 }
 impl TagTokens {
-    /// Parse the content of a start tag
+    /// Parse the content of a start tag.
+    /// The given parse function is called with a `ParseStream`
+    /// containing only the contents of the tag and surrounding `TagTokens`.
     pub fn parse_start_content<T>(
         input: ParseStream,
         parse: impl FnOnce(ParseStream, Self) -> syn::Result<T>,
@@ -19,7 +23,7 @@ impl TagTokens {
         Self::parse_content(Self::parse_start(input)?, parse)
     }
 
-    /// Parse the content of an end tag
+    /// Same as `parse_start_content` but for end tags.
     pub fn parse_end_content<T>(
         input: ParseStream,
         parse: impl FnOnce(ParseStream, Self) -> syn::Result<T>,
@@ -28,10 +32,10 @@ impl TagTokens {
     }
 
     fn parse_content<T>(
-        (tokens, content): (Self, TokenStream),
+        (tag, content): (Self, TokenStream),
         parse: impl FnOnce(ParseStream, Self) -> syn::Result<T>,
     ) -> syn::Result<T> {
-        let content_parser = |input: ParseStream| parse(input, tokens);
+        let content_parser = |input: ParseStream| parse(input, tag);
         content_parser.parse2(content)
     }
 

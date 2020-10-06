@@ -258,17 +258,17 @@ impl HtmlComponent {
 }
 
 struct HtmlComponentOpen {
-    tokens: TagTokens,
+    tag: TagTokens,
     ty: Type,
     props: Props,
 }
 impl HtmlComponentOpen {
     fn is_self_closing(&self) -> bool {
-        self.tokens.div.is_some()
+        self.tag.div.is_some()
     }
 
     fn to_spanned(&self) -> impl ToTokens {
-        self.tokens.to_spanned()
+        self.tag.to_spanned()
     }
 }
 
@@ -283,22 +283,22 @@ impl PeekValue<Type> for HtmlComponentOpen {
 
 impl Parse for HtmlComponentOpen {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        TagTokens::parse_start_content(input, |input, tokens| {
+        TagTokens::parse_start_content(input, |input, tag| {
             let ty = input.parse()?;
             let props = input.parse()?;
 
-            Ok(Self { tokens, ty, props })
+            Ok(Self { tag, ty, props })
         })
     }
 }
 
 struct HtmlComponentClose {
-    tokens: TagTokens,
+    tag: TagTokens,
     _ty: Type,
 }
 impl HtmlComponentClose {
     fn to_spanned(&self) -> impl ToTokens {
-        self.tokens.to_spanned()
+        self.tag.to_spanned()
     }
 }
 
@@ -320,9 +320,9 @@ impl PeekValue<Type> for HtmlComponentClose {
 }
 impl Parse for HtmlComponentClose {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        TagTokens::parse_end_content(input, |input, tokens| {
+        TagTokens::parse_end_content(input, |input, tag| {
             let ty = input.parse()?;
-            Ok(Self { tokens, _ty: ty })
+            Ok(Self { tag, _ty: ty })
         })
     }
 }

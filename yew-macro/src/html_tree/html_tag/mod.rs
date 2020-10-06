@@ -485,17 +485,17 @@ impl ToTokens for TagName {
 }
 
 struct HtmlTagOpen {
-    tokens: TagTokens,
+    tag: TagTokens,
     tag_name: TagName,
     attributes: TagAttributes,
 }
 impl HtmlTagOpen {
     fn is_self_closing(&self) -> bool {
-        self.tokens.div.is_some()
+        self.tag.div.is_some()
     }
 
     fn to_spanned(&self) -> impl ToTokens {
-        self.tokens.to_spanned()
+        self.tag.to_spanned()
     }
 }
 
@@ -522,7 +522,7 @@ impl PeekValue<TagKey> for HtmlTagOpen {
 
 impl Parse for HtmlTagOpen {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        TagTokens::parse_start_content(input, |input, tokens| {
+        TagTokens::parse_start_content(input, |input, tag| {
             let tag_name = input.parse::<TagName>()?;
             let mut attributes = input.parse::<TagAttributes>()?;
 
@@ -557,7 +557,7 @@ impl Parse for HtmlTagOpen {
             }
 
             Ok(Self {
-                tokens,
+                tag,
                 tag_name,
                 attributes,
             })
@@ -566,12 +566,12 @@ impl Parse for HtmlTagOpen {
 }
 
 struct HtmlTagClose {
-    tokens: TagTokens,
+    tag: TagTokens,
     _tag_name: TagName,
 }
 impl HtmlTagClose {
     fn to_spanned(&self) -> impl ToTokens {
-        self.tokens.to_spanned()
+        self.tag.to_spanned()
     }
 }
 
@@ -597,7 +597,7 @@ impl PeekValue<TagKey> for HtmlTagClose {
 
 impl Parse for HtmlTagClose {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        TagTokens::parse_end_content(input, |input, tokens| {
+        TagTokens::parse_end_content(input, |input, tag| {
             let tag_name = input.parse()?;
 
             if let TagName::Expr(name) = &tag_name {
@@ -610,7 +610,7 @@ impl Parse for HtmlTagClose {
             }
 
             Ok(Self {
-                tokens,
+                tag,
                 _tag_name: tag_name,
             })
         })
