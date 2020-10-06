@@ -1,16 +1,16 @@
-use super::{html_dashed_name::HtmlDashedName, HtmlChildrenTree, HtmlPropSuffix};
+use super::{html_dashed_name::HtmlDashedName, HtmlChildrenTree, TagTokens};
 use crate::{props::HtmlProp, Peek, PeekValue};
 use boolinator::Boolinator;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Expr, Token};
+use syn::Expr;
 
 pub struct HtmlList {
     open: HtmlListOpen,
     children: HtmlChildrenTree,
-    close: HtmlListClose,
+    _close: HtmlListClose,
 }
 
 impl PeekValue<()> for HtmlList {
@@ -26,7 +26,7 @@ impl Parse for HtmlList {
         if HtmlListClose::peek(input.cursor()).is_some() {
             return match input.parse::<HtmlListClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
-                    close,
+                    close.to_spanned(),
                     "this closing fragment has no corresponding opening fragment",
                 )),
                 Err(err) => Err(err),
@@ -39,7 +39,7 @@ impl Parse for HtmlList {
             children.parse_child(input)?;
             if input.is_empty() {
                 return Err(syn::Error::new_spanned(
-                    open,
+                    open.to_spanned(),
                     "this opening fragment has no corresponding closing fragment",
                 ));
             }
@@ -47,21 +47,17 @@ impl Parse for HtmlList {
 
         let close = input.parse::<HtmlListClose>()?;
 
-        Ok(HtmlList {
+        Ok(Self {
             open,
             children,
-            close,
+            _close: close,
         })
     }
 }
 
 impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let Self {
-            open,
-            children,
-            close,
-        } = &self;
+        let Self { open, children, .. } = &self;
 
         let key = if let Some(key) = &open.props.key {
             quote_spanned! {key.span()=> Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))}
@@ -69,8 +65,7 @@ impl ToTokens for HtmlList {
             quote! {None}
         };
 
-        let open_close_tokens = quote! {#open#close};
-        tokens.extend(quote_spanned! {open_close_tokens.span()=>
+        tokens.extend(quote_spanned! {children.span()=>
             ::yew::virtual_dom::VNode::VList(
                 ::yew::virtual_dom::VList::new_with_children(#children, #key)
             )
@@ -79,9 +74,13 @@ impl ToTokens for HtmlList {
 }
 
 struct HtmlListOpen {
-    lt: Token![<],
+    tokens: TagTokens,
     props: HtmlListProps,
-    gt: Token![>],
+}
+impl HtmlListOpen {
+    fn to_spanned(&self) -> impl ToTokens {
+        self.tokens.to_spanned()
+    }
 }
 
 impl PeekValue<()> for HtmlListOpen {
@@ -101,17 +100,9 @@ impl PeekValue<()> for HtmlListOpen {
 
 impl Parse for HtmlListOpen {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let lt = input.parse()?;
-        let HtmlPropSuffix { stream, gt, .. } = input.parse()?;
-        let props = syn::parse2(stream)?;
-        Ok(Self { lt, props, gt })
-    }
-}
-
-impl ToTokens for HtmlListOpen {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlListOpen { lt, gt, .. } = self;
-        tokens.extend(quote! {#lt#gt});
+        let (tokens, content) = TagTokens::parse_start(input)?;
+        let props = syn::parse2(content)?;
+        Ok(Self { tokens, props })
     }
 }
 
@@ -144,12 +135,12 @@ impl Parse for HtmlListProps {
     }
 }
 
-struct HtmlListClose {
-    lt: Token![<],
-    div: Token![/],
-    gt: Token![>],
+struct HtmlListClose(TagTokens);
+impl HtmlListClose {
+    fn to_spanned(&self) -> impl ToTokens {
+        self.0.to_spanned()
+    }
 }
-
 impl PeekValue<()> for HtmlListClose {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
@@ -161,20 +152,16 @@ impl PeekValue<()> for HtmlListClose {
         (punct.as_char() == '>').as_option()
     }
 }
-
 impl Parse for HtmlListClose {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(HtmlListClose {
-            lt: input.parse()?,
-            div: input.parse()?,
-            gt: input.parse()?,
-        })
-    }
-}
-
-impl ToTokens for HtmlListClose {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlListClose { lt, div, gt } = self;
-        tokens.extend(quote! {#lt#div#gt});
+        let (tokens, content) = TagTokens::parse_end(input)?;
+        if !content.is_empty() {
+            Err(syn::Error::new_spanned(
+                content,
+                "unexpected content in list close",
+            ))
+        } else {
+            Ok(Self(tokens))
+        }
     }
 }

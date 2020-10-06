@@ -1,15 +1,13 @@
-use super::HtmlChildrenTree;
-use super::HtmlProp;
-use super::HtmlPropSuffix;
-use crate::PeekValue;
+use super::{HtmlChildrenTree, TagTokens};
+use crate::{props::HtmlProp, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
 use std::cmp::Ordering;
-use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
+use syn::{buffer::Cursor, parse::Parser};
 use syn::{
     AngleBracketedGenericArguments, Expr, GenericArgument, Ident, Path, PathArguments, PathSegment,
     Token, Type, TypePath,
@@ -34,7 +32,7 @@ impl Parse for HtmlComponent {
         if HtmlComponentClose::peek(input.cursor()).is_some() {
             return match input.parse::<HtmlComponentClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
-                    close,
+                    close.to_spanned(),
                     "this closing tag has no corresponding opening tag",
                 )),
                 Err(err) => Err(err),
@@ -43,7 +41,7 @@ impl Parse for HtmlComponent {
 
         let open = input.parse::<HtmlComponentOpen>()?;
         // Return early if it's a self-closing tag
-        if open.div.is_some() {
+        if open.is_self_closing() {
             return Ok(HtmlComponent {
                 ty: open.ty,
                 props: open.props,
@@ -55,7 +53,7 @@ impl Parse for HtmlComponent {
         loop {
             if input.is_empty() {
                 return Err(syn::Error::new_spanned(
-                    open,
+                    open.to_spanned(),
                     "this opening tag has no corresponding closing tag",
                 ));
             }
@@ -260,11 +258,18 @@ impl HtmlComponent {
 }
 
 struct HtmlComponentOpen {
-    lt: Token![<],
+    tokens: TagTokens,
     ty: Type,
     props: Props,
-    div: Option<Token![/]>,
-    gt: Token![>],
+}
+impl HtmlComponentOpen {
+    fn is_self_closing(&self) -> bool {
+        self.tokens.div.is_some()
+    }
+
+    fn to_spanned(&self) -> impl ToTokens {
+        self.tokens.to_spanned()
+    }
 }
 
 impl PeekValue<Type> for HtmlComponentOpen {
@@ -278,35 +283,27 @@ impl PeekValue<Type> for HtmlComponentOpen {
 
 impl Parse for HtmlComponentOpen {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let lt = input.parse::<Token![<]>()?;
-        let ty = input.parse()?;
-        // backwards compat
-        let _ = input.parse::<Token![:]>();
-        let HtmlPropSuffix { stream, div, gt } = input.parse()?;
-        let props = syn::parse2(stream)?;
+        let (tokens, content) = TagTokens::parse_start(input)?;
 
-        Ok(HtmlComponentOpen {
-            lt,
-            ty,
-            props,
-            div,
-            gt,
-        })
-    }
-}
+        let content_parser = |input: ParseStream| -> syn::Result<Self> {
+            let ty = input.parse()?;
+            let props = input.parse()?;
 
-impl ToTokens for HtmlComponentOpen {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlComponentOpen { lt, gt, .. } = self;
-        tokens.extend(quote! {#lt#gt});
+            Ok(Self { tokens, ty, props })
+        };
+
+        content_parser.parse2(content)
     }
 }
 
 struct HtmlComponentClose {
-    lt: Token![<],
-    div: Token![/],
-    ty: Type,
-    gt: Token![>],
+    tokens: TagTokens,
+    _ty: Type,
+}
+impl HtmlComponentClose {
+    fn to_spanned(&self) -> impl ToTokens {
+        self.tokens.to_spanned()
+    }
 }
 
 impl PeekValue<Type> for HtmlComponentClose {
@@ -327,19 +324,9 @@ impl PeekValue<Type> for HtmlComponentClose {
 }
 impl Parse for HtmlComponentClose {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(HtmlComponentClose {
-            lt: input.parse()?,
-            div: input.parse()?,
-            ty: input.parse()?,
-            gt: input.parse()?,
-        })
-    }
-}
-
-impl ToTokens for HtmlComponentClose {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlComponentClose { lt, div, ty, gt } = self;
-        tokens.extend(quote! {#lt#div#ty#gt});
+        let (tokens, content) = TagTokens::parse_end(input)?;
+        let ty = syn::parse2(content)?;
+        Ok(Self { tokens, _ty: ty })
     }
 }
 
@@ -359,7 +346,7 @@ const COLLISION_MSG: &str = "Using the `with props` syntax in combination with n
 
 impl Parse for Props {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut props = Props {
+        let mut props = Self {
             node_ref: None,
             key: None,
             prop_type: PropType::None,
@@ -382,7 +369,7 @@ impl Parse for Props {
                 continue;
             }
 
-            if (HtmlProp::peek(input.cursor())).is_none() {
+            if input.is_empty() {
                 break;
             }
 

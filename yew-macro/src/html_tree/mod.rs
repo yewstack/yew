@@ -1,27 +1,27 @@
+use crate::PeekValue;
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::{quote, quote_spanned, ToTokens};
+use syn::buffer::Cursor;
+use syn::parse::{Parse, ParseStream, Result};
+use syn::spanned::Spanned;
+
 mod html_block;
 mod html_component;
 mod html_dashed_name;
 mod html_iterable;
 mod html_list;
 mod html_node;
-mod html_prop;
 mod html_tag;
+mod tag;
+use tag::TagTokens;
 
-use crate::PeekValue;
 use html_block::HtmlBlock;
 use html_component::HtmlComponent;
 pub use html_dashed_name::HtmlDashedName;
 use html_iterable::HtmlIterable;
 use html_list::HtmlList;
 use html_node::HtmlNode;
-use html_prop::HtmlProp;
-use html_prop::HtmlPropSuffix;
 use html_tag::HtmlTag;
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
-use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result};
-use syn::spanned::Spanned;
 
 pub enum HtmlType {
     Block,

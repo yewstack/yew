@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 #[rustversion::attr(stable(1.45), test)]
 fn tests() {
     let t = trybuild::TestCases::new();

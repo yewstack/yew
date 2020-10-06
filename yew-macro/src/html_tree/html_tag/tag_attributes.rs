@@ -298,7 +298,7 @@ impl Parse for TagAttributes {
             let (label_a, label_b) = (pair[0].label.to_lit_str(), pair[1].label.to_lit_str());
             if label_a == label_b {
                 return Err(syn::Error::new_spanned(
-                    label_b,
+                    &label_b,
                     format!(
                         "the attribute `{}` can only be specified once",
                         label_b.value()
