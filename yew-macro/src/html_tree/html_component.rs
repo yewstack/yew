@@ -88,19 +88,19 @@ impl ToTokens for HtmlComponent {
 
         let validate_props = if let ComponentProps::List(props) = props {
             let check_props = props.props.iter().map(|Prop { label, .. }| {
-                quote_spanned! {label.span()=> props.#label; }
+                quote_spanned! {label.span()=> __yew_props.#label; }
             });
 
             let check_children = if !children.is_empty() {
-                quote_spanned! {ty.span()=> props.children; }
+                quote_spanned! {ty.span()=> __yew_props.children; }
             } else {
                 quote! {}
             };
 
             quote_spanned! {ty.span()=>
-                #[allow(clippy::no-effect)]
+                #[allow(clippy::no_effect)]
                 {
-                    let _ = |props: <#ty as ::yew::html::Component>::Properties| {
+                    let _ = |__yew_props: <#ty as ::yew::html::Component>::Properties| {
                         #check_children
                         #(#check_props)*
                     };
