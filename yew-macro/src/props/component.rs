@@ -166,7 +166,7 @@ impl ComponentProps {
             Self::With(with_props) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
                 let set_children = if let Some(children) = children_renderer {
-                    Some(quote! {
+                    Some(quote_spanned! {props_ty.span()=>
                         #ident.children = #children;
                     })
                 } else {
@@ -191,20 +191,22 @@ impl Parse for ComponentProps {
             input.parse().map(Self::With)
         } else {
             let props = input.parse::<Props>()?;
-            for prop in props.iter() {
+            props.error_if_duplicates()?;
+            props.check_all(|prop| {
                 if prop.question_mark.is_some() {
-                    return Err(syn::Error::new_spanned(
+                    Err(syn::Error::new_spanned(
                         &prop.label,
                         "optional attributes are only supported on elements. Components can use `Option<T>` properties to accomplish the same thing.",
-                    ));
-                }
-                if !prop.label.extended.is_empty() {
-                    return Err(syn::Error::new_spanned(
+                    ))
+                } else if !prop.label.extended.is_empty() {
+                    Err(syn::Error::new_spanned(
                         &prop.label,
                         "expected a valid Rust identifier",
-                    ));
+                    ))
+                } else {
+                    Ok(())
                 }
-            }
+            })?;
 
             Ok(Self::List(props))
         }

@@ -96,6 +96,7 @@ fn compile_fail() {
     html! { <Child invalid-prop-name=0 /> };
     html! { <Child unknown="unknown" /> };
     html! { <Child string= /> };
+    html! { <Child int=1 int=2 int=3 /> };
     html! { <Child int=1 string={} /> };
     html! { <Child int=1 string=3 /> };
     html! { <Child int=1 string={3} /> };
@@ -107,6 +108,12 @@ fn compile_fail() {
     html! { <Child><Child></Child> };
     html! { <Child></Child><Child></Child> };
     html! { <Child>{ "Not allowed" }</Child> };
+
+    html! {
+        <Child with ChildProperties { string: "hello".to_owned(), int: 5 }>
+            { "please error" }
+        </Child>
+    };
 
     html! { <ChildContainer /> };
     html! { <ChildContainer></ChildContainer> };

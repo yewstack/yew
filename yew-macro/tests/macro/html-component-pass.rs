@@ -245,7 +245,7 @@ fn compile_pass() {
             <Container int=1></Container>
 
             <Container with props>
-                <></>
+                <div>{ "hello world" }</div>
             </Container>
 
             <Container int=1>
