@@ -105,6 +105,6 @@ pub fn html(input: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn props(input: TokenStream) -> TokenStream {
-    let props = parse_macro_input!(input as props::ComponentProps);
+    let props = parse_macro_input!(input as props::PropsMacroInput);
     TokenStream::from(props.into_token_stream())
 }

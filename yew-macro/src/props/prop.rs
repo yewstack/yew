@@ -215,6 +215,16 @@ impl SpecialProps {
             _ => None,
         }
     }
+
+    fn iter(&self) -> impl Iterator<Item = &Prop> {
+        self.node_ref.as_ref().into_iter().chain(self.key.as_ref())
+    }
+
+    /// Run the given function for all props and aggregate the errors.
+    /// If there's at least one error, the result will be `Result::Err`.
+    pub fn check_all(&self, f: impl FnMut(&Prop) -> syn::Result<()>) -> syn::Result<()> {
+        join_errors(self.iter().map(f).filter_map(Result::err))
+    }
 }
 
 pub struct Props {

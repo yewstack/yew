@@ -149,7 +149,7 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
 122 |         <span>{ 2 }</span>
     |         ^^^^^^^^^^^^^^^^^^
 
-error: optional attributes are only supported on HTML tags. Components can use `Option<T>` properties to accomplish the same thing.
+error: optional attributes are only supported on elements. Components can use `Option<T>` properties to accomplish the same thing.
    --> $DIR/html-component-fail.rs:125:28
     |
 125 |     html! { <TestComponent value?="not_supported" /> };

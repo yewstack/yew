@@ -1,0 +1,34 @@
+error: `with props` cannot be used in the `props!` macro
+ --> $DIR/props-fail.rs:9:23
+  |
+9 |     yew::props!(Props with ());
+  |                       ^^^^^^^
+
+error: special props cannot be set in the `props!` macro
+  --> $DIR/props-fail.rs:10:23
+   |
+10 |     yew::props!(Props ref=NodeRef::default() key="key");
+   |                       ^^^
+
+error: special props cannot be set in the `props!` macro
+  --> $DIR/props-fail.rs:10:46
+   |
+10 |     yew::props!(Props ref=NodeRef::default() key="key");
+   |                                              ^^^
+
+error[E0609]: no field `fail` on type `Props`
+  --> $DIR/props-fail.rs:11:27
+   |
+11 |     yew::props!(Props a=5 fail=10)
+   |                           ^^^^ unknown field
+   |
+   = note: available fields are: `a`
+
+error[E0599]: no method named `fail` found for struct `PropsBuilder<PropsBuilderStep_build>` in the current scope
+  --> $DIR/props-fail.rs:11:27
+   |
+3  | #[derive(Clone, Properties)]
+   |                 ---------- method `fail` not found for this
+...
+11 |     yew::props!(Props a=5 fail=10)
+   |                           ^^^^ method not found in `PropsBuilder<PropsBuilderStep_build>`

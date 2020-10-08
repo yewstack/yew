@@ -1,4 +1,9 @@
 mod component;
-pub use component::ComponentProps;
+mod element;
 mod prop;
+mod prop_macro;
+
+pub use component::*;
+pub use element::*;
 pub use prop::*;
+pub use prop_macro::PropsMacroInput;

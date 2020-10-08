@@ -8,20 +8,20 @@ use syn::spanned::Spanned;
 mod html_block;
 mod html_component;
 mod html_dashed_name;
+mod html_element;
 mod html_iterable;
 mod html_list;
 mod html_node;
-mod html_tag;
 mod tag;
 use tag::TagTokens;
 
 use html_block::HtmlBlock;
 use html_component::HtmlComponent;
 pub use html_dashed_name::HtmlDashedName;
+use html_element::HtmlTag;
 use html_iterable::HtmlIterable;
 use html_list::HtmlList;
 use html_node::HtmlNode;
-use html_tag::HtmlTag;
 
 pub enum HtmlType {
     Block,

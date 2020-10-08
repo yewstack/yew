@@ -1,0 +1,96 @@
+use super::ComponentProps;
+use proc_macro2::TokenStream;
+use quote::{quote, quote_spanned, ToTokens};
+use syn::{
+    parse::{Parse, ParseStream},
+    punctuated::Punctuated,
+    spanned::Spanned,
+    TypePath,
+};
+
+/// Pop from `Punctuated` without leaving it in a state where it has trailing punctuation.
+fn pop_last_punctuated<T, P>(punctuated: &mut Punctuated<T, P>) -> Option<T> {
+    let value = punctuated.pop().map(|pair| pair.into_value());
+    // remove the 2nd last value and push it right back to remove the trailing punctuation
+    if let Some(pair) = punctuated.pop() {
+        punctuated.push_value(pair.into_value());
+    }
+    value
+}
+
+/// Check if the given type path looks like an associated type.
+fn is_associated_properties(ty: &TypePath) -> bool {
+    let mut segments_it = ty.path.segments.iter();
+    if let Some(seg) = segments_it.next_back() {
+        // if the last segment is `Properties` ...
+        if seg.ident == "Properties" {
+            if let Some(seg) = segments_it.next_back() {
+                // ... and we can be reasonably sure that the previous segment is a component ...
+                if !crate::non_capitalized_ascii(&seg.ident.to_string()) {
+                    // ... then we assume that this is an associated type like `Component::Properties`
+                    return true;
+                }
+            }
+        }
+    }
+
+    false
+}
+
+pub struct PropsMacroInput {
+    ty: TypePath,
+    props: ComponentProps,
+}
+impl PropsMacroInput {
+    pub fn from_component_props(ty: TypePath, props: ComponentProps) -> syn::Result<Self> {
+        match &props {
+            ComponentProps::List(props) => {
+                props.special.check_all(|prop| {
+                    let label = &prop.label;
+                    Err(syn::Error::new_spanned(
+                        label,
+                        "special props cannot be set in the `props!` macro",
+                    ))
+                })?;
+            }
+            ComponentProps::With(with_props) => {
+                return Err(syn::Error::new_spanned(
+                    with_props.to_spanned(),
+                    "`with props` cannot be used in the `props!` macro",
+                ))
+            }
+        };
+        Ok(Self { ty, props })
+    }
+}
+impl Parse for PropsMacroInput {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut ty: TypePath = input.parse()?;
+
+        // if the type isn't already qualified (`<x as y>`) and it's an associated type (`MyComp::Properties`) ...
+        if ty.qself.is_none() && is_associated_properties(&ty) {
+            pop_last_punctuated(&mut ty.path.segments);
+            // .. transform it into a "qualified-self" type
+            ty = syn::parse2(quote_spanned! {ty.span()=>
+                <#ty as ::yew::html::Component>::Properties
+            })?;
+        }
+
+        Self::from_component_props(ty, input.parse()?)
+    }
+}
+impl ToTokens for PropsMacroInput {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let Self { ty, props } = self;
+
+        let validate_props = props.validate_props_tokens(ty, false);
+        let build_props = props.build_properties_tokens(ty, None::<bool>);
+
+        tokens.extend(quote! {
+            {
+                #validate_props
+                #build_props
+            }
+        })
+    }
+}

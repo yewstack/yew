@@ -1,5 +1,5 @@
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
-use crate::props::Prop;
+use crate::props::{ClassesForm, ElementProps, Prop};
 use crate::stringify::Stringify;
 use crate::{non_capitalized_ascii, stringify, Peek, PeekValue};
 use boolinator::Boolinator;
@@ -10,12 +10,9 @@ use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{Block, Ident, Token};
 
-mod tag_attributes;
-use tag_attributes::{ClassesForm, TagAttributes};
-
 pub struct HtmlTag {
     tag_name: TagName,
-    attributes: TagAttributes,
+    attributes: ElementProps,
     children: HtmlChildrenTree,
 }
 
@@ -119,7 +116,7 @@ impl ToTokens for HtmlTag {
             }
         };
 
-        let TagAttributes {
+        let ElementProps {
             classes,
             attributes,
             booleans,
@@ -492,7 +489,7 @@ impl ToTokens for TagName {
 struct HtmlTagOpen {
     tag: TagTokens,
     tag_name: TagName,
-    attributes: TagAttributes,
+    attributes: ElementProps,
 }
 impl HtmlTagOpen {
     fn is_self_closing(&self) -> bool {
@@ -529,7 +526,7 @@ impl Parse for HtmlTagOpen {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         TagTokens::parse_start_content(input, |input, tag| {
             let tag_name = input.parse::<TagName>()?;
-            let mut attributes = input.parse::<TagAttributes>()?;
+            let mut attributes = input.parse::<ElementProps>()?;
 
             match &tag_name {
                 TagName::Lit(name) => {

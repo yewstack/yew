@@ -1,4 +1,4 @@
-use crate::props::{Prop, Props, SpecialProps};
+use super::{Prop, Props, SpecialProps};
 use lazy_static::lazy_static;
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -18,7 +18,7 @@ impl ClassesForm {
     }
 }
 
-pub struct TagAttributes {
+pub struct ElementProps {
     pub attributes: Vec<Prop>,
     pub listeners: Vec<Prop>,
     pub classes: Option<ClassesForm>,
@@ -30,7 +30,7 @@ pub struct TagAttributes {
     pub key: Option<Prop>,
 }
 
-impl Parse for TagAttributes {
+impl Parse for ElementProps {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut props = input.parse::<Props>()?;
 

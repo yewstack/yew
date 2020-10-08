@@ -1,18 +1,15 @@
 use super::{HtmlChildrenTree, TagTokens};
-use crate::{
-    props::{Prop, Props, SpecialProps},
-    PeekValue,
-};
+use crate::{props::ComponentProps, PeekValue};
 use boolinator::Boolinator;
-use proc_macro2::{Span, TokenTree};
+use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
-    AngleBracketedGenericArguments, Expr, GenericArgument, Path, PathArguments, PathSegment, Token,
-    Type, TypePath,
+    AngleBracketedGenericArguments, GenericArgument, Path, PathArguments, PathSegment, Token, Type,
+    TypePath,
 };
 
 pub struct HtmlComponent {
@@ -86,63 +83,15 @@ impl ToTokens for HtmlComponent {
             children,
         } = self;
 
-        let validate_props = if let ComponentProps::List(props) = props {
-            let check_props = props.iter().map(|Prop { label, .. }| {
-                quote_spanned! {label.span()=> __yew_props.#label; }
-            });
-
-            let check_children = if !children.is_empty() {
-                quote_spanned! {ty.span()=> __yew_props.children; }
-            } else {
-                quote! {}
-            };
-
-            quote_spanned! {ty.span()=>
-                #[allow(clippy::no_effect)]
-                {
-                    let _ = |__yew_props: <#ty as ::yew::html::Component>::Properties| {
-                        #check_children
-                        #(#check_props)*
-                    };
-                }
-            }
+        let props_ty = quote_spanned!(ty.span()=> <#ty as ::yew::html::Component>::Properties);
+        let children_renderer = if children.is_empty() {
+            None
         } else {
-            quote! {}
+            Some(quote! { ::yew::html::ChildrenRenderer::new(#children) })
         };
 
-        let set_children = if !children.is_empty() {
-            // using span of type because the error message goes something like "children method not found".
-            // If we could control the message, it should say "component X doesn't accept children" and point at the children.
-            quote_spanned! {ty.span()=>
-                .children(::yew::html::ChildrenRenderer::new(#children))
-            }
-        } else {
-            quote! {}
-        };
-
-        let init_props = match props {
-            ComponentProps::List(props) => {
-                let set_props = props.iter().map(|Prop { label, value, .. }| {
-                    quote_spanned! {value.span()=> .#label(
-                        #[allow(unused_braces)]
-                        <::yew::virtual_dom::VComp as ::yew::virtual_dom::Transformer<_, _>>::transform(
-                            #value
-                        )
-                    )}
-                });
-
-                quote_spanned! {ty.span()=>
-                    <<#ty as ::yew::html::Component>::Properties as ::yew::html::Properties>::builder()
-                        #(#set_props)*
-                        #set_children
-                        .build()
-                }
-            }
-            ComponentProps::With(props) => {
-                let expr = &props.expr;
-                quote! { #expr }
-            }
-        };
+        let validate_props = props.validate_props_tokens(&props_ty, children_renderer.is_some());
+        let build_props = props.build_properties_tokens(&props_ty, children_renderer);
 
         let special_props = props.get_special();
         let node_ref = if let Some(node_ref) = &special_props.node_ref {
@@ -164,14 +113,11 @@ impl ToTokens for HtmlComponent {
 
         tokens.extend(quote_spanned! {ty.span()=>
             {
-                // These validation checks show a nice error message to the user.
-                // They do not execute at runtime
-                if false {
-                    #validate_props
-                }
+
+                #validate_props
 
                 #[allow(clippy::unit_arg)]
-                ::yew::virtual_dom::VChild::<#ty>::new(#init_props, #node_ref, #key)
+                ::yew::virtual_dom::VChild::<#ty>::new(#build_props, #node_ref, #key)
             }
         });
     }
@@ -328,111 +274,5 @@ impl Parse for HtmlComponentClose {
             let ty = input.parse()?;
             Ok(Self { tag, _ty: ty })
         })
-    }
-}
-
-mod kw {
-    syn::custom_keyword!(with);
-}
-
-struct WithProps {
-    special: SpecialProps,
-    _with: kw::with,
-    expr: Expr,
-}
-impl WithProps {
-    fn contains_with_expr(input: ParseStream) -> bool {
-        while !input.is_empty() {
-            if input.peek(kw::with) && !input.peek2(Token![=]) {
-                return true;
-            }
-
-            input.parse::<TokenTree>().ok();
-        }
-
-        false
-    }
-}
-impl Parse for WithProps {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut special = SpecialProps::default();
-        let mut with_expr: Option<(kw::with, Expr)> = None;
-        while !input.is_empty() {
-            if input.peek(kw::with) {
-                let with = input.parse::<kw::with>()?;
-                if input.is_empty() {
-                    return Err(syn::Error::new_spanned(
-                        with,
-                        "expected expression following this `with`",
-                    ));
-                }
-                with_expr = Some((with, input.parse()?));
-            } else {
-                let prop = input.parse::<Prop>()?;
-
-                if let Some(slot) = special.get_slot_mut(&prop.label.to_string()) {
-                    if slot.is_some() {
-                        return Err(syn::Error::new_spanned(
-                            &prop.label,
-                            &format!("`{}` can only be set once", prop.label),
-                        ));
-                    }
-                    slot.replace(prop);
-                } else {
-                    return Err(syn::Error::new_spanned(
-                prop.label,
-                "Using the `with props` syntax in combination with named props is not allowed \
-                            (note: this does not apply to special props like `ref` and `key`)"
-                    ));
-                }
-            }
-        }
-
-        let (with, expr) =
-            with_expr.ok_or_else(|| input.error("missing `with props` expression"))?;
-
-        Ok(Self {
-            special,
-            _with: with,
-            expr,
-        })
-    }
-}
-
-enum ComponentProps {
-    List(Props),
-    With(Box<WithProps>),
-}
-impl ComponentProps {
-    fn get_special(&self) -> &SpecialProps {
-        match self {
-            Self::List(props) => &props.special,
-            Self::With(props) => &props.special,
-        }
-    }
-}
-impl Parse for ComponentProps {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        if WithProps::contains_with_expr(&input.fork()) {
-            input.parse().map(Self::With)
-        } else {
-            let props = input.parse::<Props>()?;
-            for prop in props.iter() {
-                if prop.question_mark.is_some() {
-                    return Err(syn::Error::new_spanned(
-                        &prop.label,
-                        "optional attributes are only supported on HTML tags. Components can use `Option<T>` properties to accomplish the same thing.",
-                    ));
-                }
-                if !prop.label.extended.is_empty() {
-                    return Err(syn::Error::new_spanned(
-                        &prop.label,
-                        "expected a valid Rust identifier",
-                    ));
-                }
-            }
-
-            Ok(Self::List(props))
-        }
     }
 }
