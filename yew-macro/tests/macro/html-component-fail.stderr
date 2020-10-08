@@ -18,7 +18,7 @@ error: expected expression following this `with`
 81 |     html! { <Child with /> };
    |                    ^^^^
 
-error: this prop doesn't have a value. Set the value to `true` or `false` for boolean attributes
+error: `props` doesn't have a value. Set the value to `true` or `false` for boolean attributes
   --> $DIR/html-component-fail.rs:82:20
    |
 82 |     html! { <Child props /> };

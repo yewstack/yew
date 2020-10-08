@@ -16,13 +16,6 @@ pub struct HtmlDashedName {
 }
 
 impl HtmlDashedName {
-    pub fn new(name: Ident) -> Self {
-        HtmlDashedName {
-            name,
-            extended: Vec::new(),
-        }
-    }
-
     pub fn to_ascii_lowercase_string(&self) -> String {
         let mut s = self.to_string();
         s.make_ascii_lowercase();

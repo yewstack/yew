@@ -1,25 +1,46 @@
 use crate::html_tree::HtmlDashedName;
-use std::cmp::Ordering;
+use quote::quote;
+use std::{
+    cmp::Ordering,
+    ops::{Deref, DerefMut},
+};
 use syn::{
     parse::{Parse, ParseStream},
     Expr, Token,
 };
 
+fn join_errors(mut it: impl Iterator<Item = syn::Error>) -> syn::Result<()> {
+    it.next().map_or(Ok(()), |mut err| {
+        for other in it {
+            err.combine(other);
+        }
+        Err(err)
+    })
+}
+
 pub struct Prop {
     pub label: HtmlDashedName,
     pub question_mark: Option<Token![?]>,
+    pub equals: Token![=],
     pub value: Expr,
 }
 impl Prop {
     /// Checks if the prop uses the optional attribute syntax.
     /// If it does, an error is returned.
     pub fn ensure_not_optional(&self) -> syn::Result<()> {
-        if self.question_mark.is_some() {
+        let Self {
+            label,
+            question_mark,
+            equals,
+            ..
+        } = self;
+        if question_mark.is_some() {
             let msg = format!(
-                "the `{}` attribute does not support being used as an optional attribute",
-                self.label
+                "`{}` does not support being used as an optional attribute",
+                label
             );
-            Err(syn::Error::new_spanned(&self.label, msg))
+            // include `?=` in the span
+            Err(syn::Error::new_spanned(quote! {#label#equals}, msg))
         } else {
             Ok(())
         }
@@ -32,8 +53,7 @@ impl Parse for Prop {
         let equals = input.parse::<Token![=]>().map_err(|_| {
             syn::Error::new_spanned(
                 &label,
-                "this prop doesn't have a value. \
-                          Set the value to `true` or `false` for boolean attributes",
+                format!("`{}` doesn't have a value. Set the value to `true` or `false` for boolean attributes", label),
             )
         })?;
         if input.is_empty() {
@@ -46,12 +66,13 @@ impl Parse for Prop {
         Ok(Self {
             label,
             question_mark,
+            equals,
             value,
         })
     }
 }
 
-/// Always sorted by label. Duplicates are allowed.
+/// List of props.
 pub struct PropList(Vec<Prop>);
 impl PropList {
     const CHILDREN_LABEL: &'static str = "children";
@@ -68,23 +89,24 @@ impl PropList {
         }
     }
 
-    fn find(&self, key: &str) -> Option<usize> {
+    fn position(&self, key: &str) -> Option<usize> {
         self.0
             .binary_search_by(|prop| Self::cmp_label(prop.label.to_string().as_str(), key))
             .ok()
     }
 
-    fn pop(&mut self, key: &str) -> Option<Prop> {
-        self.find(key).map(|i| self.0.remove(i))
+    pub fn pop(&mut self, key: &str) -> Option<Prop> {
+        self.position(key).map(|i| self.0.remove(i))
     }
 
+    /// Pop the prop with the given key and error if there are multiple ones.
     fn pop_unique(&mut self, key: &str) -> syn::Result<Option<Prop>> {
         let prop = self.pop(key);
         if prop.is_some() {
             if let Some(other_prop) = self.pop(key) {
                 return Err(syn::Error::new_spanned(
                     other_prop.label,
-                    &format!("`{}` can only be set once", key),
+                    format!("`{}` can only be set once", key),
                 ));
             }
         }
@@ -92,12 +114,62 @@ impl PropList {
         Ok(prop)
     }
 
+    pub fn pop_unique_nonoptional(&mut self, key: &str) -> syn::Result<Option<Prop>> {
+        match self.pop_unique(key) {
+            Ok(Some(prop)) => {
+                if prop.question_mark.is_some() {
+                    let label = &prop.label;
+                    Err(syn::Error::new_spanned(
+                        label,
+                        format!("`{}` can not be optional", label),
+                    ))
+                } else {
+                    Ok(Some(prop))
+                }
+            }
+            res => res,
+        }
+    }
+
     pub fn into_inner(self) -> Vec<Prop> {
         self.0
     }
 
-    pub fn iter(&self) -> std::slice::Iter<Prop> {
-        self.0.iter()
+    /// Iterate over all duplicate props in order of appearance.
+    fn iter_duplicates(&self) -> impl Iterator<Item = &Prop> {
+        self.0.windows(2).filter_map(|pair| {
+            let (a, b) = (&pair[0], &pair[1]);
+
+            if a.label == b.label {
+                Some(b)
+            } else {
+                None
+            }
+        })
+    }
+
+    pub fn drain_filter(&mut self, filter: impl FnMut(&Prop) -> bool) -> PropList {
+        let (drained, others) = self.0.drain(..).partition(filter);
+        self.0 = others;
+        PropList(drained)
+    }
+
+    /// Run the given function for all props and aggregate the errors.
+    /// If there's at least one error, the result will be `Result::Err`.
+    pub fn check_all(&self, f: impl FnMut(&Prop) -> syn::Result<()>) -> syn::Result<()> {
+        join_errors(self.0.iter().map(f).filter_map(Result::err))
+    }
+
+    pub fn error_if_duplicates(&self) -> syn::Result<()> {
+        join_errors(self.iter_duplicates().map(|prop| {
+            syn::Error::new_spanned(
+                &prop.label,
+                format!(
+                    "`{}` can only be specified once but is given here again",
+                    prop.label
+                ),
+            )
+        }))
     }
 }
 impl Parse for PropList {
@@ -113,6 +185,13 @@ impl Parse for PropList {
         Ok(Self(props))
     }
 }
+impl Deref for PropList {
+    type Target = [Prop];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 #[derive(Default)]
 pub struct SpecialProps {
@@ -124,8 +203,8 @@ impl SpecialProps {
     const KEY_LABEL: &'static str = "key";
 
     fn pop_from(props: &mut PropList) -> syn::Result<Self> {
-        let node_ref = props.pop_unique(Self::REF_LABEL)?;
-        let key = props.pop_unique(Self::KEY_LABEL)?;
+        let node_ref = props.pop_unique_nonoptional(Self::REF_LABEL)?;
+        let key = props.pop_unique_nonoptional(Self::KEY_LABEL)?;
         Ok(Self { node_ref, key })
     }
 
@@ -140,13 +219,25 @@ impl SpecialProps {
 
 pub struct Props {
     pub special: SpecialProps,
-    pub props: PropList,
+    pub prop_list: PropList,
 }
 impl Parse for Props {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut props = input.parse::<PropList>()?;
-        let special = SpecialProps::pop_from(&mut props)?;
+        let mut prop_list = input.parse::<PropList>()?;
+        let special = SpecialProps::pop_from(&mut prop_list)?;
 
-        Ok(Self { special, props })
+        Ok(Self { special, prop_list })
+    }
+}
+impl Deref for Props {
+    type Target = PropList;
+
+    fn deref(&self) -> &Self::Target {
+        &self.prop_list
+    }
+}
+impl DerefMut for Props {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.prop_list
     }
 }

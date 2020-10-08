@@ -3,7 +3,7 @@ use crate::props::Prop;
 use crate::stringify::Stringify;
 use crate::{non_capitalized_ascii, stringify, Peek, PeekValue};
 use boolinator::Boolinator;
-use proc_macro2::{Delimiter, Span, TokenStream};
+use proc_macro2::{Delimiter, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
@@ -135,14 +135,16 @@ impl ToTokens for HtmlTag {
 
         // attributes with special treatment
 
-        let set_node_ref = node_ref.as_ref().map(|node_ref| {
+        let set_node_ref = node_ref.as_ref().map(|attr| {
+            let value = &attr.value;
             quote! {
-                #vtag.node_ref = #node_ref;
+                #vtag.node_ref = #value;
             }
         });
-        let set_key = key.as_ref().map(|key| {
+        let set_key = key.as_ref().map(|attr| {
+            let value = &attr.value;
             quote! {
-                #vtag.key = ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key));
+                #vtag.key = ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value));
             }
         });
         let set_value = value.as_ref().map(|attr| {
@@ -175,7 +177,8 @@ impl ToTokens for HtmlTag {
                 }
             }
         });
-        let set_checked = checked.as_ref().map(|value| {
+        let set_checked = checked.as_ref().map(|attr| {
+            let value = &attr.value;
             quote_spanned! {value.span()=>
                 #vtag.set_checked(#value);
             }
@@ -191,6 +194,7 @@ impl ToTokens for HtmlTag {
                      label,
                      question_mark,
                      value,
+                     ..
                  }| {
                     let key = label.to_lit_str();
                     if question_mark.is_some() {
@@ -282,6 +286,7 @@ impl ToTokens for HtmlTag {
                          label,
                          question_mark,
                          value,
+                         ..
                      }| {
                         let name = &label.name;
 
@@ -534,14 +539,7 @@ impl Parse for HtmlTagOpen {
                         "input" | "textarea" => {}
                         _ => {
                             if let Some(attr) = attributes.value.take() {
-                                attributes.attributes.push(Prop {
-                                    label: HtmlDashedName::new(Ident::new(
-                                        "value",
-                                        Span::call_site(),
-                                    )),
-                                    question_mark: attr.question_mark,
-                                    value: attr.value,
-                                });
+                                attributes.attributes.push(attr);
                             }
                         }
                     }

@@ -87,7 +87,7 @@ impl ToTokens for HtmlComponent {
         } = self;
 
         let validate_props = if let ComponentProps::List(props) = props {
-            let check_props = props.props.iter().map(|Prop { label, .. }| {
+            let check_props = props.iter().map(|Prop { label, .. }| {
                 quote_spanned! {label.span()=> __yew_props.#label; }
             });
 
@@ -122,7 +122,7 @@ impl ToTokens for HtmlComponent {
 
         let init_props = match props {
             ComponentProps::List(props) => {
-                let set_props = props.props.iter().map(|Prop { label, value, .. }| {
+                let set_props = props.iter().map(|Prop { label, value, .. }| {
                     quote_spanned! {value.span()=> .#label(
                         #[allow(unused_braces)]
                         <::yew::virtual_dom::VComp as ::yew::virtual_dom::Transformer<_, _>>::transform(
@@ -417,7 +417,7 @@ impl Parse for ComponentProps {
             input.parse().map(Self::With)
         } else {
             let props = input.parse::<Props>()?;
-            for prop in props.props.iter() {
+            for prop in props.iter() {
                 if prop.question_mark.is_some() {
                     return Err(syn::Error::new_spanned(
                         &prop.label,

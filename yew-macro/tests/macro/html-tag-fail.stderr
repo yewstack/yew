@@ -58,53 +58,53 @@ error: expected a valid html element
 15 |     html! { <div>Invalid</div> };
    |                  ^^^^^^^
 
-error: the attribute `attr` can only be specified once
+error: `attr` can only be specified once but is given here again
   --> $DIR/html-tag-fail.rs:17:27
    |
 17 |     html! { <input attr=1 attr=2 /> };
    |                           ^^^^
 
-error: the attribute `value` can only be specified once
+error: `value` can only be specified once but is given here again
   --> $DIR/html-tag-fail.rs:18:32
    |
 18 |     html! { <input value="123" value="456" /> };
    |                                ^^^^^
 
-error: the attribute `kind` can only be specified once
+error: `kind` can only be specified once but is given here again
   --> $DIR/html-tag-fail.rs:19:36
    |
 19 |     html! { <input kind="checkbox" kind="submit" /> };
    |                                    ^^^^
 
-error: the attribute `checked` can only be specified once
+error: `checked` can only be specified once but is given here again
   --> $DIR/html-tag-fail.rs:20:33
    |
 20 |     html! { <input checked=true checked=false /> };
    |                                 ^^^^^^^
 
-error: the attribute `disabled` can only be specified once
+error: `disabled` can only be specified once but is given here again
   --> $DIR/html-tag-fail.rs:21:34
    |
 21 |     html! { <input disabled=true disabled=false /> };
    |                                  ^^^^^^^^
 
-error: the attribute `selected` can only be specified once
+error: `selected` can only be specified once but is given here again
   --> $DIR/html-tag-fail.rs:22:35
    |
 22 |     html! { <option selected=true selected=false /> };
    |                                   ^^^^^^^^
 
-error: the attribute `class` can only be specified once
+error: `class` can only be specified once but is given here again
   --> $DIR/html-tag-fail.rs:23:32
    |
 23 |     html! { <div class="first" class="second" /> };
    |                                ^^^^^
 
-error: the attribute `ref` can only be specified once
-  --> $DIR/html-tag-fail.rs:38:27
+error: `ref` can only be set once
+  --> $DIR/html-tag-fail.rs:38:20
    |
 38 |     html! { <input ref=() ref=() /> };
-   |                           ^^^
+   |                    ^^^
 
 error: the tag `<input>` is a void element and cannot have children (hint: rewrite this as `<input/>`)
   --> $DIR/html-tag-fail.rs:40:13
@@ -142,19 +142,19 @@ error: boolean attributes don't support being used as an optional attribute (hin
 50 |     html! { <input disabled?=Some(true) /> };
    |                    ^^^^^^^^
 
-error: the `checked` attribute does not support being used as an optional attribute
+error: `checked` can not be optional
   --> $DIR/html-tag-fail.rs:58:20
    |
 58 |     html! { <input checked?=Some(false) /> };
    |                    ^^^^^^^
 
-error: the `class` attribute does not support being used as an optional attribute
+error: `class` can not be optional
   --> $DIR/html-tag-fail.rs:59:20
    |
 59 |     html! { <input class?=() /> };
    |                    ^^^^^
 
-error: the `ref` attribute does not support being used as an optional attribute
+error: `ref` can not be optional
   --> $DIR/html-tag-fail.rs:60:20
    |
 60 |     html! { <input ref?=() /> };
