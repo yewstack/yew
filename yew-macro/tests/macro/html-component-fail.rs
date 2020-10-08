@@ -1,6 +1,5 @@
-#![recursion_limit = "128"]
-
 use std::marker::PhantomData;
+use yew::html::ChildrenRenderer;
 use yew::prelude::*;
 
 #[derive(Clone, Properties, PartialEq)]
@@ -108,6 +107,7 @@ fn compile_fail() {
     html! { <Child></Child><Child></Child> };
     html! { <Child>{ "Not allowed" }</Child> };
 
+    // trying to overwrite `children` on props which don't take any.
     html! {
         <Child with ChildProperties { string: "hello".to_owned(), int: 5 }>
             { "please error" }
@@ -119,6 +119,14 @@ fn compile_fail() {
     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
     html! { <ChildContainer><></></ChildContainer> };
     html! { <ChildContainer><other /></ChildContainer> };
+
+    // using `children` as a prop while simultaneously passing children using the syntactic sugar
+    let children = ChildrenRenderer::new(vec![html_nested! { <Child int=0 /> }]);
+    html! {
+        <ChildContainer children=children>
+            <Child int=1 />
+        </ChildContainer>
+    };
 
     html! { <Generic<String>></Generic> };
     html! { <Generic<String>></Generic<Vec<String>>> };
