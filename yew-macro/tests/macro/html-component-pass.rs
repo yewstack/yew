@@ -191,14 +191,12 @@ fn compile_pass() {
     };
 
     let props = <Child as Component>::Properties::default();
-    let props3 = <Child as Component>::Properties::default();
-    let props4 = <Child as Component>::Properties::default();
     let node_ref = NodeRef::default();
     html! {
         <>
             <Child with props />
-            <Child ref=node_ref.clone() with props3 />
-            <Child with props4 ref=node_ref />
+            <Child ref=node_ref.clone() with props!(Child::Properties int=5) />
+            <Child with <Child as Component>::Properties::default() ref=node_ref />
         </>
     };
 
