@@ -1,9 +1,30 @@
-use proc_macro2::{TokenStream, TokenTree};
+use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
 use syn::{
     parse::{ParseStream, Parser},
     Token,
 };
+
+/// Check whether two spans are equal.
+/// The implementation is really silly but I couldn't find another way to do it on stable.
+/// This check isn't required to be fully accurate so it's not the end of the world if it breaks.
+fn span_eq_hack(a: &Span, b: &Span) -> bool {
+    format!("{:?}", a) == format!("{:?}", b)
+}
+
+/// Change all occurrences of span `from` to `to` in the given error.
+fn error_replace_span(err: syn::Error, from: Span, to: impl ToTokens) -> syn::Error {
+    let err_it = err.into_iter().map(|err| {
+        if span_eq_hack(&err.span(), &from) {
+            syn::Error::new_spanned(&to, err.to_string())
+        } else {
+            err
+        }
+    });
+
+    // SAFETY: all errors have at least one message
+    crate::join_errors(err_it).unwrap_err()
+}
 
 /// Helper type for parsing HTML tags.
 /// The struct only stores the associated tokens similar to how delimiters work in `syn`.
@@ -35,7 +56,16 @@ impl TagTokens {
         (tag, content): (Self, TokenStream),
         parse: impl FnOnce(ParseStream, Self) -> syn::Result<T>,
     ) -> syn::Result<T> {
-        let content_parser = |input: ParseStream| parse(input, tag);
+        let scope_spanned = tag.to_spanned();
+        let content_parser = |input: ParseStream| {
+            parse(input, tag).map_err(|err| {
+                // we can't modify the scope span used by `ParseStream`. It just uses the call site by default.
+                // The scope span is used when an error can't be attributed to a token tree (ex. when the input is empty).
+                // We rewrite all spans to point at the tag which at least narrows down the correct location.
+                // It's not ideal, but it'll have to do until `syn` gives us more access.
+                error_replace_span(err, Span::call_site(), &scope_spanned)
+            })
+        };
         content_parser.parse2(content)
     }
 

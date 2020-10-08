@@ -9,15 +9,6 @@ use syn::{
     Expr, Token,
 };
 
-fn join_errors(mut it: impl Iterator<Item = syn::Error>) -> syn::Result<()> {
-    it.next().map_or(Ok(()), |mut err| {
-        for other in it {
-            err.combine(other);
-        }
-        Err(err)
-    })
-}
-
 pub struct Prop {
     pub label: HtmlDashedName,
     pub question_mark: Option<Token![?]>,
@@ -157,11 +148,11 @@ impl PropList {
     /// Run the given function for all props and aggregate the errors.
     /// If there's at least one error, the result will be `Result::Err`.
     pub fn check_all(&self, f: impl FnMut(&Prop) -> syn::Result<()>) -> syn::Result<()> {
-        join_errors(self.0.iter().map(f).filter_map(Result::err))
+        crate::join_errors(self.0.iter().map(f).filter_map(Result::err))
     }
 
     pub fn error_if_duplicates(&self) -> syn::Result<()> {
-        join_errors(self.iter_duplicates().map(|prop| {
+        crate::join_errors(self.iter_duplicates().map(|prop| {
             syn::Error::new_spanned(
                 &prop.label,
                 format!(
@@ -223,7 +214,7 @@ impl SpecialProps {
     /// Run the given function for all props and aggregate the errors.
     /// If there's at least one error, the result will be `Result::Err`.
     pub fn check_all(&self, f: impl FnMut(&Prop) -> syn::Result<()>) -> syn::Result<()> {
-        join_errors(self.iter().map(f).filter_map(Result::err))
+        crate::join_errors(self.iter().map(f).filter_map(Result::err))
     }
 }
 

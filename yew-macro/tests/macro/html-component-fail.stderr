@@ -5,12 +5,10 @@ error: this opening tag has no corresponding closing tag
    |             ^^^^^^^
 
 error: unexpected end of input, expected identifier
-  --> $DIR/html-component-fail.rs:80:5
+  --> $DIR/html-component-fail.rs:80:13
    |
 80 |     html! { <Child:: /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+   |             ^^^^^^^^^^^
 
 error: expected expression following this `with`
   --> $DIR/html-component-fail.rs:81:20
