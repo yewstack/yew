@@ -1,6 +1,6 @@
 use super::ComponentProps;
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote_spanned, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
@@ -83,14 +83,6 @@ impl ToTokens for PropsMacroInput {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self { ty, props } = self;
 
-        let validate_props = props.validate_props_tokens(ty, false);
-        let build_props = props.build_properties_tokens(ty, None::<bool>);
-
-        tokens.extend(quote! {
-            {
-                #validate_props
-                #build_props
-            }
-        })
+        tokens.extend(props.build_properties_tokens(ty, None::<TokenStream>))
     }
 }

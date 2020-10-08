@@ -89,8 +89,6 @@ impl ToTokens for HtmlComponent {
         } else {
             Some(quote! { ::yew::html::ChildrenRenderer::new(#children) })
         };
-
-        let validate_props = props.validate_props_tokens(&props_ty, children_renderer.is_some());
         let build_props = props.build_properties_tokens(&props_ty, children_renderer);
 
         let special_props = props.get_special();
@@ -108,14 +106,11 @@ impl ToTokens for HtmlComponent {
                 Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value))
             }
         } else {
-            quote! {None}
+            quote! { None }
         };
 
         tokens.extend(quote_spanned! {ty.span()=>
             {
-
-                #validate_props
-
                 #[allow(clippy::unit_arg)]
                 ::yew::virtual_dom::VChild::<#ty>::new(#build_props, #node_ref, #key)
             }

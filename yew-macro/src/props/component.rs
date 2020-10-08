@@ -95,11 +95,7 @@ impl ComponentProps {
         }
     }
 
-    pub fn validate_props_tokens(
-        &self,
-        props_ty: impl ToTokens,
-        has_children: bool,
-    ) -> TokenStream {
+    fn prop_validation_tokens(&self, props_ty: impl ToTokens, has_children: bool) -> TokenStream {
         let check_children = if has_children {
             Some(quote_spanned! {props_ty.span()=> __yew_props.children; })
         } else {
@@ -137,7 +133,9 @@ impl ComponentProps {
         props_ty: impl ToTokens,
         children_renderer: Option<CR>,
     ) -> TokenStream {
-        match self {
+        let validate_props = self.prop_validation_tokens(&props_ty, children_renderer.is_some());
+
+        let build_props = match self {
             Self::List(props) => {
                 let set_props = props.iter().map(|Prop { label, value, .. }| {
                         quote_spanned! {value.span()=> .#label(
@@ -175,12 +173,17 @@ impl ComponentProps {
 
                 let expr = &with_props.expr;
                 quote! {
-                    {
-                        let mut #ident = #expr;
-                        #set_children
-                        #ident
-                    }
+                    let mut #ident = #expr;
+                    #set_children
+                    #ident
                 }
+            }
+        };
+
+        quote! {
+            {
+                #validate_props
+                #build_props
             }
         }
     }
