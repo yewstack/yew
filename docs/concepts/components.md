@@ -2,6 +2,7 @@
 title: Introduction
 description: Components and their lifecycle hooks
 ---
+
 ## What are Components?
 
 Components are the building blocks of Yew. They manage their own state and can render themselves to the DOM. Components are created by implementing the `Component` trait for a type. The `Component`
@@ -20,7 +21,7 @@ in the lifecycle of a component.
 
 When a component is created, it receives properties from its parent component as well as a `ComponentLink`. The properties can be used to initialize the component's state and the "link" can be used to register callbacks or send messages to the component.
 
-It is common to store the props (data which can be passed from parent to child components) and the 
+It is common to store the props (data which can be passed from parent to child components) and the
 `ComponentLink` in your component struct, like so:
 
 ```rust
@@ -43,10 +44,10 @@ impl Component for MyComponent {
 
 ### View
 
-The `view` method allows you to describe how a component should be rendered to the DOM. Writing 
-HTML-like code using Rust functions can become quite messy, so Yew provides a macro called `html!` 
-for declaring HTML and SVG nodes (as well as attaching attributes and event listeners to them) and a 
-convenient way to render child components. The macro is somewhat similar to React's JSX (the 
+The `view` method allows you to describe how a component should be rendered to the DOM. Writing
+HTML-like code using Rust functions can become quite messy, so Yew provides a macro called `html!`
+for declaring HTML and SVG nodes (as well as attaching attributes and event listeners to them) and a
+convenient way to render child components. The macro is somewhat similar to React's JSX (the
 differences in programming language aside).
 
 ```rust
@@ -66,9 +67,9 @@ For usage details, check out [the `html!` guide](html.md).
 
 ### Rendered
 
-The `rendered` component lifecycle method is called once `view` has been called and Yew has rendered 
+The `rendered` component lifecycle method is called once `view` has been called and Yew has rendered
 the results to the DOM, but before the browser refreshes the page. This method is useful when you
-want to perform actions that can only be completed after the component has rendered elements. There 
+want to perform actions that can only be completed after the component has rendered elements. There
 is also a parameter called `first_render` which can be used to determine whether this function is
 being called on the first render, or instead a subsequent one.
 
@@ -107,8 +108,8 @@ Note that this lifecycle method does not require an implementation and will do n
 ### Update
 
 Communication with components happens primarily through messages which are handled by the
-`update` lifecycle method. This allows the component to update itself 
-based on what the message was, and determine if it needs to re-render itself. Messages can be sent 
+`update` lifecycle method. This allows the component to update itself
+based on what the message was, and determine if it needs to re-render itself. Messages can be sent
 by event listeners, child components, Agents, Services, or Futures.
 
 Here's an example of what an implementation of `update` could look like:
@@ -140,8 +141,8 @@ impl Component for MyComponent {
 
 ### Change
 
-Components may be re-rendered by their parents. When this happens, they could receive new properties 
-and need to re-render. This design facilitates parent to child component communication by just 
+Components may be re-rendered by their parents. When this happens, they could receive new properties
+and need to re-render. This design facilitates parent to child component communication by just
 changing the values of a property.
 
 A typical implementation would look something like:
@@ -163,7 +164,7 @@ impl Component for MyComponent {
 
 ### Destroy
 
-After Components are unmounted from the DOM, Yew calls the `destroy` lifecycle method; this is 
+After Components are unmounted from the DOM, Yew calls the `destroy` lifecycle method; this is
 necessary if you need to undertake operations to clean up after earlier actions of a component
 before it is destroyed. This method is optional and does nothing by default.
 
@@ -180,15 +181,15 @@ impl Component for MyComponent {
 }
 ```
 
-The `Message` type is used to send messages to a component after an event has taken place; for 
-example you might want to undertake some action when a user clicks a button or scrolls down the 
+The `Message` type is used to send messages to a component after an event has taken place; for
+example you might want to undertake some action when a user clicks a button or scrolls down the
 page. Because components tend to have to respond to more than one event, the `Message` type will
 normally be an enum, where each variant is an event to be handled.
 
-When organising your codebase, it is sensible to include the definition of the `Message` type in the 
-same module in which your component is defined. You may find it helpful to adopt a consistent naming 
-convention for message types. One option (though not the only one) is to name the types 
-`ComponentNameMsg`, e.g. if your component was called `Homepage` then you might call the type 
+When organising your codebase, it is sensible to include the definition of the `Message` type in the
+same module in which your component is defined. You may find it helpful to adopt a consistent naming
+convention for message types. One option (though not the only one) is to name the types
+`ComponentNameMsg`, e.g. if your component was called `Homepage` then you might call the type
 `HomepageMsg`.
 
 ```rust
