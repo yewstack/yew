@@ -41,7 +41,7 @@ The function is called even if the prop is explicitly set. If your function is p
 
 ## PartialEq
 
-It is likely to make sense to derive `PartialEq` on your props if you can do this. Using `PartialEq` makes it much easier to avoid unnecessary rerendering \(this is explained in the **Optimizations & Best Practices** section\).
+It is likely to make sense to derive `PartialEq` on your props if you can do this. Using `PartialEq` makes it much easier to avoid unnecessary rendering \(this is explained in the **Optimizations & Best Practices** section\).
 
 ## Memory/speed overhead of using Properties
 

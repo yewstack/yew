@@ -96,6 +96,6 @@ elif [[ "$mode" == "check" ]]; then
     fi
 
     for fname in "${markdown_sources[@]}"; do
-        aspell --ignore 3--camel-case  --dont-backup --personal="$dict_path" "$mode" "$fname"
+        aspell --ignore 3 --camel-case --dont-backup --personal="$dict_path" "$mode" "$fname"
     done
 fi
