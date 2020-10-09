@@ -2,6 +2,7 @@
 title: Components
 description: Create complex layouts with component hierarchies
 ---
+
 ## Basic
 
 Any type that implements `Component` can be used in the `html!` macro:
@@ -99,3 +100,34 @@ impl Component for List {
 }
 ```
 
+## Transformers
+
+Whenever you set a prop its value goes through a transformation step first.
+If the value already has the correct type, this step doesn't do anything.
+However, transformers can be useful to reduce code repetition.
+
+The following is a list of transformers you should know about:
+
+### `&T` -> `T`
+
+Clones the reference to get an owned value.
+
+### `&str` -> `String`
+
+Allows you to use string literals without adding `.to_owned()` at the end.
+
+### `T` -> `Option<T>`
+
+Wraps the value in `Some`.
+
+```rust
+struct Props {
+    unique_id: Option<usize>,
+    text: String,
+}
+
+// transformers allow you to write this:
+yew::props!(Props unique_id=5 text="literals are fun");
+// instead of:
+yew::props!(Props unique_id=Some(5) text="literals are fun".to_owned());
+```
