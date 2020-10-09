@@ -186,7 +186,7 @@ example you might want to undertake some action when a user clicks a button or s
 page. Because components tend to have to respond to more than one event, the `Message` type will
 normally be an enum, where each variant is an event to be handled.
 
-When organising your codebase, it is sensible to include the definition of the `Message` type in the
+When organizing your codebase, it is sensible to include the definition of the `Message` type in the
 same module in which your component is defined. You may find it helpful to adopt a consistent naming
 convention for message types. One option (though not the only one) is to name the types
 `ComponentNameMsg`, e.g. if your component was called `Homepage` then you might call the type
