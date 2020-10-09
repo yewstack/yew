@@ -1,0 +1,51 @@
+name: Publish website
+on:
+  push:
+    branches: [master]
+    paths:
+      - "docs/**/*"
+      - "website/**/*"
+
+  pull_request_target:
+    branches: [master]
+    paths:
+      - "docs/**/*"
+      - "website/**/*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+
+      - name: Build
+        run: |
+          cd website
+          yarn install
+          yarn run build
+
+      - name: Create channel id
+        run: |
+          channel_id="live"
+
+          event_name="${{ github.event_name }}"
+          if [[ "$event_name" == "pull_request_target" ]]; then
+            pr_number="${{ github.event.number }}"
+            pr_branch="${{ github.event.pull_request.head.ref }}"
+            channel_id="pr${pr_number}-${pr_branch}"
+            channel_id=$(echo "$channel_id" | sed "s/[^a-zA-Z0-9_\-\.]/_/g")
+          fi
+
+          echo "Using channel id: $channel_id"
+          echo "CHANNEL_ID=$channel_id" >> $GITHUB_ENV
+
+        name: Deploy to Firebase
+        uses: w9jds/firebase-action@master
+        with:
+          args: hosting:channel:deploy --only hosting:website ${{ env.CHANNEL_ID }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
