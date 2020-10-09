@@ -104,7 +104,9 @@ jobs:
             cargo-${{ runner.os }}-
 
       - name: Check spelling
-        run: ci/spellcheck.sh list
+        run: |
+          sudo apt-get install aspell
+          ci/spellcheck.sh list
 
       - name: Run doctest
         uses: actions-rs/cargo@v1

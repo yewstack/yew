@@ -47,15 +47,16 @@ html! {
 }
 ```
 
-```rust
-pub struct Container(Props);
+Here's the implementation of `Container`:
 
+```rust
 #[derive(Properties, Clone)]
 pub struct Props {
     pub id: String,
     pub children: Children,
 }
 
+pub struct Container(Props);
 impl Component for Container {
     type Properties = Props;
 
@@ -75,7 +76,7 @@ impl Component for Container {
 
 Nested component properties can be accessed and mutated if the containing component types its children. In the following example, the `List` component can wrap `ListItem` components. For a real world example of this pattern, check out the `yew-router` source code. For a more advanced example, check out the `nested-list` example in the main yew repository.
 
-```rust title="parent.rs"
+```rust
 html! {
     <List>
         <ListItem value="a" />
@@ -85,14 +86,13 @@ html! {
 }
 ```
 
-```rust title="list.rs"
-pub struct List(Props);
-
+```rust
 #[derive(Properties, Clone)]
 pub struct Props {
     pub children: ChildrenWithProps<ListItem>,
 }
 
+pub struct List(Props);
 impl Component for List {
     type Properties = Props;
 
