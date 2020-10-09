@@ -8,23 +8,11 @@ use syn::Expr;
 /// List of HTML classes.
 pub struct HtmlClasses(Punctuated<Expr, Comma>);
 
-impl From<Punctuated<Expr, Comma>> for HtmlClasses {
-    fn from(value: Punctuated<Expr, Comma>) -> Self {
-        HtmlClasses(value)
-    }
-}
-
-impl From<Expr> for HtmlClasses {
-    fn from(value: Expr) -> Self {
-        let mut punctuated = Punctuated::<Expr, Comma>::new();
-        punctuated.push(value);
-        HtmlClasses(punctuated)
-    }
-}
-
 impl Parse for HtmlClasses {
     fn parse(input: ParseStream) -> Result<Self> {
-        Ok(Punctuated::<Expr, Comma>::parse_terminated(input)?.into())
+        Ok(HtmlClasses(Punctuated::<Expr, Comma>::parse_terminated(
+            input,
+        )?))
     }
 }
 
@@ -42,26 +30,5 @@ impl ToTokens for HtmlClasses {
             #[allow(clippy::useless_conversion, unused_braces)]
             #new_tokens
         }});
-    }
-}
-
-impl HtmlClasses {
-    pub fn to_tokens_with_option(&self) -> TokenStream {
-        let n = self.0.len();
-        let classes = self.0.iter();
-        let new_tokens = quote! {
-            let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
-            #(__yew_classes.push(#classes);)*
-            if __yew_classes.is_empty() {
-                None
-            } else {
-                Some(__yew_classes.into())
-            }
-        };
-
-        quote! {{
-            #[allow(clippy::useless_conversion, unused_braces)]
-            #new_tokens
-        }}
     }
 }

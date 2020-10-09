@@ -324,16 +324,6 @@ pub struct Classes {
     set: IndexSet<Cow<'static, str>>,
 }
 
-impl From<Classes> for Cow<'static, str> {
-    fn from(value: Classes) -> Self {
-        if value.set.len() == 1 {
-            value.set.into_iter().next().unwrap()
-        } else {
-            value.to_string().into()
-        }
-    }
-}
-
 impl Classes {
     /// Creates an empty set of classes. (Does not allocate.)
     pub fn new() -> Self {
@@ -625,14 +615,6 @@ mod tests {
         subject.extend(other);
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
-    }
-
-    #[test]
-    fn multiple_empty_string_is_empty() {
-        let mut subject = Classes::new();
-        subject.push("");
-        subject.push("");
-        assert!(subject.is_empty());
     }
 }
 

@@ -3,7 +3,6 @@ pub(crate) mod tag_attributes;
 use super::{
     HtmlChildrenTree, HtmlDashedName, HtmlProp as TagAttribute, HtmlPropSuffix as TagSuffix,
 };
-use crate::html_classes::HtmlClasses;
 use crate::stringify::Stringify;
 use crate::{non_capitalized_ascii, stringify, Peek, PeekValue};
 use boolinator::Boolinator;
@@ -12,7 +11,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
-use syn::{Block, Expr, ExprParen, ExprTuple, Ident, Token};
+use syn::{Block, Ident, Token};
 use tag_attributes::TagAttributes;
 
 pub struct HtmlTag {
@@ -194,44 +193,15 @@ impl ToTokens for HtmlTag {
                      value,
                  }| {
                     let key = label.to_lit_str();
-                    match value {
-                        Expr::Paren(ExprParen { expr, .. }) if label.name == "class" => {
-                            let sr = HtmlClasses::from((**expr).clone());
-                            if question_mark.is_some() {
-                                let sr = sr.to_tokens_with_option();
-                                quote! {
-                                    ::yew::virtual_dom::PositionalAttr(#key, #sr)
-                                }
-                            } else {
-                                quote! {
-                                    ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
-                                }
-                            }
+                    if question_mark.is_some() {
+                        let sr = stringify::stringify_option_at_runtime(value);
+                        quote! {
+                            ::yew::virtual_dom::PositionalAttr(#key, #sr)
                         }
-                        Expr::Tuple(ExprTuple { elems, .. }) if label.name == "class" => {
-                            let sr = HtmlClasses::from(elems.clone());
-                            if question_mark.is_some() {
-                                let sr = sr.to_tokens_with_option();
-                                quote! {
-                                    ::yew::virtual_dom::PositionalAttr(#key, #sr)
-                                }
-                            } else {
-                                quote! {
-                                    ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
-                                }
-                            }
-                        }
-                        expr if question_mark.is_some() => {
-                            let sr = stringify::stringify_option_at_runtime(expr);
-                            quote! {
-                                ::yew::virtual_dom::PositionalAttr(#key, #sr)
-                            }
-                        }
-                        expr => {
-                            let sr = expr.stringify();
-                            quote! {
-                                ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
-                            }
+                    } else {
+                        let sr = value.stringify();
+                        quote! {
+                            ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
                         }
                     }
                 },
