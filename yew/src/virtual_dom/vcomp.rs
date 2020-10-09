@@ -280,8 +280,9 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::macros::Properties;
-    use crate::{html, Children, Component, ComponentLink, Html, NodeRef, ShouldRender};
+    use crate::{
+        html, Children, Component, ComponentLink, Html, NodeRef, Properties, ShouldRender,
+    };
     use cfg_match::cfg_match;
 
     #[cfg(feature = "std_web")]

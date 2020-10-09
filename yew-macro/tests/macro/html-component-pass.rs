@@ -195,7 +195,7 @@ fn compile_pass() {
     html! {
         <>
             <Child with props />
-            <Child ref=node_ref.clone() with props!(Child::Properties int=5) />
+            <Child ref=node_ref.clone() with yew::props!(Child::Properties int=5) />
             <Child with <Child as Component>::Properties::default() ref=node_ref />
         </>
     };

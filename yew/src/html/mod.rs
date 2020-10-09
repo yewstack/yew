@@ -9,6 +9,7 @@ mod scope;
 pub use listener::*;
 pub use scope::{AnyScope, Scope, SendAsMessage};
 pub(crate) use scope::{ComponentUpdate, Scoped};
+pub use yew_macro::Properties;
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VNode};

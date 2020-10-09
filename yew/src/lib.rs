@@ -256,7 +256,6 @@ pub mod macros {
     pub use crate::html;
     pub use crate::html_nested;
     pub use crate::props;
-    pub use yew_macro::Properties;
 }
 
 pub mod app;
@@ -359,7 +358,7 @@ pub mod prelude {
         Children, ChildrenWithProps, Component, ComponentLink, Html, NodeRef, Properties,
         ShouldRender,
     };
-    pub use crate::macros::*;
+    pub use crate::macros::{html, html_nested};
     pub use crate::virtual_dom::Classes;
 
     /// Prelude module for creating worker.
