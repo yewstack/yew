@@ -1,4 +1,4 @@
-pub(crate) mod tag_attributes;
+mod tag_attributes;
 
 use super::{
     HtmlChildrenTree, HtmlDashedName, HtmlProp as TagAttribute, HtmlPropSuffix as TagSuffix,
@@ -12,7 +12,7 @@ use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
 use syn::{Block, Ident, Token};
-use tag_attributes::TagAttributes;
+use tag_attributes::{ClassesForm, TagAttributes};
 
 pub struct HtmlTag {
     tag_name: TagName,
@@ -121,6 +121,7 @@ impl ToTokens for HtmlTag {
         };
 
         let TagAttributes {
+            classes,
             attributes,
             booleans,
             kind,
@@ -231,6 +232,47 @@ impl ToTokens for HtmlTag {
             Some(tokens)
         };
 
+        let push_classes = match classes {
+            Some(ClassesForm::Tuple(classes)) => {
+                let n = classes.len();
+                let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
+                Some(quote! {
+                    let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
+                    #(__yew_classes.push(#classes);)*
+
+                    if !__yew_classes.is_empty() {
+                        #vtag.__macro_push_attribute("class", #sr);
+                    } else {
+                        #vtag.__macro_push_attribute_placeholder("class");
+                    };
+                })
+            }
+            Some(ClassesForm::Single(classes)) => match classes.try_into_lit() {
+                Some(lit) => {
+                    if lit.value().is_empty() {
+                        None
+                    } else {
+                        let sr = lit.stringify();
+                        Some(quote! {
+                            #vtag.__macro_push_attribute("class", #sr);
+                        })
+                    }
+                }
+                None => {
+                    let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
+                    Some(quote! {
+                        let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
+                        if !__yew_classes.is_empty() {
+                            #vtag.__macro_push_attribute("class", #sr);
+                        } else {
+                            #vtag.__macro_push_attribute_placeholder("class");
+                        };
+                    })
+                }
+            },
+            None => None,
+        };
+
         let add_listeners = if listeners.is_empty() {
             None
         } else if listeners.iter().any(|attr| attr.question_mark.is_some()) {
@@ -332,6 +374,7 @@ impl ToTokens for HtmlTag {
 
                 #set_attributes
                 #push_booleans
+                #push_classes
 
                 #add_listeners
                 #add_children

@@ -838,25 +838,25 @@ mod tests {
         }
 
         if let VNode::VTag(vtag) = a {
-            assert_eq!(get_class!(vtag), Some(""));
+            assert_eq!(get_class!(vtag), None);
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = b {
-            assert_eq!(get_class!(vtag), Some(""));
+            assert_eq!(get_class!(vtag), None);
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = c {
-            assert_eq!(get_class!(vtag), Some(""));
+            assert_eq!(get_class!(vtag), None);
         } else {
             panic!("vtag expected");
         }
 
         if let VNode::VTag(vtag) = d {
-            assert_eq!(get_class!(vtag), Some(""));
+            assert_eq!(get_class!(vtag), None);
         } else {
             panic!("vtag expected");
         }

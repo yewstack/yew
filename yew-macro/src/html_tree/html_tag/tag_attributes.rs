@@ -4,17 +4,23 @@ use lazy_static::lazy_static;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::Expr;
+use syn::{Expr, ExprTuple};
 
 pub struct TagAttributes {
     pub attributes: Vec<TagAttribute>,
     pub listeners: Vec<TagAttribute>,
+    pub classes: Option<ClassesForm>,
     pub booleans: Vec<TagAttribute>,
     pub value: Option<TagAttribute>,
     pub kind: Option<TagAttribute>,
     pub checked: Option<Expr>,
     pub node_ref: Option<Expr>,
     pub key: Option<Expr>,
+}
+
+pub enum ClassesForm {
+    Tuple(Vec<Expr>),
+    Single(Box<Expr>),
 }
 
 lazy_static! {
@@ -256,6 +262,13 @@ impl TagAttributes {
             None => Ok(None),
         }
     }
+
+    fn map_classes(class_expr: Expr) -> ClassesForm {
+        match class_expr {
+            Expr::Tuple(ExprTuple { elems, .. }) => ClassesForm::Tuple(elems.into_iter().collect()),
+            expr => ClassesForm::Single(Box::new(expr)),
+        }
+    }
 }
 
 impl Parse for TagAttributes {
@@ -312,6 +325,8 @@ impl Parse for TagAttributes {
             }
         }
 
+        let classes = Self::remove_attr_nonoptional(&mut attributes, "class")?
+            .map(|a| Self::map_classes(a.value));
         let value = Self::remove_attr(&mut attributes, "value");
         let kind = Self::remove_attr(&mut attributes, "type");
         let checked = Self::remove_attr_nonoptional(&mut attributes, "checked")?.map(|v| v.value);
@@ -320,6 +335,7 @@ impl Parse for TagAttributes {
 
         Ok(Self {
             attributes,
+            classes,
             listeners,
             checked,
             booleans,
