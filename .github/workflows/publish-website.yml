@@ -8,9 +8,9 @@ on:
 
   pull_request_target:
     branches: [master]
-    paths:
-      - "docs/**/*"
-      - "website/**/*"
+    # paths:
+    #   - "docs/**/*"
+    #   - "website/**/*"
 
 jobs:
   publish:
@@ -31,9 +31,7 @@ jobs:
       - name: Create channel id
         run: |
           channel_id="live"
-
-          event_name="${{ github.event_name }}"
-          if [[ "$event_name" == "pull_request_target" ]]; then
+          if [[ "${{ github.event_name }}" == "pull_request_target" ]]; then
             pr_number="${{ github.event.number }}"
             pr_branch="${{ github.event.pull_request.head.ref }}"
             channel_id="pr${pr_number}-${pr_branch}"
@@ -46,6 +44,6 @@ jobs:
         name: Deploy to Firebase
         uses: w9jds/firebase-action@master
         with:
-          args: hosting:channel:deploy --only hosting:website ${{ env.CHANNEL_ID }}
+          args: hosting:channel:deploy --only hosting:website "${{ env.CHANNEL_ID }}"
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
