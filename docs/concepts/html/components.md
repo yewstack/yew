@@ -28,18 +28,31 @@ Components can be passed children if they have a `children` field in their `Prop
 
 ```rust title="parent.rs"
 html! {
-    <Container>
+    <Container id="container">
         <h4>{ "Hi" }</h4>
         <div>{ "Hello" }</div>
     </Container>
 }
 ```
 
-```rust title="container.rs"
+When using the `with props` syntax, the children passed in the `html!` macro overwrite the ones already present in the props.
+
+```rust
+let props = yew::props!(Container::Properties id="container-2" children=Children::default());
+html! {
+    <Container with props>
+        // props.children will be overwritten with this
+        <span>{ "I am a child, as you can see" }</span>
+    </Container>
+}
+```
+
+```rust
 pub struct Container(Props);
 
 #[derive(Properties, Clone)]
 pub struct Props {
+    pub id: String,
     pub children: Children,
 }
 
@@ -50,17 +63,13 @@ impl Component for Container {
 
     fn view(&self) -> Html {
        html! {
-           <div id="container">
+           <div id=&self.0.id>
                { self.0.children.clone() }
            </div>
        }
     }
 }
 ```
-
-:::note
-Types for which you derive `Properties` must also implement `Clone`. This can be done by either using `#[derive(Properties, Clone)]` or manually implementing `Clone` for your type.
-:::
 
 ## Nested Children with Props
 
@@ -108,17 +117,17 @@ However, transformers can be useful to reduce code repetition.
 
 The following is a list of transformers you should know about:
 
-### `&T` -> `T`
+- `&T` -> `T`
 
-Clones the reference to get an owned value.
+  Clones the reference to get an owned value.
 
-### `&str` -> `String`
+- `&str` -> `String`
 
-Allows you to use string literals without adding `.to_owned()` at the end.
+  Allows you to use string literals without adding `.to_owned()` at the end.
 
-### `T` -> `Option<T>`
+- `T` -> `Option<T>`
 
-Wraps the value in `Some`.
+  Wraps the value in `Some`.
 
 ```rust
 struct Props {
