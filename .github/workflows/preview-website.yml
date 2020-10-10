@@ -10,9 +10,28 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout BASE
+        uses: actions/checkout@v2
+
+      - name: Checkout HEAD
+        uses: actions/checkout@v2
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
+          path: PR_HEAD
+
+      - name: Import changes
+        run: |
+          # import new docs
+          rm -r docs
+          mv PR_HEAD/docs .
+
+          # only import directories in website because we can't trust the fork's executable files
+          rm -r website/*/
+          mv PR_HEAD/website/*/ website/
+
+          # remove all other HEAD files
+          rm -r PR_HEAD
 
       - name: Setup node
         uses: actions/setup-node@v1
@@ -31,4 +50,4 @@ jobs:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
           expires: 20d
-          targets: hosting:website
+          targets: website
