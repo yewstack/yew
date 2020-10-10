@@ -20,7 +20,7 @@ jobs:
         run: |
           cd website
           yarn install
-          yarn run Build
+          yarn run build
 
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master
