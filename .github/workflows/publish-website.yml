@@ -23,8 +23,9 @@ jobs:
           yarn run build
 
       - name: Deploy to Firebase
-        uses: w9jds/firebase-action@master
+        uses: siku2/action-hosting-deploy@v0
         with:
-          args: hosting:channel:deploy --only hosting:website
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
+          channel: live
+          targets: hosting:website
