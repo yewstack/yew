@@ -38,14 +38,15 @@ To run all tests, use the following command:
 cargo make tests
 ```
 
-Note: On Arch Linux (and presumably a few other Linux Distros), the package for
-Firefox Developer Edition does _not_ create a `firefox` alias, which causes the
-tests to fail unless you also have Firefox installed. To fix this, run
-`sudo ln -s /usr/bin/firefox-developer-edition /usr/bin/firefox`.
-
 ### Browser tests
 
 `cargo make tests` will automatically download Geckodriver to a temporary location if it isn't in the PATH.
+
+Because Geckodriver looks for `firefox` in the path, if you use
+FireFox Developer Edition, you may get an error, because Developer Editions
+binary is called `firefox-developer-edition` on some Linux distributions.
+To fix this, either install the standard version of Firefox or symlink
+`/usr/bin/firefox` to `/usr/bin/firefox-developer-edition`
 
 ### Fetch service tests
 
