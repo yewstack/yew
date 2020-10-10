@@ -35,7 +35,7 @@ yew = { version = "0.17.0", path = "../yew", features = ["services", "agent"], d
 yew-router-macro = { version = "0.14.0", path = "../yew-router-macro" }
 yew-router-route-parser = { version = "0.14.0", path = "../yew-router-route-parser" }
 
-cfg-if = "0.1.10"
+cfg-if = "1.0.0"
 cfg-match = "0.2"
 gloo = { version = "0.2.0", optional = true }
 js-sys = { version = "0.3.35", optional = true }
