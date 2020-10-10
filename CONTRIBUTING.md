@@ -42,6 +42,12 @@ cargo make tests
 
 `cargo make tests` will automatically download Geckodriver to a temporary location if it isn't in the PATH.
 
+Because Geckodriver looks for `firefox` in the path, if you use
+FireFox Developer Edition, you may get an error, because Developer Editions
+binary is called `firefox-developer-edition`.
+To fix this, either install the standard version of Firefox or symlink
+`firefox` to `firefox-developer-edition`.
+
 ### Fetch service tests
 
 The tests for the fetch service require a local [httpbin](https://httpbin.org/) server.
