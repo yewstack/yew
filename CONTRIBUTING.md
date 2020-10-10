@@ -44,7 +44,7 @@ cargo make tests
 
 Because Geckodriver looks for `firefox` in the path, if you use
 FireFox Developer Edition, you may get an error, because Developer Editions
-binary is called `firefox-developer-edition` on some Linux distributions.
+binary is called `firefox-developer-edition`.
 To fix this, either install the standard version of Firefox or symlink
 `firefox` to `firefox-developer-edition`.
 
