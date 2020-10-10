@@ -2,9 +2,9 @@ name: Preview website
 on:
   pull_request_target:
     branches: [master]
-    # paths:
-    #   - "docs/**/*"
-    #   - "website/**/*"
+    paths:
+      - "docs/**/*"
+      - "website/**/*"
 
 jobs:
   publish:
