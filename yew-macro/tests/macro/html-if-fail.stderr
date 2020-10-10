@@ -1,0 +1,60 @@
+error: expected a valid `if` expression
+ --> $DIR/html-if-fail.rs:4:5
+  |
+4 |     html! { if {html!()} };
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected a valid `if` expression
+ --> $DIR/html-if-fail.rs:9:5
+  |
+9 |     html! { if boolean };
+  |     ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+ --> $DIR/html-if-fail.rs:6:16
+  |
+6 |     html! { if value { html!() } };
+  |                ^^^^^ expected `bool`, found integer
+
+error[E0308]: mismatched types
+ --> $DIR/html-if-fail.rs:7:17
+  |
+7 |     html! { if {value} { html!() } };
+  |                 ^^^^^ expected `bool`, found integer
+
+error[E0308]: `if` and `else` have incompatible types
+  --> $DIR/html-if-fail.rs:10:5
+   |
+10 |     html! { if boolean { () } };
+   |     ^^^^^^^^^^^^^^^^^^^^^--^^^^^
+   |     |                    |
+   |     |                    expected because of this
+   |     expected `()`, found enum `yew::virtual_dom::vnode::VNode`
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/html-if-fail.rs:15:16
+   |
+15 |             if value {
+   |                ^^^^^ expected `bool`, found integer
+
+error[E0308]: `if` and `else` have incompatible types
+  --> $DIR/html-if-fail.rs:12:5
+   |
+12 |  /     html! {
+13 |  |         <>
+14 |  |             <div/>
+15 |  |             if value {
+   |  |______________________-
+16 | ||             }
+   | ||_____________- expected because of this
+17 |  |         </>
+18 |  |     };
+   |  |______^ expected `()`, found enum `yew::virtual_dom::vnode::VNode`
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

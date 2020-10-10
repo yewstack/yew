@@ -16,7 +16,7 @@ fn tests() {
     t.compile_fail("tests/macro/html-iterable-fail.rs");
 
     t.pass("tests/macro/html-if-pass.rs");
-    //t.compile_fail("tests/macro/html-if-fail.rs");
+    t.compile_fail("tests/macro/html-if-fail.rs");
 
     t.pass("tests/macro/html-list-pass.rs");
     t.compile_fail("tests/macro/html-list-fail.rs");
