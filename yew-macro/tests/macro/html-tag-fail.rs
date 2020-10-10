@@ -59,6 +59,8 @@ fn compile_fail() {
     html! { <input ref?=() /> };
     html! { <input onfocus?=Some(5) /> };
     html! { <input onfocus?=Callback::from(|_| ()) /> };
+
+    html! { <div class=("deprecated", "warning") /> };
 }
 
 fn main() {}
