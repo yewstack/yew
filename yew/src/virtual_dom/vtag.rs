@@ -1423,6 +1423,68 @@ mod tests {
         elem.detach(&parent);
         assert!(node_ref.get().is_none());
     }
+
+    #[test]
+    fn html_if_bool() {
+        assert_class(
+            html! {
+                if true {
+                    html!(<div class="foo" />)
+                }
+            },
+            "foo",
+        );
+        assert_class(
+            html! {
+                if false {
+                    html!(<div class="foo" />)
+                } else {
+                    html!(<div class="bar" />)
+                }
+            },
+            "bar",
+        );
+        assert_eq!(
+            html! {
+                if false {
+                    html!(<div class="foo" />)
+                }
+            },
+            html!()
+        );
+    }
+
+    #[test]
+    fn html_if_option() {
+        let option_foo = Some("foo");
+        let none: Option<&'static str> = None;
+        assert_class(
+            html! {
+                if let Some(class) = option_foo {
+                    html!(<div class=class />)
+                }
+            },
+            "foo",
+        );
+        assert_class(
+            html! {
+                if let Some(class) = none {
+                    html!(<div class=class />)
+                } else {
+                    html!(<div class="bar" />)
+                }
+            },
+            "bar",
+        );
+        assert_eq!(
+            html! {
+                if let Some(class) = none {
+                    html!(<div class=class />)
+                }
+            },
+            html!()
+        );
+    }
 }
 
 #[cfg(all(test, feature = "web_sys"))]
