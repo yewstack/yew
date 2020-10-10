@@ -1,9 +1,11 @@
 use crate::html_tree::HtmlProp as TagAttribute;
 use crate::PeekValue;
 use lazy_static::lazy_static;
+use proc_macro2::Span;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
+use syn::spanned::Spanned;
 use syn::{Expr, ExprTuple};
 
 pub struct TagAttributes {
@@ -19,8 +21,8 @@ pub struct TagAttributes {
 }
 
 pub enum ClassesForm {
-    Tuple(Vec<Expr>),
-    Single(Box<Expr>),
+    Tuple(Span, Vec<Expr>),
+    Single(Span, Box<Expr>),
 }
 
 lazy_static! {
@@ -264,9 +266,13 @@ impl TagAttributes {
     }
 
     fn map_classes(class_expr: Expr) -> ClassesForm {
+        let span = class_expr.span();
+
         match class_expr {
-            Expr::Tuple(ExprTuple { elems, .. }) => ClassesForm::Tuple(elems.into_iter().collect()),
-            expr => ClassesForm::Single(Box::new(expr)),
+            Expr::Tuple(ExprTuple { elems, .. }) => {
+                ClassesForm::Tuple(span, elems.into_iter().collect())
+            }
+            expr => ClassesForm::Single(span, Box::new(expr)),
         }
     }
 }

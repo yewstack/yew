@@ -233,10 +233,10 @@ impl ToTokens for HtmlTag {
         };
 
         let push_classes = match classes {
-            Some(ClassesForm::Tuple(classes)) => {
+            Some(ClassesForm::Tuple(span, classes)) => {
                 let n = classes.len();
                 let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
-                Some(quote! {
+                Some(quote_spanned! { *span => {
                     let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
                     #(__yew_classes.push(#classes);)*
 
@@ -245,29 +245,29 @@ impl ToTokens for HtmlTag {
                     } else {
                         #vtag.__macro_push_attribute_placeholder("class");
                     };
-                })
+                }})
             }
-            Some(ClassesForm::Single(classes)) => match classes.try_into_lit() {
+            Some(ClassesForm::Single(span, classes)) => match classes.try_into_lit() {
                 Some(lit) => {
                     if lit.value().is_empty() {
                         None
                     } else {
                         let sr = lit.stringify();
-                        Some(quote! {
+                        Some(quote_spanned! { *span => {
                             #vtag.__macro_push_attribute("class", #sr);
-                        })
+                        }})
                     }
                 }
                 None => {
                     let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
-                    Some(quote! {
+                    Some(quote_spanned! { *span => {
                         let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
                         if !__yew_classes.is_empty() {
                             #vtag.__macro_push_attribute("class", #sr);
                         } else {
                             #vtag.__macro_push_attribute_placeholder("class");
                         };
-                    })
+                    }})
                 }
             },
             None => None,
