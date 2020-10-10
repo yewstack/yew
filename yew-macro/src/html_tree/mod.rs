@@ -30,6 +30,7 @@ pub enum HtmlType {
     Component,
     List,
     Tag,
+    If,
     Empty,
 }
 
@@ -38,6 +39,7 @@ pub enum HtmlTree {
     Component(Box<HtmlComponent>),
     List(Box<HtmlList>),
     Tag(Box<HtmlTag>),
+    If(Box<HtmlIf>),
     Empty,
 }
 
@@ -51,6 +53,7 @@ impl Parse for HtmlTree {
             HtmlType::Tag => HtmlTree::Tag(Box::new(input.parse()?)),
             HtmlType::Block => HtmlTree::Block(Box::new(input.parse()?)),
             HtmlType::List => HtmlTree::List(Box::new(input.parse()?)),
+            HtmlType::If => HtmlTree::If(Box::new(input.parse()?)),
         };
         Ok(html_tree)
     }
@@ -68,6 +71,8 @@ impl PeekValue<HtmlType> for HtmlTree {
             Some(HtmlType::Tag)
         } else if HtmlBlock::peek(cursor).is_some() {
             Some(HtmlType::Block)
+        } else if HtmlIf::peek(cursor).is_some() {
+            Some(HtmlType::If)
         } else {
             None
         }
@@ -84,6 +89,7 @@ impl ToTokens for HtmlTree {
             HtmlTree::Tag(tag) => tag.to_tokens(tokens),
             HtmlTree::List(list) => list.to_tokens(tokens),
             HtmlTree::Block(block) => block.to_tokens(tokens),
+            HtmlTree::If(block) => block.to_tokens(tokens),
         }
     }
 }

@@ -1,4 +1,3 @@
-use super::html_if::HtmlIf;
 use super::html_iterable::HtmlIterable;
 use super::html_node::HtmlNode;
 use super::ToNodeIterator;
@@ -18,7 +17,6 @@ pub struct HtmlBlock {
 enum BlockContent {
     Node(Box<HtmlNode>),
     Iterable(Box<HtmlIterable>),
-    If(Box<HtmlIf>),
 }
 
 impl PeekValue<()> for HtmlBlock {
@@ -33,8 +31,6 @@ impl Parse for HtmlBlock {
         let brace = braced!(content in input);
         let content = if HtmlIterable::peek(content.cursor()).is_some() {
             BlockContent::Iterable(Box::new(content.parse()?))
-        } else if HtmlIf::peek(content.cursor()).is_some() {
-            BlockContent::If(Box::new(content.parse()?))
         } else {
             BlockContent::Node(Box::new(content.parse()?))
         };
@@ -48,7 +44,6 @@ impl ToTokens for HtmlBlock {
         let HtmlBlock { content, .. } = self;
         let new_tokens = match content {
             BlockContent::Iterable(html_iterable) => quote! {#html_iterable},
-            BlockContent::If(html_if) => quote! {#html_if},
             BlockContent::Node(html_node) => quote! {#html_node},
         };
 
@@ -61,7 +56,6 @@ impl ToNodeIterator for HtmlBlock {
         let HtmlBlock { content, brace } = self;
         let new_tokens = match content {
             BlockContent::Iterable(iterable) => iterable.to_node_iterator_stream(),
-            BlockContent::If(r#if) => r#if.to_node_iterator_stream(),
             BlockContent::Node(node) => node.to_node_iterator_stream(),
         }?;
 

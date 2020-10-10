@@ -1,4 +1,3 @@
-use super::ToNodeIterator;
 use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::TokenStream;
@@ -20,7 +19,7 @@ impl PeekValue<()> for HtmlIf {
 impl Parse for HtmlIf {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let expr = match input.parse() {
-            Ok(Expr::If(expr)) => expr,
+            Ok(expr) => expr,
             _ => {
                 return Err(syn::Error::new(
                     input.span(),
@@ -49,15 +48,5 @@ impl ToTokens for HtmlIf {
         };
 
         tokens.extend(new_tokens);
-    }
-}
-
-impl ToNodeIterator for HtmlIf {
-    fn to_node_iterator_stream(&self) -> Option<TokenStream> {
-        let mut tokens = TokenStream::new();
-        self.to_tokens(&mut tokens);
-        Some(quote_spanned! {self.0.span()=>
-            ::std::iter::once(#tokens)
-        })
     }
 }
