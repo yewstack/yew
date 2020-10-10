@@ -38,7 +38,7 @@ impl ToTokens for HtmlIf {
         let expr = &self.0;
         let cond = &expr.cond;
         let then_branch = &expr.then_branch;
-        let default_else_branch = Box::new(syn::parse_str::<Expr>("{ html!() }").unwrap());
+        let default_else_branch = Box::new(syn::parse_str::<Expr>("{html!()}").unwrap());
         let else_branch = &expr
             .else_branch
             .as_ref()
@@ -54,6 +54,10 @@ impl ToTokens for HtmlIf {
 
 impl ToNodeIterator for HtmlIf {
     fn to_node_iterator_stream(&self) -> Option<TokenStream> {
-        todo!();
+        let mut tokens = TokenStream::new();
+        self.to_tokens(&mut tokens);
+        Some(quote_spanned! {self.0.span()=>
+            ::std::iter::once(#tokens)
+        })
     }
 }
