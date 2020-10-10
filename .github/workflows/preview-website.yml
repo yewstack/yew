@@ -1,13 +1,13 @@
-name: Publish website
+name: Preview website
 on:
-  push:
+  pull_request_target:
     branches: [master]
     paths:
       - "docs/**/*"
       - "website/**/*"
 
 jobs:
-  publish_website:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -23,8 +23,9 @@ jobs:
           yarn run build
 
       - name: Deploy to Firebase
-        uses: w9jds/firebase-action@master
+        uses: siku2/action-hosting-deploy@main
         with:
-          args: deploy --only hosting:website
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
+          expires: 20d
+          targets: website
