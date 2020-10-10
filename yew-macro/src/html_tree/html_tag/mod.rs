@@ -371,7 +371,10 @@ impl ToTokens for HtmlTag {
                 let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
 
                 #[allow(dead_code)]
-                #[deprecated(note="blabla deprecated blabla use classes! macro")]
+                #[deprecated(
+                    note="the use of `(...)` with the attribute `class` is deprecated. \
+                        Please use the macro `classes!` instead.",
+                )]
                 fn deprecated_use_of_class() {}
 
                 #set_node_ref
