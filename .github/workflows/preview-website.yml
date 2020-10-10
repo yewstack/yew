@@ -32,12 +32,12 @@ jobs:
           echo "Using channel id: $channel_id"
           echo "CHANNEL_ID=$channel_id" >> $GITHUB_ENV
 
-      - name: Deploy to Firebase
-        uses: w9jds/firebase-action@master
-        with:
-          args: hosting:channel:deploy --only hosting:website "${{ env.CHANNEL_ID }}"
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      # - name: Deploy to Firebase
+      #   uses: w9jds/firebase-action@master
+      #   with:
+      #     args: hosting:channel:deploy --only hosting:website "${{ env.CHANNEL_ID }}"
+      #   env:
+      #     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
       - name: Post comment
         uses: peter-evans/create-or-update-comment@v1
