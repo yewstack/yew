@@ -22,26 +22,10 @@ jobs:
           yarn install
           yarn run build
 
-      - name: Set channel id
-        run: |
-          pr_number="${{ github.event.number }}"
-          pr_branch="${{ github.event.pull_request.head.ref }}"
-          channel_id="pr${pr_number}-${pr_branch}"
-          channel_id=$(echo "$channel_id" | sed "s/[^a-zA-Z0-9_\-\.]/_/g")
-
-          echo "Using channel id: $channel_id"
-          echo "CHANNEL_ID=$channel_id" >> $GITHUB_ENV
-
-      # - name: Deploy to Firebase
-      #   uses: w9jds/firebase-action@master
-      #   with:
-      #     args: hosting:channel:deploy --only hosting:website "${{ env.CHANNEL_ID }}"
-      #   env:
-      #     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
-      - name: Post comment
-        uses: peter-evans/create-or-update-comment@v1
+      - name: Deploy to Firebase
+        uses: siku2/action-hosting-deploy@master
         with:
-          issue-number: ${{ github.event.number }}
-          body: |
-            Here's the channel id for now: ${{ env.CHANNEL_ID }}
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
+          expires: 20d
+          targets: website
