@@ -6,12 +6,6 @@ on:
       - "docs/**/*"
       - "website/**/*"
 
-  pull_request_target:
-    branches: [master]
-    # paths:
-    #   - "docs/**/*"
-    #   - "website/**/*"
-
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -26,32 +20,11 @@ jobs:
         run: |
           cd website
           yarn install
-          yarn run build
-
-      - name: Create channel id
-        run: |
-          channel_id="live"
-          if [[ "${{ github.event_name }}" == "pull_request_target" ]]; then
-            pr_number="${{ github.event.number }}"
-            pr_branch="${{ github.event.pull_request.head.ref }}"
-            channel_id="pr${pr_number}-${pr_branch}"
-            channel_id=$(echo "$channel_id" | sed "s/[^a-zA-Z0-9_\-\.]/_/g")
-          fi
-
-          echo "Using channel id: $channel_id"
-          echo "CHANNEL_ID=$channel_id" >> $GITHUB_ENV
+          yarn run Build
 
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master
         with:
-          args: hosting:channel:deploy --only hosting:website "${{ env.CHANNEL_ID }}"
+          args: hosting:channel:deploy --only hosting:website
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
-      - if: github.event_name == 'pull_request_target'
-        name: Create comment
-        uses: peter-evans/create-or-update-comment@v1
-        with:
-          issue-number: ${{ github.event.number }}
-          body: |
-            Here's the channel id for now: ${{ env.CHANNEL_ID }}
