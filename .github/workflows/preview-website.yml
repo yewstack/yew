@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        ref: ${{ github.event.pull_request.head.ref }}
+
       - name: Setup node
         uses: actions/setup-node@v1
         with:
@@ -23,9 +25,9 @@ jobs:
           yarn run build
 
       - name: Deploy to Firebase
-        uses: siku2/action-hosting-deploy@main
+        uses: siku2/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
           expires: 20d
-          targets: website
+          targets: hosting:website
