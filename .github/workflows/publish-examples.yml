@@ -30,7 +30,9 @@ jobs:
             cargo-${{ runner.os }}-
 
       - name: Install trunk
-        run: cargo install trunk wasm-bindgen-cli
+        run: |
+          brew install trunk
+          cargo install wasm-bindgen-cli
 
       - name: Build examples
         run: |
@@ -63,4 +65,4 @@ jobs:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
           channelId: live
-          targets: hosting:examples
+          targets: examples
