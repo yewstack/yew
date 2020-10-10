@@ -28,4 +28,4 @@ jobs:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
           channelId: live
-          targets: hosting:website
+          targets: website
