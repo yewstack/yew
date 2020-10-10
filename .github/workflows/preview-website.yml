@@ -23,7 +23,7 @@ jobs:
           yarn run build
 
       - name: Deploy to Firebase
-        uses: siku2/action-hosting-deploy@master
+        uses: siku2/action-hosting-deploy@main
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
