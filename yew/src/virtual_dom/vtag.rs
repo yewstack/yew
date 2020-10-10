@@ -1426,15 +1426,15 @@ mod tests {
 
     #[test]
     fn html_if_bool() {
-        assert_class(
+        assert_eq!(
             html! {
                 if true {
                     html!(<div class="foo" />)
                 }
             },
-            "foo",
+            html!(<div class="foo" />),
         );
-        assert_class(
+        assert_eq!(
             html! {
                 if false {
                     html!(<div class="foo" />)
@@ -1442,7 +1442,9 @@ mod tests {
                     html!(<div class="bar" />)
                 }
             },
-            "bar",
+            html! {
+                <div class="bar" />
+            },
         );
         assert_eq!(
             html! {
@@ -1450,7 +1452,53 @@ mod tests {
                     html!(<div class="foo" />)
                 }
             },
-            html!()
+            html!(),
+        );
+
+        // non-root tests
+        assert_eq!(
+            html! {
+                <div>
+                    if true {
+                        html!(<div class="foo" />)
+                    }
+                </div>
+            },
+            html! {
+                <div>
+                    <div class="foo" />
+                </div>
+            },
+        );
+        assert_eq!(
+            html! {
+                <div>
+                    if false {
+                        html!(<div class="foo" />)
+                    } else {
+                        html!(<div class="bar" />)
+                    }
+                </div>
+            },
+            html! {
+                <div>
+                    <div class="bar" />
+                </div>
+            },
+        );
+        assert_eq!(
+            html! {
+                <div>
+                    if false {
+                        html!(<div class="foo" />)
+                    }
+                </div>
+            },
+            html! {
+                <div>
+                    <></>
+                </div>
+            },
         );
     }
 
@@ -1458,15 +1506,15 @@ mod tests {
     fn html_if_option() {
         let option_foo = Some("foo");
         let none: Option<&'static str> = None;
-        assert_class(
+        assert_eq!(
             html! {
                 if let Some(class) = option_foo {
                     html!(<div class=class />)
                 }
             },
-            "foo",
+            html!(<div class="foo" />),
         );
-        assert_class(
+        assert_eq!(
             html! {
                 if let Some(class) = none {
                     html!(<div class=class />)
@@ -1474,7 +1522,7 @@ mod tests {
                     html!(<div class="bar" />)
                 }
             },
-            "bar",
+            html!(<div class="bar" />),
         );
         assert_eq!(
             html! {
@@ -1482,7 +1530,41 @@ mod tests {
                     html!(<div class=class />)
                 }
             },
-            html!()
+            html!(),
+        );
+
+        // non-root tests
+        assert_eq!(
+            html! {
+                <div>
+                    if let Some(class) = option_foo {
+                        html!(<div class=class />)
+                    }
+                </div>
+            },
+            html!(<div><div class="foo" /></div>),
+        );
+        assert_eq!(
+            html! {
+                <div>
+                    if let Some(class) = none {
+                        html!(<div class=class />)
+                    } else {
+                        html!(<div class="bar" />)
+                    }
+                </div>
+            },
+            html!(<div><div class="bar" /></div>),
+        );
+        assert_eq!(
+            html! {
+                <div>
+                    if let Some(class) = none {
+                        html!(<div class=class />)
+                    }
+                </div>
+            },
+            html!(<div><></></div>),
         );
     }
 }
