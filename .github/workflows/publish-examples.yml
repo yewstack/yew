@@ -62,5 +62,5 @@ jobs:
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
-          channel: live
+          channelId: live
           targets: hosting:examples
