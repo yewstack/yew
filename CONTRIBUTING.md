@@ -46,7 +46,7 @@ Because Geckodriver looks for `firefox` in the path, if you use
 FireFox Developer Edition, you may get an error, because Developer Editions
 binary is called `firefox-developer-edition` on some Linux distributions.
 To fix this, either install the standard version of Firefox or symlink
-`/usr/bin/firefox` to `/usr/bin/firefox-developer-edition`
+`/usr/bin/firefox` to `/usr/bin/firefox-developer-edition`.
 
 ### Fetch service tests
 
