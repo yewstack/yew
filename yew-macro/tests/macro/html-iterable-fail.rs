@@ -18,6 +18,24 @@ fn compile_fail() {
             { for () }
         </>
     };
+
+    // new syntax
+    html! { <div>for {}</div> };
+    html! { <div>for {()}</div> };
+    html! { <div>for {Vec::<()>::new().into_iter()}</div> };
+
+    let empty = Vec::<()>::new().into_iter();
+    html! { <div>for {empty}</div> };
+
+    let empty = Vec::<()>::new();
+    html! { <div>for {empty.iter()}</div> };
+
+    html! {
+        <>
+            <div/>
+            { for {()} }
+        </>
+    };
 }
 
 fn main() {}
