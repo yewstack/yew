@@ -105,7 +105,6 @@ impl ToTokens for HtmlTree {
 pub enum HtmlRoot {
     Tree(HtmlTree),
     Iterable(Box<HtmlIterable>),
-    If(Box<HtmlIf>),
     Node(Box<HtmlNode>),
 }
 
@@ -115,8 +114,6 @@ impl Parse for HtmlRoot {
             Self::Tree(input.parse()?)
         } else if HtmlIterable::peek(input.cursor()).is_some() {
             Self::Iterable(Box::new(input.parse()?))
-        } else if HtmlIf::peek(input.cursor()).is_some() {
-            Self::If(Box::new(input.parse()?))
         } else {
             Self::Node(Box::new(input.parse()?))
         };
@@ -139,7 +136,6 @@ impl ToTokens for HtmlRoot {
             Self::Tree(tree) => tree.to_tokens(tokens),
             Self::Node(node) => node.to_tokens(tokens),
             Self::Iterable(iterable) => iterable.to_tokens(tokens),
-            Self::If(r#if) => r#if.to_tokens(tokens),
         }
     }
 }
