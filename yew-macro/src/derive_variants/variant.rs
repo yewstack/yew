@@ -1,4 +1,4 @@
-use proc_macro2::{Ident};
+use proc_macro2::Ident;
 use std::convert::TryFrom;
 use syn::parse::Result;
 use syn::{Error, Fields, Type, Variant};
@@ -16,7 +16,9 @@ impl TryFrom<Variant> for VariantsVariant {
             Fields::Unnamed(fields) => fields.unnamed,
             _ => unimplemented!("only unnamed fields are supported"),
         };
-        if fields.len() > 1 { unimplemented!("only unnamed fields with a single field are supported"); }
+        if fields.len() > 1 {
+            unimplemented!("only unnamed fields with a single field are supported");
+        }
         let field = fields.first().unwrap();
         Ok(VariantsVariant {
             ty: field.ty.clone(),
@@ -24,4 +26,3 @@ impl TryFrom<Variant> for VariantsVariant {
         })
     }
 }
-

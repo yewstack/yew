@@ -1,6 +1,6 @@
 mod variant;
 
-use proc_macro2::{Ident};
+use proc_macro2::Ident;
 use quote::{quote, ToTokens};
 use std::convert::TryInto;
 use syn::parse::{Parse, ParseStream, Result};
@@ -50,4 +50,3 @@ impl ToTokens for DeriveVariantsInput {
         }
     }
 }
-
