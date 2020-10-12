@@ -198,7 +198,7 @@ pub use yew_macro::html_nested;
 pub mod macros {
     pub use crate::html;
     pub use crate::html_nested;
-    pub use yew_macro::Properties;
+    pub use yew_macro::{Properties, Variants};
 }
 
 pub mod app;

@@ -4,11 +4,10 @@ use proc_macro2::{Ident};
 use quote::{quote, ToTokens};
 use std::convert::TryInto;
 use syn::parse::{Parse, ParseStream, Result};
-use syn::{DeriveInput, Generics, Visibility};
+use syn::{DeriveInput, Generics};
 use variant::VariantsVariant;
 
 pub struct DeriveVariantsInput {
-    vis: Visibility,
     generics: Generics,
     variants_name: Ident,
     variants_variants: Vec<VariantsVariant>,
@@ -26,7 +25,6 @@ impl Parse for DeriveVariantsInput {
             .map(|v| v.try_into())
             .collect::<Result<Vec<VariantsVariant>>>()?;
         Ok(DeriveVariantsInput {
-            vis: input.vis,
             variants_name: input.ident,
             generics: input.generics,
             variants_variants,

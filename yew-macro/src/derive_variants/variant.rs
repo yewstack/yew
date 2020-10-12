@@ -19,7 +19,7 @@ impl TryFrom<Variant> for VariantsVariant {
         if fields.len() > 1 { unimplemented!("only unnamed fields with a single field are supported"); }
         let field = fields.first().unwrap();
         Ok(VariantsVariant {
-            ty: field.ty,
+            ty: field.ty.clone(),
             name: variant.ident,
         })
     }
