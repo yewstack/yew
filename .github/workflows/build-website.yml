@@ -2,14 +2,14 @@ name: Build website
 on:
   pull_request:
     branches: [master]
-    # paths:
-    #   - "docs/**/*"
-    #   - "website/**/*"
+    paths:
+      - "docs/**/*"
+      - "website/**/*"
   push:
     branches: [master]
-    # paths:
-    #   - "docs/**/*"
-    #   - "website/**/*"
+    paths:
+      - "docs/**/*"
+      - "website/**/*"
 
 jobs:
   build:
