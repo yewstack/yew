@@ -1,4 +1,3 @@
-use js_sys;
 use std::time::Duration;
 use yew::services::interval::{IntervalService, IntervalTask};
 use yew::services::{ConsoleService, Task, TimeoutService};
