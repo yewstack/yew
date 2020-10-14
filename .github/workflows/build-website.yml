@@ -6,13 +6,13 @@ on:
     #   - "docs/**/*"
     #   - "website/**/*"
   push:
-    # branches: [master]
+    branches: [master]
     # paths:
     #   - "docs/**/*"
     #   - "website/**/*"
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     env:
       PUBLISH_ENV_FILE: "PUBLISH_ENV"
