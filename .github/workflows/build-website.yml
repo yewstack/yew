@@ -19,6 +19,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Common environment
+        run: |
+          echo "WORKFLOW_RUN_ID=${{ github.run_id }}" >> $PUBLISH_ENV_FILE
+
       - if: github.event_name == 'pull_request'
         name: Environment for pull request
         run: |
@@ -29,7 +33,7 @@ jobs:
       - if: github.event_name == 'push'
         name: Environment for push
         run: |
-          echo "CHANNEL_ID=\"live\"" >> $PUBLISH_ENV_FILE
+          echo "CHANNEL_ID=live" >> $PUBLISH_ENV_FILE
 
       - name: Upload publish environment
         uses: actions/upload-artifact@v2

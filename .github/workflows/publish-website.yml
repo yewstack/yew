@@ -11,13 +11,11 @@ jobs:
     env:
       PUBLISH_ENV_FILE: "PUBLISH_ENV"
     steps:
-      - uses: actions/checkout@v2
       - name: Download publish env
         uses: dawidd6/action-download-artifact@v2
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           workflow: build-website.yml
-          branch: master
           name: publish-env
 
       - name: Apply publish env
@@ -31,7 +29,7 @@ jobs:
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           workflow: build-website.yml
-          branch: master
+          run_id: ${{ env.WORKFLOW_RUN_ID }}
           name: website
           path: website/build/yew
 
