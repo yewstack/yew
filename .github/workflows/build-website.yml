@@ -18,6 +18,7 @@ jobs:
       PUBLISH_ENV_FILE: "PUBLISH_ENV"
     steps:
       - uses: actions/checkout@v2
+
       - if: github.event_name == 'pull_request'
         name: Environment for pull request
         run: |

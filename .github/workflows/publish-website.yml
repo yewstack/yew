@@ -16,7 +16,7 @@ jobs:
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           workflow: build-website.yml
-          run_id: ${{ github.event.workflow.id }}
+          run_id: ${{ github.event.workflow_run.id }}
           name: publish-env
 
       - name: Apply publish env
@@ -30,7 +30,7 @@ jobs:
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           workflow: build-website.yml
-          run_id: ${{ github.event.workflow.id }}
+          run_id: ${{ github.event.workflow_run.id }}
           name: website
           path: website/build/yew
 
