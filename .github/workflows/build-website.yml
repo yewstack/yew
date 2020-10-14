@@ -18,11 +18,6 @@ jobs:
       PUBLISH_ENV_FILE: "PUBLISH_ENV"
     steps:
       - uses: actions/checkout@v2
-
-      - name: Common environment
-        run: |
-          echo "WORKFLOW_RUN_ID=${{ github.run_id }}" >> $PUBLISH_ENV_FILE
-
       - if: github.event_name == 'pull_request'
         name: Environment for pull request
         run: |

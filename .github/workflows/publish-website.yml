@@ -11,16 +11,12 @@ jobs:
     env:
       PUBLISH_ENV_FILE: "PUBLISH_ENV"
     steps:
-      - run: |
-          echo ${{ toJSON(github.event) }}
-
-      # Doesn't look like `workflow_run` tells us anything about the workflow that triggered it...
-      # We just use the latest build-website output and hope the god of race conditions shows mercy
       - name: Download publish env
         uses: dawidd6/action-download-artifact@v2
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           workflow: build-website.yml
+          run_id: ${{ github.event.workflow.id }}
           name: publish-env
 
       - name: Apply publish env
@@ -34,7 +30,7 @@ jobs:
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           workflow: build-website.yml
-          run_id: ${{ env.WORKFLOW_RUN_ID }}
+          run_id: ${{ github.event.workflow.id }}
           name: website
           path: website/build/yew
 
