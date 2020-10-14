@@ -15,6 +15,9 @@ jobs:
           echo "build failed"
           exit 1
 
+      # need to checkout to get "firebase.json", ".firebaserc"
+      - uses: actions/checkout@v2
+
       - name: Download build artifact
         uses: dawidd6/action-download-artifact@v2
         with:
@@ -35,9 +38,6 @@ jobs:
         name: Apply push environment
         run: |
           echo "CHANNEL_ID=live" >> $GITHUB_ENV
-
-      # need to checkout to get "firebase.json", ".firebaserc"
-      - uses: actions/checkout@v2
 
       - name: Deploy to Firebase
         uses: siku2/action-hosting-deploy@v1
