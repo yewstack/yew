@@ -1,0 +1,59 @@
+name: Build website
+on:
+  pull_request:
+    branches: [master]
+    # paths:
+    #   - "docs/**/*"
+    #   - "website/**/*"
+  push:
+    # branches: [master]
+    # paths:
+    #   - "docs/**/*"
+    #   - "website/**/*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      PUBLISH_ENV_FILE: "PUBLISH_ENV"
+    steps:
+      - uses: actions/checkout@v2
+
+      - if: github.event_name == 'pull_request'
+        name: Environment for pull request
+        run: |
+          pr_number="${{ github.event.number }}"
+          pr_branch="${{ github.event.pull_request.head.ref }}"
+          commit_sha="${{ github.event.pull_request.head.sha }}"
+
+          echo "PR_NUMBER=\"${pr_number}\"" >> $PUBLISH_ENV_FILE
+          echo "PR_BRANCH=\"${pr_branch}\"" >> $PUBLISH_ENV_FILE
+          echo "COMMIT_SHA=\"${commit_sha}\"" >> $PUBLISH_ENV_FILE
+
+      - if: github.event_name == 'push'
+        name: Environment for push
+        run: |
+          echo "CHANNEL_ID=\"live\"" >> $PUBLISH_ENV_FILE
+
+      - name: Upload publish environment
+        uses: actions/upload-artifact@v2
+        with:
+          name: publish-env
+          path: "${{ env.PUBLISH_ENV_FILE }}"
+
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+
+      - name: Build
+        run: |
+          cd website
+          npm install
+          npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: website
+          path: website/build/yew

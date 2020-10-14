@@ -1,31 +1,47 @@
 name: Publish website
 on:
-  push:
-    branches: [master]
-    paths:
-      - "docs/**/*"
-      - "website/**/*"
+  workflow_run:
+    workflows: ["Build website"]
+    types:
+      - completed
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      PUBLISH_ENV_FILE: "PUBLISH_ENV"
     steps:
       - uses: actions/checkout@v2
-      - name: Setup node
-        uses: actions/setup-node@v1
+      - name: Download publish env
+        uses: dawidd6/action-download-artifact@v2
         with:
-          node-version: "12.x"
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          workflow: build-website.yml
+          branch: master
+          name: publish-env
 
-      - name: Build
+      - name: Apply publish env
         run: |
-          cd website
-          yarn install
-          yarn run build
+          echo "Publish env:"
+          cat "$PUBLISH_ENV_FILE"
+          cat "$PUBLISH_ENV_FILE" >> $GITHUB_ENV
+
+      - name: Download build artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          workflow: build-website.yml
+          branch: master
+          name: website
+          path: website/build/yew
 
       - name: Deploy to Firebase
         uses: siku2/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
-          channelId: live
           targets: website
+          channelId: "${{ env.CHANNEL_ID }}"
+          prNumber: "${{ env.PR_NUMBER }}"
+          prBranch: "${{ env.PR_BRANCH }}"
+          commitSHA: "${{ env.COMMIT_SHA }}"
