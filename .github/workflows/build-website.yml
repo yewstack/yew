@@ -1,0 +1,35 @@
+name: Build website
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - "docs/**/*"
+      - "website/**/*"
+  push:
+    branches: [master]
+    paths:
+      - "docs/**/*"
+      - "website/**/*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+
+      - name: Build
+        run: |
+          cd website
+          npm install
+          npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: website
+          path: website/build/yew
+          retention-days: 1

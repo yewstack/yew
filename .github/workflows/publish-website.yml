@@ -1,31 +1,51 @@
 name: Publish website
 on:
-  push:
-    branches: [master]
-    paths:
-      - "docs/**/*"
-      - "website/**/*"
+  workflow_run:
+    workflows: ["Build website"]
+    types:
+      - completed
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup node
-        uses: actions/setup-node@v1
-        with:
-          node-version: "12.x"
-
-      - name: Build
+      - if: github.event.workflow_run.conclusion != 'success'
+        name: Abort if build failed
         run: |
-          cd website
-          yarn install
-          yarn run build
+          echo "build failed"
+          exit 1
+
+      - name: Download build artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          workflow: build-website.yml
+          run_id: ${{ github.event.workflow_run.id }}
+          name: website
+          path: website/build/yew
+
+      - if: github.event.workflow_run.event == 'pull_request'
+        name: Apply pull request environment
+        run: |
+          echo "PR_NUMBER=${{ github.event.workflow_run.pull_requests[0].number }}" >> $GITHUB_ENV
+          echo "PR_BRANCH=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_ENV
+          echo "COMMIT_SHA=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
+
+      - if: github.event.workflow_run.event == 'push'
+        name: Apply push environment
+        run: |
+          echo "CHANNEL_ID=live" >> $GITHUB_ENV
+
+      # need to checkout to get "firebase.json", ".firebaserc"
+      - uses: actions/checkout@v2
 
       - name: Deploy to Firebase
-        uses: siku2/action-hosting-deploy@v0
+        uses: siku2/action-hosting-deploy@v1
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
-          channelId: live
           targets: website
+          channelId: "${{ env.CHANNEL_ID }}"
+          prNumber: "${{ env.PR_NUMBER }}"
+          prBranchName: "${{ env.PR_BRANCH }}"
+          commitSHA: "${{ env.COMMIT_SHA }}"
