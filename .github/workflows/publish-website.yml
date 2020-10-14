@@ -33,6 +33,9 @@ jobs:
           name: website
           path: website/build/yew
 
+      # need to checkout to get "firebase.json", ".firebaserc"
+      - uses: actions/checkout@v2
+
       - name: Deploy to Firebase
         uses: siku2/action-hosting-deploy@v1
         with:
