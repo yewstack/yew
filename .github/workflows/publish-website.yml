@@ -36,12 +36,12 @@ jobs:
           path: website/build/yew
 
       - name: Deploy to Firebase
-        uses: siku2/action-hosting-deploy@v0
+        uses: siku2/action-hosting-deploy@v1
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
           targets: website
           channelId: "${{ env.CHANNEL_ID }}"
           prNumber: "${{ env.PR_NUMBER }}"
-          prBranch: "${{ env.PR_BRANCH }}"
+          prBranchName: "${{ env.PR_BRANCH }}"
           commitSHA: "${{ env.COMMIT_SHA }}"

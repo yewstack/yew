@@ -22,13 +22,9 @@ jobs:
       - if: github.event_name == 'pull_request'
         name: Environment for pull request
         run: |
-          pr_number="${{ github.event.number }}"
-          pr_branch="${{ github.event.pull_request.head.ref }}"
-          commit_sha="${{ github.event.pull_request.head.sha }}"
-
-          echo "PR_NUMBER=\"${pr_number}\"" >> $PUBLISH_ENV_FILE
-          echo "PR_BRANCH=\"${pr_branch}\"" >> $PUBLISH_ENV_FILE
-          echo "COMMIT_SHA=\"${commit_sha}\"" >> $PUBLISH_ENV_FILE
+          echo "PR_NUMBER=${{ github.event.number }}" >> $PUBLISH_ENV_FILE
+          echo "PR_BRANCH=${{ github.event.pull_request.head.ref }}" >> $PUBLISH_ENV_FILE
+          echo "COMMIT_SHA=${{ github.event.pull_request.head.sha }}" >> $PUBLISH_ENV_FILE
 
       - if: github.event_name == 'push'
         name: Environment for push
