@@ -6,4 +6,4 @@ edition = "2018"
 
 [dependencies]
 yew = { path = "../../yew" }
-js-sys = "0.3.45"
+js-sys = "0.3"
