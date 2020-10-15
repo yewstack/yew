@@ -5,7 +5,7 @@ on:
     paths:
       - "docs/**"
       - "website/**"
-      - "firebase.json"
+      # firebase.json has no effect here
   push:
     branches: [master]
     paths:
