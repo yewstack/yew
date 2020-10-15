@@ -3,38 +3,9 @@
     {
       "target": "website",
       "public": "website/build/yew",
-      "i18n": {
-        "root": "/docs/"
-      },
       "cleanUrls": true,
-      "trailingSlash": false,
       "redirects": [
-        {
-          "source": "/",
-          "destination": "/docs/en/intro",
-          "type": 301
-        },
-        {
-          "source": "/docs/",
-          "destination": "/docs/en/intro",
-          "type": 301
-        },
-        {
-          "source": "/docs/next/",
-          "destination": "/docs/en/next/intro",
-          "type": 301
-        },
-        {
-          "source": "/docs/:lang/",
-          "destination": "/docs/:lang/intro",
-          "type": 301
-        },
-        {
-          "source": "/docs/:lang/next/",
-          "destination": "/docs/:lang/next/intro",
-          "type": 301
-        },
-        // for compatibility
+        // LEGACY (since 2020-08-15)
         {
           "source": "/docs/v/zh_cn",
           "destination": "/docs/zh-CN/intro/",
