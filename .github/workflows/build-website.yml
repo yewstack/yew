@@ -3,13 +3,15 @@ on:
   pull_request:
     branches: [master]
     paths:
-      - "docs/**/*"
-      - "website/**/*"
+      - "docs/**"
+      - "website/**"
+      - "firebase.json"
   push:
     branches: [master]
     paths:
-      - "docs/**/*"
-      - "website/**/*"
+      - "docs/**"
+      - "website/**"
+      - "firebase.json"
 
 jobs:
   build:
