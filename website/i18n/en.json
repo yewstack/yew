@@ -81,7 +81,7 @@
       "getting-started/starter-templates": {
         "title": "Starter templates"
       },
-      "intro": {
+      "index": {
         "title": "Introduction"
       },
       "more/css": {
@@ -178,7 +178,7 @@
       "version-0.17.3/getting-started/version-0.17.3-starter-templates": {
         "title": "Starter templates"
       },
-      "version-0.17.3/version-0.17.3-intro": {
+      "version-0.17.3/version-0.17.3-index": {
         "title": "Introduction"
       },
       "version-0.17.3/more/version-0.17.3-css": {

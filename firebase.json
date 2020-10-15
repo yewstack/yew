@@ -5,15 +5,26 @@
       "public": "website/build/yew",
       "cleanUrls": true,
       "redirects": [
-        // LEGACY (since 2020-08-15)
+        // `/intro` -> `/` (2020-10-15)
+        {
+          "source": "/docs/:lang/intro",
+          "destination": "/docs/:lang/",
+          "type": 301
+        },
+        {
+          "source": "/docs/:lang/next/intro",
+          "destination": "/docs/:lang/next/",
+          "type": 301
+        },
+        // legacy (2020-08-15)
         {
           "source": "/docs/v/zh_cn",
-          "destination": "/docs/zh-CN/intro/",
+          "destination": "/docs/zh-CN/",
           "type": 301
         },
         {
           "source": "/docs/v/zh_tw",
-          "destination": "/docs/zh-TW/intro/",
+          "destination": "/docs/zh-TW/",
           "type": 301
         },
         {

@@ -63,7 +63,7 @@ jobs:
           targets: website
           channelId: "${{ env.CHANNEL_ID }}"
           # link to the next version because that's what we care about
-          commentURLPath: "/docs/en/next/"
+          commentURLPath: "/docs/next/"
           # PR information
           prNumber: "${{ env.PR_NUMBER }}"
           prBranchName: "${{ env.PR_BRANCH }}"
