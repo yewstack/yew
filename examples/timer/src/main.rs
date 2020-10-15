@@ -22,6 +22,13 @@ pub struct Model {
     _standalone: IntervalTask,
 }
 
+impl Model {
+    fn get_current_time(&self) -> String {
+        let date = js_sys::Date::new_0();
+        String::from(date.to_locale_time_string("en-US"))
+    }
+}
+
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
@@ -49,7 +56,7 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::StartClock => {
-                self.time = String::from(js_sys::Date::new_0().to_time_string());
+                self.time = self.get_current_time();
                 let handle = IntervalService::spawn(
                     Duration::from_secs(1),
                     self.link.callback(|_| Msg::Tock),
@@ -107,7 +114,7 @@ impl Component for Model {
                 true
             }
             Msg::Tock => {
-                self.time = String::from(js_sys::Date::new_0().to_time_string());
+                self.time = self.get_current_time();
                 true
             }
         }
@@ -121,20 +128,24 @@ impl Component for Model {
         let has_job = self.job.is_some();
         html! {
             <>
-                <button disabled=has_job onclick=self.link.callback(|_| Msg::StartTimeout)>
-                    { "Start Timeout" }
-                </button>
-                <button disabled=has_job onclick=self.link.callback(|_| Msg::StartInterval)>
-                    { "Start Interval" }
-                </button>
-                <button disabled=!has_job onclick=self.link.callback(|_| Msg::Cancel)>
-                    { "Cancel!" }
-                </button>
-                <div class="has-text-centered is-size-1 has-text-weight-bold">
-                { &self.time }
+                <div id="buttons">
+                    <button disabled=has_job onclick=self.link.callback(|_| Msg::StartTimeout)>
+                        { "Start Timeout" }
+                    </button>
+                    <button disabled=has_job onclick=self.link.callback(|_| Msg::StartInterval)>
+                        { "Start Interval" }
+                    </button>
+                    <button disabled=!has_job onclick=self.link.callback(|_| Msg::Cancel)>
+                        { "Cancel!" }
+                    </button>
                 </div>
-                <div>
-                    { for self.messages.iter().map(|message| html! { <p>{ message }</p> }) }
+                <div id="wrapper">
+                    <div id="time">
+                    { &self.time }
+                    </div>
+                    <div id="messages">
+                        { for self.messages.iter().map(|message| html! { <p>{ message }</p> }) }
+                    </div>
                 </div>
             </>
         }
