@@ -4,26 +4,24 @@ use yew::services::{ConsoleService, Task, TimeoutService};
 use yew::{html, Callback, Component, ComponentLink, Html, ShouldRender};
 
 pub enum Msg {
-    StartClock,
     StartTimeout,
     StartInterval,
     Cancel,
     Done,
     Tick,
-    Tock,
+    UpdateTime,
 }
 
 pub struct Model {
     link: ComponentLink<Self>,
     job: Option<Box<dyn Task>>,
-    clock_job: Option<Box<dyn Task>>,
     time: String,
     messages: Vec<&'static str>,
-    _standalone: IntervalTask,
+    _standalone: (IntervalTask, IntervalTask),
 }
 
 impl Model {
-    fn get_current_time(&self) -> String {
+    fn get_current_time() -> String {
         let date = js_sys::Date::new_0();
         String::from(date.to_locale_time_string("en-US"))
     }
@@ -34,8 +32,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        link.send_message(Msg::StartClock);
-        let handle = IntervalService::spawn(
+        let standalone_handle = IntervalService::spawn(
             Duration::from_secs(10),
             // This callback doesn't send any message to a scope
             Callback::from(|_| {
@@ -43,28 +40,20 @@ impl Component for Model {
             }),
         );
 
+        let clock_handle =
+            IntervalService::spawn(Duration::from_secs(1), link.callback(|_| Msg::UpdateTime));
+
         Self {
             link,
             job: None,
-            clock_job: None,
-            time: "".to_string(),
+            time: Model::get_current_time(),
             messages: Vec::new(),
-            _standalone: handle,
+            _standalone: (standalone_handle, clock_handle),
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::StartClock => {
-                self.time = self.get_current_time();
-                let handle = IntervalService::spawn(
-                    Duration::from_secs(1),
-                    self.link.callback(|_| Msg::Tock),
-                );
-                self.clock_job = Some(Box::new(handle));
-
-                true
-            }
             Msg::StartTimeout => {
                 let handle = TimeoutService::spawn(
                     Duration::from_secs(3),
@@ -113,8 +102,8 @@ impl Component for Model {
                 ConsoleService::count_named("Tick");
                 true
             }
-            Msg::Tock => {
-                self.time = self.get_current_time();
+            Msg::UpdateTime => {
+                self.time = Model::get_current_time();
                 true
             }
         }
@@ -141,7 +130,7 @@ impl Component for Model {
                 </div>
                 <div id="wrapper">
                     <div id="time">
-                    { &self.time }
+                        { &self.time }
                     </div>
                     <div id="messages">
                         { for self.messages.iter().map(|message| html! { <p>{ message }</p> }) }
