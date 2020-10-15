@@ -3,22 +3,26 @@
     {
       "target": "website",
       "public": "website/build/yew",
+      "i18n": {
+        "root": "/"
+      },
       "redirects": [
         {
           "source": "/",
-          "destination": "/docs/en/intro/",
+          "destination": "/docs/",
           "type": 301
         },
         {
-          "source": "/docs",
-          "destination": "/docs/en/intro/",
+          "source": "/docs/",
+          "destination": "/docs/en/",
           "type": 301
         },
         {
-          "regex": "/(docs/)?(?P<lang>en|ja|zh-TW|zh-CN)",
+          "source": "/docs/:lang/",
           "destination": "/docs/:lang/intro/",
           "type": 301
         },
+        // deprecated
         {
           "source": "/docs/v/zh_cn",
           "destination": "/docs/zh-CN/intro/",
