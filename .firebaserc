@@ -1,15 +1,15 @@
 {
   "projects": {
-    "default": "yew-rs"
+    "default": "siku2-yew"
   },
   "targets": {
-    "yew-rs": {
+    "siku2-yew": {
       "hosting": {
         "website": [
-          "yew-rs"
+          "siku2-yew"
         ],
         "examples": [
-          "yew-rs-examples"
+          "siku2-yewexamples"
         ]
       }
     }
