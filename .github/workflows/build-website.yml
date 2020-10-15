@@ -14,6 +14,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      PR_INFO_FILE: ".PR_INFO"
     steps:
       - uses: actions/checkout@v2
       - name: Setup node
@@ -32,4 +34,17 @@ jobs:
         with:
           name: website
           path: website/build/yew
+          retention-days: 1
+
+      - if: github.event_name == 'pull_request'
+        name: Build pr info
+        run: |
+          echo "${{ github.event.number }}" >> $PR_INFO_FILE
+
+      - if: github.event_name == 'pull_request'
+        name: Upload pr info
+        uses: actions/upload-artifact@v2
+        with:
+          name: pr-info
+          path: "${{ env.PR_INFO_FILE }}"
           retention-days: 1
