@@ -14,6 +14,10 @@ The `html!` macro allows you to write HTML and SVG code declaratively. It is sim
 2. An empty `html! {}` invocation is valid and will not render anything
 3. Literals must always be quoted and wrapped in braces: `html! { "Hello, World" }`
 
+:::note
+The `html!` macro can reach the default recursion limit of the compiler. If you encounter compilation errors, add an attribute like `#![recursion_limit="1024"]` in the crate root to overcome the problem.
+:::
+
 ## Tag Structure
 
 Tags are based on HTML tags. Components, Elements, and Lists are all based on this tag syntax.
@@ -55,7 +59,7 @@ html! {
 
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-:::note
+:::tip
 For convenience, elements which _usually_ require a closing tag are **allowed** to self-close. For example, writing `html! { <div class="placeholder" /> }` is valid.
 :::
 
@@ -121,5 +125,5 @@ Currently, there are two such special props: `ref` and `key`.
 :::important
 The documentation for keys is yet to be written. See [#1263](https://github.com/yewstack/yew/issues/1263).
 
-For now, use keys when you have a list where the order of elements changes. This includes inserting or removing elements from the middle and the beginning.
+For now, use keys when you have a list where the order of elements changes. This includes inserting or removing elements from anywhere but the end of the list.
 :::
