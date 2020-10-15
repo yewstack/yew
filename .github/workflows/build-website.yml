@@ -41,7 +41,7 @@ jobs:
       - if: github.event_name == 'pull_request'
         name: Build pr info
         run: |
-          echo "${{ github.event.number }}" >> $PR_INFO_FILE
+          echo "${{ github.event.number }}" > $PR_INFO_FILE
 
       - if: github.event_name == 'pull_request'
         name: Upload pr info
