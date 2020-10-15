@@ -1,6 +1,6 @@
 # Table of contents
 
-* [はじめに](intro.md)
+* [はじめに](index.md)
 
 ## 始める
 
