@@ -53,7 +53,7 @@ impl Parse for ElementProps {
         })?;
 
         // Multiple listener attributes are allowed, but no others
-        props.error_if_duplicates()?;
+        props.check_no_duplicates()?;
 
         let booleans =
             props.drain_filter(|prop| BOOLEAN_SET.contains(prop.label.to_string().as_str()));
@@ -69,11 +69,11 @@ impl Parse for ElementProps {
         })?;
 
         let classes = props
-            .pop_unique_nonoptional("class")?
+            .pop_nonoptional("class")?
             .map(|prop| ClassesForm::from_expr(prop.value));
         let value = props.pop("value");
         let kind = props.pop("type");
-        let checked = props.pop_unique_nonoptional("checked")?;
+        let checked = props.pop_nonoptional("checked")?;
 
         let SpecialProps { node_ref, key } = props.special;
 

@@ -141,6 +141,12 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
 107 |     html! { <Child></Child><Child></Child> };
     |                            ^^^^^^^^^^^^^^^
 
+error: cannot specify the `children` prop when the component already has children
+   --> $DIR/html-component-fail.rs:126:25
+    |
+126 |         <ChildContainer children=children>
+    |                         ^^^^^^^^
+
 error: this closing tag has no corresponding opening tag
    --> $DIR/html-component-fail.rs:131:30
     |
@@ -357,12 +363,3 @@ error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::conv
     |
     = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
     = note: required by `std::convert::Into::into`
-
-error[E0599]: no method named `children` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_build>` in the current scope
-   --> $DIR/html-component-fail.rs:126:10
-    |
-31  | #[derive(Clone, Properties)]
-    |                 ---------- method `children` not found for this
-...
-126 |         <ChildContainer children=children>
-    |          ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_build>`

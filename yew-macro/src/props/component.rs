@@ -192,7 +192,7 @@ impl Parse for ComponentProps {
             input.parse().map(Self::With)
         } else {
             let props = input.parse::<Props>()?;
-            props.error_if_duplicates()?;
+            props.check_no_duplicates()?;
             props.check_all(|prop| {
                 if prop.question_mark.is_some() {
                     Err(syn::Error::new_spanned(

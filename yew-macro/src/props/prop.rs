@@ -86,6 +86,11 @@ impl PropList {
             .ok()
     }
 
+    /// Get the first prop with the given key.
+    pub fn get_by_label(&self, key: &str) -> Option<&Prop> {
+        self.position(key).and_then(|i| self.0.get(i))
+    }
+
     /// Pop the first prop with the given key.
     pub fn pop(&mut self, key: &str) -> Option<Prop> {
         self.position(key).map(|i| self.0.remove(i))
@@ -105,8 +110,8 @@ impl PropList {
 
         Ok(prop)
     }
-
-    pub fn pop_unique_nonoptional(&mut self, key: &str) -> syn::Result<Option<Prop>> {
+    /// Pop the prop with the given key and error if it uses the optional attribute syntax.
+    pub fn pop_nonoptional(&mut self, key: &str) -> syn::Result<Option<Prop>> {
         match self.pop_unique(key) {
             Ok(Some(prop)) => {
                 prop.ensure_not_optional()?;
@@ -148,7 +153,7 @@ impl PropList {
     }
 
     /// Return an error for all duplicate props.
-    pub fn error_if_duplicates(&self) -> syn::Result<()> {
+    pub fn check_no_duplicates(&self) -> syn::Result<()> {
         crate::join_errors(self.iter_duplicates().map(|prop| {
             syn::Error::new_spanned(
                 &prop.label,
@@ -190,8 +195,8 @@ impl SpecialProps {
     const KEY_LABEL: &'static str = "key";
 
     fn pop_from(props: &mut PropList) -> syn::Result<Self> {
-        let node_ref = props.pop_unique_nonoptional(Self::REF_LABEL)?;
-        let key = props.pop_unique_nonoptional(Self::KEY_LABEL)?;
+        let node_ref = props.pop_nonoptional(Self::REF_LABEL)?;
+        let key = props.pop_nonoptional(Self::KEY_LABEL)?;
         Ok(Self { node_ref, key })
     }
 
