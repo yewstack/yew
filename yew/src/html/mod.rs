@@ -319,7 +319,7 @@ where
     }
 
     /// Render children components and return `Iterator`
-    pub fn iter<'a>(&'a self) -> impl Iterator<Item = T> + 'a {
+    pub fn iter(&self) -> impl Iterator<Item = T> + '_ {
         // clone each child lazily.
         // This way `self.iter().next()` only has to clone a single node.
         self.children.iter().cloned()
