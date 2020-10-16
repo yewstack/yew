@@ -31,7 +31,7 @@ impl Prop {
                 label
             );
             // include `?=` in the span
-            Err(syn::Error::new_spanned(quote! {#label#equals}, msg))
+            Err(syn::Error::new_spanned(quote! { #label#equals }, msg))
         } else {
             Ok(())
         }
@@ -44,7 +44,7 @@ impl Parse for Prop {
         let equals = input.parse::<Token![=]>().map_err(|_| {
             syn::Error::new_spanned(
                 &label,
-                format!("`{}` doesn't have a value. Set the value to `true` or `false` for boolean attributes", label),
+                format!("`{}` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)", label),
             )
         })?;
         if input.is_empty() {
@@ -86,18 +86,19 @@ impl PropList {
             .ok()
     }
 
+    /// Pop the first prop with the given key.
     pub fn pop(&mut self, key: &str) -> Option<Prop> {
         self.position(key).map(|i| self.0.remove(i))
     }
 
     /// Pop the prop with the given key and error if there are multiple ones.
-    fn pop_unique(&mut self, key: &str) -> syn::Result<Option<Prop>> {
+    pub fn pop_unique(&mut self, key: &str) -> syn::Result<Option<Prop>> {
         let prop = self.pop(key);
         if prop.is_some() {
             if let Some(other_prop) = self.pop(key) {
                 return Err(syn::Error::new_spanned(
                     other_prop.label,
-                    format!("`{}` can only be set once", key),
+                    format!("`{}` can only be specified once", key),
                 ));
             }
         }
@@ -108,21 +109,15 @@ impl PropList {
     pub fn pop_unique_nonoptional(&mut self, key: &str) -> syn::Result<Option<Prop>> {
         match self.pop_unique(key) {
             Ok(Some(prop)) => {
-                if prop.question_mark.is_some() {
-                    let label = &prop.label;
-                    Err(syn::Error::new_spanned(
-                        label,
-                        format!("`{}` can not be optional", label),
-                    ))
-                } else {
-                    Ok(Some(prop))
-                }
+                prop.ensure_not_optional()?;
+                Ok(Some(prop))
             }
             res => res,
         }
     }
 
-    pub fn into_inner(self) -> Vec<Prop> {
+    /// Turn the props into a vector of `Prop`.
+    pub fn into_vec(self) -> Vec<Prop> {
         self.0
     }
 
@@ -139,6 +134,7 @@ impl PropList {
         })
     }
 
+    /// Remove and return all props for which `filter` returns `true`.
     pub fn drain_filter(&mut self, filter: impl FnMut(&Prop) -> bool) -> PropList {
         let (drained, others) = self.0.drain(..).partition(filter);
         self.0 = others;
@@ -151,6 +147,7 @@ impl PropList {
         crate::join_errors(self.0.iter().map(f).filter_map(Result::err))
     }
 
+    /// Return an error for all duplicate props.
     pub fn error_if_duplicates(&self) -> syn::Result<()> {
         crate::join_errors(self.iter_duplicates().map(|prop| {
             syn::Error::new_spanned(
@@ -166,7 +163,6 @@ impl PropList {
 impl Parse for PropList {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut props: Vec<Prop> = Vec::new();
-
         while !input.is_empty() {
             props.push(input.parse()?);
         }

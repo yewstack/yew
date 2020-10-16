@@ -13,7 +13,6 @@ mod html_iterable;
 mod html_list;
 mod html_node;
 mod tag;
-use tag::TagTokens;
 
 use html_block::HtmlBlock;
 use html_component::HtmlComponent;
@@ -22,6 +21,7 @@ use html_element::HtmlTag;
 use html_iterable::HtmlIterable;
 use html_list::HtmlList;
 use html_node::HtmlNode;
+use tag::TagTokens;
 
 pub enum HtmlType {
     Block,

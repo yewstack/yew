@@ -91,7 +91,7 @@ impl ToTokens for HtmlComponent {
         };
         let build_props = props.build_properties_tokens(&props_ty, children_renderer);
 
-        let special_props = props.get_special();
+        let special_props = props.special();
         let node_ref = if let Some(node_ref) = &special_props.node_ref {
             let value = &node_ref.value;
             quote_spanned! {value.span()=> #value }

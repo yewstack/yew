@@ -24,7 +24,6 @@ impl WithProps {
             if input.peek(kw::with) && !input.peek2(Token![=]) {
                 return true;
             }
-
             input.parse::<TokenTree>().ok();
         }
 
@@ -33,7 +32,7 @@ impl WithProps {
 
     pub fn to_spanned(&self) -> impl ToTokens {
         let Self { with, expr, .. } = self;
-        quote! {#with#expr}
+        quote! { #with#expr }
     }
 }
 impl Parse for WithProps {
@@ -64,8 +63,8 @@ impl Parse for WithProps {
                     slot.replace(prop);
                 } else {
                     return Err(syn::Error::new_spanned(
-                prop.label,
-                "Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)"
+                        prop.label,
+                        "Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)",
                     ));
                 }
             }
@@ -88,7 +87,7 @@ pub enum ComponentProps {
 }
 impl ComponentProps {
     /// Get the special props supported by both variants
-    pub fn get_special(&self) -> &SpecialProps {
+    pub fn special(&self) -> &SpecialProps {
         match self {
             Self::List(props) => &props.special,
             Self::With(props) => &props.special,
@@ -134,7 +133,6 @@ impl ComponentProps {
         children_renderer: Option<CR>,
     ) -> TokenStream {
         let validate_props = self.prop_validation_tokens(&props_ty, children_renderer.is_some());
-
         let build_props = match self {
             Self::List(props) => {
                 let set_props = props.iter().map(|Prop { label, value, .. }| {

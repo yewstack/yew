@@ -100,7 +100,7 @@ error: `class` can only be specified once but is given here again
 23 |     html! { <div class="first" class="second" /> };
    |                                ^^^^^
 
-error: `ref` can only be set once
+error: `ref` can only be specified once
   --> $DIR/html-tag-fail.rs:38:20
    |
 38 |     html! { <input ref=() ref=() /> };
@@ -142,23 +142,23 @@ error: boolean attributes don't support being used as an optional attribute (hin
 50 |     html! { <input disabled?=Some(true) /> };
    |                    ^^^^^^^^
 
-error: `checked` can not be optional
+error: `checked` does not support being used as an optional attribute
   --> $DIR/html-tag-fail.rs:58:20
    |
 58 |     html! { <input checked?=Some(false) /> };
-   |                    ^^^^^^^
+   |                    ^^^^^^^^^
 
-error: `class` can not be optional
+error: `class` does not support being used as an optional attribute
   --> $DIR/html-tag-fail.rs:59:20
    |
 59 |     html! { <input class?=() /> };
-   |                    ^^^^^
+   |                    ^^^^^^^
 
-error: `ref` can not be optional
+error: `ref` does not support being used as an optional attribute
   --> $DIR/html-tag-fail.rs:60:20
    |
 60 |     html! { <input ref?=() /> };
-   |                    ^^^
+   |                    ^^^^^
 
 error[E0308]: mismatched types
   --> $DIR/html-tag-fail.rs:25:28

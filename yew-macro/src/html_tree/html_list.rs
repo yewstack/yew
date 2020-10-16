@@ -84,12 +84,12 @@ impl ToTokens for HtmlList {
 }
 
 struct HtmlListOpen {
-    tokens: TagTokens,
+    tag: TagTokens,
     props: HtmlListProps,
 }
 impl HtmlListOpen {
     fn to_spanned(&self) -> impl ToTokens {
-        self.tokens.to_spanned()
+        self.tag.to_spanned()
     }
 }
 
@@ -110,9 +110,9 @@ impl PeekValue<()> for HtmlListOpen {
 
 impl Parse for HtmlListOpen {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        TagTokens::parse_start_content(input, |input, tokens| {
+        TagTokens::parse_start_content(input, |input, tag| {
             let props = input.parse()?;
-            Ok(Self { tokens, props })
+            Ok(Self { tag, props })
         })
     }
 }
@@ -165,11 +165,11 @@ impl PeekValue<()> for HtmlListClose {
 }
 impl Parse for HtmlListClose {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        TagTokens::parse_end_content(input, |input, tokens| {
+        TagTokens::parse_end_content(input, |input, tag| {
             if !input.is_empty() {
                 Err(input.error("unexpected content in list close"))
             } else {
-                Ok(Self(tokens))
+                Ok(Self(tag))
             }
         })
     }

@@ -4,13 +4,13 @@ error: `with props` cannot be used in the `props!` macro
 9 |     yew::props!(Props with ());
   |                       ^^^^^^^
 
-error: special props cannot be set in the `props!` macro
+error: special props cannot be specified in the `props!` macro
   --> $DIR/props-fail.rs:10:23
    |
 10 |     yew::props!(Props ref=NodeRef::default() key="key");
    |                       ^^^
 
-error: special props cannot be set in the `props!` macro
+error: special props cannot be specified in the `props!` macro
   --> $DIR/props-fail.rs:10:46
    |
 10 |     yew::props!(Props ref=NodeRef::default() key="key");

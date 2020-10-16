@@ -5,11 +5,13 @@ description: Parent to child communication
 
 Properties enable child and parent components to communicate with each other.
 Every component has an associated properties type which describes what is passed down from the parent.
-In theory this can be any type that implements the `Properties` trait, but in practice this is most often a struct.
+In theory this can be any type that implements the `Properties` trait, but in practice there's no
+reason for it to be anything but a struct where each field represents a property.
 
 ## Derive macro
 
-Instead of implementing the `Properties` trait yourself, you should use `#[derive(Properties)]` to automatically generate the implementation instead.
+Instead of implementing the `Properties` trait yourself, you should use `#[derive(Properties)]` to
+automatically generate the implementation instead.
 Types for which you derive `Properties` must also implement `Clone`.
 
 ### Field attributes
@@ -18,7 +20,7 @@ When deriving `Properties`, all fields are required by default.
 The following attributes allow you to give your props initial values which will be used unless they're set to another value.
 
 :::tip
-Attributes aren't visible in Rustdoc documentation.
+Attributes aren't visible in Rustdoc generated documentation.
 The docstrings of your properties should mention whether a prop is optional and if it has a special default value.
 :::
 
@@ -36,12 +38,13 @@ For example, to default a boolean prop to `true`, use the attribute `#[prop_or(t
 Call `function` to initialize the prop value. `function` should have the signature `FnMut() -> T` where `T` is the field type.
 
 :::warning
-The function is called even if the prop is explicitly set. If your function is performance intensive, consider using `Option` instead.
+The function is called even if the prop is explicitly set. If your function is performance intensive, consider using `Option` where `None` values are initialized in the `create` method.
 :::
 
 ## PartialEq
 
-It is likely to make sense to derive `PartialEq` on your props if you can do this. Using `PartialEq` makes it much easier to avoid unnecessary rendering \(this is explained in the **Optimizations & Best Practices** section\).
+It makes sense to derive `PartialEq` on your props if you can do so.
+Using `PartialEq` makes it much easier to avoid unnecessary rendering \(this is explained in the **Optimizations & Best Practices** section\).
 
 ## Memory/speed overhead of using Properties
 

@@ -16,7 +16,7 @@ error: expected expression following this `with`
 80 |     html! { <Child with /> };
    |                    ^^^^
 
-error: `props` doesn't have a value. Set the value to `true` or `false` for boolean attributes
+error: `props` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/html-component-fail.rs:81:20
    |
 81 |     html! { <Child props /> };
@@ -117,7 +117,7 @@ error: `int` can only be specified once but is given here again
 97 |     html! { <Child int=1 int=2 int=3 /> };
    |                                ^^^
 
-error: `ref` can only be set once
+error: `ref` can only be specified once
    --> $DIR/html-component-fail.rs:102:26
     |
 102 |     html! { <Child int=1 ref=() ref=() /> };

@@ -27,7 +27,8 @@ fn error_replace_span(err: syn::Error, from: Span, to: impl ToTokens) -> syn::Er
 }
 
 /// Helper type for parsing HTML tags.
-/// The struct only stores the associated tokens similar to how delimiters work in `syn`.
+/// The struct only stores the associated tokens, not the content of the tag.
+/// This is meant to mirror the design of delimiters in `syn`.
 pub struct TagTokens {
     pub lt: Token![<],
     pub div: Option<Token![/]>,
@@ -141,7 +142,7 @@ impl TagTokens {
     }
 
     /// Generate tokens which can be used in `syn::Error::new_spanned` to span the entire tag.
-    /// This is to work around limitation of being unable to manually join spans which exists in stable Rust.
+    /// This is to work around the limitation of being unable to manually join spans on stable.
     pub fn to_spanned(&self) -> impl ToTokens {
         let Self { lt, gt, .. } = self;
         quote! {#lt#gt}

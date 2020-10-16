@@ -61,7 +61,7 @@ impl Parse for ElementProps {
             if prop.question_mark.is_some() {
                 Err(syn::Error::new_spanned(
                     &prop.label,
-                        "boolean attributes don't support being used as an optional attribute (hint: a value of false results in the attribute not being set)"
+                    "boolean attributes don't support being used as an optional attribute (hint: a value of false results in the attribute not being set)"
                 ))
             } else {
                 Ok(())
@@ -78,11 +78,11 @@ impl Parse for ElementProps {
         let SpecialProps { node_ref, key } = props.special;
 
         Ok(Self {
-            attributes: props.prop_list.into_inner(),
+            attributes: props.prop_list.into_vec(),
             classes,
-            listeners: listeners.into_inner(),
+            listeners: listeners.into_vec(),
             checked,
-            booleans: booleans.into_inner(),
+            booleans: booleans.into_vec(),
             value,
             kind,
             node_ref,

@@ -18,7 +18,7 @@ fn pop_last_punctuated<T, P>(punctuated: &mut Punctuated<T, P>) -> Option<T> {
     value
 }
 
-/// Check if the given type path looks like an associated type.
+/// Check if the given type path looks like an associated `Properties` type.
 fn is_associated_properties(ty: &TypePath) -> bool {
     let mut segments_it = ty.path.segments.iter();
     if let Some(seg) = segments_it.next_back() {
@@ -49,7 +49,7 @@ impl PropsMacroInput {
                     let label = &prop.label;
                     Err(syn::Error::new_spanned(
                         label,
-                        "special props cannot be set in the `props!` macro",
+                        "special props cannot be specified in the `props!` macro",
                     ))
                 })?;
             }
