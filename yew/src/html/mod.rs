@@ -459,6 +459,11 @@ impl NodeRef {
 
     /// Reuse an existing `NodeRef`
     pub(crate) fn reuse(&self, node_ref: Self) {
+        // Avoid circular references
+        if self == &node_ref {
+            return;
+        }
+
         let mut this = self.0.borrow_mut();
         let existing = node_ref.0.borrow();
         this.node = existing.node.clone();
