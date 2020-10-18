@@ -1,5 +1,13 @@
 # Changelog
 
+## ✨ **0.17.4** *(2020-10-18)*
+
+#### Changelog
+
+- #### 🛠 Fixes
+
+  - Fixed a "call stack exceeded" panic that occurred if a `Component` was updated many times [[@jstarry], [#1624](https://github.com/yewstack/yew/pull/1624)]
+
 ## ✨ **0.17.3** *(2020-08-16)*
 
 #### Changelog
