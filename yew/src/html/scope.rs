@@ -23,8 +23,8 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     Message(COMP::Message),
     /// Wraps batch of messages for a component.
     MessageBatch(Vec<COMP::Message>),
-    /// Wraps properties and next sibling for a component.
-    Properties(COMP::Properties, NodeRef),
+    /// Wraps properties, node ref, and next sibling for a component.
+    Properties(COMP::Properties, NodeRef, NodeRef),
 }
 
 /// Untyped scope used for accessing parent scope
@@ -391,7 +391,9 @@ where
                 ComponentUpdate::MessageBatch(messages) => messages
                     .into_iter()
                     .fold(false, |acc, msg| state.component.update(msg) || acc),
-                ComponentUpdate::Properties(props, next_sibling) => {
+                ComponentUpdate::Properties(props, node_ref, next_sibling) => {
+                    // When components are updated, a new node ref could have been passed in
+                    state.node_ref = node_ref;
                     // When components are updated, their siblings were likely also updated
                     state.next_sibling = next_sibling;
                     state.component.change(props)

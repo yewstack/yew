@@ -122,7 +122,7 @@ trait Mountable {
         parent: Element,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped>;
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
+    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
 }
 
 struct PropsWrapper<COMP: Component> {
@@ -162,9 +162,13 @@ impl<COMP: Component> Mountable for PropsWrapper<COMP> {
         Box::new(scope)
     }
 
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
+    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef) {
         let scope: Scope<COMP> = scope.to_any().downcast();
-        scope.update(ComponentUpdate::Properties(self.props, next_sibling));
+        scope.update(ComponentUpdate::Properties(
+            self.props,
+            node_ref,
+            next_sibling,
+        ));
     }
 }
 
@@ -186,9 +190,9 @@ impl VDiff for VComp {
             if let VNode::VComp(ref mut vcomp) = &mut ancestor {
                 // If the ancestor is the same type, reuse it and update its properties
                 if self.type_id == vcomp.type_id && self.key == vcomp.key {
-                    self.node_ref.link(vcomp.node_ref.clone());
+                    self.node_ref.reuse(vcomp.node_ref.clone());
                     let scope = vcomp.scope.take().expect("VComp is not mounted");
-                    mountable.reuse(scope.borrow(), next_sibling);
+                    mountable.reuse(self.node_ref.clone(), scope.borrow(), next_sibling);
                     self.scope = Some(scope);
                     return vcomp.node_ref.clone();
                 }
@@ -311,11 +315,32 @@ mod tests {
         }
 
         fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
+            true
         }
 
         fn view(&self) -> Html {
             unimplemented!();
+        }
+    }
+
+    #[test]
+    fn update_loop() {
+        let document = crate::utils::document();
+        let parent_scope: AnyScope = crate::html::Scope::<Comp>::new(None).into();
+        let parent_element = document.create_element("div").unwrap();
+
+        let mut ancestor = html! { <Comp></Comp> };
+        ancestor.apply(&parent_scope, &parent_element, NodeRef::default(), None);
+
+        for _ in 0..10000 {
+            let mut node = html! { <Comp></Comp> };
+            node.apply(
+                &parent_scope,
+                &parent_element,
+                NodeRef::default(),
+                Some(ancestor),
+            );
+            ancestor = node;
         }
     }
 
