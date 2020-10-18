@@ -10,24 +10,24 @@ use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{Block, Ident, Token};
 
-pub struct HtmlTag {
-    tag_name: TagName,
-    attributes: ElementProps,
+pub struct HtmlElement {
+    name: TagName,
+    props: ElementProps,
     children: HtmlChildrenTree,
 }
 
-impl PeekValue<()> for HtmlTag {
+impl PeekValue<()> for HtmlElement {
     fn peek(cursor: Cursor) -> Option<()> {
-        HtmlTagOpen::peek(cursor)
-            .or_else(|| HtmlTagClose::peek(cursor))
+        HtmlElementOpen::peek(cursor)
+            .or_else(|| HtmlElementClose::peek(cursor))
             .map(|_| ())
     }
 }
 
-impl Parse for HtmlTag {
+impl Parse for HtmlElement {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        if HtmlTagClose::peek(input.cursor()).is_some() {
-            return match input.parse::<HtmlTagClose>() {
+        if HtmlElementClose::peek(input.cursor()).is_some() {
+            return match input.parse::<HtmlElementClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
                     close.to_spanned(),
                     "this closing tag has no corresponding opening tag",
@@ -36,17 +36,17 @@ impl Parse for HtmlTag {
             };
         }
 
-        let open = input.parse::<HtmlTagOpen>()?;
+        let open = input.parse::<HtmlElementOpen>()?;
         // Return early if it's a self-closing tag
         if open.is_self_closing() {
-            return Ok(HtmlTag {
-                tag_name: open.tag_name,
-                attributes: open.attributes,
+            return Ok(HtmlElement {
+                name: open.name,
+                props: open.props,
                 children: HtmlChildrenTree::new(),
             });
         }
 
-        if let TagName::Lit(name) = &open.tag_name {
+        if let TagName::Lit(name) = &open.name {
             // Void elements should not have children.
             // See https://html.spec.whatwg.org/multipage/syntax.html#void-elements
             //
@@ -60,7 +60,7 @@ impl Parse for HtmlTag {
             }
         }
 
-        let open_key = open.tag_name.get_key();
+        let open_key = open.name.get_key();
         let mut children = HtmlChildrenTree::new();
         loop {
             if input.is_empty() {
@@ -69,7 +69,7 @@ impl Parse for HtmlTag {
                     "this opening tag has no corresponding closing tag",
                 ));
             }
-            if let Some(close_key) = HtmlTagClose::peek(input.cursor()) {
+            if let Some(close_key) = HtmlElementClose::peek(input.cursor()) {
                 if open_key == close_key {
                     break;
                 }
@@ -78,26 +78,26 @@ impl Parse for HtmlTag {
             children.parse_child(input)?;
         }
 
-        input.parse::<HtmlTagClose>()?;
+        input.parse::<HtmlElementClose>()?;
 
-        Ok(HtmlTag {
-            tag_name: open.tag_name,
-            attributes: open.attributes,
+        Ok(Self {
+            name: open.name,
+            props: open.props,
             children,
         })
     }
 }
 
-impl ToTokens for HtmlTag {
+impl ToTokens for HtmlElement {
     #[allow(clippy::cognitive_complexity)]
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self {
-            tag_name,
-            attributes,
+            name,
+            props,
             children,
         } = self;
 
-        let name = match &tag_name {
+        let name_sr = match &name {
             TagName::Lit(name) => name.stringify(),
             TagName::Expr(name) => {
                 let expr = &name.expr;
@@ -126,9 +126,9 @@ impl ToTokens for HtmlTag {
             node_ref,
             key,
             listeners,
-        } = &attributes;
+        } = &props;
 
-        let vtag = Ident::new("__yew_vtag", tag_name.span());
+        let vtag = Ident::new("__yew_vtag", name.span());
 
         // attributes with special treatment
 
@@ -330,7 +330,7 @@ impl ToTokens for HtmlTag {
 
         // These are the runtime-checks exclusive to dynamic tags.
         // For literal tags this is already done at compile-time.
-        let dyn_tag_runtime_checks = if matches!(&tag_name, TagName::Expr(_)) {
+        let dyn_tag_runtime_checks = if matches!(&name, TagName::Expr(_)) {
             // when Span::source_file Span::start get stabilised or yew-macro introduces a nightly feature flag
             // we should expand the panic message to contain the exact location of the dynamic tag.
             let sr = stringify::stringify_at_runtime(quote! { __yew_v });
@@ -362,10 +362,10 @@ impl ToTokens for HtmlTag {
             None
         };
 
-        tokens.extend(quote_spanned! {tag_name.span()=>
+        tokens.extend(quote_spanned! {name.span()=>
             {
                 #[allow(unused_braces)]
-                let mut #vtag = ::yew::virtual_dom::VTag::new(#name);
+                let mut #vtag = ::yew::virtual_dom::VTag::new(#name_sr);
 
                 #set_node_ref
                 #set_key
@@ -486,12 +486,12 @@ impl ToTokens for TagName {
     }
 }
 
-struct HtmlTagOpen {
+struct HtmlElementOpen {
     tag: TagTokens,
-    tag_name: TagName,
-    attributes: ElementProps,
+    name: TagName,
+    props: ElementProps,
 }
-impl HtmlTagOpen {
+impl HtmlElementOpen {
     fn is_self_closing(&self) -> bool {
         self.tag.div.is_some()
     }
@@ -501,17 +501,17 @@ impl HtmlTagOpen {
     }
 }
 
-impl PeekValue<TagKey> for HtmlTagOpen {
+impl PeekValue<TagKey> for HtmlElementOpen {
     fn peek(cursor: Cursor) -> Option<TagKey> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
 
         let (tag_key, cursor) = TagName::peek(cursor)?;
         if let TagKey::Lit(name) = &tag_key {
-            // Avoid parsing `<key=[...]>` as an HtmlTag. It needs to be parsed as an HtmlList.
+            // Avoid parsing `<key=[...]>` as an element. It needs to be parsed as an `HtmlList`.
             if name.to_string() == "key" {
                 let (punct, _) = cursor.punct()?;
-                // ... unless it isn't followed by a '='. `<key></key>` is a valid HtmlTag!
+                // ... unless it isn't followed by a '='. `<key></key>` is a valid element!
                 (punct.as_char() != '=').as_option()?;
             } else {
                 non_capitalized_ascii(&name.to_string()).as_option()?;
@@ -522,21 +522,21 @@ impl PeekValue<TagKey> for HtmlTagOpen {
     }
 }
 
-impl Parse for HtmlTagOpen {
+impl Parse for HtmlElementOpen {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         TagTokens::parse_start_content(input, |input, tag| {
-            let tag_name = input.parse::<TagName>()?;
-            let mut attributes = input.parse::<ElementProps>()?;
+            let name = input.parse::<TagName>()?;
+            let mut props = input.parse::<ElementProps>()?;
 
-            match &tag_name {
+            match &name {
                 TagName::Lit(name) => {
                     // Don't treat value as special for non input / textarea fields
                     // For dynamic tags this is done at runtime!
                     match name.to_ascii_lowercase_string().as_str() {
                         "input" | "textarea" => {}
                         _ => {
-                            if let Some(attr) = attributes.value.take() {
-                                attributes.attributes.push(attr);
+                            if let Some(attr) = props.value.take() {
+                                props.attributes.push(attr);
                             }
                         }
                     }
@@ -544,33 +544,29 @@ impl Parse for HtmlTagOpen {
                 TagName::Expr(name) => {
                     if name.expr.is_none() {
                         return Err(syn::Error::new_spanned(
-                            tag_name,
+                            name,
                             "this dynamic tag is missing an expression block defining its value",
                         ));
                     }
                 }
             }
 
-            Ok(Self {
-                tag,
-                tag_name,
-                attributes,
-            })
+            Ok(Self { tag, name, props })
         })
     }
 }
 
-struct HtmlTagClose {
+struct HtmlElementClose {
     tag: TagTokens,
-    _tag_name: TagName,
+    _name: TagName,
 }
-impl HtmlTagClose {
+impl HtmlElementClose {
     fn to_spanned(&self) -> impl ToTokens {
         self.tag.to_spanned()
     }
 }
 
-impl PeekValue<TagKey> for HtmlTagClose {
+impl PeekValue<TagKey> for HtmlElementClose {
     fn peek(cursor: Cursor) -> Option<TagKey> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
@@ -590,12 +586,12 @@ impl PeekValue<TagKey> for HtmlTagClose {
     }
 }
 
-impl Parse for HtmlTagClose {
+impl Parse for HtmlElementClose {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         TagTokens::parse_end_content(input, |input, tag| {
-            let tag_name = input.parse()?;
+            let name = input.parse()?;
 
-            if let TagName::Expr(name) = &tag_name {
+            if let TagName::Expr(name) = &name {
                 if let Some(expr) = &name.expr {
                     return Err(syn::Error::new_spanned(
                     expr,
@@ -604,10 +600,7 @@ impl Parse for HtmlTagClose {
                 }
             }
 
-            Ok(Self {
-                tag,
-                _tag_name: tag_name,
-            })
+            Ok(Self { tag, _name: name })
         })
     }
 }
