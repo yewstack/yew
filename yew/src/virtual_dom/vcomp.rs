@@ -122,7 +122,7 @@ trait Mountable {
         parent: Element,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped>;
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
+    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
 }
 
 struct PropsWrapper<COMP: Component> {
@@ -162,9 +162,13 @@ impl<COMP: Component> Mountable for PropsWrapper<COMP> {
         Box::new(scope)
     }
 
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
+    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef) {
         let scope: Scope<COMP> = scope.to_any().downcast();
-        scope.update(ComponentUpdate::Properties(self.props, next_sibling));
+        scope.update(ComponentUpdate::Properties(
+            self.props,
+            node_ref,
+            next_sibling,
+        ));
     }
 }
 
@@ -188,7 +192,7 @@ impl VDiff for VComp {
                 if self.type_id == vcomp.type_id && self.key == vcomp.key {
                     self.node_ref.reuse(vcomp.node_ref.clone());
                     let scope = vcomp.scope.take().expect("VComp is not mounted");
-                    mountable.reuse(scope.borrow(), next_sibling);
+                    mountable.reuse(self.node_ref.clone(), scope.borrow(), next_sibling);
                     self.scope = Some(scope);
                     return vcomp.node_ref.clone();
                 }
