@@ -456,6 +456,14 @@ impl NodeRef {
         this.node = None;
         this.link = Some(node_ref);
     }
+
+    /// Reuse an existing `NodeRef`
+    pub(crate) fn reuse(&self, node_ref: Self) {
+        let mut this = self.0.borrow_mut();
+        let existing = node_ref.0.borrow();
+        this.node = existing.node.clone();
+        this.link = existing.link.clone();
+    }
 }
 
 /// Trait for building properties for a component
