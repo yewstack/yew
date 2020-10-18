@@ -84,13 +84,9 @@ impl Component for ListProps {
 Of course, sometimes you might need to restrict the children to a few different
 components. In these cases, you have to get a little more hands-on with yew.
 
-<!--
-I'm not sure where else to put this note, so feel free to make suggestions
-in the review.
--->
-:::note
 The `derive_more` crate is used here for better ergonomics. If you don't want
 to use it, replace `ItemPropVariants` with this:
+
 ```rust
 #[derive(Clone)]
 pub enum ItemPropVariants {
@@ -110,7 +106,6 @@ impl From<MySecondComponentProps> for ItemPropVariants {
 	}
 }
 ```
-:::
 
 ```rust
 use yew::prelude::*;
