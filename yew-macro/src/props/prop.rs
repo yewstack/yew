@@ -63,10 +63,22 @@ impl Parse for Prop {
     }
 }
 
-/// List of props.
-pub struct PropList(Vec<Prop>);
-impl PropList {
+/// List of props sorted in alphabetical order*.
+///
+/// \*The "children" prop always comes last to match the behaviour of the `Properties` derive macro.
+///
+/// The list may contain multiple props with the same label.
+/// Use `check_no_duplicates` to ensure that there are no duplicates.
+pub struct SortedPropList(Vec<Prop>);
+impl SortedPropList {
     const CHILDREN_LABEL: &'static str = "children";
+
+    /// Create a new `SortedPropList` from a vector of props.
+    /// The given `props` doesn't need to be sorted.
+    fn new(mut props: Vec<Prop>) -> Self {
+        props.sort_by(|a, b| Self::cmp_label(&a.label.to_string(), &b.label.to_string()));
+        Self(props)
+    }
 
     fn cmp_label(a: &str, b: &str) -> Ordering {
         if a == b {
@@ -100,9 +112,9 @@ impl PropList {
     pub fn pop_unique(&mut self, key: &str) -> syn::Result<Option<Prop>> {
         let prop = self.pop(key);
         if prop.is_some() {
-            if let Some(other_prop) = self.pop(key) {
+            if let Some(other_prop) = self.get_by_label(key) {
                 return Err(syn::Error::new_spanned(
-                    other_prop.label,
+                    &other_prop.label,
                     format!("`{}` can only be specified once", key),
                 ));
             }
@@ -140,10 +152,10 @@ impl PropList {
     }
 
     /// Remove and return all props for which `filter` returns `true`.
-    pub fn drain_filter(&mut self, filter: impl FnMut(&Prop) -> bool) -> PropList {
+    pub fn drain_filter(&mut self, filter: impl FnMut(&Prop) -> bool) -> Self {
         let (drained, others) = self.0.drain(..).partition(filter);
         self.0 = others;
-        PropList(drained)
+        Self(drained)
     }
 
     /// Run the given function for all props and aggregate the errors.
@@ -165,19 +177,17 @@ impl PropList {
         }))
     }
 }
-impl Parse for PropList {
+impl Parse for SortedPropList {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut props: Vec<Prop> = Vec::new();
         while !input.is_empty() {
             props.push(input.parse()?);
         }
 
-        props.sort_by(|a, b| Self::cmp_label(&a.label.to_string(), &b.label.to_string()));
-
-        Ok(Self(props))
+        Ok(Self::new(props))
     }
 }
-impl Deref for PropList {
+impl Deref for SortedPropList {
     type Target = [Prop];
 
     fn deref(&self) -> &Self::Target {
@@ -194,7 +204,7 @@ impl SpecialProps {
     const REF_LABEL: &'static str = "ref";
     const KEY_LABEL: &'static str = "key";
 
-    fn pop_from(props: &mut PropList) -> syn::Result<Self> {
+    fn pop_from(props: &mut SortedPropList) -> syn::Result<Self> {
         let node_ref = props.pop_nonoptional(Self::REF_LABEL)?;
         let key = props.pop_nonoptional(Self::KEY_LABEL)?;
         Ok(Self { node_ref, key })
@@ -221,18 +231,18 @@ impl SpecialProps {
 
 pub struct Props {
     pub special: SpecialProps,
-    pub prop_list: PropList,
+    pub prop_list: SortedPropList,
 }
 impl Parse for Props {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut prop_list = input.parse::<PropList>()?;
+        let mut prop_list = input.parse::<SortedPropList>()?;
         let special = SpecialProps::pop_from(&mut prop_list)?;
 
         Ok(Self { special, prop_list })
     }
 }
 impl Deref for Props {
-    type Target = PropList;
+    type Target = SortedPropList;
 
     fn deref(&self) -> &Self::Target {
         &self.prop_list
