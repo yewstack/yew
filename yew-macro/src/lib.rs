@@ -58,12 +58,10 @@
 #![recursion_limit = "128"]
 
 mod derive_props;
-mod derive_variants;
 mod html_tree;
 mod stringify;
 
 use derive_props::DerivePropsInput;
-use derive_variants::DeriveVariantsInput;
 use html_tree::{HtmlRoot, HtmlRootVNode};
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
@@ -91,12 +89,6 @@ fn non_capitalized_ascii(string: &str) -> bool {
 #[proc_macro_derive(Properties, attributes(prop_or, prop_or_else, prop_or_default))]
 pub fn derive_props(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DerivePropsInput);
-    TokenStream::from(input.into_token_stream())
-}
-
-#[proc_macro_derive(Variants)]
-pub fn derive_variants(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveVariantsInput);
     TokenStream::from(input.into_token_stream())
 }
 
