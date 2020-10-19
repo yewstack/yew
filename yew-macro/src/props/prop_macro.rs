@@ -1,11 +1,14 @@
-use super::ComponentProps;
+use super::{ComponentProps, Prop, PropPunct, Props, SortedPropList};
+use crate::html_tree::HtmlDashedName;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
+use std::convert::TryInto;
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
     spanned::Spanned,
-    TypePath,
+    token::Brace,
+    Expr, Token, TypePath,
 };
 
 /// Pop from `Punctuated` without leaving it in a state where it has trailing punctuation.
@@ -37,33 +40,52 @@ fn is_associated_properties(ty: &TypePath) -> bool {
     false
 }
 
-pub struct PropsMacroInput {
-    ty: TypePath,
-    props: ComponentProps,
+struct PropValue {
+    label: HtmlDashedName,
+    colon_token: Option<Token![:]>,
+    value: Expr,
 }
-impl PropsMacroInput {
-    pub fn from_component_props(ty: TypePath, props: ComponentProps) -> syn::Result<Self> {
-        match &props {
-            ComponentProps::List(props) => {
-                props.special.check_all(|prop| {
-                    let label = &prop.label;
-                    Err(syn::Error::new_spanned(
-                        label,
-                        "special props cannot be specified in the `props!` macro",
-                    ))
-                })?;
-            }
-            ComponentProps::With(with_props) => {
-                return Err(syn::Error::new_spanned(
-                    with_props.to_spanned(),
-                    "`with props` cannot be used in the `props!` macro",
-                ))
-            }
+impl Parse for PropValue {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let label = input.parse()?;
+        let (colon_token, value) = if input.peek(Token![:]) {
+            let colon_token = input.parse()?;
+            let value = input.parse()?;
+            (Some(colon_token), value)
+        } else {
+            let value = syn::parse_quote!(#label);
+            (None, value)
         };
-        Ok(Self { ty, props })
+        Ok(Self {
+            label,
+            colon_token,
+            value,
+        })
     }
 }
-impl Parse for PropsMacroInput {
+
+impl Into<Prop> for PropValue {
+    fn into(self) -> Prop {
+        let Self {
+            label,
+            colon_token,
+            value,
+        } = self;
+        Prop {
+            label,
+            question_mark: None,
+            punct: colon_token.map(PropPunct::Colon),
+            value,
+        }
+    }
+}
+
+struct PropsExpr {
+    ty: TypePath,
+    _brace_token: Brace,
+    fields: Punctuated<PropValue, Token![,]>,
+}
+impl Parse for PropsExpr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut ty: TypePath = input.parse()?;
 
@@ -76,7 +98,37 @@ impl Parse for PropsMacroInput {
             })?;
         }
 
-        Self::from_component_props(ty, input.parse()?)
+        let content;
+        let brace_token = syn::braced!(content in input);
+        let fields = content.parse_terminated(PropValue::parse)?;
+        Ok(Self {
+            ty,
+            _brace_token: brace_token,
+            fields,
+        })
+    }
+}
+
+pub struct PropsMacroInput {
+    ty: TypePath,
+    props: ComponentProps,
+}
+impl Parse for PropsMacroInput {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let PropsExpr { ty, fields, .. } = input.parse()?;
+        let prop_list = SortedPropList::new(fields.into_iter().map(Into::into).collect());
+        let props: Props = prop_list.try_into()?;
+        props.special.check_all(|prop| {
+            let label = &prop.label;
+            Err(syn::Error::new_spanned(
+                label,
+                "special props cannot be specified in the `props!` macro",
+            ))
+        })?;
+        Ok(Self {
+            ty,
+            props: props.try_into()?,
+        })
     }
 }
 impl ToTokens for PropsMacroInput {

@@ -35,9 +35,9 @@ impl NotAComponent for MyNotAComponent {
 }
 
 fn compile_fail() {
-    yew::props!(Vec<_>);
-    yew::props!(MyComp);
-    yew::props!(MyNotAComponent::Properties);
+    yew::props!(Vec<_> {});
+    yew::props!(MyComp {});
+    yew::props!(MyNotAComponent::Properties {});
 }
 
 fn main() {}

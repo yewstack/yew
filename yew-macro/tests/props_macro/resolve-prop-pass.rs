@@ -28,11 +28,11 @@ impl Component for MyComp {
 }
 
 fn compile_pass() {
-    yew::props!(Props n=1);
-    yew::props!(self::Props n=1);
-    yew::props!(MyComp::Properties n=2);
-    yew::props!(self::MyComp::Properties n=3);
-    yew::props!(<MyComp as Component>::Properties n=5);
+    yew::props!(Props { n: 1 });
+    yew::props!(self::Props { n: 1 });
+    yew::props!(MyComp::Properties { n: 2 });
+    yew::props!(self::MyComp::Properties { n: 3 });
+    yew::props!(<MyComp as Component>::Properties { n: 5 });
 }
 
 fn main() {}

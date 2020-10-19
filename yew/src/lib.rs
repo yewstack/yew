@@ -200,10 +200,9 @@ pub use yew_macro::html_nested;
 ///
 /// It's already possible to create properties like normal Rust structs
 /// but if there are lots of optional props the end result is often needlessly verbose.
-/// This macro allows you to build properties with the same syntax used in the `html!` macro.
+/// This macro allows you to build properties the same way the [`html!`] macro does.
 ///
-/// The `with props` syntax isn't supported (`yew::props!(Props with my_props)` is the same as `my_props`).
-/// The macro also doesn't support special props like `ref` and `key`, they need to be set in the [`html!`] macro.
+/// The macro doesn't support special props like `ref` and `key`, they need to be set in the [`html!`] macro.
 ///
 /// You can read more about `Properties` in the [Yew Docs].
 ///
@@ -233,10 +232,10 @@ pub use yew_macro::html_nested;
 ///
 /// # fn foo() -> Html {
 /// // You can build props directly ...
-/// let props = yew::props!(Props name=Cow::from("Minka"));
+/// let props = yew::props!(Props { name: Cow::from("Minka") });
 /// # assert_eq!(props.name, "Minka");
 /// // ... or build the associated properties of a component
-/// let props = yew::props!(Model::Properties id=2 name=Cow::from("Lemmy"));
+/// let props = yew::props!(Model::Properties { id: 2, name: Cow::from("Lemmy") });
 /// # assert_eq!(props.id, 2);
 ///
 /// // Use the `with props` syntax to create a component with the props.

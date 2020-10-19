@@ -97,19 +97,21 @@ pub struct LinkProps {
 
 ## Props macro
 
-The `yew::props!` macro allows you to build properties outside of the `html!` macro but with the same syntax.
+The `yew::props!` macro allows you to build properties the same way the `html!` macro does it.
 
-The macro invocation starts with the props type.
-You can either point to the props directly (`path::to::Props`) or use the associated properties of a component (`MyComp::Properties`).
+The macro uses the same syntax as a struct expression except that you can't use attributes or a base expression (`Foo { ..base }`).
+The type path can either point to the props directly (`path::to::Props`) or the associated properties of a component (`MyComp::Properties`).
 
 ```rust
-let props = yew::props!(LinkProps
-    href="/"
-    text=Rc::from("imagine this text being really long")
-    size=64
-);
+let props = yew::props!(LinkProps {
+    href: "/",
+    text: Rc::from("imagine this text being really long"),
+    size: 64,
+});
 
 // build the associated properties of a component
-let props =
-    yew::props!(Model::Properties href="/" text=Rc::from("my bestselling novel"));
+let props = yew::props!(Model::Properties {
+    href: "/book",
+    text: Rc::from("my bestselling novel"),
+});
 ```

@@ -1,7 +1,9 @@
 use crate::html_tree::HtmlDashedName;
-use quote::quote;
+use proc_macro2::TokenStream;
+use quote::{quote, ToTokens};
 use std::{
     cmp::Ordering,
+    convert::TryFrom,
     ops::{Deref, DerefMut},
 };
 use syn::{
@@ -9,10 +11,24 @@ use syn::{
     Expr, Token,
 };
 
+pub enum PropPunct {
+    Eq(Token![=]),
+    Colon(Token![:]),
+}
+impl ToTokens for PropPunct {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        match self {
+            Self::Eq(p) => p.to_tokens(tokens),
+            Self::Colon(p) => p.to_tokens(tokens),
+        }
+    }
+}
+
 pub struct Prop {
     pub label: HtmlDashedName,
     pub question_mark: Option<Token![?]>,
-    pub equals: Token![=],
+    /// Punctuation between `label` and `value`.
+    pub punct: Option<PropPunct>,
     pub value: Expr,
 }
 impl Prop {
@@ -22,7 +38,7 @@ impl Prop {
         let Self {
             label,
             question_mark,
-            equals,
+            punct,
             ..
         } = self;
         if question_mark.is_some() {
@@ -31,7 +47,10 @@ impl Prop {
                 label
             );
             // include `?=` in the span
-            Err(syn::Error::new_spanned(quote! { #label#equals }, msg))
+            Err(syn::Error::new_spanned(
+                quote! { #label#question_mark#punct },
+                msg,
+            ))
         } else {
             Ok(())
         }
@@ -57,7 +76,7 @@ impl Parse for Prop {
         Ok(Self {
             label,
             question_mark,
-            equals,
+            punct: Some(PropPunct::Eq(equals)),
             value,
         })
     }
@@ -75,7 +94,7 @@ impl SortedPropList {
 
     /// Create a new `SortedPropList` from a vector of props.
     /// The given `props` doesn't need to be sorted.
-    fn new(mut props: Vec<Prop>) -> Self {
+    pub fn new(mut props: Vec<Prop>) -> Self {
         props.sort_by(|a, b| Self::cmp_label(&a.label.to_string(), &b.label.to_string()));
         Self(props)
     }
@@ -235,10 +254,7 @@ pub struct Props {
 }
 impl Parse for Props {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut prop_list = input.parse::<SortedPropList>()?;
-        let special = SpecialProps::pop_from(&mut prop_list)?;
-
-        Ok(Self { special, prop_list })
+        Self::try_from(input.parse::<SortedPropList>()?)
     }
 }
 impl Deref for Props {
@@ -251,5 +267,14 @@ impl Deref for Props {
 impl DerefMut for Props {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.prop_list
+    }
+}
+
+impl TryFrom<SortedPropList> for Props {
+    type Error = syn::Error;
+
+    fn try_from(mut prop_list: SortedPropList) -> Result<Self, Self::Error> {
+        let special = SpecialProps::pop_from(&mut prop_list)?;
+        Ok(Self { special, prop_list })
     }
 }

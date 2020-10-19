@@ -1,6 +1,7 @@
 use super::{Prop, Props, SpecialProps};
 use proc_macro2::{Ident, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
+use std::convert::TryFrom;
 use syn::{
     parse::{Parse, ParseStream},
     spanned::Spanned,
@@ -28,11 +29,6 @@ impl WithProps {
         }
 
         false
-    }
-
-    pub fn to_spanned(&self) -> impl ToTokens {
-        let Self { with, expr, .. } = self;
-        quote! { #with#expr }
     }
 }
 impl Parse for WithProps {
@@ -191,25 +187,32 @@ impl Parse for ComponentProps {
         if WithProps::contains_with_expr(&input.fork()) {
             input.parse().map(Self::With)
         } else {
-            let props = input.parse::<Props>()?;
-            props.check_no_duplicates()?;
-            props.check_all(|prop| {
-                if prop.question_mark.is_some() {
-                    Err(syn::Error::new_spanned(
-                        &prop.label,
-                        "optional attributes are only supported on elements. Components can use `Option<T>` properties to accomplish the same thing.",
-                    ))
-                } else if !prop.label.extended.is_empty() {
-                    Err(syn::Error::new_spanned(
-                        &prop.label,
-                        "expected a valid Rust identifier",
-                    ))
-                } else {
-                    Ok(())
-                }
-            })?;
-
-            Ok(Self::List(props))
+            input.parse::<Props>().and_then(Self::try_from)
         }
+    }
+}
+
+impl TryFrom<Props> for ComponentProps {
+    type Error = syn::Error;
+
+    fn try_from(props: Props) -> Result<Self, Self::Error> {
+        props.check_no_duplicates()?;
+        props.check_all(|prop| {
+            if prop.question_mark.is_some() {
+                Err(syn::Error::new_spanned(
+                    &prop.label,
+                    "optional attributes are only supported on elements. Components can use `Option<T>` properties to accomplish the same thing.",
+                ))
+            } else if !prop.label.extended.is_empty() {
+                Err(syn::Error::new_spanned(
+                    &prop.label,
+                    "expected a valid Rust identifier",
+                ))
+            } else {
+                Ok(())
+            }
+        })?;
+
+        Ok(Self::List(props))
     }
 }

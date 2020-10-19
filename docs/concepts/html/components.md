@@ -38,7 +38,10 @@ html! {
 When using the `with props` syntax, the children passed in the `html!` macro overwrite the ones already present in the props.
 
 ```rust
-let props = yew::props!(Container::Properties id="container-2" children=Children::default());
+let props = yew::props!(Container::Properties {
+    id: "container-2",
+    children: Children::default(),
+});
 html! {
     <Container with props>
         // props.children will be overwritten with this
@@ -136,7 +139,7 @@ struct Props {
 }
 
 // transformers allow you to write this:
-yew::props!(Props unique_id=5 text="literals are fun");
+yew::props!(Props { unique_id: 5, text: "literals are fun" });
 // instead of:
-yew::props!(Props unique_id=Some(5) text="literals are fun".to_owned());
+yew::props!(Props { unique_id: Some(5), text: "literals are fun".to_owned() });
 ```
