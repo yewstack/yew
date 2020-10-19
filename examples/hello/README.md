@@ -1,13 +1,9 @@
-# Counter Example
+# Hello Example
 
-[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fcounter)](https://examples.yew.rs/counter)
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fhello)](https://examples.yew.rs/hello)
 
-A counter which can be increased or decreased with the press of a button.
+A "Hello world!" example.
 
 ## Concepts
 
-Demonstrates the use of messages to update state.
-
-## Improvements
-
-- Improve the presentation of the example with CSS.
+Pass component as property.
