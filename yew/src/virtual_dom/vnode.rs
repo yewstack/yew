@@ -1,6 +1,6 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{Key, VChild, VComp, VDiff, VList, VTag, VText};
+use super::{Key, Transformer, VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{AnyScope, Component, NodeRef};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
@@ -215,6 +215,18 @@ impl PartialEq for VNode {
             (VNode::VComp(_), VNode::VComp(_)) => false,
             _ => false,
         }
+    }
+}
+
+impl Transformer<&str, VNode> for VComp {
+    fn transform(from: &str) -> VNode {
+        VNode::VText(VText::new(from.to_string()))
+    }
+}
+
+impl Transformer<String, VNode> for VComp {
+    fn transform(from: String) -> VNode {
+        VNode::VText(VText::new(from))
     }
 }
 

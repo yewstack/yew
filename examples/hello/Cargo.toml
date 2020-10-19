@@ -1,0 +1,9 @@
+[package]
+name = "hello"
+version = "0.1.0"
+authors = ["Yozhgoor <yozhgoor@outlook.com>"]
+edition = "2018"
+
+[dependencies]
+js-sys = "0.3"
+yew = { path = "../../yew" }

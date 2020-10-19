@@ -26,6 +26,7 @@ members = [
   "examples/file_upload",
   "examples/futures",
   "examples/game_of_life",
+  "examples/hello",
   "examples/inner_html",
   "examples/js_callback",
   "examples/keyed_list",
