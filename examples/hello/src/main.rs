@@ -34,6 +34,7 @@ impl Component for Model {
                 <input onchange=self.link.callback(|x| x) />
                 <Hello name=self.value.clone() />
                 <Hello name="world!" />
+                <Hello name=html!(<strong>{"WORLD"}</strong>) />
             </div>
         }
     }
