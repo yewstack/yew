@@ -1,10 +1,11 @@
 //! This module contains the implementation of a service for
 //! periodic sending messages to a loop.
 
-use super::{to_ms, Task};
+use super::Task;
 use crate::callback::Callback;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
+use std::convert::TryInto;
 use std::fmt;
 use std::time::Duration;
 cfg_if! {
@@ -38,11 +39,18 @@ pub struct IntervalService {}
 impl IntervalService {
     /// Sets interval which will call send a messages returned by a converter
     /// on every interval expiration.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `duration` in milliseconds exceeds `u32::MAX` (more than 50 days).
     pub fn spawn(duration: Duration, callback: Callback<()>) -> IntervalTask {
         let callback = move || {
             callback.emit(());
         };
-        let ms = to_ms(duration);
+        let ms: u32 = duration
+            .as_millis()
+            .try_into()
+            .expect("duration doesn't fit in u32");
         let handle = cfg_match! {
             feature = "std_web" => js! {
                 var callback = @{callback};
