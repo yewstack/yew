@@ -138,8 +138,15 @@ struct Props {
     text: String,
 }
 
+struct Model;
+impl Component for Model {
+    type Properties = Props;
+
+    // ...
+}
+
 // transformers allow you to write this:
-yew::props!(Props { unique_id: 5, text: "literals are fun" });
+html! { <Model unique_id=5 text="literals are fun" /> };
 // instead of:
-yew::props!(Props { unique_id: Some(5), text: "literals are fun".to_owned() });
+html! { <Model unique_id=Some(5) text="literals are fun".to_owned() /> };
 ```
