@@ -11,6 +11,11 @@ First, you'll need Rust. To install Rust and the `cargo` build tool, follow the 
 You also need to install the `wasm32-unknown-unknown` target to compile Rust to Wasm.
 If you're using rustup, you just need to run `rustup target add wasm32-unknown-unknown`.
 
+:::important
+The minimum supported Rust version (MSRV) for Yew is `1.45.0`. Older versions can cause unexpected issues accompanied by incomprehensible error messages.
+You can check your toolchain version using `rustup show` (under "active toolchain") or alternatively `rustc --version`. To update your toolchain, run `rustup update`.
+:::
+
 ## **Wasm Build Tools**
 
 Extra tooling is needed to facilitate the interop between WebAssembly and JavaScript. Additionally,
