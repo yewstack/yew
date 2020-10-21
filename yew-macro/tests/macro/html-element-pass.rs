@@ -12,7 +12,7 @@ fn compile_pass() {
         <div>
             <div data-key="abc"></div>
             <div ref=parent_ref class="parent">
-                <span class="child", value="anything",></span>
+                <span class="child" value="anything"></span>
                 <label for="first-name">{"First Name"}</label>
                 <input type="text" id="first-name" value="placeholder" />
                 <input type="checkbox" checked=true />
@@ -38,7 +38,7 @@ fn compile_pass() {
                 </defs>
             </svg>
             <img class=("avatar", "hidden") src="http://pic.com" />
-            <img class="avatar hidden", />
+            <img class="avatar hidden" />
             <button onclick=&onclick onclick=onclick />
             <a href="http://google.com" />
             <custom-tag-a>

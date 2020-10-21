@@ -1,33 +1,33 @@
-mod html_block;
-mod html_component;
-mod html_dashed_name;
-mod html_iterable;
-mod html_list;
-mod html_node;
-mod html_prop;
-mod html_tag;
-
 use crate::PeekValue;
-use html_block::HtmlBlock;
-use html_component::HtmlComponent;
-use html_dashed_name::HtmlDashedName;
-use html_iterable::HtmlIterable;
-use html_list::HtmlList;
-use html_node::HtmlNode;
-use html_prop::HtmlProp;
-use html_prop::HtmlPropSuffix;
-use html_tag::HtmlTag;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
 
+mod html_block;
+mod html_component;
+mod html_dashed_name;
+mod html_element;
+mod html_iterable;
+mod html_list;
+mod html_node;
+mod tag;
+
+use html_block::HtmlBlock;
+use html_component::HtmlComponent;
+pub use html_dashed_name::HtmlDashedName;
+use html_element::HtmlElement;
+use html_iterable::HtmlIterable;
+use html_list::HtmlList;
+use html_node::HtmlNode;
+use tag::TagTokens;
+
 pub enum HtmlType {
     Block,
     Component,
     List,
-    Tag,
+    Element,
     Empty,
 }
 
@@ -35,7 +35,7 @@ pub enum HtmlTree {
     Block(Box<HtmlBlock>),
     Component(Box<HtmlComponent>),
     List(Box<HtmlList>),
-    Tag(Box<HtmlTag>),
+    Element(Box<HtmlElement>),
     Empty,
 }
 
@@ -46,7 +46,7 @@ impl Parse for HtmlTree {
         let html_tree = match html_type {
             HtmlType::Empty => HtmlTree::Empty,
             HtmlType::Component => HtmlTree::Component(Box::new(input.parse()?)),
-            HtmlType::Tag => HtmlTree::Tag(Box::new(input.parse()?)),
+            HtmlType::Element => HtmlTree::Element(Box::new(input.parse()?)),
             HtmlType::Block => HtmlTree::Block(Box::new(input.parse()?)),
             HtmlType::List => HtmlTree::List(Box::new(input.parse()?)),
         };
@@ -62,8 +62,8 @@ impl PeekValue<HtmlType> for HtmlTree {
             Some(HtmlType::List)
         } else if HtmlComponent::peek(cursor).is_some() {
             Some(HtmlType::Component)
-        } else if HtmlTag::peek(cursor).is_some() {
-            Some(HtmlType::Tag)
+        } else if HtmlElement::peek(cursor).is_some() {
+            Some(HtmlType::Element)
         } else if HtmlBlock::peek(cursor).is_some() {
             Some(HtmlType::Block)
         } else {
@@ -79,7 +79,7 @@ impl ToTokens for HtmlTree {
                 ::yew::virtual_dom::VNode::VList(::yew::virtual_dom::VList::new())
             }),
             HtmlTree::Component(comp) => comp.to_tokens(tokens),
-            HtmlTree::Tag(tag) => tag.to_tokens(tokens),
+            HtmlTree::Element(tag) => tag.to_tokens(tokens),
             HtmlTree::List(list) => list.to_tokens(tokens),
             HtmlTree::Block(block) => block.to_tokens(tokens),
         }
