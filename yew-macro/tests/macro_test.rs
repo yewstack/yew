@@ -21,8 +21,8 @@ fn tests() {
     t.pass("tests/macro/html-node-pass.rs");
     t.compile_fail("tests/macro/html-node-fail.rs");
 
-    t.pass("tests/macro/html-tag-pass.rs");
-    t.compile_fail("tests/macro/html-tag-fail.rs");
+    t.pass("tests/macro/html-element-pass.rs");
+    t.compile_fail("tests/macro/html-element-fail.rs");
 }
 
 #[test]
