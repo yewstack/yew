@@ -40,7 +40,7 @@ impl TimeoutService {
     ///
     /// # Panics
     ///
-    /// Panics if `duration` in milliseconds exceeds `u32::MAX` (more than 50 days).
+    /// Panics if `duration` in milliseconds exceeds `u32::MAX` (around 50 days).
     pub fn spawn(duration: Duration, callback: Callback<()>) -> TimeoutTask {
         let callback = move || {
             callback.emit(());
