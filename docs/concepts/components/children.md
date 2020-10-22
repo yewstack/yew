@@ -26,7 +26,7 @@ impl Component for List {
 	type Properties = ListProps;
 	// ...
 
-	fn veiw(&self) -> Html {
+	fn view(&self) -> Html {
 		html! {
 			<div class="list">
 				{ for self.props.children.iter() }
