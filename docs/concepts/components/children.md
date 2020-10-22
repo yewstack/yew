@@ -39,7 +39,7 @@ impl Component for List {
 ## Advanced usage
 
 There are some cases where you wouldn't want to use the `Children` type
-and instead use something else:
+and instead use an alternative method:
 
  - You want to restrict the types of components that can be used as children
    of this component.
