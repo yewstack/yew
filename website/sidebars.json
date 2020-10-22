@@ -25,7 +25,7 @@
           "concepts/components",
           "concepts/components/callbacks",
           "concepts/components/properties",
-					"concepts/components/children",
+          "concepts/components/children",
           "concepts/components/refs"
         ]
       },
