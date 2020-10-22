@@ -48,7 +48,7 @@ and instead use an alternative method:
 
 ### Typed children
 
-In cases where you only need to restrict the children to a single component,
+In cases where you want one type of component to be passed as children to your component,
 you can use `yew::html::ChildrenWithProps<T>`.
 
 ```rust
