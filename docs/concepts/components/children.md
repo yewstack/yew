@@ -174,6 +174,49 @@ impl Component for List {
 }
 ```
 
+Heres a run down of whats happening:
+
+This segment here defines the different types of properties that children
+components can have. Additionally, it derives `derive_more::From`, which
+implements `From<MyFirstComponentProps>` and `From<MySecondComponentProps>` for
+us!
+
+```rust
+#[derive(Clone, derive_more::From)]
+pub enum ItemPropVariants { /* ... */ }
+```
+
+Next, we use create this wrapper:
+
+```rust
+#[derive(Clone)]
+pub struct Item {
+	props: ItemPropVariants,
+}
+```
+
+Then, we implement `From<VChild<CHILD>>` for our wrapper, where `CHILD`:
+ 
+ - Implements `Component`
+
+ - Has a `Self::Properties` value that implements `Into<ItemPropVariants>`.
+
+This tells Yew how to handle converting a virtual DOM child into our wrapper!
+
+```rust
+impl<CHILD> From<VChild<CHILD>> for Item
+where
+	CHILD: Component,
+	CHILD::Properties: Into<ItemPropVariants>,
+{ /* ... */ }
+```
+
+Finally, we implement `Into<Html>` for our wrapper, allowing it to be rendered!
+
+```rust
+impl Into<Html> for Item { /* ... */ }
+```
+
 ### Sharing properties
 
 This use case is mostly helpful for library developers, as you may want to
