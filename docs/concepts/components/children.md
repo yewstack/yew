@@ -42,7 +42,7 @@ Here are two cases where you would want to break away from using `Children`
 and instead use something else:
 
  - You want to restrict the types of components that can be used as children
-   on this component.
+   of this component.
 
  - You want to share state between a component and its children.
 
@@ -211,4 +211,3 @@ impl Component for List {
 	}
 }
 ```
-
