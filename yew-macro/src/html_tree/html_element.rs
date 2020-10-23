@@ -186,27 +186,20 @@ impl ToTokens for HtmlElement {
         let set_attributes = if attributes.is_empty() {
             None
         } else {
-            let attrs = attributes.iter().map(
-                |Prop {
-                     label,
-                     question_mark,
-                     value,
-                     ..
-                 }| {
-                    let key = label.to_lit_str();
-                    if question_mark.is_some() {
-                        let sr = stringify::stringify_option_at_runtime(value);
-                        quote! {
-                            ::yew::virtual_dom::PositionalAttr(#key, #sr)
-                        }
-                    } else {
-                        let sr = value.stringify();
-                        quote! {
-                            ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
-                        }
+            let attrs = attributes.iter().map(|Prop { label, value, .. }| {
+                let key = label.to_lit_str();
+                if question_mark.is_some() {
+                    let sr = stringify::stringify_option_at_runtime(value);
+                    quote! {
+                        ::yew::virtual_dom::PositionalAttr(#key, #sr)
                     }
-                },
-            );
+                } else {
+                    let sr = value.stringify();
+                    quote! {
+                        ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
+                    }
+                }
+            });
             Some(quote! {
                 #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(::std::vec![#(#attrs),*]);
             })
@@ -278,34 +271,27 @@ impl ToTokens for HtmlElement {
         } else if listeners.iter().any(|attr| attr.question_mark.is_some()) {
             let add_listeners = listeners
                 .iter()
-                .map(
-                    |Prop {
-                         label,
-                         question_mark,
-                         value,
-                         ..
-                     }| {
-                        let name = &label.name;
+                .map(|Prop { label, value, .. }| {
+                    let name = &label.name;
 
-                        if question_mark.is_some() {
-                            let ident = Ident::new("__yew_listener", name.span());
-                            let listener = to_wrapped_listener(name, &ident);
-                            quote_spanned! {value.span()=>
-                                let #ident = ::std::option::Option::map(#value, |#ident| {
-                                    #listener
-                                });
-                                if let ::std::option::Option::Some(#ident) = #ident {
-                                    #vtag.add_listener(#ident);
-                                };
-                            }
-                        } else {
-                            let listener = to_wrapped_listener(name, value);
-                            quote_spanned! {value.span()=>
-                                #vtag.add_listener(#listener);
-                            }
+                    if question_mark.is_some() {
+                        let ident = Ident::new("__yew_listener", name.span());
+                        let listener = to_wrapped_listener(name, &ident);
+                        quote_spanned! {value.span()=>
+                            let #ident = ::std::option::Option::map(#value, |#ident| {
+                                #listener
+                            });
+                            if let ::std::option::Option::Some(#ident) = #ident {
+                                #vtag.add_listener(#ident);
+                            };
                         }
-                    },
-                )
+                    } else {
+                        let listener = to_wrapped_listener(name, value);
+                        quote_spanned! {value.span()=>
+                            #vtag.add_listener(#listener);
+                        }
+                    }
+                })
                 .collect();
 
             Some(add_listeners)

@@ -198,12 +198,7 @@ impl TryFrom<Props> for ComponentProps {
     fn try_from(props: Props) -> Result<Self, Self::Error> {
         props.check_no_duplicates()?;
         props.check_all(|prop| {
-            if prop.question_mark.is_some() {
-                Err(syn::Error::new_spanned(
-                    &prop.label,
-                    "optional attributes are only supported on elements. Components can use `Option<T>` properties to accomplish the same thing.",
-                ))
-            } else if !prop.label.extended.is_empty() {
+            if !prop.label.extended.is_empty() {
                 Err(syn::Error::new_spanned(
                     &prop.label,
                     "expected a valid Rust identifier",

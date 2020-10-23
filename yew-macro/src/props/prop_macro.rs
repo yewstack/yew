@@ -73,7 +73,6 @@ impl Into<Prop> for PropValue {
         } = self;
         Prop {
             label,
-            question_mark: None,
             punct: colon_token.map(PropPunct::Colon),
             value,
         }

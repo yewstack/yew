@@ -137,8 +137,6 @@ impl Parse for HtmlListProps {
                 ));
             }
 
-            prop.ensure_not_optional()?;
-
             Some(prop.value)
         };
 
