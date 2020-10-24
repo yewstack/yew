@@ -1,10 +1,11 @@
 //! This module contains Yew's implementation of a service to
 //! send messages when a timeout has elapsed.
 
-use super::{to_ms, Task};
+use super::Task;
 use crate::callback::Callback;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
+use std::convert::TryInto;
 use std::fmt;
 use std::time::Duration;
 cfg_if! {
@@ -36,11 +37,18 @@ pub struct TimeoutService {}
 
 impl TimeoutService {
     /// Sets timeout which sends messages from a `converter` after `duration`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `duration` in milliseconds exceeds `u32::MAX` (around 50 days).
     pub fn spawn(duration: Duration, callback: Callback<()>) -> TimeoutTask {
         let callback = move || {
             callback.emit(());
         };
-        let ms = to_ms(duration);
+        let ms: u32 = duration
+            .as_millis()
+            .try_into()
+            .expect("duration doesn't fit in u32");
         let handle = cfg_match! {
             feature = "std_web" => js! {
                 var callback = @{callback};
