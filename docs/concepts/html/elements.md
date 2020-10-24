@@ -3,6 +3,22 @@ title: Elements
 description: Both HTML and SVG elements are supported
 ---
 
+## Dynamic tag names
+
+When building a higher-order component you might find yourself in a situation where the element's tag name isn't static.
+For example, you might have a `Title` component which can render anything from `h1` to `h6` depending on a level prop.
+Instead of having to use a big match expression, Yew allows you to set the tag name dynamically
+using `@{name}` where `name` can be any expression that returns a string.
+
+```rust
+let level = 5;
+let text = "Hello World!".to_owned()
+
+html! {
+    <@{format!("h{}", level)} class="title">{ content }</@>
+}
+```
+
 ## Optional attributes for HTML elements
 
 Most HTML attributes can be marked as optional by placing a `?` in front of

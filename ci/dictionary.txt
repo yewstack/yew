@@ -38,6 +38,7 @@ Lifecycle
 linecap
 linejoin
 memoized
+MSRV
 natively
 onclick
 proc
@@ -47,6 +48,7 @@ rlib
 roadmap
 Roadmap
 rollup
+rustc
 rustup
 stdweb
 struct
@@ -56,6 +58,7 @@ textarea
 thead
 TODO
 toml
+toolchain
 Unselected
 usize
 VecDeque
