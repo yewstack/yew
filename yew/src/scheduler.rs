@@ -62,7 +62,9 @@ impl ComponentScheduler {
     }
 
     fn next_runnable(&self) -> Option<Box<dyn Runnable>> {
-        None.or_else(|| self.destroy.borrow_mut().pop_front())
+        self.destroy
+            .borrow_mut()
+            .pop_front()
             .or_else(|| self.create.borrow_mut().pop_front())
             .or_else(|| self.update.borrow_mut().pop_front())
             .or_else(|| self.render.borrow_mut().pop_front())
@@ -107,7 +109,8 @@ impl Scheduler {
     }
 
     fn next_runnable(&self) -> Option<Box<dyn Runnable>> {
-        None.or_else(|| self.component.next_runnable())
+        self.component
+            .next_runnable()
             .or_else(|| self.main.borrow_mut().pop_front())
     }
 

@@ -11,7 +11,6 @@ but also makes use of some more advanced [`ConsoleService`] features.
 
 ## Improvements
 
-- Use CSS to improve the presentation of the example
 - Apply the concept to something more fun than just a dry technical demonstration
 
 [`timeoutservice`]: https://docs.rs/yew/latest/yew/services/struct.TimeoutService.html

@@ -6,20 +6,20 @@ use yewtil::NeqAssign;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PersonInfo {
     pub id: usize,
-    pub name: Rc<String>,
-    pub address: Rc<String>,
+    pub name: Rc<str>,
+    pub address: Rc<str>,
     pub age: usize,
 }
 impl PersonInfo {
     pub fn new_random(id: usize) -> Self {
         let address = {
             let count = random::range_exclusive(3, 6);
-            Rc::new(random::words(count, 5, 12).join(" "))
+            Rc::from(random::words(count, 5, 12).join(" ").as_str())
         };
 
         Self {
             id,
-            name: Rc::new(random::words(2, 4, 15).join(" ")),
+            name: Rc::from(random::words(2, 4, 15).join(" ").as_str()),
             age: random::range_exclusive(7, 77),
             address,
         }

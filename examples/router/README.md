@@ -23,6 +23,14 @@ This example involves many different parts, here are just the Yew specific thing
 - Uses [`yew-router`] to render and switch between multiple pages.
 - Uses [`IntervalService`] for the [`ProgressDelay`](src/components/progress_delay.rs) component.
 
+The example automatically adapts to the `--public-url` value passed to Trunk.
+This allows it to be hosted on any path, not just at the root.
+For example, our demo is hosted at [/router](https://examples.yew.rs/router).
+
+This is achieved by adding `<base data-trunk-public-url />` to the [index.html](index.html) file.
+Trunk rewrites this tag to contain the value passed to `--public-url` which can then be retrieved at runtime.
+Take a look at [`PublicUrlSwitch`](src/switch.rs) for the implementation.
+
 ## Improvements
 
 - Use a special image component which shows a progress bar until the image is loaded.

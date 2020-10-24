@@ -30,7 +30,9 @@ jobs:
             cargo-${{ runner.os }}-
 
       - name: Install trunk
-        run: cargo install trunk wasm-bindgen-cli
+        run: |
+          brew install trunk
+          cargo install wasm-bindgen-cli
 
       - name: Build examples
         run: |
@@ -53,14 +55,14 @@ jobs:
               cd "$path"
               dist_dir="$output/$example"
 
-              export PUBLIC_URL="$PUBLIC_URL_PREFIX/$example"
-              trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL"
+              trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL_PREFIX/$example"
             )
           done
 
       - name: Deploy to Firebase
-        uses: w9jds/firebase-action@master
+        uses: siku2/action-hosting-deploy@v0
         with:
-          args: deploy --only hosting:examples
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
+          channelId: live
+          targets: examples

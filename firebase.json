@@ -3,30 +3,28 @@
     {
       "target": "website",
       "public": "website/build/yew",
+      "cleanUrls": true,
       "redirects": [
+        // `/intro` -> `/` (2020-10-15)
         {
-          "source": "/",
-          "destination": "/docs/en/intro/",
+          "source": "/docs/:lang/intro",
+          "destination": "/docs/:lang/",
           "type": 301
         },
         {
-          "source": "/docs",
-          "destination": "/docs/en/intro/",
+          "source": "/docs/:lang/next/intro",
+          "destination": "/docs/:lang/next/",
           "type": 301
         },
-        {
-          "regex": "/(docs/)?(?P<lang>en|ja|zh-TW|zh-CN)",
-          "destination": "/docs/:lang/intro/",
-          "type": 301
-        },
+        // legacy (2020-08-15)
         {
           "source": "/docs/v/zh_cn",
-          "destination": "/docs/zh-CN/intro/",
+          "destination": "/docs/zh-CN/",
           "type": 301
         },
         {
           "source": "/docs/v/zh_tw",
-          "destination": "/docs/zh-TW/intro/",
+          "destination": "/docs/zh-TW/",
           "type": 301
         },
         {
@@ -38,12 +36,6 @@
           "regex": "/docs/v/zh_tw/(.*)",
           "destination": "/docs/zh-TW/:1",
           "type": 301
-        }
-      ],
-      "rewrites": [
-        {
-          "source": "**",
-          "destination": "/index.html"
         }
       ]
     },
