@@ -358,7 +358,7 @@ pub mod prelude {
         Children, ChildrenWithProps, Component, ComponentLink, Html, NodeRef, Properties,
         ShouldRender,
     };
-    pub use crate::macros::{html, html_nested};
+    pub use crate::macros::{classes, html, html_nested};
     pub use crate::virtual_dom::Classes;
 
     /// Prelude module for creating worker.
