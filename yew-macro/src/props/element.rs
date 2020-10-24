@@ -4,8 +4,8 @@ use proc_macro2::Span;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use syn::parse::{Parse, ParseStream};
-use syn::{Expr, ExprTuple};
 use syn::spanned::Spanned;
+use syn::{Expr, ExprTuple};
 
 pub enum ClassesForm {
     Tuple(Span, Vec<Expr>),
@@ -15,7 +15,9 @@ impl ClassesForm {
     fn from_expr(expr: Expr) -> Self {
         let span = expr.span();
         match expr {
-            Expr::Tuple(ExprTuple { elems, .. }) => ClassesForm::Tuple(span, elems.into_iter().collect()),
+            Expr::Tuple(ExprTuple { elems, .. }) => {
+                ClassesForm::Tuple(span, elems.into_iter().collect())
+            }
             expr => ClassesForm::Single(span, Box::new(expr)),
         }
     }
