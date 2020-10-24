@@ -1,28 +1,97 @@
-use crate::html_tree::HtmlProp as TagAttribute;
-use crate::PeekValue;
+use super::{Prop, Props, SpecialProps};
 use lazy_static::lazy_static;
 use proc_macro2::Span;
 use std::collections::HashSet;
 use std::iter::FromIterator;
-use syn::parse::{Parse, ParseStream, Result as ParseResult};
-use syn::spanned::Spanned;
+use syn::parse::{Parse, ParseStream};
 use syn::{Expr, ExprTuple};
-
-pub struct TagAttributes {
-    pub attributes: Vec<TagAttribute>,
-    pub listeners: Vec<TagAttribute>,
-    pub classes: Option<ClassesForm>,
-    pub booleans: Vec<TagAttribute>,
-    pub value: Option<TagAttribute>,
-    pub kind: Option<TagAttribute>,
-    pub checked: Option<Expr>,
-    pub node_ref: Option<Expr>,
-    pub key: Option<Expr>,
-}
+use syn::spanned::Spanned;
 
 pub enum ClassesForm {
     Tuple(Span, Vec<Expr>),
     Single(Span, Box<Expr>),
+}
+impl ClassesForm {
+    fn from_expr(expr: Expr) -> Self {
+        let span = expr.span();
+        match expr {
+            Expr::Tuple(ExprTuple { elems, .. }) => ClassesForm::Tuple(span, elems.into_iter().collect()),
+            expr => ClassesForm::Single(span, Box::new(expr)),
+        }
+    }
+}
+
+pub struct ElementProps {
+    pub attributes: Vec<Prop>,
+    pub listeners: Vec<Prop>,
+    pub classes: Option<ClassesForm>,
+    pub booleans: Vec<Prop>,
+    pub value: Option<Prop>,
+    pub kind: Option<Prop>,
+    pub checked: Option<Prop>,
+    pub node_ref: Option<Prop>,
+    pub key: Option<Prop>,
+}
+
+impl Parse for ElementProps {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut props = input.parse::<Props>()?;
+
+        let listeners =
+            props.drain_filter(|prop| LISTENER_SET.contains(prop.label.to_string().as_str()));
+        #[cfg(feature = "std_web")]
+        listeners.check_all(|prop| {
+            let label = &prop.label;
+            if UNSUPPORTED_LISTENER_SET.contains(label.to_string().as_str()) {
+                Err(syn::Error::new_spanned(
+                    &label,
+                    format!(
+                        "the listener `{}` is only available when using web-sys",
+                        &label
+                    ),
+                ))
+            } else {
+                Ok(())
+            }
+        })?;
+
+        // Multiple listener attributes are allowed, but no others
+        props.check_no_duplicates()?;
+
+        let booleans =
+            props.drain_filter(|prop| BOOLEAN_SET.contains(prop.label.to_string().as_str()));
+        booleans.check_all(|prop| {
+            if prop.question_mark.is_some() {
+                Err(syn::Error::new_spanned(
+                    &prop.label,
+                    "boolean attributes don't support being used as an optional attribute (hint: a value of false results in the attribute not being set)"
+                ))
+            } else {
+                Ok(())
+            }
+        })?;
+
+        let classes = props
+            .pop_nonoptional("class")?
+            .map(|prop| ClassesForm::from_expr(prop.value));
+        let value = props.pop("value");
+        let kind = props.pop("type");
+        let checked = props.pop_nonoptional("checked")?;
+
+        let SpecialProps { node_ref, key } = props.special;
+
+        Ok(Self {
+            attributes: props.prop_list.into_vec(),
+            classes,
+            listeners: listeners.into_vec(),
+            checked,
+            booleans: booleans.into_vec(),
+            value,
+            kind,
+            node_ref,
+            key,
+        })
+    }
 }
 
 lazy_static! {
@@ -212,143 +281,4 @@ lazy_static! {
             .into_iter(),
         )
     };
-}
-
-impl TagAttributes {
-    fn drain_listeners(attrs: &mut Vec<TagAttribute>) -> Vec<TagAttribute> {
-        let mut i = 0;
-        let mut drained = Vec::new();
-        while i < attrs.len() {
-            let name_str = attrs[i].label.to_string();
-            if LISTENER_SET.contains(&name_str.as_str()) {
-                drained.push(attrs.remove(i));
-            } else {
-                i += 1;
-            }
-        }
-        drained
-    }
-
-    fn drain_boolean(attrs: &mut Vec<TagAttribute>) -> Vec<TagAttribute> {
-        let mut i = 0;
-        let mut drained = Vec::new();
-        while i < attrs.len() {
-            let name_str = attrs[i].label.to_string();
-            if BOOLEAN_SET.contains(&name_str.as_str()) {
-                drained.push(attrs.remove(i));
-            } else {
-                i += 1;
-            }
-        }
-        drained
-    }
-
-    fn remove_attr(attrs: &mut Vec<TagAttribute>, name: &str) -> Option<TagAttribute> {
-        let mut i = 0;
-        while i < attrs.len() {
-            if attrs[i].label.to_string() == name {
-                return Some(attrs.remove(i));
-            } else {
-                i += 1;
-            }
-        }
-        None
-    }
-
-    fn remove_attr_nonoptional(
-        attrs: &mut Vec<TagAttribute>,
-        name: &str,
-    ) -> syn::Result<Option<TagAttribute>> {
-        match Self::remove_attr(attrs, name) {
-            Some(attr) => attr.ensure_not_optional().map(|_| Some(attr)),
-            None => Ok(None),
-        }
-    }
-
-    fn map_classes(class_expr: Expr) -> ClassesForm {
-        let span = class_expr.span();
-
-        match class_expr {
-            Expr::Tuple(ExprTuple { elems, .. }) => {
-                ClassesForm::Tuple(span, elems.into_iter().collect())
-            }
-            expr => ClassesForm::Single(span, Box::new(expr)),
-        }
-    }
-}
-
-impl Parse for TagAttributes {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
-        let mut attributes: Vec<TagAttribute> = Vec::new();
-        while TagAttribute::peek(input.cursor()).is_some() {
-            attributes.push(input.parse::<TagAttribute>()?);
-        }
-
-        let mut listeners = Vec::new();
-        for listener in Self::drain_listeners(&mut attributes) {
-            #[cfg(feature = "std_web")]
-            {
-                let label = &listener.label;
-                if UNSUPPORTED_LISTENER_SET.contains(&label.to_string().as_str()) {
-                    return Err(syn::Error::new_spanned(
-                        &label,
-                        format!(
-                            "the listener `{}` is only available when using web-sys",
-                            &label
-                        ),
-                    ));
-                }
-            }
-
-            listeners.push(listener);
-        }
-
-        // Multiple listener attributes are allowed, but no others
-        attributes.sort_by(|a, b| {
-            a.label
-                .to_string()
-                .partial_cmp(&b.label.to_string())
-                .unwrap()
-        });
-        let mut i = 0;
-        while i + 1 < attributes.len() {
-            if attributes[i].label.to_string() == attributes[i + 1].label.to_string() {
-                let label = &attributes[i + 1].label;
-                return Err(syn::Error::new_spanned(
-                    label,
-                    format!("the attribute `{}` can only be specified once", label),
-                ));
-            }
-            i += 1;
-        }
-        let booleans = Self::drain_boolean(&mut attributes);
-        for attr in &booleans {
-            if attr.question_mark.is_some() {
-                return Err(syn::Error::new_spanned(
-                    &attr.label,
-                        "boolean attributes don't support being used as an optional attribute (hint: a value of false results in the attribute not being set)"
-                ));
-            }
-        }
-
-        let classes = Self::remove_attr_nonoptional(&mut attributes, "class")?
-            .map(|a| Self::map_classes(a.value));
-        let value = Self::remove_attr(&mut attributes, "value");
-        let kind = Self::remove_attr(&mut attributes, "type");
-        let checked = Self::remove_attr_nonoptional(&mut attributes, "checked")?.map(|v| v.value);
-        let node_ref = Self::remove_attr_nonoptional(&mut attributes, "ref")?.map(|v| v.value);
-        let key = Self::remove_attr_nonoptional(&mut attributes, "key")?.map(|v| v.value);
-
-        Ok(Self {
-            attributes,
-            classes,
-            listeners,
-            checked,
-            booleans,
-            value,
-            kind,
-            node_ref,
-            key,
-        })
-    }
 }

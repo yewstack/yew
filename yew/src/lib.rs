@@ -36,19 +36,20 @@
 //! ```rust
 //! use yew::prelude::*;
 //!
+//! enum Msg {
+//!     AddOne,
+//! }
+//!
 //! struct Model {
 //!     link: ComponentLink<Self>,
 //!     value: i64,
 //! }
 //!
-//! enum Msg {
-//!     AddOne,
-//! }
-//!
 //! impl Component for Model {
 //!     type Message = Msg;
 //!     type Properties = ();
-//!     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+//!
+//!     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
 //!         Self {
 //!             link,
 //!             value: 0,
@@ -57,12 +58,14 @@
 //!
 //!     fn update(&mut self, msg: Self::Message) -> ShouldRender {
 //!         match msg {
-//!             Msg::AddOne => self.value += 1
+//!             Msg::AddOne => {
+//!                 self.value += 1;
+//!                 true
+//!             }
 //!         }
-//!         true
 //!     }
 //!
-//!     fn change(&mut self, _: Self::Properties) -> ShouldRender {
+//!     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
 //!         false
 //!     }
 //!
@@ -78,8 +81,7 @@
 //!
 //!# fn dont_execute() {
 //! fn main() {
-//!     yew::initialize();
-//!     App::<Model>::new().mount_to_body();
+//!     yew::start_app::<Model>();
 //! }
 //!# }
 //! ```
@@ -194,12 +196,66 @@ pub use yew_macro::{classes, html};
 /// [`ChildrenRenderer<ListItem>`]: ./html/struct.ChildrenRenderer.html
 pub use yew_macro::html_nested;
 
+/// Build [`Properties`] outside of the [`html!`] macro.
+///
+/// It's already possible to create properties like normal Rust structs
+/// but if there are lots of optional props the end result is often needlessly verbose.
+/// This macro allows you to build properties the same way the [`html!`] macro does.
+///
+/// The macro doesn't support special props like `ref` and `key`, they need to be set in the [`html!`] macro.
+///
+/// You can read more about `Properties` in the [Yew Docs].
+///
+/// # Example
+///
+/// ```
+/// # use yew::prelude::*;
+/// use std::borrow::Cow;
+///
+/// #[derive(Clone, Properties)]
+/// struct Props {
+///     #[prop_or_default]
+///     id: usize,
+///     name: Cow<'static, str>,
+/// }
+///
+/// struct Model(Props);
+/// impl Component for Model {
+/// #   type Message = ();
+///     type Properties = Props;
+///     // ...
+/// #   fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self { unimplemented!() }
+/// #   fn update(&mut self, _msg: Self::Message) -> ShouldRender { unimplemented!() }
+/// #   fn change(&mut self, _props: Self::Properties) -> ShouldRender { unimplemented!() }
+/// #   fn view(&self) -> Html { unimplemented!() }
+/// }
+///
+/// # fn foo() -> Html {
+/// // You can build props directly ...
+/// let props = yew::props!(Props { name: Cow::from("Minka") });
+/// # assert_eq!(props.name, "Minka");
+/// // ... or build the associated properties of a component
+/// let props = yew::props!(Model::Properties { id: 2, name: Cow::from("Lemmy") });
+/// # assert_eq!(props.id, 2);
+///
+/// // Use the `with props` syntax to create a component with the props.
+/// html! {
+///     <Model key=1 with props />
+/// }
+/// # }
+/// ```
+///
+/// [`html!`]: ./macro.html.html
+/// [`Properties`]: ./html/trait.Properties.html
+/// [yew docs]: https://yew.rs/docs/en/concepts/components/properties
+pub use yew_macro::props;
+
 /// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
     pub use crate::classes;
     pub use crate::html;
     pub use crate::html_nested;
-    pub use yew_macro::Properties;
+    pub use crate::props;
 }
 
 pub mod app;
@@ -302,7 +358,7 @@ pub mod prelude {
         Children, ChildrenWithProps, Component, ComponentLink, Html, NodeRef, Properties,
         ShouldRender,
     };
-    pub use crate::macros::*;
+    pub use crate::macros::{html, html_nested};
     pub use crate::virtual_dom::Classes;
 
     /// Prelude module for creating worker.

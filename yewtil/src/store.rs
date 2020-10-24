@@ -68,7 +68,7 @@ pub struct ReadOnly<S> {
 
 impl<S> ReadOnly<S> {
     /// Allow only immutable borrows to the underlying data
-    pub fn borrow<'a>(&'a self) -> impl Deref<Target = S> + 'a {
+    pub fn borrow(&self) -> impl Deref<Target = S> + '_ {
         self.state.borrow()
     }
 }

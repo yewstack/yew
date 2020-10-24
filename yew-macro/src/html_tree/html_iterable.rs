@@ -4,7 +4,7 @@ use boolinator::Boolinator;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
 use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result as ParseResult};
+use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{Expr, Token};
 
@@ -18,7 +18,7 @@ impl PeekValue<()> for HtmlIterable {
 }
 
 impl Parse for HtmlIterable {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let for_token = input.parse::<Token![for]>()?;
 
         match input.parse() {

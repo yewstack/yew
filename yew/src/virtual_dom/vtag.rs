@@ -912,7 +912,11 @@ mod tests {
     #[test]
     fn keeps_order_of_classes() {
         let a = html! {
+<<<<<<< HEAD
             <div class=classes!(vec!["class-1", "class-2", "class-3"])></div>
+=======
+            <div class=vec!["class-1", "class-2", "class-3"]></div>
+>>>>>>> fa2ab5abe78def557733081d9c4f34e626e1d338
         };
 
         if let VNode::VTag(vtag) = a {
