@@ -1,12 +1,12 @@
 # Table of contents
 
-* [はじめに](intro.md)
+* [はじめに](index.md)
 
 ## 始める
 
 * [プロジェクトの準備](getting-started/project-setup.md)
+  * [trunkを使う](getting-started/project-setup/using-trunk.md)
   * [wasm-packを使う](getting-started/project-setup/using-wasm-pack.md)
-  * [wasm-bindgenを使う](getting-started/project-setup/using-wasm-bindgen.md)
   * [cargo-webを使う](getting-started/project-setup/using-cargo-web.md)
 * [入門用テンプレート](getting-started/starter-templates.md)
 * [サンプルアプリを作る](getting-started/build-a-sample-app.md)

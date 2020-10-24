@@ -1,7 +1,7 @@
 {
   "version-0.17.3-docs": {
     "Getting Started": [
-      "version-0.17.3-intro",
+      "version-0.17.3-index",
       {
         "type": "subcategory",
         "label": "Project setup",
