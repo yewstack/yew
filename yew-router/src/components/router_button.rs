@@ -59,9 +59,9 @@ impl<SW: Switch + Clone + 'static, STATE: RouterState> Component for RouterButto
         });
         html! {
             <button
-                class=self.props.classes.clone(),
-                onclick=cb,
-                disabled=self.props.disabled,
+                class=self.props.classes.clone()
+                onclick=cb
+                disabled=self.props.disabled
             >
                 {
                     #[allow(deprecated)]

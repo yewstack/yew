@@ -55,16 +55,15 @@
 //!
 //! Please refer to [https://github.com/yewstack/yew](https://github.com/yewstack/yew) for how to set this up.
 
-#![recursion_limit = "128"]
-
 mod derive_props;
 mod html_tree;
+mod props;
 mod stringify;
 
 use derive_props::DerivePropsInput;
 use html_tree::{HtmlRoot, HtmlRootVNode};
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens};
+use quote::ToTokens;
 use syn::buffer::Cursor;
 use syn::parse_macro_input;
 
@@ -86,6 +85,17 @@ fn non_capitalized_ascii(string: &str) -> bool {
     }
 }
 
+/// Combine multiple `syn` errors into a single one.
+/// Returns `Result::Ok` if the given iterator is empty
+fn join_errors(mut it: impl Iterator<Item = syn::Error>) -> syn::Result<()> {
+    it.next().map_or(Ok(()), |mut err| {
+        for other in it {
+            err.combine(other);
+        }
+        Err(err)
+    })
+}
+
 #[proc_macro_derive(Properties, attributes(prop_or, prop_or_else, prop_or_default))]
 pub fn derive_props(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DerivePropsInput);
@@ -95,11 +105,17 @@ pub fn derive_props(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn html_nested(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRoot);
-    TokenStream::from(quote! {#root})
+    TokenStream::from(root.into_token_stream())
 }
 
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRootVNode);
-    TokenStream::from(quote! {#root})
+    TokenStream::from(root.into_token_stream())
+}
+
+#[proc_macro]
+pub fn props(input: TokenStream) -> TokenStream {
+    let props = parse_macro_input!(input as props::PropsMacroInput);
+    TokenStream::from(props.into_token_stream())
 }

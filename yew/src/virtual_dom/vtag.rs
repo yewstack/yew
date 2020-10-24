@@ -908,7 +908,7 @@ mod tests {
     #[test]
     fn keeps_order_of_classes() {
         let a = html! {
-            <div class=vec!["class-1", "class-2", "class-3"],></div>
+            <div class=vec!["class-1", "class-2", "class-3"]></div>
         };
 
         if let VNode::VTag(vtag) = a {

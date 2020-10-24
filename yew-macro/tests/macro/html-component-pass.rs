@@ -183,31 +183,20 @@ mod scoped {
 fn compile_pass() {
     html! { <Child int=1 /> };
 
-    // backwards compat
-    html! { <Child: int=1 /> };
-
     html! {
         <>
             <Child int=1 />
             <scoped::Child int=1 />
-
-            // backwards compat
-            <Child: int=1 />
-            <scoped::Child: int=1 />
         </>
     };
 
     let props = <Child as Component>::Properties::default();
-    let props2 = <Child as Component>::Properties::default();
-    let props3 = <Child as Component>::Properties::default();
-    let props4 = <Child as Component>::Properties::default();
     let node_ref = NodeRef::default();
     html! {
         <>
             <Child with props />
-            <Child: with props2, /> // backwards compat
-            <Child ref=node_ref.clone() with props3 />
-            <Child with props4 ref=node_ref />
+            <Child ref=node_ref.clone() with yew::props!(Child::Properties { int: 5 }) />
+            <Child with <Child as Component>::Properties::default() ref=node_ref />
         </>
     };
 
@@ -223,9 +212,6 @@ fn compile_pass() {
             <Child opt_str=String::from("child") int=1 />
             <Child opt_str=Some("child") int=1 />
             <Child opt_str=Some(String::from("child")) int=1 />
-
-            // backwards compat
-            <Child: string="child", int=3, />
         </>
     };
 
@@ -257,7 +243,7 @@ fn compile_pass() {
             <Container int=1></Container>
 
             <Container with props>
-                <></>
+                <div>{ "hello world" }</div>
             </Container>
 
             <Container int=1>

@@ -72,10 +72,10 @@ impl<SW: Switch + Clone + 'static, STATE: RouterState> Component for RouterAncho
 
         html! {
             <a
-                class=self.props.classes.clone(),
-                onclick=cb,
-                disabled=self.props.disabled,
-                href=target,
+                class=self.props.classes.clone()
+                onclick=cb
+                disabled=self.props.disabled
+                href=target
             >
                 {
                     #[allow(deprecated)]
