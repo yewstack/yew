@@ -196,7 +196,7 @@ impl Component for Model {
                     <label for="ratio">{ "Person type ratio (0=only tags <= ratio <= 1=only components): " }</label>
                     <input
                         class="input" type="text" id="ratio"
-                        value=self.build_component_ratio
+                        value=self.build_component_ratio.to_string()
                         oninput=self.link.callback(|e: InputData| Msg::ChangeRatio(e.value))
                     />
                 </div>

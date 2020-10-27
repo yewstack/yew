@@ -57,7 +57,6 @@ impl<SW: Switch + Clone + 'static, STATE: RouterState> Component for RouterAncho
         use stdweb::web::event::IEvent;
 
         let route: Route<STATE> = Route::from(self.props.route.clone());
-        let target: &str = route.as_str();
 
         #[cfg(feature = "std_web")]
         let cb = self.link.callback(|event: ClickEvent| {
@@ -75,7 +74,7 @@ impl<SW: Switch + Clone + 'static, STATE: RouterState> Component for RouterAncho
                 class=self.props.classes.clone()
                 onclick=cb
                 disabled=self.props.disabled
-                href=target
+                href=route.route
             >
                 {
                     #[allow(deprecated)]
