@@ -1,4 +1,3 @@
-#![recursion_limit = "768"]
 use yew::prelude::*;
 
 fn compile_pass() {
@@ -58,10 +57,10 @@ fn compile_pass() {
                 }
             }/>
 
-            <a href?=Some("http://google.com") media?=Option::<&str>::None />
-            <track kind?=Some("subtitles") src?=Option::<&str>::None />
-            <track kind?=Some(5) mixed="works" />
-            <input value?=Some("value") onblur?=Some(Callback::from(|_| ())) />
+            <a href=Some("http://google.com") media=None::<&'static str> />
+            <track kind=Some("subtitles") src=None::<&'static str> />
+            <track kind=Some("5") mixed="works" />
+            <input value=Some("value") onblur=Some(Callback::from(|_| ())) />
         </div>
     };
 
@@ -70,6 +69,10 @@ fn compile_pass() {
         html! { <span>{ "World" }</span> },
     ];
     html! { <div>{children}</div> };
+
+    // handle misleading angle brackets
+    html! { <div data-val=<String as Default>::default()></div> };
+    html! { <div><a data-val=<String as Default>::default() /></div> };
 }
 
 fn main() {}
