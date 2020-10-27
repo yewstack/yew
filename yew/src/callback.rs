@@ -180,3 +180,39 @@ pub(crate) mod test_util {
         }
     }
 }
+
+/// TODO
+pub trait IntoOptCallback<In> {
+    /// TODO
+    fn into_opt_callback(self) -> Option<Callback<In>>;
+}
+
+impl<In> IntoOptCallback<In> for Callback<In> {
+    fn into_opt_callback(self) -> Option<Callback<In>> {
+        Some(self)
+    }
+}
+impl<In> IntoOptCallback<In> for Rc<dyn Fn(In)> {
+    fn into_opt_callback(self) -> Option<Callback<In>> {
+        Callback::Callback(self).into_opt_callback()
+    }
+}
+
+impl<T, In> IntoOptCallback<In> for &T
+where
+    T: ToOwned,
+    T::Owned: IntoOptCallback<In>,
+{
+    fn into_opt_callback(self) -> Option<Callback<In>> {
+        self.to_owned().into_opt_callback()
+    }
+}
+
+impl<T, In> IntoOptCallback<In> for Option<T>
+where
+    T: IntoOptCallback<In>,
+{
+    fn into_opt_callback(self) -> Option<Callback<In>> {
+        self.and_then(IntoOptCallback::into_opt_callback)
+    }
+}

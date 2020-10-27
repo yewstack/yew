@@ -1,7 +1,7 @@
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
 use crate::props::{ClassesForm, ElementProps, Prop};
 use crate::stringify::Stringify;
-use crate::{non_capitalized_ascii, stringify, Peek, PeekValue};
+use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
@@ -139,169 +139,95 @@ impl ToTokens for HtmlElement {
             }
         });
         let set_key = key.as_ref().map(|attr| {
-            let value = &attr.value;
-            quote! {
-                #vtag.key = ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value));
+            let value = attr.value.optimize_literals();
+            quote_spanned! {value.span()=>
+                #vtag.__macro_set_key(#value);
             }
         });
         let set_value = value.as_ref().map(|attr| {
-            let value = &attr.value;
-            if attr.question_mark.is_some() {
-                quote_spanned! {value.span()=>
-                    if let ::std::option::Option::Some(__yew_v) = ::std::option::Option::as_ref(&(#value)) {
-                        #vtag.set_value(__yew_v);
-                    };
-                }
-            } else {
-                quote_spanned! {value.span()=>
-                    #vtag.set_value(&(#value));
-                }
+            let value = attr.value.optimize_literals();
+            quote! {
+                #vtag.set_value(#value);
             }
         });
         let set_kind = kind.as_ref().map(|attr| {
-            let value = &attr.value;
-            if attr.question_mark.is_some() {
-                let sr = stringify::stringify_option_at_runtime(value);
-                quote_spanned! {value.span()=>
-                    if let ::std::option::Option::Some(__yew_v) = #sr {
-                        #vtag.set_kind(__yew_v);
-                    };
-                }
-            } else {
-                let sr = value.stringify();
-                quote_spanned! {value.span()=>
-                    #vtag.set_kind(#sr);
-                }
+            let value = attr.value.optimize_literals();
+            quote! {
+                #vtag.set_kind(#value);
             }
         });
         let set_checked = checked.as_ref().map(|attr| {
             let value = &attr.value;
-            quote_spanned! {value.span()=>
+            quote! {
                 #vtag.set_checked(#value);
             }
         });
 
-        // normal attributes
+        // other attributes
 
-        let set_attributes = if attributes.is_empty() {
-            None
-        } else {
-            let attrs = attributes.iter().map(|Prop { label, value, .. }| {
+        let set_attributes = {
+            let normal_attrs = attributes.iter().map(|Prop { label, value, .. }| {
                 let key = label.to_lit_str();
-                if question_mark.is_some() {
-                    let sr = stringify::stringify_option_at_runtime(value);
-                    quote! {
-                        ::yew::virtual_dom::PositionalAttr(#key, #sr)
-                    }
-                } else {
-                    let sr = value.stringify();
-                    quote! {
-                        ::yew::virtual_dom::PositionalAttr::new(#key, #sr)
-                    }
+                let value = value.optimize_literals();
+                quote! {
+                    ::yew::virtual_dom::PositionalAttr::new(#key, #value)
                 }
             });
-            Some(quote! {
-                #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(::std::vec![#(#attrs),*]);
-            })
-        };
+            let boolean_attrs = booleans.iter().map(|Prop { label, value, .. }| {
+                let key = label.to_lit_str();
+                quote! {
+                    ::yew::virtual_dom::PositionalAttr::new_boolean(#key, #value)
+                }
+            });
+            let class_attr = classes.as_ref().and_then(|classes| match classes {
+                ClassesForm::Tuple(classes) => {
+                    let n = classes.len();
+                    Some(quote! {
+                        {
+                            let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
+                            #(__yew_classes.push(#classes);)*
 
-        let push_booleans = if booleans.is_empty() {
-            None
-        } else {
-            let tokens = booleans
-                .iter()
-                .map(|Prop { label, value, .. }| {
-                    let label_str = label.to_lit_str();
-                    let sr = label.stringify();
-                    quote_spanned! {value.span()=> {
-                        if #value {
-                            #vtag.__macro_push_attribute(#label_str, #sr);
+                            ::yew::virtual_dom::PositionalAttr::new("class", __yew_classes)
+                        }
+                    })
+                }
+                ClassesForm::Single(classes) => match classes.try_into_lit() {
+                    Some(lit) => {
+                        if lit.value().is_empty() {
+                            None
                         } else {
-                            #vtag.__macro_push_attribute_placeholder(#label_str);
-                        };
-                    }}
-                })
-                .collect::<TokenStream>();
-            Some(tokens)
-        };
-
-        let push_classes = match classes {
-            Some(ClassesForm::Tuple(classes)) => {
-                let n = classes.len();
-                let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
-                Some(quote! {
-                    let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
-                    #(__yew_classes.push(#classes);)*
-
-                    if !__yew_classes.is_empty() {
-                        #vtag.__macro_push_attribute("class", #sr);
-                    } else {
-                        #vtag.__macro_push_attribute_placeholder("class");
-                    };
-                })
-            }
-            Some(ClassesForm::Single(classes)) => match classes.try_into_lit() {
-                Some(lit) => {
-                    if lit.value().is_empty() {
-                        None
-                    } else {
-                        let sr = lit.stringify();
+                            let sr = lit.stringify();
+                            Some(quote! {
+                                ::yew::virtual_dom::PositionalAttr::new("class", #sr)
+                            })
+                        }
+                    }
+                    None => {
                         Some(quote! {
-                            #vtag.__macro_push_attribute("class", #sr);
+                            ::yew::virtual_dom::PositionalAttr::new("class", ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes))
                         })
                     }
                 }
-                None => {
-                    let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
-                    Some(quote! {
-                        let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
-                        if !__yew_classes.is_empty() {
-                            #vtag.__macro_push_attribute("class", #sr);
-                        } else {
-                            #vtag.__macro_push_attribute_placeholder("class");
-                        };
-                    })
-                }
-            },
-            None => None,
+            });
+
+            let attrs = normal_attrs.chain(boolean_attrs).chain(class_attr);
+            quote! {
+                #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(::std::vec![#(#attrs),*]);
+            }
         };
 
-        let add_listeners = if listeners.is_empty() {
+        let set_listeners = if listeners.is_empty() {
             None
-        } else if listeners.iter().any(|attr| attr.question_mark.is_some()) {
-            let add_listeners = listeners
-                .iter()
-                .map(|Prop { label, value, .. }| {
-                    let name = &label.name;
-
-                    if question_mark.is_some() {
-                        let ident = Ident::new("__yew_listener", name.span());
-                        let listener = to_wrapped_listener(name, &ident);
-                        quote_spanned! {value.span()=>
-                            let #ident = ::std::option::Option::map(#value, |#ident| {
-                                #listener
-                            });
-                            if let ::std::option::Option::Some(#ident) = #ident {
-                                #vtag.add_listener(#ident);
-                            };
-                        }
-                    } else {
-                        let listener = to_wrapped_listener(name, value);
-                        quote_spanned! {value.span()=>
-                            #vtag.add_listener(#listener);
-                        }
-                    }
-                })
-                .collect();
-
-            Some(add_listeners)
         } else {
-            let listeners_it = listeners
-                .iter()
-                .map(|Prop { label, value, .. }| to_wrapped_listener(&label.name, value));
+            let listeners_it = listeners.iter().map(|Prop { label, value, .. }| {
+                let name = &label.name;
+                quote! {
+                    ::yew::html::#name::Wrapper::__macro_new(#value)
+                }
+            });
 
             Some(quote! {
-                #vtag.add_listeners(::std::vec![#(#listeners_it),*]);
+                #vtag.__macro_set_listeners(::std::vec![#(#listeners_it),*]);
             })
         };
 
@@ -319,7 +245,6 @@ impl ToTokens for HtmlElement {
         let dyn_tag_runtime_checks = if matches!(&name, TagName::Expr(_)) {
             // when Span::source_file Span::start get stabilised or yew-macro introduces a nightly feature flag
             // we should expand the panic message to contain the exact location of the dynamic tag.
-            let sr = stringify::stringify_at_runtime(quote! { __yew_v });
             Some(quote! {
                 // check void element
                 if !#vtag.children.is_empty() {
@@ -336,11 +261,8 @@ impl ToTokens for HtmlElement {
                 match #vtag.tag() {
                     "input" | "textarea" => {}
                     _ => {
-                        if let ::std::option::Option::Some(__yew_v) = #vtag.value.take() {
-                            #vtag.__macro_push_attribute("value", #sr);
-                        } else {
-                            #vtag.__macro_push_attribute_placeholder("value");
-                        };
+                        let __yew_v = #vtag.value.take();
+                        #vtag.__macro_push_attr(::yew::virtual_dom::PositionalAttr::new("value", __yew_v));
                     }
                 }
             })
@@ -358,27 +280,15 @@ impl ToTokens for HtmlElement {
                 #set_value
                 #set_kind
                 #set_checked
-
                 #set_attributes
-                #push_booleans
-                #push_classes
+                #set_listeners
 
-                #add_listeners
                 #add_children
 
                 #dyn_tag_runtime_checks
-                #[allow(unused_braces)]
                 ::yew::virtual_dom::VNode::from(#vtag)
             }
         });
-    }
-}
-
-fn to_wrapped_listener(name: &Ident, value: impl ToTokens) -> TokenStream {
-    quote_spanned! {value.span()=>
-        ::std::rc::Rc::new(::yew::html::#name::Wrapper::new(
-            <::yew::virtual_dom::VTag as ::yew::virtual_dom::Transformer<_, _>>::transform(#value),
-        ))
     }
 }
 

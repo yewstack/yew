@@ -1,25 +1,12 @@
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote_spanned, ToTokens};
 use syn::spanned::Spanned;
-use syn::{Expr, Ident, Lit, LitStr};
+use syn::{Expr, Lit, LitStr};
 
 /// Stringify a value at runtime.
-pub fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
+fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
     quote_spanned! {src.span()=>
-        ::std::borrow::Cow::<'static, str>::Owned(
-            ::std::string::ToString::to_string(&(#src)),
-        )
-    }
-}
-
-/// Map an `Option` type such that it turns into `Cow<'static, str>`.
-pub fn stringify_option_at_runtime(src: impl ToTokens) -> TokenStream {
-    let ident = Ident::new("__yew_str", src.span());
-    let sr = stringify_at_runtime(&ident);
-    quote! {
-        ::std::option::Option::map(#src, |#ident| {
-            #sr
-        })
+        ::std::convert::Into::<::std::borrow::Cow::<'static, str>>::into(#src)
     }
 }
 
@@ -31,6 +18,18 @@ pub trait Stringify {
     fn try_into_lit(&self) -> Option<LitStr>;
     /// Create `Cow<'static, str>` however possible.
     fn stringify(&self) -> TokenStream;
+
+    /// Optimize literals to `&'static str`, otherwise keep the value as is.
+    fn optimize_literals(&self) -> TokenStream
+    where
+        Self: ToTokens,
+    {
+        if let Some(lit) = self.try_into_lit() {
+            lit.to_token_stream()
+        } else {
+            self.to_token_stream()
+        }
+    }
 }
 impl<T: Stringify + ?Sized> Stringify for &T {
     fn try_into_lit(&self) -> Option<LitStr> {
@@ -56,12 +55,11 @@ impl Stringify for LitStr {
 impl Stringify for Lit {
     fn try_into_lit(&self) -> Option<LitStr> {
         let s = match self {
-            Lit::Str(v) => v.value(),
+            Lit::Str(v) => return v.try_into_lit(),
             Lit::Char(v) => v.value().to_string(),
             Lit::Int(v) => v.base10_digits().to_string(),
             Lit::Float(v) => v.base10_digits().to_string(),
-            Lit::Bool(v) => v.value.to_string(),
-            _ => return None,
+            Lit::Bool(_) | Lit::ByteStr(_) | Lit::Byte(_) | Lit::Verbatim(_) => return None,
         };
         Some(LitStr::new(&s, self.span()))
     }

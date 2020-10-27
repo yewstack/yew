@@ -66,25 +66,74 @@ impl fmt::Debug for dyn Listener {
 /// A list of event listeners.
 type Listeners = Vec<Rc<dyn Listener>>;
 
+/// Attribute value
+pub type AttrValue = Cow<'static, str>;
+
+/// Trait for converting to an optional attribute value.
+/// TODO
+pub trait IntoOptAttrValue {
+    /// TODO
+    fn into_opt_attr_value(self) -> Option<AttrValue>;
+}
+
+impl IntoOptAttrValue for AttrValue {
+    fn into_opt_attr_value(self) -> Option<AttrValue> {
+        Some(self)
+    }
+}
+impl IntoOptAttrValue for &'static str {
+    fn into_opt_attr_value(self) -> Option<AttrValue> {
+        Some(Cow::Borrowed(self))
+    }
+}
+impl IntoOptAttrValue for String {
+    fn into_opt_attr_value(self) -> Option<AttrValue> {
+        Some(Cow::Owned(self))
+    }
+}
+impl<T> IntoOptAttrValue for &T
+where
+    T: ToOwned,
+    T::Owned: IntoOptAttrValue,
+{
+    fn into_opt_attr_value(self) -> Option<AttrValue> {
+        self.to_owned().into_opt_attr_value()
+    }
+}
+
+impl<T: IntoOptAttrValue> IntoOptAttrValue for Option<T> {
+    fn into_opt_attr_value(self) -> Option<AttrValue> {
+        self.and_then(IntoOptAttrValue::into_opt_attr_value)
+    }
+}
+
 /// Key-value tuple which makes up an item of the [`Attributes::Vec`] variant.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PositionalAttr(pub &'static str, pub Option<Cow<'static, str>>);
+pub struct PositionalAttr(pub &'static str, pub Option<AttrValue>);
 impl PositionalAttr {
     /// Create a positional attribute
-    pub fn new(key: &'static str, value: impl Into<Cow<'static, str>>) -> Self {
-        Self(key, Some(value.into()))
+    pub fn new(key: &'static str, value: impl IntoOptAttrValue) -> Self {
+        Self(key, value.into_opt_attr_value())
     }
+
+    /// Create a boolean attribute.
+    /// `present` controls whether the attribute is added
+    pub fn new_boolean(key: &'static str, present: bool) -> Self {
+        let value = if present { Some(key) } else { None };
+        Self::new(key, value)
+    }
+
     /// Create a placeholder for removed attributes
     pub fn new_placeholder(key: &'static str) -> Self {
         Self(key, None)
     }
 
-    fn transpose(self) -> Option<(&'static str, Cow<'static, str>)> {
+    fn transpose(self) -> Option<(&'static str, AttrValue)> {
         let Self(key, value) = self;
         value.map(|v| (key, v))
     }
 
-    fn transposed<'a>(&'a self) -> Option<(&'static str, &'a Cow<'static, str>)> {
+    fn transposed<'a>(&'a self) -> Option<(&'static str, &'a AttrValue)> {
         let Self(key, value) = self;
         value.as_ref().map(|v| (*key, v))
     }
@@ -99,12 +148,12 @@ pub enum Attributes {
 
     /// IndexMap is used to provide runtime attribute deduplication in cases where the html! macro
     /// was not used to guarantee it.
-    IndexMap(IndexMap<&'static str, Cow<'static, str>>),
+    IndexMap(IndexMap<&'static str, AttrValue>),
 }
 impl Attributes {
     /// Construct a default Attributes instance
     pub fn new() -> Self {
-        Default::default()
+        Self::default()
     }
 
     /// Return iterator over attribute key-value pairs
@@ -121,7 +170,7 @@ impl Attributes {
 
     /// Get a mutable reference to the underlying `IndexMap`.
     /// If the attributes are stored in the `Vec` variant, it will be converted.
-    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<&'static str, Cow<'static, str>> {
+    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<&'static str, AttrValue> {
         match self {
             Self::IndexMap(m) => m,
             Self::Vec(v) => {
@@ -306,8 +355,8 @@ impl From<Vec<PositionalAttr>> for Attributes {
         Self::Vec(v)
     }
 }
-impl From<IndexMap<&'static str, Cow<'static, str>>> for Attributes {
-    fn from(v: IndexMap<&'static str, Cow<'static, str>>) -> Self {
+impl From<IndexMap<&'static str, AttrValue>> for Attributes {
+    fn from(v: IndexMap<&'static str, AttrValue>) -> Self {
         Self::IndexMap(v)
     }
 }
@@ -383,6 +432,18 @@ impl IntoIterator for Classes {
 
     fn into_iter(self) -> Self::IntoIter {
         self.set.into_iter()
+    }
+}
+
+impl IntoOptAttrValue for Classes {
+    fn into_opt_attr_value(mut self) -> Option<AttrValue> {
+        if self.is_empty() {
+            None
+        } else if self.set.len() == 1 {
+            self.set.pop()
+        } else {
+            Some(Cow::Owned(self.to_string()))
+        }
     }
 }
 
