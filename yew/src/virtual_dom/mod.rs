@@ -592,12 +592,6 @@ fn insert_node(node: &impl INode, parent: &impl INode, next_sibling: Option<Node
     }
 }
 
-/// Transform properties to the expected type.
-pub trait Transformer<FROM, TO> {
-    /// Transforms one type to another.
-    fn transform(from: FROM) -> TO;
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

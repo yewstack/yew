@@ -2,7 +2,7 @@
 
 use super::{
     AttrValue, Attributes, IntoOptAttrValue, Key, Listener, Listeners, Patch, PositionalAttr,
-    Transformer, VDiff, VList, VNode,
+    VDiff, VList, VNode,
 };
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
@@ -541,21 +541,6 @@ impl PartialEq for VTag {
                 .eq(other.listeners.iter().map(|l| l.kind()))
             && self.attributes == other.attributes
             && self.children == other.children
-    }
-}
-
-impl<T> Transformer<T, T> for VTag {
-    fn transform(from: T) -> T {
-        from
-    }
-}
-
-impl<'a, T> Transformer<&'a T, T> for VTag
-where
-    T: Clone,
-{
-    fn transform(from: &'a T) -> T {
-        from.clone()
     }
 }
 
