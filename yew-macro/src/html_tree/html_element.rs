@@ -140,7 +140,7 @@ impl ToTokens for HtmlElement {
         });
         let set_key = key.as_ref().map(|attr| {
             let value = attr.value.optimize_literals();
-            quote_spanned! {value.span()=>
+            quote! {
                 #vtag.__macro_set_key(#value);
             }
         });
