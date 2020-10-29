@@ -1,10 +1,9 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
 use super::{
-    AttrValue, Attributes, IntoOptAttrValue, Key, Listener, Listeners, Patch, PositionalAttr,
-    VDiff, VList, VNode,
+    AttrValue, Attributes, Key, Listener, Listeners, Patch, PositionalAttr, VDiff, VList, VNode,
 };
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{AnyScope, IntoOptPropValue, IntoPropValue, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
@@ -153,15 +152,15 @@ impl VTag {
 
     /// Sets `value` for an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    pub fn set_value(&mut self, value: impl IntoOptAttrValue) {
-        self.value = value.into_opt_attr_value();
+    pub fn set_value(&mut self, value: impl IntoOptPropValue<AttrValue>) {
+        self.value = value.into_opt_prop_value();
     }
 
     /// Sets `kind` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// Same as set `type` attribute.
-    pub fn set_kind(&mut self, value: impl IntoOptAttrValue) {
-        self.kind = value.into_opt_attr_value();
+    pub fn set_kind(&mut self, value: impl IntoOptPropValue<AttrValue>) {
+        self.kind = value.into_opt_prop_value();
     }
 
     #[doc(hidden)]
@@ -174,6 +173,11 @@ impl VTag {
     /// (Not a value of node's attribute).
     pub fn set_checked(&mut self, value: bool) {
         self.checked = value;
+    }
+
+    #[doc(hidden)]
+    pub fn __macro_set_node_ref(&mut self, value: impl IntoPropValue<NodeRef>) {
+        self.node_ref = value.into_prop_value()
     }
 
     /// Adds a key-value pair to attributes
@@ -259,7 +263,7 @@ impl VTag {
                         feature = "std_web" => input.raw_value(),
                         feature = "web_sys" => input.value(),
                     };
-                    self.set_value(current_value);
+                    self.set_value(Cow::Owned(current_value));
                 }
             } else if self.element_type == ElementType::Textarea {
                 let textarea_el = cfg_match! {
@@ -268,7 +272,7 @@ impl VTag {
                 };
                 if let Some(tae) = textarea_el {
                     let value = tae.value();
-                    self.set_value(value);
+                    self.set_value(Cow::Owned(value));
                 }
             }
         }

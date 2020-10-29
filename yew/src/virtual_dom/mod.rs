@@ -13,7 +13,7 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{AnyScope, IntoOptPropValue, IntoPropValue, NodeRef};
 use cfg_if::cfg_if;
 use indexmap::{IndexMap, IndexSet};
 use std::{
@@ -69,51 +69,13 @@ type Listeners = Vec<Rc<dyn Listener>>;
 /// Attribute value
 pub type AttrValue = Cow<'static, str>;
 
-/// Trait for converting to an optional attribute value.
-/// TODO
-pub trait IntoOptAttrValue {
-    /// TODO
-    fn into_opt_attr_value(self) -> Option<AttrValue>;
-}
-
-impl IntoOptAttrValue for AttrValue {
-    fn into_opt_attr_value(self) -> Option<AttrValue> {
-        Some(self)
-    }
-}
-impl IntoOptAttrValue for &'static str {
-    fn into_opt_attr_value(self) -> Option<AttrValue> {
-        Some(Cow::Borrowed(self))
-    }
-}
-impl IntoOptAttrValue for String {
-    fn into_opt_attr_value(self) -> Option<AttrValue> {
-        Some(Cow::Owned(self))
-    }
-}
-impl<T> IntoOptAttrValue for &T
-where
-    T: ToOwned,
-    T::Owned: IntoOptAttrValue,
-{
-    fn into_opt_attr_value(self) -> Option<AttrValue> {
-        self.to_owned().into_opt_attr_value()
-    }
-}
-
-impl<T: IntoOptAttrValue> IntoOptAttrValue for Option<T> {
-    fn into_opt_attr_value(self) -> Option<AttrValue> {
-        self.and_then(IntoOptAttrValue::into_opt_attr_value)
-    }
-}
-
 /// Key-value tuple which makes up an item of the [`Attributes::Vec`] variant.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PositionalAttr(pub &'static str, pub Option<AttrValue>);
 impl PositionalAttr {
     /// Create a positional attribute
-    pub fn new(key: &'static str, value: impl IntoOptAttrValue) -> Self {
-        Self(key, value.into_opt_attr_value())
+    pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
+        Self(key, value.into_opt_prop_value())
     }
 
     /// Create a boolean attribute.
@@ -367,6 +329,7 @@ impl Default for Attributes {
     }
 }
 
+// TODO move this to the `html` module in #1601
 /// A set of classes.
 #[derive(Debug, Clone, Default)]
 pub struct Classes {
@@ -435,14 +398,21 @@ impl IntoIterator for Classes {
     }
 }
 
-impl IntoOptAttrValue for Classes {
-    fn into_opt_attr_value(mut self) -> Option<AttrValue> {
+impl IntoPropValue<AttrValue> for Classes {
+    fn into_prop_value(mut self) -> AttrValue {
+        if self.set.len() == 1 {
+            self.set.pop().unwrap()
+        } else {
+            Cow::Owned(self.to_string())
+        }
+    }
+}
+impl IntoOptPropValue<AttrValue> for Classes {
+    fn into_opt_prop_value(self) -> Option<AttrValue> {
         if self.is_empty() {
             None
-        } else if self.set.len() == 1 {
-            self.set.pop()
         } else {
-            Some(Cow::Owned(self.to_string()))
+            Some(self.into_prop_value())
         }
     }
 }

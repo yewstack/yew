@@ -50,7 +50,6 @@ macro_rules! key_impl_from_to_string {
 }
 
 key_impl_from_to_string!(String);
-key_impl_from_to_string!(Rc<String>);
 key_impl_from_to_string!(char);
 key_impl_from_to_string!(u8);
 key_impl_from_to_string!(u16);
@@ -81,7 +80,6 @@ mod test {
         html! {
             <key="string literal">
                 <img key="String".to_owned() />
-                <p key=Rc::new("rc".to_owned())></p>
                 <p key=Rc::<str>::from("rc")></p>
                 <key='a'>
                     <p key=11_usize></p>
@@ -90,6 +88,7 @@ mod test {
                     <p key=14_u32></p>
                     <p key=15_u64></p>
                     <p key=15_u128></p>
+                    <p key=21_isize></p>
                     <p key=22_i8></p>
                     <p key=23_i16></p>
                     <p key=24_i32></p>

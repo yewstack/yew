@@ -3,9 +3,11 @@
 //! Also this module contains declaration of `Component` trait which used
 //! to create own UI-components.
 
+mod conversion;
 mod listener;
 mod scope;
 
+pub use conversion::*;
 pub use listener::*;
 pub use scope::{AnyScope, Scope, SendAsMessage};
 pub(crate) use scope::{ComponentUpdate, Scoped};

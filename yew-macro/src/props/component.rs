@@ -132,13 +132,10 @@ impl ComponentProps {
         let build_props = match self {
             Self::List(props) => {
                 let set_props = props.iter().map(|Prop { label, value, .. }| {
-                        quote_spanned! {value.span()=> .#label(
-                            #[allow(unused_braces)]
-                            <::yew::virtual_dom::VComp as ::yew::virtual_dom::Transformer<_, _>>::transform(
-                                #value
-                            )
-                        )}
-                    });
+                    quote_spanned! {value.span()=>
+                        .#label(#value)
+                    }
+                });
 
                 let set_children = if let Some(children) = children_renderer {
                     Some(quote_spanned! {props_ty.span()=>

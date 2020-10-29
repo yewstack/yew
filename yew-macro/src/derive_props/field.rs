@@ -11,6 +11,7 @@ use syn::{Error, Expr, Field, Type, Visibility};
 #[derive(PartialEq, Eq)]
 enum PropAttr {
     Required { wrapped_name: Ident },
+    // TODO create one for truly optional attributes (using Option<T>)
     PropOr(Expr),
     PropOrElse(Expr),
     PropOrDefault,
@@ -37,18 +38,36 @@ impl PropField {
         )
     }
 
+    /// Ident of the wrapped field name
+    fn wrapped_name(&self) -> &Ident {
+        match &self.attr {
+            PropAttr::Required { wrapped_name } => wrapped_name,
+            _ => &self.name,
+        }
+    }
+
     /// Used to transform the `PropWrapper` struct into `Properties`
     pub fn to_field_setter(&self) -> proc_macro2::TokenStream {
         let name = &self.name;
         match &self.attr {
             PropAttr::Required { wrapped_name } => {
                 quote! {
-                    #name: self.wrapped.#wrapped_name.unwrap(),
+                    #name: ::std::option::Option::unwrap(self.wrapped.#wrapped_name),
                 }
             }
-            _ => {
+            PropAttr::PropOr(value) => {
+                quote_spanned! {value.span()=>
+                    #name: ::std::option::Option::unwrap_or(self.wrapped.#name, #value),
+                }
+            }
+            PropAttr::PropOrElse(func) => {
+                quote_spanned! {func.span()=>
+                    #name: ::std::option::Option::unwrap_or_else(self.wrapped.#name, #func),
+                }
+            }
+            PropAttr::PropOrDefault => {
                 quote! {
-                    #name: self.wrapped.#name,
+                    #name: ::std::option::Option::unwrap_or_default(self.wrapped.#name),
                 }
             }
         }
@@ -57,49 +76,17 @@ impl PropField {
     /// Wrap all required props in `Option`
     pub fn to_field_def(&self) -> proc_macro2::TokenStream {
         let ty = &self.ty;
-        match &self.attr {
-            PropAttr::Required { wrapped_name } => {
-                quote! {
-                    #wrapped_name: ::std::option::Option<#ty>,
-                }
-            }
-            _ => {
-                let name = &self.name;
-                quote! {
-                    #name: #ty,
-                }
-            }
+        let wrapped_name = self.wrapped_name();
+        quote! {
+            #wrapped_name: ::std::option::Option<#ty>,
         }
     }
 
     /// All optional props must implement the `Default` trait
     pub fn to_default_setter(&self) -> proc_macro2::TokenStream {
-        match &self.attr {
-            PropAttr::Required { wrapped_name } => {
-                quote! {
-                    #wrapped_name: ::std::option::Option::None,
-                }
-            }
-            PropAttr::PropOr(value) => {
-                let name = &self.name;
-                let span = value.span();
-                quote_spanned! {span=>
-                    #name: #value,
-                }
-            }
-            PropAttr::PropOrElse(func) => {
-                let name = &self.name;
-                let span = func.span();
-                quote_spanned! {span=>
-                    #name: (#func)(),
-                }
-            }
-            PropAttr::PropOrDefault => {
-                let name = &self.name;
-                quote! {
-                    #name: ::std::default::Default::default(),
-                }
-            }
+        let wrapped_name = self.wrapped_name();
+        quote! {
+            #wrapped_name: ::std::option::Option::None,
         }
     }
 
@@ -115,8 +102,8 @@ impl PropField {
             PropAttr::Required { wrapped_name } => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(mut self, #name: #ty) -> #builder_name<#generic_arguments> {
-                        self.wrapped.#wrapped_name = ::std::option::Option::Some(#name);
+                    #vis fn #name(mut self, #name: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
+                        self.wrapped.#wrapped_name = ::std::option::Option::Some(#name.into_prop_value());
                         #builder_name {
                             wrapped: self.wrapped,
                             _marker: ::std::marker::PhantomData,
@@ -127,8 +114,8 @@ impl PropField {
             _ => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(mut self, #name: #ty) -> #builder_name<#generic_arguments> {
-                        self.wrapped.#name = #name;
+                    #vis fn #name(mut self, #name: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
+                        self.wrapped.#name = Some(#name.into_prop_value());
                         self
                     }
                 }

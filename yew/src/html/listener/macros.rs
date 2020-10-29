@@ -9,9 +9,9 @@ macro_rules! impl_action {
         pub mod $action {
             use cfg_if::cfg_if;
             use cfg_match::cfg_match;
-            use crate::callback::{Callback, IntoOptCallback};
+            use crate::callback::Callback;
             #[allow(unused_imports)]
-            use crate::html::listener::*;
+            use crate::html::{listener::*, IntoOptPropValue};
             use crate::virtual_dom::Listener;
             use std::rc::Rc;
             cfg_if! {
@@ -38,8 +38,8 @@ macro_rules! impl_action {
                 }
 
                 #[doc(hidden)]
-                pub fn __macro_new(callback: impl IntoOptCallback<Event>) -> Option<Rc<dyn Listener>> {
-                    let callback = callback.into_opt_callback()?;
+                pub fn __macro_new(callback: impl IntoOptPropValue<Callback<Event>>) -> Option<Rc<dyn Listener>> {
+                    let callback = callback.into_opt_prop_value()?;
                     Some(Rc::new(Self::new(callback)))
                 }
             }

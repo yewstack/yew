@@ -29,7 +29,7 @@ error[E0277]: the trait bound `t1::Value: std::default::Default` is not satisfie
 9 |     #[derive(Clone, Properties)]
   |                     ^^^^^^^^^^ the trait `std::default::Default` is not implemented for `t1::Value`
   |
-  = note: required by `std::default::Default::default`
+  = note: required by `std::option::Option::<T>::unwrap_or_default`
   = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `build` found for struct `t3::PropsBuilder<t3::PropsBuilderStep_missing_required_prop_value>` in the current scope
@@ -63,28 +63,28 @@ error[E0308]: mismatched types
    |                   expected struct `std::string::String`, found integer
    |                   help: try using a conversion method: `123.to_string()`
 
-error[E0618]: expected function, found `{integer}`
-  --> $DIR/fail.rs:77:24
-   |
-77 |         #[prop_or_else(123)]
-   |                        ^^^ call expression requires function
+error[E0277]: expected a `std::ops::FnOnce<()>` closure, found `{integer}`
+   --> $DIR/fail.rs:77:24
+    |
+77  |         #[prop_or_else(123)]
+    |                        ^^^ expected an `FnOnce<()>` closure, found `{integer}`
+    |
+    = help: the trait `std::ops::FnOnce<()>` is not implemented for `{integer}`
+    = note: wrap the `{integer}` in a closure with no arguments: `|| { /* code */ }
 
-error[E0061]: this function takes 1 argument but 0 arguments were supplied
+error[E0593]: function is expected to take 0 arguments, but it takes 1 argument
    --> $DIR/fail.rs:97:24
     |
 97  |         #[prop_or_else(foo)]
-    |                        ^^^- supplied 0 arguments
-    |                        |
-    |                        expected 1 argument
+    |                        ^^^ expected function that takes 0 arguments
 ...
 101 |     fn foo(bar: i32) -> String {
-    |     -------------------------- defined here
+    |     -------------------------- takes 1 argument
 
-error[E0308]: mismatched types
+error[E0271]: type mismatch resolving `<fn() -> i32 {t10::foo} as std::ops::FnOnce<()>>::Output == std::string::String`
    --> $DIR/fail.rs:111:24
     |
 111 |         #[prop_or_else(foo)]
-    |                        ^^^
-    |                        |
-    |                        expected struct `std::string::String`, found `i32`
-    |                        help: try using a conversion method: `foo.to_string()`
+    |                        ^^^ expected struct `std::string::String`, found `i32`
+    |
+    = note: required by `std::option::Option::<T>::unwrap_or_else`
