@@ -105,9 +105,9 @@ impl PersonType {
             }
             Self::Component(info) => {
                 if keyed {
-                    html! { <PersonComponent key=info.id.to_string() info=info /> }
+                    html! { <PersonComponent key=info.id.to_string() info=info.clone() /> }
                 } else {
-                    html! { <PersonComponent info=info /> }
+                    html! { <PersonComponent info=info.clone() /> }
                 }
             }
         }
