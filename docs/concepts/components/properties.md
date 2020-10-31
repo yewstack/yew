@@ -16,6 +16,9 @@ Types for which you derive `Properties` must also implement `Clone`.
 
 ### Field attributes
 
+When deriving `Properties`, all fields are required by default.
+The following attributes allow you to give your props initial values which will be used unless they're set to another value.
+
 :::tip
 Attributes aren't visible in Rustdoc generated documentation.
 The docstrings of your properties should mention whether a prop is optional and if it has a special default value.
