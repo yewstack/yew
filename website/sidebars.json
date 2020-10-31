@@ -1,7 +1,7 @@
 {
   "docs": {
     "Getting Started": [
-      "intro",
+      "index",
       {
         "type": "subcategory",
         "label": "Project setup",

@@ -1,7 +1,7 @@
 ---
 title: Introduction
-id: version-0.17.3-intro
-original_id: intro
+id: version-0.17.3-index
+original_id: index
 ---
 
 ## What is Yew?

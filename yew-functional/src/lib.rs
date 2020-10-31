@@ -213,7 +213,7 @@ where
     )
 }
 
-pub fn use_state<T, F>(initial_state_fn: F) -> (Rc<T>, Box<impl Fn(T)>)
+pub fn use_state<T, F>(initial_state_fn: F) -> (Rc<T>, Rc<impl Fn(T)>)
 where
     F: FnOnce() -> T,
     T: 'static,
@@ -227,7 +227,7 @@ where
             let current = prev.current.clone();
             (
                 current,
-                Box::new(move |o: T| {
+                Rc::new(move |o: T| {
                     hook_callback(
                         |state: &mut UseStateState<T>| {
                             state.current = Rc::new(o);

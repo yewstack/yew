@@ -35,20 +35,11 @@ pub use self::timeout::TimeoutService;
 #[doc(inline)]
 pub use self::websocket::WebSocketService;
 
-use std::time::Duration;
-
 /// A task is an ongoing process which is part of a Yew application.
 ///
-/// All tasks must be handled when they are cancelled, which is why the `Drop` trait is required.
-/// Tasks should cancel themselves in their implementation of the `Drop` trait.
-pub trait Task: Drop {
+/// Tasks should cancel themselves when they are dropped.
+#[must_use = "tasks are cancelled when dropped"]
+pub trait Task {
     /// Returns `true` if task is active.
     fn is_active(&self) -> bool;
-}
-
-#[doc(hidden)]
-/// Converts a `Duration` into milliseconds.
-fn to_ms(duration: Duration) -> u32 {
-    let ms = duration.subsec_millis();
-    ms + duration.as_secs() as u32 * 1000
 }

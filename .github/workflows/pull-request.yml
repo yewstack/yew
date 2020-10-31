@@ -82,7 +82,8 @@ jobs:
 
   doc_tests:
     name: Documentation Tests
-    runs-on: ubuntu-latest
+    # Using 20.04 because 18.04 (latest) only has aspell 0.60.7 and we need 0.60.8
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -103,7 +104,9 @@ jobs:
             cargo-${{ runner.os }}-
 
       - name: Check spelling
-        run: bash ci/spellcheck.sh list
+        run: |
+          sudo apt-get install aspell
+          ci/spellcheck.sh list
 
       - name: Run doctest
         uses: actions-rs/cargo@v1

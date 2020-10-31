@@ -3,7 +3,7 @@
 use web_sys::HtmlSelectElement;
 use yew::callback::Callback;
 use yew::html::{ChangeData, Component, ComponentLink, Html, NodeRef, ShouldRender};
-use yew::macros::{html, Properties};
+use yew::{html, Properties};
 
 /// An alternative to the HTML `<select>` tag.
 ///

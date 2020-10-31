@@ -77,7 +77,7 @@
       "getting-started/starter-templates": {
         "title": "新手模板"
       },
-      "intro": {
+      "index": {
         "title": "简介"
       },
       "more/css": {
@@ -174,7 +174,7 @@
       "version-0.17.3-getting-started/starter-templates": {
         "title": "Starter templates"
       },
-      "version-0.17.3-intro": {
+      "version-0.17.3-index": {
         "title": "Introduction"
       },
       "version-0.17.3-more/css": {
