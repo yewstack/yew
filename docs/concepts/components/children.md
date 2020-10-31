@@ -130,7 +130,7 @@ where
 	CHILD::Properties: Into<ItemPropVariants>,
 {
 	fn from(vchild: VChild<CHILD>) -> Self {
-		Item {
+		Self {
 			props: vchild.props.into(),
 		}
 	}
@@ -140,10 +140,10 @@ impl Into<Html> for Item {
 	fn into(self) -> Html {
 		match self.props {
 			ItemPropVariants::MyFirstComponent(props) => {
-				VComp::new::<MyFirstComponent>(props, NodeRef::default(), None).into()
+				html! { <MyFirstComponent with props /> }
 			}
 			ItemPropVariants::MySecondComponent(props) => {
-				VComp::new::<MySecondComponent>(props, NodeRef::default(), None).into()
+				html! { <MySecondComponent with props /> }
 			}
 		}
 	}
@@ -185,7 +185,7 @@ us!
 pub enum ItemPropVariants { /* ... */ }
 ```
 
-Next, we use create this wrapper:
+Next, we create this wrapper:
 
 ```rust
 #[derive(Clone)]
@@ -197,7 +197,6 @@ pub struct Item {
 Then, we implement `From<VChild<CHILD>>` for our wrapper, where `CHILD`:
  
  - Implements `Component`
-
  - Has a `Self::Properties` value that implements `Into<ItemPropVariants>`.
 
 This tells Yew how to handle converting a virtual DOM child into our wrapper!
