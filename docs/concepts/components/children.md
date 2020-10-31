@@ -82,7 +82,7 @@ impl Component for ListProps {
 Of course, sometimes you might need to restrict the children to a few different
 components. In these cases, you have to get a little more hands-on with Yew.
 
-The `derive_more` crate is used here for better ergonomics. If you don't want
+The [`derive_more`](https://github.com/JelteF/derive_more) crate is used here for better ergonomics. If you don't want
 to use it, you can manually implement `From` for each variant.
 
 ```rust
