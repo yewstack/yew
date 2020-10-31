@@ -41,8 +41,7 @@ impl Component for List {
 There are some cases where you wouldn't want to use the `Children` type
 and instead use an alternative method:
 
- - You want to restrict the types of components that can be used as children
-   of this component.
+ - You want to only allow components of a specific type to be used as children for your component.
 
  - You want to share state between a component and its children.
 
