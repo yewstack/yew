@@ -14,25 +14,25 @@ use yew::prelude::*;
 
 #[derive(Properties, Clone)]
 pub struct ListProps {
-	#[prop_or_default]
-	pub children: Children,
+    #[prop_or_default]
+    pub children: Children,
 }
 
 pub struct List {
-	props: ListProps,
+    props: ListProps,
 }
 
 impl Component for List {
-	type Properties = ListProps;
-	// ...
+    type Properties = ListProps;
+    // ...
 
-	fn view(&self) -> Html {
-		html! {
-			<div class="list">
-				{ for self.props.children.iter() }
-			</div>
-		}
-	}
+    fn view(&self) -> Html {
+        html! {
+            <div class="list">
+                { for self.props.children.iter() }
+            </div>
+        }
+    }
 }
 ```
 
@@ -57,25 +57,25 @@ use yew::html::ChildrenWithProps;
 
 #[derive(Properties, Clone)]
 pub struct ListProps {
-	#[prop_or_default]
-	pub children: ChildrenWithProps<Item>,
+    #[prop_or_default]
+    pub children: ChildrenWithProps<Item>,
 }
 
 pub struct List {
-	props: ListProps,
+    props: ListProps,
 }
 
 impl Component for ListProps {
-	type Properties = ListProps;
-	// ...
+    type Properties = ListProps;
+    // ...
 
-	fn view(&self) -> Html {
-		html! {
-			<div class="list">
-				{ for self.props.children.iter() }
-			</div>
-		}
-	}
+    fn view(&self) -> Html {
+        html! {
+            <div class="list">
+                { for self.props.children.iter() }
+            </div>
+        }
+    }
 }
 ```
 
@@ -94,61 +94,61 @@ use yew::virtual_dom::{ VChild, VComp };
 
 #[derive(Clone, derive_more::From)]
 pub enum ItemPropVariants {
-	MyFirstComponent(MyFirstComponentProps),
-	MySecondComponent(MySecondComponentProps),
+    MyFirstComponent(MyFirstComponentProps),
+    MySecondComponent(MySecondComponentProps),
 }
 
 #[derive(Clone)]
 pub struct Item {
-	props: ItemPropVariants,
+    props: ItemPropVariants,
 }
 
 impl<CHILD> From<VChild<CHILD>> for Item
 where
-	CHILD: Component,
-	CHILD::Properties: Into<ItemPropVariants>,
+    CHILD: Component,
+    CHILD::Properties: Into<ItemPropVariants>,
 {
-	fn from(vchild: VChild<CHILD>) -> Self {
-		Self {
-			props: vchild.props.into(),
-		}
-	}
+    fn from(vchild: VChild<CHILD>) -> Self {
+        Self {
+            props: vchild.props.into(),
+        }
+    }
 }
 
 impl Into<Html> for Item {
-	fn into(self) -> Html {
-		match self.props {
-			ItemPropVariants::MyFirstComponent(props) => {
-				html! { <MyFirstComponent with props /> }
-			}
-			ItemPropVariants::MySecondComponent(props) => {
-				html! { <MySecondComponent with props /> }
-			}
-		}
-	}
+    fn into(self) -> Html {
+        match self.props {
+            ItemPropVariants::MyFirstComponent(props) => {
+                html! { <MyFirstComponent with props /> }
+            }
+            ItemPropVariants::MySecondComponent(props) => {
+                html! { <MySecondComponent with props /> }
+            }
+        }
+    }
 }
 
 #[derive(Properties, Clone)]
 pub struct ListProps {
-	#[prop_or_default]
-	pub children: ChildrenRenderer<Item>,
+    #[prop_or_default]
+    pub children: ChildrenRenderer<Item>,
 }
 
 pub struct List {
-	props: ListProps,
+    props: ListProps,
 }
 
 impl Component for List {
-	type Properties = ListProps;
-	// ...
+    type Properties = ListProps;
+    // ...
 
-	fn view(&self) -> Html {
-		html! {
-			<div class="list">
-				{ for self.props.children.iter() }
-			</div>
-		}
-	}
+    fn view(&self) -> Html {
+        html! {
+            <div class="list">
+                { for self.props.children.iter() }
+            </div>
+        }
+    }
 }
 ```
 
@@ -169,7 +169,7 @@ Next, we create this wrapper:
 ```rust
 #[derive(Clone)]
 pub struct Item {
-	props: ItemPropVariants,
+    props: ItemPropVariants,
 }
 ```
 
@@ -183,8 +183,8 @@ This tells Yew how to handle converting a virtual DOM child into our wrapper!
 ```rust
 impl<CHILD> From<VChild<CHILD>> for Item
 where
-	CHILD: Component,
-	CHILD::Properties: Into<ItemPropVariants>,
+    CHILD: Component,
+    CHILD::Properties: Into<ItemPropVariants>,
 { /* ... */ }
 ```
 
@@ -205,29 +205,29 @@ users of your library.
 
 #[derive(Properties, Clone)]
 pub struct ListProps {
-	#[prop_or_default]
-	pub children: ChildrenRenderer<Item>,
+    #[prop_or_default]
+    pub children: ChildrenRenderer<Item>,
 }
 
 pub struct List {
-	props: ListProps,
+    props: ListProps,
 }
 
 impl Component for List {
-	type Properties = ListProps;
-	// ...
+    type Properties = ListProps;
+    // ...
 
-	fn view(&self) -> Html {
-		html! {
-			<div class="list">
-				{
-					for self.props.children.iter().enumerate().map(|(i, mut item)| {
-						item.props.value = format!("#{}", i);
-						item
-					})
-				}
-			</div>
-		}
-	}
+    fn view(&self) -> Html {
+        html! {
+            <div class="list">
+                {
+                    for self.props.children.iter().enumerate().map(|(i, mut item)| {
+                        item.props.value = format!("#{}", i);
+                        item
+                    })
+                }
+            </div>
+        }
+    }
 }
 ```
