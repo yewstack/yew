@@ -42,7 +42,6 @@ There are some cases where you wouldn't want to use the `Children` type
 and instead use an alternative method:
 
  - You want to only allow components of a specific type to be used as children for your component.
-
  - You want to share state between a component and its children.
 
 ### Typed children
@@ -84,27 +83,7 @@ Of course, sometimes you might need to restrict the children to a few different
 components. In these cases, you have to get a little more hands-on with Yew.
 
 The `derive_more` crate is used here for better ergonomics. If you don't want
-to use it, replace `ItemPropVariants` with this:
-
-```rust
-#[derive(Clone)]
-pub enum ItemPropVariants {
-	MyFirstComponent(MyFirstComponentProps),
-	MySecondComponent(MySecondComponentProps),
-}
-
-impl From<MyFirstComponentProps> for ItemPropVariants {
-	fn from(props: MyFirstComponentProps) -> Self {
-		Self::MyFirstComponent(props)		
-	}
-}
-
-impl From<MySecondComponentProps> for ItemPropVariants {
-	fn from(props: MySecondComponentProps) -> Self {
-		Self::MySecondComponent(props)
-	}
-}
-```
+to use it, you can manually implement `From` for each variant.
 
 ```rust
 use yew::prelude::*;
