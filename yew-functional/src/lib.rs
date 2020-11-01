@@ -7,6 +7,31 @@ use yew::{Component, ComponentLink, Html, Properties};
 
 mod use_context_hook;
 pub use use_context_hook::*;
+/// This macro autogenerates the requirements for functional components which allows any function to
+/// be annotated and used as a Yew component.
+///
+/// Functions to which this macro is applied to **must** return `Html` and can optionally take an
+/// argument for props. The name for the component is passed as an attribute to the macro.
+///
+/// # Example
+/// ```rust
+/// # use yew_functional::functional_component;
+/// # use yew::prelude::*;
+/// #
+/// # #[derive(Properties, Clone)]
+/// # struct Props {
+/// #     text: String
+/// # }
+/// #
+/// #[functional_component(NameOfComponent)]
+/// pub fn component(props: Props) -> Html {
+///     html! {
+///         <p>
+///             { props.text }
+///         </p>
+///     }
+/// }
+/// ```
 pub use yew_functional_macro::functional_component;
 
 thread_local! {
