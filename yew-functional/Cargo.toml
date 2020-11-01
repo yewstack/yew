@@ -18,3 +18,4 @@ yew = { path = "../yew" }
 [dependencies]
 yew = { path = "../yew" }
 wasm-bindgen = "0.2.60"
+yew-functional-macro = { path = "../yew-functional-macro" }

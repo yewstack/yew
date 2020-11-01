@@ -7,6 +7,7 @@ use yew::{Component, ComponentLink, Html, Properties};
 
 mod use_context_hook;
 pub use use_context_hook::*;
+pub use yew_functional_macro::functional_component;
 
 thread_local! {
     static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
