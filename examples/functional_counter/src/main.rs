@@ -23,13 +23,13 @@ fn app() -> Html {
     let (counter, set_counter) = use_state(|| 0);
 
     let (counter_one, set_counter_one) = (counter.clone(), set_counter.clone());
-    let inc_on_click = move |_: yew::MouseEvent|  {
+    let inc_on_click = move |_: yew::MouseEvent| {
         ConsoleService::log("plus one");
         set_counter_one(*counter_one + 1);
     };
 
     let (counter_two, set_counter_two) = (counter.clone(), set_counter);
-    let dec_on_click = move |_: yew::MouseEvent|  {
+    let dec_on_click = move |_: yew::MouseEvent| {
         ConsoleService::log("minus one");
         set_counter_two(*counter_two - 1);
     };
