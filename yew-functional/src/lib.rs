@@ -18,8 +18,8 @@ pub use use_context_hook::*;
 /// # use yew_functional::functional_component;
 /// # use yew::prelude::*;
 /// #
-/// # #[derive(Properties, Clone)]
-/// # struct Props {
+/// # #[derive(Properties, Clone, PartialEq)]
+/// # pub struct Props {
 /// #     text: String
 /// # }
 /// #
@@ -27,7 +27,7 @@ pub use use_context_hook::*;
 /// pub fn component(props: Props) -> Html {
 ///     html! {
 ///         <p>
-///             { props.text }
+///             { &props.text }
 ///         </p>
 ///     }
 /// }
