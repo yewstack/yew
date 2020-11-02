@@ -71,6 +71,8 @@ const siteConfig = {
     // Highlight.js theme to use for syntax highlighting in code blocks.
     theme: 'default',
   },
+  // prism manages to actually highlight our code properly
+  usePrism: ["rust"],
 
   // Add custom scripts here that would be placed in <script> tags.
   // scripts: ['https://buttons.github.io/buttons.js'],
