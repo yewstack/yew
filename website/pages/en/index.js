@@ -11,7 +11,7 @@ function Home(props) {
 
   return (
     <div className="docMainWrapper wrapper">
-      // not ideal, but it's the best we can do with Docusaurus v1
+      {/* not ideal, but it's the best we can do with Docusaurus v1 */}
       <script
         dangerouslySetInnerHTML={{
           __html: `window.location.href = "${href}";`,
@@ -23,6 +23,7 @@ function Home(props) {
             <h1>Redirecting</h1>
           </header>
           <div>
+            {/* please note the trailing space */}
             {"If you are not redirected automatically, follow this "}
             <a href={href}>link</a>.
           </div>
