@@ -125,11 +125,12 @@ struct FunctionalComponentName {
 
 impl Parse for FunctionalComponentName {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let component_name = input.parse().map_err(|e|
+        let component_name = input.parse().map_err(|e| {
             syn::Error::new(
                 e.span(),
-            format!("invalid name for component provided ({})", e.to_string()),
-        ))?;
+                format!("invalid name for component provided ({})", e.to_string()),
+            )
+        })?;
         let function_name = format_ident!("Function{}", component_name);
 
         Ok(Self {
