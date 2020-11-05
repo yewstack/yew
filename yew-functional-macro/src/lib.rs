@@ -1,11 +1,14 @@
-use proc_macro::{Span, TokenStream};
-use quote::quote;
+use proc_macro2::{Span, TokenStream};
+use quote::{quote, format_ident};
 use syn::parse::{Parse, ParseStream};
 use syn::{parse_macro_input, Block, FnArg, Ident, Item, Type};
+use syn::spanned::Spanned;
+use proc_macro::TokenStream as TokenStream1;
 
 struct FunctionalComponent {
     body: Block,
     props_type: Type,
+    props_name: Ident,
 }
 
 impl Parse for FunctionalComponent {
@@ -15,50 +18,77 @@ impl Parse for FunctionalComponent {
         match parsed {
             Item::Fn(func) => {
                 let inputs = &func.sig.inputs;
-                let props_type = match inputs.len() {
-                    // If there is one and only one argument passed, use it for props
-                    1 => match inputs.first().unwrap() {
-                        FnArg::Typed(arg) => (*arg.ty).clone(),
 
-                        _ => {
-                            return Err(syn::Error::new_spanned(&func.sig, "invalid argument passed. (hint: first argument must not be a receiver. Functional components take one argument of props struct as value)"));
+                let (props_type, props_name) = if let Some(arg) = inputs.into_iter().next() {
+                    match arg {
+                        FnArg::Typed(arg) => {
+                            let ident = match &*arg.pat {
+                                syn::Pat::Ident(ident) => &ident.ident,
+                                pat => return Err(syn::Error::new_spanned(pat, "Cannot obtain ident. This should never happen"))
+                            };
+
+                            let ty = match &*arg.ty {
+                                Type::Reference(ty) => {
+                                    if ty.lifetime.is_some() {
+                                        return Err(syn::Error::new_spanned(&ty.lifetime, "reference must not have life time"));
+                                    }
+
+                                    if ty.mutability.is_some() {
+                                        return Err(syn::Error::new_spanned(&ty.mutability, "reference must not be mutable"));
+                                    }
+
+                                    &*ty.elem
+                                }
+                                ty => return Err(syn::Error::new_spanned(ty, "invalid argument passed. (hint: type must be props struct by reference)"))
+                            };
+
+                            (ty.clone(), ident.clone())
                         }
-                    },
-                    // If nothing is passed then use `()` for props
-                    0 => Type::Tuple(syn::TypeTuple {
+
+                        arg => {
+                            return Err(syn::Error::new_spanned(arg, "functional components cannot accept a receiver"));
+                        }
+                    }
+                } else {
+                    (Type::Tuple(syn::TypeTuple {
                         paren_token: Default::default(),
                         elems: Default::default(),
-                    }),
-                    // Error if more than 1 arguments are passed
-                    _ => {
-                        return Err(syn::Error::new_spanned(
-                            &func.sig,
-                            "Functional components take only one argument of props struct as value",
-                        ))
-                    }
+                    }), Ident::new("_", Span::call_site()))
                 };
 
                 let body = *func.block;
 
-                Ok(Self { body, props_type })
+                Ok(Self { body, props_type, props_name })
             }
             _ => Err(syn::Error::new(
-                proc_macro2::Span::call_site(),
+                Span::call_site(),
                 "`functional_component` can only be applied to functions",
             )),
         }
     }
 }
 
-#[proc_macro_attribute]
-pub fn functional_component(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let function_name = Ident::new(
-        &["Function", attr.to_string().as_str()].concat(),
-        Span::call_site().into(),
-    );
-    let attr = proc_macro2::TokenStream::from(attr);
+struct FunctionalComponentName {
+    function_name: Ident,
+    component_name: Ident,
+}
 
-    let FunctionalComponent { body, props_type } = parse_macro_input!(item as FunctionalComponent);
+impl Parse for FunctionalComponentName {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let component_name = input.parse()?;
+        let function_name = format_ident!("Function{}", component_name);
+
+        Ok(Self {
+            function_name,
+            component_name,
+        })
+    }
+}
+
+#[proc_macro_attribute]
+pub fn functional_component(attr: TokenStream1, item: TokenStream1) -> TokenStream1 {
+    let FunctionalComponent { body, props_type, props_name } = parse_macro_input!(item as FunctionalComponent);
+    let FunctionalComponentName { function_name, component_name } = parse_macro_input!(attr as FunctionalComponentName);
 
     let quoted = quote! {
         pub struct #function_name;
@@ -66,13 +96,13 @@ pub fn functional_component(attr: TokenStream, item: TokenStream) -> TokenStream
         impl ::yew_functional::FunctionProvider for #function_name {
             type TProps = #props_type;
 
-            fn run(props: &Self::TProps) -> Html {
+            fn run(#props_name: &Self::TProps) -> ::yew::html::Html {
                 #body
             }
         }
 
-        pub type #attr = ::yew_functional::FunctionComponent<#function_name>;
+        pub type #component_name = ::yew_functional::FunctionComponent<#function_name>;
     };
 
-    TokenStream::from(quoted)
+    TokenStream1::from(quoted)
 }
