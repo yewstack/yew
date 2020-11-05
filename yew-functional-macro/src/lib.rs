@@ -1,4 +1,3 @@
-use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::Span;
 use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
@@ -16,7 +15,6 @@ impl Parse for FunctionalComponent {
 
         match parsed {
             Item::Fn(func) => {
-
                 if !func.sig.generics.params.is_empty() {
                     // TODO maybe find a way to handle those
                     return Err(syn::Error::new_spanned(
@@ -31,7 +29,7 @@ impl Parse for FunctionalComponent {
                     return Err(syn::Error::new_spanned(
                         inputs,
                         "functional components must take only parameter of props",
-                    ))
+                    ));
                 }
 
                 let (props_type, props_name) = if let Some(arg) = inputs.into_iter().next() {
@@ -114,7 +112,10 @@ impl Parse for FunctionalComponentName {
 }
 
 #[proc_macro_attribute]
-pub fn functional_component(attr: TokenStream1, item: TokenStream1) -> TokenStream1 {
+pub fn functional_component(
+    attr: proc_macro::TokenStream,
+    item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     let FunctionalComponent {
         body,
         props_type,
@@ -140,5 +141,5 @@ pub fn functional_component(attr: TokenStream1, item: TokenStream1) -> TokenStre
         pub type #component_name = ::yew_functional::FunctionComponent<#function_name>;
     };
 
-    TokenStream1::from(quoted)
+    quoted.into()
 }
