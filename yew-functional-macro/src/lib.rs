@@ -1,8 +1,8 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
-use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, Block, FnArg, Ident, Item, Type, ItemFn, Visibility};
 use syn::export::ToTokens;
+use syn::parse::{Parse, ParseStream};
+use syn::{parse_macro_input, Block, FnArg, Ident, Item, ItemFn, Type, Visibility};
 
 struct FunctionalComponent {
     body: Box<Block>,
@@ -17,7 +17,12 @@ impl Parse for FunctionalComponent {
 
         match parsed {
             Item::Fn(func) => {
-                let ItemFn { attrs: _, vis, sig, block } = func;
+                let ItemFn {
+                    attrs: _,
+                    vis,
+                    sig,
+                    block,
+                } = func;
 
                 if !sig.generics.params.is_empty() {
                     // TODO maybe find a way to handle those
@@ -66,17 +71,26 @@ impl Parse for FunctionalComponent {
                             let ty = match &*arg.ty {
                                 Type::Reference(ty) => {
                                     if ty.lifetime.is_some() {
-                                        return Err(syn::Error::new_spanned(&ty.lifetime, "reference must not have life time"));
+                                        return Err(syn::Error::new_spanned(
+                                            &ty.lifetime,
+                                            "reference must not have life time",
+                                        ));
                                     }
 
                                     if ty.mutability.is_some() {
-                                        return Err(syn::Error::new_spanned(&ty.mutability, "reference must not be mutable"));
+                                        return Err(syn::Error::new_spanned(
+                                            &ty.mutability,
+                                            "reference must not be mutable",
+                                        ));
                                     }
 
                                     &*ty.elem
                                 }
                                 ty => {
-                                    let msg = format!("expected a reference to a `Properties` type (try: `&{}`)", ty.to_token_stream());
+                                    let msg = format!(
+                                        "expected a reference to a `Properties` type (try: `&{}`)",
+                                        ty.to_token_stream()
+                                    );
                                     return Err(syn::Error::new_spanned(ty, msg));
                                 }
                             };
@@ -114,7 +128,7 @@ impl Parse for FunctionalComponent {
                     body: block,
                     props_type,
                     props_name,
-                    vis
+                    vis,
                 })
             }
             _ => Err(syn::Error::new(
