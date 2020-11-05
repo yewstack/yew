@@ -49,7 +49,6 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [todomvc](todomvc)           | Implementation of [TodoMVC](http://todomvc.com/)                                                                                   |
 | [two_apps](two_apps)         | Runs two separate Yew apps which can communicate with each other                                                                   |
 | [webgl](webgl)               | Controls a [WebGL canvas](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Getting_started_with_WebGL) from Yew |
-| [counter](counter)           | Simple counter which can be incremented and decremented built using functional components                                          |
 
 ## Next steps
 
