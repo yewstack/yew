@@ -1,4 +1,4 @@
-error: invalid name for component provided unexpected end of input, expected identifier
+error: invalid name for component provided (unexpected end of input, expected identifier)
  --> $DIR/no-name-fail.rs:9:1
   |
 9 | #[functional_component()]
