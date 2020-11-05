@@ -6,8 +6,8 @@ use syn::{parse_macro_input, Block, FnArg, Ident, Item, ItemFn, Type, Visibility
 
 struct FunctionalComponent {
     body: Box<Block>,
-    props_type: Type,
-    props_name: Ident,
+    props_type: Box<Type>,
+    arg: FnArg,
     vis: Visibility,
 }
 
@@ -53,68 +53,12 @@ impl Parse for FunctionalComponent {
                     ));
                 }
 
-                let inputs = &mut sig.inputs.into_iter();
+                let mut inputs = sig.inputs.into_iter();
+                let arg: FnArg = inputs
+                    .next()
+                    .unwrap_or_else(|| syn::parse_quote! { _: &() });
 
-                let (props_type, props_name) = if let Some(arg) = inputs.next() {
-                    match arg {
-                        FnArg::Typed(arg) => {
-                            let ident = match &*arg.pat {
-                                syn::Pat::Ident(ident) => &ident.ident,
-                                pat => {
-                                    return Err(syn::Error::new_spanned(
-                                        pat,
-                                        "Cannot obtain ident. This should never happen",
-                                    ))
-                                }
-                            };
-
-                            let ty = match &*arg.ty {
-                                Type::Reference(ty) => {
-                                    if ty.lifetime.is_some() {
-                                        return Err(syn::Error::new_spanned(
-                                            &ty.lifetime,
-                                            "reference must not have life time",
-                                        ));
-                                    }
-
-                                    if ty.mutability.is_some() {
-                                        return Err(syn::Error::new_spanned(
-                                            &ty.mutability,
-                                            "reference must not be mutable",
-                                        ));
-                                    }
-
-                                    &*ty.elem
-                                }
-                                ty => {
-                                    let msg = format!(
-                                        "expected a reference to a `Properties` type (try: `&{}`)",
-                                        ty.to_token_stream()
-                                    );
-                                    return Err(syn::Error::new_spanned(ty, msg));
-                                }
-                            };
-
-                            (ty.clone(), ident.clone())
-                        }
-
-                        FnArg::Receiver(_) => {
-                            return Err(syn::Error::new_spanned(
-                                arg,
-                                "functional components can't accept a receiver",
-                            ));
-                        }
-                    }
-                } else {
-                    (
-                        Type::Tuple(syn::TypeTuple {
-                            paren_token: Default::default(),
-                            elems: Default::default(),
-                        }),
-                        Ident::new("_", Span::call_site()),
-                    )
-                };
-
+                // Check here so we don't compute anything if params are invalid
                 // `>0` because first one is already consumed.
                 if inputs.len() > 0 {
                     let params: TokenStream = inputs.map(|it| it.to_token_stream()).collect();
@@ -124,10 +68,46 @@ impl Parse for FunctionalComponent {
                     ));
                 }
 
+                let ty = match arg {
+                    FnArg::Typed(ref arg) => match &*arg.ty {
+                        Type::Reference(ty) => {
+                            if ty.lifetime.is_some() {
+                                return Err(syn::Error::new_spanned(
+                                    &ty.lifetime,
+                                    "reference must not have life time",
+                                ));
+                            }
+
+                            if ty.mutability.is_some() {
+                                return Err(syn::Error::new_spanned(
+                                    &ty.mutability,
+                                    "reference must not be mutable",
+                                ));
+                            }
+
+                            ty.elem.clone()
+                        }
+                        ty => {
+                            let msg = format!(
+                                "expected a reference to a `Properties` type (try: `&{}`)",
+                                ty.to_token_stream()
+                            );
+                            return Err(syn::Error::new_spanned(ty, msg));
+                        }
+                    },
+
+                    FnArg::Receiver(_) => {
+                        return Err(syn::Error::new_spanned(
+                            arg,
+                            "functional components can't accept a receiver",
+                        ));
+                    }
+                };
+
                 Ok(Self {
                     body: block,
-                    props_type,
-                    props_name,
+                    props_type: ty,
+                    arg,
                     vis,
                 })
             }
@@ -164,7 +144,7 @@ pub fn functional_component(
     let FunctionalComponent {
         body,
         props_type,
-        props_name,
+        arg,
         vis,
     } = parse_macro_input!(item as FunctionalComponent);
 
@@ -179,7 +159,7 @@ pub fn functional_component(
         impl ::yew_functional::FunctionProvider for #function_name {
             type TProps = #props_type;
 
-            fn run(#props_name: &Self::TProps) -> ::yew::html::Html {
+            fn run(#arg) -> ::yew::html::Html {
                 #body
             }
         }
