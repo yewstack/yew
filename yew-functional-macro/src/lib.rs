@@ -16,7 +16,6 @@ impl Parse for FunctionalComponent {
 
         match parsed {
             Item::Fn(func) => {
-                let inputs = &func.sig.inputs;
 
                 if !func.sig.generics.params.is_empty() {
                     // TODO maybe find a way to handle those
@@ -24,6 +23,15 @@ impl Parse for FunctionalComponent {
                         func.sig.generics,
                         "functional components cannot contain generics",
                     ));
+                }
+
+                let inputs = &func.sig.inputs;
+
+                if inputs.len() > 1 {
+                    return Err(syn::Error::new_spanned(
+                        inputs,
+                        "functional components must take only parameter of props",
+                    ))
                 }
 
                 let (props_type, props_name) = if let Some(arg) = inputs.into_iter().next() {
