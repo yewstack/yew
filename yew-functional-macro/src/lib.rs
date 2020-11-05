@@ -1,12 +1,14 @@
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, Block, FnArg, Ident, Item, Type};
+use syn::{parse_macro_input, Block, FnArg, Ident, Item, Type, ItemFn, Visibility};
+use syn::export::ToTokens;
 
 struct FunctionalComponent {
     body: Box<Block>,
     props_type: Type,
     props_name: Ident,
+    vis: Visibility,
 }
 
 impl Parse for FunctionalComponent {
@@ -15,24 +17,40 @@ impl Parse for FunctionalComponent {
 
         match parsed {
             Item::Fn(func) => {
-                if !func.sig.generics.params.is_empty() {
+                let ItemFn { attrs: _, vis, sig, block } = func;
+
+                if !sig.generics.params.is_empty() {
                     // TODO maybe find a way to handle those
                     return Err(syn::Error::new_spanned(
-                        func.sig.generics,
-                        "functional components cannot contain generics",
+                        sig.generics,
+                        "functional components can't contain generics",
                     ));
                 }
 
-                let inputs = &func.sig.inputs;
-
-                if inputs.len() > 1 {
+                if sig.asyncness.is_some() {
                     return Err(syn::Error::new_spanned(
-                        inputs,
-                        "functional components must take only parameter of props",
+                        sig.asyncness,
+                        "functional components can't be async",
                     ));
                 }
 
-                let (props_type, props_name) = if let Some(arg) = inputs.into_iter().next() {
+                if sig.constness.is_some() {
+                    return Err(syn::Error::new_spanned(
+                        sig.constness,
+                        "const functions can't be functional components",
+                    ));
+                }
+
+                if sig.abi.is_some() {
+                    return Err(syn::Error::new_spanned(
+                        sig.abi,
+                        "extern functions can't be functional components",
+                    ));
+                }
+
+                let inputs = &mut sig.inputs.into_iter();
+
+                let (props_type, props_name) = if let Some(arg) = inputs.next() {
                     match arg {
                         FnArg::Typed(arg) => {
                             let ident = match &*arg.pat {
@@ -57,16 +75,19 @@ impl Parse for FunctionalComponent {
 
                                     &*ty.elem
                                 }
-                                ty => return Err(syn::Error::new_spanned(ty, "invalid argument passed. (hint: type must be props struct by reference)"))
+                                ty => {
+                                    let msg = format!("expected a reference to a `Properties` type (try: `&{}`)", ty.to_token_stream());
+                                    return Err(syn::Error::new_spanned(ty, msg));
+                                }
                             };
 
                             (ty.clone(), ident.clone())
                         }
 
-                        arg => {
+                        FnArg::Receiver(_) => {
                             return Err(syn::Error::new_spanned(
                                 arg,
-                                "functional components cannot accept a receiver",
+                                "functional components can't accept a receiver",
                             ));
                         }
                     }
@@ -80,15 +101,25 @@ impl Parse for FunctionalComponent {
                     )
                 };
 
+                // `>0` because first one is already consumed.
+                if inputs.len() > 0 {
+                    let params: TokenStream = inputs.map(|it| it.to_token_stream()).collect();
+                    return Err(syn::Error::new_spanned(
+                        params,
+                        "functional components must take only parameter of props",
+                    ));
+                }
+
                 Ok(Self {
-                    body: func.block,
+                    body: block,
                     props_type,
                     props_name,
+                    vis
                 })
             }
             _ => Err(syn::Error::new(
                 Span::call_site(),
-                "`functional_component` can only be applied to functions",
+                "`functional_component` attribute can only be applied to functions",
             )),
         }
     }
@@ -120,6 +151,7 @@ pub fn functional_component(
         body,
         props_type,
         props_name,
+        vis,
     } = parse_macro_input!(item as FunctionalComponent);
 
     let FunctionalComponentName {
@@ -128,7 +160,7 @@ pub fn functional_component(
     } = parse_macro_input!(attr as FunctionalComponentName);
 
     let quoted = quote! {
-        pub struct #function_name;
+        #vis struct #function_name;
 
         impl ::yew_functional::FunctionProvider for #function_name {
             type TProps = #props_type;
@@ -138,7 +170,7 @@ pub fn functional_component(
             }
         }
 
-        pub type #component_name = ::yew_functional::FunctionComponent<#function_name>;
+        #vis type #component_name = ::yew_functional::FunctionComponent<#function_name>;
     };
 
     quoted.into()
