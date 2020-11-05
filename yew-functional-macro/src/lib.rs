@@ -1,9 +1,8 @@
-use proc_macro2::{Span, TokenStream};
-use quote::{quote, format_ident};
+use proc_macro::TokenStream as TokenStream1;
+use proc_macro2::Span;
+use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
 use syn::{parse_macro_input, Block, FnArg, Ident, Item, Type};
-use syn::spanned::Spanned;
-use proc_macro::TokenStream as TokenStream1;
 
 struct FunctionalComponent {
     body: Block,
@@ -24,7 +23,12 @@ impl Parse for FunctionalComponent {
                         FnArg::Typed(arg) => {
                             let ident = match &*arg.pat {
                                 syn::Pat::Ident(ident) => &ident.ident,
-                                pat => return Err(syn::Error::new_spanned(pat, "Cannot obtain ident. This should never happen"))
+                                pat => {
+                                    return Err(syn::Error::new_spanned(
+                                        pat,
+                                        "Cannot obtain ident. This should never happen",
+                                    ))
+                                }
                             };
 
                             let ty = match &*arg.ty {
@@ -46,19 +50,29 @@ impl Parse for FunctionalComponent {
                         }
 
                         arg => {
-                            return Err(syn::Error::new_spanned(arg, "functional components cannot accept a receiver"));
+                            return Err(syn::Error::new_spanned(
+                                arg,
+                                "functional components cannot accept a receiver",
+                            ));
                         }
                     }
                 } else {
-                    (Type::Tuple(syn::TypeTuple {
-                        paren_token: Default::default(),
-                        elems: Default::default(),
-                    }), Ident::new("_", Span::call_site()))
+                    (
+                        Type::Tuple(syn::TypeTuple {
+                            paren_token: Default::default(),
+                            elems: Default::default(),
+                        }),
+                        Ident::new("_", Span::call_site()),
+                    )
                 };
 
                 let body = *func.block;
 
-                Ok(Self { body, props_type, props_name })
+                Ok(Self {
+                    body,
+                    props_type,
+                    props_name,
+                })
             }
             _ => Err(syn::Error::new(
                 Span::call_site(),
@@ -87,8 +101,16 @@ impl Parse for FunctionalComponentName {
 
 #[proc_macro_attribute]
 pub fn functional_component(attr: TokenStream1, item: TokenStream1) -> TokenStream1 {
-    let FunctionalComponent { body, props_type, props_name } = parse_macro_input!(item as FunctionalComponent);
-    let FunctionalComponentName { function_name, component_name } = parse_macro_input!(attr as FunctionalComponentName);
+    let FunctionalComponent {
+        body,
+        props_type,
+        props_name,
+    } = parse_macro_input!(item as FunctionalComponent);
+
+    let FunctionalComponentName {
+        function_name,
+        component_name,
+    } = parse_macro_input!(attr as FunctionalComponentName);
 
     let quoted = quote! {
         pub struct #function_name;
