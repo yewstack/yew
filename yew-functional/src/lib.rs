@@ -26,9 +26,7 @@ pub use use_context_hook::*;
 /// #[functional_component(NameOfComponent)]
 /// pub fn component(props: Props) -> Html {
 ///     html! {
-///         <p>
-///             { &props.text }
-///         </p>
+///         <p>{ &props.text }</p>
 ///     }
 /// }
 /// ```
