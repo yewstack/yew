@@ -5,7 +5,7 @@ use syn::parse::{Parse, ParseStream};
 use syn::{parse_macro_input, Block, FnArg, Ident, Item, Type};
 
 struct FunctionalComponent {
-    body: Block,
+    body: Box<Block>,
     props_type: Type,
     props_name: Ident,
 }
@@ -17,6 +17,14 @@ impl Parse for FunctionalComponent {
         match parsed {
             Item::Fn(func) => {
                 let inputs = &func.sig.inputs;
+
+                if !func.sig.generics.params.is_empty() {
+                    // TODO maybe find a way to handle those
+                    return Err(syn::Error::new_spanned(
+                        func.sig.generics,
+                        "functional components cannot contain generics",
+                    ));
+                }
 
                 let (props_type, props_name) = if let Some(arg) = inputs.into_iter().next() {
                     match arg {
@@ -66,10 +74,8 @@ impl Parse for FunctionalComponent {
                     )
                 };
 
-                let body = *func.block;
-
                 Ok(Self {
-                    body,
+                    body: func.block,
                     props_type,
                     props_name,
                 })
