@@ -1,6 +1,5 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote};
-use syn::export::ToTokens;
+use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::{parse_macro_input, Block, FnArg, Ident, Item, ItemFn, Type, Visibility};
 
@@ -64,12 +63,12 @@ impl Parse for FunctionalComponent {
                     let params: TokenStream = inputs.map(|it| it.to_token_stream()).collect();
                     return Err(syn::Error::new_spanned(
                         params,
-                        "functional components must take only parameter of props",
+                        "functional components can accept at most one parameter for the props",
                     ));
                 }
 
-                let ty = match arg {
-                    FnArg::Typed(ref arg) => match &*arg.ty {
+                let ty = match &arg {
+                    FnArg::Typed(arg) => match &*arg.ty {
                         Type::Reference(ty) => {
                             if ty.lifetime.is_some() {
                                 return Err(syn::Error::new_spanned(
@@ -126,7 +125,11 @@ struct FunctionalComponentName {
 
 impl Parse for FunctionalComponentName {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let component_name = input.parse()?;
+        let component_name = input.parse().map_err(|e|
+            syn::Error::new(
+                e.span(),
+            format!("invalid name for component provided ({})", e.to_string()),
+        ))?;
         let function_name = format_ident!("Function{}", component_name);
 
         Ok(Self {
