@@ -13,6 +13,13 @@ pub use use_context_hook::*;
 /// Functions to which this macro is applied to **must** return `Html` and can optionally take an
 /// argument for props. The name for the component is passed as an attribute to the macro.
 ///
+/// This attribute generates a struct which implements [`FunctionalProvider`] trait.
+/// A type alias `FunctionalComponent<CreatedStruct>` is then created.
+/// [`FunctionalComponent`] is a struct which implements `yew::Component`
+/// and handles the magic required for making functional components work.
+/// In most cases, you don't need to use the trait implementation,
+/// all you need is the aliased `type` which can be used as any other component.
+///
 /// # Example
 /// ```rust
 /// # use yew_functional::functional_component;

@@ -59,4 +59,6 @@ fn app() -> Html {
 It is possible to completely omit props argument is no props are to be passed.
 :::
 
+### `FunctionalProvider` trait
 
+This attribute generates a struct which implements `FunctionalProvider` trait. A type alias `FunctionalComponent<CreatedStruct>` is then created. `FunctionalComponent` is a struct which implements `yew::Component` and handles the magic required for making functional components work. In most cases, you don't need to use the trait implementation, all you need is the aliased `type` which can be used as any other component.
