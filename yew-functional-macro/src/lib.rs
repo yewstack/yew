@@ -1,13 +1,14 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, Block, FnArg, Ident, Item, ItemFn, Type, Visibility};
+use syn::{parse_macro_input, Attribute, Block, FnArg, Ident, Item, ItemFn, Type, Visibility};
 
 struct FunctionalComponent {
-    body: Box<Block>,
+    block: Box<Block>,
     props_type: Box<Type>,
     arg: FnArg,
     vis: Visibility,
+    attrs: Vec<Attribute>,
 }
 
 impl Parse for FunctionalComponent {
@@ -17,7 +18,7 @@ impl Parse for FunctionalComponent {
         match parsed {
             Item::Fn(func) => {
                 let ItemFn {
-                    attrs: _,
+                    attrs,
                     vis,
                     sig,
                     block,
@@ -105,10 +106,11 @@ impl Parse for FunctionalComponent {
                 }
 
                 Ok(Self {
-                    body: block,
                     props_type: ty,
+                    block,
                     arg,
                     vis,
+                    attrs,
                 })
             }
             _ => Err(syn::Error::new(
@@ -146,10 +148,11 @@ pub fn functional_component(
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     let FunctionalComponent {
-        body,
+        block,
         props_type,
         arg,
         vis,
+        attrs,
     } = parse_macro_input!(item as FunctionalComponent);
 
     let FunctionalComponentName {
@@ -158,16 +161,19 @@ pub fn functional_component(
     } = parse_macro_input!(attr as FunctionalComponentName);
 
     let quoted = quote! {
+
+        #[doc(hidden)]
         #vis struct #function_name;
 
         impl ::yew_functional::FunctionProvider for #function_name {
             type TProps = #props_type;
 
             fn run(#arg) -> ::yew::html::Html {
-                #body
+                #block
             }
         }
 
+        #(#attrs)*
         #vis type #component_name = ::yew_functional::FunctionComponent<#function_name>;
     };
 
