@@ -53,7 +53,9 @@
         "label": "Functional Components",
         "ids": [
           "concepts/functional-components",
-          "concepts/functional-components/macro"
+          "concepts/functional-components/macro",
+          "concepts/functional-components/pre-defined-hooks",
+          "concepts/functional-components/custom-hooks"
         ]
       },
       "concepts/router",

@@ -31,8 +31,14 @@
         "title": "Functional Components",
         "sidebar_label": "Introduction"
       },
+      "concepts/functional-components/custom-hooks": {
+        "title": "Custom hooks"
+      },
       "concepts/functional-components/macro": {
         "title": "#[functional_component]"
+      },
+      "concepts/functional-components/pre-defined-hooks": {
+        "title": "Pre-defined hooks"
       },
       "concepts/html": {
         "title": "html!",
