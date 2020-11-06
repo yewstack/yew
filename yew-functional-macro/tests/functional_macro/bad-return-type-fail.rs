@@ -7,21 +7,10 @@ struct Props {
 }
 
 #[functional_component(Comp1)]
-fn comp_1(props: &Props) {
-    let _x = html! {
-        <p>
-            { props.a }
-        </p>
-    };
-}
+fn comp_1(_props: &Props) {}
 
 #[functional_component(Comp)]
-fn comp(props: &Props) -> u32 {
-    let _x = html! {
-        <p>
-            { props.a }
-        </p>
-    };
+fn comp(_props: &Props) -> u32 {
     1
 }
 
