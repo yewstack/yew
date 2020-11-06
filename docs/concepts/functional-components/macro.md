@@ -10,21 +10,50 @@ A function annotated with `#[functional_component]` may take one argument for pr
 
 ### Example
 
+<!--DOCUSAURUS_CODE_TABS-->
+<!--With props-->
 ```rust
-#[derive(Clone, Properties, PartialEq)]
-struct Props {
-    a: usize,
+#[derive(Properties, Clone, PartialEq)]
+pub struct RenderedAtProps {
+    pub time: Date,
 }
 
-#[functional_component(Comp)]
-fn comp(props: &Props) -> Html {
+#[functional_component(RenderedAt)]
+pub fn rendered_at(props: &RenderedAtProps) -> Html {
     html! {
         <p>
-            { props.text }
+            <b>{ "Rendered at: " }</b>
+            { String::from(props.time.to_string()) }
         </p>
     }
 }
-``` 
+```
+
+<!--Without props-->
+```rust
+#[functional_component(App)]
+fn app() -> Html {
+    let (counter, set_counter) = use_state(|| 0);
+
+    let (counter_one, set_counter_one) = (counter.clone(), set_counter.clone());
+    let inc_click = Callback::from(move |_| set_counter_one(*counter_one + 1));
+
+    let (counter_two, set_counter_two) = (counter.clone(), set_counter);
+    let dec_click = Callback::from(move |_| set_counter_two(*counter_two - 1));
+    
+    html! {<>
+        <nav>
+            <button onclick=inc_onclick>{ "Increment" }</button>
+            <button onclick=dec_onclick>{ "Decrement" }</button>
+        </nav>
+        <p>
+            <b>{ "Current value: " }</b>
+            { counter }
+        </p>
+    </>}
+}
+```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 :::tip
 It is possible to completely omit props argument is no props are to be passed.
