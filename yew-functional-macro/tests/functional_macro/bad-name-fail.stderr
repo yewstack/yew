@@ -16,6 +16,18 @@ error: expected identifier
 27 | #[functional_component(124)]
    |                        ^^^
 
+error[E0428]: the name `component` is defined multiple times
+  --> $DIR/bad-name-fail.rs:36:1
+   |
+36 | #[functional_component(component)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | |
+   | `component` redefined here
+   | previous definition of the type `component` here
+   |
+   = note: `component` must be defined only once in the type namespace of this module
+   = note: this error originates in an attribute macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
 warning: type `component` should have an upper camel case name
   --> $DIR/bad-name-fail.rs:36:24
    |

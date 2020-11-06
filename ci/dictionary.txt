@@ -16,8 +16,8 @@ codegen
 composable
 Config
 declaratively
-deps
 defs
+deps
 DerefMut
 DOCTYPE
 DOCUSAURUS

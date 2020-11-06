@@ -1,7 +1,10 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, Attribute, Block, FnArg, Ident, Item, ItemFn, Type, Visibility};
+use syn::spanned::Spanned;
+use syn::{
+    parse_macro_input, Attribute, Block, FnArg, Ident, Item, ItemFn, ReturnType, Type, Visibility,
+};
 
 struct FunctionalComponent {
     block: Box<Block>,
@@ -9,6 +12,8 @@ struct FunctionalComponent {
     arg: FnArg,
     vis: Visibility,
     attrs: Vec<Attribute>,
+    name: Ident,
+    return_type: ReturnType,
 }
 
 impl Parse for FunctionalComponent {
@@ -111,6 +116,8 @@ impl Parse for FunctionalComponent {
                     arg,
                     vis,
                     attrs,
+                    name: sig.ident,
+                    return_type: sig.output,
                 })
             }
             _ => Err(syn::Error::new(
@@ -122,7 +129,6 @@ impl Parse for FunctionalComponent {
 }
 
 struct FunctionalComponentName {
-    function_name: Ident,
     component_name: Ident,
 }
 
@@ -133,12 +139,8 @@ impl Parse for FunctionalComponentName {
         }
 
         let component_name = input.parse()?;
-        let function_name = format_ident!("Function{}", component_name);
 
-        Ok(Self {
-            function_name,
-            component_name,
-        })
+        Ok(Self { component_name })
     }
 }
 
@@ -153,28 +155,30 @@ pub fn functional_component(
         arg,
         vis,
         attrs,
+        name,
+        return_type,
     } = parse_macro_input!(item as FunctionalComponent);
 
-    let FunctionalComponentName {
-        function_name,
-        component_name,
-    } = parse_macro_input!(attr as FunctionalComponentName);
+    let FunctionalComponentName { component_name } =
+        parse_macro_input!(attr as FunctionalComponentName);
+
+    let ret_type = quote_spanned!(return_type.span() => ::yew::html::Html);
 
     let quoted = quote! {
-
         #[doc(hidden)]
-        #vis struct #function_name;
+        #[allow(non_camel_case_types)]
+        #vis struct #name;
 
-        impl ::yew_functional::FunctionProvider for #function_name {
+        impl ::yew_functional::FunctionProvider for #name {
             type TProps = #props_type;
 
-            fn run(#arg) -> ::yew::html::Html {
+            fn run(#arg) -> #ret_type {
                 #block
             }
         }
 
         #(#attrs)*
-        #vis type #component_name = ::yew_functional::FunctionComponent<#function_name>;
+        #vis type #component_name = ::yew_functional::FunctionComponent<#name>;
     };
 
     quoted.into()
