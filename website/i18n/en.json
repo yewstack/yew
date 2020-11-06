@@ -27,6 +27,13 @@
       "concepts/components/refs": {
         "title": "Refs"
       },
+      "concepts/functional-components": {
+        "title": "Functional Components",
+        "sidebar_label": "Introduction"
+      },
+      "concepts/functional-components/macro": {
+        "title": "#[functional_component]"
+      },
       "concepts/html": {
         "title": "html!",
         "sidebar_label": "Introduction"

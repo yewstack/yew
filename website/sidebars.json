@@ -48,6 +48,14 @@
           "concepts/services/format"
         ]
       },
+      {
+        "type": "subcategory",
+        "label": "Functional Components",
+        "ids": [
+          "concepts/functional-components",
+          "concepts/functional-components/macro"
+        ]
+      },
       "concepts/router",
       "concepts/agents"
     ],
