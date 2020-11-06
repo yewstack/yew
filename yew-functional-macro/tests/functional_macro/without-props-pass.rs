@@ -1,9 +1,8 @@
-use yew::prelude::*;
-use yew_functional::functional_component;
+#![no_implicit_prelude]
 
-#[functional_component(Comp)]
-fn comp() -> Html {
-    html! {
+#[::yew_functional::functional_component(Comp)]
+fn comp() -> ::yew::Html {
+    ::yew::html! {
         <p>
             { "Test" }
         </p>

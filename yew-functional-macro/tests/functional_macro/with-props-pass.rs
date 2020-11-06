@@ -1,14 +1,13 @@
-use yew::prelude::*;
-use yew_functional::functional_component;
+#![no_implicit_prelude]
 
-#[derive(Clone, Properties, PartialEq)]
+#[derive(Clone, ::yew::Properties, PartialEq)]
 struct Props {
     a: usize,
 }
 
-#[functional_component(Comp)]
-fn comp(props: &Props) -> Html {
-    html! {
+#[::yew_functional::functional_component(Comp)]
+fn comp(props: &Props) -> ::yew::Html {
+    ::yew::html! {
         <p>
             { props.a }
         </p>
