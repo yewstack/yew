@@ -36,10 +36,10 @@ fn app() -> Html {
     let (counter, set_counter) = use_state(|| 0);
 
     let (counter_one, set_counter_one) = (counter.clone(), set_counter.clone());
-    let inc_click = Callback::from(move |_| set_counter_one(*counter_one + 1));
+    let inc_onclick = Callback::from(move |_| set_counter_one(*counter_one + 1));
 
     let (counter_two, set_counter_two) = (counter.clone(), set_counter);
-    let dec_click = Callback::from(move |_| set_counter_two(*counter_two - 1));
+    let dec_onclick = Callback::from(move |_| set_counter_two(*counter_two - 1));
     
     html! {<>
         <nav>
