@@ -7,13 +7,6 @@ struct Props {
 }
 
 #[functional_component(Comp)]
-fn comp(props: &Props, invalid: String) -> Html {
-    html! {
-        <p>
-            { props.a }
-            { invalid }
-        </p>
-    }
-}
+struct Test;
 
 fn main() {}

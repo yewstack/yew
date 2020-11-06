@@ -1,8 +1,8 @@
 error[E0308]: mismatched types
-  --> $DIR/bad-return-type-fail.rs:10:24
+  --> $DIR/bad-return-type-fail.rs:10:26
    |
-10 |   fn comp(props: &Props) {
-   |  ________________________^
+10 |   fn comp_1(props: &Props) {
+   |  __________________________^
 11 | |     let _x = html! {
 12 | |         <p>
 13 | |             { props.a }
@@ -10,3 +10,12 @@ error[E0308]: mismatched types
 15 | |     };
 16 | | }
    | |_^ expected enum `yew::virtual_dom::vnode::VNode`, found `()`
+
+error[E0308]: mismatched types
+  --> $DIR/bad-return-type-fail.rs:25:5
+   |
+18 | #[functional_component(Comp)]
+   | ----------------------------- expected `yew::virtual_dom::vnode::VNode` because of return type
+...
+25 |     1
+   |     ^ expected enum `yew::virtual_dom::vnode::VNode`, found integer

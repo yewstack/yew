@@ -57,16 +57,6 @@ impl Parse for FunctionalComponent {
                     .next()
                     .unwrap_or_else(|| syn::parse_quote! { _: &() });
 
-                // Check here so we don't compute anything if params are invalid
-                // `>0` because first one is already consumed.
-                if inputs.len() > 0 {
-                    let params: TokenStream = inputs.map(|it| it.to_token_stream()).collect();
-                    return Err(syn::Error::new_spanned(
-                        params,
-                        "functional components can accept at most one parameter for the props",
-                    ));
-                }
-
                 let ty = match &arg {
                     FnArg::Typed(arg) => match &*arg.ty {
                         Type::Reference(ty) => {
@@ -103,6 +93,17 @@ impl Parse for FunctionalComponent {
                     }
                 };
 
+                // Checking after param parsing may make it a little inefficient
+                // but that's a requirement for better error messages in case of receivers
+                // `>0` because first one is already consumed.
+                if inputs.len() > 0 {
+                    let params: TokenStream = inputs.map(|it| it.to_token_stream()).collect();
+                    return Err(syn::Error::new_spanned(
+                        params,
+                        "functional components can accept at most one parameter for the props",
+                    ));
+                }
+
                 Ok(Self {
                     body: block,
                     props_type: ty,
@@ -125,12 +126,11 @@ struct FunctionalComponentName {
 
 impl Parse for FunctionalComponentName {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let component_name = input.parse().map_err(|e| {
-            syn::Error::new(
-                e.span(),
-                format!("invalid name for component provided ({})", e.to_string()),
-            )
-        })?;
+        if input.is_empty() {
+            return Err(input.error("expected identifier for the component"));
+        }
+
+        let component_name = input.parse()?;
         let function_name = format_ident!("Function{}", component_name);
 
         Ok(Self {

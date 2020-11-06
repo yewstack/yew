@@ -1,0 +1,25 @@
+error: expected identifier
+ --> $DIR/bad-name-fail.rs:9:24
+  |
+9 | #[functional_component(let)]
+  |                        ^^^
+
+error: unexpected token
+  --> $DIR/bad-name-fail.rs:18:25
+   |
+18 | #[functional_component(x, y, z)]
+   |                         ^
+
+error: expected identifier
+  --> $DIR/bad-name-fail.rs:27:24
+   |
+27 | #[functional_component(124)]
+   |                        ^^^
+
+warning: type `component` should have an upper camel case name
+  --> $DIR/bad-name-fail.rs:36:24
+   |
+36 | #[functional_component(component)]
+   |                        ^^^^^^^^^ help: convert the identifier to upper camel case (notice the capitalization): `Component`
+   |
+   = note: `#[warn(non_camel_case_types)]` on by default
