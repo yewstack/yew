@@ -91,7 +91,7 @@ so that if it's called with the same arguments more than once it doesn't have to
 and can just return the saved value from the first function call) - preventing re-renders for 
 identical props using the aforementioned `neq_assign` logic.
 
-Yew doesn't natively support pure or function components, but they are available via external crates.
+Yew doesn't natively support pure or functional components, but they are available via external crates.
 
 ## Keyed DOM nodes when they arrive
 
