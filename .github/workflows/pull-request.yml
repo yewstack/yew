@@ -181,9 +181,9 @@ jobs:
           # FIXME: Chrome really doesn't seem to like yew-stdweb
           wasm-pack test --firefox --headless -- --features "wasm_test httpbin_test"
 
-      - name: Run tests - yew-function-components
+      - name: Run tests - yew-functional
         run: |
-          cd yew-function-components
+          cd yew-functional
           wasm-pack test --chrome --firefox --headless
 
   unit_tests:

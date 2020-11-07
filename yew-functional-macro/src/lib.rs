@@ -30,7 +30,6 @@ impl Parse for FunctionComponent {
                 } = func;
 
                 if !sig.generics.params.is_empty() {
-                    // TODO maybe find a way to handle those
                     return Err(syn::Error::new_spanned(
                         sig.generics,
                         "function components can't contain generics",
@@ -185,15 +184,12 @@ fn function_component_impl(
 
     if function_name == component_name {
         return Err(syn::Error::new_spanned(
-            [component_name, function_name]
-                .iter()
-                .map(|it| it.to_token_stream())
-                .collect::<TokenStream>(),
+            component_name,
             "The function name and component name must not be the same",
         ));
     }
 
-    let ret_type = quote_spanned!(return_type.span() => ::yew::html::Html);
+    let ret_type = quote_spanned!(return_type.span()=> ::yew::html::Html);
 
     let quoted = quote! {
         #[doc(hidden)]
