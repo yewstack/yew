@@ -50,12 +50,12 @@
       },
       {
         "type": "subcategory",
-        "label": "Functional Components",
+        "label": "Function Components",
         "ids": [
-          "concepts/functional-components",
-          "concepts/functional-components/macro",
-          "concepts/functional-components/pre-defined-hooks",
-          "concepts/functional-components/custom-hooks"
+          "concepts/function-components",
+          "concepts/function-components/macro",
+          "concepts/function-components/pre-defined-hooks",
+          "concepts/function-components/custom-hooks"
         ]
       },
       "concepts/router",
