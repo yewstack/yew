@@ -57,7 +57,7 @@ impl Parse for FunctionComponent {
                     ));
                 }
 
-                let mut inputs = sig.inputs.into_iter();
+                let mut inputs = sig.inputs.clone().into_iter();
                 let arg: FnArg = inputs
                     .next()
                     .unwrap_or_else(|| syn::parse_quote! { _: &() });

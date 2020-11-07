@@ -19,7 +19,5 @@ error: expected identifier
 error: The function name and component name must not be the same
   --> $DIR/bad-name-fail.rs:36:22
    |
-36 |   #[function_component(component)]
-   |  ______________________^
-37 | | fn component(props: &Props) -> Html {
-   | |____________^
+36 | #[function_component(component)]
+   |                      ^^^^^^^^^
