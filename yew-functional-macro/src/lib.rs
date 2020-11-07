@@ -1,4 +1,4 @@
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
@@ -57,7 +57,17 @@ impl Parse for FunctionComponent {
                     ));
                 }
 
-                let mut inputs = sig.inputs.clone().into_iter();
+                let return_type = match sig.output {
+                    ReturnType::Default => {
+                        return Err(syn::Error::new_spanned(
+                            sig,
+                            "function components must return `yew::Html`",
+                        ))
+                    }
+                    ReturnType::Type(_, ty) => ty,
+                };
+
+                let mut inputs = sig.inputs.into_iter();
                 let arg: FnArg = inputs
                     .next()
                     .unwrap_or_else(|| syn::parse_quote! { _: &() });
@@ -109,16 +119,6 @@ impl Parse for FunctionComponent {
                     ));
                 }
 
-                let return_type = match sig.output {
-                    ReturnType::Default => {
-                        return Err(syn::Error::new_spanned(
-                            sig,
-                            "function components must return `yew::Html`",
-                        ))
-                    }
-                    ReturnType::Type(_, ty) => ty,
-                };
-
                 Ok(Self {
                     props_type: ty,
                     block,
@@ -129,8 +129,8 @@ impl Parse for FunctionComponent {
                     return_type,
                 })
             }
-            _ => Err(syn::Error::new(
-                Span::call_site(),
+            item => Err(syn::Error::new_spanned(
+                item,
                 "`function_component` attribute can only be applied to functions",
             )),
         }
@@ -185,7 +185,7 @@ fn function_component_impl(
     if function_name == component_name {
         return Err(syn::Error::new_spanned(
             component_name,
-            "The function name and component name must not be the same",
+            "the component must not have the same name as the function",
         ));
     }
 
