@@ -112,7 +112,7 @@ impl Parse for FunctionComponent {
                 let return_type = match sig.output {
                     ReturnType::Default => {
                         return Err(syn::Error::new_spanned(
-                            sig.output,
+                            sig,
                             "function components must return `yew::Html`",
                         ))
                     }
