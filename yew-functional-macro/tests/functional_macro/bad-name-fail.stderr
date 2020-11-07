@@ -16,22 +16,10 @@ error: expected identifier
 27 | #[functional_component(124)]
    |                        ^^^
 
-error[E0428]: the name `component` is defined multiple times
-  --> $DIR/bad-name-fail.rs:36:1
-   |
-36 | #[functional_component(component)]
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   | |
-   | `component` redefined here
-   | previous definition of the type `component` here
-   |
-   = note: `component` must be defined only once in the type namespace of this module
-   = note: this error originates in an attribute macro (in Nightly builds, run with -Z macro-backtrace for more info)
-
-warning: type `component` should have an upper camel case name
+error: The function name and component name must not be the same
   --> $DIR/bad-name-fail.rs:36:24
    |
-36 | #[functional_component(component)]
-   |                        ^^^^^^^^^ help: convert the identifier to upper camel case (notice the capitalization): `Component`
-   |
-   = note: `#[warn(non_camel_case_types)]` on by default
+36 |   #[functional_component(component)]
+   |  ________________________^
+37 | | fn component(props: &Props) -> Html {
+   | |____________^

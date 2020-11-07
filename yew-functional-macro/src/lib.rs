@@ -13,7 +13,7 @@ struct FunctionalComponent {
     vis: Visibility,
     attrs: Vec<Attribute>,
     name: Ident,
-    return_type: ReturnType,
+    return_type: Box<Type>,
 }
 
 impl Parse for FunctionalComponent {
@@ -110,6 +110,16 @@ impl Parse for FunctionalComponent {
                     ));
                 }
 
+                let return_type = match sig.output {
+                    ReturnType::Default => {
+                        return Err(syn::Error::new_spanned(
+                            sig.output,
+                            "functional components must return `yew::Html`",
+                        ))
+                    }
+                    ReturnType::Type(_, ty) => ty,
+                };
+
                 Ok(Self {
                     props_type: ty,
                     block,
@@ -117,7 +127,7 @@ impl Parse for FunctionalComponent {
                     vis,
                     attrs,
                     name: sig.ident,
-                    return_type: sig.output,
+                    return_type,
                 })
             }
             _ => Err(syn::Error::new(
@@ -149,27 +159,48 @@ pub fn functional_component(
     attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
+    let item = parse_macro_input!(item as FunctionalComponent);
+    let attr = parse_macro_input!(attr as FunctionalComponentName);
+
+    functional_component_impl(attr, item)
+        .unwrap_or_else(|err| err.to_compile_error())
+        .into()
+}
+
+fn functional_component_impl(
+    name: FunctionalComponentName,
+    component: FunctionalComponent,
+) -> syn::Result<TokenStream> {
+    let FunctionalComponentName { component_name } = name;
+
     let FunctionalComponent {
         block,
         props_type,
         arg,
         vis,
         attrs,
-        name,
+        name: function_name,
         return_type,
-    } = parse_macro_input!(item as FunctionalComponent);
+    } = component;
 
-    let FunctionalComponentName { component_name } =
-        parse_macro_input!(attr as FunctionalComponentName);
+    if function_name == component_name {
+        return Err(syn::Error::new_spanned(
+            [component_name, function_name]
+                .iter()
+                .map(|it| it.to_token_stream())
+                .collect::<TokenStream>(),
+            "The function name and component name must not be the same",
+        ));
+    }
 
     let ret_type = quote_spanned!(return_type.span() => ::yew::html::Html);
 
     let quoted = quote! {
         #[doc(hidden)]
         #[allow(non_camel_case_types)]
-        #vis struct #name;
+        #vis struct #function_name;
 
-        impl ::yew_functional::FunctionProvider for #name {
+        impl ::yew_functional::FunctionProvider for #function_name {
             type TProps = #props_type;
 
             fn run(#arg) -> #ret_type {
@@ -178,8 +209,7 @@ pub fn functional_component(
         }
 
         #(#attrs)*
-        #vis type #component_name = ::yew_functional::FunctionComponent<#name>;
+        #vis type #component_name = ::yew_functional::FunctionComponent<#function_name>;
     };
-
-    quoted.into()
+    Ok(quoted)
 }
