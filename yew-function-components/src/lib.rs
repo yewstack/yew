@@ -14,7 +14,7 @@ pub use use_context_hook::*;
 /// argument for props. The name for the component is passed as an attribute to the macro.
 ///
 /// This attribute generates a struct which implements [`FunctionProvider`] trait.
-/// A type alias `FunctionalComponent<CreatedStruct>` is then created.
+/// A type alias `FunctionComponent<CreatedStruct>` is then created.
 /// [`FunctionComponent`] is a struct which implements `yew::Component`
 /// and handles the magic required for making function components work.
 /// In most cases, you don't need to use the trait implementation,
@@ -376,7 +376,7 @@ where
         let mut hook_state_holder = hook_state_holder.expect("Nested hooks not supported");
         let mut hook_state = hook_state_holder
             .as_mut()
-            .expect("No current hook. Hooks can only be called inside functional components");
+            .expect("No current hook. Hooks can only be called inside function components");
 
         // Determine which hook position we're at and increment for the next hook
         let hook_pos = hook_state.counter;

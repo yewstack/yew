@@ -10,7 +10,7 @@ members = [
   "yew-router-macro",
   "yew-router-route-parser",
 
-  # Functional
+  # Function components
   "yew-function-components",
   "yew-function-components-macro",
 
