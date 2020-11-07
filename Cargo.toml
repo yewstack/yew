@@ -11,8 +11,8 @@ members = [
   "yew-router-route-parser",
 
   # Function components
-  "yew-function-components",
-  "yew-function-components-macro",
+  "yew-functional",
+  "yew-functional-macro",
 
   # Utilities
   "yewtil",

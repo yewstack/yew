@@ -200,7 +200,7 @@ fn function_component_impl(
         #[allow(non_camel_case_types)]
         #vis struct #function_name;
 
-        impl ::yew_function_components::FunctionProvider for #function_name {
+        impl ::yew_functional::FunctionProvider for #function_name {
             type TProps = #props_type;
 
             fn run(#arg) -> #ret_type {
@@ -209,7 +209,7 @@ fn function_component_impl(
         }
 
         #(#attrs)*
-        #vis type #component_name = ::yew_function_components::FunctionComponent<#function_name>;
+        #vis type #component_name = ::yew_functional::FunctionComponent<#function_name>;
     };
     Ok(quoted)
 }

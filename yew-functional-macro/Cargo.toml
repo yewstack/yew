@@ -1,5 +1,5 @@
 [package]
-name = "yew-function-components-macro"
+name = "yew-functional-macro"
 version = "0.1.0"
 authors = ["Hamza <muhammadhamza1311@gmail.com>"]
 edition = "2018"
@@ -18,4 +18,4 @@ syn = { version = "1.0.11", features = ["full"] }
 rustversion = "1.0"
 trybuild = "1.0"
 yew = { path = "../yew" }
-yew-function-components = { path = "../yew-function-components" }
+yew-functional = { path = "../yew-functional" }

@@ -22,7 +22,7 @@ pub use use_context_hook::*;
 ///
 /// # Example
 /// ```rust
-/// # use yew_function_components::function_component;
+/// # use yew_functional::function_component;
 /// # use yew::prelude::*;
 /// #
 /// # #[derive(Properties, Clone, PartialEq)]
@@ -37,7 +37,7 @@ pub use use_context_hook::*;
 ///     }
 /// }
 /// ```
-pub use yew_function_components_macro::function_component;
+pub use yew_functional_macro::function_component;
 
 thread_local! {
     static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);

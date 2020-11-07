@@ -7,7 +7,7 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 extern crate yew;
 
 use yew::{html, App, Children, Html, Properties};
-use yew_function_components::{
+use yew_functional::{
     use_context, use_effect, use_ref, use_state, ContextProvider, FunctionComponent,
     FunctionProvider,
 };

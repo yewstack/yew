@@ -9,7 +9,7 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 extern crate yew;
 
 use yew::{html, App, Html, Properties};
-use yew_function_components::{
+use yew_functional::{
     use_effect_with_deps, use_reducer_with_init, use_ref, use_state, FunctionComponent,
     FunctionProvider,
 };
