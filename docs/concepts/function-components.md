@@ -16,14 +16,12 @@ Basically, it's a component that's been reduced to just the `view` method.
 On its own that would be quite limiting because you can only create pure components, but that's where hooks come in.
 Hooks allow function components to use state and other Yew features without implementing the `Component` trait.
 
-## Example:
+## Example
  
 ```rust
 #[function_component(HelloWorld)]
 fn hello_world() -> Html {
-    html! {
-        { "Hello world" }
-    }
+    html! { "Hello world" }
 }
 ```
 
@@ -33,7 +31,7 @@ The easiest way to create a function component is to add the [`#[function_compon
 
 ### Under the hood
 
-function components consists of two parts.
+Function components consists of two parts.
 First, the `FunctionProvider` trait which is comparable to the `Component` trait but it only has a single method called `run`.
 The second part is the `FunctionComponent` struct which wraps around the `FunctionProvider` type and turns it into an actual `Component`. 
 The `#[function_component]` attribute essentially just implements `FunctionProvider` for you and exposes it wrapped in `FunctionComponent`.
