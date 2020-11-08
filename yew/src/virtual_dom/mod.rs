@@ -1,8 +1,6 @@
 //! This module contains Yew's implementation of a reactive virtual DOM.
 
 #[doc(hidden)]
-pub mod classes;
-#[doc(hidden)]
 pub mod key;
 #[doc(hidden)]
 pub mod vcomp;
@@ -29,8 +27,6 @@ cfg_if! {
     }
 }
 
-#[doc(inline)]
-pub use self::classes::Classes;
 #[doc(inline)]
 pub use self::key::Key;
 #[doc(inline)]

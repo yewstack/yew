@@ -417,11 +417,10 @@ pub mod prelude {
     pub use crate::callback::Callback;
     pub use crate::events::*;
     pub use crate::html::{
-        Children, ChildrenWithProps, Component, ComponentLink, Html, NodeRef, Properties,
+        Children, ChildrenWithProps, Classes, Component, ComponentLink, Html, NodeRef, Properties,
         ShouldRender,
     };
     pub use crate::macros::{classes, html, html_nested};
-    pub use crate::virtual_dom::Classes;
 
     /// Prelude module for creating worker.
     #[cfg(feature = "agent")]
