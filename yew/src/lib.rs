@@ -107,6 +107,7 @@ extern crate self as yew;
 ///
 /// ```
 /// # use yew::prelude::*;
+/// # fn test() {
 /// let conditional_class = Some("my-other-class");
 /// let vec_of_classes = vec!["one-bean", "two-beans", "three-beans", "a-very-small-casserole"];
 ///
@@ -115,6 +116,7 @@ extern crate self as yew;
 ///         // ...
 ///     </div>
 /// };
+/// # }
 /// ```
 ///
 /// Using [boolinator](https://crates.io/crates/boolinator):
