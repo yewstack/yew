@@ -42,8 +42,10 @@ pub fn rendered_at(props: &RenderedAtProps) -> Html {
 fn app() -> Html {
     let (counter, set_counter) = use_state(|| 0);
 
-    let counter1 = counter.clone();
-    let onclick = Callback::from(move |_| set_counter(*counter1 + 1));
+    let onclick = {
+        let counter = Rc::clone(&counter);
+        Callback::from(move |_| set_counter(*counter + 1))
+    };
     
     html! {
         <div>
