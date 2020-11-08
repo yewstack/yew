@@ -9,9 +9,7 @@ pub struct HtmlClasses(Punctuated<Expr, Token![,]>);
 
 impl Parse for HtmlClasses {
     fn parse(input: ParseStream) -> Result<Self> {
-        Ok(HtmlClasses(Punctuated::<Expr, Token![,]>::parse_terminated(
-            input,
-        )?))
+        input.parse_terminated(Expr::parse).map(Self)
     }
 }
 
