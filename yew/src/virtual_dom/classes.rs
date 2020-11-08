@@ -244,7 +244,7 @@ mod macro_tests {
     use std::any::TypeId;
     use std::rc::Rc;
     #[cfg(feature = "std_web")]
-    use stdweb::web::{document, IElement};
+    use stdweb::web::{document, IElement, INode};
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
