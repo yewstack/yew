@@ -2,14 +2,15 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Punctuated;
-use syn::{Expr, Token};
+use syn::spanned::Spanned;
+use syn::{Expr, ExprLit, Lit, Token};
 
 /// List of HTML classes.
 pub struct Classes(Punctuated<Expr, Token![,]>);
 
 impl Parse for Classes {
     fn parse(input: ParseStream) -> Result<Self> {
-        input.parse_terminated(Expr::parse).map(Self)
+        input.parse_terminated(class_expr_parser).map(Self)
     }
 }
 
@@ -27,4 +28,24 @@ impl ToTokens for Classes {
             #new_tokens
         }});
     }
+}
+
+fn class_expr_parser(input: ParseStream) -> Result<Expr> {
+    let expr = Expr::parse(input)?;
+
+    if let Expr::Lit(ExprLit {
+        lit: Lit::Str(lit_str),
+        ..
+    }) = &expr
+    {
+        let value = lit_str.value();
+        if value.contains(' ') {
+            return Err(syn::Error::new(
+                expr.span(),
+                r"string literals should not contain spaces: please use two separate literals",
+            ));
+        }
+    }
+
+    Ok(expr)
 }

@@ -14,6 +14,8 @@ fn compile_pass() {
     classes!(none);
 
     classes!("one", 42);
+
+    classes!("one", "two three", "four");
 }
 
 fn main() {}

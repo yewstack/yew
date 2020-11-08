@@ -4,6 +4,12 @@ error: expected `,`
 7 |     classes!("one" "two");
   |                    ^^^^^
 
+error: string literals should not contain spaces: please use two separate literals
+  --> $DIR/classes-fail.rs:18:21
+   |
+18 |     classes!("one", "two three", "four");
+   |                     ^^^^^^^^^^^
+
 error[E0277]: the trait bound `yew::virtual_dom::classes::Classes: std::convert::From<{integer}>` is not satisfied
  --> $DIR/classes-fail.rs:4:5
   |
