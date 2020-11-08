@@ -16,11 +16,20 @@ Basically, it's a component that's been reduced to just the `view` method.
 On its own that would be quite limiting because you can only create pure components, but that's where hooks come in.
 Hooks allow function components to use state and other Yew features without implementing the `Component` trait.
 
+## Example:
+ 
+```rust
+#[function_component(HelloWorld)]
+fn hello_world() -> Html {
+    html! {
+        { "Hello world" }
+    }
+}
+```
+
 ## Creating function components
 
 The easiest way to create a function component is to add the [`#[function_component]`](function-components/attribute.md) attribute to a function.
-
-// TODO: let's insert a really small example here (literally just like `html! { "Hello World" }` or something) just to give the reader a taste of what they look like
 
 ### Under the hood
 

@@ -53,7 +53,7 @@
         "label": "Function Components",
         "ids": [
           "concepts/function-components",
-          "concepts/function-components/macro",
+          "concepts/function-components/attribute",
           "concepts/function-components/pre-defined-hooks",
           "concepts/function-components/custom-hooks"
         ]

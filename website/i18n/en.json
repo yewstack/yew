@@ -31,11 +31,11 @@
         "title": "Function Components",
         "sidebar_label": "Introduction"
       },
+      "concepts/function-components/attribute": {
+        "title": "#[function_component]"
+      },
       "concepts/function-components/custom-hooks": {
         "title": "Custom hooks"
-      },
-      "concepts/function-components/macro": {
-        "title": "#[function_component]"
       },
       "concepts/function-components/pre-defined-hooks": {
         "title": "Pre-defined hooks"
