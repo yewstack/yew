@@ -56,13 +56,13 @@
 //! Please refer to [https://github.com/yewstack/yew](https://github.com/yewstack/yew) for how to set this up.
 
 mod derive_props;
-mod html_classes;
+mod classes;
 mod html_tree;
 mod props;
 mod stringify;
 
 use derive_props::DerivePropsInput;
-use html_classes::HtmlClasses;
+use classes::Classes;
 use html_tree::{HtmlRoot, HtmlRootVNode};
 use proc_macro::TokenStream;
 use quote::ToTokens;
@@ -124,6 +124,6 @@ pub fn props(input: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn classes(input: TokenStream) -> TokenStream {
-    let classes = parse_macro_input!(input as HtmlClasses);
+    let classes = parse_macro_input!(input as Classes);
     TokenStream::from(classes.into_token_stream())
 }

@@ -5,15 +5,15 @@ use syn::punctuated::Punctuated;
 use syn::{Expr, Token};
 
 /// List of HTML classes.
-pub struct HtmlClasses(Punctuated<Expr, Token![,]>);
+pub struct Classes(Punctuated<Expr, Token![,]>);
 
-impl Parse for HtmlClasses {
+impl Parse for Classes {
     fn parse(input: ParseStream) -> Result<Self> {
         input.parse_terminated(Expr::parse).map(Self)
     }
 }
 
-impl ToTokens for HtmlClasses {
+impl ToTokens for Classes {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let n = self.0.len();
         let classes = self.0.iter();
