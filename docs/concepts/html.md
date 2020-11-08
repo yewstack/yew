@@ -1,11 +1,14 @@
 ---
-title: html!
+title: html! and classes!
 sidebar_label: Introduction
 description: The procedural macro for generating HTML and SVG
 ---
 
 The `html!` macro allows you to write HTML and SVG code declaratively. It is similar to JSX
 \(an extension to JavaScript which allows you to write HTML-like code inside of JavaScript\).
+
+The `classes!` macro helps you manage the classes on the HTML nodes. This macro is similar to
+[`classNames`](https://www.npmjs.com/package/classnames) from JavaScript.
 
 **Important notes**
 

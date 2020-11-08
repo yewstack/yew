@@ -30,7 +30,7 @@
       },
       {
         "type": "subcategory",
-        "label": "The html! and classes! macros",
+        "label": "Yew's macros",
         "ids": [
           "concepts/html",
           "concepts/html/components",
