@@ -233,10 +233,12 @@ impl ToTokens for HtmlElement {
         };
 
         let push_classes = match classes {
-            Some(ClassesForm::Tuple(span, classes)) => {
+            Some(ClassesForm::Tuple(classes)) => {
+                let span = classes.span();
+                let classes: Vec<_> = classes.elems.iter().collect();
                 let n = classes.len();
                 let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
-                Some(quote_spanned! {*span=>
+                Some(quote_spanned! {span=>
                     {
                         let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
                         #(__yew_classes.push(#classes);)*

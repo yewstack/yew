@@ -1,23 +1,18 @@
 use super::{Prop, Props, SpecialProps};
 use lazy_static::lazy_static;
-use proc_macro2::Span;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use syn::parse::{Parse, ParseStream};
-use syn::spanned::Spanned;
 use syn::{Expr, ExprTuple};
 
 pub enum ClassesForm {
-    Tuple(Span, Vec<Expr>),
+    Tuple(ExprTuple),
     Single(Box<Expr>),
 }
 impl ClassesForm {
     fn from_expr(expr: Expr) -> Self {
-        let span = expr.span();
         match expr {
-            Expr::Tuple(ExprTuple { elems, .. }) => {
-                ClassesForm::Tuple(span, elems.into_iter().collect())
-            }
+            Expr::Tuple(expr_tuple) => ClassesForm::Tuple(expr_tuple),
             expr => ClassesForm::Single(Box::new(expr)),
         }
     }
