@@ -251,20 +251,22 @@ impl ToTokens for HtmlElement {
                     };
                 }})
             }
-            Some(ClassesForm::Single(span, classes)) => match classes.try_into_lit() {
+            Some(ClassesForm::Single(classes)) => match classes.try_into_lit() {
                 Some(lit) => {
                     if lit.value().is_empty() {
                         None
                     } else {
+                        let span = classes.span();
                         let sr = lit.stringify();
-                        Some(quote_spanned! { *span => {
+                        Some(quote_spanned! { span => {
                             #vtag.__macro_push_attribute("class", #sr);
                         }})
                     }
                 }
                 None => {
+                    let span = classes.span();
                     let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
-                    Some(quote_spanned! { *span => {
+                    Some(quote_spanned! { span => {
                         let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
                         if !__yew_classes.is_empty() {
                             #vtag.__macro_push_attribute("class", #sr);

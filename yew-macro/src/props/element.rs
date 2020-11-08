@@ -9,7 +9,7 @@ use syn::{Expr, ExprTuple};
 
 pub enum ClassesForm {
     Tuple(Span, Vec<Expr>),
-    Single(Span, Box<Expr>),
+    Single(Box<Expr>),
 }
 impl ClassesForm {
     fn from_expr(expr: Expr) -> Self {
@@ -18,7 +18,7 @@ impl ClassesForm {
             Expr::Tuple(ExprTuple { elems, .. }) => {
                 ClassesForm::Tuple(span, elems.into_iter().collect())
             }
-            expr => ClassesForm::Single(span, Box::new(expr)),
+            expr => ClassesForm::Single(Box::new(expr)),
         }
     }
 }
