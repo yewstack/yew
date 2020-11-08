@@ -62,7 +62,6 @@ mod props;
 mod stringify;
 
 use derive_props::DerivePropsInput;
-use classes::Classes;
 use html_tree::{HtmlRoot, HtmlRootVNode};
 use proc_macro::TokenStream;
 use quote::ToTokens;
@@ -124,6 +123,6 @@ pub fn props(input: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn classes(input: TokenStream) -> TokenStream {
-    let classes = parse_macro_input!(input as Classes);
+    let classes = parse_macro_input!(input as classes::Classes);
     TokenStream::from(classes.into_token_stream())
 }
