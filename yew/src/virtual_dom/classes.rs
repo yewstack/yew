@@ -404,8 +404,10 @@ mod macro_tests {
 
     #[test]
     fn filter_empty_string_classes() {
+        let b_emptry_string_1 = "".to_string();
+        let b_emptry_string_2 = "".to_string();
         let a = html! { <div class=classes!(vec![""])></div> };
-        let b = html! { <div class=classes!("", "")></div> };
+        let b = html! { <div class=classes!(b_empty_string_1, b_emptry_string_2)></div> };
         let c = html! { <div class=""></div> };
         let d_arr = [""];
         let d = html! { <div class=classes!(&d_arr[..])></div> };
