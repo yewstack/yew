@@ -7,18 +7,15 @@ use yew::{Component, ComponentLink, Html, Properties};
 
 mod use_context_hook;
 pub use use_context_hook::*;
-/// This macro autogenerates the requirements for function components which allows any function to
-/// be annotated and used as a Yew component.
+/// This attribute creates a function component from a normal Rust function.
 ///
-/// Functions to which this macro is applied to **must** return `Html` and can optionally take an
-/// argument for props. The name for the component is passed as an attribute to the macro.
+/// Functions with this attribute **must** return `Html` and can optionally take an argument for props.
+/// Note that the function only receives a reference to the props.
 ///
-/// This attribute generates a struct which implements [`FunctionProvider`] trait.
-/// A type alias `FunctionComponent<CreatedStruct>` is then created.
-/// [`FunctionComponent`] is a struct which implements `yew::Component`
-/// and handles the magic required for making function components work.
-/// In most cases, you don't need to use the trait implementation,
-/// all you need is the aliased `type` which can be used as any other component.
+/// When using this attribute you need to provide a name for the component:
+/// `#[function_component(ComponentName)]`.
+/// The attribute will then automatically create a [`FunctionComponent`] with the given identifier
+/// which you can use like a normal component.
 ///
 /// # Example
 /// ```rust
