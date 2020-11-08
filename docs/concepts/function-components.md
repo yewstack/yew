@@ -5,20 +5,29 @@ description: Introduction to function components
 ---
 
 :::warning
-Function components are currently unreleased and should **not** be used today.
+We're still working on function components and hooks. They're not quite ready to be used yet.
+If you'd like to help out, take a look at the [project board](https://github.com/yewstack/yew/projects/3) for a list of things that still need to be done.
 :::
 
-:::important contribute
-Contribute to our docs: Add details about function components
 
-Take a look at the [project board](https://github.com/yewstack/yew/projects/3) for details and consider helping out.
-:::
-
-Function components are simply Rust functions which act like Yew components. 
+Function components are a simplified version of normal components.
+They consist of a single function that receives props and determines what should be rendered by returning `Html`.
+Basically, it's a component that's been reduced to just the `view` method.
+On its own that would be quite limiting because you can only create pure components, but that's where hooks come in.
+Hooks allow function components to use state and other Yew features without implementing the `Component` trait.
 
 ## Creating function components
 
-function components are created using the [`#[function_component]`](function-components/macro.md) attribute.
+The easiest way to create a function component is to add the [`#[function_component]`](function-components/attribute.md) attribute to a function.
+
+// TODO: let's insert a really small example here (literally just like `html! { "Hello World" }` or something) just to give the reader a taste of what they look like
+
+### Under the hood
+
+function components consists of two parts.
+First, the `FunctionProvider` trait which is comparable to the `Component` trait but it only has a single method called `run`.
+The second part is the `FunctionComponent` struct which wraps around the `FunctionProvider` type and turns it into an actual `Component`. 
+The `#[function_component]` attribute essentially just implements `FunctionProvider` for you and exposes it wrapped in `FunctionComponent`.
 
 ### Hooks
 
