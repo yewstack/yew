@@ -3,6 +3,12 @@ title: Pre-defined hooks
 description: The pre-defined hooks that Yew comes with 
 ---
 
+:::important contribute
+Contribute to our docs: Add details about pre-defined hooks
+
+Take a look at the [project board](https://github.com/yewstack/yew/projects/3) for details and consider helping out.
+:::
+
 ## `use_state`
 
 
@@ -19,9 +25,3 @@ description: The pre-defined hooks that Yew comes with
 
 
 ## `use_effect_with_deps`
-
-:::important contribute
-Contribute to our docs: Add details about pre-defined hooks
-
-Take a look at the [project board](https://github.com/yewstack/yew/projects/3) for details and consider helping out.
-::: 
