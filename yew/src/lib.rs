@@ -98,6 +98,67 @@
 #![recursion_limit = "512"]
 extern crate self as yew;
 
+/// This macro helps you manage a list of HTML classes.
+///
+/// This macro is similar to [`classNames`](https://www.npmjs.com/package/classnames) from
+/// JavaScript. It helps you manage a set of classes more easily.
+///
+/// # Examples
+///
+/// ```
+/// # use yew::prelude::*;
+/// let conditional_class = Some("my-other-class");
+/// let vec_of_classes = vec!["one-bean", "two-beans", "three-beans", "a-very-small-casserole"];
+///
+/// html! {
+///     <div class=classes!("my-container-class", conditional_class, vec_of_classes)>
+///         // ...
+///     </div>
+/// };
+/// ```
+///
+/// Using [boolinator](https://crates.io/crates/boolinator):
+///
+/// ```
+/// # use yew::prelude::*;
+/// # use boolinator::Boolinator;
+/// struct MyComponent {
+///     props: MyComponentProps,
+/// }
+///
+/// #[derive(Clone, Properties)]
+/// struct MyComponentProps {
+///     fill: bool,
+///     class: Option<String>,
+///     children: html::Children,
+/// }
+///
+/// impl Component for MyComponent {
+///     type Message = ();
+///     type Properties = MyComponentProps;
+///
+///     fn view(&self) -> Html {
+///         html! {
+///             <div
+///                 class=classes!(
+///                     "my-container-class",
+///                     self.props.fill.as_some("my-fill-class"),
+///                     self.props.class.clone(),
+///                 )
+///             >
+///                 { self.props.children.clone() }
+///             </div>
+///         }
+///     }
+///
+///     // ...
+/// #   fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
+/// #   fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
+/// #   fn change(&mut self, _: Self::Properties) -> ShouldRender { unimplemented!() }
+/// }
+/// ```
+pub use yew_macro::classes;
+
 /// This macro implements JSX-like templates.
 ///
 /// This macro always returns [`Html`].
@@ -108,7 +169,7 @@ extern crate self as yew;
 /// [`Html`]: ./html/type.Html.html
 /// [`html_nested!`]: ./macro.html_nested.html
 /// [Yew Docs]: https://yew.rs/docs/en/concepts/html/
-pub use yew_macro::{classes, html};
+pub use yew_macro::html;
 
 /// This macro is similar to [`html!`], but preserves the component type instead
 /// of wrapping it in [`Html`].
