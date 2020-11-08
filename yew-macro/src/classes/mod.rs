@@ -17,10 +17,16 @@ impl Parse for Classes {
 impl ToTokens for Classes {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let n = self.0.len();
-        let classes = self.0.iter();
+        let push_classes = self.0.iter().map(|x| match x {
+            Expr::Lit(ExprLit {
+                lit: Lit::Str(lit_str),
+                ..
+            }) => quote!(__yew_classes.unchecked_push(#lit_str);),
+            x => quote!(__yew_classes.push(#x);),
+        });
         let new_tokens = quote! {
             let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
-            #(__yew_classes.push(#classes);)*
+            #(#push_classes)*
             __yew_classes
         };
 

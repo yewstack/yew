@@ -34,6 +34,15 @@ impl Classes {
         self.set.extend(classes_to_add.set);
     }
 
+    /// Adds a class to a set.
+    ///
+    /// If the provided class has already been added, this method will ignore it.
+    ///
+    /// This method won't check if there are multiple classes in the input string.
+    pub fn unchecked_push<T: Into<Cow<'static, str>>>(&mut self, class: T) {
+        self.set.insert(class.into());
+    }
+
     /// Check the set contains a class.
     pub fn contains<T: AsRef<str>>(&self, class: T) -> bool {
         self.set.contains(class.as_ref())
