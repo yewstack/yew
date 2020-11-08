@@ -31,6 +31,9 @@
         "title": "html!",
         "sidebar_label": "Introduction"
       },
+      "concepts/html/classes": {
+        "title": "Classes"
+      },
       "concepts/html/components": {
         "title": "Components"
       },

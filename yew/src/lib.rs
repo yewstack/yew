@@ -121,7 +121,8 @@ extern crate self as yew;
 ///
 /// ```
 /// # use yew::prelude::*;
-/// # use boolinator::Boolinator;
+/// use boolinator::Boolinator;
+///
 /// struct MyComponent {
 ///     props: MyComponentProps,
 /// }

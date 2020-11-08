@@ -53,6 +53,8 @@ html! {
 ## Using [boolinator](https://crates.io/crates/boolinator)
 
 ```rust
+use boolinator::Boolinator;
+
 struct MyComponent {
     props: MyComponentProps,
 }
