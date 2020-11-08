@@ -25,7 +25,7 @@ impl ToTokens for Classes {
             x => quote!(__yew_classes.push(#x);),
         });
         let new_tokens = quote! {
-            let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
+            let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
             #(#push_classes)*
             __yew_classes
         };

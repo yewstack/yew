@@ -240,7 +240,7 @@ impl ToTokens for HtmlElement {
                 let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
                 Some(quote_spanned! {span=>
                     {
-                        let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
+                        let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
                         #(__yew_classes.push(#classes);)*
 
                         if false {
@@ -274,7 +274,7 @@ impl ToTokens for HtmlElement {
                     let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
                     Some(quote_spanned! {span=>
                         {
-                            let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
+                            let __yew_classes = ::std::convert::Into::<::yew::html::Classes>::into(#classes);
                             if !__yew_classes.is_empty() {
                                 #vtag.__macro_push_attribute("class", #sr);
                             } else {
