@@ -9,10 +9,4 @@ yew = { path = "../../yew" }
 
 [dependencies.web-sys]
 version = "0.3"
-features = [
-  "console",
-  "Document",
-  "Element",
-  "Node",
-  "Window",
-]
+features = ["console", "Document", "Element", "Node", "Window"]

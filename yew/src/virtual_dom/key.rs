@@ -1,41 +1,41 @@
 //! This module contains the implementation yew's virtual nodes' keys.
 
+use std::fmt::{self, Display, Formatter};
 use std::ops::Deref;
 use std::rc::Rc;
 
 /// Represents the (optional) key of Yew's virtual nodes.
 ///
 /// Keys are cheap to clone.
-// TODO (#1263): Explain when keys are useful and add an example.
-#[derive(Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct Key {
-    key: Rc<String>,
+    key: Rc<str>,
 }
 
-impl core::fmt::Display for Key {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", &self.key)
-    }
-}
-
-impl core::fmt::Debug for Key {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", &self.key)
-    }
-}
-
-impl From<Rc<String>> for Key {
-    fn from(key: Rc<String>) -> Self {
-        Key { key }
+impl Display for Key {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        self.key.fmt(f)
     }
 }
 
 impl Deref for Key {
     type Target = str;
 
-    #[inline]
     fn deref(&self) -> &str {
         self.key.as_ref()
+    }
+}
+
+impl From<Rc<str>> for Key {
+    fn from(key: Rc<str>) -> Self {
+        Self { key }
+    }
+}
+
+impl From<&'_ str> for Key {
+    fn from(key: &'_ str) -> Self {
+        let key: Rc<str> = Rc::from(key);
+        Self::from(key)
     }
 }
 
@@ -43,27 +43,27 @@ macro_rules! key_impl_from_to_string {
     ($type:ty) => {
         impl From<$type> for Key {
             fn from(key: $type) -> Self {
-                Key {
-                    key: Rc::new(key.to_string()),
-                }
+                Self::from(key.to_string().as_str())
             }
         }
     };
 }
-key_impl_from_to_string!(&'static str);
+
 key_impl_from_to_string!(String);
+key_impl_from_to_string!(Rc<String>);
 key_impl_from_to_string!(char);
-key_impl_from_to_string!(usize);
 key_impl_from_to_string!(u8);
 key_impl_from_to_string!(u16);
 key_impl_from_to_string!(u32);
 key_impl_from_to_string!(u64);
 key_impl_from_to_string!(u128);
+key_impl_from_to_string!(usize);
 key_impl_from_to_string!(i8);
 key_impl_from_to_string!(i16);
 key_impl_from_to_string!(i32);
 key_impl_from_to_string!(i64);
 key_impl_from_to_string!(i128);
+key_impl_from_to_string!(isize);
 
 #[cfg(test)]
 mod test {
@@ -78,11 +78,11 @@ mod test {
 
     #[test]
     fn all_key_conversions() {
-        let rc_key = Rc::new("rc".to_string());
         html! {
             <key="string literal">
-                <img key="String".to_string() />
-                <p key=rc_key></p>
+                <img key="String".to_owned() />
+                <p key=Rc::new("rc".to_owned())></p>
+                <p key=Rc::<str>::from("rc")></p>
                 <key='a'>
                     <p key=11_usize></p>
                     <p key=12_u8></p>

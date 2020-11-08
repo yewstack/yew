@@ -1,4 +1,5 @@
 //! This module contains Yew's implementation of a service which listens for browser window resize events.
+use crate::services::Task;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::fmt;
@@ -32,7 +33,7 @@ impl fmt::Debug for ResizeTask {
 }
 
 /// Dimensions of the window.
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct WindowDimensions {
     /// The width of the viewport of the browser window.
     pub width: i32,
@@ -81,14 +82,22 @@ impl ResizeService {
     }
 }
 
-#[cfg(feature = "std_web")]
+impl Task for ResizeTask {
+    fn is_active(&self) -> bool {
+        true
+    }
+}
+
 impl Drop for ResizeTask {
     fn drop(&mut self) {
-        let handle = &self.0;
-        js! {
-            @(no_return)
-            var handle = @{handle};
-            window.removeEventListener("resize", handle);
+        #[cfg(feature = "std_web")]
+        {
+            let handle = &self.0;
+            js! {
+                @(no_return)
+                var handle = @{handle};
+                window.removeEventListener("resize", handle);
+            }
         }
     }
 }

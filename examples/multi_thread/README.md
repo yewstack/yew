@@ -1,21 +1,12 @@
-### multi_thread
+# Multi-Thread Example
 
-First, build your web app
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fmulti_thread)](https://examples.yew.rs/multi_thread)
 
-```sh
-cargo build --target wasm32-unknown-unknown --bin multi_thread_app
-wasm-bindgen --target web --no-typescript --out-dir static/ --out-name app ../../target/wasm32-unknown-unknown/debug/multi_thread_app.wasm
-```
+**WIP**: [thedodd/trunk#46](https://github.com/thedodd/trunk/issues/46)
 
-Then, build your web worker
+## Concepts
 
-```sh
-cargo build --target wasm32-unknown-unknown --bin multi_thread_worker
-wasm-bindgen --target no-modules --no-typescript --out-dir static/ --out-name worker ../../target/wasm32-unknown-unknown/debug/multi_thread_worker.wasm
-```
+Uses an [Agent] that runs in a [Web Worker].
 
-Finally, serve the content from the `./static` directory
-
-```sh
-python3 -m http.server
-```
+[agent]: https://yew.rs/docs/en/concepts/agents/
+[web worker]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers

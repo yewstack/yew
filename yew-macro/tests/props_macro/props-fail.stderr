@@ -1,0 +1,57 @@
+error: special props cannot be specified in the `props!` macro
+ --> $DIR/props-fail.rs:9:25
+  |
+9 |     yew::props!(Props { ref: NodeRef::default(), key: "key" });
+  |                         ^^^
+
+error: special props cannot be specified in the `props!` macro
+ --> $DIR/props-fail.rs:9:50
+  |
+9 |     yew::props!(Props { ref: NodeRef::default(), key: "key" });
+  |                                                  ^^^
+
+error: expected ident
+  --> $DIR/props-fail.rs:13:31
+   |
+13 |     yew::props!(Props { a: 1, ..props });
+   |                               ^^
+
+error[E0425]: cannot find value `does_not_exist` in this scope
+  --> $DIR/props-fail.rs:15:25
+   |
+15 |     yew::props!(Props { does_not_exist });
+   |                         ^^^^^^^^^^^^^^ not found in this scope
+
+error[E0609]: no field `fail` on type `Props`
+  --> $DIR/props-fail.rs:10:31
+   |
+10 |     yew::props!(Props { a: 5, fail: 10 });
+   |                               ^^^^ unknown field
+   |
+   = note: available fields are: `a`
+
+error[E0599]: no method named `fail` found for struct `PropsBuilder<PropsBuilderStep_build>` in the current scope
+  --> $DIR/props-fail.rs:10:31
+   |
+3  | #[derive(Clone, Properties)]
+   |                 ---------- method `fail` not found for this
+...
+10 |     yew::props!(Props { a: 5, fail: 10 });
+   |                               ^^^^ method not found in `PropsBuilder<PropsBuilderStep_build>`
+
+error[E0609]: no field `does_not_exist` on type `Props`
+  --> $DIR/props-fail.rs:15:25
+   |
+15 |     yew::props!(Props { does_not_exist });
+   |                         ^^^^^^^^^^^^^^ unknown field
+   |
+   = note: available fields are: `a`
+
+error[E0599]: no method named `does_not_exist` found for struct `PropsBuilder<PropsBuilderStep_missing_required_prop_a>` in the current scope
+  --> $DIR/props-fail.rs:15:25
+   |
+3  | #[derive(Clone, Properties)]
+   |                 ---------- method `does_not_exist` not found for this
+...
+15 |     yew::props!(Props { does_not_exist });
+   |                         ^^^^^^^^^^^^^^ method not found in `PropsBuilder<PropsBuilderStep_missing_required_prop_a>`

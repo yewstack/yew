@@ -1,15 +1,15 @@
 {
   "docs": {
     "Getting Started": [
-      "intro",
+      "index",
       {
         "type": "subcategory",
         "label": "Project setup",
         "ids": [
           "getting-started/project-setup",
-          "getting-started/project-setup/using-cargo-web",
-          "getting-started/project-setup/using-wasm-bindgen",
-          "getting-started/project-setup/using-wasm-pack"
+          "getting-started/project-setup/using-trunk",
+          "getting-started/project-setup/using-wasm-pack",
+          "getting-started/project-setup/using-cargo-web"
         ]
       },
       "getting-started/build-a-sample-app",
@@ -44,6 +44,7 @@
         "label": "Services",
         "ids": [
           "concepts/services",
+          "concepts/services/fetch",
           "concepts/services/format"
         ]
       },

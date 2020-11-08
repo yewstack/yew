@@ -383,7 +383,7 @@ where
     let body = body.into().ok();
 
     // Prepare the response callback.
-    // Notice that the callback signature must match the call from the javascript
+    // Notice that the callback signature must match the call from the JavaScript
     // side. There is no static check at this point.
     let callback = move |success: bool, status: u16, headers: HashMap<String, String>, data: X| {
         let mut response_builder = Response::builder();

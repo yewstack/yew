@@ -1,16 +1,9 @@
-
 [tasks.test]
 clear = true
-dependencies = ["test-macro", "test-derive-props", "test-doc"]
-
-[tasks.test-macro]
+toolchain = "1.45.2"
 command = "cargo"
-args = ["test", "--test", "macro_test"]
+args = ["test"]
 
-[tasks.test-derive-props]
-command = "cargo"
-args = ["test", "--test", "derive_props_test"]
-
-[tasks.test-doc]
-command = "cargo"
-args = ["test", "--doc"]
+[tasks.test-overwrite]
+extend = "test"
+env = { TRYBUILD = "overwrite" }

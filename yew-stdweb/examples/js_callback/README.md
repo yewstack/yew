@@ -1,4 +1,4 @@
-(Asynchronous) callback from Javascript
+(Asynchronous) callback from JavaScript
 =======================================
 
 The purpose of this example is to demonstrate a simple case of asynchronously

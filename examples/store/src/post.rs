@@ -1,16 +1,8 @@
+use crate::agents::posts::{PostId, PostStore, Request};
+use crate::text_input::TextInput;
 use yew::prelude::*;
 use yewtil::store::{Bridgeable, ReadOnly, StoreWrapper};
 use yewtil::NeqAssign;
-
-use crate::agents::posts::{PostId, PostStore, Request};
-use crate::text_input::TextInput;
-
-pub struct Post {
-    link: ComponentLink<Self>,
-    id: PostId,
-    text: Option<String>,
-    post_store: Box<dyn Bridge<StoreWrapper<PostStore>>>,
-}
 
 pub enum Msg {
     UpdateText(String),
@@ -23,18 +15,24 @@ pub struct Props {
     pub id: PostId,
 }
 
+pub struct Post {
+    link: ComponentLink<Self>,
+    id: PostId,
+    text: Option<String>,
+    post_store: Box<dyn Bridge<StoreWrapper<PostStore>>>,
+}
+
 impl Component for Post {
     type Message = Msg;
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.callback(Msg::PostStoreMsg);
-        let post_store = PostStore::bridge(callback);
         Self {
             link,
             id: props.id,
             text: None,
-            post_store,
+            post_store: PostStore::bridge(callback),
         }
     }
 
@@ -66,19 +64,16 @@ impl Component for Post {
     }
 
     fn view(&self) -> Html {
-        let text = match &self.text {
-            Some(t) => t.as_str(),
-            None => "<pending>",
-        };
+        let text = self.text.as_deref().unwrap_or("<pending>");
 
         html! {
             <div>
-                <h2>{format!("Post #{}", self.id)}</h2>
+                <h2>{ format!("Post #{}", self.id) }</h2>
                 <p>{text}</p>
 
                 <TextInput value=text onsubmit=self.link.callback(Msg::UpdateText) />
                 <button onclick=self.link.callback(|_| Msg::Delete)>
-                    {"Delete"}
+                    { "Delete" }
                 </button>
             </div>
         }

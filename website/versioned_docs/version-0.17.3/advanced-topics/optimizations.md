@@ -128,7 +128,7 @@ implementation of the main page and render the component you are working on on t
 
 ### wee\_alloc
 
-[wee\_alloc](https://github.com/rustwasm/wee_alloc) is a tiny allocator that is much smaller than the allocator that is normally used in Rust binaries. Replacing the default allocator with this one will result in smaller WASM file sizes, at the expense of speed and memory overhead.
+[wee\_alloc](https://github.com/rustwasm/wee_alloc) is a tiny allocator that is much smaller than the allocator that is normally used in Rust binaries. Replacing the default allocator with this one will result in smaller Wasm file sizes, at the expense of speed and memory overhead.
 
 The slower speed and memory overhead are minor in comparison to the size gains made by not including the default allocator. This smaller file size means that your page will load faster, and so it is generally recommended that you use this allocator over the default, unless your app is doing some allocation-heavy work.
 
@@ -162,7 +162,7 @@ lto = true
 
 Further more it is possible to optimize size of `wasm` code.
 
-The Rust Wasm Book has a section about reducing the size of WASM binaries: 
+The Rust Wasm Book has a section about reducing the size of Wasm binaries:
 [Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
 * using `wasm-pack` which by default optimizes `wasm` code in release builds

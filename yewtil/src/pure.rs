@@ -15,28 +15,32 @@ pub trait PureComponent: Properties + PartialEq + Sized + 'static {
 /// for this instead.
 ///
 /// # Example
-/// It is reasonable practice to use `Pure` as a prefix or `Impl` as a suffix to your pure component model
-/// and use an alias to provide a terser name to be used by other components:
 ///
 /// ```
-/// use yew::Properties;
-/// use yew::Html;
-/// use yewtil::{PureComponent, Pure};
+/// # use yew::{html, Callback, Html, MouseEvent, Properties};
+/// use yewtil::{Pure, PureComponent};
 ///
-/// #[derive(Clone, Properties, PartialEq)]
-/// pub struct PureMyComponent {
-///     pub data: String
+/// /// Alias to improve usability.
+/// pub type Button = Pure<PureButton>;
+///
+/// #[derive(Clone, PartialEq, Properties)]
+/// pub struct PureButton {
+///     pub callback: Callback<MouseEvent>,
+///     #[prop_or_default]
+///     pub text: String,
 /// }
-///
-/// impl PureComponent for PureMyComponent {
-/// fn render(&self) -> Html {
-///#        unimplemented!()
-///        // ...
+/// impl PureComponent for PureButton {
+///     fn render(&self) -> Html {
+///         html! {
+///             <button onclick=&self.callback>{ &self.text }</button>
+///         }
 ///     }
 /// }
 ///
-/// /// Use this from within `html!` macros.
-/// pub type MyComponent = Pure<PureMyComponent>;
+/// # fn view() -> Html {
+/// // Pure components can be used like normal components
+/// html! { <Button callback=Callback::from(|_| println!("clicked")) text="Click me!" /> }
+/// # }
 /// ```
 #[derive(Debug)]
 pub struct Pure<T>(T);

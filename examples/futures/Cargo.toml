@@ -1,0 +1,23 @@
+[package]
+name = "futures"
+version = "0.1.0"
+authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+pulldown-cmark = { version = "0.8", default-features = false }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+yew = { path = "../../yew" }
+yewtil = { path = "../../yewtil", features = ["future"] }
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "Headers",
+  "Request",
+  "RequestInit",
+  "RequestMode",
+  "Response",
+  "Window",
+]

@@ -1,6 +1,8 @@
-# Dashboard example
+# Dashboard Example
 
-This example uses the `fetch` and `websocket` services to load external data.
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fdashboard)](https://examples.yew.rs/dashboard)
+
+This example uses `FetchService` and `WebSocketService` to load external data.
 
 ## Special requirements for WebSocket
 
@@ -19,3 +21,11 @@ cargo run
 ```
 
 The server just echoes all the data it receives back to the client and logs the message to the console.
+
+## Improvements
+
+- Handle errors by showing them to the user (at the very least they should be logged)
+- Create a `cargo-make` task to run the example along with the WebSocket server
+
+The example is called "dashboard" but it doesn't look or act like one.
+It could be changed to be more like a dashboard.

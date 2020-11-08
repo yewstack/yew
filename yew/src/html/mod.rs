@@ -9,6 +9,7 @@ mod scope;
 pub use listener::*;
 pub use scope::{AnyScope, Scope, SendAsMessage};
 pub(crate) use scope::{ComponentUpdate, Scoped};
+pub use yew_macro::Properties;
 
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VNode};
@@ -318,7 +319,7 @@ where
     }
 
     /// Render children components and return `Iterator`
-    pub fn iter<'a>(&'a self) -> impl Iterator<Item = T> + 'a {
+    pub fn iter(&self) -> impl Iterator<Item = T> + '_ {
         // clone each child lazily.
         // This way `self.iter().next()` only has to clone a single node.
         self.children.iter().cloned()
@@ -465,6 +466,19 @@ impl NodeRef {
         let mut this = self.0.borrow_mut();
         this.node = None;
         this.link = Some(node_ref);
+    }
+
+    /// Reuse an existing `NodeRef`
+    pub(crate) fn reuse(&self, node_ref: Self) {
+        // Avoid circular references
+        if self == &node_ref {
+            return;
+        }
+
+        let mut this = self.0.borrow_mut();
+        let existing = node_ref.0.borrow();
+        this.node = existing.node.clone();
+        this.link = existing.link.clone();
     }
 }
 

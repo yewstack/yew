@@ -1,46 +1,57 @@
 {
-  "hosting": {
-    "site": "yew-rs",
-    "public": "website/build/yew",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "redirects": [ {
-      "source": "/",
-      "destination": "/docs/en/intro/",
-      "type": 301
-    }, {
-      "source": "/docs",
-      "destination": "/docs/en/intro/",
-      "type": 301
-    }, {
-      "regex": "/(docs/)?(?P<lang>en|ja|zh-TW|zh-CN)",
-      "destination": "/docs/:lang/intro/",
-      "type": 301
-    }, {
-      "source": "/docs/v/zh_cn",
-      "destination": "/docs/zh-CN/intro/",
-      "type": 301
-    }, {
-      "source": "/docs/v/zh_tw",
-      "destination": "/docs/zh-TW/intro/",
-      "type": 301
-    }, {
-      "regex": "/docs/v/zh_cn/(.*)",
-      "destination": "/docs/zh-CN/:1",
-      "type": 301
-    }, {
-      "regex": "/docs/v/zh_tw/(.*)",
-      "destination": "/docs/zh-TW/:1",
-      "type": 301
-    } ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  }
+  "hosting": [
+    {
+      "target": "website",
+      "public": "website/build/yew",
+      "cleanUrls": true,
+      "redirects": [
+        // `/intro` -> `/` (2020-10-15)
+        {
+          "source": "/docs/:lang/intro",
+          "destination": "/docs/:lang/",
+          "type": 301
+        },
+        {
+          "source": "/docs/:lang/next/intro",
+          "destination": "/docs/:lang/next/",
+          "type": 301
+        },
+        // legacy (2020-08-15)
+        {
+          "source": "/docs/v/zh_cn",
+          "destination": "/docs/zh-CN/",
+          "type": 301
+        },
+        {
+          "source": "/docs/v/zh_tw",
+          "destination": "/docs/zh-TW/",
+          "type": 301
+        },
+        {
+          "regex": "/docs/v/zh_cn/(.*)",
+          "destination": "/docs/zh-CN/:1",
+          "type": 301
+        },
+        {
+          "regex": "/docs/v/zh_tw/(.*)",
+          "destination": "/docs/zh-TW/:1",
+          "type": 301
+        }
+      ]
+    },
+    {
+      "target": "examples",
+      "public": "dist",
+      "rewrites": [
+        {
+          "source": "/router/**",
+          "destination": "/router/index.html"
+        },
+        {
+          "source": "/todomvc/**",
+          "destination": "/todomvc/index.html"
+        }
+      ]
+    }
+  ]
 }

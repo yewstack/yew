@@ -50,6 +50,9 @@
         "title": "Services",
         "sidebar_label": "Overview"
       },
+      "concepts/services/fetch": {
+        "title": "Fetch"
+      },
       "concepts/services/format": {
         "title": "Format"
       },
@@ -69,8 +72,8 @@
       "getting-started/project-setup/using-cargo-web": {
         "title": "Using cargo-web"
       },
-      "getting-started/project-setup/using-wasm-bindgen": {
-        "title": "Using wasm-bindgen"
+      "getting-started/project-setup/using-trunk": {
+        "title": "Using trunk"
       },
       "getting-started/project-setup/using-wasm-pack": {
         "title": "Using wasm-pack"
@@ -78,7 +81,7 @@
       "getting-started/starter-templates": {
         "title": "Starter templates"
       },
-      "intro": {
+      "index": {
         "title": "Introduction"
       },
       "more/css": {
@@ -175,7 +178,7 @@
       "version-0.17.3/getting-started/version-0.17.3-starter-templates": {
         "title": "Starter templates"
       },
-      "version-0.17.3/version-0.17.3-intro": {
+      "version-0.17.3/version-0.17.3-index": {
         "title": "Introduction"
       },
       "version-0.17.3/more/version-0.17.3-css": {

@@ -1,6 +1,6 @@
 [package]
 name = "yew"
-version = "0.17.3"
+version = "0.17.4"
 edition = "2018"
 authors = [
   "Denis Kolodin <deniskolodin@gmail.com>",
@@ -19,10 +19,9 @@ description = "A framework for making client-side single-page apps"
 anyhow = "1"
 anymap = "0.12"
 bincode = { version = "1", optional = true }
-cfg-if = "0.1"
+cfg-if = "1.0"
 cfg-match = "0.2"
 console_error_panic_hook = { version = "0.1", optional = true }
-futures = { version = "0.3", optional = true }
 gloo = { version = "0.2.1", optional = true }
 http = "0.2"
 indexmap = "1.5"
@@ -108,7 +107,7 @@ wasm-bindgen = "0.2.60"
 # Changes here must be reflected in `build.rs`
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dev-dependencies]
 wasm-bindgen-test = "0.3.4"
-base64 = "0.12.0"
+base64 = "0.13.0"
 ssri = "6.0.0"
 easybench-wasm = "0.2.1"
 
@@ -127,7 +126,6 @@ default = ["services", "agent", "web_sys"]
 std_web = ["stdweb", "yew-macro/std_web"]
 web_sys = [
   "console_error_panic_hook",
-  "futures",
   "gloo",
   "js-sys",
   "web-sys",

@@ -5,18 +5,5 @@ authors = ["Michał Kawalec <michal@monad.cat>"]
 edition = "2018"
 
 [dependencies]
-wasm-bindgen = { version = "^0.2", features = ["serde-serialize"] }
-wasm-bindgen-futures = "0.4"
 yew = { path = "../../yew" }
 yewtil = { path = "../../yewtil" }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0", features = ["raw_value"] }
-
-[dependencies.web-sys]
-version = "0.3"
-features = [
-  "Window",
-  "Navigator",
-  "MediaDevices",
-  "MediaStreamConstraints"
-]

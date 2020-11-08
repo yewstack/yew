@@ -39,8 +39,8 @@ impl<'a, T: Serialize> MethodBody<'a, T> {
         let body: Option<String> = match self {
             MethodBody::Get | MethodBody::Delete | MethodBody::Head => None,
             MethodBody::Put(data) | MethodBody::Post(data) | MethodBody::Patch(data) => {
-                let body = FORMAT::serialize(data)
-                    .ok_or_else(|| FetchError::CouldNotSerializeRequestBody)?;
+                let body =
+                    FORMAT::serialize(data).ok_or(FetchError::CouldNotSerializeRequestBody)?;
                 Some(body)
             }
         };

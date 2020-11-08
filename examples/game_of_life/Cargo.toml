@@ -1,15 +1,15 @@
 [package]
 name = "game_of_life"
 version = "0.1.4"
-authors = ["Diego Cardoso <dige0card0s0@hotmail.com>",
-           "Ilya Bogdanov <fumlead@gmail.com",
-           "Junjie Huang <huangjj.27@qq.com>"]
+authors = [
+    "Diego Cardoso <dige0card0s0@hotmail.com>",
+    "Ilya Bogdanov <fumlead@gmail.com",
+    "Junjie Huang <huangjj.27@qq.com>"
+]
 edition = "2018"
 
 [dependencies]
-log = "0.4.8"
-wasm-logger = "0.2.0"
+log = "0.4"
+rand = { version = "0.7", features = ["wasm-bindgen"] }
+wasm-logger = "0.2"
 yew = { path = "../../yew" }
-rand = { version = "0.7.3", features = ["getrandom"] }
-getrandom = { version = "0.1.14", features = ["wasm-bindgen"] }
-

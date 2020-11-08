@@ -15,7 +15,7 @@ adopting the most popular one.
 The community are currently developing a number of projects to make it easy to add styles to 
 projects. A few are given below:
 
-* [yew_styles](https://github.com/spielrs/yew_styles) - A styling framework for Yew without any Javascript dependencies.
+* [yew_styles](https://github.com/spielrs/yew_styles) - A styling framework for Yew without any JavaScript dependencies.
 * [yew-mdc](https://github.com/Follpvosten/yew-mdc) - Material Design Components.
 * [muicss-yew](https://github.com/AlephAlpha/muicss-yew) - MUI CSS Components.
 * [Yewtify](https://github.com/yewstack/yewtify) – Implements the features provided by the Vuetify framework in Yew.

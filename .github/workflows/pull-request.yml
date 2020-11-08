@@ -82,7 +82,8 @@ jobs:
 
   doc_tests:
     name: Documentation Tests
-    runs-on: ubuntu-latest
+    # Using 20.04 because 18.04 (latest) only has aspell 0.60.7 and we need 0.60.8
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -101,6 +102,11 @@ jobs:
           key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
             cargo-${{ runner.os }}-
+
+      - name: Check spelling
+        run: |
+          sudo apt-get install aspell
+          ci/spellcheck.sh list
 
       - name: Run doctest
         uses: actions-rs/cargo@v1
@@ -159,15 +165,6 @@ jobs:
           key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
             cargo-${{ runner.os }}-
-
-      # FIXME: Only needed because of <https://github.com/rustwasm/wasm-bindgen/issues/2261>
-      - name: Install geckodriver
-        run: |
-          cd ~
-          mkdir geckodriver
-          curl --retry 5 -LO https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz
-          tar -xzf geckodriver-*-linux64.tar.gz -C geckodriver
-          echo "::add-path::$HOME/geckodriver"
 
       - name: Run tests - yew
         env:
