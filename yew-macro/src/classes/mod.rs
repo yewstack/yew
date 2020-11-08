@@ -24,7 +24,6 @@ impl ToTokens for Classes {
         };
 
         tokens.extend(quote! {{
-            #[allow(clippy::useless_conversion, unused_braces)]
             #new_tokens
         }});
     }
