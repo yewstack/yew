@@ -239,7 +239,8 @@ mod tests {
 mod macro_tests {
     extern crate self as yew;
 
-    use crate::virtual_dom::{AnyScope, VDiff, VNode, VTag};
+    use crate::html::AnyScope;
+    use crate::virtual_dom::{VDiff, VNode, VTag};
     use crate::{classes, html, NodeRef};
     use std::any::TypeId;
     use std::rc::Rc;
