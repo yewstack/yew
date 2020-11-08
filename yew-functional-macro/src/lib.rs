@@ -78,7 +78,7 @@ impl Parse for FunctionComponent {
                             if ty.lifetime.is_some() {
                                 return Err(syn::Error::new_spanned(
                                     &ty.lifetime,
-                                    "reference must not have life time",
+                                    "reference must not have a lifetime",
                                 ));
                             }
 
