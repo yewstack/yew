@@ -55,8 +55,8 @@
 //!
 //! Please refer to [https://github.com/yewstack/yew](https://github.com/yewstack/yew) for how to set this up.
 
-mod derive_props;
 mod classes;
+mod derive_props;
 mod html_tree;
 mod props;
 mod stringify;
