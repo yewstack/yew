@@ -299,8 +299,9 @@ mod macro_tests {
 
     #[test]
     fn supports_multiple_non_unique_classes_tuple() {
+        let a_classes = "class-1 class-2".to_string();
         let a = html! {
-            <div class=classes!("class-1", "class-1 class-2")></div>
+            <div class=classes!("class-1", a_classes)></div>
         };
 
         if let VNode::VTag(vtag) = a {
@@ -314,11 +315,13 @@ mod macro_tests {
 
     #[test]
     fn supports_multiple_classes_string() {
+        let a_classes = "class-1 class-2 class-3".to_string();
+        let b_classes = "class-2 class-3 class-1".to_string();
         let a = html! {
-            <div class=classes!("class-1 class-2 class-3")></div>
+            <div class=classes!(a_classes)></div>
         };
         let b = html! {
-            <div class=classes!("class-2 class-3 class-1")></div>
+            <div class=classes!(b_classes)></div>
         };
 
         assert_ne!(a, b);
