@@ -15,7 +15,7 @@ A function annotated with `#[function_component]` may take one argument for prop
 ```rust
 #[derive(Properties, Clone, PartialEq)]
 pub struct RenderedAtProps {
-    pub time: Date,
+    pub time: String,
 }
 
 #[function_component(RenderedAt)]
@@ -23,7 +23,7 @@ pub fn rendered_at(props: &RenderedAtProps) -> Html {
     html! {
         <p>
             <b>{ "Rendered at: " }</b>
-            { String::from(props.time.to_string()) }
+            { &props.time }
         </p>
     }
 }
@@ -34,23 +34,17 @@ pub fn rendered_at(props: &RenderedAtProps) -> Html {
 #[function_component(App)]
 fn app() -> Html {
     let (counter, set_counter) = use_state(|| 0);
-
-    let (counter_one, set_counter_one) = (counter.clone(), set_counter.clone());
-    let inc_onclick = Callback::from(move |_| set_counter_one(*counter_one + 1));
-
-    let (counter_two, set_counter_two) = (counter.clone(), set_counter);
-    let dec_onclick = Callback::from(move |_| set_counter_two(*counter_two - 1));
+    let onclick = Callback::from(move |_| set_counter(*counter + 1));
     
-    html! {<>
-        <nav>
-            <button onclick=inc_onclick>{ "Increment" }</button>
-            <button onclick=dec_onclick>{ "Decrement" }</button>
-        </nav>
-        <p>
-            <b>{ "Current value: " }</b>
-            { counter }
-        </p>
-    </>}
+    html! {
+        <div>
+            <button onclick=onclick>{ "Increment value" }</button>
+            <p>
+                <b>{ "Current value: " }</b>
+                { counter }
+            </p>
+        </div>
+    }
 }
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
