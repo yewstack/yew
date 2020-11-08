@@ -236,20 +236,22 @@ impl ToTokens for HtmlElement {
             Some(ClassesForm::Tuple(span, classes)) => {
                 let n = classes.len();
                 let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
-                Some(quote_spanned! { *span => {
-                    let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
-                    #(__yew_classes.push(#classes);)*
+                Some(quote_spanned! {*span=>
+                    {
+                        let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
+                        #(__yew_classes.push(#classes);)*
 
-                    if false {
-                        deprecated_use_of_class();
+                        if false {
+                            deprecated_use_of_class();
+                        }
+
+                        if !__yew_classes.is_empty() {
+                            #vtag.__macro_push_attribute("class", #sr);
+                        } else {
+                            #vtag.__macro_push_attribute_placeholder("class");
+                        };
                     }
-
-                    if !__yew_classes.is_empty() {
-                        #vtag.__macro_push_attribute("class", #sr);
-                    } else {
-                        #vtag.__macro_push_attribute_placeholder("class");
-                    };
-                }})
+                })
             }
             Some(ClassesForm::Single(classes)) => match classes.try_into_lit() {
                 Some(lit) => {
@@ -258,22 +260,26 @@ impl ToTokens for HtmlElement {
                     } else {
                         let span = classes.span();
                         let sr = lit.stringify();
-                        Some(quote_spanned! { span => {
-                            #vtag.__macro_push_attribute("class", #sr);
-                        }})
+                        Some(quote_spanned! {span=>
+                            {
+                                #vtag.__macro_push_attribute("class", #sr);
+                            }
+                        })
                     }
                 }
                 None => {
                     let span = classes.span();
                     let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
-                    Some(quote_spanned! { span => {
-                        let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
-                        if !__yew_classes.is_empty() {
-                            #vtag.__macro_push_attribute("class", #sr);
-                        } else {
-                            #vtag.__macro_push_attribute_placeholder("class");
-                        };
-                    }})
+                    Some(quote_spanned! {span=>
+                        {
+                            let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
+                            if !__yew_classes.is_empty() {
+                                #vtag.__macro_push_attribute("class", #sr);
+                            } else {
+                                #vtag.__macro_push_attribute_placeholder("class");
+                            };
+                        }
+                    })
                 }
             },
             None => None,
