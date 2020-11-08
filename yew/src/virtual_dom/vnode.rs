@@ -43,6 +43,16 @@ impl VNode {
         }
     }
 
+    /// Returns, if the VNode has a key without needlessly cloning the key
+    pub fn has_key(&self) -> bool {
+        match self {
+            VNode::VComp(vcomp) => vcomp.key.is_some(),
+            VNode::VList(vlist) => vlist.key.is_some(),
+            VNode::VRef(_) | VNode::VText(_) => false,
+            VNode::VTag(vtag) => vtag.key.is_some(),
+        }
+    }
+
     /// Returns the first DOM node that is used to designate the position of the virtual DOM node.
     pub(crate) fn first_node(&self) -> Node {
         match self {
@@ -60,11 +70,7 @@ impl VNode {
                 }
             }
             VNode::VComp(vcomp) => vcomp.node_ref.get().expect("VComp is not mounted"),
-            VNode::VList(vlist) => vlist
-                .children
-                .get(0)
-                .expect("VList is not mounted")
-                .first_node(),
+            VNode::VList(vlist) => vlist.get(0).expect("VList is not mounted").first_node(),
             VNode::VRef(node) => node.clone(),
         }
     }
@@ -72,7 +78,7 @@ impl VNode {
     pub(crate) fn move_before(&self, parent: &Element, next_sibling: &Option<Node>) {
         match self {
             VNode::VList(vlist) => {
-                for node in vlist.children.iter() {
+                for node in vlist.iter() {
                     node.move_before(parent, next_sibling);
                 }
             }

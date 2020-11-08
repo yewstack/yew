@@ -13,11 +13,25 @@ cfg_if! {
 }
 
 /// This struct represents a fragment of the Virtual DOM tree.
-#[derive(Clone, Debug, PartialEq, Default)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct VList {
     /// The list of children nodes.
-    pub children: Vec<VNode>,
+    children: Vec<VNode>,
+
+    // All Nodes in the VList have keys
+    fully_keyed: bool,
+
     pub key: Option<Key>,
+}
+
+impl Default for VList {
+    fn default() -> Self {
+        Self {
+            children: Default::default(),
+            key: None,
+            fully_keyed: true,
+        }
+    }
 }
 
 impl Deref for VList {
@@ -30,10 +44,13 @@ impl Deref for VList {
 
 impl DerefMut for VList {
     fn deref_mut(&mut self) -> &mut Self::Target {
+        // Caller might change the keys of the VList or add unkeyed children.
+        // Defensively assume they will.
+        self.fully_keyed = false;
+
         &mut self.children
     }
 }
-
 /// Log an operation during tests for debugging purposes
 /// Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
 macro_rules! test_log {
@@ -63,17 +80,37 @@ impl VList {
 
     /// Creates a new `VList` instance with children.
     pub fn new_with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
-        VList { children, key }
+        VList {
+            fully_keyed: children.iter().all(|ch| ch.has_key()),
+            children,
+            key,
+        }
     }
 
     /// Add `VNode` child.
     pub fn add_child(&mut self, child: VNode) {
+        if self.fully_keyed && !child.has_key() {
+            self.fully_keyed = false;
+        }
         self.children.push(child);
     }
 
     /// Add multiple `VNode` children.
     pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
-        self.children.extend(children);
+        let it = children.into_iter();
+        let bound = it.size_hint();
+        self.children.reserve(bound.1.unwrap_or(bound.0));
+        for ch in it {
+            self.add_child(ch);
+        }
+    }
+
+    /// Recheck, if the all the children have keys.
+    ///
+    /// Run this, after modifying the child list that contained only keyed children prior to the
+    /// mutable dereference.
+    pub fn recheck_fully_keyed(&mut self) {
+        self.fully_keyed = self.children.iter().all(|ch| ch.has_key());
     }
 
     /// Diff and patch unkeyed child lists
@@ -132,10 +169,18 @@ impl VList {
         parent: &Element,
         mut next_sibling: NodeRef,
         lefts: &mut [VNode],
-        lefts_keys: &[Key],
         mut rights: Vec<VNode>,
-        rights_keys: &[Key],
     ) -> NodeRef {
+        macro_rules! map_keys {
+            ($src:expr) => {
+                $src.iter()
+                    .map(|v| v.key().expect("unkeyed child in fully keyed list"))
+                    .collect::<Vec<Key>>()
+            };
+        }
+        let lefts_keys = map_keys!(lefts);
+        let rights_keys = map_keys!(rights);
+
         /// Find the first differing key in 2 iterators
         fn diff_i<'a, 'b>(
             a: impl Iterator<Item = &'a Key>,
@@ -229,59 +274,6 @@ impl VList {
 
         next_sibling
     }
-
-    /// Diff and patch child lists, if the are fully keyed.
-    /// Returns Err(rights, next_sibling) back, if diff and patch not performed.
-    fn try_apply_keyed(
-        parent_scope: &AnyScope,
-        parent: &Element,
-        next_sibling: NodeRef,
-        lefts: &mut [VNode],
-        rights: Vec<VNode>,
-    ) -> Result<NodeRef, (Vec<VNode>, NodeRef)> {
-        macro_rules! fail {
-            () => {{
-                return Err((rights, next_sibling));
-            }};
-        }
-
-        /// First perform a cheap check on the first nodes to avoid allocations
-        macro_rules! no_key {
-            ($list:expr) => {
-                $list.get(0).map(|n| n.key().is_none()).unwrap_or(false)
-            };
-        }
-        if no_key!(lefts) || no_key!(rights) {
-            fail!();
-        }
-
-        // Build key vectors ahead of time to prevent heavy branching in keyed diffing, in case
-        // the child lists are not fully keyed, and to memoize key lookup
-        macro_rules! map_keys {
-            ($src:expr) => {
-                match $src
-                    .iter()
-                    .map(|v| v.key().ok_or(()))
-                    .collect::<Result<Vec<Key>, ()>>()
-                {
-                    Ok(vec) => vec,
-                    Err(_) => fail!(),
-                }
-            };
-        }
-        let lefts_keys = map_keys!(lefts);
-        let rights_keys = map_keys!(rights);
-
-        Ok(Self::apply_keyed(
-            parent_scope,
-            parent,
-            next_sibling,
-            lefts,
-            &lefts_keys,
-            rights,
-            &rights_keys,
-        ))
-    }
 }
 
 impl VDiff for VList {
@@ -311,28 +303,32 @@ impl VDiff for VList {
             // Without a placeholder the next element becomes first
             // and corrupts the order of rendering
             // We use empty text element to stake out a place
-            let placeholder = VText::new("");
-            self.children.push(placeholder.into());
+            self.add_child(VText::new("").into());
         }
 
         let lefts = &mut self.children;
-        let rights = match ancestor {
+        let (rights, rights_fully_keyed) = match ancestor {
             // If the ancestor is also a VList, then the "right" list is the previously
             // rendered items.
-            Some(VNode::VList(v)) => v.children,
+            Some(VNode::VList(v)) => (v.children, v.fully_keyed),
+
             // If the ancestor was not a VList, then the "right" list is a single node
-            Some(v) => vec![v],
-            _ => vec![],
+            Some(v) => {
+                let has_key = v.has_key();
+                (vec![v], has_key)
+            }
+
+            // No unkeyed nodes in an empty VList
+            _ => (vec![], true),
         };
         test_log!("lefts: {:?}", lefts);
         test_log!("rights: {:?}", rights);
 
         #[allow(clippy::let_and_return)]
-        let first = match Self::try_apply_keyed(parent_scope, parent, next_sibling, lefts, rights) {
-            Ok(n) => n,
-            Err((rights, next_sibling)) => {
-                Self::apply_unkeyed(parent_scope, parent, next_sibling, lefts, rights)
-            }
+        let first = if self.fully_keyed && rights_fully_keyed {
+            Self::apply_keyed(parent_scope, parent, next_sibling, lefts, rights)
+        } else {
+            Self::apply_unkeyed(parent_scope, parent, next_sibling, lefts, rights)
         };
         test_log!("result: {:?}", lefts);
         first
