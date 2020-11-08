@@ -4,9 +4,16 @@ description: The #[function_component] attribute
 ---
 
 
-The `#[function_component]` attribute allows you automatically to generate the requirements for creating Yew function components. Any Rust function can be annotated and used as a function component. 
+The `#[function_component(_)]` turns a normal Rust function into a function component.
+Functions with the attribute have to return  `Html` and may take a single parameter parameter for the type of props the component should accept.
+The parameter type needs to be a reference to a type which implements `Properties` and `PartialEq` (ex. `props: &MyProps`).
+If the function doesn't have any parameters the resulting component doesn't accept any props.
 
-A function annotated with `#[function_component]` may take one argument for props of `Properties` type's reference and must return `Html`. The name of component is passed as an attribute to the said attribute. Note that unlike struct component, the `Properties` type for function components must also implement `PartialEq`.
+The attribute doesn't replace your original function with a component. You need to provide a name as an input to the attribute which will be the identifier of the component.
+Assuming you have a function called `chat_container` and you add the attribute `#[function_component(ChatContainer)]` you can use the component like this:
+```rust
+html! { <ChatContainer /> }
+```
 
 ## Example
 
