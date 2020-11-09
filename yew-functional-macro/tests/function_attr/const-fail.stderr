@@ -1,0 +1,5 @@
+error: const functions can't be function components
+  --> $DIR/const-fail.rs:10:1
+   |
+10 | const fn comp(props: &Props) -> Html {
+   | ^^^^^

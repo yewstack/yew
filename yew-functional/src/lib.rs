@@ -7,6 +7,34 @@ use yew::{Component, ComponentLink, Html, Properties};
 
 mod use_context_hook;
 pub use use_context_hook::*;
+/// This attribute creates a function component from a normal Rust function.
+///
+/// Functions with this attribute **must** return `Html` and can optionally take an argument for props.
+/// Note that the function only receives a reference to the props.
+///
+/// When using this attribute you need to provide a name for the component:
+/// `#[function_component(ComponentName)]`.
+/// The attribute will then automatically create a [`FunctionComponent`] with the given identifier
+/// which you can use like a normal component.
+///
+/// # Example
+/// ```rust
+/// # use yew_functional::function_component;
+/// # use yew::prelude::*;
+/// #
+/// # #[derive(Properties, Clone, PartialEq)]
+/// # pub struct Props {
+/// #     text: String
+/// # }
+/// #
+/// #[function_component(NameOfComponent)]
+/// pub fn component(props: &Props) -> Html {
+///     html! {
+///         <p>{ &props.text }</p>
+///     }
+/// }
+/// ```
+pub use yew_functional_macro::function_component;
 
 thread_local! {
     static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
@@ -345,7 +373,7 @@ where
         let mut hook_state_holder = hook_state_holder.expect("Nested hooks not supported");
         let mut hook_state = hook_state_holder
             .as_mut()
-            .expect("No current hook. Hooks can only be called inside functional components");
+            .expect("No current hook. Hooks can only be called inside function components");
 
         // Determine which hook position we're at and increment for the next hook
         let hook_pos = hook_state.counter;

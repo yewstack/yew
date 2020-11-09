@@ -1,0 +1,5 @@
+error: reference must not be mutable
+  --> $DIR/mut-ref-props-param-fail.rs:10:17
+   |
+10 | fn comp(props: &mut Props) -> Html {
+   |                 ^^^
