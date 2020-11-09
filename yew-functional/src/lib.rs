@@ -173,6 +173,11 @@ where
     }
 }
 
+/// `use_ref` is used for obtaining a mutable reference to a stateful value.
+/// Its state persists across renders.
+///
+/// It is important to note that you do not get notified of state changes.
+/// If you need the component to be re-rendered on state change, consider using [`use_state`].
 pub fn use_ref<T: 'static, InitialProvider>(initial_value: InitialProvider) -> Rc<RefCell<T>>
 where
     InitialProvider: FnOnce() -> T,
@@ -190,7 +195,15 @@ where
         move || UseRefState(Rc::new(RefCell::new(initial_value()))),
     )
 }
-
+/// `use_reducer` is an alternative to [`use_state`]. It is used to handle component's state and is used
+/// when complex actions needs to be performed on said state.
+///
+/// It accepts a reducer function and initial state and returns [`Rc`] of the state, and a dispatch function.
+/// The dispatch function takes one argument of `Action`. When called, the action and current value
+/// are passed to the reducer function which computes a new state which is returned,
+/// and the component is re-rendered.
+///
+/// For lazy initialization, consider using [`use_reducer_with_init`] instead.
 pub fn use_reducer<Action: 'static, Reducer, State: 'static>(
     reducer: Reducer,
     initial_state: State,
@@ -201,6 +214,12 @@ where
     use_reducer_with_init(reducer, initial_state, |a| a)
 }
 
+/// [`use_reducer`] but with init argument. The Hook is passed the initial state
+/// which is then passed down to `init` function which initializes the state and returns it.
+/// The hook then returns this state.
+///
+/// This is useful for lazy initialization where it is beneficial not to perform expensive
+/// computation up-front
 pub fn use_reducer_with_init<Action: 'static, Reducer, State: 'static, InitialState, InitFn>(
     reducer: Reducer,
     initial_state: InitialState,
@@ -241,6 +260,13 @@ where
     )
 }
 
+/// `use_state` is used to mange state in a function component.
+/// It returns a `Rc` of the stateful value, and a setter function.
+///
+/// Initially, the state is set to the result of the function passed.
+/// This value remains up-to-date on subsequent renders.
+///
+/// The setter function is used to update the value and trigger a re-render.
 pub fn use_state<T, F>(initial_state_fn: F) -> (Rc<T>, Rc<impl Fn(T)>)
 where
     F: FnOnce() -> T,
@@ -272,6 +298,13 @@ where
     )
 }
 
+/// `use_effect` is used for hooking into the component's lifecycle.
+/// Similar to `rendered` method of [`Component`] trait,
+/// `use_effect` takes a function which is called after the render finishes.
+///
+/// The said function returns another function, the destructor function,
+/// which called when the component is destroyed. It can be used to clean up the effects introduced.
+/// This is similar to `destroyed` method of [`Component`] trait.
 pub fn use_effect<F, Destructor>(callback: F)
 where
     F: FnOnce() -> Destructor + 'static,
