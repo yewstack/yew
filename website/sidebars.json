@@ -48,6 +48,16 @@
           "concepts/services/format"
         ]
       },
+      {
+        "type": "subcategory",
+        "label": "Function Components",
+        "ids": [
+          "concepts/function-components",
+          "concepts/function-components/attribute",
+          "concepts/function-components/pre-defined-hooks",
+          "concepts/function-components/custom-hooks"
+        ]
+      },
       "concepts/router",
       "concepts/agents"
     ],

@@ -1,0 +1,7 @@
+error: unexpected end of input, expected identifier for the component
+ --> $DIR/no-name-fail.rs:9:1
+  |
+9 | #[function_component()]
+  | ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in an attribute macro (in Nightly builds, run with -Z macro-backtrace for more info)
