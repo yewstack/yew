@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::parse::{Parse, ParseStream, Result};
+use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{Expr, ExprLit, Lit, Token};
@@ -9,7 +9,7 @@ use syn::{Expr, ExprLit, Lit, Token};
 pub struct Classes(Punctuated<Expr, Token![,]>);
 
 impl Parse for Classes {
-    fn parse(input: ParseStream) -> Result<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         input.parse_terminated(class_expr_parser).map(Self)
     }
 }
@@ -36,7 +36,7 @@ impl ToTokens for Classes {
     }
 }
 
-fn class_expr_parser(input: ParseStream) -> Result<Expr> {
+fn class_expr_parser(input: ParseStream) -> syn::Result<Expr> {
     let expr = Expr::parse(input)?;
 
     if let Expr::Lit(ExprLit {
