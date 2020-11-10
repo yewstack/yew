@@ -34,7 +34,7 @@ impl ToTokens for Classes {
     }
 }
 
-#[allow(clippy::large-enum-variant)]
+#[allow(clippy::large_enum_variant)]
 enum ClassExpr {
     Lit(LitStr),
     Expr(Expr),
