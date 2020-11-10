@@ -50,40 +50,47 @@ html! {
 
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-## Using [boolinator](https://crates.io/crates/boolinator)
+## Components that accept classes
 
 ```rust
 use boolinator::Boolinator;
 
-struct MyComponent {
-    props: MyComponentProps,
+#[derive(Clone, Properties)]
+struct Props {
+    #[prop_or_default]
+    class: Classes,
+    fill: bool,
+    children: Children,
 }
 
-#[derive(Clone, Properties)]
-struct MyComponentProps {
-    fill: bool,
-    class: Option<String>,
-    children: html::Children,
+struct MyComponent {
+    props: Props,
 }
 
 impl Component for MyComponent {
-    type Message = ();
-    type Properties = MyComponentProps;
+    type Properties = Props;
+
+    // ...
 
     fn view(&self) -> Html {
+        let Props {
+            class,
+            fill,
+            children,
+        } = &self.props;
         html! {
             <div
                 class=classes!(
                     "my-container-class",
-                    self.props.fill.as_some("my-fill-class"),
-                    self.props.class.clone(),
+                    fill.as_some("my-fill-class"),
+                    class.clone(),
                 )
             >
-                { self.props.children.clone() }
+                { children.clone() }
             </div>
         }
     }
-
-    // ...
 }
-```
+<INSERT CODE BLOCK END HERE (blame GitHub)>
+
+The example makes use of the [boolinator](https://crates.io/crates/boolinator) crate to conditionally add the "my-fill-class" class based on the `fill` boolean attribute.
