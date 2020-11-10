@@ -238,14 +238,24 @@ impl ToTokens for HtmlElement {
                 let classes: Vec<_> = classes.elems.iter().collect();
                 let n = classes.len();
                 let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
-                Some(quote_spanned! {span=>
+
+                let deprecation_warning = quote_spanned! {span=>
+                    #[deprecated(
+                        note = "the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead."
+                    )]
+                    fn deprecated_use_of_class() {}
+
+                    if false {
+                        deprecated_use_of_class();
+                    };
+                };
+
+                Some(quote! {
                     {
                         let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
                         #(__yew_classes.push(#classes);)*
 
-                        if false {
-                            deprecated_use_of_class();
-                        }
+                        #deprecation_warning
 
                         if !__yew_classes.is_empty() {
                             #vtag.__macro_push_attribute("class", #sr);
@@ -260,17 +270,15 @@ impl ToTokens for HtmlElement {
                     if lit.value().is_empty() {
                         None
                     } else {
-                        let span = classes.span();
                         let sr = lit.stringify();
-                       Some(quote! {
-                            #vtag.__macro_push_attribute("class", #sr);
-                       })
+                        Some(quote! {
+                             #vtag.__macro_push_attribute("class", #sr);
+                        })
                     }
                 }
                 None => {
-                    let span = classes.span();
                     let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
-                    Some(quote_spanned! {span=>
+                    Some(quote! {
                         {
                             let __yew_classes = ::std::convert::Into::<::yew::html::Classes>::into(#classes);
                             if !__yew_classes.is_empty() {
