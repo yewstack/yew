@@ -118,48 +118,6 @@ extern crate self as yew;
 /// };
 /// # }
 /// ```
-///
-/// Using [boolinator](https://crates.io/crates/boolinator):
-///
-/// ```
-/// # use yew::prelude::*;
-/// use boolinator::Boolinator;
-///
-/// struct MyComponent {
-///     props: MyComponentProps,
-/// }
-///
-/// #[derive(Clone, Properties)]
-/// struct MyComponentProps {
-///     fill: bool,
-///     class: Option<String>,
-///     children: html::Children,
-/// }
-///
-/// impl Component for MyComponent {
-///     type Message = ();
-///     type Properties = MyComponentProps;
-///
-///     fn view(&self) -> Html {
-///         html! {
-///             <div
-///                 class=classes!(
-///                     "my-container-class",
-///                     self.props.fill.as_some("my-fill-class"),
-///                     self.props.class.clone(),
-///                 )
-///             >
-///                 { self.props.children.clone() }
-///             </div>
-///         }
-///     }
-///
-///     // ...
-/// #   fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { unimplemented!() }
-/// #   fn update(&mut self, _: Self::Message) -> ShouldRender { unimplemented!() }
-/// #   fn change(&mut self, _: Self::Properties) -> ShouldRender { unimplemented!() }
-/// }
-/// ```
 pub use yew_macro::classes;
 
 /// This macro implements JSX-like templates.
