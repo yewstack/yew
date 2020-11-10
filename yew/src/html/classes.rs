@@ -39,6 +39,12 @@ impl Classes {
     /// If the provided class has already been added, this method will ignore it.
     ///
     /// This method won't check if there are multiple classes in the input string.
+    ///
+    /// # Safety
+    ///
+    /// This function will not split the string into multiple classes. Please do not use it unless
+    /// you are absolutely certain that the string does not contain any whitespace. Using `push()`
+    /// is preferred.
     pub unsafe fn unchecked_push<T: Into<Cow<'static, str>>>(&mut self, class: T) {
         self.set.insert(class.into());
     }
