@@ -120,7 +120,6 @@ trybuild = "1.0"
 rustversion = "1.0"
 rmp-serde = "0.14.0"
 bincode = "1"
-boolinator = "2.4.0"
 
 [features]
 default = ["services", "agent", "web_sys"]
