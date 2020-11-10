@@ -98,12 +98,12 @@
 #![recursion_limit = "512"]
 extern crate self as yew;
 
-/// This macro helps you manage a list of HTML classes.
+/// This macro provides a convenient way to create [`Classes`].
 ///
-/// This macro is similar to [`classNames`](https://www.npmjs.com/package/classnames) from
-/// JavaScript. It helps you manage a set of classes more easily.
+/// The macro takes a list of items similar to the [`vec!`] macro and returns a [`Classes`] instance.
+/// Each item can be of any type that implements `Into<Classes>` (See the implementations on [`Classes`] to learn what types can be used).
 ///
-/// # Examples
+/// # Example
 ///
 /// ```
 /// # use yew::prelude::*;
