@@ -24,15 +24,13 @@ impl ToTokens for Classes {
                 __yew_classes.push(#class);
             },
         });
-        let new_tokens = quote! {
-            let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
-            #(#push_classes)*
-            __yew_classes
-        };
-
-        tokens.extend(quote! {{
-            #new_tokens
-        }});
+        tokens.extend(quote! {
+            {
+                let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
+                #(#push_classes)*
+                __yew_classes
+            }
+        });
     }
 }
 
