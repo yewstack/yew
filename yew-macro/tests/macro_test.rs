@@ -24,8 +24,8 @@ fn tests() {
     t.pass("tests/macro/html-element-pass.rs");
     t.compile_fail("tests/macro/html-element-fail.rs");
 
-    t.pass("tests/macro/classes-pass.rs");
-    t.compile_fail("tests/macro/classes-fail.rs");
+    t.pass("tests/classes_macro/*-pass.rs");
+    t.compile_fail("tests/classes_macro/*-fail.rs");
 }
 
 #[test]
