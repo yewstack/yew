@@ -5,7 +5,24 @@ description: A handy macro to handle classes
 
 ## Classes
 
-There are a number of convenient ways to specify classes for an element:
+The struct `Classes` can be used to deal with HTML classes.
+
+When pushing a string to the set, `Classes` ensures that there is one element
+for every class even if a single string might contain multiple classes.
+
+`Classes` can also be merged by using `Extend` (i.e.
+`classes1.extend(classes2)`) or `push()` (i.e. `classes1.push(classes2)`). In
+fact, anything that implements `Into<Classes>` can be used to push new classes
+to the set. This includes: `&'static str`, `String` and `Cow<'static, str>`,
+but also: `Vec<impl Into<Classes>>`, `&[impl Into<Classes>]`,
+`Option<impl Classes>` and `&Option<impl Classes>`. For example
+`Option<String>` can be converted to `Classes` and get an empty set if the
+option is None (or the string is empty), but a set of one or more elements if
+the string contains one or more classes.
+
+The macro `classes!` is a convenient macro that creates one single `Classes`.
+Its input accepts a comma separated list of expressions. The only requirement
+is that every expression implements `Into<Classes>`.
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Literal-->
