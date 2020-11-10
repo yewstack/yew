@@ -2,7 +2,7 @@ use yew::html;
 
 #[allow(dead_code)]
 #[rustversion::attr(stable(1.45), test)]
-fn tests() {
+fn macros() {
     let t = trybuild::TestCases::new();
 
     t.pass("tests/macro/html-block-pass.rs");
@@ -23,9 +23,6 @@ fn tests() {
 
     t.pass("tests/macro/html-element-pass.rs");
     t.compile_fail("tests/macro/html-element-fail.rs");
-
-    t.pass("tests/classes_macro/*-pass.rs");
-    t.compile_fail("tests/classes_macro/*-fail.rs");
 }
 
 #[test]
