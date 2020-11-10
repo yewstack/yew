@@ -91,6 +91,8 @@ impl Component for MyComponent {
         }
     }
 }
-<INSERT CODE BLOCK END HERE (blame GitHub)>
+```
 
-The example makes use of the [boolinator](https://crates.io/crates/boolinator) crate to conditionally add the "my-fill-class" class based on the `fill` boolean attribute.
+The example makes use of the [boolinator](https://crates.io/crates/boolinator)
+crate to conditionally add the "my-fill-class" class based on the `fill`
+boolean attribute.
