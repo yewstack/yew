@@ -262,11 +262,9 @@ impl ToTokens for HtmlElement {
                     } else {
                         let span = classes.span();
                         let sr = lit.stringify();
-                        Some(quote_spanned! {span=>
-                            {
-                                #vtag.__macro_push_attribute("class", #sr);
-                            }
-                        })
+                       Some(quote! {
+                            #vtag.__macro_push_attribute("class", #sr);
+                       })
                     }
                 }
                 None => {
