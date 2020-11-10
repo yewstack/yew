@@ -1,25 +1,29 @@
-use yew::prelude::*;
+#![no_implicit_prelude]
 
 fn compile_pass() {
-    classes!("one", "two");
-    classes!("one");
-    classes!();
+    // multiple literals
+    ::yew::classes!("one", "two");
+    // single literal
+    ::yew::classes!("one");
+    // empty
+    ::yew::classes!();
 
-    classes!(vec!["one", "two"]);
-    classes!(vec!["one"]);
-    classes!(Vec::<&'static str>::new());
-    classes!(vec!["one"], vec!["two"]);
+    // multiple expressions
+    ::yew::classes!(::std::vec!["one"], ::std::vec!["two"]);
+    // single expression
+    ::yew::classes!(::std::vec!["one", "two"]);
 
-    let some = Some("one");
-    let none: Option<&'static str> = None;
-    classes!(some, none);
+    // optional classes
+    ::yew::classes!(
+        ::std::option::Option::Some("one"),
+        ::std::option::Option::None::<&'static str>,
+    );
 
-    let string = "one".to_string();
-    classes!(string.clone());
-    classes!(string, "two", vec!["three"]);
-
-    let array = ["one", "two"];
-    classes!(&array[..]);
+    // mixed types
+    {
+        use ::std::borrow::ToOwned;
+        ::yew::classes!("one".to_owned(), "two", ::std::vec!["three"]);
+    }
 }
 
 fn main() {}
