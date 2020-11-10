@@ -39,7 +39,7 @@ impl Classes {
     /// If the provided class has already been added, this method will ignore it.
     ///
     /// This method won't check if there are multiple classes in the input string.
-    pub fn unchecked_push<T: Into<Cow<'static, str>>>(&mut self, class: T) {
+    pub unsafe fn unchecked_push<T: Into<Cow<'static, str>>>(&mut self, class: T) {
         self.set.insert(class.into());
     }
 
