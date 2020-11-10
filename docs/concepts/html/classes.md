@@ -12,7 +12,7 @@ There are a number of convenient ways to specify classes for an element:
 
 ```rust
 html! {
-  <div class=html!("container")></div>
+  <div class=classes!("container")></div>
 }
 ```
 
@@ -20,7 +20,7 @@ html! {
 
 ```rust
 html! {
-  <div class=html!("class-1", "class-2")></div>
+  <div class=classes!("class-1", "class-2")></div>
 }
 ```
 
@@ -28,7 +28,7 @@ html! {
 
 ```rust
 html! {
-  <div class=html!(Some("class")) />
+  <div class=classes!(Some("class")) />
 }
 ```
 
@@ -36,7 +36,7 @@ html! {
 
 ```rust
 html! {
-  <div class=html!(format!("{}-container", size)) />
+  <div class=classes!(format!("{}-container", size)) />
 }
 ```
 
@@ -44,7 +44,7 @@ html! {
 
 ```rust
 html! {
-  <div class=html!(vec!["class-1", "class-2"])></div>
+  <div class=classes!(vec!["class-1", "class-2"])></div>
 }
 ```
 
