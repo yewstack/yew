@@ -168,41 +168,25 @@ fn reducer() -> Html {
 }
 ```
 
-## `use_reducer_with_init`
+### `use_reducer_with_init`
 `use_reducer` but with init argument. The Hook is passed the initial state
 which is then passed down to `init` function which initializes the state and returns it.
 The hook then returns this state.
 
 This is useful for lazy initialization where it is beneficial not to perform expensive
-computation up-front
-
-### Example
+computation up-front.
 
 ```rust
-#[function_component(UseReducerWithInit)]
-fn reducer_with_init() -> Html {
-    struct CounterState {
-        counter: i32,
-    }
-    let (counter, dispatch) = use_reducer_with_init(
-        // reducer function
-        |prev: Rc<CounterState>, action: i32| CounterState {
-            counter: prev.counter + action,
-        },
-        0, // initial value
-        |initial: i32| CounterState { // init method
-            counter: initial + 10,
-        },
-    );
-
-    html! {
-        <>
-            <div id="result">{counter.counter}</div>
-
-            <button onclick=Callback::from(move |_| dispatch(10))>{"Increment by 10"}</button>
-        </>
-    }
-}
+let (counter, dispatch) = use_reducer_with_init(
+    // reducer function
+    |prev: Rc<CounterState>, action: i32| CounterState {
+        counter: prev.counter + action,
+    },
+    0, // initial value
+    |initial: i32| CounterState { // init method
+        counter: initial + 10,
+    },
+);
 ```
 
 ## `use_effect`
@@ -242,9 +226,20 @@ fn effect() -> Html {
 }
 ```
 
-## `use_effect_with_deps`
+### `use_effect_with_deps`
 
-<!-- TODO -->
+Sometimes, it's needed to manually define dependencies for [`use_effect`](#use_effect). In such cases, we use `use_effect_with_deps`.
+```rust
+use_effect_with_deps(
+    move |_| {
+        // ...
+        || {}
+    },
+    (), // dependents
+);
+```
+
+**Note**: `dependents` must implement `PartialEq`.
 
 ## `use_context`
 
