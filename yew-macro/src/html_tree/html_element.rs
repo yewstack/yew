@@ -272,7 +272,7 @@ impl ToTokens for HtmlElement {
                     } else {
                         let sr = lit.stringify();
                         Some(quote! {
-                             #vtag.__macro_push_attribute("class", #sr);
+                            #vtag.__macro_push_attribute("class", #sr);
                         })
                     }
                 }
