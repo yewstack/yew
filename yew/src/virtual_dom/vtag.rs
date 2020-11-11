@@ -1066,6 +1066,32 @@ mod tests {
         elem.detach(&parent);
         assert!(node_ref.get().is_none());
     }
+
+    /// Returns the class attribute as str reference, or "" if the attribute is not set.
+    fn get_class_str(vtag: &VTag) -> &str {
+        vtag.attributes
+            .iter()
+            .find(|(k, _)| k == &"class")
+            .map(|(_, v)| AsRef::as_ref(v))
+            .unwrap_or("")
+    }
+
+    #[test]
+    fn old_class_syntax_is_still_supported() {
+        let a_classes = "class-1 class-2".to_string();
+        #[allow(deprecated)]
+        let a = html! {
+            <div class=("class-1", a_classes)></div>
+        };
+
+        if let VNode::VTag(vtag) = a {
+            assert!(get_class_str(&vtag).contains("class-1"));
+            assert!(get_class_str(&vtag).contains("class-2"));
+            assert!(!get_class_str(&vtag).contains("class-3"));
+        } else {
+            panic!("vtag expected");
+        }
+    }
 }
 
 #[cfg(all(test, feature = "web_sys"))]
