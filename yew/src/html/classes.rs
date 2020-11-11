@@ -241,4 +241,12 @@ mod tests {
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
     }
+
+    #[test]
+    fn can_be_collected() {
+        let classes = vec!["foo", "bar"];
+        let subject = classes.into_iter().collect::<Classes>();
+        assert!(subject.contains("foo"));
+        assert!(subject.contains("bar"));
+    }
 }

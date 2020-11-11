@@ -25,50 +25,55 @@ Its input accepts a comma separated list of expressions. The only requirement
 is that every expression implements `Into<Classes>`.
 
 <!--DOCUSAURUS_CODE_TABS-->
-<!--Literal-->
-
-```rust
-html! {
-  <div class=classes!("container")></div>
-}
-```
-
-<!--Multiple-->
-
-```rust
-html! {
-  <div class=classes!("class-1", "class-2")></div>
-}
-```
-
-<!--Optional-->
-
-```rust
-html! {
-  <div class=classes!(Some("class")) />
-}
-```
-
-<!--Vector-->
-
-```rust
-html! {
-  <div class=classes!(vec!["class-1", "class-2"])></div>
-}
-```
-
-<!--END_DOCUSAURUS_CODE_TABS-->
-
-## Components that accept classes
+<!--Strings & literals-->
 
 ```rust
 use boolinator::Boolinator;
 
 #[derive(Clone, Properties)]
 struct Props {
+    size: u32,
+    children: Children,
+}
+
+struct MyComponent {
+    props: Props,
+}
+
+impl Component for MyComponent {
+    type Properties = Props;
+
+    // ...
+
+    fn view(&self) -> Html {
+        let Props {
+            size,
+            children,
+        } = &self.props;
+        html! {
+            <div
+                class=classes!(
+                    "my-container-class",
+                    format!("{}-container", size)
+                )
+            >
+                { children.clone() }
+            </div>
+        }
+    }
+}
+```
+
+<!--Multiple sets of classes-->
+
+```rust
+use boolinator::Boolinator;
+
+#[derive(Clone, Properties)]
+struct Props {
+    // Classes defaults to an empty set
     #[prop_or_default]
     class: Classes,
-    fill: bool,
     children: Children,
 }
 
@@ -84,14 +89,12 @@ impl Component for MyComponent {
     fn view(&self) -> Html {
         let Props {
             class,
-            fill,
             children,
         } = &self.props;
         html! {
             <div
                 class=classes!(
                     "my-container-class",
-                    fill.as_some("my-fill-class"),
                     class.clone(),
                 )
             >
@@ -101,6 +104,91 @@ impl Component for MyComponent {
     }
 }
 ```
+
+<!--Optional-->
+
+```rust
+use boolinator::Boolinator;
+
+#[derive(Clone, Properties)]
+struct Props {
+    fill: bool,
+    children: Children,
+}
+
+struct MyComponent {
+    props: Props,
+}
+
+impl Component for MyComponent {
+    type Properties = Props;
+
+    // ...
+
+    fn view(&self) -> Html {
+        let Props {
+            fill,
+            children,
+        } = &self.props;
+        html! {
+            <div
+                class=classes!(
+                    "my-container-class",
+                    fill.as_some("my-fill-class"),
+                )
+            >
+                { children.clone() }
+            </div>
+        }
+    }
+}
+```
+
+<!--Generating Classes from a Vec-->
+
+```rust
+use boolinator::Boolinator;
+
+#[derive(Clone, Properties)]
+struct Props {
+    #[prop_or_default]
+    tags: Vec<String>,
+    children: Children,
+}
+
+struct MyComponent {
+    props: Props,
+}
+
+impl Component for MyComponent {
+    type Properties = Props;
+
+    // ...
+
+    fn view(&self) -> Html {
+        let Props {
+            tags,
+            children,
+        } = &self.props;
+        let all_classes = tags
+            .iter()
+            .map(|tag| format!("tag-{}", tag))
+            .collect::<Classes>();
+        html! {
+            <div
+                class=classes!(
+                    "my-container-class",
+                    all_classes,
+                )
+            >
+                { children.clone() }
+            </div>
+        }
+    }
+}
+```
+
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 The example makes use of the [boolinator](https://crates.io/crates/boolinator)
 crate to conditionally add the "my-fill-class" class based on the `fill`
