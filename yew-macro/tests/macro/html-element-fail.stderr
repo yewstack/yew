@@ -154,7 +154,7 @@ error: `ref` does not support being used as an optional attribute
 59 |     html! { <input ref?=() /> };
    |                    ^^^^^
 
-warning: use of deprecated item 'compile_fail::deprecated_use_of_class': the use of `(...)` with the attribute `class` is deprecated. Please use the macro `classes!` instead.
+warning: use of deprecated item 'compile_fail::deprecated_use_of_class': the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
   --> $DIR/html-element-fail.rs:63:24
    |
 63 |     html! { <div class=("deprecated", "warning") /> };

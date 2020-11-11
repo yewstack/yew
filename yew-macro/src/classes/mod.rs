@@ -34,15 +34,14 @@ impl ToTokens for Classes {
     }
 }
 
-#[allow(clippy::large_enum_variant)]
 enum ClassExpr {
     Lit(LitStr),
-    Expr(Expr),
+    Expr(Box<Expr>),
 }
 
 impl Parse for ClassExpr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        match input.parse::<Expr>()? {
+        match input.parse()? {
             Expr::Lit(ExprLit {
                 lit: Lit::Str(lit_str),
                 ..
@@ -65,7 +64,7 @@ impl Parse for ClassExpr {
                     Ok(Self::Lit(lit_str))
                 }
             }
-            expr => Ok(Self::Expr(expr)),
+            expr => Ok(Self::Expr(Box::new(expr))),
         }
     }
 }
