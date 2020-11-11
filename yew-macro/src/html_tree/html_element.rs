@@ -251,18 +251,16 @@ impl ToTokens for HtmlElement {
                 };
 
                 Some(quote! {
-                    {
-                        let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
-                        #(__yew_classes.push(#classes);)*
+                    let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
+                    #(__yew_classes.push(#classes);)*
 
-                        #deprecation_warning
+                    #deprecation_warning
 
-                        if !__yew_classes.is_empty() {
-                            #vtag.__macro_push_attribute("class", #sr);
-                        } else {
-                            #vtag.__macro_push_attribute_placeholder("class");
-                        };
-                    }
+                    if !__yew_classes.is_empty() {
+                        #vtag.__macro_push_attribute("class", #sr);
+                    } else {
+                        #vtag.__macro_push_attribute_placeholder("class");
+                    };
                 })
             }
             Some(ClassesForm::Single(classes)) => match classes.try_into_lit() {
@@ -279,14 +277,12 @@ impl ToTokens for HtmlElement {
                 None => {
                     let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
                     Some(quote! {
-                        {
-                            let __yew_classes = ::std::convert::Into::<::yew::html::Classes>::into(#classes);
-                            if !__yew_classes.is_empty() {
-                                #vtag.__macro_push_attribute("class", #sr);
-                            } else {
-                                #vtag.__macro_push_attribute_placeholder("class");
-                            };
-                        }
+                        let __yew_classes = ::std::convert::Into::<::yew::html::Classes>::into(#classes);
+                        if !__yew_classes.is_empty() {
+                            #vtag.__macro_push_attribute("class", #sr);
+                        } else {
+                            #vtag.__macro_push_attribute_placeholder("class");
+                        };
                     })
                 }
             },
@@ -386,13 +382,6 @@ impl ToTokens for HtmlElement {
             {
                 #[allow(unused_braces)]
                 let mut #vtag = ::yew::virtual_dom::VTag::new(#name_sr);
-
-                #[allow(dead_code)]
-                #[deprecated(
-                    note="the use of `(...)` with the attribute `class` is deprecated. \
-                        Please use the macro `classes!` instead.",
-                )]
-                fn deprecated_use_of_class() {}
 
                 #set_node_ref
                 #set_key
