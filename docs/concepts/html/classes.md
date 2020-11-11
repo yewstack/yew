@@ -13,9 +13,9 @@ for every class even if a single string might contain multiple classes.
 `Classes` can also be merged by using `Extend` (i.e.
 `classes1.extend(classes2)`) or `push()` (i.e. `classes1.push(classes2)`). In
 fact, anything that implements `Into<Classes>` can be used to push new classes
-to the set. This includes: `&'static str`, `String` and `Cow<'static, str>`,
+to the set. This includes: `&'static str`, `String`, `Cow<'static, str>`,
 but also: `Vec<impl Into<Classes>>`, `&[impl Into<Classes>]`,
-`Option<impl Classes>` and `&Option<impl Classes>`. For example
+`Option<impl Into<Classes>>` and `&Option<impl Into<Classes>>`. For example
 `Option<String>` can be converted to `Classes` and get an empty set if the
 option is None (or the string is empty), but a set of one or more elements if
 the string contains one or more classes.
