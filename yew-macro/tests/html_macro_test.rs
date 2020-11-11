@@ -5,24 +5,8 @@ use yew::html;
 fn html_macro() {
     let t = trybuild::TestCases::new();
 
-    t.pass("tests/html_macro/html-block-pass.rs");
-    t.compile_fail("tests/html_macro/html-block-fail.rs");
-
-    t.pass("tests/html_macro/html-component-pass.rs");
-    t.compile_fail("tests/html_macro/html-component-fail.rs");
-    t.compile_fail("tests/html_macro/html-component-fail-unimplemented.rs");
-
-    t.pass("tests/html_macro/html-iterable-pass.rs");
-    t.compile_fail("tests/html_macro/html-iterable-fail.rs");
-
-    t.pass("tests/html_macro/html-list-pass.rs");
-    t.compile_fail("tests/html_macro/html-list-fail.rs");
-
-    t.pass("tests/html_macro/html-node-pass.rs");
-    t.compile_fail("tests/html_macro/html-node-fail.rs");
-
-    t.pass("tests/html_macro/html-element-pass.rs");
-    t.compile_fail("tests/html_macro/html-element-fail.rs");
+    t.pass("tests/html_macro/*-pass.rs");
+    t.compile_fail("tests/html_macro/*-fail.rs");
 }
 
 #[test]
