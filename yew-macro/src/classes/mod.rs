@@ -1,7 +1,8 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
+use syn::spanned::Spanned;
 use syn::{Expr, ExprLit, Lit, LitStr, Token};
 
 /// List of HTML classes.
@@ -20,7 +21,7 @@ impl ToTokens for Classes {
             ClassExpr::Lit(class) => quote! {
                 unsafe { __yew_classes.unchecked_push(#class) };
             },
-            ClassExpr::Expr(class) => quote! {
+            ClassExpr::Expr(class) => quote_spanned! {class.span()=>
                 __yew_classes.push(#class);
             },
         });
