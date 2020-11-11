@@ -4,7 +4,7 @@ use std::{
     iter::FromIterator,
 };
 
-/// A set of classes.
+/// A set of classes. The use of `classes!` is preferred.
 #[derive(Debug, Clone, Default)]
 pub struct Classes {
     set: IndexSet<Cow<'static, str>>,
