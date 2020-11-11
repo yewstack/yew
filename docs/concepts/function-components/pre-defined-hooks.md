@@ -9,7 +9,7 @@ Contribute to our docs: Add details about pre-defined hooks
 Take a look at the [project board](https://github.com/yewstack/yew/projects/3) for details and consider helping out.
 :::
 
-:::note Why Hooks return `Rc`?
+:::note Why do Hooks return `Rc`?
 
 In most cases, you'll be cloning the values returned from the hooks.
 As it may be expensive to clone such values, they're `Rc`ed, so they can be cloned relatively cheaply.
@@ -243,5 +243,9 @@ fn effect() -> Html {
 ```
 
 ## `use_effect_with_deps`
+
+<!-- TODO -->
+
+## `use_context`
 
 <!-- TODO -->
