@@ -4,7 +4,9 @@ use std::{
     iter::FromIterator,
 };
 
-/// A set of classes. The use of [`classes!`][yew::classes!] is preferred.
+/// A set of classes.
+///
+/// The preferred way of creating this is using the [`classes!`][yew::classes!] macro.
 #[derive(Debug, Clone, Default)]
 pub struct Classes {
     set: IndexSet<Cow<'static, str>>,
