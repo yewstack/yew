@@ -49,14 +49,6 @@ html! {
 }
 ```
 
-<!--Interpolated-->
-
-```rust
-html! {
-  <div class=classes!(format!("{}-container", size)) />
-}
-```
-
 <!--Vector-->
 
 ```rust
