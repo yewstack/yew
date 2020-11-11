@@ -1,3 +1,66 @@
+//! Function components are a simplified version of normal components.
+//! They consist of a single function that receives props and determines what should be rendered by returning [`Html`].
+//! Basically, it's a component that's been reduced to just the [`Component::view`] method.
+//! On its own that would be quite limiting because you can only create pure components, but that's where hooks come in.
+//! Hooks allow function components to use state and other Yew features without implementing the [`Component`] trait.
+//!
+//! ```rust
+//! # use yew_functional::function_component;
+//! # use yew::prelude::*;
+//!
+//! #[function_component(HelloWorld)]
+//! fn hello_world() -> Html {
+//!     html! { "Hello world" }
+//! }
+//! ```
+//!
+//! # Defining function components
+//!
+//! The simplest way to define function components is use the [`function_component`] attribute.
+//! It is also possible to define them manually by implementing [`FunctionProvider`] trait and
+//! using [`FunctionComponent`] struct. [`function_component`] provides an abstraction over
+//! implementing [`FunctionProvider`] and exposing [`FunctionComponent`] type.
+//!
+//! # Hooks
+//!
+//! Hooks are simply functions that let you “hook into” components' state and/or lifecycle and perform actions. Yew comes with a few pre-defined hooks.
+//! You can also create your own by using [`use_hook`] function.
+//!
+//! A full guide for consuming hooks and define custom ones can be found on [Yew's website](https://yew.rs/)
+//!
+//! ## Why do hooks return an [`Rc`]?
+//!
+//! In most cases, you'll be cloning the values returned from the hooks.
+//! As it may be expensive to clone such values, they're `Rc`ed, so they can be cloned relatively cheaply.
+//! An example of such a situation would be when you have to clone a a large HashMap or Vector.
+//! It will be much cheaper to clone an `Rc` than to clone such a type.
+//!
+//! It is worth noting that this problem doesn't occur with premitives and with types that implment [`Copy`]
+//!
+//! Following example shows one of the most common cases which requires cloning the values:
+//!
+//! ```rust
+//! # use yew_functional::{function_component, use_state};
+//! # use yew::prelude::*;
+//! # use std::rc::Rc;
+//!
+//! fn component() -> Html {
+//!     let (data, set_data) = use_state(|| "".to_string());
+//!     let onclick = {
+//!         let data = Rc::clone(&data);
+//!         // Values must be moved into this closure so in order to be able to use them later on, they must be cloned
+//!         Callback::from(move |_| set_data(format!("{}MoreData", data)))
+//!     };
+//!
+//!     html! { <>
+//!         // If `data` wasn't cloned above, it would've been impossible to use it here
+//!         { &data }
+//!         <button onclick=onclick>{"Show data"}</button>
+//!     </>}
+//! }
+//! ```
+//!
+
 use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::ops::DerefMut;
@@ -472,10 +535,10 @@ where
 ///
 ///     let counter_one = counter.clone();
 ///     use_effect(move || {
-///         /// Make a call to DOM API after component is rendered
+///         // Make a call to DOM API after component is rendered
 ///         yew::utils::document().set_title(&format!("You clicked {} times", counter_one));
 ///
-///         /// Perform the cleanup
+///         // Perform the cleanup
 ///         || yew::utils::document().set_title(&format!("You clicked 0 times"))
 ///     });
 ///
