@@ -237,4 +237,89 @@ use_effect_with_deps(
 
 ## `use_context`
 
-<!-- TODO -->
+`use_context` used for consuming contexts in function components. See the explanation and example below to learn how to use it. 
+
+### Contexts
+
+Generally data is passed down the component tree using props but that becomes tedious for values such as user preferences, authentication information etc.
+Consider the following example which passes down theme as props:
+```rust
+// root
+let theme = // ...
+html! {
+    <Navbar theme=theme />
+}
+
+// Navbar component
+html! {
+    <div>
+        <Title theme=theme>{"App title"}<Title>
+        <NavButton theme=theme>{"Somewhere"}</NavButton>
+    </div>
+}
+```
+
+This way of passing down data that is supposed to be global becomes tedious very quickly. This is where contexts come in.
+
+Contexts provide a way to share data between components without passing them down explicitly as props.
+They make data available to all components in the tree.
+
+#### Using Contexts
+
+In order to use contexts, we need a struct which defines what data is to be passed.
+For the above use-case, consider the following struct:
+```rust
+#[derive(Clone, Debug, PartialEq)]
+struct ThemeContext {
+    foreground: String,
+    background: String,
+}
+```
+
+A context provider is required to consume the context. `ContextProvider<T>`, where `T` is the context struct is used as the provider.
+`T` must implement `Clone` and `PartialEq`. `ContextProvider` is the component whose children will have the context available to them.
+Let's implement the aforementioned Navbar using contexts and function components with the `use_context` hook.
+
+##### Example 
+
+```rust
+/// Main component 
+#[function_component(App)]
+pub fn app() -> Html {
+    let (ctx, _set_ctx) = use_state(|| ThemeContext {
+        foreground: "#000000".into(),
+        background: "#eeeeee".into(),
+    });
+
+    html! {
+        <ThemeContextProvider context=ctx>
+            // Every child here and their children will have access to this context.
+            <Toolbar />
+        </ThemeContextProvider>
+    }
+}
+
+/// The toolbar.
+/// This component has access to the context
+#[function_component(Toolbar)]
+pub fn toolbar() -> Html {
+    html! {
+        <div>
+            <ThemedButton />
+        </div>
+    }
+}
+
+/// Button placed in `Toolbar`.
+/// As this component is a child of `ThemeContextProvider` in the component tree, it also has access to the context.
+#[function_component(ThemedButton)]
+pub fn themed_button() -> Html {
+    let theme = use_context::<Rc<ThemeContext>>().expect("no ctx found");
+
+    html! {
+        <button style=format!("background: {}; color: {}", theme.background, theme.foreground)>
+            {"Click me!"}
+        </button>
+    }
+}
+```
