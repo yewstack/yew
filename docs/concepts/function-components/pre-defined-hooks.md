@@ -6,9 +6,9 @@ description: The pre-defined hooks that Yew comes with
 :::note Why do Hooks return `Rc`?
 
 In most cases, you'll be cloning the values returned from the hooks.
-As it may be expensive to clone such values, they're `Rc`ed, so they can be cloned relatively cheaply.
+As it is generally expensive to clone such values, they're `Rc`ed, so they can be cloned relatively cheaply.
 
-Following example shows one of the most common cases which requires cloning the values:
+The following example shows one of the most common cases which requires cloning the values:
 
 ```rust
 let (counter, set_counter) = use_state(|| 0);
@@ -105,8 +105,8 @@ fn ref_hook() -> Html {
 `use_reducer` is an alternative to [`use_state`](#use_state). It is used to handle component's state and is used
 when complex actions needs to be performed on said state.
 
-It accepts a reducer function and initial state and returns `Rc` of the state, and a dispatch function.
-The dispatch function takes one argument of `Action`. When called, the action and current value
+It accepts a reducer function and initial state and returns `Rc` pointing to the state, and a dispatch function.
+The dispatch function takes one argument of type `Action`. When called, the action and current value
 are passed to the reducer function which computes a new state which is returned,
 and the component is re-rendered.
 
