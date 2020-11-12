@@ -1,11 +1,11 @@
 ---
-title: Pre-defined hooks
-description: The pre-defined hooks that Yew comes with 
+title: Pre-defined Hooks
+description: The pre-defined Hooks that Yew comes with 
 ---
 
 :::note Why do Hooks return `Rc`?
 
-In most cases, you'll be cloning the values returned from the hooks.
+In most cases, you'll be cloning the values returned from the Hooks.
 As it is generally expensive to clone such values, they're `Rc`ed, so they can be cloned relatively cheaply.
 
 The following example shows one of the most common cases which requires cloning the values:

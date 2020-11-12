@@ -1,7 +1,7 @@
 //! Function components are a simplified version of normal components.
 //! They consist of a single function that receives props and determines what should be rendered by returning [`Html`].
 //! Basically, it's a component that's been reduced to just the [`Component::view`] method.
-//! On its own that would be quite limiting because you can only create pure components, but that's where hooks come in.
+//! On its own that would be quite limiting because you can only create pure components, but that's where Hooks come in.
 //! Hooks allow function components to use state and other Yew features without implementing the [`Component`] trait.
 //!
 //! ```rust
@@ -23,14 +23,14 @@
 //!
 //! # Hooks
 //!
-//! Hooks are simply functions that let you “hook into” components' state and/or lifecycle and perform actions. Yew comes with a few pre-defined hooks.
+//! Hooks are simply functions that let you “hook into” components' state and/or lifecycle and perform actions. Yew comes with a few pre-defined Hooks.
 //! You can also create your own by using [`use_hook`] function.
 //!
-//! A full guide for consuming hooks and define custom ones can be found on [Yew's website](https://yew.rs/)
+//! A full guide for consuming Hooks and define custom ones can be found on [Yew's website](https://yew.rs/)
 //!
-//! ## Why do hooks return an [`Rc`]?
+//! ## Why do Hooks return an [`Rc`]?
 //!
-//! In most cases, you'll be cloning the values returned from the hooks.
+//! In most cases, you'll be cloning the values returned from the Hooks.
 //! As it may be expensive to clone such values, they're `Rc`ed, so they can be cloned relatively cheaply.
 //! An example of such a situation would be when you have to clone a a large HashMap or Vector.
 //! It will be much cheaper to clone an `Rc` than to clone such a type.
