@@ -5,7 +5,7 @@ description: Introduction to function components
 ---
 
 :::warning
-We're still working on function components and hooks. They're not quite ready to be used yet.
+We're still working on function components and Hooks. They're not quite ready to be used yet.
 If you'd like to help out, take a look at the [project board](https://github.com/yewstack/yew/projects/3) for a list of things that still need to be done.
 :::
 
@@ -13,7 +13,7 @@ If you'd like to help out, take a look at the [project board](https://github.com
 Function components are a simplified version of normal components.
 They consist of a single function that receives props and determines what should be rendered by returning `Html`.
 Basically, it's a component that's been reduced to just the `view` method.
-On its own that would be quite limiting because you can only create pure components, but that's where hooks come in.
+On its own that would be quite limiting because you can only create pure components, but that's where Hooks come in.
 Hooks allow function components to use state and other Yew features without implementing the `Component` trait.
 
 ## Creating function components
@@ -36,11 +36,11 @@ The `#[function_component]` attribute essentially just implements `FunctionProvi
 
 ### Hooks
 
-Hooks are simply functions that let you “hook into” components' state and/or lifecycle and perform actions. Yew comes with a few pre-defined hooks. You can also create your own.
+Hooks are simply functions that let you “hook into” components' state and/or lifecycle and perform actions. Yew comes with a few pre-defined Hooks. You can also create your own.
 
 #### Pre-defined Hooks
 
-Yew comes with the following predefined hooks:
+Yew comes with the following predefined Hooks:
 - [`use_state`](function-components/pre-defined-hooks.md#use_state)
 - [`use_ref`](function-components/pre-defined-hooks.md#use_ref)
 - [`use_reducer`](function-components/pre-defined-hooks.md#use_reducer)
@@ -50,5 +50,5 @@ Yew comes with the following predefined hooks:
 
 #### Custom Hooks
 
-There are cases where you want to define your own hooks for reasons. Yew allows you to define your own hooks which lets you extract your potentially stateful logic from the component into reusable functions. 
-See [Defining custom hooks](function-components/custom-hooks.md#defining-custom-hooks) section for more information.
+There are cases where you want to define your own Hooks for reasons. Yew allows you to define your own Hooks which lets you extract your potentially stateful logic from the component into reusable functions. 
+See [Defining custom Hooks](function-components/custom-hooks.md#defining-custom-hooks) section for more information.

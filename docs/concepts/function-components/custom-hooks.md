@@ -1,11 +1,11 @@
 ---
-title: Custom hooks
-description: Defining your own hooks 
+title: Custom Hooks
+description: Defining your own Hooks 
 ---
 
-## Defining custom hooks
+## Defining custom Hooks
 
-Component's stateful logic can be extracted into usable function by creating custom hooks. 
+Component's stateful logic can be extracted into usable function by creating custom Gooks. 
 
 Consider that we have a component which subscribes to an agent and displays the messages sent to it.
 ```rust
@@ -42,7 +42,7 @@ fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
 ```
 
 The hook's logic goes inside the `use_hook`'s callback.
-`use_hook` is the handler function for custom hooks. It takes in 2 arguments: `hook_runner` and `initial_state_producer`. 
+`use_hook` is the handler function for custom Hooks. It takes in 2 arguments: `hook_runner` and `initial_state_producer`. 
 
 `hook_runner` is where all the hook's logic goes. `use_hook` returns the value returned by this callback.
 `hook_runner` itself takes 2 arguments: a mutable reference to the internal state of the hook and `hook_callback`.
@@ -69,7 +69,7 @@ fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
     use_hook(
         // hook's handler. all the logic goes in here
         |state: &mut UseSubscribeState, hook_callback| {
-            // calling other hooks inside a hook
+            // calling other Hooks inside a hook
             use_effect(move || {
                 let producer = EventBus::bridge(Callback::from(move |msg| {
                     hook_callback(
