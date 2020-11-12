@@ -28,7 +28,7 @@ html! {
 ## `use_state`
 
 `use_state` is used to mange state in a function component.
-It returns a `Rc` of the stateful value, and a setter function.
+It returns a `Rc` pointing to the value of the hook's state, and a setter function.
 
 Initially, the state is set to the result of the function passed.
 This value remains up-to-date on subsequent renders.
