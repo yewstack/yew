@@ -267,7 +267,7 @@ In order to use contexts, we need a struct which defines what data is to be pass
 For the above use-case, consider the following struct:
 ```rust
 #[derive(Clone, Debug, PartialEq)]
-struct ThemeContext {
+struct Theme {
     foreground: String,
     background: String,
 }
@@ -289,10 +289,10 @@ pub fn app() -> Html {
     });
 
     html! {
-        <ThemeContextProvider context=ctx>
+        <ContextProvider<Theme> context=ctx>
             // Every child here and their children will have access to this context.
             <Toolbar />
-        </ThemeContextProvider>
+        </ContextProvider<Theme>>
     }
 }
 
