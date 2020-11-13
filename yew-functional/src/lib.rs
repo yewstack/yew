@@ -7,7 +7,7 @@
 //! ```rust
 //! # use yew_functional::function_component;
 //! # use yew::prelude::*;
-//!
+//! #
 //! #[function_component(HelloWorld)]
 //! fn hello_world() -> Html {
 //!     html! { "Hello world" }
@@ -43,7 +43,7 @@
 //! # use yew_functional::{function_component, use_state};
 //! # use yew::prelude::*;
 //! # use std::rc::Rc;
-//!
+//! #
 //! fn component() -> Html {
 //!     let (data, set_data) = use_state(|| "".to_string());
 //!     let onclick = {
@@ -250,30 +250,30 @@ where
 /// # use std::rc::Rc;
 /// # use std::cell::RefCell;
 /// # use std::ops::{Deref, DerefMut};
-///
+/// #
 /// #[function_component(UseRef)]
 /// fn ref_hook() -> Html {
-///     let (outer_html, set_outer_html) = use_state(|| "".to_string());
+///     let (outer_html, set_outer_html) = use_state(String::new);
 ///
-///     let node_ref: Rc<RefCell<NodeRef>> = use_ref(|| NodeRef::default());
+///     let node_ref = use_ref(NodeRef::default);
 ///
-///     let on_click = {
+///     let onclick = {
 ///         let node_ref = Rc::clone(&node_ref);
 ///
 ///         Callback::from(move |e| {
-///             let to_set = (*node_ref.borrow().deref())
+///             let outer_html = (*node_ref.borrow().deref())
 ///                 .cast::<yew::web_sys::Element>()
 ///                 .unwrap()
 ///                 .outer_html();
-///             set_outer_html(to_set)
+///             set_outer_html(outer_html)
 ///         })
 ///     };
 ///     html! {
 ///         <>
-///             <div id="result" ref=(*node_ref.borrow_mut().deref_mut()).clone()>{"Filler"}</div>
-///             {outer_html}
+///             <div id="result" ref=(*node_ref.borrow_mut().deref_mut()).clone()>{ "Filler" }</div>
+///             { outer_html }
 ///             <br />
-///             <button onclick=on_click>{"Refresh"}</button>
+///             <button onclick=onclick>{ "Refresh" }</button>
 ///         </>
 ///     }
 /// }
@@ -312,16 +312,16 @@ where
 /// # use yew::prelude::*;
 /// # use std::rc::Rc;
 /// # use std::ops::DerefMut;
-///
+/// #
 /// #[function_component(UseReducer)]
 /// fn reducer() -> Html {
-///     //// reducer's Action
+///     /// reducer's Action
 ///     enum Action {
 ///         Double,
 ///         Square,
 ///     }
 ///
-///     //// reducer's State
+///     /// reducer's State
 ///     struct CounterState {
 ///         counter: i32,
 ///     }
@@ -343,7 +343,7 @@ where
 ///         CounterState { counter: 1 },
 ///     );
 ///
-///     let double_onclick = {
+///    let double_onclick = {
 ///         let dispatch = Rc::clone(&dispatch);
 ///         Callback::from(move |_| dispatch(Action::Double))
 ///     };
@@ -351,10 +351,10 @@ where
 ///
 ///     html! {
 ///         <>
-///             <div id="result">{counter.counter}</div>
+///             <div id="result">{ counter.counter }</div>
 ///
-///             <button onclick=double_onclick>{"Double"}</button>
-///             <button onclick=square_onclick>{"Square"}</button>
+///             <button onclick=double_onclick>{ "Double" }</button>
+///             <button onclick=square_onclick>{ "Square" }</button>
 ///         </>
 ///     }
 /// }
@@ -381,7 +381,7 @@ where
 /// # use yew_functional::{function_component, use_reducer_with_init};
 /// # use yew::prelude::*;
 /// # use std::rc::Rc;
-///
+/// #
 /// #[function_component(UseReducerWithInit)]
 /// fn reducer_with_init() -> Html {
 ///     struct CounterState {
@@ -460,7 +460,7 @@ where
 /// # use yew_functional::{function_component, use_state, use_ref};
 /// # use yew::prelude::*;
 /// # use std::rc::Rc;
-///
+/// #
 /// #[function_component(UseState)]
 /// fn state() -> Html {
 ///     let (
@@ -528,7 +528,7 @@ where
 /// # use yew_functional::{function_component, use_effect, use_state};
 /// # use yew::prelude::*;
 /// # use std::rc::Rc;
-///
+/// #
 /// #[function_component(UseEffect)]
 /// fn effect() -> Html {
 ///     let (counter, set_counter) = use_state(|| 0);
@@ -547,9 +547,9 @@ where
 ///         Callback::from(move |_| set_counter(*counter + 1))
 ///     };
 ///
-///     return html! {<>
+///     html! {
 ///         <button onclick=onclick>{ format!("Increment to {}", counter) }</button>
-///     </>};
+///     }
 /// }
 /// ```
 pub fn use_effect<F, Destructor>(callback: F)

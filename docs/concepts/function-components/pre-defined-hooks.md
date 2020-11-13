@@ -123,7 +123,7 @@ fn reducer() -> Html {
 
     /// reducer's State
     struct CounterState {
-        value: i32,
+        counter: i32,
     }
 
     let (
@@ -135,12 +135,12 @@ fn reducer() -> Html {
         // the reducer function
         |prev: Rc<CounterState>, action: Action| CounterState {
             counter: match action {
-                Action::Double => prev.value * 2,
-                Action::Square => prev.value * prev.value,
+                Action::Double => prev.counter * 2,
+                Action::Square => prev.counter * prev.counter,
             }
         },
         // initial state
-        CounterState { value: 1 },
+        CounterState { counter: 1 },
     );
 
     let double_onclick = {
@@ -151,7 +151,7 @@ fn reducer() -> Html {
 
     html! {
         <>
-            <div id="result">{ counter.value }</div>
+            <div id="result">{ counter.counter }</div>
 
             <button onclick=double_onclick>{ "Double" }</button>
             <button onclick=square_onclick>{ "Square" }</button>
