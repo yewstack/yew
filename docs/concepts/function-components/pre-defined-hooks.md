@@ -15,7 +15,7 @@ let (text, set_text) = use_state(|| "Hello".to_owned());
 let onclick = {
     let text = Rc::clone(&text);
     // Values must be moved into this closure so in order to use them later on, they must be cloned
-    Callback::from(move |_| format!("{} World", text)) 
+    Callback::from(move |_| set_text(format!("{} World", text))) 
 };
 
 // If `text` wasn't cloned above, it would've been impossible to use it here
