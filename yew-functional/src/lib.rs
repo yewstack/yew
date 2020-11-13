@@ -590,26 +590,6 @@ where
 
 /// Sometimes, it's needed to manually define dependencies for [`use_effect`].
 /// In such cases, we use `use_effect_with_deps`.
-///
-/// # Example
-///
-/// ```rust
-/// use yew_functional::{function_component, use_effect_with_deps};
-/// use yew::prelude::*;
-///
-/// # #[function_component(UseEffectWithDeps)]
-/// # fn effect_with_deps() -> Html {
-///     use_effect_with_deps(
-///         move |_| {
-///             // ...
-///             || {}
-///         },
-///         (), // dependents
-///     );
-///
-/// #    html! {}
-/// # }
-/// ```
 pub fn use_effect_with_deps<F, Destructor, Dependents>(callback: F, deps: Dependents)
 where
     F: FnOnce(&Dependents) -> Destructor + 'static,
