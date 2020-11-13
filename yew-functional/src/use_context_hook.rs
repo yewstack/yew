@@ -17,9 +17,10 @@ pub struct ContextProviderProps<T: Clone + PartialEq> {
     pub children: Children,
 }
 
-/// The context provider struct. This is required to consume the context.
-/// This implements the [`Component`] trait.
-/// Every children of it in the component tree will have access to the context passed to it.
+/// The context provider component.
+///
+/// Every child (direct or indirect) of this component may access the context value.
+/// Currently the only way to consume the context is using the [`use_context`] hook.
 pub struct ContextProvider<T: Clone + PartialEq + 'static> {
     context: Rc<T>,
     children: Children,
@@ -119,7 +120,7 @@ where
         .and_then(|scope| scope.get_component().map(|comp| f(&*comp)))
 }
 
-/// `use_context` used for consuming contexts in function components.
+/// Hook for consuming context values in function components.
 /// The context of the type passed as `T` is returned. If there is no such context in scope, `None` is returned.
 /// A component which calls `use_context` will re-render when the data of the context changes.
 ///

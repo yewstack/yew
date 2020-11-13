@@ -5,7 +5,7 @@ description: Defining your own Hooks
 
 ## Defining custom Hooks
 
-Component's stateful logic can be extracted into usable function by creating custom Gooks. 
+Component's stateful logic can be extracted into usable function by creating custom Hooks. 
 
 Consider that we have a component which subscribes to an agent and displays the messages sent to it.
 ```rust
@@ -25,15 +25,16 @@ pub fn show_messages() -> Html {
         });
     }
 
-    let output = state.borrow().deref().iter().map(|it| html! { <p>{it} </p>}).collect::<Html>();
-    html! { <div> {output} </div> }
+    let output = state.borrow().deref().iter().map(|it| html! { <p>{ it }</p> });
+    html! { <div>{ for output }</div> }
 }
 ```
 
-There's one problem with this code: if this stateful logic can't be reused. If it is to be used in other component, 
-there will be code duplication. This problem can easily be solved by moving this logic to a new hook.
+There's one problem with this code: the logic can't be reused by another component.
+If we build another component which keeps track of the messages, instead of copying the code we can move the logic into a custom hook.
 
-We'll start by creating a new function called `use_subscribe`. The `use_` prefix conventionally denotes this is a hook.
+We'll start by creating a new function called `use_subscribe`.
+The `use_` prefix conventionally denotes that a function is a hook.
 This function will take no arguments and return `Rc<RefCell<Vec<String>>>`.
 ```rust
 fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
@@ -93,13 +94,13 @@ fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
 }
 ```
 
-We can consume this hook like:
+We can now use our custom hook like this:
 ```rust
 #[function_component(ShowMessages)]
 pub fn show_messages() -> Html {
     let state = use_subscribe();
-    let output = state.borrow().deref().into_iter().map(|it| html! { <p>{it} </p>}).collect::<Html>();
+    let output = state.borrow().deref().into_iter().map(|it| html! { <p>{ it }</p> });
 
-    html! { <div> {output} </div> }
+    html! { <div>{ for output }</div> }
 }
 ```

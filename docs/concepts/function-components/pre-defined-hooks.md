@@ -11,17 +11,15 @@ As it is generally expensive to clone such values, they're `Rc`ed, so they can b
 The following example shows one of the most common cases which requires cloning the values:
 
 ```rust
-let (counter, set_counter) = use_state(|| 0);
+let (text, set_text) = use_state(|| "Hello".to_owned());
 let onclick = {
-    let counter = Rc::clone(&counter);
-    // Values must be moved into this closure so in order to be able to use them later on, they must be cloned
-    Callback::from(move |_| set_counter(*counter + 1)) 
+    let text = Rc::clone(&text);
+    // Values must be moved into this closure so in order to use them later on, they must be cloned
+    Callback::from(move |_| format!("{} World", text)) 
 };
 
-html! {
-    // If `counter` wasn't cloned above, it would've been impossible to use it here
-    { counter }
-}
+// If `text` wasn't cloned above, it would've been impossible to use it here
+html! { text }
 ```
 :::
 
@@ -30,7 +28,7 @@ html! {
 `use_state` is used to mange state in a function component.
 It returns a `Rc` pointing to the value of the hook's state, and a setter function.
 
-Initially, the state is set to the result of the function passed.
+The hook takes a function as input which determines the initial state.
 This value remains up-to-date on subsequent renders.
 
 The setter function is used to update the value and trigger a re-render.
@@ -62,7 +60,7 @@ fn state() -> Html {
 ```
 
 ## `use_ref`
-`use_ref` is used for obtaining a mutable reference to a stateful value.
+`use_ref` is used for obtaining a mutable reference to a value.
 Its state persists across renders.
 
 It is important to note that you do not get notified of state changes.
@@ -73,27 +71,27 @@ If you need the component to be re-rendered on state change, consider using [`us
 ```rust
 #[function_component(UseRef)]
 fn ref_hook() -> Html {
-    let (outer_html, set_outer_html) = use_state(|| "".to_string());
+    let (outer_html, set_outer_html) = use_state(String::new);
 
-    let node_ref: Rc<RefCell<NodeRef>> = use_ref(|| NodeRef::default());
+    let node_ref = use_ref(NodeRef::default);
 
-    let on_click = {
+    let onclick = {
         let node_ref = Rc::clone(&node_ref);
 
         Callback::from(move |e| {
-            let to_set = (*node_ref.borrow().deref())
+            let outer_html = (*node_ref.borrow().deref())
                 .cast::<yew::web_sys::Element>()
                 .unwrap()
                 .outer_html();
-            set_outer_html(to_set)
+            set_outer_html(outer_html)
         })
     };
     html! {
         <>
-            <div id="result" ref=(*node_ref.borrow_mut().deref_mut()).clone()>{"Filler"}</div>
-            {outer_html}
+            <div id="result" ref=(*node_ref.borrow_mut().deref_mut()).clone()>{ "Filler" }</div>
+            { outer_html }
             <br />
-            <button onclick=on_click>{"Refresh"}</button>
+            <button onclick=onclick>{ "Refresh" }</button>
         </>
     }
 }
@@ -125,7 +123,7 @@ fn reducer() -> Html {
 
     /// reducer's State
     struct CounterState {
-        counter: i32,
+        value: i32,
     }
 
     let (
@@ -137,12 +135,12 @@ fn reducer() -> Html {
         // the reducer function
         |prev: Rc<CounterState>, action: Action| CounterState {
             counter: match action {
-                Action::Double => prev.counter * 2,
-                Action::Square => prev.counter * prev.counter,
+                Action::Double => prev.value * 2,
+                Action::Square => prev.value * prev.value,
             }
         },
         // initial state
-        CounterState { counter: 1 },
+        CounterState { value: 1 },
     );
 
     let double_onclick = {
@@ -153,10 +151,10 @@ fn reducer() -> Html {
 
     html! {
         <>
-            <div id="result">{counter.counter}</div>
+            <div id="result">{ counter.value }</div>
 
-            <button onclick=double_onclick>{"Double"}</button>
-            <button onclick=square_onclick>{"Square"}</button>
+            <button onclick=double_onclick>{ "Double" }</button>
+            <button onclick=square_onclick>{ "Square" }</button>
         </>
     }
 }
@@ -186,12 +184,11 @@ let (counter, dispatch) = use_reducer_with_init(
 ## `use_effect`
 
 `use_effect` is used for hooking into the component's lifecycle. 
-Similar to `rendered` method of `Component` trait, 
+Similar to `rendered` from the `Component` trait, 
 `use_effect` takes a function which is called after the render finishes.
 
-The said function returns another function, the destructor function,
-which called when the component is destroyed. It can be used to clean up the effects introduced.
-This is similar to `destroyed` method of `Component` trait.
+The input function has to return a closure, the destructor, which is called when the component is destroyed.
+The destructor can be used to clean up the effects introduced and it can take ownership of values to delay dropping them until the component is destroyed.
 
 ### Example
 
@@ -214,9 +211,9 @@ fn effect() -> Html {
         Callback::from(move |_| set_counter(*counter + 1))
     };
 
-    return html! {<>
+    html! {
         <button onclick=onclick>{ format!("Increment to {}", counter) }</button>
-    </>};
+    }
 }
 ```
 
@@ -242,7 +239,7 @@ use_effect_with_deps(
 ### Contexts
 
 Generally data is passed down the component tree using props but that becomes tedious for values such as user preferences, authentication information etc.
-Consider the following example which passes down theme as props:
+Consider the following example which passes down the theme using props:
 ```rust
 // root
 let theme = // ...
@@ -253,13 +250,13 @@ html! {
 // Navbar component
 html! {
     <div>
-        <Title theme=theme>{"App title"}<Title>
-        <NavButton theme=theme>{"Somewhere"}</NavButton>
+        <Title theme=theme>{ "App title" }<Title>
+        <NavButton theme=theme>{ "Somewhere" }</NavButton>
     </div>
 }
 ```
 
-This way of passing down data that is supposed to be global becomes tedious very quickly. This is where contexts come in.
+Passing down data like this isn't ideal for something like a theme which needs to be available everywhere. This is where contexts come in.
 
 Contexts provide a way to share data between components without passing them down explicitly as props.
 They make data available to all components in the tree.
@@ -317,8 +314,8 @@ pub fn themed_button() -> Html {
     let theme = use_context::<Rc<ThemeContext>>().expect("no ctx found");
 
     html! {
-        <button style=format!("background: {}; color: {}", theme.background, theme.foreground)>
-            {"Click me!"}
+        <button style=format!("background: {}; color: {};", theme.background, theme.foreground)>
+            { "Click me!" }
         </button>
     }
 }
