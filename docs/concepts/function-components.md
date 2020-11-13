@@ -51,4 +51,4 @@ Yew comes with the following predefined Hooks:
 #### Custom Hooks
 
 There are cases where you want to define your own Hooks for reasons. Yew allows you to define your own Hooks which lets you extract your potentially stateful logic from the component into reusable functions. 
-See [Defining custom Hooks](function-components/custom-hooks.md#defining-custom-hooks) section for more information.
+See the [Defining custom hooks](function-components/custom-hooks.md#defining-custom-hooks) section for more information.
