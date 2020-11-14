@@ -82,61 +82,29 @@ impl Component for ListProps {
 Of course, sometimes you might need to restrict the children to a few different
 components. In these cases, you have to get a little more hands-on with Yew.
 
-The [`derive_more`](https://github.com/JelteF/derive_more) crate is used here for better ergonomics. If you don't want
-to use it, you can manually implement `From` for each variant.
+The [`derive_more`](https://github.com/JelteF/derive_more) crate is used here
+for better ergonomics. If you don't want to use it, you can manually implement
+`From` for each variant.
 
 ```rust
 use yew::prelude::*;
 use yew::html::ChildrenRenderer;
 use yew::virtual_dom::{ VChild, VComp };
 
-// ...
-
-// This enum defines the different types of properties that children components
-// can have. Additionally, it derives `derive_more::From`, which implements 
-// `From<MyFirstComponentProps>` and `From<MySecondComponentProps>` for us!
+// `derive_more::From` implements `From<VChild<Primary>>` and
+// `From<VChild<Secondary>>` for `Item` automatically!
 #[derive(Clone, derive_more::From)]
-pub enum ItemPropVariants {
-    MyFirstComponent(MyFirstComponentProps),
-    MySecondComponent(MySecondComponentProps),
+pub enum Item {
+    Primary(VChild<Primary>),
+    Secondary(VChild<Secondary>),
 }
 
-// This struct acts as a simple wrapper ...
-#[derive(Clone)]
-pub struct Item {
-    props: ItemPropVariants,
-}
-
-// ... which we implement `From<VChild<CHILD>>` for, where `CHILD`:
-//
-// - Implements `Component`
-// - Has a `Self::Properties` value that implements `Into<ItemPropVariants>`.
-// 
-// This tells Yew how to handle converting a virtual DOM child into our
-// wrapper!
-impl<CHILD> From<VChild<CHILD>> for Item
-where
-    CHILD: Component,
-    CHILD::Properties: Into<ItemPropVariants>,
-{
-    fn from(vchild: VChild<CHILD>) -> Self {
-        Self {
-            props: vchild.props.into(),
-        }
-    }
-}
-
-// Finally, we implement `Into<Html>` for our wrapper, allowing it to be
-// rendered!
+// Now, we implment `Into<Html>` so that yew knows how to render `Item`.
 impl Into<Html> for Item {
     fn into(self) -> Html {
-        match self.props {
-            ItemPropVariants::MyFirstComponent(props) => {
-                html! { <MyFirstComponent with props /> }
-            }
-            ItemPropVariants::MySecondComponent(props) => {
-                html! { <MySecondComponent with props /> }
-            }
+        match self {
+            Self::Primary(child) => child.into(),
+            Self::Secondary(child) => child.into(),
         }
     }
 }
@@ -172,7 +140,58 @@ share state between parent and child components without causing difficulty for
 users of your library.
 
 ```rust
-// ... See the multiple typed children example ...
+use yew::prelude::*;
+use yew::html::ChildrenRenderer;
+use yew::virtual_dom::{ VChild, VComp };
+
+// This enum defines the different types of properties that children components
+// can have. Additionally, it derives `derive_more::From`, which implements 
+// `From<PrimaryProps>` and `From<SecondaryProps>` for us!
+#[derive(Clone, derive_more::From)]
+pub enum ItemProps {
+    Primary(PrimaryProps),
+    Secondary(SecondaryProps),
+}
+
+// This struct acts as a simple wrapper ...
+#[derive(Clone)]
+pub struct Item {
+    props: ItemProps,
+}
+
+// ... which we implement `From<VChild<CHILD>>` for, where `CHILD`:
+//
+// - Implements `Component`
+// - Has a `Self::Properties` value that implements `Into<ItemProps>`.
+// 
+// This tells Yew how to handle converting a virtual DOM child into our
+// wrapper!
+impl<CHILD> From<VChild<CHILD>> for Item
+where
+    CHILD: Component,
+    CHILD::Properties: Into<ItemProps>,
+{
+    fn from(vchild: VChild<CHILD>) -> Self {
+        Self {
+            props: vchild.props.into(),
+        }
+    }
+}
+
+// Finally, we implement `Into<Html>` for our wrapper, allowing it to be
+// rendered!
+impl Into<Html> for Item {
+    fn into(self) -> Html {
+        match self.props {
+            ItemProps::Primary(props) => {
+                html! { <Primary with props /> }
+            }
+            ItemProps::Secondary(props) => {
+                html! { <Secondary with props /> }
+            }
+        }
+    }
+}
 
 #[derive(Properties, Clone)]
 pub struct ListProps {
@@ -193,7 +212,14 @@ impl Component for List {
             <div class="list">
                 {
                     for self.props.children.iter().enumerate().map(|(i, mut item)| {
-                        item.props.value = format!("#{}", i);
+                        match item.props {
+                            ItemProps::Primary(mut props) => {
+                                props.label = format!("#{:02}", i);
+                            }
+                            ItemProps::Secondary(mut props) => {
+                                props.description = format!("This is child #{:02}.", i);
+                            }
+                        }
                         item
                     })
                 }
