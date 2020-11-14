@@ -1,5 +1,9 @@
-use super::{use_hook, Hook};
+use crate::use_hook;
 use std::rc::Rc;
+
+struct UseReducer<State> {
+    current_state: Rc<State>,
+}
 
 /// This hook is an alternative to [`use_state`]. It is used to handle component's state and is used
 /// when complex actions needs to be performed on said state.
@@ -62,7 +66,7 @@ use std::rc::Rc;
 pub fn use_reducer<Action: 'static, Reducer, State: 'static>(
     reducer: Reducer,
     initial_state: State,
-) -> (Rc<State>, Rc<impl Fn(Action)>)
+) -> (Rc<State>, Rc<dyn Fn(Action)>)
 where
     Reducer: Fn(Rc<State>, Action) -> State + 'static,
 {
@@ -104,42 +108,42 @@ where
 ///     }
 /// }
 /// ```
-pub fn use_reducer_with_init<Action: 'static, Reducer, State: 'static, InitialState, InitFn>(
+pub fn use_reducer_with_init<
+    Reducer,
+    Action: 'static,
+    State: 'static,
+    InitialState: 'static,
+    InitFn: 'static,
+>(
     reducer: Reducer,
     initial_state: InitialState,
     init: InitFn,
-) -> (Rc<State>, Rc<impl Fn(Action)>)
+) -> (Rc<State>, Rc<dyn Fn(Action)>)
 where
     Reducer: Fn(Rc<State>, Action) -> State + 'static,
     InitFn: Fn(InitialState) -> State,
 {
-    struct UseReducerState<State> {
-        current_state: Rc<State>,
-    }
-    impl<T> Hook for UseReducerState<T> {};
     let init = Box::new(init);
     let reducer = Rc::new(reducer);
     use_hook(
-        |internal_hook_change: &mut UseReducerState<State>, hook_callback| {
-            (
-                internal_hook_change.current_state.clone(),
-                Rc::new(move |action: Action| {
-                    let reducer = reducer.clone();
-                    hook_callback(
-                        move |internal_hook_change: &mut UseReducerState<State>| {
-                            internal_hook_change.current_state = Rc::new((reducer)(
-                                internal_hook_change.current_state.clone(),
-                                action,
-                            ));
-                            true
-                        },
-                        false, // run pre render
-                    );
-                }),
-            )
-        },
-        move || UseReducerState {
+        move || UseReducer {
             current_state: Rc::new(init(initial_state)),
         },
+        |s, updater| {
+            let setter: Rc<dyn Fn(Action)> = Rc::new(move |action: Action| {
+                let reducer = reducer.clone();
+                // We call the callback, consumer the updater
+                // Required to put the type annotations on Self so the method knows how to downcast
+                updater.callback(move |state: &mut UseReducer<State>| {
+                    let new_state = reducer(state.current_state.clone(), action);
+                    state.current_state = Rc::new(new_state);
+                    true
+                });
+            });
+
+            let current = s.current_state.clone();
+            (current, setter)
+        },
+        |_| {},
     )
 }

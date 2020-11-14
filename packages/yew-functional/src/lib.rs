@@ -52,7 +52,7 @@ pub use hooks::*;
 pub use yew_functional_macro::function_component;
 
 thread_local! {
-    static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
+    pub(crate) static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
 }
 
 type Msg = Box<dyn FnOnce() -> bool>;
@@ -71,24 +71,11 @@ pub trait FunctionProvider {
     fn run(props: &Self::TProps) -> Html;
 }
 
-#[derive(Clone, Default)]
-struct MsgQueue(Rc<RefCell<Vec<Msg>>>);
-
-impl MsgQueue {
-    fn push(&self, msg: Msg) {
-        self.0.borrow_mut().push(msg);
-    }
-
-    fn drain(&self) -> Vec<Msg> {
-        self.0.borrow_mut().drain(..).collect()
-    }
-}
-
 pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
     props: T::TProps,
-    link: ComponentLink<Self>,
     hook_state: RefCell<Option<HookState>>,
+    link: ComponentLink<Self>,
     message_queue: MsgQueue,
 }
 
@@ -101,7 +88,7 @@ where
             std::mem::swap(
                 &mut *previous_hook
                     .try_borrow_mut()
-                    .expect("Previous hook still borrowed"),
+                    .expect("use_hook error: hook still borrowed on subsequent renders"),
                 &mut *self.hook_state.borrow_mut(),
             );
         });
@@ -118,6 +105,7 @@ where
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let scope = AnyScope::from(link.clone());
         let message_queue = MsgQueue::default();
+
         Self {
             _never: std::marker::PhantomData::default(),
             props,
@@ -159,7 +147,7 @@ where
         // Reset hook
         self.hook_state
             .try_borrow_mut()
-            .expect("Unexpected concurrent/nested view call")
+            .expect("internal error: unexpected concurrent/nested view call in hook lifecycle")
             .as_mut()
             .unwrap()
             .counter = 0;
@@ -184,6 +172,79 @@ where
     }
 }
 
-pub(crate) fn get_current_scope() -> Option<AnyScope> {
+pub fn get_current_scope() -> Option<AnyScope> {
     CURRENT_HOOK.with(|cell| cell.borrow().as_ref().map(|state| state.scope.clone()))
+}
+
+#[derive(Clone, Default)]
+struct MsgQueue(Rc<RefCell<Vec<Msg>>>);
+
+impl MsgQueue {
+    fn push(&self, msg: Msg) {
+        self.0.borrow_mut().push(msg);
+    }
+
+    fn drain(&self) -> Vec<Msg> {
+        self.0.borrow_mut().drain(..).collect()
+    }
+}
+
+/// The `HookUpdater` provides a convenient interface for hooking into the lifecycle of
+/// the underlying Yew Component that backs the function component.
+///
+/// Two interfaces are provided - callback and post_render.
+/// - `callback` allows the creation of regular yew callbacks on the host component.
+/// - `post_render` allows the creation of events that happen after a render is complete.
+///
+/// See use_effect and use_context for more details on how to use the hook updater to provide
+/// function components the necessary callbacks to update the underlying state.
+#[derive(Clone)]
+pub struct HookUpdater {
+    hook: Rc<RefCell<dyn std::any::Any>>,
+    process_message: ProcessMessage,
+}
+impl HookUpdater {
+    pub fn callback<T: 'static, F>(&self, cb: F)
+    where
+        F: FnOnce(&mut T) -> bool + 'static,
+    {
+        let internal_hook_state = self.hook.clone();
+        let process_message = self.process_message.clone();
+
+        // Update the component
+        // We're calling "link.send_message", so we're not calling it post-render
+        let post_render = false;
+        process_message(
+            Box::new(move || {
+                let mut r = internal_hook_state.borrow_mut();
+                let hook: &mut T = r
+                    .downcast_mut()
+                    .expect("internal error: hook downcasted to wrong type");
+                cb(hook)
+            }),
+            post_render,
+        );
+    }
+
+    pub fn post_render<T: 'static, F>(&self, cb: F)
+    where
+        F: FnOnce(&mut T) -> bool + 'static,
+    {
+        let internal_hook_state = self.hook.clone();
+        let process_message = self.process_message.clone();
+
+        // Update the component
+        // We're calling "messagequeue.push", so not calling it post-render
+        let post_render = true;
+        process_message(
+            Box::new(move || {
+                let mut hook = internal_hook_state.borrow_mut();
+                let hook: &mut T = hook
+                    .downcast_mut()
+                    .expect("internal error: hook downcasted to wrong type");
+                cb(hook)
+            }),
+            post_render,
+        );
+    }
 }

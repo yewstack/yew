@@ -1,6 +1,5 @@
-use super::{use_hook, Hook};
-use std::cell::RefCell;
-use std::rc::Rc;
+use crate::use_hook;
+use std::{cell::RefCell, rc::Rc};
 
 /// This hook is used for obtaining a mutable reference to a stateful value.
 /// Its state persists across renders.
@@ -46,20 +45,10 @@ use std::rc::Rc;
 ///     }
 /// }
 /// ```
-pub fn use_ref<T: 'static, InitialProvider>(initial_value: InitialProvider) -> Rc<RefCell<T>>
-where
-    InitialProvider: FnOnce() -> T,
-{
-    #[derive(Clone)]
-    struct UseRefState<T>(Rc<RefCell<T>>);
-    impl<T> Hook for UseRefState<T> {}
-
+pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T + 'static) -> Rc<RefCell<T>> {
     use_hook(
-        |state: &mut UseRefState<T>, hook_callback| {
-            // we need it to be a specific closure type, even if we never use it
-            let _ignored = || hook_callback(|_| false, false);
-            state.0.clone()
-        },
-        move || UseRefState(Rc::new(RefCell::new(initial_value()))),
+        || Rc::new(RefCell::new(initial_value())),
+        |state, _| state.clone(),
+        |_| {},
     )
 }

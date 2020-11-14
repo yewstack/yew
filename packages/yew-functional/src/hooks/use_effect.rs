@@ -1,5 +1,9 @@
-use super::{use_hook, Hook};
+use crate::use_hook;
 use std::{borrow::Borrow, rc::Rc};
+
+struct UseEffect<Destructor> {
+    destructor: Option<Box<Destructor>>,
+}
 
 /// This hook is used for hooking into the component's lifecycle.
 ///
@@ -32,40 +36,38 @@ use std::{borrow::Borrow, rc::Rc};
 ///     }
 /// }
 /// ```
-pub fn use_effect<F, Destructor>(callback: F)
+pub fn use_effect<Destructor>(callback: impl FnOnce() -> Destructor + 'static)
 where
-    F: FnOnce() -> Destructor + 'static,
     Destructor: FnOnce() + 'static,
 {
-    struct UseEffectState<Destructor> {
-        destructor: Option<Box<Destructor>>,
-    }
-    impl<T: FnOnce() + 'static> Hook for UseEffectState<T> {
-        fn tear_down(&mut self) {
-            if let Some(destructor) = self.destructor.take() {
+    let callback = Box::new(callback);
+    use_hook(
+        move || {
+            let effect: UseEffect<Destructor> = UseEffect { destructor: None };
+            effect
+        },
+        |_, updater| {
+            // Run on every render
+            updater.post_render(move |state: &mut UseEffect<Destructor>| {
+                if let Some(de) = state.destructor.take() {
+                    de();
+                }
+                let new_destructor = callback();
+                state.destructor.replace(Box::new(new_destructor));
+                false
+            });
+        },
+        |hook| {
+            if let Some(destructor) = hook.destructor.take() {
                 destructor()
             }
-        }
-    }
-
-    let callback = Box::new(callback);
-
-    use_hook(
-        |_: &mut UseEffectState<Destructor>, hook_callback| {
-            hook_callback(
-                move |state: &mut UseEffectState<Destructor>| {
-                    if let Some(de) = state.destructor.take() {
-                        de();
-                    }
-                    let new_destructor = callback();
-                    state.destructor.replace(Box::new(new_destructor));
-                    false
-                },
-                true, // run post render
-            );
         },
-        || UseEffectState { destructor: None },
-    );
+    )
+}
+
+struct UseEffectDeps<Destructor, Dependents> {
+    destructor: Option<Box<Destructor>>,
+    deps: Rc<Dependents>,
 }
 
 /// This hook is similar to [`use_effect`] but it accepts dependencies.
@@ -73,51 +75,44 @@ where
 /// Whenever the dependencies are changed, the effect callback is called again.
 /// To detect changes, dependencies must implement `PartialEq`.
 /// Note that the destructor also runs when dependencies change.
-pub fn use_effect_with_deps<F, Destructor, Dependents>(callback: F, deps: Dependents)
+pub fn use_effect_with_deps<Callback, Destructor, Dependents>(callback: Callback, deps: Dependents)
 where
-    F: FnOnce(&Dependents) -> Destructor + 'static,
+    Callback: FnOnce(&Dependents) -> Destructor + 'static,
     Destructor: FnOnce() + 'static,
     Dependents: PartialEq + 'static,
 {
-    struct UseEffectState<Dependents, Destructor> {
-        deps: Rc<Dependents>,
-        destructor: Option<Box<Destructor>>,
-    }
-    impl<Dependents, Destructor: FnOnce() + 'static> Hook for UseEffectState<Dependents, Destructor> {
-        fn tear_down(&mut self) {
-            if let Some(destructor) = self.destructor.take() {
-                destructor()
-            }
-        }
-    }
-
     let deps = Rc::new(deps);
     let deps_c = deps.clone();
 
     use_hook(
-        move |_state: &mut UseEffectState<Dependents, Destructor>, hook_callback| {
-            hook_callback(
-                move |state: &mut UseEffectState<Dependents, Destructor>| {
-                    if state.deps != deps {
-                        if let Some(de) = state.destructor.take() {
-                            de();
-                        }
-                        let new_destructor = callback(deps.borrow());
-                        state.deps = deps;
-                        state.destructor.replace(Box::new(new_destructor));
-                    } else if state.destructor.is_none() {
-                        state
-                            .destructor
-                            .replace(Box::new(callback(state.deps.borrow())));
-                    }
-                    false
-                },
-                true, // run post render
-            );
+        move || {
+            let destructor: Option<Box<Destructor>> = None;
+            UseEffectDeps {
+                destructor,
+                deps: deps_c,
+            }
         },
-        || UseEffectState {
-            deps: deps_c,
-            destructor: None,
+        move |_, updater| {
+            updater.post_render(move |state: &mut UseEffectDeps<Destructor, Dependents>| {
+                if state.deps != deps {
+                    if let Some(de) = state.destructor.take() {
+                        de();
+                    }
+                    let new_destructor = callback(deps.borrow());
+                    state.deps = deps;
+                    state.destructor.replace(Box::new(new_destructor));
+                } else if state.destructor.is_none() {
+                    state
+                        .destructor
+                        .replace(Box::new(callback(state.deps.borrow())));
+                }
+                false
+            });
+        },
+        |hook| {
+            if let Some(destructor) = hook.destructor.take() {
+                destructor()
+            }
         },
     );
 }

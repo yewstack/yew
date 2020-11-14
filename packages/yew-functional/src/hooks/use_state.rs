@@ -1,5 +1,9 @@
-use super::{use_hook, Hook};
+use crate::use_hook;
 use std::rc::Rc;
+
+struct UseState<T2> {
+    current: Rc<T2>,
+}
 
 /// This hook is used to mange state in a function component.
 ///
@@ -31,33 +35,27 @@ use std::rc::Rc;
 ///     }
 /// }
 /// ```
-pub fn use_state<T, F>(initial_state_fn: F) -> (Rc<T>, Rc<impl Fn(T)>)
-where
-    F: FnOnce() -> T,
-    T: 'static,
-{
-    struct UseStateState<T2> {
-        current: Rc<T2>,
-    }
-    impl<T> Hook for UseStateState<T> {}
+pub fn use_state<T: 'static, F: FnOnce() -> T + 'static>(
+    initial_state_fn: F,
+) -> (Rc<T>, Rc<dyn Fn(T)>) {
     use_hook(
-        |prev: &mut UseStateState<T>, hook_callback| {
-            let current = prev.current.clone();
-            (
-                current,
-                Rc::new(move |o: T| {
-                    hook_callback(
-                        |state: &mut UseStateState<T>| {
-                            state.current = Rc::new(o);
-                            true
-                        },
-                        false, // run pre render
-                    )
-                }),
-            )
-        },
-        move || UseStateState {
+        // Initializer
+        move || UseState {
             current: Rc::new(initial_state_fn()),
         },
+        // Runner
+        move |hook, updater| {
+            let setter: Rc<(dyn Fn(T))> = Rc::new(move |new_val: T| {
+                updater.callback(move |st: &mut UseState<T>| {
+                    st.current = Rc::new(new_val);
+                    true
+                })
+            });
+
+            let current = hook.current.clone();
+            (current, setter)
+        },
+        // Teardown
+        |_| {},
     )
 }
