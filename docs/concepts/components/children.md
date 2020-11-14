@@ -50,8 +50,8 @@ In cases where you want one type of component to be passed as children to your c
 you can use `yew::html::ChildrenWithProps<T>`.
 
 ```rust
-use yew::prelude::*;
 use yew::html::ChildrenWithProps;
+use yew::prelude::*;
 
 // ...
 
@@ -140,9 +140,9 @@ share state between parent and child components without causing difficulty for
 users of your library.
 
 ```rust
-use yew::prelude::*;
 use yew::html::ChildrenRenderer;
-use yew::virtual_dom::{ VChild, VComp };
+use yew::prelude::*;
+use yew::virtual_dom::{VChild, VComp};
 
 // This enum defines the different types of properties that children components
 // can have. Additionally, it derives `derive_more::From`, which implements 
