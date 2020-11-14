@@ -11,14 +11,15 @@ Consider that we have a component which subscribes to an agent and displays the 
 ```rust
 #[function_component(ShowMessages)]
 pub fn show_messages() -> Html {
-    let (state, set_state) = use_state(|| RefCell::new(vec![]));
+    let (state, set_state) = use_state(|| vec![]);
 
     {
         let mut state = Rc::clone(&state);
         use_effect(move || {
             let producer = EventBus::bridge(Callback::from(move |msg| {
-                (*state).borrow_mut().deref_mut().push(msg);
-                set_state((*state).clone())
+                let mut messages = (*state).clone();
+                messages.push(msg);
+                set_state(messages)
             }));
 
             || drop(producer)
