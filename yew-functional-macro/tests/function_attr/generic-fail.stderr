@@ -1,0 +1,5 @@
+error: function components can't contain generics
+  --> $DIR/generic-fail.rs:10:14
+   |
+10 | const fn comp<P: Properties>(props: &P) -> Html {
+   |              ^^^^^^^^^^^^^^^

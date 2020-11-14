@@ -130,7 +130,7 @@ pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<Rc<T>> {
     }
 
     let scope = get_current_scope()
-        .expect("No current Scope. `use_context` can only be called inside functional components");
+        .expect("No current Scope. `use_context` can only be called inside function components");
 
     use_hook(
         |state: &mut UseContextState<T>, hook_callback| {
