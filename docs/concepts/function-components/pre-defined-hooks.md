@@ -283,7 +283,7 @@ Let's implement the aforementioned Navbar using contexts and function components
 /// Main component 
 #[function_component(App)]
 pub fn app() -> Html {
-    let (ctx, _set_ctx) = use_state(|| ThemeContext {
+    let (ctx, _set_ctx) = use_state(|| Theme {
         foreground: "#000000".into(),
         background: "#eeeeee".into(),
     });
@@ -311,7 +311,7 @@ pub fn toolbar() -> Html {
 /// As this component is a child of `ThemeContextProvider` in the component tree, it also has access to the context.
 #[function_component(ThemedButton)]
 pub fn themed_button() -> Html {
-    let theme = use_context::<Rc<ThemeContext>>().expect("no ctx found");
+    let theme = use_context::<Rc<Theme>>().expect("no ctx found");
 
     html! {
         <button style=format!("background: {}; color: {};", theme.background, theme.foreground)>
