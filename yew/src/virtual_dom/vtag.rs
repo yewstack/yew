@@ -576,6 +576,7 @@ mod tests {
             type_id: TypeId::of::<()>(),
             parent: None,
             state: Rc::new(()),
+            props: Rc::new(()),
         }
     }
 

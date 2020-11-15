@@ -1,13 +1,11 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
 use super::{Key, Transformer, VDiff, VNode};
-use crate::html::{AnyScope, Component, ComponentUpdate, NodeRef, Scope, Scoped};
+use crate::component::Component;
+use crate::html::{AnyScope, ComponentUpdate, NodeRef, Scope, Scoped};
 use crate::utils::document;
 use cfg_if::cfg_if;
-use std::any::TypeId;
-use std::borrow::Borrow;
-use std::fmt;
-use std::ops::Deref;
+use std::{any::TypeId, borrow::Borrow, cell::RefCell, fmt, ops::Deref, rc::Rc};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::{Element, Node};
@@ -44,13 +42,16 @@ impl Clone for VComp {
 /// A virtual child component.
 pub struct VChild<COMP: Component> {
     /// The component properties
-    pub props: COMP::Properties,
+    pub props: RefCell<COMP::Properties>,
     /// Reference to the mounted node
     node_ref: NodeRef,
     key: Option<Key>,
 }
 
-impl<COMP: Component> Clone for VChild<COMP> {
+impl<COMP: Component> Clone for VChild<COMP>
+where
+    COMP::Properties: Clone,
+{
     fn clone(&self) -> Self {
         VChild {
             props: self.props.clone(),
@@ -76,7 +77,7 @@ where
     /// Creates a child component that can be accessed and modified by its parent.
     pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
         Self {
-            props,
+            props: RefCell::new(props),
             node_ref,
             key,
         }
@@ -88,13 +89,17 @@ where
     COMP: Component,
 {
     fn from(vchild: VChild<COMP>) -> Self {
-        VComp::new::<COMP>(vchild.props, vchild.node_ref, vchild.key)
+        VComp::new::<COMP>(
+            Rc::new(vchild.props.into_inner()),
+            vchild.node_ref,
+            vchild.key,
+        )
     }
 }
 
 impl VComp {
     /// Creates a new `VComp` instance.
-    pub fn new<COMP>(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self
+    pub fn new<COMP>(props: Rc<COMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
     where
         COMP: Component,
     {
@@ -126,11 +131,11 @@ trait Mountable {
 }
 
 struct PropsWrapper<COMP: Component> {
-    props: COMP::Properties,
+    props: Rc<COMP::Properties>,
 }
 
 impl<COMP: Component> PropsWrapper<COMP> {
-    pub fn new(props: COMP::Properties) -> Self {
+    pub fn new(props: Rc<COMP::Properties>) -> Self {
         Self { props }
     }
 }
@@ -150,13 +155,12 @@ impl<COMP: Component> Mountable for PropsWrapper<COMP> {
         parent: Element,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped> {
-        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        let scope: Scope<COMP> = Scope::new(Some(Rc::new(parent_scope.clone())), self.props);
         let scope = scope.mount_in_place(
             parent,
             next_sibling,
             Some(VNode::VRef(node_ref.get().unwrap())),
             node_ref,
-            self.props,
         );
 
         Box::new(scope)
@@ -284,9 +288,7 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        html, Children, Component, ComponentLink, Html, NodeRef, Properties, ShouldRender,
-    };
+    use crate::{html, Children, Component, Context, Html, NodeRef, Properties};
     use cfg_match::cfg_match;
 
     #[cfg(feature = "std_web")]
@@ -300,7 +302,7 @@ mod tests {
 
     struct Comp;
 
-    #[derive(Clone, PartialEq, Properties)]
+    #[derive(Clone, Default, PartialEq, Properties)]
     struct Props {
         #[prop_or_default]
         field_1: u32,
@@ -312,19 +314,11 @@ mod tests {
         type Message = ();
         type Properties = Props;
 
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(_ctx: &Context<Self>) -> Self {
             Comp
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            true
-        }
-
-        fn view(&self) -> Html {
+        fn view(&self, _ctx: &Context<Self>) -> Html {
             html! { <div/> }
         }
     }
@@ -332,7 +326,8 @@ mod tests {
     #[test]
     fn update_loop() {
         let document = crate::utils::document();
-        let parent_scope: AnyScope = crate::html::Scope::<Comp>::new(None).into();
+        let parent_scope: AnyScope =
+            crate::html::Scope::<Comp>::new(None, Rc::new(Props::default())).into();
         let parent_element = document.create_element("div").unwrap();
 
         let mut ancestor = html! { <Comp></Comp> };
@@ -453,26 +448,26 @@ mod tests {
         assert_ne!(vchild2, vchild3);
     }
 
-    #[derive(Clone, Properties)]
+    #[derive(Clone, PartialEq, Properties)]
     pub struct ListProps {
         pub children: Children,
     }
-    pub struct List(ListProps);
+
+    pub struct List;
     impl Component for List {
         type Message = ();
         type Properties = ListProps;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Self(props)
+        fn create(_ctx: &Context<Self>) -> Self {
+            Self
         }
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!();
-        }
-        fn view(&self) -> Html {
-            let item_iter = self.0.children.iter().map(|item| html! {<li>{ item }</li>});
+
+        fn view(&self, ctx: &Context<Self>) -> Html {
+            let item_iter = ctx
+                .props
+                .children
+                .iter()
+                .map(|item| html! {<li>{ item }</li>});
             html! {
                 <ul>{ for item_iter }</ul>
             }
@@ -485,9 +480,10 @@ mod tests {
     #[cfg(feature = "web_sys")]
     fn setup_parent() -> (AnyScope, Element) {
         let scope = AnyScope {
-            type_id: std::any::TypeId::of::<()>(),
+            type_id: TypeId::of::<()>(),
             parent: None,
-            state: std::rc::Rc::new(()),
+            props: Rc::new(()),
+            state: Rc::new(()),
         };
         let parent = document().create_element("div").unwrap();
 
@@ -555,9 +551,10 @@ mod tests {
     #[test]
     fn reset_node_ref() {
         let scope = AnyScope {
-            type_id: std::any::TypeId::of::<()>(),
+            type_id: TypeId::of::<()>(),
             parent: None,
-            state: std::rc::Rc::new(()),
+            state: Rc::new(()),
+            props: Rc::new(()),
         };
         let parent = document().create_element("div").unwrap();
 
@@ -585,7 +582,7 @@ mod layout_tests {
 
     use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
-    use crate::{Children, Component, ComponentLink, Html, Properties, ShouldRender};
+    use crate::{Children, Component, Context, Html, Properties};
     use std::marker::PhantomData;
 
     #[cfg(feature = "wasm_test")]
@@ -596,10 +593,9 @@ mod layout_tests {
 
     struct Comp<T> {
         _marker: PhantomData<T>,
-        props: CompProps,
     }
 
-    #[derive(Properties, Clone)]
+    #[derive(Properties, PartialEq)]
     struct CompProps {
         #[prop_or_default]
         children: Children,
@@ -609,25 +605,15 @@ mod layout_tests {
         type Message = ();
         type Properties = CompProps;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(_ctx: &Context<Self>) -> Self {
             Comp {
                 _marker: PhantomData::default(),
-                props,
             }
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, props: Self::Properties) -> ShouldRender {
-            self.props = props;
-            true
-        }
-
-        fn view(&self) -> Html {
+        fn view(&self, ctx: &Context<Self>) -> Html {
             html! {
-                <>{ self.props.children.clone() }</>
+                <>{ ctx.props.children.clone() }</>
             }
         }
     }

@@ -1,4 +1,6 @@
-use yew::{html, App, Component, ComponentLink, Html, ShouldRender};
+#![allow(deprecated)]
+
+use yew::{html, App, ComponentLink, Html, Legacy, LegacyComponent as Component, ShouldRender};
 
 pub enum Msg {
     SetOpposite(ComponentLink<Model>),
@@ -74,7 +76,7 @@ impl Component for Model {
     }
 }
 
-fn mount_app(selector: &'static str, app: App<Model>) -> ComponentLink<Model> {
+fn mount_app(selector: &'static str, app: App<Legacy<Model>>) -> ComponentLink<Model> {
     let document = yew::utils::document();
     let element = document.query_selector(selector).unwrap().unwrap();
     app.mount(element)

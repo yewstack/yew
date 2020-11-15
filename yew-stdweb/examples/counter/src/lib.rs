@@ -2,10 +2,9 @@
 
 use stdweb::web::Date;
 use yew::services::ConsoleService;
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Component, Context, Html, ShouldRender};
 
 pub struct Model {
-    link: ComponentLink<Self>,
     value: i64,
 }
 
@@ -18,11 +17,11 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Model { link, value: 0 }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Model { value: 0 }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Increment => {
                 self.value += 1;
@@ -36,21 +35,17 @@ impl Component for Model {
         true
     }
 
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div>
                 <nav class="menu">
-                    <button onclick=self.link.callback(|_| Msg::Increment)>
+                    <button onclick=ctx.callback(|_| Msg::Increment)>
                         { "Increment" }
                     </button>
-                    <button onclick=self.link.callback(|_| Msg::Decrement)>
+                    <button onclick=ctx.callback(|_| Msg::Decrement)>
                         { "Decrement" }
                     </button>
-                    <button onclick=self.link.batch_callback(|_| vec![Msg::Increment, Msg::Increment])>
+                    <button onclick=ctx.batch_callback(|_| vec![Msg::Increment, Msg::Increment])>
                         { "Increment Twice" }
                     </button>
                 </nav>

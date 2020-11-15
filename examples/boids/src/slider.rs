@@ -1,5 +1,9 @@
+#![allow(deprecated)]
+
 use std::cell::Cell;
-use yew::{html, Callback, Component, ComponentLink, Html, InputData, Properties, ShouldRender};
+use yew::{
+    html, Callback, ComponentLink, Html, InputData, LegacyComponent, Properties, ShouldRender,
+};
 
 thread_local! {
     static SLIDER_ID: Cell<usize> = Cell::default();
@@ -28,7 +32,8 @@ pub struct Slider {
     props: Props,
     id: usize,
 }
-impl Component for Slider {
+
+impl LegacyComponent for Slider {
     type Message = ();
     type Properties = Props;
 

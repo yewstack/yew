@@ -1,5 +1,7 @@
+#![allow(deprecated)]
+
 use yew::services::reader::{File, FileChunk, FileData, ReaderService, ReaderTask};
-use yew::{html, ChangeData, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, ChangeData, ComponentLink, Html, Legacy, LegacyComponent, ShouldRender};
 
 type Chunks = bool;
 
@@ -17,7 +19,7 @@ pub struct Model {
     by_chunks: bool,
 }
 
-impl Component for Model {
+impl LegacyComponent for Model {
     type Message = Msg;
     type Properties = ();
 
@@ -109,5 +111,5 @@ impl Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<Legacy<Model>>();
 }

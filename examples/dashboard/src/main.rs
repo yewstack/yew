@@ -1,9 +1,11 @@
+#![allow(deprecated)]
+
 use anyhow::Error;
 use serde_derive::{Deserialize, Serialize};
 use yew::format::{Json, Nothing, Toml};
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, ComponentLink, Html, Legacy, LegacyComponent, ShouldRender};
 
 type AsBinary = bool;
 
@@ -113,7 +115,7 @@ impl Model {
     }
 }
 
-impl Component for Model {
+impl LegacyComponent for Model {
     type Message = Msg;
     type Properties = ();
 
@@ -224,5 +226,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<Legacy<Model>>();
 }

@@ -28,14 +28,54 @@ cfg_if! {
     }
 }
 
+use crate::component::Context;
+
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
+
+/// Yo
+#[derive(Debug)]
+pub struct Legacy<T: Component>(T);
+
+impl<T: Component> yew::component::Component for Legacy<T> {
+    type Message = T::Message;
+    type Properties = T::Properties;
+
+    fn create(ctx: &Scope<Self>) -> Self {
+        let props: &Self::Properties = &ctx.props;
+        Self(T::create(props.clone(), ctx.clone()))
+    }
+
+    fn changed(&mut self, _ctx: &Context<Self>, new_props: &Self::Properties) -> ShouldRender {
+        self.0.change(new_props.clone())
+    }
+
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+        self.0.update(msg)
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        self.0.view()
+    }
+
+    fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
+        self.0.rendered(first_render)
+    }
+
+    fn destroy(&mut self, _ctx: &Context<Self>) {
+        self.0.destroy()
+    }
+}
 
 /// Components are the basic building blocks of the UI in a Yew app. Each Component
 /// chooses how to display itself using received props and self-managed state.
 /// Components can be dynamic and interactive by declaring messages that are
 /// triggered and handled asynchronously. This async update mechanism is inspired by
 /// Elm and the actor model used in the Actix framework.
+#[deprecated(
+    since = "0.18.0",
+    note = "Please switch to the yew::component::Component trait"
+)]
 pub trait Component: Sized + 'static {
     /// Messages are used to make Components dynamic and interactive. Simple
     /// Component's can declare their Message type to be `()`. Complex Component's
@@ -62,7 +102,7 @@ pub trait Component: Sized + 'static {
     /// }
     ///# }}
     /// ```
-    type Properties: Properties;
+    type Properties: Properties + Clone;
 
     /// Components are created with their properties as well as a `ComponentLink` which
     /// can be used to send messages and create callbacks for triggering updates.
@@ -473,7 +513,7 @@ impl NodeRef {
 }
 
 /// Trait for building properties for a component
-pub trait Properties: Clone {
+pub trait Properties: PartialEq {
     /// Builder that will be used to construct properties
     type Builder;
 
@@ -500,7 +540,7 @@ impl EmptyBuilder {
 }
 
 /// Link to component's scope for creating callbacks.
-pub type ComponentLink<COMP> = Scope<COMP>;
+pub type ComponentLink<COMP> = Scope<Legacy<COMP>>;
 
 #[cfg(test)]
 mod tests {

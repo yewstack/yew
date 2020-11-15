@@ -5,7 +5,7 @@ use yew::services::storage::{Area, StorageService};
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Settings {
     /// amount of boids
-    pub boids: usize,
+    pub amount_of_boids: usize,
     // time between each simulation tick
     pub tick_interval_ms: u64,
     /// view distance of a boid
@@ -57,7 +57,7 @@ impl Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            boids: 300,
+            amount_of_boids: 300,
             tick_interval_ms: 50,
             visible_range: 80.0,
             min_distance: 15.0,

@@ -1,9 +1,10 @@
 use add_client::AddClientForm;
 use serde::{Deserialize, Serialize};
+use yew::component::{Component, Context};
 use yew::format::Json;
 use yew::services::storage::Area;
 use yew::services::{DialogService, StorageService};
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Html, ShouldRender};
 
 mod add_client;
 
@@ -45,7 +46,6 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     storage: StorageService,
     clients: Vec<Client>,
     scene: Scene,
@@ -55,22 +55,21 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         let storage = StorageService::new(Area::Local).expect("storage was disabled by the user");
         let Json(clients) = storage.restore(KEY);
         let clients = clients.ok().unwrap_or_else(Vec::new);
-        Self {
-            link,
+        Model {
             storage,
             clients,
             scene: Scene::ClientsList,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::SwitchTo(scene) => {
-                self.scene = scene;
+            Msg::SwitchTo(new_scene) => {
+                self.scene = new_scene;
                 true
             }
             Msg::AddClient(client) => {
@@ -91,11 +90,7 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         match self.scene {
             Scene::ClientsList => html! {
                 <div class="crm">
@@ -103,21 +98,21 @@ impl Component for Model {
                     <div class="clients">
                         { for self.clients.iter().map(Client::render) }
                     </div>
-                    <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::NewClientForm))>{ "Add New" }</button>
-                    <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::Settings))>{ "Settings" }</button>
+                    <button onclick=ctx.callback(|_| Msg::SwitchTo(Scene::NewClientForm))>{ "Add New" }</button>
+                    <button onclick=ctx.callback(|_| Msg::SwitchTo(Scene::Settings))>{ "Settings" }</button>
                 </div>
             },
             Scene::NewClientForm => html! {
                 <div class="crm">
                     <h1>{"Add a new client"}</h1>
-                    <AddClientForm on_add=self.link.callback(Msg::AddClient) on_abort=self.link.callback(|_| Msg::SwitchTo(Scene::ClientsList)) />
+                    <AddClientForm on_add=ctx.callback(Msg::AddClient) on_abort=ctx.callback(|_| Msg::SwitchTo(Scene::ClientsList)) />
                 </div>
             },
             Scene::Settings => html! {
                 <div>
                     <h1>{"Settings"}</h1>
-                    <button onclick=self.link.callback(|_| Msg::ClearClients)>{ "Remove all clients" }</button>
-                    <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::ClientsList))>{ "Go Back" }</button>
+                    <button onclick=ctx.callback(|_| Msg::ClearClients)>{ "Remove all clients" }</button>
+                    <button onclick=ctx.callback(|_| Msg::SwitchTo(Scene::ClientsList))>{ "Go Back" }</button>
                 </div>
             },
         }

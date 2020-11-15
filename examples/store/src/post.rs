@@ -16,8 +16,6 @@ pub struct Props {
 }
 
 pub struct Post {
-    link: ComponentLink<Self>,
-    id: PostId,
     text: Option<String>,
     post_store: Box<dyn Bridge<StoreWrapper<PostStore>>>,
 }
@@ -26,31 +24,30 @@ impl Component for Post {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.callback(Msg::PostStoreMsg);
+    fn create(ctx: &Context<Self>) -> Self {
+        let callback = ctx.callback(Msg::PostStoreMsg);
         Self {
-            link,
-            id: props.id,
             text: None,
             post_store: PostStore::bridge(callback),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::UpdateText(text) => {
-                self.post_store.send(Request::UpdatePost(self.id, text));
+                self.post_store
+                    .send(Request::UpdatePost(ctx.props.id, text));
                 false
             }
             Msg::Delete => {
-                self.post_store.send(Request::RemovePost(self.id));
+                self.post_store.send(Request::RemovePost(ctx.props.id));
                 false
             }
             Msg::PostStoreMsg(state) => {
                 let state = state.borrow();
 
                 // Only update if the post changed.
-                if let Some(text) = state.posts.get(&self.id) {
+                if let Some(text) = state.posts.get(&ctx.props.id) {
                     self.text.neq_assign(Some(text.clone()))
                 } else {
                     false
@@ -59,20 +56,16 @@ impl Component for Post {
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.id.neq_assign(props.id)
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let text = self.text.as_deref().unwrap_or("<pending>");
 
         html! {
             <div>
-                <h2>{ format!("Post #{}", self.id) }</h2>
+                <h2>{ format!("Post #{}", ctx.props.id) }</h2>
                 <p>{text}</p>
 
-                <TextInput value=text onsubmit=self.link.callback(Msg::UpdateText) />
-                <button onclick=self.link.callback(|_| Msg::Delete)>
+                <TextInput value=text onsubmit=ctx.callback(Msg::UpdateText) />
+                <button onclick=ctx.callback(|_| Msg::Delete)>
                     { "Delete" }
                 </button>
             </div>

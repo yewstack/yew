@@ -19,7 +19,7 @@ use std::cell::RefCell;
 use std::ops::DerefMut;
 use std::rc::Rc;
 use yew::html::AnyScope;
-use yew::{Component, ComponentLink, Html, Properties};
+use yew::{Component, Context, Html, Properties};
 
 mod use_context_hook;
 pub use use_context_hook::*;
@@ -91,8 +91,6 @@ impl MsgQueue {
 
 pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
-    props: T::TProps,
-    link: ComponentLink<Self>,
     hook_state: RefCell<Option<HookState>>,
     message_queue: MsgQueue,
 }
@@ -120,13 +118,12 @@ where
     type Message = Box<dyn FnOnce() -> bool>;
     type Properties = T::TProps;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let scope = AnyScope::from(link.clone());
+    fn create(ctx: &Context<Self>) -> Self {
+        let scope = AnyScope::from(ctx.clone());
         let message_queue = MsgQueue::default();
+        let ctx = ctx.clone();
         Self {
             _never: std::marker::PhantomData::default(),
-            props,
-            link: link.clone(),
             message_queue: message_queue.clone(),
             hook_state: RefCell::new(Some(HookState {
                 counter: 0,
@@ -135,7 +132,7 @@ where
                     if post_render {
                         message_queue.push(msg);
                     } else {
-                        link.send_message(msg);
+                        ctx.send_message(msg);
                     }
                 }),
                 hooks: vec![],
@@ -144,23 +141,17 @@ where
         }
     }
 
-    fn rendered(&mut self, _first_render: bool) {
+    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
         for msg in self.message_queue.drain() {
-            self.link.send_message(msg);
+            ctx.send_message(msg);
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         msg()
     }
 
-    fn change(&mut self, props: Self::Properties) -> bool {
-        let mut props = props;
-        std::mem::swap(&mut self.props, &mut props);
-        props != self.props
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         // Reset hook
         self.hook_state
             .try_borrow_mut()
@@ -172,7 +163,7 @@ where
         // Load hook
         self.swap_hook_state();
 
-        let ret = T::run(&self.props);
+        let ret = T::run(&ctx.props);
 
         // Restore previous hook
         self.swap_hook_state();
@@ -180,7 +171,7 @@ where
         ret
     }
 
-    fn destroy(&mut self) {
+    fn destroy(&mut self, _ctx: &Context<Self>) {
         if let Some(ref mut hook_state) = *self.hook_state.borrow_mut() {
             for hook in hook_state.destroy_listeners.drain(..) {
                 hook()

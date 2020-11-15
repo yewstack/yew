@@ -1,6 +1,6 @@
 use crate::random;
 use std::rc::Rc;
-use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
+use yew::{html, ComponentLink, Html, Legacy, LegacyComponent, Properties, ShouldRender};
 use yewtil::NeqAssign;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -40,7 +40,7 @@ impl PersonInfo {
 pub struct PersonComponent {
     info: PersonInfo,
 }
-impl Component for PersonComponent {
+impl LegacyComponent for PersonComponent {
     type Message = ();
     type Properties = Self;
 
@@ -105,9 +105,9 @@ impl PersonType {
             }
             Self::Component(info) => {
                 if keyed {
-                    html! { <PersonComponent key=info.id.to_string() info=info /> }
+                    html! { <Legacy<PersonComponent> key=info.id.to_string() info=info /> }
                 } else {
-                    html! { <PersonComponent info=info /> }
+                    html! { <Legacy<PersonComponent> info=info /> }
                 }
             }
         }

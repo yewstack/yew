@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 //! yew_dsl provides an Rust-based syntax for creating DOM elements.
 //! It provides five basic functions with which you should be able to create complex layouts
 //! (these are `tag`, `comp`, `text`, `populated_list` and `list`).

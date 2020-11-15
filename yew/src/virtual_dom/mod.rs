@@ -623,26 +623,18 @@ mod tests {
 mod layout_tests {
     use super::*;
     use crate::html::{AnyScope, Scope};
-    use crate::{Component, ComponentLink, Html, ShouldRender};
+    use crate::{Component, Context, Html};
 
     struct Comp;
     impl Component for Comp {
         type Message = ();
         type Properties = ();
 
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(_: &Context<Self>) -> Self {
             unimplemented!()
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            unimplemented!();
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            unimplemented!()
-        }
-
-        fn view(&self) -> Html {
+        fn view(&self, _: &Context<Self>) -> Html {
             unimplemented!()
         }
     }
@@ -655,7 +647,7 @@ mod layout_tests {
 
     pub(crate) fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         let document = crate::utils::document();
-        let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
+        let parent_scope: AnyScope = Scope::<Comp>::new(None, Rc::new(())).into();
         let parent_element = document.create_element("div").unwrap();
         let parent_node: Node = parent_element.clone().into();
         let end_node = document.create_text_node("END");

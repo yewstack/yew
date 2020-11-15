@@ -1,5 +1,4 @@
 use yew::prelude::*;
-use yewtil::NeqAssign;
 
 const ELLIPSIS: &str = "\u{02026}";
 
@@ -10,43 +9,33 @@ pub struct Props {
     pub on_switch_page: Callback<u64>,
 }
 
-pub struct Pagination {
-    props: Props,
-}
+pub struct Pagination;
 impl Component for Pagination {
     type Message = ();
     type Properties = Props;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Self { props }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props.neq_assign(props)
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <nav class="pagination is-right" role="navigation" aria-label="pagination">
-                { self.view_relnav_buttons() }
+                { self.view_relnav_buttons(ctx) }
                 <ul class="pagination-list">
-                    { self.view_links() }
+                    { self.view_links(ctx) }
                 </ul>
             </nav>
         }
     }
 }
 impl Pagination {
-    fn render_link(&self, to_page: u64) -> Html {
+    fn render_link(&self, ctx: &Context<Self>, to_page: u64) -> Html {
         let Props {
             page,
             ref on_switch_page,
             ..
-        } = self.props;
+        } = *ctx.props;
 
         let onclick = on_switch_page.reform(move |_| to_page);
         let is_current_class = if to_page == page { "is-current" } else { "" };
@@ -60,14 +49,22 @@ impl Pagination {
         }
     }
 
-    fn render_links<P>(&self, mut pages: P, len: usize, max_links: usize) -> Html
+    fn render_links<P>(
+        &self,
+        ctx: &Context<Self>,
+        mut pages: P,
+        len: usize,
+        max_links: usize,
+    ) -> Html
     where
         P: Iterator<Item = u64> + DoubleEndedIterator,
     {
         if len > max_links {
-            let last_link = self.render_link(pages.next_back().unwrap());
+            let last_link = self.render_link(ctx, pages.next_back().unwrap());
             // remove 1 for the ellipsis and 1 for the last link
-            let links = pages.take(max_links - 2).map(|page| self.render_link(page));
+            let links = pages
+                .take(max_links - 2)
+                .map(|page| self.render_link(ctx, page));
             html! {
                 <>
                     { for links }
@@ -76,16 +73,16 @@ impl Pagination {
                 </>
             }
         } else {
-            html! { for pages.map(|page| self.render_link(page)) }
+            html! { for pages.map(|page| self.render_link(ctx, page)) }
         }
     }
 
-    fn view_links(&self) -> Html {
+    fn view_links(&self, ctx: &Context<Self>) -> Html {
         const LINKS_PER_SIDE: usize = 3;
 
         let Props {
             page, total_pages, ..
-        } = self.props;
+        } = *ctx.props;
 
         let pages_prev = page.checked_sub(1).unwrap_or_default() as usize;
         let pages_next = (total_pages - page) as usize;
@@ -97,19 +94,19 @@ impl Pagination {
 
         html! {
             <>
-                { self.render_links(1..page, pages_prev, links_left) }
-                <li>{ self.render_link(page) }</li>
-                { self.render_links(page + 1..=total_pages, pages_next, links_right) }
+                { self.render_links(ctx, 1..page, pages_prev, links_left) }
+                <li>{ self.render_link(ctx, page) }</li>
+                { self.render_links(ctx, page + 1..=total_pages, pages_next, links_right) }
             </>
         }
     }
 
-    fn view_relnav_buttons(&self) -> Html {
+    fn view_relnav_buttons(&self, ctx: &Context<Self>) -> Html {
         let Props {
             page,
             total_pages,
             ref on_switch_page,
-        } = self.props;
+        } = *ctx.props;
 
         html! {
             <>

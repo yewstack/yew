@@ -4,42 +4,38 @@ sidebar_label: Optimizations
 description: Make your app faster
 ---
 
-## neq\_assign
+## Efficient rendering
 
-When a component receives props from its parent component, the `change` method is called. This, in 
-addition to allowing you to update the component's state, also allows you to return a `ShouldRender` 
-boolean value that indicates if the component should re-render itself in response to the prop changes.
+When a component receives new props from its parent component, the `changed` method is called
+if the new props are not equal to the current props. This method, in addition to allowing changes
+to the component's state, also allows returning a `ShouldRender` boolean value that indicates
+if the component should re-render itself in response to the prop changes.
 
-Re-rendering is expensive, and if you can avoid it, you should. As a general rule, you only want to 
+Re-rendering is expensive, and is best avoid if possible. As a general rule, re-renders should 
+only happen when the changed props affect the component's layout in the `view` method.
 re-render when the props actually changed. The following block of code represents this rule, returning 
-`true` if the props differed from the previous props:
+`true` only if the visible label property has changed and returning `false` when only `debug_value`
+was changed.
 
 ```rust
-use yew::ShouldRender;
+use yew::{Context, ShouldRender};
 
 #[derive(PartialEq)]
-struct ExampleProps;
+struct ExampleProps {
+    label: String,
+    debug_value: usize,
+};
 
 struct Example {
     props: ExampleProps,
 };
 
 impl Example {
-    fn change(&mut self, props: ExampleProps) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
+    fn changed(&mut self, ctx: &Context<Self>, new_props: ExampleProps) -> ShouldRender {
+        return self.props.label != new_props.label {
     }
 }
 ```
-
-But we can go further! This is six lines of boilerplate can be reduced down to one by using a trait 
-and a blanket implementation for anything that implements `PartialEq`. Check out the [`yewtil` 
-crate's `NeqAssign` trait](https://docs.rs/yewtil/*/yewtil/trait.NeqAssign.html) which implements
-this.
 
 ## Using smart pointers effectively
 

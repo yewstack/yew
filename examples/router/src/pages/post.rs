@@ -18,26 +18,18 @@ impl Component for Post {
     type Message = ();
     type Properties = Props;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         Self {
-            post: content::Post::generate_from_seed(props.seed),
+            post: content::Post::generate_from_seed(ctx.props.seed),
         }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        unimplemented!()
+    fn changed(&mut self, _ctx: &Context<Self>, new_props: &Self::Properties) -> ShouldRender {
+        self.post = content::Post::generate_from_seed(new_props.seed);
+        true
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.post.seed == props.seed {
-            false
-        } else {
-            self.post = content::Post::generate_from_seed(props.seed);
-            true
-        }
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         let Self { post } = self;
 
         let keywords = post

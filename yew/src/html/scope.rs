@@ -1,4 +1,5 @@
-use super::{Callback, Component, NodeRef};
+use super::{Callback, NodeRef};
+use crate::component::Component;
 use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use cfg_if::cfg_if;
@@ -24,7 +25,7 @@ pub(crate) enum ComponentUpdate<COMP: Component> {
     /// Wraps batch of messages for a component.
     MessageBatch(Vec<COMP::Message>),
     /// Wraps properties, node ref, and next sibling for a component.
-    Properties(COMP::Properties, NodeRef, NodeRef),
+    Properties(Rc<COMP::Properties>, NodeRef, NodeRef),
 }
 
 /// Untyped scope used for accessing parent scope
@@ -33,6 +34,7 @@ pub struct AnyScope {
     pub(crate) type_id: TypeId,
     pub(crate) parent: Option<Rc<AnyScope>>,
     pub(crate) state: Rc<dyn Any>,
+    pub(crate) props: Rc<dyn Any>,
 }
 
 impl<COMP: Component> From<Scope<COMP>> for AnyScope {
@@ -41,6 +43,7 @@ impl<COMP: Component> From<Scope<COMP>> for AnyScope {
             type_id: TypeId::of::<COMP>(),
             parent: scope.parent,
             state: Rc::new(scope.state),
+            props: scope.props,
         }
     }
 }
@@ -60,6 +63,10 @@ impl AnyScope {
     pub fn downcast<COMP: Component>(self) -> Scope<COMP> {
         Scope {
             parent: self.parent,
+            props: self
+                .props
+                .downcast::<COMP::Properties>()
+                .expect("unexpected properties type"),
             state: self
                 .state
                 .downcast_ref::<Shared<Option<ComponentState<COMP>>>>()
@@ -109,8 +116,10 @@ impl<COMP: Component> Scoped for Scope<COMP> {
 
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
-    parent: Option<Rc<AnyScope>>,
+    pub(crate) parent: Option<Rc<AnyScope>>,
     state: Shared<Option<ComponentState<COMP>>>,
+    /// Component properties
+    pub props: Rc<COMP::Properties>,
 }
 
 impl<COMP: Component> fmt::Debug for Scope<COMP> {
@@ -124,6 +133,7 @@ impl<COMP: Component> Clone for Scope<COMP> {
         Scope {
             parent: self.parent.clone(),
             state: self.state.clone(),
+            props: self.props.clone(),
         }
     }
 }
@@ -144,10 +154,13 @@ impl<COMP: Component> Scope<COMP> {
         })
     }
 
-    pub(crate) fn new(parent: Option<AnyScope>) -> Self {
-        let parent = parent.map(Rc::new);
+    pub(crate) fn new(parent: Option<Rc<AnyScope>>, props: Rc<COMP::Properties>) -> Self {
         let state = Rc::new(RefCell::new(None));
-        Scope { parent, state }
+        Scope {
+            parent,
+            state,
+            props,
+        }
     }
 
     /// Mounts a component with `props` to the specified `element` in the DOM.
@@ -157,7 +170,6 @@ impl<COMP: Component> Scope<COMP> {
         next_sibling: NodeRef,
         placeholder: Option<VNode>,
         node_ref: NodeRef,
-        props: COMP::Properties,
     ) -> Scope<COMP> {
         let scheduler = scheduler();
         // Hold scheduler lock so that `create` doesn't run until `update` is scheduled
@@ -171,7 +183,6 @@ impl<COMP: Component> Scope<COMP> {
                 placeholder,
                 node_ref,
                 scope: self.clone(),
-                props,
             }),
         );
         self.update(ComponentUpdate::First);
@@ -363,9 +374,8 @@ impl<COMP: Component> ComponentState<COMP> {
         placeholder: Option<VNode>,
         node_ref: NodeRef,
         scope: Scope<COMP>,
-        props: COMP::Properties,
     ) -> Self {
-        let component = Box::new(COMP::create(props, scope.clone()));
+        let component = Box::new(COMP::create(&scope));
         Self {
             parent,
             next_sibling,
@@ -394,7 +404,6 @@ where
     placeholder: Option<VNode>,
     node_ref: NodeRef,
     scope: Scope<COMP>,
-    props: COMP::Properties,
 }
 
 impl<COMP> Runnable for CreateComponent<COMP>
@@ -410,7 +419,6 @@ where
                 self.placeholder,
                 self.node_ref,
                 self.scope,
-                self.props,
             ));
         }
     }
@@ -441,21 +449,29 @@ where
 
             let should_update = match self.update {
                 ComponentUpdate::First => true,
-                ComponentUpdate::Message(message) => state.component.update(message),
-                ComponentUpdate::MessageBatch(messages) => messages
-                    .into_iter()
-                    .fold(false, |acc, msg| state.component.update(msg) || acc),
+                ComponentUpdate::Message(message) => state.component.update(&state.scope, message),
+                ComponentUpdate::MessageBatch(messages) => {
+                    messages.into_iter().fold(false, |acc, msg| {
+                        state.component.update(&state.scope, msg) || acc
+                    })
+                }
                 ComponentUpdate::Properties(props, node_ref, next_sibling) => {
                     // When components are updated, a new node ref could have been passed in
                     state.node_ref = node_ref;
                     // When components are updated, their siblings were likely also updated
                     state.next_sibling = next_sibling;
-                    state.component.change(props)
+                    let should_render = if *state.scope.props != *props {
+                        state.component.changed(&state.scope, &props)
+                    } else {
+                        false
+                    };
+                    state.scope.props = props;
+                    should_render
                 }
             };
 
             if should_update {
-                state.new_root = Some(state.component.view());
+                state.new_root = Some(state.component.view(&state.scope));
                 scheduler().push_comp(
                     ComponentRunnableType::Render,
                     Box::new(RenderComponent {
@@ -529,7 +545,7 @@ where
             }
 
             state.has_rendered = true;
-            state.component.rendered(self.first_render);
+            state.component.rendered(&state.scope, self.first_render);
             if !state.pending_updates.is_empty() {
                 scheduler().push_comp_update_batch(
                     state
@@ -556,7 +572,7 @@ where
 {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
-            state.component.destroy();
+            state.component.destroy(&state.scope);
             if let Some(last_frame) = &mut state.last_root {
                 last_frame.detach(&state.parent);
             }
@@ -579,7 +595,7 @@ mod tests {
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
-    #[derive(Clone, Properties, Default)]
+    #[derive(Clone, PartialEq, Properties, Default)]
     struct ChildProps {
         lifecycle: Rc<RefCell<Vec<String>>>,
     }
@@ -616,7 +632,7 @@ mod tests {
         }
     }
 
-    #[derive(Clone, Properties, Default)]
+    #[derive(Clone, PartialEq, Properties, Default)]
     struct Props {
         lifecycle: Rc<RefCell<Vec<String>>>,
         create_message: Option<bool>,
@@ -673,7 +689,7 @@ mod tests {
                 self.link.send_message(msg);
             }
             self.props.lifecycle.borrow_mut().push("view".into());
-            html! { <Child lifecycle=self.props.lifecycle.clone() /> }
+            html! { <Legacy<Child> lifecycle=self.props.lifecycle.clone() /> }
         }
     }
 
@@ -685,12 +701,12 @@ mod tests {
 
     fn test_lifecycle(props: Props, expected: &[String]) {
         let document = crate::utils::document();
-        let scope = Scope::<Comp>::new(None);
-        let el = document.create_element("div").unwrap();
         let lifecycle = props.lifecycle.clone();
+        let scope = Scope::<Legacy<Comp>>::new(None, Rc::new(props));
+        let el = document.create_element("div").unwrap();
 
         lifecycle.borrow_mut().clear();
-        scope.mount_in_place(el, NodeRef::default(), None, NodeRef::default(), props);
+        scope.mount_in_place(el, NodeRef::default(), None, NodeRef::default());
 
         assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);
     }

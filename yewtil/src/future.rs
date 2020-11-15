@@ -2,7 +2,7 @@ use std::future::Future;
 use wasm_bindgen_futures::spawn_local;
 use yew::{
     agent::{Agent, AgentLink},
-    Component, ComponentLink,
+    Component, Context,
 };
 
 /// Trait that allows you to use `ComponentLink` and `AgentLink` to register futures.
@@ -40,7 +40,7 @@ pub trait LinkFuture {
         F: Future<Output = Vec<Self::Message>> + 'static;
 }
 
-impl<COMP: Component> LinkFuture for ComponentLink<COMP> {
+impl<COMP: Component> LinkFuture for Context<COMP> {
     type Message = COMP::Message;
 
     fn callback_future<FN, FU, IN, M>(&self, function: FN) -> yew::Callback<IN>
@@ -64,10 +64,10 @@ impl<COMP: Component> LinkFuture for ComponentLink<COMP> {
         M: Into<Self::Message>,
         F: Future<Output = M> + 'static,
     {
-        let link: ComponentLink<COMP> = self.clone();
+        let ctx: Context<COMP> = self.clone();
         let js_future = async move {
             let message: COMP::Message = future.await.into();
-            link.send_message(message);
+            ctx.send_message(message);
         };
         spawn_local(js_future);
     }
@@ -76,10 +76,10 @@ impl<COMP: Component> LinkFuture for ComponentLink<COMP> {
     where
         F: Future<Output = Vec<Self::Message>> + 'static,
     {
-        let link: ComponentLink<COMP> = self.clone();
+        let ctx: Context<COMP> = self.clone();
         let js_future = async move {
             let messages: Vec<COMP::Message> = future.await;
-            link.send_message_batch(messages);
+            ctx.send_message_batch(messages);
         };
         spawn_local(js_future);
     }

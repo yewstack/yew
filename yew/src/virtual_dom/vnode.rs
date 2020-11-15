@@ -1,7 +1,8 @@
 //! This module contains the implementation of abstract virtual node.
 
 use super::{Key, VChild, VComp, VDiff, VList, VTag, VText};
-use crate::html::{AnyScope, Component, NodeRef};
+use crate::component::Component;
+use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;

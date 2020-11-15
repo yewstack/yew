@@ -4,7 +4,7 @@ use yew::{
 };
 use yew_router::{components::RouterAnchor, prelude::*, switch::Permissive};
 
-#[derive(Clone, Debug, Switch)]
+#[derive(Clone, Debug, PartialEq, Switch)]
 pub enum AppRoute {
     #[to = "/posts/{}"]
     Post(u64),
@@ -21,6 +21,7 @@ pub enum AppRoute {
     #[to = "/!"]
     Home,
 }
+
 impl AppRoute {
     pub fn into_public(self) -> PublicUrlSwitch {
         PublicUrlSwitch(self)
@@ -34,7 +35,7 @@ impl AppRoute {
 /// Helper type which just wraps around the actual `AppRoute` but handles a public url prefix.
 /// We need to have this because we're hosting the example at `/router/` instead of `/`.
 /// This type allows us have the best of both worlds.
-#[derive(Clone, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct PublicUrlSwitch(AppRoute);
 impl PublicUrlSwitch {
     fn base_url() -> Url {

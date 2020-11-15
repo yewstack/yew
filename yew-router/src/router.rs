@@ -9,7 +9,7 @@ use std::{
     fmt::{self, Debug, Error as FmtError, Formatter},
     rc::Rc,
 };
-use yew::{html, virtual_dom::VNode, Component, ComponentLink, Html, Properties, ShouldRender};
+use yew::{html, virtual_dom::VNode, Component, Context, Html, Properties, ShouldRender};
 
 /// Any state that can be managed by the `Router` must meet the criteria of this trait.
 pub trait RouterState: RouteState + PartialEq {}
@@ -29,25 +29,17 @@ impl<STATE> RouterState for STATE where STATE: RouteState + PartialEq {}
 ///     //...
 /// #   type Message = Msg;
 /// #   type Properties = ();
-/// #   fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
+/// #   fn create(_ctx: &Context<Self>) -> Self {
 /// #       Model {}
 /// #   }
-/// #   fn update(&mut self, msg: Self::Message) -> ShouldRender {
-/// #        false
-/// #   }
-/// #   fn change(&mut self, props: Self::Properties) -> ShouldRender {
-/// #        false
-/// #   }
 ///
-///     fn view(&self) -> VNode {
+///     fn view(&self, _ctx: &Context<Self>) -> VNode {
 ///         html! {
-///         <Router<S>
-///            render = Router::render(|switch: S| {
-///                match switch {
-///                    S::Variant => html!{"variant route was matched"},
-///                }
-///            })
-///         />
+///             <Router<S> render = Router::render(|switch: S| {
+///                 match switch {
+///                     S::Variant => html!{"variant route was matched"},
+///                 }
+///             }) />
 ///         }
 ///     }
 /// }
@@ -58,18 +50,16 @@ impl<STATE> RouterState for STATE where STATE: RouteState + PartialEq {}
 ///     Variant,
 /// }
 /// ```
-// TODO, can M just be removed due to not having to explicitly deal with callbacks anymore? - Just get rid of M
 #[derive(Debug)]
-pub struct Router<SW: Switch + Clone + 'static, STATE: RouterState = ()> {
+pub struct Router<SW: Switch, STATE: RouterState = ()> {
     switch: Option<SW>,
-    props: Props<STATE, SW>,
     router_agent: RouteAgentBridge<STATE>,
 }
 
 impl<SW, STATE> Router<SW, STATE>
 where
     STATE: RouterState,
-    SW: Switch + Clone + 'static,
+    SW: Switch,
 {
     /// Wrap a render closure so that it can be used by the Router.
     /// # Example
@@ -112,18 +102,28 @@ pub enum Msg<STATE> {
 /// Render function that takes a switched route and converts it to HTML
 pub trait RenderFn<CTX: Component, SW>: Fn(SW) -> Html {}
 impl<T, CTX: Component, SW> RenderFn<CTX, SW> for T where T: Fn(SW) -> Html {}
+
 /// Owned Render function.
 #[derive(Clone)]
-pub struct Render<SW: Switch + Clone + 'static, STATE: RouterState = ()>(
+pub struct Render<SW: Switch, STATE: RouterState = ()>(
     pub(crate) Rc<dyn RenderFn<Router<SW, STATE>, SW>>,
 );
-impl<STATE: RouterState, SW: Switch + Clone> Render<SW, STATE> {
+
+#[allow(clippy::vtable_address_comparisons)]
+impl<SW: Switch, STATE: RouterState> PartialEq for Render<SW, STATE> {
+    fn eq(&self, other: &Self) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
+}
+
+impl<STATE: RouterState, SW: Switch> Render<SW, STATE> {
     /// New render function
     fn new<F: RenderFn<Router<SW, STATE>, SW> + 'static>(f: F) -> Self {
         Render(Rc::new(f))
     }
 }
-impl<STATE: RouterState, SW: Switch + Clone> Debug for Render<SW, STATE> {
+
+impl<STATE: RouterState, SW: Switch> Debug for Render<SW, STATE> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.debug_struct("Render").finish()
     }
@@ -133,16 +133,24 @@ impl<STATE: RouterState, SW: Switch + Clone> Debug for Render<SW, STATE> {
 /// and converts it to a switch variant.
 pub trait RedirectFn<SW, STATE>: Fn(Route<STATE>) -> SW {}
 impl<T, SW, STATE> RedirectFn<SW, STATE> for T where T: Fn(Route<STATE>) -> SW {}
+
 /// Clonable Redirect function
 #[derive(Clone)]
-pub struct Redirect<SW: Switch + 'static, STATE: RouterState>(
-    pub(crate) Rc<dyn RedirectFn<SW, STATE>>,
-);
-impl<STATE: RouterState, SW: Switch + 'static> Redirect<SW, STATE> {
+pub struct Redirect<SW: Switch, STATE: RouterState>(pub(crate) Rc<dyn RedirectFn<SW, STATE>>);
+
+#[allow(clippy::vtable_address_comparisons)]
+impl<STATE: RouterState, SW: Switch> PartialEq for Redirect<SW, STATE> {
+    fn eq(&self, other: &Self) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
+}
+
+impl<STATE: RouterState, SW: Switch> Redirect<SW, STATE> {
     fn new<F: RedirectFn<SW, STATE> + 'static>(f: F) -> Self {
         Redirect(Rc::new(f))
     }
 }
+
 impl<STATE: RouterState, SW: Switch> Debug for Redirect<SW, STATE> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.debug_struct("Redirect").finish()
@@ -150,8 +158,8 @@ impl<STATE: RouterState, SW: Switch> Debug for Redirect<SW, STATE> {
 }
 
 /// Properties for Router.
-#[derive(Properties, Clone)]
-pub struct Props<STATE: RouterState, SW: Switch + Clone + 'static> {
+#[derive(Properties, PartialEq)]
+pub struct Props<STATE: RouterState, SW: Switch> {
     /// Render function that takes a Switch and produces Html
     pub render: Render<SW, STATE>,
     /// Optional redirect function that will convert the route to a known switch variant if explicit matching fails.
@@ -161,7 +169,7 @@ pub struct Props<STATE: RouterState, SW: Switch + Clone + 'static> {
     pub redirect: Option<Redirect<SW, STATE>>,
 }
 
-impl<STATE: RouterState, SW: Switch + Clone> Debug for Props<STATE, SW> {
+impl<STATE: RouterState, SW: Switch> Debug for Props<STATE, SW> {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         f.debug_struct("Props").finish()
     }
@@ -170,31 +178,30 @@ impl<STATE: RouterState, SW: Switch + Clone> Debug for Props<STATE, SW> {
 impl<STATE, SW> Component for Router<SW, STATE>
 where
     STATE: RouterState,
-    SW: Switch + Clone + 'static,
+    SW: Switch,
 {
     type Message = Msg<STATE>;
     type Properties = Props<STATE, SW>;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.callback(Msg::UpdateRoute);
+    fn create(ctx: &Context<Self>) -> Self {
+        let callback = ctx.callback(Msg::UpdateRoute);
         let mut router_agent = RouteAgentBridge::new(callback);
         router_agent.send(RouteRequest::GetCurrentRoute);
 
         Router {
             switch: Default::default(), /* This must be updated by immediately requesting a route
                                          * update from the service bridge. */
-            props,
             router_agent,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::UpdateRoute(route) => {
                 let mut switch = SW::switch(route.clone());
 
                 if switch.is_none() {
-                    if let Some(redirect) = &self.props.redirect {
+                    if let Some(redirect) = &ctx.props.redirect {
                         let redirected: SW = (&redirect.0)(route);
 
                         log::trace!(
@@ -215,14 +222,9 @@ where
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
-        true
-    }
-
-    fn view(&self) -> VNode {
+    fn view(&self, ctx: &Context<Self>) -> VNode {
         match self.switch.clone() {
-            Some(switch) => (&self.props.render.0)(switch),
+            Some(switch) => (&ctx.props.render.0)(switch),
             None => {
                 log::warn!("No route matched, provide a redirect prop to the router to handle cases where no route can be matched");
                 html! {"No route matched"}

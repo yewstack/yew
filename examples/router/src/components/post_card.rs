@@ -13,30 +13,23 @@ pub struct Props {
 pub struct PostCard {
     post: Post,
 }
+
 impl Component for PostCard {
     type Message = ();
     type Properties = Props;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         Self {
-            post: Post::generate_from_seed(props.seed),
+            post: Post::generate_from_seed(ctx.props.seed),
         }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        unimplemented!()
+    fn changed(&mut self, _ctx: &Context<Self>, new_props: &Self::Properties) -> ShouldRender {
+        self.post = Post::generate_from_seed(new_props.seed);
+        true
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.post.seed == props.seed {
-            false
-        } else {
-            self.post = Post::generate_from_seed(props.seed);
-            true
-        }
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         let Self { post } = self;
         html! {
             <div class="card">

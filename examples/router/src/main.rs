@@ -17,21 +17,20 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     navbar_active: bool,
 }
+
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
             navbar_active: false,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::ToggleNavbar => {
                 self.navbar_active = !self.navbar_active;
@@ -40,14 +39,10 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <>
-                { self.view_nav() }
+                { self.view_nav(ctx) }
 
                 <main>
                     <AppRouter
@@ -72,14 +67,8 @@ impl Component for Model {
     }
 }
 impl Model {
-    fn view_nav(&self) -> Html {
-        let Self {
-            ref link,
-            navbar_active,
-            ..
-        } = *self;
-
-        let active_class = if navbar_active { "is-active" } else { "" };
+    fn view_nav(&self, ctx: &Context<Self>) -> Html {
+        let active_class = if self.navbar_active { "is-active" } else { "" };
 
         html! {
             <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
@@ -89,7 +78,7 @@ impl Model {
                     <a role="button"
                         class=("navbar-burger", "burger", active_class)
                         aria-label="menu" aria-expanded="false"
-                        onclick=link.callback(|_| Msg::ToggleNavbar)
+                        onclick=ctx.callback(|_| Msg::ToggleNavbar)
                     >
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>

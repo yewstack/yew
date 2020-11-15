@@ -2,8 +2,9 @@ use crate::boid::Boid;
 use crate::math::Vector2D;
 use crate::settings::Settings;
 use std::time::Duration;
+use yew::component::{Component, Context};
 use yew::services::interval::{IntervalService, IntervalTask};
-use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
+use yew::{html, Html, Properties, ShouldRender};
 
 pub const SIZE: Vector2D = Vector2D::new(1600.0, 1000.0);
 
@@ -23,81 +24,67 @@ pub struct Props {
 
 #[derive(Debug)]
 pub struct Simulation {
-    props: Props,
-    link: ComponentLink<Self>,
     boids: Vec<Boid>,
     interval_task: IntervalTask,
 }
+
 impl Component for Simulation {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let settings = &props.settings;
-        let boids = (0..settings.boids)
+    fn create(ctx: &Context<Self>) -> Self {
+        let settings = &ctx.props.settings;
+        let boids = (0..settings.amount_of_boids)
             .map(|_| Boid::new_random(settings))
             .collect();
 
         let interval_task = IntervalService::spawn(
             Duration::from_millis(settings.tick_interval_ms),
-            link.callback(|_| Msg::Tick),
+            ctx.callback(|_| Msg::Tick),
         );
 
         Self {
-            props,
-            link,
             boids,
             interval_task,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Tick => {
-                let Props {
-                    ref settings,
-                    paused,
-                    ..
-                } = self.props;
-
-                if paused {
+                if ctx.props.paused {
                     false
                 } else {
-                    Boid::update_all(settings, &mut self.boids);
+                    Boid::update_all(&ctx.props.settings, &mut self.boids);
                     true
                 }
             }
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if props == self.props {
-            false
-        } else {
-            if props.generation != self.props.generation {
-                // generation changed; restart from scratch.
-                self.boids.clear();
-            }
-
-            let settings = &props.settings;
-            self.boids
-                .resize_with(settings.boids, || Boid::new_random(settings));
-
-            if settings.tick_interval_ms != self.props.settings.tick_interval_ms {
-                // as soon as the previous task is dropped it is cancelled.
-                // We don't need to worry about manually stopping it.
-                self.interval_task = IntervalService::spawn(
-                    Duration::from_millis(settings.tick_interval_ms),
-                    self.link.callback(|_| Msg::Tick),
-                );
-            }
-
-            self.props = props;
-            true
+    fn changed(&mut self, ctx: &Context<Self>, new_props: &Self::Properties) -> ShouldRender {
+        if ctx.props.generation != new_props.generation {
+            // generation changed; restart from scratch.
+            self.boids.clear();
         }
+
+        let new_settings = &new_props.settings;
+        self.boids.resize_with(new_settings.amount_of_boids, || {
+            Boid::new_random(new_settings)
+        });
+
+        if ctx.props.settings.tick_interval_ms != new_settings.tick_interval_ms {
+            // as soon as the previous task is dropped it is cancelled.
+            // We don't need to worry about manually stopping it.
+            self.interval_task = IntervalService::spawn(
+                Duration::from_millis(new_settings.tick_interval_ms),
+                ctx.callback(|_| Msg::Tick),
+            );
+        }
+        true
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         let view_box = format!("0 0 {} {}", SIZE.x, SIZE.y);
 
         html! {

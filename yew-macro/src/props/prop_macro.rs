@@ -94,7 +94,7 @@ impl Parse for PropsExpr {
             pop_last_punctuated(&mut ty.path.segments);
             // .. transform it into a "qualified-self" type
             ty = syn::parse2(quote_spanned! {ty.span()=>
-                <#ty as ::yew::html::Component>::Properties
+                <#ty as ::yew::component::Component>::Properties
             })?;
         }
 

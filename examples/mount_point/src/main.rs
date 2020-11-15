@@ -1,6 +1,10 @@
+#![allow(deprecated)]
+
 use wasm_bindgen::JsValue;
 use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement};
-use yew::{html, Component, ComponentLink, Html, InputData, ShouldRender};
+use yew::{
+    html, ComponentLink, Html, InputData, Legacy, LegacyComponent as Component, ShouldRender,
+};
 
 pub enum Msg {
     UpdateName(String),
@@ -75,7 +79,7 @@ fn main() {
 
     body.append_child(&mount_point).unwrap();
 
-    yew::App::<Model>::new().mount(mount_point);
+    yew::App::<Legacy<Model>>::new().mount(mount_point);
 
     // only required for stdweb
     yew::run_loop();

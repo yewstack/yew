@@ -12,13 +12,12 @@ use yew::{Children, Properties};
 pub use self::{router_button::RouterButton, router_link::RouterAnchor, router_link::RouterLink};
 use crate::Switch;
 
-// TODO This should also be PartialEq and Clone. Its blocked on Children not supporting that.
 // TODO This should no longer take link & String, and instead take a route: SW implementing Switch
 /// Properties for `RouterButton` and `RouterLink`.
-#[derive(Properties, Clone, Default, Debug)]
+#[derive(Properties, PartialEq, Default, Debug)]
 pub struct Props<SW>
 where
-    SW: Switch + Clone,
+    SW: Switch + Clone + PartialEq,
 {
     /// The Switched item representing the route.
     pub route: SW,

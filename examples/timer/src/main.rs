@@ -1,7 +1,9 @@
+#![allow(deprecated)]
+
 use std::time::Duration;
 use yew::services::interval::{IntervalService, IntervalTask};
 use yew::services::{ConsoleService, Task, TimeoutService};
-use yew::{html, Callback, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Callback, ComponentLink, Html, Legacy, LegacyComponent, ShouldRender};
 
 pub enum Msg {
     StartTimeout,
@@ -27,7 +29,7 @@ impl Model {
     }
 }
 
-impl Component for Model {
+impl LegacyComponent for Model {
     type Message = Msg;
     type Properties = ();
 
@@ -142,5 +144,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<Legacy<Model>>();
 }

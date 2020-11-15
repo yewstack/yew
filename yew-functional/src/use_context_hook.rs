@@ -6,14 +6,14 @@ use std::rc::{Rc, Weak};
 use std::{iter, mem};
 use yew::html;
 use yew::html::{AnyScope, Scope};
-use yew::{Children, Component, ComponentLink, Html, Properties};
+use yew::{Children, Component, Context, Html, Properties};
 
 type ConsumerCallback<T> = Box<dyn Fn(Rc<T>)>;
 
 /// Props for [`ContextProvider`]
-#[derive(Clone, PartialEq, Properties)]
-pub struct ContextProviderProps<T: Clone + PartialEq> {
-    pub context: T,
+#[derive(PartialEq, Properties)]
+pub struct ContextProviderProps<T: PartialEq> {
+    pub context: Rc<T>,
     pub children: Children,
 }
 
@@ -21,13 +21,11 @@ pub struct ContextProviderProps<T: Clone + PartialEq> {
 ///
 /// Every child (direct or indirect) of this component may access the context value.
 /// Currently the only way to consume the context is using the [`use_context`] hook.
-pub struct ContextProvider<T: Clone + PartialEq + 'static> {
-    context: Rc<T>,
-    children: Children,
+pub struct ContextProvider<T: PartialEq + 'static> {
     consumers: RefCell<Vec<Weak<ConsumerCallback<T>>>>,
 }
 
-impl<T: Clone + PartialEq> ContextProvider<T> {
+impl<T: PartialEq> ContextProvider<T> {
     /// Add the callback to the subscriber list to be called whenever the context changes.
     /// The consumer is unsubscribed as soon as the callback is dropped.
     fn subscribe_consumer(&self, mut callback: Weak<ConsumerCallback<T>>) {
@@ -45,11 +43,10 @@ impl<T: Clone + PartialEq> ContextProvider<T> {
     }
 
     /// Notify all subscribed consumers and remove dropped consumers from the list.
-    fn notify_consumers(&mut self) {
-        let context = &self.context;
+    fn notify_consumers(&mut self, context: Rc<T>) {
         self.consumers.borrow_mut().retain(|cb| {
             if let Some(cb) = cb.upgrade() {
-                cb(Rc::clone(context));
+                cb(context.clone());
                 true
             } else {
                 false
@@ -58,45 +55,35 @@ impl<T: Clone + PartialEq> ContextProvider<T> {
     }
 }
 
-impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
-    type Message = ();
+impl<T: PartialEq + 'static> Component for ContextProvider<T> {
+    type Message = Weak<ConsumerCallback<T>>;
     type Properties = ContextProviderProps<T>;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            children: props.children,
-            context: Rc::new(props.context),
             consumers: RefCell::new(Vec::new()),
         }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        self.subscribe_consumer(msg);
+        false
+    }
+
+    fn changed(&mut self, ctx: &Context<Self>, new_props: &Self::Properties) -> bool {
+        if ctx.props.context != new_props.context {
+            self.notify_consumers(new_props.context.clone());
+        }
+
         true
     }
 
-    fn change(&mut self, props: Self::Properties) -> bool {
-        let should_render = if self.children == props.children {
-            false
-        } else {
-            self.children = props.children;
-            true
-        };
-
-        let new_context = Rc::new(props.context);
-        if self.context != new_context {
-            self.context = new_context;
-            self.notify_consumers();
-        }
-
-        should_render
-    }
-
-    fn view(&self) -> Html {
-        html! { <>{ self.children.clone() }</> }
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! { <>{ ctx.props.children.clone() }</> }
     }
 }
 
-fn find_context_provider_scope<T: Clone + PartialEq + 'static>(
+fn find_context_provider_scope<T: PartialEq + 'static>(
     scope: &AnyScope,
 ) -> Option<Scope<ContextProvider<T>>> {
     let expected_type_id = TypeId::of::<ContextProvider<T>>();
@@ -105,19 +92,6 @@ fn find_context_provider_scope<T: Clone + PartialEq + 'static>(
         .cloned()
         .map(AnyScope::downcast::<ContextProvider<T>>)
         .next()
-}
-
-fn with_provider_component<T, F, R>(
-    provider_scope: &Option<Scope<ContextProvider<T>>>,
-    f: F,
-) -> Option<R>
-where
-    T: Clone + PartialEq,
-    F: FnOnce(&ContextProvider<T>) -> R,
-{
-    provider_scope
-        .as_ref()
-        .and_then(|scope| scope.get_component().map(|comp| f(&*comp)))
 }
 
 /// Hook for consuming context values in function components.
@@ -139,7 +113,7 @@ where
 /// # }
 /// #[function_component(ThemedButton)]
 /// pub fn themed_button() -> Html {
-///     let theme = use_context::<Rc<ThemeContext>>().expect("no ctx found");
+///     let theme = use_context::<ThemeContext>().expect("no ctx found");
 ///
 ///     html! {
 ///         <button style=format!("background: {}; color: {}", theme.background, theme.foreground)>
@@ -148,13 +122,13 @@ where
 ///     }
 /// }
 /// ```
-pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<Rc<T>> {
-    struct UseContextState<T2: Clone + PartialEq + 'static> {
+pub fn use_context<T: PartialEq + 'static>() -> Option<Rc<T>> {
+    struct UseContextState<T2: PartialEq + 'static> {
         provider_scope: Option<Scope<ContextProvider<T2>>>,
         current_context: Option<Rc<T2>>,
         callback: Option<Rc<ConsumerCallback<T2>>>,
     }
-    impl<T: Clone + PartialEq + 'static> Hook for UseContextState<T> {
+    impl<T: PartialEq + 'static> Hook for UseContextState<T> {
         fn tear_down(&mut self) {
             if let Some(cb) = self.callback.take() {
                 drop(cb);
@@ -177,16 +151,16 @@ pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<Rc<T>> {
                 );
             })));
             let weak_cb = Rc::downgrade(state.callback.as_ref().unwrap());
-            with_provider_component(&state.provider_scope, |comp| {
-                comp.subscribe_consumer(weak_cb)
-            });
-
+            if let Some(scope) = state.provider_scope.as_ref() {
+                scope.send_message(weak_cb)
+            }
             state.current_context.clone()
         },
         move || {
             let provider_scope = find_context_provider_scope::<T>(&scope);
-            let current_context =
-                with_provider_component(&provider_scope, |comp| Rc::clone(&comp.context));
+            let current_context = provider_scope
+                .as_ref()
+                .map(|scope| Rc::clone(&scope.props.context));
             UseContextState {
                 provider_scope,
                 current_context,

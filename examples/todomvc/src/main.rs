@@ -4,7 +4,7 @@ use yew::format::Json;
 use yew::services::storage::{Area, StorageService};
 use yew::web_sys::HtmlInputElement as InputElement;
 use yew::{events::KeyboardEvent, Classes};
-use yew::{html, Component, ComponentLink, Html, InputData, NodeRef, ShouldRender};
+use yew::{html, Component, Context, Html, InputData, NodeRef, ShouldRender};
 
 mod state;
 
@@ -25,7 +25,6 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     storage: StorageService,
     state: State,
     focus_ref: NodeRef,
@@ -35,7 +34,7 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         let storage = StorageService::new(Area::Local).expect("storage was disabled by the user");
         let entries = {
             if let Json(Ok(restored_model)) = storage.restore(KEY) {
@@ -52,14 +51,13 @@ impl Component for Model {
         };
         let focus_ref = NodeRef::default();
         Self {
-            link,
             storage,
             state,
             focus_ref,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Add => {
                 let description = self.state.value.trim();
@@ -117,11 +115,7 @@ impl Component for Model {
         true
     }
 
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let hidden_class = if self.state.entries.is_empty() {
             "hidden"
         } else {
@@ -132,7 +126,7 @@ impl Component for Model {
                 <section class="todoapp">
                     <header class="header">
                         <h1>{ "todos" }</h1>
-                        { self.view_input() }
+                        { self.view_input(ctx) }
                     </header>
                     <section class=("main", hidden_class)>
                         <input
@@ -140,11 +134,15 @@ impl Component for Model {
                             class="toggle-all"
                             id="toggle-all"
                             checked=self.state.is_all_completed()
-                            onclick=self.link.callback(|_| Msg::ToggleAll)
+                            onclick=ctx.callback(|_| Msg::ToggleAll)
                         />
                         <label for="toggle-all" />
                         <ul class="todo-list">
-                            { for self.state.entries.iter().filter(|e| self.state.filter.fits(e)).enumerate().map(|e| self.view_entry(e)) }
+                            { for self.state.entries
+                                .iter()
+                                .filter(|e| self.state.filter.fits(e))
+                                .enumerate()
+                                .map(|e| self.view_entry(ctx, e)) }
                         </ul>
                     </section>
                     <footer class=("footer", hidden_class)>
@@ -153,9 +151,9 @@ impl Component for Model {
                             { " item(s) left" }
                         </span>
                         <ul class="filters">
-                            { for Filter::iter().map(|flt| self.view_filter(flt)) }
+                            { for Filter::iter().map(|flt| self.view_filter(ctx, flt)) }
                         </ul>
-                        <button class="clear-completed" onclick=self.link.callback(|_| Msg::ClearCompleted)>
+                        <button class="clear-completed" onclick=ctx.callback(|_| Msg::ClearCompleted)>
                             { format!("Clear completed ({})", self.state.total_completed()) }
                         </button>
                     </footer>
@@ -171,7 +169,7 @@ impl Component for Model {
 }
 
 impl Model {
-    fn view_filter(&self, filter: Filter) -> Html {
+    fn view_filter(&self, ctx: &Context<Self>, filter: Filter) -> Html {
         let cls = if self.state.filter == filter {
             "selected"
         } else {
@@ -181,7 +179,7 @@ impl Model {
             <li>
                 <a class=cls
                    href=filter.as_href()
-                   onclick=self.link.callback(move |_| Msg::SetFilter(filter))
+                   onclick=ctx.callback(move |_| Msg::SetFilter(filter))
                 >
                     { filter }
                 </a>
@@ -189,7 +187,7 @@ impl Model {
         }
     }
 
-    fn view_input(&self) -> Html {
+    fn view_input(&self, ctx: &Context<Self>) -> Html {
         html! {
             // You can use standard Rust comments. One line:
             // <li></li>
@@ -197,8 +195,8 @@ impl Model {
                 class="new-todo"
                 placeholder="What needs to be done?"
                 value=&self.state.value
-                oninput=self.link.callback(|e: InputData| Msg::Update(e.value))
-                onkeypress=self.link.batch_callback(|e: KeyboardEvent| {
+                oninput=ctx.callback(|e: InputData| Msg::Update(e.value))
+                onkeypress=ctx.batch_callback(|e: KeyboardEvent| {
                     if e.key() == "Enter" { Some(Msg::Add) } else { None }
                 })
             />
@@ -210,7 +208,7 @@ impl Model {
         }
     }
 
-    fn view_entry(&self, (idx, entry): (usize, &Entry)) -> Html {
+    fn view_entry(&self, ctx: &Context<Self>, (idx, entry): (usize, &Entry)) -> Html {
         let mut class = Classes::from("todo");
         if entry.editing {
             class.push(" editing");
@@ -225,17 +223,17 @@ impl Model {
                         type="checkbox"
                         class="toggle"
                         checked=entry.completed
-                        onclick=self.link.callback(move |_| Msg::Toggle(idx))
+                        onclick=ctx.callback(move |_| Msg::Toggle(idx))
                     />
-                    <label ondblclick=self.link.callback(move |_| Msg::ToggleEdit(idx))>{ &entry.description }</label>
-                    <button class="destroy" onclick=self.link.callback(move |_| Msg::Remove(idx)) />
+                    <label ondblclick=ctx.callback(move |_| Msg::ToggleEdit(idx))>{ &entry.description }</label>
+                    <button class="destroy" onclick=ctx.callback(move |_| Msg::Remove(idx)) />
                 </div>
-                { self.view_entry_edit_input((idx, &entry)) }
+                { self.view_entry_edit_input(ctx, (idx, &entry)) }
             </li>
         }
     }
 
-    fn view_entry_edit_input(&self, (idx, entry): (usize, &Entry)) -> Html {
+    fn view_entry_edit_input(&self, ctx: &Context<Self>, (idx, entry): (usize, &Entry)) -> Html {
         if entry.editing {
             html! {
                 <input
@@ -243,10 +241,10 @@ impl Model {
                     type="text"
                     ref=self.focus_ref.clone()
                     value=&self.state.edit_value
-                    onmouseover=self.link.callback(|_| Msg::Focus)
-                    oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
-                    onblur=self.link.callback(move |_| Msg::Edit(idx))
-                    onkeypress=self.link.batch_callback(move |e: KeyboardEvent| {
+                    onmouseover=ctx.callback(|_| Msg::Focus)
+                    oninput=ctx.callback(|e: InputData| Msg::UpdateEdit(e.value))
+                    onblur=ctx.callback(move |_| Msg::Edit(idx))
+                    onkeypress=ctx.batch_callback(move |e: KeyboardEvent| {
                         if e.key() == "Enter" { Some(Msg::Edit(idx)) } else { None }
                     })
                 />

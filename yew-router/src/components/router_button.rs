@@ -1,73 +1,65 @@
 //! A component wrapping a `<button>` tag that changes the route.
 use crate::{
     agent::{RouteAgentDispatcher, RouteRequest},
+    components::{Msg, Props},
     route::Route,
-    Switch,
+    RouterState, Switch,
 };
+use std::marker::PhantomData;
 use yew::prelude::*;
-
-use super::{Msg, Props};
-use crate::RouterState;
 use yew::virtual_dom::VNode;
 
 /// Changes the route when clicked.
 #[derive(Debug)]
-pub struct RouterButton<SW: Switch + Clone + 'static, STATE: RouterState = ()> {
-    link: ComponentLink<Self>,
+pub struct RouterButton<SW: Switch, STATE: RouterState = ()> {
+    _marker: PhantomData<SW>,
     router: RouteAgentDispatcher<STATE>,
-    props: Props<SW>,
 }
 
-impl<SW: Switch + Clone + 'static, STATE: RouterState> Component for RouterButton<SW, STATE> {
+impl<SW: Switch, STATE: RouterState> Component for RouterButton<SW, STATE> {
     type Message = Msg;
     type Properties = Props<SW>;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         let router = RouteAgentDispatcher::new();
         RouterButton {
-            link,
+            _marker: PhantomData,
             router,
-            props,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Clicked => {
-                let route = Route::from(self.props.route.clone());
+                let route = Route::from(ctx.props.route.clone());
                 self.router.send(RouteRequest::ChangeRoute(route));
                 false
             }
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
-        true
-    }
-
-    fn view(&self) -> VNode {
+    fn view(&self, ctx: &Context<Self>) -> VNode {
         #[cfg(feature = "std_web")]
-        let cb = self.link.callback(|event: ClickEvent| {
+        let cb = ctx.callback(|event: ClickEvent| {
             event.prevent_default();
             Msg::Clicked
         });
         #[cfg(feature = "web_sys")]
-        let cb = self.link.callback(|event: MouseEvent| {
+        let cb = ctx.callback(|event: MouseEvent| {
             event.prevent_default();
             Msg::Clicked
         });
         html! {
             <button
-                class=self.props.classes.clone()
+                class=ctx.props.classes.clone()
                 onclick=cb
-                disabled=self.props.disabled
+                disabled=ctx.props.disabled
             >
                 {
                     #[allow(deprecated)]
-                    &self.props.text
+                    &ctx.props.text
                 }
-                {self.props.children.iter().collect::<VNode>()}
+                {ctx.props.children.iter().collect::<VNode>()}
             </button>
         }
     }

@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
@@ -15,7 +17,7 @@ pub struct Model {
     link: ComponentLink<Model>,
 }
 
-impl Component for Model {
+impl LegacyComponent for Model {
     type Message = Msg;
     type Properties = ();
 
@@ -75,5 +77,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<Legacy<Model>>();
 }

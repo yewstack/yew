@@ -1,5 +1,7 @@
+#![allow(deprecated)]
+
 use web_sys::console;
-use yew::{Component, ComponentLink, Html, ShouldRender};
+use yew::{ComponentLink, Html, Legacy, LegacyComponent as Component, ShouldRender};
 
 const HTML: &str = include_str!("document.html");
 
@@ -34,5 +36,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<Legacy<Model>>();
 }

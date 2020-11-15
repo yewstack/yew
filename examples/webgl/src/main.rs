@@ -1,8 +1,10 @@
+#![allow(deprecated)]
+
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext as GL};
 use yew::services::render::RenderTask;
 use yew::services::RenderService;
-use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
+use yew::{html, ComponentLink, Html, Legacy, LegacyComponent as Component, NodeRef, ShouldRender};
 
 pub enum Msg {
     Render(f64),
@@ -139,5 +141,5 @@ impl Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<Legacy<Model>>();
 }

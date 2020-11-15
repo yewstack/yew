@@ -4,7 +4,6 @@ use crate::{
 };
 use yew::prelude::*;
 use yew_router::agent::{RouteAgentDispatcher, RouteRequest};
-use yewtil::NeqAssign;
 
 const ITEMS_PER_PAGE: u64 = 10;
 const TOTAL_PAGES: u64 = std::u64::MAX / ITEMS_PER_PAGE;
@@ -19,23 +18,20 @@ pub struct Props {
 }
 
 pub struct PostList {
-    props: Props,
-    link: ComponentLink<Self>,
     route_dispatcher: RouteAgentDispatcher,
 }
+
 impl Component for PostList {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            props,
-            link,
             route_dispatcher: RouteAgentDispatcher::new(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::ShowPage(page) => {
                 let route = AppRoute::PostListPage(page);
@@ -46,30 +42,24 @@ impl Component for PostList {
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props.neq_assign(props)
-    }
-
-    fn view(&self) -> Html {
-        let Props { page } = self.props;
-
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="section container">
                 <h1 class="title">{ "Posts" }</h1>
                 <h2 class="subtitle">{ "All of our quality writing in one place" }</h2>
-                { self.view_posts() }
+                { self.view_posts(ctx) }
                 <Pagination
-                    page=page
+                    page=ctx.props.page
                     total_pages=TOTAL_PAGES
-                    on_switch_page=self.link.callback(Msg::ShowPage)
+                    on_switch_page=ctx.callback(Msg::ShowPage)
                 />
             </div>
         }
     }
 }
 impl PostList {
-    fn view_posts(&self) -> Html {
-        let start_seed = (self.props.page - 1) * ITEMS_PER_PAGE;
+    fn view_posts(&self, ctx: &Context<Self>) -> Html {
+        let start_seed = (ctx.props.page - 1) * ITEMS_PER_PAGE;
         let mut cards = (0..ITEMS_PER_PAGE).map(|seed_offset| {
             html! {
                 <li class="list-item mb-5">

@@ -1,7 +1,7 @@
 use super::header::ListHeader;
 use super::item::ListItem;
 use super::list::List;
-use super::{Hovered, WeakComponentLink};
+use super::{Hovered, WeakContextRef};
 use yew::prelude::*;
 
 pub enum Msg {
@@ -9,30 +9,24 @@ pub enum Msg {
 }
 
 pub struct App {
-    link: ComponentLink<Self>,
     hovered: Hovered,
-    list_link: WeakComponentLink<List>,
-    sub_list_link: WeakComponentLink<List>,
+    list_ref: WeakContextRef<List>,
+    sub_list_ref: WeakContextRef<List>,
 }
 
 impl Component for App {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
             hovered: Hovered::None,
-            list_link: WeakComponentLink::default(),
-            sub_list_link: WeakComponentLink::default(),
+            list_ref: WeakContextRef::default(),
+            sub_list_ref: WeakContextRef::default(),
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Hover(hovered) => {
                 self.hovered = hovered;
@@ -41,11 +35,11 @@ impl Component for App {
         }
     }
 
-    fn view(&self) -> Html {
-        let on_hover = &self.link.callback(Msg::Hover);
-        let onmouseenter = &self.link.callback(|_| Msg::Hover(Hovered::None));
-        let list_link = &self.list_link;
-        let sub_list_link = &self.sub_list_link;
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let on_hover = &ctx.callback(Msg::Hover);
+        let onmouseenter = &ctx.callback(|_| Msg::Hover(Hovered::None));
+        let list_link = &self.list_ref;
+        let sub_list_link = &self.sub_list_ref;
 
         // note the use of `html_nested!` instead of `html!`.
         let letters = ('A'..='C')

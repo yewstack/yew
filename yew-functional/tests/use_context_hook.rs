@@ -21,7 +21,7 @@ fn obtain_result(id: &str) -> String {
 
 #[wasm_bindgen_test]
 fn use_context_scoping_works() {
-    #[derive(Clone, Debug, PartialEq)]
+    #[derive(Debug, PartialEq)]
     struct ExampleContext(String);
     struct UseContextFunctionOuter {}
     struct UseContextFunctionInner {}
@@ -51,18 +51,18 @@ fn use_context_scoping_works() {
             type ExampleContextProvider = ContextProvider<ExampleContext>;
             return html! {
                 <div>
-                    <ExampleContextProvider context=ExampleContext("wrong1".into())>
+                    <ExampleContextProvider context=Rc::new(ExampleContext("wrong1".into()))>
                         <div>{"ignored"}</div>
                     </ExampleContextProvider>
-                    <ExampleContextProvider context=ExampleContext("wrong2".into())>
-                        <ExampleContextProvider context=ExampleContext("correct".into())>
-                            <ExampleContextProvider context=ExampleContext("wrong1".into())>
+                    <ExampleContextProvider context=Rc::new(ExampleContext("wrong2".into()))>
+                        <ExampleContextProvider context=Rc::new(ExampleContext("correct".into()))>
+                            <ExampleContextProvider context=Rc::new(ExampleContext("wrong1".into()))>
                                 <div>{"ignored"}</div>
                             </ExampleContextProvider>
                             <UseContextComponentInner />
                         </ExampleContextProvider>
                     </ExampleContextProvider>
-                    <ExampleContextProvider context=ExampleContext("wrong3".into())>
+                    <ExampleContextProvider context=Rc::new(ExampleContext("wrong3".into()))>
                         <div>{"ignored"}</div>
                     </ExampleContextProvider>
                     <ExpectNoContextComponent />
@@ -89,9 +89,9 @@ fn use_context_scoping_works() {
 
 #[wasm_bindgen_test]
 fn use_context_works_with_multiple_types() {
-    #[derive(Clone, Debug, PartialEq)]
+    #[derive(Debug, PartialEq)]
     struct ContextA(u32);
-    #[derive(Clone, Debug, PartialEq)]
+    #[derive(Debug, PartialEq)]
     struct ContextB(u32);
 
     struct Test1Function;
@@ -156,9 +156,9 @@ fn use_context_works_with_multiple_types() {
 
             return html! {
                 <div>
-                    <ContextAProvider context=ContextA(0)>
-                        <ContextBProvider context=ContextB(1)>
-                            <ContextAProvider context=ContextA(2)>
+                    <ContextAProvider context=Rc::new(ContextA(0))>
+                        <ContextBProvider context=Rc::new(ContextB(1))>
+                            <ContextAProvider context=Rc::new(ContextA(2))>
                                 <Test1/>
                             </ContextAProvider>
                             <Test2/>
@@ -270,7 +270,7 @@ fn use_context_update_works() {
             });
 
             return html! {
-                <MyContextProvider context=ctx>
+                <MyContextProvider context=Rc::new(ctx)>
                     <RenderCounter id="test-0">
                         <ContextOutlet id="test-1"/>
                         <ContextOutlet id="test-2" magic=magic/>

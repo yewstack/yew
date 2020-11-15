@@ -2,12 +2,6 @@
 use crate::route::Route;
 use std::fmt::Write;
 
-/// Alias to Switch.
-///
-/// Eventually Switch will be renamed to Routable and this alias will be removed.
-#[allow(bare_trait_objects)]
-pub type Routable = Switch;
-
 /// Derivable routing trait that allows instances of implementors to be constructed from Routes.
 ///
 /// # Note
@@ -47,7 +41,7 @@ pub type Routable = Switch;
 ///     Some(TestEnum::CaptureUnnamed("lorem".to_string()))
 /// );
 /// ```
-pub trait Switch: Sized {
+pub trait Switch: Clone + PartialEq + Sized + 'static {
     /// Based on a route, possibly produce an itself.
     fn switch<STATE>(route: Route<STATE>) -> Option<Self> {
         Self::from_route_part(route.route, Some(route.state)).0
@@ -179,7 +173,7 @@ impl<SW: Switch, STATE: Default> From<SW> for Route<STATE> {
     }
 }
 
-impl<T: std::str::FromStr + std::fmt::Display> Switch for T {
+impl<T: std::str::FromStr + std::fmt::Display + PartialEq + Clone + 'static> Switch for T {
     fn from_route_part<U>(part: String, state: Option<U>) -> (Option<Self>, Option<U>) {
         (::std::str::FromStr::from_str(&part).ok(), state)
     }

@@ -1,8 +1,10 @@
+#![allow(deprecated)]
+
 use cell::Cellule;
 use rand::Rng;
 use std::time::Duration;
 use yew::services::interval::{IntervalService, IntervalTask};
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, ComponentLink, Html, Legacy, LegacyComponent, ShouldRender};
 
 mod cell;
 
@@ -102,7 +104,7 @@ impl Model {
         }
     }
 }
-impl Component for Model {
+impl LegacyComponent for Model {
     type Message = Msg;
     type Properties = ();
 
@@ -232,5 +234,5 @@ fn wrap(coord: isize, range: isize) -> usize {
 fn main() {
     wasm_logger::init(wasm_logger::Config::default());
     log::trace!("Initializing yew...");
-    yew::start_app::<Model>();
+    yew::start_app::<Legacy<Model>>();
 }

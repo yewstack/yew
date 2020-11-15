@@ -3,7 +3,7 @@ pub mod job;
 pub mod native_worker;
 
 use yew::worker::{Bridge, Bridged};
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Component, Context, Html, ShouldRender};
 
 pub enum Msg {
     SendToWorker,
@@ -13,7 +13,6 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     worker: Box<dyn Bridge<native_worker::Worker>>,
     job: Box<dyn Bridge<job::Worker>>,
     context: Box<dyn Bridge<context::Worker>>,
@@ -24,21 +23,20 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.callback(|_| Msg::DataReceived);
+    fn create(ctx: &Context<Self>) -> Self {
+        let callback = ctx.callback(|_| Msg::DataReceived);
         let worker = native_worker::Worker::bridge(callback);
 
-        let callback = link.callback(|_| Msg::DataReceived);
+        let callback = ctx.callback(|_| Msg::DataReceived);
         let job = job::Worker::bridge(callback);
 
-        let callback = link.callback(|_| Msg::DataReceived);
+        let callback = ctx.callback(|_| Msg::DataReceived);
         let context = context::Worker::bridge(callback);
 
-        let callback = link.callback(|_| Msg::DataReceived);
+        let callback = ctx.callback(|_| Msg::DataReceived);
         let context_2 = context::Worker::bridge(callback);
 
         Self {
-            link,
             worker,
             job,
             context,
@@ -46,7 +44,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::SendToWorker => {
                 self.worker.send(native_worker::Request::GetDataFromServer);
@@ -68,17 +66,13 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div>
                 <nav class="menu">
-                    <button onclick=self.link.callback(|_| Msg::SendToWorker)>{ "Send to Thread" }</button>
-                    <button onclick=self.link.callback(|_| Msg::SendToJob)>{ "Send to Job" }</button>
-                    <button onclick=self.link.callback(|_| Msg::SendToContext)>{ "Send to Context" }</button>
+                    <button onclick=ctx.callback(|_| Msg::SendToWorker)>{ "Send to Thread" }</button>
+                    <button onclick=ctx.callback(|_| Msg::SendToJob)>{ "Send to Job" }</button>
+                    <button onclick=ctx.callback(|_| Msg::SendToContext)>{ "Send to Context" }</button>
                 </nav>
             </div>
         }

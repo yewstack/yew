@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 #![recursion_limit = "128"]
 //! Provides routing faculties for the Yew web framework.
 //!
@@ -101,10 +102,8 @@ pub mod prelude {
     #[cfg(feature = "router")]
     pub use crate::router::RouterState;
 
-    pub use crate::{
-        route::Route,
-        switch::{Routable, Switch},
-    };
+    pub use crate::switch::Switch as Routable;
+    pub use crate::{route::Route, switch::Switch};
     pub use yew_router_macro::Switch;
 }
 
