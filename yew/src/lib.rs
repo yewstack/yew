@@ -258,6 +258,7 @@ pub mod macros {
 }
 
 pub mod app;
+mod backend;
 pub mod callback;
 pub mod format;
 pub mod html;
@@ -272,6 +273,9 @@ pub mod services;
 
 #[cfg(feature = "web_sys")]
 pub use web_sys;
+
+#[cfg(feature = "static_render")]
+pub mod smr;
 
 /// The module that contains all events available in the framework.
 pub mod events {
@@ -309,6 +313,7 @@ pub fn initialize() {
     cfg_match! {
         feature = "std_web" => stdweb::initialize(),
         feature = "web_sys" => std::panic::set_hook(Box::new(console_error_panic_hook::hook)),
+        feature = "static_render" => || {},
     };
 }
 

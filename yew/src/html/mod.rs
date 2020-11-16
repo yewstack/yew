@@ -11,6 +11,7 @@ pub use scope::{AnyScope, Scope, SendAsMessage};
 pub(crate) use scope::{ComponentUpdate, Scoped};
 pub use yew_macro::Properties;
 
+use crate::backend::{DomBackend, Node, Renderer};
 use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VNode};
 use cfg_if::cfg_if;
@@ -419,17 +420,13 @@ impl NodeRef {
     }
 
     /// Try converting the node reference into another form
-    pub fn cast<
-        #[cfg(feature = "std_web")] INTO: TryFrom<Node>,
-        #[cfg(feature = "web_sys")] INTO: AsRef<Node> + From<JsValue>,
-    >(
-        &self,
-    ) -> Option<INTO> {
+    // #[cfg(feature = "std_web")] INTO: TryFrom<Node>,
+    // #[cfg(feature = "web_sys")] INTO: AsRef<Node> + From<JsValue>,
+
+    pub fn cast<INTO: std::convert::TryFrom<Node>>(&self) -> Option<INTO> {
         let node = self.get();
-        cfg_match! {
-            feature = "std_web" => node.and_then(|node| INTO::try_from(node).ok()),
-            feature = "web_sys" => node.map(Into::into).map(INTO::from),
-        }
+        Renderer::cast_node_ref::<INTO>(self)
+        // Renderer::cast_node_ref(self)
     }
 
     /// Wrap an existing `Node` in a `NodeRef`

@@ -26,6 +26,8 @@ cfg_if! {
         use web_sys::{
             Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, HtmlButtonElement
         };
+    } else if #[cfg(feature = "static_render")] {
+        use crate::smr::mock::{Element};
     }
 }
 
@@ -1250,10 +1252,12 @@ mod tests {
         let input = cfg_match! {
             feature = "std_web" => InputElement::try_from(input_ref.clone()).ok(),
             feature = "web_sys" => input_ref.dyn_ref::<InputElement>(),
+            feature = "static_render" => input_ref.dyn_ref::<InputElement>(),
         };
         cfg_match! {
             feature = "std_web" => input.unwrap().set_raw_value("User input"),
             feature = "web_sys" => input.unwrap().set_value("User input"),
+            feature = "static_render" => input.unwrap().set_value("User input"),
         };
 
         let ancestor = vtag;
@@ -1418,6 +1422,7 @@ mod tests {
         let parent_node = cfg_match! {
             feature = "std_web" => parent.as_node(),
             feature = "web_sys" => parent.deref(),
+            feature = "static_render" => parent.deref(),
         };
         assert_eq!(node_ref.get(), parent_node.first_child());
         elem.detach(&parent);

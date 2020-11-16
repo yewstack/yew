@@ -9,6 +9,8 @@ cfg_if! {
         use stdweb::web::{Element, INode, IParentNode};
     } else if #[cfg(feature = "web_sys")] {
         use web_sys::Element;
+    } else if #[cfg(feature = "static_render")] {
+        use crate::smr::mock::Element;
     }
 }
 

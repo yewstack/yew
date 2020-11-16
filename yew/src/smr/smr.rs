@@ -3,14 +3,13 @@
 //! This functionality allows Yew Components to be rendered to a string without needing
 //! to be mounted onto a DOM node first.
 //!
-//! *This module is only available if the `sans_mount_render` feature is enabled.*
+//! *This module is only available if the `static_render` feature is enabled.*
 
-use super::{VComp, VList, VNode, VTag, VText};
+use crate::virtual_dom::{VComp, VList, VNode, VTag, VText};
 use htmlescape;
 use std::convert::TryFrom;
 use std::fmt::{self, Display, Formatter};
 use thiserror::Error as ThisError;
-
 /// Represents a block of HTML string content generated via Sans-Mount Rendering
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct HtmlString(String);
@@ -67,25 +66,15 @@ impl TryFrom<VTag> for HtmlString {
         let mut result = "".to_string();
         let tag_name = htmlescape::encode_minimal(&value.tag).to_lowercase();
 
-        if !is_valid_sgml_tag(&tag_name) {
-            return Err(HtmlRenderError::InvalidTagName(tag_name));
-        }
-
         result.push_str(&format!("<{}", tag_name));
 
-        for (key_unclean, value) in &value.attributes {
+        value.attributes.iter().for_each(|(key_unclean, value)| {
             let key = key_unclean.to_lowercase();
-            // checked, value (special if textarea), disabled, href?, selected,
-            // kind -> type if input, disallow ref, disallow LISTENER_SET, class
-
-            if !is_valid_html_attribute_name(key.as_str()) {
-                return Err(HtmlRenderError::InvalidAttributeName(key));
-            }
 
             // textareas' innerHTML properties are specified via the `value` prop which doesn't
             // exist in HTML, so we defer this prop's serialization until later in the process.
             if tag_name == "textarea" && key == "value" {
-                continue;
+                return;
             }
 
             result.push_str(&format!(
@@ -93,7 +82,7 @@ impl TryFrom<VTag> for HtmlString {
                 htmlescape::encode_minimal(&key),
                 htmlescape::encode_attribute(&value)
             ));
-        }
+        });
 
         if value.checked {
             result.push_str(&" checked")
@@ -114,8 +103,9 @@ impl TryFrom<VTag> for HtmlString {
                 HtmlString::try_from(vtext)
             }
             _ => HtmlString::try_from(value.children),
-        }?.to_string();
-        
+        }?
+        .to_string();
+
         if children_html == "" {
             result.push_str(&" />");
         } else {
@@ -226,6 +216,7 @@ mod test_vtext {
 #[cfg(test)]
 mod tests_vtag {
     use super::*;
+    use crate::html;
     use crate::html::NodeRef;
     use std::convert::TryFrom;
 
@@ -314,6 +305,37 @@ mod tests_vtag {
             assert_eq!(div_html, "<div />");
         } else {
             assert!(false);
+        }
+    }
+}
+
+mod test_mounting {
+    use crate::html;
+
+    struct TestApplication {}
+    impl crate::Component for TestApplication {
+        type Message = ();
+
+        type Properties = ();
+
+        fn create(props: (), link: crate::ComponentLink<Self>) -> Self {
+            Self {}
+        }
+
+        fn update(&mut self, msg: ()) -> bool {
+            true
+        }
+
+        fn change(&mut self, _props: ()) -> bool {
+            true
+        }
+
+        fn view(&self) -> crate::Html {
+            html! {
+                <div>
+                    <h1>{"This is rendered without a dom!"}</h1>
+                </div>
+            }
         }
     }
 }

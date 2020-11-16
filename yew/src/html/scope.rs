@@ -1,4 +1,5 @@
 use super::{Callback, Component, NodeRef};
+use crate::backend::{Document, DomBackend, Element, Renderer};
 use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use cfg_if::cfg_if;
@@ -7,13 +8,6 @@ use std::cell::{Ref, RefCell};
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::Element;
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::Element;
-    }
-}
 
 /// Updates for a `Component` instance. Used by scope sender.
 pub(crate) enum ComponentUpdate<COMP: Component> {

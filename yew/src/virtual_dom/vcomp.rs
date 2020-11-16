@@ -1,6 +1,7 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
 use super::{Key, Transformer, VDiff, VNode};
+use crate::backend::{Element, EventListener, Node};
 use crate::html::{AnyScope, Component, ComponentUpdate, NodeRef, Scope, Scoped};
 use crate::utils::document;
 use cfg_if::cfg_if;
@@ -8,13 +9,6 @@ use std::any::TypeId;
 use std::borrow::Borrow;
 use std::fmt;
 use std::ops::Deref;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, Node};
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Node};
-    }
-}
 
 /// A virtual component.
 pub struct VComp {
@@ -572,6 +566,7 @@ mod tests {
         let parent_node = cfg_match! {
             feature = "std_web" => parent.as_node(),
             feature = "web_sys" => parent.deref(),
+            feature = "static_render" => parent.as_node(),
         };
         assert_eq!(node_ref.get(), parent_node.first_child());
         elem.detach(&parent);

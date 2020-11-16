@@ -39,9 +39,7 @@ thiserror = "1"
 toml = { version = "0.5", optional = true }
 wasm-bindgen = { version = "0.2.60", optional = true }
 wasm-bindgen-futures = { version = "0.4", optional = true }
-yew-macro = { version = "0.17.0", path = "../yew-macro", features = [
-  "std_web"
-] }
+yew-macro = { version = "0.17.0", path = "../yew-macro", features = ["std_web"] }
 
 # Changes here must be reflected in `build.rs`
 [target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]
@@ -76,7 +74,7 @@ msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
 
 [package.metadata.docs.rs]
-features = ["yaml", "cbor", "toml", "msgpack", "doc_test", "sans_mount_render"]
+features = ["yaml", "cbor", "toml", "msgpack", "doc_test", "static_render"]
 
 [workspace]
 members = [

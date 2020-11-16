@@ -9,13 +9,7 @@ use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
 
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, INode, Node};
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Node};
-    }
-}
+use crate::backend::{Document, Element, Node, Renderer, Window};
 
 /// Bind virtual element to a DOM reference.
 #[derive(Clone)]

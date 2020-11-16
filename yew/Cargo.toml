@@ -1,3 +1,4 @@
+
 [package]
 name = "yew"
 version = "0.17.4"
@@ -123,7 +124,7 @@ rmp-serde = "0.14.0"
 bincode = "1"
 
 [features]
-default = ["services", "agent", "web_sys"]
+default = ["static_render"]
 std_web = ["stdweb", "yew-macro/std_web"]
 web_sys = [
   "console_error_panic_hook",
@@ -138,11 +139,11 @@ wasm_test = []
 httpbin_test = []
 wasm_bench = []
 services = []
-sans_mount_render = ["htmlescape"]
+static_render = ["htmlescape"]
 agent = ["bincode"]
 yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]
 cbor = ["serde_cbor"]
 
 [package.metadata.docs.rs]
-features = ["yaml", "cbor", "toml", "msgpack", "doc_test", "sans_mount_render"]
+features = ["yaml", "cbor", "toml", "msgpack", "doc_test", "static_render"]

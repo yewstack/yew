@@ -13,11 +13,8 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
-#[cfg(feature = "sans_mount_render")]
-pub mod smr;
-
+use crate::backend::{Element, EventListener, Node};
 use crate::html::{AnyScope, NodeRef};
-use cfg_if::cfg_if;
 use indexmap::{IndexMap, IndexSet};
 use std::{
     borrow::{Borrow, Cow},
@@ -28,15 +25,6 @@ use std::{
     mem,
     rc::Rc,
 };
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use crate::html::EventListener;
-        use stdweb::web::{Element, INode, Node};
-    } else if #[cfg(feature = "web_sys")] {
-        use gloo::events::EventListener;
-        use web_sys::{Element, Node};
-    }
-}
 
 #[doc(inline)]
 pub use self::key::Key;
@@ -51,9 +39,9 @@ pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
 
-#[cfg(feature = "sans_mount_render")]
+#[cfg(feature = "static_render")]
 #[doc(no_inline)]
-pub use self::smr::{HtmlRenderError, HtmlString};
+pub use crate::smr::{HtmlRenderError, HtmlString};
 
 /// The `Listener` trait is an universal implementation of an event listener
 /// which is used to bind Rust-listener to JS-listener (DOM).
@@ -525,6 +513,17 @@ fn insert_node(node: &Node, parent: &Element, next_sibling: Option<Node>) {
             .expect("failed to insert tag before next sibling"),
         None => parent.append_child(node).expect("failed to append child"),
     };
+}
+
+#[cfg(feature = "static_render")]
+fn insert_node(node: &Node, parent: &Element, next_sibling: Option<Node>) {
+    todo!("@jon, insert node needs to work");
+    // match next_sibling {
+    //     Some(next_sibling) => parent
+    //         .insert_before(&node, Some(&next_sibling))
+    //         .expect("failed to insert tag before next sibling"),
+    //     None => parent.append_child(node).expect("failed to append child"),
+    // };
 }
 
 #[cfg(feature = "std_web")]

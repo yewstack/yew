@@ -10,6 +10,8 @@ cfg_if! {
         use stdweb::web::{Document, Window};
     } else if #[cfg(feature = "web_sys")] {
         use web_sys::{Document, Window};
+    } else if #[cfg(feature = "static_render")] {
+        use crate::smr::mock::{Document, Window, get_window, get_document};
     }
 }
 
@@ -18,6 +20,7 @@ pub fn window() -> Window {
     cfg_match! {
         feature = "std_web" => stdweb::web::window(),
         feature = "web_sys" => web_sys::window().expect("no window available"),
+        feature = "static_render" => get_window(),
     }
 }
 
@@ -26,6 +29,7 @@ pub fn document() -> Document {
     cfg_match! {
         feature = "std_web" => stdweb::web::document(),
         feature = "web_sys" => window().document().unwrap(),
+        feature = "static_render" => get_document(),
     }
 }
 
@@ -46,6 +50,9 @@ pub fn host() -> Result<String, Error> {
             .unwrap_or_else(|| String::from("error not recoverable")),)
     })?;
 
+    #[cfg(feature = "static_render")]
+    let host = crate::smr::mock::get_host();
+
     Ok(host)
 }
 
@@ -65,6 +72,9 @@ pub fn origin() -> Result<String, Error> {
             .as_string()
             .unwrap_or_else(|| String::from("error not recoverable")),)
     })?;
+
+    #[cfg(feature = "static_render")]
+    let origin = crate::smr::mock::get_origin();
 
     Ok(origin)
 }
