@@ -51,6 +51,7 @@ impl DerefMut for VList {
         &mut self.children
     }
 }
+
 /// Log an operation during tests for debugging purposes
 /// Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
 macro_rules! test_log {
@@ -221,7 +222,7 @@ impl VList {
             };
         }
 
-        // Diff matching children at the end
+        // Diff matching children at the end (or the entire list, if they match)
         let lefts_to = lefts_keys.len() - from_end;
         let rights_to = rights_keys.len() - from_end;
         for (l, r) in lefts[lefts_to..]
@@ -233,43 +234,62 @@ impl VList {
         }
 
         // Diff mismatched children in the middle
-        let mut rights_diff: HashMap<Key, &mut VNode> = rights_keys[from_start..rights_to]
-            .iter()
-            .zip(rights[from_start..rights_to].iter_mut())
-            .map(|(k, v)| (k.clone(), v))
-            .collect();
-        for (l_k, l) in lefts_keys[from_start..lefts_to]
-            .iter()
-            .zip(lefts[from_start..lefts_to].iter_mut())
-            .rev()
-        {
-            match rights_diff.remove(l_k) {
-                // Reorder and diff any existing children
-                Some(r) => {
-                    test_log!("moving as next: {:?}", r);
-                    r.move_before(parent, &next_sibling.get());
-                    apply!(l, r);
+        if from_end != lefts.len() || from_start != lefts.len() {
+            let mut next: Option<&Key> = None;
+            let mut rights_diff: HashMap<&Key, (&mut VNode, Option<&Key>)> =
+                HashMap::with_capacity(rights_to - from_start);
+            for (k, v) in rights_keys[from_start..rights_to]
+                .iter()
+                .zip(rights[from_start..rights_to].iter_mut())
+                .rev()
+            {
+                rights_diff.insert(k, (v, next));
+                next = Some(k);
+            }
+            next = None;
+            for (l_k, l) in lefts_keys[from_start..lefts_to]
+                .iter()
+                .zip(lefts[from_start..lefts_to].iter_mut())
+                .rev()
+            {
+                match rights_diff.remove(l_k) {
+                    // Reorder and diff any existing children
+                    Some((r, r_next)) => {
+                        match (r_next, next) {
+                            // If the next sibling was already the same, we don't need to move the
+                            // node
+                            (Some(r), Some(l)) if l == r => (),
+                            _ => {
+                                test_log!("moving as next: {:?}", r);
+                                r.move_before(parent, &next_sibling.get());
+                            }
+                        }
+                        apply!(l, r);
+                    }
+                    // Add new children
+                    None => {
+                        apply!(l);
+                    }
                 }
-                // Add new children
-                None => {
-                    apply!(l);
-                }
+                next = Some(l_k);
+            }
+
+            // Remove any extra rights
+            for (_, (r, _)) in rights_diff.drain() {
+                test_log!("removing: {:?}", r);
+                r.detach(parent);
             }
         }
 
-        // Remove any extra rights
-        for (_, r) in rights_diff.drain() {
-            test_log!("removing: {:?}", r);
-            r.detach(parent);
-        }
-
         // Diff matching children at the start
-        for (l, r) in lefts[..from_start]
-            .iter_mut()
-            .zip(rights[..from_start].iter_mut())
-            .rev()
-        {
-            apply!(l, r);
+        if from_start != 0 {
+            for (l, r) in lefts[..from_start]
+                .iter_mut()
+                .zip(rights[..from_start].iter_mut())
+                .rev()
+            {
+                apply!(l, r);
+            }
         }
 
         next_sibling
