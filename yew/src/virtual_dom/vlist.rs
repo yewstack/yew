@@ -226,8 +226,8 @@ impl VList {
         let rights_to = rights_keys.len() - from_end;
         for (l, r) in lefts[lefts_to..]
             .iter_mut()
+            .zip(rights[rights_to..].iter_mut())
             .rev()
-            .zip(rights[rights_to..].iter_mut().rev())
         {
             apply!(l, r);
         }
@@ -240,8 +240,8 @@ impl VList {
             .collect();
         for (l_k, l) in lefts_keys[from_start..lefts_to]
             .iter()
+            .zip(lefts[from_start..lefts_to].iter_mut())
             .rev()
-            .zip(lefts[from_start..lefts_to].iter_mut().rev())
         {
             match rights_diff.remove(l_k) {
                 // Reorder and diff any existing children
@@ -266,8 +266,8 @@ impl VList {
         // Diff matching children at the start
         for (l, r) in lefts[..from_start]
             .iter_mut()
+            .zip(rights[..from_start].iter_mut())
             .rev()
-            .zip(rights[..from_start].iter_mut().rev())
         {
             apply!(l, r);
         }
