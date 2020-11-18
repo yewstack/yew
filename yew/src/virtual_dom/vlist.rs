@@ -235,16 +235,16 @@ impl VList {
 
         // Diff mismatched children in the middle
         if from_end != lefts.len() || from_start != lefts.len() {
-            let mut next: Option<&Key> = None;
-            let mut rights_diff: HashMap<&Key, (&mut VNode, Option<&Key>)> =
+            let mut next: Option<Key> = None;
+            let mut rights_diff: HashMap<Key, (&mut VNode, Option<Key>)> =
                 HashMap::with_capacity(rights_to - from_start);
             for (k, v) in rights_keys[from_start..rights_to]
                 .iter()
                 .zip(rights[from_start..rights_to].iter_mut())
                 .rev()
             {
-                rights_diff.insert(k, (v, next));
-                next = Some(k);
+                rights_diff.insert(k.clone(), (v, next.take()));
+                next = Some(k.clone());
             }
             next = None;
             for (l_k, l) in lefts_keys[from_start..lefts_to]
@@ -271,7 +271,7 @@ impl VList {
                         apply!(l);
                     }
                 }
-                next = Some(l_k);
+                next = Some(l_k.clone());
             }
 
             // Remove any extra rights
