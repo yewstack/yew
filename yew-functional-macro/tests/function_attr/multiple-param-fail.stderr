@@ -1,0 +1,11 @@
+error: function components can accept at most one parameter for the props
+  --> $DIR/multiple-param-fail.rs:10:24
+   |
+10 | fn comp(props: &Props, invalid: String) -> Html {
+   |                        ^^^^^^^^^^^^^^^
+
+error: function components can accept at most one parameter for the props
+  --> $DIR/multiple-param-fail.rs:20:25
+   |
+20 | fn comp3(props: &Props, invalid: String, another_invalid: u32) -> Html {
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
