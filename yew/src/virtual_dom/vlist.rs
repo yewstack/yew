@@ -170,8 +170,10 @@ impl VList {
         parent: &Element,
         mut next_sibling: NodeRef,
         lefts: &mut [VNode],
-        mut rights: Vec<VNode>,
+        rights: Vec<VNode>,
     ) -> NodeRef {
+        use std::mem::{transmute, MaybeUninit};
+
         macro_rules! map_keys {
             ($src:expr) => {
                 $src.iter()
@@ -207,7 +209,7 @@ impl VList {
         macro_rules! apply {
             ($l:expr, $r:expr) => {
                 test_log!("patching: {:?} -> {:?}", $r, $l);
-                apply!(std::mem::take($r).into() => $l);
+                apply!(Some($r) => $l);
             };
             ($l:expr) => {
                 test_log!("adding: {:?}", $l);
@@ -222,6 +224,26 @@ impl VList {
             };
         }
 
+        // We partially deconstruct the rights vector in several steps.
+        // This can not be done without default swapping or 2 big vector reallocation overhead in
+        // safe Rust.
+        let mut rights: Vec<MaybeUninit<VNode>> = unsafe { transmute(rights) };
+
+        // Takes a value from the rights vector.
+        //
+        // We guarantee this is only done once because the consumer routine ranges don't overlap.
+        // We guarantee this is done for all nodes because all ranges are processed. There are no
+        // early returns (except panics) possible before full vector depletion.
+        macro_rules! take {
+            ($src:expr) => {
+                unsafe {
+                    let mut dst = MaybeUninit::<VNode>::uninit();
+                    std::ptr::copy_nonoverlapping($src.as_mut_ptr(), dst.as_mut_ptr(), 1);
+                    dst.assume_init()
+                }
+            };
+        }
+
         // Diff matching children at the end
         let lefts_to = lefts_keys.len() - from_end;
         let rights_to = rights_keys.len() - from_end;
@@ -230,20 +252,20 @@ impl VList {
             .zip(rights[rights_to..].iter_mut())
             .rev()
         {
-            apply!(l, r);
+            apply!(l, take!(r));
         }
 
         // Diff mismatched children in the middle
-        let mut next: Option<Key> = None;
-        let mut rights_diff: HashMap<Key, (&mut VNode, Option<Key>)> =
+        let mut next: Option<&Key> = None;
+        let mut rights_diff: HashMap<&Key, (VNode, Option<&Key>)> =
             HashMap::with_capacity(rights_to - from_start);
         for (k, v) in rights_keys[from_start..rights_to]
             .iter()
             .zip(rights[from_start..rights_to].iter_mut())
             .rev()
         {
-            rights_diff.insert(k.clone(), (v, next.take()));
-            next = Some(k.clone());
+            rights_diff.insert(k, (take!(v), next.take()));
+            next = Some(k);
         }
         next = None;
         for (l_k, l) in lefts_keys[from_start..lefts_to]
@@ -256,7 +278,7 @@ impl VList {
                 Some((r, r_next)) => {
                     match (r_next, next) {
                         // If the next sibling was already the same, we don't need to move the node
-                        (Some(r), Some(l)) if l == r => (),
+                        (Some(r_next), Some(l_next)) if r_next == l_next => (),
                         _ => {
                             test_log!("moving as next: {:?}", r);
                             r.move_before(parent, &next_sibling.get());
@@ -269,11 +291,11 @@ impl VList {
                     apply!(l);
                 }
             }
-            next = Some(l_k.clone());
+            next = Some(l_k);
         }
 
         // Remove any extra rights
-        for (_, (r, _)) in rights_diff.drain() {
+        for (_, (mut r, _)) in rights_diff.drain() {
             test_log!("removing: {:?}", r);
             r.detach(parent);
         }
@@ -284,7 +306,7 @@ impl VList {
             .zip(rights[..from_start].iter_mut())
             .rev()
         {
-            apply!(l, r);
+            apply!(l, take!(r));
         }
 
         next_sibling
