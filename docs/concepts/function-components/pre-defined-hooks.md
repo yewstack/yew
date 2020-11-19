@@ -234,7 +234,7 @@ use_effect_with_deps(
 
 ## `use_context`
 
-`use_context` used for consuming contexts in function components. See the explanation and example below to learn how to use it. 
+`use_context` is used for consuming contexts in function components. See the explanation and example in the following section to learn how to use it. 
 
 ### Contexts
 
@@ -284,8 +284,8 @@ Let's implement the aforementioned Navbar using contexts and function components
 #[function_component(App)]
 pub fn app() -> Html {
     let (ctx, _set_ctx) = use_state(|| Theme {
-        foreground: "#000000".into(),
-        background: "#eeeeee".into(),
+        foreground: "#000000".to_owned(),
+        background: "#eeeeee".to_owned(),
     });
 
     html! {

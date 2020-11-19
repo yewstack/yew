@@ -124,7 +124,7 @@ where
 /// The context of the type passed as `T` is returned. If there is no such context in scope, `None` is returned.
 /// A component which calls `use_context` will re-render when the data of the context changes.
 ///
-/// More information about contexts and how to define and consume them can be found on [Yew's website](https://yew.rs).
+/// More information about contexts and how to define and consume them can be found on [Yew Docs](https://yew.rs).
 ///
 /// # Example
 /// ```rust
@@ -143,7 +143,7 @@ where
 ///
 ///     html! {
 ///         <button style=format!("background: {}; color: {}", theme.background, theme.foreground)>
-///             {"Click me"}
+///             { "Click me" }
 ///         </button>
 ///     }
 /// }

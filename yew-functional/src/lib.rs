@@ -12,7 +12,7 @@
 //! }
 //! ```
 //!
-//! More details about function components and Hooks can be found on [Yew's website](https://yew.rs/docs/en/next/concepts/function-components)
+//! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/en/next/concepts/function-components)
 
 use std::borrow::Borrow;
 use std::cell::RefCell;
@@ -522,8 +522,11 @@ where
     );
 }
 
-/// Sometimes, it's needed to manually define dependencies for [`use_effect`].
-/// In such cases, we use `use_effect_with_deps`.
+/// This hook is similar to [`use_effect`] but it accepts dependencies.
+///
+/// Whenever the dependencies are changed, the effect callback is called again.
+/// To detect changes, dependencies must implement `PartialEq`.
+/// Note that the destructor also runs when dependencies change.
 pub fn use_effect_with_deps<F, Destructor, Dependents>(callback: F, deps: Dependents)
 where
     F: FnOnce(&Dependents) -> Destructor + 'static,
