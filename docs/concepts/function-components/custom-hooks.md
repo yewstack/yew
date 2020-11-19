@@ -26,7 +26,7 @@ pub fn show_messages() -> Html {
         });
     }
 
-    let output = state.borrow().deref().iter().map(|it| html! { <p>{ it }</p> });
+    let output = state.iter().map(|it| html! { <p>{ it }</p> });
     html! { <div>{ for output }</div> }
 }
 ```
@@ -105,3 +105,23 @@ pub fn show_messages() -> Html {
     html! { <div>{ for output }</div> }
 }
 ```
+
+It's important to note that `use_hook` isn't necessarily required to create custom hooks 
+as they can just consist of other hooks. `use_hook` should generally be avoided. 
+
+```rust
+fn use_subscribe() -> Rc<Vec<String>> {
+    let (state, set_state) = use_state(Vec::new);
+  
+    use_effect(move || {
+        let producer = EventBus::bridge(Callback::from(move |msg| {
+            let mut messages = (*state).clone();
+            messages.push(msg);
+            set_state(messages)
+        }));
+        || drop(producer)
+    });
+
+    state
+}
+```   

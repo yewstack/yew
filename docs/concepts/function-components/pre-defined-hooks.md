@@ -197,15 +197,16 @@ The destructor can be used to clean up the effects introduced and it can take ow
 fn effect() -> Html {
     let (counter, set_counter) = use_state(|| 0);
 
-    let counter_one = counter.clone();
-    use_effect(move || {
-        // Make a call to DOM API after component is rendered
-        yew::utils::document().set_title(&format!("You clicked {} times", counter_one));
-
-        // Perform the cleanup
-        || yew::utils::document().set_title(&format!("You clicked 0 times"))
-    });
+    {
+        let counter = counter.clone();
+        use_effect(move || {
+            // Make a call to DOM API after component is rendered
+            yew::utils::document().set_title(&format!("You clicked {} times", counter_one));
     
+            // Perform the cleanup
+            || yew::utils::document().set_title("You clicked 0 times")
+        });
+    }    
     let onclick = {
         let counter = Rc::clone(&counter);
         Callback::from(move |_| set_counter(*counter + 1))
