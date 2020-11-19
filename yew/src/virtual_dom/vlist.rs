@@ -222,7 +222,7 @@ impl VList {
             };
         }
 
-        // Diff matching children at the end (or the entire list, if they match)
+        // Diff matching children at the end
         let lefts_to = lefts_keys.len() - from_end;
         let rights_to = rights_keys.len() - from_end;
         for (l, r) in lefts[lefts_to..]
