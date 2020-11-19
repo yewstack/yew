@@ -255,8 +255,7 @@ impl VList {
                 // Reorder and diff any existing children
                 Some((r, r_next)) => {
                     match (r_next, next) {
-                        // If the next sibling was already the same, we don't need to move the
-                        // node
+                        // If the next sibling was already the same, we don't need to move the node
                         (Some(r), Some(l)) if l == r => (),
                         _ => {
                             test_log!("moving as next: {:?}", r);
