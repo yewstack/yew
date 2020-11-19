@@ -189,14 +189,13 @@ where
     }
 }
 
-/// `use_ref` is used for obtaining a mutable reference to a stateful value.
+/// This hook is used for obtaining a mutable reference to a stateful value.
 /// Its state persists across renders.
 ///
 /// It is important to note that you do not get notified of state changes.
 /// If you need the component to be re-rendered on state change, consider using [`use_state`].
 ///
 /// # Example
-///
 /// ```rust
 /// # use yew_functional::{function_component, use_state, use_ref};
 /// # use yew::prelude::*;
@@ -248,13 +247,12 @@ where
         move || UseRefState(Rc::new(RefCell::new(initial_value()))),
     )
 }
-/// `use_reducer` is an alternative to [`use_state`]. It is used to handle component's state and is used
+/// This hook is an alternative to [`use_state`]. It is used to handle component's state and is used
 /// when complex actions needs to be performed on said state.
 ///
 /// For lazy initialization, consider using [`use_reducer_with_init`] instead.
 ///
 /// # Example
-///
 /// ```rust
 /// # use yew_functional::{function_component, use_reducer};
 /// # use yew::prelude::*;
@@ -392,10 +390,9 @@ where
     )
 }
 
-/// `use_state` is used to mange state in a function component.
+/// This hook is used to mange state in a function component.
 ///
 /// # Example
-///
 /// ```rust
 /// # use yew_functional::{function_component, use_state, use_ref};
 /// # use yew::prelude::*;
@@ -454,10 +451,9 @@ where
     )
 }
 
-/// `use_effect` is used for hooking into the component's lifecycle.
+/// This hook is used for hooking into the component's lifecycle.
 ///
 /// # Example
-///
 /// ```rust
 /// # use yew_functional::{function_component, use_effect, use_state};
 /// # use yew::prelude::*;
