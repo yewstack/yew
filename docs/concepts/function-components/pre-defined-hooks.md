@@ -71,28 +71,31 @@ If you need the component to be re-rendered on state change, consider using [`us
 ```rust
 #[function_component(UseRef)]
 fn ref_hook() -> Html {
-    let (outer_html, set_outer_html) = use_state(String::new);
+    let (message, set_message) = use_state(|| "".to_string());
+    let message_count = use_ref(|| 0);
 
-    let node_ref = use_ref(NodeRef::default);
+    let onclick = Callback::from(move |e| {
+        let window = yew::utils::window();
 
-    let onclick = {
-        let node_ref = Rc::clone(&node_ref);
+        if *message_count.borrow_mut() > 3 {
+            window.alert_with_message("Message limit reached");
+        } else {
+            *message_count.borrow_mut() += 1;
+            window.alert_with_message("Message sent");
+        }
+    });
 
-        Callback::from(move |e| {
-            let outer_html = (*node_ref.borrow().deref())
-                .cast::<yew::web_sys::Element>()
-                .unwrap()
-                .outer_html();
-            set_outer_html(outer_html)
-        })
-    };
+    let onchange = Callback::from(move |e| {
+        if let ChangeData::Value(value) = e {
+            set_message(value)
+        }
+    });
+
     html! {
-        <>
-            <div id="result" ref=(*node_ref.borrow_mut().deref_mut()).clone()>{ "Filler" }</div>
-            { outer_html }
-            <br />
-            <button onclick=onclick>{ "Refresh" }</button>
-        </>
+        <div>
+            <input onchange=onchange value=message />
+            <button onclick=onclick>{ "Send" }</button>
+        </div>
     }
 }
 ```
