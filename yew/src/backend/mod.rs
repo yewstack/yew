@@ -7,7 +7,7 @@ cfg_if::cfg_if! {
         mod web_sys;
     } else if #[cfg(feature = "static_render")] {
         mod smr;
-        pub use smr::{Document, Element, Node, Renderer, Window, EventListener};
+        pub use smr::*;
     }
 }
 
@@ -16,18 +16,21 @@ pub trait DomBackend {
     type Node;
     type Document;
     type Window;
+    type InputEvent;
+    type InputData;
+    type ChangeData;
 
-    fn get_document() -> Self::Document {
-        todo!()
-    }
+    /// Returns the current window. This function will panic if there is no available window.
+    fn get_window() -> Self::Window;
 
-    fn get_origin() -> String {
-        format!("blah")
-    }
+    /// Returns the current document.
+    fn get_document() -> Self::Document;
 
-    fn get_host() -> String {
-        format!("blah")
-    }
+    /// Returns the `origin` of the current window.
+    fn get_origin() -> Result<String, anyhow::Error>;
+
+    /// Returns the `host` for the current document. Useful for connecting to the server which serves the app.
+    fn get_host() -> Result<String, anyhow::Error>;
 
     // Element-related methods
     fn element_as_node(element: &Self::Element) -> Self::Node;
@@ -35,5 +38,6 @@ pub trait DomBackend {
     fn element_remove_child(element: &Self::Element, child: &Self::Element) -> Option<()>;
     fn cast_node_ref<INTO>(node_ref: &NodeRef) -> Option<INTO>;
 
-    // Document-related methods
+    fn oninput_handler(this: &Self::Element, event: Self::InputEvent) -> Self::InputData;
+    fn onchange_handler(this: &Self::Element) -> Self::ChangeData;
 }

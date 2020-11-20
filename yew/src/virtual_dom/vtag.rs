@@ -4,32 +4,32 @@ use super::{
     Attributes, Key, Listener, Listeners, Patch, PositionalAttr, Transformer, VDiff, VList, VNode,
 };
 use crate::html::{AnyScope, NodeRef};
-use crate::utils::document;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::rc::Rc;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use crate::html::EventListener;
-        #[allow(unused_imports)]
-        use stdweb::{_js_impl, js};
-        use stdweb::unstable::TryFrom;
-        use stdweb::web::html_element::{InputElement, TextAreaElement};
-        use stdweb::web::{Element, IElement, INode};
-    } else if #[cfg(feature = "web_sys")] {
-        use gloo::events::EventListener;
-        use std::ops::Deref;
-        use wasm_bindgen::JsCast;
-        use web_sys::{
-            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, HtmlButtonElement
-        };
-    } else if #[cfg(feature = "static_render")] {
-        use crate::smr::mock::{Element};
-    }
-}
+// use crate::utils::document;
+// cfg_if! {
+//     if #[cfg(feature = "std_web")] {
+//         use crate::html::EventListener;
+//         #[allow(unused_imports)]
+//         use stdweb::{_js_impl, js};
+//         use stdweb::unstable::TryFrom;
+//         use stdweb::web::html_element::{InputElement, TextAreaElement};
+//         use stdweb::web::{Element, IElement, INode};
+//     } else if #[cfg(feature = "web_sys")] {
+//         use gloo::events::EventListener;
+//         use std::ops::Deref;
+//         use wasm_bindgen::JsCast;
+//         use web_sys::{
+//             Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, HtmlButtonElement
+//         };
+//     } else if #[cfg(feature = "static_render")] {
+//         use crate::smr::mock::{Element};
+//     }
+// }
 
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
@@ -563,10 +563,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::backend::Document;
     use crate::html;
     use std::any::TypeId;
-    #[cfg(feature = "std_web")]
-    use stdweb::web::{document, IElement};
+    // #[cfg(feature = "std_web")]
+    // use stdweb::web::{document, IElement};
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
