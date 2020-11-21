@@ -128,7 +128,7 @@ impl Component for Model {
                 let elapsed_max = time_after - time_before;
                 log::info!("Rendering started {} ms ago.", elapsed_max.as_millis());
                 if let Some(input) = self.delta_ref.cast::<HtmlElement>() {
-                    let delta_text = format!("Last rendering takes {} ms", elapsed_max.as_millis());
+                    let delta_text = format!("The last rendering took {} ms", elapsed_max.as_millis());
                     input.set_inner_text(&delta_text);
                 }
                 false
