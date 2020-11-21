@@ -147,50 +147,94 @@ impl Component for Model {
         };
 
         html! {
-            <>
-                <div class="buttons">
-                    <button onclick=self.link.callback(|_| Msg::DeleteEverybody)>
-                        { "Delete everybody" }
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        <button class="btn_size alert alert-danger" onclick=self.link.callback(|_| Msg::DeleteEverybody)>
+                            { "Delete everybody" }
+                        </button>
+                    </div>
+
+                    <div class="col">
+                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(1))>
+                            { "Create 1" }
                     </button>
-                    <button onclick=self.link.callback(|_| Msg::CreatePersons(1))>
-                        { "Create 1" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::CreatePersons(5))>
-                        { "Create 5" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::CreatePersons(100))>
-                        { "Create 100" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::CreatePersons(500))>
-                        { "Create 500" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::CreatePersonsPrepend(1))>
-                        { "Prepend 1" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::CreatePersonsPrepend(5))>
-                        { "Prepend 5" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::SwapRandom)>
-                        { "Swap random" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::ReverseList)>
-                        { "Reverse list" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::SortById)>
-                        { "Sort by id" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::SortByName)>
-                        { "Sort by name" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::SortByAge)>
-                        { "Sort by age" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::SortByAddress)>
-                        { "Sort by address" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::ToggleKeyed)>
-                        { if self.keyed { "Disable keys" } else { "Enable keys" } }
-                    </button>
+                    </div>
+
+                    <div class="col">
+                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(5))>
+                            { "Create 5" }
+                        </button>
+                    </div>
+
+                    <div class="col">
+                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(100))>
+                            { "Create 100" }
+                        </button>
+                    </div>
+
+                    <div class="col">
+                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(500))>
+                            { "Create 500" }
+                        </button>
+                    </div>
+
+                    <div class="col">
+                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersonsPrepend(1))>
+                            { "Prepend 1" }
+                        </button>
+                    </div>
+
+                    <div class="col">
+                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersonsPrepend(5))>
+                            { "Prepend 5" }
+                        </button>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <button class="btn_size alert alert-warning" onclick=self.link.callback(|_| Msg::ToggleKeyed)>
+                            { if self.keyed { "Disable keys" } else { "Enable keys" } }
+                        </button>
+                    </div>
+                
+                    <div class="col">
+                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SwapRandom)>
+                            { "Swap random" }
+                        </button>
+                    </div>
+                
+                    <div class="col">
+                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::ReverseList)>
+                            { "Reverse list" }
+                        </button>
+                    </div>
+                
+                    <div class="col">
+                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortById)>
+                            { "Sort by id" }
+                        </button>
+                    </div>
+                
+                    <div class="col">
+                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortByName)>
+                            { "Sort by name" }
+                        </button>
+                    </div>
+                
+                    <div class="col">
+                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortByAge)>
+                            { "Sort by age" }
+                        </button>
+                    </div>
+                
+                    <div class="col">
+                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortByAddress)>
+                            { "Sort by address" }
+                        </button>
+                    </div>
+            
                 </div>
                 <div class="ratio">
                     <label for="ratio">{ "Person type ratio (0=only tags <= ratio <= 1=only components): " }</label>
@@ -206,7 +250,7 @@ impl Component for Model {
                 <div class="persons">
                     { for self.persons.iter().map(|p| p.render(self.keyed)) }
                 </div>
-            </>
+            </div>
         }
     }
 }
