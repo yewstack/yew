@@ -11,3 +11,4 @@ rand = { version = "0.7", features = ["wasm-bindgen"] }
 wasm-logger = "0.2"
 yew = { path = "../../yew" }
 yewtil = { path = "../../yewtil" }
+fake = "2.2"

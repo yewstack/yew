@@ -3,6 +3,11 @@ use std::rc::Rc;
 use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
 use yewtil::NeqAssign;
 
+use fake::Fake;
+use fake::faker::name::raw::*;
+use fake::faker::address::raw::*;
+use fake::locales::*;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PersonInfo {
     pub id: usize,
@@ -13,13 +18,17 @@ pub struct PersonInfo {
 impl PersonInfo {
     pub fn new_random(id: usize) -> Self {
         let address = {
-            let count = random::range_exclusive(3, 6);
-            Rc::from(random::words(count, 5, 12).join(" ").as_str())
+            let no = random::range_exclusive(1, 300);
+            let state = StateAbbr(EN).fake::<String>();
+            let city = CityName(EN).fake::<String>();
+            let street = StreetName(EN).fake::<String>();
+
+            Rc::from(format!("{} {} St., {}, {}", no, street, city, state).as_str())
         };
 
         Self {
             id,
-            name: Rc::from(random::words(2, 4, 15).join(" ").as_str()),
+            name: Rc::from(Name(EN).fake::<String>().as_str()),
             age: random::range_exclusive(7, 77),
             address,
         }
@@ -28,9 +37,9 @@ impl PersonInfo {
     fn render(&self) -> Html {
         html! {
             <div class="person">
-                <h1>{ &self.id }{ " - " }{ &self.name }</h1>
-                <p>{ "Age: " }{ &self.age }</p>
-                <p>{ "Address: " }{ &self.address }</p>
+                <p>{ format!("{} - {}", &self.id, &self.name)}</p>
+                <p>{ format!("Age: {}", &self.age)}</p>
+                <p>{ format!("Address: {}", &self.address)}</p>
             </div>
         }
     }
