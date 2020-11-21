@@ -36,10 +36,12 @@ impl PersonInfo {
 
     fn render(&self) -> Html {
         html! {
-            <div class="person">
-                <p>{ format!("{} - {}", &self.id, &self.name)}</p>
-                <p>{ format!("Age: {}", &self.age)}</p>
-                <p>{ format!("Address: {}", &self.address)}</p>
+            <div class="card w-50 card_style">
+                <div class="card-body">
+                    <h5 class="card-title">{ format!("{} - {}", &self.id, &self.name)}</h5>
+                    <p class="card-text">{ format!("Age: {}", &self.age)}</p>
+                    <p class="card-text">{ format!("Address: {}", &self.address)}</p>
+                </div>
             </div>
         }
     }
@@ -67,7 +69,7 @@ impl Component for PersonComponent {
 
     fn view(&self) -> Html {
         html! {
-            <div class="component-person" id=self.info.id.to_string()>
+            <div class="text-info" id=self.info.id.to_string()>
                 { self.info.render() }
             </div>
         }
@@ -100,13 +102,13 @@ impl PersonType {
             Self::Inline(info) => {
                 if keyed {
                     html! {
-                        <div key=info.id.to_string() class="basic-person" id=info.id.to_string()>
+                        <div key=info.id.to_string() class="text-danger" id=info.id.to_string()>
                             { info.render() }
                         </div>
                     }
                 } else {
                     html! {
-                        <div class="basic-person" id=info.id.to_string()>
+                        <div class="text-danger" id=info.id.to_string()>
                             { info.render() }
                         </div>
                     }

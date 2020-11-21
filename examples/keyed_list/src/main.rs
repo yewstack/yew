@@ -236,16 +236,15 @@ impl Component for Model {
                     </div>
             
                 </div>
-                <div class="ratio">
-                    <label for="ratio">{ "Person type ratio (0=only tags <= ratio <= 1=only components): " }</label>
-                    <input
-                        class="input" type="text" id="ratio"
-                        value=self.build_component_ratio
+                    <p class="h5">{ "Person type ratio (0=only tags <= ratio <= 1=only components): " }{ self.build_component_ratio }</p>
+
+                    <input name="ratio" type="range" class="form-control-range" min="0.0" max="1.0" step="any"
+                        value=self.build_component_ratio                    
                         oninput=self.link.callback(|e: InputData| Msg::ChangeRatio(e.value))
                     />
-                </div>
-                <p>{ "Number of persons: " }{ self.persons.len() }</p>
-                <p>{ "Ids: " }{ ids }</p>
+
+                <p class="h5">{ "Number of persons: " }{ self.persons.len() }</p>
+                <p class="h5">{ "Ids: " }{ ids }</p>
                 <hr />
                 <div class="persons">
                     { for self.persons.iter().map(|p| p.render(self.keyed)) }
