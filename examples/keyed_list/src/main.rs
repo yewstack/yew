@@ -1,6 +1,7 @@
 use instant::Instant;
 use person::PersonType;
 use yew::prelude::*;
+use yew::web_sys::HtmlElement;
 use yewtil::NeqAssign;
 
 mod person;
@@ -28,6 +29,7 @@ pub struct Model {
     last_id: usize,
     keyed: bool,
     build_component_ratio: f64,
+    delta_ref: NodeRef,
 }
 
 impl Component for Model {
@@ -41,6 +43,7 @@ impl Component for Model {
             last_id: 0,
             keyed: true,
             build_component_ratio: 0.5,
+            delta_ref: NodeRef::default()
         }
     }
 
@@ -124,6 +127,10 @@ impl Component for Model {
                 let time_after = Instant::now();
                 let elapsed_max = time_after - time_before;
                 log::info!("Rendering started {} ms ago.", elapsed_max.as_millis());
+                if let Some(input) = self.delta_ref.cast::<HtmlElement>() {
+                    let delta_text = format!("Last rendering takes {} ms", elapsed_max.as_millis());
+                    input.set_inner_text(&delta_text);
+                }
                 false
             }
         }
@@ -147,7 +154,11 @@ impl Component for Model {
         };
 
         html! {
+            
             <div class="container">
+            <p class="h2" ref=self.delta_ref.clone()/>
+            <hr />
+
                 <div class="row">
                     <div class="col">
                         <button class="btn_size alert alert-danger" onclick=self.link.callback(|_| Msg::DeleteEverybody)>
@@ -242,7 +253,7 @@ impl Component for Model {
                         value=self.build_component_ratio                    
                         oninput=self.link.callback(|e: InputData| Msg::ChangeRatio(e.value))
                     />
-
+                    
                 <p class="h5">{ "Number of persons: " }{ self.persons.len() }</p>
                 <p class="h5">{ "Ids: " }{ ids }</p>
                 <hr />
