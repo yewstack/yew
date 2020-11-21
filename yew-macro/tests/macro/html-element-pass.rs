@@ -57,10 +57,10 @@ fn compile_pass() {
                 }
             }/>
 
-            <a href=Some("http://google.com") media=None::<&'static str> />
-            <track kind=Some("subtitles") src=None::<&'static str> />
-            <track kind=Some("5") mixed="works" />
-            <input value=Some("value") onblur=Some(Callback::from(|_| ())) />
+            <a href=Some(Cow::Borrowed("http://google.com")) media=None::<&'static str> />
+            <track kind=Some(Cow::Borrowed("subtitles")) src=None::<&'static str> />
+            <track kind=Some(Cow::Borrowed("5")) mixed="works" />
+            <input value=Some(Cow::Borrowed("value")) onblur=Some(Callback::from(|_| ())) />
         </div>
     };
 

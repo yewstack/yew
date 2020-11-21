@@ -219,10 +219,10 @@ error[E0277]: the trait bound `{integer}: yew::html::conversion::IntoPropValue<s
    |
    = help: the following implementations were found:
              <&'static str as yew::html::conversion::IntoPropValue<std::borrow::Cow<'static, str>>>
-             <&'static str as yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>>
-             <&'static str as yew::html::conversion::IntoPropValue<std::option::Option<std::string::String>>>
              <&'static str as yew::html::conversion::IntoPropValue<std::string::String>>
-           and 14 others
+             <&T as yew::html::conversion::IntoPropValue<T>>
+             <&T as yew::html::conversion::IntoPropValue<std::option::Option<T>>>
+           and 5 others
 
 error[E0277]: the trait bound `{integer}: yew::html::conversion::IntoPropValue<std::string::String>` is not satisfied
    --> $DIR/html-component-fail.rs:100:26
@@ -232,10 +232,10 @@ error[E0277]: the trait bound `{integer}: yew::html::conversion::IntoPropValue<s
     |
     = help: the following implementations were found:
               <&'static str as yew::html::conversion::IntoPropValue<std::borrow::Cow<'static, str>>>
-              <&'static str as yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>>
-              <&'static str as yew::html::conversion::IntoPropValue<std::option::Option<std::string::String>>>
               <&'static str as yew::html::conversion::IntoPropValue<std::string::String>>
-            and 14 others
+              <&T as yew::html::conversion::IntoPropValue<T>>
+              <&T as yew::html::conversion::IntoPropValue<std::option::Option<T>>>
+            and 5 others
 
 error[E0308]: mismatched types
    --> $DIR/html-component-fail.rs:101:30

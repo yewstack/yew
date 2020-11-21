@@ -225,12 +225,6 @@ error[E0277]: the trait bound `std::option::Option<NotToString>: yew::html::conv
    |     pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
    |                                               --------------------------- required by this bound in `yew::virtual_dom::PositionalAttr::new`
    |
-   = help: the following implementations were found:
-             <std::option::Option<&'static str> as yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>>
-             <std::option::Option<&'static str> as yew::html::conversion::IntoPropValue<std::option::Option<std::string::String>>>
-             <std::option::Option<&T> as yew::html::conversion::IntoPropValue<std::option::Option<T>>>
-             <std::option::Option<&std::string::String> as yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>>
-             <std::option::Option<std::string::String> as yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>>
    = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<std::borrow::Cow<'static, str>>` for `std::option::Option<NotToString>`
 
 error[E0277]: the trait bound `std::option::Option<{integer}>: yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not satisfied
@@ -244,12 +238,6 @@ error[E0277]: the trait bound `std::option::Option<{integer}>: yew::html::conver
    |     pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
    |                                               --------------------------- required by this bound in `yew::virtual_dom::PositionalAttr::new`
    |
-   = help: the following implementations were found:
-             <std::option::Option<&'static str> as yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>>
-             <std::option::Option<&'static str> as yew::html::conversion::IntoPropValue<std::option::Option<std::string::String>>>
-             <std::option::Option<&T> as yew::html::conversion::IntoPropValue<std::option::Option<T>>>
-             <std::option::Option<&std::string::String> as yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>>
-             <std::option::Option<std::string::String> as yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>>
    = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<std::borrow::Cow<'static, str>>` for `std::option::Option<{integer}>`
 
 error[E0277]: the trait bound `{integer}: yew::html::conversion::IntoPropValue<std::option::Option<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>>` is not satisfied
@@ -265,10 +253,10 @@ error[E0277]: the trait bound `{integer}: yew::html::conversion::IntoPropValue<s
    |
    = help: the following implementations were found:
              <&'static str as yew::html::conversion::IntoPropValue<std::borrow::Cow<'static, str>>>
-             <&'static str as yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>>
-             <&'static str as yew::html::conversion::IntoPropValue<std::option::Option<std::string::String>>>
              <&'static str as yew::html::conversion::IntoPropValue<std::string::String>>
-           and 14 others
+             <&T as yew::html::conversion::IntoPropValue<T>>
+             <&T as yew::html::conversion::IntoPropValue<std::option::Option<T>>>
+           and 5 others
    = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>` for `{integer}`
 
 error[E0277]: the trait bound `yew::callback::Callback<std::string::String>: yew::html::conversion::IntoPropValue<std::option::Option<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>>` is not satisfied
@@ -295,12 +283,6 @@ error[E0277]: the trait bound `std::option::Option<{integer}>: yew::html::conver
    |                 pub fn __macro_new(callback: impl IntoOptPropValue<Callback<Event>>) -> Option<Rc<dyn Listener>> {
    |                                                   --------------------------------- required by this bound in `yew::html::listener::listener_web_sys::onfocus::Wrapper::__macro_new`
    |
-   = help: the following implementations were found:
-             <std::option::Option<&'static str> as yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>>
-             <std::option::Option<&'static str> as yew::html::conversion::IntoPropValue<std::option::Option<std::string::String>>>
-             <std::option::Option<&T> as yew::html::conversion::IntoPropValue<std::option::Option<T>>>
-             <std::option::Option<&std::string::String> as yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>>
-             <std::option::Option<std::string::String> as yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>>
    = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<yew::callback::Callback<web_sys::features::gen_FocusEvent::FocusEvent>>` for `std::option::Option<{integer}>`
 
 error[E0308]: mismatched types

@@ -81,7 +81,11 @@ impl PositionalAttr {
     /// Create a boolean attribute.
     /// `present` controls whether the attribute is added
     pub fn new_boolean(key: &'static str, present: bool) -> Self {
-        let value = if present { Some(key) } else { None };
+        let value = if present {
+            Some(Cow::Borrowed(key))
+        } else {
+            None
+        };
         Self::new(key, value)
     }
 
