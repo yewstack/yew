@@ -3,10 +3,10 @@ use std::rc::Rc;
 use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
 use yewtil::NeqAssign;
 
-use fake::Fake;
-use fake::faker::name::raw::*;
 use fake::faker::address::raw::*;
+use fake::faker::name::raw::*;
 use fake::locales::*;
+use fake::Fake;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PersonInfo {

@@ -43,7 +43,7 @@ impl Component for Model {
             last_id: 0,
             keyed: true,
             build_component_ratio: 0.5,
-            delta_ref: NodeRef::default()
+            delta_ref: NodeRef::default(),
         }
     }
 
@@ -154,54 +154,45 @@ impl Component for Model {
         };
 
         html! {
-            
             <div class="container">
             <p class="h2" ref=self.delta_ref.clone()/>
             <hr />
-
                 <div class="row">
                     <div class="col">
                         <button class="btn_size alert alert-danger" onclick=self.link.callback(|_| Msg::DeleteEverybody)>
                             { "Delete everybody" }
                         </button>
                     </div>
-
                     <div class="col">
                         <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(1))>
                             { "Create 1" }
                     </button>
                     </div>
-
                     <div class="col">
                         <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(5))>
                             { "Create 5" }
                         </button>
                     </div>
-
                     <div class="col">
                         <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(100))>
                             { "Create 100" }
                         </button>
                     </div>
-
                     <div class="col">
                         <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(500))>
                             { "Create 500" }
                         </button>
                     </div>
-
                     <div class="col">
                         <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersonsPrepend(1))>
                             { "Prepend 1" }
                         </button>
                     </div>
-
                     <div class="col">
                         <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersonsPrepend(5))>
                             { "Prepend 5" }
                         </button>
                     </div>
-
                 </div>
                 <div class="row">
                     <div class="col">
@@ -209,51 +200,42 @@ impl Component for Model {
                             { if self.keyed { "Disable keys" } else { "Enable keys" } }
                         </button>
                     </div>
-                
                     <div class="col">
                         <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SwapRandom)>
                             { "Swap random" }
                         </button>
                     </div>
-                
                     <div class="col">
                         <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::ReverseList)>
                             { "Reverse list" }
                         </button>
                     </div>
-                
                     <div class="col">
                         <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortById)>
                             { "Sort by id" }
                         </button>
                     </div>
-                
                     <div class="col">
                         <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortByName)>
                             { "Sort by name" }
                         </button>
                     </div>
-                
                     <div class="col">
                         <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortByAge)>
                             { "Sort by age" }
                         </button>
                     </div>
-                
                     <div class="col">
                         <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortByAddress)>
                             { "Sort by address" }
                         </button>
                     </div>
-            
                 </div>
                     <p class="h5">{ "Person type ratio (0=only tags <= ratio <= 1=only components): " }{ self.build_component_ratio }</p>
-
                     <input name="ratio" type="range" class="form-control-range" min="0.0" max="1.0" step="any"
-                        value=self.build_component_ratio                    
+                        value=self.build_component_ratio
                         oninput=self.link.callback(|e: InputData| Msg::ChangeRatio(e.value))
                     />
-                    
                 <p class="h5">{ "Number of persons: " }{ self.persons.len() }</p>
                 <p class="h5">{ "Ids: " }{ ids }</p>
                 <hr />

@@ -47,12 +47,12 @@ pub fn choose_two_distinct_mut<T>(items: &mut [T]) -> Option<(&mut T, &mut T)> {
     let (a, b) = items.split_at_mut(hi);
     Some((&mut a[lo], &mut b[0]))
 }
-
+#[allow(dead_code)]
 fn word(len: usize) -> String {
     let mut rng = rand::thread_rng();
     (0..len).map(|_| rng.sample(Alphanumeric)).collect()
 }
-
+#[allow(dead_code)]
 pub fn words(count: usize, min_len: usize, max_len: usize) -> Vec<String> {
     (0..count)
         .map(|_| word(range_exclusive(min_len, max_len)))
