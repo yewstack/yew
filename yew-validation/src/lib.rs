@@ -19,16 +19,45 @@ fn is_c0_control(c: char) -> bool {
 /// Returns true when the string provided is a "noncharacter" as defined
 /// in [the WhatWG spec](https://infra.spec.whatwg.org/#noncharacter)
 fn is_noncharacter(c: char) -> bool {
-    match c {
-        '\u{FDD0}'..='\u{FDEF}' => true,
-        '\u{FFFE}' | '\u{FFFF}' | '\u{1FFFE}' | '\u{1FFFF}' | '\u{2FFFE}' | '\u{2FFFF}'
-        | '\u{3FFFE}' | '\u{3FFFF}' | '\u{4FFFE}' | '\u{4FFFF}' | '\u{5FFFE}' | '\u{5FFFF}'
-        | '\u{6FFFE}' | '\u{6FFFF}' | '\u{7FFFE}' | '\u{7FFFF}' | '\u{8FFFE}' | '\u{8FFFF}'
-        | '\u{9FFFE}' | '\u{9FFFF}' | '\u{AFFFE}' | '\u{AFFFF}' | '\u{BFFFE}' | '\u{BFFFF}'
-        | '\u{CFFFE}' | '\u{CFFFF}' | '\u{DFFFE}' | '\u{DFFFF}' | '\u{EFFFE}' | '\u{EFFFF}'
-        | '\u{FFFFE}' | '\u{FFFFF}' | '\u{10FFFE}' | '\u{10FFFF}' => true,
-        _ => false,
-    }
+    matches!(
+        c,
+        '\u{FDD0}'
+            ..='\u{FDEF}'
+                | '\u{FFFE}'
+                | '\u{FFFF}'
+                | '\u{1FFFE}'
+                | '\u{1FFFF}'
+                | '\u{2FFFE}'
+                | '\u{2FFFF}'
+                | '\u{3FFFE}'
+                | '\u{3FFFF}'
+                | '\u{4FFFE}'
+                | '\u{4FFFF}'
+                | '\u{5FFFE}'
+                | '\u{5FFFF}'
+                | '\u{6FFFE}'
+                | '\u{6FFFF}'
+                | '\u{7FFFE}'
+                | '\u{7FFFF}'
+                | '\u{8FFFE}'
+                | '\u{8FFFF}'
+                | '\u{9FFFE}'
+                | '\u{9FFFF}'
+                | '\u{AFFFE}'
+                | '\u{AFFFF}'
+                | '\u{BFFFE}'
+                | '\u{BFFFF}'
+                | '\u{CFFFE}'
+                | '\u{CFFFF}'
+                | '\u{DFFFE}'
+                | '\u{DFFFF}'
+                | '\u{EFFFE}'
+                | '\u{EFFFF}'
+                | '\u{FFFFE}'
+                | '\u{FFFFF}'
+                | '\u{10FFFE}'
+                | '\u{10FFFF}'
+    )
 }
 
 /// Returns true when the string provided is a valid "attribute name" as defined
@@ -53,23 +82,21 @@ pub fn is_valid_html_attribute_name(attr: &str) -> bool {
 /// Returns true when the character provided is a valid PCENChar as defined
 /// in [the WhatWG spec](https://html.spec.whatwg.org/multipage/custom-elements.html#prod-pcenchar)
 fn is_pcen_char(c: char) -> bool {
-    match c {
-        '-' | '.' | '0'..='9' | 'a'..='z' | '_' => true,
-        '\u{B7}' => true,
-        '\u{C0}'..='\u{D6}' => true,
-        '\u{D8}'..='\u{F6}' => true,
-        '\u{F8}'..='\u{37D}' => true,
-        '\u{37F}'..='\u{1FFF}' => true,
-        '\u{200C}'..='\u{200D}' => true,
-        '\u{203F}'..='\u{2040}' => true,
-        '\u{2070}'..='\u{218F}' => true,
-        '\u{2C00}'..='\u{2FEF}' => true,
-        '\u{3001}'..='\u{D7FF}' => true,
-        '\u{F900}'..='\u{FDCF}' => true,
-        '\u{FDF0}'..='\u{FFFD}' => true,
-        '\u{10000}'..='\u{EFFFF}' => true,
-        _ => false,
-    }
+    matches!(c, '-' | '.' | '0'..='9' | 'a'..='z' | '_'
+        | '\u{B7}'
+        | '\u{C0}'..='\u{D6}'
+        | '\u{D8}'..='\u{F6}'
+        | '\u{F8}'..='\u{37D}'
+        | '\u{37F}'..='\u{1FFF}'
+        | '\u{200C}'..='\u{200D}'
+        | '\u{203F}'..='\u{2040}'
+        | '\u{2070}'..='\u{218F}'
+        | '\u{2C00}'..='\u{2FEF}'
+        | '\u{3001}'..='\u{D7FF}'
+        | '\u{F900}'..='\u{FDCF}'
+        | '\u{FDF0}'..='\u{FFFD}'
+        | '\u{10000}'..='\u{EFFFF}'
+    )
 }
 
 /// Returns true when the tag name provided would be a valid "custom element" per
@@ -93,7 +120,7 @@ fn is_valid_html_custom_element_name(tag: &str) -> bool {
         None => false,
         Some(first_char) => {
             // must begin with [a-z]
-            if first_char < 'a' || first_char > 'z' {
+            if !('a'..='z').contains(&first_char) {
                 return false;
             }
 
