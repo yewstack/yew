@@ -10,19 +10,11 @@ impl Component for MyComp {
     type Message = ();
     type Properties = Props;
 
-    fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+    fn create(_: &Context<Self>) -> Self {
         unimplemented!()
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, _: &Context<Self>) -> Html {
         unimplemented!()
     }
 }

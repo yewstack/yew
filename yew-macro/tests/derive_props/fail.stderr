@@ -24,10 +24,10 @@ help: consider importing one of these items
    |
 
 error[E0277]: the trait bound `t1::Value: std::default::Default` is not satisfied
- --> $DIR/fail.rs:9:21
+ --> $DIR/fail.rs:9:25
   |
 9 |     #[derive(PartialEq, Properties)]
-  |                     ^^^^^^^^^^ the trait `std::default::Default` is not implemented for `t1::Value`
+  |                         ^^^^^^^^^^ the trait `std::default::Default` is not implemented for `t1::Value`
   |
   = note: required by `std::default::Default::default`
   = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
@@ -36,7 +36,7 @@ error[E0599]: no method named `build` found for struct `t3::PropsBuilder<t3::Pro
   --> $DIR/fail.rs:35:26
    |
 29 |     #[derive(PartialEq, Properties)]
-   |                     ---------- method `build` not found for this
+   |                         ---------- method `build` not found for this
 ...
 35 |         Props::builder().build();
    |                          ^^^^^ method not found in `t3::PropsBuilder<t3::PropsBuilderStep_missing_required_prop_value>`
@@ -49,7 +49,7 @@ error[E0599]: no method named `b` found for struct `t4::PropsBuilder<t4::PropsBu
   --> $DIR/fail.rs:48:26
    |
 41 |     #[derive(PartialEq, Properties)]
-   |                     ---------- method `b` not found for this
+   |                         ---------- method `b` not found for this
 ...
 48 |         Props::builder().b(1).a(2).build();
    |                          ^ help: there is an associated function with a similar name: `a`

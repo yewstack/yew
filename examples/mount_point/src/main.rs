@@ -3,7 +3,7 @@
 use wasm_bindgen::JsValue;
 use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement};
 use yew::{
-    html, ComponentLink, Html, InputData, Legacy, LegacyComponent as Component, ShouldRender,
+    html, ComponentLink, Html, InputData, Legacy, LegacyComponent, ShouldRender,
 };
 
 pub enum Msg {
@@ -15,7 +15,7 @@ pub struct Model {
     name: String,
 }
 
-impl Component for Model {
+impl LegacyComponent for Model {
     type Message = Msg;
     type Properties = ();
 

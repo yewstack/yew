@@ -4,7 +4,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext as GL};
 use yew::services::render::RenderTask;
 use yew::services::RenderService;
-use yew::{html, ComponentLink, Html, Legacy, LegacyComponent as Component, NodeRef, ShouldRender};
+use yew::{html, ComponentLink, Html, Legacy, LegacyComponent, NodeRef, ShouldRender};
 
 pub enum Msg {
     Render(f64),
@@ -18,7 +18,7 @@ pub struct Model {
     render_loop: Option<RenderTask>,
 }
 
-impl Component for Model {
+impl LegacyComponent for Model {
     type Message = Msg;
     type Properties = ();
 

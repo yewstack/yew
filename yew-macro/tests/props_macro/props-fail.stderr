@@ -34,7 +34,7 @@ error[E0599]: no method named `fail` found for struct `PropsBuilder<PropsBuilder
   --> $DIR/props-fail.rs:10:31
    |
 3  | #[derive(PartialEq, Properties)]
-   |                 ---------- method `fail` not found for this
+   |                     ---------- method `fail` not found for this
 ...
 10 |     yew::props!(Props { a: 5, fail: 10 });
    |                               ^^^^ method not found in `PropsBuilder<PropsBuilderStep_build>`
@@ -51,7 +51,7 @@ error[E0599]: no method named `does_not_exist` found for struct `PropsBuilder<Pr
   --> $DIR/props-fail.rs:15:25
    |
 3  | #[derive(PartialEq, Properties)]
-   |                 ---------- method `does_not_exist` not found for this
+   |                     ---------- method `does_not_exist` not found for this
 ...
 15 |     yew::props!(Props { does_not_exist });
    |                         ^^^^^^^^^^^^^^ method not found in `PropsBuilder<PropsBuilderStep_missing_required_prop_a>`

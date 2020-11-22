@@ -1,6 +1,6 @@
 #![allow(deprecated)]
 
-use yew::{html, App, ComponentLink, Html, Legacy, LegacyComponent as Component, ShouldRender};
+use yew::{html, App, ComponentLink, Html, Legacy, LegacyComponent, ShouldRender};
 
 pub enum Msg {
     SetOpposite(ComponentLink<Model>),
@@ -15,7 +15,7 @@ pub struct Model {
     title: String,
 }
 
-impl Component for Model {
+impl LegacyComponent for Model {
     type Message = Msg;
     type Properties = ();
 

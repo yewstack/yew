@@ -4,7 +4,7 @@ use yew::prelude::*;
 
 mod t1 {
     use super::*;
-    #[derive(Clone)]
+    #[derive(PartialEq)]
     struct Value;
     #[derive(PartialEq, Properties)]
     pub struct Props {

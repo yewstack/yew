@@ -1,4 +1,3 @@
-#![allow(deprecated)]
 #![recursion_limit = "128"]
 //! Provides routing faculties for the Yew web framework.
 //!

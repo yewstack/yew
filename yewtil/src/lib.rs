@@ -1,5 +1,3 @@
-#![allow(deprecated)]
-
 //! Utility library for the Yew frontend web framework.
 //!
 //! All features:

@@ -1,7 +1,7 @@
 #![allow(deprecated)]
 
 use web_sys::console;
-use yew::{ComponentLink, Html, Legacy, LegacyComponent as Component, ShouldRender};
+use yew::{ComponentLink, Html, Legacy, LegacyComponent, ShouldRender};
 
 const HTML: &str = include_str!("document.html");
 
@@ -9,7 +9,7 @@ pub struct Model {
     pub value: i64,
 }
 
-impl Component for Model {
+impl LegacyComponent for Model {
     type Message = ();
     type Properties = ();
 
