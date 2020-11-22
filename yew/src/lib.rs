@@ -41,7 +41,6 @@
 //! }
 //!
 //! struct Model {
-//!     link: ComponentLink<Self>,
 //!     value: i64,
 //! }
 //!
@@ -49,14 +48,13 @@
 //!     type Message = Msg;
 //!     type Properties = ();
 //!
-//!     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+//!     fn create(_ctx: &Context<Self>) -> Self {
 //!         Self {
-//!             link,
 //!             value: 0,
 //!         }
 //!     }
 //!
-//!     fn update(&mut self, msg: Self::Message) -> ShouldRender {
+//!     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
 //!         match msg {
 //!             Msg::AddOne => {
 //!                 self.value += 1;
@@ -65,14 +63,10 @@
 //!         }
 //!     }
 //!
-//!     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-//!         false
-//!     }
-//!
-//!     fn view(&self) -> Html {
+//!     fn view(&self, ctx: &Context<Self>) -> Html {
 //!         html! {
 //!             <div>
-//!                 <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
+//!                 <button onclick=ctx.callback(|_| Msg::AddOne)>{ "+1" }</button>
 //!                 <p>{ self.value }</p>
 //!             </div>
 //!         }
@@ -126,30 +120,28 @@ pub use yew_macro::html;
 /// use yew::html::ChildrenRenderer;
 /// use yew::virtual_dom::VChild;
 ///
-/// #[derive(Clone, Properties)]
-/// struct List {
+/// #[derive(PartialEq, Properties)]
+/// struct Props {
 ///   children: ChildrenRenderer<ListItem>,
 /// }
+///
+/// struct List;
 /// impl Component for List {
 /// #   type Message = ();
-///   type Properties = Self;
+///   type Properties = Props;
 ///   // ...
-/// #   fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self { props }
-/// #   fn update(&mut self, _: Self::Message) -> ShouldRender { false }
-/// #   fn change(&mut self, _: Self::Properties) -> ShouldRender { false }
-/// #   fn view(&self) -> Html { unimplemented!() }
+/// #   fn create(ctx: &Context<Self>) -> Self { unimplemented!() }
+/// #   fn view(&self, ctx: &Context<Self>) -> Html { unimplemented!() }
 /// }
 ///
-/// #[derive(Clone)]
+/// #[derive(PartialEq, Clone)]
 /// struct ListItem;
 /// impl Component for ListItem {
 /// #   type Message = ();
 /// #   type Properties = ();
 ///   // ...
-/// #   fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { Self }
-/// #   fn update(&mut self, _: Self::Message) -> ShouldRender { false }
-/// #   fn change(&mut self, _: Self::Properties) -> ShouldRender { false }
-/// #   fn view(&self) -> Html { unimplemented!() }
+/// #   fn create(_: &Context<Self>) -> Self { Self }
+/// #   fn view(&self, ctx: &Context<Self>) -> Html { unimplemented!() }
 /// }
 ///
 /// // Required for ChildrenRenderer
@@ -158,7 +150,9 @@ pub use yew_macro::html;
 /// }
 ///
 /// impl Into<Html> for ListItem {
-///   fn into(self) -> Html { self.view() }
+///   fn into(self) -> Html {
+///     html! { "List Item" }
+///   }
 /// }
 ///
 /// // You can use `List` with nested `ListItem` components.
@@ -212,7 +206,7 @@ pub use yew_macro::html_nested;
 /// # use yew::prelude::*;
 /// use std::borrow::Cow;
 ///
-/// #[derive(Clone, Properties)]
+/// #[derive(PartialEq, Properties)]
 /// struct Props {
 ///     #[prop_or_default]
 ///     id: usize,
@@ -224,10 +218,8 @@ pub use yew_macro::html_nested;
 /// #   type Message = ();
 ///     type Properties = Props;
 ///     // ...
-/// #   fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self { unimplemented!() }
-/// #   fn update(&mut self, _msg: Self::Message) -> ShouldRender { unimplemented!() }
-/// #   fn change(&mut self, _props: Self::Properties) -> ShouldRender { unimplemented!() }
-/// #   fn view(&self) -> Html { unimplemented!() }
+/// #   fn create(_: &Context<Self>) -> Self { unimplemented!() }
+/// #   fn view(&self, _: &Context<Self>) -> Html { unimplemented!() }
 /// }
 ///
 /// # fn foo() -> Html {
@@ -356,8 +348,8 @@ pub mod prelude {
     pub use crate::component::{Component, Context};
     pub use crate::events::*;
     pub use crate::html::{
-        Children, ChildrenWithProps, Component as LegacyComponent, ComponentLink, Html, Legacy,
-        NodeRef, Properties, ShouldRender,
+        Children, ChildrenWithProps, ComponentLink, Html, Legacy, LegacyComponent, NodeRef,
+        Properties, ShouldRender,
     };
     pub use crate::macros::{html, html_nested};
     pub use crate::virtual_dom::Classes;

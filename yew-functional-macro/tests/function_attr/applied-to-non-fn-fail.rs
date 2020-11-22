@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_functional::function_component;
 
-#[derive(Clone, Properties, PartialEq)]
+#[derive(Properties, PartialEq)]
 struct Props {
     a: usize,
 }

@@ -54,7 +54,7 @@ mod switch;
 /// ```
 /// use yew_router::Switch;
 ///
-/// #[derive(Switch, Clone)]
+/// #[derive(Switch, PartialEq, Clone)]
 /// enum AppRoute {
 ///     #[to = "/some/simple/route"]
 ///     SomeSimpleRoute,
@@ -68,7 +68,7 @@ mod switch;
 ///     Inner(InnerRoute),
 /// }
 ///
-/// #[derive(Switch, Clone)]
+/// #[derive(Switch, PartialEq, Clone)]
 /// #[to = "/inner/route/{first}/{second}"]
 /// struct InnerRoute {
 ///     first: String,

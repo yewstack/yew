@@ -20,7 +20,7 @@ html! { <ChatContainer /> }
 <!--DOCUSAURUS_CODE_TABS-->
 <!--With props-->
 ```rust
-#[derive(Properties, Clone, PartialEq)]
+#[derive(Properties, PartialEq)]
 pub struct RenderedAtProps {
     pub time: String,
 }

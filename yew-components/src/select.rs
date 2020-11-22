@@ -17,16 +17,16 @@ use yew::{html, Component, Context, Properties};
 ///# use std::fmt;
 ///# use yew::{Html, Component, Context, html};
 ///# use yew_components::Select;
-/// #[derive(PartialEq)]
+/// #[derive(Clone, PartialEq)]
 /// enum Scene {
 ///     First,
 ///     Second,
 /// }
-///# struct Model { link: ComponentLink<Self> };
+///# struct Model;
 ///# impl Component for Model {
 ///#     type Message = ();type Properties = ();
 ///#     fn create(ctx: &Context<Self>) -> Self {unimplemented!()}
-///#     fn view(&self) -> Html {unimplemented!()}}
+///#     fn view(&self, ctx: &Context<Self>) -> Html {unimplemented!()}}
 /// impl fmt::Display for Scene {
 ///     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 ///         match self {
@@ -49,7 +49,7 @@ use yew::{html, Component, Context, Properties};
 /// Only the `on_change` property is mandatory. Other (optional) properties
 /// are `selected`, `disabled`, `options`, `class`, `id`, and `placeholder`.
 #[derive(Debug)]
-pub struct Select<T: ToString + PartialEq + Clone + 'static> {
+pub struct Select<T: ToString + PartialEq + 'static> {
     _marker: PhantomData<T>,
     select_ref: NodeRef,
 }
@@ -62,8 +62,8 @@ pub enum Msg {
 }
 
 /// Properties of the `Select` component.
-#[derive(PartialEq, Clone, Properties, Debug)]
-pub struct Props<T: PartialEq> {
+#[derive(PartialEq, Properties, Debug)]
+pub struct Props<T: PartialEq + Clone> {
     /// Initially selected value.
     #[prop_or_default]
     pub selected: Option<T>,

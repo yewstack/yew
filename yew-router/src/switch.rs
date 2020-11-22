@@ -10,7 +10,7 @@ use std::fmt::Write;
 /// # Example
 /// ```
 /// use yew_router::{route::Route, Switch};
-/// #[derive(Debug, Switch, PartialEq)]
+/// #[derive(Debug, Switch, PartialEq, Clone)]
 /// enum TestEnum {
 ///     #[to = "/test/route"]
 ///     TestRoute,

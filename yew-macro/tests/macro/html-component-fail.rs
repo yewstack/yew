@@ -28,7 +28,7 @@ impl Component for Child {
     }
 }
 
-#[derive(Clone, Properties)]
+#[derive(PartialEq, Properties)]
 pub struct ChildContainerProperties {
     pub children: ChildrenWithProps<Child>,
 }

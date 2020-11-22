@@ -10,7 +10,7 @@ pub enum Msg {
     Abort,
 }
 
-#[derive(Clone, Debug, PartialEq, Properties)]
+#[derive(Debug, PartialEq, Properties)]
 pub struct Props {
     pub on_add: Callback<Client>,
     pub on_abort: Callback<()>,

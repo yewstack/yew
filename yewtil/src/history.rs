@@ -18,7 +18,7 @@ use std::ops::Deref;
 /// # Example
 ///
 /// ```
-/// # use yew::{html, Component, ComponentLink, Html, InputData, ShouldRender};
+/// # use yew::{html, Component, Context, Html, InputData, ShouldRender};
 /// use yewtil::History;
 ///
 /// pub enum Msg {
@@ -28,21 +28,19 @@ use std::ops::Deref;
 /// }
 ///
 /// pub struct Model {
-///     link: ComponentLink<Self>,
 ///     text: History<String>,
 /// }
 /// impl Component for Model {
 ///     type Message = Msg;
-/// #    type Properties = ();
+///     type Properties = ();
 ///
-///     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+///     fn create(_ctx: &Context<Self>) -> Self {
 ///         Self {
-///             link,
 ///             text: History::new("Hello World!".to_string()),
 ///         }
 ///     }
 ///
-///     fn update(&mut self, msg: Self::Message) -> ShouldRender {
+///     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
 ///         match msg {
 ///             Msg::SetText(text) => self.text.neq_set(text),
 ///             Msg::Reset => self.text.reset(),
@@ -52,12 +50,8 @@ use std::ops::Deref;
 ///             }
 ///         }
 ///     }
-/// #
-/// #    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-/// #        unimplemented!()
-/// #    }
 ///
-///     fn view(&self) -> Html {
+///     fn view(&self, ctx: &Context<Self>) -> Html {
 ///         html! {
 ///             <>
 ///                 <span>{ &*self.text }</span>
@@ -65,10 +59,10 @@ use std::ops::Deref;
 ///                     <input
 ///                         type="text"
 ///                         value=&*self.text
-///                         oninput=self.link.callback(|data: InputData| Msg::SetText(data.value))
+///                         oninput=ctx.callback(|data: InputData| Msg::SetText(data.value))
 ///                     />
-///                     <button onclick=self.link.callback(|_| Msg::Reset)>{ "Reset to the oldest value" }</button>
-///                     <button onclick=self.link.callback(|_| Msg::Forget)>{ "Forget prior values" }</button>
+///                     <button onclick=ctx.callback(|_| Msg::Reset)>{ "Reset to the oldest value" }</button>
+///                     <button onclick=ctx.callback(|_| Msg::Forget)>{ "Forget prior values" }</button>
 ///                 </div>
 ///                 <div>
 ///                     <span>{ "History" }</span>

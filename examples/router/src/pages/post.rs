@@ -6,7 +6,7 @@ use crate::{
 use content::PostPart;
 use yew::prelude::*;
 
-#[derive(Clone, Debug, Eq, PartialEq, Properties)]
+#[derive(Debug, Eq, PartialEq, Properties)]
 pub struct Props {
     pub seed: u64,
 }

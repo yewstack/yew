@@ -76,7 +76,7 @@ fn create_default_link_color() -> LinkColor {
     LinkColor::Blue
 }
 
-#[derive(Properties, Clone, PartialEq)]
+#[derive(Properties, PartialEq)]
 pub struct LinkProps {
     /// The link must have a target.
     href: String,

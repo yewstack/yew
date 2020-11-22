@@ -604,7 +604,7 @@ mod tests {
         props: ChildProps,
     }
 
-    impl Component for Child {
+    impl LegacyComponent for Child {
         type Message = ();
         type Properties = ChildProps;
 
@@ -646,7 +646,7 @@ mod tests {
         link: ComponentLink<Self>,
     }
 
-    impl Component for Comp {
+    impl LegacyComponent for Comp {
         type Message = bool;
         type Properties = Props;
 

@@ -10,7 +10,7 @@ pub enum Msg {
     PostStoreMsg(ReadOnly<PostStore>),
 }
 
-#[derive(Properties, Clone, PartialEq)]
+#[derive(Properties, PartialEq)]
 pub struct Props {
     pub id: PostId,
 }

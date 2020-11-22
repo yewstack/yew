@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-#[derive(Clone, Debug, Eq, PartialEq, Properties)]
+#[derive(Debug, Eq, PartialEq, Properties)]
 pub struct Props {
     pub route: Option<String>,
 }

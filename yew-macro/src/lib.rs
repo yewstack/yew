@@ -5,11 +5,9 @@
 //! ```
 //! use yew::prelude::*;
 //!
-//! struct Component {
-//!   link: ComponentLink<Self>,
-//! }
+//! struct Component;
 //!
-//! #[derive(Clone, Properties)]
+//! #[derive(PartialEq, Properties)]
 //! struct Props {
 //!     prop: String,
 //! };
@@ -19,25 +17,17 @@
 //! # impl yew::Component for Component {
 //! #     type Message = Msg;
 //! #     type Properties = Props;
-//! #     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+//! #     fn create(_: &Context<Self>) -> Self {
 //! #         unimplemented!()
 //! #     }
 //! #
-//! #     fn update(&mut self, msg: Self::Message) -> ShouldRender {
-//! #         unimplemented!()
-//! #     }
-//! #
-//! #     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-//! #         unimplemented!()
-//! #     }
-//! #
-//! #     fn view(&self) -> Html {
+//! #     fn view(&self, ctx: &Context<Self>) -> Html {
 //! #
 //! // ...
 //!
 //! html! {
 //!   <div>
-//!     <button onclick=self.link.callback(|_| Msg::Submit)>
+//!     <button onclick=ctx.callback(|_| Msg::Submit)>
 //!       { "Submit" }
 //!     </button>
 //!     <>

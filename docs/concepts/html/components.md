@@ -53,7 +53,7 @@ html! {
 Here's the implementation of `Container`:
 
 ```rust
-#[derive(Properties, Clone)]
+#[derive(Properties, PartialEq)]
 pub struct Props {
     pub id: String,
     pub children: Children,
@@ -90,7 +90,7 @@ html! {
 ```
 
 ```rust
-#[derive(Properties, Clone)]
+#[derive(Properties, PartialEq)]
 pub struct Props {
     pub children: ChildrenWithProps<ListItem>,
 }

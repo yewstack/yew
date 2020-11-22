@@ -11,7 +11,7 @@ pub trait NeqAssign<NEW> {
     ///
     /// # Example
     /// ```
-    /// # use yew::{Component, ShouldRender, ComponentLink};
+    /// # use yew::{LegacyComponent, ShouldRender, ComponentLink};
     /// # use yewtil::NeqAssign;
     /// # use yew::Properties;
     ///# use yew::virtual_dom::VNode;
@@ -23,7 +23,7 @@ pub trait NeqAssign<NEW> {
     ///  struct Model {
     ///     props: Props
     ///  }
-    ///  impl Component for Model {
+    ///  impl LegacyComponent for Model {
     /// #    type Message = ();
     ///     type Properties = Props;
     ///     // ...

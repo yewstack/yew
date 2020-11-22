@@ -44,7 +44,7 @@ impl<STATE> RouterState for STATE where STATE: RouteState + PartialEq {}
 ///     }
 /// }
 ///
-/// #[derive(Switch, Clone)]
+/// #[derive(Switch, Clone, PartialEq)]
 /// enum S {
 ///     #[to = "/v"]
 ///     Variant,
@@ -67,7 +67,7 @@ where
     /// # use yew_router::Switch;
     /// # use yew_router::router::{Router, Render};
     /// # use yew::{html, Html};
-    /// # #[derive(Switch, Clone)]
+    /// # #[derive(Switch, Clone, PartialEq)]
     /// # enum S {
     /// #     #[to = "/route"]
     /// #     Variant

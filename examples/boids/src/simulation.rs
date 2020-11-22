@@ -13,7 +13,7 @@ pub enum Msg {
     Tick,
 }
 
-#[derive(Clone, Debug, PartialEq, Properties)]
+#[derive(Debug, PartialEq, Properties)]
 pub struct Props {
     pub settings: Settings,
     #[prop_or_default]

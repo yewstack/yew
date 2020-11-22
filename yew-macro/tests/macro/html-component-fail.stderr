@@ -314,7 +314,7 @@ error[E0609]: no field `children` on type `ChildProperties`
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
    --> $DIR/html-component-fail.rs:117:14
     |
-31  | #[derive(Clone, Properties)]
+31  | #[derive(PartialEq, Properties)]
     |                 ---------- method `build` not found for this
 ...
 117 |     html! { <ChildContainer /> };
@@ -327,7 +327,7 @@ error[E0599]: no method named `build` found for struct `ChildContainerProperties
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
    --> $DIR/html-component-fail.rs:118:14
     |
-31  | #[derive(Clone, Properties)]
+31  | #[derive(PartialEq, Properties)]
     |                 ---------- method `build` not found for this
 ...
 118 |     html! { <ChildContainer></ChildContainer> };

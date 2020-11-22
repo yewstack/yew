@@ -187,28 +187,26 @@ impl FetchService {
     /// response body and metadata.
     ///
     /// ```
-    ///# use yew::{Component, ComponentLink, Html};
+    ///# use yew::{Component, Context, Html};
     ///# use yew::services::FetchService;
     ///# use yew::services::fetch::{Response, Request};
     ///# use anyhow::Error;
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
-    ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-    ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-    ///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
-    ///#     fn view(&self) -> Html {unimplemented!()}
+    ///#     fn create(_: &Context<Self>) -> Self {unimplemented!()}
+    ///#     fn view(&self, _: &Context<Self>) -> Html {unimplemented!()}
     ///# }
     ///# enum Msg {
     ///#     Noop,
     ///#     Error
     ///# }
     ///# fn dont_execute() {
-    ///# let link: ComponentLink<Comp> = unimplemented!();
+    ///# let ctx: Context<Comp> = unimplemented!();
     ///# let post_request: Request<Result<String, Error>> = unimplemented!();
     /// let task = FetchService::fetch(
     ///     post_request,
-    ///     link.callback(|response: Response<Result<String, Error>>| {
+    ///     ctx.callback(|response: Response<Result<String, Error>>| {
     ///         if response.status().is_success() {
     ///             Msg::Noop
     ///         } else {
@@ -228,16 +226,14 @@ impl FetchService {
     ///# use yew::services::FetchService;
     ///# use http::Request;
     ///# use yew::services::fetch::Response;
-    ///# use yew::{Component, ComponentLink, Html};
+    ///# use yew::{Component, Context, Html};
     ///# use serde_derive::Deserialize;
     ///# use anyhow::Error;
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
-    ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-    ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-    ///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
-    ///#     fn view(&self) -> Html {unimplemented!()}
+    ///#     fn create(_: &Context<Self>) -> Self {unimplemented!()}
+    ///#     fn view(&self, _: &Context<Self>) -> Html {unimplemented!()}
     ///# }
     ///# enum Msg {
     ///#     FetchResourceComplete(Data),
@@ -249,9 +245,9 @@ impl FetchService {
     /// }
     ///
     ///# fn dont_execute() {
-    ///# let link: ComponentLink<Comp> = unimplemented!();
+    ///# let ctx: Context<Comp> = unimplemented!();
     /// let get_request = Request::get("/thing").body(Nothing).unwrap();
-    /// let callback = link.callback(|response: Response<Json<Result<Data, Error>>>| {
+    /// let callback = ctx.callback(|response: Response<Json<Result<Data, Error>>>| {
     ///     if let (meta, Json(Ok(body))) = response.into_parts() {
     ///         if meta.status.is_success() {
     ///             return Msg::FetchResourceComplete(body);
@@ -280,7 +276,7 @@ impl FetchService {
     /// ```
     ///# use yew::format::Nothing;
     ///# use yew::services::fetch::{self, FetchOptions, Credentials};
-    ///# use yew::{Html, Component, ComponentLink};
+    ///# use yew::{Html, Component, Context};
     ///# use yew::services::FetchService;
     ///# use http::Response;
     ///# use anyhow::Error;
@@ -288,15 +284,13 @@ impl FetchService {
     ///# impl Component for Comp {
     ///#     type Message = Msg;
     ///#     type Properties = ();
-    ///#     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {unimplemented!()}
-    ///#     fn update(&mut self, msg: Self::Message) -> bool {unimplemented!()}
-    ///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
-    ///#     fn view(&self) -> Html {unimplemented!()}
+    ///#     fn create(_: &Context<Self>) -> Self {unimplemented!()}
+    ///#     fn view(&self, _: &Context<Self>) -> Html {unimplemented!()}
     ///# }
     ///# pub enum Msg {}
     ///# fn dont_execute() {
-    ///# let link: ComponentLink<Comp> = unimplemented!();
-    ///# let callback = link.callback(|response: Response<Result<String, Error>>|  -> Msg { unimplemented!() });
+    ///# let ctx: Context<Comp> = unimplemented!();
+    ///# let callback = ctx.callback(|response: Response<Result<String, Error>>|  -> Msg { unimplemented!() });
     /// let request = fetch::Request::get("/path/")
     ///     .body(Nothing)
     ///     .unwrap();

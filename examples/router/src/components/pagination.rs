@@ -2,7 +2,7 @@ use yew::prelude::*;
 
 const ELLIPSIS: &str = "\u{02026}";
 
-#[derive(Clone, Debug, PartialEq, Properties)]
+#[derive(Debug, PartialEq, Properties)]
 pub struct Props {
     pub page: u64,
     pub total_pages: u64,

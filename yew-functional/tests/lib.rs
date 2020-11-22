@@ -87,7 +87,7 @@ fn multiple_use_state_setters() {
 #[wasm_bindgen_test]
 fn props_are_passed() {
     struct PropsPassedFunction {}
-    #[derive(Properties, Clone, PartialEq)]
+    #[derive(Properties, PartialEq)]
     struct PropsPassedFunctionProps {
         value: String,
     }
@@ -192,7 +192,7 @@ fn use_reducer_works() {
 fn use_effect_destroys_on_component_drop() {
     struct UseEffectFunction {}
     struct UseEffectWrapper {}
-    #[derive(Properties, Clone)]
+    #[derive(Properties)]
     struct WrapperProps {
         destroy_called: Rc<dyn Fn()>,
     }
@@ -201,7 +201,7 @@ fn use_effect_destroys_on_component_drop() {
             false
         }
     }
-    #[derive(Properties, Clone)]
+    #[derive(Properties)]
     struct FunctionProps {
         effect_called: Rc<dyn Fn()>,
         destroy_called: Rc<dyn Fn()>,

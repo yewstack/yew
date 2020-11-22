@@ -12,7 +12,7 @@ pub enum Msg {
     ShowPage(u64),
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Properties)]
+#[derive(Debug, Eq, PartialEq, Properties)]
 pub struct Props {
     pub page: u64,
 }

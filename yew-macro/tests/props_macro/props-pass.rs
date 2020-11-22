@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-#[derive(Clone, Properties)]
+#[derive(PartialEq, Properties)]
 struct Props {
     a: usize,
     #[prop_or_default]

@@ -38,7 +38,7 @@ pub use use_context_hook::*;
 /// # use yew_functional::function_component;
 /// # use yew::prelude::*;
 /// #
-/// # #[derive(Properties, Clone, PartialEq)]
+/// # #[derive(Properties, PartialEq)]
 /// # pub struct Props {
 /// #     text: String
 /// # }

@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-#[derive(Clone, Properties)]
+#[derive(PartialEq, Properties)]
 struct Props {}
 
 struct MyComp;

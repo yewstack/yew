@@ -5,7 +5,7 @@ pub enum Msg {
     Submit,
 }
 
-#[derive(Properties, Clone, PartialEq)]
+#[derive(Properties, PartialEq)]
 pub struct Props {
     pub value: String,
     pub onsubmit: Callback<String>,

@@ -5,7 +5,7 @@ use crate::{
 };
 use yew::prelude::*;
 
-#[derive(Clone, Debug, PartialEq, Properties)]
+#[derive(Debug, PartialEq, Properties)]
 pub struct Props {
     pub seed: u64,
 }
