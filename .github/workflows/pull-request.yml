@@ -173,13 +173,14 @@ jobs:
           cd yew
           wasm-pack test --chrome --firefox --headless -- --features "wasm_test httpbin_test"
 
-      # - name: Run tests - yew-stdweb
-      #   env:
-      #     HTTPBIN_URL: "http://localhost:8080"
-      #   run: |
-      #     cd yew-stdweb
-      #     # FIXME: Chrome really doesn't seem to like yew-stdweb
-      #     wasm-pack test --firefox --headless -- --features "wasm_test httpbin_test"
+      - name: Run tests - yew-stdweb
+        if: matrix.toolchain != 'stable'
+        env:
+          HTTPBIN_URL: "http://localhost:8080"
+        run: |
+          cd yew-stdweb
+          # FIXME: Chrome really doesn't seem to like yew-stdweb
+          wasm-pack test --firefox --headless -- --features "wasm_test httpbin_test"
 
       - name: Run tests - yew-functional
         run: |
