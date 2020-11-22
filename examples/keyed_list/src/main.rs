@@ -150,8 +150,8 @@ impl Component for Model {
                     <p class="h2" ref=self.delta_ref.clone()/>
                     <hr />
                 </div>
-                {self.action_view()}
-                {self.info_view()}
+                { self.action_view() }
+                { self.info_view() }
             </div>
         }
     }
@@ -161,10 +161,13 @@ impl Model {
     fn action_view(&self) -> Html {
         html! {
             <>
-                {self.button_view()}
+                { self.button_view() }
                 <div class="row">
                     <div class="col">
-                        <p class="h5">{ "Person type ratio (0=only tags <= ratio <= 1=only components): " }{ self.build_component_ratio }</p>
+                        <p class="h5">
+                            { "Person type ratio (0=only tags <= ratio <= 1=only components): " }
+                            { self.build_component_ratio }
+                        </p>
                         <input name="ratio" type="range" class="form-control-range" min="0.0" max="1.0" step="any"
                             value=self.build_component_ratio
                             oninput=self.link.callback(|e: InputData| Msg::ChangeRatio(e.value))
