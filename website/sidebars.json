@@ -25,6 +25,7 @@
           "concepts/components",
           "concepts/components/callbacks",
           "concepts/components/properties",
+          "concepts/components/children",
           "concepts/components/refs"
         ]
       },
@@ -47,6 +48,16 @@
           "concepts/services",
           "concepts/services/fetch",
           "concepts/services/format"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Function Components",
+        "ids": [
+          "concepts/function-components",
+          "concepts/function-components/attribute",
+          "concepts/function-components/pre-defined-hooks",
+          "concepts/function-components/custom-hooks"
         ]
       },
       "concepts/router",

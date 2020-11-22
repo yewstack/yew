@@ -10,12 +10,17 @@ use yew::{Children, Component, ComponentLink, Html, Properties};
 
 type ConsumerCallback<T> = Box<dyn Fn(Rc<T>)>;
 
+/// Props for [`ContextProvider`]
 #[derive(Clone, PartialEq, Properties)]
 pub struct ContextProviderProps<T: Clone + PartialEq> {
     pub context: T,
     pub children: Children,
 }
 
+/// The context provider component.
+///
+/// Every child (direct or indirect) of this component may access the context value.
+/// Currently the only way to consume the context is using the [`use_context`] hook.
 pub struct ContextProvider<T: Clone + PartialEq + 'static> {
     context: Rc<T>,
     children: Children,
@@ -115,6 +120,34 @@ where
         .and_then(|scope| scope.get_component().map(|comp| f(&*comp)))
 }
 
+/// Hook for consuming context values in function components.
+/// The context of the type passed as `T` is returned. If there is no such context in scope, `None` is returned.
+/// A component which calls `use_context` will re-render when the data of the context changes.
+///
+/// More information about contexts and how to define and consume them can be found on [Yew Docs](https://yew.rs).
+///
+/// # Example
+/// ```rust
+/// # use yew_functional::{function_component, use_context};
+/// # use yew::prelude::*;
+/// # use std::rc::Rc;
+///
+/// # #[derive(Clone, Debug, PartialEq)]
+/// # struct ThemeContext {
+/// #    foreground: String,
+/// #    background: String,
+/// # }
+/// #[function_component(ThemedButton)]
+/// pub fn themed_button() -> Html {
+///     let theme = use_context::<Rc<ThemeContext>>().expect("no ctx found");
+///
+///     html! {
+///         <button style=format!("background: {}; color: {}", theme.background, theme.foreground)>
+///             { "Click me" }
+///         </button>
+///     }
+/// }
+/// ```
 pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<Rc<T>> {
     struct UseContextState<T2: Clone + PartialEq + 'static> {
         provider_scope: Option<Scope<ContextProvider<T2>>>,
@@ -130,7 +163,7 @@ pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<Rc<T>> {
     }
 
     let scope = get_current_scope()
-        .expect("No current Scope. `use_context` can only be called inside functional components");
+        .expect("No current Scope. `use_context` can only be called inside function components");
 
     use_hook(
         |state: &mut UseContextState<T>, hook_callback| {

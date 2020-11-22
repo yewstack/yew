@@ -2,7 +2,6 @@
 members = [
   "yew",
   "yew-components",
-  "yew-functional",
   "yew-macro",
   "yew-validation",
 
@@ -10,6 +9,10 @@ members = [
   "yew-router",
   "yew-router-macro",
   "yew-router-route-parser",
+
+  # Function components
+  "yew-functional",
+  "yew-functional-macro",
 
   # Utilities
   "yewtil",

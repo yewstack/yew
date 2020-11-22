@@ -27,6 +27,19 @@
       "concepts/components/refs": {
         "title": "Refs"
       },
+      "concepts/function-components": {
+        "title": "Function Components",
+        "sidebar_label": "Introduction"
+      },
+      "concepts/function-components/attribute": {
+        "title": "#[function_component]"
+      },
+      "concepts/function-components/custom-hooks": {
+        "title": "Custom hooks"
+      },
+      "concepts/function-components/pre-defined-hooks": {
+        "title": "Pre-defined hooks"
+      },
       "concepts/html": {
         "title": "HTML",
         "sidebar_label": "Introduction"

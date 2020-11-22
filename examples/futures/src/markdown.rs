@@ -161,7 +161,7 @@ fn make_tag(t: Tag) -> VTag {
             let mut el = VTag::new("a");
             el.add_attribute("href", href.to_string());
             let title = title.clone().into_string();
-            if title != "" {
+            if !title.is_empty() {
                 el.add_attribute("title", title);
             }
             el
@@ -170,7 +170,7 @@ fn make_tag(t: Tag) -> VTag {
             let mut el = VTag::new("img");
             el.add_attribute("src", src.to_string());
             let title = title.clone().into_string();
-            if title != "" {
+            if !title.is_empty() {
                 el.add_attribute("title", title);
             }
             el

@@ -93,11 +93,6 @@ identical props using the aforementioned `neq_assign` logic.
 
 Yew doesn't natively support pure or function components, but they are available via external crates.
 
-## Functional components (a.k.a hooks)
-
-Functional components are still in development! There's a 
-[project board](https://github.com/yewstack/yew/projects/3) detailing their status.
-
 ## Keyed DOM nodes when they arrive
 
 ## Reducing compile time using workspaces

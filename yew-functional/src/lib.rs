@@ -1,3 +1,19 @@
+//! Function components are a simplified version of normal components.
+//! They consist of a single function annotated with the attribute `#[function_component(_)]`
+//! that receives props and determines what should be rendered by returning [`Html`].
+//!
+//! ```rust
+//! # use yew_functional::function_component;
+//! # use yew::prelude::*;
+//! #
+//! #[function_component(HelloWorld)]
+//! fn hello_world() -> Html {
+//!     html! { "Hello world" }
+//! }
+//! ```
+//!
+//! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/en/next/concepts/function-components)
+
 use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::ops::DerefMut;
@@ -7,6 +23,34 @@ use yew::{Component, ComponentLink, Html, Properties};
 
 mod use_context_hook;
 pub use use_context_hook::*;
+/// This attribute creates a function component from a normal Rust function.
+///
+/// Functions with this attribute **must** return `Html` and can optionally take an argument for props.
+/// Note that the function only receives a reference to the props.
+///
+/// When using this attribute you need to provide a name for the component:
+/// `#[function_component(ComponentName)]`.
+/// The attribute will then automatically create a [`FunctionComponent`] with the given identifier
+/// which you can use like a normal component.
+///
+/// # Example
+/// ```rust
+/// # use yew_functional::function_component;
+/// # use yew::prelude::*;
+/// #
+/// # #[derive(Properties, Clone, PartialEq)]
+/// # pub struct Props {
+/// #     text: String
+/// # }
+/// #
+/// #[function_component(NameOfComponent)]
+/// pub fn component(props: &Props) -> Html {
+///     html! {
+///         <p>{ &props.text }</p>
+///     }
+/// }
+/// ```
+pub use yew_functional_macro::function_component;
 
 thread_local! {
     static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
@@ -145,6 +189,50 @@ where
     }
 }
 
+/// This hook is used for obtaining a mutable reference to a stateful value.
+/// Its state persists across renders.
+///
+/// It is important to note that you do not get notified of state changes.
+/// If you need the component to be re-rendered on state change, consider using [`use_state`].
+///
+/// # Example
+/// ```rust
+/// # use yew_functional::{function_component, use_state, use_ref};
+/// # use yew::prelude::*;
+/// # use std::rc::Rc;
+/// # use std::cell::RefCell;
+/// # use std::ops::{Deref, DerefMut};
+/// #
+/// #[function_component(UseRef)]
+/// fn ref_hook() -> Html {
+///     let (message, set_message) = use_state(|| "".to_string());
+///     let message_count = use_ref(|| 0);
+///
+///     let onclick = Callback::from(move |e| {
+///         let window = yew::utils::window();
+///
+///         if *message_count.borrow_mut() > 3 {
+///             window.alert_with_message("Message limit reached");
+///         } else {
+///             *message_count.borrow_mut() += 1;
+///             window.alert_with_message("Message sent");
+///         }
+///     });
+///
+///     let onchange = Callback::from(move |e| {
+///         if let ChangeData::Value(value) = e {
+///             set_message(value)
+///         }
+///     });
+///
+///     html! {
+///         <div>
+///             <input onchange=onchange value=message />
+///             <button onclick=onclick>{ "Send" }</button>
+///         </div>
+///     }
+/// }
+/// ```
 pub fn use_ref<T: 'static, InitialProvider>(initial_value: InitialProvider) -> Rc<RefCell<T>>
 where
     InitialProvider: FnOnce() -> T,
@@ -162,7 +250,64 @@ where
         move || UseRefState(Rc::new(RefCell::new(initial_value()))),
     )
 }
-
+/// This hook is an alternative to [`use_state`]. It is used to handle component's state and is used
+/// when complex actions needs to be performed on said state.
+///
+/// For lazy initialization, consider using [`use_reducer_with_init`] instead.
+///
+/// # Example
+/// ```rust
+/// # use yew_functional::{function_component, use_reducer};
+/// # use yew::prelude::*;
+/// # use std::rc::Rc;
+/// # use std::ops::DerefMut;
+/// #
+/// #[function_component(UseReducer)]
+/// fn reducer() -> Html {
+///     /// reducer's Action
+///     enum Action {
+///         Double,
+///         Square,
+///     }
+///
+///     /// reducer's State
+///     struct CounterState {
+///         counter: i32,
+///     }
+///
+///     let (
+///         counter, // the state
+///         // function to update the state
+///         // as the same suggests, it dispatches the values to the reducer function
+///         dispatch
+///     ) = use_reducer(
+///         // the reducer function
+///         |prev: Rc<CounterState>, action: Action| CounterState {
+///             counter: match action {
+///                 Action::Double => prev.counter * 2,
+///                 Action::Square => prev.counter * prev.counter,
+///             }
+///         },
+///         // initial state
+///         CounterState { counter: 1 },
+///     );
+///
+///    let double_onclick = {
+///         let dispatch = Rc::clone(&dispatch);
+///         Callback::from(move |_| dispatch(Action::Double))
+///     };
+///     let square_onclick = Callback::from(move |_| dispatch(Action::Square));
+///
+///     html! {
+///         <>
+///             <div id="result">{ counter.counter }</div>
+///
+///             <button onclick=double_onclick>{ "Double" }</button>
+///             <button onclick=square_onclick>{ "Square" }</button>
+///         </>
+///     }
+/// }
+/// ```
 pub fn use_reducer<Action: 'static, Reducer, State: 'static>(
     reducer: Reducer,
     initial_state: State,
@@ -173,6 +318,41 @@ where
     use_reducer_with_init(reducer, initial_state, |a| a)
 }
 
+/// [`use_reducer`] but with init argument.
+///
+/// This is useful for lazy initialization where it is beneficial not to perform expensive
+/// computation up-front
+///
+/// # Example
+/// ```rust
+/// # use yew_functional::{function_component, use_reducer_with_init};
+/// # use yew::prelude::*;
+/// # use std::rc::Rc;
+/// #
+/// #[function_component(UseReducerWithInit)]
+/// fn reducer_with_init() -> Html {
+///     struct CounterState {
+///         counter: i32,
+///     }
+///     let (counter, dispatch) = use_reducer_with_init(
+///         |prev: Rc<CounterState>, action: i32| CounterState {
+///             counter: prev.counter + action,
+///         },
+///         0,
+///         |initial: i32| CounterState {
+///             counter: initial + 10,
+///         },
+///     );
+///
+///     html! {
+///         <>
+///             <div id="result">{counter.counter}</div>
+///
+///             <button onclick=Callback::from(move |_| dispatch(10))>{"Increment by 10"}</button>
+///         </>
+///     }
+/// }
+/// ```
 pub fn use_reducer_with_init<Action: 'static, Reducer, State: 'static, InitialState, InitFn>(
     reducer: Reducer,
     initial_state: InitialState,
@@ -213,7 +393,37 @@ where
     )
 }
 
-pub fn use_state<T, F>(initial_state_fn: F) -> (Rc<T>, Box<impl Fn(T)>)
+/// This hook is used to mange state in a function component.
+///
+/// # Example
+/// ```rust
+/// # use yew_functional::{function_component, use_state, use_ref};
+/// # use yew::prelude::*;
+/// # use std::rc::Rc;
+/// #
+/// #[function_component(UseState)]
+/// fn state() -> Html {
+///     let (
+///         counter, // the returned state
+///         set_counter // setter to update the state
+///     ) = use_state(|| 0);
+///     let onclick = {
+///         let counter = Rc::clone(&counter);
+///         Callback::from(move |_| set_counter(*counter + 1))
+///     };
+///
+///     html! {
+///         <div>
+///             <button onclick=onclick>{ "Increment value" }</button>
+///             <p>
+///                 <b>{ "Current value: " }</b>
+///                 { counter }
+///             </p>
+///         </div>
+///     }
+/// }
+/// ```
+pub fn use_state<T, F>(initial_state_fn: F) -> (Rc<T>, Rc<impl Fn(T)>)
 where
     F: FnOnce() -> T,
     T: 'static,
@@ -227,7 +437,7 @@ where
             let current = prev.current.clone();
             (
                 current,
-                Box::new(move |o: T| {
+                Rc::new(move |o: T| {
                     hook_callback(
                         |state: &mut UseStateState<T>| {
                             state.current = Rc::new(o);
@@ -244,6 +454,37 @@ where
     )
 }
 
+/// This hook is used for hooking into the component's lifecycle.
+///
+/// # Example
+/// ```rust
+/// # use yew_functional::{function_component, use_effect, use_state};
+/// # use yew::prelude::*;
+/// # use std::rc::Rc;
+/// #
+/// #[function_component(UseEffect)]
+/// fn effect() -> Html {
+///     let (counter, set_counter) = use_state(|| 0);
+///
+///     let counter_one = counter.clone();
+///     use_effect(move || {
+///         // Make a call to DOM API after component is rendered
+///         yew::utils::document().set_title(&format!("You clicked {} times", counter_one));
+///
+///         // Perform the cleanup
+///         || yew::utils::document().set_title(&format!("You clicked 0 times"))
+///     });
+///
+///     let onclick = {
+///         let counter = Rc::clone(&counter);
+///         Callback::from(move |_| set_counter(*counter + 1))
+///     };
+///
+///     html! {
+///         <button onclick=onclick>{ format!("Increment to {}", counter) }</button>
+///     }
+/// }
+/// ```
 pub fn use_effect<F, Destructor>(callback: F)
 where
     F: FnOnce() -> Destructor + 'static,
@@ -280,6 +521,11 @@ where
     );
 }
 
+/// This hook is similar to [`use_effect`] but it accepts dependencies.
+///
+/// Whenever the dependencies are changed, the effect callback is called again.
+/// To detect changes, dependencies must implement `PartialEq`.
+/// Note that the destructor also runs when dependencies change.
 pub fn use_effect_with_deps<F, Destructor, Dependents>(callback: F, deps: Dependents)
 where
     F: FnOnce(&Dependents) -> Destructor + 'static,
@@ -345,7 +591,7 @@ where
         let mut hook_state_holder = hook_state_holder.expect("Nested hooks not supported");
         let mut hook_state = hook_state_holder
             .as_mut()
-            .expect("No current hook. Hooks can only be called inside functional components");
+            .expect("No current hook. Hooks can only be called inside function components");
 
         // Determine which hook position we're at and increment for the next hook
         let hook_pos = hook_state.counter;

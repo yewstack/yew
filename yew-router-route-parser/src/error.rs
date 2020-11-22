@@ -39,11 +39,10 @@ impl<'a> fmt::Debug for PrettyParseError<'a> {
             f.write_str("Expected: ")?;
             self.error.expected[..self.error.expected.len() - 1]
                 .iter()
-                .map(|expected| {
+                .try_for_each(|expected| {
                     <ExpectedToken as fmt::Display>::fmt(expected, f)
                         .and_then(|_| f.write_str(", "))
-                })
-                .collect::<Result<(), fmt::Error>>()?;
+                })?;
             self.error
                 .expected
                 .last()
