@@ -204,7 +204,7 @@ fn effect() -> Html {
         let counter = counter.clone();
         use_effect(move || {
             // Make a call to DOM API after component is rendered
-            yew::utils::document().set_title(&format!("You clicked {} times", counter_one));
+            yew::utils::document().set_title(&format!("You clicked {} times", counter));
     
             // Perform the cleanup
             || yew::utils::document().set_title("You clicked 0 times")
