@@ -31,8 +31,7 @@ jobs:
 
       - name: Install trunk
         run: |
-          brew install trunk
-          cargo install wasm-bindgen-cli
+          cargo install trunk wasm-bindgen-cli
 
       - name: Build examples
         run: |
