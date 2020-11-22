@@ -38,9 +38,9 @@ impl PersonInfo {
         html! {
             <div class="card w-50 card_style">
                 <div class="card-body">
-                    <h5 class="card-title">{ format!("{} - {}", &self.id, &self.name)}</h5>
-                    <p class="card-text">{ format!("Age: {}", &self.age)}</p>
-                    <p class="card-text">{ format!("Address: {}", &self.address)}</p>
+                    <h5 class="card-title">{ format!("{} - {}", &self.id, &self.name) }</h5>
+                    <p class="card-text">{ format!("Age: {}", &self.age) }</p>
+                    <p class="card-text">{ format!("Address: {}", &self.address) }</p>
                 </div>
             </div>
         }
