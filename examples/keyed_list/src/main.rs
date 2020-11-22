@@ -144,20 +144,39 @@ impl Component for Model {
     fn view(&self) -> Html {
         self.link.send_message(Msg::Rendered(Instant::now()));
 
-        let ids = if self.persons.len() < 20 {
-            self.persons
-                .iter()
-                .map(|p| p.info().id.to_string())
-                .collect::<Vec<_>>()
-                .join(" ")
-        } else {
-            String::from("<too many>")
-        };
-
         html! {
             <div class="container">
-            <p class="h2" ref=self.delta_ref.clone()/>
-            <hr />
+                <div class="row">
+                    <p class="h2" ref=self.delta_ref.clone()/>
+                    <hr />
+                </div>
+                {self.action_view()}
+                {self.info_view()}
+            </div>
+        }
+    }
+}
+
+impl Model {
+    fn action_view(&self) -> Html {
+        html! {
+            <>
+                {self.button_view()}
+                <div class="row">
+                    <div class="col">
+                        <p class="h5">{ "Person type ratio (0=only tags <= ratio <= 1=only components): " }{ self.build_component_ratio }</p>
+                        <input name="ratio" type="range" class="form-control-range" min="0.0" max="1.0" step="any"
+                            value=self.build_component_ratio
+                            oninput=self.link.callback(|e: InputData| Msg::ChangeRatio(e.value))
+                        />
+                    </div>
+                </div>
+            </>
+        }
+    }
+    fn button_view(&self) -> Html {
+        html! {
+            <>
                 <div class="row">
                     <div class="col">
                         <button class="btn_size alert alert-danger" onclick=self.link.callback(|_| Msg::DeleteEverybody)>
@@ -232,11 +251,21 @@ impl Component for Model {
                         </button>
                     </div>
                 </div>
-                    <p class="h5">{ "Person type ratio (0=only tags <= ratio <= 1=only components): " }{ self.build_component_ratio }</p>
-                    <input name="ratio" type="range" class="form-control-range" min="0.0" max="1.0" step="any"
-                        value=self.build_component_ratio
-                        oninput=self.link.callback(|e: InputData| Msg::ChangeRatio(e.value))
-                    />
+            </>
+        }
+    }
+    fn info_view(&self) -> Html {
+        let ids = if self.persons.len() < 20 {
+            self.persons
+                .iter()
+                .map(|p| p.info().id.to_string())
+                .collect::<Vec<_>>()
+                .join(" ")
+        } else {
+            String::from("<too many>")
+        };
+        html! {
+            <div>
                 <p class="h5">{ "Number of persons: " }{ self.persons.len() }</p>
                 <p class="h5">{ "Ids: " }{ ids }</p>
                 <hr />
