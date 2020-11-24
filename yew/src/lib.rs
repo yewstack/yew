@@ -88,7 +88,7 @@
 //!
 
 #![deny(
-    missing_docs,
+    // missing_docs,
     missing_debug_implementations,
     bare_trait_objects,
     anonymous_parameters,
@@ -258,7 +258,7 @@ pub mod macros {
 }
 
 pub mod app;
-mod backend;
+pub mod backend;
 pub mod callback;
 pub mod format;
 pub mod html;

@@ -12,6 +12,8 @@ cfg_if! {
         use stdweb::web::{Element, INode, TextNode};
     } else if #[cfg(feature = "web_sys")] {
         use web_sys::{Element, Text as TextNode};
+    } else if #[cfg(feature = "static_render")] {
+        use crate::backend::{Element, Text as TextNode};
     }
 }
 
@@ -43,7 +45,7 @@ impl VDiff for VText {
             .reference
             .take()
             .expect("tried to remove not rendered VText from DOM");
-        if parent.remove_child(&node).is_err() {
+        if parent.remove_child(&node.into()).is_err() {
             warn!("Node not found to remove VText");
         }
     }
@@ -74,7 +76,7 @@ impl VDiff for VText {
         }
 
         let text_node = document().create_text_node(&self.text);
-        super::insert_node(&text_node, parent, next_sibling.get());
+        super::insert_node((&text_node).into(), parent, next_sibling.get());
         self.reference = Some(text_node.clone());
         NodeRef::new(text_node.into())
     }
