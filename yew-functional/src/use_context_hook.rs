@@ -46,7 +46,7 @@ impl<T: PartialEq> ContextProvider<T> {
     fn notify_consumers(&mut self, context: Rc<T>) {
         self.consumers.borrow_mut().retain(|cb| {
             if let Some(cb) = cb.upgrade() {
-                cb(context.clone());
+                cb(Rc::clone(&context));
                 true
             } else {
                 false
