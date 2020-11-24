@@ -1,4 +1,21 @@
+use std::cell::Cell;
+use std::rc::Rc;
 use super::DomBackend;
+
+// pub CURRENT_NODE_ID: u32 = 1;
+
+enum NodeData {
+    Element(ElementData),
+    Text(TextData)
+}
+
+struct ElementData {
+
+}
+
+struct TextData {
+
+}
 
 /// Represents a single rendering backend
 #[derive(Debug)]
@@ -89,9 +106,14 @@ impl Text {
 
 /// Represents a generic Element
 #[derive(Debug, Clone)]
-pub struct Element;
+pub struct Element {
+    pub node_data: Rc<Cell<NodeData>>
+}
 
 impl Element {
+    pub fn remove_attribute(&self, name: &str) -> Result<(), ()> {
+        todo!("remove attributes")
+    }
     pub fn as_node(&self) -> Node {
         Node {}
     }
@@ -133,13 +155,25 @@ impl From<Element> for Node {
 
 impl From<Node> for Element {
     fn from(node: Node) -> Self {
-        todo!("Implement node -> element conversion")
+        let node_data = node.node_data;
+        match (*node_data).get() {
+            NodeData::Element(_) => {},
+            _ => {
+                panic!("Cannot convert a non-element Node to an Element");
+            }
+        }
+        Element {
+            node_data
+        }
     }
 }
 
 /// Represents a generic Node
 #[derive(PartialEq, Debug, Default, Clone)]
-pub struct Node;
+pub struct Node {
+    pub node_data: Rc<Cell<NodeData>>
+}
+
 impl Node {
     pub fn first_child(&self) -> Option<Node> {
         todo!("Implement first child")
@@ -179,14 +213,13 @@ impl Document {
     pub fn location(&self) -> Option<String> {
         Some(format!("blah"))
     }
-
     pub fn query_selector(&self, selectors: &str) -> Option<Option<Element>> {
-        Some(Some(Element))
+        todo!("query selector")
     }
     pub fn create_element(&self, qualified_name: &str) -> Option<Element> {
         todo!("Create element");
     }
-    pub fn create_element_ns(&self, namespace: &str, qualified_name: &str) -> Option<Element> {
+    pub fn create_element_ns(&self, namespace: Option<&str>, qualified_name: &str) -> Option<Element> {
         todo!("Create element");
     }
     pub fn create_text_node(&self, id: &str) -> Text {
