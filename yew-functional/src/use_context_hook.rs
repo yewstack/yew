@@ -72,7 +72,7 @@ impl<T: PartialEq + 'static> Component for ContextProvider<T> {
 
     fn changed(&mut self, ctx: &Context<Self>, new_props: &Self::Properties) -> bool {
         if ctx.props.context != new_props.context {
-            self.notify_consumers(new_props.context.clone());
+            self.notify_consumers(Rc::clone(&new_props.context));
         }
 
         true
