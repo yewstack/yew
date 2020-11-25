@@ -5,13 +5,13 @@ use syn::parse::{Parse, ParseStream};
 use syn::{Expr, ExprTuple};
 
 pub enum ClassesForm {
-    Tuple(Vec<Expr>),
+    Tuple(ExprTuple),
     Single(Box<Expr>),
 }
 impl ClassesForm {
     fn from_expr(expr: Expr) -> Self {
         match expr {
-            Expr::Tuple(ExprTuple { elems, .. }) => ClassesForm::Tuple(elems.into_iter().collect()),
+            Expr::Tuple(expr_tuple) => ClassesForm::Tuple(expr_tuple),
             expr => ClassesForm::Single(Box::new(expr)),
         }
     }
