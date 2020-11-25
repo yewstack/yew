@@ -148,17 +148,19 @@ error: `checked` does not support being used as an optional attribute
 58 |     html! { <input checked?=Some(false) /> };
    |                    ^^^^^^^^^
 
-error: `class` does not support being used as an optional attribute
+error: `ref` does not support being used as an optional attribute
   --> $DIR/html-element-fail.rs:59:20
    |
-59 |     html! { <input class?=() /> };
-   |                    ^^^^^^^
-
-error: `ref` does not support being used as an optional attribute
-  --> $DIR/html-element-fail.rs:60:20
-   |
-60 |     html! { <input ref?=() /> };
+59 |     html! { <input ref?=() /> };
    |                    ^^^^^
+
+warning: use of deprecated item 'compile_fail::deprecated_use_of_class': the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
+  --> $DIR/html-element-fail.rs:63:24
+   |
+63 |     html! { <div class=("deprecated", "warning") /> };
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
 
 error[E0308]: mismatched types
   --> $DIR/html-element-fail.rs:25:28
@@ -353,18 +355,18 @@ error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
    = note: required by `std::string::ToString::to_string`
 
 error[E0308]: mismatched types
-  --> $DIR/html-element-fail.rs:61:20
+  --> $DIR/html-element-fail.rs:60:20
    |
-61 |     html! { <input onfocus?=Some(5) /> };
+60 |     html! { <input onfocus?=Some(5) /> };
    |                    ^^^^^^^ expected enum `yew::callback::Callback`, found integer
    |
    = note: expected enum `yew::callback::Callback<web_sys::features::gen_FocusEvent::FocusEvent>`
               found type `{integer}`
 
 error[E0308]: mismatched types
-  --> $DIR/html-element-fail.rs:62:29
+  --> $DIR/html-element-fail.rs:61:29
    |
-62 |     html! { <input onfocus?=Callback::from(|_| ()) /> };
+61 |     html! { <input onfocus?=Callback::from(|_| ()) /> };
    |                             ^^^^^^^^^^^^^^^^^^^^^^
    |                             |
    |                             expected enum `std::option::Option`, found enum `yew::callback::Callback`

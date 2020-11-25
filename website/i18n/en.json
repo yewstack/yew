@@ -41,8 +41,11 @@
         "title": "Pre-defined hooks"
       },
       "concepts/html": {
-        "title": "html!",
+        "title": "HTML",
         "sidebar_label": "Introduction"
+      },
+      "concepts/html/classes": {
+        "title": "Classes"
       },
       "concepts/html/components": {
         "title": "Components"

@@ -1,5 +1,5 @@
 ---
-title: html!
+title: HTML
 sidebar_label: Introduction
 description: The procedural macro for generating HTML and SVG
 ---
