@@ -98,6 +98,28 @@
 #![recursion_limit = "512"]
 extern crate self as yew;
 
+/// This macro provides a convenient way to create [`Classes`].
+///
+/// The macro takes a list of items similar to the [`vec!`] macro and returns a [`Classes`] instance.
+/// Each item can be of any type that implements `Into<Classes>` (See the implementations on [`Classes`] to learn what types can be used).
+///
+/// # Example
+///
+/// ```
+/// # use yew::prelude::*;
+/// # fn test() {
+/// let conditional_class = Some("my-other-class");
+/// let vec_of_classes = vec!["one-bean", "two-beans", "three-beans", "a-very-small-casserole"];
+///
+/// html! {
+///     <div class=classes!("my-container-class", conditional_class, vec_of_classes)>
+///         // ...
+///     </div>
+/// };
+/// # }
+/// ```
+pub use yew_macro::classes;
+
 /// This macro implements JSX-like templates.
 ///
 /// This macro always returns [`Html`].
@@ -252,6 +274,7 @@ pub use yew_macro::props;
 
 /// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
+    pub use crate::classes;
     pub use crate::html;
     pub use crate::html_nested;
     pub use crate::props;
@@ -354,11 +377,10 @@ pub mod prelude {
     pub use crate::callback::Callback;
     pub use crate::events::*;
     pub use crate::html::{
-        Children, ChildrenWithProps, Component, ComponentLink, Html, NodeRef, Properties,
+        Children, ChildrenWithProps, Classes, Component, ComponentLink, Html, NodeRef, Properties,
         ShouldRender,
     };
-    pub use crate::macros::{html, html_nested};
-    pub use crate::virtual_dom::Classes;
+    pub use crate::macros::{classes, html, html_nested};
 
     /// Prelude module for creating worker.
     #[cfg(feature = "agent")]

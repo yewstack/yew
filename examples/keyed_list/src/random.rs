@@ -1,4 +1,4 @@
-use rand::distributions::{Alphanumeric, Bernoulli};
+use rand::distributions::Bernoulli;
 use rand::Rng;
 
 /// `0 <= p <= 1`
@@ -46,15 +46,4 @@ pub fn choose_two_distinct_mut<T>(items: &mut [T]) -> Option<(&mut T, &mut T)> {
     // b = `items[hi..]` where `items[hi] == b[0]`
     let (a, b) = items.split_at_mut(hi);
     Some((&mut a[lo], &mut b[0]))
-}
-
-fn word(len: usize) -> String {
-    let mut rng = rand::thread_rng();
-    (0..len).map(|_| rng.sample(Alphanumeric)).collect()
-}
-
-pub fn words(count: usize, min_len: usize, max_len: usize) -> Vec<String> {
-    (0..count)
-        .map(|_| word(range_exclusive(min_len, max_len)))
-        .collect()
 }

@@ -3,6 +3,11 @@ use std::rc::Rc;
 use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
 use yewtil::NeqAssign;
 
+use fake::faker::address::raw::*;
+use fake::faker::name::raw::*;
+use fake::locales::*;
+use fake::Fake;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PersonInfo {
     pub id: usize,
@@ -13,13 +18,17 @@ pub struct PersonInfo {
 impl PersonInfo {
     pub fn new_random(id: usize) -> Self {
         let address = {
-            let count = random::range_exclusive(3, 6);
-            Rc::from(random::words(count, 5, 12).join(" ").as_str())
+            let no = random::range_exclusive(1, 300);
+            let state = StateAbbr(EN).fake::<String>();
+            let city = CityName(EN).fake::<String>();
+            let street = StreetName(EN).fake::<String>();
+
+            Rc::from(format!("{} {} St., {}, {}", no, street, city, state).as_str())
         };
 
         Self {
             id,
-            name: Rc::from(random::words(2, 4, 15).join(" ").as_str()),
+            name: Rc::from(Name(EN).fake::<String>().as_str()),
             age: random::range_exclusive(7, 77),
             address,
         }
@@ -27,10 +36,12 @@ impl PersonInfo {
 
     fn render(&self) -> Html {
         html! {
-            <div class="person">
-                <h1>{ &self.id }{ " - " }{ &self.name }</h1>
-                <p>{ "Age: " }{ &self.age }</p>
-                <p>{ "Address: " }{ &self.address }</p>
+            <div class="card w-50 card_style">
+                <div class="card-body">
+                    <h5 class="card-title">{ format!("{} - {}", &self.id, &self.name) }</h5>
+                    <p class="card-text">{ format!("Age: {}", &self.age) }</p>
+                    <p class="card-text">{ format!("Address: {}", &self.address) }</p>
+                </div>
             </div>
         }
     }
@@ -58,7 +69,7 @@ impl Component for PersonComponent {
 
     fn view(&self) -> Html {
         html! {
-            <div class="component-person" id=self.info.id.to_string()>
+            <div class="text-info" id=self.info.id.to_string()>
                 { self.info.render() }
             </div>
         }
@@ -91,13 +102,13 @@ impl PersonType {
             Self::Inline(info) => {
                 if keyed {
                     html! {
-                        <div key=info.id.to_string() class="basic-person" id=info.id.to_string()>
+                        <div key=info.id.to_string() class="text-danger" id=info.id.to_string()>
                             { info.render() }
                         </div>
                     }
                 } else {
                     html! {
-                        <div class="basic-person" id=info.id.to_string()>
+                        <div class="text-danger" id=info.id.to_string()>
                             { info.render() }
                         </div>
                     }

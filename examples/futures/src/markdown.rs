@@ -1,8 +1,8 @@
 /// Original author of this code is [Nathan Ringo](https://github.com/remexre)
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
 use pulldown_cmark::{Alignment, CodeBlockKind, Event, Options, Parser, Tag};
-use yew::virtual_dom::{Classes, VNode, VTag, VText};
-use yew::{html, Html};
+use yew::virtual_dom::{VNode, VTag, VText};
+use yew::{html, Classes, Html};
 
 /// Adds a class to the VTag.
 /// You can also provide multiple classes separated by ascii whitespaces.
@@ -161,7 +161,7 @@ fn make_tag(t: Tag) -> VTag {
             let mut el = VTag::new("a");
             el.add_attribute("href", href.to_string());
             let title = title.clone().into_string();
-            if title != "" {
+            if !title.is_empty() {
                 el.add_attribute("title", title);
             }
             el
@@ -170,7 +170,7 @@ fn make_tag(t: Tag) -> VTag {
             let mut el = VTag::new("img");
             el.add_attribute("src", src.to_string());
             let title = title.clone().into_string();
-            if title != "" {
+            if !title.is_empty() {
                 el.add_attribute("title", title);
             }
             el

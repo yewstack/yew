@@ -3,10 +3,12 @@
 //! Also this module contains declaration of `Component` trait which used
 //! to create own UI-components.
 
+mod classes;
 mod conversion;
 mod listener;
 mod scope;
 
+pub use classes::*;
 pub use conversion::*;
 pub use listener::*;
 pub use scope::{AnyScope, Scope, SendAsMessage};

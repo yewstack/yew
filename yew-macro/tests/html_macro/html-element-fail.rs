@@ -69,6 +69,9 @@ fn compile_fail() {
     html! { <@{"test"}></@{"test"}> };
     // type mismatch
     html! { <@{55}></@> };
+
+    // check for deprecation warning
+    html! { <div class=("deprecated", "warning") /> };
 }
 
 fn main() {}
