@@ -5,13 +5,11 @@ use std::{borrow::Cow, rc::Rc};
 /// Marker trait for types that the [`html!`] macro may clone implicitly.
 pub trait ImplicitClone: Clone {}
 
+// this is only implemented because there's no way to avoid cloning this value
+impl ImplicitClone for Cow<'static, str> {}
+
 impl<T: ImplicitClone> ImplicitClone for Option<T> {}
 impl<T> ImplicitClone for Rc<T> {}
-
-// strings aren't necessarily cheap to clone but
-// right now we don't offer a better alternative.
-impl ImplicitClone for String {}
-impl ImplicitClone for Cow<'static, str> {}
 
 // TODO move these implementations to the type definitions
 impl<T> ImplicitClone for Callback<T> {}
@@ -78,8 +76,6 @@ impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
 
 impl_into_prop!(|value: &'static str| -> Cow<'static, str> { Cow::Borrowed(value) });
 impl_into_prop!(|value: String| -> Cow<'static, str> { Cow::Owned(value) });
-// we only allow this because `String` is `ImplicitClone`
-impl_into_prop!(|value: &String| -> Cow<'static, str> { Cow::Owned(value.to_owned()) });
 
 /// TODO
 pub trait IntoOptPropValue<T> {

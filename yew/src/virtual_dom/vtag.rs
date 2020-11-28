@@ -808,22 +808,6 @@ mod tests {
     }
 
     #[test]
-    fn it_checks_mixed_closing_tags() {
-        let a = html! { <div> <div/>      </div> };
-        let b = html! { <div> <div></div> </div> };
-        assert_eq!(a, b);
-    }
-
-    #[test]
-    fn it_checks_misleading_gt() {
-        html! { <div data-val=<u32 as Default>::default()></div> };
-        html! { <div data-val=Box::<u32>::default()></div> };
-
-        html! { <div><a data-val=<u32 as Default>::default() /> </div> };
-        html! { <div><a data-val=Box::<u32>::default() /></div> };
-    }
-
-    #[test]
     fn it_does_not_set_missing_class_name() {
         let scope = test_scope();
         let parent = document().create_element("div").unwrap();

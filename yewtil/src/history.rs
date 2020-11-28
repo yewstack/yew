@@ -64,7 +64,7 @@ use std::ops::Deref;
 ///                 <div>
 ///                     <input
 ///                         type="text"
-///                         value=&*self.text
+///                         value=(*self.text).clone()
 ///                         oninput=self.link.callback(|data: InputData| Msg::SetText(data.value))
 ///                     />
 ///                     <button onclick=self.link.callback(|_| Msg::Reset)>{ "Reset to the oldest value" }</button>

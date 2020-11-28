@@ -136,25 +136,28 @@ error: dynamic closing tags must not have a body (hint: replace it with just `</
 69 |     html! { <@{"test"}></@{"test"}> };
    |                           ^^^^^^^^
 
+warning: use of deprecated item 'compile_fail::deprecated_use_of_class': the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
+  --> $DIR/html-element-fail.rs:74:24
+   |
+74 |     html! { <div class=("deprecated", "warning") /> };
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
 error[E0308]: mismatched types
   --> $DIR/html-element-fail.rs:36:28
    |
 36 |     html! { <input checked=1 /> };
    |                            ^ expected `bool`, found integer
 
-error: `ref` does not support being used as an optional attribute
-  --> $DIR/html-element-fail.rs:59:20
+error[E0308]: mismatched types
+  --> $DIR/html-element-fail.rs:37:28
    |
-59 |     html! { <input ref?=() /> };
-   |                    ^^^^^
-
-warning: use of deprecated item 'compile_fail::deprecated_use_of_class': the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
-  --> $DIR/html-element-fail.rs:63:24
+37 |     html! { <input checked=Some(false) /> };
+   |                            ^^^^^^^^^^^ expected `bool`, found enum `std::option::Option`
    |
-63 |     html! { <div class=("deprecated", "warning") /> };
-   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: `#[warn(deprecated)]` on by default
+   = note: expected type `bool`
+              found enum `std::option::Option<bool>`
 
 error[E0308]: mismatched types
   --> $DIR/html-element-fail.rs:38:29
@@ -261,7 +264,7 @@ error[E0277]: the trait bound `{integer}: yew::html::conversion::IntoPropValue<s
              <&'static str as yew::html::conversion::IntoPropValue<std::string::String>>
              <&T as yew::html::conversion::IntoPropValue<T>>
              <&T as yew::html::conversion::IntoPropValue<std::option::Option<T>>>
-           and 5 others
+           and 4 others
    = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>` for `{integer}`
 
 error[E0277]: the trait bound `yew::callback::Callback<std::string::String>: yew::html::conversion::IntoPropValue<std::option::Option<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>>` is not satisfied
@@ -291,22 +294,25 @@ error[E0277]: the trait bound `std::option::Option<{integer}>: yew::html::conver
    = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<yew::callback::Callback<web_sys::features::gen_FocusEvent::FocusEvent>>` for `std::option::Option<{integer}>`
 
 error[E0308]: mismatched types
-  --> $DIR/html-element-fail.rs:60:20
+  --> $DIR/html-element-fail.rs:56:24
    |
-60 |     html! { <input onfocus?=Some(5) /> };
-   |                    ^^^^^^^ expected enum `yew::callback::Callback`, found integer
-   |
-   = note: expected enum `yew::callback::Callback<web_sys::features::gen_FocusEvent::FocusEvent>`
-              found type `{integer}`
+56 |     html! { <input ref=() /> };
+   |                        ^^ expected struct `yew::html::NodeRef`, found `()`
 
 error[E0308]: mismatched types
-  --> $DIR/html-element-fail.rs:61:29
+  --> $DIR/html-element-fail.rs:57:24
    |
-61 |     html! { <input onfocus?=Callback::from(|_| ()) /> };
-   |                             ^^^^^^^^^^^^^^^^^^^^^^
-   |                             |
-   |                             expected enum `std::option::Option`, found enum `yew::callback::Callback`
-   |                             help: try using a variant of the expected enum: `Some(Callback::from(|_| ()))`
+57 |     html! { <input ref=Some(NodeRef::default()) /> };
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^ expected struct `yew::html::NodeRef`, found enum `std::option::Option`
+   |
+   = note: expected struct `yew::html::NodeRef`
+                found enum `std::option::Option<yew::html::NodeRef>`
+
+error[E0277]: the trait bound `std::borrow::Cow<'static, str>: std::convert::From<{integer}>` is not satisfied
+  --> $DIR/html-element-fail.rs:71:15
+   |
+71 |     html! { <@{55}></@> };
+   |               ^^^^ the trait `std::convert::From<{integer}>` is not implemented for `std::borrow::Cow<'static, str>`
    |
    = help: the following implementations were found:
              <std::borrow::Cow<'a, [T]> as std::convert::From<&'a [T]>>

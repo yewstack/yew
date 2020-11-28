@@ -222,7 +222,7 @@ error[E0277]: the trait bound `{integer}: yew::html::conversion::IntoPropValue<s
              <&'static str as yew::html::conversion::IntoPropValue<std::string::String>>
              <&T as yew::html::conversion::IntoPropValue<T>>
              <&T as yew::html::conversion::IntoPropValue<std::option::Option<T>>>
-           and 5 others
+           and 4 others
 
 error[E0277]: the trait bound `{integer}: yew::html::conversion::IntoPropValue<std::string::String>` is not satisfied
    --> $DIR/html-component-fail.rs:100:26
@@ -235,7 +235,7 @@ error[E0277]: the trait bound `{integer}: yew::html::conversion::IntoPropValue<s
               <&'static str as yew::html::conversion::IntoPropValue<std::string::String>>
               <&T as yew::html::conversion::IntoPropValue<T>>
               <&T as yew::html::conversion::IntoPropValue<std::option::Option<T>>>
-            and 5 others
+            and 4 others
 
 error[E0308]: mismatched types
    --> $DIR/html-component-fail.rs:101:30

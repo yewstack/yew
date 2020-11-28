@@ -181,11 +181,27 @@ impl ToTokens for HtmlElement {
             });
             let class_attr = classes.as_ref().and_then(|classes| match classes {
                 ClassesForm::Tuple(classes) => {
+                    let span = classes.span();
+                    let classes: Vec<_> = classes.elems.iter().collect();
                     let n = classes.len();
+
+                    let deprecation_warning = quote_spanned! {span=>
+                        #[deprecated(
+                            note = "the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead."
+                        )]
+                        fn deprecated_use_of_class() {}
+
+                        if false {
+                            deprecated_use_of_class();
+                        };
+                    };
+
                     Some(quote! {
                         {
-                            let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
+                            let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
                             #(__yew_classes.push(#classes);)*
+
+                            #deprecation_warning
 
                             ::yew::virtual_dom::PositionalAttr::new("class", __yew_classes)
                         }
@@ -197,15 +213,11 @@ impl ToTokens for HtmlElement {
                             None
                         } else {
                             let sr = lit.stringify();
-                            Some(quote! {
-                                ::yew::virtual_dom::PositionalAttr::new("class", #sr)
-                            })
+                            Some(quote! { ::yew::virtual_dom::PositionalAttr::new("class", #sr) })
                         }
                     }
                     None => {
-                        Some(quote! {
-                            ::yew::virtual_dom::PositionalAttr::new("class", ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes))
-                        })
+                        Some(quote! { ::yew::virtual_dom::PositionalAttr::new("class", ::std::convert::Into::<::yew::html::Classes>::into(#classes)) })
                     }
                 }
             });

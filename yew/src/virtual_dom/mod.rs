@@ -13,7 +13,7 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
-use crate::html::{AnyScope, IntoOptPropValue, IntoPropValue, NodeRef};
+use crate::html::{AnyScope, IntoOptPropValue, NodeRef};
 use cfg_if::cfg_if;
 use indexmap::IndexMap;
 use std::{borrow::Cow, collections::HashMap, fmt, hint::unreachable_unchecked, iter, mem, rc::Rc};
@@ -395,12 +395,6 @@ fn insert_node(node: &impl INode, parent: &impl INode, next_sibling: Option<Node
     } else {
         parent.append_child(node);
     }
-}
-
-/// Transform properties to the expected type.
-pub trait Transformer<FROM, TO> {
-    /// Transforms one type to another.
-    fn transform(from: FROM) -> TO;
 }
 
 // stdweb lacks the `inner_html` method

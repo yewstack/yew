@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use yew::prelude::*;
 
 fn compile_pass() {
@@ -6,6 +7,8 @@ fn compile_pass() {
 
     let dyn_tag = || String::from("test");
     let mut extra_tags_iter = vec!["a", "b"].into_iter();
+
+    let cow_none: Option<Cow<'static, str>> = None;
 
     html! {
         <div>
@@ -57,8 +60,8 @@ fn compile_pass() {
                 }
             }/>
 
-            <a href=Some(Cow::Borrowed("http://google.com")) media=None::<&'static str> />
-            <track kind=Some(Cow::Borrowed("subtitles")) src=None::<&'static str> />
+            <a href=Some(Cow::Borrowed("http://google.com")) media=cow_none.clone() />
+            <track kind=Some(Cow::Borrowed("subtitles")) src=cow_none.clone() />
             <track kind=Some(Cow::Borrowed("5")) mixed="works" />
             <input value=Some(Cow::Borrowed("value")) onblur=Some(Callback::from(|_| ())) />
         </div>
