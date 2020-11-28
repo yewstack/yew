@@ -5,8 +5,8 @@ authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-strum = "0.19"
-strum_macros = "0.19"
+strum = "0.20"
+strum_macros = "0.20"
 serde = "1"
 serde_derive = "1"
 yew = { path = "../../yew" }
