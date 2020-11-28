@@ -144,7 +144,7 @@ where
         html! {
             <select
                 ref=self.select_ref.clone()
-                id=&self.props.id
+                id=self.props.id.clone()
                 class=self.props.class.clone()
                 disabled=self.props.disabled
                 onchange=self.on_change()

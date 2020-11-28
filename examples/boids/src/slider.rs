@@ -80,7 +80,7 @@ impl Component for Slider {
 
         html! {
             <div class="slider">
-                <label for=&id class="slider__label">{ label }</label>
+                <label for=id.clone() class="slider__label">{ label }</label>
                 <input type="range"
                     id=id
                     class="slider__input"

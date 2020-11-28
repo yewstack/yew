@@ -196,7 +196,7 @@ impl Model {
             <input
                 class="new-todo"
                 placeholder="What needs to be done?"
-                value=&self.state.value
+                value=self.state.value.clone()
                 oninput=self.link.callback(|e: InputData| Msg::Update(e.value))
                 onkeypress=self.link.batch_callback(|e: KeyboardEvent| {
                     if e.key() == "Enter" { Some(Msg::Add) } else { None }
@@ -242,7 +242,7 @@ impl Model {
                     class="edit"
                     type="text"
                     ref=self.focus_ref.clone()
-                    value=&self.state.edit_value
+                    value=self.state.edit_value.clone()
                     onmouseover=self.link.callback(|_| Msg::Focus)
                     oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
                     onblur=self.link.callback(move |_| Msg::Edit(idx))

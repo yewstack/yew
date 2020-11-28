@@ -44,7 +44,7 @@ impl Component for AuthorCard {
                     <div class="media">
                         <div class="media-left">
                             <figure class="image is-128x128">
-                                <img src=&author.image_url />
+                                <img src=author.image_url.clone() />
                             </figure>
                         </div>
                         <div class="media-content">
