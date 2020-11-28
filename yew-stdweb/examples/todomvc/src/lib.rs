@@ -191,7 +191,7 @@ impl Model {
             // <li></li>
             <input class="new-todo"
                    placeholder="What needs to be done?"
-                   value=&self.state.value
+                   value=self.state.value.clone()
                    oninput=self.link.callback(|e: InputData| Msg::Update(e.value))
                    onkeypress=self.link.callback(|e: KeyPressEvent| {
                        if e.key() == "Enter" { Msg::Add } else { Msg::Nope }
@@ -233,7 +233,7 @@ impl Model {
             html! {
                 <input class="edit"
                        type="text"
-                       value=&entry.description
+                       value=entry.description.clone()
                        oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
                        onblur=self.link.callback(move |_| Msg::Edit(idx))
                        onkeypress=self.link.callback(move |e: KeyPressEvent| {
