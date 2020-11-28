@@ -1,0 +1,5 @@
+error: function components can't be async
+  --> $DIR/async-fail.rs:10:1
+   |
+10 | async fn comp(props: &Props) -> Html {
+   | ^^^^^

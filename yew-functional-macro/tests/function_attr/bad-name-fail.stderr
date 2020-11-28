@@ -1,0 +1,23 @@
+error: expected identifier
+ --> $DIR/bad-name-fail.rs:9:22
+  |
+9 | #[function_component(let)]
+  |                      ^^^
+
+error: unexpected token
+  --> $DIR/bad-name-fail.rs:18:23
+   |
+18 | #[function_component(x, y, z)]
+   |                       ^
+
+error: expected identifier
+  --> $DIR/bad-name-fail.rs:27:22
+   |
+27 | #[function_component(124)]
+   |                      ^^^
+
+error: the component must not have the same name as the function
+  --> $DIR/bad-name-fail.rs:36:22
+   |
+36 | #[function_component(component)]
+   |                      ^^^^^^^^^

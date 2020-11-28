@@ -1,6 +1,7 @@
 use instant::Instant;
 use person::PersonType;
 use yew::prelude::*;
+use yew::web_sys::HtmlElement;
 use yewtil::NeqAssign;
 
 mod person;
@@ -28,6 +29,7 @@ pub struct Model {
     last_id: usize,
     keyed: bool,
     build_component_ratio: f64,
+    delta_ref: NodeRef,
 }
 
 impl Component for Model {
@@ -41,6 +43,7 @@ impl Component for Model {
             last_id: 0,
             keyed: true,
             build_component_ratio: 0.5,
+            delta_ref: NodeRef::default(),
         }
     }
 
@@ -124,6 +127,11 @@ impl Component for Model {
                 let time_after = Instant::now();
                 let elapsed_max = time_after - time_before;
                 log::info!("Rendering started {} ms ago.", elapsed_max.as_millis());
+                if let Some(input) = self.delta_ref.cast::<HtmlElement>() {
+                    let delta_text =
+                        format!("The last rendering took {} ms", elapsed_max.as_millis());
+                    input.set_inner_text(&delta_text);
+                }
                 false
             }
         }
@@ -136,6 +144,120 @@ impl Component for Model {
     fn view(&self) -> Html {
         self.link.send_message(Msg::Rendered(Instant::now()));
 
+        html! {
+            <div class="container">
+                <div class="row">
+                    <p class="h2" ref=self.delta_ref.clone()/>
+                    <hr />
+                </div>
+                { self.action_view() }
+                { self.info_view() }
+            </div>
+        }
+    }
+}
+
+impl Model {
+    fn action_view(&self) -> Html {
+        html! {
+            <>
+                { self.button_view() }
+                <div class="row">
+                    <div class="col">
+                        <p class="h5">
+                            { "Person type ratio (0=only tags <= ratio <= 1=only components): " }
+                            { self.build_component_ratio }
+                        </p>
+                        <input name="ratio" type="range" class="form-control-range" min="0.0" max="1.0" step="any"
+                            value=self.build_component_ratio
+                            oninput=self.link.callback(|e: InputData| Msg::ChangeRatio(e.value))
+                        />
+                    </div>
+                </div>
+            </>
+        }
+    }
+    fn button_view(&self) -> Html {
+        html! {
+            <>
+                <div class="row">
+                    <div class="col">
+                        <button class="btn_size alert alert-danger" onclick=self.link.callback(|_| Msg::DeleteEverybody)>
+                            { "Delete everybody" }
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(1))>
+                            { "Create 1" }
+                    </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(5))>
+                            { "Create 5" }
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(100))>
+                            { "Create 100" }
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(500))>
+                            { "Create 500" }
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersonsPrepend(1))>
+                            { "Prepend 1" }
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersonsPrepend(5))>
+                            { "Prepend 5" }
+                        </button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <button class="btn_size alert alert-warning" onclick=self.link.callback(|_| Msg::ToggleKeyed)>
+                            { if self.keyed { "Disable keys" } else { "Enable keys" } }
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SwapRandom)>
+                            { "Swap random" }
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::ReverseList)>
+                            { "Reverse list" }
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortById)>
+                            { "Sort by id" }
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortByName)>
+                            { "Sort by name" }
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortByAge)>
+                            { "Sort by age" }
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortByAddress)>
+                            { "Sort by address" }
+                        </button>
+                    </div>
+                </div>
+            </>
+        }
+    }
+    fn info_view(&self) -> Html {
         let ids = if self.persons.len() < 20 {
             self.persons
                 .iter()
@@ -145,68 +267,15 @@ impl Component for Model {
         } else {
             String::from("<too many>")
         };
-
         html! {
-            <>
-                <div class="buttons">
-                    <button onclick=self.link.callback(|_| Msg::DeleteEverybody)>
-                        { "Delete everybody" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::CreatePersons(1))>
-                        { "Create 1" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::CreatePersons(5))>
-                        { "Create 5" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::CreatePersons(100))>
-                        { "Create 100" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::CreatePersons(500))>
-                        { "Create 500" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::CreatePersonsPrepend(1))>
-                        { "Prepend 1" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::CreatePersonsPrepend(5))>
-                        { "Prepend 5" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::SwapRandom)>
-                        { "Swap random" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::ReverseList)>
-                        { "Reverse list" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::SortById)>
-                        { "Sort by id" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::SortByName)>
-                        { "Sort by name" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::SortByAge)>
-                        { "Sort by age" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::SortByAddress)>
-                        { "Sort by address" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::ToggleKeyed)>
-                        { if self.keyed { "Disable keys" } else { "Enable keys" } }
-                    </button>
-                </div>
-                <div class="ratio">
-                    <label for="ratio">{ "Person type ratio (0=only tags <= ratio <= 1=only components): " }</label>
-                    <input
-                        class="input" type="text" id="ratio"
-                        value=self.build_component_ratio
-                        oninput=self.link.callback(|e: InputData| Msg::ChangeRatio(e.value))
-                    />
-                </div>
-                <p>{ "Number of persons: " }{ self.persons.len() }</p>
-                <p>{ "Ids: " }{ ids }</p>
+            <div>
+                <p class="h5">{ "Number of persons: " }{ self.persons.len() }</p>
+                <p class="h5">{ "Ids: " }{ ids }</p>
                 <hr />
                 <div class="persons">
                     { for self.persons.iter().map(|p| p.render(self.keyed)) }
                 </div>
-            </>
+            </div>
         }
     }
 }

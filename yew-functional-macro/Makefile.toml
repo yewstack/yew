@@ -1,0 +1,9 @@
+[tasks.test]
+clear = true
+toolchain = "1.45.2"
+command = "cargo"
+args = ["test"]
+
+[tasks.test-overwrite]
+extend = "test"
+env = { TRYBUILD = "overwrite" }

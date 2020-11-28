@@ -1,0 +1,5 @@
+error: expected a reference to a `Properties` type (try: `&Props`)
+  --> $DIR/bad-props-param-fail.rs:10:16
+   |
+10 | fn comp(props: Props) -> Html {
+   |                ^^^^^

@@ -17,6 +17,7 @@ composable
 Config
 declaratively
 defs
+deps
 DerefMut
 DOCTYPE
 DOCUSAURUS
@@ -50,6 +51,7 @@ Roadmap
 rollup
 rustc
 rustup
+stateful
 stdweb
 struct
 structs
