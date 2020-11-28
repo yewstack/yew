@@ -234,11 +234,27 @@ impl ToTokens for HtmlElement {
 
         let push_classes = match classes {
             Some(ClassesForm::Tuple(classes)) => {
+                let span = classes.span();
+                let classes: Vec<_> = classes.elems.iter().collect();
                 let n = classes.len();
                 let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
+
+                let deprecation_warning = quote_spanned! {span=>
+                    #[deprecated(
+                        note = "the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead."
+                    )]
+                    fn deprecated_use_of_class() {}
+
+                    if false {
+                        deprecated_use_of_class();
+                    };
+                };
+
                 Some(quote! {
-                    let mut __yew_classes = ::yew::virtual_dom::Classes::with_capacity(#n);
+                    let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
                     #(__yew_classes.push(#classes);)*
+
+                    #deprecation_warning
 
                     if !__yew_classes.is_empty() {
                         #vtag.__macro_push_attribute("class", #sr);
@@ -261,7 +277,7 @@ impl ToTokens for HtmlElement {
                 None => {
                     let sr = stringify::stringify_at_runtime(quote! { __yew_classes });
                     Some(quote! {
-                        let __yew_classes = ::std::convert::Into::<::yew::virtual_dom::Classes>::into(#classes);
+                        let __yew_classes = ::std::convert::Into::<::yew::html::Classes>::into(#classes);
                         if !__yew_classes.is_empty() {
                             #vtag.__macro_push_attribute("class", #sr);
                         } else {

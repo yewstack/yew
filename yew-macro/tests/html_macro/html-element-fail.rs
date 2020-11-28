@@ -56,10 +56,11 @@ fn compile_fail() {
     html! { <a href?="href" /> };
     html! { <a href?=Some(NotToString) /> };
     html! { <input checked?=Some(false) /> };
-    html! { <input class?=() /> };
     html! { <input ref?=() /> };
     html! { <input onfocus?=Some(5) /> };
     html! { <input onfocus?=Callback::from(|_| ()) /> };
+
+    html! { <div class=("deprecated", "warning") /> };
 }
 
 fn main() {}

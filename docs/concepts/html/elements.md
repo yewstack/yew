@@ -35,53 +35,6 @@ html! {
 
 If the attribute is set to `None`, the attribute won't be set in the DOM.
 
-## Classes
-
-There are a number of convenient ways to specify classes for an element:
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Literal-->
-
-```rust
-html! {
-  <div class="container"></div>
-}
-```
-
-<!--Multiple-->
-
-```rust
-html! {
-  <div class=("class-1", "class-2")></div>
-}
-```
-
-<!--Optional-->
-
-```rust
-html! {
-  <div class=if condition { Some("class") } else { None } />
-}
-```
-
-<!--Interpolated-->
-
-```rust
-html! {
-  <div class=format!("{}-container", size) />
-}
-```
-
-<!--Vector-->
-
-```rust
-html! {
-  <div class=vec!["class-1", "class-2"]></div>
-}
-```
-
-<!--END_DOCUSAURUS_CODE_TABS-->
-
 ## Listeners
 
 Listener attributes need to be passed a `Callback` which is a wrapper around a closure. How you create your callback depends on how you wish your app to react to a listener event:

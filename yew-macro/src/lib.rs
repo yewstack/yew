@@ -55,6 +55,7 @@
 //!
 //! Please refer to [https://github.com/yewstack/yew](https://github.com/yewstack/yew) for how to set this up.
 
+mod classes;
 mod derive_props;
 mod html_tree;
 mod props;
@@ -118,4 +119,10 @@ pub fn html(input: TokenStream) -> TokenStream {
 pub fn props(input: TokenStream) -> TokenStream {
     let props = parse_macro_input!(input as props::PropsMacroInput);
     TokenStream::from(props.into_token_stream())
+}
+
+#[proc_macro]
+pub fn classes(input: TokenStream) -> TokenStream {
+    let classes = parse_macro_input!(input as classes::Classes);
+    TokenStream::from(classes.into_token_stream())
 }
