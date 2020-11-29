@@ -1,21 +1,11 @@
 use yew::prelude::*;
 
 fn compile_fail() {
-    html! { if {html!()} };
-    let value = 42;
-    html! { if value { html!() } };
-    html! { if {value} { html!() } };
-    let boolean = true;
-    html! { if boolean };
-    html! { if boolean { () } };
-
-    html! {
-        <>
-            <div/>
-            if value {
-            }
-        </>
-    };
+    html! { if {} };
+    html! { if 42 {} };
+    html! { if true {} else };
+    html! { if true {} else if {} };
+    html! { if true {} else if true {} else };
 }
 
 fn main() {}

@@ -1,60 +1,37 @@
-error: expected a valid `if` expression
+error: unexpected end of input, expected curly braces
  --> $DIR/html-if-fail.rs:4:5
   |
-4 |     html! { if {html!()} };
-  |     ^^^^^^^^^^^^^^^^^^^^^^^
+4 |     html! { if {} };
+  |     ^^^^^^^^^^^^^^^^
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected a valid `if` expression
- --> $DIR/html-if-fail.rs:9:5
+error: unexpected end of input, expected `if`
+ --> $DIR/html-if-fail.rs:6:5
   |
-9 |     html! { if boolean };
-  |     ^^^^^^^^^^^^^^^^^^^^^
+6 |     html! { if true {} else };
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected end of input, expected curly braces
+ --> $DIR/html-if-fail.rs:7:5
+  |
+7 |     html! { if true {} else if {} };
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected end of input, expected `if`
+ --> $DIR/html-if-fail.rs:8:5
+  |
+8 |     html! { if true {} else if true {} else };
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
- --> $DIR/html-if-fail.rs:6:16
+ --> $DIR/html-if-fail.rs:5:16
   |
-6 |     html! { if value { html!() } };
-  |                ^^^^^ expected `bool`, found integer
-
-error[E0308]: mismatched types
- --> $DIR/html-if-fail.rs:7:17
-  |
-7 |     html! { if {value} { html!() } };
-  |                 ^^^^^ expected `bool`, found integer
-
-error[E0308]: `if` and `else` have incompatible types
-  --> $DIR/html-if-fail.rs:10:5
-   |
-10 |     html! { if boolean { () } };
-   |     ^^^^^^^^^^^^^^^^^^^^^--^^^^^
-   |     |                    |
-   |     |                    expected because of this
-   |     expected `()`, found enum `yew::virtual_dom::vnode::VNode`
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0308]: mismatched types
-  --> $DIR/html-if-fail.rs:15:16
-   |
-15 |             if value {
-   |                ^^^^^ expected `bool`, found integer
-
-error[E0308]: `if` and `else` have incompatible types
-  --> $DIR/html-if-fail.rs:12:5
-   |
-12 |  /     html! {
-13 |  |         <>
-14 |  |             <div/>
-15 |  |             if value {
-   |  |______________________-
-16 | ||             }
-   | ||_____________- expected because of this
-17 |  |         </>
-18 |  |     };
-   |  |______^ expected `()`, found enum `yew::virtual_dom::vnode::VNode`
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+5 |     html! { if 42 {} };
+  |                ^^ expected `bool`, found integer
