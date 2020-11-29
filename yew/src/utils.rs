@@ -11,7 +11,7 @@ cfg_if! {
     } else if #[cfg(feature = "web_sys")] {
         use web_sys::{Document, Window};
     } else if #[cfg(feature = "static_render")] {
-        use crate::smr::mock::{Document, Window, get_window, get_document};
+        use crate::backend::{Document, Window, get_window, get_document};
     }
 }
 
@@ -51,7 +51,7 @@ pub fn host() -> Result<String, Error> {
     })?;
 
     #[cfg(feature = "static_render")]
-    let host = crate::smr::mock::get_host();
+    let host = crate::backend::get_host();
 
     Ok(host)
 }
@@ -74,7 +74,7 @@ pub fn origin() -> Result<String, Error> {
     })?;
 
     #[cfg(feature = "static_render")]
-    let origin = crate::smr::mock::get_origin();
+    let origin = crate::backend::get_origin();
 
     Ok(origin)
 }

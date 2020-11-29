@@ -51,6 +51,7 @@ impl VNode {
                 cfg_match! {
                     feature = "std_web" => text_node.as_node().clone(),
                     feature = "web_sys" => text_node.clone().into(),
+                    feature = "static_render" => text_node.clone().into(),
                 }
             }
             VNode::VComp(vcomp) => vcomp.node_ref.get().expect("VComp is not mounted"),
