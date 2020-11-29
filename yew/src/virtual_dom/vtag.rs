@@ -1098,7 +1098,7 @@ mod tests {
         assert_eq!(
             html! {
                 if true {
-                    html!(<div class="foo" />)
+                    <div class="foo" />
                 }
             },
             html!(<div class="foo" />),
@@ -1106,9 +1106,9 @@ mod tests {
         assert_eq!(
             html! {
                 if false {
-                    html!(<div class="foo" />)
+                    <div class="foo" />
                 } else {
-                    html!(<div class="bar" />)
+                    <div class="bar" />
                 }
             },
             html! {
@@ -1118,7 +1118,7 @@ mod tests {
         assert_eq!(
             html! {
                 if false {
-                    html!(<div class="foo" />)
+                    <div class="foo" />
                 }
             },
             html!(),
@@ -1129,7 +1129,7 @@ mod tests {
             html! {
                 <div>
                     if true {
-                        html!(<div class="foo" />)
+                        <div class="foo" />
                     }
                 </div>
             },
@@ -1143,9 +1143,9 @@ mod tests {
             html! {
                 <div>
                     if false {
-                        html!(<div class="foo" />)
+                        <div class="foo" />
                     } else {
-                        html!(<div class="bar" />)
+                        <div class="bar" />
                     }
                 </div>
             },
@@ -1159,7 +1159,7 @@ mod tests {
             html! {
                 <div>
                     if false {
-                        html!(<div class="foo" />)
+                        <div class="foo" />
                     }
                 </div>
             },
@@ -1178,7 +1178,7 @@ mod tests {
         assert_eq!(
             html! {
                 if let Some(class) = option_foo {
-                    html!(<div class=class />)
+                    <div class=class />
                 }
             },
             html!(<div class="foo" />),
@@ -1186,9 +1186,9 @@ mod tests {
         assert_eq!(
             html! {
                 if let Some(class) = none {
-                    html!(<div class=class />)
+                    <div class=class />
                 } else {
-                    html!(<div class="bar" />)
+                    <div class="bar" />
                 }
             },
             html!(<div class="bar" />),
@@ -1196,7 +1196,7 @@ mod tests {
         assert_eq!(
             html! {
                 if let Some(class) = none {
-                    html!(<div class=class />)
+                    <div class=class />
                 }
             },
             html!(),
@@ -1207,7 +1207,7 @@ mod tests {
             html! {
                 <div>
                     if let Some(class) = option_foo {
-                        html!(<div class=class />)
+                        <div class=class />
                     }
                 </div>
             },
@@ -1217,9 +1217,9 @@ mod tests {
             html! {
                 <div>
                     if let Some(class) = none {
-                        html!(<div class=class />)
+                        <div class=class />
                     } else {
-                        html!(<div class="bar" />)
+                        <div class="bar" />
                     }
                 </div>
             },
@@ -1229,7 +1229,7 @@ mod tests {
             html! {
                 <div>
                     if let Some(class) = none {
-                        html!(<div class=class />)
+                        <div class=class />
                     }
                 </div>
             },
