@@ -13,6 +13,7 @@ use syn::{Expr, ExprIf, Token, braced, token, Block};
 use super::HtmlRoot;
 use super::HtmlTree;
 use super::HtmlChildrenTree;
+use super::HtmlElement;
 
 pub struct HtmlIf {
     if_token: Token![if],
@@ -68,9 +69,12 @@ impl ToTokens for HtmlIf {
     }
 }
 
-pub struct HtmlBranch {
-    brace: token::Brace,
-    root: HtmlChildrenTree,
+pub enum HtmlBranch {
+    Children {
+        brace: token::Brace,
+        root: HtmlChildrenTree,
+    },
+    Block(Block),
 }
 
 impl PeekValue<()> for HtmlBranch {
@@ -81,33 +85,38 @@ impl PeekValue<()> for HtmlBranch {
 
 impl Parse for HtmlBranch {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let content;
-        let brace = braced!(content in input);
-        let mut root = HtmlChildrenTree::new();
-        root.parse_child(&content)?; // TODO
+        if HtmlElement::peek(input.cursor()).is_some() || input.cursor().eof() {
+            let content;
+            let brace = braced!(content in input);
+            let mut root = HtmlChildrenTree::new();
+            root.parse_child(&content)?; // TODO
 
-        Ok(HtmlBranch {
-            brace,
-            root,
-        })
+            Ok(Self::Children {
+                brace,
+                root,
+            })
+        } else {
+            Ok(Self::Block(input.parse()?))
+        }
     }
 }
 
 impl ToTokens for HtmlBranch {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self {
-            root,
-            ..
-        } = self;
-        let key = quote! { None }; // TODO
+        match self {
+            Self::Children { root, .. } => {
+                let key = quote! { None }; // TODO
 
-        tokens.extend(quote! {
-            {
-                ::yew::virtual_dom::VNode::VList(
-                    ::yew::virtual_dom::VList::new_with_children(#root, #key)
-                )
-            }
-        });
+                tokens.extend(quote! {
+                    {
+                        ::yew::virtual_dom::VNode::VList(
+                            ::yew::virtual_dom::VList::new_with_children(#root, #key)
+                        )
+                    }
+                });
+            },
+            Self::Block(block) => tokens.extend(quote! { #block }),
+        }
     }
 }
 

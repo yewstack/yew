@@ -175,7 +175,7 @@ impl ToNodeIterator for HtmlTree {
     }
 }
 
-struct HtmlChildrenTree(Vec<HtmlTree>);
+pub struct HtmlChildrenTree(Vec<HtmlTree>);
 
 impl HtmlChildrenTree {
     pub fn new() -> Self {
