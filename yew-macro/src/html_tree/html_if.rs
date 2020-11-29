@@ -1,18 +1,18 @@
-use super::HtmlRoot;
+use super::HtmlRootBraced;
 use crate::PeekValue;
 use boolinator::Boolinator;
-use proc_macro2::{Delimiter, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
+use proc_macro2::TokenStream;
+use quote::{quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
-use syn::{braced, token, Expr, Token};
+use syn::{Expr, Token};
 
 pub struct HtmlIf {
     if_token: Token![if],
     cond: Box<Expr>,
-    then_branch: HtmlBranch,
-    else_branch: Option<(Token![else], Box<HtmlBranchOrIf>)>,
+    then_branch: HtmlRootBraced,
+    else_branch: Option<(Token![else], Box<HtmlRootBracedOrIf>)>,
 }
 
 impl PeekValue<()> for HtmlIf {
@@ -63,54 +63,20 @@ impl ToTokens for HtmlIf {
     }
 }
 
-pub struct HtmlBranch {
-    _brace: token::Brace,
-    root: HtmlRoot,
-}
-
-impl PeekValue<()> for HtmlBranch {
-    fn peek(cursor: Cursor) -> Option<()> {
-        cursor.group(Delimiter::Brace).map(|_| ())
-    }
-}
-
-impl Parse for HtmlBranch {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
-        let content;
-        let brace = braced!(content in input);
-        let root = content.parse()?;
-
-        Ok(HtmlBranch {
-            _brace: brace,
-            root,
-        })
-    }
-}
-
-impl ToTokens for HtmlBranch {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self { root, .. } = self;
-
-        tokens.extend(quote! {
-            { #root }
-        });
-    }
-}
-
-pub enum HtmlBranchOrIf {
-    Branch(HtmlBranch),
+pub enum HtmlRootBracedOrIf {
+    Branch(HtmlRootBraced),
     If(HtmlIf),
 }
 
-impl PeekValue<()> for HtmlBranchOrIf {
+impl PeekValue<()> for HtmlRootBracedOrIf {
     fn peek(cursor: Cursor) -> Option<()> {
-        HtmlBranch::peek(cursor).or_else(|| HtmlIf::peek(cursor))
+        HtmlRootBraced::peek(cursor).or_else(|| HtmlIf::peek(cursor))
     }
 }
 
-impl Parse for HtmlBranchOrIf {
+impl Parse for HtmlRootBracedOrIf {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        if HtmlBranch::peek(input.cursor()).is_some() {
+        if HtmlRootBraced::peek(input.cursor()).is_some() {
             input.parse().map(Self::Branch)
         } else {
             input.parse().map(Self::If)
@@ -118,7 +84,7 @@ impl Parse for HtmlBranchOrIf {
     }
 }
 
-impl ToTokens for HtmlBranchOrIf {
+impl ToTokens for HtmlRootBracedOrIf {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         match self {
             Self::Branch(x) => x.to_tokens(tokens),
