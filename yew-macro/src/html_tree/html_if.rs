@@ -12,8 +12,6 @@ use syn::spanned::Spanned;
 use syn::{Expr, ExprIf, Token, braced, token, Block};
 use super::HtmlRoot;
 use super::HtmlTree;
-use super::HtmlChildrenTree;
-use super::HtmlElement;
 
 pub struct HtmlIf {
     if_token: Token![if],
@@ -50,6 +48,20 @@ impl Parse for HtmlIf {
 
 impl ToTokens for HtmlIf {
     fn to_tokens(&self, tokens: &mut TokenStream) {
+        /*
+        let expr = &self.0;
+        let cond = &expr.cond;
+        let then_branch = &expr.then_branch;
+        let default_else_branch = Box::new(syn::parse_str::<Expr>("{html!()}").unwrap());
+        let else_branch = &expr
+            .else_branch
+            .as_ref()
+            .map(|(_, expr)| expr)
+            .unwrap_or(&default_else_branch);
+        let new_tokens = quote_spanned! {expr.span()=>
+            if #cond #then_branch else #else_branch
+        };
+        */
         let HtmlIf {
             if_token,
             cond,
@@ -69,12 +81,9 @@ impl ToTokens for HtmlIf {
     }
 }
 
-pub enum HtmlBranch {
-    Children {
-        brace: token::Brace,
-        root: HtmlChildrenTree,
-    },
-    Block(Block),
+pub struct HtmlBranch {
+    brace: token::Brace,
+    root: HtmlRoot,
 }
 
 impl PeekValue<()> for HtmlBranch {
@@ -85,38 +94,27 @@ impl PeekValue<()> for HtmlBranch {
 
 impl Parse for HtmlBranch {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        if HtmlElement::peek(input.cursor()).is_some() || input.cursor().eof() {
-            let content;
-            let brace = braced!(content in input);
-            let mut root = HtmlChildrenTree::new();
-            root.parse_child(&content)?; // TODO
+        let content;
+        let brace = braced!(content in input);
+        let root = content.parse()?;
 
-            Ok(Self::Children {
-                brace,
-                root,
-            })
-        } else {
-            Ok(Self::Block(input.parse()?))
-        }
+        Ok(HtmlBranch {
+            brace,
+            root,
+        })
     }
 }
 
 impl ToTokens for HtmlBranch {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
-            Self::Children { root, .. } => {
-                let key = quote! { None }; // TODO
+        let Self {
+            root,
+            ..
+        } = self;
 
-                tokens.extend(quote! {
-                    {
-                        ::yew::virtual_dom::VNode::VList(
-                            ::yew::virtual_dom::VList::new_with_children(#root, #key)
-                        )
-                    }
-                });
-            },
-            Self::Block(block) => tokens.extend(quote! { #block }),
-        }
+        tokens.extend(quote! {
+            { #root }
+        });
     }
 }
 
