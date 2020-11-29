@@ -9,8 +9,9 @@ use quote::{quote_spanned, ToTokens, quote};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
-use syn::{Expr, ExprIf, Token, braced, token};
+use syn::{Expr, ExprIf, Token, braced, token, Block};
 use super::HtmlRoot;
+use super::HtmlTree;
 
 pub struct HtmlIf {
     if_token: Token![if],
