@@ -1,17 +1,12 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(dead_code)]
-
+use super::HtmlRoot;
 use crate::PeekValue;
 use boolinator::Boolinator;
-use proc_macro2::{TokenStream, Delimiter};
-use quote::{quote_spanned, ToTokens, quote};
+use proc_macro2::{Delimiter, TokenStream};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result as ParseResult};
 use syn::spanned::Spanned;
-use syn::{Expr, ExprIf, Token, braced, token, Block};
-use super::HtmlRoot;
-use super::HtmlTree;
+use syn::{braced, token, Expr, Token};
 
 pub struct HtmlIf {
     if_token: Token![if],
@@ -32,7 +27,8 @@ impl Parse for HtmlIf {
         let if_token = input.parse()?;
         let cond = input.parse()?;
         let then_branch = input.parse()?;
-        let else_branch = input.parse::<Token![else]>()
+        let else_branch = input
+            .parse::<Token![else]>()
             .ok()
             .map(|else_token| input.parse().map(|branch| (else_token, branch)))
             .transpose()?;
@@ -48,20 +44,6 @@ impl Parse for HtmlIf {
 
 impl ToTokens for HtmlIf {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        /*
-        let expr = &self.0;
-        let cond = &expr.cond;
-        let then_branch = &expr.then_branch;
-        let default_else_branch = Box::new(syn::parse_str::<Expr>("{html!()}").unwrap());
-        let else_branch = &expr
-            .else_branch
-            .as_ref()
-            .map(|(_, expr)| expr)
-            .unwrap_or(&default_else_branch);
-        let new_tokens = quote_spanned! {expr.span()=>
-            if #cond #then_branch else #else_branch
-        };
-        */
         let HtmlIf {
             if_token,
             cond,
@@ -82,7 +64,7 @@ impl ToTokens for HtmlIf {
 }
 
 pub struct HtmlBranch {
-    brace: token::Brace,
+    _brace: token::Brace,
     root: HtmlRoot,
 }
 
@@ -99,7 +81,7 @@ impl Parse for HtmlBranch {
         let root = content.parse()?;
 
         Ok(HtmlBranch {
-            brace,
+            _brace: brace,
             root,
         })
     }
@@ -107,10 +89,7 @@ impl Parse for HtmlBranch {
 
 impl ToTokens for HtmlBranch {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self {
-            root,
-            ..
-        } = self;
+        let Self { root, .. } = self;
 
         tokens.extend(quote! {
             { #root }
@@ -132,9 +111,9 @@ impl PeekValue<()> for HtmlBranchOrIf {
 impl Parse for HtmlBranchOrIf {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         if HtmlBranch::peek(input.cursor()).is_some() {
-            Ok(Self::Branch(input.parse()?))
+            input.parse().map(Self::Branch)
         } else {
-            Ok(Self::If(input.parse()?))
+            input.parse().map(Self::If)
         }
     }
 }
