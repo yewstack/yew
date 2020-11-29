@@ -30,6 +30,29 @@ use std::rc::Rc;
 //         use crate::smr::mock::{Element};
 //     }
 // }
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use crate::html::EventListener;
+        #[allow(unused_imports)]
+        use stdweb::{_js_impl, js};
+        use stdweb::unstable::TryFrom;
+        use stdweb::web::html_element::{InputElement, TextAreaElement};
+        use stdweb::web::{Element, IElement, INode};
+    } else if #[cfg(feature = "web_sys")] {
+        use gloo::events::EventListener;
+        use std::ops::Deref;
+        use wasm_bindgen::JsCast;
+        use web_sys::{
+            Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement, HtmlButtonElement as ButtonElement
+        };
+    } else if #[cfg(feature = "static_render")] {
+        use std::ops::Deref;
+        use crate::backend::{
+            Element, InputElement, TextAreaElement, ButtonElement,
+            EventListener
+        };
+    }
+}
 
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
@@ -244,32 +267,38 @@ impl VTag {
     }
 
     fn refresh_value(&mut self) {
-        // Don't refresh value if the element is not controlled
-        if self.value.is_none() {
-            return;
-        }
-
-        if let Some(element) = self.reference.as_ref() {
-            if self.element_type == ElementType::Input {
-                let input_el = cfg_match! {
-                    feature = "std_web" => InputElement::try_from(element.clone()).ok(),
-                    feature = "web_sys" => element.dyn_ref::<InputElement>(),
-                };
-                if let Some(input) = input_el {
-                    let current_value = cfg_match! {
-                        feature = "std_web" => input.raw_value(),
-                        feature = "web_sys" => input.value(),
-                    };
-                    self.set_value(&current_value)
+        cfg_if! {
+            if #[cfg(feature = "static_render")] {
+                unimplemented!();
+            } else {
+                // Don't refresh value if the element is not controlled
+                if self.value.is_none() {
+                    return;
                 }
-            } else if self.element_type == ElementType::Textarea {
-                let textarea_el = cfg_match! {
-                    feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
-                    feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
-                };
-                if let Some(tae) = textarea_el {
-                    let current_value = &tae.value();
-                    self.set_value(&current_value)
+
+                if let Some(element) = self.reference.as_ref() {
+                    if self.element_type == ElementType::Input {
+                        let input_el = cfg_match! {
+                            feature = "std_web" => InputElement::try_from(element.clone()).ok(),
+                            feature = "web_sys" => element.dyn_ref::<InputElement>(),
+                        };
+                        if let Some(input) = input_el {
+                            let current_value = cfg_match! {
+                                feature = "std_web" => input.raw_value(),
+                                feature = "web_sys" => input.value(),
+                            };
+                            self.set_value(&current_value)
+                        }
+                    } else if self.element_type == ElementType::Textarea {
+                        let textarea_el = cfg_match! {
+                            feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
+                            feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
+                        };
+                        if let Some(tae) = textarea_el {
+                            let current_value = &tae.value();
+                            self.set_value(&current_value)
+                        }
+                    }
                 }
             }
         }
@@ -337,6 +366,8 @@ impl VTag {
                         feature = "std_web" => element.remove_attribute(&key),
                         feature = "web_sys" => element.remove_attribute(&key)
                                                       .expect("could not remove attribute"),
+                        feature = "static_render" => element.remove_attribute(&key)
+                                                      .expect("could not remove attribute"),
                     };
                 }
             }
@@ -347,7 +378,7 @@ impl VTag {
         #[cfg(feature = "web_sys")]
         {
             if self.element_type == ElementType::Button {
-                if let Some(button) = element.dyn_ref::<HtmlButtonElement>() {
+                if let Some(button) = element.dyn_ref::<ButtonElement>() {
                     if let Some(change) = self.diff_kind(ancestor) {
                         let kind = match change {
                             Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
@@ -368,6 +399,7 @@ impl VTag {
                 cfg_match! {
                     feature = "std_web" => InputElement::try_from(element.clone()).ok(),
                     feature = "web_sys" => element.dyn_ref::<InputElement>(),
+                    feature = "static_render" => element.dyn_ref::<InputElement>(),
                 }
             } {
                 if let Some(change) = self.diff_kind(ancestor) {
@@ -385,6 +417,7 @@ impl VTag {
                             }
                         }),
                         feature = "web_sys" => input.set_type(kind),
+                        feature = "static_render" => input.set_type(kind),
                     }
                 }
 
@@ -396,6 +429,7 @@ impl VTag {
                     cfg_match! {
                         feature = "std_web" => input.set_raw_value(raw_value),
                         feature = "web_sys" => input.set_value(raw_value),
+                        feature = "static_render" => input.set_type(raw_value),
                     };
                 }
 
@@ -408,6 +442,7 @@ impl VTag {
                 cfg_match! {
                     feature = "std_web" => TextAreaElement::try_from(element.clone()).ok(),
                     feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
+                    feature = "static_render" => element.dyn_ref::<TextAreaElement>(),
                 }
             } {
                 if let Some(change) = self.diff_value(ancestor) {
@@ -431,6 +466,7 @@ impl VTag {
             let namespace = cfg_match! {
                 feature = "std_web" => SVG_NAMESPACE,
                 feature = "web_sys" => Some(SVG_NAMESPACE),
+                feature = "static_render" => Some(SVG_NAMESPACE),
             };
             document()
                 .create_element_ns(namespace, tag)
@@ -453,7 +489,7 @@ impl VDiff for VTag {
 
         // recursively remove its children
         self.children.detach(&node);
-        if parent.remove_child(&node).is_err() {
+        if parent.remove_child(&node.into()).is_err() {
             warn!("Node not found to remove VTag");
         }
         self.node_ref.set(None);
@@ -475,7 +511,7 @@ impl VDiff for VTag {
                 VNode::VTag(vtag) if self.tag() == vtag.tag() && self.key == vtag.key => Some(vtag),
                 _ => {
                     let element = self.create_element(parent);
-                    super::insert_node(&element, parent, Some(ancestor.first_node()));
+                    super::insert_node((&element).into(), parent, Some(ancestor.first_node()));
                     self.reference = Some(element);
                     ancestor.detach(parent);
                     None
@@ -491,7 +527,7 @@ impl VDiff for VTag {
             self.reference = ancestor_tag.reference.take();
         } else if self.reference.is_none() {
             let element = self.create_element(parent);
-            super::insert_node(&element, parent, next_sibling.get());
+            super::insert_node((&element).into(), parent, next_sibling.get());
             self.reference = Some(element);
         }
 
@@ -514,8 +550,9 @@ impl VDiff for VTag {
         let node = cfg_match! {
             feature = "std_web" => element.as_node(),
             feature = "web_sys" => element.deref(),
+            feature = "static_render" => element.deref(),
         };
-        self.node_ref.set(Some(node.clone()));
+        self.node_ref.set(Some(node.clone().into()));
         self.node_ref.clone()
     }
 }
@@ -525,6 +562,7 @@ fn set_checked(input: &InputElement, value: bool) {
     cfg_match! {
         feature = "std_web" => js!( @(no_return) @{input}.checked = @{value}; ),
         feature = "web_sys" => input.set_checked(value),
+        feature = "static_render" => input.set_checked(value),
     };
 }
 

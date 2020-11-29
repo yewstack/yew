@@ -7,6 +7,15 @@ use cfg_if::cfg_if;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
+cfg_if! {
+    if #[cfg(feature = "std_web")] {
+        use stdweb::web::{Element, INode, TextNode};
+    } else if #[cfg(feature = "web_sys")] {
+        use web_sys::{Element, Text as TextNode};
+    } else if #[cfg(feature = "static_render")] {
+        use crate::backend::{Element, Text as TextNode};
+    }
+}
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -36,7 +45,7 @@ impl VDiff for VText {
             .reference
             .take()
             .expect("tried to remove not rendered VText from DOM");
-        if parent.remove_child(&node).is_err() {
+        if parent.remove_child(&node.into()).is_err() {
             warn!("Node not found to remove VText");
         }
     }
@@ -66,8 +75,13 @@ impl VDiff for VText {
             ancestor.detach(parent);
         }
 
+<<<<<<< HEAD
         let text_node = Renderer::get_document().create_text_node(&self.text);
         super::insert_node(&text_node, parent, next_sibling.get());
+=======
+        let text_node = document().create_text_node(&self.text);
+        super::insert_node((&text_node).into(), parent, next_sibling.get());
+>>>>>>> 11160e17bcd5f2eae10045f95da23d42602ded17
         self.reference = Some(text_node.clone());
         NodeRef::new(text_node.into())
     }

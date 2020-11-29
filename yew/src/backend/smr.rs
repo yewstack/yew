@@ -1,5 +1,24 @@
+use std::cell::Cell;
+use std::rc::Rc;
 use super::DomBackend;
 
+// pub CURRENT_NODE_ID: u32 = 1;
+
+enum NodeData {
+    Element(ElementData),
+    Text(TextData)
+}
+
+struct ElementData {
+
+}
+
+struct TextData {
+
+}
+
+/// Represents a single rendering backend
+#[derive(Debug)]
 pub struct Renderer {}
 
 impl DomBackend for Renderer {
@@ -16,7 +35,7 @@ impl DomBackend for Renderer {
         todo!()
     }
 
-    fn element_remove_child(element: &Self::Element, child: &Self::Element) -> Option<()> {
+    fn element_remove_child(element: &Self::Element, child: &Self::Element) -> Result<Node, ()> {
         todo!()
     }
 
@@ -41,8 +60,59 @@ impl DomBackend for Renderer {
     }
 }
 
+/// Represents a mocked, mostly nonfunctional Event Listener
+#[derive(Debug)]
+pub struct EventListener;
+
+/// Represents a mocked, mostly nonfunctional Input Event
+#[derive(Debug)]
+pub struct InputEvent {
+    
+}
+
+/// Represents a mocked, mostly nonfunctional version of a File List
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/FileList
+#[derive(Debug)]
+pub struct FileList {}
+
+/// Represents an Input element
+#[derive(Debug)]
+pub struct InputElement {
+}
+
+impl InputElement {
+    pub fn set_type(&self, value: &str) {
+        todo!()
+    }
+}
+
+/// Represents a Select element
+#[derive(Debug)]
+pub struct SelectElement {}
+
+/// Represents a TextArea element
+#[derive(Debug)]
+pub struct TextAreaElement {}
+
+impl TextAreaElement {
+    pub fn set_value(&self, value: &str) {
+        todo!()
+    }
+}
+
+impl InputElement {
+    pub fn set_value(&self, value: &str) {
+        todo!()
+    }
+}
+
+/// Represents a Button element
+#[derive(Debug)]
+pub struct ButtonElement {}
+
+/// Represents a Text node
 #[derive(Debug, Clone)]
-pub struct Element;
+pub struct Text {}
 
 impl Element {}
 
@@ -51,7 +121,77 @@ pub struct EventListener;
 
 #[derive(Debug, Clone)]
 pub struct Document;
+impl Text {
+    pub fn set_node_value(&self, value: Option<&str>) {
 
+    }
+}
+
+/// Represents a generic Element
+#[derive(Debug, Clone)]
+pub struct Element {
+    pub node_data: Rc<Cell<NodeData>>
+}
+
+impl Element {
+    pub fn remove_attribute(&self, name: &str) -> Result<(), ()> {
+        todo!("remove attributes")
+    }
+    pub fn as_node(&self) -> Node {
+        Node {}
+    }
+    pub fn last_child(&self) -> Option<Element> {
+        todo!("Enable last child in SSR dom");
+    }
+    pub fn remove_child(&self, child: &Node) -> Result<Node, ()> {
+        todo!("Enable child removal in SSR dom");
+    }
+    pub fn set_attribute(&self, name: &str, value: &str) -> Result<(), ()> {
+        todo!("Enable attributes in SSR dom");
+    }
+    pub fn dyn_ref<T>(&self) -> Option<&T> {
+        todo!("Support dyn ref casting in SSR dom");
+    }
+
+    pub fn namespace_uri(&self) -> Option<String> {
+        todo!()
+    }
+}
+
+impl From<&Element> for &Node {
+    fn from(element: &Element) -> Self {
+        todo!("Implement &element -> &node conversion")
+    }
+}
+
+impl From<&Text> for &Node {
+    fn from(text: &Text) -> Self {
+        todo!("Implement &Text -> &node conversion")
+    }
+}
+
+impl From<Element> for Node {
+    fn from(element: Element) -> Self {
+        todo!("Implement element -> node conversion")
+    }
+}
+
+impl From<Node> for Element {
+    fn from(node: Node) -> Self {
+        let node_data = node.node_data;
+        match (*node_data).get() {
+            NodeData::Element(_) => {},
+            _ => {
+                panic!("Cannot convert a non-element Node to an Element");
+            }
+        }
+        Element {
+            node_data
+        }
+    }
+}
+
+/// Represents a generic Node
 #[derive(PartialEq, Debug, Default, Clone)]
 pub struct Node;
 
@@ -59,6 +199,30 @@ pub struct Node;
 pub struct TextNode;
 
 #[derive(Debug, Clone)]
+pub struct Node {
+    pub node_data: Rc<Cell<NodeData>>
+}
+
+impl Node {
+    pub fn first_child(&self) -> Option<Node> {
+        todo!("Implement first child")
+    }
+}
+
+impl From<Option<Element>> for Node {
+    fn from(_: Option<Element>) -> Self {
+        todo!()
+    }
+}
+
+impl From<Text> for Node {
+    fn from(_: Text) -> Self {
+        todo!()
+    }
+}
+
+/// Represents a Window
+#[derive(Debug)]
 pub struct Window;
 
 impl Window {
@@ -67,6 +231,13 @@ impl Window {
     }
 }
 
+pub fn get_window() -> Window {
+    Window
+}
+
+/// Represents a Document
+#[derive(Debug)]
+pub struct Document;
 impl Document {
     pub fn location(&self) -> Option<String> {
         Some(format!("blah"))
@@ -107,4 +278,29 @@ impl Element {
         todo!("Enable child removal in SSR dom");
         Some(())
     }
+}
+    pub fn query_selector(&self, selectors: &str) -> Option<Option<Element>> {
+        todo!("query selector")
+    }
+    pub fn create_element(&self, qualified_name: &str) -> Option<Element> {
+        todo!("Create element");
+    }
+    pub fn create_element_ns(&self, namespace: Option<&str>, qualified_name: &str) -> Option<Element> {
+        todo!("Create element");
+    }
+    pub fn create_text_node(&self, id: &str) -> Text {
+        todo!("Create element");
+    }
+}
+
+pub fn get_document() -> Document {
+    Document
+}
+
+pub fn get_origin() -> String {
+    format!("blah")
+}
+
+pub fn get_host() -> String {
+    format!("blah")
 }

@@ -4,15 +4,17 @@ use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::Element;
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::Element;
-    } else if #[cfg(feature = "static_render")] {
-        use crate::smr::mock::{Element, Node, EventListener};
-    }
-}
+// cfg_if! {
+//     if #[cfg(feature = "std_web")] {
+//         use stdweb::web::Element;
+//     } else if #[cfg(feature = "web_sys")] {
+//         use web_sys::Element;
+//     } else if #[cfg(feature = "static_render")] {
+//         use crate::smr::mock::{Element, Node, EventListener};
+//     }
+// }
+
+use crate::backend::{Element};
 
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Clone, Debug, PartialEq, Default)]

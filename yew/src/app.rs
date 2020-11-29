@@ -10,7 +10,7 @@ cfg_if! {
     } else if #[cfg(feature = "web_sys")] {
         use web_sys::Element;
     } else if #[cfg(feature = "static_render")] {
-        use crate::smr::mock::Element;
+        use crate::backend::Element;
     }
 }
 
@@ -75,7 +75,7 @@ where
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
         html_element
-            .remove_child(&body_element)
+            .remove_child(&body_element.into())
             .expect("can't remove body child");
         self.scope.mount_in_place(
             html_element,
@@ -135,7 +135,7 @@ where
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
         html_element
-            .remove_child(&body_element)
+            .remove_child(&body_element.into())
             .expect("can't remove body child");
         self.scope.mount_in_place(
             html_element,
@@ -150,6 +150,6 @@ where
 /// Removes anything from the given element.
 fn clear_element(element: &Element) {
     while let Some(child) = element.last_child() {
-        element.remove_child(&child).expect("can't remove a child");
+        element.remove_child(&child.into()).expect("can't remove a child");
     }
 }
