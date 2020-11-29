@@ -12,6 +12,7 @@ use syn::spanned::Spanned;
 use syn::{Expr, ExprIf, Token, braced, token, Block};
 use super::HtmlRoot;
 use super::HtmlTree;
+use super::HtmlChildrenTree;
 
 pub struct HtmlIf {
     if_token: Token![if],
@@ -48,20 +49,6 @@ impl Parse for HtmlIf {
 
 impl ToTokens for HtmlIf {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        /*
-        let expr = &self.0;
-        let cond = &expr.cond;
-        let then_branch = &expr.then_branch;
-        let default_else_branch = Box::new(syn::parse_str::<Expr>("{html!()}").unwrap());
-        let else_branch = &expr
-            .else_branch
-            .as_ref()
-            .map(|(_, expr)| expr)
-            .unwrap_or(&default_else_branch);
-        let new_tokens = quote_spanned! {expr.span()=>
-            if #cond #then_branch else #else_branch
-        };
-        */
         let HtmlIf {
             if_token,
             cond,
@@ -83,7 +70,7 @@ impl ToTokens for HtmlIf {
 
 pub struct HtmlBranch {
     brace: token::Brace,
-    root: HtmlRoot,
+    root: HtmlChildrenTree,
 }
 
 impl PeekValue<()> for HtmlBranch {
@@ -96,7 +83,8 @@ impl Parse for HtmlBranch {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let content;
         let brace = braced!(content in input);
-        let root = content.parse()?;
+        let mut root = HtmlChildrenTree::new();
+        root.parse_child(&content)?; // TODO
 
         Ok(HtmlBranch {
             brace,
@@ -111,9 +99,14 @@ impl ToTokens for HtmlBranch {
             root,
             ..
         } = self;
+        let key = quote! { None }; // TODO
 
         tokens.extend(quote! {
-            { #root }
+            {
+                ::yew::virtual_dom::VNode::VList(
+                    ::yew::virtual_dom::VList::new_with_children(#root, #key)
+                )
+            }
         });
     }
 }
