@@ -1,7 +1,10 @@
 //! This module contains the implementation of abstract virtual node.
 
 use super::{Key, VChild, VComp, VDiff, VList, VTag, VText};
-use crate::html::{AnyScope, Component, NodeRef};
+use crate::{
+    backend::DomBackend,
+    html::{AnyScope, Component, NodeRef},
+};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use log::warn;
@@ -9,11 +12,9 @@ use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
 
-use crate::backend::{Document, Element, Node, Renderer, Window};
-
 /// Bind virtual element to a DOM reference.
 #[derive(Clone)]
-pub enum VNode {
+pub enum VNode<REND: DomBackend> {
     /// A bind between `VTag` and `Element`.
     VTag(Box<VTag>),
     /// A bind between `VText` and `TextNode`.
@@ -23,10 +24,10 @@ pub enum VNode {
     /// A holder for a list of other nodes.
     VList(VList),
     /// A holder for any `Node` (necessary for replacing node).
-    VRef(Node),
+    VRef(REND::Node),
 }
 
-impl VNode {
+impl<REND: DomBackend> VNode<REND> {
     pub fn key(&self) -> Option<Key> {
         match self {
             VNode::VComp(vcomp) => vcomp.key.clone(),
@@ -38,7 +39,7 @@ impl VNode {
     }
 
     /// Returns the first DOM node that is used to designate the position of the virtual DOM node.
-    pub(crate) fn first_node(&self) -> Node {
+    pub(crate) fn first_node(&self) -> REND::Node {
         match self {
             VNode::VTag(vtag) => vtag
                 .reference
@@ -64,7 +65,7 @@ impl VNode {
         }
     }
 
-    pub(crate) fn move_before(&self, parent: &Element, next_sibling: Option<Node>) {
+    pub(crate) fn move_before(&self, parent: &REND::Element, next_sibling: Option<REND::Node>) {
         match self {
             VNode::VList(vlist) => {
                 for node in vlist.children.iter() {
@@ -82,9 +83,9 @@ impl VNode {
     }
 }
 
-impl VDiff for VNode {
+impl<REND: DomBackend> VDiff for VNode<REND> {
     /// Remove VNode from parent.
-    fn detach(&mut self, parent: &Element) {
+    fn detach(&mut self, parent: &REND::Element) {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.detach(parent),
             VNode::VText(ref mut vtext) => vtext.detach(parent),
@@ -101,7 +102,7 @@ impl VDiff for VNode {
     fn apply(
         &mut self,
         parent_scope: &AnyScope,
-        parent: &Element,
+        parent: &REND::Element,
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
     ) -> NodeRef {

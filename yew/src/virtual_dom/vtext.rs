@@ -1,31 +1,22 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use super::{VDiff, VNode};
-use crate::backend::{DomBackend, Element, Renderer, TextNode};
+use crate::backend::{DomBackend};
 use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, INode, TextNode};
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Text as TextNode};
-    } else if #[cfg(feature = "static_render")] {
-        use crate::backend::{Element, Text as TextNode};
-    }
-}
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// representation.
 #[derive(Clone, Debug)]
-pub struct VText {
+pub struct VText<REND: DomBackend> {
     /// Contains a text of the node.
     pub text: Cow<'static, str>,
     /// A reference to the `TextNode`.
-    pub reference: Option<TextNode>,
+    pub reference: Option<REND::TextNode>,
 }
 
 impl VText {
@@ -38,9 +29,9 @@ impl VText {
     }
 }
 
-impl VDiff for VText {
+impl<REND: DomBackend> VDiff for VText<REND> {
     /// Remove VText from parent.
-    fn detach(&mut self, parent: &Element) {
+    fn detach(&mut self, parent: &REND::Element) {
         let node = self
             .reference
             .take()
@@ -54,7 +45,7 @@ impl VDiff for VText {
     fn apply(
         &mut self,
         _parent_scope: &AnyScope,
-        parent: &Element,
+        parent: &REND::Element,
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
     ) -> NodeRef {
@@ -75,13 +66,10 @@ impl VDiff for VText {
             ancestor.detach(parent);
         }
 
-<<<<<<< HEAD
-        let text_node = Renderer::get_document().create_text_node(&self.text);
+        let text_node = REND::get_document().create_text_node(&self.text);
         super::insert_node(&text_node, parent, next_sibling.get());
-=======
-        let text_node = document().create_text_node(&self.text);
+        let text_node = REND::get_document().create_text_node(&self.text);
         super::insert_node((&text_node).into(), parent, next_sibling.get());
->>>>>>> 11160e17bcd5f2eae10045f95da23d42602ded17
         self.reference = Some(text_node.clone());
         NodeRef::new(text_node.into())
     }

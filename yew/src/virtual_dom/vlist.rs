@@ -1,61 +1,52 @@
 //! This module contains fragments implementation.
 use super::{Key, VDiff, VNode, VText};
-use crate::html::{AnyScope, NodeRef};
-use cfg_if::cfg_if;
+use crate::{
+    backend::DomBackend,
+    html::{AnyScope, NodeRef},
+};
 use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
-// cfg_if! {
-//     if #[cfg(feature = "std_web")] {
-//         use stdweb::web::Element;
-//     } else if #[cfg(feature = "web_sys")] {
-//         use web_sys::Element;
-//     } else if #[cfg(feature = "static_render")] {
-//         use crate::smr::mock::{Element, Node, EventListener};
-//     }
-// }
-
-use crate::backend::{Element};
 
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Clone, Debug, PartialEq, Default)]
-pub struct VList {
+pub struct VList<REND: DomBackend> {
     /// The list of children nodes.
-    pub children: Vec<VNode>,
+    pub children: Vec<VNode<REND>>,
     pub key: Option<Key>,
 }
 
-impl Deref for VList {
-    type Target = Vec<VNode>;
+impl<REND: DomBackend> Deref for VList<REND> {
+    type Target = Vec<VNode<REND>>;
 
     fn deref(&self) -> &Self::Target {
         &self.children
     }
 }
 
-impl DerefMut for VList {
+impl<REND: DomBackend> DerefMut for VList<REND> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.children
     }
 }
 
-impl VList {
+impl<REND: DomBackend> VList<REND> {
     /// Creates a new empty `VList` instance.
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Creates a new `VList` instance with children.
-    pub fn new_with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
+    pub fn new_with_children(children: Vec<VNode<REND>>, key: Option<Key>) -> Self {
         VList { children, key }
     }
 
     /// Add `VNode` child.
-    pub fn add_child(&mut self, child: VNode) {
+    pub fn add_child(&mut self, child: VNode<REND>) {
         self.children.push(child);
     }
 
     /// Add multiple `VNode` children.
-    pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
+    pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode<REND>>) {
         self.children.extend(children);
     }
 
@@ -72,8 +63,8 @@ impl VList {
     }
 }
 
-impl VDiff for VList {
-    fn detach(&mut self, parent: &Element) {
+impl<REND: DomBackend> VDiff<REND> for VList<REND> {
+    fn detach(&mut self, parent: &REND::Element) {
         for mut child in self.children.drain(..) {
             child.detach(parent);
         }
@@ -82,9 +73,9 @@ impl VDiff for VList {
     fn apply(
         &mut self,
         parent_scope: &AnyScope,
-        parent: &Element,
+        parent: &REND::Element,
         next_sibling: NodeRef,
-        ancestor: Option<VNode>,
+        ancestor: Option<VNode<REND>>,
     ) -> NodeRef {
         // Here, we will try to diff the previous list elements with the new
         // ones we want to insert. For that, we will use two lists:

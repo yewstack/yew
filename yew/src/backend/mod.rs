@@ -6,30 +6,15 @@
 
 use crate::NodeRef;
 
-cfg_if::cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        mod std_web;
-    } else if #[cfg(feature = "web_sys")] {
-        mod web_sys;
-    } else if #[cfg(feature = "static_render")] {
-        mod smr;
-        pub use smr::*;
-        pub use smr::{
-            Document, Element, Node, Renderer, Window, EventListener,
-            InputElement, SelectElement, TextAreaElement, FileList, InputEvent,
-            ButtonElement, Text, get_window, get_document, get_origin, get_host
-        };
-    }
-}
-
 pub trait DomBackend {
-    type Element;
-    type Node;
+    type Element: DomElement;
+    type Node: DomNode;
     type Document;
     type Window;
     type InputEvent;
     type InputData;
     type ChangeData;
+    type EventListener;
 
     /// Returns the current window. This function will panic if there is no available window.
     fn get_window() -> Self::Window;
@@ -55,3 +40,6 @@ pub trait DomBackend {
     fn oninput_handler(this: &Self::Element, event: Self::InputEvent) -> Self::InputData;
     fn onchange_handler(this: &Self::Element) -> Self::ChangeData;
 }
+
+pub(crate) trait DomElement {}
+pub(crate) trait DomNode {}

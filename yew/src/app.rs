@@ -1,46 +1,40 @@
 //! This module contains the `App` struct, which is used to bootstrap
 //! a component in an isolated scope.
 
+// use crate::backend::Element;
+use crate::backend::DomBackend;
 use crate::html::{Component, ComponentLink, NodeRef, Scope};
-use crate::utils::document;
-use cfg_if::cfg_if;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, INode, IParentNode};
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::Element;
-    } else if #[cfg(feature = "static_render")] {
-        use crate::backend::Element;
-    }
-}
 
 /// An instance of an application.
 #[derive(Debug)]
-pub struct App<COMP: Component> {
+
+pub struct App<COMP: Component, REND: DomBackend> {
     /// `Scope` holder
     scope: Scope<COMP>,
 }
 
-impl<COMP> Default for App<COMP>
+impl<COMP, REND> Default for App<COMP, REND>
 where
     COMP: Component,
+    REND: DomBackend,
 {
     fn default() -> Self {
         App::new()
     }
 }
 
-impl<COMP> App<COMP>
+impl<COMP, REND> App<COMP, REND>
 where
     COMP: Component,
     COMP::Properties: Default,
+    REND: DomBackend,
 {
     /// The main entry point of a Yew program. It works similarly to the `program`
     /// function in Elm. You should provide an initial model, `update` function
     /// which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree. If you would like to pass props,
     /// use the `mount_with_props` method.
-    pub fn mount(self, element: Element) -> ComponentLink<COMP> {
+    pub fn mount(self, element: REND::Element) -> ComponentLink<COMP> {
         clear_element(&element);
         self.scope.mount_in_place(
             element,
@@ -54,7 +48,7 @@ where
     /// Alias to `mount("body", ...)`.
     pub fn mount_to_body(self) -> ComponentLink<COMP> {
         // Bootstrap the component for `Window` environment only (not for `Worker`)
-        let element = document()
+        let element = REND::get_document()
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
@@ -66,11 +60,11 @@ where
     /// need to manipulate the body element. For example, adding/removing app-wide
     /// CSS classes of the body element.
     pub fn mount_as_body(self) -> ComponentLink<COMP> {
-        let html_element = document()
+        let html_element = REND::get_document()
             .query_selector("html")
             .expect("can't get html node for rendering")
             .expect("can't unwrap html node");
-        let body_element = document()
+        let body_element = REND::get_document()
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
@@ -87,9 +81,10 @@ where
     }
 }
 
-impl<COMP> App<COMP>
+impl<COMP, REND> App<COMP, REND>
 where
     COMP: Component,
+    REND: DomBackend,
 {
     /// Creates a new `App` with a component in a context.
     pub fn new() -> Self {
@@ -103,7 +98,7 @@ where
     /// will render the model to a virtual DOM tree.
     pub fn mount_with_props(
         self,
-        element: Element,
+        element: REND::Element,
         props: COMP::Properties,
     ) -> ComponentLink<COMP> {
         clear_element(&element);
@@ -114,7 +109,7 @@ where
     /// Alias to `mount_with_props("body", ...)`.
     pub fn mount_to_body_with_props(self, props: COMP::Properties) -> ComponentLink<COMP> {
         // Bootstrap the component for `Window` environment only (not for `Worker`)
-        let element = document()
+        let element = REND::get_document()
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
@@ -126,11 +121,11 @@ where
     /// when you need to manipulate the body element. For example, adding/removing app-wide
     /// CSS classes of the body element.
     pub fn mount_as_body_with_props(self, props: COMP::Properties) -> ComponentLink<COMP> {
-        let html_element = document()
+        let html_element = REND::get_document()
             .query_selector("html")
             .expect("can't get html node for rendering")
             .expect("can't unwrap html node");
-        let body_element = document()
+        let body_element = REND::get_document()
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
@@ -148,8 +143,10 @@ where
 }
 
 /// Removes anything from the given element.
-fn clear_element(element: &Element) {
+fn clear_element<REND: DomBackend>(element: &REND::Element) {
     while let Some(child) = element.last_child() {
-        element.remove_child(&child.into()).expect("can't remove a child");
+        element
+            .remove_child(&child.into())
+            .expect("can't remove a child");
     }
 }

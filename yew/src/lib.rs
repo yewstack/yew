@@ -260,22 +260,20 @@ pub mod macros {
 pub mod app;
 pub mod backend;
 pub mod callback;
-pub mod format;
+// pub mod format;
 pub mod html;
 mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
 
-#[cfg(feature = "agent")]
-pub mod agent;
-#[cfg(feature = "services")]
-pub mod services;
+// #[cfg(feature = "agent")]
+// pub mod agent;
+// #[cfg(feature = "services")]
+// pub mod services;
 
 #[cfg(feature = "web_sys")]
 pub use web_sys;
 
-#[cfg(feature = "static_render")]
-pub mod smr;
 
 /// The module that contains all events available in the framework.
 pub mod events {
@@ -353,8 +351,7 @@ where
 /// use yew::prelude::*;
 /// ```
 pub mod prelude {
-    #[cfg(feature = "agent")]
-    pub use crate::agent::{Bridge, Bridged, Dispatched, Threaded};
+
     pub use crate::app::App;
     pub use crate::callback::Callback;
     pub use crate::events::*;
@@ -365,13 +362,6 @@ pub mod prelude {
     pub use crate::macros::{html, html_nested};
     pub use crate::virtual_dom::Classes;
 
-    /// Prelude module for creating worker.
-    #[cfg(feature = "agent")]
-    pub mod worker {
-        pub use crate::agent::{
-            Agent, AgentLink, Bridge, Bridged, Context, HandlerId, Job, Private, Public,
-        };
-    }
 }
 
 pub use self::prelude::*;

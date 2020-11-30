@@ -121,10 +121,10 @@ serde_derive = "1"
 trybuild = "1.0"
 rustversion = "1.0"
 rmp-serde = "0.14.0"
-bincode = "1"
+# bincode = "1"
 
 [features]
-default = ["static_render"]
+default = ["web_sys", "static_render"]
 std_web = ["stdweb", "yew-macro/std_web"]
 web_sys = [
   "console_error_panic_hook",
@@ -138,12 +138,12 @@ doc_test = []
 wasm_test = []
 httpbin_test = []
 wasm_bench = []
-services = []
 static_render = ["htmlescape"]
-agent = ["bincode"]
-yaml = ["serde_yaml"]
-msgpack = ["rmp-serde"]
-cbor = ["serde_cbor"]
+# services = []
+# agent = ["bincode"]
+# yaml = ["serde_yaml"]
+# msgpack = ["rmp-serde"]
+# cbor = ["serde_cbor"]
 
 [package.metadata.docs.rs]
 features = ["yaml", "cbor", "toml", "msgpack", "doc_test", "static_render"]
