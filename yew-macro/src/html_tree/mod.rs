@@ -175,7 +175,7 @@ impl HtmlChildrenTree {
         Self(Vec::new())
     }
 
-    pub fn parse_child(&mut self, input: ParseStream) -> ParseResult<()> {
+    pub fn parse_child(&mut self, input: &mut ParseStream) -> ParseResult<()> {
         self.0.push(input.parse()?);
         Ok(())
     }
@@ -227,6 +227,16 @@ impl HtmlChildrenTree {
             }
         }
     }
+
+    fn parse_delimited(mut input: ParseStream) -> syn::Result<Self> {
+        let mut children = HtmlChildrenTree::new();
+
+        while !input.is_empty() {
+            children.parse_child(&mut input)?;
+        }
+
+        Ok(children)
+    }
 }
 
 impl ToTokens for HtmlChildrenTree {
@@ -237,7 +247,7 @@ impl ToTokens for HtmlChildrenTree {
 
 pub struct HtmlRootBraced {
     brace: token::Brace,
-    root: HtmlRoot,
+    children: HtmlChildrenTree,
 }
 
 impl PeekValue<()> for HtmlRootBraced {
@@ -248,20 +258,24 @@ impl PeekValue<()> for HtmlRootBraced {
 
 impl Parse for HtmlRootBraced {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let content;
+        let mut content;
         let brace = braced!(content in input);
-        let root = content.parse()?;
+        let children = HtmlChildrenTree::parse_delimited(&mut content)?;
 
-        Ok(HtmlRootBraced { brace, root })
+        Ok(HtmlRootBraced { brace, children })
     }
 }
 
 impl ToTokens for HtmlRootBraced {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self { brace, root } = self;
+        let Self { brace, children } = self;
 
-        tokens.extend(quote_spanned! {brace.span=>
-            { #root }
+        tokens.extend(quote_spanned! {brace.span.span()=>
+            {
+                ::yew::virtual_dom::VNode::VList(
+                    ::yew::virtual_dom::VList::new_with_children(#children, None)
+                )
+            }
         });
     }
 }

@@ -25,7 +25,7 @@ impl PeekValue<()> for HtmlElement {
 }
 
 impl Parse for HtmlElement {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(mut input: ParseStream) -> syn::Result<Self> {
         if HtmlElementClose::peek(input.cursor()).is_some() {
             return match input.parse::<HtmlElementClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
@@ -75,7 +75,7 @@ impl Parse for HtmlElement {
                 }
             }
 
-            children.parse_child(input)?;
+            children.parse_child(&mut input)?;
         }
 
         input.parse::<HtmlElementClose>()?;

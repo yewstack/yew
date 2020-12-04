@@ -22,6 +22,12 @@ error: expected block or `if` token after this token
 8 |     html! { if true {} else if true {} else };
   |                                        ^^^^
 
+error: expected block or `if` token after this token
+ --> $DIR/html-if-fail.rs:9:40
+  |
+9 |     html! { if true {} else if true {} else };
+  |                                        ^^^^
+
 error[E0308]: mismatched types
  --> $DIR/html-if-fail.rs:5:16
   |

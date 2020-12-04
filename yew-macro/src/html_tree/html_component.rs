@@ -27,7 +27,7 @@ impl PeekValue<()> for HtmlComponent {
 }
 
 impl Parse for HtmlComponent {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(mut input: ParseStream) -> syn::Result<Self> {
         if HtmlComponentClose::peek(input.cursor()).is_some() {
             return match input.parse::<HtmlComponentClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
@@ -62,7 +62,7 @@ impl Parse for HtmlComponent {
                 }
             }
 
-            children.parse_child(input)?;
+            children.parse_child(&mut input)?;
         }
 
         input.parse::<HtmlComponentClose>()?;
