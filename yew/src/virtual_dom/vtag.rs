@@ -1211,7 +1211,7 @@ mod tests {
                     }
                 </div>
             },
-            html! { <div><div class="foo" /></div>) },
+            html! { <div><div class="foo" /></div> },
         );
         assert_eq!(
             html! {
