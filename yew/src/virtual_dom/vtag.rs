@@ -1181,7 +1181,7 @@ mod tests {
                     <div class=class />
                 }
             },
-            html!(<div class="foo" />),
+            html! { <div class="foo" /> },
         );
         assert_eq!(
             html! {
@@ -1199,7 +1199,7 @@ mod tests {
                     <div class=class />
                 }
             },
-            html!(),
+            html! {},
         );
 
         // non-root tests
@@ -1211,7 +1211,7 @@ mod tests {
                     }
                 </div>
             },
-            html!(<div><div class="foo" /></div>),
+            html! { <div><div class="foo" /></div>) },
         );
         assert_eq!(
             html! {
@@ -1223,7 +1223,7 @@ mod tests {
                     }
                 </div>
             },
-            html!(<div><div class="bar" /></div>),
+            html! { <div><div class="bar" /></div> },
         );
         assert_eq!(
             html! {
@@ -1233,7 +1233,7 @@ mod tests {
                     }
                 </div>
             },
-            html!(<div><></></div>),
+            html! { <div><></></div> },
         );
     }
 }
