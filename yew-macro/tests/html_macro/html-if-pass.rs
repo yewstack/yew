@@ -9,7 +9,7 @@ fn compile_pass() {
     html! { if true {} else {} };
     html! { if true {} else if true {} };
     html! { if true {} else if true {} else {} };
-    html! { if let Some(text) = Some("text") { <span>{text}</span> } };
+    html! { if let Some(text) = Some("text") { <span>{ text }</span> } };
     html! { <><div/>if true {}<div/></> };
     html! { <div>if true {}</div> };
 }
