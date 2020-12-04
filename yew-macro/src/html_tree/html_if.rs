@@ -25,12 +25,29 @@ impl PeekValue<()> for HtmlIf {
 impl Parse for HtmlIf {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let if_token = input.parse()?;
-        let cond = input.parse()?;
+        let cond: Box<Expr> = input.parse()?;
+
+        if input.is_empty() {
+            return Err(syn::Error::new(
+                cond.span(),
+                "expected block after this condition",
+            ));
+        }
+
         let then_branch = input.parse()?;
         let else_branch = input
             .parse::<Token![else]>()
             .ok()
-            .map(|else_token| input.parse().map(|branch| (else_token, branch)))
+            .map(|else_token| {
+                if input.is_empty() {
+                    return Err(syn::Error::new(
+                        else_token.span(),
+                        "expected block or `if` token after this token",
+                    ));
+                }
+
+                input.parse().map(|branch| (else_token, branch))
+            })
             .transpose()?;
 
         Ok(HtmlIf {

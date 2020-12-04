@@ -1,34 +1,26 @@
-error: unexpected end of input, expected curly braces
- --> $DIR/html-if-fail.rs:4:5
+error: expected block after this condition
+ --> $DIR/html-if-fail.rs:4:16
   |
 4 |     html! { if {} };
-  |     ^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+  |                ^^
 
-error: unexpected end of input, expected `if`
- --> $DIR/html-if-fail.rs:6:5
+error: expected block or `if` token after this token
+ --> $DIR/html-if-fail.rs:6:24
   |
 6 |     html! { if true {} else };
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+  |                        ^^^^
 
-error: unexpected end of input, expected curly braces
- --> $DIR/html-if-fail.rs:7:5
+error: expected block after this condition
+ --> $DIR/html-if-fail.rs:7:32
   |
 7 |     html! { if true {} else if {} };
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+  |                                ^^
 
-error: unexpected end of input, expected `if`
- --> $DIR/html-if-fail.rs:8:5
+error: expected block or `if` token after this token
+ --> $DIR/html-if-fail.rs:8:40
   |
 8 |     html! { if true {} else if true {} else };
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+  |                                        ^^^^
 
 error[E0308]: mismatched types
  --> $DIR/html-if-fail.rs:5:16
