@@ -1092,6 +1092,107 @@ mod tests {
             panic!("vtag expected");
         }
     }
+}
+
+#[cfg(all(test, feature = "web_sys"))]
+mod layout_tests {
+    extern crate self as yew;
+
+    use crate::html;
+    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn diff() {
+        let layout1 = TestLayout {
+            name: "1",
+            node: html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b</li></ul>",
+        };
+
+        let layout2 = TestLayout {
+            name: "2",
+            node: html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                    <li>
+                        {"d"}
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b</li><li>d</li></ul>",
+        };
+
+        let layout3 = TestLayout {
+            name: "3",
+            node: html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                    <li>
+                        {"c"}
+                    </li>
+                    <li>
+                        {"d"}
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>",
+        };
+
+        let layout4 = TestLayout {
+            name: "4",
+            node: html! {
+                <ul>
+                    <li>
+                        <>
+                            {"a"}
+                        </>
+                    </li>
+                    <li>
+                        {"b"}
+                        <li>
+                            {"c"}
+                        </li>
+                        <li>
+                            {"d"}
+                        </li>
+                    </li>
+                </ul>
+            },
+            expected: "<ul><li>a</li><li>b<li>c</li><li>d</li></li></ul>",
+        };
+
+        diff_layouts(vec![layout1, layout2, layout3, layout4]);
+    }
+}
+
+#[cfg(test)]
+mod tests_without_browser {
+    use crate::html;
 
     #[test]
     fn html_if_bool() {
@@ -1235,101 +1336,5 @@ mod tests {
             },
             html! { <div><></></div> },
         );
-    }
-}
-
-#[cfg(all(test, feature = "web_sys"))]
-mod layout_tests {
-    extern crate self as yew;
-
-    use crate::html;
-    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
-
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    #[test]
-    fn diff() {
-        let layout1 = TestLayout {
-            name: "1",
-            node: html! {
-                <ul>
-                    <li>
-                        {"a"}
-                    </li>
-                    <li>
-                        {"b"}
-                    </li>
-                </ul>
-            },
-            expected: "<ul><li>a</li><li>b</li></ul>",
-        };
-
-        let layout2 = TestLayout {
-            name: "2",
-            node: html! {
-                <ul>
-                    <li>
-                        {"a"}
-                    </li>
-                    <li>
-                        {"b"}
-                    </li>
-                    <li>
-                        {"d"}
-                    </li>
-                </ul>
-            },
-            expected: "<ul><li>a</li><li>b</li><li>d</li></ul>",
-        };
-
-        let layout3 = TestLayout {
-            name: "3",
-            node: html! {
-                <ul>
-                    <li>
-                        {"a"}
-                    </li>
-                    <li>
-                        {"b"}
-                    </li>
-                    <li>
-                        {"c"}
-                    </li>
-                    <li>
-                        {"d"}
-                    </li>
-                </ul>
-            },
-            expected: "<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>",
-        };
-
-        let layout4 = TestLayout {
-            name: "4",
-            node: html! {
-                <ul>
-                    <li>
-                        <>
-                            {"a"}
-                        </>
-                    </li>
-                    <li>
-                        {"b"}
-                        <li>
-                            {"c"}
-                        </li>
-                        <li>
-                            {"d"}
-                        </li>
-                    </li>
-                </ul>
-            },
-            expected: "<ul><li>a</li><li>b<li>c</li><li>d</li></li></ul>",
-        };
-
-        diff_layouts(vec![layout1, layout2, layout3, layout4]);
     }
 }
