@@ -1,4 +1,4 @@
-use super::HtmlRootBraced;
+use super::{HtmlRootBraced, ToNodeIterator};
 use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::TokenStream;
@@ -60,6 +60,27 @@ impl ToTokens for HtmlIf {
         };
 
         tokens.extend(new_tokens);
+    }
+}
+
+impl ToNodeIterator for HtmlIf {
+    fn to_node_iterator_stream(&self) -> Option<TokenStream> {
+        let HtmlIf {
+            if_token,
+            cond,
+            then_branch,
+            else_branch,
+        } = self;
+        let default_else_branch = syn::parse_str("{}").unwrap();
+        let else_branch = else_branch
+            .as_ref()
+            .map(|(_, branch)| branch)
+            .unwrap_or(&default_else_branch);
+        let new_tokens = quote_spanned! {if_token.span()=>
+            if #cond #then_branch else #else_branch
+        };
+
+        Some(quote_spanned! {if_token.span=> #new_tokens})
     }
 }
 
