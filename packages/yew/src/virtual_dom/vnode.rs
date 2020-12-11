@@ -14,7 +14,7 @@ use std::iter::FromIterator;
 
 /// Bind virtual element to a DOM reference.
 #[derive(Clone)]
-pub enum VNode<REND: DomBackend> {
+pub enum VNode {
     /// A bind between `VTag` and `Element`.
     VTag(Box<VTag>),
     /// A bind between `VText` and `TextNode`.
@@ -24,10 +24,10 @@ pub enum VNode<REND: DomBackend> {
     /// A holder for a list of other nodes.
     VList(VList),
     /// A holder for any `Node` (necessary for replacing node).
-    VRef(REND::Node),
+    VRef(Node),
 }
 
-impl<REND: DomBackend> VNode<REND> {
+impl VNode {
     pub fn key(&self) -> Option<Key> {
         match self {
             VNode::VComp(vcomp) => vcomp.key.clone(),
@@ -39,7 +39,7 @@ impl<REND: DomBackend> VNode<REND> {
     }
 
     /// Returns the first DOM node that is used to designate the position of the virtual DOM node.
-    pub(crate) fn first_node(&self) -> REND::Node {
+    pub(crate) fn first_node(&self) -> Node {
         match self {
             VNode::VTag(vtag) => vtag
                 .reference
@@ -65,7 +65,7 @@ impl<REND: DomBackend> VNode<REND> {
         }
     }
 
-    pub(crate) fn move_before(&self, parent: &REND::Element, next_sibling: Option<REND::Node>) {
+    pub(crate) fn move_before(&self, parent: &Element, next_sibling: Option<Node>) {
         match self {
             VNode::VList(vlist) => {
                 for node in vlist.children.iter() {
@@ -83,9 +83,9 @@ impl<REND: DomBackend> VNode<REND> {
     }
 }
 
-impl<REND: DomBackend> VDiff for VNode<REND> {
+impl VDiff for VNode {
     /// Remove VNode from parent.
-    fn detach(&mut self, parent: &REND::Element) {
+    fn detach(&mut self, parent: &Element) {
         match *self {
             VNode::VTag(ref mut vtag) => vtag.detach(parent),
             VNode::VText(ref mut vtext) => vtext.detach(parent),
@@ -102,7 +102,7 @@ impl<REND: DomBackend> VDiff for VNode<REND> {
     fn apply(
         &mut self,
         parent_scope: &AnyScope,
-        parent: &REND::Element,
+        parent: &Element,
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
     ) -> NodeRef {
@@ -211,38 +211,5 @@ impl PartialEq for VNode {
             (VNode::VComp(_), VNode::VComp(_)) => false,
             _ => false,
         }
-    }
-}
-
-#[cfg(all(test, feature = "web_sys"))]
-mod layout_tests {
-    use super::*;
-    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
-
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    #[test]
-    fn diff() {
-        let document = crate::utils::document();
-        let vref_node_1 = VNode::VRef(document.create_element("i").unwrap().into());
-        let vref_node_2 = VNode::VRef(document.create_element("b").unwrap().into());
-
-        let layout1 = TestLayout {
-            name: "1",
-            node: vref_node_1,
-            expected: "<i></i>",
-        };
-
-        let layout2 = TestLayout {
-            name: "2",
-            node: vref_node_2,
-            expected: "<b></b>",
-        };
-
-        diff_layouts(vec![layout1, layout2]);
     }
 }

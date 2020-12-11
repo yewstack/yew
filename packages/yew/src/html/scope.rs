@@ -38,7 +38,7 @@ mod anyscope {
         pub(crate) state: Rc<dyn Any>,
     }
 
-    impl<REND: DomBackend, COMP: Component<REND>> From<Scope<COMP>> for AnyScope {
+    impl<COMP: Component> From<Scope<COMP>> for AnyScope {
         fn from(scope: Scope<COMP>) -> Self {
             AnyScope {
                 type_id: TypeId::of::<COMP>(),
@@ -60,7 +60,7 @@ mod anyscope {
         }
 
         /// Attempts to downcast into a typed scope
-        pub fn downcast<COMP: Component<REND>, REND: DomBackend>(self) -> Scope<COMP> {
+        pub fn downcast<COMP: Component>(self) -> Scope<COMP> {
             Scope {
                 parent: self.parent,
                 state: self

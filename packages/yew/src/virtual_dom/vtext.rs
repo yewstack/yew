@@ -1,7 +1,6 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use super::{VDiff, VNode};
-use crate::backend::{DomBackend};
 use crate::html::{AnyScope, NodeRef};
 use cfg_if::cfg_if;
 use log::warn;
@@ -12,11 +11,11 @@ use std::cmp::PartialEq;
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// representation.
 #[derive(Clone, Debug)]
-pub struct VText<REND: DomBackend> {
+pub struct VText {
     /// Contains a text of the node.
     pub text: Cow<'static, str>,
     /// A reference to the `TextNode`.
-    pub reference: Option<REND::TextNode>,
+    pub reference: Option<TextNode>,
 }
 
 impl VText {
@@ -29,9 +28,9 @@ impl VText {
     }
 }
 
-impl<REND: DomBackend> VDiff for VText<REND> {
+impl VDiff for VText {
     /// Remove VText from parent.
-    fn detach(&mut self, parent: &REND::Element) {
+    fn detach(&mut self, parent: &Element) {
         let node = self
             .reference
             .take()
@@ -45,7 +44,7 @@ impl<REND: DomBackend> VDiff for VText<REND> {
     fn apply(
         &mut self,
         _parent_scope: &AnyScope,
-        parent: &REND::Element,
+        parent: &Element,
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
     ) -> NodeRef {
@@ -66,9 +65,9 @@ impl<REND: DomBackend> VDiff for VText<REND> {
             ancestor.detach(parent);
         }
 
-        let text_node = REND::get_document().create_text_node(&self.text);
+        let text_node = get_document().create_text_node(&self.text);
         super::insert_node(&text_node, parent, next_sibling.get());
-        let text_node = REND::get_document().create_text_node(&self.text);
+        let text_node = get_document().create_text_node(&self.text);
         super::insert_node((&text_node).into(), parent, next_sibling.get());
         self.reference = Some(text_node.clone());
         NodeRef::new(text_node.into())
@@ -78,82 +77,5 @@ impl<REND: DomBackend> VDiff for VText<REND> {
 impl PartialEq for VText {
     fn eq(&self, other: &VText) -> bool {
         self.text == other.text
-    }
-}
-
-#[cfg(test)]
-mod test {
-    extern crate self as yew;
-
-    use crate::html;
-
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    #[test]
-    fn text_as_root() {
-        html! {
-            "Text Node As Root"
-        };
-
-        html! {
-            { "Text Node As Root" }
-        };
-    }
-}
-
-#[cfg(all(test, feature = "web_sys"))]
-mod layout_tests {
-    extern crate self as yew;
-
-    use crate::html;
-    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
-
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    #[test]
-    fn diff() {
-        let layout1 = TestLayout {
-            name: "1",
-            node: html! { "a" },
-            expected: "a",
-        };
-
-        let layout2 = TestLayout {
-            name: "2",
-            node: html! { "b" },
-            expected: "b",
-        };
-
-        let layout3 = TestLayout {
-            name: "3",
-            node: html! {
-                <>
-                    {"a"}
-                    {"b"}
-                </>
-            },
-            expected: "ab",
-        };
-
-        let layout4 = TestLayout {
-            name: "4",
-            node: html! {
-                <>
-                    {"b"}
-                    {"a"}
-                </>
-            },
-            expected: "ba",
-        };
-
-        diff_layouts(vec![layout1, layout2, layout3, layout4]);
     }
 }

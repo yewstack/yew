@@ -1,7 +1,8 @@
 [workspace]
 members = [
-  "yew",
-  "yew-macro",
+  "packages/yew",
+  "packages/yew-macro",
+  "packages/yew-websys",
   # "yew-components",
   # "yew-validation",
   # Router

@@ -257,8 +257,8 @@ pub mod macros {
     pub use crate::props;
 }
 
-pub mod app;
-pub mod backend;
+// pub mod app;
+// pub mod backend;
 pub mod callback;
 // pub mod format;
 pub mod html;
@@ -273,7 +273,6 @@ pub mod virtual_dom;
 
 #[cfg(feature = "web_sys")]
 pub use web_sys;
-
 
 /// The module that contains all events available in the framework.
 pub mod events {
@@ -322,25 +321,25 @@ pub fn run_loop() {
 }
 
 /// Starts an app mounted to a body of the document.
-pub fn start_app<COMP>()
-where
-    COMP: Component,
-    COMP::Properties: Default,
-{
-    initialize();
-    App::<COMP>::new().mount_to_body();
-    run_loop();
-}
+// pub fn start_app<COMP>()
+// where
+//     COMP: Component,
+//     COMP::Properties: Default,
+// {
+//     initialize();
+//     App::<COMP>::new().mount_to_body();
+//     run_loop();
+// }
 
 /// Starts an app mounted to a body of the document.
-pub fn start_app_with_props<COMP>(props: COMP::Properties)
-where
-    COMP: Component,
-{
-    initialize();
-    App::<COMP>::new().mount_to_body_with_props(props);
-    run_loop();
-}
+// pub fn start_app_with_props<COMP>(props: COMP::Properties)
+// where
+//     COMP: Component,
+// {
+//     initialize();
+//     App::<COMP>::new().mount_to_body_with_props(props);
+//     run_loop();
+// }
 
 /// The Yew Prelude
 ///
@@ -352,7 +351,7 @@ where
 /// ```
 pub mod prelude {
 
-    pub use crate::app::App;
+    // pub use crate::app::App;
     pub use crate::callback::Callback;
     pub use crate::events::*;
     pub use crate::html::{
@@ -361,7 +360,6 @@ pub mod prelude {
     };
     pub use crate::macros::{html, html_nested};
     pub use crate::virtual_dom::Classes;
-
 }
 
 pub use self::prelude::*;

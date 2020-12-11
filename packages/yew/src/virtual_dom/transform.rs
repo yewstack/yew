@@ -59,15 +59,15 @@ mod vcomp {
 
 mod vtag {
     use super::*;
-    use crate::{backend::DomBackend, virtual_dom::VTag};
+    use crate::virtual_dom::VTag;
 
-    impl<T, REND: DomBackend> Transformer<T, T> for VTag<REND> {
+    impl<T> Transformer<T, T> for VTag {
         fn transform(from: T) -> T {
             from
         }
     }
 
-    impl<'a, T, REND: DomBackend> Transformer<&'a T, T> for VTag<REND>
+    impl<'a, T> Transformer<&'a T, T> for VTag
     where
         T: Clone,
     {

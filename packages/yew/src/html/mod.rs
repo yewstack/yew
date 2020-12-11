@@ -11,8 +11,8 @@ pub use scope::{AnyScope, Scope, SendAsMessage};
 pub(crate) use scope::{ComponentUpdate, Scoped};
 pub use yew_macro::Properties;
 
+use crate::callback::Callback;
 use crate::virtual_dom::{VChild, VNode};
-use crate::{backend::DomBackend, callback::Callback};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::cell::RefCell;
@@ -27,7 +27,7 @@ pub type ShouldRender = bool;
 /// Components can be dynamic and interactive by declaring messages that are
 /// triggered and handled asynchronously. This async update mechanism is inspired by
 /// Elm and the actor model used in the Actix framework.
-pub trait Component<REND: DomBackend>: Sized + 'static {
+pub trait Component: Sized + 'static {
     /// Messages are used to make Components dynamic and interactive. Simple
     /// Component's can declare their Message type to be `()`. Complex Component's
     /// commonly use an enum to declare multiple Message types.
@@ -92,7 +92,7 @@ pub trait Component<REND: DomBackend>: Sized + 'static {
     /// Components define their visual layout using a JSX-style syntax through the use of the
     /// `html!` procedural macro. The full guide to using the macro can be found in [Yew's
     /// documentation](https://yew.rs/docs/concepts/html).
-    fn view(&self) -> Html<REND>;
+    fn view(&self) -> Html;
 
     /// The `rendered` method is called after each time a Component is rendered but
     /// before the browser updates the page.
@@ -121,7 +121,7 @@ pub trait Component<REND: DomBackend>: Sized + 'static {
 }
 
 /// A type which expected as a result of `view` function implementation.
-pub type Html<REND: DomBackend> = VNode<REND>;
+pub type Html = VNode;
 
 /// A type used for accepting children elements in Component::Properties.
 ///
@@ -182,7 +182,7 @@ pub type Html<REND: DomBackend> = VNode<REND>;
 ///     }
 /// }
 /// ```
-pub type Children<REND: DomBackend> = ChildrenRenderer<Html<REND>>;
+pub type Children = ChildrenRenderer<Html>;
 
 /// A type used for accepting children elements in Component::Properties and accessing their props.
 ///
@@ -290,9 +290,9 @@ impl<T: PartialEq> PartialEq for ChildrenRenderer<T> {
     }
 }
 
-impl<T, REND: DomBackend> ChildrenRenderer<T>
+impl<T> ChildrenRenderer<T>
 where
-    T: Clone + Into<VNode<REND>>,
+    T: Clone + Into<VNode>,
 {
     /// Create children
     pub fn new(children: Vec<T>) -> Self {
@@ -388,23 +388,23 @@ impl<T> IntoIterator for ChildrenRenderer<T> {
 ///     }
 /// }
 #[derive(Debug, Default, Clone)]
-pub struct NodeRef<REND: DomBackend>(Rc<RefCell<NodeRefInner<REND>>>);
+pub struct NodeRef(Rc<RefCell<NodeRefInner>>);
 
-impl<REND: DomBackend> PartialEq for NodeRef<REND> {
+impl PartialEq for NodeRef {
     fn eq(&self, other: &Self) -> bool {
         self.0.as_ptr() == other.0.as_ptr() || Some(self) == other.0.borrow().link.as_ref()
     }
 }
 
 #[derive(PartialEq, Debug, Default, Clone)]
-struct NodeRefInner<REND: DomBackend> {
-    node: Option<REND::Node>,
-    link: Option<NodeRef<REND>>,
+struct NodeRefInner {
+    node: Option<Node>,
+    link: Option<NodeRef>,
 }
 
-impl<REND: DomBackend> NodeRef<REND> {
+impl NodeRef {
     /// Get the wrapped Node reference if it exists
-    pub fn get(&self) -> Option<REND::Node> {
+    pub fn get(&self) -> Option<Node> {
         let inner = self.0.borrow();
         inner.node.clone().or_else(|| inner.link.as_ref()?.get())
     }
@@ -413,22 +413,22 @@ impl<REND: DomBackend> NodeRef<REND> {
     // #[cfg(feature = "std_web")] INTO: TryFrom<Node>,
     // #[cfg(feature = "web_sys")] INTO: AsRef<Node> + From<JsValue>,
 
-    pub fn cast<INTO: std::convert::TryFrom<REND::Node>>(&self) -> Option<INTO> {
+    pub fn cast<INTO: std::convert::TryFrom<Node>>(&self) -> Option<INTO> {
         let node = self.get();
-        REND::cast_node_ref::<INTO>(self)
+        cast_node_ref::<INTO>(self)
         // Renderer::cast_node_ref::<INTO>(self)
         // Renderer::cast_node_ref(self)
     }
 
     /// Wrap an existing `Node` in a `NodeRef`
-    pub(crate) fn new(node: REND::Node) -> Self {
+    pub(crate) fn new(node: Node) -> Self {
         let node_ref = NodeRef::default();
         node_ref.set(Some(node));
         node_ref
     }
 
     /// Place a Node in a reference for later use
-    pub(crate) fn set(&self, node: Option<REND::Node>) {
+    pub(crate) fn set(&self, node: Option<Node>) {
         let mut this = self.0.borrow_mut();
         this.node = node;
         this.link = None;
