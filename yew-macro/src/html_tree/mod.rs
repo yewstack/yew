@@ -258,7 +258,7 @@ impl PeekValue<()> for HtmlRootBraced {
 
 impl Parse for HtmlRootBraced {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let mut content;
+        let content;
         let brace = braced!(content in input);
         let children = HtmlChildrenTree::parse_delimited(&content)?;
 
