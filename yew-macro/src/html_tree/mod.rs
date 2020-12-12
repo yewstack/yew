@@ -260,7 +260,7 @@ impl Parse for HtmlRootBraced {
     fn parse(input: ParseStream) -> ParseResult<Self> {
         let mut content;
         let brace = braced!(content in input);
-        let children = HtmlChildrenTree::parse_delimited(&mut content)?;
+        let children = HtmlChildrenTree::parse_delimited(&content)?;
 
         Ok(HtmlRootBraced { brace, children })
     }
