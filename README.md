@@ -66,7 +66,8 @@ Come help us on the [issues that matter that the most](https://github.com/yewsta
 
 #### 😱 Found a bug?
 
-Please [report all bugs!](https://github.com/yewstack/yew/issues/new/choose) We are happy to help support developers fix the bugs they find if they are interested and have the time.
+Please [report all bugs!](https://github.com/yewstack/yew/issues/new/choose) We are happy to help support developers fix the bugs they find if they are interested and have the time. Please don't ask questions using the issue tracker –
+instead use our Discord server or the [Github discussions](https://github.com/yewstack/yew/discussions).
 
 #### 🤓 Want to help translate?
 
