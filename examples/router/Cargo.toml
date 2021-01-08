@@ -8,7 +8,7 @@ instant = { version = "0.1", features = ["wasm-bindgen"] }
 lipsum = "0.7"
 log = "0.4"
 getrandom = { version = "0.2", features = ["js"] }
-rand = { version = "0.7", features = ["small_rng"] }
+rand = { version = "0.8", features = ["small_rng"] }
 wasm-logger = "0.2"
 yew = { path = "../../yew" }
 yew-router = { path = "../../yew-router" }
