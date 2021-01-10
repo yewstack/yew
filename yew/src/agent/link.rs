@@ -83,7 +83,7 @@ impl<AGN: Agent> Clone for AgentLink<AGN> {
 }
 /// This struct holds a reference to a component and to a global scheduler.
 pub(crate) struct AgentScope<AGN: Agent> {
-    shared_agent: Shared<AgentRunnable<AGN>>,
+    state: Shared<AgentState<AGN>>,
 }
 
 impl<AGN: Agent> fmt::Debug for AgentScope<AGN> {
@@ -95,7 +95,7 @@ impl<AGN: Agent> fmt::Debug for AgentScope<AGN> {
 impl<AGN: Agent> Clone for AgentScope<AGN> {
     fn clone(&self) -> Self {
         AgentScope {
-            shared_agent: self.shared_agent.clone(),
+            state: self.state.clone(),
         }
     }
 }
@@ -103,17 +103,16 @@ impl<AGN: Agent> Clone for AgentScope<AGN> {
 impl<AGN: Agent> AgentScope<AGN> {
     /// Create agent scope
     pub fn new() -> Self {
-        let shared_agent = Rc::new(RefCell::new(AgentRunnable::new()));
-        AgentScope { shared_agent }
+        let state = Rc::new(RefCell::new(AgentState::new()));
+        AgentScope { state }
     }
 
     /// Schedule message for sending to agent
-    pub fn send(&self, update: AgentLifecycleEvent<AGN>) {
-        let envelope = AgentEnvelope {
-            shared_agent: self.shared_agent.clone(),
-            update,
-        };
-        let runnable: Box<dyn Runnable> = Box::new(envelope);
+    pub fn send(&self, event: AgentLifecycleEvent<AGN>) {
+        let runnable: Box<dyn Runnable> = Box::new(AgentRunnable {
+            state: self.state.clone(),
+            event,
+        });
         scheduler().push(runnable);
     }
 }
@@ -124,22 +123,22 @@ impl<AGN: Agent> Default for AgentScope<AGN> {
     }
 }
 
-struct AgentRunnable<AGN> {
+struct AgentState<AGN> {
     agent: Option<AGN>,
     // TODO(#939): Use agent field to control create message this flag
     destroyed: bool,
 }
 
-impl<AGN> AgentRunnable<AGN> {
+impl<AGN> AgentState<AGN> {
     fn new() -> Self {
-        AgentRunnable {
+        AgentState {
             agent: None,
             destroyed: false,
         }
     }
 }
 
-/// Local Agent messages
+/// Internal Agent lifecycle events
 #[derive(Debug)]
 pub(crate) enum AgentLifecycleEvent<AGN: Agent> {
     /// Request to create link
@@ -156,50 +155,54 @@ pub(crate) enum AgentLifecycleEvent<AGN: Agent> {
     Destroy,
 }
 
-struct AgentEnvelope<AGN: Agent> {
-    shared_agent: Shared<AgentRunnable<AGN>>,
-    update: AgentLifecycleEvent<AGN>,
+struct AgentRunnable<AGN: Agent> {
+    state: Shared<AgentState<AGN>>,
+    event: AgentLifecycleEvent<AGN>,
 }
 
-impl<AGN> Runnable for AgentEnvelope<AGN>
+impl<AGN> Runnable for AgentRunnable<AGN>
 where
     AGN: Agent,
 {
     fn run(self: Box<Self>) {
-        let mut this = self.shared_agent.borrow_mut();
-        if this.destroyed {
+        let mut state = self.state.borrow_mut();
+        if state.destroyed {
             return;
         }
-        match self.update {
+        match self.event {
             AgentLifecycleEvent::Create(link) => {
-                this.agent = Some(AGN::create(link));
+                state.agent = Some(AGN::create(link));
             }
             AgentLifecycleEvent::Message(msg) => {
-                this.agent
+                state
+                    .agent
                     .as_mut()
                     .expect("agent was not created to process messages")
                     .update(msg);
             }
             AgentLifecycleEvent::Connected(id) => {
-                this.agent
+                state
+                    .agent
                     .as_mut()
                     .expect("agent was not created to send a connected message")
                     .connected(id);
             }
             AgentLifecycleEvent::Input(inp, id) => {
-                this.agent
+                state
+                    .agent
                     .as_mut()
                     .expect("agent was not created to process inputs")
                     .handle_input(inp, id);
             }
             AgentLifecycleEvent::Disconnected(id) => {
-                this.agent
+                state
+                    .agent
                     .as_mut()
                     .expect("agent was not created to send a disconnected message")
                     .disconnected(id);
             }
             AgentLifecycleEvent::Destroy => {
-                let mut agent = this
+                let mut agent = state
                     .agent
                     .take()
                     .expect("trying to destroy not existent agent");
