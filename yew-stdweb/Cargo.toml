@@ -81,14 +81,5 @@ features = ["yaml", "cbor", "toml", "msgpack", "doc_test"]
 [workspace]
 members = [
   "examples/counter",
-  "examples/file_upload",
-  "examples/inner_html",
-  "examples/js_callback",
-  "examples/mount_point",
-  "examples/multi_thread",
-  "examples/node_refs",
-  "examples/npm_and_rest",
   "examples/todomvc",
-  "examples/two_apps",
-  "examples/webgl",
 ]
