@@ -1,10 +1,13 @@
 //! Component scope module
 
-use super::Component;
+use super::{
+    lifecycle::{ComponentRunnable, ComponentState, ComponentTask, CreateTask, UpdateTask},
+    Component,
+};
 use crate::callback::Callback;
 use crate::html::NodeRef;
-use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
-use crate::virtual_dom::{VDiff, VNode};
+use crate::scheduler::{scheduler, Shared};
+use crate::virtual_dom::VNode;
 use cfg_if::cfg_if;
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
@@ -17,18 +20,6 @@ cfg_if! {
     } else if #[cfg(feature = "web_sys")] {
         use web_sys::Element;
     }
-}
-
-/// Updates for a `Component` instance. Used by scope sender.
-pub(crate) enum ComponentUpdate<COMP: Component> {
-    /// First update
-    First,
-    /// Wraps messages for a component.
-    Message(COMP::Message),
-    /// Wraps batch of messages for a component.
-    MessageBatch(Vec<COMP::Message>),
-    /// Wraps properties, node ref, and next sibling for a component.
-    Properties(COMP::Properties, NodeRef, NodeRef),
 }
 
 /// Untyped scope used for accessing parent scope
@@ -105,9 +96,7 @@ impl<COMP: Component> Scoped for Scope<COMP> {
 
     /// Schedules a task to destroy a component
     fn destroy(&mut self) {
-        let state = self.state.clone();
-        let destroy = DestroyComponent { state };
-        scheduler().push_comp(ComponentRunnableType::Destroy, Box::new(destroy));
+        self.run(ComponentTask::Destroy);
     }
 }
 
@@ -163,34 +152,43 @@ impl<COMP: Component> Scope<COMP> {
         node_ref: NodeRef,
         props: COMP::Properties,
     ) -> Scope<COMP> {
-        let scheduler = scheduler();
-        // Hold scheduler lock so that `create` doesn't run until `update` is scheduled
-        let lock = scheduler.lock();
-        scheduler.push_comp(
-            ComponentRunnableType::Create,
-            Box::new(CreateComponent {
-                state: self.state.clone(),
-                parent,
-                next_sibling,
-                placeholder,
-                node_ref,
-                scope: self.clone(),
-                props,
-            }),
-        );
-        self.update(ComponentUpdate::First);
-        drop(lock);
-        scheduler.start();
+        self.schedule(UpdateTask::First.into());
+        self.run(ComponentTask::Create(CreateTask {
+            parent,
+            next_sibling,
+            placeholder,
+            node_ref,
+            props,
+            scope: self.clone(),
+        }));
         self
     }
 
-    /// Schedules a task to send an update to a component
-    pub(crate) fn update(&self, update: ComponentUpdate<COMP>) {
-        let update = UpdateComponent {
-            state: self.state.clone(),
-            update,
-        };
-        scheduler().push_comp(ComponentRunnableType::Update, Box::new(update));
+    pub(crate) fn reuse(&self, props: COMP::Properties, node_ref: NodeRef, next_sibling: NodeRef) {
+        self.run(UpdateTask::Properties(props, node_ref, next_sibling).into());
+    }
+
+    pub(crate) fn run(&self, task: ComponentTask<COMP>) {
+        let scheduler = scheduler();
+        scheduler.component.push(
+            task.as_runnable_type(),
+            Box::new(ComponentRunnable {
+                state: self.state.clone(),
+                task,
+            }),
+        );
+        scheduler.start();
+    }
+
+    fn schedule(&self, task: ComponentTask<COMP>) {
+        let scheduler = &scheduler().component;
+        scheduler.push(
+            task.as_runnable_type(),
+            Box::new(ComponentRunnable {
+                state: self.state.clone(),
+                task,
+            }),
+        );
     }
 
     /// Send a message to the component.
@@ -201,7 +199,7 @@ impl<COMP: Component> Scope<COMP> {
     where
         T: Into<COMP::Message>,
     {
-        self.update(ComponentUpdate::Message(msg.into()));
+        self.run(UpdateTask::Message(msg.into()).into());
     }
 
     /// Send a batch of messages to the component.
@@ -219,7 +217,7 @@ impl<COMP: Component> Scope<COMP> {
             return;
         }
 
-        self.update(ComponentUpdate::MessageBatch(messages));
+        self.run(UpdateTask::MessageBatch(messages).into());
     }
 
     /// Creates a `Callback` which will send a message to the linked
@@ -342,478 +340,5 @@ where
 {
     fn send(self, scope: &Scope<COMP>) {
         scope.send_message_batch(self);
-    }
-}
-
-struct ComponentState<COMP: Component> {
-    parent: Element,
-    next_sibling: NodeRef,
-    node_ref: NodeRef,
-    scope: Scope<COMP>,
-    component: Box<COMP>,
-    placeholder: Option<VNode>,
-    last_root: Option<VNode>,
-    new_root: Option<VNode>,
-    has_rendered: bool,
-    pending_updates: Vec<Box<UpdateComponent<COMP>>>,
-}
-
-impl<COMP: Component> ComponentState<COMP> {
-    /// Creates a new `ComponentState`, also invokes the `create()`
-    /// method on component to create it.
-    fn new(
-        parent: Element,
-        next_sibling: NodeRef,
-        placeholder: Option<VNode>,
-        node_ref: NodeRef,
-        scope: Scope<COMP>,
-        props: COMP::Properties,
-    ) -> Self {
-        let component = Box::new(COMP::create(props, scope.clone()));
-        Self {
-            parent,
-            next_sibling,
-            node_ref,
-            scope,
-            component,
-            placeholder,
-            last_root: None,
-            new_root: None,
-            has_rendered: false,
-            pending_updates: Vec::new(),
-        }
-    }
-}
-
-/// A `Runnable` task which creates the `ComponentState` (if there is
-/// none) and invokes the `create()` method on a `Component` to create
-/// it.
-struct CreateComponent<COMP>
-where
-    COMP: Component,
-{
-    state: Shared<Option<ComponentState<COMP>>>,
-    parent: Element,
-    next_sibling: NodeRef,
-    placeholder: Option<VNode>,
-    node_ref: NodeRef,
-    scope: Scope<COMP>,
-    props: COMP::Properties,
-}
-
-impl<COMP> Runnable for CreateComponent<COMP>
-where
-    COMP: Component,
-{
-    fn run(self: Box<Self>) {
-        let mut current_state = self.state.borrow_mut();
-        if current_state.is_none() {
-            *current_state = Some(ComponentState::new(
-                self.parent,
-                self.next_sibling,
-                self.placeholder,
-                self.node_ref,
-                self.scope,
-                self.props,
-            ));
-        }
-    }
-}
-
-/// A `Runnable` task which calls the `update()` method on a `Component`.
-struct UpdateComponent<COMP>
-where
-    COMP: Component,
-{
-    state: Shared<Option<ComponentState<COMP>>>,
-    update: ComponentUpdate<COMP>,
-}
-
-impl<COMP> Runnable for UpdateComponent<COMP>
-where
-    COMP: Component,
-{
-    fn run(self: Box<Self>) {
-        let state_clone = self.state.clone();
-        if let Some(mut state) = state_clone.borrow_mut().as_mut() {
-            if state.new_root.is_some() {
-                state.pending_updates.push(self);
-                return;
-            }
-
-            let first_update = matches!(self.update, ComponentUpdate::First);
-
-            let should_update = match self.update {
-                ComponentUpdate::First => true,
-                ComponentUpdate::Message(message) => state.component.update(message),
-                ComponentUpdate::MessageBatch(messages) => messages
-                    .into_iter()
-                    .fold(false, |acc, msg| state.component.update(msg) || acc),
-                ComponentUpdate::Properties(props, node_ref, next_sibling) => {
-                    // When components are updated, a new node ref could have been passed in
-                    state.node_ref = node_ref;
-                    // When components are updated, their siblings were likely also updated
-                    state.next_sibling = next_sibling;
-                    state.component.change(props)
-                }
-            };
-
-            if should_update {
-                state.new_root = Some(state.component.view());
-                scheduler().push_comp(
-                    ComponentRunnableType::Render,
-                    Box::new(RenderComponent {
-                        state: self.state,
-                        first_render: first_update,
-                    }),
-                );
-            };
-        };
-    }
-}
-
-/// A `Runnable` task which renders a `Component`.
-struct RenderComponent<COMP>
-where
-    COMP: Component,
-{
-    state: Shared<Option<ComponentState<COMP>>>,
-    first_render: bool,
-}
-
-impl<COMP> Runnable for RenderComponent<COMP>
-where
-    COMP: Component,
-{
-    fn run(self: Box<Self>) {
-        let state_clone = self.state.clone();
-        if let Some(mut state) = self.state.borrow_mut().as_mut() {
-            // Skip render if we haven't seen the "first render" yet
-            if !self.first_render && state.last_root.is_none() {
-                return;
-            }
-
-            if let Some(mut new_root) = state.new_root.take() {
-                let last_root = state.last_root.take().or_else(|| state.placeholder.take());
-                let parent_scope = state.scope.clone().into();
-                let next_sibling = state.next_sibling.clone();
-                let node = new_root.apply(&parent_scope, &state.parent, next_sibling, last_root);
-                state.node_ref.link(node);
-                state.last_root = Some(new_root);
-                scheduler().push_comp(
-                    ComponentRunnableType::Rendered,
-                    Box::new(RenderedComponent {
-                        state: state_clone,
-                        first_render: self.first_render,
-                    }),
-                );
-            }
-        }
-    }
-}
-
-/// A `Runnable` task which calls the `rendered()` method on a `Component`.
-struct RenderedComponent<COMP>
-where
-    COMP: Component,
-{
-    state: Shared<Option<ComponentState<COMP>>>,
-    first_render: bool,
-}
-
-impl<COMP> Runnable for RenderedComponent<COMP>
-where
-    COMP: Component,
-{
-    fn run(self: Box<Self>) {
-        if let Some(mut state) = self.state.borrow_mut().as_mut() {
-            // Don't call rendered if we haven't seen the "first render" yet
-            if !self.first_render && !state.has_rendered {
-                return;
-            }
-
-            state.has_rendered = true;
-            state.component.rendered(self.first_render);
-            if !state.pending_updates.is_empty() {
-                scheduler().push_comp_update_batch(
-                    state
-                        .pending_updates
-                        .drain(..)
-                        .map(|u| u as Box<dyn Runnable>),
-                );
-            }
-        }
-    }
-}
-
-/// A `Runnable` task which calls the `destroy()` method on a `Component`.
-struct DestroyComponent<COMP>
-where
-    COMP: Component,
-{
-    state: Shared<Option<ComponentState<COMP>>>,
-}
-
-impl<COMP> Runnable for DestroyComponent<COMP>
-where
-    COMP: Component,
-{
-    fn run(self: Box<Self>) {
-        if let Some(mut state) = self.state.borrow_mut().take() {
-            state.component.destroy();
-            if let Some(last_frame) = &mut state.last_root {
-                last_frame.detach(&state.parent);
-            }
-            state.node_ref.set(None);
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    extern crate self as yew;
-
-    use crate::html;
-    use crate::html::*;
-    use crate::Properties;
-    use std::ops::Deref;
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    #[derive(Clone, Properties, Default)]
-    struct ChildProps {
-        lifecycle: Rc<RefCell<Vec<String>>>,
-    }
-
-    struct Child {
-        props: ChildProps,
-    }
-
-    impl Component for Child {
-        type Message = ();
-        type Properties = ChildProps;
-
-        fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-            Child { props }
-        }
-
-        fn rendered(&mut self, _first_render: bool) {
-            self.props
-                .lifecycle
-                .borrow_mut()
-                .push("child rendered".into());
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
-            false
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            false
-        }
-
-        fn view(&self) -> Html {
-            html! {}
-        }
-    }
-
-    #[derive(Clone, Properties, Default)]
-    struct Props {
-        lifecycle: Rc<RefCell<Vec<String>>>,
-        create_message: Option<bool>,
-        update_message: RefCell<Option<bool>>,
-        view_message: RefCell<Option<bool>>,
-        rendered_message: RefCell<Option<bool>>,
-    }
-
-    struct Comp {
-        props: Props,
-        link: ComponentLink<Self>,
-    }
-
-    impl Component for Comp {
-        type Message = bool;
-        type Properties = Props;
-
-        fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-            props.lifecycle.borrow_mut().push("create".into());
-            if let Some(msg) = props.create_message {
-                link.send_message(msg);
-            }
-            Comp { props, link }
-        }
-
-        fn rendered(&mut self, first_render: bool) {
-            if let Some(msg) = self.props.rendered_message.borrow_mut().take() {
-                self.link.send_message(msg);
-            }
-            self.props
-                .lifecycle
-                .borrow_mut()
-                .push(format!("rendered({})", first_render));
-        }
-
-        fn update(&mut self, msg: Self::Message) -> ShouldRender {
-            if let Some(msg) = self.props.update_message.borrow_mut().take() {
-                self.link.send_message(msg);
-            }
-            self.props
-                .lifecycle
-                .borrow_mut()
-                .push(format!("update({})", msg));
-            msg
-        }
-
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            self.props.lifecycle.borrow_mut().push("change".into());
-            false
-        }
-
-        fn view(&self) -> Html {
-            if let Some(msg) = self.props.view_message.borrow_mut().take() {
-                self.link.send_message(msg);
-            }
-            self.props.lifecycle.borrow_mut().push("view".into());
-            html! { <Child lifecycle=self.props.lifecycle.clone() /> }
-        }
-    }
-
-    impl Drop for Comp {
-        fn drop(&mut self) {
-            self.props.lifecycle.borrow_mut().push("drop".into());
-        }
-    }
-
-    fn test_lifecycle(props: Props, expected: &[String]) {
-        let document = crate::utils::document();
-        let scope = Scope::<Comp>::new(None);
-        let el = document.create_element("div").unwrap();
-        let lifecycle = props.lifecycle.clone();
-
-        lifecycle.borrow_mut().clear();
-        scope.mount_in_place(el, NodeRef::default(), None, NodeRef::default(), props);
-
-        assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);
-    }
-
-    #[test]
-    fn lifecycle_tests() {
-        let lifecycle: Rc<RefCell<Vec<String>>> = Rc::default();
-
-        test_lifecycle(
-            Props {
-                lifecycle: lifecycle.clone(),
-                ..Props::default()
-            },
-            &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-            ],
-        );
-
-        test_lifecycle(
-            Props {
-                lifecycle: lifecycle.clone(),
-                create_message: Some(false),
-                ..Props::default()
-            },
-            &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-                "update(false)".to_string(),
-            ],
-        );
-
-        test_lifecycle(
-            Props {
-                lifecycle: lifecycle.clone(),
-                view_message: RefCell::new(Some(true)),
-                ..Props::default()
-            },
-            &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-                "update(true)".to_string(),
-                "view".to_string(),
-                "rendered(false)".to_string(),
-            ],
-        );
-
-        test_lifecycle(
-            Props {
-                lifecycle: lifecycle.clone(),
-                view_message: RefCell::new(Some(false)),
-                ..Props::default()
-            },
-            &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-                "update(false)".to_string(),
-            ],
-        );
-
-        test_lifecycle(
-            Props {
-                lifecycle: lifecycle.clone(),
-                rendered_message: RefCell::new(Some(false)),
-                ..Props::default()
-            },
-            &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-                "update(false)".to_string(),
-            ],
-        );
-
-        test_lifecycle(
-            Props {
-                lifecycle: lifecycle.clone(),
-                rendered_message: RefCell::new(Some(true)),
-                ..Props::default()
-            },
-            &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-                "update(true)".to_string(),
-                "view".to_string(),
-                "rendered(false)".to_string(),
-            ],
-        );
-
-        test_lifecycle(
-            Props {
-                lifecycle,
-                create_message: Some(true),
-                update_message: RefCell::new(Some(true)),
-                ..Props::default()
-            },
-            &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-                "update(true)".to_string(),
-                "view".to_string(),
-                "rendered(false)".to_string(),
-                "update(true)".to_string(),
-                "view".to_string(),
-                "rendered(false)".to_string(),
-            ],
-        );
     }
 }

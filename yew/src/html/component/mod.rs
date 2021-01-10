@@ -1,14 +1,15 @@
 //! Component trait and related types
 
 mod children;
+mod lifecycle;
 mod properties;
 mod scope;
 
 use super::Html;
 pub use children::*;
 pub use properties::*;
+pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
-pub(crate) use scope::{ComponentUpdate, Scoped};
 
 /// This type indicates that component should be rendered again.
 pub type ShouldRender = bool;
