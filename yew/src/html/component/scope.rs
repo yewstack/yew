@@ -1,4 +1,8 @@
-use super::{Callback, Component, NodeRef};
+//! Component scope module
+
+use super::Component;
+use crate::callback::Callback;
+use crate::html::NodeRef;
 use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use cfg_if::cfg_if;
