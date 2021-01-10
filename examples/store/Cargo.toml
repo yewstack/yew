@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 yew = { path = "../../yew" }
 yewtil = { path = "../../yewtil" }
+yew-services = { path = "../../yew-services" }

@@ -17,6 +17,7 @@ members = [
   # Utilities
   "yewtil",
   "yewtil-macro",
+  "yew-services",
 
   # dsl
   "yew-dsl",

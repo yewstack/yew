@@ -9,3 +9,4 @@ anyhow = "1"
 serde = "1"
 serde_derive = "1"
 yew = { path = "../../yew", features = ["toml"] }
+yew-services = { path = "../../yew-services" }

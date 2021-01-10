@@ -25,15 +25,16 @@ pub enum Referrer {
 #[cfg(all(feature = "wasm_test", feature = "httpbin_test"))]
 mod tests {
     use super::*;
-    use crate::callback::{test_util::CallbackFuture, Callback};
-    use crate::format::{Json, Nothing};
-    use crate::utils;
+    use crate::callback_test_util::CallbackFuture;
     #[cfg(feature = "web_sys")]
     use ::web_sys::ReferrerPolicy;
     use serde::Deserialize;
     use ssri::Integrity;
     use std::collections::HashMap;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use yew::callback::Callback;
+    use yew::format::{Json, Nothing};
+    use yew::utils;
 
     wasm_bindgen_test_configure!(run_in_browser);
 

@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 js-sys = "0.3"
 yew = { path = "../../yew" }
+yew-services = { path = "../../yew-services" }

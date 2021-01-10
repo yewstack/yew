@@ -13,3 +13,4 @@ wasm-logger = "0.2"
 yew = { path = "../../yew" }
 yew-router = { path = "../../yew-router" }
 yewtil = { path = "../../yewtil" }
+yew-services = { path = "../../yew-services" }

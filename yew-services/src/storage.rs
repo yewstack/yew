@@ -1,11 +1,11 @@
 //! This module contains Yew's implementation of a service to
 //! use local and session storage of a browser.
 
-use crate::format::Text;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::fmt;
 use thiserror::Error;
+use yew::format::Text;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         #[allow(unused_imports)]
@@ -13,7 +13,7 @@ cfg_if! {
         use stdweb::unstable::TryFrom;
         use stdweb::web::{Storage};
     } else if #[cfg(feature = "web_sys")] {
-        use crate::utils;
+        use yew::utils;
         use web_sys::Storage;
     }
 }

@@ -1,7 +1,7 @@
 #![recursion_limit = "256"]
 
 use stdweb::web::Date;
-use yew::services::ConsoleService;
+use yew_services::ConsoleService;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
