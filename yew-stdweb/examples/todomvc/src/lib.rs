@@ -6,8 +6,8 @@ use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, ToString};
 use yew::events::IKeyboardEvent;
 use yew::format::Json;
-use yew_services::storage::{Area, StorageService};
 use yew::{html, Component, ComponentLink, Html, InputData, KeyPressEvent, ShouldRender};
+use yew_services::storage::{Area, StorageService};
 
 const KEY: &str = "yew.todomvc.self";
 
