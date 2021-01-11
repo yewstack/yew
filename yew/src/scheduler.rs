@@ -27,19 +27,19 @@ pub(crate) struct Scheduler {
     /// This lock is used to prevent recursion in [Scheduler#start()](Scheduler#start())
     lock: Rc<RefCell<()>>,
     main: Shared<VecDeque<Box<dyn Runnable>>>,
-    component: ComponentScheduler,
+    pub(crate) component: ComponentScheduler,
 }
 
 pub(crate) enum ComponentRunnableType {
-    Destroy,
     Create,
     Update,
     Render,
     Rendered,
+    Destroy,
 }
 
 #[derive(Clone)]
-struct ComponentScheduler {
+pub(crate) struct ComponentScheduler {
     // Queues
     destroy: Shared<VecDeque<Box<dyn Runnable>>>,
     create: Shared<VecDeque<Box<dyn Runnable>>>,
@@ -59,6 +59,16 @@ impl ComponentScheduler {
             render: Rc::new(RefCell::new(VecDeque::new())),
             rendered: Rc::new(RefCell::new(Vec::new())),
         }
+    }
+
+    pub(crate) fn push(&self, run_type: ComponentRunnableType, runnable: Box<dyn Runnable>) {
+        match run_type {
+            ComponentRunnableType::Create => self.create.borrow_mut().push_back(runnable),
+            ComponentRunnableType::Update => self.update.borrow_mut().push_back(runnable),
+            ComponentRunnableType::Render => self.render.borrow_mut().push_back(runnable),
+            ComponentRunnableType::Rendered => self.rendered.borrow_mut().push(runnable),
+            ComponentRunnableType::Destroy => self.destroy.borrow_mut().push_back(runnable),
+        };
     }
 
     fn next_runnable(&self) -> Option<Box<dyn Runnable>> {
@@ -81,19 +91,6 @@ impl Scheduler {
         }
     }
 
-    pub(crate) fn push_comp(&self, run_type: ComponentRunnableType, runnable: Box<dyn Runnable>) {
-        match run_type {
-            ComponentRunnableType::Destroy => {
-                self.component.destroy.borrow_mut().push_back(runnable)
-            }
-            ComponentRunnableType::Create => self.component.create.borrow_mut().push_back(runnable),
-            ComponentRunnableType::Update => self.component.update.borrow_mut().push_back(runnable),
-            ComponentRunnableType::Render => self.component.render.borrow_mut().push_back(runnable),
-            ComponentRunnableType::Rendered => self.component.rendered.borrow_mut().push(runnable),
-        };
-        self.start();
-    }
-
     pub(crate) fn push_comp_update_batch(&self, it: impl IntoIterator<Item = Box<dyn Runnable>>) {
         self.component.update.borrow_mut().extend(it);
         self.start();
@@ -102,10 +99,6 @@ impl Scheduler {
     pub(crate) fn push(&self, runnable: Box<dyn Runnable>) {
         self.main.borrow_mut().push_back(runnable);
         self.start();
-    }
-
-    pub(crate) fn lock(&self) -> Option<std::cell::Ref<'_, ()>> {
-        self.lock.try_borrow().ok()
     }
 
     fn next_runnable(&self) -> Option<Box<dyn Runnable>> {

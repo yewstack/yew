@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
 use super::{Key, Transformer, VDiff, VNode};
-use crate::html::{AnyScope, Component, ComponentUpdate, NodeRef, Scope, Scoped};
+use crate::html::{AnyScope, Component, NodeRef, Scope, Scoped};
 use crate::utils::document;
 use cfg_if::cfg_if;
 use std::any::TypeId;
@@ -164,11 +164,7 @@ impl<COMP: Component> Mountable for PropsWrapper<COMP> {
 
     fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef) {
         let scope: Scope<COMP> = scope.to_any().downcast();
-        scope.update(ComponentUpdate::Properties(
-            self.props,
-            node_ref,
-            next_sibling,
-        ));
+        scope.reuse(self.props, node_ref, next_sibling);
     }
 }
 
