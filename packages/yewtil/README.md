@@ -1,7 +1,7 @@
 # Yewtil
 A utility crate for the [Yew](https://github.com/yewstack/yew) frontend web framework.
 
-> This crate used to contain a domain specific language which made it possible to create components without use of the `html!` macro, but this has now been moved into a different crate ([`yew-dsl`](https://github.com/yewstack/yew/tree/master/yew-dsl)).
+> This crate used to contain a domain specific language which made it possible to create components without use of the `html!` macro, but this has now been moved into a different crate ([`yew-dsl`](https://github.com/yewstack/yew/tree/master/packages/yew-dsl)).
 
 ## Purpose
 To provide a place for utilities which are commonly used with Yew to reside without having to include them in the core Yew crate.
@@ -27,9 +27,9 @@ and traversal over linked shared pointers. <sup><sub>(This needs to be fuzz test
 These experimental features are either not sufficiently vetted and may change significantly or be removed.
 
 ## Example Projects 
-There are [examples showing how to use every stable feature in this crate](https://github.com/yewstack/yew/tree/master/yewtil/examples). 
+There are [examples showing how to use every stable feature in this crate](https://github.com/yewstack/yew/tree/master/packages/yewtil/examples). 
 
-Check out the [Pure Components example](https://github.com/yewstack/yew/tree/master/yewtil/examples/pure_component) to see how Pure Components work.
+Check out the [Pure Components example](https://github.com/yewstack/yew/tree/master/packages/yewtil/examples/pure_component) to see how Pure Components work.
 
 ## Example usages
 #### neq_assign:
