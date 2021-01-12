@@ -60,7 +60,7 @@ Please note that the public httpbin instance can't be used for these tests.
 
 ### Macro tests
 
-When adding or updating tests, please make sure to update the appropriate `stderr` file, which you can find [here](https://github.com/yewstack/yew/tree/master/yew-macro/tests/macro) for the `html!` macro.
+When adding or updating tests, please make sure to update the appropriate `stderr` file, which you can find [here](https://github.com/yewstack/yew/tree/master/packages/yew-macro/tests/macro) for the `html!` macro.
 These files ensure that macro compilation errors are correct and easy to understand.
 These errors can change with each release of the compiler so they should be generated with the MSRV (currently 1.45).
 
