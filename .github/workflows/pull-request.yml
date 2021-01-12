@@ -172,7 +172,7 @@ jobs:
         run: |
           cd packages/yew
           # FIXME: Chrome appears to be timing out occasionally
-          wasm-pack test --firefox --headless -- --features "wasm_test httpbin_test"
+          wasm-pack test --firefox --headless -- --features "wasm_test"
 
       - name: Run tests - yew-stdweb
         if: matrix.toolchain != 'stable'
@@ -181,7 +181,7 @@ jobs:
         run: |
           cd packages/yew-stdweb
           # FIXME: Chrome really doesn't seem to like yew-stdweb
-          wasm-pack test --firefox --headless -- --features "wasm_test httpbin_test"
+          wasm-pack test --firefox --headless -- --features "wasm_test"
 
       - name: Run tests - yew-services
         env:
