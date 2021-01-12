@@ -11,5 +11,5 @@ instant = { version = "0.1", features = ["wasm-bindgen"] }
 log = "0.4"
 rand = "0.8"
 wasm-logger = "0.2"
-yew = { path = "../../yew" }
+yew = { path = "../../packages/yew" }
 yewtil = { path = "../../yewtil" }
