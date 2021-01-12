@@ -55,7 +55,7 @@ dependencies = ["core::check-format-flow", "core::clippy-flow"]
 
 [tasks.lint-stdweb]
 private = true
-cwd = "yew-stdweb"
+cwd = "packages/yew-stdweb"
 command = "cargo"
 args = [
     "make",
@@ -155,7 +155,7 @@ args = ["rm", "--force", "${HTTPBIN_CONTAINER_ID}"]
 [tasks.tests-stdweb]
 private = true
 extend = "core::wasm-pack-base"
-cwd = "yew-stdweb"
+cwd = "packages/yew-stdweb"
 args = [
     "test",
     "@@split(YEW_TEST_FLAGS, )",
