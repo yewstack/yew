@@ -6,4 +6,5 @@ edition = "2018"
 
 [dependencies]
 wasm-bindgen = "0.2"
-yew = { path = "../../yew" }
+yew = { path = "../../packages/yew" }
+yew-services = { path = "../../packages/yew-services" }

@@ -8,8 +8,9 @@ edition = "2018"
 pulldown-cmark = { version = "0.8", default-features = false }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
-yew = { path = "../../yew" }
-yewtil = { path = "../../yewtil", features = ["future"] }
+yew = { path = "../../packages/yew" }
+yewtil = { path = "../../packages/yewtil", features = ["future"] }
+yew-services = { path = "../../packages/yew-services" }
 
 [dependencies.web-sys]
 version = "0.3"

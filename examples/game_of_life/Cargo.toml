@@ -13,5 +13,5 @@ getrandom = { version = "0.2", features = ["js"] }
 log = "0.4"
 rand = "0.8"
 wasm-logger = "0.2"
-yew = { path = "../../yew" }
-yew-services = { path = "../../yew-services" }
+yew = { path = "../../packages/yew" }
+yew-services = { path = "../../packages/yew-services" }

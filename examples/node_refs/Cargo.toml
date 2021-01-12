@@ -5,5 +5,6 @@ authors = ["Justin Starry <justin.starry@icloud.com>"]
 edition = "2018"
 
 [dependencies]
-yew = { path = "../../yew" }
+yew = { path = "../../packages/yew" }
 web-sys = { version = "0.3", features = ["HtmlElement", "HtmlInputElement", "Node"] }
+yew-services = { path = "../../packages/yew-services" }
