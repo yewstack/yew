@@ -9,7 +9,7 @@ pulldown-cmark = { version = "0.8", default-features = false }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 yew = { path = "../../packages/yew" }
-yewtil = { path = "../../yewtil", features = ["future"] }
+yewtil = { path = "../../packages/yewtil", features = ["future"] }
 
 [dependencies.web-sys]
 version = "0.3"

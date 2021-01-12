@@ -6,4 +6,4 @@ edition = "2018"
 
 [dependencies]
 yew = { path = "../../packages/yew" }
-yewtil = { path = "../../yewtil" }
+yewtil = { path = "../../packages/yewtil" }
