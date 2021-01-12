@@ -3,6 +3,8 @@
 //! It carries a similar role as subscriptions in Elm, but can be used directly
 //! from the `update` method.
 
+#[cfg(test)]
+pub(crate) mod callback_test_util;
 pub mod console;
 pub mod dialog;
 pub mod fetch;
@@ -14,8 +16,6 @@ pub mod resize;
 pub mod storage;
 pub mod timeout;
 pub mod websocket;
-#[cfg(test)]
-pub(crate) mod callback_test_util;
 
 #[doc(inline)]
 pub use self::console::ConsoleService;

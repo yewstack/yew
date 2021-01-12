@@ -187,7 +187,7 @@ jobs:
         env:
           HTTPBIN_URL: "http://localhost:8080"
         run: |
-          cd yew-services
+          cd packages/yew-services
           wasm-pack test --firefox --chrome  --headless -- --features "wasm_test httpbin_test"
 
       - name: Run tests - yew-functional

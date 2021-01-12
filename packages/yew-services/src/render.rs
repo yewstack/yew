@@ -1,11 +1,11 @@
 //! This module contains Yew's implementation of a service which can be used to
 //! request frame rendering
 
-use yew::callback::Callback;
 use crate::Task;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::fmt;
+use yew::callback::Callback;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         #[allow(unused_imports)]

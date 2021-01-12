@@ -2,11 +2,11 @@
 //! [`WebSocket` Protocol](https://tools.ietf.org/html/rfc6455).
 
 use super::Task;
-use yew::callback::Callback;
-use yew::format::{Binary, FormatError, Text};
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::fmt;
+use yew::callback::Callback;
+use yew::format::{Binary, FormatError, Text};
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::traits::IMessageEvent;
@@ -369,11 +369,11 @@ impl Drop for WebSocketTask {
 #[cfg(feature = "wasm_test")]
 mod tests {
     use super::*;
-    use yew::callback::{Callback};
     use crate::callback_test_util::CallbackFuture;
-    use yew::format::{FormatError, Json};
     use serde::{Deserialize, Serialize};
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use yew::callback::Callback;
+    use yew::format::{FormatError, Json};
 
     wasm_bindgen_test_configure!(run_in_browser);
 

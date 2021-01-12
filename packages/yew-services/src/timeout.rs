@@ -2,12 +2,12 @@
 //! send messages when a timeout has elapsed.
 
 use super::Task;
-use yew::callback::Callback;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::convert::TryInto;
 use std::fmt;
 use std::time::Duration;
+use yew::callback::Callback;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::Value;

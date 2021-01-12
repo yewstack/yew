@@ -1,9 +1,9 @@
 //! Service to register key press event listeners on elements.
 
-use yew::callback::Callback;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::fmt;
+use yew::callback::Callback;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::web::event::{ConcreteEvent, KeyDownEvent, KeyPressEvent, KeyUpEvent};

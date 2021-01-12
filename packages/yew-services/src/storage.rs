@@ -1,11 +1,11 @@
 //! This module contains Yew's implementation of a service to
 //! use local and session storage of a browser.
 
-use yew::format::Text;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::fmt;
 use thiserror::Error;
+use yew::format::Text;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         #[allow(unused_imports)]
