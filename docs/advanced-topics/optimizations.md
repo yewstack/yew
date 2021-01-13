@@ -32,7 +32,7 @@ struct Example {
 
 impl Example {
     fn changed(&mut self, ctx: &Context<Self>, new_props: ExampleProps) -> ShouldRender {
-        return self.props.label != new_props.label {
+        return self.props.label != new_props.label
     }
 }
 ```
