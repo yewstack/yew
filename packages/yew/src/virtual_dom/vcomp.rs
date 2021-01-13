@@ -2,18 +2,11 @@
 
 use super::{Key, Transformer, VDiff, VNode};
 use crate::html::{AnyScope, Component, NodeRef, Scope, Scoped};
-use cfg_if::cfg_if;
 use std::any::TypeId;
 use std::borrow::Borrow;
 use std::fmt;
 use std::ops::Deref;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::Element;
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::Element;
-    }
-}
+use web_sys::Element;
 
 /// A virtual component.
 pub struct VComp {
@@ -274,15 +267,7 @@ mod tests {
         html, utils::document, Children, Component, ComponentLink, Html, NodeRef, Properties,
         ShouldRender,
     };
-    use cfg_match::cfg_match;
-
-    cfg_if! {
-        if #[cfg(feature = "std_web")] {
-            use stdweb::web::{INode, Node};
-        } else if #[cfg(feature = "web_sys")] {
-            use web_sys::Node;
-        }
-    }
+    use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -471,10 +456,8 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "web_sys")]
     use super::{AnyScope, Element};
 
-    #[cfg(feature = "web_sys")]
     fn setup_parent() -> (AnyScope, Element) {
         let scope = AnyScope {
             type_id: std::any::TypeId::of::<()>(),
@@ -488,7 +471,6 @@ mod tests {
         (scope, parent)
     }
 
-    #[cfg(feature = "web_sys")]
     fn get_html(mut node: Html, scope: &AnyScope, parent: &Element) -> String {
         // clear parent
         parent.set_inner_html("");
@@ -498,7 +480,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "web_sys")]
     fn all_ways_of_passing_children_work() {
         let (scope, parent) = setup_parent();
 
@@ -553,25 +534,19 @@ mod tests {
         };
         let parent = document().create_element("div").unwrap();
 
-        #[cfg(feature = "std_web")]
-        document().body().unwrap().append_child(&parent);
-        #[cfg(feature = "web_sys")]
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref = NodeRef::default();
         let mut elem: VNode = html! { <Comp ref=node_ref.clone()></Comp> };
         elem.apply(&scope, &parent, NodeRef::default(), None);
-        let parent_node = cfg_match! {
-            feature = "std_web" => parent.as_node(),
-            feature = "web_sys" => parent.deref(),
-        };
+        let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
         elem.detach(&parent);
         assert!(node_ref.get().is_none());
     }
 }
 
-#[cfg(all(test, feature = "web_sys"))]
+#[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 

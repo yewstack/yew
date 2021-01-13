@@ -1,20 +1,10 @@
 use super::*;
 use crate::callback::Callback;
-use cfg_if::cfg_if;
-use cfg_match::cfg_match;
 use queue::Queue;
 use std::fmt;
 use std::marker::PhantomData;
 use std::sync::atomic::{AtomicUsize, Ordering};
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::Value;
-        #[allow(unused_imports)]
-        use stdweb::{_js_impl, js};
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Worker};
-    }
-}
+use web_sys::Worker;
 
 thread_local! {
     static QUEUE: Queue<usize> = Queue::new();
@@ -40,9 +30,7 @@ where
     fn spawn_or_join(callback: Option<Callback<AGN::Output>>) -> Box<dyn Bridge<AGN>> {
         let id = PRIVATE_ID_COUNTER.fetch_add(1, Ordering::Relaxed);
         let callback = callback.expect("Callback required for Private agents");
-        let handler = move |data: Vec<u8>,
-                            #[cfg(feature = "std_web")] worker: Value,
-                            #[cfg(feature = "web_sys")] worker: &Worker| {
+        let handler = move |data: Vec<u8>, worker: &Worker| {
             let msg = FromWorker::<AGN::Output>::unpack(&data);
             match msg {
                 FromWorker::WorkerLoaded => {
@@ -51,13 +39,7 @@ where
 
                         if let Some(msgs) = queue.remove_msg_queue(&id) {
                             for msg in msgs {
-                                cfg_match! {
-                                    feature = "std_web" => ({
-                                        let worker = &worker;
-                                        js! {@{worker}.postMessage(@{msg});};
-                                    }),
-                                    feature = "web_sys" => worker.post_message_vec(msg),
-                                }
+                                worker.post_message_vec(msg)
                             }
                         }
                     });
@@ -71,21 +53,11 @@ where
 
         // TODO(#947): Drop handler when bridge is dropped
         let name_of_resource = AGN::name_of_resource();
-        let worker = cfg_match! {
-            feature = "std_web" => js! {
-                var worker = new Worker(@{name_of_resource});
-                var handler = @{handler};
-                worker.onmessage = function(event) {
-                    handler(event.data, worker);
-                };
-                return worker;
-            },
-            feature = "web_sys" => ({
-                let worker = worker_new(name_of_resource, AGN::is_module());
-                let worker_clone = worker.clone();
-                worker.set_onmessage_closure(move |data: Vec<u8>| handler(data, &worker_clone));
-                worker
-            }),
+        let worker = {
+            let worker = worker_new(name_of_resource, AGN::is_module());
+            let worker_clone = worker.clone();
+            worker.set_onmessage_closure(move |data: Vec<u8>| handler(data, &worker_clone));
+            worker
         };
         let bridge = PrivateBridge {
             worker,
@@ -104,9 +76,6 @@ where
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
-    #[cfg(feature = "std_web")]
-    worker: Value,
-    #[cfg(feature = "web_sys")]
     worker: Worker,
     _agent: PhantomData<AGN>,
     id: usize,

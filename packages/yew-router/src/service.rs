@@ -3,24 +3,11 @@
 use yew::callback::Callback;
 
 use crate::route::{Route, RouteState};
-use cfg_if::cfg_if;
-use cfg_match::cfg_match;
 use std::marker::PhantomData;
 
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::{
-            js,
-            unstable::{TryFrom, TryInto},
-            web::{event::PopStateEvent, window, EventListenerHandle, History, IEventTarget, Location},
-            Value,
-        };
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{History, Location, PopStateEvent};
-        use gloo::events::EventListener;
-        use wasm_bindgen::{JsValue as Value, JsCast};
-    }
-}
+use gloo::events::EventListener;
+use wasm_bindgen::{JsCast, JsValue as Value};
+use web_sys::{History, Location, PopStateEvent};
 
 /// A service that facilitates manipulation of the browser's URL bar and responding to browser events
 /// when users press 'forward' or 'back'.
@@ -30,9 +17,6 @@ cfg_if! {
 pub struct RouteService<STATE = ()> {
     history: History,
     location: Location,
-    #[cfg(feature = "std_web")]
-    event_listener: Option<EventListenerHandle>,
-    #[cfg(feature = "web_sys")]
     event_listener: Option<EventListener>,
     phantom_data: PhantomData<STATE>,
 }
@@ -49,20 +33,14 @@ where
 impl<T> RouteService<T> {
     /// Creates the route service.
     pub fn new() -> RouteService<T> {
-        let (history, location) = cfg_match! {
-            feature = "std_web" => ({
-                (
-                    window().history(),
-                    window().location().expect("browser does not support location API")
-                )
-            }),
-            feature = "web_sys" => ({
-                let window = web_sys::window().unwrap();
-                (
-                    window.history().expect("browser does not support history API"),
-                    window.location()
-                )
-            }),
+        let (history, location) = {
+            let window = web_sys::window().unwrap();
+            (
+                window
+                    .history()
+                    .expect("browser does not support history API"),
+                window.location(),
+            )
         };
 
         RouteService {
@@ -107,10 +85,7 @@ where
     pub fn register_callback(&mut self, callback: Callback<Route<STATE>>) {
         let cb = move |event: PopStateEvent| {
             let state_value: Value = event.state();
-            let state_string: String = cfg_match! {
-                feature = "std_web" => String::try_from(state_value).unwrap_or_default(),
-                feature = "web_sys" => state_value.as_string().unwrap_or_default(),
-            };
+            let state_string: String = state_value.as_string().unwrap_or_default();
             let state: STATE = serde_json::from_str(&state_string).unwrap_or_else(|_| {
                 log::error!("Could not deserialize state string");
                 STATE::default()
@@ -118,27 +93,20 @@ where
 
             // Can't use the existing location, because this is a callback, and can't move it in
             // here.
-            let location: Location = cfg_match! {
-                feature = "std_web" => window().location().unwrap(),
-                feature = "web_sys" => web_sys::window().unwrap().location(),
-            };
+            let location: Location = web_sys::window().unwrap().location();
             let route: String = Self::get_route_from_location(&location);
 
             callback.emit(Route { route, state })
         };
 
-        cfg_if! {
-            if #[cfg(feature = "std_web")] {
-                self.event_listener = Some(window().add_event_listener(move |event: PopStateEvent| {
-                    cb(event)
-                }));
-            } else if #[cfg(feature = "web_sys")] {
-                self.event_listener = Some(EventListener::new(web_sys::window().unwrap().as_ref(), "popstate", move |event| {
-                    let event: PopStateEvent = event.clone().dyn_into().unwrap();
-                    cb(event)
-                }));
-            }
-        };
+        self.event_listener = Some(EventListener::new(
+            web_sys::window().unwrap().as_ref(),
+            "popstate",
+            move |event| {
+                let event: PopStateEvent = event.clone().dyn_into().unwrap();
+                cb(event)
+            },
+        ));
     }
 
     /// Sets the browser's url bar to contain the provided route,
@@ -150,14 +118,9 @@ where
             log::error!("Could not serialize state string");
             "".to_string()
         });
-        cfg_match! {
-            feature = "std_web" => ({
-                self.history.push_state(state_string, "", Some(route));
-            }),
-            feature = "web_sys" => ({
-                let _ = self.history.push_state_with_url(&Value::from_str(&state_string), "", Some(route));
-            }),
-        };
+        let _ = self
+            .history
+            .push_state_with_url(&Value::from_str(&state_string), "", Some(route));
     }
 
     /// Replaces the route with another one removing the most recent history event and
@@ -167,14 +130,9 @@ where
             log::error!("Could not serialize state string");
             "".to_string()
         });
-        cfg_match! {
-            feature = "std_web" => ({
-                let _ = self.history.replace_state(state_string, "", Some(route));
-            }),
-            feature = "web_sys" => ({
-                let _ = self.history.replace_state_with_url(&Value::from_str(&state_string), "", Some(route));
-            }),
-        };
+        let _ =
+            self.history
+                .replace_state_with_url(&Value::from_str(&state_string), "", Some(route));
     }
 
     /// Gets the concatenated path, query, and fragment.
@@ -216,17 +174,9 @@ pub(crate) fn format_route_string(path: &str, query: &str, fragment: &str) -> St
 }
 
 fn get_state(history: &History) -> Value {
-    cfg_match! {
-        feature = "std_web" => js!(
-            return @{history}.state;
-        ),
-        feature = "web_sys" => history.state().unwrap(),
-    }
+    history.state().unwrap()
 }
 
 fn get_state_string(history: &History) -> Option<String> {
-    cfg_match! {
-        feature = "std_web" => get_state(history).try_into().ok(),
-        feature = "web_sys" => get_state(history).as_string(),
-    }
+    get_state(history).as_string()
 }

@@ -29,7 +29,7 @@ run_task = { name = ["lint", "tests"], fork = true }
 [tasks.lint]
 category = "Checks"
 description = "Check formatting and run Clippy"
-run_task = { name = ["lint-flow", "lint-stdweb"], fork = true }
+run_task = { name = ["lint-flow"], fork = true }
 
 [tasks.tests]
 category = "Testing"
@@ -38,7 +38,6 @@ dependencies = ["tests-setup"]
 env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["**/examples/*"] }
 run_task = { name = [
     "test-flow",
-    "tests-stdweb",
     "doc-test-flow",
 ], fork = true, cleanup_task = "tests-cleanup" }
 
@@ -52,19 +51,6 @@ run_task = { name = "bench-flow", fork = true }
 private = true
 workspace = true
 dependencies = ["core::check-format-flow", "core::clippy-flow"]
-
-[tasks.lint-stdweb]
-private = true
-cwd = "packages/yew-stdweb"
-command = "cargo"
-args = [
-    "make",
-    "--loglevel",
-    "${CARGO_MAKE_LOG_LEVEL}",
-    "--profile",
-    "${CARGO_MAKE_PROFILE}",
-    "lint-flow",
-]
 
 [tasks.tests-setup]
 private = true

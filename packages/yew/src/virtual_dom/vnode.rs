@@ -2,20 +2,12 @@
 
 use super::{Key, VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{AnyScope, Component, NodeRef};
-use cfg_if::cfg_if;
-use cfg_match::cfg_match;
 use log::warn;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
 
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, INode, Node};
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Node};
-    }
-}
+use web_sys::{Element, Node};
 
 /// Bind virtual element to a DOM reference.
 #[derive(Clone)]
@@ -54,10 +46,7 @@ impl VNode {
                 .into(),
             VNode::VText(vtext) => {
                 let text_node = vtext.reference.as_ref().expect("VText is not mounted");
-                cfg_match! {
-                    feature = "std_web" => text_node.as_node().clone(),
-                    feature = "web_sys" => text_node.clone().into(),
-                }
+                text_node.clone().into()
             }
             VNode::VComp(vcomp) => vcomp.node_ref.get().expect("VComp is not mounted"),
             VNode::VList(vlist) => vlist
@@ -218,7 +207,7 @@ impl PartialEq for VNode {
     }
 }
 
-#[cfg(all(test, feature = "web_sys"))]
+#[cfg(test)]
 mod layout_tests {
     use super::*;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};

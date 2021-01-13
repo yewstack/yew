@@ -47,12 +47,6 @@ impl<SW: Switch + Clone + 'static, STATE: RouterState> Component for RouterButto
     }
 
     fn view(&self) -> VNode {
-        #[cfg(feature = "std_web")]
-        let cb = self.link.callback(|event: ClickEvent| {
-            event.prevent_default();
-            Msg::Clicked
-        });
-        #[cfg(feature = "web_sys")]
         let cb = self.link.callback(|event: MouseEvent| {
             event.prevent_default();
             Msg::Clicked

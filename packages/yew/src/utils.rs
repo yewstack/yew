@@ -1,32 +1,18 @@
 //! This module contains useful utilities to get information about the current document.
 
 use anyhow::{anyhow, Error};
-use cfg_if::cfg_if;
-use cfg_match::cfg_match;
 use std::marker::PhantomData;
+use web_sys::{Document, Window};
 use yew::html::ChildrenRenderer;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Document, Window};
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Document, Window};
-    }
-}
 
 /// Returns the current window. This function will panic if there is no available window.
 pub fn window() -> Window {
-    cfg_match! {
-        feature = "std_web" => stdweb::web::window(),
-        feature = "web_sys" => web_sys::window().expect("no window available"),
-    }
+    web_sys::window().expect("no window available")
 }
 
 /// Returns the current document.
 pub fn document() -> Document {
-    cfg_match! {
-        feature = "std_web" => stdweb::web::document(),
-        feature = "web_sys" => window().document().unwrap(),
-    }
+    window().document().unwrap()
 }
 
 /// Returns the `host` for the current document. Useful for connecting to the server which serves
@@ -36,10 +22,6 @@ pub fn host() -> Result<String, Error> {
         .location()
         .ok_or_else(|| anyhow!("can't get location"))?;
 
-    #[cfg(feature = "std_web")]
-    let host = location.host().map_err(Error::from)?;
-
-    #[cfg(feature = "web_sys")]
     let host = location.host().map_err(|e| {
         anyhow!(e
             .as_string()
@@ -53,13 +35,6 @@ pub fn host() -> Result<String, Error> {
 pub fn origin() -> Result<String, Error> {
     let location = window().location();
 
-    #[cfg(feature = "std_web")]
-    let location = location.ok_or_else(|| anyhow!("can't get location"))?;
-
-    #[cfg(feature = "std_web")]
-    let origin = location.origin().map_err(Error::from)?;
-
-    #[cfg(feature = "web_sys")]
     let origin = location.origin().map_err(|e| {
         anyhow!(e
             .as_string()

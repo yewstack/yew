@@ -11,19 +11,12 @@ use crate::html::NodeRef;
 use crate::scheduler::{scheduler, Shared};
 use crate::utils::document;
 use crate::virtual_dom::{insert_node, VNode};
-use cfg_if::cfg_if;
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, Node};
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Node};
-    }
-}
+use web_sys::{Element, Node};
 
 /// Untyped scope used for accessing parent scope
 #[derive(Debug, Clone)]

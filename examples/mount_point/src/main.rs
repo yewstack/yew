@@ -61,7 +61,6 @@ fn create_canvas(document: &Document) -> HtmlCanvasElement {
 }
 
 fn main() {
-    yew::initialize();
     let document = yew::utils::document();
     let body = document.query_selector("body").unwrap().unwrap();
 
@@ -76,7 +75,4 @@ fn main() {
     body.append_child(&mount_point).unwrap();
 
     yew::App::<Model>::new().mount(mount_point);
-
-    // only required for stdweb
-    yew::run_loop();
 }

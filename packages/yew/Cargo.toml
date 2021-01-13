@@ -18,31 +18,29 @@ description = "A framework for making client-side single-page apps"
 [dependencies]
 anyhow = "1"
 anymap = "0.12"
-bincode = { version = "1", optional = true }
-cfg-if = "1.0"
-cfg-match = "0.2"
-console_error_panic_hook = { version = "0.1", optional = true }
-gloo = { version = "0.2.1", optional = true }
+console_error_panic_hook = "0.1"
+gloo = "0.2.1"
 http = "0.2"
 indexmap = { version = "1.5", features = ["std"] }
-js-sys = { version = "0.3", optional = true }
+js-sys = "0.3"
 log = "0.4"
-rmp-serde = { version = "0.15.0", optional = true }
 serde = { version = "1.0", features = ["derive"] }
-serde_cbor = { version = "0.11.1", optional = true }
 serde_json = "1.0"
-serde_yaml = { version = "0.8.3", optional = true }
 slab = "0.4"
-stdweb = { version = "0.4.20", optional = true }
 thiserror = "1"
-toml = { version = "0.5", optional = true }
-wasm-bindgen = { version = "0.2.60", optional = true }
-wasm-bindgen-futures = { version = "0.4", optional = true }
+wasm-bindgen = "0.2.60"
+wasm-bindgen-futures = "0.4"
 yew-macro = { version = "0.17.0", path = "../yew-macro" }
+
+# optional encodings
+bincode = { version = "1", optional = true }
+rmp-serde = { version = "0.15.0", optional = true }
+serde_cbor = { version = "0.11.1", optional = true }
+serde_yaml = { version = "0.8.3", optional = true }
+toml = { version = "0.5", optional = true }
 
 [dependencies.web-sys]
 version = "0.3"
-optional = true
 features = [
   "AbortController",
   "AbortSignal",
@@ -122,16 +120,7 @@ rmp-serde = "0.15.0"
 bincode = "1"
 
 [features]
-default = ["agent", "web_sys"]
-std_web = ["stdweb", "yew-macro/std_web"]
-web_sys = [
-  "console_error_panic_hook",
-  "gloo",
-  "js-sys",
-  "web-sys",
-  "wasm-bindgen",
-  "wasm-bindgen-futures"
-]
+default = ["agent"]
 doc_test = []
 wasm_test = []
 wasm_bench = []

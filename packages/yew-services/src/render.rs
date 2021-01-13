@@ -2,31 +2,16 @@
 //! request frame rendering
 
 use crate::Task;
-use cfg_if::cfg_if;
-use cfg_match::cfg_match;
 use std::fmt;
+use wasm_bindgen::closure::Closure;
+use wasm_bindgen::{JsCast, JsValue};
 use yew::callback::Callback;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        #[allow(unused_imports)]
-        use stdweb::{_js_impl, js};
-        use stdweb::unstable::TryInto;
-        use stdweb::Value;
-    } else if #[cfg(feature = "web_sys")] {
-        use yew::utils;
-        use wasm_bindgen::closure::Closure;
-        use wasm_bindgen::{JsCast, JsValue};
-    }
-}
+use yew::utils;
 
 /// A handle to cancel a render task.
 #[must_use = "the task will be cancelled when the task is dropped"]
-pub struct RenderTask(
-    #[cfg(feature = "std_web")] Value,
-    #[cfg(feature = "web_sys")] RenderTaskInner,
-);
+pub struct RenderTask(RenderTaskInner);
 
-#[cfg(feature = "web_sys")]
 struct RenderTaskInner {
     render_id: i32,
     #[allow(dead_code)]
@@ -46,39 +31,19 @@ pub struct RenderService {}
 impl RenderService {
     /// Request animation frame. Callback will be notified when frame should be rendered.
     pub fn request_animation_frame(callback: Callback<f64>) -> RenderTask {
-        let callback = move |#[cfg(feature = "std_web")] v,
-                             #[cfg(feature = "web_sys")] v: JsValue| {
-            let time: f64 = cfg_match! {
-                feature = "std_web" => ({
-                    match v {
-                        Value::Number(n) => n.try_into().unwrap(),
-                        _ => 0.0,
-                    }
-                }),
-                feature = "web_sys" => v.as_f64().unwrap_or(0.),
-            };
+        let callback = move |v: JsValue| {
+            let time: f64 = v.as_f64().unwrap_or(0.);
             callback.emit(time);
         };
-        let handle = cfg_match! {
-            feature = "std_web" => js! {
-                var callback = @{callback};
-                var action = function(time) {
-                    callback(time);
-                    callback.drop();
-                };
-                return {
-                    render_id: requestAnimationFrame(action),
-                    callback: callback,
-                };
-            },
-            feature = "web_sys" => ({
-                let callback = Closure::wrap(Box::new(callback) as Box<dyn Fn(JsValue)>);
-                let render_id = utils::window().request_animation_frame(callback.as_ref().unchecked_ref()).unwrap();
-                RenderTaskInner {
-                    render_id,
-                    callback,
-                }
-            }),
+        let handle = {
+            let callback = Closure::wrap(Box::new(callback) as Box<dyn Fn(JsValue)>);
+            let render_id = utils::window()
+                .request_animation_frame(callback.as_ref().unchecked_ref())
+                .unwrap();
+            RenderTaskInner {
+                render_id,
+                callback,
+            }
         };
         RenderTask(handle)
     }
@@ -93,17 +58,9 @@ impl Task for RenderTask {
 impl Drop for RenderTask {
     fn drop(&mut self) {
         if self.is_active() {
-            cfg_match! {
-                feature = "std_web" => ({
-                    let handle = &self.0;
-                    js! { @(no_return)
-                        var handle = @{handle};
-                        cancelAnimationFrame(handle.render_id);
-                        handle.callback.drop();
-                    }
-                }),
-                feature = "web_sys" => utils::window().cancel_animation_frame(self.0.render_id).unwrap(),
-            }
+            utils::window()
+                .cancel_animation_frame(self.0.render_id)
+                .unwrap()
         }
     }
 }
