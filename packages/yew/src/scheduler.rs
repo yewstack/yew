@@ -61,6 +61,10 @@ impl ComponentScheduler {
         }
     }
 
+    pub(crate) fn push_update_batch(&self, it: impl IntoIterator<Item = Box<dyn Runnable>>) {
+        self.update.borrow_mut().extend(it);
+    }
+
     pub(crate) fn push(&self, run_type: ComponentRunnableType, runnable: Box<dyn Runnable>) {
         match run_type {
             ComponentRunnableType::Create => self.create.borrow_mut().push_back(runnable),
@@ -89,11 +93,6 @@ impl Scheduler {
             main: Rc::new(RefCell::new(VecDeque::new())),
             component: ComponentScheduler::new(),
         }
-    }
-
-    pub(crate) fn push_comp_update_batch(&self, it: impl IntoIterator<Item = Box<dyn Runnable>>) {
-        self.component.update.borrow_mut().extend(it);
-        self.start();
     }
 
     pub(crate) fn push(&self, runnable: Box<dyn Runnable>) {
