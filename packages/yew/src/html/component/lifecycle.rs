@@ -14,90 +14,98 @@ cfg_if! {
 }
 
 pub(crate) struct ComponentState<COMP: Component> {
+    pub(crate) component: Box<COMP>,
+    pub(crate) root_node: VNode,
+
+    scope: Scope<COMP>,
     parent: Element,
     next_sibling: NodeRef,
     node_ref: NodeRef,
-
-    scope: Scope<COMP>,
-    pub(crate) component: Box<COMP>,
-
-    pub(crate) placeholder: Option<VNode>,
-    pub(crate) last_root: Option<VNode>,
-    new_root: Option<VNode>,
     has_rendered: bool,
-    pending_updates: Vec<UpdateTask<COMP>>,
+    pending_root: Option<VNode>,
+    pending_updates: Vec<UpdateEvent<COMP>>,
 }
 
 impl<COMP: Component> ComponentState<COMP> {
-    /// Creates a new `ComponentState`, also invokes the `create()`
-    /// method on component to create it.
     pub(crate) fn new(
         parent: Element,
         next_sibling: NodeRef,
-        placeholder: Option<VNode>,
+        root_node: VNode,
         node_ref: NodeRef,
         scope: Scope<COMP>,
         props: COMP::Properties,
     ) -> Self {
         let component = Box::new(COMP::create(props, scope.clone()));
         Self {
+            component,
+            root_node,
+            scope,
             parent,
             next_sibling,
             node_ref,
-            scope,
-            component,
-            placeholder,
-            last_root: None,
-            new_root: None,
             has_rendered: false,
+            pending_root: None,
             pending_updates: Vec::new(),
+        }
+    }
+
+    fn drain_pending_updates(&mut self, state: &Shared<Option<ComponentState<COMP>>>) {
+        if !self.pending_updates.is_empty() {
+            scheduler()
+                .component
+                .push_update_batch(self.pending_updates.drain(..).map(|update| {
+                    Box::new(ComponentRunnable {
+                        state: state.clone(),
+                        event: update.into(),
+                    }) as Box<dyn Runnable>
+                }));
         }
     }
 }
 
-/// Internal Component runnable tasks
-pub(crate) enum ComponentTask<COMP: Component> {
-    Create(CreateTask<COMP>),
-    Update(UpdateTask<COMP>),
-    Render(bool),
-    Rendered(bool),
+/// Internal Component lifecycle event
+pub(crate) enum ComponentLifecycleEvent<COMP: Component> {
+    Create(CreateEvent<COMP>),
+    Update(UpdateEvent<COMP>),
+    Render,
+    Rendered,
     Destroy,
 }
 
-impl<COMP: Component> ComponentTask<COMP> {
+impl<COMP: Component> ComponentLifecycleEvent<COMP> {
     pub(crate) fn as_runnable_type(&self) -> ComponentRunnableType {
         match self {
             Self::Create(_) => ComponentRunnableType::Create,
             Self::Update(_) => ComponentRunnableType::Update,
-            Self::Render(_) => ComponentRunnableType::Render,
-            Self::Rendered(_) => ComponentRunnableType::Rendered,
+            Self::Render => ComponentRunnableType::Render,
+            Self::Rendered => ComponentRunnableType::Rendered,
             Self::Destroy => ComponentRunnableType::Destroy,
         }
     }
 }
 
-impl<COMP: Component> From<CreateTask<COMP>> for ComponentTask<COMP> {
-    fn from(create: CreateTask<COMP>) -> Self {
+impl<COMP: Component> From<CreateEvent<COMP>> for ComponentLifecycleEvent<COMP> {
+    fn from(create: CreateEvent<COMP>) -> Self {
         Self::Create(create)
     }
 }
 
-pub(crate) struct CreateTask<COMP: Component> {
+pub(crate) struct CreateEvent<COMP: Component> {
     pub(crate) parent: Element,
     pub(crate) next_sibling: NodeRef,
-    pub(crate) placeholder: Option<VNode>,
+    pub(crate) placeholder: VNode,
     pub(crate) node_ref: NodeRef,
     pub(crate) props: COMP::Properties,
     pub(crate) scope: Scope<COMP>,
 }
 
-impl<COMP: Component> From<UpdateTask<COMP>> for ComponentTask<COMP> {
-    fn from(update: UpdateTask<COMP>) -> Self {
+impl<COMP: Component> From<UpdateEvent<COMP>> for ComponentLifecycleEvent<COMP> {
+    fn from(update: UpdateEvent<COMP>) -> Self {
         Self::Update(update)
     }
 }
 
-pub(crate) enum UpdateTask<COMP: Component> {
+pub(crate) enum UpdateEvent<COMP: Component> {
     /// First update
     First,
     /// Wraps messages for a component.
@@ -110,84 +118,42 @@ pub(crate) enum UpdateTask<COMP: Component> {
 
 pub(crate) struct ComponentRunnable<COMP: Component> {
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
-    pub(crate) task: ComponentTask<COMP>,
+    pub(crate) event: ComponentLifecycleEvent<COMP>,
 }
 
 impl<COMP: Component> Runnable for ComponentRunnable<COMP> {
     fn run(self: Box<Self>) {
         let mut current_state = self.state.borrow_mut();
-        match self.task {
-            ComponentTask::Create(this) => {
+        match self.event {
+            ComponentLifecycleEvent::Create(event) => {
                 if current_state.is_none() {
                     *current_state = Some(ComponentState::new(
-                        this.parent,
-                        this.next_sibling,
-                        this.placeholder,
-                        this.node_ref,
-                        this.scope.clone(),
-                        this.props,
+                        event.parent,
+                        event.next_sibling,
+                        event.placeholder,
+                        event.node_ref,
+                        event.scope.clone(),
+                        event.props,
                     ));
                 }
             }
-            ComponentTask::Render(first_render) => {
+            ComponentLifecycleEvent::Update(event) => {
                 if let Some(mut state) = current_state.as_mut() {
-                    // Skip render if we haven't seen the "first render" yet
-                    if !first_render && state.last_root.is_none() {
-                        return;
-                    }
-
-                    if let Some(mut new_root) = state.new_root.take() {
-                        let last_root = state.last_root.take().or_else(|| state.placeholder.take());
-                        let parent_scope = state.scope.clone().into();
-                        let next_sibling = state.next_sibling.clone();
-                        let node =
-                            new_root.apply(&parent_scope, &state.parent, next_sibling, last_root);
-                        state.node_ref.link(node);
-                        state.last_root = Some(new_root);
-                        state.scope.run(ComponentTask::Rendered(first_render));
-                    }
-                }
-            }
-            ComponentTask::Rendered(first_render) => {
-                if let Some(mut state) = current_state.as_mut() {
-                    // Don't call rendered if we haven't seen the "first render" yet
-                    if !first_render && !state.has_rendered {
-                        return;
-                    }
-
-                    state.has_rendered = true;
-                    state.component.rendered(first_render);
-                    if !state.pending_updates.is_empty() {
-                        scheduler().push_comp_update_batch(state.pending_updates.drain(..).map(
-                            |update| {
-                                Box::new(ComponentRunnable {
-                                    state: self.state.clone(),
-                                    task: update.into(),
-                                }) as Box<dyn Runnable>
-                            },
-                        ));
-                    }
-                }
-            }
-            ComponentTask::Update(event) => {
-                if let Some(mut state) = current_state.as_mut() {
-                    if state.new_root.is_some() {
+                    if state.pending_root.is_some() {
                         state.pending_updates.push(event);
                         return;
                     }
 
-                    let first_update = matches!(event, UpdateTask::First);
-
-                    let should_update = match event {
-                        UpdateTask::First => true,
-                        UpdateTask::Message(message) => state.component.update(message),
-                        UpdateTask::MessageBatch(messages) => {
+                    let should_render = match event {
+                        UpdateEvent::First => true,
+                        UpdateEvent::Message(message) => state.component.update(message),
+                        UpdateEvent::MessageBatch(messages) => {
                             let component = &mut state.component;
                             messages
                                 .into_iter()
                                 .fold(false, |acc, msg| component.update(msg) || acc)
                         }
-                        UpdateTask::Properties(props, node_ref, next_sibling) => {
+                        UpdateEvent::Properties(props, node_ref, next_sibling) => {
                             // When components are updated, a new node ref could have been passed in
                             state.node_ref = node_ref;
                             // When components are updated, their siblings were likely also updated
@@ -196,18 +162,38 @@ impl<COMP: Component> Runnable for ComponentRunnable<COMP> {
                         }
                     };
 
-                    if should_update {
-                        state.new_root = Some(state.component.view());
-                        state.scope.run(ComponentTask::Render(first_update));
+                    if should_render {
+                        state.pending_root = Some(state.component.view());
+                        state.scope.process(ComponentLifecycleEvent::Render);
                     };
                 }
             }
-            ComponentTask::Destroy => {
+            ComponentLifecycleEvent::Render => {
+                if let Some(state) = current_state.as_mut() {
+                    if let Some(mut new_root) = state.pending_root.take() {
+                        std::mem::swap(&mut new_root, &mut state.root_node);
+                        let ancestor = Some(new_root);
+                        let new_root = &mut state.root_node;
+                        let scope = state.scope.clone().into();
+                        let next_sibling = state.next_sibling.clone();
+                        let node = new_root.apply(&scope, &state.parent, next_sibling, ancestor);
+                        state.node_ref.link(node);
+                        state.scope.process(ComponentLifecycleEvent::Rendered);
+                    }
+                }
+            }
+            ComponentLifecycleEvent::Rendered => {
+                if let Some(mut state) = current_state.as_mut() {
+                    let first_render = !state.has_rendered;
+                    state.component.rendered(first_render);
+                    state.has_rendered = true;
+                    state.drain_pending_updates(&self.state);
+                }
+            }
+            ComponentLifecycleEvent::Destroy => {
                 if let Some(mut state) = current_state.take() {
                     state.component.destroy();
-                    if let Some(last_frame) = &mut state.last_root {
-                        last_frame.detach(&state.parent);
-                    }
+                    state.root_node.detach(&state.parent);
                     state.node_ref.set(None);
                 }
             }
@@ -340,7 +326,7 @@ mod tests {
         let lifecycle = props.lifecycle.clone();
 
         lifecycle.borrow_mut().clear();
-        scope.mount_in_place(el, NodeRef::default(), None, NodeRef::default(), props);
+        scope.mount_in_place(el, NodeRef::default(), NodeRef::default(), props);
 
         assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);
     }

@@ -1,13 +1,16 @@
 //! Component scope module
 
 use super::{
-    lifecycle::{ComponentRunnable, ComponentState, ComponentTask, CreateTask, UpdateTask},
+    lifecycle::{
+        ComponentLifecycleEvent, ComponentRunnable, ComponentState, CreateEvent, UpdateEvent,
+    },
     Component,
 };
 use crate::callback::Callback;
 use crate::html::NodeRef;
 use crate::scheduler::{scheduler, Shared};
-use crate::virtual_dom::VNode;
+use crate::utils::document;
+use crate::virtual_dom::{insert_node, VNode};
 use cfg_if::cfg_if;
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
@@ -16,9 +19,9 @@ use std::ops::Deref;
 use std::rc::Rc;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use stdweb::web::Element;
+        use stdweb::web::{Element, Node};
     } else if #[cfg(feature = "web_sys")] {
-        use web_sys::Element;
+        use web_sys::{Element, Node};
     }
 }
 
@@ -77,26 +80,18 @@ impl<COMP: Component> Scoped for Scope<COMP> {
 
     fn root_vnode(&self) -> Option<Ref<'_, VNode>> {
         let state_ref = self.state.borrow();
-        state_ref.as_ref().and_then(|state| {
-            state
-                .last_root
-                .as_ref()
-                .or_else(|| state.placeholder.as_ref())
-        })?;
+
+        // check that component hasn't been destroyed
+        state_ref.as_ref()?;
 
         Some(Ref::map(state_ref, |state_ref| {
-            let state = state_ref.as_ref().unwrap();
-            state
-                .last_root
-                .as_ref()
-                .or_else(|| state.placeholder.as_ref())
-                .unwrap()
+            &state_ref.as_ref().unwrap().root_node
         }))
     }
 
-    /// Schedules a task to destroy a component
+    /// Process an event to destroy a component
     fn destroy(&mut self) {
-        self.run(ComponentTask::Destroy);
+        self.process(ComponentLifecycleEvent::Destroy);
     }
 }
 
@@ -148,12 +143,18 @@ impl<COMP: Component> Scope<COMP> {
         self,
         parent: Element,
         next_sibling: NodeRef,
-        placeholder: Option<VNode>,
         node_ref: NodeRef,
         props: COMP::Properties,
     ) -> Scope<COMP> {
-        self.schedule(UpdateTask::First.into());
-        self.run(ComponentTask::Create(CreateTask {
+        let placeholder = {
+            let placeholder: Node = document().create_text_node("").into();
+            insert_node(&placeholder, &parent, next_sibling.get());
+            node_ref.set(Some(placeholder.clone()));
+            VNode::VRef(placeholder)
+        };
+
+        self.schedule(UpdateEvent::First.into());
+        self.process(ComponentLifecycleEvent::Create(CreateEvent {
             parent,
             next_sibling,
             placeholder,
@@ -161,32 +162,33 @@ impl<COMP: Component> Scope<COMP> {
             props,
             scope: self.clone(),
         }));
+
         self
     }
 
     pub(crate) fn reuse(&self, props: COMP::Properties, node_ref: NodeRef, next_sibling: NodeRef) {
-        self.run(UpdateTask::Properties(props, node_ref, next_sibling).into());
+        self.process(UpdateEvent::Properties(props, node_ref, next_sibling).into());
     }
 
-    pub(crate) fn run(&self, task: ComponentTask<COMP>) {
+    pub(crate) fn process(&self, event: ComponentLifecycleEvent<COMP>) {
         let scheduler = scheduler();
         scheduler.component.push(
-            task.as_runnable_type(),
+            event.as_runnable_type(),
             Box::new(ComponentRunnable {
                 state: self.state.clone(),
-                task,
+                event,
             }),
         );
         scheduler.start();
     }
 
-    fn schedule(&self, task: ComponentTask<COMP>) {
+    fn schedule(&self, event: ComponentLifecycleEvent<COMP>) {
         let scheduler = &scheduler().component;
         scheduler.push(
-            task.as_runnable_type(),
+            event.as_runnable_type(),
             Box::new(ComponentRunnable {
                 state: self.state.clone(),
-                task,
+                event,
             }),
         );
     }
@@ -199,7 +201,7 @@ impl<COMP: Component> Scope<COMP> {
     where
         T: Into<COMP::Message>,
     {
-        self.run(UpdateTask::Message(msg.into()).into());
+        self.process(UpdateEvent::Message(msg.into()).into());
     }
 
     /// Send a batch of messages to the component.
@@ -217,7 +219,7 @@ impl<COMP: Component> Scope<COMP> {
             return;
         }
 
-        self.run(UpdateTask::MessageBatch(messages).into());
+        self.process(UpdateEvent::MessageBatch(messages).into());
     }
 
     /// Creates a `Callback` which will send a message to the linked
