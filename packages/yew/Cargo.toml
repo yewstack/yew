@@ -65,6 +65,7 @@ features = [
   "FileReader",
   "FocusEvent",
   "Headers",
+  "HtmlCollection",
   "HtmlElement",
   "HtmlButtonElement",
   "HtmlInputElement",
