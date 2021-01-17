@@ -93,6 +93,6 @@ html! {
 }
 ```
 
-## Relevant Examples
+## Relevant examples
 - [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
 - [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)

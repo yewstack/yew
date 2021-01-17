@@ -26,5 +26,5 @@ html! {
 let has_attributes = self.node_ref.cast::<Element>().unwrap().has_attributes();
 ```
 
-## Relevant Example
+## Relevant examples
 - [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)

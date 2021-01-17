@@ -151,7 +151,7 @@ html! { <Model unique_id=5 text="literals are fun" /> };
 html! { <Model unique_id=Some(5) text="literals are fun".to_owned() /> };
 ```
 
-## Relevant Examples
+## Relevant examples
 - [Boids](https://github.com/yewstack/yew/tree/master/examples/boids)
 - [Router](https://github.com/yewstack/yew/tree/master/examples/router)
 - [Store](https://github.com/yewstack/yew/tree/master/examples/store)
