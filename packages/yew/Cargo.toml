@@ -74,6 +74,7 @@ features = [
   "Location",
   "MessageEvent",
   "MouseEvent",
+  "NamedNodeMap",
   "Node",
   "ObserverCallback",
   "PointerEvent",
