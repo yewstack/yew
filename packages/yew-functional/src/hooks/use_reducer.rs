@@ -116,7 +116,7 @@ where
     struct UseReducerState<State> {
         current_state: Rc<State>,
     }
-    impl<T> Hook for UseReducerState<T> {};
+    impl<T> Hook for UseReducerState<T> {}
     let init = Box::new(init);
     let reducer = Rc::new(reducer);
     use_hook(
