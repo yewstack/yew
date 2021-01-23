@@ -1,4 +1,8 @@
 //! This module contains data types for interacting with `Scope`s.
+ //!
+//! ## Relevant examples
+//! - [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
+//! - [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)
 
 use std::cell::RefCell;
 use std::fmt;

@@ -930,7 +930,7 @@ This release introduces the concept of an `Agent`. Agents are separate activitie
     - `Public` agent spawns an agent in a separate thread (it uses [Web Workers API] under the hood).
   - Allow setting the whole properties struct of a component with `<Component: with props />`
   - `ComponentLink` now has a `send_self` method which allows components to update themselves [[@DenisKolodin], [#365](https://github.com/yewstack/yew/pull/365)]
-  - All services are re-exported within the `yew_services` module.
+  - All services are re-exported within the `yew::services` module.
   - `html!` macro supports multiple classes in a single string:
   `<a class="button is-primary",>`.
   - Added `FetchOptions` to allow setting `Credentials` of `fetch` request.
