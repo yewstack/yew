@@ -30,4 +30,4 @@ The example uses [`IntervalService`] to drive the game loop.
 - Resize the boids when "Spacing" is changed.
   The setting should then also be renamed to something like "Size".
 
-[`intervalservice`]: https://docs.rs/yew/latest/yew/services/struct.IntervalService.html
+[`intervalservice`]: https://docs.rs/yew-services/latest/yew_services/struct.IntervalService.html
