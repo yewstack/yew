@@ -1,5 +1,5 @@
 //! This module contains Yew's implementation of a service which listens for browser window resize events.
-use crate::services::Task;
+use crate::Task;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::fmt;

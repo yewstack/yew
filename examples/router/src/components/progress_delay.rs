@@ -1,9 +1,7 @@
 use instant::Instant;
 use std::time::Duration;
-use yew::{
-    prelude::*,
-    services::interval::{IntervalService, IntervalTask},
-};
+use yew::prelude::*;
+use yew_services::interval::{IntervalService, IntervalTask};
 use yewtil::NeqAssign;
 
 const RESOLUTION: u64 = 500;

@@ -1,49 +1,47 @@
-//! This module contains the implementation of a service for
-//! periodic sending messages to a loop.
+//! This module contains Yew's implementation of a service to
+//! send messages when a timeout has elapsed.
 
 use super::Task;
-use crate::callback::Callback;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::convert::TryInto;
 use std::fmt;
 use std::time::Duration;
+use yew::callback::Callback;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         use stdweb::Value;
         #[allow(unused_imports)]
         use stdweb::{_js_impl, js};
     } else if #[cfg(feature = "web_sys")] {
-        use gloo::timers::callback::Interval;
+        use gloo::timers::callback::Timeout;
     }
 }
 
-/// A handle which helps to cancel interval. Uses
-/// [clearInterval](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearInterval).
-#[must_use = "the interval is only active until the handle is dropped"]
-pub struct IntervalTask(
-    #[cfg(feature = "std_web")] Value,
-    #[cfg(feature = "web_sys")] Interval,
+/// A handle to cancel a timeout task.
+#[must_use = "the timeout will be cleared when the task is dropped"]
+pub struct TimeoutTask(
+    #[cfg(feature = "std_web")] Option<Value>,
+    #[cfg(feature = "web_sys")] Option<Timeout>,
 );
 
-impl fmt::Debug for IntervalTask {
+impl fmt::Debug for TimeoutTask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("IntervalTask")
+        f.write_str("TimeoutTask")
     }
 }
 
-/// A service to send messages on every elapsed interval.
+/// An service to set a timeout.
 #[derive(Default, Debug)]
-pub struct IntervalService {}
+pub struct TimeoutService {}
 
-impl IntervalService {
-    /// Sets interval which will call send a messages returned by a converter
-    /// on every interval expiration.
+impl TimeoutService {
+    /// Sets timeout which sends messages from a `converter` after `duration`.
     ///
     /// # Panics
     ///
     /// Panics if `duration` in milliseconds exceeds `u32::MAX` (around 50 days).
-    pub fn spawn(duration: Duration, callback: Callback<()>) -> IntervalTask {
+    pub fn spawn(duration: Duration, callback: Callback<()>) -> TimeoutTask {
         let callback = move || {
             callback.emit(());
         };
@@ -56,26 +54,27 @@ impl IntervalService {
                 var callback = @{callback};
                 var action = function() {
                     callback();
+                    callback.drop();
                 };
                 var delay = @{ms};
                 return {
-                    interval_id: setInterval(action, delay),
+                    timeout_id: setTimeout(action, delay),
                     callback: callback,
                 };
             },
-            feature = "web_sys" => Interval::new(ms, callback),
+            feature = "web_sys" => Timeout::new(ms, callback),
         };
-        IntervalTask(handle)
+        TimeoutTask(Some(handle))
     }
 }
 
-impl Task for IntervalTask {
+impl Task for TimeoutTask {
     fn is_active(&self) -> bool {
-        true
+        self.0.is_some()
     }
 }
 
-impl Drop for IntervalTask {
+impl Drop for TimeoutTask {
     fn drop(&mut self) {
         #[cfg(feature = "std_web")]
         {
@@ -83,7 +82,7 @@ impl Drop for IntervalTask {
                 let handle = &self.0;
                 js! { @(no_return)
                     var handle = @{handle};
-                    clearInterval(handle.interval_id);
+                    clearTimeout(handle.timeout_id);
                     handle.callback.drop();
                 }
             }

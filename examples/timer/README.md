@@ -13,6 +13,6 @@ but also makes use of some more advanced [`ConsoleService`] features.
 
 - Apply the concept to something more fun than just a dry technical demonstration
 
-[`timeoutservice`]: https://docs.rs/yew/latest/yew/services/struct.TimeoutService.html
-[`intervalservice`]: https://docs.rs/yew/latest/yew/services/struct.IntervalService.html
-[`consoleservice`]: https://docs.rs/yew/latest/yew/services/struct.ConsoleService.html
+[`timeoutservice`]: https://docs.rs/yew-services/latest/yew_services/struct.TimeoutService.html
+[`intervalservice`]: https://docs.rs/yew-services/latest/yew_services/struct.IntervalService.html
+[`consoleservice`]: https://docs.rs/yew-services/latest/yew_services/struct.ConsoleService.html

@@ -290,8 +290,6 @@ pub mod virtual_dom;
 
 #[cfg(feature = "agent")]
 pub mod agent;
-#[cfg(feature = "services")]
-pub mod services;
 
 #[cfg(feature = "web_sys")]
 pub use web_sys;

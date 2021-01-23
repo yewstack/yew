@@ -1,7 +1,7 @@
 use std::time::Duration;
-use yew::services::interval::{IntervalService, IntervalTask};
-use yew::services::{ConsoleService, Task, TimeoutService};
 use yew::{html, Callback, Component, ComponentLink, Html, ShouldRender};
+use yew_services::interval::{IntervalService, IntervalTask};
+use yew_services::{ConsoleService, Task, TimeoutService};
 
 pub enum Msg {
     StartTimeout,

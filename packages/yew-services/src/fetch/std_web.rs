@@ -1,9 +1,7 @@
 //! `stdweb` implementation for the fetch service.
 
 use super::Referrer;
-use crate::callback::Callback;
-use crate::format::{Binary, Format, Text};
-use crate::services::Task;
+use crate::Task;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt;
@@ -15,6 +13,8 @@ use stdweb::{JsSerialize, Value};
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 use thiserror::Error;
+use yew::callback::Callback;
+use yew::format::{Binary, Format, Text};
 
 #[doc(no_inline)]
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
@@ -169,7 +169,7 @@ impl FetchService {
     ///
     /// ```
     ///# use yew::format::{Nothing, Json};
-    ///# use yew::services::fetch::Request;
+    ///# use yew_services::fetch::Request;
     ///# use serde_json::json;
     /// let post_request = Request::post("https://my.api/v1/resource")
     ///     .header("Content-Type", "application/json")
@@ -186,8 +186,8 @@ impl FetchService {
     ///
     /// ```
     ///# use yew::{Component, ComponentLink, Html};
-    ///# use yew::services::FetchService;
-    ///# use yew::services::fetch::{Response, Request};
+    ///# use yew_services::FetchService;
+    ///# use yew_services::fetch::{Response, Request};
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
@@ -222,9 +222,9 @@ impl FetchService {
     ///
     /// ```
     ///# use yew::format::{Json, Nothing, Format};
-    ///# use yew::services::FetchService;
+    ///# use yew_services::FetchService;
     ///# use http::Request;
-    ///# use yew::services::fetch::Response;
+    ///# use yew_services::fetch::Response;
     ///# use yew::{Component, ComponentLink, Html};
     ///# use serde_derive::Deserialize;
     ///# struct Comp;
@@ -275,9 +275,9 @@ impl FetchService {
     /// Use it if you need to send cookies with a request:
     /// ```
     ///# use yew::format::Nothing;
-    ///# use yew::services::fetch::{self, FetchOptions, Credentials};
+    ///# use yew_services::fetch::{self, FetchOptions, Credentials};
     ///# use yew::{Html, Component, ComponentLink};
-    ///# use yew::services::FetchService;
+    ///# use yew_services::FetchService;
     ///# use http::Response;
     ///# struct Comp;
     ///# impl Component for Comp {

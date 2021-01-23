@@ -1,9 +1,7 @@
 //! `web-sys` implementation for the fetch service.
 
 use super::Referrer;
-use crate::callback::Callback;
-use crate::format::{Binary, Format, Text};
-use crate::services::Task;
+use crate::Task;
 use anyhow::{anyhow, Error};
 use http::request::Parts;
 use js_sys::{Array, Promise, Uint8Array};
@@ -20,6 +18,8 @@ use web_sys::{
     AbortController, Headers, ReferrerPolicy, Request as WebRequest, RequestInit,
     Response as WebResponse,
 };
+use yew::callback::Callback;
+use yew::format::{Binary, Format, Text};
 
 #[doc(no_inline)]
 pub use web_sys::{
@@ -171,7 +171,7 @@ impl FetchService {
     ///
     /// ```
     ///# use yew::format::{Nothing, Json};
-    ///# use yew::services::fetch::Request;
+    ///# use yew_services::fetch::Request;
     ///# use serde_json::json;
     /// let post_request = Request::post("https://my.api/v1/resource")
     ///     .header("Content-Type", "application/json")
@@ -188,8 +188,8 @@ impl FetchService {
     ///
     /// ```
     ///# use yew::{Component, ComponentLink, Html};
-    ///# use yew::services::FetchService;
-    ///# use yew::services::fetch::{Response, Request};
+    ///# use yew_services::FetchService;
+    ///# use yew_services::fetch::{Response, Request};
     ///# use anyhow::Error;
     ///# struct Comp;
     ///# impl Component for Comp {
@@ -225,11 +225,11 @@ impl FetchService {
     ///
     /// ```
     ///# use yew::format::{Json, Nothing, Format};
-    ///# use yew::services::FetchService;
+    ///# use yew_services::FetchService;
     ///# use http::Request;
-    ///# use yew::services::fetch::Response;
+    ///# use yew_services::fetch::Response;
     ///# use yew::{Component, ComponentLink, Html};
-    ///# use serde_derive::Deserialize;
+    ///# use serde::Deserialize;
     ///# use anyhow::Error;
     ///# struct Comp;
     ///# impl Component for Comp {
@@ -279,9 +279,9 @@ impl FetchService {
     /// Use it if you need to send cookies with a request:
     /// ```
     ///# use yew::format::Nothing;
-    ///# use yew::services::fetch::{self, FetchOptions, Credentials};
+    ///# use yew_services::fetch::{self, FetchOptions, Credentials};
     ///# use yew::{Html, Component, ComponentLink};
-    ///# use yew::services::FetchService;
+    ///# use yew_services::FetchService;
     ///# use http::Response;
     ///# use anyhow::Error;
     ///# struct Comp;

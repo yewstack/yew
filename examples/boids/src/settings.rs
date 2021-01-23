@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use yew::format::Json;
-use yew::services::storage::{Area, StorageService};
+use yew_services::storage::{Area, StorageService};
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Settings {
