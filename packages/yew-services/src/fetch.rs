@@ -169,9 +169,9 @@ impl FetchService {
     /// following examples:
     ///
     /// ```
-    ///# use yew::format::{Nothing, Json};
-    ///# use yew::services::fetch::Request;
     ///# use serde_json::json;
+    ///# use yew::format::{Nothing, Json};
+    ///# use yew_services::fetch::Request;
     /// let post_request = Request::post("https://my.api/v1/resource")
     ///     .header("Content-Type", "application/json")
     ///     .body(Json(&json!({"foo": "bar"})))
@@ -186,10 +186,10 @@ impl FetchService {
     /// response body and metadata.
     ///
     /// ```
-    ///# use yew::{Component, ComponentLink, Html};
-    ///# use yew::services::FetchService;
-    ///# use yew::services::fetch::{Response, Request};
     ///# use anyhow::Error;
+    ///# use yew::{Component, ComponentLink, Html};
+    ///# use yew_services::FetchService;
+    ///# use yew_services::fetch::{Response, Request};
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
@@ -223,13 +223,13 @@ impl FetchService {
     /// data type, then you will get an error message.
     ///
     /// ```
-    ///# use yew::format::{Json, Nothing, Format};
-    ///# use yew::services::FetchService;
-    ///# use http::Request;
-    ///# use yew::services::fetch::Response;
-    ///# use yew::{Component, ComponentLink, Html};
-    ///# use serde_derive::Deserialize;
     ///# use anyhow::Error;
+    ///# use http::Request;
+    ///# use serde::Deserialize;
+    ///# use yew::{Component, ComponentLink, Html};
+    ///# use yew::format::{Json, Nothing, Format};
+    ///# use yew_services::fetch::Response;
+    ///# use yew_services::FetchService;
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
@@ -277,12 +277,11 @@ impl FetchService {
     /// `fetch` with provided `FetchOptions` object.
     /// Use it if you need to send cookies with a request:
     /// ```
-    ///# use yew::format::Nothing;
-    ///# use yew::services::fetch::{self, FetchOptions, Credentials};
-    ///# use yew::{Html, Component, ComponentLink};
-    ///# use yew::services::FetchService;
-    ///# use http::Response;
     ///# use anyhow::Error;
+    ///# use http::Response;
+    ///# use yew::format::Nothing;
+    ///# use yew::{Html, Component, ComponentLink};
+    ///# use yew_services::fetch::{self, FetchOptions, FetchService Credentials};
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;
@@ -586,11 +585,11 @@ pub enum Referrer {
 mod tests {
     use super::*;
     use crate::callback_test_util::CallbackFuture;
-    use web_sys::ReferrerPolicy;
     use serde::Deserialize;
     use ssri::Integrity;
     use std::collections::HashMap;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use web_sys::ReferrerPolicy;
     use yew::callback::Callback;
     use yew::format::{Json, Nothing};
     use yew::utils;

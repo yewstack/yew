@@ -5,24 +5,19 @@ authors = ["Hamza <muhammadhamza1311@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-
 anyhow = "1"
-cfg-if = "1.0"
-cfg-match = "0.2"
-gloo = { version = "0.2.1", optional = true }
+gloo = "0.2.1"
 http = "0.2"
-js-sys = { version = "0.3", optional = true }
+js-sys = "0.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-stdweb = { version = "0.4.20", optional = true }
 thiserror = "1"
 yew = { path = "../yew" }
-wasm-bindgen = { version = "0.2.60" }
-wasm-bindgen-futures = { version = "0.4", optional = true }
+wasm-bindgen = "0.2.60"
+wasm-bindgen-futures = "0.4"
 
 [dependencies.web-sys]
 version = "0.3"
-optional = true
 features = [
     "AbortController",
     "AbortSignal",
@@ -50,21 +45,12 @@ features = [
     "WorkerOptions",
 ]
 
-
 [dev-dependencies]
 wasm-bindgen-test = "0.3.4"
 base64 = "0.13.0"
 ssri = "6.0.0"
 
 [features]
-default = ["web_sys"]
-web_sys = [
-    "gloo",
-    "js-sys",
-    "web-sys",
-    "wasm-bindgen-futures"
-]
-std_web = ["stdweb"]
 wasm_test = []
 httpbin_test = []
 echo_server_test = []
