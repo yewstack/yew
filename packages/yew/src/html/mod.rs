@@ -9,19 +9,10 @@ pub use component::*;
 pub use listener::*;
 
 use crate::virtual_dom::VNode;
-use cfg_if::cfg_if;
-use cfg_match::cfg_match;
 use std::cell::RefCell;
 use std::rc::Rc;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::unstable::TryFrom;
-        use stdweb::web::Node;
-    } else if #[cfg(feature = "web_sys")] {
-        use wasm_bindgen::JsValue;
-        use web_sys::Node;
-    }
-}
+use wasm_bindgen::JsValue;
+use web_sys::Node;
 
 /// A type which expected as a result of `view` function implementation.
 pub type Html = VNode;
@@ -31,10 +22,7 @@ pub type Html = VNode;
 /// # Example
 /// Focus an `<input>` element on mount.
 /// ```
-/// #[cfg(feature = "std_web")]
-/// use stdweb::web::{html_element::InputElement, IHtmlElement};
-/// #[cfg(feature = "web_sys")]
-/// use web_sys::HtmlInputElement as InputElement;
+/// use web_sys::HtmlInputElement;
 ///# use yew::prelude::*;
 ///
 /// pub struct Input {
@@ -53,7 +41,7 @@ pub type Html = VNode;
 ///
 ///     fn rendered(&mut self, first_render: bool) {
 ///         if first_render {
-///             if let Some(input) = self.node_ref.cast::<InputElement>() {
+///             if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
 ///                 input.focus();
 ///             }
 ///         }
@@ -99,17 +87,9 @@ impl NodeRef {
     }
 
     /// Try converting the node reference into another form
-    pub fn cast<
-        #[cfg(feature = "std_web")] INTO: TryFrom<Node>,
-        #[cfg(feature = "web_sys")] INTO: AsRef<Node> + From<JsValue>,
-    >(
-        &self,
-    ) -> Option<INTO> {
+    pub fn cast<INTO: AsRef<Node> + From<JsValue>>(&self) -> Option<INTO> {
         let node = self.get();
-        cfg_match! {
-            feature = "std_web" => node.and_then(|node| INTO::try_from(node).ok()),
-            feature = "web_sys" => node.map(Into::into).map(INTO::from),
-        }
+        node.map(Into::into).map(INTO::from)
     }
 
     /// Wrap an existing `Node` in a `NodeRef`

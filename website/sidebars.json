@@ -8,12 +8,10 @@
         "ids": [
           "getting-started/project-setup",
           "getting-started/project-setup/using-trunk",
-          "getting-started/project-setup/using-wasm-pack",
-          "getting-started/project-setup/using-cargo-web"
+          "getting-started/project-setup/using-wasm-pack"
         ]
       },
       "getting-started/build-a-sample-app",
-      "getting-started/choose-web-library",
       "getting-started/examples",
       "getting-started/starter-templates"
     ],

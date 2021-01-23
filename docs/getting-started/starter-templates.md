@@ -32,10 +32,7 @@ edition = "2018"
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-# for web_sys
 yew = "0.17"
-# or for stdweb
-# yew = { version = "0.17", package = "yew-stdweb" }
 wasm-bindgen = "0.2"
 ```
 

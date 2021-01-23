@@ -1,19 +1,9 @@
 //! This module contains Yew's implementation of a service which listens for browser window resize events.
 use crate::Task;
-use cfg_if::cfg_if;
-use cfg_match::cfg_match;
+use gloo::events::EventListener;
 use std::fmt;
+use web_sys::{Event, Window};
 use yew::callback::Callback;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::js;
-        use stdweb::web::{event::ResizeEvent, window, Window};
-        use stdweb::Value;
-    } else if #[cfg(feature = "web_sys")] {
-        use gloo::events::EventListener;
-        use web_sys::{Event, Window};
-    }
-}
 
 /// A service which fires events when the browser window is resized.
 #[derive(Default, Debug)]
@@ -21,10 +11,7 @@ pub struct ResizeService {}
 
 /// A handle for the event listener listening for resize events.
 #[must_use = "the listener is only active until the task is dropped"]
-pub struct ResizeTask(
-    #[cfg(feature = "std_web")] Value,
-    #[cfg(feature = "web_sys")] EventListener,
-);
+pub struct ResizeTask(EventListener);
 
 impl fmt::Debug for ResizeTask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -46,7 +33,6 @@ impl WindowDimensions {
     pub fn get_dimensions(window: &Window) -> Self {
         let width = window.inner_width();
         let height = window.inner_height();
-        #[cfg(feature = "web_sys")]
         let (width, height) = {
             (
                 width.unwrap().as_f64().unwrap() as _,
@@ -60,24 +46,12 @@ impl WindowDimensions {
 impl ResizeService {
     /// Register a callback that will be called when the browser window resizes.
     pub fn register(callback: Callback<WindowDimensions>) -> ResizeTask {
-        let callback =
-            move |#[cfg(feature = "web_sys")] _event: &Event,
-                  #[cfg(feature = "std_web")] _event: ResizeEvent| {
-                let window = cfg_match! {
-                    feature = "std_web" => window(),
-                    feature = "web_sys" => web_sys::window().unwrap(),
-                };
-                let dimensions = WindowDimensions::get_dimensions(&window);
-                callback.emit(dimensions);
-            };
-        let handle = cfg_match! {
-            feature = "std_web" => js! {
-                var handle = @{callback};
-                window.addEventListener("resize", handle);
-                return handle;
-            },
-            feature = "web_sys" => EventListener::new(&web_sys::window().unwrap(), "resize", callback),
+        let callback = move |_event: &Event| {
+            let window = web_sys::window().unwrap();
+            let dimensions = WindowDimensions::get_dimensions(&window);
+            callback.emit(dimensions);
         };
+        let handle = EventListener::new(&web_sys::window().unwrap(), "resize", callback);
         ResizeTask(handle)
     }
 }
@@ -85,19 +59,5 @@ impl ResizeService {
 impl Task for ResizeTask {
     fn is_active(&self) -> bool {
         true
-    }
-}
-
-impl Drop for ResizeTask {
-    fn drop(&mut self) {
-        #[cfg(feature = "std_web")]
-        {
-            let handle = &self.0;
-            js! {
-                @(no_return)
-                var handle = @{handle};
-                window.removeEventListener("resize", handle);
-            }
-        }
     }
 }

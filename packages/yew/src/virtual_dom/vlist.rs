@@ -1,16 +1,9 @@
 //! This module contains fragments implementation.
 use super::{Key, VDiff, VNode, VText};
 use crate::html::{AnyScope, NodeRef};
-use cfg_if::cfg_if;
 use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::Element;
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::Element;
-    }
-}
+use web_sys::Element;
 
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Clone, Debug, PartialEq, Default)]
@@ -235,7 +228,7 @@ impl VDiff for VList {
     }
 }
 
-#[cfg(all(test, feature = "web_sys"))]
+#[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
@@ -313,7 +306,7 @@ mod layout_tests {
     }
 }
 
-#[cfg(all(test, feature = "web_sys"))]
+#[cfg(test)]
 mod layout_tests_keys {
     extern crate self as yew;
 

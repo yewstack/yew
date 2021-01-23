@@ -1,9 +1,8 @@
+use super::WorkerExt;
 use super::*;
 use crate::callback::Callback;
 use crate::scheduler::Shared;
 use anymap::{self, AnyMap};
-use cfg_if::cfg_if;
-use cfg_match::cfg_match;
 use queue::Queue;
 use slab::Slab;
 use std::any::TypeId;
@@ -11,16 +10,7 @@ use std::cell::RefCell;
 use std::fmt;
 use std::marker::PhantomData;
 use std::rc::Rc;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::Value;
-        #[allow(unused_imports)]
-        use stdweb::{_js_impl, js};
-    } else if #[cfg(feature = "web_sys")] {
-        use super::WorkerExt;
-        use web_sys::{Worker};
-    }
-}
+use web_sys::Worker;
 
 thread_local! {
     static REMOTE_AGENTS_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());
@@ -51,24 +41,18 @@ where
                         Rc::new(RefCell::new(Slab::new()));
                     let handler = {
                         let slab = slab.clone();
-                        move |data: Vec<u8>,
-                              #[cfg(feature = "std_web")] worker: Value,
-                              #[cfg(feature = "web_sys")] worker: &Worker| {
+                        move |data: Vec<u8>, worker: &Worker| {
                             let msg = FromWorker::<AGN::Output>::unpack(&data);
                             match msg {
                                 FromWorker::WorkerLoaded => {
                                     QUEUE.with(|queue| {
                                         queue.insert_loaded_agent(TypeId::of::<AGN>());
 
-                                        if let Some(msgs) = queue.remove_msg_queue(&TypeId::of::<AGN>()) {
+                                        if let Some(msgs) =
+                                            queue.remove_msg_queue(&TypeId::of::<AGN>())
+                                        {
                                             for msg in msgs {
-                                                cfg_match! {
-                                                    feature = "std_web" => ({
-                                                        let worker = &worker;
-                                                        js! {@{worker}.postMessage(@{msg});};
-                                                    }),
-                                                    feature = "web_sys" => worker.post_message_vec(msg),
-                                                }
+                                                worker.post_message_vec(msg)
                                             }
                                         }
                                     });
@@ -80,23 +64,13 @@ where
                         }
                     };
                     let name_of_resource = AGN::name_of_resource();
-                    let worker = cfg_match! {
-                        feature = "std_web" => js! {
-                            var worker = new Worker(@{name_of_resource});
-                            var handler = @{handler};
-                            worker.onmessage = function(event) {
-                                handler(event.data, worker);
-                            };
-                            return worker;
-                        },
-                        feature = "web_sys" => ({
-                            let worker = worker_new(name_of_resource, AGN::is_module());
-                            let worker_clone = worker.clone();
-                            worker.set_onmessage_closure(move |data: Vec<u8>| {
-                                handler(data, &worker_clone);
-                            });
-                            worker
-                        }),
+                    let worker = {
+                        let worker = worker_new(name_of_resource, AGN::is_module());
+                        let worker_clone = worker.clone();
+                        worker.set_onmessage_closure(move |data: Vec<u8>| {
+                            handler(data, &worker_clone);
+                        });
+                        worker
                     };
                     let launched = RemoteAgent::new(worker, slab);
                     entry.insert(launched).create_bridge(callback)
@@ -122,9 +96,6 @@ where
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
-    #[cfg(feature = "std_web")]
-    worker: Value,
-    #[cfg(feature = "web_sys")]
     worker: Worker,
     id: HandlerId,
     _agent: PhantomData<AGN>,
@@ -220,13 +191,7 @@ where
     fn respond(&self, id: HandlerId, output: AGN::Output) {
         let msg = FromWorker::ProcessOutput(id, output);
         let data = msg.pack();
-        cfg_match! {
-            feature = "std_web" => js! {
-                var data = @{data};
-                self.postMessage(data);
-            },
-            feature = "web_sys" => worker_self().post_message_vec(data),
-        };
+        worker_self().post_message_vec(data);
     }
 }
 
@@ -261,29 +226,15 @@ where
                     let upd = AgentLifecycleEvent::Destroy;
                     scope.send(upd);
                     // Terminates web worker
-                    cfg_match! {
-                        feature = "std_web" => js! { self.close(); },
-                        feature = "web_sys" => worker_self().close(),
-                    };
+                    worker_self().close();
                 }
             }
         };
         let loaded: FromWorker<AGN::Output> = FromWorker::WorkerLoaded;
         let loaded = loaded.pack();
-        cfg_match! {
-            feature = "std_web" => js! {
-                    var handler = @{handler};
-                    self.onmessage = function(event) {
-                        handler(event.data);
-                    };
-                    self.postMessage(@{loaded});
-            },
-            feature = "web_sys" => ({
-                let worker = worker_self();
-                worker.set_onmessage_closure(handler);
-                worker.post_message_vec(loaded);
-            }),
-        };
+        let worker = worker_self();
+        worker.set_onmessage_closure(handler);
+        worker.post_message_vec(loaded);
     }
 }
 
@@ -293,9 +244,6 @@ where
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
-    #[cfg(feature = "std_web")]
-    worker: Value,
-    #[cfg(feature = "web_sys")]
     worker: Worker,
     slab: SharedOutputSlab<AGN>,
 }
@@ -306,11 +254,7 @@ where
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
-    pub fn new(
-        #[cfg(feature = "std_web")] worker: Value,
-        #[cfg(feature = "web_sys")] worker: Worker,
-        slab: SharedOutputSlab<AGN>,
-    ) -> Self {
+    pub fn new(worker: Worker, slab: SharedOutputSlab<AGN>) -> Self {
         RemoteAgent { worker, slab }
     }
 

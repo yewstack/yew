@@ -27,8 +27,7 @@ If applicable, add screenshots to help explain your problem.
  - Yew version: [e.g. v0.17, `master`]
  - Rust version: [e.g. 1.43.0, `nightly`]
  - Target, if relevant: [e.g. `wasm32-unknown-emscripten`]
- - Build tool, if relevant: [e.g. `wasm-pack`, `cargo-web`]
- - Web library: [`stdweb` OR `web-sys`]
+ - Build tool, if relevant: [e.g. `wasm-pack`, `trunk`]
  - OS, if relevant: [e.g. MacOS]
  - Browser and version, if relevant: [e.g. Chrome v83]
 

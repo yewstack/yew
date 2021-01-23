@@ -6,21 +6,13 @@ pub use private::Private;
 pub use public::Public;
 
 use super::*;
-use cfg_if::cfg_if;
-use cfg_match::cfg_match;
+use crate::utils;
+use js_sys::{Array, Reflect, Uint8Array};
 use serde::{Deserialize, Serialize};
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::Value;
-        #[allow(unused_imports)]
-        use stdweb::{_js_impl, js};
-    } else if #[cfg(feature = "web_sys")] {
-        use crate::utils;
-        use js_sys::{Array, Reflect, Uint8Array};
-        use wasm_bindgen::{closure::Closure, JsCast, JsValue};
-        use web_sys::{Blob, BlobPropertyBag, DedicatedWorkerGlobalScope, MessageEvent, Url, Worker, WorkerOptions};
-    }
-}
+use wasm_bindgen::{closure::Closure, JsCast, JsValue};
+use web_sys::{
+    Blob, BlobPropertyBag, DedicatedWorkerGlobalScope, MessageEvent, Url, Worker, WorkerOptions,
+};
 
 /// Implements rules to register a worker in a separate thread.
 pub trait Threaded {
@@ -69,27 +61,16 @@ enum FromWorker<T> {
     ProcessOutput(HandlerId, T),
 }
 
-fn send_to_remote<AGN>(
-    #[cfg(feature = "std_web")] worker: &Value,
-    #[cfg(feature = "web_sys")] worker: &Worker,
-    msg: ToWorker<AGN::Input>,
-) where
+fn send_to_remote<AGN>(worker: &Worker, msg: ToWorker<AGN::Input>)
+where
     AGN: Agent,
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
 {
     let msg = msg.pack();
-    cfg_match! {
-        feature = "std_web" => js! {
-            var worker = @{worker};
-            var bytes = @{msg};
-            worker.postMessage(bytes);
-        },
-        feature = "web_sys" => worker.post_message_vec(msg),
-    };
+    worker.post_message_vec(msg);
 }
 
-#[cfg(feature = "web_sys")]
 fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
     let origin = utils::origin().unwrap();
     let script_url = format!("{}/{}", origin, name_of_resource);
@@ -123,19 +104,16 @@ fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
     }
 }
 
-#[cfg(feature = "web_sys")]
 fn worker_self() -> DedicatedWorkerGlobalScope {
     JsValue::from(js_sys::global()).into()
 }
 
-#[cfg(feature = "web_sys")]
 trait WorkerExt {
     fn set_onmessage_closure(&self, handler: impl 'static + Fn(Vec<u8>));
 
     fn post_message_vec(&self, data: Vec<u8>);
 }
 
-#[cfg(feature = "web_sys")]
 macro_rules! worker_ext_impl {
     ($($type:ident),+) => {$(
         impl WorkerExt for $type {
@@ -157,7 +135,6 @@ macro_rules! worker_ext_impl {
     )+};
 }
 
-#[cfg(feature = "web_sys")]
 worker_ext_impl! {
     Worker, DedicatedWorkerGlobalScope
 }

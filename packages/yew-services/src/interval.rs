@@ -2,29 +2,16 @@
 //! periodic sending messages to a loop.
 
 use super::Task;
-use cfg_if::cfg_if;
-use cfg_match::cfg_match;
+use gloo::timers::callback::Interval;
 use std::convert::TryInto;
 use std::fmt;
 use std::time::Duration;
 use yew::callback::Callback;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::Value;
-        #[allow(unused_imports)]
-        use stdweb::{_js_impl, js};
-    } else if #[cfg(feature = "web_sys")] {
-        use gloo::timers::callback::Interval;
-    }
-}
 
 /// A handle which helps to cancel interval. Uses
 /// [clearInterval](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearInterval).
 #[must_use = "the interval is only active until the handle is dropped"]
-pub struct IntervalTask(
-    #[cfg(feature = "std_web")] Value,
-    #[cfg(feature = "web_sys")] Interval,
-);
+pub struct IntervalTask(Interval);
 
 impl fmt::Debug for IntervalTask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -51,20 +38,7 @@ impl IntervalService {
             .as_millis()
             .try_into()
             .expect("duration doesn't fit in u32");
-        let handle = cfg_match! {
-            feature = "std_web" => js! {
-                var callback = @{callback};
-                var action = function() {
-                    callback();
-                };
-                var delay = @{ms};
-                return {
-                    interval_id: setInterval(action, delay),
-                    callback: callback,
-                };
-            },
-            feature = "web_sys" => Interval::new(ms, callback),
-        };
+        let handle = Interval::new(ms, callback);
         IntervalTask(handle)
     }
 }
@@ -72,21 +46,5 @@ impl IntervalService {
 impl Task for IntervalTask {
     fn is_active(&self) -> bool {
         true
-    }
-}
-
-impl Drop for IntervalTask {
-    fn drop(&mut self) {
-        #[cfg(feature = "std_web")]
-        {
-            if self.is_active() {
-                let handle = &self.0;
-                js! { @(no_return)
-                    var handle = @{handle};
-                    clearInterval(handle.interval_id);
-                    handle.callback.drop();
-                }
-            }
-        }
     }
 }
