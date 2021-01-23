@@ -73,6 +73,9 @@ pub type Html = VNode;
 ///         }
 ///     }
 /// }
+/// ```
+/// ## Relevant examples
+/// - [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)
 #[derive(Debug, Default, Clone)]
 pub struct NodeRef(Rc<RefCell<NodeRefInner>>);
 
