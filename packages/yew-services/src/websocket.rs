@@ -366,7 +366,7 @@ impl Drop for WebSocketTask {
 }
 
 #[cfg(test)]
-#[cfg(feature = "wasm_test")]
+#[cfg(all(feature = "wasm_test", feature = "echo_server_test"))]
 mod tests {
     use super::*;
     use crate::callback_test_util::CallbackFuture;
