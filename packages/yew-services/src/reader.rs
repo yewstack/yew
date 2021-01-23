@@ -1,6 +1,6 @@
 //! Service to load files using `FileReader`.
 
-use crate::services::Task;
+use crate::Task;
 use std::fmt;
 cfg_if::cfg_if! {
     if #[cfg(feature = "std_web")] {

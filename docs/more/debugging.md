@@ -32,10 +32,9 @@ fn main() {
 log::info!("Update: {:?}", msg);
 ```
 
-### [`ConsoleService`](https://docs.rs/yew/latest/yew/services/console/struct.ConsoleService.html)
+### [`ConsoleService`](https://docs.rs/yew-services/latest/yew_services/struct.ConsoleService.html)
 
-This service is included within Yew and is available when the "services" feature is enabled 
-(the "services" feature is enabled by default):
+This service is included within the [`yew-services`](https://crates.io/crates/yew-services) crate:
 
 ```rust
 // usage

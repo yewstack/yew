@@ -1,9 +1,9 @@
 use anyhow::Error;
 use serde_derive::{Deserialize, Serialize};
 use yew::format::{Json, Nothing, Toml};
-use yew::services::fetch::{FetchService, FetchTask, Request, Response};
-use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew_services::fetch::{FetchService, FetchTask, Request, Response};
+use yew_services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
 
 type AsBinary = bool;
 
@@ -72,7 +72,7 @@ impl Model {
         }
     }
 
-    fn fetch_json(&mut self, binary: AsBinary) -> yew::services::fetch::FetchTask {
+    fn fetch_json(&mut self, binary: AsBinary) -> yew_services::fetch::FetchTask {
         let callback = self.link.batch_callback(
             move |response: Response<Json<Result<DataFromFile, Error>>>| {
                 let (meta, Json(data)) = response.into_parts();
@@ -92,7 +92,7 @@ impl Model {
         }
     }
 
-    pub fn fetch_toml(&mut self, binary: AsBinary) -> yew::services::fetch::FetchTask {
+    pub fn fetch_toml(&mut self, binary: AsBinary) -> yew_services::fetch::FetchTask {
         let callback = self.link.batch_callback(
             move |response: Response<Toml<Result<DataFromFile, Error>>>| {
                 let (meta, Toml(data)) = response.into_parts();

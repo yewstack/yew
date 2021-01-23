@@ -122,7 +122,7 @@ rmp-serde = "0.15.0"
 bincode = "1"
 
 [features]
-default = ["services", "agent", "web_sys"]
+default = ["agent", "web_sys"]
 std_web = ["stdweb", "yew-macro/std_web"]
 web_sys = [
   "console_error_panic_hook",
@@ -134,10 +134,7 @@ web_sys = [
 ]
 doc_test = []
 wasm_test = []
-httpbin_test = []
-echo_server_test = []
 wasm_bench = []
-services = []
 agent = ["bincode"]
 yaml = ["serde_yaml"]
 msgpack = ["rmp-serde"]

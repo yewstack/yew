@@ -1,11 +1,11 @@
 //! This module contains Yew's implementation of a service which can be used to
 //! request frame rendering
 
-use crate::callback::Callback;
-use crate::services::Task;
+use crate::Task;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
 use std::fmt;
+use yew::callback::Callback;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
         #[allow(unused_imports)]
@@ -13,7 +13,7 @@ cfg_if! {
         use stdweb::unstable::TryInto;
         use stdweb::Value;
     } else if #[cfg(feature = "web_sys")] {
-        use crate::utils;
+        use yew::utils;
         use wasm_bindgen::closure::Closure;
         use wasm_bindgen::{JsCast, JsValue};
     }

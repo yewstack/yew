@@ -31,7 +31,7 @@ args = [
     "test",
     "--doc",
     "--features",
-    "doc_test,wasm_test,yaml,msgpack,cbor,toml,std_web,agent,services",
+    "doc_test,wasm_test,yaml,msgpack,cbor,toml,std_web,agent",
     "--no-default-features",
 ]
 

@@ -1,8 +1,7 @@
 //! `stdweb` implementation for the reader service.
 
 use super::*;
-use crate::callback::Callback;
-use crate::services::Task;
+use crate::Task;
 use std::cmp;
 use stdweb::unstable::{TryFrom, TryInto};
 use stdweb::web::event::LoadEndEvent;
@@ -11,6 +10,7 @@ pub use stdweb::web::{Blob, File, IBlob};
 use stdweb::web::{FileReader, FileReaderReadyState, FileReaderResult, IEventTarget, TypedArray};
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
+use yew::callback::Callback;
 
 fn new_file_reader() -> Result<FileReader, &'static str> {
     let file_reader = js! {

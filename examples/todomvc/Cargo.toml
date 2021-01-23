@@ -10,3 +10,4 @@ strum_macros = "0.20"
 serde = "1"
 serde_derive = "1"
 yew = { path = "../../packages/yew" }
+yew-services = { path = "../../packages/yew-services" }

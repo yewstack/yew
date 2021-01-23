@@ -8,3 +8,4 @@ edition = "2018"
 log = "0.4"
 wasm-logger = "0.2"
 yew = { path = "../../packages/yew" }
+yew-services = { path = "../../packages/yew-services" }

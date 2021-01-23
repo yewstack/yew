@@ -12,7 +12,7 @@ cfg_if! {
         #[allow(unused_imports)]
         use stdweb::{_js_impl, js};
     } else if #[cfg(feature = "web_sys")] {
-        use crate::utils;
+        use yew::utils;
     }
 }
 
