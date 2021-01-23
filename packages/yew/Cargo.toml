@@ -11,7 +11,7 @@ homepage = "https://github.com/yewstack/yew"
 documentation = "https://docs.rs/yew/"
 license = "MIT/Apache-2.0"
 readme = "../README.md"
-keywords = ["web", "asmjs", "webasm", "javascript"]
+keywords = ["web", "webasm", "javascript"]
 categories = ["gui", "wasm", "web-programming"]
 description = "A framework for making client-side single-page apps"
 
@@ -98,26 +98,16 @@ features = [
   "WorkerOptions",
 ]
 
-# Changes here must be reflected in `build.rs`
-[target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dependencies]
-wasm-bindgen = "0.2.60"
-
-# Changes here must be reflected in `build.rs`
-[target.'cfg(all(target_arch = "wasm32", not(target_os="wasi"), not(cargo_web)))'.dev-dependencies]
-wasm-bindgen-test = "0.3.4"
-base64 = "0.13.0"
-ssri = "6.0.0"
-easybench-wasm = "0.2.1"
-
-[target.'cfg(target_os = "emscripten")'.dependencies]
-ryu = "1.0.2" # 1.0.1 breaks emscripten
-
 [dev-dependencies]
-serde_derive = "1"
-trybuild = "1.0"
-rustversion = "1.0"
-rmp-serde = "0.15.0"
+base64 = "0.13.0"
 bincode = "1"
+easybench-wasm = "0.2.1"
+rmp-serde = "0.15.0"
+rustversion = "1.0"
+serde_derive = "1"
+ssri = "6.0.0"
+trybuild = "1.0"
+wasm-bindgen-test = "0.3.4"
 
 [features]
 default = ["agent"]
