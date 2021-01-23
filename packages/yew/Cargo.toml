@@ -24,7 +24,7 @@ cfg-match = "0.2"
 console_error_panic_hook = { version = "0.1", optional = true }
 gloo = { version = "0.2.1", optional = true }
 http = "0.2"
-indexmap = "1.5"
+indexmap = { version = "1.5", features = ["std"] }
 js-sys = { version = "0.3", optional = true }
 log = "0.4"
 rmp-serde = { version = "0.15.0", optional = true }
