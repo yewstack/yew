@@ -281,7 +281,7 @@ impl FetchService {
     ///# use http::Response;
     ///# use yew::format::Nothing;
     ///# use yew::{Html, Component, ComponentLink};
-    ///# use yew_services::fetch::{self, FetchOptions, FetchService Credentials};
+    ///# use yew_services::fetch::{self, FetchOptions, FetchService, Credentials};
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;
