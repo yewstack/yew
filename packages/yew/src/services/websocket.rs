@@ -366,15 +366,31 @@ impl Drop for WebSocketTask {
 }
 
 #[cfg(test)]
-#[cfg(feature = "wasm_test")]
+#[cfg(all(feature = "wasm_test", feature = "echo_server_test"))]
 mod tests {
     use super::*;
     use crate::callback::{test_util::CallbackFuture, Callback};
     use crate::format::{FormatError, Json};
+    use crate::services::TimeoutService;
     use serde::{Deserialize, Serialize};
+    use std::time::Duration;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     wasm_bindgen_test_configure!(run_in_browser);
+
+    const fn echo_server_url() -> &'static str {
+        // we can't do this at runtime because we're running in the browser.
+        env!("ECHO_SERVER_URL")
+    }
+
+    // Ignore the first response from the echo server
+    async fn ignore_first_message<T>(cb_future: &CallbackFuture<T>) {
+        let sleep_future = CallbackFuture::<()>::default();
+        let _sleep_task =
+            TimeoutService::spawn(Duration::from_millis(10), sleep_future.clone().into());
+        sleep_future.await;
+        cb_future.ready();
+    }
 
     #[derive(Serialize, Deserialize, Debug, PartialEq)]
     struct Message {
@@ -383,7 +399,7 @@ mod tests {
 
     #[test]
     async fn connect() {
-        let url = "wss://echo.websocket.org";
+        let url = echo_server_url();
         let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
         let status_future = CallbackFuture::<WebSocketStatus>::default();
@@ -391,6 +407,7 @@ mod tests {
 
         let mut task = WebSocketService::connect(url, callback, notification).unwrap();
         assert_eq!(status_future.await, WebSocketStatus::Opened);
+        ignore_first_message(&cb_future).await;
 
         let msg = Message {
             test: String::from("hello"),
@@ -431,7 +448,7 @@ mod tests {
 
     #[test]
     async fn connect_text() {
-        let url = "wss://echo.websocket.org";
+        let url = echo_server_url();
         let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
         let status_future = CallbackFuture::<WebSocketStatus>::default();
@@ -439,6 +456,7 @@ mod tests {
 
         let mut task = WebSocketService::connect_text(url, callback, notification).unwrap();
         assert_eq!(status_future.await, WebSocketStatus::Opened);
+        ignore_first_message(&cb_future).await;
 
         let msg = Message {
             test: String::from("hello"),
@@ -462,7 +480,7 @@ mod tests {
 
     #[test]
     async fn connect_binary() {
-        let url = "wss://echo.websocket.org";
+        let url = echo_server_url();
         let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
         let status_future = CallbackFuture::<WebSocketStatus>::default();
@@ -470,6 +488,7 @@ mod tests {
 
         let mut task = WebSocketService::connect_binary(url, callback, notification).unwrap();
         assert_eq!(status_future.await, WebSocketStatus::Opened);
+        ignore_first_message(&cb_future).await;
 
         let msg = Message {
             test: String::from("hello"),

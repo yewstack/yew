@@ -135,6 +135,7 @@ web_sys = [
 doc_test = []
 wasm_test = []
 httpbin_test = []
+echo_server_test = []
 wasm_bench = []
 services = []
 agent = ["bincode"]
