@@ -1,0 +1,175 @@
+[tasks.test]
+extend = "core::wasm-pack-base"
+command = "wasm-pack"
+dependencies = ["tests-setup"]
+cleanup_task = "tests-cleanup"
+args = [
+    "test",
+    "@@split(YEW_TEST_FLAGS, )",
+    "--",
+    "--features",
+    "${YEW_TEST_FEATURES}",
+]
+
+[tasks.tests-setup]
+private = true
+script_runner = "@duckscript"
+script = [
+    """
+    test_flags = array --headless --firefox
+    yew_test_features = set wasm_test
+
+    fn set_httpbin_test_features
+        HTTPBIN_URL = get_env HTTPBIN_URL
+        echo INFO: using ${HTTPBIN_URL} for fetch service tests
+        yew_test_features = set "${yew_test_features},httpbin_test"
+    end
+
+    fn set_echo_server_test_features
+        ECHO_SERVER_URL = get_env ECHO_SERVER_URL
+        echo INFO: using ${ECHO_SERVER_URL} for web-socket service tests
+        yew_test_features = set "${yew_test_features},echo_server_test"
+    end
+
+    run_httpbin_container = set false
+    if is_defined HTTPBIN_URL
+        set_httpbin_test_features
+    else
+        run_httpbin_container = set true
+    end
+
+    run_echo_server_container = set false
+    if is_defined ECHO_SERVER_URL
+        set_echo_server_test_features
+    else
+        run_echo_server_container = set true
+    end
+
+    if ${run_httpbin_container} or ${run_echo_server_container}
+        # only enable docker if docker executable is available
+        # and --skip-httpbin cli argument not provided to cargo make
+        docker_path = which docker
+        start_docker = is_defined docker_path
+        args_provided = not is_empty ${CARGO_MAKE_TASK_ARGS}
+        if ${args_provided}
+            args = split ${CARGO_MAKE_TASK_ARGS} ;
+            for arg in ${args}
+                if eq ${arg} --skip-httpbin
+                    start_docker = set false
+                    release ${args}
+                end
+            end
+        end
+
+        if ${start_docker}
+            mkdir ./target
+
+            if ${run_httpbin_container}
+                echo Starting httpbin docker image...
+                cidfile = set ./target/httpbin_container.cid
+
+                # if container already running, stop it
+                if is_file ${cidfile}
+                    container_id = readfile ${cidfile}
+                    rm ${cidfile}
+                    set_env HTTPBIN_CONTAINER_ID ${container_id}
+                    cm_run_task tests-cleanup-httpbin
+                end
+
+                # get local port
+                docker_port = get_env YEW_HTTPBIN_PORT
+                if not is_defined docker_port
+                    docker_port = set 7117
+                end
+
+                exec --fail-on-error docker run -d --cidfile ${cidfile} -p "${docker_port}:80" kennethreitz/httpbin
+                container_id = readfile ${cidfile}
+                container_id = trim ${container_id}
+                set_env HTTPBIN_CONTAINER_ID ${container_id}
+
+                set_env HTTPBIN_URL http://localhost:${docker_port}
+                set_httpbin_test_features
+
+                # wait for docker container to boot before running tests
+                if is_defined HTTPBIN_WAIT
+                    sleep ${HTTPBIN_WAIT}
+                else
+                    sleep 500
+                end
+            end
+
+            if ${run_echo_server_container}
+                echo Starting echo-server docker image...
+                cidfile = set ./target/echo_server_container.cid
+
+                # if container already running, stop it
+                if is_file ${cidfile}
+                    container_id = readfile ${cidfile}
+                    rm ${cidfile}
+                    set_env ECHO_SERVER_CONTAINER_ID ${container_id}
+                    cm_run_task tests-cleanup-echo-server
+                end
+
+                # get local port
+                docker_port = get_env YEW_ECHO_SERVER_PORT
+                if not is_defined docker_port
+                    docker_port = set 7118
+                end
+
+                exec --fail-on-error docker run -d --cidfile ${cidfile} -p "${docker_port}:8080" jmalloc/echo-server
+                container_id = readfile ${cidfile}
+                container_id = trim ${container_id}
+                set_env ECHO_SERVER_CONTAINER_ID ${container_id}
+
+                set_env ECHO_SERVER_URL ws://localhost:${docker_port}
+                set_echo_server_test_features
+
+                # wait for docker container to boot before running tests
+                if is_defined ECHO_SERVER_WAIT
+                    sleep ${ECHO_SERVER_WAIT}
+                else
+                    sleep 500
+                end
+            end
+        else
+            if ${run_httpbin_container}
+                echo "INFO: HTTPBIN_URL isn't set, won't run fetch service tests"
+                echo "      please see the CONTRIBUTING.md file for instructions"
+            end
+
+            if ${run_echo_server_container}
+                echo "INFO: ECHO_SERVER_URL isn't set, won't run web-socket service tests"
+                echo "      please see the CONTRIBUTING.md file for instructions"
+            end
+        end
+    end
+
+    yew_test_flags = array_join ${test_flags} " "
+    echo "running tests with flags: ${yew_test_flags} and features: ${yew_test_features}"
+
+    set_env YEW_TEST_FLAGS ${yew_test_flags}
+    set_env YEW_TEST_FEATURES ${yew_test_features}
+    """,
+]
+
+[tasks.tests-cleanup]
+private = true
+ignore_errors = true
+run_task = { name = [
+    "test-cleanup-httpbin",
+    "test-cleanup-echo-server",
+] }
+
+[tasks.tests-cleanup-httpbin]
+private = true
+condition = { env_set = ["HTTPBIN_CONTAINER_ID"] }
+ignore_errors = true
+command = "docker"
+args = ["rm", "--force", "${HTTPBIN_CONTAINER_ID}"]
+
+[tasks.tests-cleanup-echo-server]
+private = true
+condition = { env_set = ["ECHO_SERVER_CONTAINER_ID"] }
+ignore_errors = true
+command = "docker"
+args = ["rm", "--force", "${ECHO_SERVER_CONTAINER_ID}"]
