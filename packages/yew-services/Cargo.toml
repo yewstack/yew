@@ -67,3 +67,4 @@ web_sys = [
 std_web = ["stdweb"]
 wasm_test = []
 httpbin_test = []
+echo_server_test = []
