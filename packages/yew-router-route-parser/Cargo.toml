@@ -8,4 +8,4 @@ description = "The parser for the routing syntax used with yew-router"
 repository = "https://github.com/yewstack/yew"
 
 [dependencies]
-nom = "5.0.0"
+nom = "6.0.1"
