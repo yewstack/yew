@@ -1,23 +1,15 @@
-extern crate wasm_bindgen_test;
+mod common;
 
+use common::obtain_result_by_id;
 use std::rc::Rc;
 use wasm_bindgen_test::*;
-wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
-
-extern crate yew;
-
 use yew::{html, App, Children, Html, Properties};
 use yew_functional::{
     use_context, use_effect, use_ref, use_state, ContextProvider, FunctionComponent,
     FunctionProvider,
 };
 
-fn obtain_result(id: &str) -> String {
-    yew::utils::document()
-        .get_element_by_id(id)
-        .expect("No result found. Most likely, the application crashed and burned")
-        .inner_html()
-}
+wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 fn use_context_scoping_works() {
@@ -83,7 +75,7 @@ fn use_context_scoping_works() {
 
     let app: App<UseContextComponent> = yew::App::new();
     app.mount(yew::utils::document().get_element_by_id("output").unwrap());
-    let result: String = obtain_result("result");
+    let result: String = obtain_result_by_id("result");
     assert_eq!("correct", result);
 }
 
@@ -285,11 +277,17 @@ fn use_context_update_works() {
     app.mount(yew::utils::document().get_element_by_id("output").unwrap());
 
     // 1 initial render + 3 update steps
-    assert_eq!(obtain_result("test-0"), "total: 4");
+    assert_eq!(obtain_result_by_id("test-0"), "total: 4");
 
     // 1 initial + 2 context update
-    assert_eq!(obtain_result("test-1"), "current: hello world!, total: 3");
+    assert_eq!(
+        obtain_result_by_id("test-1"),
+        "current: hello world!, total: 3"
+    );
 
     // 1 initial + 1 context update + 1 magic update + 1 context update
-    assert_eq!(obtain_result("test-2"), "current: hello world!, total: 4");
+    assert_eq!(
+        obtain_result_by_id("test-2"),
+        "current: hello world!, total: 4"
+    );
 }

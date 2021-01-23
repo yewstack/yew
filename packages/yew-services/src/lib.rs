@@ -25,6 +25,8 @@ pub use self::fetch::FetchService;
 #[doc(inline)]
 pub use self::interval::IntervalService;
 #[doc(inline)]
+pub use self::keyboard::KeyboardService;
+#[doc(inline)]
 pub use self::reader::ReaderService;
 #[doc(inline)]
 pub use self::render::RenderService;

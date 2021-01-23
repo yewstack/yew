@@ -1,8 +1,6 @@
 //! `web-sys` implementation for the fetch service.
 
 use super::Referrer;
-use yew::callback::Callback;
-use yew::format::{Binary, Format, Text};
 use crate::Task;
 use anyhow::{anyhow, Error};
 use http::request::Parts;
@@ -20,6 +18,8 @@ use web_sys::{
     AbortController, Headers, ReferrerPolicy, Request as WebRequest, RequestInit,
     Response as WebResponse,
 };
+use yew::callback::Callback;
+use yew::format::{Binary, Format, Text};
 
 #[doc(no_inline)]
 pub use web_sys::{

@@ -2,7 +2,6 @@
 
 use super::{Key, Transformer, VDiff, VNode};
 use crate::html::{AnyScope, Component, NodeRef, Scope, Scoped};
-use crate::utils::document;
 use cfg_if::cfg_if;
 use std::any::TypeId;
 use std::borrow::Borrow;
@@ -10,9 +9,9 @@ use std::fmt;
 use std::ops::Deref;
 cfg_if! {
     if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, Node};
+        use stdweb::web::Element;
     } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Node};
+        use web_sys::Element;
     }
 }
 
@@ -151,13 +150,7 @@ impl<COMP: Component> Mountable for PropsWrapper<COMP> {
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        let scope = scope.mount_in_place(
-            parent,
-            next_sibling,
-            Some(VNode::VRef(node_ref.get().unwrap())),
-            node_ref,
-            self.props,
-        );
+        let scope = scope.mount_in_place(parent, next_sibling, node_ref, self.props);
 
         Box::new(scope)
     }
@@ -197,16 +190,13 @@ impl VDiff for VComp {
             ancestor.detach(parent);
         }
 
-        let placeholder: Node = document().create_text_node("").into();
-        super::insert_node(&placeholder, parent, next_sibling.get());
-        self.node_ref.set(Some(placeholder));
-        let scope = mountable.mount(
+        self.scope = Some(mountable.mount(
             self.node_ref.clone(),
             parent_scope,
             parent.to_owned(),
             next_sibling,
-        );
-        self.scope = Some(scope);
+        ));
+
         self.node_ref.clone()
     }
 }
@@ -281,12 +271,18 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 mod tests {
     use super::*;
     use crate::{
-        html, Children, Component, ComponentLink, Html, NodeRef, Properties, ShouldRender,
+        html, utils::document, Children, Component, ComponentLink, Html, NodeRef, Properties,
+        ShouldRender,
     };
     use cfg_match::cfg_match;
 
-    #[cfg(feature = "std_web")]
-    use stdweb::web::INode;
+    cfg_if! {
+        if #[cfg(feature = "std_web")] {
+            use stdweb::web::{INode, Node};
+        } else if #[cfg(feature = "web_sys")] {
+            use web_sys::Node;
+        }
+    }
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};

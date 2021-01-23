@@ -1,7 +1,6 @@
 //! `web-sys` implementation for the reader service.
 
 use super::*;
-use yew::callback::Callback;
 use crate::Task;
 #[doc(no_inline)]
 pub use ::web_sys::{Blob, File};
@@ -10,6 +9,7 @@ use anyhow::{anyhow, Result};
 use gloo::events::EventListener;
 use js_sys::Uint8Array;
 use std::cmp;
+use yew::callback::Callback;
 
 impl ReaderService {
     /// Reads all bytes from a file and returns them with a callback.

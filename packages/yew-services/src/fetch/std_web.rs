@@ -1,8 +1,6 @@
 //! `stdweb` implementation for the fetch service.
 
 use super::Referrer;
-use yew::callback::Callback;
-use yew::format::{Binary, Format, Text};
 use crate::Task;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -15,6 +13,8 @@ use stdweb::{JsSerialize, Value};
 #[allow(unused_imports)]
 use stdweb::{_js_impl, js};
 use thiserror::Error;
+use yew::callback::Callback;
+use yew::format::{Binary, Format, Text};
 
 #[doc(no_inline)]
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};

@@ -133,7 +133,7 @@ mod std_web {
     }
 
     impl<T> CallbackFuture<T> {
-        fn ready(&self) -> Option<T> {
+        pub fn ready(&self) -> Option<T> {
             self.0.borrow_mut().output.take()
         }
 
