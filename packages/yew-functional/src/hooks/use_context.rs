@@ -1,5 +1,5 @@
-// Naming this file use_context could be confusing. Not least to the IDE.
-use super::{get_current_scope, use_hook, Hook};
+use super::{use_hook, Hook};
+use crate::get_current_scope;
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
