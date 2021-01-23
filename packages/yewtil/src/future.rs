@@ -2,7 +2,7 @@ use std::future::Future;
 use wasm_bindgen_futures::spawn_local;
 use yew::{
     agent::{Agent, AgentLink},
-    Component, ComponentLink,
+    Callback, Component, ComponentLink,
 };
 
 /// Trait that allows you to use `ComponentLink` and `AgentLink` to register futures.
@@ -16,11 +16,24 @@ pub trait LinkFuture {
     /// # Panics
     /// If the future panics, then the promise will not resolve, and
     /// will leak.
-    fn callback_future<FN, FU, IN, M>(&self, function: FN) -> yew::Callback<IN>
+    fn callback_future<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
     where
         M: Into<Self::Message>,
         FU: Future<Output = M> + 'static,
         FN: Fn(IN) -> FU + 'static;
+
+    /// This method creates a `Callback` from `FnOnce` which returns a Future
+    /// which returns a message to be sent back to the component's event
+    /// loop.
+    ///
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and
+    /// will leak.
+    fn callback_future_once<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
+    where
+        M: Into<Self::Message>,
+        FU: Future<Output = M> + 'static,
+        FN: FnOnce(IN) -> FU + 'static;
 
     /// This method processes a Future that returns a message and sends it back to the component's
     /// loop.
@@ -43,7 +56,7 @@ pub trait LinkFuture {
 impl<COMP: Component> LinkFuture for ComponentLink<COMP> {
     type Message = COMP::Message;
 
-    fn callback_future<FN, FU, IN, M>(&self, function: FN) -> yew::Callback<IN>
+    fn callback_future<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
     where
         M: Into<Self::Message>,
         FU: Future<Output = M> + 'static,
@@ -57,6 +70,22 @@ impl<COMP: Component> LinkFuture for ComponentLink<COMP> {
         };
 
         closure.into()
+    }
+
+    fn callback_future_once<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
+    where
+        M: Into<Self::Message>,
+        FU: Future<Output = M> + 'static,
+        FN: FnOnce(IN) -> FU + 'static,
+    {
+        let link = self.clone();
+
+        let closure = move |input: IN| {
+            let future: FU = function(input);
+            link.send_future(future);
+        };
+
+        Callback::once(closure)
     }
 
     fn send_future<F, M>(&self, future: F)
@@ -88,7 +117,7 @@ impl<COMP: Component> LinkFuture for ComponentLink<COMP> {
 impl<AGN: Agent> LinkFuture for AgentLink<AGN> {
     type Message = AGN::Message;
 
-    fn callback_future<FN, FU, IN, M>(&self, function: FN) -> yew::Callback<IN>
+    fn callback_future<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
     where
         M: Into<Self::Message>,
         FU: Future<Output = M> + 'static,
@@ -102,6 +131,22 @@ impl<AGN: Agent> LinkFuture for AgentLink<AGN> {
         };
 
         closure.into()
+    }
+
+    fn callback_future_once<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
+    where
+        M: Into<Self::Message>,
+        FU: Future<Output = M> + 'static,
+        FN: FnOnce(IN) -> FU + 'static,
+    {
+        let link = self.clone();
+
+        let closure = move |input: IN| {
+            let future: FU = function(input);
+            link.send_future(future);
+        };
+
+        Callback::once(closure)
     }
 
     fn send_future<F, M>(&self, future: F)
