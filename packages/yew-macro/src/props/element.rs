@@ -35,21 +35,6 @@ impl Parse for ElementProps {
 
         let listeners =
             props.drain_filter(|prop| LISTENER_SET.contains(prop.label.to_string().as_str()));
-        #[cfg(feature = "std_web")]
-        listeners.check_all(|prop| {
-            let label = &prop.label;
-            if UNSUPPORTED_LISTENER_SET.contains(label.to_string().as_str()) {
-                Err(syn::Error::new_spanned(
-                    &label,
-                    format!(
-                        "the listener `{}` is only available when using web-sys",
-                        &label
-                    ),
-                ))
-            } else {
-                Ok(())
-            }
-        })?;
 
         // Multiple listener attributes are allowed, but no others
         props.check_no_duplicates()?;
@@ -216,56 +201,6 @@ lazy_static! {
             "ontouchend",
             "ontouchmove",
             "ontouchstart",
-            "ontransitioncancel",
-            "ontransitionend",
-            "ontransitionrun",
-            "ontransitionstart",
-        ]
-        .into_iter()
-        .collect()
-    };
-}
-
-#[cfg(feature = "std_web")]
-lazy_static! {
-    static ref UNSUPPORTED_LISTENER_SET: HashSet<&'static str> = {
-        vec![
-            "oncancel",
-            "oncanplay",
-            "oncanplaythrough",
-            "onclose",
-            "oncuechange",
-            "ondurationchange",
-            "onemptied",
-            "onended",
-            "onformdata",
-            "oninvalid",
-            "onloadeddata",
-            "onloadedmetadata",
-            "onpause",
-            "onplay",
-            "onplaying",
-            "onratechange",
-            "onreset",
-            "onsecuritypolicyviolation",
-            "onseeked",
-            "onseeking",
-            "onselect",
-            "onstalled",
-            "onsuspend",
-            "ontimeupdate",
-            "ontoggle",
-            "onvolumechange",
-            "onwaiting",
-            "oncopy",
-            "oncut",
-            "onpaste",
-            "onanimationcancel",
-            "onanimationend",
-            "onanimationiteration",
-            "onanimationstart",
-            "onselectstart",
-            "onshow",
             "ontransitioncancel",
             "ontransitionend",
             "ontransitionrun",

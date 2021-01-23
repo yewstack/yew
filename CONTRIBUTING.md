@@ -22,14 +22,6 @@ cargo make --list-all-steps
 
 The most important tasks are outlined below.
 
-#### stdweb
-
-To run the examples in `./yew-stdweb`, you may wish to install [cargo-web](https://github.com/koute/cargo-web):
-
-```bash
-cargo install cargo-web
-```
-
 ## Tests
 
 To run all tests, use the following command:

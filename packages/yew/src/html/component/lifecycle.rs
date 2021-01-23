@@ -4,14 +4,7 @@ use super::{Component, Scope};
 use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use crate::NodeRef;
-use cfg_if::cfg_if;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::Element;
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::Element;
-    }
-}
+use web_sys::Element;
 
 pub(crate) struct ComponentState<COMP: Component> {
     pub(crate) component: Box<COMP>,

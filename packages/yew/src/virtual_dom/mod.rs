@@ -14,18 +14,10 @@ pub mod vtag;
 pub mod vtext;
 
 use crate::html::{AnyScope, NodeRef};
-use cfg_if::cfg_if;
+use gloo::events::EventListener;
 use indexmap::IndexMap;
 use std::{borrow::Cow, collections::HashMap, fmt, hint::unreachable_unchecked, iter, mem, rc::Rc};
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use crate::html::EventListener;
-        use stdweb::web::{Element, INode, Node};
-    } else if #[cfg(feature = "web_sys")] {
-        use gloo::events::EventListener;
-        use web_sys::{Element, Node};
-    }
-}
+use web_sys::{Element, Node};
 
 #[doc(inline)]
 pub use self::key::Key;
@@ -361,7 +353,6 @@ pub(crate) trait VDiff {
     ) -> NodeRef;
 }
 
-#[cfg(feature = "web_sys")]
 pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<Node>) {
     match next_sibling {
         Some(next_sibling) => parent
@@ -371,25 +362,13 @@ pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<No
     };
 }
 
-#[cfg(feature = "std_web")]
-pub(crate) fn insert_node(node: &impl INode, parent: &impl INode, next_sibling: Option<Node>) {
-    if let Some(next_sibling) = next_sibling {
-        parent
-            .insert_before(node, &next_sibling)
-            .expect("failed to insert tag before next sibling");
-    } else {
-        parent.append_child(node);
-    }
-}
-
 /// Transform properties to the expected type.
 pub trait Transformer<FROM, TO> {
     /// Transforms one type to another.
     fn transform(from: FROM) -> TO;
 }
 
-// stdweb lacks the `inner_html` method
-#[cfg(all(test, feature = "web_sys"))]
+#[cfg(test)]
 mod layout_tests {
     use super::*;
     use crate::html::{AnyScope, Scope};
@@ -530,7 +509,7 @@ mod layout_tests {
     }
 }
 
-#[cfg(all(test, feature = "web_sys", feature = "wasm_bench"))]
+#[cfg(all(test, feature = "wasm_bench"))]
 mod benchmarks {
     use super::{Attributes, PositionalAttr};
     use std::borrow::Cow;

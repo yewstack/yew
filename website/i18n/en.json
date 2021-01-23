@@ -21,6 +21,9 @@
       "concepts/components/callbacks": {
         "title": "Callbacks"
       },
+      "concepts/components/children": {
+        "title": "Children"
+      },
       "concepts/components/properties": {
         "title": "Properties"
       },
@@ -35,10 +38,10 @@
         "title": "#[function_component]"
       },
       "concepts/function-components/custom-hooks": {
-        "title": "Custom hooks"
+        "title": "Custom Hooks"
       },
       "concepts/function-components/pre-defined-hooks": {
-        "title": "Pre-defined hooks"
+        "title": "Pre-defined Hooks"
       },
       "concepts/html": {
         "title": "HTML",
@@ -75,18 +78,12 @@
       "getting-started/build-a-sample-app": {
         "title": "Build a sample app"
       },
-      "getting-started/choose-web-library": {
-        "title": "Choosing a web library"
-      },
       "getting-started/examples": {
         "title": "Examples"
       },
       "getting-started/project-setup": {
         "title": "Project Setup",
         "sidebar_label": "Introduction"
-      },
-      "getting-started/project-setup/using-cargo-web": {
-        "title": "Using cargo-web"
       },
       "getting-started/project-setup/using-trunk": {
         "title": "Using trunk"

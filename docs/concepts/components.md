@@ -74,8 +74,7 @@ is also a parameter called `first_render` which can be used to determine whether
 being called on the first render, or instead a subsequent one.
 
 ```rust
-use stdweb::web::html_element::InputElement;
-use stdweb::web::IHtmlElement;
+use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 pub struct MyComponent {
@@ -93,7 +92,7 @@ impl Component for MyComponent {
 
     fn rendered(&mut self, first_render: bool) {
         if first_render {
-            if let Some(input) = self.node_ref.cast::<InputElement>() {
+            if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
                 input.focus();
             }
         }

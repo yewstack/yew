@@ -3,14 +3,7 @@
 
 use crate::html::{Component, ComponentLink, NodeRef, Scope};
 use crate::utils::document;
-use cfg_if::cfg_if;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, INode, IParentNode};
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::Element;
-    }
-}
+use web_sys::Element;
 
 /// An instance of an application.
 #[derive(Debug)]
@@ -89,6 +82,7 @@ where
 {
     /// Creates a new `App` with a component in a context.
     pub fn new() -> Self {
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
         let scope = Scope::new(None);
         App { scope }
     }
