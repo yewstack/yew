@@ -5,5 +5,5 @@ authors = ["Michał Kawalec <michal@monad.cat>"]
 edition = "2018"
 
 [dependencies]
-yew = { path = "../../yew" }
-yewtil = { path = "../../yewtil" }
+yew = { path = "../../packages/yew" }
+yewtil = { path = "../../packages/yewtil" }

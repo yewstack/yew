@@ -92,3 +92,7 @@ html! {
     <input type="text" onkeypress=onkeypress />
 }
 ```
+
+## Relevant examples
+- [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
+- [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)

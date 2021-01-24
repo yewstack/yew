@@ -134,7 +134,7 @@ Rust/Wasm活動チームによって開発されているライブラリとCLI�
         Yewで<a href="https://github.com/yewstack/yew/blob/master/examples/build.sh">作る例</a>
       </td>
       <td style="text-align:left">
-        Yewで<a href="https://www.github.com/yewstack/yew/tree/master/yew-stdweb/examples">作る例</a>
+        Yewで<a href="https://www.github.com/yewstack/yew/tree/master/packages/yew-stdweb/examples">作る例</a>
       </td>
     </tr>
   </tbody>

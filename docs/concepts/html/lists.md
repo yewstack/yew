@@ -52,3 +52,8 @@ html! {
 }
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
+
+## Relevant examples
+- [TodoMVC](https://github.com/yewstack/yew/tree/master/examples/todomvc)
+- [Keyed List](https://github.com/yewstack/yew/tree/master/examples/keyed_list)
+- [Router](https://github.com/yewstack/yew/tree/master/examples/router)

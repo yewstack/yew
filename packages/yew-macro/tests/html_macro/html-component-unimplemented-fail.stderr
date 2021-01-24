@@ -1,0 +1,17 @@
+error[E0599]: no function or associated item named `new` found for struct `yew::virtual_dom::vcomp::VChild<Unimplemented>` in the current scope
+ --> $DIR/html-component-unimplemented-fail.rs:8:14
+  |
+5 | struct Unimplemented;
+  | --------------------- doesn't satisfy `Unimplemented: yew::html::component::Component`
+...
+8 |     html! { <Unimplemented /> };
+  |              ^^^^^^^^^^^^^ function or associated item not found in `yew::virtual_dom::vcomp::VChild<Unimplemented>`
+  |
+  = note: the method `new` exists but the following trait bounds were not satisfied:
+          `Unimplemented: yew::html::component::Component`
+
+error[E0277]: the trait bound `Unimplemented: yew::html::component::Component` is not satisfied
+ --> $DIR/html-component-unimplemented-fail.rs:8:14
+  |
+8 |     html! { <Unimplemented /> };
+  |              ^^^^^^^^^^^^^ the trait `yew::html::component::Component` is not implemented for `Unimplemented`
