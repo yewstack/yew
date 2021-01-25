@@ -106,7 +106,7 @@ impl Component for $NAME$ {
 
 ### IntelliJ IDEA
 
-There is currently no way to extend the support for proc macros in `intellij-rust`. See [intellij-rust/intellij-rust#6367](https://github.com/intellij-rust/intellij-rust/issues/6367) 
+There is currently no way to extend the support for proc macros in `intellij-rust`. See [intellij-rust/intellij-rust#6367](https://github.com/intellij-rust/intellij-rust/issues/6367) and [intellij-rust/intellij-rust#1786](https://github.com/intellij-rust/intellij-rust/issues/1786).
 
 ### VSCode
 
