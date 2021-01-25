@@ -43,17 +43,17 @@ RouterコンポーネントはRouteAgentとやり取りし、エージェント�
 ```rust
 #[derive(Switch)]
 enum AppRoute {
-  #[at ="/login"]
+  #[at = "/login"]
   Login,
-  #[at ="/register"]
+  #[at = "/register"]
   Register,
-  #[at ="/delete_account"]
+  #[at = "/delete_account"]
   Delete, 
-  #[at ="/posts/{id}"]
+  #[at = "/posts/{id}"]
   ViewPost(i32),
-  #[at ="/posts/view"]
+  #[at = "/posts/view"]
   ViewPosts,
-  #[at ="/"]
+  #[at = "/"]
   Home
 }
 ```
@@ -64,17 +64,17 @@ enum AppRoute {
 ```rust
 #[derive(Switch)]
 enum AppRoute {
-  #[at ="/"]
+  #[at = "/"]
   Home,
-  #[at ="/login"]
+  #[at = "/login"]
   Login,
-  #[at ="/register"]
+  #[at = "/register"]
   Register,
-  #[at ="/delete_account"]
+  #[at = "/delete_account"]
   Delete, 
-  #[at ="/posts/{id}"]
+  #[at = "/posts/{id}"]
   ViewPost(i32),
-  #[at ="/posts/view"]
+  #[at = "/posts/view"]
   ViewPosts,
 }
 ```

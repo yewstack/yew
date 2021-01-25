@@ -64,7 +64,7 @@ mod switch;
 ///     NamedCapture { name: String },
 ///     #[at = "/convert/{id}"]
 ///     Convert { id: usize },
-///     #[rest] // shorthand for #[at ="{*}"]
+///     #[rest] // shorthand for #[at = "{*}"]
 ///     Inner(InnerRoute),
 /// }
 ///

@@ -156,7 +156,7 @@ pub struct Props<STATE: RouterState, SW: Switch + Clone + 'static> {
     pub render: Render<SW, STATE>,
     /// Optional redirect function that will convert the route to a known switch variant if explicit matching fails.
     /// This should mostly be used to handle 404s and redirection.
-    /// It is not strictly necessary as your Switch is capable of handling unknown routes using `#[at ="/{*:any}"]`.
+    /// It is not strictly necessary as your Switch is capable of handling unknown routes using `#[at = "/{*:any}"]`.
     #[prop_or_default]
     pub redirect: Option<Redirect<SW, STATE>>,
 }
