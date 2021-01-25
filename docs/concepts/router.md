@@ -34,7 +34,7 @@ The Router component communicates with `RouteAgent` and will automatically resol
 First, you want to create a type that represents all the states of your application. Do note that while this typically is an enum, structs are supported as well, and that you can nest other items that implement `Switch` inside.
 
 Then you should derive `Switch` for your type. For enums, every variant must be annotated with `
-#[at = "/some/route"]` (or `#[at = "/some/route"]`, but this is being phased out in favour of "at"),
+#[at = "/some/route"]` (or `#[at = "/some/route"]`, but this is being phased out in favor of "at"),
 or if you use a struct instead, that must appear outside the struct declaration.
 
 ```rust
