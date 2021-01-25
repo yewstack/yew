@@ -6,19 +6,19 @@ A routing library for the [Yew](https://github.com/yewstack/yew) frontend framew
 ```rust
 #[derive(Switch, Debug, Clone)]
 pub enum AppRoute {
-    #[to = "/profile/{id}"]
+    #[at = "/profile/{id}"]
     Profile(u32),
-    #[to = "/forum{*:rest}"]
+    #[at = "/forum{*:rest}"]
     Forum(ForumRoute),
-    #[to = "/"]
+    #[at = "/"]
     Index,
 }
 
 #[derive(Switch, Debug, Clone)]
 pub enum ForumRoute {
-    #[to = "/{subforum}/{thread_slug}"]
+    #[at = "/{subforum}/{thread_slug}"]
     SubForumAndThread{subforum: String, thread_slug: String}
-    #[to = "/{subforum}"]
+    #[at = "/{subforum}"]
     SubForum{subforum: String}
 }
 
