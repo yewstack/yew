@@ -6,7 +6,7 @@ pub use private::Private;
 pub use public::Public;
 
 use super::*;
-use crate::backend::{DomBackend, Renderer};
+use crate::backend::{RenderingBackend, Renderer};
 use js_sys::{Array, Reflect, Uint8Array};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::{closure::Closure, JsCast, JsValue};

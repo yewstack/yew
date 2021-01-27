@@ -1,8 +1,6 @@
 //! This module contains useful utilities to get information about the current document.
 
-use anyhow::{anyhow, Error};
 use std::marker::PhantomData;
-use web_sys::{Document, Window};
 use yew::html::ChildrenRenderer;
 
 /// Map IntoIterator<Item=Into<T>> to Iterator<Item=T>

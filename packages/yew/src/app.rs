@@ -1,7 +1,7 @@
 //! This module contains the `App` struct, which is used to bootstrap
 //! a component in an isolated scope.
 
-use crate::backend::{DomBackend, Renderer};
+use crate::backend::{RenderingBackend, Renderer};
 use crate::html::{Component, ComponentLink, NodeRef, Scope};
 use web_sys::Element;
 

@@ -1,16 +1,15 @@
-use crate::backend::DomBackend;
+use crate::backend::RenderingBackend;
 use anyhow::{anyhow, Error};
-use wasm_bindgen::JsCast;
 use web_sys::{
-    Document, Element, FileList, HtmlButtonElement as ButtonElement,
-    HtmlInputElement as InputElement, HtmlSelectElement as SelectElement,
+    Document, Element, HtmlButtonElement as ButtonElement, HtmlInputElement as InputElement,
     HtmlTextAreaElement as TextAreaElement, InputEvent, Node, Text as TextNode, Window,
 };
 
+/// The rendering backend for web_sys
 #[derive(Debug)]
 pub struct Renderer {}
 
-impl DomBackend for Renderer {
+impl RenderingBackend for Renderer {
     type Element = Element;
     type Node = Node;
     type Document = Document;

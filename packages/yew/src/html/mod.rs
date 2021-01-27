@@ -135,7 +135,7 @@ impl NodeRef {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::backend::{DomBackend, Renderer};
+    use crate::backend::{RenderingBackend, Renderer};
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};

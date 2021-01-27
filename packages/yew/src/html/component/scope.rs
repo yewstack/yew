@@ -6,7 +6,7 @@ use super::{
     },
     Component,
 };
-use crate::backend::{DomBackend, Renderer};
+use crate::backend::{RenderingBackend, Renderer};
 use crate::callback::Callback;
 use crate::html::NodeRef;
 use crate::scheduler::{scheduler, Shared};

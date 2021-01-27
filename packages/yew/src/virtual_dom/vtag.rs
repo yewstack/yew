@@ -3,7 +3,7 @@
 use super::{
     Attributes, Key, Listener, Listeners, Patch, PositionalAttr, Transformer, VDiff, VList, VNode,
 };
-use crate::backend::{DomBackend, Renderer};
+use crate::backend::{RenderingBackend, Renderer};
 use crate::html::{AnyScope, NodeRef};
 use gloo::events::EventListener;
 use log::warn;

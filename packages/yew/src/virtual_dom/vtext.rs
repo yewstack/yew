@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use super::{VDiff, VNode};
-use crate::backend::{DomBackend, Element, Renderer, TextNode};
+use crate::backend::{RenderingBackend, Element, Renderer, TextNode};
 use crate::html::{AnyScope, NodeRef};
 use log::warn;
 use std::borrow::Cow;
