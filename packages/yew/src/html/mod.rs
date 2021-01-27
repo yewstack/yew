@@ -135,7 +135,6 @@ impl NodeRef {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::backend::{RenderingBackend, Renderer};
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -145,7 +144,7 @@ mod tests {
 
     #[test]
     fn self_linking_node_ref() {
-        let node: Node = Renderer::get_document()
+        let node: Node = crate::utils::document()
             .create_text_node("test node")
             .into();
         let node_ref = NodeRef::new(node.clone());

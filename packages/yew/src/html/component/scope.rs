@@ -6,10 +6,10 @@ use super::{
     },
     Component,
 };
-use crate::backend::{RenderingBackend, Renderer};
 use crate::callback::Callback;
 use crate::html::NodeRef;
 use crate::scheduler::{scheduler, Shared};
+use crate::utils::document;
 use crate::virtual_dom::{insert_node, VNode};
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
@@ -140,7 +140,7 @@ impl<COMP: Component> Scope<COMP> {
         props: COMP::Properties,
     ) -> Scope<COMP> {
         let placeholder = {
-            let placeholder: Node = Renderer::get_document().create_text_node("").into();
+            let placeholder: Node = document().create_text_node("").into();
             insert_node(&placeholder, &parent, next_sibling.get());
             node_ref.set(Some(placeholder.clone()));
             VNode::VRef(placeholder)

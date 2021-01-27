@@ -1,7 +1,30 @@
 //! This module contains useful utilities to get information about the current document.
 
+use anyhow::Error;
 use std::marker::PhantomData;
+use yew::backend::{Document, Renderer, RenderingBackend, Window};
 use yew::html::ChildrenRenderer;
+
+/// Returns the current window. This function will panic if there is no available window.
+pub fn window() -> Window {
+    Renderer::get_window()
+}
+
+/// Returns the current document.
+pub fn document() -> Document {
+    Renderer::get_document()
+}
+
+/// Returns the `host` for the current document. Useful for connecting to the server which serves
+/// the app.
+pub fn host() -> Result<String, Error> {
+    Renderer::get_host()
+}
+
+/// Returns the `origin` of the current window.
+pub fn origin() -> Result<String, Error> {
+    Renderer::get_origin()
+}
 
 /// Map IntoIterator<Item=Into<T>> to Iterator<Item=T>
 pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>
