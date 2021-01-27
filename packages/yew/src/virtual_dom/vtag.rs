@@ -3,8 +3,8 @@
 use super::{
     Attributes, Key, Listener, Listeners, Patch, PositionalAttr, Transformer, VDiff, VList, VNode,
 };
+use crate::backend::{DomBackend, Renderer};
 use crate::html::{AnyScope, NodeRef};
-use crate::utils::document;
 use gloo::events::EventListener;
 use log::warn;
 use std::borrow::Cow;
@@ -376,11 +376,11 @@ impl VTag {
                 .map_or(false, |ns| ns == SVG_NAMESPACE)
         {
             let namespace = Some(SVG_NAMESPACE);
-            document()
+            Renderer::get_document()
                 .create_element_ns(namespace, tag)
                 .expect("can't create namespaced element for vtag")
         } else {
-            document()
+            Renderer::get_document()
                 .create_element(tag)
                 .expect("can't create element for vtag")
         }
@@ -634,7 +634,7 @@ mod tests {
 
     #[test]
     fn supports_svg() {
-        let document = web_sys::window().unwrap().document().unwrap();
+        let document = Renderer::get_document().unwrap();
 
         let scope = test_scope();
         let div_el = document.create_element("div").unwrap();

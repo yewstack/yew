@@ -6,7 +6,7 @@ pub use private::Private;
 pub use public::Public;
 
 use super::*;
-use crate::utils;
+use crate::backend::{DomBackend, Renderer};
 use js_sys::{Array, Reflect, Uint8Array};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::{closure::Closure, JsCast, JsValue};
@@ -72,7 +72,7 @@ where
 }
 
 fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
-    let origin = utils::origin().unwrap();
+    let origin = Renderer::get_origin().unwrap();
     let script_url = format!("{}/{}", origin, name_of_resource);
     let wasm_url = format!("{}/{}", origin, name_of_resource.replace(".js", "_bg.wasm"));
     let array = Array::new();

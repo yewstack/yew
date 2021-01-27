@@ -1,12 +1,11 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use super::{VDiff, VNode};
+use crate::backend::{DomBackend, Element, Renderer, TextNode};
 use crate::html::{AnyScope, NodeRef};
-use crate::utils::document;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
-use web_sys::{Element, Text as TextNode};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -66,7 +65,7 @@ impl VDiff for VText {
             ancestor.detach(parent);
         }
 
-        let text_node = document().create_text_node(&self.text);
+        let text_node = Renderer::get_document().create_text_node(&self.text);
         super::insert_node(&text_node, parent, next_sibling.get());
         self.reference = Some(text_node.clone());
         NodeRef::new(text_node.into())

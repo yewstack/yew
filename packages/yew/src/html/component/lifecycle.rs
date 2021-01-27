@@ -313,7 +313,7 @@ mod tests {
     }
 
     fn test_lifecycle(props: Props, expected: &[String]) {
-        let document = crate::utils::document();
+        let document = Renderer::get_document();
         let scope = Scope::<Comp>::new(None);
         let el = document.create_element("div").unwrap();
         let lifecycle = props.lifecycle.clone();

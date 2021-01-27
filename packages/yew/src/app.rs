@@ -1,8 +1,8 @@
 //! This module contains the `App` struct, which is used to bootstrap
 //! a component in an isolated scope.
 
+use crate::backend::{DomBackend, Renderer};
 use crate::html::{Component, ComponentLink, NodeRef, Scope};
-use crate::utils::document;
 use web_sys::Element;
 
 /// An instance of an application.
@@ -44,7 +44,7 @@ where
     /// Alias to `mount("body", ...)`.
     pub fn mount_to_body(self) -> ComponentLink<COMP> {
         // Bootstrap the component for `Window` environment only (not for `Worker`)
-        let element = document()
+        let element = Renderer::get_document()
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
@@ -56,11 +56,11 @@ where
     /// need to manipulate the body element. For example, adding/removing app-wide
     /// CSS classes of the body element.
     pub fn mount_as_body(self) -> ComponentLink<COMP> {
-        let html_element = document()
+        let html_element = Renderer::get_document()
             .query_selector("html")
             .expect("can't get html node for rendering")
             .expect("can't unwrap html node");
-        let body_element = document()
+        let body_element = Renderer::get_document()
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
@@ -104,7 +104,7 @@ where
     /// Alias to `mount_with_props("body", ...)`.
     pub fn mount_to_body_with_props(self, props: COMP::Properties) -> ComponentLink<COMP> {
         // Bootstrap the component for `Window` environment only (not for `Worker`)
-        let element = document()
+        let element = Renderer::get_document()
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
@@ -116,11 +116,11 @@ where
     /// when you need to manipulate the body element. For example, adding/removing app-wide
     /// CSS classes of the body element.
     pub fn mount_as_body_with_props(self, props: COMP::Properties) -> ComponentLink<COMP> {
-        let html_element = document()
+        let html_element = Renderer::get_document()
             .query_selector("html")
             .expect("can't get html node for rendering")
             .expect("can't unwrap html node");
-        let body_element = document()
+        let body_element = Renderer::get_document()
             .query_selector("body")
             .expect("can't get body node for rendering")
             .expect("can't unwrap body node");
