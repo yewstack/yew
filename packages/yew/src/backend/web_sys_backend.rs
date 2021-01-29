@@ -23,9 +23,7 @@ impl RenderingBackend for Renderer {
     /// Returns the `host` for the current document. Useful for connecting to the server which serves
     /// the app.
     fn get_host() -> Result<String, InvalidRuntimeEnvironmentError> {
-        let location = Self::get_document()
-            .location()
-            .ok_or(InvalidRuntimeEnvironmentError::NoLocation)?;
+        let location = Self::get_window().location();
         location.host().map_err(|_| InvalidRuntimeEnvironmentError::NoHost)
     }
 

@@ -57,11 +57,7 @@ pub enum InvalidRuntimeEnvironmentError {
     #[error("no window available")]
     NoWindow,
 
-    /// Could not access document.location
-    #[error("could not access document's location")]
-    NoLocation,
-
-    /// Could not access document.location.host
+    /// Could not access window.location.host
     #[error("could not extract host from location")]
     NoHost,
 
