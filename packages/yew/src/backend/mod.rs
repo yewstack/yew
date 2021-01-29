@@ -4,6 +4,7 @@
 //!     - (not yet supported) static_render
 
 use cfg_if::cfg_if;
+use thiserror::Error as ThisError;
 
 /// A backend with which Yew communicates to render applications. This trait is implemented
 /// by all of the possible rendering backends.
@@ -38,22 +39,37 @@ pub trait RenderingBackend {
     /// Returns the current window. This function will panic if there is no available window.
     fn get_window() -> Self::Window;
 
-    /// Returns the current document.
+    /// Returns the current document. This function will panic if there is no available document.
     fn get_document() -> Self::Document;
 
     /// Returns the `origin` of the current window.
-    fn get_origin() -> Result<String, anyhow::Error>;
+    fn get_origin() -> Result<String, InvalidRuntimeEnvironmentError>;
 
     /// Returns the `host` for the current document. Useful for connecting to the server which serves the app.
-    fn get_host() -> Result<String, anyhow::Error>;
+    fn get_host() -> Result<String, InvalidRuntimeEnvironmentError>;
+}
+
+#[derive(ThisError, Debug)]
+pub enum InvalidRuntimeEnvironmentError {
+    #[error("no window available")]
+    NoWindow,
+
+    #[error("could not access document's location")]
+    NoLocation,
+
+    #[error("could not extract host from location")]
+    NoHost,
+
+    #[error("could not extract origin from location")]
+    NoOrigin,
 }
 
 cfg_if! {
     if #[cfg(feature = "static_render")] {
         unimplemented!("SSR and SSG are not implemented yet");
     } else {
-        mod web_sys;
-        pub use self::web_sys::{ Renderer };
+        mod web_sys_backend;
+        pub use self::web_sys_backend::{ Renderer };
     }
 }
 

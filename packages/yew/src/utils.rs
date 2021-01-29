@@ -1,8 +1,7 @@
 //! This module contains useful utilities to get information about the current document.
 
-use anyhow::Error;
 use std::marker::PhantomData;
-use yew::backend::{Document, Renderer, RenderingBackend, Window};
+use yew::backend::{Document, InvalidRuntimeEnvironmentError, Renderer, RenderingBackend, Window};
 use yew::html::ChildrenRenderer;
 
 /// Returns the current window. This function will panic if there is no available window.
@@ -10,7 +9,7 @@ pub fn window() -> Window {
     Renderer::get_window()
 }
 
-/// Returns the current document.
+/// Returns the current document. This function will panic if there is no available document.
 pub fn document() -> Document {
     Renderer::get_document()
 }

@@ -23,18 +23,11 @@ impl RenderingBackend for Renderer {
 
     /// Returns the `host` for the current document. Useful for connecting to the server which serves
     /// the app.
-    fn get_host() -> Result<String, Error> {
-        let location = Self::get_document()
+    pub fn get_host() -> Result<String, InvalidRuntimeEnvironmentError> {
+        let location = document()
             .location()
-            .ok_or_else(|| anyhow!("can't get location"))?;
-
-        let host = location.host().map_err(|e| {
-            anyhow!(e
-                .as_string()
-                .unwrap_or_else(|| String::from("error not recoverable")),)
-        })?;
-
-        Ok(host)
+            .ok_or(InvalidRuntimeEnvironmentError::NoLocation)?;
+        location.host().ok_or(InvalidRuntimeEnvironmentError::NoHost)
     }
 
     /// Returns the current window. This function will panic if there is no available window.
@@ -42,21 +35,14 @@ impl RenderingBackend for Renderer {
         web_sys::window().expect("no window available")
     }
 
-    /// Returns the current document.
+    /// Returns the current document. This function will panic if there is no available document.
     fn get_document() -> Document {
         Self::get_window().document().unwrap()
     }
 
     /// Returns the `origin` of the current window.
-    fn get_origin() -> Result<String, Error> {
-        let location = Self::get_window().location();
-
-        let origin = location.origin().map_err(|e| {
-            anyhow!(e
-                .as_string()
-                .unwrap_or_else(|| String::from("error not recoverable")),)
-        })?;
-
-        Ok(origin)
+    pub fn get_origin() -> Result<String, InvalidRuntimeEnvironmentError> {
+        let location = window().location();
+        location.origin().ok_or(InvalidRuntimeEnvironmentError::NoOrigin)
     }
 }
