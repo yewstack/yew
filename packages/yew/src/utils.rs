@@ -16,12 +16,12 @@ pub fn document() -> Document {
 
 /// Returns the `host` for the current document. Useful for connecting to the server which serves
 /// the app.
-pub fn host() -> Result<String, Error> {
+pub fn host() -> Result<String, InvalidRuntimeEnvironmentError> {
     Renderer::get_host()
 }
 
 /// Returns the `origin` of the current window.
-pub fn origin() -> Result<String, Error> {
+pub fn origin() -> Result<String, InvalidRuntimeEnvironmentError> {
     Renderer::get_origin()
 }
 

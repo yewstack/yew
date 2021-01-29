@@ -49,17 +49,23 @@ pub trait RenderingBackend {
     fn get_host() -> Result<String, InvalidRuntimeEnvironmentError>;
 }
 
-#[derive(ThisError, Debug)]
+/// An error that occurs when the underlying rendering backend fails to access information
+/// about the environment.
+#[derive(Debug, ThisError)]
 pub enum InvalidRuntimeEnvironmentError {
+    /// Could not access window
     #[error("no window available")]
     NoWindow,
 
+    /// Could not access document.location
     #[error("could not access document's location")]
     NoLocation,
 
+    /// Could not access document.location.host
     #[error("could not extract host from location")]
     NoHost,
 
+    /// Could not access window.location.origin
     #[error("could not extract origin from location")]
     NoOrigin,
 }
