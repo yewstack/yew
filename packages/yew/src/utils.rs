@@ -1,7 +1,7 @@
 //! This module contains useful utilities to get information about the current document.
 
 use std::marker::PhantomData;
-use yew::backend::{Document, InvalidRuntimeEnvironmentError, Renderer, RenderingBackend, Window};
+use yew::backend::{Document, NoHostError, NoOriginError, Renderer, RenderingBackend, Window};
 use yew::html::ChildrenRenderer;
 
 /// Returns the current window. This function will panic if there is no available window.
@@ -16,12 +16,12 @@ pub fn document() -> Document {
 
 /// Returns the `host` for the current document. Useful for connecting to the server which serves
 /// the app.
-pub fn host() -> Result<String, InvalidRuntimeEnvironmentError> {
+pub fn host() -> Result<String, NoHostError> {
     Renderer::get_host()
 }
 
 /// Returns the `origin` of the current window.
-pub fn origin() -> Result<String, InvalidRuntimeEnvironmentError> {
+pub fn origin() -> Result<String, NoOriginError> {
     Renderer::get_origin()
 }
 

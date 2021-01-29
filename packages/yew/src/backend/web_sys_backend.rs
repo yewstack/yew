@@ -1,4 +1,4 @@
-use crate::backend::{RenderingBackend, InvalidRuntimeEnvironmentError};
+use crate::backend::{RenderingBackend, NoHostError, NoOriginError};
 use web_sys::{
     Document, Element, HtmlButtonElement as ButtonElement, HtmlInputElement as InputElement,
     HtmlTextAreaElement as TextAreaElement, InputEvent, Node, Text as TextNode, Window,
@@ -22,9 +22,9 @@ impl RenderingBackend for Renderer {
 
     /// Returns the `host` for the current document. Useful for connecting to the server which serves
     /// the app.
-    fn get_host() -> Result<String, InvalidRuntimeEnvironmentError> {
+    fn get_host() -> Result<String, NoHostError> {
         let location = Self::get_window().location();
-        location.host().map_err(|_| InvalidRuntimeEnvironmentError::NoHost)
+        location.host().map_err(|_| NoHostError {})
     }
 
     /// Returns the current window. This function will panic if there is no available window.
@@ -38,8 +38,8 @@ impl RenderingBackend for Renderer {
     }
 
     /// Returns the `origin` of the current window.
-    fn get_origin() -> Result<String, InvalidRuntimeEnvironmentError> {
+    fn get_origin() -> Result<String, NoOriginError> {
         let location = Self::get_window().location();
-        location.origin().map_err(|_| InvalidRuntimeEnvironmentError::NoOrigin)
+        location.origin().map_err(|_| NoOriginError {})
     }
 }

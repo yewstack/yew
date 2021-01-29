@@ -43,28 +43,21 @@ pub trait RenderingBackend {
     fn get_document() -> Self::Document;
 
     /// Returns the `origin` of the current window.
-    fn get_origin() -> Result<String, InvalidRuntimeEnvironmentError>;
+    fn get_origin() -> Result<String, NoOriginError>;
 
     /// Returns the `host` for the current document. Useful for connecting to the server which serves the app.
-    fn get_host() -> Result<String, InvalidRuntimeEnvironmentError>;
+    fn get_host() -> Result<String, NoHostError>;
 }
 
-/// An error that occurs when the underlying rendering backend fails to access information
-/// about the environment.
+/// Could not access window.location
 #[derive(Debug, ThisError)]
-pub enum InvalidRuntimeEnvironmentError {
-    /// Could not access window
-    #[error("no window available")]
-    NoWindow,
+#[error("could not extract host from location")]
+pub struct NoHostError {}
 
-    /// Could not access window.location.host
-    #[error("could not extract host from location")]
-    NoHost,
-
-    /// Could not access window.location.origin
-    #[error("could not extract origin from location")]
-    NoOrigin,
-}
+/// Could not access window.location.origin
+#[derive(Debug, ThisError)]
+#[error("could not extract origin from location")]
+pub struct NoOriginError {}
 
 cfg_if! {
     if #[cfg(feature = "static_render")] {
