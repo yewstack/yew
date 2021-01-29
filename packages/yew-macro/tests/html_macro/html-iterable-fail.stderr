@@ -71,9 +71,9 @@ error[E0277]: `()` is not an iterator
 18 |             { for () }
    |                   ^^ `()` is not an iterator
    | 
-  ::: $WORKSPACE/packages/yew/src/utils.rs:32:9
+  ::: $WORKSPACE/packages/yew/src/utils.rs:31:9
    |
-32 |     IT: IntoIterator<Item = T>,
+31 |     IT: IntoIterator<Item = T>,
    |         ---------------------- required by this bound in `yew::utils::into_node_iter`
    |
    = help: the trait `std::iter::Iterator` is not implemented for `()`
