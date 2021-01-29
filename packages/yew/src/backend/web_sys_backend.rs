@@ -1,4 +1,4 @@
-use crate::backend::{RenderingBackend, NoHostError, NoOriginError};
+use crate::backend::{NoHostError, NoOriginError, RenderingBackend};
 use web_sys::{
     Document, Element, HtmlButtonElement as ButtonElement, HtmlInputElement as InputElement,
     HtmlTextAreaElement as TextAreaElement, InputEvent, Node, Text as TextNode, Window,
