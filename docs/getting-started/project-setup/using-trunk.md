@@ -5,7 +5,8 @@ title: Using trunk
 ## Install
 
 ```bash
-cargo install trunk wasm-bindgen-cli
+cargo install --locked trunk
+cargo install wasm-bindgen-cli
 ```
 
 ## Usage
