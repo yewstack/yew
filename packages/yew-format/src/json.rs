@@ -5,7 +5,7 @@
 ///
 /// ```
 /// // Converts (lazy) data to a Json
-/// use yew::format::Json;
+/// use yew_format::Json;
 /// let data: String = r#"{lorem: "ipsum"}"#.to_string();
 /// let dump = Json(&data);
 ///
@@ -22,7 +22,7 @@ binary_format!(Json based on serde_json);
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::format::{Binary, Text};
+    use crate::{Binary, Text};
     use serde::{Deserialize, Serialize};
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::wasm_bindgen_test as test;

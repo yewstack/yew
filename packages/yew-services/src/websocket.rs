@@ -8,7 +8,7 @@ use std::fmt;
 use wasm_bindgen::JsCast;
 use web_sys::{BinaryType, Event, MessageEvent, WebSocket};
 use yew::callback::Callback;
-use yew::format::{Binary, FormatError, Text};
+use yew_format::{Binary, FormatError, Text};
 
 /// The status of a WebSocket connection. Used for status notifications.
 #[derive(Clone, Debug, PartialEq)]
@@ -267,7 +267,7 @@ mod tests {
     use std::time::Duration;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use yew::callback::Callback;
-    use yew::format::{FormatError, Json};
+    use yew_format::{FormatError, Json};
 
     wasm_bindgen_test_configure!(run_in_browser);
 

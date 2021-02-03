@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use yew::format::Json;
+use yew_format::Json;
 use yew_services::storage::{Area, StorageService};
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]

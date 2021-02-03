@@ -1,7 +1,7 @@
 use add_client::AddClientForm;
 use serde::{Deserialize, Serialize};
-use yew::format::Json;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew_format::Json;
 use yew_services::storage::Area;
 use yew_services::{DialogService, StorageService};
 

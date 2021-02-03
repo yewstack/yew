@@ -4,8 +4,8 @@
 use std::fmt;
 use thiserror::Error;
 use web_sys::Storage;
-use yew::format::Text;
 use yew::utils;
+use yew_format::Text;
 
 /// Represents errors of a storage.
 #[derive(Debug, Error)]

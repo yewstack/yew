@@ -18,7 +18,7 @@ use web_sys::{
     Response as WebResponse,
 };
 use yew::callback::Callback;
-use yew::format::{Binary, Format, Text};
+use yew_format::{Binary, Format, Text};
 
 #[doc(no_inline)]
 pub use web_sys::{
@@ -170,7 +170,7 @@ impl FetchService {
     ///
     /// ```
     ///# use serde_json::json;
-    ///# use yew::format::{Nothing, Json};
+    ///# use yew_format::{Nothing, Json};
     ///# use yew_services::fetch::Request;
     /// let post_request = Request::post("https://my.api/v1/resource")
     ///     .header("Content-Type", "application/json")
@@ -227,7 +227,7 @@ impl FetchService {
     ///# use http::Request;
     ///# use serde::Deserialize;
     ///# use yew::{Component, ComponentLink, Html};
-    ///# use yew::format::{Json, Nothing, Format};
+    ///# use yew_format::{Json, Nothing, Format};
     ///# use yew_services::fetch::Response;
     ///# use yew_services::FetchService;
     ///# struct Comp;
@@ -279,7 +279,7 @@ impl FetchService {
     /// ```
     ///# use anyhow::Error;
     ///# use http::Response;
-    ///# use yew::format::Nothing;
+    ///# use yew_format::Nothing;
     ///# use yew::{Html, Component, ComponentLink};
     ///# use yew_services::fetch::{self, FetchOptions, FetchService, Credentials};
     ///# struct Comp;
@@ -591,8 +591,8 @@ mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::ReferrerPolicy;
     use yew::callback::Callback;
-    use yew::format::{Json, Nothing};
     use yew::utils;
+    use yew_format::{Json, Nothing};
 
     wasm_bindgen_test_configure!(run_in_browser);
 

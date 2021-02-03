@@ -5,7 +5,7 @@
 ///
 /// ```
 /// // Converts (lazy) data to a Toml
-///# use yew::format::Toml;
+///# use yew_format::Toml;
 ///# fn dont_execute() {
 ///# let data: String = unimplemented!();
 /// let dump = Toml(&data);

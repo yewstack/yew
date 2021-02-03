@@ -10,7 +10,7 @@
 /// ## Example
 ///
 /// ```rust
-/// use yew::{binary_format, text_format};
+/// use yew_format::{binary_format, text_format};
 ///
 /// pub struct Json<T>(pub T);
 ///
@@ -20,20 +20,20 @@
 #[macro_export]
 macro_rules! text_format {
     ($type:ident based on $format:ident) => {
-        impl<'a, T> Into<$crate::format::Text> for $type<&'a T>
+        impl<'a, T> Into<$crate::Text> for $type<&'a T>
         where
             T: ::serde::Serialize,
         {
-            fn into(self) -> $crate::format::Text {
+            fn into(self) -> $crate::Text {
                 $format::to_string(&self.0).map_err(::anyhow::Error::from)
             }
         }
 
-        impl<T> From<$crate::format::Text> for $type<Result<T, ::anyhow::Error>>
+        impl<T> From<$crate::Text> for $type<Result<T, ::anyhow::Error>>
         where
             T: for<'de> ::serde::Deserialize<'de>,
         {
-            fn from(value: $crate::format::Text) -> Self {
+            fn from(value: $crate::Text) -> Self {
                 match value {
                     Ok(data) => $type($format::from_str(&data).map_err(::anyhow::Error::from)),
                     Err(reason) => $type(Err(reason)),
@@ -62,7 +62,7 @@ macro_rules! text_format {
 /// ### Binary that is also Text
 ///
 /// ```rust
-/// use yew::{binary_format, text_format};
+/// use yew_format::{binary_format, text_format};
 ///
 /// pub struct Json<T>(pub T);
 ///
@@ -72,9 +72,10 @@ macro_rules! text_format {
 ///
 /// ### Binary only
 /// ```rust
+/// # #[cfg(any(feature = "msgpack"))]
 /// # mod to_make_rustdoc_happy {
 ///   use rmp_serde;
-///   use yew::{binary_format, text_format_is_an_error};
+///   use yew_format::{binary_format, text_format_is_an_error};
 ///
 ///   pub struct MsgPack<T>(pub T);
 ///
@@ -92,9 +93,10 @@ macro_rules! text_format {
 ///
 /// ## Example
 /// ```rust
+/// # #[cfg(any(feature = "bincode"))]
 /// # mod to_make_rustdoc_happy {
 ///   use bincode;
-///   use yew::{binary_format, text_format_is_an_error};
+///   use yew_format::{binary_format, text_format_is_an_error};
 ///
 ///   pub struct Bincode<T>(pub T);
 ///
@@ -108,20 +110,20 @@ macro_rules! binary_format {
         binary_format!($type, $format::to_vec, $format::from_slice);
     };
     ($type:ident, $into:path, $from:path) => {
-        impl<'a, T> Into<$crate::format::Binary> for $type<&'a T>
+        impl<'a, T> Into<$crate::Binary> for $type<&'a T>
         where
             T: ::serde::Serialize,
         {
-            fn into(self) -> $crate::format::Binary {
+            fn into(self) -> $crate::Binary {
                 $into(&self.0).map_err(::anyhow::Error::from)
             }
         }
 
-        impl<T> From<$crate::format::Binary> for $type<Result<T, ::anyhow::Error>>
+        impl<T> From<$crate::Binary> for $type<Result<T, ::anyhow::Error>>
         where
             T: for<'de> ::serde::Deserialize<'de>,
         {
-            fn from(value: $crate::format::Binary) -> Self {
+            fn from(value: $crate::Binary) -> Self {
                 match value {
                     Ok(data) => $type($from(&data).map_err(::anyhow::Error::from)),
                     Err(reason) => $type(Err(reason)),
@@ -139,9 +141,10 @@ macro_rules! binary_format {
 ///
 /// ## Example
 /// ```rust
+/// # #[cfg(any(feature = "msgpack"))]
 /// # mod to_make_rustdoc_happy {
 ///   use rmp_serde;
-///   use yew::{binary_format, text_format_is_an_error};
+///   use yew_format::{binary_format, text_format_is_an_error};
 ///
 ///   pub struct MsgPack<T>(pub T);
 ///
@@ -153,7 +156,7 @@ macro_rules! binary_format {
 #[cfg(any(feature = "bincode", feature = "cbor", feature = "msgpack"))]
 macro_rules! text_format_is_an_error {
     ($type:ident) => {
-        use $crate::{format::FormatError, text_format};
+        use $crate::{FormatError, text_format};
 
         fn to_string<T>(_value: T) -> Result<String, ::anyhow::Error> {
             Err(FormatError::CantEncodeBinaryAsText.into())
