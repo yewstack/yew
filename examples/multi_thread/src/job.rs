@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use yew::worker::{Agent, AgentLink, HandlerId, Job};
+use yew_agent::{Agent, AgentLink, HandlerId, Job};
 use yew_services::interval::{IntervalService, IntervalTask};
 
 #[derive(Serialize, Deserialize, Debug)]

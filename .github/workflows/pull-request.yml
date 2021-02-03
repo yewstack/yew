@@ -185,7 +185,8 @@ jobs:
         toolchain:
           - 1.45.0 # MSRV
           - stable
-          - nightly
+#            Because https://github.com/Alexhuszagh/rust-lexical/issues/55
+#          - nightly
 
     steps:
       - uses: actions/checkout@v2

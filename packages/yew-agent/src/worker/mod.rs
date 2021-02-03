@@ -6,13 +6,13 @@ pub use private::Private;
 pub use public::Public;
 
 use super::*;
-use crate::utils;
 use js_sys::{Array, Reflect, Uint8Array};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::{closure::Closure, JsCast, JsValue};
 use web_sys::{
     Blob, BlobPropertyBag, DedicatedWorkerGlobalScope, MessageEvent, Url, Worker, WorkerOptions,
 };
+use yew::utils;
 
 /// Implements rules to register a worker in a separate thread.
 pub trait Threaded {

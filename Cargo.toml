@@ -5,6 +5,7 @@ members = [
   "packages/yew-macro",
   "packages/yew-services",
   "packages/yew-format",
+  "packages/yew-agent",
   "packages/yew-validation",
 
   # Router

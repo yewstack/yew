@@ -1,11 +1,11 @@
 use super::*;
-use crate::callback::Callback;
-use crate::scheduler::Shared;
 use anymap::{self, AnyMap};
 use slab::Slab;
 use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::rc::Rc;
+use yew::callback::Callback;
+use yew::scheduler::Shared;
 
 thread_local! {
     static LOCAL_AGENTS_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());

@@ -1,13 +1,13 @@
 //! Bridge to RouteAgent.
-use crate::{agent::RouteAgent, route::Route, RouteState};
+use crate::agent::RouteAgent;
+use crate::{route::Route, RouteState};
 use std::{
     fmt::{Debug, Error as FmtError, Formatter},
     ops::{Deref, DerefMut},
 };
-use yew::{
-    agent::{Bridged, Context},
-    Bridge, Callback,
-};
+use yew::Callback;
+use yew_agent::Bridge;
+use yew_agent::{Bridged, Context};
 
 /// A wrapped bridge to the route agent.
 ///
@@ -30,7 +30,7 @@ where
     ///
     /// Directly spawn a new Router
     pub fn spawn(callback: Callback<Route<STATE>>) -> Self {
-        use yew::agent::Discoverer;
+        use yew_agent::Discoverer;
         let router_agent = Context::spawn_or_join(Some(callback));
         RouteAgentBridge(router_agent)
     }

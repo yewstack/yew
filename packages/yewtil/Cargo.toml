@@ -42,12 +42,12 @@ serde_json = { version = "1.0.41", optional = true }
 wasm-bindgen = {version = "0.2.51", features=["serde-serialize"], optional = true}
 wasm-bindgen-futures = {version = "0.4.3", optional = true}
 yewtil-macro = { version = "0.2.0", path = "../yewtil-macro", optional = true }
+yew-agent = { path = "../yew-agent" }
 
 [dependencies.yew]
 path = "../yew"
 version = "0.17.0"
 default-features = false
-features = ["agent"]
 
 [dependencies.web-sys]
 version = "0.3.31"

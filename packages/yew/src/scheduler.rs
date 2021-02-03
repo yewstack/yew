@@ -1,36 +1,37 @@
+#![allow(missing_debug_implementations)]
 //! This module contains a scheduler.
 
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::rc::Rc;
 
-pub(crate) type Shared<T> = Rc<RefCell<T>>;
+pub type Shared<T> = Rc<RefCell<T>>;
 
 thread_local! {
     static SCHEDULER: Rc<Scheduler> =
         Rc::new(Scheduler::new());
 }
 
-pub(crate) fn scheduler() -> Rc<Scheduler> {
+pub fn scheduler() -> Rc<Scheduler> {
     SCHEDULER.with(Rc::clone)
 }
 
 /// A routine which could be run.
-pub(crate) trait Runnable {
+pub trait Runnable {
     /// Runs a routine with a context instance.
     fn run(self: Box<Self>);
 }
 
 /// This is a global scheduler suitable to schedule and run any tasks.
 #[derive(Clone)]
-pub(crate) struct Scheduler {
+pub struct Scheduler {
     /// This lock is used to prevent recursion in [Scheduler#start()](Scheduler#start())
     lock: Rc<RefCell<()>>,
     main: Shared<VecDeque<Box<dyn Runnable>>>,
     pub(crate) component: ComponentScheduler,
 }
 
-pub(crate) enum ComponentRunnableType {
+pub enum ComponentRunnableType {
     Create,
     Update,
     Render,
@@ -39,7 +40,7 @@ pub(crate) enum ComponentRunnableType {
 }
 
 #[derive(Clone)]
-pub(crate) struct ComponentScheduler {
+pub struct ComponentScheduler {
     // Queues
     destroy: Shared<VecDeque<Box<dyn Runnable>>>,
     create: Shared<VecDeque<Box<dyn Runnable>>>,
@@ -95,7 +96,7 @@ impl Scheduler {
         }
     }
 
-    pub(crate) fn push(&self, runnable: Box<dyn Runnable>) {
+    pub fn push(&self, runnable: Box<dyn Runnable>) {
         self.main.borrow_mut().push_back(runnable);
         self.start();
     }
@@ -106,7 +107,7 @@ impl Scheduler {
             .or_else(|| self.main.borrow_mut().pop_front())
     }
 
-    pub(crate) fn start(&self) {
+    pub fn start(&self) {
         // The lock is used to prevent recursion. If the lock
         // cannot be acquired, it is because the `start()` method
         // is being called recursively as part of a `runnable.run()`.

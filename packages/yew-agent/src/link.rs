@@ -1,9 +1,9 @@
 use super::*;
-use crate::callback::Callback;
-use crate::scheduler::{scheduler, Runnable, Shared};
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
+use yew::callback::Callback;
+use yew::scheduler::{scheduler, Runnable, Shared};
 
 /// Defines communication from Worker to Consumers
 pub(crate) trait Responder<AGN: Agent> {

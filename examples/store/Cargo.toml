@@ -8,3 +8,4 @@ edition = "2018"
 yew = { path = "../../packages/yew" }
 yewtil = { path = "../../packages/yewtil" }
 yew-services = { path = "../../packages/yew-services" }
+yew-agent = { path = "../../packages/yew-agent" }

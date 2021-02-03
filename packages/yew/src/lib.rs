@@ -271,12 +271,11 @@ pub mod macros {
 pub mod app;
 pub mod callback;
 pub mod html;
-mod scheduler;
+// used in yew-agent
+#[doc(hidden)]
+pub mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
-
-#[cfg(feature = "agent")]
-pub mod agent;
 
 pub use web_sys;
 

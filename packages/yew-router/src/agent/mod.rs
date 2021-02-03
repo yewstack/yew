@@ -4,7 +4,7 @@
 //! or just the element that made the request.
 use crate::service::RouteService;
 
-use yew::prelude::worker::*;
+use yew_agent::{Agent, AgentLink, Context, HandlerId};
 
 use std::collections::HashSet;
 

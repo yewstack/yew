@@ -4,7 +4,7 @@ use std::{
     fmt::{Debug, Error as FmtError, Formatter},
     ops::{Deref, DerefMut},
 };
-use yew::agent::{Dispatched, Dispatcher};
+use yew_agent::{Dispatched, Dispatcher};
 
 /// A wrapped dispatcher to the route agent.
 ///

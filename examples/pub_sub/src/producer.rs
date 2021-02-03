@@ -1,6 +1,6 @@
 use crate::event_bus::{EventBus, Request};
-use yew::agent::{Dispatched, Dispatcher};
 use yew::prelude::*;
+use yew_agent::{Dispatched, Dispatcher};
 
 pub enum Msg {
     Clicked,

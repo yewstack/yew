@@ -1,10 +1,10 @@
 use super::*;
-use crate::callback::Callback;
 use queue::Queue;
 use std::fmt;
 use std::marker::PhantomData;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use web_sys::Worker;
+use yew::callback::Callback;
 
 thread_local! {
     static QUEUE: Queue<usize> = Queue::new();

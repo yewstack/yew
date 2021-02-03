@@ -17,10 +17,11 @@ unit_alias = [] # TODO remove this
 router = ["agent"] # The Router component
 components = ["agent" ] # The button and anchor
 agent = ["service"] # The RouteAgent
-service = ["yew"] # The RouteService
+service = ["yew", "yew-agent"] # The RouteService
 
 [dependencies]
-yew = { version = "0.17.0", path = "../yew", features = ["agent"], default-features= false, optional = true }
+yew = { version = "0.17.0", path = "../yew", default-features= false, optional = true }
+yew-agent = { path = "../yew-agent", optional = true }
 yew-router-macro = { version = "0.14.0", path = "../yew-router-macro" }
 yew-router-route-parser = { version = "0.14.0", path = "../yew-router-route-parser" }
 
