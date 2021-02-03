@@ -25,7 +25,7 @@ pub type Binary = Result<Vec<u8>, Error>;
 
 Here is what a typical GET request will look like:
 ```rust
-use yew::format::Nothing;
+use yew_format::Nothing;
 use yew_services::fetch::Request;
 let get_request = Request::get("https://example.com/api/v1/get/something")
     .body(Nothing)
@@ -35,7 +35,7 @@ let get_request = Request::get("https://example.com/api/v1/get/something")
 Here is what a typical POST request will look like:
 ```rust
 use serde_json::json;
-use yew::format::Json;
+use yew_format::Json;
 use yew_services::fetch::Request;
 let post_request = Request::post("https://example.com/api/v1/post/something")
     .header("Content-Type", "application/json")
