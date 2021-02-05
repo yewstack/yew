@@ -6,19 +6,19 @@ use yew_router::{components::RouterAnchor, prelude::*, switch::Permissive};
 
 #[derive(Clone, Debug, Switch)]
 pub enum AppRoute {
-    #[to = "/posts/{}"]
+    #[at = "/posts/{}"]
     Post(u64),
-    #[to = "/posts/?page={}"]
+    #[at = "/posts/?page={}"]
     PostListPage(u64),
-    #[to = "/posts/"]
+    #[at = "/posts/"]
     PostList,
-    #[to = "/authors/{id}"]
+    #[at = "/authors/{id}"]
     Author(u64),
-    #[to = "/authors/"]
+    #[at = "/authors/"]
     AuthorList,
-    #[to = "/page-not-found"]
+    #[at = "/page-not-found"]
     PageNotFound(Permissive<String>),
-    #[to = "/!"]
+    #[at = "/!"]
     Home,
 }
 impl AppRoute {

@@ -3,7 +3,7 @@ use syn::{spanned::Spanned, Attribute, Lit, Meta, MetaNameValue};
 use yew_router_route_parser::FieldNamingScheme;
 
 pub enum AttrToken {
-    To(String),
+    ToOrAt(String),
     End,
     Rest(Option<String>),
 }
@@ -27,7 +27,9 @@ impl AttrToken {
                         mnv.path
                             .get_ident()
                             .and_then(|ident| match ident.to_string().as_str() {
-                                "to" => Some(get_meta_name_value_str(&mnv).map(AttrToken::To)),
+                                "to" | "at" => {
+                                    Some(get_meta_name_value_str(&mnv).map(AttrToken::ToOrAt))
+                                }
                                 "rest" => Some(
                                     get_meta_name_value_str(&mnv).map(|s| AttrToken::Rest(Some(s))),
                                 ),
@@ -46,7 +48,7 @@ impl AttrToken {
                         list.path
                             .get_ident()
                             .and_then(|ident| match ident.to_string().as_str() {
-                                id @ "to" | id @ "rest" => Some(Err(syn::Error::new(
+                                id @ "to" | id @ "at" | id @ "rest" => Some(Err(syn::Error::new(
                                     meta_span,
                                     &format!(
                                         "This syntax is not supported, did you mean `#[{} = ...]`?",
@@ -69,7 +71,7 @@ impl AttrToken {
         field_naming_scheme: FieldNamingScheme,
     ) -> Vec<ShadowMatcherToken> {
         match self {
-            AttrToken::To(matcher_string) => {
+            AttrToken::ToOrAt(matcher_string) => {
                 yew_router_route_parser::parse_str_and_optimize_tokens(
                     &matcher_string,
                     field_naming_scheme,

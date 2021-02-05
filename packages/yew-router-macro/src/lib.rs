@@ -5,8 +5,8 @@ mod switch;
 
 /// Implements the `Switch` trait based on attributes present on the struct or enum variants.
 ///
-/// If deriving an enum, each variant should have a `#[to = ""]` attribute,
-/// and if deriving a struct, the struct itself should have a `#[to = ""]` attribute.
+/// If deriving an enum, each variant should have a `#[at = ""]` attribute,
+/// and if deriving a struct, the struct itself should have a `#[at = ""]` attribute.
 ///
 /// Inside the `""` you should put your **route matcher string**.
 /// At its simplest, the route matcher string will create your variant/struct if it exactly matches the browser's route.
@@ -16,7 +16,7 @@ mod switch;
 /// But the route matcher has other capabilities.
 /// If you want to capture data from the route matcher string, for example, extract an id or user name from the route,
 /// you can use `{field_name}` to capture data from the route.
-/// For example, `#[to = "/route/{id}"]` will capture the content after "/route/",
+/// For example, `#[at = "/route/{id}"]` will capture the content after "/route/",
 /// and if the associated variant is defined as `Route{id: usize}`, then the string that was captured will be
 /// transformed into a `usize`.
 /// If the conversion fails, then the match won't succeed and the next variant will be tried instead.
@@ -56,27 +56,27 @@ mod switch;
 ///
 /// #[derive(Switch, Clone)]
 /// enum AppRoute {
-///     #[to = "/some/simple/route"]
+///     #[at = "/some/simple/route"]
 ///     SomeSimpleRoute,
-///     #[to = "/capture/{}"]
+///     #[at = "/capture/{}"]
 ///     Capture(String),
-///     #[to = "/named/capture/{name}"]
+///     #[at = "/named/capture/{name}"]
 ///     NamedCapture { name: String },
-///     #[to = "/convert/{id}"]
+///     #[at = "/convert/{id}"]
 ///     Convert { id: usize },
-///     #[rest] // shorthand for #[to="{*}"]
+///     #[rest] // shorthand for #[at = "{*}"]
 ///     Inner(InnerRoute),
 /// }
 ///
 /// #[derive(Switch, Clone)]
-/// #[to = "/inner/route/{first}/{second}"]
+/// #[at = "/inner/route/{first}/{second}"]
 /// struct InnerRoute {
 ///     first: String,
 ///     second: String,
 /// }
 /// ```
 /// Check out the examples directory in the repository to see some more usages of the routing syntax.
-#[proc_macro_derive(Switch, attributes(to, rest, end))]
+#[proc_macro_derive(Switch, attributes(to, at, rest, end))]
 pub fn switch(tokens: TokenStream) -> TokenStream {
     let input: DeriveInput = parse_macro_input!(tokens as DeriveInput);
 
@@ -87,6 +87,11 @@ pub fn switch(tokens: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn to(_: TokenStream, _: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[proc_macro_attribute]
+pub fn at(_: TokenStream, _: TokenStream) -> TokenStream {
     TokenStream::new()
 }
 
