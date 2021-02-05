@@ -38,9 +38,13 @@ impl Parse for WithProps {
         while !input.is_empty() {
             // no need to check if it's followed by `=` because `with` isn't a special prop
             if input.peek(kw::with) {
-                if let Some((with, _)) = with_expr {
+                if let Some((with, expr)) = with_expr {
                     return Err(syn::Error::new_spanned(
-                        with,
+                        {
+                            let mut res = with.into_token_stream();
+                            expr.to_tokens(&mut res);
+                            res
+                        },
                         "there are two `with <props>` definitions for this component (note: you can only define `with <props>` once)"
                     ));
                 }

@@ -32,7 +32,7 @@ error: there are two `with <props>` definitions for this component (note: you ca
   --> $DIR/html-component-fail.rs:84:20
    |
 84 |     html! { <Child with p1 with p2 /> };
-   |                    ^^^^
+   |                    ^^^^^^^
 
 error: `ref` can only be set once
   --> $DIR/html-component-fail.rs:83:38
