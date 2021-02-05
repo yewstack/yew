@@ -54,7 +54,7 @@ impl<STATE> RouterState for STATE where STATE: RouteState + PartialEq {}
 ///
 /// #[derive(Switch, Clone)]
 /// enum S {
-///     #[to = "/v"]
+///     #[at = "/v"]
 ///     Variant,
 /// }
 /// ```
@@ -79,7 +79,7 @@ where
     /// # use yew::{html, Html};
     /// # #[derive(Switch, Clone)]
     /// # enum S {
-    /// #     #[to = "/route"]
+    /// #     #[at = "/route"]
     /// #     Variant
     /// # }
     /// # pub enum Msg {}
@@ -156,7 +156,7 @@ pub struct Props<STATE: RouterState, SW: Switch + Clone + 'static> {
     pub render: Render<SW, STATE>,
     /// Optional redirect function that will convert the route to a known switch variant if explicit matching fails.
     /// This should mostly be used to handle 404s and redirection.
-    /// It is not strictly necessary as your Switch is capable of handling unknown routes using `#[to="/{*:any}"]`.
+    /// It is not strictly necessary as your Switch is capable of handling unknown routes using `#[at = "/{*:any}"]`.
     #[prop_or_default]
     pub redirect: Option<Redirect<SW, STATE>>,
 }

@@ -2,23 +2,23 @@ use yew_router::{route::Route, switch::Permissive, Switch};
 
 #[derive(Clone, Debug, Eq, PartialEq, Switch)]
 pub enum InnerRoute {
-    #[to = "/left"]
+    #[at = "/left"]
     Left,
     #[to = "/right"]
     Right,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Switch)]
-#[to = "/single/{number}"]
+#[at = "/single/{number}"]
 pub struct Single {
     number: u32,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Switch)]
-#[to = "/othersingle/{number}"]
+#[at = "/othersingle/{number}"]
 pub struct OtherSingle(u32);
 #[derive(Clone, Debug, Eq, PartialEq, Switch)]
-#[to = "{*:path}#{route}"]
+#[at = "{*:path}#{route}"]
 pub struct FragmentAdapter<W: Switch> {
     path: String,
     route: W,
@@ -26,14 +26,14 @@ pub struct FragmentAdapter<W: Switch> {
 
 #[derive(Clone, Debug, PartialEq, Switch)]
 pub enum AppRoute {
-    #[to = "/some/route"]
+    #[at = "/some/route"]
     SomeRoute,
     #[to = "/some/{thing}/{other}"]
     // If you have a variant with named fields, the field names should appear in the matcher string.
     Something { thing: String, other: String },
-    #[to = "/another/{}"] // Tuple-enums don't need names in the capture groups.
+    #[at = "/another/{}"] // Tuple-enums don't need names in the capture groups.
     Another(String),
-    #[to = "/doot/{}/{something}"]
+    #[at = "/doot/{}/{something}"]
     // You can still puts names in the capture groups to improve readability.
     Yeet(String, String),
     #[to = "/inner"]
@@ -44,10 +44,10 @@ pub enum AppRoute {
     #[rest]
     OtherSingle(OtherSingle),
     /// Because this is permissive, the inner item doesn't have to match.
-    #[to = "/option/{}"]
+    #[at = "/option/{}"]
     Optional(Permissive<String>),
     /// Because this is permissive, a corresponding capture group doesn't need to exist
-    #[to = "/missing/capture"]
+    #[at = "/missing/capture"]
     MissingCapture(Permissive<String>),
 }
 
