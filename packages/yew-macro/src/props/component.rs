@@ -40,11 +40,7 @@ impl Parse for WithProps {
             if input.peek(kw::with) {
                 if let Some((with, expr)) = with_expr {
                     return Err(syn::Error::new_spanned(
-                        {
-                            let mut res = with.into_token_stream();
-                            expr.to_tokens(&mut res);
-                            res
-                        },
+                        quote! { #with#expr },
                         "there are two `with <props>` definitions for this component (note: you can only define `with <props>` once)"
                     ));
                 }
