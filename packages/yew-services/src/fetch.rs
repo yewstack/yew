@@ -31,7 +31,7 @@ pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
 trait JsInterop: Sized {
     fn from_js(js_value: JsValue) -> Result<Self, FetchError>;
-    fn to_js(self) -> JsValue;
+    fn into_js(self) -> JsValue;
 }
 
 impl JsInterop for Vec<u8> {
@@ -39,7 +39,7 @@ impl JsInterop for Vec<u8> {
         Ok(Uint8Array::new(&js_value).to_vec())
     }
 
-    fn to_js(self) -> JsValue {
+    fn into_js(self) -> JsValue {
         Uint8Array::from(self.as_slice()).into()
     }
 }
@@ -49,7 +49,7 @@ impl JsInterop for String {
         js_value.as_string().ok_or(FetchError::InternalError)
     }
 
-    fn to_js(self) -> JsValue {
+    fn into_js(self) -> JsValue {
         self.into()
     }
 }
@@ -357,7 +357,7 @@ where
     // Transform http::Request into WebRequest.
     let (parts, body) = request.into_parts();
     let body = match body.into() {
-        Ok(b) => b.to_js(),
+        Ok(b) => b.into_js(),
         Err(_) => JsValue::NULL,
     };
     let request = build_request(parts, &body)?;
