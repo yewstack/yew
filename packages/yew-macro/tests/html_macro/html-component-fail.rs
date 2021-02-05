@@ -80,6 +80,8 @@ fn compile_fail() {
     html! { <Child with /> };
     html! { <Child props /> };
     html! { <Child with props > };
+    let (p1, p2);
+    html! { <Child with p1 with p2 /> };
     html! { <Child with props ref=() ref=() /> };
     html! { <Child with props ref=() ref=() value=1 /> };
     html! { <Child with props ref=() value=1 ref=() /> };

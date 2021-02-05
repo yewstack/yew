@@ -28,6 +28,12 @@ error: this opening tag has no corresponding closing tag
 82 |     html! { <Child with props > };
    |             ^^^^^^^^^^^^^^^^^^^
 
+error: there are two `with <props>` definitions for this component (note: you can only define `with <props>` once)
+  --> $DIR/html-component-fail.rs:84:20
+   |
+84 |     html! { <Child with p1 with p2 /> };
+   |                    ^^^^^^^
+
 error: `ref` can only be set once
   --> $DIR/html-component-fail.rs:83:38
    |
