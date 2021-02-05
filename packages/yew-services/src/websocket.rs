@@ -44,13 +44,13 @@ impl WebSocketTask {
         notification: Callback<WebSocketStatus>,
         listener_0: EventListener,
         listeners: [EventListener; 3],
-    ) -> Result<WebSocketTask, WebSocketError> {
+    ) -> WebSocketTask {
         let [listener_1, listener_2, listener_3] = listeners;
-        Ok(WebSocketTask {
+        WebSocketTask {
             ws,
             notification,
             listeners: [listener_0, listener_1, listener_2, listener_3],
-        })
+        }
     }
 }
 
@@ -80,7 +80,7 @@ impl WebSocketService {
             let event = event.dyn_ref::<MessageEvent>().unwrap();
             process_both(&event, &callback);
         });
-        WebSocketTask::new(ws, notification, listener, listeners)
+        Ok(WebSocketTask::new(ws, notification, listener, listeners))
     }
 
     /// Connects to a server through a WebSocket connection, like connect,
@@ -100,7 +100,7 @@ impl WebSocketService {
             let event = event.dyn_ref::<MessageEvent>().unwrap();
             process_binary(&event, &callback);
         });
-        WebSocketTask::new(ws, notification, listener, listeners)
+        Ok(WebSocketTask::new(ws, notification, listener, listeners))
     }
 
     /// Connects to a server through a WebSocket connection, like connect,
@@ -120,7 +120,7 @@ impl WebSocketService {
             let event = event.dyn_ref::<MessageEvent>().unwrap();
             process_text(&event, &callback);
         });
-        WebSocketTask::new(ws, notification, listener, listeners)
+        Ok(WebSocketTask::new(ws, notification, listener, listeners))
     }
 
     fn connect_common(
