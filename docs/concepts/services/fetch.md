@@ -239,6 +239,5 @@ for Wasm applications.
 
 ## Further reading
 * [The API documentation](https://docs.rs/yew-services/latest/yew_services/fetch/index.html)
-* The [dashboard](https://github.com/yewstack/yew/tree/master/examples/dashboard) and 
-[npm_and_rest](https://github.com/yewstack/yew/tree/master/examples/web_sys/npm_and_rest) examples.
+* The [dashboard](https://github.com/yewstack/yew/tree/master/examples/dashboard) example.
 * [The Rust Wasm Book on debugging Wasm applications](https://rustwasm.github.io/book/reference/debugging.html)
