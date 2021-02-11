@@ -9,25 +9,10 @@ pub struct Generic<G> {
     marker: PhantomData<G>,
 }
 
-impl Component for Generic<String> {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        unimplemented!()
-    }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
-}
-
-impl Component for Generic<Vec<String>> {
+impl<T> Component for Generic<T>
+where
+    T: 'static,
+{
     type Message = ();
     type Properties = ();
 
@@ -344,6 +329,8 @@ fn compile_pass() {
             <Generic<String> ></Generic<String>>
             <Generic<Vec<String>> />
             <Generic<Vec<String>>></ Generic<Vec<String>>>
+            <Generic<usize> />
+            <Generic<usize>></Generic<usize>>
         </>
     };
 

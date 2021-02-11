@@ -163,7 +163,6 @@ impl HtmlComponent {
 
     fn peek_type(mut cursor: Cursor) -> Option<(Type, Cursor)> {
         let mut colons_optional = true;
-        let mut last_ident = None;
         let mut leading_colon = None;
         let mut segments = Punctuated::new();
 
@@ -180,7 +179,6 @@ impl HtmlComponent {
 
             if let Some((ident, c)) = post_colons_cursor.ident() {
                 cursor = c;
-                last_ident = Some(ident.clone());
                 let arguments = if let Some((args, c)) = Self::path_arguments(cursor) {
                     cursor = c;
                     args
@@ -197,10 +195,6 @@ impl HtmlComponent {
             colons_optional = false;
         }
 
-        let type_str = last_ident?.to_string();
-        type_str.is_ascii().as_option()?;
-        type_str.bytes().next()?.is_ascii_uppercase().as_option()?;
-
         Some((
             Type::Path(TypePath {
                 qself: None,
@@ -211,6 +205,29 @@ impl HtmlComponent {
             }),
             cursor,
         ))
+    }
+
+    fn peek_component_type(cursor: Cursor) -> Option<(Type, Cursor)> {
+        let (ty, cursor) = Self::peek_type(cursor)?;
+
+        // get last ident in PathSegment
+        let last_ident = match &ty {
+            Type::Path(TypePath {
+                qself: _,
+                path:
+                    Path {
+                        leading_colon: _,
+                        segments,
+                    },
+            }) => segments.last(),
+            _ => unreachable!(),
+        };
+
+        let type_str = last_ident?.ident.to_string();
+        type_str.is_ascii().as_option()?;
+        type_str.bytes().next()?.is_ascii_uppercase().as_option()?;
+
+        Some((ty, cursor))
     }
 }
 
@@ -233,7 +250,7 @@ impl PeekValue<Type> for HtmlComponentOpen {
     fn peek(cursor: Cursor) -> Option<Type> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
-        let (typ, _) = HtmlComponent::peek_type(cursor)?;
+        let (typ, _) = HtmlComponent::peek_component_type(cursor)?;
         Some(typ)
     }
 }
@@ -267,7 +284,7 @@ impl PeekValue<Type> for HtmlComponentClose {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '/').as_option()?;
 
-        let (typ, cursor) = HtmlComponent::peek_type(cursor)?;
+        let (typ, cursor) = HtmlComponent::peek_component_type(cursor)?;
 
         let (punct, _) = cursor.punct()?;
         (punct.as_char() == '>').as_option()?;
