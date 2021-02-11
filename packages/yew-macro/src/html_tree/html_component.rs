@@ -145,7 +145,7 @@ impl HtmlComponent {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
 
-        let (ty, cursor) = Self::peek_type(cursor)?;
+        let (ty, cursor) = Self::peek_type(cursor);
 
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '>').as_option()?;
@@ -161,7 +161,7 @@ impl HtmlComponent {
         ))
     }
 
-    fn peek_type(mut cursor: Cursor) -> Option<(Type, Cursor)> {
+    fn peek_type(mut cursor: Cursor) -> (Type, Cursor) {
         let mut colons_optional = true;
         let mut leading_colon = None;
         let mut segments = Punctuated::new();
@@ -195,7 +195,7 @@ impl HtmlComponent {
             colons_optional = false;
         }
 
-        Some((
+        (
             Type::Path(TypePath {
                 qself: None,
                 path: Path {
@@ -204,11 +204,11 @@ impl HtmlComponent {
                 },
             }),
             cursor,
-        ))
+        )
     }
 
     fn peek_component_type(cursor: Cursor) -> Option<(Type, Cursor)> {
-        let (ty, cursor) = Self::peek_type(cursor)?;
+        let (ty, cursor) = Self::peek_type(cursor);
 
         // get last ident in PathSegment
         let last_ident = match &ty {
