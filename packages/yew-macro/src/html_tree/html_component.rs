@@ -141,20 +141,44 @@ impl HtmlComponent {
         Some(cursor)
     }
 
-    fn path_arguments(cursor: Cursor) -> Option<(PathArguments, Cursor)> {
-        let (punct, cursor) = cursor.punct()?;
+    /// Refer to the [`syn::parse::Parse`] implementation for [`AngleBracketedGenericArguments`].
+    fn path_arguments(mut cursor: Cursor) -> Option<(PathArguments, Cursor)> {
+        let (punct, c) = cursor.punct()?;
+        cursor = c;
         (punct.as_char() == '<').as_option()?;
+        
+        let mut args = Punctuated::new();
 
-        let (ty, cursor) = Self::peek_type(cursor);
+        loop {
+            let punct = cursor.punct();
+            if let Some((punct, c)) = punct {
+                if punct.as_char() == '>' {
+                    cursor = c;
+                    break;
+                }
+            }
 
-        let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '>').as_option()?;
+            let (ty, c) = Self::peek_type(cursor);
+            cursor = c;
+
+            args.push_value(GenericArgument::Type(ty));
+
+            let punct = cursor.punct();
+            if let Some((punct, c)) = punct {
+                cursor = c;
+                if punct.as_char() == '>' {
+                    break;
+                } else if punct.as_char() == ',' {
+                    args.push_punct(Token![,](Span::call_site()))
+                }
+            }
+        }
 
         Some((
             PathArguments::AngleBracketed(AngleBracketedGenericArguments {
                 colon2_token: None,
                 lt_token: Token![<](Span::call_site()),
-                args: vec![GenericArgument::Type(ty)].into_iter().collect(),
+                args,
                 gt_token: Token![>](Span::call_site()),
             }),
             cursor,

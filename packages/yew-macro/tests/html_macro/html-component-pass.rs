@@ -5,13 +5,39 @@ use yew::html::ChildrenRenderer;
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VNode};
 
-pub struct Generic<G> {
-    marker: PhantomData<G>,
+pub struct Generic<T> {
+    marker: PhantomData<T>,
 }
 
 impl<T> Component for Generic<T>
 where
     T: 'static,
+{
+    type Message = ();
+    type Properties = ();
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        unimplemented!()
+    }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        unimplemented!()
+    }
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        unimplemented!()
+    }
+    fn view(&self) -> Html {
+        unimplemented!()
+    }
+}
+
+pub struct Generic2<T1, T2> {
+    marker: PhantomData<(T1, T2)>,
+}
+
+impl<T1, T2> Component for Generic2<T1, T2>
+where
+    T1: 'static,
+    T2: 'static,
 {
     type Message = ();
     type Properties = ();
@@ -327,10 +353,21 @@ fn compile_pass() {
         <>
             <Generic<String> />
             <Generic<String> ></Generic<String>>
+            // nested generics
             <Generic<Vec<String>> />
             <Generic<Vec<String>>></ Generic<Vec<String>>>
+            // with lowercase type param
             <Generic<usize> />
             <Generic<usize>></Generic<usize>>
+            // with trailing comma
+            <Generic<String, > />
+            <Generic<String, >></Generic<String,>>
+            // with multiple type params
+            <Generic2<String, String> />
+            <Generic2<String, String>></Generic2<String, String>>
+            // with multiple type params and trailing comma
+            <Generic2<String, String, > />
+            <Generic2<String, String, >></Generic2<String, String, >>
         </>
     };
 
