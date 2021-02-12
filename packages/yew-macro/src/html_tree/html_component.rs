@@ -146,7 +146,7 @@ impl HtmlComponent {
         let (punct, c) = cursor.punct()?;
         cursor = c;
         (punct.as_char() == '<').as_option()?;
-        
+
         let mut args = Punctuated::new();
 
         loop {

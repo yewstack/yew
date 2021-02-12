@@ -1,4 +1,3 @@
-use std::marker::PhantomData;
 use yew::html::ChildrenRenderer;
 use yew::prelude::*;
 
@@ -37,28 +36,6 @@ pub struct ChildContainer;
 impl Component for ChildContainer {
     type Message = ();
     type Properties = ChildContainerProperties;
-
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        unimplemented!()
-    }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
-}
-
-pub struct Generic<G> {
-    marker: PhantomData<G>,
-}
-
-impl Component for Generic<String> {
-    type Message = ();
-    type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
         unimplemented!()
@@ -129,9 +106,6 @@ fn compile_fail() {
             <Child int=1 />
         </ChildContainer>
     };
-
-    html! { <Generic<String>></Generic> };
-    html! { <Generic<String>></Generic<Vec<String>>> };
 
     html_nested! {
         <span>{ 1 }</span>
