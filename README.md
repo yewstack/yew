@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://static.yew.rs/logo.svg" width="150" />
+  <img src="https://yew.rs/img/logo.png" width="150" />
 
   <h1>Yew</h1>
 
