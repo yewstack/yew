@@ -4,7 +4,7 @@ use yew::format::Json;
 use yew::web_sys::HtmlInputElement as InputElement;
 use yew::{classes, html, Component, ComponentLink, Html, InputData, NodeRef, ShouldRender};
 use yew::{events::KeyboardEvent, Classes};
-use yew_services::storage::{Area, StorageService};
+use yew::services::storage::{Area, StorageService};
 
 mod state;
 

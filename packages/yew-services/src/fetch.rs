@@ -171,7 +171,7 @@ impl FetchService {
     /// ```
     ///# use serde_json::json;
     ///# use yew::format::{Nothing, Json};
-    ///# use yew_services::fetch::Request;
+    ///# use yew::services::fetch::Request;
     /// let post_request = Request::post("https://my.api/v1/resource")
     ///     .header("Content-Type", "application/json")
     ///     .body(Json(&json!({"foo": "bar"})))
@@ -188,8 +188,8 @@ impl FetchService {
     /// ```
     ///# use anyhow::Error;
     ///# use yew::{Component, ComponentLink, Html};
-    ///# use yew_services::FetchService;
-    ///# use yew_services::fetch::{Response, Request};
+    ///# use yew::services::FetchService;
+    ///# use yew::services::fetch::{Response, Request};
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
@@ -228,8 +228,8 @@ impl FetchService {
     ///# use serde::Deserialize;
     ///# use yew::{Component, ComponentLink, Html};
     ///# use yew::format::{Json, Nothing, Format};
-    ///# use yew_services::fetch::Response;
-    ///# use yew_services::FetchService;
+    ///# use yew::services::fetch::Response;
+    ///# use yew::services::FetchService;
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;type Properties = ();
@@ -281,7 +281,7 @@ impl FetchService {
     ///# use http::Response;
     ///# use yew::format::Nothing;
     ///# use yew::{Html, Component, ComponentLink};
-    ///# use yew_services::fetch::{self, FetchOptions, FetchService, Credentials};
+    ///# use yew::services::fetch::{self, FetchOptions, FetchService, Credentials};
     ///# struct Comp;
     ///# impl Component for Comp {
     ///#     type Message = Msg;

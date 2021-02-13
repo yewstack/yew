@@ -27,7 +27,7 @@ fn main() {
 log::info!("Update: {:?}", msg);
 ```
 
-### [`ConsoleService`](https://docs.rs/yew-services/latest/yew_services/struct.ConsoleService.html)
+### [`ConsoleService`](https://docs.rs/yew-services/latest/yew::services/struct.ConsoleService.html)
 
 This service is included within the [`yew-services`](https://crates.io/crates/yew-services) crate:
 

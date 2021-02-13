@@ -6,7 +6,7 @@ use agents::posts::{PostId, PostStore, Request};
 use post::Post;
 use text_input::TextInput;
 use yew::prelude::*;
-use yew_services::ConsoleService;
+use yew::services::ConsoleService;
 use yewtil::store::{Bridgeable, ReadOnly, StoreWrapper};
 
 pub enum Msg {

@@ -1,6 +1,6 @@
 use js_sys::Date;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
-use yew_services::ConsoleService;
+use yew::services::ConsoleService;
 
 pub enum Msg {
     Increment,
