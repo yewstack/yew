@@ -1,20 +1,22 @@
 ---
-title: Function Components
+title: Function components
 sidebar_label: Introduction
 description: Introduction to function components 
 ---
 
 :::warning
-We're still working on function components and Hooks. They're not quite ready to be used yet.
-If you'd like to help out, take a look at the [project board](https://github.com/yewstack/yew/projects/3) for a list of things that still need to be done.
+We're still working on function components and Hooks, so they're not *quite* ready to be used yet.
+If you'd like to help out, take a look at the [project board](https://github.com/yewstack/yew/projects/3)
+for a list of things that still need to be done.
 :::
 
 
-Function components are a simplified version of normal components.
-They consist of a single function that receives props and determines what should be rendered by returning `Html`.
-Basically, it's a component that's been reduced to just the `view` method.
-On its own that would be quite limiting because you can only create pure components, but that's where Hooks come in.
-Hooks allow function components to use state and other Yew features without implementing the `Component` trait.
+Function components are a simplified version of normal components. They consist of a single function
+that receives props and determines what should be rendered by returning `Html`. Basically, it's a
+component that's been reduced to just the `view` method. On its own that would be quite limiting
+because you can only create pure components, but that's where Hooks come in. Hooks allow function
+components to maintain their own internal state and other Yew features without needing to manually
+implement the `Component` trait.
 
 ## Creating function components
 
@@ -29,14 +31,19 @@ fn hello_world() -> Html {
 
 ### Under the hood
 
-Function components consists of two parts.
-First, the `FunctionProvider` trait which is comparable to the `Component` trait but it only has a single method called `run`.
-The second part is the `FunctionComponent` struct which wraps around the `FunctionProvider` type and turns it into an actual `Component`. 
-The `#[function_component]` attribute essentially just implements `FunctionProvider` for you and exposes it wrapped in `FunctionComponent`.
+There are two parts to how Yew implements functional components.
+
+The first part is the `FunctionProvider` trait which is analagous to the `Component` trait, except
+that it only has a single method (called `run`). The second part is the `FunctionComponent` struct
+which wraps types implementing `FunctionProvider` and implements `Component`.
+
+The `#[function_component]` attribute is a procedural macro which automatically implements
+`FunctionProvider` for you and exposes it wrapped in `FunctionComponent`.
 
 ### Hooks
 
-Hooks are simply functions that let you “hook into” components' state and/or lifecycle and perform actions. Yew comes with a few pre-defined Hooks. You can also create your own.
+Hooks are simply functions that let you "hook into" components' state and/or lifecycle and perform
+actions. Yew comes with a few pre-defined Hooks. You can also create your own.
 
 #### Pre-defined Hooks
 
@@ -52,3 +59,8 @@ Yew comes with the following predefined Hooks:
 
 There are cases where you want to define your own Hooks for reasons. Yew allows you to define your own Hooks which lets you extract your potentially stateful logic from the component into reusable functions. 
 See the [Defining custom hooks](function-components/custom-hooks.md#defining-custom-hooks) section for more information.
+
+## Further reading
+
+* The React documentation has a section on [React hooks](https://reactjs.org/docs/hooks-intro.html).
+These are not exactly the same as Yew's hooks, but the underlying concept is similar.
