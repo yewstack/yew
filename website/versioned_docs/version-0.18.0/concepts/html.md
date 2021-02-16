@@ -9,20 +9,32 @@ The `html!` macro allows you to write HTML and SVG code declaratively. It is sim
 
 **Important notes**
 
-1. The `html!` macro only accepts one root html node \(you can counteract this by
+1. The `html!` macro only accepts a single root HTML node \(this obstacle is easily overcome by
    [using fragments or iterators](html/lists.md)\)
 2. An empty `html! {}` invocation is valid and will not render anything
-3. Literals must always be quoted and wrapped in braces: `html! { "Hello, World" }`
+3. Literals must always be wrapped in quotes as well as braces (i.e.
+`html! { <p>{"Hello, World"}</p> }` is valid, but not `html! { <p>Hello, World</p> }` or
+`html! { <p>"Hello, World"</p> }`).
 
 :::note
-The `html!` macro can reach the default recursion limit of the compiler. If you encounter compilation errors, add an attribute like `#![recursion_limit="1024"]` in the crate root to overcome the problem.
+The requirement to need braces and quotes was not a deliberate design choice (just in case you're
+wondering)! It's needed in order to make parsing the tokens fed into the `html!` macro possible.
+:::
+
+:::note
+The `html!` macro can cause problems because it makes a lot of recursive calls. This means that it
+can exceed the default recursion limit of the compiler. If you encounter a compilation error
+(which might say something about "overflow" or "recursion limit reached") adding an attribute like
+`#![recursion_limit="1024"]` to your crate root should fix the problem.
 :::
 
 ## Tag Structure
 
-Tags are based on HTML tags. Components, Elements, and Lists are all based on this tag syntax.
+Tags inside the `html!` macros are heavily inspired by HTML tags. Components, elements, and lists
+all use the tag syntax.
 
-Tags must either self-close `<... />` or have a corresponding end tag for each start tag.
+Every tag must either either close itself (e.g. `<br/>`) or there must be a corresponding closing
+tag for each opening tag (e.g. `<div></div>`).
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Open - Close-->
@@ -41,7 +53,7 @@ html! {
 use yew::html;
 
 html! {
-  <div id="my_div"> // <- MISSING CLOSE TAG
+  <div id="my_div"> // <- Missing closing tag
 }
 ```
 
@@ -61,19 +73,21 @@ html! {
 use yew::html;
 
 html! {
-  <input id="my_input"> // <- MISSING SELF-CLOSE
+  <input id="my_input"> // <- Missing forward slash to close the tag
 }
 ```
 
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 :::tip
-For convenience, elements which _usually_ require a closing tag are **allowed** to self-close. For example, writing `html! { <div class="placeholder" /> }` is valid.
+For convenience, elements which _usually_ require a closing tag can be declared using the
+self-closing syntax (e.g. `html! { <div class="placeholder" /> }` is valid).
 :::
 
 ## Children
 
-Create complex nested HTML and SVG layouts with ease:
+Tags become much more powerful once we start to nest them. Tags may have children (which can be
+other standard HTML tags or other Yew components).
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--HTML-->
@@ -127,15 +141,26 @@ html! {
 
 ## Special properties
 
-There are special properties which don't directly influence the DOM but instead act as instructions to Yew's virtual DOM.
+Some properties aren't handed directly to the browser; instead Yew uses them when working out how to
+display your components.
+
 Currently, there are two such special props: `ref` and `key`.
 
-`ref` allows you to access and manipulate the underlying DOM node directly. See [Refs](components/refs) for more details.
+`ref` allows you to access and manipulate the underlying DOM node directly. See
+[Refs](components/refs) for more details. This can be very useful if you want to interoperate with
+Javascript libraries (for example, to add a map or code editor written in Javascript that would not
+be feasible to rewrite in Rust).
 
-`key` on the other hand gives an element a unique identifier which Yew can use for optimization purposes.
+`key` on the other hand gives an element in a list a unique identifier which Yew can use for
+to render lists more efficiently.
 
 :::important
 The documentation for keys is yet to be written. See [#1263](https://github.com/yewstack/yew/issues/1263).
 
-For now, use keys when you have a list where the order of elements changes. This includes inserting or removing elements from anywhere but the end of the list.
+For now, use keys when you have a list where the order of elements might change. This includes
+inserting or removing elements from anywhere but the end of the list.
 :::
+
+## Relevant examples
+* The [NodeRef example](https://github.com/yewstack/yew/tree/master/examples/node_refs)
+* An example of [using NodeRefs to integrate a code editor into an application](https://github.com/siku2/rust-monaco/blob/master/src/yew/mod.rs)
