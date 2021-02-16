@@ -2,6 +2,7 @@ personal_ws-1.1 en 0 utf-8
 alloc
 ALLOC
 allocator
+analagous
 Angular's
 asmjs
 binaryen
@@ -78,5 +79,6 @@ Webpack
 WeeAlloc
 workspaces
 xmlns
+Javascript
 yewtil
 Yewtil
