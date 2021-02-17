@@ -4,6 +4,12 @@ toolchain = "1.51"
 command = "cargo"
 args = ["test"]
 
+[tasks.test-lint]
+clear = true
+toolchain = "nightly-2021-02-17"
+command = "cargo"
+args = ["test test_html_lints --features lints"]
+
 [tasks.test-overwrite]
 extend = "test"
 env = { TRYBUILD = "overwrite" }

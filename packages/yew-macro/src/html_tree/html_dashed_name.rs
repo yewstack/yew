@@ -16,6 +16,17 @@ pub struct HtmlDashedName {
 }
 
 impl HtmlDashedName {
+    /// Checks if this name is equal to the provided item (which can be anything implementing
+    /// `Into<String>`).
+    pub fn eq_ignore_ascii_case<S>(&self, other: S) -> bool
+    where
+        S: Into<String>,
+    {
+        let mut s = other.into();
+        s.make_ascii_lowercase();
+        s == self.to_ascii_lowercase_string()
+    }
+
     pub fn to_ascii_lowercase_string(&self) -> String {
         let mut s = self.to_string();
         s.make_ascii_lowercase();
@@ -81,6 +92,7 @@ impl ToTokens for HtmlDashedName {
         tokens.extend(quote! { #name#extended });
     }
 }
+
 impl Stringify for HtmlDashedName {
     fn try_into_lit(&self) -> Option<LitStr> {
         Some(self.to_lit_str())

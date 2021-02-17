@@ -7,11 +7,11 @@ use syn::parse::{Parse, ParseStream};
 use syn::{braced, token};
 
 pub struct HtmlBlock {
-    content: BlockContent,
+    pub content: BlockContent,
     brace: token::Brace,
 }
 
-enum BlockContent {
+pub enum BlockContent {
     Node(Box<HtmlNode>),
     Iterable(Box<HtmlIterable>),
 }

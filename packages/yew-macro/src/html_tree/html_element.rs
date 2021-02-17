@@ -11,9 +11,9 @@ use syn::spanned::Spanned;
 use syn::{Block, Expr, Ident, Lit, LitStr, Token};
 
 pub struct HtmlElement {
-    name: TagName,
-    props: ElementProps,
-    children: HtmlChildrenTree,
+    pub name: TagName,
+    pub props: ElementProps,
+    pub children: HtmlChildrenTree,
 }
 
 impl PeekValue<()> for HtmlElement {
@@ -498,7 +498,7 @@ enum TagKey {
     Expr,
 }
 
-enum TagName {
+pub enum TagName {
     Lit(HtmlDashedName),
     Expr(DynamicName),
 }
