@@ -15,7 +15,7 @@ Function components are a simplified version of normal components. They consist 
 that receives props and determines what should be rendered by returning `Html`. Basically, it's a
 component that's been reduced to just the `view` method. On its own that would be quite limiting
 because you can only create pure components, but that's where Hooks come in. Hooks allow function
-components to maintain their own internal state and other Yew features without needing to manually
+components to maintain their own internal state and use other Yew features without needing to manually
 implement the `Component` trait.
 
 ## Creating function components
