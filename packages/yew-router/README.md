@@ -60,7 +60,7 @@ yew = "0.17.0"
 You can use the in-development version in your project by adding it to your dependencies like so:
 ```toml
 [dependencies]
-yew-router = { git = "https://github.com/yewstack/yew_router", branch="master" }
+yew-router = { git = "https://github.com/yewstack/yew", branch="master" }
 yew = {git = "https://github.com/yewstack/yew", branch = "master"}
 ```
 
