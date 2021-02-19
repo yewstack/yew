@@ -27,7 +27,7 @@ yew-router-route-parser = { version = "0.14.0", path = "../yew-router-route-pars
 gloo = "0.2.0"
 js-sys = "0.3.35"
 log = "0.4.8"
-nom = "5.1.1"
+nom = "6.1.2"
 serde = { version = "1.0.104", features = ["derive"] }
 serde_json = "1.0.48"
 wasm-bindgen = "0.2.58"
