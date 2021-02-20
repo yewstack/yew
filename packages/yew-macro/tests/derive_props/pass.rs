@@ -185,4 +185,13 @@ mod t10 {
     }
 }
 
+mod t11 {
+    use super::*;
+
+    // this test makes sure that deriving the Properties trait works for unit structs
+
+    #[derive(Clone, Properties)]
+    pub struct Foo;
+}
+
 fn main() {}
