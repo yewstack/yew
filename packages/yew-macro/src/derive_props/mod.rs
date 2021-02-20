@@ -22,21 +22,25 @@ pub struct DerivePropsInput {
 impl Parse for DerivePropsInput {
     fn parse(input: ParseStream) -> Result<Self> {
         let input: DeriveInput = input.parse()?;
-        let named_fields = match input.data {
+        let prop_fields = match input.data {
             syn::Data::Struct(data) => match data.fields {
-                syn::Fields::Named(fields) => fields.named,
+                syn::Fields::Named(fields) => {
+                    let mut prop_fields: Vec<PropField> = fields
+                        .named
+                        .into_iter()
+                        .map(|f| f.try_into())
+                        .collect::<Result<Vec<PropField>>>()?;
+
+                    // Alphabetize
+                    prop_fields.sort();
+
+                    prop_fields
+                }
+                syn::Fields::Unit => Vec::new(),
                 _ => unimplemented!("only structs are supported"),
             },
             _ => unimplemented!("only structs are supported"),
         };
-
-        let mut prop_fields: Vec<PropField> = named_fields
-            .into_iter()
-            .map(|f| f.try_into())
-            .collect::<Result<Vec<PropField>>>()?;
-
-        // Alphabetize
-        prop_fields.sort();
 
         Ok(Self {
             vis: input.vis,
