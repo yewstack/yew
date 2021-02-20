@@ -36,7 +36,7 @@ impl AppRoute {
 /// This type allows us have the best of both worlds.
 ///
 /// IMPORTANT: You *must* specify a `<base>` tag on your webpage in order for this to work!
-/// For more information, see the 
+/// For more information, see the
 /// [Mozilla Developer Network docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base)
 #[derive(Clone, Debug)]
 pub struct PublicUrlSwitch(AppRoute);
