@@ -1,15 +1,19 @@
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::parse::{Parse, ParseStream};
+use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
+use syn::token::Comma;
 use syn::{
-    parse_macro_input, Attribute, Block, FnArg, Ident, Item, ItemFn, ReturnType, Type, Visibility,
+    parse_macro_input, Attribute, Block, FnArg, Generics, Ident, Item, ItemFn, ReturnType, Type,
+    Visibility,
 };
 
 struct FunctionComponent {
     block: Box<Block>,
     props_type: Box<Type>,
     arg: FnArg,
+    generics: Generics,
     vis: Visibility,
     attrs: Vec<Attribute>,
     name: Ident,
@@ -28,13 +32,6 @@ impl Parse for FunctionComponent {
                     sig,
                     block,
                 } = func;
-
-                if !sig.generics.params.is_empty() {
-                    return Err(syn::Error::new_spanned(
-                        sig.generics,
-                        "function components can't contain generics",
-                    ));
-                }
 
                 if sig.asyncness.is_some() {
                     return Err(syn::Error::new_spanned(
@@ -123,6 +120,7 @@ impl Parse for FunctionComponent {
                     props_type: ty,
                     block,
                     arg,
+                    generics: sig.generics,
                     vis,
                     attrs,
                     name: sig.ident,
@@ -176,11 +174,14 @@ fn function_component_impl(
         block,
         props_type,
         arg,
+        generics,
         vis,
         attrs,
         name: function_name,
         return_type,
     } = component;
+
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
     if function_name == component_name {
         return Err(syn::Error::new_spanned(
@@ -191,21 +192,49 @@ fn function_component_impl(
 
     let ret_type = quote_spanned!(return_type.span()=> ::yew::html::Html);
 
-    let quoted = quote! {
-        #[doc(hidden)]
-        #[allow(non_camel_case_types)]
-        #vis struct #function_name;
+    let quoted = if generics.params.len() == 0 {
+        quote! {
+            #[doc(hidden)]
+            #[allow(non_camel_case_types)]
+            #vis struct #function_name;
 
-        impl ::yew_functional::FunctionProvider for #function_name {
-            type TProps = #props_type;
+            impl ::yew_functional::FunctionProvider for #function_name {
+                type TProps = #props_type;
 
-            fn run(#arg) -> #ret_type {
-                #block
+                fn run(#arg) -> #ret_type {
+                    #block
+                }
             }
-        }
 
-        #(#attrs)*
-        #vis type #component_name = ::yew_functional::FunctionComponent<#function_name>;
+            #(#attrs)*
+            #vis type #component_name = ::yew_functional::FunctionComponent<#function_name>;
+        }
+    } else {
+        let phantom_generics = generics
+            .type_params()
+            .map(|ty_param| ty_param.ident.clone()) // create a new Punctuated sequence without any type bounds
+            .collect::<Punctuated<_, Comma>>();
+
+        quote! {
+            #[doc(hidden)]
+            #[allow(non_camel_case_types)]
+            #[allow(unused_parens)]
+            #vis struct #function_name #ty_generics {
+                _marker: ::std::marker::PhantomData<(#phantom_generics)>,
+            }
+
+            impl #impl_generics ::yew_functional::FunctionProvider for #function_name #ty_generics #where_clause {
+                type TProps = #props_type;
+
+                fn run(#arg) -> #ret_type {
+                    #block
+                }
+            }
+
+            #(#attrs)*
+            #vis type #component_name #ty_generics = ::yew_functional::FunctionComponent<#function_name #ty_generics>;
+        }
     };
+
     Ok(quoted)
 }
