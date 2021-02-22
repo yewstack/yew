@@ -230,29 +230,6 @@ impl HtmlComponent {
             cursor,
         )
     }
-
-    fn peek_component_type(cursor: Cursor) -> Option<(Type, Cursor)> {
-        let (ty, cursor) = Self::peek_type(cursor);
-
-        // get last ident in PathSegment
-        let last_ident = match &ty {
-            Type::Path(TypePath {
-                qself: _,
-                path:
-                    Path {
-                        leading_colon: _,
-                        segments,
-                    },
-            }) => segments.last(),
-            _ => unreachable!(),
-        };
-
-        let type_str = last_ident?.ident.to_string();
-        type_str.is_ascii().as_option()?;
-        type_str.bytes().next()?.is_ascii_uppercase().as_option()?;
-
-        Some((ty, cursor))
-    }
 }
 
 struct HtmlComponentOpen {
@@ -274,7 +251,7 @@ impl PeekValue<Type> for HtmlComponentOpen {
     fn peek(cursor: Cursor) -> Option<Type> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
-        let (typ, _) = HtmlComponent::peek_component_type(cursor)?;
+        let (typ, _) = HtmlComponent::peek_type(cursor);
         Some(typ)
     }
 }
@@ -308,7 +285,7 @@ impl PeekValue<Type> for HtmlComponentClose {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '/').as_option()?;
 
-        let (typ, cursor) = HtmlComponent::peek_component_type(cursor)?;
+        let (typ, cursor) = HtmlComponent::peek_type(cursor);
 
         let (punct, _) = cursor.punct()?;
         (punct.as_char() == '>').as_option()?;
