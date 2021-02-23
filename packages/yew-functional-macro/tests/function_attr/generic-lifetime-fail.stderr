@@ -1,0 +1,7 @@
+error[E0392]: parameter `'a` is never used
+  --> $DIR/generic-lifetime-fail.rs:11:9
+   |
+11 | fn comp<'a>(props: &Props) -> Html {
+   |         ^^ unused parameter
+   |
+   = help: consider removing `'a`, referring to it in a field, or using a marker such as `std::marker::PhantomData`

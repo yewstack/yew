@@ -1,0 +1,8 @@
+error[E0599]: no method named `build` found for struct `PropsBuilder<PropsBuilderStep_missing_required_prop_a>` in the current scope
+  --> $DIR/generic-props-fail.rs:17:14
+   |
+4  | #[derive(Clone, Properties, PartialEq)]
+   |                 ---------- method `build` not found for this
+...
+17 |     html! { <Comp<Props> /> };
+   |              ^^^^ method not found in `PropsBuilder<PropsBuilderStep_missing_required_prop_a>`
