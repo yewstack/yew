@@ -36,7 +36,7 @@ impl Parse for FunctionComponent {
                 if sig.generics.lifetimes().next().is_some() {
                     return Err(syn::Error::new_spanned(
                         sig.generics,
-                        "function components can't have lifetime generics",
+                        "function components can't have generic lifetime parameters",
                     ));
                 }
 
