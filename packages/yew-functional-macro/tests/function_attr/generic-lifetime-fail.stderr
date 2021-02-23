@@ -1,5 +1,5 @@
-error: function components can't have lifetime generics
+error: function components can't have generic lifetime parameters
   --> $DIR/generic-lifetime-fail.rs:10:8
    |
-10 | fn comp<'a>(props: &Props) -> Html {
+10 | fn comp<'a>(props: &'a Props) -> Html {
    |        ^^^^

@@ -7,24 +7,28 @@ struct Props {
 }
 
 #[function_component(Comp)]
-fn comp<P: Properties + PartialEq>(_props: &P) -> Html {
+fn comp<P>(_props: &P) -> Html
+where
+    P: Properties + PartialEq,
+{
     html! {
         <p></p>
     }
 }
 
+struct MissingTypeBounds;
+
 fn compile_fail() {
     // missing prop 'a'
     html! { <Comp<Props> /> };
-    
+
     // invalid type parameter
     html! { <Comp<INVALID> /> };
     // parameter doesn't match bounds
-    html! { <Comp<()> /> };
+    html! { <Comp<MissingTypeBounds> /> };
 
     // missing type param
     html! { <Comp /> };
 }
-
 
 fn main() {}
