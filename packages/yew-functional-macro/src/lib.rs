@@ -199,48 +199,29 @@ fn function_component_impl(
 
     let ret_type = quote_spanned!(return_type.span()=> ::yew::html::Html);
 
-    let quoted = if generics.params.is_empty() {
-        quote! {
-            #[doc(hidden)]
-            #[allow(non_camel_case_types)]
-            #vis struct #function_name;
+    let phantom_generics = generics
+        .type_params()
+        .map(|ty_param| ty_param.ident.clone()) // create a new Punctuated sequence without any type bounds
+        .collect::<Punctuated<_, Comma>>();
 
-            impl ::yew_functional::FunctionProvider for #function_name {
-                type TProps = #props_type;
-
-                fn run(#arg) -> #ret_type {
-                    #block
-                }
-            }
-
-            #(#attrs)*
-            #vis type #component_name = ::yew_functional::FunctionComponent<#function_name>;
+    let quoted = quote! {
+        #[doc(hidden)]
+        #[allow(non_camel_case_types)]
+        #[allow(unused_parens)]
+        #vis struct #function_name #impl_generics {
+            _marker: ::std::marker::PhantomData<(#phantom_generics)>,
         }
-    } else {
-        let phantom_generics = generics
-            .type_params()
-            .map(|ty_param| ty_param.ident.clone()) // create a new Punctuated sequence without any type bounds
-            .collect::<Punctuated<_, Comma>>();
 
-        quote! {
-            #[doc(hidden)]
-            #[allow(non_camel_case_types)]
-            #[allow(unused_parens)]
-            #vis struct #function_name #impl_generics {
-                _marker: ::std::marker::PhantomData<(#phantom_generics)>,
+        impl #impl_generics ::yew_functional::FunctionProvider for #function_name #ty_generics #where_clause {
+            type TProps = #props_type;
+
+            fn run(#arg) -> #ret_type {
+                #block
             }
-
-            impl #impl_generics ::yew_functional::FunctionProvider for #function_name #ty_generics #where_clause {
-                type TProps = #props_type;
-
-                fn run(#arg) -> #ret_type {
-                    #block
-                }
-            }
-
-            #(#attrs)*
-            #vis type #component_name #impl_generics = ::yew_functional::FunctionComponent<#function_name #ty_generics>;
         }
+
+        #(#attrs)*
+        #vis type #component_name #impl_generics = ::yew_functional::FunctionComponent<#function_name #ty_generics>;
     };
 
     Ok(quoted)
