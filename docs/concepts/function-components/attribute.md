@@ -76,7 +76,7 @@ pub struct Props<T>
 }
 
 #[function_component(MyGenericComponent)]
-pub fn my_generic_component<T>(props: Props<T>) -> Html
+pub fn my_generic_component<T>(props: &Props<T>) -> Html
     where T: Clone + PartialEq + Display
 {
     html! {
