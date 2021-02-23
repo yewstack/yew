@@ -30,7 +30,15 @@ fn comp2<T1, T2>(_props: &()) -> Html {
     }
 }
 
-// TODO: add test for const generics
+// TODO: uncomment when min_const_generics are in stable and MSRV is updated to support it
+// #[function_component(ConstGenerics)]
+// fn const_generics<const N: i32>() -> Html {
+//     html! {
+//         <div>
+//             { N }
+//         </div>
+//     }
+// }
 
 fn compile_pass() {
     html! { <Comp<Props> a=10 /> };
