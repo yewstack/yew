@@ -68,13 +68,16 @@ fn app() -> Html {
 The `#[function_component(_)]` attribute also works with generic functions for creating generic components.
 
 ```rust
-pub struct Props<T> {
+#[derive(Properties, Clone, PartialEq)]
+pub struct Props<T>
+    where T: Clone + PartialEq
+{
     data: T,
 }
 
 #[function_component(MyGenericComponent)]
 pub fn my_generic_component<T>(props: Props<T>) -> Html
-    where T: Display
+    where T: Clone + PartialEq + Display
 {
     html! {
         <p>
