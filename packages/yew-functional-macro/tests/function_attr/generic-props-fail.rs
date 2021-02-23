@@ -13,8 +13,18 @@ fn comp<P: Properties + PartialEq>(_props: &P) -> Html {
     }
 }
 
-fn compile_pass() {
-    html! { <Comp<Props> /> }; // missing prop 'a'
+fn compile_fail() {
+    // missing prop 'a'
+    html! { <Comp<Props> /> };
+    
+    // invalid type parameter
+    html! { <Comp<INVALID> /> };
+    // parameter doesn't match bounds
+    html! { <Comp<()> /> };
+
+    // missing type param
+    html! { <Comp /> };
 }
+
 
 fn main() {}
