@@ -6,7 +6,6 @@ struct Props {
     a: usize,
 }
 
-// TODO: improve error message
 #[function_component(Comp)]
 fn comp<P: Properties + PartialEq>(_props: &P) -> Html {
     html! {
