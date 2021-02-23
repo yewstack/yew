@@ -4,6 +4,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
+use syn::Lit;
 
 mod html_block;
 mod html_component;
@@ -94,7 +95,8 @@ pub enum HtmlRoot {
 
 impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> Result<Self> {
-        let html_root = if HtmlTree::peek(input.cursor()).is_some() {
+        let html_root = if !input.peek(Lit) /* At the root, literals are handled by HtmlNode */ && HtmlTree::peek(input.cursor()).is_some()
+        {
             Self::Tree(input.parse()?)
         } else if HtmlIterable::peek(input.cursor()).is_some() {
             Self::Iterable(Box::new(input.parse()?))
@@ -153,7 +155,7 @@ impl ToNodeIterator for HtmlTree {
     fn to_node_iterator_stream(&self) -> Option<TokenStream> {
         match self {
             HtmlTree::Block(block) => block.to_node_iterator_stream(),
-            // everthing else is just a single node.
+            // everything else is just a single node.
             _ => None,
         }
     }

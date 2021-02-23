@@ -5,6 +5,9 @@ fn compile_pass() {
     html! { <>{ format!("Hello") }</> };
     html! { <>{ String::from("Hello") }</> };
 
+    html! { <>"Hi"</> };
+    html! { <>r#"Hello, I am a "raw" string!"#</> };
+
     let msg = "Hello";
     html! { <div>{ msg }</div> };
 
