@@ -8,7 +8,8 @@ use syn::{braced, token};
 
 pub struct HtmlBlock {
     content: BlockContent,
-    brace: token::Brace,
+    /// Note that the type is `Option<_>`. This is because the braces are optional for string literals
+    brace: Option<token::Brace>,
 }
 
 enum BlockContent {
@@ -32,7 +33,10 @@ impl Parse for HtmlBlock {
             BlockContent::Node(Box::new(content.parse()?))
         };
 
-        Ok(HtmlBlock { brace, content })
+        Ok(HtmlBlock {
+            brace: Some(brace),
+            content,
+        })
     }
 }
 
@@ -50,12 +54,22 @@ impl ToTokens for HtmlBlock {
 
 impl ToNodeIterator for HtmlBlock {
     fn to_node_iterator_stream(&self) -> Option<proc_macro2::TokenStream> {
-        let HtmlBlock { content, brace } = self;
-        let new_tokens = match content {
-            BlockContent::Iterable(iterable) => iterable.to_node_iterator_stream(),
-            BlockContent::Node(node) => node.to_node_iterator_stream(),
-        }?;
+        if let HtmlBlock {
+            content,
+            brace: Some(brace),
+        } = self
+        {
+            let new_tokens = match content {
+                BlockContent::Iterable(iterable) => iterable.to_node_iterator_stream(),
+                BlockContent::Node(node) => node.to_node_iterator_stream(),
+            }?;
 
-        Some(quote_spanned! {brace.span=> #new_tokens})
+            Some(quote_spanned! {brace.span=> #new_tokens})
+        } else {
+            match &self.content {
+                BlockContent::Iterable(iterable) => iterable.to_node_iterator_stream(),
+                BlockContent::Node(node) => node.to_node_iterator_stream(),
+            }
+        }
     }
 }
