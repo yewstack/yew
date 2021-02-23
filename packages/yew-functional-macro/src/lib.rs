@@ -221,6 +221,7 @@ fn function_component_impl(
         }
 
         #(#attrs)*
+        #[allow(type_alias_bounds)]
         #vis type #component_name #impl_generics = ::yew_functional::FunctionComponent<#function_name #ty_generics>;
     };
 
