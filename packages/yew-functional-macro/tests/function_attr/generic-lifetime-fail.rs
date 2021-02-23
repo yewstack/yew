@@ -6,7 +6,6 @@ struct Props {
     a: usize,
 }
 
-// TODO: improve error message
 #[function_component(Comp)]
 fn comp<'a>(props: &Props) -> Html {
     html! {

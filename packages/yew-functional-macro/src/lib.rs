@@ -33,6 +33,13 @@ impl Parse for FunctionComponent {
                     block,
                 } = func;
 
+                if sig.generics.lifetimes().next().is_some() {
+                    return Err(syn::Error::new_spanned(
+                        sig.generics,
+                        "function components can't have lifetime generics",
+                    ));
+                }
+
                 if sig.asyncness.is_some() {
                     return Err(syn::Error::new_spanned(
                         sig.asyncness,
