@@ -192,7 +192,7 @@ fn function_component_impl(
 
     let ret_type = quote_spanned!(return_type.span()=> ::yew::html::Html);
 
-    let quoted = if generics.params.len() == 0 {
+    let quoted = if generics.params.is_empty() {
         quote! {
             #[doc(hidden)]
             #[allow(non_camel_case_types)]
