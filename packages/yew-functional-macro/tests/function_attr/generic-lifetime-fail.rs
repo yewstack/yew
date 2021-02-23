@@ -7,7 +7,8 @@ struct Props {
 }
 
 #[function_component(Comp)]
-fn comp<'a>(props: &Props) -> Html {
+fn comp<'a>(props: &'a Props) -> Html {
+
     html! {
         <p>
             { props.a }
