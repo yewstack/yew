@@ -4,7 +4,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
-use syn::Token;
+use syn::{Lit, LitStr, Token};
 
 mod html_block;
 mod html_component;
@@ -69,6 +69,7 @@ impl HtmlTree {
             .cursor()
             .group(proc_macro2::Delimiter::Brace)
             .is_some()
+            || input.peek(LitStr)
         {
             Some(HtmlType::Block)
         } else if input.peek(Token![<]) {
@@ -127,7 +128,8 @@ pub enum HtmlRoot {
 
 impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> Result<Self> {
-        let html_root = if HtmlTree::peek_html_type(input).is_some() {
+        let html_root = if !input.peek(Lit) /* At the root, literals are handled by HtmlNode */ && HtmlTree::peek_html_type(input).is_some()
+        {
             Self::Tree(input.parse()?)
         } else if HtmlIterable::peek(input.cursor()).is_some() {
             Self::Iterable(Box::new(input.parse()?))
