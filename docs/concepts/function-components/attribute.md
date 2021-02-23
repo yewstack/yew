@@ -82,4 +82,13 @@ pub fn my_generic_component<T>(props: Props<T>) -> Html
         </p>
     }
 }
+
+// used like this
+html! {
+    <MyGenericComponent<i32> data=123 />
+}
+// or
+html! {
+    <MyGenericComponent<Foo> data=foo />
+}
 ```
