@@ -2,15 +2,15 @@
 title: Créer une application
 ---
 
-First, create a new cargo project:
+Tout d'abord, créez un nouveau projet cargo:
 
 ```bash
 cargo new yew-app
 ```
 
-Open the newly created directory.
+Ouvrez le répertoire nouvellement créé.
 
-First, let's add `yew` as a dependencies in the `Cargo.toml` file:
+Tout d'abord, ajoutons `yew` tant que dépendances dans le fichier `Cargo.toml`
 
 ```toml
 [package]
@@ -96,9 +96,9 @@ Enfin, ajoutez un `index.html` dans le dossier racine de votre application:
 </html>
 ```
 
-## Run your app
+## Exécutez votre application
 
-If you haven't already, install [Trunk](https://github.com/thedodd/trunk):
+Si vous ne l'avez pas déjà fait, installez [Trunk](https://github.com/thedodd/trunk) :
 
 ```bash
 cargo install --locked trunk
