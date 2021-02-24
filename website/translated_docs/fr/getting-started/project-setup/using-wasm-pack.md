@@ -29,17 +29,17 @@ wasm-pack build --target web
 
 ## Bundle
 
-For more information on rollup.js visit this [guide](https://rollupjs.org/guide/en/#quick-start).
+Pour plus d'informations sur rollup.js, consultez ce [guide](https://rollupjs.org/guide/en/#quick-start) .
 
 ```bash
 rollup ./main.js --format iife --file ./pkg/bundle.js
 ```
 
-When using a bundler like rollup.js you can omit `--target web`.
+Lorsque vous utilisez un bundler comme rollup.js, vous pouvez omettre `--target web` .
 
 ## Serve
 
-Feel free to use your preferred server. Here we use a simple Python server to serve the built app.
+N'hésitez pas à utiliser votre serveur préféré. Ici, nous utilisons un simple serveur Python pour servir l'application construite.
 
 ```bash
 python -m http.server 8000
