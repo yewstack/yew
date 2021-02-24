@@ -14,4 +14,7 @@ trunk serve --release
 
 ## Concepts
 
-This example makes use of controlled components.
+This example
+
+* makes use of controlled components.
+* calls out to `js_sys` to invoke a foreign function, `Math.random()`
