@@ -58,7 +58,8 @@
         "title": "README"
       },
       "advanced-topics/optimizations": {
-        "sidebar_label": "Optimisations"
+        "sidebar_label": "Optimisations",
+        "title": "Optimiser les performances et les meilleurs pratiques"
       },
       "concepts/components": {
         "title": "Introduction"
@@ -85,7 +86,8 @@
         "title": "Comment ça marche"
       },
       "version-0.17.3/advanced-topics/version-0.17.3-optimizations": {
-        "sidebar_label": "Optimisations"
+        "sidebar_label": "Optimisations",
+        "title": "Optimiser les performances et les meilleurs pratiques"
       },
       "version-0.17.3/concepts/version-0.17.3-agents": {
         "title": "Agents"
@@ -122,7 +124,8 @@
         "title": "Routeur"
       },
       "version-0.17.3/concepts/version-0.17.3-services": {
-        "title": "Services"
+        "title": "Services",
+        "sidebar_label": "Aperçu"
       },
       "version-0.17.3/concepts/services/version-0.17.3-format": {
         "title": "Format"
@@ -151,6 +154,55 @@
       },
       "version-0.17.3/more/version-0.17.3-external-libs": {
         "title": "Bibliothèques externes"
+      },
+      "more/testing": {
+        "title": "Tests"
+      },
+      "getting-started/build-a-sample-app": {
+        "title": "Exemple d'application"
+      },
+      "version-0.17.3/getting-started/version-0.17.3-build-a-sample-app": {
+        "title": "Exemple d'application"
+      },
+      "version-0.17.3/getting-started/version-0.17.3-starter-templates": {
+        "title": "Modèles pour démarrer"
+      },
+      "version-0.17.3/more/version-0.17.3-debugging": {
+        "title": "Débogage"
+      },
+      "version-0.17.3/more/version-0.17.3-roadmap": {
+        "title": "Feuille de route"
+      },
+      "version-0.17.3/more/version-0.17.3-testing": {
+        "title": "Tests"
+      },
+      "concepts/services/fetch": {
+        "title": "Fetch"
+      },
+      "getting-started/project-setup/using-trunk": {
+        "title": "Avec trunk"
+      },
+      "index": {
+        "title": "Introduction"
+      },
+      "version-0.17.3/version-0.17.3-index": {
+        "title": "Introduction"
+      },
+      "concepts/function-components": {
+        "title": "Fonctions composants",
+        "sidebar_label": "Introduction"
+      },
+      "concepts/function-components/custom-hooks": {
+        "title": "Hooks personalisés"
+      },
+      "concepts/function-components/pre-defined-hooks": {
+        "title": "Hooks prédéfinis"
+      },
+      "concepts/html/classes": {
+        "title": "Classes CSS"
+      },
+      "concepts/components/children": {
+        "title": "Children"
       }
     },
     "links": {
@@ -163,7 +215,8 @@
       "Concepts": "Concepts",
       "Advanced topics": "Sujets avancés",
       "More": "Plus"
-    }
+    },
+    "tagline": "Yew est un framework écrit en Rust pour la création d'applications web parallèles avec WebAssembly."
   },
   "pages-strings": {
     "Help Translate|recruit community translators for your project": "Aidez à  Traduire",
