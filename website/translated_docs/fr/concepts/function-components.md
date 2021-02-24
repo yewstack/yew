@@ -4,7 +4,10 @@ sidebar_label: introduction
 description: Introduction aux fonctions composants
 ---
 
-::: avertissement Nous travaillons toujours sur les composants de fonction et les Hooks. Ils ne sont pas encore tout à fait prêts à être utilisés. Si vous souhaitez aider, jetez un œil au [tableau de projet](https://github.com/yewstack/yew/projects/3) pour une liste des choses qui doivent encore être faites. :::
+:::warning
+Nous travaillons toujours sur les composants de fonction et les Hooks. Ils ne sont pas encore tout à fait prêts à être utilisés.
+Si vous souhaitez aider, jetez un œil au [tableau de projet](https://github.com/yewstack/yew/projects/3) pour une liste des choses qui doivent encore être faites.
+:::
 
 Les composants fonctionnels sont une version simplifiée des composants normaux. Ils consistent en une seule fonction qui reçoit les props et détermine ce qui doit être rendu en renvoyant `Html` . Fondamentalement, c'est un composant qui a été réduit à la seule méthode de `view` . En soi, cela serait assez limitatif car vous ne pouvez créer que des composants purs, mais c'est là que les Hooks entrent en jeu. Les Hooks permettent aux composants de fonction d'utiliser l'état et d'autres fonctionnalités Yew sans implémenter le trait `Component` .
 
