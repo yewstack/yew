@@ -18,10 +18,7 @@ impl Component for TextInput {
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        TextInput {
-            props,
-            link,
-        }
+        TextInput { props, link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -46,4 +43,3 @@ impl Component for TextInput {
         }
     }
 }
-

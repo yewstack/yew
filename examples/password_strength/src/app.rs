@@ -8,7 +8,7 @@ use crate::text_input::TextInput;
 
 pub enum Msg {
     SetPassword(String),
-    RegeneratePassword
+    RegeneratePassword,
 }
 
 #[derive(Debug)]
@@ -21,7 +21,9 @@ pub type App = Model;
 
 impl App {
     fn get_estimate(&self) -> Option<u8> {
-        zxcvbn(self.password.as_ref(), &[]).ok().map(|estimate| estimate.score())
+        zxcvbn(self.password.as_ref(), &[])
+            .ok()
+            .map(|estimate| estimate.score())
     }
 }
 
@@ -38,12 +40,8 @@ impl Component for App {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::SetPassword(next_password) => {
-                self.password = next_password
-            },
-            Msg::RegeneratePassword => {
-                self.password = generate_password()
-            }
+            Msg::SetPassword(next_password) => self.password = next_password,
+            Msg::RegeneratePassword => self.password = generate_password(),
         };
         true
     }
@@ -53,7 +51,7 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
-        html!{
+        html! {
             <main>
                 <div class="entry">
                     <div>
