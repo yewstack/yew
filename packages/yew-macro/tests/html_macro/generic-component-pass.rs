@@ -71,9 +71,6 @@ fn compile_pass() {
 
     html! { <Generic2<String, String, > /> };
     html! { <Generic2<String, String, >></Generic2<String, String, >> };
-
-    // html! { <Generic::<String> /> };
-    // html! { <Generic::<String>></Generic::<String>> };
 }
 
 fn main() {}
