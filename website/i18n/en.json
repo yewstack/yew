@@ -103,6 +103,9 @@
       "more/debugging": {
         "title": "Debugging"
       },
+      "more/development-tips": {
+        "title": "Tips for developing Yew applications"
+      },
       "more/external-libs": {
         "title": "External libraries"
       },
