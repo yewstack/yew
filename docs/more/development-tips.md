@@ -3,15 +3,15 @@ title: Tips for developing Yew applications
 ---
 
 :::important contribute
-This document only contains information for adding supporting in IntelliJ IDEA and VSCode.
+This document only contains information for adding supporting in Jetbrains IDEs and VS Code.
 Feel free to contribute to add instructions for your editor of choice. 
 :::
 
 ## Add a template for creating components
 
-### IntelliJ IDEA
+### Jetbrains IDEs
 
-1. Navigate to File | Settings | Editor | Live Templates.  
+1. Navigate to File | Settings | Editor | Live Templates.
 2. Select Rust and click on + icon to add a new Live Template.
 3. Give it a name and description of your preference.
 4. Paste the following snippet in Template Text section:
@@ -52,11 +52,12 @@ impl Component for $NAME$ {
 }
 ```
 
-### VSCode
+### VS Code
 
-1. Navigate to File | Preferences | User Snippets.
+1. Navigate to File > Preferences > User Snippets.
 2. Select Rust as the language.
 3. Add the following snippet in the snippet JSON file:
+
 ```json
 {
 	"Create new Yew component": {
@@ -96,7 +97,7 @@ impl Component for $NAME$ {
 			"    }",
 			"}"
 		],
-		"description": "Create new Yew component"
+		"description": "Create a new Yew component without properties but with a message enum"
 	}
 }
 
@@ -104,13 +105,14 @@ impl Component for $NAME$ {
 
 ## Enable HTML intellisense for `html!` 
 
-### IntelliJ IDEA
+### Jetbrains IDEs
 
 There is currently no way to extend the support for proc macros in `intellij-rust`. See [intellij-rust/intellij-rust#6367](https://github.com/intellij-rust/intellij-rust/issues/6367) and [intellij-rust/intellij-rust#1786](https://github.com/intellij-rust/intellij-rust/issues/1786).
 
-### VSCode
+### VS Code
 
-There's no support for specialized syntax of `html!` but you can use the default HTML IntelliSense by adding the following snippet in your VSCode's `settings.json` file:
+There's no support for specialized syntax of `html!` but you can use the default HTML IntelliSense by adding the following snippet in your VS Code's `settings.json` file:
+
 ```json
 "emmet.includeLanguages": {
     "rust": "html",
