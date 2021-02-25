@@ -293,7 +293,8 @@ pub fn app() -> Html {
     });
 
     html! {
-        <ContextProvider<Theme> context=ctx>
+        // `ctx` is type `Rc<Theme>` while we need `Theme` so we deref it
+        <ContextProvider<Theme> context=(*ctx).clone()>
             // Every child here and their children will have access to this context.
             <Toolbar />
         </ContextProvider<Theme>>
@@ -315,7 +316,7 @@ pub fn toolbar() -> Html {
 /// As this component is a child of `ThemeContextProvider` in the component tree, it also has access to the context.
 #[function_component(ThemedButton)]
 pub fn themed_button() -> Html {
-    let theme = use_context::<Rc<Theme>>().expect("no ctx found");
+    let theme = use_context::<Theme>().expect("no ctx found");
 
     html! {
         <button style=format!("background: {}; color: {};", theme.background, theme.foreground)>
