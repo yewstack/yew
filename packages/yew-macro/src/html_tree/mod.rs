@@ -1,9 +1,10 @@
 use crate::PeekValue;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
-use syn::buffer::Cursor;
+use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
+use syn::Token;
 
 mod html_block;
 mod html_component;
@@ -41,7 +42,7 @@ pub enum HtmlTree {
 
 impl Parse for HtmlTree {
     fn parse(input: ParseStream) -> Result<Self> {
-        let html_type = HtmlTree::peek(input.cursor())
+        let html_type = Self::peek_html_type(input)
             .ok_or_else(|| input.error("expected a valid html element"))?;
         let html_tree = match html_type {
             HtmlType::Empty => HtmlTree::Empty,
@@ -54,18 +55,50 @@ impl Parse for HtmlTree {
     }
 }
 
-impl PeekValue<HtmlType> for HtmlTree {
-    fn peek(cursor: Cursor) -> Option<HtmlType> {
-        if cursor.eof() {
+impl HtmlTree {
+    /// Determine the [`HtmlType`] before actually parsing it.
+    /// Even though this method accepts a [`ParseStream`], it is forked and the original stream is not modified.
+    /// Once a certain `HtmlType` can be deduced for certain, the function eagerly returns with the appropriate type.
+    /// If invalid html tag, returns `None`.
+    fn peek_html_type(input: ParseStream) -> Option<HtmlType> {
+        let input = input.fork(); // do not modify original ParseStream
+
+        if input.is_empty() {
             Some(HtmlType::Empty)
-        } else if HtmlList::peek(cursor).is_some() {
-            Some(HtmlType::List)
-        } else if HtmlComponent::peek(cursor).is_some() {
-            Some(HtmlType::Component)
-        } else if HtmlElement::peek(cursor).is_some() {
-            Some(HtmlType::Element)
-        } else if HtmlBlock::peek(cursor).is_some() {
+        } else if input
+            .cursor()
+            .group(proc_macro2::Delimiter::Brace)
+            .is_some()
+        {
             Some(HtmlType::Block)
+        } else if input.peek(Token![<]) {
+            let _lt: Token![<] = input.parse().ok()?;
+
+            // eat '/' character for unmatched closing tag
+            let _slash: Option<Token![/]> = input.parse().ok();
+
+            if input.peek(Token![>]) {
+                Some(HtmlType::List)
+            } else if input.peek(Token![@]) {
+                Some(HtmlType::Element) // dynamic element
+            } else if input.peek(Token![::]) {
+                Some(HtmlType::Component)
+            } else if input.peek(Ident::peek_any) {
+                let ident: Ident = input.parse().ok()?;
+                let ident_str = ident.to_string();
+
+                if input.peek(Token![=]) || (input.peek(Token![?]) && input.peek2(Token![=])) {
+                    Some(HtmlType::List)
+                } else if ident_str.chars().next().unwrap().is_ascii_uppercase()
+                    || input.peek(Token![::])
+                {
+                    Some(HtmlType::Component)
+                } else {
+                    Some(HtmlType::Element)
+                }
+            } else {
+                None
+            }
         } else {
             None
         }
@@ -94,7 +127,7 @@ pub enum HtmlRoot {
 
 impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> Result<Self> {
-        let html_root = if HtmlTree::peek(input.cursor()).is_some() {
+        let html_root = if HtmlTree::peek_html_type(input).is_some() {
             Self::Tree(input.parse()?)
         } else if HtmlIterable::peek(input.cursor()).is_some() {
             Self::Iterable(Box::new(input.parse()?))
@@ -153,7 +186,7 @@ impl ToNodeIterator for HtmlTree {
     fn to_node_iterator_stream(&self) -> Option<TokenStream> {
         match self {
             HtmlTree::Block(block) => block.to_node_iterator_stream(),
-            // everthing else is just a single node.
+            // everything else is just a single node.
             _ => None,
         }
     }
