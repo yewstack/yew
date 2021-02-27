@@ -1,5 +1,5 @@
 error[E0277]: `()` doesn't implement `std::fmt::Display`
- --> $DIR/html-block-fail.rs:6:15
+ --> $DIR/block-fail.rs:6:15
   |
 6 |             { () }
   |               ^^ `()` cannot be formatted with the default formatter
@@ -14,7 +14,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: required by `std::convert::Into::into`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-block-fail.rs:12:16
+  --> $DIR/block-fail.rs:12:16
    |
 12 |         <div>{ not_tree() }</div>
    |                ^^^^^^^^ `()` cannot be formatted with the default formatter
@@ -29,14 +29,14 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required by `std::convert::Into::into`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-block-fail.rs:15:17
+  --> $DIR/block-fail.rs:15:17
    |
 15 |         <>{ for (0..3).map(|_| not_tree()) }</>
    |                 ^^^^^^ `()` cannot be formatted with the default formatter
    |
-  ::: $WORKSPACE/packages/yew/src/utils.rs:51:8
+  ::: $WORKSPACE/packages/yew/src/utils.rs
    |
-51 |     T: Into<R>,
+   |     T: Into<R>,
    |        ------- required by this bound in `yew::utils::into_node_iter`
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`

@@ -1,49 +1,8 @@
 #![recursion_limit = "256"]
 
-use std::marker::PhantomData;
 use yew::html::ChildrenRenderer;
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VNode};
-
-pub struct Generic<G> {
-    marker: PhantomData<G>,
-}
-
-impl Component for Generic<String> {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        unimplemented!()
-    }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
-}
-
-impl Component for Generic<Vec<String>> {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        unimplemented!()
-    }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
-        unimplemented!()
-    }
-}
 
 #[derive(Clone, Properties, Default)]
 pub struct ContainerProperties {
@@ -335,15 +294,6 @@ fn compile_pass() {
                         .collect::<VNode>()
                 }
             </div>
-        </>
-    };
-
-    html! {
-        <>
-            <Generic<String> />
-            <Generic<String> ></Generic<String>>
-            <Generic<Vec<String>> />
-            <Generic<Vec<String>>></ Generic<Vec<String>>>
         </>
     };
 
