@@ -815,4 +815,58 @@ mod layout_tests {
             layout10, layout11, layout12,
         ]);
     }
+
+    #[test]
+    fn component_with_children() {
+        #[derive(Properties, Clone)]
+        struct Props {
+            children: Children,
+        }
+
+        struct ComponentWithChildren {
+            props: Props,
+        }
+
+        impl Component for ComponentWithChildren {
+            type Message = ();
+            type Properties = Props;
+
+            fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+                Self {
+                    props,
+                }
+            }
+            fn update(&mut self, _: Self::Message) -> ShouldRender {
+                true
+            }
+            fn change(&mut self, _: Self::Properties) -> ShouldRender {
+                true
+            }
+            fn view(&self) -> Html {
+                html! {
+                  <ul>
+                    { for self.props.children.iter().map(|child| html! { <li>{ child }</li> }) }
+                  </ul>
+                }
+            }
+        }
+
+        let layout = TestLayout {
+            name: "13",
+            node: html! {
+                <ComponentWithChildren>
+                    if true {
+                        <span>{ "hello" }</span>
+                        <span>{ "world" }</span>
+                    }  else {
+                        <span>{ "goodbye" }</span>
+                        <span>{ "world" }</span>
+                    }
+                </ComponentWithChildren>
+            },
+            expected: "<ul><li><span>hello</span><span>world</span></li></ul>",
+        };
+
+        diff_layouts(vec![layout]);
+    }
 }
