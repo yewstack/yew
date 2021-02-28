@@ -262,11 +262,11 @@ impl HtmlChildrenTree {
         }
     }
 
-    fn parse_delimited(mut input: ParseStream) -> syn::Result<Self> {
+    fn parse_delimited(input: ParseStream) -> syn::Result<Self> {
         let mut children = HtmlChildrenTree::new();
 
         while !input.is_empty() {
-            children.parse_child(&mut input)?;
+            children.parse_child(input)?;
         }
 
         Ok(children)

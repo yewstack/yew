@@ -22,7 +22,7 @@ impl PeekValue<()> for HtmlList {
 }
 
 impl Parse for HtmlList {
-    fn parse(mut input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         if HtmlListClose::peek(input.cursor()).is_some() {
             return match input.parse::<HtmlListClose>() {
                 Ok(close) => Err(syn::Error::new_spanned(
@@ -36,7 +36,7 @@ impl Parse for HtmlList {
         let open = input.parse::<HtmlListOpen>()?;
         let mut children = HtmlChildrenTree::new();
         while HtmlListClose::peek(input.cursor()).is_none() {
-            children.parse_child(&mut input)?;
+            children.parse_child(input)?;
             if input.is_empty() {
                 return Err(syn::Error::new_spanned(
                     open.to_spanned(),
