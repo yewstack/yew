@@ -9,11 +9,10 @@ pub enum Msg {
 }
 
 pub struct Model {
-    canvas: Option<HtmlCanvasElement>,
     gl: Option<GL>,
     link: ComponentLink<Self>,
     node_ref: NodeRef,
-    render_loop: Option<RenderTask>,
+    _render_loop: Option<RenderTask>,
 }
 
 impl Component for Model {
@@ -22,11 +21,10 @@ impl Component for Model {
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
-            canvas: None,
             gl: None,
             link,
             node_ref: NodeRef::default(),
-            render_loop: None,
+            _render_loop: None,
         }
     }
 
@@ -44,7 +42,6 @@ impl Component for Model {
             .dyn_into()
             .unwrap();
 
-        self.canvas = Some(canvas);
         self.gl = Some(gl);
 
         // In a more complex use-case, there will be additional WebGL initialization that should be
@@ -59,7 +56,7 @@ impl Component for Model {
 
             // A reference to the handle must be stored, otherwise it is dropped and the render won't
             // occur.
-            self.render_loop = Some(handle);
+            self._render_loop = Some(handle);
         }
     }
 
@@ -134,7 +131,7 @@ impl Model {
         let handle = RenderService::request_animation_frame(render_frame);
 
         // A reference to the new handle must be retained for the next render to run.
-        self.render_loop = Some(handle);
+        self._render_loop = Some(handle);
     }
 }
 

@@ -398,7 +398,7 @@ impl ToTokens for HtmlElement {
 
                 #dyn_tag_runtime_checks
                 #[allow(unused_braces)]
-                ::yew::virtual_dom::VNode::from(#vtag)
+                <::yew::virtual_dom::VNode as ::std::convert::From<_>>::from(#vtag)
             }
         });
     }
