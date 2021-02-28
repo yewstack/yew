@@ -175,7 +175,7 @@ impl HtmlChildrenTree {
         Self(Vec::new())
     }
 
-    pub fn parse_child(&mut self, input: &mut ParseStream) -> syn::Result<()> {
+    pub fn parse_child(&mut self, input: ParseStream) -> syn::Result<()> {
         self.0.push(input.parse()?);
         Ok(())
     }
