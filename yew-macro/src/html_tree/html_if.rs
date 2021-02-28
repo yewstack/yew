@@ -23,7 +23,7 @@ impl PeekValue<()> for HtmlIf {
 }
 
 impl Parse for HtmlIf {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let if_token = input.parse()?;
         let cond: Box<Expr> = input.parse()?;
 
@@ -67,7 +67,7 @@ impl ToTokens for HtmlIf {
             then_branch,
             else_branch,
         } = self;
-        let default_else_branch = syn::parse_str("{}").unwrap();
+        let default_else_branch = syn::parse_quote! { {} };
         let else_branch = else_branch
             .as_ref()
             .map(|(_, branch)| branch)

@@ -273,7 +273,7 @@ impl ToTokens for HtmlRootBraced {
         tokens.extend(quote_spanned! {brace.span.span()=>
             {
                 ::yew::virtual_dom::VNode::VList(
-                    ::yew::virtual_dom::VList::new_with_children(#children, None)
+                    ::yew::virtual_dom::VList::new_with_children(#children, ::std::option::Option::None)
                 )
             }
         });
