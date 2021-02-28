@@ -1,0 +1,22 @@
+[package]
+name = "yew-functional"
+version = "0.13.0"
+authors = ["ZainlessBrombie <zainredirect@gmail.com>"]
+edition = "2018"
+repository = "https://github.com/yewstack/yew"
+homepage = "https://github.com/yewstack/yew"
+license = "MIT/Apache-2.0"
+keywords = ["web", "wasm", "frontend", "webasm", "webassembly"]
+categories = ["gui", "web-programming", "wasm"]
+description = "A framework for making client-side single-page apps"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.9"
+web-sys = "0.3.36"
+yew = { path = "../yew" }
+yew-services = { path = "../yew-services" }
+
+[dependencies]
+yew = { path = "../yew" }
+yew-functional-macro = { path = "../yew-functional-macro" }
+wasm-bindgen = "0.2.60"

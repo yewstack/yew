@@ -1,2 +1,2 @@
-[target.'cfg(all(target_arch = "wasm32", not(cargo_web)))']
+[target.'cfg(target_arch = "wasm32")']
 runner = 'wasm-bindgen-test-runner'

@@ -1,0 +1,17 @@
+error[E0277]: the trait bound `std::vec::Vec<_>: yew::html::component::properties::Properties` is not satisfied
+  --> $DIR/resolve-prop-fail.rs:38:17
+   |
+38 |     yew::props!(Vec<_> {});
+   |                 ^^^ the trait `yew::html::component::properties::Properties` is not implemented for `std::vec::Vec<_>`
+
+error[E0277]: the trait bound `MyComp: yew::html::component::properties::Properties` is not satisfied
+  --> $DIR/resolve-prop-fail.rs:39:17
+   |
+39 |     yew::props!(MyComp {});
+   |                 ^^^^^^ the trait `yew::html::component::properties::Properties` is not implemented for `MyComp`
+
+error[E0277]: the trait bound `MyNotAComponent: yew::html::component::Component` is not satisfied
+  --> $DIR/resolve-prop-fail.rs:40:17
+   |
+40 |     yew::props!(MyNotAComponent::Properties {});
+   |                 ^^^^^^^^^^^^^^^ the trait `yew::html::component::Component` is not implemented for `MyNotAComponent`

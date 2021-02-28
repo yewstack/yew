@@ -1,8 +1,8 @@
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext as GL};
-use yew::services::render::RenderTask;
-use yew::services::RenderService;
 use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
+use yew_services::render::RenderTask;
+use yew_services::RenderService;
 
 pub enum Msg {
     Render(f64),

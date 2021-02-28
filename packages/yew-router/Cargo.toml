@@ -1,0 +1,47 @@
+[package]
+name = "yew-router"
+version = "0.14.0"
+authors = ["Henry Zimmerman <zimhen7@gmail.com>", "Sascha Grunert <mail@saschagrunert.de>"]
+edition = "2018"
+license = "MIT/Apache-2.0"
+readme = "README.md"
+keywords = ["web", "yew", "router"]
+categories = ["gui", "web-programming"]
+description = "A router implementation for the Yew framework"
+repository = "https://github.com/yewstack/yew"
+
+[features]
+default = ["core", "unit_alias"]
+core = ["router", "components"] # Most everything
+unit_alias = [] # TODO remove this
+router = ["agent"] # The Router component
+components = ["agent" ] # The button and anchor
+agent = ["service"] # The RouteAgent
+service = ["yew"] # The RouteService
+
+[dependencies]
+yew = { version = "0.17.0", path = "../yew", features = ["agent"], default-features= false, optional = true }
+yew-router-macro = { version = "0.14.0", path = "../yew-router-macro" }
+yew-router-route-parser = { version = "0.14.0", path = "../yew-router-route-parser" }
+
+gloo = "0.2.0"
+js-sys = "0.3.35"
+log = "0.4.8"
+nom = "5.1.1"
+serde = { version = "1.0.104", features = ["derive"] }
+serde_json = "1.0.48"
+wasm-bindgen = "0.2.58"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    'History',
+    'HtmlLinkElement',
+    'Location',
+    'MouseEvent',
+    'PopStateEvent',
+    'Window',
+]
+
+[dev-dependencies]
+uuid = "0.8.1"

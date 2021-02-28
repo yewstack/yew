@@ -8,4 +8,5 @@ edition = "2018"
 anyhow = "1"
 serde = "1"
 serde_derive = "1"
-yew = { path = "../../yew", features = ["toml"] }
+yew = { path = "../../packages/yew", features = ["toml"] }
+yew-services = { path = "../../packages/yew-services" }

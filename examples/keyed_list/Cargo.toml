@@ -6,9 +6,11 @@ edition = "2018"
 
 [dependencies]
 fake = "2.2"
+getrandom = { version = "0.2", features = ["js"] }
 instant = { version = "0.1", features = ["wasm-bindgen"] }
 log = "0.4"
-rand = { version = "0.7", features = ["wasm-bindgen"] }
+rand = "0.8"
 wasm-logger = "0.2"
-yew = { path = "../../yew" }
-yewtil = { path = "../../yewtil" }
+yew = { path = "../../packages/yew" }
+yewtil = { path = "../../packages/yewtil" }
+yew-services = { path = "../../packages/yew-services" }

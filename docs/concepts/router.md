@@ -33,22 +33,24 @@ The Router component communicates with `RouteAgent` and will automatically resol
 
 First, you want to create a type that represents all the states of your application. Do note that while this typically is an enum, structs are supported as well, and that you can nest other items that implement `Switch` inside.
 
-Then you should derive `Switch` for your type. For enums, every variant must be annotated with `#[to = "/some/route"]`, or if you use a struct instead, that must appear outside the struct declaration.
+Then you should derive `Switch` for your type. For enums, every variant must be annotated with `
+#[at = "/some/route"]` (or `#[at = "/some/route"]`, but this is being phased out in favor of "at"),
+or if you use a struct instead, that must appear outside the struct declaration.
 
 ```rust
 #[derive(Switch)]
 enum AppRoute {
-  #[to="/login"]
+  #[at = "/login"]
   Login,
-  #[to="/register"]
+  #[at = "/register"]
   Register,
-  #[to="/delete_account"]
+  #[at = "/delete_account"]
   Delete, 
-  #[to="/posts/{id}"]
+  #[at = "/posts/{id}"]
   ViewPost(i32),
-  #[to="/posts/view"]
+  #[at = "/posts/view"]
   ViewPosts,
-  #[to="/"]
+  #[at = "/"]
   Home
 }
 ```
@@ -63,25 +65,27 @@ if you defined the following `Switch`, the only route that would be matched woul
 ```rust
 #[derive(Switch)]
 enum AppRoute {
-  #[to="/"]
+  #[at = "/"]
   Home,
-  #[to="/login"]
+  #[at = "/login"]
   Login,
-  #[to="/register"]
+  #[at = "/register"]
   Register,
-  #[to="/delete_account"]
+  #[at = "/delete_account"]
   Delete, 
-  #[to="/posts/{id}"]
+  #[at = "/posts/{id}"]
   ViewPost(i32),
-  #[to="/posts/view"]
+  #[at = "/posts/view"]
   ViewPosts,
 }
 ```
 :::
 
-You can also capture sections using variations of `{}` within your `#[to = ""]` annotation. `{}` means capture text until the next separator \(either "/", "?", "&", or "\#" depending on the context\). `{*}` means capture text until the following characters match, or if no characters are present, it will match anything. `{<number>}` means capture text until the specified number of separators are encountered \(example: `{2}` will capture until two separators are encountered\).
+You can also capture sections using variations of `{}` within your `#[at = ""]` annotation. `{}` means capture text until the next separator \(either "/", "?", "&", or "\#" depending on the context\). `{*}` means capture text until the following characters match, or if no characters are present, it will match anything. `{<number>}` means capture text until the specified number of separators are encountered \(example: `{2}` will capture until two separators are encountered\).
 
 For structs and enums with named fields, you must specify the field's name within the capture group like so: `{user_name}` or `{*:age}`.
 
 The Switch trait works with capture groups that are more structured than just Strings. You can specify any type that implements `Switch`. So you can specify that the capture group is a `usize`, and if the captured section of the URL can't be converted to it, then the variant won't match.
 
+## Relevant examples
+- [Router](https://github.com/yewstack/yew/tree/master/examples/router)

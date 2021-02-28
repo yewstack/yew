@@ -13,6 +13,6 @@ A proposal for integrated CSS support can be found here: [https://github.com/yew
 Currently our community members are developing these style frameworks:
 
 * [yew_styles](https://github.com/spielrs/yew_styles) - A styling framework for Yew without any JavaScript dependencies.
-* [yew-mdc](https://github.com/Follpvosten/yew-mdc) - Material Design Components.
+* [yew-mdc](https://github.com/dungeonfog/yew-mdc) - Material Design Components.
 * [muicss-yew](https://github.com/AlephAlpha/muicss-yew) - MUI CSS Components.
 * [Yewtify](https://github.com/yewstack/yewtify) – Implements the features provided by the Vuetify framework in Yew.

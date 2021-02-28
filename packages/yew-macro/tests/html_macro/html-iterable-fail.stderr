@@ -1,0 +1,80 @@
+error: expected an expression after the keyword `for`
+ --> $DIR/html-iterable-fail.rs:4:13
+  |
+4 |     html! { for };
+  |             ^^^
+
+error[E0277]: `()` is not an iterator
+ --> $DIR/html-iterable-fail.rs:5:17
+  |
+5 |     html! { for () };
+  |                 ^^ `()` is not an iterator
+  |
+  = help: the trait `std::iter::Iterator` is not implemented for `()`
+  = note: required by `std::iter::IntoIterator::into_iter`
+
+error[E0277]: `()` is not an iterator
+ --> $DIR/html-iterable-fail.rs:6:17
+  |
+6 |     html! { for {()} };
+  |                 ^^^^ `()` is not an iterator
+  |
+  = help: the trait `std::iter::Iterator` is not implemented for `()`
+  = note: required by `std::iter::IntoIterator::into_iter`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+ --> $DIR/html-iterable-fail.rs:7:17
+  |
+7 |     html! { for Vec::<()>::new().into_iter() };
+  |                 ^^^ `()` cannot be formatted with the default formatter
+  |
+  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
+  = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
+  = note: required because of the requirements on the impl of `std::iter::FromIterator<()>` for `yew::virtual_dom::vnode::VNode`
+  = note: required by `std::iter::Iterator::collect`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/html-iterable-fail.rs:10:17
+   |
+10 |     html! { for empty };
+   |                 ^^^^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
+   = note: required because of the requirements on the impl of `std::iter::FromIterator<()>` for `yew::virtual_dom::vnode::VNode`
+   = note: required by `std::iter::Iterator::collect`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/html-iterable-fail.rs:13:17
+   |
+13 |     html! { for empty.iter() };
+   |                 ^^^^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::fmt::Display` for `&()`
+   = note: required because of the requirements on the impl of `std::string::ToString` for `&()`
+   = note: required because of the requirements on the impl of `std::convert::From<&()>` for `yew::virtual_dom::vnode::VNode`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `&()`
+   = note: required because of the requirements on the impl of `std::iter::FromIterator<&()>` for `yew::virtual_dom::vnode::VNode`
+   = note: required by `std::iter::Iterator::collect`
+
+error[E0277]: `()` is not an iterator
+  --> $DIR/html-iterable-fail.rs:18:19
+   |
+18 |             { for () }
+   |                   ^^ `()` is not an iterator
+   |
+  ::: $WORKSPACE/packages/yew/src/utils.rs:50:9
+   |
+50 |     IT: IntoIterator<Item = T>,
+   |         ---------------------- required by this bound in `yew::utils::into_node_iter`
+   |
+   = help: the trait `std::iter::Iterator` is not implemented for `()`
+   = note: required because of the requirements on the impl of `std::iter::IntoIterator` for `()`

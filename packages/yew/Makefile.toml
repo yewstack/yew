@@ -1,0 +1,40 @@
+[env]
+CARGO_MAKE_CLIPPY_ARGS = "--features cbor,msgpack,toml,yaml -- --deny=warnings"
+
+[tasks.test]
+extend = "core::wasm-pack-base"
+command = "wasm-pack"
+args = [
+    "test",
+    "@@split(YEW_TEST_FLAGS, )",
+    "--",
+    "--features",
+    "${YEW_TEST_FEATURES}",
+]
+
+[tasks.doc-test]
+clear = true
+run_task = { name = ["doc-test-normal"], fork = true }
+
+[tasks.doc-test-normal]
+command = "cargo"
+args = [
+    "test",
+    "--doc",
+    "--features",
+    "doc_test,wasm_test,yaml,msgpack,cbor,toml",
+]
+
+[tasks.bench]
+extend = "core::wasm-pack-base"
+command = "wasm-pack"
+args = [
+    "test",
+    "--release",
+    "--firefox",
+    "--headless",
+    "--",
+    "--features",
+    "wasm_bench",
+    "bench",
+]

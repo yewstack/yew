@@ -1,0 +1,46 @@
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+ --> $DIR/html-block-fail.rs:6:15
+  |
+6 |             { () }
+  |               ^^ `()` cannot be formatted with the default formatter
+  |
+  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
+  = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
+  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::utils::NodeSeq<(), yew::virtual_dom::vnode::VNode>`
+  = note: required because of the requirements on the impl of `std::convert::Into<yew::utils::NodeSeq<(), yew::virtual_dom::vnode::VNode>>` for `()`
+  = note: required by `std::convert::Into::into`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/html-block-fail.rs:12:16
+   |
+12 |         <div>{ not_tree() }</div>
+   |                ^^^^^^^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
+   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::utils::NodeSeq<(), yew::virtual_dom::vnode::VNode>`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::utils::NodeSeq<(), yew::virtual_dom::vnode::VNode>>` for `()`
+   = note: required by `std::convert::Into::into`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/html-block-fail.rs:15:17
+   |
+15 |         <>{ for (0..3).map(|_| not_tree()) }</>
+   |                 ^^^^^^ `()` cannot be formatted with the default formatter
+   |
+  ::: $WORKSPACE/packages/yew/src/utils.rs:51:8
+   |
+51 |     T: Into<R>,
+   |        ------- required by this bound in `yew::utils::into_node_iter`
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
+   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`

@@ -6,19 +6,19 @@ use yew_router::{components::RouterAnchor, prelude::*, switch::Permissive};
 
 #[derive(Clone, Debug, Switch)]
 pub enum AppRoute {
-    #[to = "/posts/{}"]
+    #[at = "/posts/{}"]
     Post(u64),
-    #[to = "/posts/?page={}"]
+    #[at = "/posts/?page={}"]
     PostListPage(u64),
-    #[to = "/posts/"]
+    #[at = "/posts/"]
     PostList,
-    #[to = "/authors/{id}"]
+    #[at = "/authors/{id}"]
     Author(u64),
-    #[to = "/authors/"]
+    #[at = "/authors/"]
     AuthorList,
-    #[to = "/page-not-found"]
+    #[at = "/page-not-found"]
     PageNotFound(Permissive<String>),
-    #[to = "/!"]
+    #[at = "/!"]
     Home,
 }
 impl AppRoute {
@@ -34,8 +34,13 @@ impl AppRoute {
 /// Helper type which just wraps around the actual `AppRoute` but handles a public url prefix.
 /// We need to have this because we're hosting the example at `/router/` instead of `/`.
 /// This type allows us have the best of both worlds.
+///
+/// IMPORTANT: You *must* specify a `<base>` tag on your webpage in order for this to work!
+/// For more information, see the
+/// [Mozilla Developer Network docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base)
 #[derive(Clone, Debug)]
 pub struct PublicUrlSwitch(AppRoute);
+
 impl PublicUrlSwitch {
     fn base_url() -> Url {
         if let Ok(Some(href)) = yew::utils::document().base_uri() {

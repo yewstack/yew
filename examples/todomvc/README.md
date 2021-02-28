@@ -17,5 +17,5 @@ including: all entries, entered text and chosen filter.
 - Use `yew-router` for the hash based routing
 - Clean up the code
 
-[`storageservice`]: https://docs.rs/yew/latest/yew/services/struct.StorageService.html
+[`storageservice`]: https://docs.rs/yew-services/latest/yew_services/struct.StorageService.html
 [`refs`]: https://yew.rs/docs/en/concepts/components/refs/

@@ -1,0 +1,123 @@
+[package]
+name = "yew"
+version = "0.17.4"
+edition = "2018"
+authors = [
+  "Denis Kolodin <deniskolodin@gmail.com>",
+  "Justin Starry <justin@yew.rs>",
+]
+repository = "https://github.com/yewstack/yew"
+homepage = "https://github.com/yewstack/yew"
+documentation = "https://docs.rs/yew/"
+license = "MIT/Apache-2.0"
+readme = "../README.md"
+keywords = ["web", "webasm", "javascript"]
+categories = ["gui", "wasm", "web-programming"]
+description = "A framework for making client-side single-page apps"
+
+[dependencies]
+anyhow = "1"
+anymap = "0.12"
+console_error_panic_hook = "0.1"
+gloo = "0.2.1"
+http = "0.2"
+indexmap = { version = "1.5", features = ["std"] }
+js-sys = "0.3"
+log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+slab = "0.4"
+thiserror = "1"
+wasm-bindgen = "0.2.60"
+wasm-bindgen-futures = "0.4"
+yew-macro = { version = "0.17.0", path = "../yew-macro" }
+
+# optional encodings
+bincode = { version = "1", optional = true }
+rmp-serde = { version = "0.15.0", optional = true }
+serde_cbor = { version = "0.11.1", optional = true }
+serde_yaml = { version = "0.8.4", optional = true }
+toml = { version = "0.5", optional = true }
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "AbortController",
+  "AbortSignal",
+  "AnimationEvent",
+  "BinaryType",
+  "Blob",
+  "BlobPropertyBag",
+  "console",
+  "DedicatedWorkerGlobalScope",
+  "Document",
+  "DomTokenList",
+  "DragEvent",
+  "Element",
+  "ErrorEvent",
+  "Event",
+  "EventTarget",
+  "File",
+  "FileList",
+  "FileReader",
+  "FocusEvent",
+  "Headers",
+  "HtmlElement",
+  "HtmlButtonElement",
+  "HtmlInputElement",
+  "HtmlSelectElement",
+  "HtmlTextAreaElement",
+  "InputEvent",
+  "KeyboardEvent",
+  "Location",
+  "MessageEvent",
+  "MouseEvent",
+  "Node",
+  "ObserverCallback",
+  "PointerEvent",
+  "ProgressEvent",
+  "ReferrerPolicy",
+  "Request",
+  "RequestCache",
+  "RequestCredentials",
+  "RequestInit",
+  "RequestMode",
+  "RequestRedirect",
+  "Response",
+  "Storage",
+  "Text",
+  "TouchEvent",
+  "TransitionEvent",
+  "UiEvent",
+  "Url",
+  "WebSocket",
+  "WheelEvent",
+  "Window",
+  "Worker",
+  "WorkerGlobalScope",
+  "WorkerOptions",
+]
+
+[dev-dependencies]
+base64 = "0.13.0"
+bincode = "1"
+easybench-wasm = "0.2.1"
+rmp-serde = "0.15.0"
+rustversion = "1.0"
+serde_derive = "1"
+ssri = "6.0.0"
+trybuild = "1.0"
+wasm-bindgen-test = "0.3.4"
+
+[features]
+default = ["agent"]
+doc_test = []
+wasm_test = []
+wasm_bench = []
+agent = ["bincode"]
+yaml = ["serde_yaml"]
+msgpack = ["rmp-serde"]
+cbor = ["serde_cbor"]
+
+[package.metadata.docs.rs]
+features = ["yaml", "cbor", "toml", "msgpack", "doc_test"]

@@ -1,0 +1,33 @@
+[package]
+name = "yew-macro"
+version = "0.17.0"
+edition = "2018"
+authors = ["Justin Starry <justin@yew.rs>"]
+repository = "https://github.com/yewstack/yew"
+homepage = "https://github.com/yewstack/yew"
+documentation = "https://docs.rs/yew-macro/"
+license = "MIT/Apache-2.0"
+keywords = ["web", "wasm", "frontend", "webasm", "webassembly"]
+categories = ["gui", "web-programming", "wasm"]
+description = "A framework for making client-side single-page apps"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+boolinator = "2.4.0"
+lazy_static = "1.3.0"
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "1.0", features = ["full", "extra-traits"] }
+
+# testing
+[dev-dependencies]
+rustversion = "1.0"
+trybuild = "1.0"
+yew = { path = "../yew" }
+
+[build-dependencies]
+
+[features]
+doc_test = []

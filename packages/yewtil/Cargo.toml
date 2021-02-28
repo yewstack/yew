@@ -1,0 +1,64 @@
+[package]
+name = "yewtil"
+version = "0.3.2"
+authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
+edition = "2018"
+description = "Utility crate for Yew"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/yewstack/yew"
+readme = "README.md"
+
+[features]
+default = ["stable"] # Only stable is included by default.
+all = ["stable", "experimental"]
+
+# Broad features
+## All features MUST be stable or experimental or soft_depricated
+stable = ["neq", "history", "mrc_irc", "future", "store"]
+experimental = ["fetch", "pure", "effect", "lrc"]
+
+
+# Some pointers are stable, some experimental.
+# This feature pulls in all pointer types.
+ptr = ["lrc", "mrc_irc"]
+
+# Misc features
+neq = []
+pure = ["neq", "yewtil-macro"]
+history = []
+effect = []
+fetch = ["serde", "serde_json", "neq", "future", "web-sys"]
+future = ["wasm-bindgen-futures", "wasm-bindgen"]
+store = []
+
+# Ptr features
+lrc = []
+mrc_irc = []
+
+[dependencies]
+log = "0.4.8"
+serde = {version= "1.0.102", optional = true}
+serde_json = { version = "1.0.41", optional = true }
+wasm-bindgen = {version = "0.2.51", features=["serde-serialize"], optional = true}
+wasm-bindgen-futures = {version = "0.4.3", optional = true}
+yewtil-macro = { version = "0.2.0", path = "../yewtil-macro", optional = true }
+
+[dependencies.yew]
+path = "../yew"
+version = "0.17.0"
+default-features = false
+features = ["agent"]
+
+[dependencies.web-sys]
+version = "0.3.31"
+optional = true
+features = [
+  'Headers',
+  'Request',
+  'RequestInit',
+  'RequestMode',
+  'Response',
+  'Window',
+  'Location',
+  'Storage',
+]

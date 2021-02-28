@@ -9,7 +9,9 @@ authors = [
 edition = "2018"
 
 [dependencies]
+getrandom = { version = "0.2", features = ["js"] }
 log = "0.4"
-rand = { version = "0.7", features = ["wasm-bindgen"] }
+rand = "0.8"
 wasm-logger = "0.2"
-yew = { path = "../../yew" }
+yew = { path = "../../packages/yew" }
+yew-services = { path = "../../packages/yew-services" }

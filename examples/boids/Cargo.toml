@@ -7,6 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 anyhow = "1.0"
-rand = { version = "0.7", features = ["wasm-bindgen"] }
+getrandom = { version = "0.2", features = ["js"] }
+rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
-yew = { path = "../../yew" }
+yew = { path = "../../packages/yew" }
+yew-services = { path = "../../packages/yew-services" }
