@@ -1,31 +1,29 @@
-use yew::prelude::*;
+#![no_implicit_prelude]
 
-fn compile_pass() {
-    html! { <>{ "Hi" }</> };
-    html! { <>{ format!("Hello") }</> };
-    html! { <>{ String::from("Hello") }</> };
+fn main() {
+    ::yew::html! { <>{ "Hi" }</> };
+    ::yew::html! { <>{ ::std::format!("Hello") }</> };
+    ::yew::html! { <>{ ::std::string::ToString::to_string("Hello") }</> };
 
     let msg = "Hello";
-    html! { <div>{ msg }</div> };
+    ::yew::html! { <div>{ msg }</div> };
 
-    let subview = html! { "subview!" };
-    html! { <div>{ subview }</div> };
+    let subview = ::yew::html! { "subview!" };
+    ::yew::html! { <div>{ subview }</div> };
 
-    let subview = || html! { "subview!" };
-    html! { <div>{ subview() }</div> };
+    let subview = || ::yew::html! { "subview!" };
+    ::yew::html! { <div>{ subview() }</div> };
 
-    html! {
+    ::yew::html! {
         <ul>
-            { for (0..3).map(|num| { html! { <span>{num}</span> }}) }
+            { for ::std::iter::Iterator::map(0..3, |num| { ::yew::html! { <span>{ num }</span> }}) }
         </ul>
     };
 
-    let item = |num| html! { <li>{format!("item {}!", num)}</li> };
-    html! {
+    let item = |num| ::yew::html! { <li>{ ::std::format!("item {}!", num) }</li> };
+    ::yew::html! {
         <ul>
-            { for (0..3).map(item) }
+            { for ::std::iter::Iterator::map(0..3, item) }
         </ul>
     };
 }
-
-fn main() {}

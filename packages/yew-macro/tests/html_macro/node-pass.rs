@@ -1,25 +1,23 @@
-use yew::prelude::*;
+#![no_implicit_prelude]
 
-fn compile_pass() {
-    html! { "" };
-    html! { 'a' };
-    html! { "hello" };
-    html! { 42 };
-    html! { 1.234 };
-    html! { true };
+fn main() {
+    ::yew::html! { "" };
+    ::yew::html! { 'a' };
+    ::yew::html! { "hello" };
+    ::yew::html! { 42 };
+    ::yew::html! { 1.234 };
+    ::yew::html! { true };
 
-    html! { <span>{ "" }</span> };
-    html! { <span>{ 'a' }</span> };
-    html! { <span>{ "hello" }</span> };
-    html! { <span>{ 42 }</span> };
-    html! { <span>{ 1.234 }</span> };
-    html! { <span>{ true }</span> };
+    ::yew::html! { <span>{ "" }</span> };
+    ::yew::html! { <span>{ 'a' }</span> };
+    ::yew::html! { <span>{ "hello" }</span> };
+    ::yew::html! { <span>{ 42 }</span> };
+    ::yew::html! { <span>{ 1.234 }</span> };
+    ::yew::html! { <span>{ true }</span> };
 
-    html! { format!("Hello") };
-    html! { String::from("Hello") };
+    ::yew::html! { ::std::format!("Hello") };
+    ::yew::html! { ::std::string::ToString::to_string("Hello") };
 
     let msg = "Hello";
-    html! { msg };
+    ::yew::html! { msg };
 }
-
-fn main() {}

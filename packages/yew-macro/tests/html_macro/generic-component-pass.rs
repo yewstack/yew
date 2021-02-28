@@ -1,5 +1,3 @@
-#![recursion_limit = "256"]
-
 use std::marker::PhantomData;
 use yew::prelude::*;
 
