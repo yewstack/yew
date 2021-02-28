@@ -1,5 +1,3 @@
-#![recursion_limit = "256"]
-
 use yew::html::ChildrenRenderer;
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VNode};

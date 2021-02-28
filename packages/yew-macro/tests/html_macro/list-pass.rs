@@ -1,24 +1,22 @@
-use yew::prelude::*;
+#![no_implicit_prelude]
 
-fn compile_pass() {
-    html! {};
-    html! { <></> };
-    html! {
+fn main() {
+    ::yew::html! {};
+    ::yew::html! { <></> };
+    ::yew::html! {
         <>
             <></>
             <></>
         </>
     };
-    html! {
-        <key="key".to_string()>
+    ::yew::html! {
+        <key=::std::string::ToString::to_string("key")>
         </>
     };
 
-    let children = vec![
-        html! { <span>{ "Hello" }</span> },
-        html! { <span>{ "World" }</span> },
+    let children = ::std::vec![
+        ::yew::html! { <span>{ "Hello" }</span> },
+        ::yew::html! { <span>{ "World" }</span> },
     ];
-    html! { <>{children}</> };
+    ::yew::html! { <>{ children }</> };
 }
-
-fn main() {}
