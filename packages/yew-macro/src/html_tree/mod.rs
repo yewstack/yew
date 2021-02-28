@@ -169,7 +169,7 @@ impl ToTokens for HtmlRootVNode {
         let new_tokens = self.0.to_token_stream();
         tokens.extend(quote! {{
             #[allow(clippy::useless_conversion, unused_braces)]
-            ::yew::virtual_dom::VNode::from(#new_tokens)
+            <::yew::virtual_dom::VNode as ::std::convert::From<_>>::from(#new_tokens)
         }});
     }
 }
@@ -226,7 +226,7 @@ impl HtmlChildrenTree {
                 .iter()
                 .map(|child| quote_spanned! {child.span()=> ::std::convert::Into::into(#child) });
             return quote! {
-                vec![#(#children_into),*]
+                ::std::vec![#(#children_into),*]
             };
         }
 
@@ -234,7 +234,7 @@ impl HtmlChildrenTree {
         let add_children_streams = children.iter().map(|child| {
             if let Some(node_iterator_stream) = child.to_node_iterator_stream() {
                 quote! {
-                    #vec_ident.extend(#node_iterator_stream);
+                    ::std::iter::Extend::extend(&mut #vec_ident, #node_iterator_stream);
                 }
             } else {
                 quote_spanned! {child.span()=>
