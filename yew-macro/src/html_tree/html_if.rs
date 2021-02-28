@@ -4,7 +4,7 @@ use boolinator::Boolinator;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
 use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result as ParseResult};
+use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{Expr, Token};
 
@@ -113,7 +113,7 @@ impl PeekValue<()> for HtmlRootBracedOrIf {
 }
 
 impl Parse for HtmlRootBracedOrIf {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         if HtmlRootBraced::peek(input.cursor()).is_some() {
             input.parse().map(Self::Branch)
         } else {

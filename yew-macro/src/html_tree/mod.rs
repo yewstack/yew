@@ -2,7 +2,7 @@ use crate::PeekValue;
 use proc_macro2::{Delimiter, Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream, Result as ParseResult};
+use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{braced, token};
 
@@ -45,7 +45,7 @@ pub enum HtmlTree {
 }
 
 impl Parse for HtmlTree {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let html_type = HtmlTree::peek(input.cursor())
             .ok_or_else(|| input.error("expected a valid html element"))?;
         let html_tree = match html_type {
@@ -102,7 +102,7 @@ pub enum HtmlRoot {
 }
 
 impl Parse for HtmlRoot {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let html_root = if HtmlTree::peek(input.cursor()).is_some() {
             Self::Tree(input.parse()?)
         } else if HtmlIterable::peek(input.cursor()).is_some() {
@@ -136,7 +136,7 @@ impl ToTokens for HtmlRoot {
 /// Same as HtmlRoot but always returns a VNode.
 pub struct HtmlRootVNode(HtmlRoot);
 impl Parse for HtmlRootVNode {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         input.parse().map(Self)
     }
 }
@@ -175,7 +175,7 @@ impl HtmlChildrenTree {
         Self(Vec::new())
     }
 
-    pub fn parse_child(&mut self, input: &mut ParseStream) -> ParseResult<()> {
+    pub fn parse_child(&mut self, input: &mut ParseStream) -> syn::Result<()> {
         self.0.push(input.parse()?);
         Ok(())
     }
@@ -257,7 +257,7 @@ impl PeekValue<()> for HtmlRootBraced {
 }
 
 impl Parse for HtmlRootBraced {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let content;
         let brace = braced!(content in input);
         let children = HtmlChildrenTree::parse_delimited(&content)?;
