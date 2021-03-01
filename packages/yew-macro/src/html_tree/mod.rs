@@ -128,7 +128,7 @@ pub enum HtmlRoot {
 
 impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> Result<Self> {
-        let html_root = if !input.peek(Lit) /* At the root, literals are handled by HtmlNode */ 
+        let html_root = if !input.peek(Lit) /* At the root, literals are handled by HtmlNode */
             && HtmlTree::peek_html_type(input).is_some()
         {
             Self::Tree(input.parse()?)
