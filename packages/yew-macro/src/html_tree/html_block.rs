@@ -4,7 +4,8 @@ use proc_macro2::Delimiter;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
-use syn::{braced, token};
+use syn::token::Brace;
+use syn::{braced, token, Lit};
 
 pub struct HtmlBlock {
     content: BlockContent,
@@ -19,24 +20,45 @@ enum BlockContent {
 
 impl PeekValue<()> for HtmlBlock {
     fn peek(cursor: Cursor) -> Option<()> {
-        cursor.group(Delimiter::Brace).map(|_| ())
+        cursor
+            .literal()
+            .map(|_| ())
+            .or_else(|| cursor.group(Delimiter::Brace).map(|_| ()))
     }
 }
 
 impl Parse for HtmlBlock {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let content;
-        let brace = braced!(content in input);
-        let content = if HtmlIterable::peek(content.cursor()).is_some() {
-            BlockContent::Iterable(Box::new(content.parse()?))
-        } else {
-            BlockContent::Node(Box::new(content.parse()?))
-        };
 
-        Ok(HtmlBlock {
-            brace: Some(brace),
-            content,
-        })
+        if input.peek(Brace) {
+            let brace = braced!(content in input);
+            let content = if HtmlIterable::peek(content.cursor()).is_some() {
+                BlockContent::Iterable(Box::new(content.parse()?))
+            } else {
+                BlockContent::Node(Box::new(content.parse()?))
+            };
+
+            Ok(HtmlBlock {
+                brace: Some(brace),
+                content,
+            })
+        } else {
+            // parse string literal
+            let content: Lit = input.parse()?;
+
+            if !matches!(content, Lit::Str(_)) {
+                return Err(syn::Error::new_spanned(
+                    content,
+                    "expected braces (`{...}`) around literal",
+                ));
+            }
+
+            Ok(HtmlBlock {
+                brace: None,
+                content: BlockContent::Node(Box::new(HtmlNode::Literal(Box::new(content)))),
+            })
+        }
     }
 }
 

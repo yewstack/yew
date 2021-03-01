@@ -1,3 +1,9 @@
+error: expected braces (`{...}`) around literal
+  --> $DIR/block-fail.rs:11:11
+   |
+11 |         <>123</>
+   |           ^^^
+
 error[E0277]: `()` doesn't implement `std::fmt::Display`
  --> $DIR/block-fail.rs:6:15
   |
@@ -14,9 +20,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: required by `std::convert::Into::into`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/block-fail.rs:12:16
+  --> $DIR/block-fail.rs:16:16
    |
-12 |         <div>{ not_tree() }</div>
+16 |         <div>{ not_tree() }</div>
    |                ^^^^^^^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
@@ -29,9 +35,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required by `std::convert::Into::into`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/block-fail.rs:15:17
+  --> $DIR/block-fail.rs:19:17
    |
-15 |         <>{ for (0..3).map(|_| not_tree()) }</>
+19 |         <>{ for (0..3).map(|_| not_tree()) }</>
    |                 ^^^^^^ `()` cannot be formatted with the default formatter
    |
   ::: $WORKSPACE/packages/yew/src/utils.rs

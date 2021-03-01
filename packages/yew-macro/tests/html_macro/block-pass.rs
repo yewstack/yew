@@ -5,6 +5,9 @@ fn main() {
     ::yew::html! { <>{ ::std::format!("Hello") }</> };
     ::yew::html! { <>{ ::std::string::ToString::to_string("Hello") }</> };
 
+    ::yew::html! { <>"Hi"</> };
+    ::yew::html! { <>r#"Hello, I am a "raw" string!"#</> };
+
     let msg = "Hello";
     ::yew::html! { <div>{ msg }</div> };
 

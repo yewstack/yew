@@ -7,6 +7,10 @@ fn compile_fail() {
         </>
     };
 
+    html! {
+        <>123</>
+    }
+
     let not_tree = || ();
     html! {
         <div>{ not_tree() }</div>
