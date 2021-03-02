@@ -16,6 +16,7 @@ struct UseContext<T2: Clone + PartialEq + 'static> {
     callback: Option<Rc<ConsumerCallback<T2>>>,
 }
 
+/// Hook for consuming context values in function components.
 pub fn use_context<T: Clone + PartialEq + 'static>() -> UseContextOutput<T> {
     let scope = get_current_scope()
         .expect("No current Scope. `use_context` can only be called inside function components");
@@ -62,12 +63,17 @@ pub fn use_context<T: Clone + PartialEq + 'static>() -> UseContextOutput<T> {
     )
 }
 
+/// Props for [`ContextProvider`]
 #[derive(Clone, PartialEq, Properties)]
 pub struct ContextProviderProps<T: Clone + PartialEq> {
     pub context: T,
     pub children: Children,
 }
 
+/// The context provider component.
+///
+/// Every child (direct or indirect) of this component may access the context value.
+/// Currently the only way to consume the context is using the [`use_context`] hook.
 pub struct ContextProvider<T: Clone + PartialEq + 'static> {
     context: Rc<T>,
     children: Children,

@@ -172,7 +172,7 @@ where
     }
 }
 
-pub fn get_current_scope() -> Option<AnyScope> {
+pub(crate) fn get_current_scope() -> Option<AnyScope> {
     CURRENT_HOOK.with(|cell| cell.borrow().as_ref().map(|state| state.scope.clone()))
 }
 
@@ -234,7 +234,7 @@ impl HookUpdater {
         let process_message = self.process_message.clone();
 
         // Update the component
-        // We're calling "messagequeue.push", so not calling it post-render
+        // We're calling "messag_equeue.push", so not calling it post-render
         let post_render = true;
         process_message(
             Box::new(move || {

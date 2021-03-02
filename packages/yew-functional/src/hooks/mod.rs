@@ -15,10 +15,10 @@ use std::cell::RefCell;
 use std::ops::DerefMut;
 use std::rc::Rc;
 
-pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) -> () + 'static>(
+pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) + 'static>(
     initializer: impl FnOnce() -> InternalHook,
     runner: impl FnOnce(&mut InternalHook, HookUpdater) -> Output,
-    tear_down: Tear,
+    destructor: Tear,
 ) -> Output {
     // Extract current hook
     let updater = CURRENT_HOOK.with(|hook_state_holder| {
@@ -39,9 +39,7 @@ pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) -
             let initial_state = Rc::new(RefCell::new(initializer()));
             hook_state.hooks.push(initial_state.clone());
             hook_state.destroy_listeners.push(Box::new(move || {
-                let mut is = initial_state.borrow_mut();
-                let ihook = is.deref_mut();
-                tear_down(ihook);
+                destructor(initial_state.borrow_mut().deref_mut());
             }));
         }
 
