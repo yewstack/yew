@@ -5,7 +5,7 @@ use std::{cell::RefCell, rc::Rc};
 /// Its state persists across renders.
 ///
 /// It is important to note that you do not get notified of state changes.
-/// If you need the component to be re-rendered on state change, consider using [`use_state`].
+/// If you need the component to be re-rendered on state change, consider using [`use_state`](super::use_state()).
 ///
 /// # Example
 /// ```rust

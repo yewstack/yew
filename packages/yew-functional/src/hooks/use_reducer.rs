@@ -5,7 +5,7 @@ struct UseReducer<State> {
     current_state: Rc<State>,
 }
 
-/// This hook is an alternative to [`use_state`]. It is used to handle component's state and is used
+/// This hook is an alternative to [`use_state`](super::use_state()). It is used to handle component's state and is used
 /// when complex actions needs to be performed on said state.
 ///
 /// For lazy initialization, consider using [`use_reducer_with_init`] instead.

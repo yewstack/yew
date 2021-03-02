@@ -196,8 +196,9 @@ impl MsgQueue {
 /// - `callback` allows the creation of regular yew callbacks on the host component.
 /// - `post_render` allows the creation of events that happen after a render is complete.
 ///
-/// See use_effect and use_context for more details on how to use the hook updater to provide
-/// function components the necessary callbacks to update the underlying state.
+/// See [`use_effect`](hooks::use_effect()) and [`use_context`](hooks::use_context())
+/// for more details on how to use the hook updater to provide function components
+/// the necessary callbacks to update the underlying state.
 #[derive(Clone)]
 pub struct HookUpdater {
     hook: Rc<RefCell<dyn std::any::Any>>,

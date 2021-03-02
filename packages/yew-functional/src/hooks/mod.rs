@@ -15,6 +15,19 @@ use std::cell::RefCell;
 use std::ops::DerefMut;
 use std::rc::Rc;
 
+/// Low level building block of creating hooks.
+///
+/// It is used to created the pre-defined primitive hooks.
+/// Generally, it isn't needed to create hooks and should be avoided as most custom hooks can be
+/// created by combining other hooks as described in [Yew Docs].
+///
+/// The `initializer` callback is called once to create the initial state of the hook.
+/// `runner` callback handles the logic of the hook. It is called when the hook function is called.
+/// `destructor`, as the name implies, is called to cleanup the leftovers of the hook.
+///
+/// See the pre-defined hooks for examples of how to use this function.
+///
+/// [Yew Docs]: https://yew.rs/docs/en/next/concepts/function-components/custom-hooks
 pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) + 'static>(
     initializer: impl FnOnce() -> InternalHook,
     runner: impl FnOnce(&mut InternalHook, HookUpdater) -> Output,
