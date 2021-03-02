@@ -1,8 +1,8 @@
 use cell::Cellule;
 use rand::Rng;
 use std::time::Duration;
-use yew::services::interval::{IntervalService, IntervalTask};
 use yew::{classes, html, Component, ComponentLink, Html, ShouldRender};
+use yew_services::interval::{IntervalService, IntervalTask};
 
 mod cell;
 

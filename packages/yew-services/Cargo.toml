@@ -1,0 +1,56 @@
+[package]
+name = "yew-services"
+version = "0.1.0"
+authors = ["Hamza <muhammadhamza1311@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1"
+gloo = "0.2.1"
+http = "0.2"
+js-sys = "0.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1"
+yew = { path = "../yew" }
+wasm-bindgen = "0.2.60"
+wasm-bindgen-futures = "0.4"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    "AbortController",
+    "AbortSignal",
+    "BinaryType",
+    "Blob",
+    "BlobPropertyBag",
+    "DedicatedWorkerGlobalScope",
+    "DomTokenList",
+    "Headers",
+    "ReferrerPolicy",
+    "Request",
+    "RequestCache",
+    "RequestCredentials",
+    "RequestInit",
+    "RequestMode",
+    "RequestRedirect",
+    "Response",
+    "Storage",
+    "Text",
+    "Url",
+    "WebSocket",
+    "Window",
+    "Worker",
+    "WorkerGlobalScope",
+    "WorkerOptions",
+]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.4"
+base64 = "0.13.0"
+ssri = "6.0.0"
+
+[features]
+wasm_test = []
+httpbin_test = []
+echo_server_test = []

@@ -11,24 +11,12 @@
 //!
 //! ### Supported Targets
 //! - `wasm32-unknown-unknown`
-#![cfg_attr(
-    feature = "std_web",
-    doc = "\
- - `wasm32-unknown-emscripten`
- - `asmjs-unknown-emscripten`"
-)]
 //!
 //! ### Important Notes
 //! - Yew is not (yet) production ready but is great for side projects and internal tools
 #![cfg_attr(
     feature = "web_sys",
     doc = " - If your app is built with `stdweb`, we recommend using [`yew-stdweb`](https://docs.rs/yew-stdweb) instead."
-)]
-#![cfg_attr(
-    feature = "std_web",
-    doc = "\
- - We recommend aliasing `yew-stdweb` to `yew` in your Cargo.toml: `yew = { package = \"yew-stdweb\", .. }`
- - If your app is built with `web-sys`, we recommend using [`yew`](https://docs.rs/yew) instead."
 )]
 //!
 //! ## Example
@@ -290,55 +278,18 @@ pub mod virtual_dom;
 
 #[cfg(feature = "agent")]
 pub mod agent;
-#[cfg(feature = "services")]
-pub mod services;
 
-#[cfg(feature = "web_sys")]
 pub use web_sys;
 
 /// The module that contains all events available in the framework.
 pub mod events {
-    use cfg_if::cfg_if;
-
     pub use crate::html::{ChangeData, InputData};
 
-    cfg_if! {
-        if #[cfg(feature = "std_web")] {
-            #[doc(no_inline)]
-            pub use stdweb::web::event::{
-                BlurEvent, ClickEvent, ContextMenuEvent, DoubleClickEvent, DragDropEvent, DragEndEvent,
-                DragEnterEvent, DragEvent, DragExitEvent, DragLeaveEvent, DragOverEvent, DragStartEvent,
-                FocusEvent, GotPointerCaptureEvent, IKeyboardEvent, IMouseEvent, IPointerEvent,
-                KeyDownEvent, KeyPressEvent, KeyUpEvent, LostPointerCaptureEvent, MouseDownEvent,
-                MouseEnterEvent, MouseLeaveEvent, MouseMoveEvent, MouseOutEvent, MouseOverEvent,
-                MouseUpEvent, MouseWheelEvent, PointerCancelEvent, PointerDownEvent, PointerEnterEvent,
-                PointerLeaveEvent, PointerMoveEvent, PointerOutEvent, PointerOverEvent, PointerUpEvent,
-                ScrollEvent, SubmitEvent, TouchCancel, TouchEnd, TouchEnter, TouchMove, TouchStart,
-            };
-        } else if #[cfg(feature = "web_sys")] {
-            #[doc(no_inline)]
-            pub use web_sys::{
-                AnimationEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent, KeyboardEvent,
-                MouseEvent, PointerEvent, ProgressEvent, TouchEvent, TransitionEvent, UiEvent, WheelEvent,
-            };
-        }
-    }
-}
-
-use cfg_match::cfg_match;
-
-/// Initializes yew framework. It should be called first.
-pub fn initialize() {
-    cfg_match! {
-        feature = "std_web" => stdweb::initialize(),
-        feature = "web_sys" => std::panic::set_hook(Box::new(console_error_panic_hook::hook)),
+    #[doc(no_inline)]
+    pub use web_sys::{
+        AnimationEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent, KeyboardEvent,
+        MouseEvent, PointerEvent, ProgressEvent, TouchEvent, TransitionEvent, UiEvent, WheelEvent,
     };
-}
-
-/// Starts event loop.
-pub fn run_loop() {
-    #[cfg(feature = "std_web")]
-    stdweb::event_loop();
 }
 
 /// Starts an app mounted to a body of the document.
@@ -347,9 +298,7 @@ where
     COMP: Component,
     COMP::Properties: Default,
 {
-    initialize();
     App::<COMP>::new().mount_to_body();
-    run_loop();
 }
 
 /// Starts an app mounted to a body of the document.
@@ -357,9 +306,7 @@ pub fn start_app_with_props<COMP>(props: COMP::Properties)
 where
     COMP: Component,
 {
-    initialize();
     App::<COMP>::new().mount_to_body_with_props(props);
-    run_loop();
 }
 
 /// The Yew Prelude

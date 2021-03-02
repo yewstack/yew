@@ -44,5 +44,5 @@ Take a look at [`PublicUrlSwitch`](src/switch.rs) for the implementation.
 - Home (`/`) should include links to the post list and the author introduction
 - Detect sub-path from `--public-url` value passed to Trunk. See: thedodd/trunk#51
 
-[`intervalservice`]: https://docs.rs/yew/latest/yew/services/struct.IntervalService.html
+[`intervalservice`]: https://docs.rs/yew-services/latest/yew_services/struct.IntervalService.html
 [`yew-router`]: https://docs.rs/yew-router/latest/yew_router/

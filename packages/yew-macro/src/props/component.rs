@@ -38,6 +38,12 @@ impl Parse for WithProps {
         while !input.is_empty() {
             // no need to check if it's followed by `=` because `with` isn't a special prop
             if input.peek(kw::with) {
+                if let Some((with, expr)) = with_expr {
+                    return Err(syn::Error::new_spanned(
+                        quote! { #with#expr },
+                        "there are two `with <props>` definitions for this component (note: you can only define `with <props>` once)"
+                    ));
+                }
                 let with = input.parse::<kw::with>()?;
                 if input.is_empty() {
                     return Err(syn::Error::new_spanned(

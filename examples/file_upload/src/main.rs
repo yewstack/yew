@@ -1,5 +1,5 @@
-use yew::services::reader::{File, FileChunk, FileData, ReaderService, ReaderTask};
 use yew::{html, ChangeData, Component, ComponentLink, Html, ShouldRender};
+use yew_services::reader::{File, FileChunk, FileData, ReaderService, ReaderTask};
 
 type Chunks = bool;
 

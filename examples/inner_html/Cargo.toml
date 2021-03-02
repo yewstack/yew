@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 yew = { path = "../../packages/yew" }
+yew-services = { path = "../../packages/yew-services" }
 
 [dependencies.web-sys]
 version = "0.3"

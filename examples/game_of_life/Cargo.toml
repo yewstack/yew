@@ -14,3 +14,4 @@ log = "0.4"
 rand = "0.8"
 wasm-logger = "0.2"
 yew = { path = "../../packages/yew" }
+yew-services = { path = "../../packages/yew-services" }

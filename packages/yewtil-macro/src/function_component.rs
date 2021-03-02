@@ -146,8 +146,15 @@ impl ToTokens for FunctionComponentInfo {
             })
             .collect::<Punctuated<_, Token![,]>>();
 
+        // Derive also `Default` for empty properties
+        let derives = if fields.is_empty() {
+            quote! { ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::yew::Properties }
+        } else {
+            quote! { ::std::clone::Clone, ::std::cmp::PartialEq, ::yew::Properties }
+        };
+
         let component_struct = quote! {
-            #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::yew::Properties)]
+            #[derive(#derives)]
             #vis struct #impl_name {
                 #new_fields
             }

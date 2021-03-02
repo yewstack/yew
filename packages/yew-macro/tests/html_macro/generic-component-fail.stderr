@@ -1,0 +1,17 @@
+error: this opening tag has no corresponding closing tag
+  --> $DIR/generic-component-fail.rs:56:13
+   |
+56 |     html! { <Generic<String>> };
+   |             ^^^^^^^^^^^^^^^^^
+
+error: this closing tag has no corresponding opening tag
+  --> $DIR/generic-component-fail.rs:57:30
+   |
+57 |     html! { <Generic<String>></Generic> };
+   |                              ^^^^^^^^^^
+
+error: this closing tag has no corresponding opening tag
+  --> $DIR/generic-component-fail.rs:58:30
+   |
+58 |     html! { <Generic<String>></Generic<Vec<String>>> };
+   |                              ^^^^^^^^^^^^^^^^^^^^^^^

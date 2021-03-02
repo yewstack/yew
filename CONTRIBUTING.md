@@ -22,14 +22,6 @@ cargo make --list-all-steps
 
 The most important tasks are outlined below.
 
-#### stdweb
-
-To run the examples in `./yew-stdweb`, you may wish to install [cargo-web](https://github.com/koute/cargo-web):
-
-```bash
-cargo install cargo-web
-```
-
 ## Tests
 
 To run all tests, use the following command:
@@ -54,9 +46,15 @@ The tests for the fetch service require a local [httpbin](https://httpbin.org/) 
 If you have [Docker](https://www.docker.com/) installed,
 `cargo make tests` will automatically run httpbin in a container for you.
 
-Alternatively, you can manually run an httpbin instance however you want and set the `HTTPBIN_URL` environment variable to the URL.
+Alternatively, you can set the `HTTPBIN_URL` environment variable to the URL you wish to run tests against.
 
-Please note that the public httpbin instance can't be used for these tests.
+### WebSocket service tests
+
+The tests for the web-socket service require an echo server.
+If you have [Docker](https://www.docker.com/) installed,
+`cargo make tests` will automatically run an [echo server](https://hub.docker.com/r/jmalloc/echo-server) in a container for you.
+
+Alternatively, you can set the `ECHO_SERVER_URL` environment variable to the URL you wish to run tests against.
 
 ### Macro tests
 

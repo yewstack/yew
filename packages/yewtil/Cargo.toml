@@ -9,8 +9,8 @@ repository = "https://github.com/yewstack/yew"
 readme = "README.md"
 
 [features]
-default = ["web_sys", "stable"] # Only stable is included by default.
-all = ["web_sys", "stable", "experimental"]
+default = ["stable"] # Only stable is included by default.
+all = ["stable", "experimental"]
 
 # Broad features
 ## All features MUST be stable or experimental or soft_depricated
@@ -34,14 +34,6 @@ store = []
 # Ptr features
 lrc = []
 mrc_irc = []
-
-std_web = [
-  "yew/std_web",
-]
-web_sys = [
-  "yew/web_sys",
-  "web-sys"
-]
 
 [dependencies]
 log = "0.4.8"

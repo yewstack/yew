@@ -34,22 +34,22 @@ Router 元件會與 `RouteAgent` 溝通，並且自動解析從 agent 到 switch
 
 首先，你要建立一個代表你的應用程式所有狀態的型別。特別注意，這個型別可以是 enum、struct 都可以，而且你可以透過在裡面實作 `Switch` 來巢狀其他項目
 
-然後你必須為你的型別 derive `Switch` 。對 enums 來說，每一個變數都必須宣告 `#[to = "/some/route"]`，或是如果你用 struct，那就要 struct 的外部宣告。
+然後你必須為你的型別 derive `Switch` 。對 enums 來說，每一個變數都必須宣告 `#[at = "/some/route"]`，或是如果你用 struct，那就要 struct 的外部宣告。
 
 ```rust
 #[derive(Switch)]
 enum AppRoute {
-  #[to="/login"]
+  #[at = "/login"]
   Login,
-  #[to="/register"]
+  #[at = "/register"]
   Register,
-  #[to="/delete_account"]
+  #[at = "/delete_account"]
   Delete, 
-  #[to="/posts/{id}"]
+  #[at = "/posts/{id}"]
   ViewPost(i32),
-  #[to="/posts/view"]
+  #[at = "/posts/view"]
   ViewPosts,
-  #[to="/"]
+  #[at = "/"]
   Home
 }
 ```
@@ -59,22 +59,22 @@ enum AppRoute {
 ```rust
 #[derive(Switch)]
 enum AppRoute {
-  #[to="/"]
+  #[at = "/"]
   Home,
-  #[to="/login"]
+  #[at = "/login"]
   Login,
-  #[to="/register"]
+  #[at = "/register"]
   Register,
-  #[to="/delete_account"]
+  #[at = "/delete_account"]
   Delete, 
-  #[to="/posts/{id}"]
+  #[at = "/posts/{id}"]
   ViewPost(i32),
-  #[to="/posts/view"]
+  #[at = "/posts/view"]
   ViewPosts,
 }
 ```
 
-你還可以拿到 url 中的參數，透過在`#[to = ""]` 中宣告 `{}`。`{}` 代表下一個分隔符號（"/"、"?"、"&"、"\#" ）之前， url 中的參數。`{*}` 表示取得直到後續字符匹配為止之間的變數，如果不存在任何字串，則它將匹配任何內容。 `{<number>}` 表示取得特定數量的的分隔符號之前的變數。（例如： `{2}` 會取得兩個分隔符號之前的變數。）
+你還可以拿到 url 中的參數，透過在`#[at = ""]` 中宣告 `{}`。`{}` 代表下一個分隔符號（"/"、"?"、"&"、"\#" ）之前， url 中的參數。`{*}` 表示取得直到後續字符匹配為止之間的變數，如果不存在任何字串，則它將匹配任何內容。 `{<number>}` 表示取得特定數量的的分隔符號之前的變數。（例如： `{2}` 會取得兩個分隔符號之前的變數。）
 
 對於有命名欄位的 struct 與 enum，你必須給出變數的名字，像是： `{user_name}` 或是 `{*:age}`。
 

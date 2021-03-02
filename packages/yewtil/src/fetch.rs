@@ -1,10 +1,6 @@
 //! Feature to enable fetching using web_sys-based fetch requests.
 //!
 //! This feature makes use of JSON for the request and response bodies.
-//!
-//! # Note
-//! Because this makes use of futures, enabling this feature will require the use of a
-//! web_sys compatible build environment and will prevent you from using `cargo web`.
 
 use crate::NeqAssign; // requires "neq" feature.
 

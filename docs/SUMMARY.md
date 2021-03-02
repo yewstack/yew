@@ -7,10 +7,8 @@
 - [Project Setup](getting-started/project-setup.md)
   - [Using trunk](getting-started/project-setup/using-trunk.md)
   - [Using wasm-pack](getting-started/project-setup/using-wasm-pack.md)
-  - [Using cargo-web](getting-started/project-setup/using-cargo-web.md)
 - [Starter Templates](getting-started/starter-templates.md)
 - [Build a Sample App](getting-started/build-a-sample-app.md)
-- [Choose web-sys or stdweb](getting-started/choose-web-library.md)
 - [Learn through examples](getting-started/examples.md)
 
 ## Core Concepts <a id="concepts"></a>

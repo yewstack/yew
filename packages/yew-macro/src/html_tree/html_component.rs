@@ -141,29 +141,52 @@ impl HtmlComponent {
         Some(cursor)
     }
 
-    fn path_arguments(cursor: Cursor) -> Option<(PathArguments, Cursor)> {
-        let (punct, cursor) = cursor.punct()?;
+    /// Refer to the [`syn::parse::Parse`] implementation for [`AngleBracketedGenericArguments`].
+    fn path_arguments(mut cursor: Cursor) -> Option<(PathArguments, Cursor)> {
+        let (punct, c) = cursor.punct()?;
+        cursor = c;
         (punct.as_char() == '<').as_option()?;
 
-        let (ty, cursor) = Self::peek_type(cursor)?;
+        let mut args = Punctuated::new();
 
-        let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '>').as_option()?;
+        loop {
+            let punct = cursor.punct();
+            if let Some((punct, c)) = punct {
+                if punct.as_char() == '>' {
+                    cursor = c;
+                    break;
+                }
+            }
+
+            let (ty, c) = Self::peek_type(cursor);
+            cursor = c;
+
+            args.push_value(GenericArgument::Type(ty));
+
+            let punct = cursor.punct();
+            if let Some((punct, c)) = punct {
+                cursor = c;
+                if punct.as_char() == '>' {
+                    break;
+                } else if punct.as_char() == ',' {
+                    args.push_punct(Token![,](Span::call_site()))
+                }
+            }
+        }
 
         Some((
             PathArguments::AngleBracketed(AngleBracketedGenericArguments {
                 colon2_token: None,
                 lt_token: Token![<](Span::call_site()),
-                args: vec![GenericArgument::Type(ty)].into_iter().collect(),
+                args,
                 gt_token: Token![>](Span::call_site()),
             }),
             cursor,
         ))
     }
 
-    fn peek_type(mut cursor: Cursor) -> Option<(Type, Cursor)> {
+    fn peek_type(mut cursor: Cursor) -> (Type, Cursor) {
         let mut colons_optional = true;
-        let mut last_ident = None;
         let mut leading_colon = None;
         let mut segments = Punctuated::new();
 
@@ -180,7 +203,6 @@ impl HtmlComponent {
 
             if let Some((ident, c)) = post_colons_cursor.ident() {
                 cursor = c;
-                last_ident = Some(ident.clone());
                 let arguments = if let Some((args, c)) = Self::path_arguments(cursor) {
                     cursor = c;
                     args
@@ -197,11 +219,7 @@ impl HtmlComponent {
             colons_optional = false;
         }
 
-        let type_str = last_ident?.to_string();
-        type_str.is_ascii().as_option()?;
-        type_str.bytes().next()?.is_ascii_uppercase().as_option()?;
-
-        Some((
+        (
             Type::Path(TypePath {
                 qself: None,
                 path: Path {
@@ -210,7 +228,7 @@ impl HtmlComponent {
                 },
             }),
             cursor,
-        ))
+        )
     }
 }
 
@@ -233,7 +251,7 @@ impl PeekValue<Type> for HtmlComponentOpen {
     fn peek(cursor: Cursor) -> Option<Type> {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '<').as_option()?;
-        let (typ, _) = HtmlComponent::peek_type(cursor)?;
+        let (typ, _) = HtmlComponent::peek_type(cursor);
         Some(typ)
     }
 }
@@ -267,7 +285,7 @@ impl PeekValue<Type> for HtmlComponentClose {
         let (punct, cursor) = cursor.punct()?;
         (punct.as_char() == '/').as_option()?;
 
-        let (typ, cursor) = HtmlComponent::peek_type(cursor)?;
+        let (typ, cursor) = HtmlComponent::peek_type(cursor);
 
         let (punct, _) = cursor.punct()?;
         (punct.as_char() == '>').as_option()?;

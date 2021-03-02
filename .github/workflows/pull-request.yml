@@ -24,7 +24,6 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-            yew-stdweb/target
           key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
             cargo-${{ runner.os }}-
@@ -46,12 +45,6 @@ jobs:
         if: always()
         run: |
           cd packages/yew
-          cargo clippy --all-targets --features "cbor msgpack toml yaml" -- -D warnings
-
-      - name: Run clippy - yew-stdweb with all features
-        if: always()
-        run: |
-          cd packages/yew-stdweb
           cargo clippy --all-targets --features "cbor msgpack toml yaml" -- -D warnings
 
   check_examples:
@@ -119,15 +112,6 @@ jobs:
           cd packages/yew
           cargo test --doc --features "doc_test wasm_test yaml msgpack cbor toml"
 
-      - name: Run doctest - yew-stdweb with features
-        run: |
-          # Sadly we can't run the tests on yew-stdweb as the snippets use `yew`, not `yew_stdweb` so the imports wouldn't work.
-          # To fix this we just run them on yew but with yew-stdweb's default features enabled.
-          cd packages/yew
-          cargo test --doc \
-            --no-default-features --features "services agent std_web" \
-            --features "doc_test wasm_test yaml msgpack cbor toml"
-
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
     runs-on: ubuntu-latest
@@ -136,6 +120,10 @@ jobs:
         image: kennethreitz/httpbin@sha256:599fe5e5073102dbb0ee3dbb65f049dab44fa9fc251f6835c9990f8fb196a72b
         ports:
           - 8080:80
+      echo_server:
+        image: jmalloc/echo-server@sha256:c461e7e54d947a8777413aaf9c624b4ad1f1bac5d8272475da859ae82c1abd7d
+        ports:
+          - 8081:8080
 
     strategy:
       matrix:
@@ -161,32 +149,28 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-            yew-stdweb/target
           key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
             cargo-${{ runner.os }}-
 
       - name: Run tests - yew
-        env:
-          HTTPBIN_URL: "http://localhost:8080"
         run: |
           cd packages/yew
-          # FIXME: Chrome appears to be timing out occasionally
-          wasm-pack test --firefox --headless -- --features "wasm_test httpbin_test"
-
-      - name: Run tests - yew-stdweb
-        if: matrix.toolchain != 'stable'
-        env:
-          HTTPBIN_URL: "http://localhost:8080"
-        run: |
-          cd packages/yew-stdweb
-          # FIXME: Chrome really doesn't seem to like yew-stdweb
-          wasm-pack test --firefox --headless -- --features "wasm_test httpbin_test"
+          wasm-pack test --chrome --firefox --headless -- --features "wasm_test"
 
       - name: Run tests - yew-functional
         run: |
           cd packages/yew-functional
           wasm-pack test --chrome --firefox --headless
+
+      - name: Run tests - yew-services
+        env:
+          HTTPBIN_URL: "http://localhost:8080"
+          ECHO_SERVER_URL: "ws://localhost:8081"
+        run: |
+          cd packages/yew-services
+          wasm-pack test --chrome --firefox --headless -- --features "wasm_test httpbin_test echo_server_test"
+
 
   unit_tests:
     name: Unit Tests on ${{ matrix.toolchain }}

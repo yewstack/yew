@@ -18,13 +18,13 @@ pub type Routable = Switch;
 /// use yew_router::{route::Route, Switch};
 /// #[derive(Debug, Switch, PartialEq)]
 /// enum TestEnum {
-///     #[to = "/test/route"]
+///     #[at = "/test/route"]
 ///     TestRoute,
-///     #[to = "/capture/string/{path}"]
+///     #[at = "/capture/string/{path}"]
 ///     CaptureString { path: String },
-///     #[to = "/capture/number/{num}"]
+///     #[at = "/capture/number/{num}"]
 ///     CaptureNumber { num: usize },
-///     #[to = "/capture/unnamed/{doot}"]
+///     #[at = "/capture/unnamed/{doot}"]
 ///     CaptureUnnamed(String),
 /// }
 ///

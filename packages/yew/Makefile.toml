@@ -14,7 +14,7 @@ args = [
 
 [tasks.doc-test]
 clear = true
-run_task = { name = ["doc-test-normal", "doc-test-stdweb"], fork = true }
+run_task = { name = ["doc-test-normal"], fork = true }
 
 [tasks.doc-test-normal]
 command = "cargo"
@@ -23,16 +23,6 @@ args = [
     "--doc",
     "--features",
     "doc_test,wasm_test,yaml,msgpack,cbor,toml",
-]
-
-[tasks.doc-test-stdweb]
-command = "cargo"
-args = [
-    "test",
-    "--doc",
-    "--features",
-    "doc_test,wasm_test,yaml,msgpack,cbor,toml,std_web,agent,services",
-    "--no-default-features",
 ]
 
 [tasks.bench]

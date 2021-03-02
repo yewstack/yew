@@ -3,17 +3,10 @@
 use super::{VDiff, VNode};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
-use cfg_if::cfg_if;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
-cfg_if! {
-    if #[cfg(feature = "std_web")] {
-        use stdweb::web::{Element, INode, TextNode};
-    } else if #[cfg(feature = "web_sys")] {
-        use web_sys::{Element, Text as TextNode};
-    }
-}
+use web_sys::{Element, Text as TextNode};
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -110,7 +103,7 @@ mod test {
     }
 }
 
-#[cfg(all(test, feature = "web_sys"))]
+#[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
