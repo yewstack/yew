@@ -55,7 +55,7 @@ pub fn use_state<T: 'static, F: FnOnce() -> T + 'static>(
             let current = hook.current.clone();
             (current, setter)
         },
-        // Teardown
+        // Destructor
         |_| {},
     )
 }

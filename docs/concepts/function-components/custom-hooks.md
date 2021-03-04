@@ -64,7 +64,7 @@ fn use_subscribe() -> Rc<Vec<String>> {
 }
 ```
 
-Although this approach works in almost all cases, it can't be used to primitive hooks like the pre-defined hooks we've been using already 
+Although this approach works in almost all cases, it can't be used to write primitive hooks like the pre-defined hooks we've been using already 
 
 ### Writing primitive hooks
 
