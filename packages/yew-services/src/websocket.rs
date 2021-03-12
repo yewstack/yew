@@ -327,15 +327,11 @@ mod tests {
         let status_future = CallbackFuture::<WebSocketStatus>::default();
         let notification: Callback<_> = status_future.clone().into();
         let task = WebSocketService::connect_text(url, callback, notification);
-        assert!(task.is_err());
-        if let Err(err) = task {
-            #[allow(irrefutable_let_patterns)]
-            if let WebSocketError::CreationError(creation_err) = err {
-                assert!(creation_err.starts_with("SyntaxError:"));
-            } else {
-                assert!(false);
-            }
-        }
+        assert!(matches!(
+            task,
+            Err(WebSocketError::CreationError(creation_err))
+                if creation_err.starts_with("SyntaxError:")
+        ));
     }
 
     #[test]
