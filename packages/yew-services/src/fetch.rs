@@ -642,10 +642,13 @@ mod tests {
         };
         let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();
         let callback: Callback<_> = cb_future.clone().into();
+        let request_debug = format!("{:?}", request);
         let _task = FetchService::fetch_with_options(request, options, callback);
         let resp = cb_future.await;
         assert_eq!(resp.status(), StatusCode::OK);
+        let response_debug = format!("{:?}", resp);
         if let Json(Ok(http_bin)) = resp.body() {
+            panic!("request: {}, response: {}", request_debug, response_debug);
             let referrer = http_bin.headers.get("Referer").expect("no referer set");
             assert!(referrer.ends_with("/same-origin"));
         } else {
