@@ -348,7 +348,7 @@ impl WebSocketTask {
 impl Task for WebSocketTask {
     fn is_active(&self) -> bool {
         cfg_match! {
-            feature = "std_web" => self.ws.ready_state() == SocketReadyState::Connecting | SocketReadyState::Open,
+            feature = "std_web" => matches!(self.ws.ready_state() == SocketReadyState::Connecting | SocketReadyState::Open),
             feature = "web_sys" => matches!(self.ws.ready_state(), WebSocket::CONNECTING | WebSocket::OPEN),
         }
     }
