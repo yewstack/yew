@@ -202,7 +202,7 @@ error[E0277]: the trait bound `(): yew::html::conversion::IntoPropValue<std::opt
 45 |     html! { <a href=() /> };
    |                     ^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not implemented for `()`
    |
-  ::: $WORKSPACE/yew/src/virtual_dom/mod.rs
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
    |     pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
    |                                               --------------------------- required by this bound in `yew::virtual_dom::PositionalAttr::new`
@@ -215,7 +215,7 @@ error[E0277]: the trait bound `NotToString: yew::html::conversion::IntoPropValue
 46 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not implemented for `NotToString`
    |
-  ::: $WORKSPACE/yew/src/virtual_dom/mod.rs
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
    |     pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
    |                                               --------------------------- required by this bound in `yew::virtual_dom::PositionalAttr::new`
@@ -228,7 +228,7 @@ error[E0277]: the trait bound `std::option::Option<NotToString>: yew::html::conv
 47 |     html! { <a media=Some(NotToString) /> };
    |                      ^^^^^^^^^^^^^^^^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not implemented for `std::option::Option<NotToString>`
    |
-  ::: $WORKSPACE/yew/src/virtual_dom/mod.rs
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
    |     pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
    |                                               --------------------------- required by this bound in `yew::virtual_dom::PositionalAttr::new`
@@ -241,7 +241,7 @@ error[E0277]: the trait bound `std::option::Option<{integer}>: yew::html::conver
 48 |     html! { <a href=Some(5) /> };
    |                     ^^^^^^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not implemented for `std::option::Option<{integer}>`
    |
-  ::: $WORKSPACE/yew/src/virtual_dom/mod.rs
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
    |     pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
    |                                               --------------------------- required by this bound in `yew::virtual_dom::PositionalAttr::new`
@@ -254,7 +254,7 @@ error[E0277]: the trait bound `{integer}: yew::html::conversion::IntoPropValue<s
 51 |     html! { <input onclick=1 /> };
    |                            ^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>>` is not implemented for `{integer}`
    |
-  ::: $WORKSPACE/yew/src/html/listener/macros.rs
+  ::: $WORKSPACE/packages/yew/src/html/listener/macros.rs
    |
    |                 pub fn __macro_new(callback: impl IntoOptPropValue<Callback<Event>>) -> Option<Rc<dyn Listener>> {
    |                                                   --------------------------------- required by this bound in `yew::html::listener::listener_web_sys::onclick::Wrapper::__macro_new`
@@ -273,7 +273,7 @@ error[E0277]: the trait bound `yew::callback::Callback<std::string::String>: yew
 52 |     html! { <input onclick=Callback::from(|a: String| ()) /> };
    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>>` is not implemented for `yew::callback::Callback<std::string::String>`
    |
-  ::: $WORKSPACE/yew/src/html/listener/macros.rs
+  ::: $WORKSPACE/packages/yew/src/html/listener/macros.rs
    |
    |                 pub fn __macro_new(callback: impl IntoOptPropValue<Callback<Event>>) -> Option<Rc<dyn Listener>> {
    |                                                   --------------------------------- required by this bound in `yew::html::listener::listener_web_sys::onclick::Wrapper::__macro_new`
@@ -286,7 +286,7 @@ error[E0277]: the trait bound `std::option::Option<{integer}>: yew::html::conver
 53 |     html! { <input onfocus=Some(5) /> };
    |                            ^^^^^^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<yew::callback::Callback<web_sys::features::gen_FocusEvent::FocusEvent>>>` is not implemented for `std::option::Option<{integer}>`
    |
-  ::: $WORKSPACE/yew/src/html/listener/macros.rs
+  ::: $WORKSPACE/packages/yew/src/html/listener/macros.rs
    |
    |                 pub fn __macro_new(callback: impl IntoOptPropValue<Callback<Event>>) -> Option<Rc<dyn Listener>> {
    |                                                   --------------------------------- required by this bound in `yew::html::listener::listener_web_sys::onfocus::Wrapper::__macro_new`
