@@ -551,9 +551,9 @@ mod tests {
         drop(task);
 
         let ws_ready_state = ws.ready_state();
-        assert!(matches!(
-            ws_ready_state,
-            WebSocket::CLOSING | WebSocket::CLOSED
-        ));
+        assert!(cfg_match! {
+            feature = "std_web" => matches!(ws_ready_state, WebSocket::Closing | WebSocket::Closed),
+            feature = "web_sys" => matches!(ws_ready_state, WebSocket::CLOSING | WebSocket::CLOSED),
+        });
     }
 }
