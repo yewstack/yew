@@ -5,13 +5,13 @@ use std::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::TryFrom;
 use syn::parse::Result;
 use syn::spanned::Spanned;
-use syn::{Error, Expr, Field, Type, Visibility};
+use syn::{Error, Expr, Field, Type, TypePath, Visibility};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]
 enum PropAttr {
     Required { wrapped_name: Ident },
-    // TODO create one for truly optional attributes (using Option<T>)
+    Option,
     PropOr(Expr),
     PropOrElse(Expr),
     PropOrDefault,
@@ -55,6 +55,11 @@ impl PropField {
                     #name: ::std::option::Option::unwrap(self.wrapped.#wrapped_name),
                 }
             }
+            PropAttr::Option => {
+                quote! {
+                    #name: self.wrapped.#name,
+                }
+            }
             PropAttr::PropOr(value) => {
                 quote_spanned! {value.span()=>
                     #name: ::std::option::Option::unwrap_or(self.wrapped.#name, #value),
@@ -77,8 +82,17 @@ impl PropField {
     pub fn to_field_def(&self) -> proc_macro2::TokenStream {
         let ty = &self.ty;
         let wrapped_name = self.wrapped_name();
-        quote! {
-            #wrapped_name: ::std::option::Option<#ty>,
+        match &self.attr {
+            PropAttr::Option => {
+                quote! {
+                    #wrapped_name: #ty,
+                }
+            }
+            _ => {
+                quote! {
+                    #wrapped_name: ::std::option::Option<#ty>,
+                }
+            }
         }
     }
 
@@ -108,6 +122,15 @@ impl PropField {
                             wrapped: self.wrapped,
                             _marker: ::std::marker::PhantomData,
                         }
+                    }
+                }
+            }
+            PropAttr::Option => {
+                quote! {
+                    #[doc(hidden)]
+                    #vis fn #name(mut self, #name: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
+                        self.wrapped.#name = #name.into_prop_value();
+                        self
                     }
                 }
             }
@@ -141,6 +164,11 @@ impl PropField {
             } else {
                 unreachable!()
             }
+        } else if matches!(
+            &named_field.ty,
+            Type::Path(TypePath { path, .. }) if path.segments[0].ident == "Option"
+        ) {
+            Ok(PropAttr::Option)
         } else {
             let ident = named_field.ident.as_ref().unwrap();
             let wrapped_name = Ident::new(&format!("{}_wrapper", ident), Span::call_site());

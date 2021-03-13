@@ -185,4 +185,18 @@ mod t10 {
     }
 }
 
+mod t11 {
+    use super::*;
+
+    #[derive(Clone, Properties)]
+    pub struct Props<T: Clone> {
+        value: Option<T>,
+    }
+
+    fn optional_prop_generics_should_work() {
+        Props::<bool>::builder().build();
+        Props::<bool>::builder().value(true).build();
+    }
+}
+
 fn main() {}
