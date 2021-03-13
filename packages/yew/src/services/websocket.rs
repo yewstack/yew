@@ -511,6 +511,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "web_sys")]
     async fn is_active_while_connecting() {
         let url = echo_server_url();
         let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
@@ -532,6 +533,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "web_sys")]
     async fn drop_while_still_connecting() {
         let url = echo_server_url();
         let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
