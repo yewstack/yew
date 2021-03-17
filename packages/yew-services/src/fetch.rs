@@ -30,11 +30,16 @@ pub use web_sys::{
 pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
 trait JsInterop: Sized {
+    fn is_binary() -> bool;
     fn from_js(js_value: JsValue) -> Result<Self, FetchError>;
     fn into_js(self) -> JsValue;
 }
 
 impl JsInterop for Vec<u8> {
+    fn is_binary() -> bool {
+        true
+    }
+
     fn from_js(js_value: JsValue) -> Result<Self, FetchError> {
         Ok(Uint8Array::new(&js_value).to_vec())
     }
@@ -45,6 +50,10 @@ impl JsInterop for Vec<u8> {
 }
 
 impl JsInterop for String {
+    fn is_binary() -> bool {
+        false
+    }
+
     fn from_js(js_value: JsValue) -> Result<Self, FetchError> {
         js_value.as_string().ok_or(FetchError::InternalError)
     }
@@ -271,7 +280,7 @@ impl FetchService {
         IN: Into<Text>,
         OUT: From<Text>,
     {
-        fetch_impl::<IN, OUT, String>(false, request, None, callback)
+        Ok(RequestFetcher::new(request, None)?.fetch(callback))
     }
 
     /// `fetch` with provided `FetchOptions` object.
@@ -314,7 +323,7 @@ impl FetchService {
         IN: Into<Text>,
         OUT: From<Text>,
     {
-        fetch_impl::<IN, OUT, String>(false, request, Some(options), callback)
+        Ok(RequestFetcher::new(request, Some(options))?.fetch(callback))
     }
 
     /// Fetch the data in binary format.
@@ -326,7 +335,7 @@ impl FetchService {
         IN: Into<Binary>,
         OUT: From<Binary>,
     {
-        fetch_impl::<IN, OUT, Vec<u8>>(true, request, None, callback)
+        Ok(RequestFetcher::new(request, None)?.fetch(callback))
     }
 
     /// Fetch the data in binary format with the provided request options.
@@ -339,48 +348,162 @@ impl FetchService {
         IN: Into<Binary>,
         OUT: From<Binary>,
     {
-        fetch_impl::<IN, OUT, Vec<u8>>(true, request, Some(options), callback)
+        Ok(RequestFetcher::new(request, Some(options))?.fetch(callback))
+    }
+
+    /// `fetch_async` allows defining async API functions
+    /// ```
+    ///# use anyhow::Error;
+    ///# use http::Request;
+    ///# use serde::Deserialize;
+    ///# use yew::format::{Nothing, Json};
+    ///# use yew_services::fetch::FetchService;
+    /// #[derive(Deserialize)]
+    /// struct User {
+    ///   name:String,
+    ///   surname: String,
+    ///   age: u16
+    /// }
+    /// async fn get_user() -> Result<User, Error> {
+    /// let request = Request::get("/path/")
+    ///     .body(Nothing)
+    ///     .unwrap();
+    /// let (_meta, data) = FetchService::fetch_async(request).await?.into_parts();
+    /// // ... check for http status
+    /// let Json(res) = data;
+    /// res
+    /// }
+    /// ```
+    pub async fn fetch_async<IN, OUT: 'static>(request: Request<IN>) -> Result<Response<OUT>, Error>
+    where
+        IN: Into<Text>,
+        OUT: From<Text>,
+    {
+        Ok(RequestFetcher::new(request, None)?.fetch_async().await)
+    }
+
+    pub async fn fetch_with_options_async<IN, OUT: 'static>(
+        request: Request<IN>,
+        options: FetchOptions,
+    ) -> Result<Response<OUT>, Error>
+    where
+        IN: Into<Text>,
+        OUT: From<Text>,
+    {
+        Ok(RequestFetcher::new(request, Some(options))?
+            .fetch_async()
+            .await)
+    }
+
+    pub async fn fetch_binary_async<IN, OUT: 'static>(
+        request: Request<IN>,
+    ) -> Result<Response<OUT>, Error>
+    where
+        IN: Into<Binary>,
+        OUT: From<Binary>,
+    {
+        Ok(RequestFetcher::new(request, None)?.fetch_async().await)
+    }
+
+    pub async fn fetch_binary_with_options_async<IN, OUT: 'static>(
+        request: Request<IN>,
+        options: FetchOptions,
+    ) -> Result<Response<OUT>, Error>
+    where
+        IN: Into<Binary>,
+        OUT: From<Binary>,
+    {
+        Ok(RequestFetcher::new(request, Some(options))?
+            .fetch_async()
+            .await)
     }
 }
 
-fn fetch_impl<IN, OUT: 'static, DATA: 'static>(
-    binary: bool,
-    request: Request<IN>,
-    options: Option<FetchOptions>,
-    callback: Callback<Response<OUT>>,
-) -> Result<FetchTask, Error>
-where
-    DATA: JsInterop,
-    IN: Into<Format<DATA>>,
-    OUT: From<Format<DATA>>,
-{
-    // Transform http::Request into WebRequest.
-    let (parts, body) = request.into_parts();
-    let body = match body.into() {
-        Ok(b) => b.into_js(),
-        Err(_) => JsValue::NULL,
-    };
-    let request = build_request(parts, &body)?;
+struct RequestFetcher {
+    abort_controller: Option<AbortController>,
+    promise: Promise,
+}
 
-    // Transform FetchOptions into RequestInit.
-    let abort_controller = AbortController::new().ok();
-    let mut init = options.map_or_else(RequestInit::new, Into::into);
-    if let Some(abort_controller) = &abort_controller {
-        init.signal(Some(&abort_controller.signal()));
+impl RequestFetcher {
+    fn new<IN, DATA: 'static>(
+        request: Request<IN>,
+        options: Option<FetchOptions>,
+    ) -> Result<Self, Error>
+    where
+        DATA: JsInterop,
+        IN: Into<Format<DATA>>,
+    {
+        // Transform http::Request into WebRequest.
+        let (parts, body) = request.into_parts();
+        let body = match body.into() {
+            Ok(b) => b.into_js(),
+            Err(_) => JsValue::NULL,
+        };
+        let request = build_request(parts, &body)?;
+
+        // Transform FetchOptions into RequestInit.
+        let abort_controller = AbortController::new().ok();
+        let mut init = options.map_or_else(RequestInit::new, Into::into);
+        if let Some(abort_controller) = &abort_controller {
+            init.signal(Some(&abort_controller.signal()));
+        }
+
+        // Start fetch
+        let promise = GLOBAL.with(|global| global.fetch_with_request_and_init(&request, &init));
+
+        Ok(RequestFetcher {
+            abort_controller,
+            promise,
+        })
     }
 
-    // Start fetch
-    let promise = GLOBAL.with(|global| global.fetch_with_request_and_init(&request, &init));
+    fn fetch<OUT: 'static, DATA: 'static>(self, callback: Callback<Response<OUT>>) -> FetchTask
+    where
+        DATA: JsInterop,
+        OUT: From<Format<DATA>>,
+    {
+        let active = Rc::new(RefCell::new(true));
+        let abort_controller = self.abort_controller;
+        let promise = self.promise;
+        let fetcher = DataFetcher::new(active.clone());
+        spawn_local(async move { callback.emit(fetcher.fetch_data(promise).await) });
+        FetchTask(Handle {
+            active,
+            abort_controller,
+        })
+    }
 
-    // Spawn future to resolve fetch
-    let active = Rc::new(RefCell::new(true));
-    let data_fetcher = DataFetcher::new(binary, callback, active.clone());
-    spawn_local(DataFetcher::fetch_data(data_fetcher, promise));
+    async fn fetch_async<OUT: 'static, DATA: 'static>(self) -> Response<OUT>
+    where
+        DATA: JsInterop,
+        OUT: From<Format<DATA>>,
+    {
+        let fetcher = DataFetcher::new(Rc::new(RefCell::new(true)));
+        fetcher.fetch_data(self.promise).await
+    }
 
-    Ok(FetchTask(Handle {
-        active,
-        abort_controller,
-    }))
+    // async fn fetch_async_cancellable<OUT: 'static, DATA: 'static>(
+    //     self,
+    // ) -> (
+    //     FetchTask,
+    //     Pin<Box<dyn Future<Output = Response<OUT>> + 'static>>,
+    // )
+    // where
+    //     DATA: JsInterop,
+    //     OUT: From<Format<DATA>>,
+    // {
+    //     let active = Rc::new(RefCell::new(true));
+    //     let abort_controller = self.abort_controller;
+    //     let promise = self.promise;
+    //     let fetcher = DataFetcher::new(active.clone());
+    //     (
+    //         FetchTask(Handle {
+    //             active,
+    //             abort_controller,
+    //         }),
+    //         Box::pin(fetcher.fetch_data(promise)),
+    //     )
+    // }
 }
 
 struct DataFetcher<OUT: 'static, DATA>
@@ -388,10 +511,8 @@ where
     DATA: JsInterop,
     OUT: From<Format<DATA>>,
 {
-    binary: bool,
     active: Rc<RefCell<bool>>,
-    callback: Callback<Response<OUT>>,
-    _marker: PhantomData<DATA>,
+    _marker: PhantomData<(DATA, OUT)>,
 }
 
 impl<OUT: 'static, DATA> DataFetcher<OUT, DATA>
@@ -399,51 +520,27 @@ where
     DATA: JsInterop,
     OUT: From<Format<DATA>>,
 {
-    fn new(binary: bool, callback: Callback<Response<OUT>>, active: Rc<RefCell<bool>>) -> Self {
+    fn new(active: Rc<RefCell<bool>>) -> Self {
         Self {
-            binary,
-            callback,
             active,
             _marker: PhantomData::default(),
         }
     }
 
-    async fn fetch_data(self, promise: Promise) {
+    async fn fetch_data(self, promise: Promise) -> Response<OUT> {
         let result = self.fetch_data_impl(promise).await;
         let (data, status, headers) = match result {
             Ok((data, response)) => (Ok(data), response.status(), Some(response.headers())),
             Err(err) => (Err(err), 408, None),
         };
-        self.callback(data, status, headers);
+        *self.active.borrow_mut() = false;
+        Self::build_response(data, status, headers)
     }
 
     async fn fetch_data_impl(&self, promise: Promise) -> Result<(DATA, WebResponse), Error> {
         let response = self.get_response(promise).await?;
         let data = self.get_data(&response).await?;
         Ok((data, response))
-    }
-
-    // Prepare the response callback.
-    // Notice that the callback signature must match the call from the javascript
-    // side. There is no static check at this point.
-    fn callback(&self, data: Result<DATA, Error>, status: u16, headers: Option<Headers>) {
-        let mut response_builder = Response::builder();
-        if let Ok(status) = StatusCode::from_u16(status) {
-            response_builder = response_builder.status(status);
-        }
-
-        if let Some(headers) = headers {
-            for (key, value) in header_iter(headers) {
-                response_builder = response_builder.header(key.as_str(), value.as_str());
-            }
-        }
-
-        // Deserialize and wrap response data into a Text or Binary object.
-        let response = response_builder
-            .body(OUT::from(data))
-            .expect("failed to build response, please report");
-        *self.active.borrow_mut() = false;
-        self.callback.emit(response);
     }
 
     async fn get_response(&self, fetch_promise: Promise) -> Result<WebResponse, FetchError> {
@@ -459,7 +556,7 @@ where
     }
 
     async fn get_data(&self, response: &WebResponse) -> Result<DATA, FetchError> {
-        let data_promise = if self.binary {
+        let data_promise = if DATA::is_binary() {
             response.array_buffer()
         } else {
             response.text()
@@ -474,6 +571,31 @@ where
         } else {
             Err(FetchError::Canceled)
         }
+    }
+
+    // Prepare the response callback.
+    // Notice that the callback signature must match the call from the javascript
+    // side. There is no static check at this point.
+    fn build_response(
+        data: Result<DATA, Error>,
+        status: u16,
+        headers: Option<Headers>,
+    ) -> Response<OUT> {
+        let mut response_builder = Response::builder();
+        if let Ok(status) = StatusCode::from_u16(status) {
+            response_builder = response_builder.status(status);
+        }
+
+        if let Some(headers) = headers {
+            for (key, value) in header_iter(headers) {
+                response_builder = response_builder.header(key.as_str(), value.as_str());
+            }
+        }
+
+        // Deserialize and wrap response data into a Text or Binary object.
+        response_builder
+            .body(OUT::from(data))
+            .expect("failed to build response, please report")
     }
 }
 
