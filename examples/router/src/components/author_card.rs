@@ -1,8 +1,4 @@
-use crate::{
-    content::Author,
-    generator::Generated,
-    switch::{AppAnchor, AppRoute},
-};
+use crate::{content::Author, generator::Generated, switch::AppAnchor};
 use yew::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Properties)]
@@ -57,7 +53,7 @@ impl Component for AuthorCard {
                     </div>
                 </div>
                 <footer class="card-footer">
-                    <AppAnchor classes="card-footer-item" route=AppRoute::Author(author.seed)>
+                    <AppAnchor classes="card-footer-item" route=format!("/authors/{}", author.seed)>
                         { "Profile" }
                     </AppAnchor>
                 </footer>

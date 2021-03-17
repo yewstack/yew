@@ -1,124 +1,179 @@
-#![recursion_limit = "128"]
-//! Provides routing faculties for the Yew web framework.
-//!
-//! ## Contents
-//! This crate consists of multiple types, some independently useful on their own,
-//! that are used together to facilitate routing within the Yew framework.
-//! Among them are:
-//! * RouteService - Hooks into the History API and listens to `PopStateEvent`s to respond to users
-//!   clicking the back/forwards buttons.
-//! * RouteAgent - A singleton agent that owns a RouteService that provides an easy place for other
-//!   components and agents to hook into it.
-//! * Switch - A trait/derive macro that allows specification of how enums or structs can be constructed
-//! from Routes.
-//! * Router - A component connected to the RouteAgent, and is capable of resolving Routes to
-//! Switch implementors, so you can use them to render Html.
-//! * Route - A struct containing an the route string and state.
-//! * RouteButton & RouteLink - Wrapper components around buttons and anchor tags respectively that
-//!   allow users to change the route.
-//!
-//! ## State and Aliases
-//! Because the History API allows you to store data along with a route string,
-//! most types have at type parameter that allows you to specify which type is being stored.
-//! As this behavior is uncommon, aliases using the unit type (`()`) are provided to remove the
-//! need to specify the storage type you likely aren't using.
-//!
-//! If you want to store state using the history API, it is recommended that you generate your own
-//! aliases using the `define_router_state` macro.
-//! Give it a typename, and it will generate a module containing aliases and functions useful for
-//! routing. If you specify your own router_state aliases and functions, you will want to disable
-//! the `unit_alias` feature to prevent the default `()` aliases from showing up in the prelude.
-//!
-//! ## Features
-//! This crate has some feature-flags that allow you to not include some parts in your compilation.
-//! * "default" - Everything is included by default.
-//! * "core" - The fully feature complete ("router", "components", "matchers"), but without
-//!   unit_alias.
-//! * "unit_alias" - If enabled, a module will be added to the route and expanded within the prelude
-//! for aliases of Router types to their `()` variants.
-//! * "router" - If enabled, the Router component and its dependent infrastructure (including
-//!   "agent") will be included.
-//! * "agent" - If enabled, the RouteAgent and its associated types will be included.
-//! * "components" - If enabled, the accessory components will be made available.
+use gloo::events::EventListener;
+use std::cell::RefCell;
+use std::rc::Rc;
+use wasm_bindgen::JsValue;
+use web_sys::{Event, History};
+use weblog::*;
+use yew::prelude::*;
+use yew_functional::*;
 
-#![deny(
-    missing_docs,
-    missing_debug_implementations,
-    missing_copy_implementations,
-    trivial_casts,
-    trivial_numeric_casts,
-    unsafe_code,
-    unstable_features,
-    unused_qualifications
-)]
-// This will break the project at some point, but it will break yew as well.
-// It can be dealt with at the same time.
-#![allow(macro_expanded_macro_exports_accessed_by_absolute_paths)]
-
-pub use yew_router_route_parser;
-
-#[macro_use]
-mod alias;
-
-#[cfg(feature = "service")]
-pub mod service;
-
-#[cfg(feature = "agent")]
-pub mod agent;
-
-pub mod route;
-
-#[cfg(feature = "components")]
-pub mod components;
-
-#[cfg(feature = "router")]
-pub mod router;
-
-/// Prelude module that can be imported when working with the yew_router
-pub mod prelude {
-    pub use super::matcher::Captures;
-
-    #[cfg(feature = "service")]
-    pub use crate::route::RouteState;
-    #[cfg(feature = "service")]
-    pub use crate::service::RouteService;
-
-    #[cfg(feature = "agent")]
-    pub use crate::agent::RouteAgent;
-    #[cfg(feature = "agent")]
-    pub use crate::agent::RouteAgentBridge;
-    #[cfg(feature = "agent")]
-    pub use crate::agent::RouteAgentDispatcher;
-
-    #[cfg(feature = "components")]
-    pub use crate::components::RouterAnchor;
-    #[cfg(feature = "components")]
-    pub use crate::components::RouterButton;
-
-    #[cfg(feature = "router")]
-    pub use crate::router::Router;
-
-    #[cfg(feature = "router")]
-    pub use crate::router::RouterState;
-
-    pub use crate::{
-        route::Route,
-        switch::{Routable, Switch},
-    };
-    pub use yew_router_macro::Switch;
+#[derive(Debug, Clone)]
+pub struct CurrentRoute {
+    path: String,
+    params: route_recognizer::Params,
 }
 
-pub use alias::*;
+impl CurrentRoute {
+    pub fn path(&self) -> &str {
+        &self.path
+    }
 
-pub mod matcher;
+    // todo: use serde to deserialize params into a struct
+    pub fn parmas(&self) -> &route_recognizer::Params {
+        &self.params
+    }
+}
 
-pub use matcher::Captures;
+pub struct YewRouter {
+    history: History,
+    current_route: RefCell<Option<CurrentRoute>>,
+}
 
-#[cfg(feature = "service")]
-pub use crate::route::RouteState;
-#[cfg(feature = "router")]
-pub use crate::router::RouterState;
+impl YewRouter {
+    fn new() -> Self {
+        Self {
+            history: yew::utils::window().history().expect("no history"),
+            current_route: RefCell::new(None),
+        }
+    }
 
-pub mod switch;
-pub use switch::Switch;
-pub use yew_router_macro::Switch;
+    pub fn push(&self, url: &str) {
+        self.history
+            .push_state_with_url(&JsValue::null(), "", Some(url))
+            .expect("push history");
+        let event = Event::new("__history_pushed").unwrap();
+        yew::utils::window()
+            .dispatch_event(&event)
+            .expect("dispatch");
+    }
+}
+
+thread_local! {
+    pub static ROUTER: Rc<YewRouter> = Rc::new(YewRouter::new());
+}
+
+#[derive(Properties, Clone, PartialEq)]
+pub struct RouterProps {
+    pub children: ChildrenWithProps<Route>,
+}
+
+#[function_component(Router)]
+pub fn router(props: &RouterProps) -> Html {
+    let pathname = yew::utils::window().location().pathname().unwrap();
+    let router = use_ref(|| {
+        let mut router = route_recognizer::Router::new();
+        props.children.iter().for_each(|child| {
+            router.add(&child.props.to, child.props.to.to_string());
+        });
+        router
+    });
+    let (children, current_route) =
+        from_route(&pathname, &props.children, &*router.borrow()).unwrap();
+
+    let (force_rerender, set_force_rerender) = use_state(|| 0);
+
+    ROUTER.with(|f| {
+        console_log!("current_route", &format!("{:?}", current_route));
+        *f.current_route.borrow_mut() = Some(current_route);
+    });
+
+    let _ = use_effect(move || {
+        let event_listener1 = {
+            let (force_rerender, set_force_rerender) =
+                (Rc::clone(&force_rerender), Rc::clone(&set_force_rerender));
+            EventListener::new(&yew::utils::window(), "popstate", move |_| {
+                console_log!("forcing re render");
+                set_force_rerender(*force_rerender + 1);
+            })
+        };
+
+        let event_listener2 =
+            EventListener::new(&yew::utils::window(), "__history_pushed", move |_| {
+                console_log!("forcing re render");
+                set_force_rerender(*force_rerender + 1);
+            });
+
+        move || {
+            drop(event_listener1);
+            drop(event_listener2);
+        }
+    });
+
+    html! {
+        { for children }
+    }
+}
+
+#[derive(Properties, Clone, PartialEq, Debug)]
+pub struct RouteProps {
+    pub to: String,
+    pub children: Children,
+}
+
+#[function_component(Route)]
+pub fn route(props: &RouteProps) -> Html {
+    html! {
+        {for props.children.clone()}
+    }
+}
+
+fn from_route(
+    pathname: &str,
+    routes: &ChildrenWithProps<Route>,
+    router: &route_recognizer::Router<String>,
+) -> Option<(Children, CurrentRoute)> {
+    let mut selected = None;
+    if let Ok(path) = router.recognize(pathname) {
+        let children = routes
+            .iter()
+            .find(|it| it.props.to == **path.handler())
+            .unwrap()
+            .props
+            .children;
+        selected = Some((
+            children,
+            CurrentRoute {
+                path: path.handler().to_string(),
+                params: path.params().clone(),
+            },
+        ));
+    }
+
+    // TODO set `selected` 404 page if provided if this is None
+
+    selected
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct RouterService;
+
+impl RouterService {
+    pub fn push(url: &str) {
+        ROUTER.with(|router| router.push(url))
+    }
+
+    pub fn current_route() -> CurrentRoute {
+        ROUTER.with(|router| router.current_route.borrow().clone().unwrap())
+    }
+}
+
+#[derive(Properties, Clone, PartialEq)]
+pub struct LinkProps {
+    pub classes: String,
+    pub route: String,
+    pub children: Children,
+}
+
+#[function_component(RouterAnchor)]
+pub fn link(props: &LinkProps) -> Html {
+    let onclick = {
+        let route = props.route.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            RouterService::push(&route)
+        })
+    };
+    html! {
+        <a class=props.classes.clone() onclick=onclick>{props.children.clone()}</a>
+    }
+}

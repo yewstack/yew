@@ -1,26 +1,24 @@
-use crate::{
-    content,
-    generator::Generated,
-    switch::{AppAnchor, AppRoute},
-};
+use crate::{content, generator::Generated, switch::AppAnchor};
 use content::PostPart;
 use yew::prelude::*;
-
-#[derive(Clone, Debug, Eq, PartialEq, Properties)]
-pub struct Props {
-    pub seed: u64,
-}
+use yew_router::RouterService;
 
 pub struct Post {
     post: content::Post,
 }
 impl Component for Post {
     type Message = ();
-    type Properties = Props;
+    type Properties = ();
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        let seed = RouterService::current_route()
+            .parmas()
+            .find("id")
+            .unwrap()
+            .parse()
+            .unwrap();
         Self {
-            post: content::Post::generate_from_seed(props.seed),
+            post: content::Post::generate_from_seed(seed),
         }
     }
 
@@ -28,13 +26,8 @@ impl Component for Post {
         unimplemented!()
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.post.seed == props.seed {
-            false
-        } else {
-            self.post = content::Post::generate_from_seed(props.seed);
-            true
-        }
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        false
     }
 
     fn view(&self) -> Html {
@@ -56,7 +49,7 @@ impl Component for Post {
                             </h1>
                             <h2 class="subtitle">
                                 { "by " }
-                                <AppAnchor classes="has-text-weight-semibold" route=AppRoute::Author(post.author.seed)>
+                                <AppAnchor classes="has-text-weight-semibold" route=format!("/authors/{}", post.author.seed)>
                                     { &post.author.name }
                                 </AppAnchor>
                             </h2>
@@ -84,7 +77,7 @@ impl Post {
                 </figure>
                 <div class="media-content">
                     <div class="content">
-                        <AppAnchor classes="is-size-5" route=AppRoute::Author(quote.author.seed)>
+                        <AppAnchor classes="is-size-5" route=format!("/authors/{}", quote.author.seed)>
                             <strong>{ &quote.author.name }</strong>
                         </AppAnchor>
                         <p class="is-family-secondary">

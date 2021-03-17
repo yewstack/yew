@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use yew_router::{route::Route, switch::Permissive};
+use yew_router::*;
 
 mod components;
 mod content;
@@ -10,7 +10,7 @@ use pages::{
     post_list::PostList,
 };
 mod switch;
-use switch::{AppAnchor, AppRoute, AppRouter, PublicUrlSwitch};
+use switch::AppAnchor;
 
 pub enum Msg {
     ToggleNavbar,
@@ -50,12 +50,36 @@ impl Component for Model {
                 { self.view_nav() }
 
                 <main>
-                    <AppRouter
-                        render=AppRouter::render(Self::switch)
-                        redirect=AppRouter::redirect(|route: Route| {
-                            AppRoute::PageNotFound(Permissive(Some(route.route))).into_public()
-                        })
-                    />
+                    <Router>
+                        <Route to="/posts/:id">
+                            <Post /> // id
+                        </Route>
+
+                        // todo query params
+                        <Route to="/posts/?page={}">
+                            <PostList /> // page.max(1)
+                        </Route>
+
+                        <Route to="/posts">
+                            <PostList />
+                        </Route>
+
+                        <Route to="/authors/:id">
+                            <Author /> // id
+                        </Route>
+
+                        <Route to="/authors">
+                            <AuthorList />
+                        </Route>
+
+                        <Route to="/">
+                            <Home />
+                        </Route>
+
+                        <Route to="404">
+                            <PageNotFound />
+                        </Route>
+                    </Router>
                 </main>
                 <footer class="footer">
                     <div class="content has-text-centered">
@@ -98,10 +122,10 @@ impl Model {
                 </div>
                 <div class=classes!("navbar-menu", active_class)>
                     <div class="navbar-start">
-                        <AppAnchor classes="navbar-item" route=AppRoute::Home>
+                        <AppAnchor classes="navbar-item" route="/">
                             { "Home" }
                         </AppAnchor>
-                        <AppAnchor classes="navbar-item" route=AppRoute::PostList>
+                        <AppAnchor classes="navbar-item" route="/posts">
                             { "Posts" }
                         </AppAnchor>
 
@@ -111,7 +135,7 @@ impl Model {
                             </a>
                             <div class="navbar-dropdown">
                                 <a class="navbar-item">
-                                    <AppAnchor classes="navbar-item" route=AppRoute::AuthorList>
+                                    <AppAnchor classes="navbar-item" route="/authors">
                                         { "Meet the authors" }
                                     </AppAnchor>
                                 </a>
@@ -120,32 +144,6 @@ impl Model {
                     </div>
                 </div>
             </nav>
-        }
-    }
-
-    fn switch(switch: PublicUrlSwitch) -> Html {
-        match switch.route() {
-            AppRoute::Post(id) => {
-                html! { <Post seed=id /> }
-            }
-            AppRoute::PostListPage(page) => {
-                html! { <PostList page=page.max(1) /> }
-            }
-            AppRoute::PostList => {
-                html! { <PostList page=1 /> }
-            }
-            AppRoute::Author(id) => {
-                html! { <Author seed=id /> }
-            }
-            AppRoute::AuthorList => {
-                html! { <AuthorList /> }
-            }
-            AppRoute::Home => {
-                html! { <Home /> }
-            }
-            AppRoute::PageNotFound(Permissive(route)) => {
-                html! { <PageNotFound route=route /> }
-            }
         }
     }
 }

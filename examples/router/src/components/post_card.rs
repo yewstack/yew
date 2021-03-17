@@ -1,8 +1,4 @@
-use crate::{
-    content::Post,
-    generator::Generated,
-    switch::{AppAnchor, AppRoute},
-};
+use crate::{content::Post, generator::Generated, switch::AppAnchor};
 use yew::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Properties)]
@@ -46,10 +42,10 @@ impl Component for PostCard {
                     </figure>
                 </div>
                 <div class="card-content">
-                    <AppAnchor classes="title is-block" route=AppRoute::Post(post.seed)>
+                    <AppAnchor classes="title is-block" route=format!("/posts/{}", post.seed)>
                         { &post.title }
                     </AppAnchor>
-                    <AppAnchor classes="subtitle is-block" route=AppRoute::Author(post.author.seed)>
+                    <AppAnchor classes="subtitle is-block" route=format!("/authors/{}", post.author.seed)>
                         { &post.author.name }
                     </AppAnchor>
                 </div>

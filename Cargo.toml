@@ -8,8 +8,6 @@ members = [
 
   # Router
   "packages/yew-router",
-  "packages/yew-router-macro",
-  "packages/yew-router-route-parser",
 
   # Function components
   "packages/yew-functional",
