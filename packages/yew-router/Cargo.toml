@@ -22,7 +22,10 @@ route-recognizer = "0.3.0"
 [dependencies.web-sys]
 version = "0.3"
 features = [
+    "Attr",
     "History",
+    "HtmlBaseElement",
     "Event",
+    "NamedNodeMap",
     "Window",
 ]

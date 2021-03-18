@@ -1,7 +1,7 @@
 use gloo::events::EventListener;
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::JsValue;
+use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{Event, History};
 use weblog::*;
 use yew::prelude::*;
@@ -39,7 +39,7 @@ impl YewRouter {
 
     pub fn push(&self, url: &str) {
         self.history
-            .push_state_with_url(&JsValue::null(), "", Some(url))
+            .push_state_with_url(&JsValue::null(), "", Some(&build_path_with_base(url)))
             .expect("push history");
         let event = Event::new("__history_pushed").unwrap();
         yew::utils::window()
@@ -62,10 +62,17 @@ pub struct RouterProps {
 #[function_component(Router)]
 pub fn router(props: &RouterProps) -> Html {
     let pathname = yew::utils::window().location().pathname().unwrap();
+    let base: Option<String> = base_url();
+
     let router = use_ref(|| {
         let mut router = route_recognizer::Router::new();
         props.children.iter().for_each(|child| {
-            router.add(&child.props.to, child.props.to.to_string());
+            let to = match &base {
+                Some(base) if base != "/" => build_path_with_base(&child.props.to),
+                _ => child.props.to,
+            };
+            console_log!(format!("base: {:?} -- to: {}", base, to));
+            router.add(&to, to.clone());
         });
         router
     });
@@ -79,8 +86,8 @@ pub fn router(props: &RouterProps) -> Html {
         Some(route) => route,
         None => {
             weblog::console_warn!("no route matched");
-            return html!()
-        },
+            return html!();
+        }
     };
 
     let (force_rerender, set_force_rerender) = use_state(|| 0);
@@ -137,10 +144,10 @@ fn from_route(
     router: &route_recognizer::Router<String>,
 ) -> Option<(Children, CurrentRoute)> {
     let mut selected = None;
-    if let Ok(path) = router.recognize(pathname) {
+    if let Ok(path) = router.recognize(pathname.strip_suffix("/").unwrap_or(pathname)) {
         let children = routes
             .iter()
-            .find(|it| it.props.to == **path.handler())
+            .find(|it| build_path_with_base(&it.props.to) == **path.handler())
             .unwrap()
             .props
             .children;
@@ -202,4 +209,33 @@ pub fn link(props: &LinkProps) -> Html {
     html! {
         <a class=props.classes.clone() onclick=onclick>{props.children.clone()}</a>
     }
+}
+
+fn base_url() -> Option<String> {
+    match yew::utils::document().query_selector("base") {
+        Ok(Some(base)) => {
+            let base = base
+                .unchecked_into::<web_sys::Element>()
+                .attributes()
+                .get_named_item("href")
+                .expect("base without href")
+                .value();
+            if base == "/" {
+                None
+            } else {
+                let base = base.strip_suffix("/").unwrap_or(&base);
+                Some(base.to_string())
+            }
+        }
+        _ => None,
+    }
+}
+
+fn build_path_with_base(to: &str) -> String {
+    let to = format!(
+        "{}{}",
+        base_url().as_ref().map(|it| it.as_str()).unwrap_or(""),
+        to
+    );
+    to.strip_suffix("/").map(|it| it.to_string()).unwrap_or(to)
 }
