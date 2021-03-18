@@ -54,6 +54,8 @@ thread_local! {
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct RouterProps {
+    #[prop_or(None)]
+    pub not_found_route: Option<String>,
     pub children: ChildrenWithProps<Route>,
 }
 
@@ -67,8 +69,19 @@ pub fn router(props: &RouterProps) -> Html {
         });
         router
     });
-    let (children, current_route) =
-        from_route(&pathname, &props.children, &*router.borrow()).unwrap();
+    let route = from_route(
+        &pathname,
+        &props.children,
+        props.not_found_route.as_ref().map(|it| it.as_str()),
+        &*router.borrow(),
+    );
+    let (children, current_route) = match route {
+        Some(route) => route,
+        None => {
+            weblog::console_warn!("no route matched");
+            return html!()
+        },
+    };
 
     let (force_rerender, set_force_rerender) = use_state(|| 0);
 
@@ -120,6 +133,7 @@ pub fn route(props: &RouteProps) -> Html {
 fn from_route(
     pathname: &str,
     routes: &ChildrenWithProps<Route>,
+    not_found_route: Option<&str>,
     router: &route_recognizer::Router<String>,
 ) -> Option<(Children, CurrentRoute)> {
     let mut selected = None;
@@ -139,9 +153,21 @@ fn from_route(
         ));
     }
 
-    // TODO set `selected` 404 page if provided if this is None
+    match selected {
+        Some(selected) => Some(selected),
+        None => {
+            let not_found_route = not_found_route?;
 
-    selected
+            let route = routes.iter().find(|it| it.props.to == not_found_route)?;
+            Some((
+                route.props.children,
+                CurrentRoute {
+                    path: not_found_route.to_string(),
+                    params: Default::default(),
+                },
+            ))
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
