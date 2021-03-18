@@ -12,7 +12,7 @@ original_id: css
 
 目前，我们的社区成员正在开发以下样式框架：
 
-- [yew_styles](https://github.com/spielrs/yew_styles) - A styling framework for Yew without any JavaScript dependencies.
+- [yew_styles](https://github.com/spielrs/yew_styles) - 一个不依赖任何 JavaScript 用于 Yew 的样式框架。
 - [yew-mdc](https://github.com/dungeonfog/yew-mdc) - Material Design 风格的组件库。
-- [muicss-yew](https://github.com/AlephAlpha/muicss-yew) - MUI CSS Components.
+- [muicss-yew](https://github.com/AlephAlpha/muicss-yew) - 一个基于 MUI CSS 的组件库。
 - [Yewtify](https://github.com/yewstack/yewtify) – Yew 版本的 Vuetify。
