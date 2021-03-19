@@ -1,7 +1,9 @@
 use gloo::events::EventListener;
+use route_recognizer::Params;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{Event, History};
 use weblog::*;
 use yew::prelude::*;
@@ -11,9 +13,18 @@ use yew_functional::*;
 pub struct CurrentRoute {
     path: String,
     params: route_recognizer::Params,
+    query: HashMap<String, String>,
 }
 
 impl CurrentRoute {
+    pub(crate) fn new(path: String, params: route_recognizer::Params) -> Self {
+        Self {
+            path,
+            params,
+            query: get_query_params(),
+        }
+    }
+
     pub fn path(&self) -> &str {
         &self.path
     }
@@ -21,6 +32,10 @@ impl CurrentRoute {
     // todo: use serde to deserialize params into a struct
     pub fn parmas(&self) -> &route_recognizer::Params {
         &self.params
+    }
+
+    pub fn query(&self) -> &HashMap<String, String> {
+        &self.query
     }
 }
 
@@ -79,7 +94,7 @@ pub fn router(props: &RouterProps) -> Html {
     let route = from_route(
         &pathname,
         &props.children,
-        props.not_found_route.as_ref().map(|it| it.as_str()),
+        props.not_found_route.as_deref(),
         &*router.borrow(),
     );
     let (children, current_route) = match route {
@@ -153,10 +168,7 @@ fn from_route(
             .children;
         selected = Some((
             children,
-            CurrentRoute {
-                path: path.handler().to_string(),
-                params: path.params().clone(),
-            },
+            CurrentRoute::new(path.handler().to_string(), path.params().clone()),
         ));
     }
 
@@ -168,10 +180,7 @@ fn from_route(
             let route = routes.iter().find(|it| it.props.to == not_found_route)?;
             Some((
                 route.props.children,
-                CurrentRoute {
-                    path: not_found_route.to_string(),
-                    params: Default::default(),
-                },
+                CurrentRoute::new(not_found_route.to_string(), Params::default()),
             ))
         }
     }
@@ -232,10 +241,54 @@ fn base_url() -> Option<String> {
 }
 
 fn build_path_with_base(to: &str) -> String {
-    let to = format!(
-        "{}{}",
-        base_url().as_ref().map(|it| it.as_str()).unwrap_or(""),
+    let to = format!("{}{}", base_url().as_deref().unwrap_or(""), to);
+
+    let path = if to == "/" {
         to
-    );
-    to.strip_suffix("/").map(|it| it.to_string()).unwrap_or(to)
+    } else {
+        to.strip_suffix("/").map(|it| it.to_string()).unwrap_or(to)
+    };
+    console_log!(format!("path11 {}", path));
+
+    path
+}
+
+fn get_query_params() -> HashMap<String, String> {
+    #[wasm_bindgen(inline_js = r#"
+export function params() {
+    let entries = (new URL(document.URL)).searchParams.entries()
+    let list = []
+    for (const [key, value] of entries) {
+        list.push({key, value})
+    }
+    return list
+}
+"#)]
+    extern "C" {
+        fn params() -> js_sys::Array;
+    }
+
+    #[wasm_bindgen]
+    extern "C" {
+        #[derive(Debug)]
+        type Param;
+
+        #[wasm_bindgen(getter, method)]
+        fn key(this: &Param) -> String;
+
+        #[wasm_bindgen(getter, method)]
+        fn value(this: &Param) -> String;
+    }
+
+    let iter = params().to_vec().into_iter().map(|value: JsValue| {
+        let param = value.unchecked_into::<Param>();
+        (param.key(), param.value())
+    });
+    let mut map = HashMap::new();
+
+    for (k, v) in iter {
+        map.insert(k, v);
+    }
+
+    map
 }
