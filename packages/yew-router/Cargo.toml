@@ -24,9 +24,12 @@ route-recognizer = "0.3.0"
 version = "0.3"
 features = [
     "Attr",
+    "Document",
     "History",
     "HtmlBaseElement",
     "Event",
     "NamedNodeMap",
+    "Url",
+    "UrlSearchParams",
     "Window",
 ]

@@ -254,36 +254,21 @@ fn build_path_with_base(to: &str) -> String {
 }
 
 fn get_query_params() -> HashMap<String, String> {
-    #[wasm_bindgen(inline_js = r#"
-export function params() {
-    let entries = (new URL(document.URL)).searchParams.entries()
-    let list = []
-    for (const [key, value] of entries) {
-        list.push({key, value})
-    }
-    return list
-}
-"#)]
-    extern "C" {
-        fn params() -> js_sys::Array;
-    }
+    let url = web_sys::Url::new(&yew::utils::document().url().unwrap()).unwrap();
 
-    #[wasm_bindgen]
-    extern "C" {
-        #[derive(Debug)]
-        type Param;
+    let iter = js_sys::try_iter(&JsValue::from(&url.search_params()))
+        .expect("try_iter failed")
+        .expect("try_iter failed")
+        .into_iter()
+        .map(|it| it.unwrap().unchecked_into::<js_sys::Array>().to_vec())
+        .map(|it| {
+            let mut iter = it.into_iter();
+            // unwraps are unreachable
+            // there will be at least 2 values here
+            // both of them will be strings
+            (iter.next().unwrap().as_string().unwrap(), iter.next().unwrap().as_string().unwrap())
+        });
 
-        #[wasm_bindgen(getter, method)]
-        fn key(this: &Param) -> String;
-
-        #[wasm_bindgen(getter, method)]
-        fn value(this: &Param) -> String;
-    }
-
-    let iter = params().to_vec().into_iter().map(|value: JsValue| {
-        let param = value.unchecked_into::<Param>();
-        (param.key(), param.value())
-    });
     let mut map = HashMap::new();
 
     for (k, v) in iter {
