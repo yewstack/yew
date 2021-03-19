@@ -12,7 +12,7 @@ impl Component for Author {
     fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
         let seed = RouterService::current_route()
             .parmas()
-            .find("id")
+            .get("id")
             .unwrap()
             .parse()
             .unwrap();

@@ -24,7 +24,7 @@ impl Component for PostList {
         match msg {
             Msg::ShowPage(page) => {
                 RouterService::push(&format!("/posts/?page={}", page));
-                false
+                true
             }
         }
     }
@@ -77,7 +77,6 @@ impl PostList {
     }
 
     fn current_page(&self) -> u64 {
-        // todo query params
-        1
+        RouterService::current_route().query().get("page").map(|it| it.parse().expect("invalid page")).unwrap_or(1)
     }
 }

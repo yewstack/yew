@@ -1,5 +1,6 @@
-use crate::{content::Author, generator::Generated, switch::AppAnchor};
+use crate::{content::Author, generator::Generated};
 use yew::prelude::*;
+use yew_router::prelude::Link;
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {
@@ -53,9 +54,9 @@ impl Component for AuthorCard {
                     </div>
                 </div>
                 <footer class="card-footer">
-                    <AppAnchor classes="card-footer-item" route=format!("/authors/{}", author.seed)>
+                    <Link classes="card-footer-item" route=format!("/authors/{}", author.seed)>
                         { "Profile" }
-                    </AppAnchor>
+                    </Link>
                 </footer>
             </div>
         }

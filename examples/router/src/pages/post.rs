@@ -1,7 +1,7 @@
-use crate::{content, generator::Generated, switch::AppAnchor};
+use crate::{content, generator::Generated};
 use content::PostPart;
 use yew::prelude::*;
-use yew_router::RouterService;
+use yew_router::prelude::*;
 
 pub struct Post {
     post: content::Post,
@@ -13,7 +13,7 @@ impl Component for Post {
     fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
         let seed = RouterService::current_route()
             .parmas()
-            .find("id")
+            .get("id")
             .unwrap()
             .parse()
             .unwrap();
@@ -49,9 +49,9 @@ impl Component for Post {
                             </h1>
                             <h2 class="subtitle">
                                 { "by " }
-                                <AppAnchor classes="has-text-weight-semibold" route=format!("/authors/{}", post.author.seed)>
+                                <Link classes="has-text-weight-semibold" route=format!("/authors/{}", post.author.seed)>
                                     { &post.author.name }
-                                </AppAnchor>
+                                </Link>
                             </h2>
                             <div class="tags">
                                 { for keywords }
@@ -77,9 +77,9 @@ impl Post {
                 </figure>
                 <div class="media-content">
                     <div class="content">
-                        <AppAnchor classes="is-size-5" route=format!("/authors/{}", quote.author.seed)>
+                        <Link classes="is-size-5" route=format!("/authors/{}", quote.author.seed)>
                             <strong>{ &quote.author.name }</strong>
-                        </AppAnchor>
+                        </Link>
                         <p class="is-family-secondary">
                             { &quote.content }
                         </p>

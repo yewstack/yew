@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use yew_router::*;
+use yew_router::prelude::*;
 
 mod components;
 mod content;
@@ -9,8 +9,6 @@ use pages::{
     author::Author, author_list::AuthorList, home::Home, page_not_found::PageNotFound, post::Post,
     post_list::PostList,
 };
-mod switch;
-use switch::AppAnchor;
 
 pub enum Msg {
     ToggleNavbar,
@@ -50,14 +48,13 @@ impl Component for Model {
                 { self.view_nav() }
 
                 <main>
-                    <Router>
+                    <Router not_found_route="/404">
                         <Route to="/posts/:id">
-                            <Post /> // id
+                            <Post />
                         </Route>
 
-                        // todo query params
-                        <Route to="/posts/?page={}">
-                            <PostList /> // page.max(1)
+                        <Route to="/posts">
+                            <PostList />
                         </Route>
 
                         <Route to="/posts">
@@ -65,7 +62,7 @@ impl Component for Model {
                         </Route>
 
                         <Route to="/authors/:id">
-                            <Author /> // id
+                            <Author />
                         </Route>
 
                         <Route to="/authors">
@@ -122,12 +119,12 @@ impl Model {
                 </div>
                 <div class=classes!("navbar-menu", active_class)>
                     <div class="navbar-start">
-                        <AppAnchor classes="navbar-item" route="/">
+                        <Link classes="navbar-item" route="/">
                             { "Home" }
-                        </AppAnchor>
-                        <AppAnchor classes="navbar-item" route="/posts">
+                        </Link>
+                        <Link classes="navbar-item" route="/posts">
                             { "Posts" }
-                        </AppAnchor>
+                        </Link>
 
                         <div class="navbar-item has-dropdown is-hoverable">
                             <a class="navbar-link">
@@ -135,9 +132,9 @@ impl Model {
                             </a>
                             <div class="navbar-dropdown">
                                 <a class="navbar-item">
-                                    <AppAnchor classes="navbar-item" route="/authors">
+                                    <Link classes="navbar-item" route="/authors">
                                         { "Meet the authors" }
-                                    </AppAnchor>
+                                    </Link>
                                 </a>
                             </div>
                         </div>

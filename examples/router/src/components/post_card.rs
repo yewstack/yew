@@ -1,5 +1,6 @@
-use crate::{content::Post, generator::Generated, switch::AppAnchor};
+use crate::{content::Post, generator::Generated};
 use yew::prelude::*;
+use yew_router::prelude::Link;
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {
@@ -42,12 +43,12 @@ impl Component for PostCard {
                     </figure>
                 </div>
                 <div class="card-content">
-                    <AppAnchor classes="title is-block" route=format!("/posts/{}", post.seed)>
+                    <Link classes="title is-block" route=format!("/posts/{}", post.seed)>
                         { &post.title }
-                    </AppAnchor>
-                    <AppAnchor classes="subtitle is-block" route=format!("/authors/{}", post.author.seed)>
+                    </Link>
+                    <Link classes="subtitle is-block" route=format!("/authors/{}", post.author.seed)>
                         { &post.author.name }
-                    </AppAnchor>
+                    </Link>
                 </div>
             </div>
         }
