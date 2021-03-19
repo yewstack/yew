@@ -77,6 +77,10 @@ impl PostList {
     }
 
     fn current_page(&self) -> u64 {
-        RouterService::current_route().query().get("page").map(|it| it.parse().expect("invalid page")).unwrap_or(1)
+        RouterService::current_route()
+            .query()
+            .get("page")
+            .map(|it| it.parse().expect("invalid page"))
+            .unwrap_or(1)
     }
 }
