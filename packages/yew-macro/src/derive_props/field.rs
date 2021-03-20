@@ -166,7 +166,8 @@ impl PropField {
             }
         } else if matches!(
             &named_field.ty,
-            Type::Path(TypePath { path, .. }) if path.segments[0].ident == "Option"
+            Type::Path(TypePath { path, .. })
+            if path.segments.len() == 1 && path.segments[0].ident == "Option"
         ) {
             Ok(PropAttr::Option)
         } else {
