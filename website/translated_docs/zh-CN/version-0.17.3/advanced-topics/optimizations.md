@@ -36,7 +36,7 @@ impl Example {
 
 但是我们可以更进一步！对于任何实现了`PartialEq`的项，可以使用一个 trait 和一个 blanket implementation 将这六行样板代码减少到一行。<br>看看 [`yewtil` 是如何为他的 `NeqAssign` trait](https://docs.rs/yewtil/*/yewtil/trait.NeqAssign.html) 实现此功能的。
 
-## wee_alloc
+## 有效使用智能指针（smart pointers）
 
 **注意：如果不确定本节中使用的某些术语，阅读 Rust Book[关于智能指针](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)的章节将有助于理解。**
 
@@ -74,12 +74,12 @@ Yew 没有原生支持纯组件或者函数式组件，但是可以通过外部�
 
 如果你的主 crate 过于庞大，或者你想在深层嵌套的页面（例如，在另一个页面顶部渲染的页面）中快速迭代，则可以使用一个示例 crate 创建一个更简单的主页面实现并在之上渲染你正在开发的组件。
 
-## Reducing binary sizes
+## 减少二进制文件的大小
 
-- optimize Rust code
-    - `wee_alloc` ( using tiny allocator )
-    - `cargo.toml` ( defining release profile )
-- optimize wasm code using `wasm-opt`
+- 优化 Rust 代码
+    - `wee_alloc` （使用小型的分配器（allocator））
+    - `cargo.toml` （定义 release profile）
+- 使用`wasm-opt`优化 wasm 代码
 
 **注意：更多有关减小二进制文件大小的信息，请参见 [《Rust Wasm Book》](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size) 。**
 
@@ -90,7 +90,7 @@ Yew 没有原生支持纯组件或者函数式组件，但是可以通过外部�
 与减少的文件大小相比，速度和内存的损耗是很小的。更小的文件体积意味着您的页面将加载得更快，因此通常情况下都建议您使用此分配器来替换默认的分配器，除非您的应用程序十分依赖分配器的表现。
 
 ```rust
-// Use `wee_alloc` as the global allocator.
+// 将 `wee_alloc` 作为全局的 allocator。
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 ```
@@ -115,12 +115,12 @@ lto = true
 
 ### wasm-opt
 
-Further more it is possible to optimize size of `wasm` code.
+此外，还可以尝试优化`wasm`代码的大小。
 
 Rust Wasm Book 中有关于减小 Wasm 二进制文件大小的章节：[缩小 .wasm 大小](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
-- using `wasm-pack` which by default optimizes `wasm` code in release builds
-- using `wasm-opt` directly on `wasm` files.
+- 使用`wasm-pack`（默认情况下会在 release 构建中优化`wasm`）
+- 直接对`wasm`文件使用`wasm-opt`
 
 ```text
 wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
@@ -130,15 +130,15 @@ wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 
 注意： `wasm-pack`同时优化了 Rust 和 Wasm 的代码。 而示例中使用的`wasm-bindgen` 没有进行任何 Rust 大小优化。
 
-used tool | size
+使用的工具 | 大小
 :-- | :--
 wasm-bindgen | 158KB
 wasm-bindgen + wasm-opt -Os | 116KB
 wasm-pack | 99 KB
 
-## Further reading:
+## 进一步阅读：
 
-- [The Rust Book's chapter on smart pointers](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
-- [Information from the Rust Wasm Book about reducing binary sizes](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
-- [Documentation about Rust profiles](https://doc.rust-lang.org/cargo/reference/profiles.html)
+- [Rust Book关于智能指针的章节](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
+- [Rust Wasm Book 中有关减小二进制文件大小的内容](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
+- [Rust 配置信息相关的文档](https://doc.rust-lang.org/cargo/reference/profiles.html)
 - [二进制项目](https://github.com/WebAssembly/binaryen)
