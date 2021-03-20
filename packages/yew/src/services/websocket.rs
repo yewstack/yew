@@ -51,6 +51,7 @@ pub struct WebSocketTask {
 
 #[cfg(feature = "web_sys")]
 impl WebSocketTask {
+    #[allow(clippy::unnecessary_wraps)]
     fn new(
         ws: WebSocket,
         notification: Callback<WebSocketStatus>,
