@@ -51,19 +51,18 @@ pub struct WebSocketTask {
 
 #[cfg(feature = "web_sys")]
 impl WebSocketTask {
-    #[allow(clippy::unnecessary_wraps)]
     fn new(
         ws: WebSocket,
         notification: Callback<WebSocketStatus>,
         listener_0: EventListener,
         listeners: [EventListener; 3],
-    ) -> Result<WebSocketTask, WebSocketError> {
+    ) -> WebSocketTask {
         let [listener_1, listener_2, listener_3] = listeners;
-        Ok(WebSocketTask {
+        WebSocketTask {
             ws,
             notification,
             listeners: [listener_0, listener_1, listener_2, listener_3],
-        })
+        }
     }
 }
 
@@ -102,7 +101,7 @@ impl WebSocketService {
                     let event = event.dyn_ref::<MessageEvent>().unwrap();
                     process_both(&event, &callback);
                 });
-                WebSocketTask::new(ws, notification, listener, listeners)
+                Ok(WebSocketTask::new(ws, notification, listener, listeners))
             }),
         }
     }
@@ -133,7 +132,7 @@ impl WebSocketService {
                     let event = event.dyn_ref::<MessageEvent>().unwrap();
                     process_binary(&event, &callback);
                 });
-                WebSocketTask::new(ws, notification, listener, listeners)
+                Ok(WebSocketTask::new(ws, notification, listener, listeners))
             }),
         }
     }
@@ -164,7 +163,7 @@ impl WebSocketService {
                     let event = event.dyn_ref::<MessageEvent>().unwrap();
                     process_text(&event, &callback);
                 });
-                WebSocketTask::new(ws, notification, listener, listeners)
+                Ok(WebSocketTask::new(ws, notification, listener, listeners))
             }),
         }
     }
