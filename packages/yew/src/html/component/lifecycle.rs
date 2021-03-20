@@ -255,6 +255,7 @@ mod tests {
     #[derive(Clone, Properties, Default)]
     struct Props {
         lifecycle: Rc<RefCell<Vec<String>>>,
+        #[cfg(feature = "wasm_test")]
         create_message: Option<bool>,
         update_message: RefCell<Option<bool>>,
         view_message: RefCell<Option<bool>>,
@@ -272,6 +273,7 @@ mod tests {
 
         fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
             props.lifecycle.borrow_mut().push("create".into());
+            #[cfg(feature = "wasm_test")]
             if let Some(msg) = props.create_message {
                 link.send_message(msg);
             }
@@ -351,6 +353,7 @@ mod tests {
         test_lifecycle(
             Props {
                 lifecycle: lifecycle.clone(),
+                #[cfg(feature = "wasm_test")]
                 create_message: Some(false),
                 ..Props::default()
             },
@@ -430,6 +433,7 @@ mod tests {
         test_lifecycle(
             Props {
                 lifecycle,
+                #[cfg(feature = "wasm_test")]
                 create_message: Some(true),
                 update_message: RefCell::new(Some(true)),
                 ..Props::default()
