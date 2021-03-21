@@ -1,11 +1,16 @@
 use yew::prelude::*;
 
+/// Props for [`Route`].
 #[derive(Properties, Clone, PartialEq, Debug)]
 pub struct RouteProps {
+    /// The path for this route. Dynamic segments are specified by prefixing them with `:`.
+    /// **Example**: `/path/:value`
     pub to: String,
+    /// The elements displayed on this route.
     pub children: Children,
 }
 
+/// Specifies a route for the [`Router`](crate::Router).
 pub struct Route {
     props: RouteProps,
 }

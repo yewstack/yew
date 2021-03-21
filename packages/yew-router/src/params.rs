@@ -1,11 +1,13 @@
 use std::collections::HashMap;
 
+/// Parameters from a path or query parameters.
 #[derive(Debug, Clone)]
 pub struct Params {
     data: HashMap<String, String>,
 }
 
 impl Params {
+    /// Get a parameter by its key.
     pub fn get(&self, key: &str) -> Option<&str> {
         self.data.get(key).map(|it| it.as_str())
     }

@@ -1,3 +1,5 @@
+//! Router Component.
+
 use crate::utils::{base_url, build_path_with_base, from_route};
 use crate::{components::route::Route, CurrentRoute};
 use gloo::events::EventListener;
@@ -9,12 +11,12 @@ use weblog::*;
 use yew::prelude::*;
 use yew_functional::*;
 
-pub(crate) struct YewRouter {
+pub(crate) struct RouterState {
     pub(crate) history: History,
     pub(crate) current_route: RefCell<Option<CurrentRoute>>,
 }
 
-impl YewRouter {
+impl RouterState {
     fn new() -> Self {
         Self {
             history: yew::utils::window().history().expect("no history"),
@@ -34,9 +36,10 @@ impl YewRouter {
 }
 
 thread_local! {
-    pub(crate) static ROUTER: Rc<YewRouter> = Rc::new(YewRouter::new());
+    pub(crate) static ROUTER: Rc<RouterState> = Rc::new(RouterState::new());
 }
 
+/// Props for [`Router`]
 #[derive(Properties, Clone, PartialEq)]
 pub struct RouterProps {
     #[prop_or(None)]
@@ -44,6 +47,13 @@ pub struct RouterProps {
     pub children: ChildrenWithProps<Route>,
 }
 
+/// The router component.
+///
+/// It accepts [`Route`]s as children. When a route can't be matched,
+/// it looks for the `not_found_route` prop. If the said prop is specified,
+/// it redirects to the specified route. Otherwise `html! {}` is rendered
+/// and a message is logged to console stating that no route can be matched.
+/// See the [crate level document][crate] for more information.
 #[function_component(Router)]
 pub fn router(props: &RouterProps) -> Html {
     let pathname = yew::utils::window().location().pathname().unwrap();

@@ -1,6 +1,7 @@
 use crate::utils::get_query_params;
 use crate::Params;
 
+/// The current route.
 #[derive(Debug, Clone)]
 pub struct CurrentRoute {
     path: String,
@@ -17,16 +18,25 @@ impl CurrentRoute {
         }
     }
 
+    /// Returns the current path.
+    ///
+    /// This is the `to` prop for the current [`Route`](crate::prelude::Route).
+    /// If you want the current url that the user navigated to,
+    /// consider using [`location::pathname()`](web_sys::Location::pathname) instead.
     #[inline]
     pub fn path(&self) -> &str {
         &self.path
     }
 
+    /// Returns the parameters from a path.
+    ///
+    /// In a path, `/path/:value`, `value` is a parameter.
     #[inline]
     pub fn parmas(&self) -> &Params {
         &self.params
     }
 
+    /// Returns the query parameters from the path.
     #[inline]
     pub fn query(&self) -> &Params {
         &self.query

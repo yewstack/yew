@@ -1,6 +1,7 @@
 use crate::RouterService;
 use yew::prelude::*;
 
+/// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]
 pub struct LinkProps {
     #[prop_or_default]
@@ -9,6 +10,7 @@ pub struct LinkProps {
     pub children: Children,
 }
 
+/// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)
 pub struct Link {
     link: ComponentLink<Self>,
     props: LinkProps,
