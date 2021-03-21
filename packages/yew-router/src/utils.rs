@@ -99,7 +99,7 @@ pub fn from_route(
 }
 
 #[cfg(test)]
-// #[cfg(feature = "wasm_test")]
+#[cfg(feature = "wasm_test")]
 mod tests {
     use super::*;
     use crate::components::route::RouteProps;

@@ -42,3 +42,8 @@ version = "0.3"
 features = [
     "HtmlHeadElement",
 ]
+
+[features]
+
+# internal use only
+wasm_test = []
