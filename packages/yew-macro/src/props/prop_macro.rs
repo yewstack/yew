@@ -64,13 +64,13 @@ impl Parse for PropValue {
     }
 }
 
-impl Into<Prop> for PropValue {
-    fn into(self) -> Prop {
-        let Self {
+impl From<PropValue> for Prop {
+    fn from(prop_value: PropValue) -> Prop {
+        let PropValue {
             label,
             colon_token,
             value,
-        } = self;
+        } = prop_value;
         Prop {
             label,
             punct: colon_token.map(PropPunct::Colon),
