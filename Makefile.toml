@@ -38,7 +38,7 @@ dependencies = ["tests-setup"]
 env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["**/examples/*"] }
 run_task = { name = [
     "test-flow",
-    # "tests-stdweb",
+    "tests-stdweb",
     "doc-test-flow",
 ], fork = true, cleanup_task = "tests-cleanup" }
 
