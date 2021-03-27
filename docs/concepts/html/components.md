@@ -67,7 +67,7 @@ impl Component for Container {
 
     fn view(&self) -> Html {
        html! {
-           <div id=&self.0.id>
+           <div id=self.0.id.clone()>
                { self.0.children.clone() }
            </div>
        }
@@ -110,45 +110,6 @@ impl Component for List {
         }}
     }
 }
-```
-
-## Transformers
-
-Whenever you set a prop its value goes through a transformation step first.
-If the value already has the correct type, this step doesn't do anything.
-However, transformers can be useful to reduce code repetition.
-
-The following is a list of transformers you should know about:
-
-- `&T` -> `T`
-
-  Clones the reference to get an owned value.
-
-- `&str` -> `String`
-
-  Allows you to use string literals without adding `.to_owned()` at the end.
-
-- `T` -> `Option<T>`
-
-  Wraps the value in `Some`.
-
-```rust
-struct Props {
-    unique_id: Option<usize>,
-    text: String,
-}
-
-struct Model;
-impl Component for Model {
-    type Properties = Props;
-
-    // ...
-}
-
-// transformers allow you to write this:
-html! { <Model unique_id=5 text="literals are fun" /> };
-// instead of:
-html! { <Model unique_id=Some(5) text="literals are fun".to_owned() /> };
 ```
 
 ## Relevant examples
