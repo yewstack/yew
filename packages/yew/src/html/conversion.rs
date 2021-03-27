@@ -1,5 +1,4 @@
 use super::{Component, NodeRef, Scope};
-use crate::{callback::Callback, virtual_dom::Key};
 use std::{borrow::Cow, rc::Rc};
 
 /// Marker trait for types that the [`html!`] macro may clone implicitly.
@@ -11,9 +10,6 @@ impl ImplicitClone for Cow<'static, str> {}
 impl<T: ImplicitClone> ImplicitClone for Option<T> {}
 impl<T> ImplicitClone for Rc<T> {}
 
-// TODO move these implementations to the type definitions
-impl<T> ImplicitClone for Callback<T> {}
-impl ImplicitClone for Key {}
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
 // TODO there are still a few missing like AgentScope
@@ -77,9 +73,10 @@ impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
 impl_into_prop!(|value: &'static str| -> Cow<'static, str> { Cow::Borrowed(value) });
 impl_into_prop!(|value: String| -> Cow<'static, str> { Cow::Owned(value) });
 
-/// TODO
+/// A trait similar to `Into<T>` which allows conversion to an optional value of a `Properties`
+/// struct.
 pub trait IntoOptPropValue<T> {
-    /// TODO
+    /// Convert `self` to an optional value of a `Properties` struct.
     fn into_opt_prop_value(self) -> Option<T>;
 }
 impl<T, V> IntoOptPropValue<V> for T

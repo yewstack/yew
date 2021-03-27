@@ -1,5 +1,6 @@
 //! This module contains the implementation yew's virtual nodes' keys.
 
+use crate::html::ImplicitClone;
 use std::fmt::{self, Display, Formatter};
 use std::ops::Deref;
 use std::rc::Rc;
@@ -38,6 +39,8 @@ impl From<&'_ str> for Key {
         Self::from(key)
     }
 }
+
+impl ImplicitClone for Key {}
 
 macro_rules! key_impl_from_to_string {
     ($type:ty) => {
