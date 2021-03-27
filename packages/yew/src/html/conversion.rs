@@ -14,9 +14,9 @@ impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
 // TODO there are still a few missing like AgentScope
 
-/// TODO
+/// A trait similar to `Into<T>` which allows conversion to a value of a `Properties` struct.
 pub trait IntoPropValue<T> {
-    /// TODO
+    /// Convert `self` to a value of a `Properties` struct.
     fn into_prop_value(self) -> T;
 }
 
@@ -73,8 +73,8 @@ impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
 impl_into_prop!(|value: &'static str| -> Cow<'static, str> { Cow::Borrowed(value) });
 impl_into_prop!(|value: String| -> Cow<'static, str> { Cow::Owned(value) });
 
-/// A trait similar to `Into<T>` which allows conversion to an optional value of a `Properties`
-/// struct.
+/// A trait similar to `Into<Option<T>>` which allows conversion to an optional value of a
+/// `Properties` struct.
 pub trait IntoOptPropValue<T> {
     /// Convert `self` to an optional value of a `Properties` struct.
     fn into_opt_prop_value(self) -> Option<T>;
