@@ -1,5 +1,4 @@
-use crate::{components::route::Route, CurrentRoute};
-use route_recognizer::Params;
+use crate::{components::route::Route, CurrentRoute, Routable};
 use std::collections::HashMap;
 use wasm_bindgen::{JsCast, JsValue};
 use yew::{Children, ChildrenWithProps};
@@ -64,7 +63,7 @@ pub fn get_query_params() -> HashMap<String, String> {
     map
 }
 
-pub fn from_route(
+pub fn from_route<R: Routable + 'static>(
     pathname: &str,
     routes: &ChildrenWithProps<Route>,
     not_found_route: Option<&str>,
@@ -80,7 +79,12 @@ pub fn from_route(
             .children;
         selected = Some((
             children,
-            CurrentRoute::new(path.handler().to_string(), path.params().clone()),
+            {
+                let route = R::from_path(path.handler(), &path.params().into_iter().collect())
+                    // todo no unwrap
+                    .unwrap();
+                CurrentRoute::new(route)
+            },
         ));
     }
 
@@ -90,10 +94,14 @@ pub fn from_route(
             let not_found_route = not_found_route?;
 
             let route = routes.iter().find(|it| it.props.to == not_found_route)?;
-            Some((
-                route.props.children,
-                CurrentRoute::new(not_found_route.to_string(), Params::default()),
-            ))
+            Some((route.props.children, {
+                let route = R::from_path(not_found_route, &HashMap::new());
+                let route = match route {
+                    Some(route) => route,
+                    None => return None
+                };
+                CurrentRoute::new(route)
+            }))
         }
     }
 }

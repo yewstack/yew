@@ -1,39 +1,24 @@
 use crate::utils::get_query_params;
-use crate::Params;
+use crate::{Params, Routable};
+use std::rc::Rc;
 
 /// The current route.
 #[derive(Debug, Clone)]
 pub struct CurrentRoute {
-    path: String,
-    params: Params,
+    route: Rc<dyn Routable>,
     query: Params,
 }
 
 impl CurrentRoute {
-    pub(crate) fn new(path: String, params: impl Into<Params>) -> Self {
+    pub(crate) fn new(route: impl Routable + 'static) -> Self {
         Self {
-            path,
-            params: params.into(),
+            route: Rc::new(route),
             query: get_query_params().into(),
         }
     }
 
-    /// Returns the current path.
-    ///
-    /// This is the `to` prop for the current [`Route`](crate::prelude::Route).
-    /// If you want the current url that the user navigated to,
-    /// consider using [`location::pathname()`](web_sys::Location::pathname) instead.
-    #[inline]
-    pub fn path(&self) -> &str {
-        &self.path
-    }
-
-    /// Returns the parameters from a path.
-    ///
-    /// In a path, `/path/:value`, `value` is a parameter.
-    #[inline]
-    pub fn parmas(&self) -> &Params {
-        &self.params
+    pub fn route<R: Routable + 'static>(&self) -> &R {
+        self.route.as_any().downcast_ref::<R>().unwrap()
     }
 
     /// Returns the query parameters from the path.

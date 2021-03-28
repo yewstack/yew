@@ -1,4 +1,5 @@
-use crate::{router::ROUTER, CurrentRoute};
+use crate::{router::ROUTER, CurrentRoute, Routable};
+use std::collections::HashMap;
 
 /// Service to interface with the router.
 #[derive(Debug, Copy, Clone)]
@@ -8,8 +9,15 @@ impl RouterService {
     /// Navigate to a specific route.
     ///
     /// This should be used in cases where [`Link`](crate::prelude::Link) is insufficient.
-    pub fn push(url: &str) {
-        ROUTER.with(|router| router.push(url))
+    pub fn push(route: impl Routable, query: Option<HashMap<&str, &str>>) {
+        let mut url = route.to_route();
+        if let Some(query) = query {
+            url.push('?');
+            query.iter().for_each(|(k, v)| {
+                url.push_str(&format!("{}={}", k, v));
+            })
+        }
+        ROUTER.with(|router| router.push(&url))
     }
 
     /// The current route.

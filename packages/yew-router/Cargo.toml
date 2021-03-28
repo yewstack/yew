@@ -12,6 +12,7 @@ repository = "https://github.com/yewstack/yew"
 
 [dependencies]
 yew = { path = "../yew", default-features= false }
+yew-router-macro = { path = "../yew-router-macro" }
 yew-functional = { path = "../yew-functional" }
 
 wasm-bindgen = "0.2"

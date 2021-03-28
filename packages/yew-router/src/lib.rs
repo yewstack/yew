@@ -48,11 +48,15 @@ mod params;
 pub mod router;
 mod service;
 pub(crate) mod utils;
+mod routable;
 
 pub use current_route::CurrentRoute;
 pub use params::Params;
 pub use router::Router;
 pub use service::RouterService;
+pub use routable::Routable;
+
+pub use yew_router_macro::Routable;
 
 pub mod prelude {
     //! Prelude module to be imported when working with `yew-router`.
@@ -62,5 +66,5 @@ pub mod prelude {
     pub use crate::components::{link::Link, route::Route};
     pub use crate::Router;
     #[doc(no_inline)]
-    pub use crate::{CurrentRoute, Params, RouterService};
+    pub use crate::{CurrentRoute, Params, RouterService, Routable};
 }

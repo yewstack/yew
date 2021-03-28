@@ -1,7 +1,7 @@
 //! Router Component.
 
 use crate::utils::{base_url, build_path_with_base, from_route};
-use crate::{components::route::Route, CurrentRoute};
+use crate::{components::route::Route, CurrentRoute, Routable};
 use gloo::events::EventListener;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -55,12 +55,15 @@ pub struct RouterProps {
 /// and a message is logged to console stating that no route can be matched.
 /// See the [crate level document][crate] for more information.
 #[function_component(Router)]
-pub fn router(props: &RouterProps) -> Html {
+// this will take generic <R> where R: Routable
+pub fn router<R: Routable + 'static>(props: &RouterProps) -> Html {
     let pathname = yew::utils::window().location().pathname().unwrap();
     let base: Option<String> = base_url();
 
     let router = use_ref(|| {
         let mut router = route_recognizer::Router::new();
+        // R::routes will iterated on and used as route in the router as `to`
+        // `to` prop will be the same so how much will that effect? don't know
         props.children.iter().for_each(|child| {
             let to = match &base {
                 Some(base) if base != "/" => build_path_with_base(&child.props.to),
@@ -70,7 +73,7 @@ pub fn router(props: &RouterProps) -> Html {
         });
         router
     });
-    let route = from_route(
+    let route = from_route::<R>(
         &pathname,
         &props.children,
         props.not_found_route.as_deref(),

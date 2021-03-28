@@ -1,28 +1,28 @@
-use crate::RouterService;
+use crate::{RouterService, Routable};
 use yew::prelude::*;
 
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]
-pub struct LinkProps {
+pub struct LinkProps<R: Routable + Clone> {
     #[prop_or_default]
     pub classes: String,
-    pub route: String,
+    pub route: R,
     pub children: Children,
 }
 
 /// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)
-pub struct Link {
+pub struct Link<R: Routable + Clone + PartialEq + 'static> {
     link: ComponentLink<Self>,
-    props: LinkProps,
+    props: LinkProps<R>,
 }
 
 pub enum Msg {
     OnClick,
 }
 
-impl Component for Link {
+impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
     type Message = Msg;
-    type Properties = LinkProps;
+    type Properties = LinkProps<R>;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self { link, props }
@@ -31,8 +31,7 @@ impl Component for Link {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::OnClick => {
-                let route = self.props.route.clone();
-                RouterService::push(&route);
+                RouterService::push(self.props.route.clone(), None);
                 false
             }
         }
