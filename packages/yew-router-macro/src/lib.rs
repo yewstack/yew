@@ -146,7 +146,7 @@ fn routable_derive_impl(input: Routable) -> TokenStream {
 
         #[automatically_derived]
         impl ::yew_router::Routable for #ident {
-            fn from_path(path: &str, params: &HashMap<&str, &str>) -> Option<Self> {
+            fn from_path(path: &str, params: &::std::collections::HashMap<&str, &str>) -> Option<Self> {
                 match path {
                     #(#from_path_matches),*,
                     _ => None,
@@ -159,7 +159,7 @@ fn routable_derive_impl(input: Routable) -> TokenStream {
                 }
             }
 
-            fn as_any(&self) -> &dyn Any {
+            fn as_any(&self) -> &dyn ::std::any::Any {
                 self
             }
         }

@@ -7,23 +7,34 @@
 //! # use yew::prelude::*;
 //! # use yew_functional::*;
 //! # use yew_router::prelude::*;
+//!
+//! #[derive(Debug, Clone, Copy, PartialEq, Routable)]
+//! enum Routes {
+//!     #[at("/")]
+//!     Home,
+//!     #[at("/secure")]
+//!     Secure,
+//!     #[at("/404")]
+//!     NotFound,
+//! }
+//!
 //! # #[function_component(Main)]
 //! # fn app() -> Html {
-//! let onclick_callback = Callback::from(|_| RouterService::push("/"));
+//! let onclick_callback = Callback::from(|_| RouterService::push(Routes::Home, None));
 //! html! {
-//!     <Router not_found_route="/404">
-//!         <Route to="/secure">
+//!     <Router<Routes> not_found_route=Routes::NOT_FOUND>
+//!         <Route to=Routes::SECURE>
 //!             <h1>{"Forbidden"}</h1>
 //!             <button onclick=onclick_callback>{"Navigate to /"}</button>
 //!         </Route>
-//!         <Route to="/">
+//!         <Route to=Routes::HOME>
 //!             <h1>{"Home"}</h1>
-//!             <Link route="/secure">{ "Navigate to /secure" }</Link>
+//!             <Link<Routes> route=Routes::Secure>{ "Navigate to /secure" }</Link<Routes>>
 //!         </Route>
-//!         <Route to="/404">
+//!         <Route to=Routes::NOT_FOUND>
 //!             <h1>{"Page not found"}</h1>
 //!         </Route>
-//!     </Router>
+//!     </Router<Routes>>
 //! }
 //! # }
 //! ```
@@ -47,7 +58,10 @@ mod current_route;
 mod params;
 pub mod router;
 mod service;
-pub(crate) mod utils;
+// #[cfg(test)]
+// pub mod utils;
+// #[cfg(not(test))]
+pub mod utils;
 mod routable;
 
 pub use current_route::CurrentRoute;

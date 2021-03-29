@@ -14,7 +14,7 @@ impl RouterService {
         if let Some(query) = query {
             url.push('?');
             query.iter().for_each(|(k, v)| {
-                url.push_str(&format!("{}={}", k, v));
+                url.push_str(&format!("{}={}&", k, v));
             })
         }
         ROUTER.with(|router| router.push(&url))

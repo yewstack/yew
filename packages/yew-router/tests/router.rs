@@ -4,36 +4,61 @@ use yew_functional::function_component;
 use yew_router::prelude::*;
 
 mod utils;
+use std::collections::HashMap;
 use utils::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
+#[derive(Debug, Clone, Copy, PartialEq, Routable)]
+enum Routes {
+    #[at("/")]
+    Home,
+    #[at("/no/:id")]
+    No { id: u32 },
+    #[at("/404")]
+    NotFound,
+}
+
 #[function_component(No)]
 fn no() -> Html {
+    let route = match RouterService::current_route().route::<Routes>() {
+        Routes::No { id } => format!("{}", id),
+        _ => String::new(),
+    };
+
     html! {
         <>
-            <div id="result-params">{RouterService::current_route().parmas().get("id").unwrap()}</div>
+            <div id="result-params">{route}</div>
             <div id="result-query">{RouterService::current_route().query().get("foo").unwrap()}</div>
-            <Link route="/yes">{"click me"}</Link>
         </>
     }
 }
 
 #[function_component(Comp)]
 fn component() -> Html {
+    let onclick = Callback::from(|_| {
+        RouterService::push(
+            Routes::No { id: 2 },
+            Some({
+                let mut map = HashMap::new();
+                map.insert("foo", "bar");
+                map
+            }),
+        )
+    });
     html! {
-        <Router not_found_route="/404">
-            <Route to="/">
+        <Router<Routes> not_found_route="/404">
+            <Route to=Routes::HOME>
                 <div id="result">{"Home"}</div>
-                <Link route="/no/2/?foo=bar">{"click me"}</Link>
+                <a onclick=onclick>{"click me"}</a>
             </Route>
-            <Route to="/no/:id">
+            <Route to=Routes::NO>
                 <No />
             </Route>
-            <Route to="/404">
+            <Route to=Routes::NOT_FOUND>
                 <div id="result">{"404"}</div>
             </Route>
-        </Router>
+        </Router<Routes>>
     }
 }
 
@@ -55,6 +80,4 @@ fn router_works() {
     click("a");
     assert_eq!("2", obtain_result_by_id("result-params"));
     assert_eq!("bar", obtain_result_by_id("result-query"));
-    click("a");
-    assert_eq!("404", obtain_result_by_id("result"));
 }
