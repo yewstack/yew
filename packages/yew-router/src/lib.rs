@@ -61,14 +61,14 @@ mod service;
 // #[cfg(test)]
 // pub mod utils;
 // #[cfg(not(test))]
-pub mod utils;
 mod routable;
+pub mod utils;
 
 pub use current_route::CurrentRoute;
 pub use params::Params;
+pub use routable::Routable;
 pub use router::Router;
 pub use service::RouterService;
-pub use routable::Routable;
 
 pub use yew_router_macro::Routable;
 
@@ -80,5 +80,5 @@ pub mod prelude {
     pub use crate::components::{link::Link, route::Route};
     pub use crate::Router;
     #[doc(no_inline)]
-    pub use crate::{CurrentRoute, Params, RouterService, Routable};
+    pub use crate::{CurrentRoute, Params, Routable, RouterService};
 }

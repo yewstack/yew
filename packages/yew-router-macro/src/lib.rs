@@ -1,12 +1,10 @@
 use heck::ShoutySnakeCase;
 use proc_macro2::TokenStream;
-use quote::{quote};
+use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{
-    parse_macro_input, Data, DeriveInput, Fields, Ident, LitStr, Variant, Visibility,
-};
+use syn::{parse_macro_input, Data, DeriveInput, Fields, Ident, LitStr, Variant, Visibility};
 
 const AT_PATH: &str = "at";
 
@@ -25,14 +23,18 @@ impl Parse for Routable {
 
         let data = match data {
             Data::Enum(data) => data,
-            Data::Struct(s) => return Err(syn::Error::new_spanned(
-                s.struct_token,
-                "expected enum, found struct",
-            )),
-            Data::Union(u) => return Err(syn::Error::new_spanned(
-                u.union_token,
-                "expected enum, found union",
-            )),
+            Data::Struct(s) => {
+                return Err(syn::Error::new_spanned(
+                    s.struct_token,
+                    "expected enum, found struct",
+                ))
+            }
+            Data::Union(u) => {
+                return Err(syn::Error::new_spanned(
+                    u.union_token,
+                    "expected enum, found union",
+                ))
+            }
         };
 
         let mut ats = vec![];
@@ -45,21 +47,25 @@ impl Parse for Routable {
                 .collect::<Vec<_>>();
             let attr = match attrs.len() {
                 1 => *attrs.first().unwrap(),
-                0 => return  Err(syn::Error::new(
-                    variant.span(),
-                    format!("{} attribute must be present on every variant", AT_PATH),
-                )),
-                _ => return Err(syn::Error::new(
-                    variant.span(),
-                    format!("only one {} attribute must be present", AT_PATH),
-                )),
+                0 => {
+                    return Err(syn::Error::new(
+                        variant.span(),
+                        format!("{} attribute must be present on every variant", AT_PATH),
+                    ))
+                }
+                _ => {
+                    return Err(syn::Error::new(
+                        variant.span(),
+                        format!("only one {} attribute must be present", AT_PATH),
+                    ))
+                }
             };
 
             if let Fields::Unnamed(_) = variant.fields {
                 return Err(syn::Error::new(
                     variant.span(),
                     "only named fields are supported for dynamic paths",
-                ))
+                ));
             }
 
             let lit = attr.parse_args::<LitStr>()?;
@@ -128,7 +134,6 @@ fn routable_derive_impl(input: Routable) -> TokenStream {
                 fields.iter().for_each(|field| {
                     right = right.replace(&format!(":{}", field), &format!("{{{}}}", field))
                 });
-
 
                 quote! {
                     Self::#ident { #(#fields),* } => ::std::format!(#right, #(#fields = #fields),*)

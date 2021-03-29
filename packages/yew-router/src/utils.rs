@@ -92,7 +92,7 @@ pub fn from_route<R: Routable + 'static>(
                 let route = R::from_path(not_found_route, &HashMap::new());
                 let route = match route {
                     Some(route) => route,
-                    None => return None
+                    None => return None,
                 };
                 CurrentRoute::new(route)
             }))

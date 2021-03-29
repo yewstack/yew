@@ -1,4 +1,4 @@
-use crate::{RouterService, Routable};
+use crate::{Routable, RouterService};
 use yew::prelude::*;
 
 /// Props for [`Link`]
