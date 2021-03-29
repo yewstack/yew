@@ -77,15 +77,9 @@ pub fn from_route<R: Routable + 'static>(
             .unwrap()
             .props
             .children;
-        selected = Some((
-            children,
-            {
-                let route = R::from_path(path.handler(), &path.params().into_iter().collect())
-                    // todo no unwrap
-                    .unwrap();
-                CurrentRoute::new(route)
-            },
-        ));
+        if let Some(route) = R::from_path(path.handler(), &path.params().into_iter().collect()) {
+            selected = Some((children, CurrentRoute::new(route)))
+        }
     }
 
     match selected {
