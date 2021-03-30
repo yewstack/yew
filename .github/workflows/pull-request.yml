@@ -128,7 +128,7 @@ jobs:
     strategy:
       matrix:
         toolchain:
-          - 1.51.0 # min version with const generics
+          - 1.45.0 # MSRV
           - stable
 
     steps:
