@@ -33,7 +33,7 @@ fn compile_pass() {
     ::yew::html! { <Comp<Props> a=10 /> };
     ::yew::html! { <Comp1<usize, usize> /> };
 
-    ::yew::html! { <ConstGenerics<10> };
+    ::yew::html! { <ConstGenerics<10> /> };
 }
 
 fn main() {}
