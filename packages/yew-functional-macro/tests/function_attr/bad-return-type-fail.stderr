@@ -8,6 +8,6 @@ error[E0308]: mismatched types
   --> $DIR/bad-return-type-fail.rs:14:5
    |
 13 | fn comp(_props: &Props) -> u32 {
-   |                            --- expected `yew::virtual_dom::vnode::VNode` because of return type
+   |                            --- expected `VNode` because of return type
 14 |     1
-   |     ^ expected enum `yew::virtual_dom::vnode::VNode`, found integer
+   |     ^ expected enum `VNode`, found integer

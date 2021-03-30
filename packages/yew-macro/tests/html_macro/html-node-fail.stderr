@@ -48,9 +48,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   |
   = help: the trait `std::fmt::Display` is not implemented for `()`
   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-  = note: required because of the requirements on the impl of `std::string::ToString` for `()`
-  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
-  = note: required by `std::convert::From::from`
+  = note: required because of the requirements on the impl of `ToString` for `()`
+  = note: required because of the requirements on the impl of `From<()>` for `VNode`
+  = note: required by `from`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/html-node-fail.rs:17:9
@@ -60,6 +60,6 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
-   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
-   = note: required by `std::convert::From::from`
+   = note: required because of the requirements on the impl of `ToString` for `()`
+   = note: required because of the requirements on the impl of `From<()>` for `VNode`
+   = note: required by `from`

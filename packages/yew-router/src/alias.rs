@@ -37,52 +37,49 @@ macro_rules! define_router_state {
             #[doc = ">](route_service/struct.RouteService.html)."]
             pub type RouteService = $crate::service::RouteService<$StateT>;
 
-            #[cfg(feature="agent")]
+            #[cfg(feature = "agent")]
             #[doc = "Alias to [RouteAgent<"]
             #[doc = $StateName]
             #[doc = ">](agent/struct.RouteAgent.html)."]
             pub type RouteAgent = $crate::agent::RouteAgent<$StateT>;
 
-            #[cfg(feature="agent")]
+            #[cfg(feature = "agent")]
             #[doc = "Alias to [RouteAgentBridge<"]
             #[doc = $StateName]
             #[doc = ">](agent/bridge/struct.RouteAgentBridge.html)`."]
             pub type RouteAgentBridge = $crate::agent::RouteAgentBridge<$StateT>;
 
-            #[cfg(feature="agent")]
+            #[cfg(feature = "agent")]
             #[doc = "Alias to [RouteAgentDispatcher<"]
             #[doc = $StateName]
             #[doc = ">](agent/struct.RouteAgentDispatcher.html)`."]
             pub type RouteAgentDispatcher = $crate::agent::RouteAgentDispatcher<$StateT>;
 
-
             #[allow(deprecated)]
             #[deprecated(note = "Has been renamed to RouterAnchor")]
-            #[cfg(feature="components")]
+            #[cfg(feature = "components")]
             #[doc = "Alias to [RouterLink<"]
             #[doc = $StateName]
             #[doc = ">](components/struct.RouterLink.html)`."]
             pub type RouterLink = $crate::components::RouterLink<$StateT>;
 
-
-            #[cfg(feature="components")]
+            #[cfg(feature = "components")]
             #[doc = "Alias to [RouterAnchor<"]
             #[doc = $StateName]
             #[doc = ">](components/struct.RouterAnchor.html)`."]
             pub type RouterAnchor = $crate::components::RouterAnchor<$StateT>;
 
-            #[cfg(feature="components")]
+            #[cfg(feature = "components")]
             #[doc = "Alias to [RouterButton<"]
             #[doc = $StateName]
             #[doc = ">](components/struct.RouterButton.html)`."]
             pub type RouterButton = $crate::components::RouterButton<$StateT>;
 
-            #[cfg(feature="router")]
+            #[cfg(feature = "router")]
             #[doc = "Alias to [Router<"]
             #[doc = $StateName]
             #[doc = ">](router/router/struct.Router.html)."]
             pub type Router<SW> = $crate::router::Router<$StateT, SW>;
-
         }
-    }
+    };
 }
