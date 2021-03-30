@@ -20,12 +20,12 @@
 #[macro_export]
 macro_rules! text_format {
     ($type:ident based on $format:ident) => {
-        impl<'a, T> Into<$crate::format::Text> for $type<&'a T>
+        impl<'a, T> From<$type<&'a T>> for $crate::format::Text
         where
             T: ::serde::Serialize,
         {
-            fn into(self) -> $crate::format::Text {
-                $format::to_string(&self.0).map_err(::anyhow::Error::from)
+            fn from(value: $type<&'a T>) -> $crate::format::Text {
+                $format::to_string(&value.0).map_err(::anyhow::Error::from)
             }
         }
 
@@ -108,12 +108,12 @@ macro_rules! binary_format {
         binary_format!($type, $format::to_vec, $format::from_slice);
     };
     ($type:ident, $into:path, $from:path) => {
-        impl<'a, T> Into<$crate::format::Binary> for $type<&'a T>
+        impl<'a, T> From<$type<&'a T>> for $crate::format::Binary
         where
             T: ::serde::Serialize,
         {
-            fn into(self) -> $crate::format::Binary {
-                $into(&self.0).map_err(::anyhow::Error::from)
+            fn from(value: $type<&'a T>) -> $crate::format::Binary {
+                $into(&value.0).map_err(::anyhow::Error::from)
             }
         }
 
