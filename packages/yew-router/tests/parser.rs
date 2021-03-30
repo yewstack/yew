@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_test::wasm_bindgen_test as test;
 use yew::prelude::*;
 use yew::utils::*;
@@ -45,8 +44,8 @@ fn test_get_query_params() {
         Routes::Home,
         Some({
             let mut map = HashMap::new();
-            map.insert("foo", "bar");
-            map.insert("value", "test");
+            map.insert("foo", "bar".to_string());
+            map.insert("value", "test".to_string());
             map
         }),
     );

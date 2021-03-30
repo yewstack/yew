@@ -41,7 +41,7 @@ fn component() -> Html {
             Routes::No { id: 2 },
             Some({
                 let mut map = HashMap::new();
-                map.insert("foo", "bar");
+                map.insert("foo", "bar".to_string());
                 map
             }),
         )

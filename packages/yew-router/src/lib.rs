@@ -56,9 +56,9 @@
 pub mod components;
 mod current_route;
 mod params;
+mod routable;
 pub mod router;
 mod service;
-mod routable;
 pub mod utils;
 
 pub use current_route::CurrentRoute;

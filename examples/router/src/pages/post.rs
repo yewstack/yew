@@ -13,7 +13,7 @@ impl Component for Post {
     fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
         let seed = match RouterService::current_route().route() {
             Routes::Post { id } => *id,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
 
         Self {

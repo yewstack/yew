@@ -1,8 +1,8 @@
 use crate::components::{pagination::Pagination, post_card::PostCard};
 use crate::Routes;
+use std::collections::HashMap;
 use yew::prelude::*;
 use yew_router::RouterService;
-use std::collections::HashMap;
 
 const ITEMS_PER_PAGE: u64 = 10;
 const TOTAL_PAGES: u64 = std::u64::MAX / ITEMS_PER_PAGE;

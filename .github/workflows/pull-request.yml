@@ -161,7 +161,7 @@ jobs:
       - name: Run tests - yew-router
         run: |
           cd packages/yew-router
-          wasm-pack test --chrome --firefox --headless -- --features "wasm_test"
+          wasm-pack test --chrome --firefox --headless
 
       - name: Run tests - yew-functional
         run: |

@@ -12,7 +12,7 @@ impl Component for Author {
     fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
         let seed = match RouterService::current_route().route() {
             Routes::Author { id } => *id,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
 
         Self {
