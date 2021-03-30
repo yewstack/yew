@@ -60,9 +60,10 @@ Alternatively, you can set the `ECHO_SERVER_URL` environment variable to the URL
 
 When adding or updating tests, please make sure to update the appropriate `stderr` file, which you can find [here](https://github.com/yewstack/yew/tree/master/packages/yew-macro/tests/macro) for the `html!` macro.
 These files ensure that macro compilation errors are correct and easy to understand.
-These errors can change with each release of the compiler so they should be generated with the MSRV (currently 1.45).
+These errors can change with each release of the compiler so they should be generated with the Rust version 1.51 
+(because some tests make use of const generics which were stabilized in that version).
 
-To update or generate a new `stderr` file you can run `TRYBUILD=overwrite cargo +1.45.2 test` in the `yew-macro` directory.
+To update or generate a new `stderr` file you can run `TRYBUILD=overwrite cargo +1.51 test` in the `yew-macro` directory.
 
 ## Linting
 

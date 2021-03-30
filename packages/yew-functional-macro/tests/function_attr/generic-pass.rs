@@ -20,7 +20,6 @@ fn comp1<T1, T2>(_props: &()) -> ::yew::Html {
     }
 }
 
-// TODO: uncomment when min_const_generics are in stable and Rust version in CI is bumped
 // #[::yew_functional::function_component(ConstGenerics)]
 // fn const_generics<const N: i32>() -> ::yew::Html {
 //     ::yew::html! {
