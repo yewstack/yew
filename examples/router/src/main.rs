@@ -10,6 +10,22 @@ use pages::{
     post_list::PostList,
 };
 
+#[derive(Routable, PartialEq, Clone, Debug)]
+pub enum Routes {
+    #[at("/posts/:id")]
+    Post { id: u64 },
+    #[at("/posts")]
+    Posts,
+    #[at("/authors/:id")]
+    Author { id: u64 },
+    #[at("/authors")]
+    Authors,
+    #[at("/")]
+    Home,
+    #[at("/404")]
+    NotFound,
+}
+
 pub enum Msg {
     ToggleNavbar,
 }
@@ -48,35 +64,31 @@ impl Component for Model {
                 { self.view_nav() }
 
                 <main>
-                    <Router not_found_route="/404">
-                        <Route to="/posts/:id">
+                    <Router<Routes> not_found_route="/404">
+                        <Route to=Routes::POST>
                             <Post />
                         </Route>
 
-                        <Route to="/posts">
+                        <Route to=Routes::POSTS>
                             <PostList />
                         </Route>
 
-                        <Route to="/posts">
-                            <PostList />
-                        </Route>
-
-                        <Route to="/authors/:id">
+                        <Route to=Routes::AUTHOR>
                             <Author />
                         </Route>
 
-                        <Route to="/authors">
+                        <Route to=Routes::AUTHORS>
                             <AuthorList />
                         </Route>
 
-                        <Route to="/">
+                        <Route to=Routes::HOME>
                             <Home />
                         </Route>
 
-                        <Route to="404">
+                        <Route to=Routes::NOT_FOUND>
                             <PageNotFound />
                         </Route>
-                    </Router>
+                    </Router<Routes>>
                 </main>
                 <footer class="footer">
                     <div class="content has-text-centered">
@@ -119,12 +131,12 @@ impl Model {
                 </div>
                 <div class=classes!("navbar-menu", active_class)>
                     <div class="navbar-start">
-                        <Link classes="navbar-item" route="/">
+                        <Link<Routes> classes="navbar-item" route=Routes::Home>
                             { "Home" }
-                        </Link>
-                        <Link classes="navbar-item" route="/posts">
+                        </Link<Routes>>
+                        <Link<Routes> classes="navbar-item" route=Routes::Posts>
                             { "Posts" }
-                        </Link>
+                        </Link<Routes>>
 
                         <div class="navbar-item has-dropdown is-hoverable">
                             <a class="navbar-link">
@@ -132,9 +144,9 @@ impl Model {
                             </a>
                             <div class="navbar-dropdown">
                                 <a class="navbar-item">
-                                    <Link classes="navbar-item" route="/authors">
+                                    <Link<Routes> classes="navbar-item" route=Routes::Authors>
                                         { "Meet the authors" }
-                                    </Link>
+                                    </Link<Routes>>
                                 </a>
                             </div>
                         </div>

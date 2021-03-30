@@ -1,4 +1,4 @@
-use crate::{content::Author, generator::Generated};
+use crate::{content::Author, generator::Generated, Routes};
 use yew::prelude::*;
 use yew_router::prelude::Link;
 
@@ -54,9 +54,9 @@ impl Component for AuthorCard {
                     </div>
                 </div>
                 <footer class="card-footer">
-                    <Link classes="card-footer-item" route=format!("/authors/{}", author.seed)>
+                    <Link<Routes> classes="card-footer-item" route=Routes::Author { id: author.seed }>
                         { "Profile" }
-                    </Link>
+                    </Link<Routes>>
                 </footer>
             </div>
         }

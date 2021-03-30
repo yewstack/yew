@@ -1,4 +1,4 @@
-use crate::{content::Post, generator::Generated};
+use crate::{content::Post, generator::Generated, Routes};
 use yew::prelude::*;
 use yew_router::prelude::Link;
 
@@ -43,12 +43,12 @@ impl Component for PostCard {
                     </figure>
                 </div>
                 <div class="card-content">
-                    <Link classes="title is-block" route=format!("/posts/{}", post.seed)>
+                    <Link<Routes> classes="title is-block" route=Routes::Post {id: post.seed}>
                         { &post.title }
-                    </Link>
-                    <Link classes="subtitle is-block" route=format!("/authors/{}", post.author.seed)>
+                    </Link<Routes>>
+                    <Link<Routes> classes="subtitle is-block" route=Routes::Author {id: post.author.seed}>
                         { &post.author.name }
-                    </Link>
+                    </Link<Routes>>
                 </div>
             </div>
         }

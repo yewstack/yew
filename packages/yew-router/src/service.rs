@@ -9,7 +9,7 @@ impl RouterService {
     /// Navigate to a specific route.
     ///
     /// This should be used in cases where [`Link`](crate::prelude::Link) is insufficient.
-    pub fn push(route: impl Routable, query: Option<HashMap<&str, &str>>) {
+    pub fn push(route: impl Routable, query: Option<HashMap<&str, String>>) {
         let mut url = route.to_route();
         if let Some(query) = query {
             url.push('?');

@@ -1,4 +1,4 @@
-use crate::{content, generator::Generated};
+use crate::{content, generator::Generated, Routes};
 use content::PostPart;
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -11,12 +11,11 @@ impl Component for Post {
     type Properties = ();
 
     fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        let seed = RouterService::current_route()
-            .parmas()
-            .get("id")
-            .unwrap()
-            .parse()
-            .unwrap();
+        let seed = match RouterService::current_route().route() {
+            Routes::Post { id } => *id,
+            _ => unreachable!()
+        };
+
         Self {
             post: content::Post::generate_from_seed(seed),
         }
@@ -49,9 +48,9 @@ impl Component for Post {
                             </h1>
                             <h2 class="subtitle">
                                 { "by " }
-                                <Link classes="has-text-weight-semibold" route=format!("/authors/{}", post.author.seed)>
+                                <Link<Routes> classes="has-text-weight-semibold" route=Routes::Author { id: post.author.seed }>
                                     { &post.author.name }
-                                </Link>
+                                </Link<Routes>>
                             </h2>
                             <div class="tags">
                                 { for keywords }
@@ -77,9 +76,9 @@ impl Post {
                 </figure>
                 <div class="media-content">
                     <div class="content">
-                        <Link classes="is-size-5" route=format!("/authors/{}", quote.author.seed)>
+                        <Link<Routes> classes="is-size-5" route=Routes::Author { id: quote.author.seed }>
                             <strong>{ &quote.author.name }</strong>
-                        </Link>
+                        </Link<Routes>>
                         <p class="is-family-secondary">
                             { &quote.content }
                         </p>

@@ -1,4 +1,4 @@
-use crate::{content, generator::Generated};
+use crate::{content, generator::Generated, Routes};
 use yew::prelude::*;
 use yew_router::RouterService;
 
@@ -10,12 +10,11 @@ impl Component for Author {
     type Properties = ();
 
     fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        let seed = RouterService::current_route()
-            .parmas()
-            .get("id")
-            .unwrap()
-            .parse()
-            .unwrap();
+        let seed = match RouterService::current_route().route() {
+            Routes::Author { id } => *id,
+            _ => unreachable!()
+        };
+
         Self {
             author: content::Author::generate_from_seed(seed),
         }
