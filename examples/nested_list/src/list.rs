@@ -40,9 +40,9 @@ where
     }
 }
 
-impl Into<Html> for ListVariant {
-    fn into(self) -> Html {
-        match self.props {
+impl From<ListVariant> for Html {
+    fn from(variant: ListVariant) -> Html {
+        match variant.props {
             Variants::Header(props) => {
                 VComp::new::<ListHeader>(props, NodeRef::default(), None).into()
             }

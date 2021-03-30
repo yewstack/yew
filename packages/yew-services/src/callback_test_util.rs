@@ -35,9 +35,9 @@ impl<T> Default for CallbackFuture<T> {
     }
 }
 
-impl<T: 'static> Into<Callback<T>> for CallbackFuture<T> {
-    fn into(self) -> Callback<T> {
-        Callback::from(move |r| self.finish(r))
+impl<T: 'static> From<CallbackFuture<T>> for Callback<T> {
+    fn from(f: CallbackFuture<T>) -> Self {
+        Callback::from(move |r| f.finish(r))
     }
 }
 

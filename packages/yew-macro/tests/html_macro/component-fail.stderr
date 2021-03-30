@@ -205,67 +205,67 @@ error[E0599]: no method named `unknown` found for struct `ChildPropertiesBuilder
 74 |     html! { <Child unknown="unknown" /> };
    |                    ^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<(), std::string::String>` is not satisfied
+error[E0277]: the trait bound `yew::virtual_dom::VComp: Transformer<(), String>` is not satisfied
   --> $DIR/component-fail.rs:77:33
    |
 77 |     html! { <Child int=1 string={} /> };
-   |                                 ^^ the trait `yew::virtual_dom::Transformer<(), std::string::String>` is not implemented for `yew::virtual_dom::vcomp::VComp`
+   |                                 ^^ the trait `Transformer<(), String>` is not implemented for `yew::virtual_dom::VComp`
    |
    = help: the following implementations were found:
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, T>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, std::option::Option<T>>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::option::Option<std::string::String>>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::string::String>>
+             <yew::virtual_dom::VComp as Transformer<&'a T, Option<T>>>
+             <yew::virtual_dom::VComp as Transformer<&'a T, T>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, Option<String>>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, String>>
            and 3 others
-   = note: required by `yew::virtual_dom::Transformer::transform`
+   = note: required by `transform`
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<{integer}, std::string::String>` is not satisfied
+error[E0277]: the trait bound `yew::virtual_dom::VComp: Transformer<{integer}, String>` is not satisfied
   --> $DIR/component-fail.rs:78:33
    |
 78 |     html! { <Child int=1 string=3 /> };
-   |                                 ^ the trait `yew::virtual_dom::Transformer<{integer}, std::string::String>` is not implemented for `yew::virtual_dom::vcomp::VComp`
+   |                                 ^ the trait `Transformer<{integer}, String>` is not implemented for `yew::virtual_dom::VComp`
    |
    = help: the following implementations were found:
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, T>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, std::option::Option<T>>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::option::Option<std::string::String>>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::string::String>>
+             <yew::virtual_dom::VComp as Transformer<&'a T, Option<T>>>
+             <yew::virtual_dom::VComp as Transformer<&'a T, T>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, Option<String>>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, String>>
            and 3 others
-   = note: required by `yew::virtual_dom::Transformer::transform`
+   = note: required by `transform`
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<{integer}, std::string::String>` is not satisfied
+error[E0277]: the trait bound `yew::virtual_dom::VComp: Transformer<{integer}, String>` is not satisfied
   --> $DIR/component-fail.rs:79:33
    |
 79 |     html! { <Child int=1 string={3} /> };
-   |                                 ^^^ the trait `yew::virtual_dom::Transformer<{integer}, std::string::String>` is not implemented for `yew::virtual_dom::vcomp::VComp`
+   |                                 ^^^ the trait `Transformer<{integer}, String>` is not implemented for `yew::virtual_dom::VComp`
    |
    = help: the following implementations were found:
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, T>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, std::option::Option<T>>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::option::Option<std::string::String>>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::string::String>>
+             <yew::virtual_dom::VComp as Transformer<&'a T, Option<T>>>
+             <yew::virtual_dom::VComp as Transformer<&'a T, T>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, Option<String>>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, String>>
            and 3 others
-   = note: required by `yew::virtual_dom::Transformer::transform`
+   = note: required by `transform`
 
 error[E0308]: mismatched types
   --> $DIR/component-fail.rs:80:30
    |
 80 |     html! { <Child int=1 ref=() /> };
-   |                              ^^ expected struct `yew::html::NodeRef`, found `()`
+   |                              ^^ expected struct `NodeRef`, found `()`
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VComp: yew::virtual_dom::Transformer<u32, i32>` is not satisfied
+error[E0277]: the trait bound `yew::virtual_dom::VComp: Transformer<u32, i32>` is not satisfied
   --> $DIR/component-fail.rs:82:24
    |
 82 |     html! { <Child int=0u32 /> };
-   |                        ^^^^ the trait `yew::virtual_dom::Transformer<u32, i32>` is not implemented for `yew::virtual_dom::vcomp::VComp`
+   |                        ^^^^ the trait `Transformer<u32, i32>` is not implemented for `yew::virtual_dom::VComp`
    |
    = help: the following implementations were found:
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, T>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a T, std::option::Option<T>>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::option::Option<std::string::String>>>
-             <yew::virtual_dom::vcomp::VComp as yew::virtual_dom::Transformer<&'a str, std::string::String>>
+             <yew::virtual_dom::VComp as Transformer<&'a T, Option<T>>>
+             <yew::virtual_dom::VComp as Transformer<&'a T, T>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, Option<String>>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, String>>
            and 3 others
-   = note: required by `yew::virtual_dom::Transformer::transform`
+   = note: required by `transform`
 
 error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
   --> $DIR/component-fail.rs:83:20
@@ -275,10 +275,6 @@ error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<
 ...
 83 |     html! { <Child string="abc" /> };
    |                    ^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
-   |
-   = help: items from traits can only be used if the trait is implemented and in scope
-   = note: the following trait defines an item `string`, perhaps you need to implement it:
-           candidate #1: `proc_macro::bridge::server::Literal`
 
 error[E0609]: no field `children` on type `ChildProperties`
   --> $DIR/component-fail.rs:87:14
@@ -313,10 +309,6 @@ error[E0599]: no method named `build` found for struct `ChildContainerProperties
 ...
 96 |     html! { <ChildContainer /> };
    |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
-   |
-   = help: items from traits can only be used if the trait is implemented and in scope
-   = note: the following trait defines an item `build`, perhaps you need to implement it:
-           candidate #1: `proc_macro::bridge::server::TokenStreamBuilder`
 
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
   --> $DIR/component-fail.rs:97:14
@@ -326,34 +318,30 @@ error[E0599]: no method named `build` found for struct `ChildContainerProperties
 ...
 97 |     html! { <ChildContainer></ChildContainer> };
    |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
-   |
-   = help: items from traits can only be used if the trait is implemented and in scope
-   = note: the following trait defines an item `build`, perhaps you need to implement it:
-           candidate #1: `proc_macro::bridge::server::TokenStreamBuilder`
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vtext::VText>` is not satisfied
+error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is not satisfied
   --> $DIR/component-fail.rs:98:31
    |
 98 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
-   |                               ^^^^^^^^^^^^^ the trait `std::convert::From<yew::virtual_dom::vtext::VText>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
+   |                               ^^^^^^^^^^^^^ the trait `From<yew::virtual_dom::VText>` is not implemented for `VChild<Child>`
    |
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vtext::VText`
-   = note: required by `std::convert::Into::into`
+   = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `yew::virtual_dom::VText`
+   = note: required by `into`
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
+error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
   --> $DIR/component-fail.rs:99:29
    |
 99 |     html! { <ChildContainer><></></ChildContainer> };
-   |                             ^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
+   |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`
    |
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
-   = note: required by `std::convert::Into::into`
+   = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
+   = note: required by `into`
 
-error[E0277]: the trait bound `yew::virtual_dom::vcomp::VChild<Child>: std::convert::From<yew::virtual_dom::vnode::VNode>` is not satisfied
+error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
    --> $DIR/component-fail.rs:100:30
     |
 100 |     html! { <ChildContainer><other /></ChildContainer> };
-    |                              ^^^^^ the trait `std::convert::From<yew::virtual_dom::vnode::VNode>` is not implemented for `yew::virtual_dom::vcomp::VChild<Child>`
+    |                              ^^^^^ the trait `From<VNode>` is not implemented for `VChild<Child>`
     |
-    = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vcomp::VChild<Child>>` for `yew::virtual_dom::vnode::VNode`
-    = note: required by `std::convert::Into::into`
+    = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
+    = note: required by `into`

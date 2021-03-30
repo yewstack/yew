@@ -15,32 +15,28 @@ error[E0599]: no method named `build` found for struct `PropsBuilder<PropsBuilde
 ...
 23 |     html! { <Comp<Props> /> };
    |              ^^^^ method not found in `PropsBuilder<PropsBuilderStep_missing_required_prop_a>`
-   |
-   = help: items from traits can only be used if the trait is implemented and in scope
-   = note: the following trait defines an item `build`, perhaps you need to implement it:
-           candidate #1: `proc_macro::bridge::server::TokenStreamBuilder`
 
-error[E0599]: no function or associated item named `new` found for struct `yew::virtual_dom::vcomp::VChild<yew_functional::FunctionComponent<comp<MissingTypeBounds>>>` in the current scope
+error[E0599]: the function or associated item `new` exists for struct `VChild<FunctionComponent<comp<MissingTypeBounds>>>`, but its trait bounds were not satisfied
   --> $DIR/generic-props-fail.rs:28:14
    |
 28 |     html! { <Comp<MissingTypeBounds> /> };
-   |              ^^^^ function or associated item not found in `yew::virtual_dom::vcomp::VChild<yew_functional::FunctionComponent<comp<MissingTypeBounds>>>`
+   |              ^^^^ function or associated item cannot be called on `VChild<FunctionComponent<comp<MissingTypeBounds>>>` due to unsatisfied trait bounds
    |
   ::: $WORKSPACE/packages/yew-functional/src/lib.rs
    |
    | pub struct FunctionComponent<T: FunctionProvider + 'static> {
-   | ----------------------------------------------------------- doesn't satisfy `_: yew::html::component::Component`
+   | ----------------------------------------------------------- doesn't satisfy `_: yew::Component`
    |
-   = note: the method `new` exists but the following trait bounds were not satisfied:
-           `yew_functional::FunctionComponent<comp<MissingTypeBounds>>: yew::html::component::Component`
+   = note: the following trait bounds were not satisfied:
+           `FunctionComponent<comp<MissingTypeBounds>>: yew::Component`
 
-error[E0277]: the trait bound `MissingTypeBounds: yew::html::component::properties::Properties` is not satisfied
+error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisfied
   --> $DIR/generic-props-fail.rs:28:14
    |
 28 |     html! { <Comp<MissingTypeBounds> /> };
-   |              ^^^^ the trait `yew::html::component::properties::Properties` is not implemented for `MissingTypeBounds`
+   |              ^^^^ the trait `yew::Properties` is not implemented for `MissingTypeBounds`
    |
-   = note: required because of the requirements on the impl of `yew_functional::FunctionProvider` for `comp<MissingTypeBounds>`
+   = note: required because of the requirements on the impl of `FunctionProvider` for `comp<MissingTypeBounds>`
 
 error[E0277]: can't compare `MissingTypeBounds` with `MissingTypeBounds`
   --> $DIR/generic-props-fail.rs:28:14
@@ -48,11 +44,23 @@ error[E0277]: can't compare `MissingTypeBounds` with `MissingTypeBounds`
 28 |     html! { <Comp<MissingTypeBounds> /> };
    |              ^^^^ no implementation for `MissingTypeBounds == MissingTypeBounds`
    |
-   = help: the trait `std::cmp::PartialEq` is not implemented for `MissingTypeBounds`
-   = note: required because of the requirements on the impl of `yew_functional::FunctionProvider` for `comp<MissingTypeBounds>`
+   = help: the trait `PartialEq` is not implemented for `MissingTypeBounds`
+   = note: required because of the requirements on the impl of `FunctionProvider` for `comp<MissingTypeBounds>`
 
-error[E0107]: wrong number of type arguments: expected 1, found 0
+error[E0107]: missing generics for type alias `Comp`
   --> $DIR/generic-props-fail.rs:31:14
    |
 31 |     html! { <Comp /> };
    |              ^^^^ expected 1 type argument
+   |
+note: type alias defined here, with 1 type parameter: `P`
+  --> $DIR/generic-props-fail.rs:9:22
+   |
+9  | #[function_component(Comp)]
+   |                      ^^^^
+10 | fn comp<P>(_props: &P) -> Html
+   |         -
+help: use angle brackets to add missing type argument
+   |
+31 |     html! { <Comp<P> /> };
+   |                  ^^^

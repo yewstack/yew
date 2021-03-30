@@ -7,6 +7,7 @@ use anyhow::bail;
 #[derive(Debug)]
 pub struct Nothing;
 
+#[allow(clippy::from_over_into)]
 impl Into<Text> for Nothing {
     fn into(self) -> Text {
         bail!("nothing")
@@ -19,6 +20,7 @@ impl From<Text> for Nothing {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<Binary> for Nothing {
     fn into(self) -> Binary {
         bail!("nothing")
