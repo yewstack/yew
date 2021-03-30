@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-/// Parameters from a path or query parameters.
+/// Parameters from a query parameters.
 #[derive(Debug, Clone)]
 pub struct Params {
     data: HashMap<String, String>,
@@ -15,16 +15,6 @@ impl Params {
 
 impl From<HashMap<String, String>> for Params {
     fn from(data: HashMap<String, String>) -> Self {
-        Self { data }
-    }
-}
-
-impl From<route_recognizer::Params> for Params {
-    fn from(params: route_recognizer::Params) -> Self {
-        let mut data = HashMap::new();
-        for (k, v) in params.iter() {
-            data.insert(k.to_string(), v.to_string());
-        }
         Self { data }
     }
 }

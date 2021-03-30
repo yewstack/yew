@@ -55,15 +55,12 @@ pub struct RouterProps {
 /// and a message is logged to console stating that no route can be matched.
 /// See the [crate level document][crate] for more information.
 #[function_component(Router)]
-// this will take generic <R> where R: Routable
 pub fn router<R: Routable + 'static>(props: &RouterProps) -> Html {
     let pathname = yew::utils::window().location().pathname().unwrap();
     let base: Option<String> = base_url();
 
     let router = use_ref(|| {
         let mut router = route_recognizer::Router::new();
-        // R::routes will iterated on and used as route in the router as `to`
-        // `to` prop will be the same so how much will that effect? don't know
         props.children.iter().for_each(|child| {
             let to = match &base {
                 Some(base) if base != "/" => build_path_with_base(&child.props.to),

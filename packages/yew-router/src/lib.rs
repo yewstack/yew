@@ -45,7 +45,7 @@
 //! This allows the [Router] to be operated using the [service][RouterService] with an API that
 //! isn't cumbersome to use. It also caches results of computations such as the query parameters of
 //! [current route][CurrentRoute], making calls to [`CurrentRoute::query`][CurrentRoute::query()]
-//! or [`CurrentRoute::parmas`][CurrentRoute::parmas()] fairly cheap.
+//! or [`CurrentRoute::route`][CurrentRoute::route()] fairly cheap.
 //!
 //! # State
 //!
@@ -58,9 +58,6 @@ mod current_route;
 mod params;
 pub mod router;
 mod service;
-// #[cfg(test)]
-// pub mod utils;
-// #[cfg(not(test))]
 mod routable;
 pub mod utils;
 

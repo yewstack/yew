@@ -17,7 +17,8 @@ impl RouterService {
                 url.push_str(&format!("{}={}&", k, v));
             })
         }
-        ROUTER.with(|router| router.push(&url))
+        let url = url.strip_suffix('&').unwrap_or_else(|| url.as_str());
+        ROUTER.with(|router| router.push(url))
     }
 
     /// The current route.

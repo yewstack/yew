@@ -28,33 +28,46 @@ Interfaces with the `Router`. It can be used to navigate to a specific route or 
 
 ## Usage
 
-`Router` component searches its children for `Route` components and to find the one whose path matches 
-the browser's current URL. In case no path is matched, the router navigates to the path specified in `not_found_route` 
-prop. If no route is specified, nothing is rendered, and a message is logged to console stating that no route was matched.
+Routes are defined by an `enum` which derives `Routable`:
+```rust
+enum Routes {
+    #[at("/")]
+    Home,
+    #[at("/secure")]
+    Secure,
+    #[at("/404")]
+    NotFound,
+}
+```
+
+`Router` component takes that enum as its type parameter, searches its children for `Route` components and 
+finds the one whose path matches the browser's current URL. In case no path is matched, 
+the router navigates to the path specified in `not_found_route` prop. If no route is specified, 
+nothing is rendered, and a message is logged to console stating that no route was matched.
+
+```rust
+let onclick_callback = Callback::from(|_| RouterService::push(Routes::Home, None));
+html! {
+    <Router<Routes> not_found_route=Routes::NOT_FOUND>
+        <Route to=Routes::SECURE>
+            <h1>{"Forbidden"}</h1>
+            <button onclick=onclick_callback>{"Navigate to /"}</button>
+        </Route>
+        <Route to=Routes::HOME>
+            <h1>{"Home"}</h1>
+            <Link<Routes> route=Routes::Secure>{ "Navigate to /secure" }</Link<Routes>>
+        </Route>
+        <Route to=Routes::NOT_FOUND>
+            <h1>{"Page not found"}</h1>
+        </Route>
+    </Router<Routes>>
+}
+```
 
 ### Navigation
 
 In order to navigate between pages, either `Link` component (which renders a `<a>` element) or `RouterService::push` 
 function is used.
-
-```rust
-let onclick_callback = Callback::from(|_| RouterService::push("/"));
-html! {
-    <Router not_found_route="/404">
-        <Route to="/secure">
-            <h1>{"Forbidden"}</h1>
-            <button onclick=onclick_callback>{"Navigate to /"}</button>
-        </Route>
-        <Route to="/">
-            <h1>{"Home"}</h1>
-            <Link route="/secure">{ "Navigate to /secure" }</Link>
-        </Route>
-        <Route to="/404">
-            <h1>{"Page not found"}</h1>
-        </Route>
-    </Router>
-}
-```
 
 ## Relevant examples
 - [Router](https://github.com/yewstack/yew/tree/master/examples/router)

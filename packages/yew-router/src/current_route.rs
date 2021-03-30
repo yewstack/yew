@@ -17,8 +17,15 @@ impl CurrentRoute {
         }
     }
 
+    /// Gets the current route
+    ///
+    /// # Panics
+    ///
+    /// Panics if `R` isn't the same [`Routable`] as the one passed to [`Router`](crate::Router) component.
     pub fn route<R: Routable + 'static>(&self) -> &R {
-        self.route.as_any().downcast_ref::<R>().unwrap()
+        self.route.as_any().downcast_ref::<R>().expect(
+            "passed type argument must be the same as the one used with the `Router` component",
+        )
     }
 
     /// Returns the query parameters from the path.
