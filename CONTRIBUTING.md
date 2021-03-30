@@ -63,7 +63,7 @@ These files ensure that macro compilation errors are correct and easy to underst
 These errors can change with each release of the compiler so they should be generated with the Rust version 1.51 
 (because some tests make use of const generics which were stabilized in that version).
 
-To update or generate a new `stderr` file you can run `TRYBUILD=overwrite cargo +1.51 test` in the `yew-macro` directory.
+To update or generate a new `stderr` file you can run `cargo make test-overwrite` in the `yew-macro` directory.
 
 ## Linting
 
