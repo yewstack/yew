@@ -20,20 +20,20 @@ fn comp1<T1, T2>(_props: &()) -> ::yew::Html {
     }
 }
 
-// #[::yew_functional::function_component(ConstGenerics)]
-// fn const_generics<const N: i32>() -> ::yew::Html {
-//     ::yew::html! {
-//         <div>
-//             { N }
-//         </div>
-//     }
-// }
+#[::yew_functional::function_component(ConstGenerics)]
+fn const_generics<const N: i32>() -> ::yew::Html {
+    ::yew::html! {
+        <div>
+            { N }
+        </div>
+    }
+}
 
 fn compile_pass() {
     ::yew::html! { <Comp<Props> a=10 /> };
     ::yew::html! { <Comp1<usize, usize> /> };
 
-    // ::yew::html! { <ConstGenerics<10> };
+    ::yew::html! { <ConstGenerics<10> };
 }
 
 fn main() {}
