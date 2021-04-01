@@ -3,7 +3,7 @@ use crate::{Params, Routable};
 use std::rc::Rc;
 
 /// The current route.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct CurrentRoute {
     route: Rc<dyn Routable>,
     query: Params,

@@ -1,6 +1,4 @@
 #[derive(yew_router::Routable)]
-struct Test {
-
-}
+struct Test {}
 
 fn main() {}

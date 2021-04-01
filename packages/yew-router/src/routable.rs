@@ -6,7 +6,7 @@ use std::collections::HashMap;
 ///
 /// Use derive macro to implement it. Although it *is* possible to implement it manually,
 /// it is discouraged.
-pub trait Routable: std::fmt::Debug {
+pub trait Routable {
     /// Converts path to an instance of the routes enum.
     fn from_path(path: &str, params: &HashMap<&str, &str>) -> Option<Self>
     where
