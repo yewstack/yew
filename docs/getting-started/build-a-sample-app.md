@@ -16,7 +16,7 @@ Open the newly created directory.
 cd yew-app
 ```
 
-## Run Hello World
+## Run a hello world example
 
 To verify the Rust environment is setup, run the initial project using the cargo build tool.  After output about the build process, you should see the expected "Hello World" message.
 
@@ -141,4 +141,3 @@ This will start a development server which continually updates the app every tim
 You have now successfully setup your Yew development environment, and built your first web application.
 
 Experiment with this application and review the [examples](./examples.md) to further your learning.
-
