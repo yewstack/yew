@@ -12,6 +12,7 @@ use syn::parse_macro_input;
 /// # Example
 ///
 /// ```
+/// # use yew_router::Routable;
 /// #[derive(Debug, Clone, Copy, PartialEq, Routable)]
 /// enum Routes {
 ///     #[at("/")]
