@@ -22,12 +22,12 @@ You can check your toolchain version using `rustup show` (under "active toolchai
 
 Rust compiles source code for a specific target.  For WebAssembly, this target is called "wasm32-unknown-unknown".  The following instruction will add this target to your development environment.
 
-`rustup target add wasm32-unknown-unknown`.
+`rustup target add wasm32-unknown-unknown`
 
 ## Install Trunk
 
-Trunk is the recommended tool for managing deployment and packaging, and will be used throughout the documentation and in examples.
-See [packaging tools](./more/packagingtools.md) for more information on packaging and alternatives.
+Trunk is the recommended tool for managing deployment and packaging, and will be used throughout the documentation and examples.
+See [Wasm Build Tools](./more/wasm-build-tools.md) for more information on packaging and alternatives.
 
 `cargo install trunk`
 
@@ -40,4 +40,4 @@ Trunk uses the wasm-bindgen-cli to perform deployment and packaging, install usi
 
 ## Summary
 
-Now that you have all the tools needed, we can build a sample application.
+Now that you have all the tools needed, we can [build a sample application](./build-a-sample-app.md).

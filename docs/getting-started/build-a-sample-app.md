@@ -4,7 +4,7 @@ title: Build a sample app
 
 ## Create Project
 
-To get started, create a new cargo project:
+To get started, create a new cargo project.
 
 ```bash
 cargo new yew-app
@@ -18,7 +18,8 @@ cd yew-app
 
 ## Run Hello World
 
-To verify the Rust environment is setup, run the initial project using the cargo build tool.
+To verify the Rust environment is setup, run the initial project using the cargo build tool.  After output about the build process, you should see the expected "Hello World" message.
+
 
 ```bash
 cargo run
@@ -112,7 +113,7 @@ fn main() {
 
 ### Create index.html
 
-Finally, add an `index.html` file in the root directory of your app:
+Finally, add an `index.html` file in the root directory of your app.
 
 ```html
 <!DOCTYPE html>
