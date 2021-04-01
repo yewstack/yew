@@ -36,4 +36,4 @@ Because of this, it can only build libraries and doesn't provide useful tools li
 | Asset handling                | Supported                                                        | Only with webpack plugin                                                                              |
 | Headless Browser Testing      | [In Progress](https://github.com/thedodd/trunk/issues/20)        | [Supported](https://rustwasm.github.io/wasm-pack/book/commands/test.html)                             |
 | Supported Targets             | <ul><li><code>wasm32-unknown-unknown</code></li></ul>            | <ul><li><code>wasm32-unknown-unknown</code></li></ul>                                                 |
-| Example Usage                 | [Sample app](./../project-setup/build-a-sample-app.md)             | [Starter template](https://github.com/yewstack/yew-wasm-pack-minimal)                                 |
+| Example Usage                 | [Sample app](./../getting-started/build-a-sample-app.md)             | [Starter template](https://github.com/yewstack/yew-wasm-pack-minimal)                                 |
