@@ -27,7 +27,7 @@ Rust compiles source code for a specific target.  For WebAssembly, this target i
 ## Install Trunk
 
 Trunk is the recommended tool for managing deployment and packaging, and will be used throughout the documentation and examples.
-See [Wasm Build Tools](./more/wasm-build-tools.md) for more information on packaging and alternatives.
+See [Wasm Build Tools](/more/wasm-build-tools.md) for more information on packaging and alternatives.
 
 `cargo install trunk`
 
