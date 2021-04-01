@@ -133,7 +133,7 @@ Run the following command to build and serve the application locally.
 trunk serve
 ```
 
-This will start a development server which continually updates the app every time you change something in your web application.
+Trunk will helpfully rebuild your application if you modify any of its files.
 
 
 ## Congratulations
