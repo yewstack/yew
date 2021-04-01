@@ -6,7 +6,7 @@ description: Set yourself up for success
 
 ## Overview
 
-Your local development environment will need several tools to compile, build, package and debug your Yew application.
+Your local development environment will need a couple of tools to compile, build, package and debug your Yew application.
 
 
 ## Install Rust, Rustup and Cargo
