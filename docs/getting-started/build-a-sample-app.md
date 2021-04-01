@@ -127,7 +127,7 @@ Finally, add an `index.html` file in the root directory of your app.
 
 ## View your web applcation
 
-Run the following command to build your application, launch a local web hosting environment, and launch a web browser to view your application.
+Run the following command to build and serve the application locally.
 
 ```bash
 trunk serve
