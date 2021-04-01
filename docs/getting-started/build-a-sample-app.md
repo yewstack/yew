@@ -48,7 +48,7 @@ yew = "0.17"
 
 Replace the contents of `src/main.rs` with the following code.
 
-This template sets up your root `Component`, called `Model` which shows a button that updates itself when you click it.
+This template sets up a root `Component` called `Model` which renders a button that updates itself when clicked.
 Take special note of `yew::start_app::<Model>()` inside `main()` which starts your app and mounts it to the page's `<body>` tag.
 If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props::<Model>(..)`.
 
