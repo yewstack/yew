@@ -25,7 +25,7 @@ To verify the Rust environment is setup, run the initial project using the cargo
 cargo run
 ```
 
-## Convert project to Yew web application
+## Converting the project into a Yew web application
 
 To convert this simple command line application to a basic Yew web application, a few changes are needed.
 
