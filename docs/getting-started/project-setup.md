@@ -20,7 +20,7 @@ You can check your toolchain version using `rustup show` (under "active toolchai
 
 ## Install WebAssembly target
 
-Rust compiles source code for a specific target.  For WebAssembly, this target is called "wasm32-unknown-unknown".  The following instruction will add this target to your development environment.
+Rust can compile source codes for different "targets" (e.g. different processors). The compilation target for browser-based WebAssembly is called "wasm32-unknown-unknown".  The following command will add this target to your development environment.
 
 `rustup target add wasm32-unknown-unknown`
 
