@@ -29,7 +29,12 @@ Rust can compile source codes for different "targets" (e.g. different processors
 Trunk is the recommended tool for managing deployment and packaging, and will be used throughout the documentation and examples.
 See [Wasm Build Tools](./../more/wasm-build-tools.md) for more information on packaging and alternatives.
 
-`cargo install trunk`
+\```
+# note that this might take a while to install, because it compiles everything from scratch
+# Trunk also provides prebuilt binaries for a number of major package managers
+# See https://trunkrs.dev/#install for further details
+cargo install trunk
+\```
 
 ## Install wasm-bindgen-cli
 
