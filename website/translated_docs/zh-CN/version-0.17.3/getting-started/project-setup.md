@@ -18,13 +18,13 @@ original_id: project-setup
 
 一个由 Rust / Wasm 工作组开发的用于打包 WebAssembly 的 CLI 工具。与 Webpack 的 [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin) 插件搭配使用最佳。
 
-[Get started with `wasm-pack`](project-setup/using-wasm-pack.md)
+[开始使用 wasm-pack](project-setup/using-wasm-pack.md)
 
 ### [**`wasm-bindgen`**](https://rustwasm.github.io/docs/wasm-bindgen/)
 
 同时是一个库和一个 CLI 工具，也是由 Rust / Wasm 工作组开发。它是一个促进 JS 和 WebAssembly 之间互操作性的底层工具（在 `wasm-pack` 内部被用到）。我们不建议直接使用 `wasm-bindgen` 因为它需要手写一些 JavaScript 代码来引导你的 WebAssembly 二进制程序。但是，直接使用它也是可能的并且可以在 <a href="https://rustwasm.github.io/docs/wasm-bindgen/" data-md-type="link"><strong data-md-type="double_emphasis">`wasm-bindgen` 指南</strong></a> 上找到更多信息。
 
-[Get started with `wasm-bindgen`](project-setup/using-wasm-bindgen.md)
+[开始使用 wasm-bindgen](project-setup/using-wasm-bindgen.md)
 
 ### [**`cargo-web`**](https://github.com/koute/cargo-web)
 
@@ -77,14 +77,11 @@ original_id: project-setup
     <tr>
       <td style="text-align:left">无头浏览器测试</td>
       <td style="text-align:left">
-<a href="https://rustwasm.github.io/docs/wasm-pack/commands/test.html">Supported</a>
-      </td>
+<a href="https://rustwasm.github.io/docs/wasm-pack/commands/test.html">支持</a>       </td>
       <td style="text-align:left">
-<a href="https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html">Supported</a>
-      </td>
+<a href="https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html">支持</a>       </td>
       <td style="text-align:left">
-<a href="https://github.com/koute/cargo-web#features">Supported</a>
-      </td>
+<a href="https://github.com/koute/cargo-web#features">支持</a>       </td>
     </tr>
     <tr>
       <td style="text-align:left">支持生成的目标代码</td>
@@ -135,8 +132,7 @@ original_id: project-setup
     <tr>
       <td style="text-align:left">示例用法</td>
       <td style="text-align:left">
-<a href="https://github.com/yewstack/yew-wasm-pack-minimal">Starter template</a>
-      </td>
+<a href="https://github.com/yewstack/yew-wasm-pack-minimal">新手模板</a>       </td>
       <td style="text-align:left">Yew 示例程序的<a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">构建脚本</a>       </td>
       <td style="text-align:left">Yew 示例程序的<a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">构建脚本</a>       </td>
     </tr>
