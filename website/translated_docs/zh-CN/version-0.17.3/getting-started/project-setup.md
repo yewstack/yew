@@ -1,8 +1,10 @@
 ---
+title: 项目设置
+sidebar_label: 介绍
 description: 为成功做好准备
+id: version-0.17.3-project-setup
+original_id: project-setup
 ---
-
-# 项目设置
 
 ## Rust
 
@@ -16,13 +18,13 @@ description: 为成功做好准备
 
 一个由 Rust / Wasm 工作组开发的用于打包 WebAssembly 的 CLI 工具。与 Webpack 的 [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin) 插件搭配使用最佳。
 
-[开始使用 wasm-pack](project-setup/using-wasm-pack.md)
+[Get started with `wasm-pack`](project-setup/using-wasm-pack.md)
 
 ### [**`wasm-bindgen`**](https://rustwasm.github.io/docs/wasm-bindgen/)
 
-同时是一个库和一个 CLI 工具，也是由 Rust / Wasm 工作组开发。它是一个促进 JS 和 WebAssembly 之间互操作性的底层工具（在 `wasm-pack` 内部被用到）。我们不建议直接使用 `wasm-bindgen` 因为它需要手写一些 JavaScript 代码来引导你的 WebAssembly 二进制程序。但是，直接使用它也是可能的并且可以在 [**`wasm-bindgen` 指南**](https://rustwasm.github.io/docs/wasm-bindgen/) 上找到更多信息。
+同时是一个库和一个 CLI 工具，也是由 Rust / Wasm 工作组开发。它是一个促进 JS 和 WebAssembly 之间互操作性的底层工具（在 `wasm-pack` 内部被用到）。我们不建议直接使用 `wasm-bindgen` 因为它需要手写一些 JavaScript 代码来引导你的 WebAssembly 二进制程序。但是，直接使用它也是可能的并且可以在 <a href="https://rustwasm.github.io/docs/wasm-bindgen/" data-md-type="link"><strong data-md-type="double_emphasis">`wasm-bindgen` 指南</strong></a> 上找到更多信息。
 
-[开始使用 wasm-bindgen](project-setup/using-wasm-bindgen.md)
+[Get started with `wasm-bindgen`](project-setup/using-wasm-bindgen.md)
 
 ### [**`cargo-web`**](https://github.com/koute/cargo-web)
 
@@ -36,103 +38,107 @@ description: 为成功做好准备
   <thead>
     <tr>
       <th style="text-align:left"></th>
-      <th style="text-align:left"><code>wasm-pack</code>
+      <th style="text-align:left">
+<code>wasm-pack</code>
       </th>
-      <th style="text-align:left"><code>wasm-bindgen</code>
+      <th style="text-align:left">
+<code>wasm-bindgen</code>
       </th>
-      <th style="text-align:left"><code>cargo-web</code>
+      <th style="text-align:left">
+<code>cargo-web</code>
       </th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td style="text-align:left">&#x9879;&#x76EE;&#x72B6;&#x6001;</td>
-      <td style="text-align:left">&#x7531; <a href="https://rustwasm.github.io/">Rust / Wasm &#x5DE5;&#x4F5C;&#x7EC4;</a>&#x79EF;&#x6781;&#x7EF4;&#x62A4;</td>
-      <td
-      style="text-align:left">&#x7531; <a href="https://rustwasm.github.io/">Rust / Wasm &#x5DE5;&#x4F5C;&#x7EC4;</a>&#x79EF;&#x6781;&#x7EF4;&#x62A4;</td>
-        <td
-        style="text-align:left">&#x8D85;&#x8FC7;&#x516D;&#x4E2A;&#x6708;&#x6CA1;&#x6709; Github &#x6D3B;&#x52A8;</td>
+      <td style="text-align:left">项目状态</td>
+      <td style="text-align:left">由 <a href="https://rustwasm.github.io/">Rust / Wasm 工作组</a>积极维护</td>
+      <td style="text-align:left">由 <a href="https://rustwasm.github.io/">Rust / Wasm 工作组</a>积极维护</td>
+      <td style="text-align:left">超过六个月没有 Github 活动</td>
     </tr>
     <tr>
-      <td style="text-align:left">&#x5F00;&#x53D1;&#x4F53;&#x9A8C;</td>
-      <td style="text-align:left">&#x63A5;&#x8FD1;&#x5B8C;&#x7F8E;&#xFF01;&#x9700;&#x8981; <code>webpack</code> &#x4EE5;&#x83B7;&#x5F97;&#x6700;&#x4F73;&#x4F53;&#x9A8C;&#x3002;</td>
-      <td
-      style="text-align:left">&#x6BD4;&#x8F83;&#x57FA;&#x7840;&#x3002;&#x4F60;&#x9700;&#x8981;&#x7F16;&#x5199;&#x4E00;&#x4E9B;&#x811A;&#x672C;&#x6765;&#x7B80;&#x5316;&#x4F60;&#x7684;&#x5F00;&#x53D1;&#x4F53;&#x9A8C;&#x3002;</td>
-        <td
-        style="text-align:left">&#x7BA1;&#x7528;&#xFF01;&#x81EA;&#x5E26;&#x201C;&#x7535;&#x6C60;&#x201D;&#xFF0C;&#x4E0D;&#x9700;&#x8981;&#x5916;&#x90E8;&#x4F9D;&#x8D56;&#x3002;</td>
+      <td style="text-align:left">开发体验</td>
+      <td style="text-align:left">接近完美！需要 <code>webpack</code> 以获得最佳体验。</td>
+      <td style="text-align:left">比较基础。你需要编写一些脚本来简化你的开发体验。</td>
+        <td style="text-align:left">管用！自带“电池”，不需要外部依赖。</td>
     </tr>
     <tr>
-      <td style="text-align:left">&#x672C;&#x5730;&#x670D;&#x52A1;&#x5668;</td>
-      <td style="text-align:left">&#x901A;&#x8FC7; <code>webpack</code> &#x63D2;&#x4EF6;&#x652F;&#x6301;</td>
-      <td
-      style="text-align:left">&#x4E0D;&#x652F;&#x6301;</td>
-        <td style="text-align:left">&#x652F;&#x6301;</td>
+      <td style="text-align:left">本地服务器</td>
+      <td style="text-align:left">通过 <code>webpack</code> 插件支持</td>
+      <td style="text-align:left">不支持</td>
+      <td style="text-align:left">支持</td>
     </tr>
     <tr>
-      <td style="text-align:left">&#x6839;&#x636E;&#x672C;&#x5730;&#x66F4;&#x6539;&#x81EA;&#x52A8;&#x91CD;&#x65B0;&#x6784;&#x5EFA;</td>
-      <td
-      style="text-align:left">&#x901A;&#x8FC7; <code>webpack</code> &#x63D2;&#x4EF6;&#x652F;&#x6301;</td>
-        <td
-        style="text-align:left">&#x4E0D;&#x652F;&#x6301;</td>
-          <td style="text-align:left">&#x652F;&#x6301;</td>
+      <td style="text-align:left">根据本地更改自动重新构建</td>
+      <td style="text-align:left">通过 <code>webpack</code> 插件支持</td>
+      <td style="text-align:left">不支持</td>
+      <td style="text-align:left">支持</td>
     </tr>
     <tr>
-      <td style="text-align:left">&#x65E0;&#x5934;&#x6D4F;&#x89C8;&#x5668;&#x6D4B;&#x8BD5;</td>
-      <td style="text-align:left"><a href="https://rustwasm.github.io/docs/wasm-pack/commands/test.html">&#x652F;&#x6301;</a>
+      <td style="text-align:left">无头浏览器测试</td>
+      <td style="text-align:left">
+<a href="https://rustwasm.github.io/docs/wasm-pack/commands/test.html">Supported</a>
       </td>
-      <td style="text-align:left"><a href="https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html">&#x652F;&#x6301;</a>
+      <td style="text-align:left">
+<a href="https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html">Supported</a>
       </td>
-      <td style="text-align:left"><a href="https://github.com/koute/cargo-web#features">&#x652F;&#x6301;</a>
+      <td style="text-align:left">
+<a href="https://github.com/koute/cargo-web#features">Supported</a>
       </td>
     </tr>
     <tr>
-      <td style="text-align:left">&#x652F;&#x6301;&#x751F;&#x6210;&#x7684;&#x76EE;&#x6807;&#x4EE3;&#x7801;</td>
-      <td
-      style="text-align:left">
+      <td style="text-align:left">支持生成的目标代码</td>
+      <td style="text-align:left">
         <ul>
-          <li><code>wasm32-unknown-unknown</code>
+          <li>
+<code>wasm32-unknown-unknown</code>
           </li>
         </ul>
-        </td>
-        <td style="text-align:left">
-          <ul>
-            <li><code>wasm32-unknown-unknown</code>
-            </li>
-          </ul>
-        </td>
-        <td style="text-align:left">
-          <ul>
-            <li><code>wasm32-unknown-unknown</code>
-            </li>
-            <li><code>wasm32-unknown-emscripten</code>
-            </li>
-            <li><code>asmjs-unknown-emscripten</code>
-            </li>
-          </ul>
-        </td>
+      </td>
+      <td style="text-align:left">
+        <ul>
+          <li>
+<code>wasm32-unknown-unknown</code>
+          </li>
+        </ul>
+      </td>
+      <td style="text-align:left">
+        <ul>
+          <li>
+<code>wasm32-unknown-unknown</code>
+          </li>
+          <li>
+<code>wasm32-unknown-emscripten</code>
+          </li>
+          <li>
+<code>asmjs-unknown-emscripten</code>
+          </li>
+        </ul>
+      </td>
     </tr>
     <tr>
-      <td style="text-align:left"><code>web-sys</code>
+      <td style="text-align:left">
+<code>web-sys</code>
       </td>
-      <td style="text-align:left">&#x517C;&#x5BB9;</td>
-      <td style="text-align:left">&#x517C;&#x5BB9;</td>
-      <td style="text-align:left">&#x4E0D;&#x517C;&#x5BB9;</td>
+      <td style="text-align:left">兼容</td>
+      <td style="text-align:left">兼容</td>
+      <td style="text-align:left">不兼容</td>
     </tr>
     <tr>
-      <td style="text-align:left"><code>stdweb</code>
+      <td style="text-align:left">
+<code>stdweb</code>
       </td>
-      <td style="text-align:left">&#x517C;&#x5BB9;</td>
-      <td style="text-align:left">&#x517C;&#x5BB9;</td>
-      <td style="text-align:left">&#x517C;&#x5BB9;</td>
+      <td style="text-align:left">兼容</td>
+      <td style="text-align:left">兼容</td>
+      <td style="text-align:left">兼容</td>
     </tr>
     <tr>
-      <td style="text-align:left">&#x793A;&#x4F8B;&#x7528;&#x6CD5;</td>
-      <td style="text-align:left"><a href="https://github.com/yewstack/yew-wasm-pack-minimal">&#x65B0;&#x624B;&#x6A21;&#x677F;</a>
+      <td style="text-align:left">示例用法</td>
+      <td style="text-align:left">
+<a href="https://github.com/yewstack/yew-wasm-pack-minimal">Starter template</a>
       </td>
-      <td style="text-align:left">Yew &#x793A;&#x4F8B;&#x7A0B;&#x5E8F;&#x7684;<a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">&#x6784;&#x5EFA;&#x811A;&#x672C;</a>
-      </td>
-      <td style="text-align:left">Yew &#x793A;&#x4F8B;&#x7A0B;&#x5E8F;&#x7684;<a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">&#x6784;&#x5EFA;&#x811A;&#x672C;</a>
-      </td>
+      <td style="text-align:left">Yew 示例程序的<a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">构建脚本</a>       </td>
+      <td style="text-align:left">Yew 示例程序的<a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">构建脚本</a>       </td>
     </tr>
   </tbody>
 </table>
