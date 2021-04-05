@@ -2,13 +2,12 @@ use js_sys::Date;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 use yew_services::ConsoleService;
 
-// Define possible messages
+// Define the possible messages which can be sent to the component
 pub enum Msg {
     Increment,
     Decrement,
 }
 
-// Define model for this component
 pub struct Model {
     link: ComponentLink<Self>,
     value: i64, // This will store the counter value
@@ -31,8 +30,8 @@ impl Component for Model {
             }
             Msg::Decrement => {
                 self.value -= 1;
-                ConsoleService::log("minus one"); // Will output a string to the browser console
-                true // Return true to cause the displayed change to update
+                ConsoleService::log("minus one");
+                true
             }
         }
     }
@@ -62,7 +61,7 @@ impl Component for Model {
 
                 </div>
 
-                // Display the contents of the component
+                // Display the current value of the counter
                 <p class="counter">
                     { self.value }
                 </p>
