@@ -46,11 +46,13 @@ yew = "0.17"
 
 ### Update main.rs
 
+We need to generate a template which sets up a root Component called `Model` which renders a button that updates its value when clicked.
 Replace the contents of `src/main.rs` with the following code.
 
-This template sets up a root `Component` called `Model` which renders a button that updates itself when clicked.
-Take special note of `yew::start_app::<Model>()` inside `main()` which starts your app and mounts it to the page's `<body>` tag.
+:::note
+The line `yew::start_app::<Model>()` inside `main()` starts your application and mounts it to the page's `<body>` tag.  
 If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props::<Model>(..)`.
+:::
 
 
 ```rust
@@ -125,7 +127,7 @@ Finally, add an `index.html` file in the root directory of your app.
 </html>
 ```
 
-## View your web applcation
+## View your web application
 
 Run the following command to build and serve the application locally.
 

@@ -70,7 +70,8 @@
       "more/development-tips",
       "more/css",
       "more/testing",
-      "more/roadmap"
+      "more/roadmap",
+      "more/wasm-build-tools"
     ]
   }
 }
